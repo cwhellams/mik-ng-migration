@@ -1,7 +1,7 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction, RequestHandler } from "express";
 import helmet from "helmet";
 import cors from "cors";
-import compression from "compression";
+// import compression from "compression";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth/otp";
@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 // Security Middlewares
 app.use(helmet()); // Secure headers
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || "*" }));
-app.use(compression());
+// app.use(compression());
 
 // Body parsing
 app.use(express.json());
