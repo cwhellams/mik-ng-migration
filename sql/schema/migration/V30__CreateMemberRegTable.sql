@@ -16,5 +16,5 @@ CREATE TABLE member.register
     postcode VARCHAR(20),
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_updated_by VARCHAR(50) NOT NULL,
-    FOREIGN KEY (member_type_id) REFERENCES member.type(id)
+    FOREIGN KEY (member_type_id) REFERENCES member.type (id)
 );

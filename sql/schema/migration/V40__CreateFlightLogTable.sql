@@ -18,20 +18,15 @@ CREATE TABLE flight.logs
     departure_airport VARCHAR(10) NOT NULL,
     arrival_airport VARCHAR(10) NOT NULL,
     invoice_number VARCHAR(50),
-    is_billed BOOLEAN NOT NULL
-    GENERATED ALWAYS AS
-    (invoice_number IS NOT NULL) STORED,
-    flight_type VARCHAR
-    (50),
+    is_billed BOOLEAN NOT NULL GENERATED ALWAYS AS (
+        invoice_number IS NOT NULL
+    ) STORED,
+    flight_type VARCHAR(50),
     billing_remarks TEXT,
     remarks TEXT,
-    FOREIGN KEY
-    (captain) REFERENCES member.register
-    (member_id),
-    FOREIGN KEY
-    (copilot) REFERENCES member.register
-    (member_id),
-    FOREIGN KEY
-    (aircraft_registration) REFERENCES flight.aircraft
-    (registration)
+    FOREIGN KEY (captain) REFERENCES member.register (member_id),
+    FOREIGN KEY (copilot) REFERENCES member.register (member_id),
+    FOREIGN KEY (aircraft_registration) REFERENCES flight.aircraft (
+        registration
+    )
 );
