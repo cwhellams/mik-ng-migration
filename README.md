@@ -22,7 +22,8 @@ Welcome to the MIK ng "next gen" project
 7. Flyway (DB Migrations)
 8. Docker
 9. nvm (node version manager)
-10. DBeaver or your favourite SQL IDE
+10. DBeaver (or your favourite SQL IDE)
+11. sqlfluff (Linter for SQL)
 
 # Bootstrap you dev environment
 
@@ -42,6 +43,9 @@ then
 
     brew install flyway
     brew install --cask dbeaver-community
+    brew install sqlfluff
+
+Some tools e.g. sqlfluff require python, we will not cover the installation for that here but the internet or an AI bot will help you with that
 
 ## Windows
 
