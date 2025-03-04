@@ -24,6 +24,7 @@ Welcome to the MIK ng "next gen" project
 9. nvm (node version manager)
 10. DBeaver (or your favourite SQL IDE)
 11. sqlfluff (Linter for SQL)
+12. GitHub CLI
 
 # Bootstrap you dev environment
 
@@ -44,6 +45,7 @@ then
     brew install flyway
     brew install --cask dbeaver-community
     brew install sqlfluff
+    brew install gh
 
 Some tools e.g. sqlfluff require python, we will not cover the installation for that here but the internet or an AI bot will help you with that
 
@@ -73,3 +75,24 @@ Once you have the postgres container downloaded you can use the start script to 
 
 ## sql directory
 Database related code should be stored in the ./sql folder 
+
+# Environments
+We have defined 3 environments in GitHub
+
+- DEV
+- TEST
+- PROD
+
+## Environment variables and secrets
+Env vars and secrets are stored in GitHub. We use Environment and Repository secrets. 
+
+## Local dev using dotenv
+To make things easier for local development we use the dotenv library and a .env file, this allows all necessary env vars and secrets to be placed in the .env file when doing local development.
+
+>  DO NOT PLACE ANY SECRETS INTO THE .env file AND PUSH TO REMOTE ! 
+
+No secrets should be pushed to the .env file and stored under version control ! Keep a copy of your .env file on local or overwrite the .env file with needed values when you start a piece of work. 
+
+## Github secrets cannot be seen once set
+Oncce a secret is set in GitHub you cannot view the secret value, neither in the web ui or using the gh cli . Secrets are only available to GitHub actions.
+

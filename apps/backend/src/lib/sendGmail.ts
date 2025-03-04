@@ -43,7 +43,6 @@ function createEmailMessage(to: string, subject: string, body: string): string {
     .toString('base64')
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
-
 }
 
 /**
