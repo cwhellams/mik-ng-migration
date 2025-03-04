@@ -1,81 +1,87 @@
-import { Request, Response, NextFunction } from 'express';
-const jwt = require('jsonwebtoken');
-import { User, Role } from '../types/common';
+import { Request, Response, NextFunction } from 'express'
+const jwt = require('jsonwebtoken')
+import { User, Role } from '../types/common'
 
 // Extend Express Request type
 declare module 'express' {
-    interface Request {
-        user?: User; 
-    }
+  interface Request {
+    user?: User
+  }
 }
 
 // Middleware with role checks
-const authMiddleware = (requiredRoles: string[] = []) => async (req: Request, res: Response, next: NextFunction) => {
+const authMiddleware =
+  (requiredRoles: string[] = []) =>
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Extract the token from the Authorization header
-        const authHeader = req.header('Authorization');
-        
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).send({ error: 'Authorization header missing or malformed' });
-        }
+      // Extract the token from the Authorization header
+      const authHeader = req.header('Authorization')
 
-        const token = authHeader.replace('Bearer ', '');
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res
+          .status(401)
+          .send({ error: 'Authorization header missing or malformed' })
+      }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET, {
-            algorithms: ['HS256'],
-            maxAge: '1h'
-        });
+      const token = authHeader.replace('Bearer ', '')
 
-        const user = undefined; // TODO: Implement user lookup with decoded.userId
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+        algorithms: ['HS256'],
+        maxAge: '1h',
+      })
 
-        if (!user) {
-            return res.status(401).send({ error: 'User not found' });
-        }
+      const user = undefined // TODO: Implement user lookup with decoded.userId
 
-        // If no roles are required, just validate the session and move on
-        if (!requiredRoles.length) {
-            req.user = user;
-            return next();
-        }
+      if (!user) {
+        return res.status(401).send({ error: 'User not found' })
+      }
 
-        // Helper function to check if the user is a board member
-        const isBoardMember = (user: User) => {
-            return user.roles.some((role: Role) => role.name === 'board_member');
-        };
+      // If no roles are required, just validate the session and move on
+      if (!requiredRoles.length) {
+        req.user = user
+        return next()
+      }
 
-        // Helper function to check if the user is a super admin
-        const isSuperAdmin = (user: User) => {
-            return user.roles.some((role: Role) => role.name === 'super_admin');
-        };
+      // Helper function to check if the user is a board member
+      const isBoardMember = (user: User) => {
+        return user.roles.some((role: Role) => role.name === 'board_member')
+      }
 
-        // Super admins have access to everything
-        if (isSuperAdmin(user)) {
-            req.user = user;
-            return next();
-        }
+      // Helper function to check if the user is a super admin
+      const isSuperAdmin = (user: User) => {
+        return user.roles.some((role: Role) => role.name === 'super_admin')
+      }
 
-        // Check if user has any of the required roles
-        const hasRequiredRole = requiredRoles.some(requiredRole => 
-            user.roles.some((userRole: Role) => userRole.name === requiredRole)
-        );
+      // Super admins have access to everything
+      if (isSuperAdmin(user)) {
+        req.user = user
+        return next()
+      }
 
-        if (hasRequiredRole) {
-            req.user = user;
-            return next();
-        }
+      // Check if user has any of the required roles
+      const hasRequiredRole = requiredRoles.some((requiredRole) =>
+        user.roles.some((userRole: Role) => userRole.name === requiredRole)
+      )
 
-        return res.status(403).send({ error: 'Forbidden: You do not have the necessary access rights' });
+      if (hasRequiredRole) {
+        req.user = user
+        return next()
+      }
+
+      return res.status(403).send({
+        error: 'Forbidden: You do not have the necessary access rights',
+      })
     } catch (error: any) {
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).send({ errorCode: 'invalid_token' });
-        }
+      if (error.name === 'JsonWebTokenError') {
+        return res.status(401).send({ errorCode: 'invalid_token' })
+      }
 
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).send({ errorCode: 'token_expired' });
-        }
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).send({ errorCode: 'token_expired' })
+      }
 
-        res.status(500).send({ error: 'Internal server error' });
+      res.status(500).send({ error: 'Internal server error' })
     }
-};
+  }
 
-module.exports = authMiddleware;
+module.exports = authMiddleware

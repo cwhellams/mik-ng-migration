@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs'
 
 /**
  * Generates a 6-digit One-Time Password (OTP) with its hash and expiry time
@@ -9,16 +9,16 @@ import bcrypt from 'bcryptjs';
  */
 
 interface OTPResult {
-  otp: string;
-  otpHash: string;
-  otpExpiry: number;
+  otp: string
+  otpHash: string
+  otpExpiry: number
 }
 
 const generateOTP = (): OTPResult => {
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpHash = bcrypt.hashSync(otp, 10);
-  const otpExpiry = Date.now() + 15 * 60 * 1000; // OTP valid for 15 minutes
-  return { otp, otpHash, otpExpiry };
-};
+  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+  const otpHash = bcrypt.hashSync(otp, 10)
+  const otpExpiry = Date.now() + 15 * 60 * 1000 // OTP valid for 15 minutes
+  return { otp, otpHash, otpExpiry }
+}
 
-export default generateOTP; 
+export default generateOTP
