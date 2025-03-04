@@ -1,10 +1,21 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { ThemeProvider } from '@mui/material/styles'
+import CssBaseline from '@mui/material/CssBaseline'
+import '@fontsource/poppins/300.css' // Light
+import '@fontsource/poppins/400.css' // Regular
+import '@fontsource/poppins/500.css' // Medium
+import '@fontsource/poppins/700.css' // Bold
 import './index.css'
+import './i18n' // Import i18n configuration
 import App from './App.tsx'
+import theme from './theme/theme.ts';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ThemeProvider theme={theme}>
+      <CssBaseline /> {/* Provides a consistent baseline CSS */}
+      <App />
+    </ThemeProvider>
   </StrictMode>,
 )

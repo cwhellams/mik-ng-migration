@@ -1,0 +1,9 @@
+{
+  "header": {
+    "dashboard": "Dashboard",
+    "schedule": "Schedule",
+    "aircraft": "Aircraft",
+    "members": "Members",
+    "login": "Login"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "header": {
+    "dashboard": "Kojelauta",
+    "schedule": "Aikataulu",
+    "aircraft": "Lentokoneet",
+    "members": "Jäsenet",
+    "login": "Kirjaudu"
+  }
+}

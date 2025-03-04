@@ -1,33 +1,63 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import SplashScreen from './components/SplashScreen'
+import MainLayout from './layouts/MainLayout'
+import AuthLayout from './layouts/AuthLayout'
+
+// Import your page components (create these files)
+import Dashboard from './sections/dashboard/Dashboard'
+// import Schedule from './sections/Schedule'
+// import Aircraft from './sections/Aircraft'
+// import Members from './sections/Members'
+import Login from './sections/login/Login'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Check if document fonts are loaded
+    const checkFontsLoaded = () => {
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+          // Add a small delay to ensure smooth transition
+          setTimeout(() => {
+            setLoading(false)
+          }, 500)
+        })
+      } else {
+        // Fallback for browsers that don't support document.fonts
+        setTimeout(() => {
+          setLoading(false)
+        }, 1500)
+      }
+    }
+
+    checkFontsLoaded()
+  }, [])
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <SplashScreen loading={loading} />
+      <BrowserRouter>
+        <Routes>
+          {/* Main Layout with header */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            {/* <Route path="/schedule" element={<Schedule />} />
+            <Route path="/aircraft" element={<Aircraft />} />
+            <Route path="/members" element={<Members />} /> */}
+          </Route>
+
+          {/* Auth Layout without header */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            {/* Add other auth routes here (like register, forgot password) */}
+          </Route>
+
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
     </>
   )
 }
