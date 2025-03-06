@@ -1,3 +1,4 @@
+-- Insert test data for the flight.logs table
 INSERT INTO flight.logs (
     captain,
     copilot,
@@ -19,115 +20,114 @@ INSERT INTO flight.logs (
     flight_type,
     billing_remarks,
     remarks
-)
-VALUES
+) VALUES
 (
-    1,
-    2,
-    'OH-STL',
+    1, -- Assuming member_id 1 exists in member.register
+    2, -- Assuming member_id 2 exists in member.register
+    'OH-STL', -- Assuming this registration exists in flight.aircraft
     '2025-03-01',
     '08:00:00',
     '08:15:00',
-    '08:20:00',
-    '09:00:00',
-    5.0,
+    '08:30:00',
+    '10:00:00',
+    1.5,
     50.0,
     4,
     1,
     '00:30:00',
-    '00:15:00',
-    'EFHK',
-    'EFVA',
+    '00:45:00',
+    'EFHK', -- Helsinki-Vantaa Airport
+    'EFHK', -- Helsinki-Vantaa Airport
     'INV001',
     'Training',
-    'Billing remarks 1',
-    'Remarks 1'
+    'N/A',
+    'Smooth flight'
 ),
 (
-    3,
-    4,
-    'N12345',
+    3, -- Assuming member_id 3 exists in member.register
+    4, -- Assuming member_id 4 exists in member.register
+    'OH-ABC', -- Assuming this registration exists in flight.aircraft
     '2025-03-02',
     '09:00:00',
     '09:10:00',
-    '09:15:00',
-    '10:00:00',
-    4.0,
-    40.0,
+    '09:20:00',
+    '11:00:00',
+    2.0,
+    60.0,
     2,
     2,
-    '00:20:00',
-    '00:10:00',
-    'EFHK',
-    'EFIV',
+    '00:45:00',
+    '01:00:00',
+    'EFHK', -- Helsinki-Vantaa Airport
+    'EFTP', -- Tampere-Pirkkala Airport
     'INV002',
     'Commercial',
-    'Billing remarks 2',
-    'Remarks 2'
+    'N/A',
+    'Training flight'
 ),
 (
-    5,
-    6,
-    'G-ABCD',
+    5, -- Assuming member_id 5 exists in member.register
+    NULL, -- No copilot
+    'OH-XYZ', -- Assuming this registration exists in flight.aircraft
     '2025-03-03',
     '10:00:00',
     '10:20:00',
-    '10:25:00',
-    '11:00:00',
-    3.0,
-    30.0,
+    '10:30:00',
+    '12:00:00',
+    1.0,
+    40.0,
     3,
     1,
-    '00:25:00',
     '00:20:00',
-    'EFHK',
-    'EFRO',
-    'INV003',
+    '00:30:00',
+    'EFHK', -- Helsinki-Vantaa Airport
+    'EFHK', -- Helsinki-Vantaa Airport
+    NULL, -- Not billed
     'Private',
-    'Billing remarks 3',
-    'Remarks 3'
+    'N/A',
+    'Routine check'
 ),
 (
-    7,
-    8,
-    'D-EFGH',
+    6, -- Assuming member_id 6 exists in member.register
+    7, -- Assuming member_id 7 exists in member.register
+    'OH-DEF', -- Assuming this registration exists in flight.aircraft
     '2025-03-04',
     '11:00:00',
     '11:15:00',
-    '11:20:00',
-    '12:00:00',
-    2.0,
-    20.0,
-    4,
-    2,
-    '00:15:00',
-    '00:10:00',
-    'EFHK',
-    'EFKT',
-    'INV004',
-    'Training',
-    'Billing remarks 4',
-    'Remarks 4'
+    '11:30:00',
+    '13:00:00',
+    1.2,
+    55.0,
+    5,
+    3,
+    '01:00:00',
+    '01:15:00',
+    'EFHK', -- Helsinki-Vantaa Airport
+    'EFHK', -- Helsinki-Vantaa Airport
+    'INV003',
+    'Cargo',
+    'N/A',
+    'Cargo delivery'
 ),
 (
-    9,
-    10,
-    'F-IJKL',
+    8, -- Assuming member_id 8 exists in member.register
+    NULL, -- No copilot
+    'OH-GHI', -- Assuming this registration exists in flight.aircraft
     '2025-03-05',
     '12:00:00',
     '12:10:00',
-    '12:15:00',
-    '13:00:00',
-    1.0,
-    10.0,
+    '12:20:00',
+    '14:00:00',
+    1.8,
+    70.0,
+    6,
     2,
-    1,
-    '00:10:00',
-    '00:05:00',
-    'EFHK',
-    'EFKS',
-    'INV005',
-    'Commercial',
-    'Billing remarks 5',
-    'Remarks 5'
+    '00:50:00',
+    '01:00:00',
+    'EFHK', -- Helsinki-Vantaa Airport
+    'EFHK', -- Helsinki-Vantaa Airport
+    'INV004',
+    'Passenger',
+    'N/A',
+    'Passenger transport'
 );
