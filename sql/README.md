@@ -29,7 +29,7 @@ Creating the database schema (tables etc) is now very easily done using flyway (
 Flyway should now deploy the db schema to the newly created database.
 
 ## Create test data
-If you require test data we have scripts which will prime the db tables with some meaningful data
+If you require test data we have scripts which will prime the db tables with some meaningful data, note the test data is used in our unit tests - if you modify these scripts please ensure that all tests continue to pass !
 
     ./sql/flyway_testdata_full.sh
 
@@ -44,12 +44,13 @@ This will burn down the existing schema and data and re-deploy an empty database
 If you wish to make changes to the database such as adding, changing or deleting schema elements it is extremely important to understand the way Flyway works - we will not cover that in-depth here, please RTFM. The rules are simple
 
 1. Make changes granular i.e. in general 1 file for 1 db object
-2. Follow the naming convention, in particular the version number of the scripts
-3. we always increment by 10, this leaves space if we later realise we need additional scripts e.g. 2 devs working at the same time. 
-4. The file naming is extremely important and must always follow the pattern Vxx__<description-of-change>.sql
-5. When developing db changes always ensure you have run a full flyway deployment first, then make changes - this way we avoid the possibility of scripts interfering with each other. 
-6. Once a DB object is deployed it must *NEVER* be changed by dropping or deleting it and re-creating (this will result in all data being lost - unless that is the intention of course). Changes should typically be made by modifying the existing object e.g. adding columns, altering etc 
-7. Always test your changes by running flyway migrations
+2. Make changes ATOMIC - meaning DB changes and related code are in the same PR, this ensures code + db are always in sync  
+3. Follow the naming convention, in particular the version number of the scripts
+4. we always increment by 10, this leaves space if we later realise we need additional scripts e.g. 2 devs working at the same time. 
+5. The file naming is extremely important and must always follow the pattern Vxx__<description-of-change>.sql
+6. When developing db changes always ensure you have run a full flyway deployment first, then make changes - this way we avoid the possibility of scripts interfering with each other. 
+7. Once a DB object is deployed it must *NEVER* be changed by dropping or deleting it and re-creating (this will result in all data being lost - unless that is the intention of course). Changes should typically be made by modifying the existing object e.g. adding columns, altering etc 
+8. Always test your changes by running flyway migrations
    1. first run a migration against the existing schema
    2. then a migration of the clean db
 

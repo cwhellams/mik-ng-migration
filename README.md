@@ -59,7 +59,9 @@ Docker makes it easy to run the Postgres database, simply pull the container fro
     docker pull postgres
 
 ## nvm
- Install node , version TBD
+The node version manager is often used to manage various node versions, other tools such as pnpm can also be used or you can simply install locally.
+
+Generally we will use the latest LTS version of Node - exceptions can be made if there is an obvious reason, but please try to keep to the LTS releases.
 
 # Database
 We are using postgres as our database , schema evolution is managed using a CLI tool called [Flyway](https://www.red-gate.com/products/flyway/community/). Flyway is very simple to use and provides an extremely robust way to manage database migrations, it also allows the database DDL schema definition code to be kept safely under version control.
@@ -91,7 +93,9 @@ To make things easier for local development we use the dotenv library and a .env
 
 >  DO NOT PLACE ANY SECRETS INTO THE .env file AND PUSH TO REMOTE ! 
 
-No secrets should be pushed to the .env file and stored under version control ! Keep a copy of your .env file on local or overwrite the .env file with needed values when you start a piece of work. 
+No secrets should be pushed to the .env file and stored under version control ! Keep a copy of your .env file on local or overwrite the .env file with needed values when you start a piece of work.
+
+.gitignore is configured to exclude .env files just in case !
 
 ## Github secrets cannot be seen once set
 Oncce a secret is set in GitHub you cannot view the secret value, neither in the web ui or using the gh cli . Secrets are only available to GitHub actions.

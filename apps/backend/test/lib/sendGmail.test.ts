@@ -44,7 +44,7 @@ describe('sendEmail', () => {
 
     expect(google.gmail).toHaveBeenCalledWith({
       version: 'v1',
-      auth: expect.any(Object),
+      auth: auth,
     })
 
     expect(sendSpy).toHaveBeenCalledWith({

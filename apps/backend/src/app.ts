@@ -2,22 +2,24 @@ import express, {
   Request,
   Response,
   NextFunction,
-  RequestHandler,
+  //RequestHandler,
 } from 'express'
 import helmet from 'helmet'
 import cors from 'cors'
 // import compression from "compression";
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import dotenv from 'dotenv'
-import authRoutes from './routes/auth/otp'
+//import authRoutes from './routes/auth/otp'
 import morgan from 'morgan'
 import logger from './lib/logger'
 
-// Load environment variables
+// Load environment variables for local development - we will not ship this file to production and will use environment variables from the hosting provider
 dotenv.config()
 
 const app = express()
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT ?? 3000
+
+logger.info('Bootstrapping mik-ng service on port %d', PORT)
 
 // Morgan logs HTTP requests
 app.use(
@@ -63,7 +65,7 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 // Auth Routes
-app.use('/auth', authRoutes)
+//app.use('/auth', authRoutes)
 
 // Error Handling
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
@@ -72,5 +74,5 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
+  logger.info(`Server running on http://localhost:${PORT}`)
 })

@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from 'express'
+import { MemberRegister } from 'kysely-codegen'
+import logger from '../lib/logger'
 const jwt = require('jsonwebtoken')
-import { User, Role } from '../types/common'
 
 // Extend Express Request type
 declare module 'express' {
   interface Request {
-    user?: User
+    user?: MemberRegister
   }
 }
 
@@ -30,43 +31,45 @@ const authMiddleware =
         maxAge: '1h',
       })
 
-      const user = undefined // TODO: Implement user lookup with decoded.userId
+      logger.info('Decoded token:', decoded)
 
-      if (!user) {
-        return res.status(401).send({ error: 'User not found' })
-      }
+      //const user = undefined // TODO: Implement user lookup with decoded.userId
+
+      // if (!user) {
+      //   return res.status(401).send({ error: 'User not found' })
+      // }
 
       // If no roles are required, just validate the session and move on
       if (!requiredRoles.length) {
-        req.user = user
+        //req.user = user
         return next()
       }
 
       // Helper function to check if the user is a board member
-      const isBoardMember = (user: User) => {
-        return user.roles.some((role: Role) => role.name === 'board_member')
-      }
+      // const isBoardMember = (user: User) => {
+      //   return user.roles.some((role: string) => 'board_member')
+      // }
 
       // Helper function to check if the user is a super admin
-      const isSuperAdmin = (user: User) => {
-        return user.roles.some((role: Role) => role.name === 'super_admin')
-      }
+      // const isSuperAdmin = (user: MemberRegister) => {
+      //   return user.roles.some((role: string) => 'super_admin')
+      // }
 
       // Super admins have access to everything
-      if (isSuperAdmin(user)) {
-        req.user = user
-        return next()
-      }
+      // if (isSuperAdmin(user)) {
+      //   req.user = user
+      //   return next()
+      // }
 
       // Check if user has any of the required roles
-      const hasRequiredRole = requiredRoles.some((requiredRole) =>
-        user.roles.some((userRole: Role) => userRole.name === requiredRole)
-      )
+      // const hasRequiredRole = requiredRoles.some((requiredRole) =>
+      //   user.roles.some((userRole: string) => requiredRole)
+      // )
 
-      if (hasRequiredRole) {
-        req.user = user
-        return next()
-      }
+      // if (hasRequiredRole) {
+      //   req.user = user
+      //   return next()
+      // }
 
       return res.status(403).send({
         error: 'Forbidden: You do not have the necessary access rights',

@@ -1,11 +1,14 @@
 import jwt, { SignOptions } from 'jsonwebtoken'
 import { z } from 'zod'
-import bcrypt from 'bcryptjs'
+//import bcrypt from 'bcryptjs'
 import ms from 'ms'
-import { User } from '../types/common'
+import { MemberRegister } from 'kysely-codegen'
 
 // Function to generate access token
-const generateAccessToken = (user: User, sessionId?: string): string => {
+const generateAccessToken = (
+  user: MemberRegister,
+  sessionId?: string
+): string => {
   const JWT_SECRET = process.env.JWT_SECRET as string
   if (!JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined in environment variables')
@@ -19,7 +22,7 @@ const generateAccessToken = (user: User, sessionId?: string): string => {
 
   try {
     const payload: Record<string, any> = {
-      userId: user.id,
+      userId: user.member_id,
       email: user.email,
     }
 
@@ -40,7 +43,7 @@ const generateAccessToken = (user: User, sessionId?: string): string => {
 }
 
 const generateRefreshToken = async (
-  user: User,
+  user: MemberRegister,
   sessionId: string
 ): Promise<string> => {
   const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string
@@ -58,14 +61,14 @@ const generateRefreshToken = async (
   }
 
   try {
-    const payload = { userId: user.id, sessionId }
+    const payload = { userId: user.member_id, sessionId }
     const signOptions: SignOptions = {
       algorithm: 'HS256',
       expiresIn: expiresInEnv as jwt.SignOptions['expiresIn'],
     }
 
     const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, signOptions)
-    const hashedToken = await bcrypt.hash(refreshToken, 10)
+    //const hashedToken = await bcrypt.hash(refreshToken, 10)
 
     // TODO: Implement token storage
     // Example:
