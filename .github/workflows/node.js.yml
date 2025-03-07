@@ -35,7 +35,35 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch all history for pushing to another branch
-    
+        
+    - name: Run Flyway migrations
+      run: |
+        docker run --rm \
+          -v $(pwd)/sql/schema/migration:/flyway/sql \
+          -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
+          -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
+          -e FLYWAY_URL=jdbc:postgresql://postgres:5432/${{ env.POSTGRES_DB }} \
+          --network host \
+          flyway/flyway:latest migrate
+      env:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: test_db
+
+    - name: Run Flyway test data
+      run: |
+        docker run --rm \
+          -v $(pwd)/sql/schema/testdata:/flyway/sql \
+          -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
+          -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
+          -e FLYWAY_URL=jdbc:postgresql://postgres:5432/${{ env.POSTGRES_DB }} \
+          --network host \
+          flyway/flyway:latest migrate
+      env:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: test_db
+        
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
