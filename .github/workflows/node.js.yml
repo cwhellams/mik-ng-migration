@@ -1,0 +1,78 @@
+name: Main PR validation and push to test on success
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/backend/**'
+      - '.github/workflows/**'
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/backend/**'
+      - '.github/workflows/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for pushing to another branch
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        npm ci
+    
+    - name: Build backend
+      run: |
+        npm run build --workspace=apps/backend
+    
+    - name: Test backend
+      run: |
+        npm test --workspace=apps/backend
+      env:
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: test_db
+    
+    - name: Upload test coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-coverage
+        path: apps/backend/coverage/
+        if-no-files-found: ignore
+    
+    - name: Push to test branch
+      if: success()
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git checkout -B test
+        git add .
+        git commit -m "Auto-update test branch from CI run"
+        git push origin test --force
