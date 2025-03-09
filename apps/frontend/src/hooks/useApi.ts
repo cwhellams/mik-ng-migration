@@ -12,12 +12,20 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
   request: AxiosRequestConfig,
   config: SWRConfiguration<AxiosResponse<Data>, AxiosError<Error>> = {}
 ): Return<Data, Error> {
+  const accessToken = localStorage.getItem('accessToken')
+
   // the whole object acts as a key for caching
+  const authenticatedRequest = {
+    ...request,
+    headers: {
+      Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
+    },
+  }
 
   const { data: response, ...rest } = useSWR<
     AxiosResponse<Data>,
     AxiosError<Error>
-  >(request, () => axios.request<Data>(request), {
+  >(authenticatedRequest, () => axios.request<Data>(authenticatedRequest), {
     ...config,
   })
 

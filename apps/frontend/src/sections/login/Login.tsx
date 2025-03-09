@@ -2,12 +2,17 @@ import { Typography, Box, TextField, Button, Paper, InputAdornment, CircularProg
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
 import MikLogo from '../../assets/mik-blue.svg'
+import { useNavigate } from 'react-router-dom'
+import { useOTP } from '../../hooks/useOTP'
 
 const Login = () => {
   const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [emailError, setEmailError] = useState('')
-  
+
+  const navigate = useNavigate()
+
+  const { isMutating, trigger } = useOTP('request')
+
   const validateEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return regex.test(email)
@@ -21,14 +26,15 @@ const Login = () => {
       setEmailError('Please enter a valid email address')
       return
     }
-    
-    setIsLoading(true)
-    console.log('Login request with email:', email)
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      // Implement actual login logic here
-    }, 1500)
+
+    trigger({ email })
+      .then(() => {
+        navigate(`/login/validate?email=${email}`)
+      })
+      .catch((error) => {
+        console.log('Error:', error)
+        setEmailError(error.response.data.message)
+      })
   }
 
   return (
@@ -107,15 +113,15 @@ const Login = () => {
                 },
               }}
             />
-            
-            <Button 
-              type="submit" 
-              variant="contained" 
-              color="primary" 
-              fullWidth 
-              size="large"
-              disabled={isLoading}
-              sx={{ 
+
+            <Button
+              type='submit'
+              variant='contained'
+              color='primary'
+              fullWidth
+              size='large'
+              disabled={isMutating}
+              sx={{
                 mt: 3,
                 mb: 2,
                 py: 1.5,
@@ -131,8 +137,8 @@ const Login = () => {
                 }
               }}
             >
-              {isLoading ? (
-                <CircularProgress size={24} color="inherit" />
+              {isMutating ? (
+                <CircularProgress size={24} color='inherit' />
               ) : (
                 'Request OTP'
               )}

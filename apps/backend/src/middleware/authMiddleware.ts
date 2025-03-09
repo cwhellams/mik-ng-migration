@@ -1,90 +1,75 @@
 import { Request, Response, NextFunction } from 'express'
-import { MemberRegister } from '../db/schema'
 import logger from '../lib/logger'
-const jwt = require('jsonwebtoken')
+import jwt from 'jsonwebtoken'
+import { JWTPayload, JWTPayloadSchema, MIKRoles } from '../routes/auth/tokens'
+import { ErrorResponse } from '../routes/response'
 
 // Extend Express Request type
 declare module 'express' {
   interface Request {
-    user?: MemberRegister
+    user?: JWTPayload
   }
 }
 
+const JWT_SECRET = process.env.JWT_SECRET as string
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET is not defined in environment variables')
+}
+
 // Middleware with role checks
-const authMiddleware =
-  (requiredRoles: string[] = []) =>
-  async (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware =
+  (...requiredRoles: MIKRoles[]) =>
+  async (req: Request, res: Response<ErrorResponse>, next: NextFunction) => {
     try {
       // Extract the token from the Authorization header
       const authHeader = req.header('Authorization')
 
       if (!authHeader?.startsWith('Bearer ')) {
-        return res
-          .status(401)
-          .send({ error: 'Authorization header missing or malformed' })
+        return res.status(401).json({ errorCode: 'invalid_token' })
       }
 
       const token = authHeader.replace('Bearer ', '')
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      const decoded = jwt.verify(token, JWT_SECRET, {
         algorithms: ['HS256'],
         maxAge: '1h',
       })
 
       logger.info('Decoded token:', decoded)
 
-      //const user = undefined // TODO: Implement user lookup with decoded.userId
-
-      // if (!user) {
-      //   return res.status(401).send({ error: 'User not found' })
-      // }
+      const user = JWTPayloadSchema.parse(decoded)
 
       // If no roles are required, just validate the session and move on
       if (!requiredRoles.length) {
-        //req.user = user
+        req.user = user
         return next()
       }
 
-      // Helper function to check if the user is a board member
-      // const isBoardMember = (user: User) => {
-      //   return user.roles.some((role: string) => 'board_member')
-      // }
-
-      // Helper function to check if the user is a super admin
-      // const isSuperAdmin = (user: MemberRegister) => {
-      //   return user.roles.some((role: string) => 'super_admin')
-      // }
-
       // Super admins have access to everything
-      // if (isSuperAdmin(user)) {
-      //   req.user = user
-      //   return next()
-      // }
+      if (user.roles.includes(MIKRoles.ADMIN)) {
+        req.user = user
+        return next()
+      }
 
       // Check if user has any of the required roles
-      // const hasRequiredRole = requiredRoles.some((requiredRole) =>
-      //   user.roles.some((userRole: string) => requiredRole)
-      // )
+      if (requiredRoles.some((role) => user.roles.includes(role))) {
+        req.user = user
+        return next()
+      }
 
-      // if (hasRequiredRole) {
-      //   req.user = user
-      //   return next()
-      // }
-
-      return res.status(403).send({
-        error: 'Forbidden: You do not have the necessary access rights',
+      return res.status(403).json({
+        message: 'Forbidden: You do not have the necessary access rights',
       })
     } catch (error: any) {
       if (error.name === 'JsonWebTokenError') {
-        return res.status(401).send({ errorCode: 'invalid_token' })
+        return res.status(401).json({ errorCode: 'invalid_token' })
       }
 
       if (error.name === 'TokenExpiredError') {
-        return res.status(401).send({ errorCode: 'token_expired' })
+        return res.status(401).json({ errorCode: 'token_expired' })
       }
 
-      res.status(500).send({ error: 'Internal server error' })
+      console.error(error)
+      res.status(500).json({ message: 'Internal server error' })
     }
   }
-
-module.exports = authMiddleware

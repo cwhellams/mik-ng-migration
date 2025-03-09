@@ -9,10 +9,11 @@ import cors from 'cors'
 // import compression from "compression";
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import dotenv from 'dotenv'
-//import authRoutes from './routes/auth/otp'
+import { router as authRoutes } from './routes/auth/otp'
 import { router as memberRoutes } from './routes/members/api'
 import morgan from 'morgan'
 import logger from './lib/logger'
+import { ErrorResponse } from './routes/response'
 
 // Load environment variables for local development - we will not ship this file to production and will use environment variables from the hosting provider
 dotenv.config()
@@ -65,14 +66,14 @@ app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Hello World NG' })
 })
 
-// Auth Routes
-//app.use('/auth', authRoutes)
+// Routes
+app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/members', memberRoutes)
 
 // Error Handling
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.message)
-  res.status(500).json({ message: 'Internal Server Error' })
+  console.error(err)
+  res.status(500).json(<ErrorResponse>{ message: 'Internal Server Error' })
 })
 
 app.listen(PORT, () => {

@@ -1,98 +1,96 @@
-// import { Router, Request, Response, NextFunction } from 'express'
-// import { generateAccessToken, generateRefreshToken } from '../../lib/tokens'
+import { Router, Request, Response } from 'express'
+import {
+  generateAccessToken,
+  generateJWTPayload,
+  generateRefreshToken,
+} from './tokens'
+import { z } from 'zod'
 // import jwt from 'jsonwebtoken'
 // import bcrypt from 'bcryptjs'
 // import crypto from 'crypto'
 // import generateOTP from '../../lib/generateOTP'
 // import { sendEmail } from '../../lib/sendGmail'
+import { ErrorResponse } from '../response'
+import { getMember, getMemberRoles } from '../../db/queries'
 
-// const router = Router()
+export const router = Router()
 
-// interface OTPRequestBody {
-//   email: string
-// }
+const OTPRequestSchema = z.object({
+  email: z.string(),
+  otp: z.string().optional(),
+})
+export type OTPRequest = z.infer<typeof OTPRequestSchema>
 
-// interface OTPVerifyBody {
-//   email: string
-//   otp: string
-// }
+const OTPResponseSchema = z.object({
+  accessToken: z.string().optional(),
+  code: z.string().optional(),
+})
+export type OTPResponse = z.infer<typeof OTPResponseSchema>
 
 // interface StoredToken {
 //   token: string
 //   expiresAt: Date
 // }
 
-// interface JWTPayload {
-//   userId: string
-//   sessionId: string
-// }
+router.post(
+  '/request-otp',
+  async (
+    req: Request<{}, {}, OTPRequest, Record<string, any>>,
+    res: Response<{ code: string } | ErrorResponse>
+  ) => {
+    const { email } = req.body
 
-// router.post(
-//   '/request-otp',
-//   async (
-//     req: Request<{}, {}, OTPRequestBody, Record<string, any>>,
-//     res: Response
-//   ) => {
-//     const { email } = req.body
+    const user = await getMember(email)
+    if (!user) {
+      return res.status(400).send({
+        message: 'Invalid Request',
+      })
+    }
 
-//     try {
-//       const user = undefined // TODO: find user by email
+    // const { otp, otpHash, otpExpiry } = generateOTP()
 
-//       if (!user) {
-//         return res.status(200).send({ code: 'otp_sent' })
-//       }
+    // TODO: save otpHash and otpExpiry to user
 
-//       const { otp, otpHash, otpExpiry } = generateOTP()
+    // await sendEmail(email, 'OTP', otp)
 
-//       // TODO: save otpHash and otpExpiry to user
+    res.status(200).send({ code: 'otp_sent' })
+  }
+)
 
-//       await sendEmail(
-//         email, 
-//         'OTP', 
-//         otp
-//       )
+router.post(
+  '/verify-otp',
+  async (
+    req: Request<{}, {}, OTPRequest>,
+    res: Response<OTPResponse | ErrorResponse>
+  ) => {
+    const { email, otp } = req.body
+    // const ipAddress = req.ip || req.socket.remoteAddress || 'Unknown'
 
-//       res.status(200).send({ code: 'otp_sent' })
-//     } catch (error) {
-//       console.error(error)
-//       res.status(500).send({ error_code: 'otp_request_failed' })
-//     }
-//   }
-// )
+    const user = await getMember(email)
 
-// router.post(
-//   '/verify-otp',
-//   async (req: Request<{}, {}, OTPVerifyBody>, res: Response) => {
-//     const { email, otp } = req.body
-//     const ipAddress = req.ip || req.socket.remoteAddress || 'Unknown'
+    const otpVerified = otp && process.env.OTP_DISABLED == 'true' // TODO: verify otp against the hash stored in the user
+    if (!user || !otpVerified) {
+      return res.status(400).json({
+        message: 'Invalid or expired code',
+      })
+    }
 
-//     try {
-//       const user = undefined // TODO: find user by email
-//       const otpVerified = false // TODO: verify otp against the hash stored in the user
-//       if (!user || !otpVerified) {
-//         return res.status(400).send({ error: 'Invalid OTP or OTP expired' })
-//       }
+    // TODO: reset otpHash and otpExpiry in user
+    const roles = await getMemberRoles(user.member_id)
+    const payload = generateJWTPayload(user, roles)
 
-//       // TODO: reset otpHash and otpExpiry in user
+    const accessToken = generateAccessToken(payload)
+    const refreshToken = await generateRefreshToken(payload)
 
-//       const sessionId = crypto.randomUUID()
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    })
 
-//       const accessToken = generateAccessToken(user, sessionId)
-//       const refreshToken = await generateRefreshToken(user, sessionId)
-
-//       res.cookie('refreshToken', refreshToken, {
-//         httpOnly: true,
-//         secure: process.env.NODE_ENV === 'production',
-//         sameSite: 'strict',
-//       })
-
-//       res.send({ accessToken })
-//     } catch (error) {
-//       console.error(error)
-//       res.status(500).send({ error_code: 'otp_verify_failed' })
-//     }
-//   }
-// )
+    res.json({ accessToken })
+  }
+)
 
 // router.post(
 //   '/refresh-token',

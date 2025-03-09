@@ -10,6 +10,7 @@ import Dashboard from './sections/dashboard/Dashboard'
 // import Aircraft from './sections/Aircraft'
 import Members from './sections/members/Members'
 import Login from './sections/login/Login'
+import Validate from './sections/login/Validate'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -51,6 +52,7 @@ function App() {
           {/* Auth Layout without header */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
+            <Route path="/login/validate" element={<Validate />} />
             {/* Add other auth routes here (like register, forgot password) */}
           </Route>
 
