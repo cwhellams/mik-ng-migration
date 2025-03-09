@@ -11,6 +11,7 @@ import { useTheme } from '@mui/material/styles'
 import { Link, useLocation } from 'react-router-dom'
 import MikLogo from '../assets/mik-blue.svg'
 import { useTranslation } from 'react-i18next'
+import User from './User'
 
 interface HeaderProps {
   window?: () => Window
@@ -119,19 +120,7 @@ const Header = (props: HeaderProps) => {
           </Box>
           
           {/* Right side - Login button */}
-          <Box>
-            <Button 
-              component={Link}
-              to="/login"
-              variant="contained" 
-              color="primary"
-              sx={{ 
-                borderRadius: 2,
-              }}
-            >
-              {t('header.login')}
-            </Button>
-          </Box>
+          <User />
         </Container>
       </Toolbar>
     </AppBar>

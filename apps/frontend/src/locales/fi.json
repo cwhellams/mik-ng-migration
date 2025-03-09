@@ -4,6 +4,7 @@
     "schedule": "Aikataulu",
     "aircraft": "Lentokoneet",
     "members": "Jäsenet",
-    "login": "Kirjaudu"
+    "login": "Kirjaudu",
+    "logout": "Uloskirjaudu"
   }
 }

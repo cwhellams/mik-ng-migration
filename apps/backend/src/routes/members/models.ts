@@ -32,4 +32,4 @@ const MemberSchema = z.object({
   streetAddress: z.string().nullish(),
   townCity: z.string().nullish(),
 })
-export type MemberResponse = z.infer<typeof MemberSchema>
+export type Member = z.infer<typeof MemberSchema>

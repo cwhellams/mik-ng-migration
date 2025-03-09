@@ -4,6 +4,7 @@
     "schedule": "Schedule",
     "aircraft": "Aircraft",
     "members": "Members",
-    "login": "Login"
+    "login": "Login",
+    "logout": "Logout"
   }
 }
