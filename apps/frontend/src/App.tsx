@@ -8,7 +8,7 @@ import AuthLayout from './layouts/AuthLayout'
 import Dashboard from './sections/dashboard/Dashboard'
 // import Schedule from './sections/Schedule'
 // import Aircraft from './sections/Aircraft'
-// import Members from './sections/Members'
+import Members from './sections/members/Members'
 import Login from './sections/login/Login'
 
 function App() {
@@ -44,8 +44,8 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path="/" element={<Dashboard />} />
             {/* <Route path="/schedule" element={<Schedule />} />
-            <Route path="/aircraft" element={<Aircraft />} />
-            <Route path="/members" element={<Members />} /> */}
+            <Route path="/aircraft" element={<Aircraft />} /> */}
+            <Route path="/members" element={<Members />} />
           </Route>
 
           {/* Auth Layout without header */}

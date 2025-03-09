@@ -10,6 +10,7 @@ import cors from 'cors'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import dotenv from 'dotenv'
 //import authRoutes from './routes/auth/otp'
+import { router as memberRoutes } from './routes/members/api'
 import morgan from 'morgan'
 import logger from './lib/logger'
 
@@ -66,6 +67,7 @@ app.get('/', (req: Request, res: Response) => {
 
 // Auth Routes
 //app.use('/auth', authRoutes)
+app.use('/api/v1/members', memberRoutes)
 
 // Error Handling
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
