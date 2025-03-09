@@ -1,7 +1,7 @@
 import { Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
 import dotenv from 'dotenv'
-import { DB } from 'kysely-codegen'
+import { DB } from './schema'
 import logger from '../lib/logger'
 
 dotenv.config()

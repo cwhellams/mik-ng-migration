@@ -7,24 +7,42 @@
     "start": "ts-node src/app.ts",
     "dev": "nodemon src/app.ts",
     "build": "tsc",
+    "schema": "kysely-codegen --out-file ./src/db/schema.d.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "jest"
   },
   "jest": {
-    "reporters" : [
+    "reporters": [
       "default",
       "jest-junit"
     ],
     "collectCoverage": true,
-    "coverageReporters": ["json", "lcov", "text", "clover"],
+    "coverageReporters": [
+      "json",
+      "lcov",
+      "text",
+      "clover"
+    ],
     "coverageDirectory": "coverage",
     "testEnvironment": "node",
-    "testMatch": ["**/*.test.ts"],
+    "testMatch": [
+      "**/*.test.ts"
+    ],
     "transform": {
-      "^.+\\.ts$": ["ts-jest", { "tsconfig": "tsconfig.json" }]
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.json"
+        }
+      ]
     },
-    "moduleFileExtensions": ["ts", "js", "json", "node"]
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json",
+      "node"
+    ]
   },
   "keywords": [],
   "author": "mik_ng team",

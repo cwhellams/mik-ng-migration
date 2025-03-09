@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { MemberRegister } from 'kysely-codegen'
+import { MemberRegister } from '../db/schema'
 import logger from '../lib/logger'
 const jwt = require('jsonwebtoken')
 

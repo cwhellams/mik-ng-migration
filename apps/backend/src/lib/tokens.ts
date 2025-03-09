@@ -2,7 +2,7 @@ import jwt, { SignOptions } from 'jsonwebtoken'
 import { z } from 'zod'
 //import bcrypt from 'bcryptjs'
 import ms from 'ms'
-import { MemberRegister } from 'kysely-codegen'
+import { MemberRegister } from '../db/schema'
 
 // Function to generate access token
 const generateAccessToken = (

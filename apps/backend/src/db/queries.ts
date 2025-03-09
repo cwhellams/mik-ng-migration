@@ -1,4 +1,4 @@
-import { MemberRegister } from 'kysely-codegen'
+import { MemberRegister } from './schema'
 import { db } from './connection'
 
 // Get member using email
