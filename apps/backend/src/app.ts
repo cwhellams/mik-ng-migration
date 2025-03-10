@@ -10,6 +10,7 @@ import cors from 'cors'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import dotenv from 'dotenv'
 import { router as authRoutes } from './routes/auth/otp'
+import { Pool } from 'pg'
 import { router as memberRoutes } from './routes/members/api'
 import morgan from 'morgan'
 import logger from './lib/logger'
@@ -17,6 +18,9 @@ import { ErrorResponse } from './routes/response'
 
 // Load environment variables for local development - we will not ship this file to production and will use environment variables from the hosting provider
 dotenv.config()
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+})
 
 const app = express()
 const PORT = process.env.PORT ?? 3000
@@ -76,6 +80,24 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json(<ErrorResponse>{ message: 'Internal Server Error' })
 })
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   logger.info(`Server running on http://localhost:${PORT}`)
+})
+
+// Gracefully handle app termination (Ctrl+C, kill, crashes)
+const shutdown = async () => {
+  console.log('\nShutting down server...')
+  await pool.end() // Close DB connections
+  server.close(() => {
+    console.log('HTTP server closed.')
+    process.exit(0)
+  })
+}
+
+// Listen for termination signals
+process.on('SIGINT', shutdown) // Ctrl+C
+process.on('SIGTERM', shutdown) // Kill command (e.g., Docker stop)
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err)
+  shutdown()
 })

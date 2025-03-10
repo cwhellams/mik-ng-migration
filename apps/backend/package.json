@@ -10,7 +10,7 @@
     "schema": "kysely-codegen --out-file ./src/db/schema.d.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "jest"
+    "test": "jest --detectOpenHandles --forceExit"
   },
   "jest": {
     "reporters": [
