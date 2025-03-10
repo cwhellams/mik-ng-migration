@@ -42,7 +42,7 @@ jobs:
           -v $(pwd)/sql/schema/migration:/flyway/sql \
           -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
           -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
-          -e FLYWAY_URL=jdbc:postgresql://postgres:5432/${{ env.POSTGRES_DB }} \
+          -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \
           --network host \
           flyway/flyway:latest migrate
       env:
@@ -56,7 +56,7 @@ jobs:
           -v $(pwd)/sql/schema/testdata:/flyway/sql \
           -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
           -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
-          -e FLYWAY_URL=jdbc:postgresql://postgres:5432/${{ env.POSTGRES_DB }} \
+          -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \
           --network host \
           flyway/flyway:latest migrate
       env:
