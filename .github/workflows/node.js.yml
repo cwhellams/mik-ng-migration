@@ -45,7 +45,7 @@ jobs:
           -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
           -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \          
           --network host \
-          flyway/flyway:latest -locations="filesystem:/flyway/sql" migrate
+          flyway/flyway:latest -locations=filesystem:/flyway/sql migrate
       env:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
@@ -60,7 +60,7 @@ jobs:
           -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
           -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \          
           --network host \
-          flyway/flyway:latest -locations="filesystem:/flyway/sql" migrate
+          flyway/flyway:latest -locations=filesystem:/flyway/sql migrate
       env:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
