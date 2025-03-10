@@ -17,7 +17,7 @@
       "default",
       "jest-junit"
     ],
-    "collectCoverage": true,
+    "collectCoverage": false,
     "coverageReporters": [
       "json",
       "lcov",

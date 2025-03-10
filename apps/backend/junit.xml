@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="3" failures="0" errors="0" time="4.968">
-  <testsuite name="Db query tests" errors="0" failures="0" skipped="0" timestamp="2025-03-10T14:49:09" time="4.844" tests="1">
-    <testcase classname="Db query tests should return member data for a valid email address" name="Db query tests should return member data for a valid email address" time="0.046">
+<testsuites name="jest tests" tests="3" failures="0" errors="0" time="15.928">
+  <testsuite name="Db query tests" errors="0" failures="0" skipped="0" timestamp="2025-03-10T15:59:59" time="15.286" tests="1">
+    <testcase classname="Db query tests should return member data for a valid email address" name="Db query tests should return member data for a valid email address" time="0.12">
     </testcase>
   </testsuite>
-  <testsuite name="sendEmail" errors="0" failures="0" skipped="0" timestamp="2025-03-10T14:49:14" time="0.061" tests="2">
-    <testcase classname="sendEmail should send an email successfully" name="sendEmail should send an email successfully" time="0.001">
+  <testsuite name="sendEmail" errors="0" failures="0" skipped="0" timestamp="2025-03-10T16:00:15" time="0.18" tests="2">
+    <testcase classname="sendEmail should send an email successfully" name="sendEmail should send an email successfully" time="0.003">
     </testcase>
-    <testcase classname="sendEmail should throw an error if sending email fails" name="sendEmail should throw an error if sending email fails" time="0.004">
+    <testcase classname="sendEmail should throw an error if sending email fails" name="sendEmail should throw an error if sending email fails" time="0.011">
     </testcase>
   </testsuite>
 </testsuites>
