@@ -42,11 +42,10 @@ jobs:
         docker run --network host --rm \
           -v ${{ github.workspace }}/sql:/flyway/sql \
           -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
-          flyway/flyway:latest \
-          -url=jdbc:postgresql://localhost:5432/test_db \
-          -user=${{ env.POSTGRES_USER }} \
-          -password=${{ env.POSTGRES_PASSWORD }} \     
-          migrate
+          -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
+          -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
+          -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \
+          flyway/flyway:latest migrate
       env:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
@@ -57,11 +56,10 @@ jobs:
         docker run --network host --rm \
           -v ${{ github.workspace }}/sql:/flyway/sql \
           -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
-          flyway/flyway:latest \
-          -url=jdbc:postgresql://localhost:5432/test_db \
-          -user=${{ env.POSTGRES_USER }} \
-          -password=${{ env.POSTGRES_PASSWORD }} \     
-          migrate
+          -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
+          -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
+          -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \
+          flyway/flyway:latest migrate
       env:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
