@@ -37,15 +37,16 @@ jobs:
         fetch-depth: 0  # Fetch all history for pushing to another branch
         
     - name: Run Flyway migrations
+
       run: |
-        docker run --rm \
-          -v $(pwd)/sql/schema/migration:/flyway/sql \
+        docker run --network host --rm \
+          -v ${{ github.workspace }}/sql:/flyway/sql \
           -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
-          -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
-          -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
-          -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \          
-          --network host \
-          flyway/flyway:latest migrate
+          flyway/flyway:latest \
+          -url=jdbc:postgresql://localhost:5432/test_db \
+          -user=${{ env.POSTGRES_USER }} \
+          -password=${{ env.POSTGRES_PASSWORD }} \     
+          migrate
       env:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
@@ -53,14 +54,14 @@ jobs:
         
     - name: Run Flyway test data
       run: |
-        docker run --rm \
-          -v $(pwd)/sql/schema/testdata:/flyway/sql \
+        docker run --network host --rm \
+          -v ${{ github.workspace }}/sql:/flyway/sql \
           -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
-          -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
-          -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
-          -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \          
-          --network host \
-          flyway/flyway:latest migrate
+          flyway/flyway:latest \
+          -url=jdbc:postgresql://localhost:5432/test_db \
+          -user=${{ env.POSTGRES_USER }} \
+          -password=${{ env.POSTGRES_PASSWORD }} \     
+          migrate
       env:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
