@@ -40,7 +40,7 @@ jobs:
 
       run: |
         docker run --network host --rm \
-          -v ${{ github.workspace }}/sql:/flyway/sql \
+          -v ${{ github.workspace }}/sql/schema/migration:/flyway/sql \
           -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
           -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
           -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
@@ -54,7 +54,7 @@ jobs:
     - name: Run Flyway test data
       run: |
         docker run --network host --rm \
-          -v ${{ github.workspace }}/sql:/flyway/sql \
+          -v ${{ github.workspace }}/sql/schema/testdata/:/flyway/sql \
           -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
           -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
           -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
