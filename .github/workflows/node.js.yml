@@ -40,31 +40,31 @@ jobs:
       run: |
         docker run --rm \
           -v $(pwd)/sql/schema/migration:/flyway/sql \
+          -v $(pwd)/sql/migration.conf:/flyway/sql \
           -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
           -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
           -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \
           --network host \
-          flyway/flyway:latest migrate
+          flyway/flyway:latest -configFiles=./migration.conf migrate
       env:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: test_db
-        FLYWAY_CONFIG_FILES: sql/migration.conf
+        POSTGRES_DB: test_db        
         
     - name: Run Flyway test data
       run: |
         docker run --rm \
           -v $(pwd)/sql/schema/testdata:/flyway/sql \
+          -v $(pwd)/sql/testdata.conf:/flyway/sql \
           -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
           -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
           -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \
           --network host \
-          flyway/flyway:latest migrate
+          flyway/flyway:latest -configFiles=./testdata.conf migrate
       env:
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: test_db
-        FLYWAY_CONFIG_FILES: sql/testdata.conf
+        POSTGRES_DB: test_db        
         
     - name: Set up Node.js
       uses: actions/setup-node@v4
