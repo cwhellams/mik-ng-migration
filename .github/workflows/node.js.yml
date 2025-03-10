@@ -72,14 +72,17 @@ jobs:
         cache: 'npm'
     
     - name: Install dependencies
+      working-directory: ./apps/backend
       run: |
         npm ci
     
     - name: Build backend
+      working-directory: ./apps/backend
       run: |
         npm run build --workspace=apps/backend
     
     - name: Test backend
+      working-directory: ./apps/backend
       run: |
         npm test --workspace=apps/backend
       env:
