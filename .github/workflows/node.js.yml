@@ -39,7 +39,7 @@ jobs:
     - name: Run Flyway migrations
       run: |
         docker run --rm \
-          -v $(pwd)/sql/schema/migration:/flyway/sql \
+          -v $(pwd)/sql/schema/migration:/flyway/sql/schema/migration \
           -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
           -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
           -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
@@ -54,8 +54,8 @@ jobs:
     - name: Run Flyway test data
       run: |
         docker run --rm \
-          -v $(pwd)/sql/schema/testdata:/flyway/sql \
-          -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
+          -v $(pwd)/sql/schema/testdata:/flyway/sql/schema/testdata \
+          -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
           -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
           -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
           -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \
