@@ -70,21 +70,19 @@ jobs:
       with:
         node-version: '22'
         cache: 'npm'
-    
+        cache-dependency-path: apps/backend/package-lock.json
+        
     - name: Install dependencies
       working-directory: ./apps/backend
-      run: |
-        npm ci
+      run: npm ci --legacy-peer-deps
     
     - name: Build backend
       working-directory: ./apps/backend
-      run: |
-        npm run build --workspace=apps/backend
+      run: npm run build
     
     - name: Test backend
       working-directory: ./apps/backend
-      run: |
-        npm test --workspace=apps/backend
+      run: npm test
       env:
         POSTGRES_HOST: localhost
         POSTGRES_PORT: 5432
