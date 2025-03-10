@@ -1,13 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="3" failures="0" errors="0" time="5.83">
-  <testsuite name="sendEmail" errors="0" failures="0" skipped="0" timestamp="2025-03-06T12:18:15" time="4.9" tests="2">
-    <testcase classname="sendEmail should send an email successfully" name="sendEmail should send an email successfully" time="0.004">
+<testsuites name="jest tests" tests="3" failures="1" errors="0" time="15.624">
+  <testsuite name="sendEmail" errors="0" failures="0" skipped="0" timestamp="2025-03-10T08:33:19" time="11.446" tests="2">
+    <testcase classname="sendEmail should send an email successfully" name="sendEmail should send an email successfully" time="0.007">
     </testcase>
-    <testcase classname="sendEmail should throw an error if sending email fails" name="sendEmail should throw an error if sending email fails" time="0.005">
+    <testcase classname="sendEmail should throw an error if sending email fails" name="sendEmail should throw an error if sending email fails" time="0.007">
     </testcase>
   </testsuite>
-  <testsuite name="Db query tests" errors="0" failures="0" skipped="0" timestamp="2025-03-06T12:18:15" time="5.106" tests="1">
-    <testcase classname="Db query tests should return member data for a valid email address" name="Db query tests should return member data for a valid email address" time="0.021">
+  <testsuite name="Db query tests" errors="0" failures="1" skipped="0" timestamp="2025-03-10T08:33:19" time="14.38" tests="1">
+    <testcase classname="Db query tests should return member data for a valid email address" name="Db query tests should return member data for a valid email address" time="0.046">
+      <failure>Error: expect(received).toMatchSnapshot()
+
+Snapshot name: `Db query tests should return member data for a valid email address 1`
+
+- Snapshot  -  1
++ Received  + 21
+
+- {}
++ {
++   &quot;billing_id&quot;: &quot;BILL001&quot;,
++   &quot;can_make_reservations&quot;: true,
++   &quot;created_at&quot;: 2025-03-05T13:32:42.203Z,
++   &quot;date_of_birth&quot;: 1980-01-14T22:00:00.000Z,
++   &quot;email&quot;: &quot;matti.virtanen@example.com&quot;,
++   &quot;first_name&quot;: &quot;Matti&quot;,
++   &quot;ice_contact_name&quot;: &quot;Liisa Virtanen&quot;,
++   &quot;ice_contact_phone_number&quot;: &quot;0407654321&quot;,
++   &quot;is_training_program_pilot&quot;: false,
++   &quot;last_name&quot;: &quot;Virtanen&quot;,
++   &quot;last_updated&quot;: 2025-03-05T13:32:42.203Z,
++   &quot;last_updated_by&quot;: &quot;admin&quot;,
++   &quot;member_id&quot;: 1,
++   &quot;member_since&quot;: 2025-03-04T22:00:00.000Z,
++   &quot;member_type_id&quot;: &quot;FLYING&quot;,
++   &quot;phone_number&quot;: &quot;0401234567&quot;,
++   &quot;postcode&quot;: &quot;00100&quot;,
++   &quot;street_address&quot;: &quot;Keskuskatu 1&quot;,
++   &quot;town_city&quot;: &quot;Helsinki&quot;,
++ }
+    at Object.&lt;anonymous&gt; (/Users/chriswhellams/mik/mik-ng/apps/backend/test/db/queries.test.ts:11:20)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)</failure>
     </testcase>
   </testsuite>
 </testsuites>
