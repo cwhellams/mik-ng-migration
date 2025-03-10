@@ -1,3 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Db query tests should return member data for a valid email address 1`] = `{}`;
+exports[`Db query tests should return member data for a valid email address 1`] = `
+{
+  "billing_id": "BILL001",
+  "can_make_reservations": true,
+  "created_at": 2025-03-10T11:29:31.912Z,
+  "date_of_birth": 1980-01-14T22:00:00.000Z,
+  "email": "matti.virtanen@example.com",
+  "first_name": "Matti",
+  "ice_contact_name": "Liisa Virtanen",
+  "ice_contact_phone_number": "0407654321",
+  "is_training_program_pilot": false,
+  "last_name": "Virtanen",
+  "last_updated": 2025-03-10T11:29:31.912Z,
+  "last_updated_by": "admin",
+  "member_id": 1,
+  "member_since": 2025-03-09T22:00:00.000Z,
+  "member_type_id": "FLYING",
+  "phone_number": "0401234567",
+  "postcode": "00100",
+  "street_address": "Keskuskatu 1",
+  "town_city": "Helsinki",
+}
+`;
