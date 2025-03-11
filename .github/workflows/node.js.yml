@@ -16,6 +16,7 @@ env: # Set environment variables for entire workflow
   POSTGRES_PASSWORD: password
   POSTGRES_USER: admin
   POSTGRES_DB: mik_ng
+  POSTGRES_PORT: 5432
 
 jobs:
   build-and-test:
@@ -31,6 +32,11 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: admin
+          POSTGRES_DB: mik_ng
+          POSTGRES_PORT: 5432
     
     steps:
     - uses: actions/checkout@v4
