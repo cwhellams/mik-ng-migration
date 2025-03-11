@@ -22,9 +22,9 @@ jobs:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: test_db
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: admin
+          POSTGRES_DB: mik_ng
         ports:
           - 5432:5432
         options: >-
