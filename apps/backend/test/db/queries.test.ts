@@ -9,7 +9,12 @@ describe('Db query tests', () => {
     const email = 'matti.virtanen@example.com'
 
     const result = await getMember(email)
-    expect(result).toMatchSnapshot()
+    expect(result).toMatchSnapshot({
+      created_at: expect.any(Date),
+      date_of_birth: expect.any(Date),
+      last_updated: expect.any(Date),
+      member_since: expect.any(Date),
+    })
   })
 })
 
