@@ -85,6 +85,7 @@ jobs:
       run: npm run build
 
     - name: Check for Security Vulnerabilities
+      working-directory: ./apps/backend
       run: npm audit --audit-level=high || echo "Security issues found with NPM packages"
     
     - name: Test backend
