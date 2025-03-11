@@ -78,6 +78,9 @@ jobs:
     - name: Build backend
       working-directory: ./apps/backend
       run: npm run build
+
+    - name: Check for Security Vulnerabilities
+      run: npm audit --audit-level=high || echo "Security issues found with NPM packages"
     
     - name: Test backend
       working-directory: ./apps/backend
@@ -86,7 +89,7 @@ jobs:
     - name: Upload test coverage
       uses: actions/upload-artifact@v4
       with:
-        name: backend-coverage
+        name: backend-coverage-report
         path: apps/backend/coverage/
         if-no-files-found: ignore
     
