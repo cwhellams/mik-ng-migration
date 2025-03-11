@@ -48,7 +48,7 @@
   "author": "mik_ng team",
   "license": "ISC",
   "packageManager": "pnpm@10.5.2",
-  "dependencies": {    
+  "dependencies": {
     "bcryptjs": "^3.0.2",
     "compression": "^1.8.0",
     "cors": "^2.8.5",

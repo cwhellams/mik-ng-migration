@@ -39,10 +39,11 @@ jobs:
           POSTGRES_PORT: 5432
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch all history for pushing to another branch
-        
+
     - name: Run Flyway migrations
 
       run: |
@@ -75,6 +76,9 @@ jobs:
       working-directory: ./apps/backend
       run: npm ci --verbose
     
+    - name: Run Prettier Check
+      run: npm run format:check
+
     - name: Build backend
       working-directory: ./apps/backend
       run: npm run build
