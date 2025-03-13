@@ -1,0 +1,100 @@
+name: Backend review and validation and push to test on success
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/backend/**'
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/backend/**'
+      - '.github/workflows/**'
+env: # Set environment variables for entire workflow
+  NODE_OPTIONS: '--max-old-space-size=8192' # Increase memory limit for Node.js
+  POSTGRES_PASSWORD: password
+  POSTGRES_USER: admin
+  POSTGRES_DB: mik_ng
+  POSTGRES_PORT: 5432
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./apps/backend
+
+    services:
+      postgres:
+        image: postgres:latest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: admin
+          POSTGRES_DB: mik_ng
+          POSTGRES_PORT: 5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for pushing to another branch
+
+      - name: Run Flyway migrations
+        working-directory: ${{ github.workspace }}
+        run: |
+          docker run --network host --rm \
+            -v ${{ github.workspace }}/sql/schema/migration:/flyway/sql \
+            -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
+            -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
+            -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
+            -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \
+            flyway/flyway:latest migrate
+
+      - name: Run Flyway test data
+        working-directory: ${{ github.workspace }}
+        run: |
+          docker run --network host --rm \
+            -v ${{ github.workspace }}/sql/schema/testdata/:/flyway/sql \
+            -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
+            -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
+            -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
+            -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \
+            flyway/flyway:latest migrate
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --verbose
+
+      - name: Run Prettier Check
+        run: npm run format:check
+
+      - name: Build backend
+        run: npm run build
+
+      - name: Check for Security Vulnerabilities
+        run: npm audit --audit-level=high || echo "Security issues found with NPM packages"
+
+      - name: Test backend
+        run: npm test
+
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-report
+          path: apps/backend/coverage/
+          if-no-files-found: ignore
