@@ -1,0 +1,29 @@
+name: Merge main to test
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  merge-to-test:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      - name: Merge main into test
+        run: |
+          git checkout test || git checkout -b test
+          git merge origin/main --no-edit -m "Merge main into test branch after PR merged"
+          git push origin test
