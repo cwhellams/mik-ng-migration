@@ -13,14 +13,13 @@ on:
       - '.github/workflows/**'
 env: # Set environment variables for entire workflow
   NODE_OPTIONS: '--max-old-space-size=8192' # Increase memory limit for Node.js
-  POSTGRES_PASSWORD: password
-  POSTGRES_USER: admin
   POSTGRES_DB: mik_ng
   POSTGRES_PORT: 5432
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    environment: DEV
 
     defaults:
       run:
@@ -37,26 +36,21 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         env:
-          POSTGRES_PASSWORD: password
-          POSTGRES_USER: admin
-          POSTGRES_DB: mik_ng
-          POSTGRES_PORT: 5432
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_PORT: ${{ env.POSTGRES_PORT }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Fetch all history for pushing to another branch
-
       - name: Run Flyway migrations
         working-directory: ${{ github.workspace }}
         run: |
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/migration:/flyway/sql \
             -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
-            -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
-            -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
-            -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \
+            -e FLYWAY_USER=${{ secrets.POSTGRES_USER }} \
+            -e FLYWAY_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            -e FLYWAY_URL=jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }} \
             flyway/flyway:latest migrate
 
       - name: Run Flyway test data
@@ -65,9 +59,9 @@ jobs:
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/testdata/:/flyway/sql \
             -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
-            -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
-            -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
-            -e FLYWAY_URL=jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }} \
+            -e FLYWAY_USER=${{ secrets.POSTGRES_USER }} \
+            -e FLYWAY_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            -e FLYWAY_URL=jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }} \
             flyway/flyway:latest migrate
 
       - name: Set up Node.js
