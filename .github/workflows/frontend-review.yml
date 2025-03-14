@@ -20,10 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: DEV
 
-    defaults:
-      run:
-        working-directory: apps/frontend
-
     steps:
       # We must checkout code first as the GH workspace is clean / empty
       - name: Checkout code
@@ -36,8 +32,18 @@ jobs:
           cache: 'npm'
           cache-dependency-path: apps/frontend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm ci --verbose
+        working-directory: apps/frontend
+
+      - name: Install backend dependencies
+        run: npm ci --verbose
+        working-directory: apps/backend
+
+        # The backend is needed as the frontend has dependencies on it
+      - name: Build backend
+        run: npm run build
+        working-directory: apps/backend
 
       - name: Run ESLint and check error count
         run: |
@@ -58,9 +64,12 @@ jobs:
           else
             echo "ESLint errors ($ERROR_COUNT) are within acceptable threshold ($THRESHOLD)"
           fi
+        working-directory: apps/frontend
 
-      - name: Build backend
+      - name: Build frontend
         run: npm run build
+        working-directory: apps/frontend
 
       - name: Check for Security Vulnerabilities
         run: npm audit --audit-level=high || echo "Security issues found with NPM packages"
+        working-directory: apps/frontend
