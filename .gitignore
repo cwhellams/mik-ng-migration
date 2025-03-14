@@ -64,3 +64,5 @@ coverage
 *.pem
 .vercel
 .turbo
+
+**/junit.xml
