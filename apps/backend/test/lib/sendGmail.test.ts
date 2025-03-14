@@ -1,4 +1,5 @@
 import { google } from 'googleapis'
+
 import { sendEmail } from '../../src/lib/sendGmail'
 
 jest.mock('googleapis', () => ({
@@ -26,9 +27,7 @@ describe('sendEmail', () => {
   const auth = new google.auth.OAuth2()
   const sendSpy = jest
     .spyOn(google.gmail({ version: 'v1', auth }).users.messages, 'send')
-    .mockImplementation(async () =>
-      Promise.resolve({ data: 'mocked response' })
-    )
+    .mockImplementation(async () => Promise.resolve({ data: 'mocked response' }))
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -55,12 +54,8 @@ describe('sendEmail', () => {
   })
 
   it('should throw an error if sending email fails', async () => {
-    sendSpy.mockImplementation(async () =>
-      Promise.reject(new Error('Failed to send email'))
-    )
+    sendSpy.mockImplementation(async () => Promise.reject(new Error('Failed to send email')))
 
-    await expect(sendEmail(recipient, subject, body)).rejects.toThrow(
-      'Failed to send email'
-    )
+    await expect(sendEmail(recipient, subject, body)).rejects.toThrow('Failed to send email')
   })
 })

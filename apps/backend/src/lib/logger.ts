@@ -1,14 +1,12 @@
-import { createLogger, format, transports } from 'winston'
 import dotenv from 'dotenv'
-
-// Load environment variables
 dotenv.config()
+import { createLogger, format, transports } from 'winston'
 
 const logFormat = format.combine(
   format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   format.errors({ stack: true }),
   format.splat(),
-  format.json()
+  format.json(),
 )
 
 // Define Winston logger

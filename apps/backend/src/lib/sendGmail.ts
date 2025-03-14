@@ -1,24 +1,19 @@
-import { gmail_v1, google } from 'googleapis'
 import dotenv from 'dotenv'
+import { gmail_v1, google } from 'googleapis'
 
 dotenv.config()
 
 //Get Google workspace creds from the environment
-const { WORKSPACE_EMAIL_CLIENT_ID, WORKSPACE_EMAIL_CLIENT_SECRET, EMAIL_USER } =
-  process.env
+const { WORKSPACE_EMAIL_CLIENT_ID, WORKSPACE_EMAIL_CLIENT_SECRET, EMAIL_USER } = process.env
 
-if (
-  !WORKSPACE_EMAIL_CLIENT_ID ||
-  !WORKSPACE_EMAIL_CLIENT_SECRET ||
-  !EMAIL_USER
-) {
+if (!WORKSPACE_EMAIL_CLIENT_ID || !WORKSPACE_EMAIL_CLIENT_SECRET || !EMAIL_USER) {
   throw new Error('❌ Missing required environment variables for Email sender!')
 }
 
 // OAuth2 Client setup
 const oAuth2Client = new google.auth.OAuth2(
   WORKSPACE_EMAIL_CLIENT_ID,
-  WORKSPACE_EMAIL_CLIENT_SECRET
+  WORKSPACE_EMAIL_CLIENT_SECRET,
 )
 
 /**
@@ -39,10 +34,7 @@ function createEmailMessage(to: string, subject: string, body: string): string {
     body,
   ].join('\n')
 
-  return Buffer.from(email)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
+  return Buffer.from(email).toString('base64').replace(/\+/g, '-').replace(/\//g, '_')
 }
 
 /**
@@ -51,7 +43,7 @@ function createEmailMessage(to: string, subject: string, body: string): string {
 export const sendEmail = async (
   recipient: string,
   subject: string,
-  body: string
+  body: string,
 ): Promise<gmail_v1.Schema$Message> => {
   try {
     const gmail = google.gmail({ version: 'v1', auth: oAuth2Client })

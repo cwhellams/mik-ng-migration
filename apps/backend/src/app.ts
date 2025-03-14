@@ -1,19 +1,21 @@
+import cors from 'cors'
+import dotenv from 'dotenv'
 import express, {
   Request,
   Response,
   NextFunction,
+  RequestHandler,
   //RequestHandler,
 } from 'express'
 import helmet from 'helmet'
-import cors from 'cors'
 // import compression from "compression";
-import { RateLimiterMemory } from 'rate-limiter-flexible'
-import dotenv from 'dotenv'
-import { router as authRoutes } from './routes/auth/otp'
-import { Pool } from 'pg'
-import { router as memberRoutes } from './routes/members/api'
 import morgan from 'morgan'
+import { Pool } from 'pg'
+import { RateLimiterMemory } from 'rate-limiter-flexible'
+
 import logger from './lib/logger'
+import { router as authRoutes } from './routes/auth/otp'
+import { router as memberRoutes } from './routes/members/api'
 import { ErrorResponse } from './routes/response'
 
 // Load environment variables for local development - we will not ship this file to production and will use environment variables from the hosting provider
@@ -30,12 +32,12 @@ logger.info('Bootstrapping mik-ng service on port %d', PORT)
 // Morgan logs HTTP requests
 app.use(
   morgan('combined', {
-    stream: { write: (message) => logger.info(message.trim()) },
-  })
+    stream: { write: message => logger.info(message.trim()) },
+  }),
 )
 
 // Global error handler
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response) => {
   logger.error('Unhandled error: %s', err.message)
   res.status(500).send('Something went wrong!')
 })
@@ -51,13 +53,13 @@ app.use(express.urlencoded({ extended: true }))
 
 // Rate Limiting
 const rateLimiter = new RateLimiterMemory({ points: 10, duration: 1 }) // 10 requests per second
-const rateLimiterMiddleware = async (
+const rateLimiterMiddleware: RequestHandler = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
-    await rateLimiter.consume(req.ip || req.socket.remoteAddress || '0.0.0.0')
+    await rateLimiter.consume(req.ip ?? req.socket.remoteAddress ?? '0.0.0.0')
     next()
   } catch {
     res.status(429).json({ message: 'Too many requests, slow down.' })
@@ -75,7 +77,7 @@ app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/members', memberRoutes)
 
 // Error Handling
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response) => {
   console.error(err)
   res.status(500).json(<ErrorResponse>{ message: 'Internal Server Error' })
 })
@@ -85,11 +87,11 @@ const server = app.listen(PORT, () => {
 })
 
 // Gracefully handle app termination (Ctrl+C, kill, crashes)
-const shutdown = async () => {
-  console.log('\nShutting down server...')
+const shutdown = async (): Promise<void> => {
+  console.warn('\nShutting down server...')
   await pool.end() // Close DB connections
   server.close(() => {
-    console.log('HTTP server closed.')
+    console.warn('HTTP server closed.')
     process.exit(0)
   })
 }
@@ -97,7 +99,10 @@ const shutdown = async () => {
 // Listen for termination signals
 process.on('SIGINT', shutdown) // Ctrl+C
 process.on('SIGTERM', shutdown) // Kill command (e.g., Docker stop)
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', err => {
   console.error('Uncaught Exception:', err)
-  shutdown()
+  shutdown().catch(err => {
+    console.error('Error during shutdown:', err)
+    process.exit(1)
+  })
 })

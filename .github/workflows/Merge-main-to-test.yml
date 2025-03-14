@@ -26,4 +26,4 @@ jobs:
         run: |
           git checkout test || git checkout -b test
           git merge origin/main --no-edit -m "Merge main into test branch after PR merged"
-          git push origin test
+          git push --force origin test

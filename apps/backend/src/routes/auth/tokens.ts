@@ -1,10 +1,12 @@
-import jwt, { SignOptions } from 'jsonwebtoken'
-import { z } from 'zod'
-//import bcrypt from 'bcryptjs'
-import ms from 'ms'
-import { MemberRegister } from '../../db/schema'
-import { Selectable } from 'kysely'
 import crypto from 'crypto'
+
+import jwt, { SignOptions } from 'jsonwebtoken'
+import { Selectable } from 'kysely'
+import ms from 'ms'
+import { z } from 'zod'
+
+//import bcrypt from 'bcryptjs'
+import { MemberRegister } from '../../db/schema'
 
 export enum MIKRoles {
   USER = 'USER',
@@ -24,7 +26,7 @@ export type JWTPayload = z.infer<typeof JWTPayloadSchema>
 
 export const generateJWTPayload = (
   user: Selectable<MemberRegister>,
-  roles: MIKRoles[]
+  roles: MIKRoles[],
 ): JWTPayload => ({
   sessionId: crypto.randomUUID(),
   userId: user.member_id,
@@ -50,7 +52,7 @@ const generateAccessToken = (payload: JWTPayload): string => {
     return jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      generateOptions(process.env.ACCESS_TOKEN_EXPIRATION || '15m')
+      generateOptions(process.env.ACCESS_TOKEN_EXPIRATION || '15m'),
     )
   } catch (error) {
     console.error('Error generating access token:', error)
@@ -60,16 +62,14 @@ const generateAccessToken = (payload: JWTPayload): string => {
 
 const generateRefreshToken = async (payload: JWTPayload): Promise<string> => {
   if (!process.env.JWT_REFRESH_SECRET) {
-    throw new Error(
-      'JWT_REFRESH_SECRET is not defined in environment variables'
-    )
+    throw new Error('JWT_REFRESH_SECRET is not defined in environment variables')
   }
 
   try {
     const refreshToken = jwt.sign(
       payload,
       process.env.JWT_REFRESH_SECRET,
-      generateOptions(process.env.REFRESH_TOKEN_EXPIRATION || '7d')
+      generateOptions(process.env.REFRESH_TOKEN_EXPIRATION || '7d'),
     )
     //const hashedToken = await bcrypt.hash(refreshToken, 10)
 
