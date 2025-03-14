@@ -1,6 +1,7 @@
 import dotenv from 'dotenv'
-import { getMember } from '../../src/db/queries'
+
 import { closeDb } from '../../src/db/connection'
+import { getMember } from '../../src/db/queries'
 
 dotenv.config()
 

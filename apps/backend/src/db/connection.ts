@@ -1,10 +1,10 @@
+import dotenv from 'dotenv'
+dotenv.config()
 import { Kysely, PostgresDialect } from 'kysely'
 import { Pool } from 'pg'
-import dotenv from 'dotenv'
+
 import { DB } from './schema'
 import logger from '../lib/logger'
-
-dotenv.config()
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -18,7 +18,7 @@ const dialect = new PostgresDialect({
 })
 
 // Function to close the pool
-const closeDb = async () => {
+const closeDb = async (): Promise<void> => {
   await pool.end() // Close all connections in the pool
 }
 

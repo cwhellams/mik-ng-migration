@@ -1,13 +1,12 @@
-import { MemberRegister } from './schema'
-import { db } from './connection'
 import { Selectable } from 'kysely'
-import { MemberList } from '../routes/members/models'
+
+import { db } from './connection'
+import { MemberRegister } from './schema'
 import { MIKRoles } from '../routes/auth/tokens'
+import { MemberList } from '../routes/members/models'
 
 // Get member using email
-export async function getMember(
-  email: string
-): Promise<Selectable<MemberRegister> | undefined> {
+export async function getMember(email: string): Promise<Selectable<MemberRegister> | undefined> {
   return await db
     .selectFrom('member.register')
     .selectAll()
@@ -22,7 +21,7 @@ export async function getMemberRoles(memberId: number): Promise<MIKRoles[]> {
     .where('member_id', '=', memberId)
     .execute()
 
-  return roles.map((role) => MIKRoles[role.role_id as keyof typeof MIKRoles])
+  return roles.map(role => MIKRoles[role.role_id as keyof typeof MIKRoles])
 }
 
 export async function getMembers(): Promise<MemberList[]> {
@@ -31,7 +30,7 @@ export async function getMembers(): Promise<MemberList[]> {
     .select(['member_id', 'email', 'first_name', 'last_name', 'phone_number'])
     .execute()
 
-  return list.map((member) => ({
+  return list.map(member => ({
     memberId: member.member_id,
     name: `${member.first_name} ${member.last_name}`,
     phoneNumber: member.phone_number,

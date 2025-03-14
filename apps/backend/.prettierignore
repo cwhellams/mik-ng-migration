@@ -6,3 +6,4 @@ public/
 logs/
 
 *.d.ts
+eslint-results.json

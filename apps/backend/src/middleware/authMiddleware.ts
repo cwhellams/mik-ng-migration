@@ -1,6 +1,7 @@
-import { Request, Response, NextFunction } from 'express'
-import logger from '../lib/logger'
+import { Request, Response, NextFunction, RequestHandler } from 'express'
 import jwt from 'jsonwebtoken'
+
+import logger from '../lib/logger'
 import { JWTPayload, JWTPayloadSchema, MIKRoles } from '../routes/auth/tokens'
 import { ErrorResponse } from '../routes/response'
 
@@ -18,7 +19,7 @@ if (!JWT_SECRET) {
 
 // Middleware with role checks
 export const authMiddleware =
-  (...requiredRoles: MIKRoles[]) =>
+  (...requiredRoles: MIKRoles[]): RequestHandler =>
   async (req: Request, res: Response<ErrorResponse>, next: NextFunction) => {
     try {
       // Extract the token from the Authorization header
@@ -52,7 +53,7 @@ export const authMiddleware =
       }
 
       // Check if user has any of the required roles
-      if (requiredRoles.some((role) => user.roles.includes(role))) {
+      if (requiredRoles.some(role => user.roles.includes(role))) {
         req.user = user
         return next()
       }

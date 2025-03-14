@@ -9,7 +9,7 @@ out
 .next
 *.tsbuildinfo
 *.js
-
+!eslint.config.js
 # Environment variables
 .env
 .env.local
