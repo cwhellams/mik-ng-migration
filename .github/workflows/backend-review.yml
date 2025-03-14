@@ -1,4 +1,5 @@
-name: Backend review and validation and push to test on success
+name: Backend review, validation and test
+run-name: Backend review, validation and test triggered by by @${{ github.actor }}
 
 on:
   pull_request:
@@ -15,6 +16,8 @@ env: # Set environment variables for entire workflow
   NODE_OPTIONS: '--max-old-space-size=8192' # Increase memory limit for Node.js
   POSTGRES_DB: mik_ng
   POSTGRES_PORT: 5432
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
 jobs:
   build-and-test:
@@ -23,7 +26,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./apps/backend
+        working-directory: apps/backend
 
     services:
       postgres:
@@ -42,6 +45,10 @@ jobs:
           POSTGRES_PORT: ${{ env.POSTGRES_PORT }}
 
     steps:
+      # We must checkout code first as the GH workspace is clean / empty
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Run Flyway migrations
         working-directory: ${{ github.workspace }}
         run: |
@@ -84,7 +91,9 @@ jobs:
         run: npm audit --audit-level=high || echo "Security issues found with NPM packages"
 
       - name: Test backend
-        run: npm test
+        run: |
+          DATABASE_URL=postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
+          npm test
 
       - name: Upload test coverage
         uses: actions/upload-artifact@v4
