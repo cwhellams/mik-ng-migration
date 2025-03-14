@@ -1,17 +1,14 @@
 import { Router, Request, Response } from 'express'
-import {
-  generateAccessToken,
-  generateJWTPayload,
-  generateRefreshToken,
-} from './tokens'
 import { z } from 'zod'
+
+import { generateAccessToken, generateJWTPayload, generateRefreshToken } from './tokens'
 // import jwt from 'jsonwebtoken'
 // import bcrypt from 'bcryptjs'
 // import crypto from 'crypto'
 // import generateOTP from '../../lib/generateOTP'
 // import { sendEmail } from '../../lib/sendGmail'
-import { ErrorResponse } from '../response'
 import { getMember, getMemberRoles } from '../../db/queries'
+import { ErrorResponse } from '../response'
 
 export const router = Router()
 
@@ -36,7 +33,7 @@ router.post(
   '/request-otp',
   async (
     req: Request<{}, {}, OTPRequest, Record<string, any>>,
-    res: Response<{ code: string } | ErrorResponse>
+    res: Response<{ code: string } | ErrorResponse>,
   ) => {
     const { email } = req.body
 
@@ -54,15 +51,12 @@ router.post(
     // await sendEmail(email, 'OTP', otp)
 
     res.status(200).send({ code: 'otp_sent' })
-  }
+  },
 )
 
 router.post(
   '/verify-otp',
-  async (
-    req: Request<{}, {}, OTPRequest>,
-    res: Response<OTPResponse | ErrorResponse>
-  ) => {
+  async (req: Request<{}, {}, OTPRequest>, res: Response<OTPResponse | ErrorResponse>) => {
     const { email, otp } = req.body
     // const ipAddress = req.ip || req.socket.remoteAddress || 'Unknown'
 
@@ -89,7 +83,7 @@ router.post(
     })
 
     res.json({ accessToken })
-  }
+  },
 )
 
 // router.post(

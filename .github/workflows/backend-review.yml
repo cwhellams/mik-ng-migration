@@ -1,5 +1,5 @@
 name: Backend review, validation and test
-run-name: Backend review, validation and test triggered by by @${{ github.actor }}
+run-name: Backend review, validation and test triggered by @${{ github.actor }}
 
 on:
   pull_request:
@@ -80,6 +80,26 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --verbose
+
+      - name: Run ESLint and check error count
+        run: |
+          # Run ESLint and save output to a file
+          npx eslint . --format json > eslint-results.json || true
+
+          # Count the number of errors using jq
+          ERROR_COUNT=$(cat eslint-results.json | jq '[.[] | .errorCount] | add // 0')
+          echo "Total ESLint errors: $ERROR_COUNT"
+
+          # Define your threshold
+          THRESHOLD=15
+
+          # Check if error count exceeds threshold
+          if [ $ERROR_COUNT -gt $THRESHOLD ]; then
+            echo "ESLint errors ($ERROR_COUNT) exceed threshold ($THRESHOLD)"
+            exit 1
+          else
+            echo "ESLint errors ($ERROR_COUNT) are within acceptable threshold ($THRESHOLD)"
+          fi
 
       - name: Run Prettier Check
         run: npm run format:check
