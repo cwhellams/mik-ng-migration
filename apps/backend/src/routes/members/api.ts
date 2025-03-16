@@ -1,15 +1,13 @@
 import { Router, Request, Response } from 'express'
 
 import { MemberListResponse, Member } from './models'
-import { getMember, getMembers } from '../../db/queries'
-import { authMiddleware } from '../../middleware/authMiddleware'
-import { MIKRoles } from '../auth/tokens'
+import { getMember, getMemberRoles, getMembers } from '../../db/queries'
+import { validateUser } from '../../middleware/authMiddleware'
+import { MIKRoles } from '../auth/user'
 import { ErrorResponse } from '../response'
 
 export const router = Router()
-
-// Only authenticated users can access this route
-router.use(authMiddleware(MIKRoles.USER))
+router.use(validateUser(MIKRoles.USER))
 
 router.get('/', async (req: Request, res: Response<MemberListResponse>) => {
   const members = await getMembers()
@@ -25,6 +23,8 @@ router.get('/me', async (req: Request, res: Response<Member | ErrorResponse>) =>
     return res.status(404).json({ message: 'Not found' })
   }
 
+  const roles = await getMemberRoles(member.member_id)
+
   res.status(200).json({
     memberId: member.member_id,
     memberType: member.member_type_id,
@@ -38,5 +38,6 @@ router.get('/me', async (req: Request, res: Response<Member | ErrorResponse>) =>
     postcode: member.postcode,
     streetAddress: member.street_address,
     townCity: member.town_city,
+    roles,
   })
 })

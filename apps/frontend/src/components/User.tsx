@@ -8,7 +8,8 @@ const User = () => {
   const { t } = useTranslation()
 
   const { data, isLoading } = useApi<Member>({
-    url: 'api/v1/members/me',
+    path: 'v1/members/me',
+    allowUnauthenticated: true,
   })
 
   if (isLoading) {
@@ -39,7 +40,7 @@ const User = () => {
               borderRadius: 2,
             }}
             onClick={() => {
-              localStorage.removeItem('accessToken')
+              sessionStorage.removeItem('accessToken')
             }}
           >
             {t('header.logout')}

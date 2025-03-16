@@ -2,7 +2,7 @@ import { Selectable } from 'kysely'
 
 import { db } from './connection'
 import { MemberRegister } from './schema'
-import { MIKRoles } from '../routes/auth/tokens'
+import { MIKRoles } from '../routes/auth/user'
 import { MemberList } from '../routes/members/models'
 
 // Get member using email

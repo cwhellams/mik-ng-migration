@@ -14,7 +14,7 @@ import { Pool } from 'pg'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 
 import logger from './lib/logger'
-import { router as authRoutes } from './routes/auth/otp'
+import { router as passportRoutes } from './routes/auth/login'
 import { router as memberRoutes } from './routes/members/api'
 import { ErrorResponse } from './routes/response'
 
@@ -35,12 +35,6 @@ app.use(
     stream: { write: message => logger.info(message.trim()) },
   }),
 )
-
-// Global error handler
-app.use((err: Error, req: Request, res: Response) => {
-  logger.error('Unhandled error: %s', err.message)
-  res.status(500).send('Something went wrong!')
-})
 
 // Security Middlewares
 app.use(helmet()) // Secure headers
@@ -73,12 +67,15 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 // Routes
-app.use('/api/v1/auth', authRoutes)
+app.use('/auth', passportRoutes)
 app.use('/api/v1/members', memberRoutes)
 
 // Error Handling
-app.use((err: Error, req: Request, res: Response) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err)
+  if (res.headersSent) {
+    return next(err)
+  }
   res.status(500).json(<ErrorResponse>{ message: 'Internal Server Error' })
 })
 

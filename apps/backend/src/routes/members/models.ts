@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { MIKRoles } from '../auth/user'
 
 // member list endpoint
 
@@ -31,5 +32,6 @@ const MemberSchema = z.object({
   postcode: z.string().nullish(),
   streetAddress: z.string().nullish(),
   townCity: z.string().nullish(),
+  roles: z.array(z.nativeEnum(MIKRoles)),
 })
 export type Member = z.infer<typeof MemberSchema>
