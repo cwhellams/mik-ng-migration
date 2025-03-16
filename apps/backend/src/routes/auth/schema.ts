@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { JWTPayloadSchema } from './user'
+import { JWTPayloadSchema } from './user.ts'
 
 export const LoginRequestSchema = z.object({
   destination: z.string().optional(),

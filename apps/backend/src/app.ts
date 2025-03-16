@@ -1,26 +1,21 @@
 import cors from 'cors'
 import dotenv from 'dotenv'
-import express, {
-  Request,
-  Response,
-  NextFunction,
-  RequestHandler,
-  //RequestHandler,
-} from 'express'
+import express from 'express'
+import type { Request, Response, NextFunction, RequestHandler } from 'express'
 import helmet from 'helmet'
 // import compression from "compression";
 import morgan from 'morgan'
-import { Pool } from 'pg'
+import pg from 'pg'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 
-import logger from './lib/logger'
-import { router as passportRoutes } from './routes/auth/login'
-import { router as memberRoutes } from './routes/members/api'
-import { ErrorResponse } from './routes/response'
+import logger from './lib/logger.ts'
+import { router as passportRoutes } from './routes/auth/login.ts'
+import { router as memberRoutes } from './routes/members/api.ts'
+import type { ErrorResponse } from './routes/response.ts'
 
 // Load environment variables for local development - we will not ship this file to production and will use environment variables from the hosting provider
 dotenv.config()
-const pool = new Pool({
+const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
 })
 

@@ -1,10 +1,11 @@
-import { Router, Request, Response } from 'express'
+import { Router } from 'express'
+import type { Request, Response } from 'express'
 
-import { MemberListResponse, Member } from './models'
-import { getMember, getMemberRoles, getMembers } from '../../db/queries'
-import { validateUser } from '../../middleware/authMiddleware'
-import { MIKRoles } from '../auth/user'
-import { ErrorResponse } from '../response'
+import type { MemberListResponse, Member } from './models.ts'
+import { getMember, getMemberRoles, getMembers } from '../../db/queries.ts'
+import { validateUser } from '../../middleware/authMiddleware.ts'
+import { MIKRoles } from '../auth/user.ts'
+import type { ErrorResponse } from '../response.ts'
 
 export const router = Router()
 router.use(validateUser(MIKRoles.USER))

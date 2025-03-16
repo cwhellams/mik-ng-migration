@@ -1,9 +1,11 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express'
-import { ErrorResponse } from '../routes/response'
-import passport from 'passport'
+import type { Request, Response, NextFunction, RequestHandler } from 'express'
 import ms from 'ms'
+import passport from 'passport'
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
-import { JWTPayload, MIKRoles } from '../routes/auth/user'
+
+import type { JWTPayload } from '../routes/auth/user.ts'
+import { MIKRoles } from '../routes/auth/user.ts'
+import type { ErrorResponse } from '../routes/response.ts'
 
 //
 // Passport strategy to authenticate the user with JWT tokens

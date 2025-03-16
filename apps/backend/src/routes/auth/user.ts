@@ -1,6 +1,7 @@
+import type { Selectable } from 'kysely'
 import { z } from 'zod'
-import { MemberRegister } from '../../db/schema'
-import { Selectable } from 'kysely'
+
+import type { MemberRegister } from '../../db/schema.d.ts'
 
 export enum MIKRoles {
   USER = 'USER',

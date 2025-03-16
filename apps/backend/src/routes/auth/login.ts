@@ -1,13 +1,15 @@
-import { Request, Response, NextFunction, Router } from 'express'
-import jwt, { Secret } from 'jsonwebtoken'
+import type { Request, Response, NextFunction } from 'express'
+import { Router } from 'express'
+import jwt from 'jsonwebtoken'
+import type { Secret } from 'jsonwebtoken'
 import ms from 'ms'
 import passport from 'passport'
 import MagicLoginStrategy from 'passport-magic-login'
 
-import { generateJWTPayload } from './user'
-import { getMember, getMemberRoles } from '../../db/queries'
-import logger from '../../lib/logger'
-import { sendEmail } from '../../lib/sendGmail'
+import { generateJWTPayload } from './user.ts'
+import { getMember, getMemberRoles } from '../../db/queries.ts'
+import logger from '../../lib/logger.ts'
+import { sendEmail } from '../../lib/sendGmail.ts'
 
 if (!process.env.MAGIC_LINK_SECRET) {
   throw new Error('MAGIC_LINK_SECRET is not defined in environment variables')
@@ -19,7 +21,8 @@ if (!process.env.JWT_SECRET) {
 //
 // Passport strategy
 //
-const magicLogin = new MagicLoginStrategy({
+// https://github.com/mxstbr/passport-magic-login/issues/7
+const magicLogin = new MagicLoginStrategy.default({
   // Used to encrypt the temporary token
   secret: process.env.MAGIC_LINK_SECRET,
 
@@ -64,7 +67,6 @@ const magicLogin = new MagicLoginStrategy({
         callback(new Error('User not found'))
       }
     } catch (err) {
-      console.log('magic login failed', err)
       callback(err as Error)
     }
   },

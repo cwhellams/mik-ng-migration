@@ -1,6 +1,6 @@
 import { google } from 'googleapis'
 
-import { sendEmail } from '../../src/lib/sendGmail'
+import { sendEmail } from '../../src/lib/sendGmail.ts'
 
 jest.mock('googleapis', () => ({
   google: {

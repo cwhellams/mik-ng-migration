@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import { gmail_v1, google } from 'googleapis'
 
-import logger from './logger'
+import logger from './logger.ts'
 
 dotenv.config()
 
