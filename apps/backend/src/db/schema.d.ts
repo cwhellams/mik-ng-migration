@@ -9,11 +9,25 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type Json = JsonValue;
+
+export type JsonArray = JsonValue[];
+
+export type JsonObject = {
+  [x: string]: JsonValue | undefined;
+};
+
+export type JsonPrimitive = boolean | number | string | null;
+
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
 export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface FlightAircraft {
+  created_at: Generated<Timestamp>;
+  created_by: string;
   display_name: string;
   elt_cert_expiry: Timestamp | null;
   engine_hours_remaining_before_tbo: Generated<Numeric | null>;
@@ -41,6 +55,8 @@ export interface FlightAircraft {
   registration: string;
   total_hours: Generated<Numeric>;
   transponder_cert_expiry: Timestamp | null;
+  updated_at: Generated<Timestamp>;
+  updated_by: string;
   year_of_manufacture: number;
 }
 
@@ -50,6 +66,8 @@ export interface FlightLogs {
   billing_remarks: string | null;
   captain: number;
   copilot: number | null;
+  created_at: Generated<Timestamp>;
+  created_by: string;
   departure_airport: string;
   flight_date: Timestamp;
   flight_id: Generated<number>;
@@ -67,6 +85,18 @@ export interface FlightLogs {
   persons_on_board: number | null;
   remarks: string | null;
   takeoff_time: string;
+  updated_at: Generated<Timestamp>;
+  updated_by: string;
+}
+
+export interface FlightLogsAudit {
+  audit_id: Generated<number>;
+  changed_at: Generated<Timestamp>;
+  changed_by: string;
+  changed_data: Json | null;
+  flight_id: number;
+  new_data: Json | null;
+  operation_type: string;
 }
 
 export interface FlywayDataHistory {
@@ -103,7 +133,8 @@ export interface MemberMemberToRoles {
 export interface MemberRegister {
   billing_id: string | null;
   can_make_reservations: Generated<boolean>;
-  created_at: Generated<Timestamp | null>;
+  created_at: Generated<Timestamp>;
+  created_by: string;
   date_of_birth: Timestamp;
   email: string;
   first_name: string;
@@ -111,8 +142,6 @@ export interface MemberRegister {
   ice_contact_phone_number: string | null;
   is_training_program_pilot: Generated<boolean>;
   last_name: string;
-  last_updated: Generated<Timestamp | null>;
-  last_updated_by: string;
   member_id: Generated<number>;
   member_since: Generated<Timestamp>;
   member_type_id: string;
@@ -120,6 +149,18 @@ export interface MemberRegister {
   postcode: string | null;
   street_address: string | null;
   town_city: string | null;
+  updated_at: Generated<Timestamp>;
+  updated_by: string;
+}
+
+export interface MemberRegisterAudit {
+  audit_id: Generated<number>;
+  changed_at: Generated<Timestamp>;
+  changed_by: string;
+  changed_data: Json | null;
+  member_id: number;
+  new_data: Json | null;
+  operation_type: string;
 }
 
 export interface MemberRoles {
@@ -135,10 +176,12 @@ export interface MemberType {
 export interface DB {
   "flight.aircraft": FlightAircraft;
   "flight.logs": FlightLogs;
+  "flight.logs_audit": FlightLogsAudit;
   flyway_data_history: FlywayDataHistory;
   flyway_schema_history: FlywaySchemaHistory;
   "member.member_to_roles": MemberMemberToRoles;
   "member.register": MemberRegister;
+  "member.register_audit": MemberRegisterAudit;
   "member.roles": MemberRoles;
   "member.type": MemberType;
 }

@@ -16,8 +16,9 @@ CREATE TABLE member.register
     postcode VARCHAR(20),
     can_make_reservations BOOLEAN NOT NULL DEFAULT TRUE,
     is_training_program_pilot BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_updated_by VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by TEXT NOT NULL,
+    updated_by TEXT NOT NULL,
     FOREIGN KEY (member_type_id) REFERENCES member.type (id)
 );

@@ -19,7 +19,9 @@ INSERT INTO flight.logs (
     invoice_number,
     flight_type,
     billing_remarks,
-    remarks
+    remarks,
+    created_by,
+    updated_by
 ) VALUES
 (
     1, -- Assuming member_id 1 exists in member.register
@@ -41,12 +43,14 @@ INSERT INTO flight.logs (
     'INV001',
     'Training',
     'N/A',
-    'Smooth flight'
+    'Smooth flight',
+    'user1', -- created_by
+    'user1'  -- updated_by
 ),
 (
     3, -- Assuming member_id 3 exists in member.register
     4, -- Assuming member_id 4 exists in member.register
-    'OH-ABC', -- Assuming this registration exists in flight.aircraft
+    'OH-IHQ', -- Assuming this registration exists in flight.aircraft
     '2025-03-02',
     '09:00:00',
     '09:10:00',
@@ -63,12 +67,14 @@ INSERT INTO flight.logs (
     'INV002',
     'Commercial',
     'N/A',
-    'Training flight'
+    'Training flight',
+    'user2', -- created_by
+    'user2'  -- updated_by
 ),
 (
     5, -- Assuming member_id 5 exists in member.register
     NULL, -- No copilot
-    'OH-XYZ', -- Assuming this registration exists in flight.aircraft
+    'OH-STL', -- Assuming this registration exists in flight.aircraft
     '2025-03-03',
     '10:00:00',
     '10:20:00',
@@ -85,12 +91,14 @@ INSERT INTO flight.logs (
     NULL, -- Not billed
     'Private',
     'N/A',
-    'Routine check'
+    'Routine check',
+    'user3', -- created_by
+    'user3'  -- updated_by
 ),
 (
     6, -- Assuming member_id 6 exists in member.register
     7, -- Assuming member_id 7 exists in member.register
-    'OH-DEF', -- Assuming this registration exists in flight.aircraft
+    'OH-P28', -- Assuming this registration exists in flight.aircraft
     '2025-03-04',
     '11:00:00',
     '11:15:00',
@@ -107,12 +115,14 @@ INSERT INTO flight.logs (
     'INV003',
     'Cargo',
     'N/A',
-    'Cargo delivery'
+    'Cargo delivery',
+    'user4', -- created_by
+    'user4'  -- updated_by
 ),
 (
     8, -- Assuming member_id 8 exists in member.register
     NULL, -- No copilot
-    'OH-GHI', -- Assuming this registration exists in flight.aircraft
+    'OH-IHQ', -- Assuming this registration exists in flight.aircraft
     '2025-03-05',
     '12:00:00',
     '12:10:00',
@@ -129,5 +139,7 @@ INSERT INTO flight.logs (
     'INV004',
     'Passenger',
     'N/A',
-    'Passenger transport'
+    'Passenger transport',
+    'user5', -- created_by
+    'user5'  -- updated_by
 );

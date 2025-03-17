@@ -13,7 +13,7 @@ describe('Db query tests', () => {
     expect(result).toMatchSnapshot({
       created_at: expect.any(Date),
       date_of_birth: expect.any(Date),
-      last_updated: expect.any(Date),
+      updated_at: expect.any(Date),
       member_since: expect.any(Date),
     })
   })
