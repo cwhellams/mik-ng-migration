@@ -15,9 +15,9 @@ INSERT INTO member.register (
     postcode,
     can_make_reservations,
     is_training_program_pilot,
-    created_at,
-    last_updated,
-    last_updated_by
+    created_by,
+    updated_by
+
 ) VALUES
 (
     'Matti',
@@ -35,8 +35,7 @@ INSERT INTO member.register (
     '00100',
     TRUE,
     FALSE,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
+    'admin',
     'admin'
 ),
 (
@@ -55,8 +54,7 @@ INSERT INTO member.register (
     '02100',
     TRUE,
     FALSE,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
+    'admin',
     'admin'
 ),
 (
@@ -75,8 +73,7 @@ INSERT INTO member.register (
     '33100',
     TRUE,
     FALSE,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
+    'admin',
     'admin'
 ),
 (
@@ -95,8 +92,7 @@ INSERT INTO member.register (
     '01300',
     TRUE,
     FALSE,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
+    'admin',
     'admin'
 ),
 (
@@ -115,8 +111,7 @@ INSERT INTO member.register (
     '20100',
     TRUE,
     FALSE,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
+    'admin',
     'admin'
 ),
 (
@@ -135,8 +130,7 @@ INSERT INTO member.register (
     '90100',
     TRUE,
     FALSE,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
+    'admin',
     'admin'
 ),
 (
@@ -155,8 +149,7 @@ INSERT INTO member.register (
     '40100',
     TRUE,
     FALSE,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
+    'admin',
     'admin'
 ),
 (
@@ -175,8 +168,7 @@ INSERT INTO member.register (
     '15100',
     TRUE,
     FALSE,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
+    'admin',
     'admin'
 ),
 (
@@ -195,8 +187,7 @@ INSERT INTO member.register (
     '70100',
     TRUE,
     FALSE,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
+    'admin',
     'admin'
 ),
 (
@@ -215,7 +206,6 @@ INSERT INTO member.register (
     '28100',
     TRUE,
     FALSE,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP,
+    'admin',
     'admin'
 );

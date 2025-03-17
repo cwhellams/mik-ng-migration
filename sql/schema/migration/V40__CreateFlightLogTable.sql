@@ -24,6 +24,10 @@ CREATE TABLE flight.logs
     flight_type VARCHAR(50),
     billing_remarks TEXT,
     remarks TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by TEXT NOT NULL,
+    updated_by TEXT NOT NULL,
     FOREIGN KEY (captain) REFERENCES member.register (member_id),
     FOREIGN KEY (copilot) REFERENCES member.register (member_id),
     FOREIGN KEY (aircraft_registration) REFERENCES flight.aircraft (
