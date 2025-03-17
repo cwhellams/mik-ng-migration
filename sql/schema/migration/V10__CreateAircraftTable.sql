@@ -35,5 +35,10 @@ CREATE TABLE flight.aircraft
     gps_cert_expiry DATE NULL,
     harness_expiry DATE NULL,
     equipment VARCHAR(255),
-    hourly_rate_eur DECIMAL(10, 2) NOT NULL
+    hourly_rate_eur DECIMAL(10, 2) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_by TEXT NOT NULL,
+    updated_by TEXT NOT NULL
+
 );

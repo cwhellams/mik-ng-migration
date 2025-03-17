@@ -5,6 +5,7 @@ exports[`Db query tests should return member data for a valid email address 1`] 
   "billing_id": "BILL001",
   "can_make_reservations": true,
   "created_at": Any<Date>,
+  "created_by": "admin",
   "date_of_birth": Any<Date>,
   "email": "matti.virtanen@example.com",
   "first_name": "Matti",
@@ -12,8 +13,6 @@ exports[`Db query tests should return member data for a valid email address 1`] 
   "ice_contact_phone_number": "0407654321",
   "is_training_program_pilot": false,
   "last_name": "Virtanen",
-  "last_updated": Any<Date>,
-  "last_updated_by": "admin",
   "member_id": 1,
   "member_since": Any<Date>,
   "member_type_id": "FLYING",
@@ -21,5 +20,7 @@ exports[`Db query tests should return member data for a valid email address 1`] 
   "postcode": "00100",
   "street_address": "Keskuskatu 1",
   "town_city": "Helsinki",
+  "updated_at": Any<Date>,
+  "updated_by": "admin",
 }
 `;
