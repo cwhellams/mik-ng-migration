@@ -1,12 +1,12 @@
 import dotenv from 'dotenv'
 dotenv.config()
 import { Kysely, PostgresDialect } from 'kysely'
-import { Pool } from 'pg'
+import pg from 'pg'
 
-import { DB } from './schema'
-import logger from '../lib/logger'
+import type { DB } from './schema.d.ts'
+import logger from '../lib/logger.ts'
 
-const pool = new Pool({
+const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds

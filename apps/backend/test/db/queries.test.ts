@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 
-import { closeDb } from '../../src/db/connection'
-import { getMember } from '../../src/db/queries'
+import { closeDb } from '../../src/db/connection.ts'
+import { getMember } from '../../src/db/queries.ts'
 
 dotenv.config()
 

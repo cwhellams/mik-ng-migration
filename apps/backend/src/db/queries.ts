@@ -1,9 +1,9 @@
-import { Selectable } from 'kysely'
+import type { Selectable } from 'kysely'
 
-import { db } from './connection'
-import { MemberRegister } from './schema'
-import { MIKRoles } from '../routes/auth/tokens'
-import { MemberList } from '../routes/members/models'
+import { db } from './connection.ts'
+import type { MemberRegister } from './schema.d.ts'
+import { MIKRoles } from '../routes/auth/user.ts'
+import type { MemberList } from '../routes/members/models.ts'
 
 // Get member using email
 export async function getMember(email: string): Promise<Selectable<MemberRegister> | undefined> {

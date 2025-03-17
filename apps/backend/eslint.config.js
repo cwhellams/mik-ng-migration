@@ -39,6 +39,7 @@ export default [
     rules: {
       // TypeScript ESLint rules
       '@typescript-eslint/explicit-function-return-type': 'warn',
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-floating-promises': 'error',

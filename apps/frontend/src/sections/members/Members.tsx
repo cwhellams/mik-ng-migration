@@ -15,7 +15,7 @@ import { MemberListResponse } from '@backend/routes/members/models'
 
 const Members = () => {
   const { data, isLoading } = useApi<MemberListResponse>({
-    url: 'api/v1/members',
+    path: 'v1/members',
   })
 
   return (
