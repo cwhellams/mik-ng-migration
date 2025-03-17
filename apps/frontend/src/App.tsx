@@ -10,7 +10,8 @@ import Dashboard from './sections/dashboard/Dashboard'
 // import Aircraft from './sections/Aircraft'
 import Members from './sections/members/Members'
 import Login from './sections/login/Login'
-import Validate from './sections/login/Validate'
+import { LoginSent } from './sections/login/Sent'
+import { LoginValidate } from './sections/login/Validate'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -43,21 +44,22 @@ function App() {
         <Routes>
           {/* Main Layout with header */}
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path='/' element={<Dashboard />} />
             {/* <Route path="/schedule" element={<Schedule />} />
             <Route path="/aircraft" element={<Aircraft />} /> */}
-            <Route path="/members" element={<Members />} />
+            <Route path='/members' element={<Members />} />
           </Route>
 
           {/* Auth Layout without header */}
           <Route element={<AuthLayout />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/login/validate" element={<Validate />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/login/sent' element={<LoginSent />} />
+            <Route path='/login/validate' element={<LoginValidate />} />
             {/* Add other auth routes here (like register, forgot password) */}
           </Route>
 
           {/* Fallback route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path='*' element={<Navigate to='/' replace />} />
         </Routes>
       </BrowserRouter>
     </>

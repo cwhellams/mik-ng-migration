@@ -1,26 +1,21 @@
 import cors from 'cors'
 import dotenv from 'dotenv'
-import express, {
-  Request,
-  Response,
-  NextFunction,
-  RequestHandler,
-  //RequestHandler,
-} from 'express'
+import express from 'express'
+import type { Request, Response, NextFunction, RequestHandler } from 'express'
 import helmet from 'helmet'
 // import compression from "compression";
 import morgan from 'morgan'
-import { Pool } from 'pg'
+import pg from 'pg'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 
-import logger from './lib/logger'
-import { router as authRoutes } from './routes/auth/otp'
-import { router as memberRoutes } from './routes/members/api'
-import { ErrorResponse } from './routes/response'
+import logger from './lib/logger.ts'
+import { router as passportRoutes } from './routes/auth/login.ts'
+import { router as memberRoutes } from './routes/members/api.ts'
+import type { ErrorResponse } from './routes/response.ts'
 
 // Load environment variables for local development - we will not ship this file to production and will use environment variables from the hosting provider
 dotenv.config()
-const pool = new Pool({
+const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
 })
 
@@ -35,12 +30,6 @@ app.use(
     stream: { write: message => logger.info(message.trim()) },
   }),
 )
-
-// Global error handler
-app.use((err: Error, req: Request, res: Response) => {
-  logger.error('Unhandled error: %s', err.message)
-  res.status(500).send('Something went wrong!')
-})
 
 // Security Middlewares
 app.use(helmet()) // Secure headers
@@ -73,12 +62,15 @@ app.get('/', (req: Request, res: Response) => {
 })
 
 // Routes
-app.use('/api/v1/auth', authRoutes)
+app.use('/auth', passportRoutes)
 app.use('/api/v1/members', memberRoutes)
 
 // Error Handling
-app.use((err: Error, req: Request, res: Response) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err)
+  if (res.headersSent) {
+    return next(err)
+  }
   res.status(500).json(<ErrorResponse>{ message: 'Internal Server Error' })
 })
 

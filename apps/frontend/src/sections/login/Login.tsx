@@ -1,9 +1,16 @@
-import { Typography, Box, TextField, Button, Paper, InputAdornment, CircularProgress, Divider, Fade } from '@mui/material'
+import {
+  Typography,
+  Box,
+  TextField,
+  Button,
+  InputAdornment,
+  CircularProgress,
+} from '@mui/material'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
-import MikLogo from '../../assets/mik-blue.svg'
 import { useNavigate } from 'react-router-dom'
-import { useOTP } from '../../hooks/useOTP'
+import { useAuth } from '../../hooks/useAuth'
+import { LoginLayout } from './LoginLayout'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -11,7 +18,7 @@ const Login = () => {
 
   const navigate = useNavigate()
 
-  const { isMutating, trigger } = useOTP('request')
+  const { isMutating, trigger } = useAuth('login')
 
   const validateEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -21,15 +28,15 @@ const Login = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setEmailError('')
-    
+
     if (!validateEmail(email)) {
       setEmailError('Please enter a valid email address')
       return
     }
 
-    trigger({ email })
-      .then(() => {
-        navigate(`/login/validate?email=${email}`)
+    trigger({ destination: email })
+      .then((response) => {
+        navigate('/login/sent', { state: { email, code: response.data.code } })
       })
       .catch((error) => {
         console.log('Error:', error)
@@ -38,133 +45,85 @@ const Login = () => {
   }
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '100vh',
-      width: '100%',
-      padding: 2,
-    }}>
-      <Fade in={true} timeout={800}>
-        <Paper 
-          elevation={8} 
-          sx={{ 
-            p: 4, 
-            maxWidth: 450, 
-            width: '100%', 
-            mx: 'auto',
+    <LoginLayout title='Enter your email to receive login link'>
+      <form onSubmit={handleSubmit}>
+        <TextField
+          fullWidth
+          label='Email'
+          variant='outlined'
+          margin='normal'
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          error={!!emailError}
+          helperText={emailError}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position='start'>
+                <Icon icon='mdi:email' color='#646cff' />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              '&:hover fieldset': {
+                borderColor: 'primary.main',
+              },
+            },
+          }}
+        />
+
+        <Button
+          type='submit'
+          variant='contained'
+          color='primary'
+          fullWidth
+          size='large'
+          disabled={isMutating}
+          sx={{
+            mt: 3,
+            mb: 2,
+            py: 1.5,
             borderRadius: 2,
-            transition: 'all 0.3s ease-in-out',
+            textTransform: 'none',
+            fontWeight: 'bold',
+            fontSize: '1rem',
+            boxShadow:
+              '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)',
+            transition: 'all 0.2s',
             '&:hover': {
-              boxShadow: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
-            }
+              transform: 'translateY(-1px)',
+              boxShadow:
+                '0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08)',
+            },
           }}
         >
-          <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <img 
-              src={MikLogo} 
-              alt="MIK Logo" 
-              style={{ 
-                width: 80,
-                height: 'auto',
-                marginBottom: '8px',
-                filter: 'drop-shadow(0 0 8px rgba(100, 108, 255, 0.3))'
-              }} 
-            />
-            <Typography 
-              variant="h4" 
-              fontWeight="bold" 
-              color="primary"
-              sx={{ mb: 1 }}
-            >
-              Intranet
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Enter your email to receive a one-time password
-            </Typography>
-          </Box>
-          
-          <Divider sx={{ my: 2 }} />
-          
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Email"
-              variant="outlined"
-              margin="normal"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              error={!!emailError}
-              helperText={emailError}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Icon icon="mdi:email" color="#646cff" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '&:hover fieldset': {
-                    borderColor: 'primary.main',
-                  },
-                },
-              }}
-            />
+          {isMutating ? (
+            <CircularProgress size={24} color='inherit' />
+          ) : (
+            'Login With Email'
+          )}
+        </Button>
 
-            <Button
-              type='submit'
-              variant='contained'
+        <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Typography variant='body2' color='text.secondary'>
+            Don't have an account?{' '}
+            <Typography
+              component='span'
+              variant='body2'
               color='primary'
-              fullWidth
-              size='large'
-              disabled={isMutating}
               sx={{
-                mt: 3,
-                mb: 2,
-                py: 1.5,
-                borderRadius: 2,
-                textTransform: 'none',
+                cursor: 'pointer',
                 fontWeight: 'bold',
-                fontSize: '1rem',
-                boxShadow: '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)',
-                transition: 'all 0.2s',
-                '&:hover': {
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08)',
-                }
+                '&:hover': { textDecoration: 'underline' },
               }}
             >
-              {isMutating ? (
-                <CircularProgress size={24} color='inherit' />
-              ) : (
-                'Request OTP'
-              )}
-            </Button>
-            
-            <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Don't have an account?{' '}
-                <Typography 
-                  component="span" 
-                  variant="body2" 
-                  color="primary" 
-                  sx={{ 
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    '&:hover': { textDecoration: 'underline' }
-                  }}
-                >
-                  Sign up
-                </Typography>
-              </Typography>
-            </Box>
-          </form>
-        </Paper>
-      </Fade>
-    </Box>
+              Sign up
+            </Typography>
+          </Typography>
+        </Box>
+      </form>
+    </LoginLayout>
   )
 }
 

@@ -1,6 +1,6 @@
 import axios, { AxiosResponse, AxiosError } from 'axios'
 import useSWRMutation, { SWRMutationResponse } from 'swr/mutation'
-import { OTPRequest, OTPResponse } from '@backend/routes/auth/otp'
+import type { LoginRequest, LoginResponse } from '@backend/routes/auth/schema'
 import { Key } from 'swr'
 
 interface Return<Data, Error>
@@ -9,7 +9,7 @@ interface Return<Data, Error>
       AxiosResponse<Data>,
       AxiosError<Error>,
       Key,
-      OTPRequest
+      LoginRequest
     >,
     'data'
   > {
@@ -17,18 +17,18 @@ interface Return<Data, Error>
   response: AxiosResponse<Data> | undefined
 }
 
-export function useOTP(
-  endpoint: 'request' | 'verify'
-): Return<OTPResponse, Error> {
-  const fetcher = async (url: string, { arg }: { arg: OTPRequest }) =>
+export function useAuth(
+  endpoint: 'login' | 'login/validate'
+): Return<LoginResponse, Error> {
+  const fetcher = async (url: string, { arg }: { arg: LoginRequest }) =>
     axios.post(url, arg)
 
   const { data: response, ...rest } = useSWRMutation<
-    AxiosResponse<OTPResponse>,
+    AxiosResponse<LoginResponse>,
     AxiosError<Error>,
     Key,
-    OTPRequest
-  >(`/api/v1/auth/${endpoint}-otp`, fetcher)
+    LoginRequest
+  >(`/auth/${endpoint}`, fetcher)
 
   return {
     data: response && response.data,

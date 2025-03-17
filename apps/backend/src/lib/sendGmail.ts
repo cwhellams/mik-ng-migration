@@ -1,10 +1,13 @@
 import dotenv from 'dotenv'
 import { gmail_v1, google } from 'googleapis'
 
+import logger from './logger.ts'
+
 dotenv.config()
 
 //Get Google workspace creds from the environment
-const { WORKSPACE_EMAIL_CLIENT_ID, WORKSPACE_EMAIL_CLIENT_SECRET, EMAIL_USER } = process.env
+const { WORKSPACE_EMAIL_CLIENT_ID, WORKSPACE_EMAIL_CLIENT_SECRET, EMAIL_USER, NODE_ENV } =
+  process.env
 
 if (!WORKSPACE_EMAIL_CLIENT_ID || !WORKSPACE_EMAIL_CLIENT_SECRET || !EMAIL_USER) {
   throw new Error('❌ Missing required environment variables for Email sender!')
@@ -44,10 +47,15 @@ export const sendEmail = async (
   recipient: string,
   subject: string,
   body: string,
-): Promise<gmail_v1.Schema$Message> => {
+): Promise<gmail_v1.Schema$Message | undefined> => {
   try {
     const gmail = google.gmail({ version: 'v1', auth: oAuth2Client })
     const rawMessage = createEmailMessage(recipient, subject, body)
+
+    if (NODE_ENV == 'development') {
+      logger.info(Buffer.from(rawMessage, 'base64').toString())
+      return
+    }
 
     const response = await gmail.users.messages.send({
       userId: 'me',
