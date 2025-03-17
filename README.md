@@ -18,12 +18,12 @@ Welcome to the MIK ng "next gen" project
 1. Typescript
 2. Node.js
 3. Express
-4. Next.js (UX)
+4. Vite / React
 5. VS Code, Cursor (or your preferred IDE)
 6. Postgres
 7. Flyway (DB Migrations)
 8. Docker
-9. nvm (node version manager)
+9.  nvm (node version manager)
 10. DBeaver (or your favourite SQL IDE)
 11. pnpm
     
@@ -45,8 +45,6 @@ then
 
     brew install flyway
     brew install --cask dbeaver-community
-    brew install sqlfluff
-    brew install gh
     brew install pnpm
 
 Some tools e.g. sqlfluff require python, we will not cover the installation for that here but the internet or an AI bot will help you with that
