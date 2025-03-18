@@ -8,5 +8,11 @@
     "logout": "Logout",
     "profile": "My profile",
     "language": "Language"
+  },
+  "footer": {
+    "quickLinks": "Quick Links",
+    "website": "Website",
+    "contact": "Contact",
+    "privacy": "Privacy"
   }
 }

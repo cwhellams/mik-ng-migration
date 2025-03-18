@@ -8,5 +8,11 @@
     "logout": "Kirjaudu ulos",
     "profile": "Omat tiedot",
     "language": "Kieli"
+  },
+  "footer": {
+    "quickLinks": "Pikalinkit",
+    "website": "Kotisivut",
+    "contact": "Yhteystiedot",
+    "privacy": "Tietosuoja"
   }
 }
