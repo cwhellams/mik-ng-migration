@@ -9,7 +9,7 @@ export const LoginSent = () => {
     <LoginLayout title='Check your email'>
       <Box sx={{ textAlign: 'center', mt: 2 }}>
         <Typography variant='body2' color='text.primary'>
-          Login link has been sent to {location.state.email}
+          A Login link has been sent to {location.state.email}, if that email exists.
         </Typography>
       </Box>
       <Box sx={{ textAlign: 'center', mt: 2 }}>
