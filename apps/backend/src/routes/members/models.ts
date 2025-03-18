@@ -1,8 +1,6 @@
 import { z } from 'zod'
 
 import { MIKRoles } from '../auth/user.ts'
-import e from 'cors'
-
 // member list endpoint
 
 const MemberListSchema = z.object({
