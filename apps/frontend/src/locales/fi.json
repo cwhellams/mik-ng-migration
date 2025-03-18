@@ -5,6 +5,8 @@
     "aircraft": "Lentokoneet",
     "members": "Jäsenet",
     "login": "Kirjaudu",
-    "logout": "Uloskirjaudu"
+    "logout": "Kirjaudu ulos",
+    "profile": "Omat tiedot",
+    "language": "Kieli"
   }
 }

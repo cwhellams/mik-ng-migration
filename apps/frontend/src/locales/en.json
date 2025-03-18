@@ -5,6 +5,8 @@
     "aircraft": "Aircraft",
     "members": "Members",
     "login": "Login",
-    "logout": "Logout"
+    "logout": "Logout",
+    "profile": "My profile",
+    "language": "Language"
   }
 }
