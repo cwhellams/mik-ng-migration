@@ -22,7 +22,7 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-export const sendEmail = (to: string, subject: string, text: string, html: string): void => {
+export const sendEmail = async (to: string, subject: string, text: string, html: string): Promise<boolean> => {
   const mailOptions = {
     from: smtpLogin, // Sender address
     to, // List of receivers
@@ -31,13 +31,29 @@ export const sendEmail = (to: string, subject: string, text: string, html: strin
     html,
   }
 
-  // Send email
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      logger.error('Error occurred sending email to :', error)
-      throw error
+  // Convert callback-based sendMail to Promise-based for better error handling
+  try {
+    const info = await new Promise((resolve, reject) => {
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(info);
+        }
+      });
+    });
+
+    logger.info(`Login Email sent: to ${to} with response ${(info as any).response}`);
+    return true;
+  } catch (error: any) {
+    // Check for specific SMTP authentication errors
+    if (error.code === 'EAUTH' || error.message.includes('authentication failed')) {
+      logger.error('SMTP authentication failed. Please check your credentials:', error);
     } else {
-      logger.info(`Login Email sent: to ${to} with response ${info.response}`)
+      logger.error('Error occurred sending email to:', to, error);
     }
-  })
+
+    // Return false instead of throwing so the application can continue
+    return false;
+  }
 }
