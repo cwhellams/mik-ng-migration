@@ -1,69 +1,43 @@
 import dotenv from 'dotenv'
-import { gmail_v1, google } from 'googleapis'
+dotenv.config()
+import * as nodemailer from 'nodemailer'
 
 import logger from './logger.ts'
 
-dotenv.config()
+// Check if SMTP_LOGIN and SMTP_PWD are present
+const smtpLogin = process.env.SMTP_LOGIN
+const smtpPwd = process.env.SMTP_PASSWORD
 
-//Get Google workspace creds from the environment
-const { WORKSPACE_EMAIL_CLIENT_ID, WORKSPACE_EMAIL_CLIENT_SECRET, EMAIL_USER, NODE_ENV } =
-  process.env
+logger.info(process.env)
 
-if (!WORKSPACE_EMAIL_CLIENT_ID || !WORKSPACE_EMAIL_CLIENT_SECRET || !EMAIL_USER) {
-  throw new Error('❌ Missing required environment variables for Email sender!')
+if (!smtpLogin || !smtpPwd) {
+  throw new Error('SMTP_LOGIN or SMTP_PASSWORD is not defined in environment variables')
 }
 
-// OAuth2 Client setup
-const oAuth2Client = new google.auth.OAuth2(
-  WORKSPACE_EMAIL_CLIENT_ID,
-  WORKSPACE_EMAIL_CLIENT_SECRET,
-)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: smtpLogin,
+    pass: smtpPwd,
+  },
+})
 
-/**
- * Encodes an email message in Base64 (RFC 2822 format)
- * @param to - Recipient email address
- * @param subject - Email subject
- * @param body - Email body
- * @returns Base64 encoded string
- */
-function createEmailMessage(to: string, subject: string, body: string): string {
-  const email = [
-    `From: ${EMAIL_USER}`,
-    `To: ${to}`,
-    `Subject: ${subject}`,
-    'MIME-Version: 1.0',
-    'Content-Type: text/plain; charset=utf-8',
-    '',
-    body,
-  ].join('\n')
-
-  return Buffer.from(email).toString('base64').replace(/\+/g, '-').replace(/\//g, '_')
-}
-
-/**
- * Sends an email using the Gmail API
- */
-export const sendEmail = async (
-  recipient: string,
-  subject: string,
-  body: string,
-): Promise<gmail_v1.Schema$Message | undefined> => {
-  try {
-    const gmail = google.gmail({ version: 'v1', auth: oAuth2Client })
-    const rawMessage = createEmailMessage(recipient, subject, body)
-
-    if (NODE_ENV == 'development') {
-      logger.info(Buffer.from(rawMessage, 'base64').toString())
-      return
-    }
-
-    const response = await gmail.users.messages.send({
-      userId: 'me',
-      requestBody: { raw: rawMessage },
-    })
-
-    return response.data
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.error || 'Failed to send email')
+export const sendEmail = (to: string, subject: string, text: string, html: string): void => {
+  const mailOptions = {
+    from: smtpLogin, // Sender address
+    to, // List of receivers
+    subject,
+    text,
+    html,
   }
+
+  // Send email
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      logger.error('Error occurred sending email to :', error)
+      throw error
+    } else {
+      logger.info(`Login Email sent: to ${to} with response ${info.response}`)
+    }
+  })
 }

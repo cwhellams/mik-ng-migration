@@ -31,16 +31,19 @@ const magicLogin = new MagicLoginStrategy.default({
 
   // Called with the generated magic link so you can send it to the user
   sendMagicLink: async (destination, href, verificationCode): Promise<void> => {
-    await sendEmail(
+    logger.info('magic login sendMagicLink for validation %s : %s', verificationCode, href)
+
+    sendEmail(
       destination,
       'Your login to MIK',
+      '',
       `
       <p>You are logging in to MIK with verification code ${verificationCode}.</p>
 
       <p>Click the link below:
       <br/>
-      <a href="${href}">Continue login</a>
-      </p>
+      <b><a href="${href}">Confirm login</a>
+      </p></b>
 
       <p>Alternatively you can also copy and paste the link into your browser:
       <br/>
