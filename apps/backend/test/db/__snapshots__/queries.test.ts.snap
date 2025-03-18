@@ -75,14 +75,14 @@ exports[`Db query tests getMembers should return members 1`] = `
     "phoneNumber": "0478901234",
   },
   {
-    "memberId": 10,
-    "name": "Marja Salminen",
-    "phoneNumber": "0490123456",
-  },
-  {
     "memberId": 9,
     "name": "Juha Seppälä",
     "phoneNumber": "0489012345",
+  },
+  {
+    "memberId": 10,
+    "name": "Marja Salminen",
+    "phoneNumber": "0490123456",
   },
 ]
 `;
