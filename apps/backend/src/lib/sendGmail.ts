@@ -36,24 +36,24 @@ export const sendEmail = async (to: string, subject: string, text: string, html:
     const info = await new Promise((resolve, reject) => {
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-          reject(error);
+          reject(error)
         } else {
-          resolve(info);
+          resolve(info)
         }
-      });
-    });
+      })
+    })
 
-    logger.info(`Login Email sent: to ${to} with response ${(info as any).response}`);
-    return true;
+    logger.info(`Login Email sent: to ${to} with response ${(info as any).response}`)
+    return true
   } catch (error: any) {
     // Check for specific SMTP authentication errors
     if (error.code === 'EAUTH' || error.message.includes('authentication failed')) {
-      logger.error('SMTP authentication failed. Please check your credentials:', error);
+      logger.error('SMTP authentication failed. Please check your credentials:', error)
     } else {
-      logger.error('Error occurred sending email to:', to, error);
+      logger.error('Error occurred sending email to:', to, error)
     }
 
     // Return false instead of throwing so the application can continue
-    return false;
+    return false
   }
 }
