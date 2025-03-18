@@ -14,5 +14,10 @@
     "website": "Website",
     "contact": "Contact",
     "privacy": "Privacy"
+  },
+  "error": {
+    "pageNotFound": "Page not found",
+    "pageNotFoundMessage": "Oops, the page you're looking for doesn't exist.",
+    "backToHome": "Back to homepage"
   }
 }

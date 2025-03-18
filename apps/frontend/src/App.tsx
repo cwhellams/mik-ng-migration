@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import SplashScreen from './components/SplashScreen'
 import MainLayout from './layouts/MainLayout'
 import AuthLayout from './layouts/AuthLayout'
@@ -12,6 +12,7 @@ import Members from './sections/members/Members'
 import Login from './sections/login/Login'
 import { LoginSent } from './sections/login/Sent'
 import { LoginValidate } from './sections/login/Validate'
+import NotFound from './sections/error/NotFound'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -58,8 +59,8 @@ function App() {
             {/* Add other auth routes here (like register, forgot password) */}
           </Route>
 
-          {/* Fallback route */}
-          <Route path='*' element={<Navigate to='/' replace />} />
+          {/* Fallback route - 404 page */}
+          <Route path='*' element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </>

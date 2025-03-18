@@ -14,5 +14,10 @@
     "website": "Kotisivut",
     "contact": "Yhteystiedot",
     "privacy": "Tietosuoja"
+  },
+  "error": {
+    "pageNotFound": "Sivua ei löytynyt",
+    "pageNotFoundMessage": "Hups, sivua ei löytynyt.",
+    "backToHome": "Takaisin kotisivulle"
   }
 }
