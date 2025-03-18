@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Db query tests should return member data for a valid email address 1`] = `
+exports[`Db query tests getMember should return member data for a valid email address 1`] = `
 {
   "billing_id": "BILL001",
   "can_make_reservations": true,
@@ -23,4 +23,66 @@ exports[`Db query tests should return member data for a valid email address 1`] 
   "updated_at": Any<Date>,
   "updated_by": "admin",
 }
+`;
+
+exports[`Db query tests getMemberRoles should return roles for given valid member 1`] = `
+[
+  "USER",
+  "INSTRUCTOR",
+]
+`;
+
+exports[`Db query tests getMembers should return members 1`] = `
+[
+  {
+    "memberId": 1,
+    "name": "Matti Virtanen",
+    "phoneNumber": "0401234567",
+  },
+  {
+    "memberId": 2,
+    "name": "Liisa Korhonen",
+    "phoneNumber": "0412345678",
+  },
+  {
+    "memberId": 3,
+    "name": "Jukka Nieminen",
+    "phoneNumber": "0423456789",
+  },
+  {
+    "memberId": 4,
+    "name": "Anna Mäkinen",
+    "phoneNumber": "0434567890",
+  },
+  {
+    "memberId": 5,
+    "name": "Pekka Hämäläinen",
+    "phoneNumber": "0445678901",
+  },
+  {
+    "memberId": 6,
+    "name": "Kaisa Laine",
+    "phoneNumber": "0456789012",
+  },
+  {
+    "memberId": 7,
+    "name": "Antti Heikkinen",
+    "phoneNumber": "0467890123",
+  },
+  {
+    "memberId": 8,
+    "name": "Sanna Koskinen",
+    "phoneNumber": "0478901234",
+  },
+  {
+    "memberId": 10,
+    "name": "Marja Salminen",
+    "phoneNumber": "0490123456",
+  },
+  {
+    "memberId": 9,
+    "name": "Juha Seppälä",
+    "phoneNumber": "0489012345",
+  },
+]
 `;

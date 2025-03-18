@@ -10,6 +10,7 @@ import { generateJWTPayload } from './user.ts'
 import { getMember, getMemberRoles } from '../../db/queries.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
+import { getRandomInt } from '../../util/math-utils.ts'
 
 if (!process.env.MAGIC_LINK_SECRET) {
   throw new Error('MAGIC_LINK_SECRET is not defined in environment variables')
@@ -88,7 +89,31 @@ passport.use(magicLogin)
 export const router = Router()
 
 // This is where we POST to from the frontend
-router.post('/login', magicLogin.send)
+router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
+  const { destination } = req.body
+
+  if (!destination) {
+    return res.status(400).json({ error: 'An Email address is required' })
+  }
+
+  try {
+    // Check that we have a memeber with this email address, to avoid sending magic link to non-existing user.
+    // Do not leak information about existing users, if nothing found still return 200 with a random verification code and log a warning.
+    const user = await getMember(destination)
+    if (!user) {
+      logger.warn(
+        `An attempt was made to login with email ${destination}. No matching member found in database`,
+      )
+      return res.status(200).json({ code: getRandomInt(10000, 99999) })
+    }
+
+    magicLogin.send(req, res)
+    next()
+  } catch (err) {
+    logger.error('Error checking user in database', err)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
 
 // Login with magic link and return jwt token back to the UI
 router.post(
