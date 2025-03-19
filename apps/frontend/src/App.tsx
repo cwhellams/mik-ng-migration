@@ -13,6 +13,7 @@ import Login from './sections/login/Login'
 import { LoginSent } from './sections/login/Sent'
 import { LoginValidate } from './sections/login/Validate'
 import NotFound from './sections/error/NotFound'
+import MyProfile from './sections/members/Member'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -49,6 +50,7 @@ function App() {
             {/* <Route path="/schedule" element={<Schedule />} />
             <Route path="/aircraft" element={<Aircraft />} /> */}
             <Route path='/members' element={<Members />} />
+            <Route path='/myprofile' element={<MyProfile />} />
           </Route>
 
           {/* Auth Layout without header */}
