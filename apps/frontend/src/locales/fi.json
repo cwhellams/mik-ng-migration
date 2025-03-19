@@ -5,6 +5,19 @@
     "aircraft": "Lentokoneet",
     "members": "Jäsenet",
     "login": "Kirjaudu",
-    "logout": "Uloskirjaudu"
+    "logout": "Kirjaudu ulos",
+    "profile": "Omat tiedot",
+    "language": "Kieli"
+  },
+  "footer": {
+    "quickLinks": "Pikalinkit",
+    "website": "Kotisivut",
+    "contact": "Yhteystiedot",
+    "privacy": "Tietosuoja"
+  },
+  "error": {
+    "pageNotFound": "Sivua ei löytynyt",
+    "pageNotFoundMessage": "Hups, sivua ei löytynyt.",
+    "backToHome": "Takaisin kotisivulle"
   }
 }

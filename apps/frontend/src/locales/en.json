@@ -5,6 +5,19 @@
     "aircraft": "Aircraft",
     "members": "Members",
     "login": "Login",
-    "logout": "Logout"
+    "logout": "Logout",
+    "profile": "My profile",
+    "language": "Language"
+  },
+  "footer": {
+    "quickLinks": "Quick Links",
+    "website": "Website",
+    "contact": "Contact",
+    "privacy": "Privacy"
+  },
+  "error": {
+    "pageNotFound": "Page not found",
+    "pageNotFoundMessage": "Oops, the page you're looking for doesn't exist.",
+    "backToHome": "Back to homepage"
   }
 }
