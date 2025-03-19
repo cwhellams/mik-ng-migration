@@ -1,14 +1,16 @@
 import { CircularProgress, Card, CardContent, Typography, Box, Stack } from '@mui/material';
 import useApi from '../../hooks/useApi'; // Assume useApi is a custom hook wrapping Axios
 import { Member } from '@backend/routes/members/models'
+import { useTranslation } from 'react-i18next';
 
 const MyProfile = () => {
+    const { t } = useTranslation();
     const { data, isLoading, error } = useApi<Member>({ path: 'v1/members/me'})
 
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant='h2' gutterBottom>
-        myProfile
+       {t('member.profile')}
       </Typography>
 
       {isLoading ? (
@@ -24,28 +26,28 @@ const MyProfile = () => {
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
             <Card sx={{ flex: 1 }}>
               <CardContent>
-                <Typography variant="h6">Member Info</Typography>
-                <Typography variant="body1">Full Name: {data.firstName} {data.lastName}</Typography>
-                <Typography variant="body1">Email: {data.email}</Typography>
-                <Typography variant="body1">Phone: {data.phoneNumber ?? 'N/A'}</Typography>
-                <Typography variant="body1">Postcode: {data.postcode ?? 'N/A'}</Typography>
-                <Typography variant="body1">Town/City: {data.townCity ?? 'N/A'}</Typography>
-                <Typography variant="body1">Street Address: {data.streetAddress ?? 'N/A'}</Typography>
+                <Typography variant="h6">{t('member.info')}</Typography>
+                <Typography variant="body1">{t('member.fullname')}: {data.firstName} {data.lastName}</Typography>
+                <Typography variant="body1">{t('member.email')}: {data.email}</Typography>
+                <Typography variant="body1">{t('member.phone')}: {data.phoneNumber ?? 'N/A'}</Typography>
+                <Typography variant="body1">{t('member.postcode')}: {data.postcode ?? 'N/A'}</Typography>
+                <Typography variant="body1">{t('member.town')}: {data.townCity ?? 'N/A'}</Typography>
+                <Typography variant="body1">{t('member.street')}: {data.streetAddress ?? 'N/A'}</Typography>
               </CardContent>
             </Card>
 
             <Card sx={{ flex: 1 }}>
               <CardContent>
-                <Typography variant="h6">Emergency Contact</Typography>
-                <Typography variant="body1">ICE Contact: {data.iceContactName ?? 'N/A'}</Typography>
-                <Typography variant="body1">ICE Phone: {data.iceContactPhoneNumber ?? 'N/A'}</Typography>
+                <Typography variant="h6">{t('member.emergencyContact')}</Typography>
+                <Typography variant="body1">{t('member.iceContact')}: {data.iceContactName ?? 'N/A'}</Typography>
+                <Typography variant="body1">{t('member.icePhone')}: {data.iceContactPhoneNumber ?? 'N/A'}</Typography>
               </CardContent>
             </Card>
           </Stack>
 
           <Card>
             <CardContent>
-              <Typography variant="h6">Roles</Typography>
+              <Typography variant="h6">{t('member.roles')}</Typography>
               {data.roles && data.roles.length > 0 ? (
                 <ul>
                   {data.roles.map((role, index) => (
@@ -62,7 +64,7 @@ const MyProfile = () => {
 
           <Card>
             <CardContent>
-              <Typography variant="h6">Training Program</Typography>
+              <Typography variant="h6">{t('member.trainingProgram')}</Typography>
               <Typography variant="body1">
                 {data.isTrainingProgramPilot ? 'Is a Training Program Pilot' : 'Not a Training Program Pilot'}
               </Typography>

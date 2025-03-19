@@ -7,14 +7,28 @@
     "login": "Kirjaudu",
     "logout": "Kirjaudu ulos",
     "profile": "Omat tiedot",
-    "language": "Kieli",
-    "me" : "Oma profiili"
+    "language": "Kieli"    
   },
   "footer": {
     "quickLinks": "Pikalinkit",
     "website": "Kotisivut",
     "contact": "Yhteystiedot",
     "privacy": "Tietosuoja"
+  },
+  "member": {
+    "profile": "Oma profiili",
+    "info": "Jäsenen tiedot",
+    "fullname": "Koko nimi",
+    "email": "Sähköposti",
+    "phone": "Puhelin",
+    "postcode": "Postinumero",
+    "town": "Kaupunki",
+    "address": "Katuosoite",
+    "emergencyContact": "Hätäyhteyshenkilö",
+    "iceContact": "ICE-yhteyshenkilö",
+    "icePhone": "ICE-puhelin",
+    "roles": "Roolit",
+    "trainingProgram": "Koulutusohjelma"
   },
   "error": {
     "pageNotFound": "Sivua ei löytynyt",

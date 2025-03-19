@@ -99,7 +99,7 @@ const User = () => {
               </Typography>
             </Box>
             <Divider />
-            <MenuItem component={Link} to="/profile">
+            <MenuItem component={Link} to="/MyProfile">
               <ListItemIcon>
                 <Icon icon="mdi:account" fontSize={20} />
               </ListItemIcon>

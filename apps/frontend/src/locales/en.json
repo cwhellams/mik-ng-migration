@@ -7,14 +7,28 @@
     "login": "Login",
     "logout": "Logout",
     "profile": "My profile",
-    "language": "Language",
-    "me" : "My Profile"
+    "language": "Language"    
   },
   "footer": {
     "quickLinks": "Quick Links",
     "website": "Website",
     "contact": "Contact",
     "privacy": "Privacy"
+  },
+  "member": {
+    "profile": "My Profile",
+    "info": "Member Info",
+    "fullname": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "postcode": "Postcode",
+    "town": "Town/City",
+    "address": "Street Address",
+    "emergencyContact": "Emergency Contact",
+    "iceContact": "ICE Contact",
+    "icePhone": "ICE Phone",
+    "roles": "Roles",
+    "trainingProgram": "Training Program"
   },
   "error": {
     "pageNotFound": "Page not found",
