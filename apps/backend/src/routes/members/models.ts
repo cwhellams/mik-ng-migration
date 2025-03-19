@@ -1,7 +1,6 @@
 import { z } from 'zod'
 
 import { MIKRoles } from '../auth/user.ts'
-
 // member list endpoint
 
 const MemberListSchema = z.object({
@@ -35,4 +34,7 @@ export const MemberSchema = z.object({
   townCity: z.string().nullish(),
   roles: z.array(z.nativeEnum(MIKRoles)),
 })
+
 export type Member = z.infer<typeof MemberSchema>
+
+export type MemberResponse = z.infer<typeof MemberSchema>
