@@ -1,7 +1,8 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles'
+import { PaletteMode } from '@mui/material'
 
-// Create a theme instance
-const theme = createTheme({
+// Common theme settings
+const getCommonTheme = (mode: PaletteMode) => ({
   typography: {
     fontFamily: [
       'Poppins',
@@ -29,11 +30,21 @@ const theme = createTheme({
       fontWeight: 400,
     },
   },
+  shape: {
+    borderRadius: 8,
+  },
+  spacing: 8,
+})
+
+// Create the light theme
+export const lightTheme = createTheme({
+  ...getCommonTheme('light'),
   palette: {
+    mode: 'light',
     primary: {
       main: '#002385',
-      light: '#3b4cad', // Lighter shade of primary
-      dark: '#001a66', // Darker shade of primary
+      light: '#3b4cad',
+      dark: '#001a66',
       contrastText: '#ffffff',
     },
     secondary: {
@@ -63,7 +74,7 @@ const theme = createTheme({
       dark: '#087f23',
     },
     background: {
-      default: '#f5f5f0', // Keep your paper color background
+      default: '#f5f5f0',
       paper: '#ffffff',
     },
     text: {
@@ -72,12 +83,7 @@ const theme = createTheme({
       disabled: '#9e9e9e',
     },
     divider: 'rgba(0, 35, 133, 0.12)',
-    mode: 'light',
   },
-  shape: {
-    borderRadius: 8,
-  },
-  spacing: 8,
   components: {
     MuiCard: {
       styleOverrides: {
@@ -113,50 +119,92 @@ const theme = createTheme({
       },
     },
   },
-});
-
-// Create the light theme
-export const lightTheme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#002385',
-      light: '#3b4cad',
-      dark: '#001a66',
-      contrastText: '#ffffff',
-    },
-    // Other light theme colors from your existing theme
-    background: {
-      default: '#f5f5f0',
-      paper: '#ffffff',
-    },
-    text: {
-      primary: '#1c2130',
-      secondary: '#4e5567',
-    },
-  },
-});
+})
 
 // Create the dark theme
 export const darkTheme = createTheme({
+  ...getCommonTheme('dark'),
   palette: {
     mode: 'dark',
     primary: {
-      main: '#535bf2',
-      light: '#7e84f5',
-      dark: '#3040d6',
+      main: '#5b7ae0',
+      light: '#8ba9ff',
+      dark: '#2b4dad',
       contrastText: '#ffffff',
     },
-    // Dark theme colors
+    secondary: {
+      main: '#818cf8',
+      light: '#b0b8fa',
+      dark: '#5462e6',
+      contrastText: '#ffffff',
+    },
+    error: {
+      main: '#f44336',
+      light: '#ff7961',
+      dark: '#ba000d',
+    },
+    warning: {
+      main: '#ff9800',
+      light: '#ffc947',
+      dark: '#c66900',
+    },
+    info: {
+      main: '#29b6f6',
+      light: '#73e8ff',
+      dark: '#0086c3',
+    },
+    success: {
+      main: '#66bb6a',
+      light: '#98ee99',
+      dark: '#338a3e',
+    },
     background: {
       default: '#121212',
       paper: '#1e1e1e',
     },
     text: {
-      primary: '#ffffff',
+      primary: '#f5f5f5',
       secondary: '#b0b0b0',
+      disabled: '#6c6c6c',
+    },
+    divider: 'rgba(255,255,255,0.12)',
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          transition: 'box-shadow 0.3s ease',
+          '&:hover': {
+            boxShadow: '0 8px 16px rgba(0,0,0,0.4)',
+          },
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            '&:hover fieldset': {
+              borderColor: 'rgba(91,122,224,0.6)',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: '#5b7ae0',
+            },
+          },
+        },
+      },
     },
   },
-});
+})
 
-export default theme;
+// Export default theme (for backward compatibility)
+export default lightTheme 

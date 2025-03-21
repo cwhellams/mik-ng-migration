@@ -7,7 +7,8 @@
     "login": "Login",
     "logout": "Logout",
     "profile": "My profile",
-    "language": "Language"    
+    "language": "Language",
+    "toggleTheme": "Toggle dark/light mode"
   },
   "footer": {
     "quickLinks": "Quick Links",
@@ -33,6 +34,6 @@
   "error": {
     "pageNotFound": "Page not found",
     "pageNotFoundMessage": "Oops, the page you're looking for doesn't exist.",
-    "backToHome": "Back to homepage"    
+    "backToHome": "Back to homepage"
   }
 }

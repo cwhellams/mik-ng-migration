@@ -7,7 +7,8 @@
     "login": "Kirjaudu",
     "logout": "Kirjaudu ulos",
     "profile": "Omat tiedot",
-    "language": "Kieli"    
+    "language": "Kieli",
+    "toggleTheme": "Vaihda palettia"
   },
   "footer": {
     "quickLinks": "Pikalinkit",
@@ -34,6 +35,6 @@
     "pageNotFound": "Sivua ei löytynyt",
     "pageNotFoundMessage": "Hups, sivua ei löytynyt.",
     "backToHome": "Takaisin kotisivulle",
-    "logout": "Uloskirjaudu"    
+    "logout": "Uloskirjaudu"
   }
 }
