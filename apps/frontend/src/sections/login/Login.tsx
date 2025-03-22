@@ -39,7 +39,7 @@ const Login = () => {
       return
     }
 
-    trigger({ email: email, target: location.state.target })
+    trigger({ email: email, target: location.state?.target })
       .then((response) => {
         if (response.data.code) {
           navigate('/login/sent', {
