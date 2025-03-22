@@ -1,6 +1,7 @@
 import { Typography, Box, Paper, Divider, Fade } from '@mui/material'
 import MikLogo from '../../assets/mik-blue.svg'
 import { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 
 export const LoginLayout = ({
   title,
@@ -36,16 +37,18 @@ export const LoginLayout = ({
         }}
       >
         <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <img
-            src={MikLogo}
-            alt='MIK Logo'
-            style={{
-              width: 80,
-              height: 'auto',
-              marginBottom: '8px',
-              filter: 'drop-shadow(0 0 8px rgba(100, 108, 255, 0.3))',
-            }}
-          />
+          <Link to='/'>
+            <img
+              src={MikLogo}
+              alt='MIK Logo'
+              style={{
+                width: 80,
+                height: 'auto',
+                marginBottom: '8px',
+                filter: 'drop-shadow(0 0 8px rgba(100, 108, 255, 0.3))',
+              }}
+            />
+          </Link>
           <Typography
             variant='h4'
             fontWeight='bold'

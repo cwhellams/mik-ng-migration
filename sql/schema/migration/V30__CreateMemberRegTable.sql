@@ -3,7 +3,7 @@ CREATE TABLE member.register
     member_id SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
-    date_of_birth DATE NOT NULL,
+    date_of_birth DATE,
     member_since DATE NOT NULL DEFAULT CURRENT_DATE,
     email VARCHAR(100) UNIQUE NOT NULL,
     phone_number VARCHAR(20),
@@ -18,6 +18,7 @@ CREATE TABLE member.register
     is_training_program_pilot BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    email_verified_at TIMESTAMP,
     created_by TEXT NOT NULL,
     updated_by TEXT NOT NULL,
     FOREIGN KEY (member_type_id) REFERENCES member.type (id)

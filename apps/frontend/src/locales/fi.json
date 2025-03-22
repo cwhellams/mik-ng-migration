@@ -15,25 +15,47 @@
     "contact": "Yhteystiedot",
     "privacy": "Tietosuoja"
   },
+  "login": {
+    "title": "Kirjaudu sähköpostilinkillä",
+    "validEmailRequired": "Anna kelvollinen sähköpostiosoite",
+    "submitButton": "Kirjaudu sähköpostilla",
+    "withoutAccount": "Tili puuttuu?",
+    "join": "Liity jäseneksi"
+  },
+  "register": {
+    "title": "Liity jäseneksi",
+    "prices": "Liittyessäsi täysjäseneksi Malmin ilmailukerhoon ensimmäisen kauden jäsenmaksuun lisätään liittymismaksu 125€. Kannatusjäsenen ja nuorisojäsenen liittymismaksu on 25€. Kerhon kaluston varaus- ja käyttöoikeus voidaan myöntää vain nuoriso- ja täysjäsenille.",
+    "button": "Lähetä hakemus",
+    "withAccount": "Oletko jo jäsen?",
+    "login": "Kirjaudu sisään"
+  },
   "member": {
     "profile": "Oma profiili",
     "info": "Jäsenen tiedot",
     "fullname": "Koko nimi",
+    "firstName": "Etunimi",
+    "lastName": "Sukunimi",
     "email": "Sähköposti",
     "phone": "Puhelin",
     "postcode": "Postinumero",
     "town": "Kaupunki",
-    "address": "Katuosoite",
+    "street": "Katuosoite",
     "emergencyContact": "Hätäyhteyshenkilö",
     "iceContact": "ICE-yhteyshenkilö",
     "icePhone": "ICE-puhelin",
+    "dateOfBirth": "Syntymäpäivä",
     "roles": "Roolit",
-    "trainingProgram": "Koulutusohjelma"
+    "trainingProgram": "Koulutusohjelma",
+    "type": "Jäsenyys",
+    "types": {
+      "flying": "Täysijäsen",
+      "nonflying": "Kannatusjäsen",
+      "junior": "Nuorisojäsen"
+    }
   },
   "error": {
     "pageNotFound": "Sivua ei löytynyt",
     "pageNotFoundMessage": "Hups, sivua ei löytynyt.",
     "backToHome": "Takaisin kotisivulle",
     "logout": "Uloskirjaudu"    
-  }
-}
+  }}

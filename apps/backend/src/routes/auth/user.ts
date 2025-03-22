@@ -1,14 +1,6 @@
-import type { Selectable } from 'kysely'
 import { z } from 'zod'
 
-import type { MemberRegister } from '../../db/schema.d.ts'
-
-export enum MIKRoles {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-  INSTRUCTOR = 'INSTRUCTOR',
-  COMMITTEE = 'COMMITTEE',
-}
+import { MIKRoles, type Member } from '../members/models.ts'
 
 // should match User in types/express.d.ts
 export const JWTPayloadSchema = z.object({
@@ -19,11 +11,8 @@ export const JWTPayloadSchema = z.object({
 
 export type JWTPayload = z.infer<typeof JWTPayloadSchema>
 
-export const generateJWTPayload = (
-  user: Selectable<MemberRegister>,
-  roles: MIKRoles[],
-): JWTPayload => ({
-  userId: user.member_id,
+export const generateJWTPayload = (user: Member): JWTPayload => ({
+  userId: user.memberId,
   email: user.email,
-  roles: roles,
+  roles: user.roles,
 })

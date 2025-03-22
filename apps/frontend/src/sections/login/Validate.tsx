@@ -3,26 +3,27 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { LoginLayout } from './LoginLayout'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '../../hooks/useAuth'
+import { VerifyRequest, VerifyResponse } from '@backend/routes/auth/schema'
 
-export const LoginValidate = () => {
+const LoginValidate = () => {
   const [searchParams] = useSearchParams()
-  const [userName, setUsername] = useState('')
   const [codeError, setCodeError] = useState('')
 
   const navigate = useNavigate()
 
-  const token = searchParams.get('token')
-
-  const { isMutating, trigger } = useAuth('login/validate')
+  const { isMutating, trigger } = useAuth<VerifyRequest, VerifyResponse>(
+    'login/validate'
+  )
 
   useEffect(() => {
+    const token = searchParams.get('token')
+    const target = searchParams.get('target')
     if (token) {
       trigger({ token })
         .then((response) => {
           if (response.data.accessToken) {
-            sessionStorage.setItem('accessToken', response.data.accessToken)
-            setUsername(response.data.user?.email ?? '')
-            setTimeout(() => navigate('/members'), 1000)
+            localStorage.setItem('accessToken', response.data.accessToken)
+            navigate(target ?? '/')
           }
         })
         .catch((error) => {
@@ -32,7 +33,7 @@ export const LoginValidate = () => {
     } else {
       setCodeError('Login failed, try again')
     }
-  }, [navigate, trigger, token])
+  }, [navigate, trigger, searchParams])
 
   return (
     <LoginLayout title='Login'>
@@ -41,14 +42,6 @@ export const LoginValidate = () => {
           {isMutating && <CircularProgress size={24} color='inherit' />}
         </Typography>
       </Box>
-
-      {userName && (
-        <Box sx={{ textAlign: 'center', mt: 2 }}>
-          <Typography variant='body2' color='text.secondary'>
-            Hello {userName}
-          </Typography>
-        </Box>
-      )}
 
       {codeError && (
         <Box sx={{ textAlign: 'center', mt: 2 }}>
@@ -60,3 +53,5 @@ export const LoginValidate = () => {
     </LoginLayout>
   )
 }
+
+export default LoginValidate
