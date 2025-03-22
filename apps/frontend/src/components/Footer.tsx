@@ -1,9 +1,12 @@
 import { Box, Container, Typography, Link, Divider, Stack } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import MikLogo from '../assets/mik-blue.svg'
+import MikLogoWhite from '../assets/mik-white.svg'
 
 const Footer = () => {
   const { t } = useTranslation()
+  const theme = useTheme()
   const currentYear = new Date().getFullYear()
 
   return (
@@ -13,7 +16,10 @@ const Footer = () => {
       px={5}
       sx={{
         py: 4,
-        backgroundColor: 'rgba(245, 245, 245, 0.8)',
+        backgroundColor: theme => theme.palette.mode === 'dark'
+          ? 'rgba(30, 30, 30, 0.8)'
+          : 'rgba(245, 245, 245, 0.8)',
+        backdropFilter: 'blur(8px)',
         borderTop: '1px solid',
         borderColor: 'divider',
         width: '100vw',
@@ -40,7 +46,7 @@ const Footer = () => {
           >
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
               <img
-                src={MikLogo}
+                src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
                 alt="MIK Logo"
                 style={{ height: 30, width: 'auto', marginRight: '8px' }}
               />
