@@ -113,15 +113,15 @@ const Login = () => {
           {isMutating ? (
             <CircularProgress size={24} color='inherit' />
           ) : (
-            t('login.submit')
+            t('login.submitButton')
           )}
         </Button>
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>
           <Typography variant='body2' color='text.secondary'>
-            t('login.noAccount'){' '}
+            {t('login.withoutAccount')}{' '}
             <Link to='/register' color='primary'>
-              t("login.join")
+              {t('login.join')}
             </Link>
           </Typography>
         </Box>

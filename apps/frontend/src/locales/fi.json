@@ -18,16 +18,21 @@
     "privacy": "Tietosuoja"
   },
   "login": {
-    "title": "Kirjaudu sähköpostilinkillä",
+    "title": "Kirjaudu sisään sähköpostilinkillä",
     "validEmailRequired": "Anna kelvollinen sähköpostiosoite",
     "submitButton": "Kirjaudu sähköpostilla",
     "withoutAccount": "Tili puuttuu?",
-    "join": "Liity jäseneksi"
+    "join": "Liity jäseneksi",
+    "checkYouEmail": "Tarkista sähköpostisi",
+    "linkSentTo": "Kirjautumislinkki on lähetetty osoitteeseen {{email}}",
+    "verificationCode": "Kirjautumisen tunniste",
+    "emailNotReceived": "Sähköpostia ei kuulu?",
+    "tryAgain": "Yritä uudestaan"
   },
   "register": {
     "title": "Liity jäseneksi",
     "prices": "Liittyessäsi täysjäseneksi Malmin ilmailukerhoon ensimmäisen kauden jäsenmaksuun lisätään liittymismaksu 125€. Kannatusjäsenen ja nuorisojäsenen liittymismaksu on 25€. Kerhon kaluston varaus- ja käyttöoikeus voidaan myöntää vain nuoriso- ja täysjäsenille.",
-    "button": "Lähetä hakemus",
+    "submitButton": "Lähetä hakemus",
     "withAccount": "Oletko jo jäsen?",
     "login": "Kirjaudu sisään"
   },

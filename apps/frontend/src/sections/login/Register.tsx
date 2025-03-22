@@ -238,7 +238,7 @@ const Register = () => {
           {isMutating ? (
             <CircularProgress size={24} color='inherit' />
           ) : (
-            t('register.button')
+            t('register.submitButton')
           )}
         </Button>
 
