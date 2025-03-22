@@ -15,7 +15,7 @@ import LoginValidate from './sections/login/Validate'
 import Register from './sections/login/Register'
 import NotFound from './sections/error/NotFound'
 import MyProfile from './sections/members/Member'
-import FlightLogLanding from './sections/flightLog/Landing'
+// import FlightLogLanding from './sections/flightLog/Landing'
 // import NewFlightLogEntry from './sections/flightLog/NewFlightLogEntry'
 
 function App() {
@@ -54,7 +54,7 @@ function App() {
             <Route path="/aircraft" element={<Aircraft />} /> */}
             <Route path='/members' element={<Members />} />
             <Route path='/myprofile' element={<MyProfile />} />
-            <Route path='/flight-logs' element={<FlightLogLanding />} />
+            {/* <Route path='/flight-logs' element={<FlightLogLanding />} /> */}
             {/* <Route path='/flight-logs/new' element={<NewFlightLogEntry />} /> */}
           </Route>
 
