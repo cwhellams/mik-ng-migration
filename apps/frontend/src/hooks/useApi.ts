@@ -10,7 +10,10 @@ interface Request extends Omit<AxiosRequestConfig, 'url'> {
 
 interface Return<Data, Error>
   extends Omit<SWRResponse<AxiosResponse<Data>, AxiosError<Error>>, 'data'> {
+  // actual payload
   data: Data | undefined
+
+  // the whole response object with http status codes, headers, etc
   response: AxiosResponse<Data> | undefined
 }
 
@@ -18,7 +21,7 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
   request: Request,
   config: SWRConfiguration<AxiosResponse<Data>, AxiosError<Error>> = {}
 ): Return<Data, Error> {
-  const accessToken = sessionStorage.getItem('accessToken')
+  const accessToken = localStorage.getItem('accessToken')
 
   const navigate = useNavigate()
 

@@ -8,9 +8,10 @@ import {
 } from '@mui/material'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { LoginLayout } from './LoginLayout'
+import { LoginRequest, LoginResponse } from '@backend/routes/auth/schema'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -18,7 +19,7 @@ const Login = () => {
 
   const navigate = useNavigate()
 
-  const { isMutating, trigger } = useAuth('login')
+  const { isMutating, trigger } = useAuth<LoginRequest, LoginResponse>('login')
 
   const validateEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -34,13 +35,20 @@ const Login = () => {
       return
     }
 
-    trigger({ destination: email })
+    trigger({ email: email })
       .then((response) => {
-        navigate('/login/sent', { state: { email, code: response.data.code } })
+        if (response.data.code) {
+          navigate('/login/sent', {
+            state: { email, code: response.data.code },
+          })
+        } else {
+          console.log('Error:', response)
+          setEmailError('Error')
+        }
       })
       .catch((error) => {
         console.log('Error:', error)
-        setEmailError(error.response.data.message)
+        setEmailError(error.response.statusText)
       })
   }
 
@@ -108,18 +116,9 @@ const Login = () => {
         <Box sx={{ textAlign: 'center', mt: 2 }}>
           <Typography variant='body2' color='text.secondary'>
             Don't have an account?{' '}
-            <Typography
-              component='span'
-              variant='body2'
-              color='primary'
-              sx={{
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                '&:hover': { textDecoration: 'underline' },
-              }}
-            >
+            <Link to='/register' color='primary'>
               Sign up
-            </Typography>
+            </Link>
           </Typography>
         </Box>
       </form>

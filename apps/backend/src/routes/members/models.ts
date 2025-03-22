@@ -1,6 +1,18 @@
 import { z } from 'zod'
 
-import { MIKRoles } from '../auth/user.ts'
+export enum MIKRoles {
+  USER = 'USER',
+  ADMIN = 'ADMIN',
+  INSTRUCTOR = 'INSTRUCTOR',
+  COMMITTEE = 'COMMITTEE',
+}
+
+export enum MIKMemberTypes {
+  FLYING = 'FLYING',
+  NONFLYING = 'NONFLYING',
+  JUNIOR = 'JUNIOR',
+}
+
 // member list endpoint
 
 const MemberListSchema = z.object({
@@ -17,21 +29,35 @@ export const MemberListResponseSchema = z.object({
 
 export type MemberListResponse = z.infer<typeof MemberListResponseSchema>
 
-// me-endpoint
+// member details endpoint
 
 export const MemberSchema = z.object({
   memberId: z.number(),
-  memberType: z.string(),
+  memberType: z.nativeEnum(MIKMemberTypes),
   email: z.string(),
   firstName: z.string(),
   lastName: z.string(),
+
+  phoneNumber: z.string().nullish(),
+  streetAddress: z.string().nullish(),
+  postcode: z.string().nullish(),
+  townCity: z.string().nullish(),
+
   iceContactName: z.string().nullish(),
   iceContactPhoneNumber: z.string().nullish(),
+
   isTrainingProgramPilot: z.boolean(),
-  phoneNumber: z.string().nullish(),
-  postcode: z.string().nullish(),
-  streetAddress: z.string().nullish(),
-  townCity: z.string().nullish(),
+  canMakeReservations: z.boolean(),
+  billingId: z.string().nullish(),
+  dateOfBirth: z.string().date().nullish(),
+  memberSince: z.string().date(),
+
+  createdAt: z.string().datetime(),
+  createdBy: z.string(),
+  updatedAt: z.string().datetime(),
+  updatedBy: z.string(),
+  emailVerifiedAt: z.string().datetime().optional(),
+
   roles: z.array(z.nativeEnum(MIKRoles)),
 })
 

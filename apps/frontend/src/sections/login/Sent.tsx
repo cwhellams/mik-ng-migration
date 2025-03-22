@@ -2,14 +2,15 @@ import { Link, useLocation } from 'react-router-dom'
 import { LoginLayout } from './LoginLayout'
 import { Box, Typography } from '@mui/material'
 
-export const LoginSent = () => {
+const LoginSent = () => {
   const location = useLocation()
 
   return (
     <LoginLayout title='Check your email'>
       <Box sx={{ textAlign: 'center', mt: 2 }}>
         <Typography variant='body2' color='text.primary'>
-          A Login link has been sent to {location.state.email}, if that email exists.
+          A Login link has been sent to {location.state.email}, if that email
+          exists.
         </Typography>
       </Box>
       <Box sx={{ textAlign: 'center', mt: 2 }}>
@@ -26,3 +27,5 @@ export const LoginSent = () => {
     </LoginLayout>
   )
 }
+
+export default LoginSent
