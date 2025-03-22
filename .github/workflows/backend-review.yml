@@ -48,6 +48,8 @@ jobs:
       # We must checkout code first as the GH workspace is clean / empty
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Run Flyway migrations
         working-directory: ${{ github.workspace }}
@@ -74,12 +76,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: apps/backend/package-lock.json
+          node-version: '22'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci --verbose
+        run: pnpm install
 
       - name: Run ESLint and check error count
         run: |
@@ -102,18 +103,18 @@ jobs:
           fi
 
       - name: Run Prettier Check
-        run: npm run format:check
+        run: pnpm format:check
 
       - name: Build backend
-        run: npm run build
+        run: pnpm build
 
       - name: Check for Security Vulnerabilities
-        run: npm audit --audit-level=high || echo "Security issues found with NPM packages"
+        run: pnpm audit --audit-level=high || echo "Security issues found with NPM packages"
 
       - name: Test backend
         run: |
           DATABASE_URL=postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
-          npm test
+          pnpm test
 
       - name: Upload test coverage
         uses: actions/upload-artifact@v4

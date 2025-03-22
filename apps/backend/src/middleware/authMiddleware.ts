@@ -3,8 +3,9 @@ import ms from 'ms'
 import passport from 'passport'
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 
+import logger from '../lib/logger.ts'
 import type { JWTPayload } from '../routes/auth/user.ts'
-import { MIKRoles } from '../routes/auth/user.ts'
+import { MIKRoles } from '../routes/members/models.ts'
 import type { ErrorResponse } from '../routes/response.ts'
 
 //
@@ -42,6 +43,8 @@ export const validateUser = (...roles: MIKRoles[]): RequestHandler[] => [
     if (roles.some(role => req.user?.roles.includes(role))) {
       return next()
     }
+
+    logger.warn(`Forbidden required: %j user: %j`, roles, req.user)
 
     res.status(403).json({ errorCode: 'forbidden', message: 'Permission denied' })
   },

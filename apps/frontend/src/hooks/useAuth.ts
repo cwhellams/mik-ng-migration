@@ -1,33 +1,29 @@
 import axios, { AxiosResponse, AxiosError } from 'axios'
 import useSWRMutation, { SWRMutationResponse } from 'swr/mutation'
-import type { LoginRequest, LoginResponse } from '@backend/routes/auth/schema'
 import { Key } from 'swr'
 
-interface Return<Data, Error>
+interface Return<Input, Output, Error>
   extends Omit<
-    SWRMutationResponse<
-      AxiosResponse<Data>,
-      AxiosError<Error>,
-      Key,
-      LoginRequest
-    >,
+    SWRMutationResponse<AxiosResponse<Output>, AxiosError<Error>, Key, Input>,
     'data'
   > {
-  data: Data | undefined
-  response: AxiosResponse<Data> | undefined
+  // actual payload
+  data: Output | undefined
+  // the whole response object with http status codes, headers, etc
+  response: AxiosResponse<Output> | undefined
 }
 
-export function useAuth(
-  endpoint: 'login' | 'login/validate'
-): Return<LoginResponse, Error> {
-  const fetcher = async (url: string, { arg }: { arg: LoginRequest }) =>
+export function useAuth<Input, Output>(
+  endpoint: 'login' | 'login/validate' | 'register'
+): Return<Input, Output, Error> {
+  const fetcher = async (url: string, { arg }: { arg: Input }) =>
     axios.post(url, arg)
 
   const { data: response, ...rest } = useSWRMutation<
-    AxiosResponse<LoginResponse>,
+    AxiosResponse<Output>,
     AxiosError<Error>,
     Key,
-    LoginRequest
+    Input
   >(`/auth/${endpoint}`, fetcher)
 
   return {

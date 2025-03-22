@@ -10,8 +10,9 @@ import Dashboard from './sections/dashboard/Dashboard'
 // import Aircraft from './sections/Aircraft'
 import Members from './sections/members/Members'
 import Login from './sections/login/Login'
-import { LoginSent } from './sections/login/Sent'
-import { LoginValidate } from './sections/login/Validate'
+import LoginSent from './sections/login/Sent'
+import LoginValidate from './sections/login/Validate'
+import Register from './sections/login/Register'
 import NotFound from './sections/error/NotFound'
 import MyProfile from './sections/members/Member'
 import FlightLogLanding from './sections/flightLog/Landing'
@@ -62,6 +63,7 @@ function App() {
             <Route path='/login' element={<Login />} />
             <Route path='/login/sent' element={<LoginSent />} />
             <Route path='/login/validate' element={<LoginValidate />} />
+            <Route path='/register' element={<Register />} />
           </Route>
 
           {/* Fallback route - 404 page */}

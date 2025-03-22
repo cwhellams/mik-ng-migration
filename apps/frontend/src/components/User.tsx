@@ -35,7 +35,7 @@ const User = () => {
   }
 
   const handleLogout = () => {
-    sessionStorage.removeItem('accessToken')
+    localStorage.removeItem('accessToken')
     handleClose()
     navigate('/')
   }

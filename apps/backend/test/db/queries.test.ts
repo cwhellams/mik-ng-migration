@@ -11,10 +11,10 @@ describe('Db query tests', () => {
 
     const result = await getMember(email)
     expect(result).toMatchSnapshot({
-      created_at: expect.any(Date),
-      date_of_birth: expect.any(Date),
-      updated_at: expect.any(Date),
-      member_since: expect.any(Date),
+      createdAt: expect.any(String),
+      dateOfBirth: expect.any(String),
+      updatedAt: expect.any(String),
+      memberSince: expect.any(String),
     })
   })
 

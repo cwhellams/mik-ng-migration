@@ -14,7 +14,7 @@ import useApi from '../../hooks/useApi'
 import { MemberListResponse } from '@backend/routes/members/models'
 
 const Members = () => {
-  const { data, isLoading } = useApi<MemberListResponse>({
+  const { data, error, isLoading } = useApi<MemberListResponse>({
     path: 'v1/members',
   })
 
@@ -25,6 +25,10 @@ const Members = () => {
       </Typography>
       {isLoading ? (
         <CircularProgress size={24} color='inherit' />
+      ) : error || !data ? (
+        <Typography variant='h6' color='error' align='center'>
+          Error loading member data.
+        </Typography>
       ) : (
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label='simple table'>

@@ -17,26 +17,48 @@
     "contact": "Contact",
     "privacy": "Privacy"
   },
+  "login": {
+    "title": "Enter your email to receive login link",
+    "validEmailRequired": "Please enter a valid email address",
+    "submitButton": "Login With Email",
+    "withoutAccount": "Don't have an account?",
+    "join": "Sign up"
+  },
+  "register": {
+    "title": "Join as a member",
+    "prices": "When joining as a full member of Malmi Aviation Club, a joining fee of €125 will be added to the first season's membership fee. The joining fee for supporting members and junior members is €25. The right to reserve and use the club's equipment can only be granted to junior and full members.",
+    "button": "Send Application",
+    "withAccount": "Already have an account?",
+    "login": "Login"
+  },
   "member": {
     "profile": "My Profile",
     "info": "Member Info",
-    "fullname": "Name",
+    "fullname": "Full Name",
     "firstName": "First Name",
     "lastName": "Last Name",
     "email": "Email",
     "phone": "Phone",
     "postcode": "Postcode",
     "town": "Town/City",
+    "street": "Street Address",
     "streetAddress": "Street Address",
     "address": "Address",
     "emergencyContact": "Emergency Contact",
     "iceContact": "ICE Contact",
     "icePhone": "ICE Phone",
+    "dateOfBirth": "Date of Birth",
     "roles": "Roles",
     "trainingProgram": "Training Program",
+    "type": "Member Type",
     "noRolesAssigned": "No roles assigned",
     "editPersonInfo": "Edit your information",
-    "editEmergencyContact": "Edit Emergency Contact"
+    "editEmergencyContact": "Edit Emergency Contact",
+    "types": {
+      "flying": "Full Member",
+      "nonflying": "Supporting Member",
+      "junior": "Junior"
+    }
   },
   "error": {
     "pageNotFound": "Page not found",
