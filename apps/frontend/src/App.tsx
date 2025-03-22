@@ -14,6 +14,8 @@ import { LoginSent } from './sections/login/Sent'
 import { LoginValidate } from './sections/login/Validate'
 import NotFound from './sections/error/NotFound'
 import MyProfile from './sections/members/Member'
+import FlightLogLanding from './sections/flightLog/Landing'
+// import NewFlightLogEntry from './sections/flightLog/NewFlightLogEntry'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -51,6 +53,8 @@ function App() {
             <Route path="/aircraft" element={<Aircraft />} /> */}
             <Route path='/members' element={<Members />} />
             <Route path='/myprofile' element={<MyProfile />} />
+            <Route path='/flight-logs' element={<FlightLogLanding />} />
+            {/* <Route path='/flight-logs/new' element={<NewFlightLogEntry />} /> */}
           </Route>
 
           {/* Auth Layout without header */}
@@ -58,7 +62,6 @@ function App() {
             <Route path='/login' element={<Login />} />
             <Route path='/login/sent' element={<LoginSent />} />
             <Route path='/login/validate' element={<LoginValidate />} />
-            {/* Add other auth routes here (like register, forgot password) */}
           </Route>
 
           {/* Fallback route - 404 page */}
