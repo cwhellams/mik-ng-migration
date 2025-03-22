@@ -20,30 +20,25 @@ jobs:
     runs-on: ubuntu-latest
     environment: DEV
 
+    defaults:
+      run:
+        working-directory: apps/frontend
+
     steps:
       # We must checkout code first as the GH workspace is clean / empty
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: apps/frontend/package-lock.json
+          node-version: '22'
+          cache: 'pnpm'
 
       - name: Install frontend dependencies
-        run: npm ci --verbose
-        working-directory: apps/frontend
-
-      - name: Install backend dependencies
-        run: npm ci --verbose
-        working-directory: apps/backend
-
-        # The backend is needed as the frontend has dependencies on it
-      - name: Build backend
-        run: npm run build
-        working-directory: apps/backend
+        run: pnpm install
 
       - name: Run ESLint and check error count
         run: |
@@ -64,12 +59,9 @@ jobs:
           else
             echo "ESLint errors ($ERROR_COUNT) are within acceptable threshold ($THRESHOLD)"
           fi
-        working-directory: apps/frontend
 
       - name: Build frontend
-        run: npm run build
-        working-directory: apps/frontend
+        run: pnpm run build
 
       - name: Check for Security Vulnerabilities
-        run: npm audit --audit-level=high || echo "Security issues found with NPM packages"
-        working-directory: apps/frontend
+        run: pnpm audit --audit-level=high || echo "Security issues found with NPM packages"

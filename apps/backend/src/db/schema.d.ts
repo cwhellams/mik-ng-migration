@@ -135,8 +135,9 @@ export interface MemberRegister {
   can_make_reservations: Generated<boolean>;
   created_at: Generated<Timestamp>;
   created_by: string;
-  date_of_birth: Timestamp;
+  date_of_birth: Timestamp | null;
   email: string;
+  email_verified_at: Timestamp | null;
   first_name: string;
   ice_contact_name: string | null;
   ice_contact_phone_number: string | null;
