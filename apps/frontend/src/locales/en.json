@@ -8,7 +8,8 @@
     "logout": "Logout",
     "profile": "My profile",
     "language": "Language",
-    "toggleTheme": "Toggle dark/light mode"
+    "toggleTheme": "Toggle dark/light mode",
+    "flightLogs": "Flight Log"
   },
   "footer": {
     "quickLinks": "Quick Links",
@@ -19,21 +20,52 @@
   "member": {
     "profile": "My Profile",
     "info": "Member Info",
-    "fullname": "Full Name",
+    "fullname": "Name",
+    "firstName": "First Name",
+    "lastName": "Last Name",
     "email": "Email",
     "phone": "Phone",
     "postcode": "Postcode",
     "town": "Town/City",
-    "address": "Street Address",
+    "streetAddress": "Street Address",
+    "address": "Address",
     "emergencyContact": "Emergency Contact",
     "iceContact": "ICE Contact",
     "icePhone": "ICE Phone",
     "roles": "Roles",
-    "trainingProgram": "Training Program"
+    "trainingProgram": "Training Program",
+    "noRolesAssigned": "No roles assigned",
+    "editPersonInfo": "Edit your information",
+    "editEmergencyContact": "Edit Emergency Contact"
   },
   "error": {
     "pageNotFound": "Page not found",
     "pageNotFoundMessage": "Oops, the page you're looking for doesn't exist.",
-    "backToHome": "Back to homepage"
+    "backToHome": "Back to homepage",
+    "loadingMemberData": "Error loading member data."
+  },
+  "flightLog": {
+    "title": "Flight Logs",
+    "newEntry": "New Entry",
+    "date": "Date",
+    "aircraft": "Aircraft",
+    "captain": "Captain",
+    "departure": "Departure",
+    "arrival": "Arrival",
+    "blockTime": "Block Time",
+    "flightType": "Type",
+    "billed": "Billed",
+    "noLogs": "No flight logs found"
+  },
+  "roles": {
+    "ADMIN": "Administrator",
+    "COMMITTEE": "Committee Member",
+    "INSTRUCTOR": "Instructor",
+    "USER": "Member"
+  },
+  "general": {
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel"
   }
 }

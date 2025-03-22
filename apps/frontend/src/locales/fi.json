@@ -8,7 +8,8 @@
     "logout": "Kirjaudu ulos",
     "profile": "Omat tiedot",
     "language": "Kieli",
-    "toggleTheme": "Vaihda palettia"
+    "toggleTheme": "Vaihda palettia",
+    "flightLogs": "Lentopäiväkirja"
   },
   "footer": {
     "quickLinks": "Pikalinkit",
@@ -17,24 +18,42 @@
     "privacy": "Tietosuoja"
   },
   "member": {
-    "profile": "Oma profiili",
+    "profile": "Omat tietosi",
     "info": "Jäsenen tiedot",
-    "fullname": "Koko nimi",
+    "fullname": "Nimi",
+    "firstName": "Etunimi",
+    "lastName": "Sukunimi",
     "email": "Sähköposti",
     "phone": "Puhelin",
     "postcode": "Postinumero",
     "town": "Kaupunki",
-    "address": "Katuosoite",
+    "streetAddress": "Katuosoite",
+    "address": "Osoite",
     "emergencyContact": "Hätäyhteyshenkilö",
     "iceContact": "ICE-yhteyshenkilö",
     "icePhone": "ICE-puhelin",
     "roles": "Roolit",
-    "trainingProgram": "Koulutusohjelma"
+    "trainingProgram": "Koulutusohjelma",
+    "noRolesAssigned": "Ei rooleja",
+    "editPersonInfo": "Muokkaa omia tietojasi",
+    "editEmergencyContact": "Muokkaa hätäyhteyshenkilön tietoja"
   },
   "error": {
     "pageNotFound": "Sivua ei löytynyt",
     "pageNotFoundMessage": "Hups, sivua ei löytynyt.",
     "backToHome": "Takaisin kotisivulle",
-    "logout": "Uloskirjaudu"
+    "logout": "Uloskirjaudu",
+    "loadingMemberData": "Virhe jäsentietojen lataamisessa."
+  },
+  "roles": {
+    "ADMIN": "Ylläpitäjä",
+    "COMMITTEE": "Hallituksen jäsen",
+    "INSTRUCTOR": "Lennonopettaja",
+    "USER": "Jäsen"
+  },
+  "general": {
+    "edit": "Muokkaa",
+    "save": "Tallenna",
+    "cancel": "Peruuta"
   }
 }
