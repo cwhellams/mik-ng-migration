@@ -22,12 +22,11 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-export const sendEmail = (to: string, subject: string, text: string, html: string): void => {
+export const sendEmail = (to: string, subject: string, html: string): void => {
   const mailOptions = {
     from: smtpLogin, // Sender address
     to, // List of receivers
     subject,
-    text,
     html,
   }
 

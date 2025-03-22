@@ -21,7 +21,7 @@ const Login = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const { isMutating, trigger } = useAuth<LoginRequest, LoginResponse>('login')
 
@@ -39,7 +39,11 @@ const Login = () => {
       return
     }
 
-    trigger({ email: email, target: location.state?.target })
+    trigger({
+      email: email,
+      target: location.state?.target,
+      lang: i18n.language,
+    })
       .then((response) => {
         if (response.data.code) {
           navigate('/login/sent', {
