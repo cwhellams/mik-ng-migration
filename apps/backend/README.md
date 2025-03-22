@@ -19,9 +19,9 @@ This is the backend project , mostly a node + express REST API
 
 From the backend folder
 
-    npm install
+    pnpm install
 
-This will get you all the required packages, alternatively you can use pnpm.
+This will get you all the required packages.
 
 ## Run the DB codegen
 
@@ -33,7 +33,7 @@ Every time the DB schema is modified you have to rerun code generation to keep o
 
 1. Ensure you have the Postgres up and running using the latest scripts in ./sql
 2. The default .env file should already contain a DATABASE_URL entry which matches the settings from the start script
-3. Run codegen `npm run schema`
+3. Run codegen `pnpm schema`
 4. This will output a src/db/schema.d.ts file, commit the file along with other Flyway schemas to keep everything in sync
 5. Run tests and fix all places not compatible with new schema anymore. Kysely will be bootstrapped with the generated DB model and intelli-sense / code-completion should work when writing kysely statements
 
@@ -43,18 +43,18 @@ Every time the DB schema is modified you have to rerun code generation to keep o
 
 To format code using prettier
 
-    npm run format
+    pnpm format
 
 ## Test
 
 To run the Jest tests
 
-    npm run test
+    pnpm test
 
 ## Start the service
 
-    npm run start
+    pnpm start
 
 or
 
-    npm run dev
+    pnpm dev
