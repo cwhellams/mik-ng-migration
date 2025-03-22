@@ -82,12 +82,11 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-          transition: 'box-shadow 0.3s ease',
-          '&:hover': {
-            boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-          },
+          borderRadius: 16,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
+          border: '1px solid rgba(0,0,0,0.05)',
+          overflow: 'hidden',
+          position: 'relative',
         },
       },
     },
@@ -109,6 +108,76 @@ const theme = createTheme({
               borderColor: '#002385',
             },
           },
+        },
+      },
+    },
+  },
+});
+
+// Create the light theme
+export const lightTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#002385',
+      light: '#3b4cad',
+      dark: '#001a66',
+      contrastText: '#ffffff',
+    },
+    // Other light theme colors from your existing theme
+    background: {
+      default: '#f5f5f0',
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#1c2130',
+      secondary: '#4e5567',
+    },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
+          border: '1px solid rgba(0,0,0,0.05)',
+          overflow: 'hidden',
+          position: 'relative',
+        },
+      },
+    },
+  },
+});
+
+// Create the dark theme with the same card styling but adapted for dark mode
+export const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#535bf2',
+      light: '#7e84f5',
+      dark: '#3040d6',
+      contrastText: '#ffffff',
+    },
+    // Dark theme colors
+    background: {
+      default: '#121212',
+      paper: '#1e1e1e',
+    },
+    text: {
+      primary: '#ffffff',
+      secondary: '#b0b0b0',
+    },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+          border: '1px solid rgba(255,255,255,0.05)',
+          overflow: 'hidden',
+          position: 'relative',
         },
       },
     },

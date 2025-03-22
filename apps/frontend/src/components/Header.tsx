@@ -19,11 +19,13 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { Link, useLocation } from 'react-router-dom'
 import MikLogo from '../assets/mik-blue.svg'
+import MikLogoWhite from '../assets/mik-white.svg'
 import { useTranslation } from 'react-i18next'
 import User from './User'
 import { Icon } from '@iconify/react'
 import { menuItems } from '../config/menuItems'
 import { useSwipeable } from 'react-swipeable'
+import ThemeToggle from './ThemeToggle'
 
 interface HeaderProps {
   window?: () => Window
@@ -82,7 +84,7 @@ const Header = (props: HeaderProps) => {
     >
       <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <img
-          src={MikLogo}
+          src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
           alt="MIK Logo"
           style={{
             height: 40,
@@ -122,7 +124,9 @@ const Header = (props: HeaderProps) => {
       position="fixed"
       elevation={isScrolled ? 2 : 0}
       sx={{
-        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        backgroundColor: theme => theme.palette.mode === 'dark'
+          ? 'rgba(30, 30, 30, 0.85)'
+          : 'rgba(255, 255, 255, 0.85)',
         backdropFilter: 'blur(8px)',
         transition: 'transform 0.3s, backdrop-filter 0.3s, box-shadow 0.3s',
         borderBottom: isScrolled ? 'none' : `1px solid ${theme.palette.divider}`,
@@ -166,7 +170,7 @@ const Header = (props: HeaderProps) => {
               to="/"
             >
               <img
-                src={MikLogo}
+                src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
                 alt="MIK Logo"
                 style={{
                   height: 40,
@@ -200,7 +204,7 @@ const Header = (props: HeaderProps) => {
           {isMobile && (
             <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
               <img
-                src={MikLogo}
+                src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
                 alt="MIK Logo"
                 style={{
                   height: 40,
@@ -210,8 +214,11 @@ const Header = (props: HeaderProps) => {
             </Box>
           )}
 
-          {/* User Avatar - Always Visible */}
-          <User />
+          {/* User Avatar and Theme Toggle - Always Visible */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ThemeToggle />
+            <User />
+          </Box>
         </Container>
       </Toolbar>
 
