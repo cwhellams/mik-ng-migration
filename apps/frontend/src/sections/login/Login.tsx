@@ -8,7 +8,7 @@ import {
 } from '@mui/material'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { LoginLayout } from './LoginLayout'
 import { LoginRequest, LoginResponse } from '@backend/routes/auth/schema'
@@ -18,6 +18,7 @@ const Login = () => {
   const [emailError, setEmailError] = useState('')
 
   const navigate = useNavigate()
+  const location = useLocation()
 
   const { isMutating, trigger } = useAuth<LoginRequest, LoginResponse>('login')
 
@@ -35,7 +36,7 @@ const Login = () => {
       return
     }
 
-    trigger({ email: email })
+    trigger({ email: email, target: location.state.target })
       .then((response) => {
         if (response.data.code) {
           navigate('/login/sent', {

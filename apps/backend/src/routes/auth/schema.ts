@@ -28,6 +28,9 @@ export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 export const LoginRequestSchema = z.object({
   // email of the user to log in
   email: z.string(),
+
+  // where to navigate after login
+  target: z.string().optional(),
 })
 export type LoginRequest = z.infer<typeof LoginRequestSchema>
 

@@ -1,7 +1,7 @@
 import useSWR, { SWRConfiguration, SWRResponse } from 'swr'
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { ErrorResponse } from '@backend/routes/response'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 interface Request extends Omit<AxiosRequestConfig, 'url'> {
   path: string
@@ -24,6 +24,7 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
   const accessToken = localStorage.getItem('accessToken')
 
   const navigate = useNavigate()
+  const location = useLocation()
 
   // the whole object acts as a key for caching
   const authenticatedRequest: AxiosRequestConfig = {
@@ -46,7 +47,9 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
   )
 
   if (!request.allowUnauthenticated && error?.status == 401) {
-    navigate('/login')
+    navigate('/login', {
+      state: { target: location.pathname },
+    })
   }
 
   return {

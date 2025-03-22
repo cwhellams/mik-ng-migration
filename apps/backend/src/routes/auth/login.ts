@@ -37,7 +37,7 @@ const silentFailure = (message: string, res: Response<LoginResponse>) => {
 
 // Login existing user
 router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResponse>) => {
-  const { email } = LoginRequestSchema.parse(req.body)
+  const { email, target } = LoginRequestSchema.parse(req.body)
 
   // Check that we have a memeber with this email address, to avoid sending magic link to non-existing user.
   // Do not leak information about existing users, if nothing found still return 200 with a random verification code and log a warning.
@@ -49,7 +49,7 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
     )
   }
 
-  const { href, code } = magicLogin.generateLink(member.email)
+  const { href, code } = magicLogin.generateLink(member.email, target)
   sendEmail(
     member.email,
     'Your login to MIK',

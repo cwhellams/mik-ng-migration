@@ -11,19 +11,19 @@ const LoginValidate = () => {
 
   const navigate = useNavigate()
 
-  const token = searchParams.get('token')
-
   const { isMutating, trigger } = useAuth<VerifyRequest, VerifyResponse>(
     'login/validate'
   )
 
   useEffect(() => {
+    const token = searchParams.get('token')
+    const target = searchParams.get('target')
     if (token) {
       trigger({ token })
         .then((response) => {
           if (response.data.accessToken) {
             localStorage.setItem('accessToken', response.data.accessToken)
-            setTimeout(() => navigate('/members'), 1000)
+            navigate(target ?? '/')
           }
         })
         .catch((error) => {
