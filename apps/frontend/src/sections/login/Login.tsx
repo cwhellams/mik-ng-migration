@@ -12,6 +12,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { LoginLayout } from './LoginLayout'
 import { LoginRequest, LoginResponse } from '@backend/routes/auth/schema'
+import { useTranslation } from 'react-i18next'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -19,6 +20,8 @@ const Login = () => {
 
   const navigate = useNavigate()
   const location = useLocation()
+
+  const { t } = useTranslation()
 
   const { isMutating, trigger } = useAuth<LoginRequest, LoginResponse>('login')
 
@@ -32,7 +35,7 @@ const Login = () => {
     setEmailError('')
 
     if (!validateEmail(email)) {
-      setEmailError('Please enter a valid email address')
+      setEmailError(t('login.validEmailRequired'))
       return
     }
 
@@ -54,11 +57,11 @@ const Login = () => {
   }
 
   return (
-    <LoginLayout title='Enter your email to receive login link'>
+    <LoginLayout title={t('login.title')}>
       <form onSubmit={handleSubmit}>
         <TextField
           fullWidth
-          label='Email'
+          label={t('member.email')}
           variant='outlined'
           margin='normal'
           value={email}
@@ -110,15 +113,15 @@ const Login = () => {
           {isMutating ? (
             <CircularProgress size={24} color='inherit' />
           ) : (
-            'Login With Email'
+            t('login.submit')
           )}
         </Button>
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>
           <Typography variant='body2' color='text.secondary'>
-            Don't have an account?{' '}
+            t('login.noAccount'){' '}
             <Link to='/register' color='primary'>
-              Sign up
+              t("login.join")
             </Link>
           </Typography>
         </Box>

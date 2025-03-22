@@ -24,6 +24,7 @@ import { LoginResponse, RegisterRequest } from '@backend/routes/auth/schema'
 import { MIKMemberTypes } from '@backend/routes/members/models.ts'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/LocalizationProvider'
 import dayjs, { Dayjs } from 'dayjs'
+import { useTranslation } from 'react-i18next'
 
 const Register = () => {
   const [member, setMember] = useState<RegisterRequest>({
@@ -43,6 +44,8 @@ const Register = () => {
 
   const [registerError, setRegisterError] = useState('')
 
+  const { t } = useTranslation()
+
   const navigate = useNavigate()
 
   const { isMutating, trigger } = useAuth<RegisterRequest, LoginResponse>(
@@ -59,7 +62,7 @@ const Register = () => {
     setRegisterError('')
 
     if (!validateEmail(member.email)) {
-      setRegisterError('Please enter a valid email address')
+      setRegisterError(t('login.validEmailRequired'))
       return
     }
 
@@ -81,11 +84,11 @@ const Register = () => {
   }
 
   return (
-    <LoginLayout title='Join as a member'>
+    <LoginLayout title={t('register.title')}>
       <form onSubmit={handleSubmit}>
         <TextField
           fullWidth
-          label='Email'
+          label={t('member.email')}
           margin='normal'
           value={member.email}
           onChange={(e) => setMember({ ...member, email: e.target.value })}
@@ -102,7 +105,7 @@ const Register = () => {
         />
         <TextField
           fullWidth
-          label='First name'
+          label={t('member.firstName')}
           margin='normal'
           value={member.firstName}
           onChange={(e) => setMember({ ...member, firstName: e.target.value })}
@@ -110,7 +113,7 @@ const Register = () => {
         />
         <TextField
           fullWidth
-          label='Last name'
+          label={t('member.lastName')}
           margin='normal'
           value={member.lastName}
           onChange={(e) => setMember({ ...member, lastName: e.target.value })}
@@ -118,7 +121,7 @@ const Register = () => {
         />
         <TextField
           fullWidth
-          label='Phone number'
+          label={t('member.phone')}
           margin='normal'
           value={member.phoneNumber}
           onChange={(e) =>
@@ -128,7 +131,7 @@ const Register = () => {
         />
         <TextField
           fullWidth
-          label='Street address'
+          label={t('member.street')}
           margin='normal'
           value={member.streetAddress}
           onChange={(e) =>
@@ -138,7 +141,7 @@ const Register = () => {
         />
         <TextField
           fullWidth
-          label='Postcode'
+          label={t('member.postcode')}
           margin='normal'
           value={member.postcode}
           onChange={(e) => setMember({ ...member, postcode: e.target.value })}
@@ -146,14 +149,14 @@ const Register = () => {
         />
         <TextField
           fullWidth
-          label='City'
+          label={t('member.town')}
           margin='normal'
           value={member.townCity}
           onChange={(e) => setMember({ ...member, townCity: e.target.value })}
           required
         />
         <FormControl>
-          <FormLabel id='member-type-label'>Member type</FormLabel>
+          <FormLabel id='member-type-label'>{t('member.type')}</FormLabel>
           <RadioGroup
             aria-labelledby='member-type-label'
             defaultValue='FLYING'
@@ -169,17 +172,17 @@ const Register = () => {
             <FormControlLabel
               value='FLYING'
               control={<Radio />}
-              label='Flying member'
+              label={t('member.types.flying')}
             />
             <FormControlLabel
               value='NONFLYING'
               control={<Radio />}
-              label='Non flying member'
+              label={t('member.types.nonflying')}
             />
             <FormControlLabel
               value='JUNIOR'
               control={<Radio />}
-              label='Junior'
+              label={t('member.types.junior')}
             />
           </RadioGroup>
         </FormControl>
@@ -187,7 +190,7 @@ const Register = () => {
         {member.memberType == 'JUNIOR' && (
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='fi'>
             <DateField
-              label='Date of birth'
+              label={t('member.dateOfBirth')}
               required
               margin='normal'
               defaultValue={dayjs()}
@@ -204,10 +207,7 @@ const Register = () => {
         )}
 
         <Typography variant='body2' color='text.secondary'>
-          Liittyessäsi täysjäseneksi Malmin ilmailukerhoon ensimmäisen kauden
-          jäsenmaksuun lisätään liittymismaksu 125€. Kannatusjäsenen ja
-          nuorisojäsenen liittymismaksu on 25€. Kerhon kaluston varaus- ja
-          käyttöoikeus voidaan myöntää vain nuoriso- ja täysjäsenille.
+          {t('register.prices')}
         </Typography>
 
         <Button
@@ -238,7 +238,7 @@ const Register = () => {
           {isMutating ? (
             <CircularProgress size={24} color='inherit' />
           ) : (
-            'Register'
+            t('register.button')
           )}
         </Button>
 
@@ -250,9 +250,9 @@ const Register = () => {
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>
           <Typography variant='body2' color='text.secondary'>
-            Already have an account?{' '}
+            {t('register.withAccount')}{' '}
             <Link to='/login' color='primary'>
-              Login
+              {t('register.login')}
             </Link>
           </Typography>
         </Box>
