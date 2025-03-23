@@ -8,7 +8,7 @@ import EditMemberModal from './components/EditMemberModal';
 
 const MyProfile = () => {
   const { t } = useTranslation();
-  const { data, isLoading, error } = useApi<Member>({ path: 'v1/members/me' })
+  const { data, isLoading, error, patch } = useApi<Member>({ path: 'v1/members/me' })
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editMode, setEditMode] = useState<'personalInfo' | 'emergencyContact'>('personalInfo');
 
@@ -18,6 +18,8 @@ const MyProfile = () => {
   };
 
   const handleSaveMemberData = async (updatedData: Partial<Member>) => {
+    await patch(updatedData)
+
     console.log('updatedData', updatedData)
   };
 

@@ -7,6 +7,7 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import pg from 'pg'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
+import { ZodError } from 'zod'
 
 import logger from './lib/logger.ts'
 import { router as passportRoutes } from './routes/auth/login.ts'
@@ -71,6 +72,11 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   if (res.headersSent) {
     return next(err)
   }
+
+  if (err instanceof ZodError) {
+    res.status(400).json(<ErrorResponse>{ message: err.message })
+  }
+
   res.status(500).json(<ErrorResponse>{ message: 'Internal Server Error' })
 })
 

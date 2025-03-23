@@ -1,19 +1,35 @@
+import type { Selectable } from 'kysely'
+
 import { db } from './connection.ts'
+import type { MemberRegister } from './schema.js'
 import type { RegisterRequest } from '../routes/auth/schema.ts'
 import type { JWTPayload } from '../routes/auth/user.ts'
 import { MIKRoles, MIKMemberTypes, type Member, type MemberList } from '../routes/members/models.ts'
 
+export async function getMemberById(memberId: number): Promise<Member | undefined> {
+  const member = await db
+    .selectFrom('member.register')
+    .selectAll()
+    .where('member_id', '=', memberId)
+    .executeTakeFirst()
+  if (member !== undefined) {
+    return toMember(member)
+  }
+}
+
 // Get member using email
-export async function getMember(email: string): Promise<Member | undefined> {
+export async function getMemberByEmail(email: string): Promise<Member | undefined> {
   const member = await db
     .selectFrom('member.register')
     .selectAll()
     .where('email', '=', email)
     .executeTakeFirst()
-  if (!member) {
-    return
+  if (member !== undefined) {
+    return toMember(member)
   }
+}
 
+async function toMember(member: Selectable<MemberRegister>): Promise<Member> {
   const roles = await getMemberRoles(member.member_id)
   return {
     memberId: member.member_id,
@@ -53,7 +69,7 @@ export async function getMemberRoles(memberId: number): Promise<MIKRoles[]> {
     .where('member_id', '=', memberId)
     .execute()
 
-  return roles.map(role => role.role_id as MIKRoles)
+  return roles.map(role => MIKRoles[role.role_id as keyof typeof MIKRoles])
 }
 
 export async function getMembers(): Promise<MemberList[]> {
@@ -71,7 +87,7 @@ export async function getMembers(): Promise<MemberList[]> {
 
 export async function addMember(member: RegisterRequest, jwt?: JWTPayload): Promise<number> {
   const now = new Date()
-  const userId = jwt?.userId.toString() ?? 'self'
+  const userId = jwt?.memberId.toString() ?? 'self'
   const result = await db
     .insertInto('member.register')
     .values({
@@ -105,10 +121,10 @@ export async function addMember(member: RegisterRequest, jwt?: JWTPayload): Prom
 }
 
 export async function updateMember(
-  member: Member,
+  memberId: number,
   patch: Partial<Member>,
   jwt: JWTPayload,
-): Promise<Member> {
+): Promise<void> {
   const now = new Date()
 
   const result = await db
@@ -124,8 +140,8 @@ export async function updateMember(
       postcode: patch.postcode,
       town_city: patch.townCity,
 
-      ice_contact_name: member.iceContactName,
-      ice_contact_phone_number: member.iceContactPhoneNumber,
+      ice_contact_name: patch.iceContactName,
+      ice_contact_phone_number: patch.iceContactPhoneNumber,
 
       is_training_program_pilot: patch.isTrainingProgramPilot,
       can_make_reservations: patch.canMakeReservations,
@@ -134,13 +150,12 @@ export async function updateMember(
       member_since: patch.memberSince,
 
       updated_at: now,
-      updated_by: jwt.userId.toString(),
+      updated_by: jwt.memberId.toString(),
       email_verified_at: patch.emailVerifiedAt,
     })
-    .where('member_id', '=', member.memberId)
+    .where('member_id', '=', memberId)
     .executeTakeFirstOrThrow()
   if (!result.numUpdatedRows) {
     throw new Error('Member update failed')
   }
-  return member
 }
