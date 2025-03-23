@@ -16,6 +16,12 @@ import {
 import { addMember, getMember } from '../../db/queries.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
+import {
+  loginEmailTitle,
+  loginEmailBody,
+  registerEmailBody,
+  registerEmailTitle,
+} from '../../templates/email.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 
 if (!process.env.JWT_SECRET) {
@@ -37,7 +43,7 @@ const silentFailure = (message: string, res: Response<LoginResponse>) => {
 
 // Login existing user
 router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResponse>) => {
-  const { email, target } = LoginRequestSchema.parse(req.body)
+  const { email, target, lang } = LoginRequestSchema.parse(req.body)
 
   // Check that we have a memeber with this email address, to avoid sending magic link to non-existing user.
   // Do not leak information about existing users, if nothing found still return 200 with a random verification code and log a warning.
@@ -49,28 +55,11 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
     )
   }
 
-  const { href, code } = magicLogin.generateLink(member.email, target)
-  sendEmail(
-    member.email,
-    'Your login to MIK',
-    '',
-    `
-      <p>You are logging in to MIK with verification code ${code}.</p>
-      
-      <p>Click the link below:
-      <br/>
-      <b><a href="${href}">Confirm login</a>
-      </p></b>
-      
-      <p>Alternatively you can also copy and paste the link into your browser:
-      <br/>
-      ${href}
-      </p>
-      `,
-  )
-  logger.info('magic login link sent for validation %s : %s', code, href)
+  const link = magicLogin.generateLink(member.email, target)
+  sendEmail(member.email, loginEmailTitle(lang), await loginEmailBody(lang, link))
+  logger.info('magic login link sent for validation %j', link)
 
-  return res.json({ code })
+  return res.json({ code: link.code })
 })
 
 // Register a new user
@@ -89,29 +78,17 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   const memberId = await addMember(member)
   logger.info('new member registered with id %s : %j', memberId, member)
 
-  const { href, code } = magicLogin.generateLink(member.email)
-  logger.info('registration sent for validation %s : %s', code, href)
+  const link = magicLogin.generateLink(member.email)
+  logger.info('registration sent for validation %j', link)
+
   sendEmail(
     member.email,
-    'Welcome to MIK',
-    '',
-    `
-      <p>Hello ${member.firstName}, thank you for joining MIK.</p>
-
-      <p>Click the link below to confirm your email address and log in
-      <br/>
-      <a href="${href}">Continue login</a>
-      </p>
-
-      <p>Alternatively you can also copy and paste the link into your browser:
-      <br/>
-      ${href}
-      </p>
-      `,
+    registerEmailTitle(member.lang),
+    registerEmailBody(member.lang, { ...member, ...link }),
   )
-  logger.info('magic registration link sent for validation %s : %s', code, href)
+  logger.info('magic registration link sent for validation %j', link)
 
-  return res.json({ code })
+  return res.json({ code: link.code })
 })
 
 router.post(

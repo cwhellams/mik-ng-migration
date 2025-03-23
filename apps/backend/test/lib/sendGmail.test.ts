@@ -51,11 +51,10 @@ describe('sendEmail', () => {
     // Test data
     const to = 'recipient@example.com'
     const subject = 'Test Subject'
-    const text = 'Test plain text'
     const html = '<p>Test HTML content</p>'
 
     // Call the function
-    sendEmail(to, subject, text, html)
+    sendEmail(to, subject, html)
 
     // Verify correct parameters are passed to sendMail
     expect(sendMailMock).toHaveBeenCalledWith(
@@ -63,7 +62,6 @@ describe('sendEmail', () => {
         from: 'test@example.com',
         to: 'recipient@example.com',
         subject: 'Test Subject',
-        text: 'Test plain text',
         html: '<p>Test HTML content</p>',
       },
       expect.any(Function),

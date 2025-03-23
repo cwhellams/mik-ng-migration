@@ -27,6 +27,8 @@ import dayjs, { Dayjs } from 'dayjs'
 import { useTranslation } from 'react-i18next'
 
 const Register = () => {
+  const { t, i18n } = useTranslation()
+
   const [member, setMember] = useState<RegisterRequest>({
     email: '',
     firstName: undefined as unknown as string,
@@ -39,12 +41,12 @@ const Register = () => {
 
     memberType: MIKMemberTypes.FLYING,
     dateOfBirth: undefined,
+
+    lang: i18n.language,
   })
   const [dateOfBirth, setDateOfBirth] = useState<Dayjs | null>(dayjs())
 
   const [registerError, setRegisterError] = useState('')
-
-  const { t } = useTranslation()
 
   const navigate = useNavigate()
 
@@ -238,7 +240,7 @@ const Register = () => {
           {isMutating ? (
             <CircularProgress size={24} color='inherit' />
           ) : (
-            t('register.button')
+            t('register.submitButton')
           )}
         </Button>
 

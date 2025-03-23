@@ -20,6 +20,8 @@ export const RegisterRequestSchema = MemberSchema.omit({
   updatedBy: true,
   emailVerifiedAt: true,
   roles: true,
+}).extend({
+  lang: z.string(),
 })
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 
@@ -28,6 +30,8 @@ export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 export const LoginRequestSchema = z.object({
   // email of the user to log in
   email: z.string(),
+
+  lang: z.string(),
 
   // where to navigate after login
   target: z.string().optional(),
