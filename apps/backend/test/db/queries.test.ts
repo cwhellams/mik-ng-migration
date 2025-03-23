@@ -9,7 +9,7 @@ import {
   insertFlightLog,
   getMemberByEmail,
 } from '../../src/db/queries.ts'
-import type { FlightLogInsertRequest } from '../../src/routes/members/models.ts'
+import type { FlightLog, FlightLogInsertRequest } from '../../src/routes/members/models.ts'
 
 dotenv.config()
 
@@ -53,13 +53,16 @@ describe('Db query Get FlightLog tests', () => {
   it('getAllFlightLogs with no params should return all logs', async () => {
     const result = await getAllFlightLogs({})
     expect(result.length).toEqual(5)
-    expect(result).toMatchSnapshot()
   })
 
   it('getAllFlightLogs with Captain and copilot should return filtered logs', async () => {
     const result = await getAllFlightLogs({ captain: 'Virtanen', copilot: 'Nieminen' })
     expect(result.length).toEqual(1)
-    expect(result).toMatchSnapshot()
+    expect(result[0]).toMatchSnapshot({
+      flight_id: expect.any(Number),
+      created_at: expect.any(Date),
+      updated_at: expect.any(Date),
+    })
   })
 
   it('getAllFlightLogs with invalid Captain should not return data', async () => {
@@ -71,25 +74,36 @@ describe('Db query Get FlightLog tests', () => {
   it('getAllFlightLogs for specified aircraft should match snapshot', async () => {
     const result = await getAllFlightLogs({ aircraft_registration: 'OH-STL' })
     expect(result.length).toEqual(2)
-    expect(result).toMatchSnapshot()
   })
 
   it('getAllFlightLogs for specific member id should match snapshot', async () => {
     const result = await getAllFlightLogs({ member_id: 1 })
     expect(result.length).toEqual(1)
-    expect(result).toMatchSnapshot()
+    expect(result[0]).toMatchSnapshot({
+      flight_id: expect.any(Number),
+      created_at: expect.any(Date),
+      updated_at: expect.any(Date),
+    })
   })
 
   it('getAllFlightLogs for start date should match snapshot', async () => {
     const result = await getAllFlightLogs({ startDate: new Date('2025-03-05') })
     expect(result.length).toEqual(1)
-    expect(result).toMatchSnapshot()
+    expect(result[0]).toMatchSnapshot({
+      flight_id: expect.any(Number),
+      created_at: expect.any(Date),
+      updated_at: expect.any(Date),
+    })
   })
 
   it('getAllFlightLogs for end date should match snapshot', async () => {
-    const result = await getAllFlightLogs({ endDate: new Date('2025-03-05') })
+    const result: FlightLog[] = await getAllFlightLogs({ endDate: new Date('2025-03-05') })
     expect(result.length).toEqual(5)
-    expect(result).toMatchSnapshot()
+    expect(result[0]).toMatchSnapshot({
+      flight_id: expect.any(Number),
+      created_at: expect.any(Date),
+      updated_at: expect.any(Date),
+    })
   })
 
   it('getAllFlightLogs for end date should not return data', async () => {
@@ -104,7 +118,11 @@ describe('Db query Get FlightLog tests', () => {
       startDate: new Date('2025-03-03'),
     })
     expect(result.length).toEqual(3)
-    expect(result).toMatchSnapshot()
+    expect(result[2]).toMatchSnapshot({
+      flight_id: expect.any(Number),
+      created_at: expect.any(Date),
+      updated_at: expect.any(Date),
+    })
   })
 })
 

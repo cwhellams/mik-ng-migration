@@ -87,6 +87,14 @@ const TimeSchema = z.string().regex(/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/, {
   message: "Time must be in format 'HH:MM:SS'",
 })
 
+const toDateOnly = (val: unknown) => {
+  if (typeof val === 'string' || val instanceof Date) {
+    const date = new Date(val)
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())) // Midnight UTC
+  }
+  return val
+}
+
 export const flightLogFiltersSchema = z.object({
   flight_id: z.coerce.number().optional(), // Converts string to number
   member_id: z.coerce.number().optional(), // Converts string to number
@@ -110,7 +118,7 @@ const baseFlightLogSchema = z.object({
   captain: z.string().max(50),
   copilot: z.string().max(50).nullish(),
   departure_airport: z.string().max(10),
-  flight_date: z.preprocess(val => (typeof val === 'string' ? new Date(val) : val), z.date()),
+  flight_date: z.preprocess(toDateOnly, z.date()),
   flight_type: z.string().max(50).nonempty(),
   fuel_uplift_litres: z.number().positive().nullish(),
   instrument_hours: TimeSchema.nullish(),

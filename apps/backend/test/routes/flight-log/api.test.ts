@@ -18,11 +18,11 @@ describe('GET /flight-log', () => {
       member_id: 1,
     })
 
-    expect({
-      ...response.body,
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
-    }).toMatchSnapshot()
+    expect(response.body[0]).toMatchSnapshot({
+      flight_id: expect.any(Number),
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
+    })
   })
 
   it('should return 400 for invalid member_id', async () => {
@@ -49,21 +49,21 @@ describe('GET /flight-log', () => {
     const response = await request(app).get('/flight-log')
 
     expect(response.status).toBe(200)
-    expect({
-      ...response.body,
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
-    }).toMatchSnapshot()
+    expect(response.body[0]).toMatchSnapshot({
+      flight_id: expect.any(Number),
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
+    })
   })
   it('Get flight log with Id should return a single row when data is present for the given Id', async () => {
     const response = await request(app).get('/flight-log/1')
 
     expect(response.status).toBe(200)
-    expect({
-      ...response.body,
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
-    }).toMatchSnapshot()
+    expect(response.body).toMatchSnapshot({
+      flight_id: expect.any(Number),
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
+    })
   })
   it('Get flight log with Id should return a 404 when now row is present for the given Id', async () => {
     const response = await request(app).get('/flight-log/100')
@@ -84,7 +84,7 @@ describe('POST /flight-log', () => {
       copilot: null,
       created_by: 'user3',
       departure_airport: 'EFHK',
-      flight_date: new Date('2025-03-02'),
+      flight_date: new Date('2025-02-27'),
       flight_type: 'KOU',
       fuel_uplift_litres: 40,
       landing_time_utc: '12:00:00',

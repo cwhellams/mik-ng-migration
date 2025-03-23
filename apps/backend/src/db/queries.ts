@@ -56,8 +56,8 @@ async function toMember(member: Selectable<MemberRegister>): Promise<Member> {
     isTrainingProgramPilot: member.is_training_program_pilot,
     canMakeReservations: member.can_make_reservations,
     billingId: member.billing_id,
-    dateOfBirth: member.date_of_birth?.toDateString(),
-    memberSince: member.member_since.toDateString(),
+    dateOfBirth: member.date_of_birth ? (member.date_of_birth as unknown as string) : undefined,
+    memberSince: member.member_since as unknown as string,
 
     createdAt: member.created_at.toUTCString(),
     createdBy: member.created_by,
@@ -229,7 +229,8 @@ export async function getAllFlightLogs(filters: FlightLogFilters): Promise<Fligh
     query = query.where('flight_date', '<=', filters.endDate)
   }
 
-  return await query.execute()
+  var retval = await query.execute()
+  return retval
 }
 
 export async function insertFlightLog(data: FlightLogInsertRequest): Promise<number> {

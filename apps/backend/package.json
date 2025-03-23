@@ -8,7 +8,7 @@
     "start": "node --experimental-transform-types src/app.ts",
     "dev": "node --watch --experimental-transform-types src/app.ts",
     "build": "tsc",
-    "schema": "kysely-codegen --numeric-parser number --out-file ./src/db/schema.d.ts",
+    "schema": "kysely-codegen --numeric-parser number --dialect postgres --out-file ./src/db/schema.d.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "jest --detectOpenHandles --forceExit --logHeapUsage --runInBand",
