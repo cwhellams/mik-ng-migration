@@ -1,6 +1,6 @@
 declare namespace Express {
   export interface User {
-    userId: number
+    memberId: number
     email: string
     roles: MIKRoles[]
   }

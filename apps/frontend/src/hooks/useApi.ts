@@ -15,6 +15,8 @@ interface Return<Data, Error>
 
   // the whole response object with http status codes, headers, etc
   response: AxiosResponse<Data> | undefined
+
+  patch: (data: Partial<Data>) => Promise<AxiosResponse<Data>>
 }
 
 export default function useApi<Data = unknown, Error = ErrorResponse>(
@@ -56,6 +58,21 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
     data: response && response.data,
     response,
     error,
+    patch: async (data: Partial<Data>) => {
+      const patched = await axios.request<Partial<Data>, AxiosResponse<Data>>({
+        ...authenticatedRequest,
+        method: 'PATCH',
+        data,
+      })
+
+      // update the cache with returned full data
+      rest.mutate(() => patched, {
+        revalidate: false,
+      })
+
+      return patched
+    },
+
     ...rest,
   }
 }
