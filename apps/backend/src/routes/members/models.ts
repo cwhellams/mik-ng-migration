@@ -63,4 +63,21 @@ export const MemberSchema = z.object({
 
 export type Member = z.infer<typeof MemberSchema>
 
-export type MemberResponse = z.infer<typeof MemberSchema>
+// Limited number of member fields the user can edit, the rest are for admins only
+export const MemberProfileSchema = MemberSchema.pick({
+  email: true,
+  firstName: true,
+  lastName: true,
+
+  phoneNumber: true,
+  streetAddress: true,
+  postcode: true,
+  townCity: true,
+
+  iceContactName: true,
+  iceContactPhoneNumber: true,
+
+  dateOfBirth: true,
+})
+
+export type MemberProfile = z.infer<typeof MemberProfileSchema>

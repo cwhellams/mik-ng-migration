@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 
 import { closeDb } from '../../src/db/connection.ts'
-import { getMember, getMemberRoles, getMembers } from '../../src/db/queries.ts'
+import { getMemberByEmail, getMemberRoles, getMembers } from '../../src/db/queries.ts'
 
 dotenv.config()
 
@@ -9,7 +9,7 @@ describe('Db query tests', () => {
   it('getMember should return member data for a valid email address', async () => {
     const email = 'matti.virtanen@example.com'
 
-    const result = await getMember(email)
+    const result = await getMemberByEmail(email)
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
       dateOfBirth: expect.any(String),
@@ -21,7 +21,7 @@ describe('Db query tests', () => {
   it('getMember should return undefined for an invalid email address', async () => {
     const email = 'cheddar.cheese@cheezy.com'
 
-    const result = await getMember(email)
+    const result = await getMemberByEmail(email)
     expect(result).toBeUndefined()
   })
 

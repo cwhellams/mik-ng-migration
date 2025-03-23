@@ -1,26 +1,14 @@
 import { z } from 'zod'
 
-import { MemberSchema } from '../members/models.ts'
+import { MemberProfileSchema, MIKMemberTypes } from '../members/models.ts'
 
 // register
 
-export const RegisterRequestSchema = MemberSchema.omit({
-  memberId: true,
-  iceContactName: true,
-  iceContactPhoneNumber: true,
+export const RegisterRequestSchema = MemberProfileSchema.extend({
+  // membertype can be selected when creating a new user
+  memberType: z.nativeEnum(MIKMemberTypes),
 
-  isTrainingProgramPilot: true,
-  canMakeReservations: true,
-  billingId: true,
-  memberSince: true,
-
-  createdAt: true,
-  createdBy: true,
-  updatedAt: true,
-  updatedBy: true,
-  emailVerifiedAt: true,
-  roles: true,
-}).extend({
+  // language needed for sending emails
   lang: z.string(),
 })
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>

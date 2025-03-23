@@ -4,7 +4,7 @@ import { MIKRoles, type Member } from '../members/models.ts'
 
 // should match User in types/express.d.ts
 export const JWTPayloadSchema = z.object({
-  userId: z.number(),
+  memberId: z.number(),
   email: z.string(),
   roles: z.array(z.nativeEnum(MIKRoles)),
 })
@@ -12,7 +12,7 @@ export const JWTPayloadSchema = z.object({
 export type JWTPayload = z.infer<typeof JWTPayloadSchema>
 
 export const generateJWTPayload = (user: Member): JWTPayload => ({
-  userId: user.memberId,
+  memberId: user.memberId,
   email: user.email,
   roles: user.roles,
 })

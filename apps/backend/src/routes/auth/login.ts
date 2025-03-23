@@ -13,7 +13,7 @@ import {
   type RegisterRequest,
   type VerifyResponse,
 } from './schema.ts'
-import { addMember, getMember } from '../../db/queries.ts'
+import { addMember, getMemberByEmail } from '../../db/queries.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import {
@@ -47,7 +47,7 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
 
   // Check that we have a memeber with this email address, to avoid sending magic link to non-existing user.
   // Do not leak information about existing users, if nothing found still return 200 with a random verification code and log a warning.
-  const member = await getMember(email)
+  const member = await getMemberByEmail(email)
   if (!member) {
     return silentFailure(
       `An attempt was made to login with email ${email}. No matching member found in database`,
@@ -68,7 +68,7 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
 
   logger.info('registration request', member)
 
-  if (await getMember(member.email)) {
+  if (await getMemberByEmail(member.email)) {
     return silentFailure(
       `An attempt was made to register user with already existing email ${member.email}`,
       res,

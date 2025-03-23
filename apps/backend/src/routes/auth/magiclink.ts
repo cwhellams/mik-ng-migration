@@ -2,7 +2,7 @@ import MagicLoginStrategy from 'passport-magic-login'
 
 import { generateToken } from './token.ts'
 import { generateJWTPayload } from './user.ts'
-import { getMember, updateMember } from '../../db/queries.ts'
+import { getMemberByEmail, updateMember } from '../../db/queries.ts'
 import logger from '../../lib/logger.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 
@@ -31,13 +31,13 @@ export class MIKMagicLoginStrategy extends MagicLoginStrategy.default {
         logger.info('magic login verify %j', payload)
 
         try {
-          const user = await getMember(payload.email)
+          const user = await getMemberByEmail(payload.email)
           if (user) {
             const jwt = generateJWTPayload(user)
 
             if (!user.emailVerifiedAt) {
               // store the date when the email was first verified
-              await updateMember(user, { emailVerifiedAt: new Date().toISOString() }, jwt)
+              await updateMember(user.memberId, { emailVerifiedAt: new Date().toISOString() }, jwt)
             }
 
             callback(null, jwt)
