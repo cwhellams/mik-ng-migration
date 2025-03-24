@@ -60,8 +60,8 @@ describe('Db query Get FlightLog tests', () => {
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
       flight_id: expect.any(Number),
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
     })
   })
 
@@ -81,8 +81,8 @@ describe('Db query Get FlightLog tests', () => {
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
       flight_id: expect.any(Number),
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
     })
   })
 
@@ -91,8 +91,8 @@ describe('Db query Get FlightLog tests', () => {
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
       flight_id: expect.any(Number),
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
     })
   })
 
@@ -101,8 +101,8 @@ describe('Db query Get FlightLog tests', () => {
     expect(result.length).toEqual(5)
     expect(result[0]).toMatchSnapshot({
       flight_id: expect.any(Number),
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
     })
   })
 
@@ -120,8 +120,8 @@ describe('Db query Get FlightLog tests', () => {
     expect(result.length).toEqual(3)
     expect(result[2]).toMatchSnapshot({
       flight_id: expect.any(Number),
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
     })
   })
 })
@@ -133,11 +133,11 @@ describe('Db query insert tests', () => {
       captain: 'Virtanen',
       copilot: 'Nieminen',
       aircraft_registration: 'OH-STL',
-      flight_date: new Date('2025-03-05'),
-      on_block_time_utc: '10:00:00',
-      off_block_time_utc: '10:30:00',
-      takeoff_time_utc: '10:45:00',
-      landing_time_utc: '12:00:00',
+      flight_date: '2025-03-05',
+      on_block_time_utc: '10:00',
+      off_block_time_utc: '10:30',
+      takeoff_time_utc: '10:45',
+      landing_time_utc: '12:00',
       oil_uplift_litres: 5,
       fuel_uplift_litres: 100,
       persons_on_board: 4,
@@ -158,18 +158,17 @@ describe('Db query insert tests', () => {
 
     const result = await getAllFlightLogs({ flight_id: flightId })
     expect(result.length).toEqual(1)
-    expect(result).toMatchObject([
-      {
-        flight_id: flightId,
-        created_at: expect.any(Date),
-        updated_at: expect.any(Date),
-      },
-    ])
+    expect(result[0]).toMatchSnapshot({
+      flight_id: expect.any(Number),
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
+    })
 
     //cleanup
-    const delRowcount = await deleteFlightLog(flightId)
+    const delRowcount = await deleteFlightLog(flightId, 1)
     expect(delRowcount).toEqual(1n)
   })
+
   afterAll(async () => {
     // Close the pool after all tests
     await closeDb()

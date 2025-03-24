@@ -83,17 +83,9 @@ export const MemberProfileSchema = MemberSchema.pick({
 export type MemberProfile = z.infer<typeof MemberProfileSchema>
 export type MemberResponse = z.infer<typeof MemberSchema>
 
-const TimeSchema = z.string().regex(/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/, {
-  message: "Time must be in format 'HH:MM:SS'",
+const TimeSchema = z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+  message: "Time must be in format 'HH:MM'",
 })
-
-const toDateOnly = (val: unknown) => {
-  if (typeof val === 'string' || val instanceof Date) {
-    const date = new Date(val)
-    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())) // Midnight UTC
-  }
-  return val
-}
 
 export const flightLogFiltersSchema = z.object({
   flight_id: z.coerce.number().optional(), // Converts string to number
@@ -118,7 +110,7 @@ const baseFlightLogSchema = z.object({
   captain: z.string().max(50),
   copilot: z.string().max(50).nullish(),
   departure_airport: z.string().max(10),
-  flight_date: z.preprocess(toDateOnly, z.date()),
+  flight_date: z.string().date(),
   flight_type: z.string().max(50).nonempty(),
   fuel_uplift_litres: z.number().positive().nullish(),
   instrument_hours: TimeSchema.nullish(),
@@ -131,25 +123,22 @@ const baseFlightLogSchema = z.object({
   persons_on_board: z.number().int(),
   remarks: z.string().nullish(),
   takeoff_time_utc: TimeSchema,
-})
-
-export const FlightLogInsertSchema = baseFlightLogSchema.extend({
   created_by: z.string(),
   updated_by: z.string(),
 })
 
-export const FlightLogUpdateSchema = FlightLogInsertSchema.omit({
+export const FlightLogInsertSchema = baseFlightLogSchema
+
+export const FlightLogUpdateSchema = baseFlightLogSchema.omit({
   created_by: true,
 })
 
 export const FlightLogResponseSchema = baseFlightLogSchema.extend({
-  created_at: z.date(),
-  created_by: z.string(),
+  created_at: z.string().datetime(),
   flight_id: z.number().int(),
   invoice_number: z.string().max(50).nullish(),
   is_billed: z.boolean(),
-  updated_at: z.date(),
-  updated_by: z.string(),
+  updated_at: z.string().datetime(),
 })
 
 // Infer the TypeScript type from the Zod schema

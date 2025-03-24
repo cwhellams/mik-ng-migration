@@ -230,7 +230,13 @@ export async function getAllFlightLogs(filters: FlightLogFilters): Promise<Fligh
   }
 
   var retval = await query.execute()
-  return retval
+
+  return retval.map(log => ({
+    ...log,
+    flight_date: log.flight_date.toString(),
+    created_at: new Date(log.created_at).toISOString(),
+    updated_at: new Date(log.updated_at).toISOString(),
+  }))
 }
 
 export async function insertFlightLog(data: FlightLogInsertRequest): Promise<number> {
@@ -243,10 +249,12 @@ export async function insertFlightLog(data: FlightLogInsertRequest): Promise<num
   return retval.flight_id
 }
 
-export async function deleteFlightLog(flight_id: number): Promise<bigint> {
+export async function deleteFlightLog(flight_id: number, member_id: number): Promise<bigint> {
   const retval = await db
     .deleteFrom('flight.logs')
     .where('flight.logs.flight_id', '=', flight_id)
+    .where('flight.logs.billable_member_id', '=', member_id)
+    .where('flight.logs.is_billed', '=', false)
     .execute()
 
   return retval[0].numDeletedRows
