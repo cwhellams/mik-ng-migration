@@ -11,6 +11,7 @@ import { ZodError } from 'zod'
 
 import logger from './lib/logger.ts'
 import { router as passportRoutes } from './routes/auth/login.ts'
+import flightLogRoutes from './routes/flight-log/api.ts'
 import { router as memberRoutes } from './routes/members/api.ts'
 import type { ErrorResponse } from './routes/response.ts'
 
@@ -65,6 +66,7 @@ app.get('/', (req: Request, res: Response) => {
 // Routes
 app.use('/auth', passportRoutes)
 app.use('/api/v1/members', memberRoutes)
+app.use('/api/v1/flight-log', flightLogRoutes)
 
 // Error Handling
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

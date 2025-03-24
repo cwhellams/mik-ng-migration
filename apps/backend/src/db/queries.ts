@@ -4,7 +4,14 @@ import { db } from './connection.ts'
 import type { MemberRegister } from './schema.js'
 import type { RegisterRequest } from '../routes/auth/schema.ts'
 import type { JWTPayload } from '../routes/auth/user.ts'
-import { MIKRoles, MIKMemberTypes, type Member, type MemberList } from '../routes/members/models.ts'
+import { MIKRoles, MIKMemberTypes } from '../routes/members/models.ts'
+import type {
+  Member,
+  MemberList,
+  FlightLog,
+  FlightLogFilters,
+  FlightLogInsertRequest,
+} from '../routes/members/models.ts'
 
 export async function getMemberById(memberId: number): Promise<Member | undefined> {
   const member = await db
@@ -49,8 +56,8 @@ async function toMember(member: Selectable<MemberRegister>): Promise<Member> {
     isTrainingProgramPilot: member.is_training_program_pilot,
     canMakeReservations: member.can_make_reservations,
     billingId: member.billing_id,
-    dateOfBirth: member.date_of_birth?.toDateString(),
-    memberSince: member.member_since.toDateString(),
+    dateOfBirth: member.date_of_birth ? (member.date_of_birth as unknown as string) : undefined,
+    memberSince: member.member_since as unknown as string,
 
     createdAt: member.created_at.toUTCString(),
     createdBy: member.created_by,
@@ -158,4 +165,97 @@ export async function updateMember(
   if (!result.numUpdatedRows) {
     throw new Error('Member update failed')
   }
+}
+
+// Get all flight logs with optional filters
+export async function getAllFlightLogs(filters: FlightLogFilters): Promise<FlightLog[]> {
+  let query = db
+    .selectFrom('flight.logs')
+    .select([
+      'flight_id',
+      'billable_member_id',
+      'captain',
+      'copilot',
+      'aircraft_registration',
+      'flight_date',
+      'on_block_time_utc',
+      'off_block_time_utc',
+      'takeoff_time_utc',
+      'landing_time_utc',
+      'oil_uplift_litres',
+      'fuel_uplift_litres',
+      'persons_on_board',
+      'number_of_landings',
+      'night_hours',
+      'instrument_hours',
+      'departure_airport',
+      'arrival_airport',
+      'invoice_number',
+      'is_billed',
+      'flight_type',
+      'billing_remarks',
+      'remarks',
+      'created_at',
+      'updated_at',
+      'created_by',
+      'updated_by',
+    ])
+
+  // Apply filters dynamically
+  if (filters.flight_id) {
+    query = query.where('flight_id', '=', filters.flight_id)
+  }
+
+  if (filters.member_id) {
+    query = query.where('billable_member_id', '=', filters.member_id)
+  }
+
+  if (filters.captain) {
+    query = query.where('captain', '=', filters.captain)
+  }
+  if (filters.copilot) {
+    query = query.where('copilot', '=', filters.copilot)
+  }
+  if (filters.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  if (filters.startDate && filters.endDate) {
+    query = query
+      .where('flight_date', '>=', filters.startDate)
+      .where('flight_date', '<=', filters.endDate)
+  } else if (filters.startDate) {
+    query = query.where('flight_date', '>=', filters.startDate)
+  } else if (filters.endDate) {
+    query = query.where('flight_date', '<=', filters.endDate)
+  }
+
+  var retval = await query.execute()
+
+  return retval.map(log => ({
+    ...log,
+    flight_date: log.flight_date.toString(),
+    created_at: new Date(log.created_at).toISOString(),
+    updated_at: new Date(log.updated_at).toISOString(),
+  }))
+}
+
+export async function insertFlightLog(data: FlightLogInsertRequest): Promise<number> {
+  const retval = await db
+    .insertInto('flight.logs')
+    .values(data)
+    .returning('flight_id')
+    .executeTakeFirstOrThrow()
+
+  return retval.flight_id
+}
+
+export async function deleteFlightLog(flight_id: number, member_id: number): Promise<bigint> {
+  const retval = await db
+    .deleteFrom('flight.logs')
+    .where('flight.logs.flight_id', '=', flight_id)
+    .where('flight.logs.billable_member_id', '=', member_id)
+    .where('flight.logs.is_billed', '=', false)
+    .execute()
+
+  return retval[0].numDeletedRows
 }
