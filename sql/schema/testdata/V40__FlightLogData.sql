@@ -1,13 +1,16 @@
 -- Insert test data for the flight.logs table
 INSERT INTO flight.logs (
+    billable_member_id,
+    captain_member_id,
     captain,
+    copilot_member_id,
     copilot,
     aircraft_registration,
     flight_date,
-    on_block_time,
-    off_block_time,
-    takeoff_time,
-    landing_time,
+    on_block_time_utc,
+    off_block_time_utc,
+    takeoff_time_utc,
+    landing_time_utc,
     oil_uplift_litres,
     fuel_uplift_litres,
     persons_on_board,
@@ -21,11 +24,17 @@ INSERT INTO flight.logs (
     billing_remarks,
     remarks,
     created_by,
-    updated_by
+    updated_by,
+    is_billable_flight,
+    non_billing_reason,
+    non_billing_approved_by_member_id
 ) VALUES
 (
-    1, -- Assuming member_id 1 exists in member.register
-    2, -- Assuming member_id 2 exists in member.register
+    1, -- billable_member_id
+    6, -- captain_member_id
+    'Virtanen', -- Captain (random Finnish surname)
+    7, -- copilot_member_id
+    'Nieminen', -- Copilot (random Finnish surname)
     'OH-STL', -- Assuming this registration exists in flight.aircraft
     '2025-03-01',
     '08:00:00',
@@ -44,12 +53,18 @@ INSERT INTO flight.logs (
     'Training',
     'N/A',
     'Smooth flight',
-    'user1', -- created_by
-    'user1'  -- updated_by
+    'user1',
+    'user1',
+    TRUE, -- is_billable_flight
+    NULL, -- non_billing_reason
+    NULL  -- non_billing_approved_by_member_id
 ),
 (
-    3, -- Assuming member_id 3 exists in member.register
-    4, -- Assuming member_id 4 exists in member.register
+    3, -- billable_member_id
+    8, -- captain_member_id
+    'Lahtinen', -- Captain (random Finnish surname)
+    9, -- copilot_member_id
+    'Koskinen', -- Copilot (random Finnish surname)
     'OH-IHQ', -- Assuming this registration exists in flight.aircraft
     '2025-03-02',
     '09:00:00',
@@ -68,11 +83,17 @@ INSERT INTO flight.logs (
     'Commercial',
     'N/A',
     'Training flight',
-    'user2', -- created_by
-    'user2'  -- updated_by
+    'user2',
+    'user2',
+    TRUE, -- is_billable_flight
+    NULL, -- non_billing_reason
+    NULL  -- non_billing_approved_by_member_id
 ),
 (
-    5, -- Assuming member_id 5 exists in member.register
+    4, -- billable_member_id
+    5, -- captain_member_id
+    'Salminen', -- Captain (random Finnish surname)
+    NULL, -- copilot_member_id
     NULL, -- No copilot
     'OH-STL', -- Assuming this registration exists in flight.aircraft
     '2025-03-03',
@@ -92,12 +113,18 @@ INSERT INTO flight.logs (
     'Private',
     'N/A',
     'Routine check',
-    'user3', -- created_by
-    'user3'  -- updated_by
+    'user3',
+    'user3',
+    FALSE, -- is_billable_flight
+    'Club activity', -- non_billing_reason
+    2  -- non_billing_approved_by_member_id
 ),
 (
-    6, -- Assuming member_id 6 exists in member.register
-    7, -- Assuming member_id 7 exists in member.register
+    2, -- billable_member_id
+    3, -- captain_member_id
+    'Järvinen', -- Captain (random Finnish surname)
+    4, -- copilot_member_id
+    'Heikkinen', -- Copilot (random Finnish surname)
     'OH-P28', -- Assuming this registration exists in flight.aircraft
     '2025-03-04',
     '11:00:00',
@@ -116,11 +143,17 @@ INSERT INTO flight.logs (
     'Cargo',
     'N/A',
     'Cargo delivery',
-    'user4', -- created_by
-    'user4'  -- updated_by
+    'user4',
+    'user4',
+    TRUE, -- is_billable_flight
+    NULL, -- non_billing_reason
+    NULL  -- non_billing_approved_by_member_id
 ),
 (
-    8, -- Assuming member_id 8 exists in member.register
+    5, -- billable_member_id
+    1, -- captain_member_id
+    'Korhonen', -- Captain (random Finnish surname)
+    NULL, -- copilot_member_id
     NULL, -- No copilot
     'OH-IHQ', -- Assuming this registration exists in flight.aircraft
     '2025-03-05',
@@ -140,6 +173,9 @@ INSERT INTO flight.logs (
     'Passenger',
     'N/A',
     'Passenger transport',
-    'user5', -- created_by
-    'user5'  -- updated_by
+    'user5',
+    'user5',
+    TRUE, -- is_billable_flight
+    NULL, -- non_billing_reason
+    NULL  -- non_billing_approved_by_member_id
 );
