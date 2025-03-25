@@ -1,5 +1,4 @@
 import { Router, type Request, type Response, type NextFunction } from 'express'
-import ms from 'ms'
 import passport from 'passport'
 
 import { MIKMagicLoginStrategy } from './magiclink.ts'
@@ -11,8 +10,8 @@ import {
   type RegisterRequest,
   type VerifyResponse,
 } from './schema.ts'
-import { decodeToken, generateToken } from './token.ts'
-import { generateJWTPayload, type JWTPayload } from './user.ts'
+import { decodeRefreshToken, generateAccessToken, generateRefreshToken } from './token.ts'
+import { generateJWTPayload, type JWTPayload } from './token.ts'
 import { addMember, getMemberByEmail, getMemberById } from '../../db/queries.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
@@ -23,12 +22,6 @@ import {
   registerEmailTitle,
 } from '../../templates/email.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
-
-if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
-  throw new Error(
-    'ACCESS_TOKEN_SECRET or REFRESH_TOKEN_SECRET is not defined in environment variables',
-  )
-}
 
 const magicLogin = new MIKMagicLoginStrategy()
 passport.use(magicLogin)
@@ -97,21 +90,8 @@ const respondWithAccessAndRefreshToken = (
   user: JWTPayload,
   res: Response<VerifyResponse>,
 ): void => {
-  // Access token is used to verify requests from front-end and is valid only for a short time.
-  // It's stored in the local storage.
-  const accessToken = generateToken(process.env.ACCESS_TOKEN_SECRET!, user, {
-    expiresIn: process.env.ACCESS_TOKEN_EXPIRATION as ms.StringValue,
-    issuer: 'mik',
-    audience: 'api',
-  })
-
-  // Refresh token is valid for much longer and stored in a secure cookie not accessible by frontend.    //
-  const refreshToken = generateToken(process.env.REFRESH_TOKEN_SECRET!, user, {
-    expiresIn: process.env.REFRESH_TOKEN_EXPIRATION as ms.StringValue,
-    issuer: 'mik',
-    audience: 'refresh',
-  })
-  res.cookie('refreshToken', refreshToken, {
+  // Refresh token is stored in a secure cookie not accessible by frontend
+  res.cookie('refreshToken', generateRefreshToken(user), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
@@ -120,7 +100,9 @@ const respondWithAccessAndRefreshToken = (
     path: '/auth/refresh',
   })
 
-  res.status(200).json({ accessToken })
+  // Access token is used to verify requests and is valid only for a short time.
+  // It's stored in the local storage.
+  res.status(200).json({ accessToken: generateAccessToken(user) })
 }
 
 router.post(
@@ -141,10 +123,7 @@ router.post('/refresh', async (req: Request, res: Response<VerifyResponse>, next
     return res.status(401).send({ error: 'Refresh token not found' })
   }
 
-  const payload = decodeToken<JWTPayload>(process.env.REFRESH_TOKEN_SECRET!, refreshToken, {
-    issuer: 'mik',
-    audience: 'refresh',
-  })
+  const payload = decodeRefreshToken(refreshToken)
   const user = await getMemberById(payload.memberId)
   if (user) {
     const jwt = generateJWTPayload(user)

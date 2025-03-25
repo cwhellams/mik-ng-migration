@@ -4,7 +4,7 @@ import passport from 'passport'
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 
 import logger from '../lib/logger.ts'
-import type { JWTPayload } from '../routes/auth/user.ts'
+import type { JWTPayload } from '../routes/auth/token.ts'
 import { MIKRoles } from '../routes/members/models.ts'
 import type { ErrorResponse } from '../routes/response.ts'
 

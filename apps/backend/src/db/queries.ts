@@ -3,7 +3,7 @@ import type { Selectable } from 'kysely'
 import { db } from './connection.ts'
 import type { MemberRegister } from './schema.js'
 import type { RegisterRequest } from '../routes/auth/schema.ts'
-import type { JWTPayload } from '../routes/auth/user.ts'
+import type { JWTPayload } from '../routes/auth/token.ts'
 import { MIKRoles, MIKMemberTypes } from '../routes/members/models.ts'
 import type {
   Member,
