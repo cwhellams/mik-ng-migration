@@ -22,7 +22,7 @@ const User = () => {
   const open = Boolean(anchorEl)
 
   const { data, isLoading } = useApi<Member>({
-    path: 'v1/members/me',
+    url: 'v1/members/me',
     allowUnauthenticated: true,
   })
 

@@ -1,6 +1,4 @@
 import { Router, type Request, type Response, type NextFunction } from 'express'
-import jwt from 'jsonwebtoken'
-import type { Secret } from 'jsonwebtoken'
 import ms from 'ms'
 import passport from 'passport'
 
@@ -13,7 +11,9 @@ import {
   type RegisterRequest,
   type VerifyResponse,
 } from './schema.ts'
-import { addMember, getMemberByEmail } from '../../db/queries.ts'
+import { decodeToken, generateToken } from './token.ts'
+import { generateJWTPayload, type JWTPayload } from './user.ts'
+import { addMember, getMemberByEmail, getMemberById } from '../../db/queries.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import {
@@ -24,8 +24,10 @@ import {
 } from '../../templates/email.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET is not defined in environment variables')
+if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
+  throw new Error(
+    'ACCESS_TOKEN_SECRET or REFRESH_TOKEN_SECRET is not defined in environment variables',
+  )
 }
 
 const magicLogin = new MIKMagicLoginStrategy()
@@ -91,19 +93,65 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   return res.json({ code: link.code })
 })
 
+const respondWithAccessAndRefreshToken = (
+  user: JWTPayload,
+  res: Response<VerifyResponse>,
+  next: NextFunction,
+) => {
+  // Access token is used to verify requests from front-end and is valid only for a short time.
+  // It's stored in the local storage.
+  const accessToken = generateToken(process.env.ACCESS_TOKEN_SECRET!, user, {
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRATION as ms.StringValue,
+    issuer: 'mik',
+    audience: 'api',
+  })
+
+  // Refresh token is valid for much longer and stored in a secure cookie not accessible by frontend.    //
+  const refreshToken = generateToken(process.env.REFRESH_TOKEN_SECRET!, user, {
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRATION as ms.StringValue,
+    issuer: 'mik',
+    audience: 'refresh',
+  })
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+
+    // cookie is only sent to refresh endpoint
+    path: '/auth/refresh',
+  })
+
+  res.status(200).json({ accessToken })
+  next()
+}
+
 router.post(
   '/login/validate',
 
   // Login with magic link
   passport.authenticate('magiclogin', { session: false }),
 
-  // validation was successful, return access token back to the UI
   (req: Request, res: Response<VerifyResponse>, next: NextFunction) => {
-    const accessToken = jwt.sign(req.user ?? {}, process.env.JWT_SECRET as Secret, {
-      algorithm: 'HS256',
-      expiresIn: process.env.JWT_EXPIRATION as ms.StringValue,
-    })
-    res.status(200).json({ accessToken })
-    next()
+    // validation was successful, return access token back to the UI
+    respondWithAccessAndRefreshToken(req.user!, res, next)
   },
 )
+
+router.post('/refresh', async (req: Request, res: Response<VerifyResponse>, next: NextFunction) => {
+  const refreshToken = req.cookies?.refreshToken
+  if (!refreshToken) {
+    return res.status(401).send({ error: 'Refresh token not found' })
+  }
+
+  const payload = decodeToken<JWTPayload>(process.env.REFRESH_TOKEN_SECRET!, refreshToken, {
+    issuer: 'mik',
+    audience: 'refresh',
+  })
+  const user = await getMemberById(payload.memberId)
+  if (user) {
+    const jwt = generateJWTPayload(user)
+    respondWithAccessAndRefreshToken(jwt, res, next)
+  } else {
+    next(new Error('User not found'))
+  }
+})
