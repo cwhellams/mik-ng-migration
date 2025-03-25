@@ -4,7 +4,7 @@ import passport from 'passport'
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 
 import logger from '../lib/logger.ts'
-import type { JWTPayload } from '../routes/auth/token.ts'
+import type { JWTUser } from '../routes/auth/token.ts'
 import { MIKRoles } from '../routes/members/models.ts'
 import type { ErrorResponse } from '../routes/response.ts'
 
@@ -20,7 +20,7 @@ passport.use(
       issuer: 'mik',
       audience: 'api',
     },
-    async (payload: JWTPayload, callback) => {
+    async (payload: JWTUser, callback) => {
       callback(undefined, payload)
     },
   ),

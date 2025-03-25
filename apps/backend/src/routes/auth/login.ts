@@ -11,7 +11,7 @@ import {
   type VerifyResponse,
 } from './schema.ts'
 import { decodeRefreshToken, generateAccessToken, generateRefreshToken } from './token.ts'
-import { generateJWTPayload, type JWTPayload } from './token.ts'
+import { generateJWTUser, type JWTUser } from './token.ts'
 import { addMember, getMemberByEmail, getMemberById } from '../../db/queries.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
@@ -86,10 +86,7 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   return res.json({ code: link.code })
 })
 
-const respondWithAccessAndRefreshToken = (
-  user: JWTPayload,
-  res: Response<VerifyResponse>,
-): void => {
+const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response<VerifyResponse>): void => {
   // Refresh token is stored in a secure cookie not accessible by frontend
   res.cookie('refreshToken', generateRefreshToken(user), {
     httpOnly: true,
@@ -126,7 +123,7 @@ router.post('/refresh', async (req: Request, res: Response<VerifyResponse>, next
   const payload = decodeRefreshToken(refreshToken)
   const user = await getMemberById(payload.memberId)
   if (user) {
-    const jwt = generateJWTPayload(user)
+    const jwt = generateJWTUser(user)
     respondWithAccessAndRefreshToken(jwt, res)
   } else {
     next(new Error('User not found'))
