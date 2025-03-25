@@ -14,7 +14,7 @@ interface Return<Input, Output, Error>
 }
 
 export function useAuth<Input, Output>(
-  endpoint: 'login' | 'login/validate' | 'register'
+  endpoint: 'login' | 'login/validate' | 'register' | 'logout'
 ): Return<Input, Output, Error> {
   const fetcher = async (url: string, { arg }: { arg: Input }) =>
     axios.post(url, arg)

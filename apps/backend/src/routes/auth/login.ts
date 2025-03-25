@@ -38,7 +38,7 @@ passport.use(magicLogin)
 //
 export const router = Router()
 
-const silentFailure = (message: string, res: Response<LoginResponse>) => {
+const silentFailure = (message: string, res: Response<LoginResponse>): void => {
   logger.warn(message)
   res.status(200).json({ code: getRandomInt(10000, 99999) })
 }
@@ -96,8 +96,7 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
 const respondWithAccessAndRefreshToken = (
   user: JWTPayload,
   res: Response<VerifyResponse>,
-  next: NextFunction,
-) => {
+): void => {
   // Access token is used to verify requests from front-end and is valid only for a short time.
   // It's stored in the local storage.
   const accessToken = generateToken(process.env.ACCESS_TOKEN_SECRET!, user, {
@@ -122,7 +121,6 @@ const respondWithAccessAndRefreshToken = (
   })
 
   res.status(200).json({ accessToken })
-  next()
 }
 
 router.post(
@@ -131,9 +129,9 @@ router.post(
   // Login with magic link
   passport.authenticate('magiclogin', { session: false }),
 
-  (req: Request, res: Response<VerifyResponse>, next: NextFunction) => {
+  (req: Request, res: Response<VerifyResponse>) => {
     // validation was successful, return access token back to the UI
-    respondWithAccessAndRefreshToken(req.user!, res, next)
+    respondWithAccessAndRefreshToken(req.user!, res)
   },
 )
 
@@ -150,8 +148,13 @@ router.post('/refresh', async (req: Request, res: Response<VerifyResponse>, next
   const user = await getMemberById(payload.memberId)
   if (user) {
     const jwt = generateJWTPayload(user)
-    respondWithAccessAndRefreshToken(jwt, res, next)
+    respondWithAccessAndRefreshToken(jwt, res)
   } else {
     next(new Error('User not found'))
   }
+})
+
+router.post('/logout', async (req: Request, res: Response<VerifyResponse>) => {
+  res.clearCookie('refreshToken')
+  res.status(200).json({})
 })

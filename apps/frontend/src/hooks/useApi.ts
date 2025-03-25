@@ -127,7 +127,8 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
     }
   )
 
-  if (!request.allowUnauthenticated && error?.name == 'CanceledError') {
+  const isLoggedOut = error?.name == 'CanceledError'
+  if (isLoggedOut && !request.allowUnauthenticated) {
     // cancelled because not authenticated
     navigate('/login', {
       state: { target: location.pathname },
@@ -135,7 +136,7 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
   }
 
   return {
-    data: response && response.data,
+    data: isLoggedOut ? undefined : response?.data,
     response,
     error,
     mutate,
