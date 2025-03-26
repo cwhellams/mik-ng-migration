@@ -4,7 +4,7 @@ import passport from 'passport'
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 
 import logger from '../lib/logger.ts'
-import type { JWTPayload } from '../routes/auth/user.ts'
+import type { JWTUser } from '../routes/auth/token.ts'
 import { MIKRoles } from '../routes/members/models.ts'
 import type { ErrorResponse } from '../routes/response.ts'
 
@@ -12,14 +12,18 @@ import type { ErrorResponse } from '../routes/response.ts'
 // Passport strategy to authenticate the user with JWT tokens
 // generated during the login process and passed in the Authorization header.
 //
-const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.JWT_SECRET as ms.StringValue,
-}
 passport.use(
-  new JwtStrategy(jwtOptions, async (payload: JWTPayload, callback) => {
-    callback(undefined, payload)
-  }),
+  new JwtStrategy(
+    {
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      secretOrKey: process.env.ACCESS_TOKEN_SECRET as ms.StringValue,
+      issuer: 'mik',
+      audience: 'api',
+    },
+    async (payload: JWTUser, callback) => {
+      callback(undefined, payload)
+    },
+  ),
 )
 
 // Middlewares to authenticate and authorize users

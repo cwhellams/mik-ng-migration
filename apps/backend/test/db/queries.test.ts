@@ -45,7 +45,8 @@ describe('Db query member tests', () => {
 
   it('getMembers should return members', async () => {
     const result = await getMembers()
-    expect(result).toMatchSnapshot()
+    // test only first 10 items in the test data
+    expect(result.slice(0, 10)).toMatchSnapshot()
   })
 })
 

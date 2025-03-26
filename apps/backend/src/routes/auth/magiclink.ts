@@ -1,7 +1,6 @@
 import MagicLoginStrategy from 'passport-magic-login'
 
-import { generateToken } from './token.ts'
-import { generateJWTPayload } from './user.ts'
+import { generateJWTUser, generateToken } from './token.ts'
 import { getMemberByEmail, updateMember } from '../../db/queries.ts'
 import logger from '../../lib/logger.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
@@ -33,7 +32,7 @@ export class MIKMagicLoginStrategy extends MagicLoginStrategy.default {
         try {
           const user = await getMemberByEmail(payload.email)
           if (user) {
-            const jwt = generateJWTPayload(user)
+            const jwt = generateJWTUser(user)
 
             if (!user.emailVerifiedAt) {
               // store the date when the email was first verified
@@ -58,13 +57,12 @@ export class MIKMagicLoginStrategy extends MagicLoginStrategy.default {
     const code = getRandomInt(10000, 99999)
 
     const jwt = generateToken(
-      process.env.MAGIC_LINK_SECRET!,
       {
         email,
         code: code.toString(),
       },
+      process.env.MAGIC_LINK_SECRET,
       {
-        // Optional: options passed to the jwt.sign call (https://github.com/auth0/node-jsonwebtoken#jwtsignpayload-secretorprivatekey-options-callback)
         expiresIn: '15 minutes',
       },
     )
