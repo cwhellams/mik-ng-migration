@@ -6,7 +6,7 @@ import {
   Menu,
   MenuItem,
   ListItemIcon,
-  Divider
+  Divider,
 } from '@mui/material'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -14,6 +14,7 @@ import { Member } from '@backend/routes/members/models'
 import useApi from '../hooks/useApi'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
+import { useAuth } from '../hooks/useAuth'
 
 const User = () => {
   const { t, i18n } = useTranslation()
@@ -21,10 +22,12 @@ const User = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
 
-  const { data, isLoading } = useApi<Member>({
-    path: 'v1/members/me',
+  const { data, isLoading, mutate } = useApi<Member | null>({
+    url: 'v1/members/me',
     allowUnauthenticated: true,
   })
+
+  const logout = useAuth('logout')
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -35,7 +38,14 @@ const User = () => {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken')
+    // clear refresh and access tokens
+    logout.trigger().then(() => {
+      localStorage.removeItem('accessToken')
+
+      // invalidate caches
+      mutate()
+    })
+
     handleClose()
     navigate('/')
   }

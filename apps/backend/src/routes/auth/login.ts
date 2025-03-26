@@ -1,7 +1,4 @@
 import { Router, type Request, type Response, type NextFunction } from 'express'
-import jwt from 'jsonwebtoken'
-import type { Secret } from 'jsonwebtoken'
-import ms from 'ms'
 import passport from 'passport'
 
 import { MIKMagicLoginStrategy } from './magiclink.ts'
@@ -13,7 +10,9 @@ import {
   type RegisterRequest,
   type VerifyResponse,
 } from './schema.ts'
-import { addMember, getMemberByEmail } from '../../db/queries.ts'
+import { decodeRefreshToken, generateAccessToken, generateRefreshToken } from './token.ts'
+import { generateJWTUser, type JWTUser } from './token.ts'
+import { addMember, getMemberByEmail, getMemberById } from '../../db/queries.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import {
@@ -24,10 +23,6 @@ import {
 } from '../../templates/email.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET is not defined in environment variables')
-}
-
 const magicLogin = new MIKMagicLoginStrategy()
 passport.use(magicLogin)
 
@@ -36,7 +31,7 @@ passport.use(magicLogin)
 //
 export const router = Router()
 
-const silentFailure = (message: string, res: Response<LoginResponse>) => {
+const silentFailure = (message: string, res: Response<LoginResponse>): void => {
   logger.warn(message)
   res.status(200).json({ code: getRandomInt(10000, 99999) })
 }
@@ -91,19 +86,51 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   return res.json({ code: link.code })
 })
 
+const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response<VerifyResponse>): void => {
+  // Refresh token is stored in a secure cookie not accessible by frontend
+  res.cookie('refreshToken', generateRefreshToken(user), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+
+    // cookie is only sent to refresh endpoint
+    path: '/auth/refresh',
+  })
+
+  // Access token is used to verify requests and is valid only for a short time.
+  // It's stored in the local storage.
+  res.status(200).json({ accessToken: generateAccessToken(user) })
+}
+
 router.post(
   '/login/validate',
 
   // Login with magic link
   passport.authenticate('magiclogin', { session: false }),
 
-  // validation was successful, return access token back to the UI
-  (req: Request, res: Response<VerifyResponse>, next: NextFunction) => {
-    const accessToken = jwt.sign(req.user ?? {}, process.env.JWT_SECRET as Secret, {
-      algorithm: 'HS256',
-      expiresIn: process.env.JWT_EXPIRATION as ms.StringValue,
-    })
-    res.status(200).json({ accessToken })
-    next()
+  (req: Request, res: Response<VerifyResponse>) => {
+    // validation was successful, return access token back to the UI
+    respondWithAccessAndRefreshToken(req.user!, res)
   },
 )
+
+router.post('/refresh', async (req: Request, res: Response<VerifyResponse>, next: NextFunction) => {
+  const refreshToken = req.cookies?.refreshToken
+  if (!refreshToken) {
+    return res.status(401).send({ error: 'Refresh token not found' })
+  }
+
+  const payload = decodeRefreshToken(refreshToken)
+  const user = await getMemberById(payload.memberId)
+  if (user) {
+    const jwt = generateJWTUser(user)
+    respondWithAccessAndRefreshToken(jwt, res)
+  } else {
+    next(new Error('User not found'))
+  }
+})
+
+router.post('/logout', async (req: Request, res: Response<VerifyResponse>) => {
+  res.clearCookie('refreshToken')
+  res.status(200).json({})
+})

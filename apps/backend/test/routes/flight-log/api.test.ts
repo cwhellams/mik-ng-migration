@@ -1,6 +1,8 @@
-import express, { type NextFunction } from 'express'
+import dotenv from 'dotenv'
+import express from 'express'
 import request from 'supertest'
 
+import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import flightLogRouter from '../../../src/routes/flight-log/api.ts'
 import {
   FlightLogInsertSchema,
@@ -10,63 +12,32 @@ import {
 
 const test_member_id = 1
 
-type AuthenticateFunction = (
-  strategy: string,
-  options: { session: boolean },
-) => (req: Request, res: Response, next: NextFunction) => void
-
-type UseFunction = (strategy: any) => void
-interface MockedPassport {
-  authenticate: jest.MockedFunction<AuthenticateFunction>
-  use: jest.MockedFunction<UseFunction>
-}
-
-interface AuthenticatedRequest extends Request {
-  user: {
-    memberId: number
-    email: string
-    roles: MIKRoles[]
-  }
-}
-
-jest.mock('passport', () => {
-  const mockedPassport: MockedPassport = {
-    authenticate: jest.fn(
-      (_strategy: string, _options: { session: boolean }) =>
-        (req: Request, res: Response, next: NextFunction) => {
-          ;(req as AuthenticatedRequest).user = {
-            memberId: test_member_id,
-            email: 'jonny.depp@mik.fi',
-            roles: [MIKRoles.ADMIN, MIKRoles.USER],
-          }
-          next()
-        },
-    ),
-    use: jest.fn((_strategy: any) => {}), // No op
-  }
-  return mockedPassport
-})
+dotenv.config({ path: '../../' })
 
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
 app.use('/flight-log', flightLogRouter)
-const token = 'mocked-jwt-token'
+
+const token = generateAccessToken({
+  memberId: test_member_id,
+  email: 'jonny.depp@mik.fi',
+  roles: [MIKRoles.ADMIN, MIKRoles.USER],
+})
 
 describe('GET /flight-log', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('should return 200 with valid query params', async () => {
-    const response = await request(app)
-      .get('/flight-log')
-      .set('Authorization', `Bearer ${token}`)
-      .query({
-        member_id: test_member_id,
-      })
+  const getFlightLog = (url: string) =>
+    request(app).get(url).set('Authorization', `Bearer ${token}`)
 
-    //expect(mockedPassport.authenticate).toHaveBeenCalledTimes(1)
+  it('should return 200 with valid query params', async () => {
+    const response = await getFlightLog('/flight-log').query({
+      member_id: test_member_id,
+    })
+
     expect(response.status).toBe(200)
 
     expect(response.body[0]).toMatchSnapshot({
@@ -77,7 +48,7 @@ describe('GET /flight-log', () => {
   })
 
   it('should return 400 for invalid member_id', async () => {
-    const response = await request(app).get('/flight-log').query({
+    const response = await getFlightLog('/flight-log').query({
       member_id: 'not_a_number',
     })
 
@@ -87,7 +58,7 @@ describe('GET /flight-log', () => {
   })
 
   it('should return 400 for invalid startDate', async () => {
-    const response = await request(app).get('/flight-log').query({
+    const response = await getFlightLog('/flight-log').query({
       startDate: 'invalid_date',
     })
 
@@ -97,7 +68,7 @@ describe('GET /flight-log', () => {
   })
 
   it('should allow query parameters to be optional', async () => {
-    const response = await request(app).get('/flight-log')
+    const response = await getFlightLog('/flight-log')
 
     expect(response.status).toBe(200)
     expect(response.body[0]).toMatchSnapshot({
@@ -107,7 +78,7 @@ describe('GET /flight-log', () => {
     })
   })
   it('Get flight log with Id should return a single row when data is present for the given Id', async () => {
-    const response = await request(app).get('/flight-log/1')
+    const response = await getFlightLog('/flight-log/1')
 
     expect(response.status).toBe(200)
     expect(response.body).toMatchSnapshot({
@@ -117,7 +88,7 @@ describe('GET /flight-log', () => {
     })
   })
   it('Get flight log with Id should return a 404 when now row is present for the given Id', async () => {
-    const response = await request(app).get('/flight-log/100')
+    const response = await getFlightLog('/flight-log/100')
 
     expect(response.status).toBe(404)
     expect(response.body.message).toMatch(/Flight log not found/)

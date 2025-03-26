@@ -7,8 +7,10 @@ import { useState } from 'react';
 import EditMemberModal from './components/EditMemberModal';
 
 const MyProfile = () => {
-  const { t } = useTranslation();
-  const { data, isLoading, error, patch } = useApi<Member>({ path: 'v1/members/me' })
+  const { t } = useTranslation()
+  const { data, isLoading, error, patch } = useApi<Member>({
+    url: 'v1/members/me',
+  })
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editMode, setEditMode] = useState<'personalInfo' | 'emergencyContact'>('personalInfo');
 

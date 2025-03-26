@@ -3,7 +3,7 @@ import type { Selectable } from 'kysely'
 import { db } from './connection.ts'
 import type { MemberRegister } from './schema.js'
 import type { RegisterRequest } from '../routes/auth/schema.ts'
-import type { JWTPayload } from '../routes/auth/user.ts'
+import type { JWTUser } from '../routes/auth/token.ts'
 import { MIKRoles, MIKMemberTypes } from '../routes/members/models.ts'
 import type {
   Member,
@@ -92,7 +92,7 @@ export async function getMembers(): Promise<MemberList[]> {
   }))
 }
 
-export async function addMember(member: RegisterRequest, jwt?: JWTPayload): Promise<number> {
+export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise<number> {
   const now = new Date()
   const userId = jwt?.memberId.toString() ?? 'self'
   const result = await db
@@ -130,7 +130,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTPayload): Prom
 export async function updateMember(
   memberId: number,
   patch: Partial<Member>,
-  jwt: JWTPayload,
+  jwt: JWTUser,
 ): Promise<void> {
   const now = new Date()
 

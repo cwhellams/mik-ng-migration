@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
@@ -41,6 +42,7 @@ app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }))
 // Body parsing
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
 
 // Rate Limiting
 const rateLimiter = new RateLimiterMemory({ points: 10, duration: 1 }) // 10 requests per second
