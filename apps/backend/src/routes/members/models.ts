@@ -129,9 +129,15 @@ const baseFlightLogSchema = z.object({
 
 export const FlightLogInsertSchema = baseFlightLogSchema
 
-export const FlightLogUpdateSchema = baseFlightLogSchema.omit({
+// We use partial to allow only updating some fields
+export const FlightLogUpdateSchema = FlightLogInsertSchema.omit({
   created_by: true,
 })
+  .extend({
+    updated_at: z.date(),
+  })
+  .partial()
+  .strict()
 
 export const FlightLogResponseSchema = baseFlightLogSchema.extend({
   created_at: z.string().datetime(),

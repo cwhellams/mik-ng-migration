@@ -2,6 +2,7 @@ import type { Selectable } from 'kysely'
 
 import { db } from './connection.ts'
 import type { MemberRegister } from './schema.js'
+import logger from '../lib/logger.ts'
 import type { RegisterRequest } from '../routes/auth/schema.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { MIKRoles, MIKMemberTypes } from '../routes/members/models.ts'
@@ -11,6 +12,7 @@ import type {
   FlightLog,
   FlightLogFilters,
   FlightLogInsertRequest,
+  FlightLogUpdateRequest,
 } from '../routes/members/models.ts'
 
 export async function getMemberById(memberId: number): Promise<Member | undefined> {
@@ -200,6 +202,8 @@ export async function getAllFlightLogs(filters: FlightLogFilters): Promise<Fligh
       'created_by',
       'updated_by',
     ])
+    .orderBy('flight_date')
+    .orderBy('off_block_time_utc')
 
   // Apply filters dynamically
   if (filters.flight_id) {
@@ -249,13 +253,45 @@ export async function insertFlightLog(data: FlightLogInsertRequest): Promise<num
   return retval.flight_id
 }
 
-export async function deleteFlightLog(flight_id: number, member_id: number): Promise<bigint> {
-  const retval = await db
+export async function deleteFlightLog(
+  flight_id: number,
+  user: { memberId: number; roles: MIKRoles[] },
+): Promise<bigint> {
+  let delQuery = db
     .deleteFrom('flight.logs')
-    .where('flight.logs.flight_id', '=', flight_id)
-    .where('flight.logs.billable_member_id', '=', member_id)
-    .where('flight.logs.is_billed', '=', false)
-    .execute()
+    .where('flight_id', '=', flight_id)
+    .where('is_billed', '=', false)
 
-  return retval[0].numDeletedRows
+  // Only allow admins and committee members to delete logs that are not their own
+  if (!user.roles.includes(MIKRoles.ADMIN || user.roles.includes(MIKRoles.COMMITTEE))) {
+    delQuery = delQuery.where('billable_member_id', '=', user.memberId)
+  }
+
+  logger.info(
+    `Deleting flight log ${flight_id}. Deleted by member: ${user.memberId} with roles :${user.roles}`,
+  )
+  var retval = await delQuery.executeTakeFirst()
+  return retval.numDeletedRows
+}
+
+export async function updateFlightLog(
+  flight_id: number,
+  data: FlightLogUpdateRequest,
+  user: { memberId: number; roles: MIKRoles[] },
+): Promise<bigint> {
+  data.updated_by = user.memberId.toString()
+  data.updated_at = new Date()
+  let updQuery = db
+    .updateTable('flight.logs')
+    .set(data)
+    .where('flight_id', '=', flight_id)
+    .where('is_billed', '=', false)
+
+  // Only allow admins and committee members to delete logs that are not their own
+  if (!user.roles.includes(MIKRoles.ADMIN) && !user.roles.includes(MIKRoles.COMMITTEE)) {
+    updQuery = updQuery.where('billable_member_id', '=', user.memberId)
+  }
+
+  var retval = await updQuery.executeTakeFirst()
+  return retval.numUpdatedRows
 }

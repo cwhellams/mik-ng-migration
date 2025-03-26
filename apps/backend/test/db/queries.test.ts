@@ -8,8 +8,15 @@ import {
   getMembers,
   insertFlightLog,
   getMemberByEmail,
+  updateFlightLog,
+  getMemberById,
 } from '../../src/db/queries.ts'
-import type { FlightLog, FlightLogInsertRequest } from '../../src/routes/members/models.ts'
+import {
+  MIKRoles,
+  type FlightLog,
+  type FlightLogInsertRequest,
+  type FlightLogUpdateRequest,
+} from '../../src/routes/members/models.ts'
 
 dotenv.config()
 
@@ -23,6 +30,14 @@ describe('Db query member tests', () => {
       dateOfBirth: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+    })
+  })
+
+  it('getMemberById should return member data for a valid id', async () => {
+    const result = await getMemberById(1)
+    expect(result).toMatchSnapshot({
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     })
   })
 
@@ -166,10 +181,45 @@ describe('Db query insert tests', () => {
     })
 
     //cleanup
-    const delRowcount = await deleteFlightLog(flightId, 1)
+    const delRowcount = await deleteFlightLog(flightId, { memberId: 1, roles: [MIKRoles.USER] })
     expect(delRowcount).toEqual(1n)
   })
+})
 
+describe('Db query update tests', () => {
+  it('updatesFlightLog with remarks and dep aprt then reverts the change', async () => {
+    const flight_id = 3
+    const testRemark = 'Remarks from test'
+    const departureAirport = 'EFNU'
+
+    const originalLog = await getAllFlightLogs({ flight_id })
+    expect(originalLog.length).toEqual(1)
+
+    const data: FlightLogUpdateRequest = {
+      remarks: testRemark,
+      departure_airport: departureAirport,
+      updated_by: 'unit test',
+      updated_at: new Date(),
+    }
+
+    const user = {
+      memberId: 4,
+      roles: [MIKRoles.USER],
+    }
+    const flightId = await updateFlightLog(flight_id, data, user)
+    expect(flightId).toEqual(1n)
+
+    const result = await getAllFlightLogs({ flight_id })
+    expect(result.length).toEqual(1)
+    expect(result[0].remarks).toEqual(testRemark)
+    expect(result[0].departure_airport).toEqual(departureAirport)
+
+    //cleanup
+    data.remarks = originalLog[0].remarks
+    data.departure_airport = originalLog[0].departure_airport
+    data.updated_by = originalLog[0].updated_by
+    await updateFlightLog(flight_id, data, user)
+  })
   afterAll(async () => {
     // Close the pool after all tests
     await closeDb()

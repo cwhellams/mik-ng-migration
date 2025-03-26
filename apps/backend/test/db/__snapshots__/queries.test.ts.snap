@@ -222,6 +222,36 @@ exports[`Db query member tests getMember should return member data for a valid e
 }
 `;
 
+exports[`Db query member tests getMemberById should return member data for a valid id 1`] = `
+{
+  "billingId": "BILL001",
+  "canMakeReservations": true,
+  "createdAt": Any<String>,
+  "createdBy": "admin",
+  "dateOfBirth": "1980-01-15",
+  "email": "matti.virtanen@example.com",
+  "emailVerifiedAt": undefined,
+  "firstName": "Matti",
+  "iceContactName": "Liisa Virtanen",
+  "iceContactPhoneNumber": "0407654321",
+  "isTrainingProgramPilot": false,
+  "lastName": "Virtanen",
+  "memberId": 1,
+  "memberSince": "2025-03-26",
+  "memberType": "FLYING",
+  "phoneNumber": "0401234567",
+  "postcode": "00100",
+  "roles": [
+    "USER",
+    "INSTRUCTOR",
+  ],
+  "streetAddress": "Keskuskatu 1",
+  "townCity": "Helsinki",
+  "updatedAt": Any<String>,
+  "updatedBy": "admin",
+}
+`;
+
 exports[`Db query member tests getMemberRoles should return roles for given valid member 1`] = `
 [
   "USER",
