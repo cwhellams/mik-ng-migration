@@ -26,8 +26,8 @@ router.post('/', validateUser(), async (req: Request, res: Response) => {
   }
 
   //Override any supplied created by and updated by fields and use token
-  payload.data.created_by = req.user!.memberId.toString()
-  payload.data.updated_by = req.user!.memberId.toString()
+  payload.data.created_by = req.user!.memberId
+  payload.data.updated_by = req.user!.memberId
 
   const flightId = await insertFlightLog(payload.data)
 

@@ -10,7 +10,6 @@ import {
   type FlightLogInsertRequest,
   type FlightLogUpdateRequest,
 } from '../../../src/routes/members/models.ts'
-import logger from '../../../src/lib/logger.ts'
 
 const test_member_id = 1
 
@@ -119,20 +118,24 @@ describe('POST /flight-log', () => {
       captain_member_id: 1,
       captain: 'Salminen',
       copilot: null,
-      created_by: 'user3',
+      copilot_member_id: null,
+      created_by: 1,
       departure_airport: 'EFHK',
-      flight_date: '2025-02-27',
       flight_type: 'KOU',
+      is_billable_flight: true,
+      non_billing_approved_by_member_id: null,
+      non_billing_reason: null,
       fuel_uplift_litres: 40,
-      landing_time_utc: '12:00',
+      landing_time_utc: new Date('2025-03-22T11:40:00Z'),
       night_hours: '00:20',
       number_of_landings: 1,
-      off_block_time_utc: '10:20',
+      off_block_time_utc: new Date('2025-03-22T10:30:00Z'),
       oil_uplift_litres: 0.2,
-      on_block_time_utc: '10:00',
+      on_block_time_utc: new Date('2025-03-22T11:30:00Z'),
       persons_on_board: 3,
-      takeoff_time_utc: '09:30',
-      updated_by: 'user3',
+      takeoff_time_utc: new Date('2025-03-22T10:45:00Z'),
+      updated_by: 1,
+      remarks: 'N/A',
     })
 
     const response = await request(app)

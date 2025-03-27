@@ -179,7 +179,6 @@ export async function getAllFlightLogs(filters: FlightLogFilters): Promise<Fligh
       'captain',
       'copilot',
       'aircraft_registration',
-      'flight_date',
       'on_block_time_utc',
       'off_block_time_utc',
       'takeoff_time_utc',
@@ -202,7 +201,6 @@ export async function getAllFlightLogs(filters: FlightLogFilters): Promise<Fligh
       'created_by',
       'updated_by',
     ])
-    .orderBy('flight_date')
     .orderBy('off_block_time_utc')
 
   // Apply filters dynamically
@@ -225,21 +223,18 @@ export async function getAllFlightLogs(filters: FlightLogFilters): Promise<Fligh
   }
   if (filters.startDate && filters.endDate) {
     query = query
-      .where('flight_date', '>=', filters.startDate)
-      .where('flight_date', '<=', filters.endDate)
+      .where('off_block_time_utc', '>=', filters.startDate)
+      .where('on_block_time_utc', '<=', filters.endDate)
   } else if (filters.startDate) {
-    query = query.where('flight_date', '>=', filters.startDate)
+    query = query.where('off_block_time_utc', '>=', filters.startDate)
   } else if (filters.endDate) {
-    query = query.where('flight_date', '<=', filters.endDate)
+    query = query.where('on_block_time_utc', '<=', filters.endDate)
   }
 
   var retval = await query.execute()
 
   return retval.map(log => ({
     ...log,
-    flight_date: log.flight_date.toString(),
-    created_at: new Date(log.created_at).toISOString(),
-    updated_at: new Date(log.updated_at).toISOString(),
   }))
 }
 
@@ -279,7 +274,7 @@ export async function updateFlightLog(
   data: FlightLogUpdateRequest,
   user: { memberId: number; roles: MIKRoles[] },
 ): Promise<bigint> {
-  data.updated_by = user.memberId.toString()
+  data.updated_by = user.memberId
   data.updated_at = new Date()
   let updQuery = db
     .updateTable('flight.logs')
