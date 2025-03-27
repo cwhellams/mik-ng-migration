@@ -1,8 +1,8 @@
+import dotenv from 'dotenv'
 import express from 'express'
-import jwt from 'jsonwebtoken'
-import request from 'supertest'
 
-import type { JWTPayload } from '../../../src/routes/auth/user.ts'
+import request from 'supertest'
+import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import flightLogRouter from '../../../src/routes/flight-log/api.ts'
 import {
   FlightLogInsertSchema,
@@ -12,27 +12,17 @@ import {
 } from '../../../src/routes/members/models.ts'
 
 const test_member_id = 1
+dotenv.config()
 
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
 app.use('/flight-log', flightLogRouter)
 
-const SECRET_KEY = process.env.JWT_SECRET!
-const EXPIRATION_TIME = '1h'
-
-function generateToken(payload: JWTPayload): string {
-  return jwt.sign(payload, SECRET_KEY, { expiresIn: EXPIRATION_TIME })
-}
-
-function generateInvalidToken(payload: JWTPayload): string {
-  return jwt.sign(payload, 'not the secret youre looking for', { expiresIn: EXPIRATION_TIME })
-}
-
-const token: string = generateToken({
+const token = generateAccessToken({
   memberId: test_member_id,
-  email: 'test@mik.fi',
-  roles: [MIKRoles.USER],
+  email: 'jonny.depp@mik.fi',
+  roles: [MIKRoles.ADMIN, MIKRoles.USER],
 })
 
 describe('GET /flight-log', () => {
@@ -205,7 +195,7 @@ describe('PATCH /flight-log/', () => {
       }
 
       //Creaate a token with a member id that matches billable member id
-      const token = generateToken({
+      const token = generateAccessToken({
         memberId: memberId,
         email: 'valid@mik.fi',
         roles: roles,
@@ -236,12 +226,7 @@ describe('PATCH /flight-log/', () => {
       copilot_member_id: 2,
     }
 
-    //Creaate a token with a member id that matches billable member id
-    const invalidToken = generateInvalidToken({
-      memberId: 4, // billable_member_id
-      email: 'valid@mik.fi',
-      roles: [MIKRoles.USER],
-    })
+    const invalidToken = 'THIS WILL NOT WORK'
 
     const response = await request(app)
       .patch('/flight-log/3')
@@ -256,10 +241,16 @@ describe('PATCH /flight-log/', () => {
       copilot_member_id: 2,
     }
 
+    const invalidToken = generateAccessToken({
+      memberId: 2, // billable_member_id
+      email: 'test@mik.fi',
+      roles: [MIKRoles.USER],
+    })
+
     //Creaate a token with a member id that matches billable member id
     const response = await request(app)
       .patch('/flight-log/3')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${invalidToken}`)
       .send(payload)
 
     expect(response.status).toBe(404)
@@ -293,7 +284,7 @@ describe('DELETE /flight-log', () => {
   })
 
   it('should return 403 when user does not have rights to delete a flight log', async () => {
-    const delToken = generateToken({
+    const delToken = generateAccessToken({
       memberId: 99,
       email: 'invalid@mik.fi',
       roles: [MIKRoles.USER],

@@ -176,6 +176,13 @@ export async function getAllFlightLogs(filters: FlightLogFilters): Promise<Fligh
     .select([
       'flight_id',
       'billable_member_id',
+      'captain_member_id',
+      'copilot_member_id',
+      'is_billable_flight',
+      'non_billing_approved_by_member_id',
+      'non_billing_reason',
+      'is_billed',
+
       'captain',
       'copilot',
       'aircraft_registration',
@@ -233,9 +240,7 @@ export async function getAllFlightLogs(filters: FlightLogFilters): Promise<Fligh
 
   var retval = await query.execute()
 
-  return retval.map(log => ({
-    ...log,
-  }))
+  return retval.map(log => log)
 }
 
 export async function insertFlightLog(data: FlightLogInsertRequest): Promise<number> {
