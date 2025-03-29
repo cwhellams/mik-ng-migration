@@ -8,8 +8,15 @@ import {
   getMembers,
   insertFlightLog,
   getMemberByEmail,
+  updateFlightLog,
+  getMemberById,
 } from '../../src/db/queries.ts'
-import type { FlightLog, FlightLogInsertRequest } from '../../src/routes/members/models.ts'
+import {
+  MIKRoles,
+  type FlightLog,
+  type FlightLogInsertRequest,
+  type FlightLogUpdateRequest,
+} from '../../src/routes/members/models.ts'
 
 dotenv.config()
 
@@ -23,6 +30,14 @@ describe('Db query member tests', () => {
       dateOfBirth: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+    })
+  })
+
+  it('getMemberById should return member data for a valid id', async () => {
+    const result = await getMemberById(1)
+    expect(result).toMatchSnapshot({
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     })
   })
 
@@ -61,8 +76,8 @@ describe('Db query Get FlightLog tests', () => {
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
       flight_id: expect.any(Number),
-      created_at: expect.any(String),
-      updated_at: expect.any(String),
+      created_at: expect.any(Date),
+      updated_at: expect.any(Date),
     })
   })
 
@@ -82,8 +97,8 @@ describe('Db query Get FlightLog tests', () => {
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
       flight_id: expect.any(Number),
-      created_at: expect.any(String),
-      updated_at: expect.any(String),
+      created_at: expect.any(Date),
+      updated_at: expect.any(Date),
     })
   })
 
@@ -92,18 +107,18 @@ describe('Db query Get FlightLog tests', () => {
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
       flight_id: expect.any(Number),
-      created_at: expect.any(String),
-      updated_at: expect.any(String),
+      created_at: expect.any(Date),
+      updated_at: expect.any(Date),
     })
   })
 
   it('getAllFlightLogs for end date should match snapshot', async () => {
-    const result: FlightLog[] = await getAllFlightLogs({ endDate: new Date('2025-03-05') })
+    const result: FlightLog[] = await getAllFlightLogs({ endDate: new Date('2025-03-06') })
     expect(result.length).toEqual(5)
     expect(result[0]).toMatchSnapshot({
       flight_id: expect.any(Number),
-      created_at: expect.any(String),
-      updated_at: expect.any(String),
+      created_at: expect.any(Date),
+      updated_at: expect.any(Date),
     })
   })
 
@@ -115,14 +130,14 @@ describe('Db query Get FlightLog tests', () => {
 
   it('getAllFlightLogs between start and end date should match snapshot', async () => {
     const result = await getAllFlightLogs({
-      endDate: new Date('2025-03-05'),
+      endDate: new Date('2025-03-06'),
       startDate: new Date('2025-03-03'),
     })
     expect(result.length).toEqual(3)
     expect(result[2]).toMatchSnapshot({
       flight_id: expect.any(Number),
-      created_at: expect.any(String),
-      updated_at: expect.any(String),
+      created_at: expect.any(Date),
+      updated_at: expect.any(Date),
     })
   })
 })
@@ -134,11 +149,10 @@ describe('Db query insert tests', () => {
       captain: 'Virtanen',
       copilot: 'Nieminen',
       aircraft_registration: 'OH-STL',
-      flight_date: '2025-03-05',
-      on_block_time_utc: '10:00',
-      off_block_time_utc: '10:30',
-      takeoff_time_utc: '10:45',
-      landing_time_utc: '12:00',
+      on_block_time_utc: new Date('2025-03-22T11:30:00Z'),
+      off_block_time_utc: new Date('2025-03-22T10:30:00Z'),
+      takeoff_time_utc: new Date('2025-03-22T10:45:00Z'),
+      landing_time_utc: new Date('2025-03-22T11:35:00Z'),
       oil_uplift_litres: 5,
       fuel_uplift_litres: 100,
       persons_on_board: 4,
@@ -147,11 +161,16 @@ describe('Db query insert tests', () => {
       instrument_hours: null,
       departure_airport: 'EFHK',
       arrival_airport: 'EFVA',
-      flight_type: 'Private',
+      flight_type: 'KOU',
       billing_remarks: 'Test flight',
       remarks: 'No remarks',
-      created_by: 'test_user',
-      updated_by: 'test_user',
+      created_by: 2,
+      updated_by: 2,
+      captain_member_id: null,
+      copilot_member_id: null,
+      is_billable_flight: false,
+      non_billing_approved_by_member_id: null,
+      non_billing_reason: null,
     }
 
     const flightId = await insertFlightLog(data)
@@ -161,15 +180,50 @@ describe('Db query insert tests', () => {
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
       flight_id: expect.any(Number),
-      created_at: expect.any(String),
-      updated_at: expect.any(String),
+      created_at: expect.any(Date),
+      updated_at: expect.any(Date),
     })
 
     //cleanup
-    const delRowcount = await deleteFlightLog(flightId, 1)
+    const delRowcount = await deleteFlightLog(flightId, { memberId: 1, roles: [MIKRoles.USER] })
     expect(delRowcount).toEqual(1n)
   })
+})
 
+describe('Db query update tests', () => {
+  it('updatesFlightLog with remarks and dep aprt then reverts the change', async () => {
+    const flight_id = 3
+    const testRemark = 'Remarks from test'
+    const departureAirport = 'EFNU'
+
+    const originalLog = await getAllFlightLogs({ flight_id })
+    expect(originalLog.length).toEqual(1)
+
+    const data: FlightLogUpdateRequest = {
+      remarks: testRemark,
+      departure_airport: departureAirport,
+      updated_by: 2,
+      updated_at: new Date(),
+    }
+
+    const user = {
+      memberId: 4,
+      roles: [MIKRoles.USER],
+    }
+    const flightId = await updateFlightLog(flight_id, data, user)
+    expect(flightId).toEqual(1n)
+
+    const result = await getAllFlightLogs({ flight_id })
+    expect(result.length).toEqual(1)
+    expect(result[0].remarks).toEqual(testRemark)
+    expect(result[0].departure_airport).toEqual(departureAirport)
+
+    //cleanup
+    data.remarks = originalLog[0].remarks
+    data.departure_airport = originalLog[0].departure_airport
+    data.updated_by = originalLog[0].updated_by
+    await updateFlightLog(flight_id, data, user)
+  })
   afterAll(async () => {
     // Close the pool after all tests
     await closeDb()
