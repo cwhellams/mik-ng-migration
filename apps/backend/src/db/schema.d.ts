@@ -71,9 +71,8 @@ export interface FlightLogs {
   copilot: string | null
   copilot_member_id: number | null
   created_at: Generated<Timestamp>
-  created_by: string
+  created_by: number
   departure_airport: string
-  flight_date: Timestamp
   flight_id: Generated<number>
   flight_type: string
   fuel_uplift_litres: Numeric | null
@@ -81,19 +80,19 @@ export interface FlightLogs {
   invoice_number: Generated<string | null>
   is_billable_flight: Generated<boolean>
   is_billed: Generated<boolean>
-  landing_time_utc: string
+  landing_time_utc: Timestamp
   night_hours: string | null
   non_billing_approved_by_member_id: number | null
   non_billing_reason: string | null
   number_of_landings: number
-  off_block_time_utc: string
+  off_block_time_utc: Timestamp
   oil_uplift_litres: Numeric | null
-  on_block_time_utc: string
+  on_block_time_utc: Timestamp
   persons_on_board: number
   remarks: string | null
-  takeoff_time_utc: string
+  takeoff_time_utc: Timestamp
   updated_at: Generated<Timestamp>
-  updated_by: string
+  updated_by: number
 }
 
 export interface FlightLogsAudit {

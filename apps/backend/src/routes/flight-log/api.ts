@@ -1,85 +1,81 @@
 import { Router, type Request, type Response } from 'express'
 
-import { deleteFlightLog, getAllFlightLogs, insertFlightLog } from '../../db/queries.ts'
-import logger from '../../lib/logger.ts'
+import {
+  deleteFlightLog,
+  getAllFlightLogs,
+  insertFlightLog,
+  updateFlightLog,
+} from '../../db/queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import { flightLogFiltersSchema, FlightLogInsertSchema, MIKRoles } from '../members/models.ts'
+import {
+  flightLogFiltersSchema,
+  FlightLogInsertSchema,
+  FlightLogUpdateSchema,
+  type FlightLogUpdateRequest,
+  MIKRoles,
+} from '../members/models.ts'
 
 const router = Router()
 
 // Create a flight log
 router.post('/', validateUser(), async (req: Request, res: Response) => {
-  try {
-    const payload = FlightLogInsertSchema.safeParse(req.body)
+  const payload = FlightLogInsertSchema.safeParse(req.body)
 
-    if (!payload.success) {
-      return res.status(400).json({ error: payload.error.errors })
-    }
-
-    //Override any supplied created by and updated by fields and use token
-    payload.data.created_by = req.user!.memberId.toString()
-    payload.data.updated_by = req.user!.memberId.toString()
-
-    const flightId = await insertFlightLog(payload.data)
-
-    res.status(201).json({ flight_id: flightId })
-  } catch (err) {
-    logger.error(err)
-    res.status(500).json({ message: 'Failed to create flight log' })
+  if (!payload.success) {
+    return res.status(400).json({ error: payload.error.errors })
   }
+
+  //Override any supplied created by and updated by fields and use token
+  payload.data.created_by = req.user!.memberId
+  payload.data.updated_by = req.user!.memberId
+
+  const flightId = await insertFlightLog(payload.data)
+
+  res.status(201).json({ flight_id: flightId })
 })
 
 // Get flight logs uisng filter
 router.get('/', validateUser(), async (req: Request, res: Response) => {
-  try {
-    // Validate the query params
-    const parsedQuery = flightLogFiltersSchema.safeParse(req.query)
-    if (!parsedQuery.success) {
-      return res.status(400).json({ error: parsedQuery.error.errors })
-    }
-
-    const logs = await getAllFlightLogs(parsedQuery.data)
-    res.status(200).json(logs)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Failed to fetch flight logs' })
+  const parsedQuery = flightLogFiltersSchema.safeParse(req.query)
+  if (!parsedQuery.success) {
+    return res.status(400).json({ error: parsedQuery.error.errors })
   }
+
+  const logs = await getAllFlightLogs(parsedQuery.data)
+  res.status(200).json(logs)
 })
 
 // Get a flight log by ID
 router.get('/:id', validateUser(), async (req: Request, res: Response) => {
   const { id } = req.params
-  try {
-    const flight_log = await getAllFlightLogs({ flight_id: Number(id) })
-    if (flight_log.length === 0) {
-      return res.status(404).json({ message: 'Flight log not found' })
-    }
-    res.status(200).json(flight_log[0])
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ message: 'Failed to fetch flight log' })
+
+  const flight_log = await getAllFlightLogs({ flight_id: Number(id) })
+  if (flight_log.length === 0) {
+    return res.status(404).json({ message: 'Flight log not found' })
   }
+  res.status(200).json(flight_log[0])
 })
 
-// // Update a flight log
-// router.put('/:id', async (req: Request, res: Response) => {
-//   const { id } = req.params
-//   try {
-//     const updatedLog = await db
-//       .updateTable('logs')
-//       .set(req.body)
-//       .where('flight_id', '=', id)
-//       .returning('*')
-//       .execute()
-//     if (updatedLog.length === 0) {
-//       return res.status(404).json({ message: 'Flight log not found' })
-//     }
-//     res.status(200).json(updatedLog[0])
-//   } catch (err) {
-//     console.error(err)
-//     res.status(500).json({ message: 'Failed to update flight log' })
-//   }
-// })
+// Update a flight log
+router.patch('/:id', validateUser(), async (req: Request, res: Response) => {
+  const flight_id = Number(req.params.id)
+
+  const validate = FlightLogUpdateSchema.safeParse(req.body)
+
+  if (!validate.success) {
+    return res.status(400).json({ error: validate.error.errors.map(e => e.message) })
+  }
+
+  const updatePayload: FlightLogUpdateRequest = validate.data
+  const updatedLog = await updateFlightLog(flight_id, updatePayload, req.user!)
+  if (updatedLog === 0n) {
+    return res
+      .status(404)
+      .json({ message: 'Flight log not found or flight not billable to member' })
+  }
+
+  res.status(204).end()
+})
 
 // Delete a flight log
 router.delete('/:id', validateUser(), async (req: Request, res: Response) => {
@@ -94,7 +90,7 @@ router.delete('/:id', validateUser(), async (req: Request, res: Response) => {
 
   // Check if the flight is owned by the user or the user is not an admin or committee member
   if (
-    flightLogToDelete[0].billable_member_id !== req.user!.memberId ||
+    flightLogToDelete[0].billable_member_id !== req.user!.memberId &&
     !req.user!.roles.some(role => [MIKRoles.ADMIN, MIKRoles.COMMITTEE].includes(role))
   ) {
     // Check if the flight is owned by the user
@@ -110,7 +106,7 @@ router.delete('/:id', validateUser(), async (req: Request, res: Response) => {
     })
   }
 
-  const deletedLogRows = await deleteFlightLog(Number(id), req.user!.memberId)
+  const deletedLogRows = await deleteFlightLog(Number(id), req.user!)
   if (deletedLogRows === 0n) {
     return res.status(404).json({
       message: 'Flight log not found, flight not owned by user or flight already billed',
