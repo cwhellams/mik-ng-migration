@@ -23,5 +23,6 @@ export default defineConfig({
     alias: {
       '@backend': path.resolve(__dirname, '../backend/src'),
     },
+    conditions: ['mui-modern', 'module', 'browser', 'development|production'],
   },
 })
