@@ -261,7 +261,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "isTrainingProgramPilot": false,
   "lastName": "Virtanen",
   "memberId": 1,
-  "memberSince": "2025-03-27",
+  "memberSince": Any<String>,
   "memberType": "FLYING",
   "phoneNumber": "0401234567",
   "postcode": "00100",

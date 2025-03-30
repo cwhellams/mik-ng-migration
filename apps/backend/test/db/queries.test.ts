@@ -38,6 +38,7 @@ describe('Db query member tests', () => {
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
+      memberSince: expect.any(String),
     })
   })
 
