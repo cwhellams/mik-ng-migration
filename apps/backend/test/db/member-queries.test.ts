@@ -75,7 +75,13 @@ describe('Db add member tests', () => {
     const result = await getMemberById(memberId)
     expect(result?.memberId).toEqual(memberId)
     expect(result?.email).toEqual(email)
-    expect({ ...result, memberId: 0, email: 'test@testdata.com' }).toMatchSnapshot({
+    expect({
+      ...result,
+      memberId: 0,
+      createdBy: 0,
+      updatedBy: 0,
+      email: 'test@testdata.com',
+    }).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
@@ -97,7 +103,7 @@ describe('Db add member tests', () => {
       memberId,
       { firstName: 'test2', roles: [MIKRoles.USER] },
       {
-        memberId: 99,
+        memberId: 1,
         email: 'loggedinuser',
         roles: [],
       },

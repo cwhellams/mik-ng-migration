@@ -5,7 +5,7 @@ exports[`Db add member tests add member and update member 1`] = `
   "billingId": "MEMBER",
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": "self",
+  "createdBy": 0,
   "dateOfBirth": undefined,
   "email": "test@testdata.com",
   "emailVerifiedAt": undefined,
@@ -23,7 +23,7 @@ exports[`Db add member tests add member and update member 1`] = `
   "streetAddress": null,
   "townCity": null,
   "updatedAt": Any<String>,
-  "updatedBy": "self",
+  "updatedBy": 0,
 }
 `;
 
@@ -32,7 +32,7 @@ exports[`Db add member tests add member and update member 2`] = `
   "billingId": "MEMBER",
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": "self",
+  "createdBy": 0,
   "dateOfBirth": undefined,
   "email": "test@testdata.com",
   "emailVerifiedAt": undefined,
@@ -52,7 +52,7 @@ exports[`Db add member tests add member and update member 2`] = `
   "streetAddress": null,
   "townCity": null,
   "updatedAt": Any<String>,
-  "updatedBy": "99",
+  "updatedBy": 0,
 }
 `;
 
@@ -61,7 +61,7 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
   "billingId": "BILL001",
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": "admin",
+  "createdBy": 1,
   "dateOfBirth": Any<String>,
   "email": "matti.virtanen@example.com",
   "emailVerifiedAt": undefined,
@@ -82,7 +82,7 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
   "updatedAt": Any<String>,
-  "updatedBy": "admin",
+  "updatedBy": 1,
 }
 `;
 
@@ -91,7 +91,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "billingId": "BILL001",
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": "admin",
+  "createdBy": 1,
   "dateOfBirth": "1980-01-15",
   "email": "matti.virtanen@example.com",
   "emailVerifiedAt": undefined,
@@ -112,7 +112,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
   "updatedAt": Any<String>,
-  "updatedBy": "admin",
+  "updatedBy": 1,
 }
 `;
 
@@ -121,7 +121,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "billingId": "BILL001",
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": "admin",
+  "createdBy": 1,
   "dateOfBirth": Any<String>,
   "email": "matti.virtanen@example.com",
   "emailVerifiedAt": undefined,
@@ -142,7 +142,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
   "updatedAt": Any<String>,
-  "updatedBy": "admin",
+  "updatedBy": 1,
 }
 `;
 

@@ -1,4 +1,4 @@
-import type { Selectable } from 'kysely'
+import { sql, type Selectable } from 'kysely'
 
 import { db } from './connection.ts'
 import type { MemberRegister } from './schema.js'
@@ -88,12 +88,12 @@ export async function getMembers(): Promise<MemberList[]> {
   }))
 }
 
-export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise<number> {
+export async function addMember(member: RegisterRequest): Promise<number> {
   const now = new Date()
-  const userId = jwt?.memberId.toString() ?? 'self'
   const result = await db
     .insertInto('member.register')
     .values({
+      member_id: sql<number>`nextval('member.register_member_id_seq')`,
       member_type_id: member.memberType,
       email: member.email,
       first_name: member.firstName,
@@ -109,9 +109,9 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       member_since: now,
 
       created_at: now,
-      created_by: userId,
+      created_by: sql<number>`currval('member.register_member_id_seq')`,
       updated_at: now,
-      updated_by: userId,
+      updated_by: sql<number>`currval('member.register_member_id_seq')`,
       email_verified_at: undefined,
     })
     .returning('member_id')
@@ -153,7 +153,7 @@ export async function updateMember(
       member_since: patch.memberSince,
 
       updated_at: now,
-      updated_by: jwt.memberId.toString(),
+      updated_by: jwt.memberId,
       email_verified_at: patch.emailVerifiedAt,
     })
     .where('member_id', '=', memberId)
@@ -186,7 +186,7 @@ export async function updateMemberRoles(
         newRoles.map(newRole => ({
           member_id: memberId,
           role_id: newRole,
-          created_by: jwt.memberId.toString(),
+          created_by: jwt.memberId,
           created_at: now,
         })),
       )

@@ -3,11 +3,11 @@ import { FormField } from './FormField'
 import { Link } from 'react-router-dom'
 import { toLocalDate } from '../../../utils/date'
 
-const AuditBy = ({ by, memberId }: { by?: string; memberId: number }) => {
+const AuditBy = ({ by, memberId }: { by?: number; memberId: number }) => {
   if (!by) {
     return <></>
   }
-  if (by == 'self' || by == memberId.toString()) {
+  if (by == memberId) {
     return ' (self)'
   }
   return (
@@ -29,7 +29,7 @@ export const AuditFormField = ({
   label: string
   width?: number
   at?: string
-  by?: string
+  by?: number
   memberId: number
 }) => (
   <FormField label={label} width={width}>

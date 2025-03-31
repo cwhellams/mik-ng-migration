@@ -55,9 +55,9 @@ export const MemberSchema = z.object({
   memberSince: z.string().date(),
 
   createdAt: z.string().datetime(),
-  createdBy: z.string(),
+  createdBy: z.number(),
   updatedAt: z.string().datetime(),
-  updatedBy: z.string(),
+  updatedBy: z.number(),
   emailVerifiedAt: z.string().datetime().optional(),
 
   roles: MemberRolesSchema,
