@@ -43,6 +43,7 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ env.POSTGRES_DB }}
           POSTGRES_PORT: ${{ env.POSTGRES_PORT }}
+          POSTGRES_INITDB_ARGS: '--locale-provider=icu --icu-locale=fi-FI'
 
     steps:
       # We must checkout code first as the GH workspace is clean / empty

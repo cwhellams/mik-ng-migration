@@ -1,5 +1,6 @@
 -- Insert test data for the member.register table
 INSERT INTO member.register (
+    member_id,
     first_name,
     last_name,
     date_of_birth,
@@ -20,6 +21,7 @@ INSERT INTO member.register (
 
 ) VALUES
 (
+    nextval('member.register_member_id_seq'),
     'Matti',
     'Virtanen',
     '1980-01-15',
@@ -35,10 +37,11 @@ INSERT INTO member.register (
     '00100',
     TRUE,
     FALSE,
-    'admin',
-    'admin'
+    currval('member.register_member_id_seq'),
+    currval('member.register_member_id_seq')
 ),
 (
+    nextval('member.register_member_id_seq'),
     'Liisa',
     'Korhonen',
     '1985-02-20',
@@ -54,10 +57,11 @@ INSERT INTO member.register (
     '02100',
     TRUE,
     FALSE,
-    'admin',
-    'admin'
+    currval('member.register_member_id_seq'),
+    currval('member.register_member_id_seq')
 ),
 (
+    nextval('member.register_member_id_seq'),
     'Jukka',
     'Nieminen',
     '1990-03-25',
@@ -73,10 +77,11 @@ INSERT INTO member.register (
     '33100',
     TRUE,
     FALSE,
-    'admin',
-    'admin'
+    currval('member.register_member_id_seq'),
+    currval('member.register_member_id_seq')
 ),
 (
+    nextval('member.register_member_id_seq'),
     'Anna',
     'Mäkinen',
     '1995-04-30',
@@ -92,10 +97,11 @@ INSERT INTO member.register (
     '01300',
     TRUE,
     FALSE,
-    'admin',
-    'admin'
+    currval('member.register_member_id_seq'),
+    currval('member.register_member_id_seq')
 ),
 (
+    nextval('member.register_member_id_seq'),
     'Pekka',
     'Hämäläinen',
     '1982-05-10',
@@ -111,10 +117,11 @@ INSERT INTO member.register (
     '20100',
     TRUE,
     FALSE,
-    'admin',
-    'admin'
+    currval('member.register_member_id_seq'),
+    currval('member.register_member_id_seq')
 ),
 (
+    nextval('member.register_member_id_seq'),
     'Kaisa',
     'Laine',
     '1987-06-15',
@@ -130,10 +137,11 @@ INSERT INTO member.register (
     '90100',
     TRUE,
     FALSE,
-    'admin',
-    'admin'
+    currval('member.register_member_id_seq'),
+    currval('member.register_member_id_seq')
 ),
 (
+    nextval('member.register_member_id_seq'),
     'Antti',
     'Heikkinen',
     '1992-07-20',
@@ -149,10 +157,11 @@ INSERT INTO member.register (
     '40100',
     TRUE,
     FALSE,
-    'admin',
-    'admin'
+    currval('member.register_member_id_seq'),
+    currval('member.register_member_id_seq')
 ),
 (
+    nextval('member.register_member_id_seq'),
     'Sanna',
     'Koskinen',
     '1997-08-25',
@@ -168,10 +177,11 @@ INSERT INTO member.register (
     '15100',
     TRUE,
     FALSE,
-    'admin',
-    'admin'
+    currval('member.register_member_id_seq'),
+    currval('member.register_member_id_seq')
 ),
 (
+    nextval('member.register_member_id_seq'),
     'Juha',
     'Seppälä',
     '1984-09-30',
@@ -187,10 +197,11 @@ INSERT INTO member.register (
     '70100',
     TRUE,
     FALSE,
-    'admin',
-    'admin'
+    currval('member.register_member_id_seq'),
+    currval('member.register_member_id_seq')
 ),
 (
+    nextval('member.register_member_id_seq'),
     'Marja',
     'Salminen',
     '1989-10-05',
@@ -206,6 +217,6 @@ INSERT INTO member.register (
     '28100',
     TRUE,
     FALSE,
-    'admin',
-    'admin'
+    currval('member.register_member_id_seq'),
+    currval('member.register_member_id_seq')
 );
