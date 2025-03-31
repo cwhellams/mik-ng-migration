@@ -1,6 +1,62 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Db query member tests getMember should return member data for a valid email address 1`] = `
+exports[`Db add member tests add member and update member 1`] = `
+{
+  "billingId": "MEMBER",
+  "canMakeReservations": true,
+  "createdAt": Any<String>,
+  "createdBy": "self",
+  "dateOfBirth": undefined,
+  "email": "test@testdata.com",
+  "emailVerifiedAt": undefined,
+  "firstName": "test",
+  "iceContactName": null,
+  "iceContactPhoneNumber": null,
+  "isTrainingProgramPilot": false,
+  "lastName": "member",
+  "memberId": 0,
+  "memberSince": Any<String>,
+  "memberType": "FLYING",
+  "phoneNumber": null,
+  "postcode": null,
+  "roles": [],
+  "streetAddress": null,
+  "townCity": null,
+  "updatedAt": Any<String>,
+  "updatedBy": "self",
+}
+`;
+
+exports[`Db add member tests add member and update member 2`] = `
+{
+  "billingId": "MEMBER",
+  "canMakeReservations": true,
+  "createdAt": Any<String>,
+  "createdBy": "self",
+  "dateOfBirth": undefined,
+  "email": "test@testdata.com",
+  "emailVerifiedAt": undefined,
+  "firstName": "test2",
+  "iceContactName": null,
+  "iceContactPhoneNumber": null,
+  "isTrainingProgramPilot": false,
+  "lastName": "member",
+  "memberId": 0,
+  "memberSince": Any<String>,
+  "memberType": "FLYING",
+  "phoneNumber": null,
+  "postcode": null,
+  "roles": [
+    "USER",
+  ],
+  "streetAddress": null,
+  "townCity": null,
+  "updatedAt": Any<String>,
+  "updatedBy": "99",
+}
+`;
+
+exports[`Db query member tests getMemberByEmail should return member data for a valid email address 1`] = `
 {
   "billingId": "BILL001",
   "canMakeReservations": true,
@@ -37,6 +93,36 @@ exports[`Db query member tests getMemberById should return member data for a val
   "createdAt": Any<String>,
   "createdBy": "admin",
   "dateOfBirth": "1980-01-15",
+  "email": "matti.virtanen@example.com",
+  "emailVerifiedAt": undefined,
+  "firstName": "Matti",
+  "iceContactName": "Liisa Virtanen",
+  "iceContactPhoneNumber": "0407654321",
+  "isTrainingProgramPilot": false,
+  "lastName": "Virtanen",
+  "memberId": 1,
+  "memberSince": Any<String>,
+  "memberType": "FLYING",
+  "phoneNumber": "0401234567",
+  "postcode": "00100",
+  "roles": [
+    "USER",
+    "INSTRUCTOR",
+  ],
+  "streetAddress": "Keskuskatu 1",
+  "townCity": "Helsinki",
+  "updatedAt": Any<String>,
+  "updatedBy": "admin",
+}
+`;
+
+exports[`Db query member tests getMemberById should return member data for a valid member id 1`] = `
+{
+  "billingId": "BILL001",
+  "canMakeReservations": true,
+  "createdAt": Any<String>,
+  "createdBy": "admin",
+  "dateOfBirth": Any<String>,
   "email": "matti.virtanen@example.com",
   "emailVerifiedAt": undefined,
   "firstName": "Matti",
