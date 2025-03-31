@@ -1,7 +1,13 @@
 import { Router } from 'express'
 import type { Request, Response } from 'express'
 
-import { type MemberListResponse, type Member, MIKRoles, MemberProfileSchema } from './models.ts'
+import {
+  type MemberListResponse,
+  type Member,
+  MIKRoles,
+  MemberProfileSchema,
+  MemberSchema,
+} from './models.ts'
 import { getMemberById, getMembers, updateMember } from '../../db/queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import type { ErrorResponse } from '../response.ts'
@@ -45,6 +51,38 @@ router.patch(
     await updateMember(req.user?.memberId!, patch, req.user!)
 
     const member = await getMemberById(req.user!.memberId)
+    res.status(200).json(member)
+  },
+)
+
+//
+// Admin only routes
+//
+
+router.get(
+  '/:memberId',
+  validateUser(MIKRoles.ADMIN),
+  async (req: Request<{ memberId: string }>, res: Response<Member | ErrorResponse>) => {
+    const memberId = Number(req.params.memberId)
+
+    const member = await getMemberById(memberId)
+    if (!member) {
+      return res.status(404).json({ message: 'Not found' })
+    }
+    res.status(200).json(member)
+  },
+)
+
+router.patch(
+  '/:memberId',
+  validateUser(MIKRoles.ADMIN),
+  async (req: Request<{ memberId: string }>, res: Response<Member | ErrorResponse>) => {
+    const memberId = Number(req.params.memberId)
+
+    const patch = MemberSchema.partial().parse(req.body)
+    await updateMember(memberId, patch, req.user!)
+
+    const member = await getMemberById(memberId)
     res.status(200).json(member)
   },
 )

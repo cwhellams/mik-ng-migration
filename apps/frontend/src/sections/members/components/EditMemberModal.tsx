@@ -13,20 +13,36 @@ import {
   useMediaQuery,
   useTheme,
   CircularProgress,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  Checkbox,
+  FormGroup,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
-import { Member } from '@backend/routes/members/models'
+import { Member, MIKRoles } from '@backend/routes/members/models'
+import { DateField } from '@mui/x-date-pickers/DateField'
+import dayjs from 'dayjs'
+
+export type MemberEditMode =
+  | 'personalInfo'
+  | 'emergencyContact'
+  | 'training'
+  | 'membership'
+  | 'roles'
 
 interface EditMemberModalProps {
   open: boolean
   onClose: () => void
-  mode: 'personalInfo' | 'emergencyContact'
+  mode: MemberEditMode
   memberData?: Member
   onSave: (updatedData: Partial<Member>) => Promise<void>
 }
 
-const EditMemberModal = ({
+export const EditMemberModal = ({
   open,
   onClose,
   mode,
@@ -41,29 +57,46 @@ const EditMemberModal = ({
   // Define form states based on the mode
   const [formData, setFormData] = useState<Partial<Member>>({})
 
-  // Initialize form data when modal opens or memberData changes
+  // Initialize form data when modal opens
   useEffect(() => {
     if (memberData) {
       if (mode === 'personalInfo') {
         setFormData({
           firstName: memberData.firstName,
           lastName: memberData.lastName,
+          email: memberData.email,
           phoneNumber: memberData.phoneNumber || '',
           streetAddress: memberData.streetAddress || '',
           postcode: memberData.postcode || '',
           townCity: memberData.townCity || '',
+          dateOfBirth: memberData.dateOfBirth,
         })
-      } else {
+      } else if (mode === 'emergencyContact') {
         setFormData({
           iceContactName: memberData.iceContactName || '',
           iceContactPhoneNumber: memberData.iceContactPhoneNumber || '',
+        })
+      } else if (mode === 'training') {
+        setFormData({
+          isTrainingProgramPilot: memberData.isTrainingProgramPilot,
+        })
+      } else if (mode == 'membership') {
+        setFormData({
+          memberType: memberData.memberType,
+          canMakeReservations: memberData.canMakeReservations,
+          billingId: memberData.billingId,
+          memberSince: memberData.memberSince,
+        })
+      } else if (mode == 'roles') {
+        setFormData({
+          roles: memberData.roles,
         })
       }
     }
   }, [memberData, mode, open])
 
   const handleChange =
-    (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (field: keyof Member) => (e: React.ChangeEvent<HTMLInputElement>) => {
       setFormData((prev) => ({
         ...prev,
         [field]: e.target.value,
@@ -104,6 +137,14 @@ const EditMemberModal = ({
       <Grid size={12}>
         <TextField
           fullWidth
+          label={t('member.email')}
+          value={formData.email || ''}
+          onChange={handleChange('email')}
+        />
+      </Grid>
+      <Grid size={12}>
+        <TextField
+          fullWidth
           label={t('member.phone')}
           value={formData.phoneNumber || ''}
           onChange={handleChange('phoneNumber')}
@@ -133,6 +174,18 @@ const EditMemberModal = ({
           onChange={handleChange('townCity')}
         />
       </Grid>
+      <Grid size={12}>
+        <DateField
+          label={t('member.dateOfBirth')}
+          value={dayjs(formData.dateOfBirth)}
+          onChange={(value) => {
+            setFormData({
+              ...formData,
+              dateOfBirth: value?.format('YYYY-MM-DD'),
+            })
+          }}
+        />
+      </Grid>
     </Grid>
   )
 
@@ -157,10 +210,173 @@ const EditMemberModal = ({
     </Grid>
   )
 
-  const getTitle = () => {
-    return mode === 'personalInfo'
-      ? t('member.editPersonInfo', 'Edit Personal Information')
-      : t('member.editEmergencyContact', 'Edit Emergency Contact')
+  const renderTrainingForm = () => (
+    <Grid container spacing={2}>
+      <Grid size={12} display='flex' alignItems='center'>
+        <Typography variant='body2' color='text.secondary' sx={{ width: 150 }}>
+          {t('member.isTrainingProgramPilot')}
+        </Typography>
+        <Checkbox
+          checked={formData.isTrainingProgramPilot}
+          onChange={({ target }) => {
+            setFormData({
+              ...formData,
+              isTrainingProgramPilot: target.checked,
+            })
+          }}
+        />
+      </Grid>
+    </Grid>
+  )
+
+  const renderMembershipForm = () => (
+    <Grid container spacing={2}>
+      <Grid size={12}>
+        <FormControl>
+          <FormLabel id='member-type-label'>{t('member.memberType')}</FormLabel>
+          <RadioGroup
+            aria-labelledby='member-type-label'
+            value={formData.memberType}
+            onChange={handleChange('memberType')}
+          >
+            <FormControlLabel
+              value='FLYING'
+              control={<Radio />}
+              label={t('member.types.flying')}
+            />
+            <FormControlLabel
+              value='NON-FLYING'
+              control={<Radio />}
+              label={t('member.types.non-flying')}
+            />
+            <FormControlLabel
+              value='JUNIOR'
+              control={<Radio />}
+              label={t('member.types.junior')}
+            />
+          </RadioGroup>
+        </FormControl>
+      </Grid>
+      <Grid size={12} display='flex' alignItems='center'>
+        <Typography variant='body2' color='text.secondary' sx={{ width: 150 }}>
+          {t('member.canMakeReservations')}
+        </Typography>
+        <Checkbox
+          checked={formData.canMakeReservations}
+          onChange={({ target }) => {
+            setFormData({
+              ...formData,
+              canMakeReservations: target.checked,
+            })
+          }}
+        />
+      </Grid>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          label={t('member.billingId')}
+          value={formData.billingId || ''}
+          onChange={handleChange('billingId')}
+        />
+      </Grid>
+      <Grid size={12}>
+        <DateField
+          label={t('member.memberSince')}
+          required
+          margin='normal'
+          value={dayjs(formData.memberSince)}
+          onChange={(value) => {
+            setFormData({
+              ...formData,
+              memberSince: value?.format('YYYY-MM-DD'),
+            })
+          }}
+        />
+      </Grid>
+    </Grid>
+  )
+
+  const handleChangeRole = ({
+    target,
+  }: React.ChangeEvent<HTMLInputElement>) => {
+    const oldRoles = formData.roles ?? []
+    const role = target.name as MIKRoles
+
+    if (target.checked) {
+      setFormData((prev) => ({
+        ...prev,
+        roles: [...oldRoles, role],
+      }))
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        roles: oldRoles.filter((r) => r !== role),
+      }))
+    }
+  }
+
+  const renderRolesForm = () => (
+    <Grid container spacing={2}>
+      <Grid size={12}>
+        <FormGroup>
+          <FormControlLabel
+            control={
+              <Checkbox
+                name='USER'
+                checked={formData.roles?.includes(MIKRoles.USER)}
+                onChange={handleChangeRole}
+              />
+            }
+            label={t('roles.USER')}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                name='ADMIN'
+                checked={formData.roles?.includes(MIKRoles.ADMIN)}
+                onChange={handleChangeRole}
+              />
+            }
+            label={t('roles.ADMIN')}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                name='INSTRUCTOR'
+                checked={formData.roles?.includes(MIKRoles.INSTRUCTOR)}
+                onChange={handleChangeRole}
+              />
+            }
+            label={t('roles.INSTRUCTOR')}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                name='COMMITTEE'
+                checked={formData.roles?.includes(MIKRoles.COMMITTEE)}
+                onChange={handleChangeRole}
+              />
+            }
+            label={t('roles.COMMITTEE')}
+          />
+        </FormGroup>
+      </Grid>
+    </Grid>
+  )
+
+  const getForm = () => {
+    switch (mode) {
+      case 'personalInfo':
+        return renderPersonalInfoForm()
+      case 'emergencyContact':
+        return renderEmergencyContactForm()
+      case 'training':
+        return renderTrainingForm()
+      case 'membership':
+        return renderMembershipForm()
+      case 'roles':
+        return renderRolesForm()
+    }
   }
 
   return (
@@ -173,18 +389,14 @@ const EditMemberModal = ({
     >
       <DialogTitle>
         <Box display='flex' alignItems='center' justifyContent='space-between'>
-          <Typography variant='h6'>{getTitle()}</Typography>
+          <Typography variant='h6'>{t(`member.edit.${mode}`)}</Typography>
           <IconButton onClick={onClose} aria-label='close'>
             <Icon icon='mdi:close' />
           </IconButton>
         </Box>
       </DialogTitle>
 
-      <DialogContent dividers>
-        {mode === 'personalInfo'
-          ? renderPersonalInfoForm()
-          : renderEmergencyContactForm()}
-      </DialogContent>
+      <DialogContent dividers>{getForm()}</DialogContent>
 
       <DialogActions>
         <Button onClick={onClose} color='inherit'>
@@ -203,5 +415,3 @@ const EditMemberModal = ({
     </Dialog>
   )
 }
-
-export default EditMemberModal

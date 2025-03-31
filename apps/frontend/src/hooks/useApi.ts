@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { VerifyResponse } from '@backend/routes/auth/schema'
 
 const api = axios.create({
-  baseURL: 'api/',
+  baseURL: '/api/',
 })
 
 // Add a request interceptor to add the access token to the authorization header

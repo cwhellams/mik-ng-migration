@@ -10,18 +10,23 @@ import {
   TableRow,
   CircularProgress,
 } from '@mui/material'
+import { Link } from 'react-router-dom'
 import useApi from '../../hooks/useApi'
 import { MemberListResponse } from '@backend/routes/members/models'
+import { useRoles } from '../../hooks/useRoles'
+import { t } from 'i18next'
 
 const Members = () => {
   const { data, error, isLoading } = useApi<MemberListResponse>({
     url: 'v1/members',
   })
 
+  const { isAdmin } = useRoles()
+
   return (
     <Box>
       <Typography variant='h2' gutterBottom>
-        Members
+        {t('header.members')}
       </Typography>
       {isLoading ? (
         <CircularProgress size={24} color='inherit' />
@@ -45,7 +50,11 @@ const Members = () => {
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 >
                   <TableCell component='th' scope='row'>
-                    {row.name}
+                    {isAdmin ? (
+                      <Link to={`/members/${row.memberId}`}>{row.name}</Link>
+                    ) : (
+                      row.name
+                    )}
                   </TableCell>
                   <TableCell align='right'>{row.phoneNumber}</TableCell>
                 </TableRow>

@@ -9,7 +9,7 @@ export enum MIKRoles {
 
 export enum MIKMemberTypes {
   FLYING = 'FLYING',
-  NONFLYING = 'NONFLYING',
+  NONFLYING = 'NON-FLYING',
   JUNIOR = 'JUNIOR',
 }
 
@@ -30,6 +30,8 @@ export const MemberListResponseSchema = z.object({
 export type MemberListResponse = z.infer<typeof MemberListResponseSchema>
 
 // member details endpoint
+
+export const MemberRolesSchema = z.array(z.nativeEnum(MIKRoles))
 
 export const MemberSchema = z.object({
   memberId: z.number(),
@@ -58,7 +60,7 @@ export const MemberSchema = z.object({
   updatedBy: z.string(),
   emailVerifiedAt: z.string().datetime().optional(),
 
-  roles: z.array(z.nativeEnum(MIKRoles)),
+  roles: MemberRolesSchema,
 })
 
 export type Member = z.infer<typeof MemberSchema>

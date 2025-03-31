@@ -60,11 +60,11 @@ async function toMember(member: Selectable<MemberRegister>): Promise<Member> {
     dateOfBirth: member.date_of_birth ? (member.date_of_birth as unknown as string) : undefined,
     memberSince: member.member_since as unknown as string,
 
-    createdAt: member.created_at.toUTCString(),
+    createdAt: member.created_at.toISOString(),
     createdBy: member.created_by,
-    updatedAt: member.updated_at.toUTCString(),
+    updatedAt: member.updated_at.toISOString(),
     updatedBy: member.updated_by,
-    emailVerifiedAt: member.email_verified_at?.toUTCString(),
+    emailVerifiedAt: member.email_verified_at?.toISOString(),
 
     roles,
   }
@@ -84,6 +84,8 @@ export async function getMembers(): Promise<MemberList[]> {
   const list = await db
     .selectFrom('member.register')
     .select(['member_id', 'email', 'first_name', 'last_name', 'phone_number'])
+    .orderBy('last_name')
+    .orderBy('first_name')
     .execute()
 
   return list.map(member => ({
@@ -165,6 +167,45 @@ export async function updateMember(
     .executeTakeFirstOrThrow()
   if (!result.numUpdatedRows) {
     throw new Error('Member update failed')
+  }
+
+  if (patch.roles) {
+    await updateMemberRoles(memberId, patch.roles, jwt)
+  }
+}
+
+export async function updateMemberRoles(
+  memberId: number,
+  roles: MIKRoles[],
+  jwt: JWTUser,
+): Promise<void> {
+  const now = new Date()
+
+  const existingRoles = await getMemberRoles(memberId)
+
+  const newRoles = roles.filter(role => !existingRoles.includes(role))
+  const oldRoles = existingRoles.filter(role => !roles.includes(role))
+
+  if (newRoles.length > 0) {
+    await db
+      .insertInto('member.member_to_roles')
+      .values(
+        newRoles.map(newRole => ({
+          member_id: memberId,
+          role_id: newRole,
+          created_by: jwt.memberId.toString(),
+          created_at: now,
+        })),
+      )
+      .execute()
+  }
+
+  if (oldRoles.length > 0) {
+    await db
+      .deleteFrom('member.member_to_roles')
+      .where('member_id', '=', memberId)
+      .where('role_id', 'in', oldRoles)
+      .execute()
   }
 }
 
