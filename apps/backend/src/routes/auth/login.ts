@@ -12,7 +12,7 @@ import {
 } from './schema.ts'
 import { decodeRefreshToken, generateAccessToken, generateRefreshToken } from './token.ts'
 import { generateJWTUser, type JWTUser } from './token.ts'
-import { addMember, getMemberByEmail, getMemberById } from '../../db/queries.ts'
+import { addMember, getMemberByEmail, getMemberById } from '../../db/member-queries.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import {

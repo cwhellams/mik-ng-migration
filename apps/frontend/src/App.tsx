@@ -14,7 +14,9 @@ import LoginSent from './sections/login/Sent'
 import LoginValidate from './sections/login/Validate'
 import Register from './sections/login/Register'
 import NotFound from './sections/error/NotFound'
-import MyProfile from './sections/members/Member'
+import Member from './sections/members/Member'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/LocalizationProvider'
 // import FlightLogLanding from './sections/flightLog/Landing'
 // import NewFlightLogEntry from './sections/flightLog/NewFlightLogEntry'
 
@@ -43,7 +45,7 @@ function App() {
   }, [])
 
   return (
-    <>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='fi'>
       <SplashScreen loading={loading} />
       <BrowserRouter>
         <Routes>
@@ -52,8 +54,8 @@ function App() {
             <Route path='/' element={<Dashboard />} />
             {/* <Route path="/schedule" element={<Schedule />} />
             <Route path="/aircraft" element={<Aircraft />} /> */}
-            <Route path='/members' element={<Members />} />
-            <Route path='/myprofile' element={<MyProfile />} />
+            <Route index path='/members' element={<Members />} />
+            <Route path='/members/:memberId' element={<Member />} />
             {/* <Route path='/flight-logs' element={<FlightLogLanding />} /> */}
             {/* <Route path='/flight-logs/new' element={<NewFlightLogEntry />} /> */}
           </Route>
@@ -70,7 +72,7 @@ function App() {
           <Route path='*' element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </>
+    </LocalizationProvider>
   )
 }
 

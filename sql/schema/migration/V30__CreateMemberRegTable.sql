@@ -19,7 +19,7 @@ CREATE TABLE member.register
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email_verified_at TIMESTAMP,
-    created_by TEXT NOT NULL,
-    updated_by TEXT NOT NULL,
+    created_by INT NOT NULL REFERENCES member.register (member_id),
+    updated_by INT NOT NULL REFERENCES member.register (member_id),
     FOREIGN KEY (member_type_id) REFERENCES member.type (id)
 );

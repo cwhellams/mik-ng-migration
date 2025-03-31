@@ -14,7 +14,6 @@ import {
 } from '@mui/material'
 import { DateField } from '@mui/x-date-pickers/DateField'
 import 'dayjs/locale/fi'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -22,7 +21,6 @@ import { useAuth } from '../../hooks/useAuth'
 import { LoginLayout } from './LoginLayout'
 import { LoginResponse, RegisterRequest } from '@backend/routes/auth/schema'
 import { MIKMemberTypes } from '@backend/routes/members/models.ts'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/LocalizationProvider'
 import dayjs, { Dayjs } from 'dayjs'
 import { useTranslation } from 'react-i18next'
 
@@ -158,7 +156,7 @@ const Register = () => {
           required
         />
         <FormControl>
-          <FormLabel id='member-type-label'>{t('member.type')}</FormLabel>
+          <FormLabel id='member-type-label'>{t('member.memberType')}</FormLabel>
           <RadioGroup
             aria-labelledby='member-type-label'
             defaultValue='FLYING'
@@ -177,9 +175,9 @@ const Register = () => {
               label={t('member.types.flying')}
             />
             <FormControlLabel
-              value='NONFLYING'
+              value='NON-FLYING'
               control={<Radio />}
-              label={t('member.types.nonflying')}
+              label={t('member.types.non-flying')}
             />
             <FormControlLabel
               value='JUNIOR'
@@ -190,22 +188,20 @@ const Register = () => {
         </FormControl>
 
         {member.memberType == 'JUNIOR' && (
-          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='fi'>
-            <DateField
-              label={t('member.dateOfBirth')}
-              required
-              margin='normal'
-              defaultValue={dayjs()}
-              value={dateOfBirth}
-              onChange={(value) => {
-                setDateOfBirth(value)
-                setMember({
-                  ...member,
-                  dateOfBirth: value?.format('YYYY-MM-DD'),
-                })
-              }}
-            />
-          </LocalizationProvider>
+          <DateField
+            label={t('member.dateOfBirth')}
+            required
+            margin='normal'
+            defaultValue={dayjs()}
+            value={dateOfBirth}
+            onChange={(value) => {
+              setDateOfBirth(value)
+              setMember({
+                ...member,
+                dateOfBirth: value?.format('YYYY-MM-DD'),
+              })
+            }}
+          />
         )}
 
         <Typography variant='body2' color='text.secondary'>

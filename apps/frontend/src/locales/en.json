@@ -55,15 +55,29 @@
     "dateOfBirth": "Date of Birth",
     "roles": "Roles",
     "trainingProgram": "Training Program",
-    "type": "Member Type",
     "noRolesAssigned": "No roles assigned",
-    "editPersonInfo": "Edit your information",
-    "editEmergencyContact": "Edit Emergency Contact",
+    "edit": {
+      "personalInfo": "Edit your information",
+      "emergencyContact": "Edit Emergency Contact",
+      "training": "Edit Training Programs",
+      "membership": "Edit Membership Details",
+      "roles": "Edit Member Roles"
+    },
+    "memberType": "Member Type",
     "types": {
       "flying": "Full Member",
-      "nonflying": "Supporting Member",
+      "non-flying": "Supporting Member",
       "junior": "Junior"
-    }
+    },
+    "isTrainingProgramPilot": "Training Program Pilot",
+    "membership": "Membership Details",
+    "memberId": "Member ID",
+    "canMakeReservations": "Can Make Reservations",
+    "billingId": "Billing ID",
+    "memberSince": "Member Since",
+    "created": "Created",
+    "updated": "Updated",
+    "emailVerifiedAt": "First Login"
   },
   "error": {
     "pageNotFound": "Page not found",

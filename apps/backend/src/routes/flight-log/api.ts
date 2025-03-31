@@ -5,7 +5,7 @@ import {
   getAllFlightLogs,
   insertFlightLog,
   updateFlightLog,
-} from '../../db/queries.ts'
+} from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import {
   flightLogFiltersSchema,

@@ -132,6 +132,8 @@ export interface FlywaySchemaHistory {
 }
 
 export interface MemberMemberToRoles {
+  created_at: Generated<Timestamp>
+  created_by: number
   member_id: number
   role_id: string
 }
@@ -140,7 +142,7 @@ export interface MemberRegister {
   billing_id: string | null
   can_make_reservations: Generated<boolean>
   created_at: Generated<Timestamp>
-  created_by: string
+  created_by: number
   date_of_birth: Timestamp | null
   email: string
   email_verified_at: Timestamp | null
@@ -157,7 +159,7 @@ export interface MemberRegister {
   street_address: string | null
   town_city: string | null
   updated_at: Generated<Timestamp>
-  updated_by: string
+  updated_by: number
 }
 
 export interface MemberRegisterAudit {

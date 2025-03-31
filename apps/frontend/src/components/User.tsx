@@ -101,50 +101,58 @@ const User = () => {
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
             <Box sx={{ px: 2, py: 1 }}>
-              <Typography variant="subtitle1" fontWeight="bold">
+              <Typography variant='subtitle1' fontWeight='bold'>
                 {data.firstName} {data.lastName}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant='body2' color='text.secondary'>
                 {data.email}
               </Typography>
             </Box>
             <Divider />
-            <MenuItem component={Link} to="/MyProfile">
+            <MenuItem component={Link} to='/members/me'>
               <ListItemIcon>
-                <Icon icon="mdi:account" fontSize={20} />
+                <Icon icon='mdi:account' fontSize={20} />
               </ListItemIcon>
               {t('header.profile')}
             </MenuItem>
             <Divider />
             <Box sx={{ px: 2, py: 1 }}>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant='body2' color='text.secondary'>
                 {t('header.language')}
               </Typography>
             </Box>
             <MenuItem onClick={() => changeLanguage('en')}>
               <ListItemIcon>
-                <Icon icon="circle-flags:uk" fontSize={20} />
+                <Icon icon='circle-flags:uk' fontSize={20} />
               </ListItemIcon>
               English
               {i18n.language === 'en' && (
-                <Icon icon="mdi:check" fontSize={20} style={{ marginLeft: 'auto' }} />
+                <Icon
+                  icon='mdi:check'
+                  fontSize={20}
+                  style={{ marginLeft: 'auto' }}
+                />
               )}
             </MenuItem>
             <MenuItem onClick={() => changeLanguage('fi')}>
               <ListItemIcon>
-                <Icon icon="circle-flags:fi" fontSize={20} />
+                <Icon icon='circle-flags:fi' fontSize={20} />
               </ListItemIcon>
               Suomi
               {i18n.language === 'fi' && (
-                <Icon icon="mdi:check" fontSize={20} style={{ marginLeft: 'auto' }} />
+                <Icon
+                  icon='mdi:check'
+                  fontSize={20}
+                  style={{ marginLeft: 'auto' }}
+                />
               )}
             </MenuItem>
             <Divider />
             <MenuItem onClick={handleLogout}>
               <ListItemIcon>
-                <Icon icon="mdi:logout" fontSize={20} color="#f44336" />
+                <Icon icon='mdi:logout' fontSize={20} color='#f44336' />
               </ListItemIcon>
-              <Typography color="error.main">{t('header.logout')}</Typography>
+              <Typography color='error.main'>{t('header.logout')}</Typography>
             </MenuItem>
           </Menu>
         </>
