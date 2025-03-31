@@ -126,7 +126,7 @@ const MemberProfile = () => {
                     </FormField>
 
                     <FormField label='member.dateOfBirth' width={100}>
-                      {toLocalDate(data.dateOfBirth)}
+                      {data.dateOfBirth && toLocalDate(data.dateOfBirth)}
                     </FormField>
                   </Stack>
                 </CardContent>

@@ -177,7 +177,7 @@ export const EditMemberModal = ({
       <Grid size={12}>
         <DateField
           label={t('member.dateOfBirth')}
-          value={dayjs(formData.dateOfBirth)}
+          value={formData.dateOfBirth ? dayjs(formData.dateOfBirth) : undefined}
           onChange={(value) => {
             setFormData({
               ...formData,
