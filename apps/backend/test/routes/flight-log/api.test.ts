@@ -4,12 +4,13 @@ import express from 'express'
 import request from 'supertest'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import flightLogRouter from '../../../src/routes/flight-log/api.ts'
+import { MIKRoles } from '../../../src/routes/members/models.ts'
+
 import {
   FlightLogInsertSchema,
-  MIKRoles,
   type FlightLogInsertRequest,
   type FlightLogUpdateRequest,
-} from '../../../src/routes/members/models.ts'
+} from '../../../src/routes/flight-log/models.ts'
 
 const test_member_id = 1
 dotenv.config()

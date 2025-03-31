@@ -11,12 +11,12 @@ import {
   updateFlightLog,
   getMemberById,
 } from '../../src/db/queries.ts'
-import {
-  MIKRoles,
-  type FlightLog,
-  type FlightLogInsertRequest,
-  type FlightLogUpdateRequest,
-} from '../../src/routes/members/models.ts'
+import { MIKRoles } from '../../src/routes/members/models.ts'
+import type {
+  FlightLog,
+  FlightLogInsertRequest,
+  FlightLogUpdateRequest,
+} from '../../src/routes/flight-log/models.ts'
 
 dotenv.config()
 
@@ -38,6 +38,7 @@ describe('Db query member tests', () => {
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
+      memberSince: expect.any(String),
     })
   })
 
