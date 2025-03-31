@@ -8,7 +8,7 @@ import {
   MemberProfileSchema,
   MemberSchema,
 } from './models.ts'
-import { getMemberById, getMembers, updateMember } from '../../db/queries.ts'
+import { getMemberById, getMembers, updateMember } from '../../db/member-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import type { ErrorResponse } from '../response.ts'
 

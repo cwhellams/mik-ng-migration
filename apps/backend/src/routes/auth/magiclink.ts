@@ -1,7 +1,7 @@
 import MagicLoginStrategy from 'passport-magic-login'
 
 import { generateJWTUser, generateToken } from './token.ts'
-import { getMemberByEmail, updateMember } from '../../db/queries.ts'
+import { getMemberByEmail, updateMember } from '../../db/member-queries.ts'
 import logger from '../../lib/logger.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 
