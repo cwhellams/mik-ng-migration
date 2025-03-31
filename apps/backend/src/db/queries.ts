@@ -6,14 +6,13 @@ import logger from '../lib/logger.ts'
 import type { RegisterRequest } from '../routes/auth/schema.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { MIKRoles, MIKMemberTypes } from '../routes/members/models.ts'
+import type { Member, MemberList } from '../routes/members/models.ts'
 import type {
-  Member,
-  MemberList,
-  FlightLog,
   FlightLogFilters,
   FlightLogInsertRequest,
   FlightLogUpdateRequest,
-} from '../routes/members/models.ts'
+  FlightLog,
+} from '../routes/flight-log/models.ts'
 
 export async function getMemberById(memberId: number): Promise<Member | undefined> {
   const member = await db
@@ -294,4 +293,18 @@ export async function updateFlightLog(
 
   var retval = await updQuery.executeTakeFirst()
   return retval.numUpdatedRows
+}
+
+// Get all aircraft
+export async function getAllAircraft() {
+  return db.selectFrom('flight.aircraft').selectAll().orderBy('display_name').execute()
+}
+
+// Get aircraft by registration
+export async function getAircraftByRegistration(registration: string) {
+  return db
+    .selectFrom('flight.aircraft')
+    .selectAll()
+    .where('registration', '=', registration)
+    .executeTakeFirst()
 }

@@ -12,8 +12,9 @@ import {
   FlightLogInsertSchema,
   FlightLogUpdateSchema,
   type FlightLogUpdateRequest,
-  MIKRoles,
-} from '../members/models.ts'
+} from './models.ts'
+
+import { MIKRoles } from '../members/models.ts'
 
 const router = Router()
 
@@ -32,6 +33,23 @@ router.post('/', validateUser(), async (req: Request, res: Response) => {
   const flightId = await insertFlightLog(payload.data)
 
   res.status(201).json({ flight_id: flightId })
+})
+
+// Get logged in member's own flights
+router.get('/my-flights', validateUser(), async (req: Request, res: Response) => {
+  const parsedQuery = flightLogFiltersSchema.safeParse(req.query)
+  if (!parsedQuery.success) {
+    return res.status(400).json({ error: parsedQuery.error.errors })
+  }
+
+  // Combine the parsed query filters with the member ID filter
+  const filters = {
+    ...parsedQuery.data,
+    billable_member_id: req.user!.memberId,
+  }
+
+  const logs = await getAllFlightLogs(filters)
+  res.status(200).json(logs)
 })
 
 // Get flight logs uisng filter
