@@ -7,7 +7,7 @@ import {
   addMember,
   updateMember,
 } from '../../src/db/member-queries.ts'
-import { MIKMemberTypes, MIKRoles } from '../../src/routes/members/models.ts'
+import { MIKMemberTypes } from '../../src/routes/members/models.ts'
 
 describe('Db query member tests', () => {
   it('getMemberById should return member data for a valid member id', async () => {
@@ -63,8 +63,14 @@ describe('Db query member tests', () => {
     expect(result).toEqual([])
   })
 
-  it('getMembers should return members', async () => {
-    const result = await getMembers()
+  it('getMembers should return only approved members for valid members', async () => {
+    const result = await getMembers(false)
+    // test only first 10 items in the test data
+    expect(result.filter(m => m.memberId <= 10)).toMatchSnapshot()
+  })
+
+  it('getMembers should return everything for admins', async () => {
+    const result = await getMembers(true)
     // test only first 10 items in the test data
     expect(result.filter(m => m.memberId <= 10)).toMatchSnapshot()
   })
@@ -101,11 +107,11 @@ describe('Db add member tests', () => {
 
     await updateMember(
       memberId,
-      { firstName: 'test2', roles: [MIKRoles.USER] },
+      { firstName: 'test2', roles: [{ roleId: 'MEMBER', isPublic: true }] },
       {
         memberId: 1,
         email: 'loggedinuser',
-        roles: [],
+        permissions: [],
       },
     )
     await expectSnapshottetMember(memberId, email)

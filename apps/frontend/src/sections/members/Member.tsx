@@ -27,7 +27,7 @@ const MemberProfile = () => {
   const roles = useRoles()
 
   // no admin work can be done in own profile
-  const isAdmin = roles.isAdmin && memberId !== 'me'
+  const isAdmin = roles.isMembersAdmin && memberId !== 'me'
 
   const { data, isLoading, error, patch } = useApi<Member>({
     url: `v1/members/${memberId}`,
@@ -79,9 +79,9 @@ const MemberProfile = () => {
               data.roles.map((role, index) => (
                 <Chip
                   key={index}
-                  label={t(`roles.${role}`)}
+                  label={t(`roles.${role.roleId}`, role.roleId)}
                   color='primary'
-                  icon={<Icon icon='mdi:key' />}
+                  icon={<Icon icon='mdi:shield-user' />}
                 />
               ))}
             {isAdmin && (

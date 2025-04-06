@@ -100,7 +100,7 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
     ...rest
   } = useSWR<AxiosResponse<Data>, AxiosError<Error>>(
     // the url acts as a key for caching
-    request.url,
+    `${request.url}${JSON.stringify(request.data)}${JSON.stringify(request.params)}`,
     () => api.request<Data>(request),
     {
       ...config,

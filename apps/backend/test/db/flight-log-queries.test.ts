@@ -12,7 +12,7 @@ import type {
   FlightLogInsertRequest,
   FlightLogUpdateRequest,
 } from '../../src/routes/flight-log/models.ts'
-import { MIKRoles } from '../../src/routes/members/models.ts'
+import { MIKPermissions } from '../../src/routes/members/models.ts'
 
 dotenv.config()
 
@@ -136,7 +136,7 @@ describe('Db query insert tests', () => {
     })
 
     //cleanup
-    const delRowcount = await deleteFlightLog(flightId, { memberId: 1, roles: [MIKRoles.USER] })
+    const delRowcount = await deleteFlightLog(flightId)
     expect(delRowcount).toEqual(1n)
   })
 })
@@ -159,7 +159,8 @@ describe('Db query update tests', () => {
 
     const user = {
       memberId: 4,
-      roles: [MIKRoles.USER],
+      email: '',
+      permissions: [MIKPermissions.FLIGHTLOG_USER],
     }
     const flightId = await updateFlightLog(flight_id, data, user)
     expect(flightId).toEqual(1n)
@@ -175,6 +176,7 @@ describe('Db query update tests', () => {
     data.updated_by = originalLog[0].updated_by
     await updateFlightLog(flight_id, data, user)
   })
+
   afterAll(async () => {
     // Close the pool after all tests
     await closeDb()

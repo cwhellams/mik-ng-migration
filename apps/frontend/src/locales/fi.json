@@ -9,7 +9,8 @@
     "profile": "Omat tiedot",
     "language": "Kieli",
     "toggleTheme": "Vaihda palettia",
-    "flightLogs": "Lentopäiväkirja"
+    "flightLogs": "Lentopäiväkirja",
+    "roles": "Käyttäjäroolit"
   },
   "footer": {
     "quickLinks": "Pikalinkit",
@@ -87,9 +88,31 @@
   },
   "roles": {
     "ADMIN": "Ylläpitäjä",
+    "MEMBER": "Jäsen",
     "COMMITTEE": "Hallituksen jäsen",
+    "PLAINCAPTAIN": "Kalustovastaava",
+    "SECRETARY": "Sihteeri",
     "INSTRUCTOR": "Lennonopettaja",
-    "USER": "Jäsen"
+    "EXAMINER": "Tarkastuslentäjä",
+    "MAINTENANCE": "Huolto",
+    "FLYING_MEMBER": "Lento-oikeus",
+    "roleId": "Roolin tunniste",
+    "isPublic": "Näkyy jäsenille",
+    "permissions": "Oikeudet",
+    "description": "Kuvaus",
+    "details": "Roolin tiedot",
+    "all": "-- Kaikki --",
+    "unApproved": "-- Hyväksymättä --"
+  },
+  "permissions": {
+    "member": "MIK jäsen",
+    "member.admin": "Oikeus hyväksyä ja päivittää käyttäjiä ja heidän oikeuksia",
+    "flightlog.user": "Lisää ja muokkaa omia lentoja lentopäiväkirjaan",
+    "flightlog.admin": "Hallitsee lentopäiväkirjan lentoja ja laskutusta",
+    "booking.user": "Varauskirjan käyttäjä saa lisätä ja muokata omia varauksia",
+    "booking.admin": "Muokaa varauskirjan kaikkia varauksia",
+    "aircraft.user": "Näkee lentokoneiden vikatiedot ja hallien pin-koodit",
+    "aircraft.admin": "Muokkaa lentokoneiden tietoja ja vikataulua"
   },
   "general": {
     "edit": "Muokkaa",

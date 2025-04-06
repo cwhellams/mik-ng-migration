@@ -90,7 +90,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   }
 
   if (err instanceof ZodError) {
-    res.status(400).json(<ErrorResponse>{ message: err.message })
+    return res.status(400).json(<ErrorResponse>{ message: err.message })
   }
 
   res.status(500).json(<ErrorResponse>{ message: 'Internal Server Error' })
