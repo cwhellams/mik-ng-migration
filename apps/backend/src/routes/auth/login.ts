@@ -61,7 +61,7 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
 router.post('/register', async (req: Request<RegisterRequest>, res: Response<LoginResponse>) => {
   const member = RegisterRequestSchema.parse(req.body)
 
-  logger.info('registration request', member)
+  logger.info('registration request from %s', member.email)
 
   if (await getMemberByEmail(member.email)) {
     return silentFailure(

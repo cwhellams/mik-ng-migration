@@ -8,8 +8,6 @@ import logger from './logger.ts'
 const smtpLogin = process.env.SMTP_LOGIN
 const smtpPwd = process.env.SMTP_PASSWORD
 
-logger.info(process.env)
-
 if (!smtpLogin || !smtpPwd) {
   throw new Error('SMTP_LOGIN or SMTP_PASSWORD is not defined in environment variables')
 }
