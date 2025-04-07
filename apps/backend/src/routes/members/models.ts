@@ -68,7 +68,7 @@ export type MemberList = z.infer<typeof MemberListSchema>
 
 export const MemberListFiltersSchema = z.object({
   name: z.string().optional(),
-  role: z.string().optional(),
+  role: z.string().or(z.array(z.string())).nullish(),
 })
 
 export type MemberListFilters = z.infer<typeof MemberListFiltersSchema>

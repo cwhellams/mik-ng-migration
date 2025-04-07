@@ -95,7 +95,7 @@ const validateWriteAccess = (
   if (flights[0].billable_member_id !== req.user?.memberId && !isFlightLogAdmin(req.user)) {
     return {
       status: 403,
-      message: 'Flight log not owned by user and user has no admin rights',
+      message: 'Flight log not owned by user or user has no admin rights',
     }
   }
 
@@ -126,7 +126,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
 
   const { status, message } = validateWriteAccess(flightLogs, req)
   if (status !== 200) {
-    return res.status(status).json(message)
+    return res.status(status).json({ message })
   }
 
   const updatedLog = await updateFlightLog(flightId, validate.data, req.user!)
@@ -144,7 +144,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
   const flightLogToDelete = await getAllFlightLogs({ flight_id: flightId })
   const { status, message } = validateWriteAccess(flightLogToDelete, req)
   if (status !== 200) {
-    return res.status(status).json(message)
+    return res.status(status).json({ message })
   }
 
   logger.info(

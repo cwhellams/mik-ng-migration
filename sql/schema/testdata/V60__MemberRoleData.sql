@@ -12,6 +12,4 @@ VALUES
 (7, 'INSTRUCTOR', 1),
 (7, 'MEMBER', 1),
 (8, 'COMMITTEE', 1),
-(9, 'MEMBER', 1),
-(10, 'ADMIN', 1),
-(10, 'INSTRUCTOR', 1);
+(9, 'MEMBER', 1)

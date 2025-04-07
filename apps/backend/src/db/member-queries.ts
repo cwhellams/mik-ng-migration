@@ -94,8 +94,6 @@ export async function getMembers(
   const publicRoles = (await getAllMemberRoles(true)).map(role => role.roleId)
   const filterRoles = isAdmin ? roles : await getPublicRolesToQuery(publicRoles, roles)
 
-  console.log(filterRoles)
-
   let list = await db
     .selectFrom('member.register')
     .select(eb => [
@@ -323,6 +321,7 @@ export async function getMemberRoles(memberId: number): Promise<MemberRole[]> {
     .selectAll()
     .innerJoin('member.member_to_roles', 'member.member_to_roles.role_id', 'member.roles.role_id')
     .where('member_id', '=', memberId)
+    .orderBy('member.roles.role_id')
     .execute()
 
   return roles.map(toMemberRole)

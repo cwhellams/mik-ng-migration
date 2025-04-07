@@ -39,9 +39,15 @@ router.get(
     const { name, role } = req.query
 
     // either no roles filter, or one/multiple roles
-    const roles = role ? (Array.isArray(role) ? role : [role]) : undefined
+    const roles = role ? (Array.isArray(role) ? role : [role]) : []
 
-    const members = await getMembers(isMemberAdmin(req.user), name, roles ?? [])
+    const members = await getMembers(
+      isMemberAdmin(req.user),
+      name,
+
+      // map query of unapproved members to null
+      roles.map(role => (role == 'null' ? null : role)),
+    )
 
     res.status(200).json({
       members: members,

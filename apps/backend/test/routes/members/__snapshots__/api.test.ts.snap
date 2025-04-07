@@ -1,0 +1,297 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GET /members should return 200 without search filters for user id 1 1`] = `
+[
+  {
+    "memberId": 7,
+    "name": "Antti Heikkinen",
+    "phoneNumber": "0467890123",
+    "roles": [
+      "INSTRUCTOR",
+      "MEMBER",
+    ],
+  },
+  {
+    "memberId": 5,
+    "name": "Pekka Hämäläinen",
+    "phoneNumber": "0445678901",
+    "roles": [
+      "MEMBER",
+    ],
+  },
+  {
+    "memberId": 2,
+    "name": "Liisa Korhonen",
+    "phoneNumber": "0412345678",
+    "roles": [
+      "COMMITTEE",
+    ],
+  },
+  {
+    "memberId": 8,
+    "name": "Sanna Koskinen",
+    "phoneNumber": "0478901234",
+    "roles": [
+      "COMMITTEE",
+    ],
+  },
+  {
+    "memberId": 4,
+    "name": "Anna Mäkinen",
+    "phoneNumber": "0434567890",
+    "roles": [
+      "COMMITTEE",
+    ],
+  },
+  {
+    "memberId": 3,
+    "name": "Jukka Nieminen",
+    "phoneNumber": "0423456789",
+    "roles": [
+      "INSTRUCTOR",
+    ],
+  },
+  {
+    "memberId": 9,
+    "name": "Juha Seppälä",
+    "phoneNumber": "0489012345",
+    "roles": [
+      "MEMBER",
+    ],
+  },
+  {
+    "memberId": 1,
+    "name": "Matti Virtanen",
+    "phoneNumber": "0401234567",
+    "roles": [
+      "INSTRUCTOR",
+      "MEMBER",
+    ],
+  },
+]
+`;
+
+exports[`GET /members should return 200 without search filters for user id 2 1`] = `
+[
+  {
+    "memberId": 7,
+    "name": "Antti Heikkinen",
+    "phoneNumber": "0467890123",
+    "roles": [
+      "INSTRUCTOR",
+      "MEMBER",
+    ],
+  },
+  {
+    "memberId": 5,
+    "name": "Pekka Hämäläinen",
+    "phoneNumber": "0445678901",
+    "roles": [
+      "ADMIN",
+      "MEMBER",
+    ],
+  },
+  {
+    "memberId": 2,
+    "name": "Liisa Korhonen",
+    "phoneNumber": "0412345678",
+    "roles": [
+      "ADMIN",
+      "COMMITTEE",
+    ],
+  },
+  {
+    "memberId": 8,
+    "name": "Sanna Koskinen",
+    "phoneNumber": "0478901234",
+    "roles": [
+      "COMMITTEE",
+    ],
+  },
+  {
+    "memberId": 6,
+    "name": "Kaisa Laine",
+    "phoneNumber": "0456789012",
+    "roles": [
+      "ADMIN",
+    ],
+  },
+  {
+    "memberId": 4,
+    "name": "Anna Mäkinen",
+    "phoneNumber": "0434567890",
+    "roles": [
+      "COMMITTEE",
+    ],
+  },
+  {
+    "memberId": 3,
+    "name": "Jukka Nieminen",
+    "phoneNumber": "0423456789",
+    "roles": [
+      "INSTRUCTOR",
+    ],
+  },
+  {
+    "memberId": 10,
+    "name": "Marja Salminen",
+    "phoneNumber": "0490123456",
+    "roles": [],
+  },
+  {
+    "memberId": 9,
+    "name": "Juha Seppälä",
+    "phoneNumber": "0489012345",
+    "roles": [
+      "MEMBER",
+    ],
+  },
+  {
+    "memberId": 1,
+    "name": "Matti Virtanen",
+    "phoneNumber": "0401234567",
+    "roles": [
+      "INSTRUCTOR",
+      "MEMBER",
+    ],
+  },
+]
+`;
+
+exports[`GET /members/me should return 200 with valid token for user id 1 1`] = `
+{
+  "billingId": "BILL001",
+  "canMakeReservations": true,
+  "createdAt": Any<String>,
+  "createdBy": 1,
+  "dateOfBirth": "1980-01-15",
+  "email": "matti.virtanen@example.com",
+  "firstName": "Matti",
+  "iceContactName": "Liisa Virtanen",
+  "iceContactPhoneNumber": "0407654321",
+  "isTrainingProgramPilot": false,
+  "lastName": "Virtanen",
+  "memberId": 1,
+  "memberSince": Any<String>,
+  "memberType": "FLYING",
+  "phoneNumber": "0401234567",
+  "postcode": "00100",
+  "roles": [
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "Instructor with permissions to manage training",
+      "isPublic": true,
+      "permissions": [],
+      "roleId": "INSTRUCTOR",
+      "updatedAt": Any<String>,
+      "updatedBy": 1,
+    },
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "MIK member with basic access",
+      "isPublic": true,
+      "permissions": [
+        "member",
+      ],
+      "roleId": "MEMBER",
+      "updatedAt": Any<String>,
+      "updatedBy": 1,
+    },
+  ],
+  "streetAddress": "Keskuskatu 1",
+  "townCity": "Helsinki",
+  "updatedAt": Any<String>,
+  "updatedBy": 1,
+}
+`;
+
+exports[`GET /members/me should return 200 with valid token for user id 2 1`] = `
+{
+  "billingId": "BILL002",
+  "canMakeReservations": true,
+  "createdAt": Any<String>,
+  "createdBy": 2,
+  "dateOfBirth": "1985-02-20",
+  "email": "liisa.korhonen@example.com",
+  "firstName": "Liisa",
+  "iceContactName": "Matti Korhonen",
+  "iceContactPhoneNumber": "0418765432",
+  "isTrainingProgramPilot": false,
+  "lastName": "Korhonen",
+  "memberId": 2,
+  "memberSince": Any<String>,
+  "memberType": "JUNIOR",
+  "phoneNumber": "0412345678",
+  "postcode": "02100",
+  "roles": [
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "Administrator with full access",
+      "isPublic": false,
+      "permissions": [
+        "member.admin",
+        "flightlog.admin",
+        "booking.admin",
+        "aircraft.admin",
+      ],
+      "roleId": "ADMIN",
+      "updatedAt": Any<String>,
+      "updatedBy": 1,
+    },
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "MIK board member with decision-making authority in the club",
+      "isPublic": true,
+      "permissions": [],
+      "roleId": "COMMITTEE",
+      "updatedAt": Any<String>,
+      "updatedBy": 1,
+    },
+  ],
+  "streetAddress": "Mannerheimintie 10",
+  "townCity": "Espoo",
+  "updatedAt": Any<String>,
+  "updatedBy": 2,
+}
+`;
+
+exports[`GET /members/me should return 200 with valid token for user id 3 1`] = `
+{
+  "billingId": "BILL003",
+  "canMakeReservations": true,
+  "createdAt": Any<String>,
+  "createdBy": 3,
+  "dateOfBirth": "1990-03-25",
+  "email": "jukka.nieminen@example.com",
+  "firstName": "Jukka",
+  "iceContactName": "Anna Nieminen",
+  "iceContactPhoneNumber": "0429876543",
+  "isTrainingProgramPilot": false,
+  "lastName": "Nieminen",
+  "memberId": 3,
+  "memberSince": Any<String>,
+  "memberType": "NON-FLYING",
+  "phoneNumber": "0423456789",
+  "postcode": "33100",
+  "roles": [
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "Instructor with permissions to manage training",
+      "isPublic": true,
+      "permissions": [],
+      "roleId": "INSTRUCTOR",
+      "updatedAt": Any<String>,
+      "updatedBy": 1,
+    },
+  ],
+  "streetAddress": "Aleksanterinkatu 5",
+  "townCity": "Tampere",
+  "updatedAt": Any<String>,
+  "updatedBy": 3,
+}
+`;
