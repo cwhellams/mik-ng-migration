@@ -29,7 +29,7 @@ const MemberProfile = () => {
   // no admin work can be done in own profile
   const isAdmin = roles.isMembersAdmin && memberId !== 'me'
 
-  const { data, isLoading, error, patch } = useApi<Member>({
+  const { data, isLoading, error, mutate, update } = useApi<Member>({
     url: `v1/members/${memberId}`,
   })
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -43,7 +43,8 @@ const MemberProfile = () => {
   const handleSaveMemberData = async (
     updatedData: Partial<Member>
   ): Promise<void> => {
-    patch(updatedData)
+    const res = await update.trigger(updatedData)
+    mutate(() => res, { revalidate: true })
   }
 
   return (

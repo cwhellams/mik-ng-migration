@@ -7,10 +7,12 @@ export const EditButton = ({
   mode,
   onClick,
   positionStatic,
+  icon = 'mdi:pencil',
 }: {
   mode: MemberEditMode
   onClick?: () => void
   positionStatic?: boolean
+  icon?: string
 }) => {
   const title = t(`member.edit.${mode}`)
   return (
@@ -28,7 +30,7 @@ export const EditButton = ({
           '&:hover': { backgroundColor: 'background.default' },
         }}
       >
-        <Icon icon='mdi:pencil' width={18} />
+        <Icon icon={icon} width={18} />
       </IconButton>
     </Tooltip>
   )

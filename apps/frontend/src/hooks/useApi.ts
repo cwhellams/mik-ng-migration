@@ -1,9 +1,10 @@
 import useSWR, { SWRConfiguration, SWRResponse } from 'swr'
-import { PublicConfiguration, useSWRConfig } from 'swr/_internal'
+import { Key, PublicConfiguration, useSWRConfig } from 'swr/_internal'
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { ErrorResponse } from '@backend/routes/response'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { VerifyResponse } from '@backend/routes/auth/schema'
+import useSWRMutation, { SWRMutationResponse } from 'swr/mutation'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 const api = axios.create({
@@ -80,12 +81,27 @@ interface Return<Data, Error>
   // the whole response object with http status codes, headers, etc
   response: AxiosResponse<Data> | undefined
 
-  patch: (data: Partial<Data>) => Promise<AxiosResponse<Data>>
+  create: SWRMutationResponse<
+    AxiosResponse<Data>,
+    AxiosError<Error>,
+    Key,
+    Partial<Data>
+  >
+
+  update: SWRMutationResponse<
+    AxiosResponse<Data>,
+    AxiosError<Error>,
+    Key,
+    Partial<Data>
+  >
+
+  remove: SWRMutationResponse<AxiosResponse<Data>, AxiosError<Error>, Key>
 }
 
 export default function useApi<Data = unknown, Error = ErrorResponse>(
   request: AxiosRequestConfig & {
     allowUnauthenticated?: boolean
+    skipFetch?: boolean
   },
   config: SWRConfiguration<AxiosResponse<Data>, AxiosError<Error>> = {}
 ): Return<Data, Error> {
@@ -93,14 +109,16 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
   const location = useLocation()
   const { onErrorRetry } = useSWRConfig()
 
+  // the url and params acts as a key for caching
+  const cacheKey = [request.url, request.params]
+
   const {
     data: response,
     error,
     mutate,
     ...rest
   } = useSWR<AxiosResponse<Data>, AxiosError<Error>>(
-    // the url acts as a key for caching
-    `${request.url}${JSON.stringify(request.data)}${JSON.stringify(request.params)}`,
+    request.skipFetch ? null : cacheKey,
     () => api.request<Data>(request),
     {
       ...config,
@@ -128,6 +146,30 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
     }
   )
 
+  const create = useSWRMutation<
+    AxiosResponse<Data>,
+    AxiosError<Error>,
+    Key,
+    Partial<Data>
+  >(cacheKey, (_key: Key, { arg }: { arg: Partial<Data> }) =>
+    api.request({ ...request, method: 'POST', data: arg })
+  )
+
+  const update = useSWRMutation<
+    AxiosResponse<Data>,
+    AxiosError<Error>,
+    Key,
+    Partial<Data>
+  >(cacheKey, (_key: Key, { arg }: { arg: Partial<Data> }) =>
+    api.request({ ...request, method: 'PATCH', data: arg })
+  )
+
+  const remove = useSWRMutation<AxiosResponse<Data>, AxiosError<Error>, Key>(
+    cacheKey,
+    (_key: Key, { arg }: { arg: Partial<Data> }) =>
+      api.request({ ...request, method: 'DELETE', data: arg })
+  )
+
   const isLoggedOut = error?.name == 'CanceledError'
   if (isLoggedOut && !request.allowUnauthenticated) {
     // cancelled because not authenticated
@@ -141,20 +183,10 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
     response,
     error,
     mutate,
-    patch: async (data: Partial<Data>) => {
-      const patched = await api.request<Partial<Data>, AxiosResponse<Data>>({
-        ...request,
-        method: 'PATCH',
-        data,
-      })
 
-      // update the cache with returned full data
-      mutate(() => patched, {
-        revalidate: false,
-      })
-
-      return patched
-    },
+    create,
+    update,
+    remove,
 
     ...rest,
   }

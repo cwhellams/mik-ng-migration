@@ -39,14 +39,20 @@ export const MemberRoleSchema = z.object({
   updatedAt: z.string().datetime(),
   updatedBy: z.number(),
 })
-
 export type MemberRole = z.infer<typeof MemberRoleSchema>
+
+export const UpsertMemberRoleSchema = MemberRoleSchema.partial({
+  createdAt: true,
+  createdBy: true,
+  updatedAt: true,
+  updatedBy: true,
+})
+export type UpsertMemberRole = z.infer<typeof UpsertMemberRoleSchema>
 
 export const MemberRolesResponseSchema = z.object({
   roles: z.array(MemberRoleSchema),
   permissions: z.array(z.nativeEnum(MIKPermissions)),
 })
-
 export type MemberRolesResponse = z.infer<typeof MemberRolesResponseSchema>
 
 // member list endpoint

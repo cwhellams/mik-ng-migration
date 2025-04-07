@@ -10,7 +10,7 @@ import {
   type MemberListFilters,
   type MemberRolesResponse,
   type MemberRole,
-  MemberRoleSchema,
+  UpsertMemberRoleSchema,
 } from './models.ts'
 import {
   getMemberById,
@@ -19,6 +19,8 @@ import {
   updateMember,
   getAllMemberRoleById,
   updateMemberRole,
+  addMemberRole,
+  removeMemberRole,
 } from '../../db/member-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import type { JWTUser } from '../auth/token.ts'
@@ -117,11 +119,32 @@ router.patch(
   '/roles/:roleId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{ roleId: string }>, res: Response<MemberRole | ErrorResponse>) => {
-    const patch = MemberRoleSchema.partial().parse(req.body)
+    const patch = UpsertMemberRoleSchema.partial().parse(req.body)
     await updateMemberRole(req.params.roleId, patch, req.user!)
 
     const role = await getAllMemberRoleById(req.params.roleId)
     res.status(200).json(role)
+  },
+)
+
+router.post(
+  '/roles',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request, res: Response<MemberRole | ErrorResponse>) => {
+    const role = UpsertMemberRoleSchema.parse(req.body)
+    const created = await addMemberRole(role, req.user!)
+
+    res.status(200).json(created)
+  },
+)
+
+router.delete(
+  '/roles/:roleId',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request<{ roleId: string }>, res: Response<MemberRole | ErrorResponse>) => {
+    await removeMemberRole(req.params.roleId)
+
+    res.status(204).end()
   },
 )
 

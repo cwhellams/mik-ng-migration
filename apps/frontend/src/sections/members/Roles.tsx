@@ -9,21 +9,41 @@ import {
   TableHead,
   TableRow,
   CircularProgress,
+  Stack,
 } from '@mui/material'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useRoles } from '../../hooks/useRoles'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
+import { EditButton } from './components/EditButton'
 
 const Roles = () => {
   const { t } = useTranslation()
   const { roles, error } = useRoles()
+  const navigate = useNavigate()
+
+  const handleNewRole = () => {
+    navigate('/members/roles/new')
+  }
 
   return (
     <Box>
       <Typography variant='h2' gutterBottom>
         {t('header.roles')}
       </Typography>
+
+      <Stack
+        direction='row'
+        spacing={1}
+        sx={{ mb: 3, justifyContent: 'flex-end' }}
+      >
+        <EditButton
+          mode='roles'
+          positionStatic={true}
+          onClick={() => handleNewRole()}
+          icon='mdi:plus'
+        />
+      </Stack>
 
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label='simple table'>

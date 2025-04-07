@@ -9,7 +9,8 @@
     "profile": "My profile",
     "language": "Language",
     "toggleTheme": "Toggle dark/light mode",
-    "flightLogs": "Flight Log"
+    "flightLogs": "Flight Log",
+    "roles": "User Roles"
   },
   "footer": {
     "quickLinks": "Quick Links",
@@ -83,6 +84,7 @@
     "pageNotFound": "Page not found",
     "pageNotFoundMessage": "Oops, the page you're looking for doesn't exist.",
     "backToHome": "Back to homepage",
+    "logout": "Log out",
     "loadingMemberData": "Error loading member data."
   },
   "flightLog": {
@@ -100,9 +102,32 @@
   },
   "roles": {
     "ADMIN": "Administrator",
+    "MEMBER": "Member",
     "COMMITTEE": "Committee Member",
+    "PLAINCAPTAIN": "Plane Captain",
+    "SECRETARY": "Secretary",
     "INSTRUCTOR": "Instructor",
-    "USER": "Member"
+    "EXAMINER": "Examiner",
+    "MAINTENANCE": "Maintenance",
+    "FLYING_MEMBER": "Flying Member",
+    "newRole": "New Role",
+    "roleId": "Role ID",
+    "isPublic": "Visible to Members",
+    "permissions": "Permissions",
+    "description": "Description",
+    "details": "Role Details",
+    "all": "-- All --",
+    "unApproved": "-- Unapproved --"
+  },
+  "permissions": {
+    "member": "MIK member",
+    "member.admin": "Approve and update members and their permissions",
+    "flightlog.user": "Add and modify own flights",
+    "flightlog.admin": "Manage flight logs and billing",
+    "booking.user": "Add and modify own bookings",
+    "booking.admin": "Manage all bookings",
+    "aircraft.user": "View airplane details, faults, pin-codes",
+    "aircraft.admin": "Manage airplane details and fault table"
   },
   "general": {
     "edit": "Edit",

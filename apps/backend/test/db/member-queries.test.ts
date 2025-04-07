@@ -17,6 +17,11 @@ describe('Db query member tests', () => {
       dateOfBirth: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+      roles: result?.roles.map(r => ({
+        ...r,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
     })
   })
 
@@ -34,6 +39,11 @@ describe('Db query member tests', () => {
       dateOfBirth: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+      roles: result?.roles.map(r => ({
+        ...r,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
     })
   })
 
@@ -43,6 +53,11 @@ describe('Db query member tests', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+      roles: result?.roles.map(r => ({
+        ...r,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
     })
   })
 
@@ -55,7 +70,13 @@ describe('Db query member tests', () => {
 
   it('getMemberRoles should return roles for given valid member', async () => {
     const result = await getMemberRoles(1)
-    expect(result).toMatchSnapshot()
+    expect(result).toMatchSnapshot(
+      result.map(r => ({
+        ...r,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
+    )
   })
 
   it('getMemberRoles should return empty array for invalid member', async () => {
@@ -64,13 +85,13 @@ describe('Db query member tests', () => {
   })
 
   it('getMembers should return only approved members for valid members', async () => {
-    const result = await getMembers(false)
+    const result = await getMembers(false, '', [])
     // test only first 10 items in the test data
     expect(result.filter(m => m.memberId <= 10)).toMatchSnapshot()
   })
 
   it('getMembers should return everything for admins', async () => {
-    const result = await getMembers(true)
+    const result = await getMembers(true, '', [])
     // test only first 10 items in the test data
     expect(result.filter(m => m.memberId <= 10)).toMatchSnapshot()
   })
@@ -91,6 +112,11 @@ describe('Db add member tests', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+      roles: result?.roles.map(r => ({
+        ...r,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
     })
   }
 

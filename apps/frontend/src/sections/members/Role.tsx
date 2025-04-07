@@ -13,27 +13,45 @@ import {
   FormGroup,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
-import { MemberRole, MIKPermissions } from '@backend/routes/members/models'
+import {
+  UpsertMemberRole,
+  MemberRole,
+  MIKPermissions,
+} from '@backend/routes/members/models'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AuditFormField } from './components/AuditFormField'
 import { FormTitle } from './components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
+import { mutate } from 'swr'
 
 const MemberRoleEditor = () => {
   const { t } = useTranslation()
   const { roleId } = useParams()
 
+  const isNewRole = roleId === 'new'
+
   const { permissions } = useRoles()
 
-  const { data, isLoading, error, patch } = useApi<MemberRole>({
-    url: `v1/members/roles/${roleId}`,
+  const { data, isLoading, error, create, update, remove } =
+    useApi<UpsertMemberRole>({
+      url: `v1/members/roles${isNewRole ? '' : `/${roleId}`}`,
+      skipFetch: isNewRole,
+    })
+  const [formData, setFormData] = useState<UpsertMemberRole>({
+    roleId: '',
+    description: '',
+    isPublic: false,
+    permissions: [],
   })
-  const [formData, setFormData] = useState<Partial<MemberRole>>({})
+
+  const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
-    setFormData(data ?? {})
+    if (data) {
+      setFormData(data)
+    }
   }, [data])
 
   const navigate = useNavigate()
@@ -42,12 +60,33 @@ const MemberRoleEditor = () => {
     navigate('/members/roles')
   }
 
-  const handleSubmit = async () => {
+  const handleRemove = async () => {
     try {
-      patch(formData)
-    } catch (error) {
-      console.error('Error saving member data:', error)
-      // Could add error handling / feedback here
+      await remove.trigger()
+      // clear list of roles in cache
+      mutate((key) => Array.isArray(key) && key[0] == 'v1/members/roles')
+      navigate('/members/roles')
+    } catch {
+      setErrorMsg(remove.error?.message ?? 'Error')
+      console.error('Error removing role:', remove.error)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMsg('')
+
+    const op = isNewRole ? create : update
+
+    try {
+      await op.trigger(formData)
+      // clear list of roles in cache
+      mutate((key) => Array.isArray(key) && key[0] == 'v1/members/roles')
+
+      navigate('/members/roles')
+    } catch {
+      setErrorMsg(op.error?.message ?? 'Error')
+      console.error('Error modifying role:', op.error)
     }
   }
 
@@ -81,7 +120,7 @@ const MemberRoleEditor = () => {
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant='h2' gutterBottom>
-        {data?.roleId}
+        {data?.roleId ?? t('roles.newRole')}
       </Typography>
 
       {isLoading ? (
@@ -95,12 +134,12 @@ const MemberRoleEditor = () => {
         >
           <CircularProgress size={24} color='inherit' />
         </Box>
-      ) : error || !data ? (
+      ) : error ? (
         <Typography variant='h6' color='error' align='center'>
-          {t('error.loadingMemberData', 'Error loading member data.')}
+          {t('error.loadingRoleData', 'Error loading role data.')}
         </Typography>
       ) : (
-        <>
+        <form onSubmit={handleSubmit}>
           <Stack spacing={3}>
             <Card sx={{ flex: 1, position: 'relative' }}>
               <CardContent>
@@ -108,6 +147,7 @@ const MemberRoleEditor = () => {
                   <Grid size={12}>
                     <TextField
                       fullWidth
+                      required
                       label={t('roles.roleId')}
                       value={formData.roleId || ''}
                       onChange={handleChange('roleId')}
@@ -155,6 +195,7 @@ const MemberRoleEditor = () => {
                   <FormGroup>
                     {permissions.map((permission) => (
                       <FormControlLabel
+                        key={permission}
                         control={
                           <Checkbox
                             name={permission}
@@ -173,42 +214,77 @@ const MemberRoleEditor = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent>
-                <FormTitle title='roles.details' icon='mdi:information' />
+            {data && (
+              <Card>
+                <CardContent>
+                  <FormTitle title='roles.details' icon='mdi:information' />
 
-                <Stack spacing={1.5}>
-                  <AuditFormField
-                    label='member.created'
-                    by={data.createdBy}
-                    at={data.createdAt}
-                  />
+                  <Stack spacing={1.5}>
+                    <AuditFormField
+                      label='member.created'
+                      by={data.createdBy}
+                      at={data.createdAt}
+                    />
 
-                  <AuditFormField
-                    label='member.updated'
-                    by={data.updatedBy}
-                    at={data.updatedAt}
-                  />
-                </Stack>
-              </CardContent>
-            </Card>
+                    <AuditFormField
+                      label='member.updated'
+                      by={data.updatedBy}
+                      at={data.updatedAt}
+                    />
+                  </Stack>
+                </CardContent>
+              </Card>
+            )}
 
-            <Grid size={12} alignSelf='self-end'>
-              <Button onClick={handleCancel} color='inherit'>
-                {t('general.cancel', 'Cancel')}
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                color='primary'
-                variant='contained'
-                disabled={isLoading}
-                startIcon={isLoading ? <CircularProgress size={20} /> : null}
-              >
-                {t('general.save', 'Save')}
-              </Button>
+            <Grid size={12} justifyContent='space-between' display='flex'>
+              <Grid>
+                {!isNewRole && (
+                  <Button
+                    color='secondary'
+                    variant='outlined'
+                    disabled={remove.isMutating}
+                    onClick={handleRemove}
+                    startIcon={
+                      remove.isMutating ? <CircularProgress size={20} /> : null
+                    }
+                  >
+                    {t('general.delete', 'Delete')}
+                  </Button>
+                )}
+              </Grid>
+
+              <Grid display='flex' gap={2}>
+                <Button onClick={handleCancel} color='inherit'>
+                  {t('general.cancel', 'Cancel')}
+                </Button>
+                <Button
+                  type='submit'
+                  color='primary'
+                  variant='contained'
+                  disabled={create.isMutating || update.isMutating}
+                  startIcon={
+                    create.isMutating || update.isMutating ? (
+                      <CircularProgress size={20} />
+                    ) : null
+                  }
+                >
+                  {t('general.save', 'Save')}
+                </Button>
+              </Grid>
             </Grid>
+            {errorMsg.length > 0 && (
+              <Grid
+                alignItems='center'
+                display='flex'
+                sx={{ mr: 10, fontSize: 24 }}
+              >
+                <Typography color='error' variant='body2'>
+                  {errorMsg}
+                </Typography>
+              </Grid>
+            )}
           </Stack>
-        </>
+        </form>
       )}
     </Box>
   )

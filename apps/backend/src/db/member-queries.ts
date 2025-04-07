@@ -5,7 +5,7 @@ import { db } from './connection.ts'
 import type { MemberRegister, MemberRoles } from './schema.js'
 import type { RegisterRequest } from '../routes/auth/schema.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
-import { MIKMemberTypes } from '../routes/members/models.ts'
+import { MIKMemberTypes, type UpsertMemberRole } from '../routes/members/models.ts'
 import {
   MIKPermissions,
   type Member,
@@ -328,6 +328,35 @@ export async function getMemberRoles(memberId: number): Promise<MemberRole[]> {
   return roles.map(toMemberRole)
 }
 
+export async function addMemberRole(role: UpsertMemberRole, jwt: JWTUser): Promise<MemberRole> {
+  const now = new Date()
+
+  const result = await db
+    .insertInto('member.roles')
+    .values({
+      role_id: role.roleId,
+      description: role.description,
+      is_public: role.isPublic,
+      permissions: JSON.stringify(role.permissions),
+
+      created_at: now,
+      created_by: jwt.memberId,
+      updated_at: now,
+      updated_by: jwt.memberId,
+    })
+    .executeTakeFirst()
+  if (!result.numInsertedOrUpdatedRows) {
+    throw new Error('Role insert failed')
+  }
+  return {
+    ...role,
+    createdAt: now.toISOString(),
+    createdBy: jwt.memberId,
+    updatedAt: now.toISOString(),
+    updatedBy: jwt.memberId,
+  }
+}
+
 export async function updateMemberRole(
   roleId: string,
   patch: Partial<MemberRole>,
@@ -350,5 +379,15 @@ export async function updateMemberRole(
     .executeTakeFirstOrThrow()
   if (!result.numUpdatedRows) {
     throw new Error('Role update failed')
+  }
+}
+
+export async function removeMemberRole(roleId: string): Promise<void> {
+  const result = await db
+    .deleteFrom('member.roles')
+    .where('role_id', '=', roleId)
+    .executeTakeFirstOrThrow()
+  if (!result.numDeletedRows) {
+    throw new Error('Role delete failed')
   }
 }

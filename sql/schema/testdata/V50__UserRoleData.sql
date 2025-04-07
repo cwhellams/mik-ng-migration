@@ -14,7 +14,7 @@ VALUES
   1),
 ('MEMBER',
   'MIK member with basic access',
-  FALSE,
+  TRUE,
   to_jsonb(ARRAY['member']),
  1,
  1),

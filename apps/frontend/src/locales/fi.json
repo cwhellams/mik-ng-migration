@@ -42,6 +42,7 @@
     "info": "Jäsenen tiedot",
     "fullname": "Nimi",
     "firstName": "Etunimi",
+    "lastName": "Sukunimi",
     "email": "Sähköposti",
     "phone": "Puhelin",
     "postcode": "Postinumero",
@@ -96,6 +97,7 @@
     "EXAMINER": "Tarkastuslentäjä",
     "MAINTENANCE": "Huolto",
     "FLYING_MEMBER": "Lento-oikeus",
+    "newRole": "Uusi rooli",
     "roleId": "Roolin tunniste",
     "isPublic": "Näkyy jäsenille",
     "permissions": "Oikeudet",
@@ -106,13 +108,13 @@
   },
   "permissions": {
     "member": "MIK jäsen",
-    "member.admin": "Oikeus hyväksyä ja päivittää käyttäjiä ja heidän oikeuksia",
-    "flightlog.user": "Lisää ja muokkaa omia lentoja lentopäiväkirjaan",
-    "flightlog.admin": "Hallitsee lentopäiväkirjan lentoja ja laskutusta",
-    "booking.user": "Varauskirjan käyttäjä saa lisätä ja muokata omia varauksia",
-    "booking.admin": "Muokaa varauskirjan kaikkia varauksia",
+    "member.admin": "Hyväksyy ja päivittää käyttäjien tietoja ja oikeuksia",
+    "flightlog.user": "Lisää ja muokkaa omia lentopäiväkirjan lentoja",
+    "flightlog.admin": "Hallitsee lentopäiväkirjan kaikkia lentoja ja laskutusta",
+    "booking.user": "Lisää ja muokkaa omia varauksia",
+    "booking.admin": "Hallitsee varauskirjan kaikkia varauksia",
     "aircraft.user": "Näkee lentokoneiden vikatiedot ja hallien pin-koodit",
-    "aircraft.admin": "Muokkaa lentokoneiden tietoja ja vikataulua"
+    "aircraft.admin": "Hallitsee lentokoneiden tietoja ja vikataulua"
   },
   "general": {
     "edit": "Muokkaa",
