@@ -1,5 +1,5 @@
-name: Frontend review, validation and test
-run-name: Frontend review, validation and test triggered by @${{ github.actor }}
+name: Intra Frontend review, validation and test
+run-name: Intra Frontend review, validation and test triggered by @${{ github.actor }}
 
 on:
   pull_request:

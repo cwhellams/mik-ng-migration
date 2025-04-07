@@ -1,3 +1,4 @@
+import { HttpStatusCode } from 'axios'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import dotenv from 'dotenv'
@@ -11,10 +12,10 @@ import { RateLimiterMemory } from 'rate-limiter-flexible'
 import { ZodError } from 'zod'
 
 import logger from './lib/logger.ts'
+import { router as aircraftRoutes } from './routes/aircrafts/api.ts'
 import { router as passportRoutes } from './routes/auth/login.ts'
 import flightLogRoutes from './routes/flight-log/api.ts'
 import { router as memberRoutes } from './routes/members/api.ts'
-import { router as aircraftRoutes } from './routes/aircrafts/api.ts'
 import type { ErrorResponse } from './routes/response.ts'
 
 // Load environment variables for local development - we will not ship this file to production and will use environment variables from the hosting provider
@@ -24,7 +25,7 @@ const pool = new pg.Pool({
 })
 
 const app = express()
-const PORT = process.env.PORT ?? 3000
+const PORT = process.env.BACKEND_PORT || 3000
 
 logger.info('Bootstrapping mik-ng service on port %d', PORT)
 
@@ -38,6 +39,7 @@ app.use(
 // Security Middlewares
 app.use(helmet()) // Secure headers
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }))
+
 // app.use(compression());
 
 // Body parsing
@@ -61,9 +63,17 @@ const rateLimiterMiddleware: RequestHandler = async (
 }
 app.use(rateLimiterMiddleware)
 
-// Example Route
-app.get('/', (req: Request, res: Response) => {
-  res.json({ message: 'Hello World NG' })
+// Basic application status information
+let appStatus = {
+  status: 'ok',
+  uptime: 0,
+  startTime: Date.now(),
+}
+
+app.get('/health', (_req, res) => {
+  // Calculate current uptime
+  appStatus.uptime = Math.floor((Date.now() - appStatus.startTime) / 1000)
+  res.status(HttpStatusCode.Ok).send(appStatus)
 })
 
 // Routes
@@ -86,8 +96,10 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json(<ErrorResponse>{ message: 'Internal Server Error' })
 })
 
+//Digital ocean requires that app services bind to 0.0.0.0
+//docs.digitalocean.com/products/app-platform/how-to/manage-services/
 const server = app.listen(PORT, () => {
-  logger.info(`Server running on http://localhost:${PORT}`)
+  logger.info(`Server running on http://0.0.0.0:${PORT}`)
 })
 
 // Gracefully handle app termination (Ctrl+C, kill, crashes)

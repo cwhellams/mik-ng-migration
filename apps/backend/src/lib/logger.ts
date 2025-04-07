@@ -13,11 +13,7 @@ const logFormat = format.combine(
 const logger = createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
-  transports: [
-    new transports.Console({ format: format.simple() }),
-    new transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new transports.File({ filename: 'logs/combined.log' }),
-  ],
+  transports: [new transports.Console({ format: format.simple() })],
 })
 
 export default logger
