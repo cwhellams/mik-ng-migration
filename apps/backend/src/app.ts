@@ -76,10 +76,6 @@ app.get('/health', (_req, res) => {
   res.status(HttpStatusCode.Ok).send(appStatus)
 })
 
-app.get('/hello', (_req, res) => {
-  res.status(HttpStatusCode.Ok).send('Hello World!')
-})
-
 // Routes
 app.use('/auth', passportRoutes)
 app.use('/api/v1/members', memberRoutes)
@@ -100,7 +96,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json(<ErrorResponse>{ message: 'Internal Server Error' })
 })
 
-//Digital ocean requires that app services bing to 0.0.0.0
+//Digital ocean requires that app services bind to 0.0.0.0
 //docs.digitalocean.com/products/app-platform/how-to/manage-services/
 const server = app.listen(PORT, () => {
   logger.info(`Server running on http://0.0.0.0:${PORT}`)
