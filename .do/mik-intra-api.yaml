@@ -1,7 +1,7 @@
-name: mik-intra
+name: mik-intra-api
 region: fra1
 services:
-  - name: mik-backend
+  - name: mik-intra-api
     
     image:
       registry_type: DOCR      
@@ -42,9 +42,6 @@ services:
         type: GENERAL
       - key: DB_SSL
         value: 'true'
-        type: GENERAL
-      - key: VITE_API_TARGET
-        value: ${VITE_API_TARGET}
         type: GENERAL
 
     instance_count: 1

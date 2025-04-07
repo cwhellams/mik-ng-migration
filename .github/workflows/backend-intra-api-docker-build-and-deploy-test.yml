@@ -1,9 +1,12 @@
-name: Build and Push Docker Image
+name: Intra API Build and Push Docker Image to DO
 
 on:
   push:
     branches: [test] # Adjust branch names as needed
-  workflow_dispatch: # Allows manual triggering
+
+    paths:
+      - 'apps/backend/**'
+      - '.github/workflows/**'
 
 jobs:
   build_and_push:
@@ -36,8 +39,8 @@ jobs:
           context: . # Build the Dockerfile in the root of the repository
           push: true # Push the image to the registry
           tags: registry.digitalocean.com/mik-ng/${{ env.REPO_NAME }}:latest
-          cache-from: type=gha # Use GitHub Actions cache
-          cache-to: type=gha,mode=max # Store build cache in GitHub Actions cache for reuse
+          #cache-from: type=gha # Use GitHub Actions cache
+          #cache-to: type=gha,mode=max # Store build cache in GitHub Actions cache for reuse
 
       # Let's set the env vars we need for the DO app
       - name: Setup env vars for Digital Ocean App
@@ -48,22 +51,21 @@ jobs:
           echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET }}" >> $GITHUB_ENV
           echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> $GITHUB_ENV
           echo "ACCESS_TOKEN_EXPIRATION=15 mins" >> $GITHUB_ENV
-          echo "REFRESH_TOKEN_EXPIRATION=365 days" >> $GITHUB_ENV
+          echo "REFRESH_TOKEN_EXPIRATION=365 days" >> $GITHUB_ENV          
           echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> $GITHUB_ENV
           echo "PUBLIC_URL=${{ vars.PUBLIC_URL }}" >> $GITHUB_ENV
-          echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET }}" >> $GITHUB_ENV
 
-      # Now we use good 'ol envsubst to substitue the env vars from above into the app.yaml file
-      - name: Replace placeholders in app.yaml
+      # Now we use good 'ol envsubst to substitue the env vars from above into the mik-intra-api.yaml file
+      - name: Replace placeholders in mik-intra-api.yaml
         run: |
-          envsubst < .do/app.yaml > .do/app.yaml.temp && mv .do/app.yaml.temp .do/app.yaml
+          envsubst < .do/mik-intra-api.yaml > .do/mik-intra-api.yaml.temp && mv .do/mik-intra-api.yaml.temp .do/mik-intra-api.yaml
 
       # The App Create is handled manually , so we have an APP ID available,
       # using doctl we just need to update the deployed app and pass the --update-sources flag
       # so that the latest docker file is deployed
       - name: Update app on DigitalOcean App Platform
         id: update-app
-        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/app.yaml
+        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/mik-intra-api.yaml
 
       # Database
       - name: Run Flyway migrations

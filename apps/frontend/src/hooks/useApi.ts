@@ -5,8 +5,9 @@ import { ErrorResponse } from '@backend/routes/response'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { VerifyResponse } from '@backend/routes/auth/schema'
 
+const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 const api = axios.create({
-  baseURL: '/api/',
+  baseURL: `${API_BASE}/api/`,
 })
 
 // Add a request interceptor to add the access token to the authorization header

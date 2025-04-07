@@ -8,7 +8,9 @@ import pg from 'pg'
 import type { DB } from './schema.d.ts'
 import logger from '../lib/logger.ts'
 
+//Digital Ocean requires SSL connection to the database with a CA Certificate also used
 const useSSL = process.env.DB_SSL
+
 // Parse dates as strings - this is necessary because the PostgreSQL driver
 // returns dates as Date objects by default, which can cause issues
 // due to times being included in the date with timezone conversions
