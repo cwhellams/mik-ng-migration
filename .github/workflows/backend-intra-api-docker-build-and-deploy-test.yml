@@ -58,7 +58,7 @@ jobs:
       # Now we use good 'ol envsubst to substitue the env vars from above into the app.yaml file
       - name: Replace placeholders in app.yaml
         run: |
-          envsubst < .do/app.yaml > .do/app.yaml.temp && mv .do/app.yaml.temp .do/app.yaml
+          envsubst < .do/mik-intra-api.yaml > .do/mik-intra-api.yaml.temp && mv .do/mik-intra-api.yaml.temp .do/mik-intra-api.yaml
 
       # The App Create is handled manually , so we have an APP ID available,
       # using doctl we just need to update the deployed app and pass the --update-sources flag

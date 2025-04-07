@@ -38,7 +38,7 @@ jobs:
       # Now we use good 'ol envsubst to substitue the env vars from above into the app.yaml file
       - name: Replace placeholders in app.yaml
         run: |
-          envsubst < .do/frontend-app.yaml > .do/frontend-app.yaml.temp && mv .do/frontend-app.yaml.temp .do/frontend-app.yaml
+          envsubst < .do/mik-intra-frontend.yaml > .do/mik-intra-frontend.yaml.temp && mv .do/mik-intra-frontend.yaml.temp .do/mik-intra-frontend.yaml
 
       # Deploy to DigitalOcean App Platform using app.yml
       - name: Deploy App
