@@ -55,8 +55,8 @@ jobs:
           echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> $GITHUB_ENV
           echo "PUBLIC_URL=${{ vars.PUBLIC_URL }}" >> $GITHUB_ENV
 
-      # Now we use good 'ol envsubst to substitue the env vars from above into the app.yaml file
-      - name: Replace placeholders in app.yaml
+      # Now we use good 'ol envsubst to substitue the env vars from above into the mik-intra-api.yaml file
+      - name: Replace placeholders in mik-intra-api.yaml
         run: |
           envsubst < .do/mik-intra-api.yaml > .do/mik-intra-api.yaml.temp && mv .do/mik-intra-api.yaml.temp .do/mik-intra-api.yaml
 
@@ -65,7 +65,7 @@ jobs:
       # so that the latest docker file is deployed
       - name: Update app on DigitalOcean App Platform
         id: update-app
-        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/app.yaml
+        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/mik-intra-api.yaml
 
       # Database
       - name: Run Flyway migrations
