@@ -2,7 +2,7 @@ name: Build and Push Front End to Digital Ocean
 
 on:
   push:
-    branches: [test, devops/digital-ocean-frontend-deployment]
+    branches: [test]
     paths:
       - 'apps/frontend/**' # Only trigger if changes are in apps/frontend
       - '.github/workflows/**' # or in the workflows
@@ -35,12 +35,12 @@ jobs:
         run: |
           echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET }}" >> $GITHUB_ENV
 
-      # Now we use good 'ol envsubst to substitue the env vars from above into the app.yaml file
-      - name: Replace placeholders in app.yaml
+      # Now we use good 'ol envsubst to substitue the env vars from above into the mik-intra-frontend.yaml file
+      - name: Replace placeholders in mik-intra-frontend.yaml
         run: |
           envsubst < .do/mik-intra-frontend.yaml > .do/mik-intra-frontend.yaml.temp && mv .do/mik-intra-frontend.yaml.temp .do/mik-intra-frontend.yaml
 
-      # Deploy to DigitalOcean App Platform using app.yml
+      # Deploy to DigitalOcean App Platform using mik-intra-frontend.yml
       - name: Deploy App
         run: |
           # Check if app exists, update or create

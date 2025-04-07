@@ -2,7 +2,7 @@ name: Intra API Build and Push Docker Image to DO
 
 on:
   push:
-    branches: [test, devops/digital-ocean-frontend-deployment] # Adjust branch names as needed
+    branches: [test] # Adjust branch names as needed
 
     paths:
       - 'apps/backend/**'
