@@ -2,11 +2,10 @@ name: Build and Push Front End to Digital Ocean
 
 on:
   push:
-    branches:
-      - devops/digital-ocean-frontend-deployment # Adjust branch names as needed
+    branches: [test, devops/digital-ocean-frontend-deployment]
     paths:
       - 'apps/frontend/**' # Only trigger if changes are in apps/frontend
-      - '.github/workflows/**'
+      - '.github/workflows/**' # or in the workflows
 
 jobs:
   deploy:
@@ -47,9 +46,9 @@ jobs:
           # Check if app exists, update or create
           APP_ID=$(doctl apps list --format ID,Spec.Name --no-header | grep mik-intra-frontend | awk '{print $1}')
           if [ -n "$APP_ID" ]; then
-            doctl apps update $APP_ID --spec .do/frontend-app.yaml --wait
+            doctl apps update $APP_ID --spec .do/mik-intra-frontend.yaml --wait
           else
-            doctl apps create --spec .do/frontend-app.yaml --wait
+            doctl apps create --spec .do/mik-intra-frontend.yaml --wait
           fi
         env:
           DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITAL_OCEAN_TEST_API_KEY }}

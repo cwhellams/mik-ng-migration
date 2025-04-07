@@ -1,5 +1,5 @@
-name: Backend review, validation and test
-run-name: Backend review, validation and test triggered by @${{ github.actor }}
+name: Backend intra API review, validation and test
+run-name: Backend intra API review, validation and test triggered by @${{ github.actor }}
 
 on:
   pull_request:

@@ -1,7 +1,7 @@
 name: mik-intra-frontend
 region: fra1
 static_sites:
-  - name: mik-frontend    
+  - name: mik-intra-frontend    
     github:
       repo: MIK-dev-team/mik-ng
       branch: devops/digital-ocean-frontend-deployment
