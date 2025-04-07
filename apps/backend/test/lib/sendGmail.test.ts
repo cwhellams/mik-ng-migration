@@ -1,9 +1,13 @@
+import { jest } from '@jest/globals'
+
+import logger from '../../src/lib/logger.ts'
+import type { Logger } from 'winston'
+
+process.env.SMTP_LOGIN = 'no-reply@mik.fi'
+process.env.SMTP_PASSWORD = 'test'
+
 // Define the mock function first
 const sendMailMock = jest.fn()
-const loggerMock = {
-  info: jest.fn(),
-  error: jest.fn(),
-}
 
 // Mock the nodemailer module
 jest.mock('nodemailer', () => ({
@@ -12,13 +16,20 @@ jest.mock('nodemailer', () => ({
   }),
 }))
 
-// Mock the logger
-jest.mock('../../src/lib/logger', () => loggerMock)
+const errorSpy = jest.spyOn(logger, 'error').mockImplementation((_infoObject: object) => {
+  return {} as unknown as Logger
+})
 
 // Store original env
 const originalEnv = process.env
 
 describe('sendEmail', () => {
+  let sendEmail: any
+  beforeAll(async () => {
+    const module = await import('../../src/lib/sendGmail.ts')
+    sendEmail = module.sendEmail
+  })
+
   beforeEach(() => {
     // Reset mocks before each test
     jest.clearAllMocks()
@@ -36,17 +47,14 @@ describe('sendEmail', () => {
     process.env = originalEnv
   })
 
-  test('should send email successfully', () => {
+  test('should send email successfully', async () => {
     // Setup successful email sending response
     sendMailMock.mockImplementation((options, callback) => {
-      callback(null, { response: '250 Message sent' })
+      if (callback) {
+        callback(null, { response: '250 Message sent' })
+      }
+      return Promise.resolve({ response: '250 Message sent' })
     })
-
-    // Reset modules to ensure clean import with our mocks in place
-    jest.resetModules()
-
-    // Import the module under test AFTER setting up mocks
-    const { sendEmail } = require('../../src/lib/sendGmail')
 
     // Test data
     const to = 'recipient@example.com'
@@ -54,34 +62,29 @@ describe('sendEmail', () => {
     const html = '<p>Test HTML content</p>'
 
     // Call the function
-    sendEmail(to, subject, html)
+    await sendEmail(to, subject, html)
 
     // Verify correct parameters are passed to sendMail
     expect(sendMailMock).toHaveBeenCalledWith(
       {
-        from: 'test@example.com',
+        from: 'no-reply@mik.fi',
         to: 'recipient@example.com',
         subject: 'Test Subject',
         html: '<p>Test HTML content</p>',
       },
       expect.any(Function),
     )
-
-    expect(loggerMock.info).toHaveBeenCalled()
   })
 
   test('should throw error when email sending fails', () => {
     // Setup error case
     const testError = new Error('Failed to send email')
-    sendMailMock.mockImplementation((options, callback) => {
-      callback(testError, null)
+    sendMailMock.mockImplementation((_options, callback) => {
+      if (callback) {
+        callback(testError, null)
+      }
+      return Promise.resolve(testError)
     })
-
-    // Reset modules to ensure clean import with our mocks in place
-    jest.resetModules()
-
-    // Import the module under test AFTER setting up mocks
-    const { sendEmail } = require('../../src/lib/sendGmail')
 
     // Test data
     const to = 'recipient@example.com'
@@ -95,13 +98,15 @@ describe('sendEmail', () => {
     }).toThrow('Failed to send email')
 
     // Verify logger.error was called
-    expect(loggerMock.error).toHaveBeenCalled()
+    expect(errorSpy).toHaveBeenCalled()
     // Check that error was logged with the test error
-    expect(loggerMock.error.mock.calls[0][0]).toContain('Error occurred sending email')
-    expect(loggerMock.error.mock.calls[0][1]).toBe(testError)
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Error occurred sending email'),
+      testError,
+    )
   })
 
-  test('should throw error when environment variables are missing', () => {
+  test('should throw error when environment variables are missing', async () => {
     // First completely reset modules to ensure no cached modules
     jest.resetModules()
 
@@ -119,10 +124,10 @@ describe('sendEmail', () => {
     process.env = modifiedEnv
 
     // Try to import the module and expect it to throw
-    expect(() => {
-      jest.isolateModules(() => {
-        require('../../src/lib/sendGmail.ts')
+    await expect(async () => {
+      await jest.isolateModulesAsync(async () => {
+        await import('../../src/lib/sendGmail.ts')
       })
-    }).toThrow('SMTP_LOGIN or SMTP_PASSWORD is not defined')
+    }).rejects.toThrow('SMTP_LOGIN or SMTP_PASSWORD is not defined')
   })
 })

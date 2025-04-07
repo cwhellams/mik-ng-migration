@@ -1,0 +1,88 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [test] # Adjust branch names as needed
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set the lowercase repository name as an environment variable
+      - name: Set repository name in lowercase
+        run: echo "REPO_NAME=${{ github.repository }}" >> $GITHUB_ENV
+
+      - name: Convert to lowercase
+        run: echo "REPO_NAME=${REPO_NAME,,}" >> $GITHUB_ENV # Bash syntax to convert to lowercase
+
+      # Set up doctl (DigitalOcean CLI) using the API key stored in GitHub Secrets
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITAL_OCEAN_TEST_API_KEY }}
+
+      - name: Log in to DO Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      # Build and push the Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: . # Build the Dockerfile in the root of the repository
+          push: true # Push the image to the registry
+          tags: registry.digitalocean.com/mik-ng/${{ env.REPO_NAME }}:latest
+          cache-from: type=gha # Use GitHub Actions cache
+          cache-to: type=gha,mode=max # Store build cache in GitHub Actions cache for reuse
+
+      # Let's set the env vars we need for the DO app
+      - name: Setup env vars for Digital Ocean App
+        run: |
+          echo "DATABASE_URL=${{ secrets.POSTGRES_DO_TEST_DB }}" >> $GITHUB_ENV
+          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> $GITHUB_ENV
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> $GITHUB_ENV
+          echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET }}" >> $GITHUB_ENV
+          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> $GITHUB_ENV
+          echo "ACCESS_TOKEN_EXPIRATION=15 mins" >> $GITHUB_ENV
+          echo "REFRESH_TOKEN_EXPIRATION=365 days" >> $GITHUB_ENV
+          echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> $GITHUB_ENV
+          echo "PUBLIC_URL=${{ vars.PUBLIC_URL }}" >> $GITHUB_ENV
+          echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET }}" >> $GITHUB_ENV
+
+      # Now we use good 'ol envsubst to substitue the env vars from above into the app.yaml file
+      - name: Replace placeholders in app.yaml
+        run: |
+          envsubst < .do/app.yaml > .do/app.yaml.temp && mv .do/app.yaml.temp .do/app.yaml
+
+      # The App Create is handled manually , so we have an APP ID available,
+      # using doctl we just need to update the deployed app and pass the --update-sources flag
+      # so that the latest docker file is deployed
+      - name: Update app on DigitalOcean App Platform
+        id: update-app
+        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/app.yaml
+
+      # Database
+      - name: Run Flyway migrations
+        working-directory: ${{ github.workspace }}
+        run: |
+          docker run --network host --rm \
+            -v ${{ github.workspace }}/sql/schema/migration:/flyway/sql \
+            -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
+            -e FLYWAY_USER=${{ vars.DO_POSTGRES_USER }} \
+            -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_PASSWORD }} \
+            -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_URL}} \
+            flyway/flyway:latest migrate
+      - name: Run Flyway test data
+        working-directory: ${{ github.workspace }}
+        run: |
+          docker run --network host --rm \
+            -v ${{ github.workspace }}/sql/schema/testdata/:/flyway/sql \
+            -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
+            -e FLYWAY_USER=${{ vars.DO_POSTGRES_USER }} \
+            -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_PASSWORD }} \
+            -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_URL}} \
+            flyway/flyway:latest migrate

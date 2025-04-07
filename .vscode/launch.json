@@ -26,6 +26,19 @@
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]
-        }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Backend (Native TypeScript)",
+            "cwd": "${workspaceFolder}/apps/backend",
+            "program": "${workspaceFolder}/apps/backend/src/app.ts",
+            "runtimeArgs": ["--import=tsx"],
+            "outputCapture": "std",
+            "skipFiles": ["<node_internals>/**"],
+            "env": {
+                "NODE_ENV": "development"
+            }
+            }
     ]
 }
