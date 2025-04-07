@@ -39,6 +39,7 @@ app.use(
 // Security Middlewares
 app.use(helmet()) // Secure headers
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }))
+
 // app.use(compression());
 
 // Body parsing

@@ -2,8 +2,11 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [test] # Adjust branch names as needed
-  workflow_dispatch: # Allows manual triggering
+    branches: [test, devops/digital-ocean-frontend-deployment] # Adjust branch names as needed
+
+    paths:
+      - 'apps/backend/**'
+      - '.github/workflows/**'
 
 jobs:
   build_and_push:
@@ -36,8 +39,8 @@ jobs:
           context: . # Build the Dockerfile in the root of the repository
           push: true # Push the image to the registry
           tags: registry.digitalocean.com/mik-ng/${{ env.REPO_NAME }}:latest
-          cache-from: type=gha # Use GitHub Actions cache
-          cache-to: type=gha,mode=max # Store build cache in GitHub Actions cache for reuse
+          #cache-from: type=gha # Use GitHub Actions cache
+          #cache-to: type=gha,mode=max # Store build cache in GitHub Actions cache for reuse
 
       # Let's set the env vars we need for the DO app
       - name: Setup env vars for Digital Ocean App
@@ -48,10 +51,9 @@ jobs:
           echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET }}" >> $GITHUB_ENV
           echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> $GITHUB_ENV
           echo "ACCESS_TOKEN_EXPIRATION=15 mins" >> $GITHUB_ENV
-          echo "REFRESH_TOKEN_EXPIRATION=365 days" >> $GITHUB_ENV
+          echo "REFRESH_TOKEN_EXPIRATION=365 days" >> $GITHUB_ENV          
           echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> $GITHUB_ENV
           echo "PUBLIC_URL=${{ vars.PUBLIC_URL }}" >> $GITHUB_ENV
-          echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET }}" >> $GITHUB_ENV
 
       # Now we use good 'ol envsubst to substitue the env vars from above into the app.yaml file
       - name: Replace placeholders in app.yaml

@@ -43,9 +43,6 @@ services:
       - key: DB_SSL
         value: 'true'
         type: GENERAL
-      - key: VITE_API_TARGET
-        value: ${VITE_API_TARGET}
-        type: GENERAL
 
     instance_count: 1
     health_check:

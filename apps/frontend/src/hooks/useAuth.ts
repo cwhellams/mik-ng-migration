@@ -19,12 +19,14 @@ export function useAuth<Input, Output>(
   const fetcher = async (url: string, { arg }: { arg: Input }) =>
     axios.post(url, arg)
 
+  const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
+
   const { data: response, ...rest } = useSWRMutation<
     AxiosResponse<Output>,
     AxiosError<Error>,
     Key,
     Input
-  >(`/auth/${endpoint}`, fetcher)
+  >(`${API_BASE}/auth/${endpoint}`, fetcher)
 
   return {
     data: response && response.data,

@@ -1,0 +1,55 @@
+name: Build and Push Front End to Digital Ocean
+
+on:
+  push:
+    branches:
+      - devops/digital-ocean-frontend-deployment # Adjust branch names as needed
+    paths:
+      - 'apps/frontend/**' # Only trigger if changes are in apps/frontend
+      - '.github/workflows/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Node.js
+      # - name: Set up Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '23'
+
+      # Install pnpm
+      #- name: Install pnpm
+      #  run: npm install -g pnpm
+
+      # Set up doctl (DigitalOcean CLI) using the API key stored in GitHub Secrets
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITAL_OCEAN_TEST_API_KEY }}
+
+      # Let's set the env vars we need for the DO app
+      - name: Setup env vars for Digital Ocean App
+        run: |
+          echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET }}" >> $GITHUB_ENV
+
+      # Now we use good 'ol envsubst to substitue the env vars from above into the app.yaml file
+      - name: Replace placeholders in app.yaml
+        run: |
+          envsubst < .do/frontend-app.yaml > .do/frontend-app.yaml.temp && mv .do/frontend-app.yaml.temp .do/frontend-app.yaml
+
+      # Deploy to DigitalOcean App Platform using app.yml
+      - name: Deploy App
+        run: |
+          # Check if app exists, update or create
+          APP_ID=$(doctl apps list --format ID,Spec.Name --no-header | grep mik-intra-frontend | awk '{print $1}')
+          if [ -n "$APP_ID" ]; then
+            doctl apps update $APP_ID --spec .do/frontend-app.yaml --wait
+          else
+            doctl apps create --spec .do/frontend-app.yaml --wait
+          fi
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITAL_OCEAN_TEST_API_KEY }}

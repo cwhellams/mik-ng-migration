@@ -1,0 +1,20 @@
+name: mik-intra-frontend
+region: fra1
+static_sites:
+  - name: mik-frontend    
+    github:
+      repo: MIK-dev-team/mik-ng
+      branch: devops/digital-ocean-frontend-deployment
+    source_dir: apps/frontend
+    output_dir: /dist
+    build_command: npx tsc && npm install -g pnpm && pnpm install --frozen-lockfile && pnpm build
+    environment_slug: node-js
+    envs:     
+      - key: VITE_API_TARGET
+        value: ${VITE_API_TARGET}
+        type: GENERAL
+        scope: RUN_AND_BUILD_TIME
+    routes:
+      - path: /
+
+
