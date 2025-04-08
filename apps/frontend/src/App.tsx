@@ -17,6 +17,8 @@ import NotFound from './sections/error/NotFound'
 import Member from './sections/members/Member'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/LocalizationProvider'
+import Roles from './sections/members/Roles'
+import Role from './sections/members/Role'
 // import FlightLogLanding from './sections/flightLog/Landing'
 // import NewFlightLogEntry from './sections/flightLog/NewFlightLogEntry'
 
@@ -54,6 +56,8 @@ function App() {
             <Route path='/' element={<Dashboard />} />
             {/* <Route path="/schedule" element={<Schedule />} />
             <Route path="/aircraft" element={<Aircraft />} /> */}
+            <Route index path='/members/roles' element={<Roles />} />
+            <Route path='/members/roles/:roleId' element={<Role />} />
             <Route index path='/members' element={<Members />} />
             <Route path='/members/:memberId' element={<Member />} />
             {/* <Route path='/flight-logs' element={<FlightLogLanding />} /> */}

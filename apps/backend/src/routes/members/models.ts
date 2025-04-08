@@ -1,17 +1,70 @@
 import { z } from 'zod'
 
-export enum MIKRoles {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-  INSTRUCTOR = 'INSTRUCTOR',
-  COMMITTEE = 'COMMITTEE',
+export enum MIKPermissions {
+  // can see other club members and their public roles
+  MEMBER = 'member',
+
+  // can manage all members and their roles
+  MEMBER_ADMIN = 'member.admin',
+
+  // can see flights, add new and edit own flights until billed
+  FLIGHTLOG_USER = 'flightlog.user',
+  FLIGHTLOG_ADMIN = 'flightlog.admin',
+
+  // can see bookings, add new and edit own bookings
+  BOOKING_USER = 'booking.user',
+  BOOKING_ADMIN = 'booking.admin',
+
+  // can see plane hours, hangar codes
+  AIRCRAFT_USER = 'aircraft.user',
+  AIRCRAFT_ADMIN = 'aircraft.admin',
 }
 
 export enum MIKMemberTypes {
   FLYING = 'FLYING',
   NONFLYING = 'NON-FLYING',
   JUNIOR = 'JUNIOR',
+  EXTERNAL = 'EXTERNAL',
 }
+
+export enum MIKLang {
+  FI = 'fi',
+  EN = 'en',
+}
+
+// roles endpoint
+
+export const LocalizedSchema = z.object({
+  [MIKLang.EN]: z.string(),
+  [MIKLang.FI]: z.string(),
+})
+
+export const MemberRoleSchema = z.object({
+  roleId: z.string().max(20),
+  description: z.string().nullable(),
+  name: LocalizedSchema,
+  isPublic: z.boolean(),
+  permissions: z.array(z.nativeEnum(MIKPermissions)),
+  createdAt: z.string().datetime(),
+  createdBy: z.number(),
+  updatedAt: z.string().datetime(),
+  updatedBy: z.number(),
+})
+export type MemberRole = z.infer<typeof MemberRoleSchema>
+
+export const UpsertMemberRoleSchema = MemberRoleSchema.partial({
+  createdAt: true,
+  createdBy: true,
+  updatedAt: true,
+  updatedBy: true,
+})
+export type UpsertMemberRole = z.infer<typeof UpsertMemberRoleSchema>
+
+export const MemberRolesResponseSchema = z.object({
+  roles: z.array(MemberRoleSchema),
+  permissions: z.array(z.nativeEnum(MIKPermissions)),
+})
+export type MemberRolesResponse = z.infer<typeof MemberRolesResponseSchema>
 
 // member list endpoint
 
@@ -19,9 +72,17 @@ const MemberListSchema = z.object({
   name: z.string(),
   memberId: z.number(),
   phoneNumber: z.string().nullish(),
+  roles: z.array(z.string()),
 })
 
 export type MemberList = z.infer<typeof MemberListSchema>
+
+export const MemberListFiltersSchema = z.object({
+  name: z.string().optional(),
+  role: z.string().or(z.array(z.string())).nullish(),
+})
+
+export type MemberListFilters = z.infer<typeof MemberListFiltersSchema>
 
 export const MemberListResponseSchema = z.object({
   members: z.array(MemberListSchema),
@@ -30,8 +91,6 @@ export const MemberListResponseSchema = z.object({
 export type MemberListResponse = z.infer<typeof MemberListResponseSchema>
 
 // member details endpoint
-
-export const MemberRolesSchema = z.array(z.nativeEnum(MIKRoles))
 
 export const MemberSchema = z.object({
   memberId: z.number(),
@@ -60,7 +119,18 @@ export const MemberSchema = z.object({
   updatedBy: z.number(),
   emailVerifiedAt: z.string().datetime().optional(),
 
-  roles: MemberRolesSchema,
+  roles: z.array(
+    MemberRoleSchema.partial({
+      description: true,
+      name: true,
+      isPublic: true,
+      permissions: true,
+      createdAt: true,
+      createdBy: true,
+      updatedAt: true,
+      updatedBy: true,
+    }),
+  ),
 })
 
 export type Member = z.infer<typeof MemberSchema>

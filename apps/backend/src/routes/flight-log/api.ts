@@ -1,25 +1,31 @@
 import { Router, type Request, type Response } from 'express'
 
 import {
+  flightLogFiltersSchema,
+  FlightLogInsertSchema,
+  FlightLogUpdateSchema,
+  type FlightLog,
+} from './models.ts'
+import {
   deleteFlightLog,
   getAllFlightLogs,
   insertFlightLog,
   updateFlightLog,
 } from '../../db/flight-log-queries.ts'
+import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import {
-  flightLogFiltersSchema,
-  FlightLogInsertSchema,
-  FlightLogUpdateSchema,
-  type FlightLogUpdateRequest,
-} from './models.ts'
+import type { JWTUser } from '../auth/token.ts'
+import { MIKPermissions } from '../members/models.ts'
 
-import { MIKRoles } from '../members/models.ts'
-
+// all flight log routes are protected by flightlog permissions
 const router = Router()
+router.use(validateUser(MIKPermissions.FLIGHTLOG_USER, MIKPermissions.FLIGHTLOG_ADMIN))
+
+const isFlightLogAdmin = (user?: JWTUser): boolean =>
+  user?.permissions?.includes(MIKPermissions.FLIGHTLOG_ADMIN) ?? false
 
 // Create a flight log
-router.post('/', validateUser(), async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   const payload = FlightLogInsertSchema.safeParse(req.body)
 
   if (!payload.success) {
@@ -36,7 +42,7 @@ router.post('/', validateUser(), async (req: Request, res: Response) => {
 })
 
 // Get logged in member's own flights
-router.get('/my-flights', validateUser(), async (req: Request, res: Response) => {
+router.get('/my-flights', async (req: Request, res: Response) => {
   const parsedQuery = flightLogFiltersSchema.safeParse(req.query)
   if (!parsedQuery.success) {
     return res.status(400).json({ error: parsedQuery.error.errors })
@@ -52,8 +58,8 @@ router.get('/my-flights', validateUser(), async (req: Request, res: Response) =>
   res.status(200).json(logs)
 })
 
-// Get flight logs uisng filter
-router.get('/', validateUser(), async (req: Request, res: Response) => {
+// Get flight logs using filter
+router.get('/', async (req: Request, res: Response) => {
   const parsedQuery = flightLogFiltersSchema.safeParse(req.query)
   if (!parsedQuery.success) {
     return res.status(400).json({ error: parsedQuery.error.errors })
@@ -64,7 +70,7 @@ router.get('/', validateUser(), async (req: Request, res: Response) => {
 })
 
 // Get a flight log by ID
-router.get('/:id', validateUser(), async (req: Request, res: Response) => {
+router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
   const flight_log = await getAllFlightLogs({ flight_id: Number(id) })
@@ -74,62 +80,84 @@ router.get('/:id', validateUser(), async (req: Request, res: Response) => {
   res.status(200).json(flight_log[0])
 })
 
+const validateWriteAccess = (
+  flights: FlightLog[],
+  req: Request,
+): { status: number; message: string } => {
+  if (flights.length === 0) {
+    return {
+      status: 404,
+      message: 'Flight log not found',
+    }
+  }
+
+  // Check if the flight is owned by the user or the user is not an flightlog admin
+  if (flights[0].billable_member_id !== req.user?.memberId && !isFlightLogAdmin(req.user)) {
+    return {
+      status: 403,
+      message: 'Flight log not owned by user or user has no admin rights',
+    }
+  }
+
+  if (flights[0].is_billed) {
+    // Check if the flight is already billed
+    return {
+      status: 400,
+      message: 'Flight already billed and read-only',
+    }
+  }
+
+  return {
+    status: 200,
+    message: 'ok',
+  }
+}
+
 // Update a flight log
-router.patch('/:id', validateUser(), async (req: Request, res: Response) => {
-  const flight_id = Number(req.params.id)
+router.patch('/:id', async (req: Request, res: Response) => {
+  const flightId = Number(req.params.id)
 
   const validate = FlightLogUpdateSchema.safeParse(req.body)
-
   if (!validate.success) {
     return res.status(400).json({ error: validate.error.errors.map(e => e.message) })
   }
 
-  const updatePayload: FlightLogUpdateRequest = validate.data
-  const updatedLog = await updateFlightLog(flight_id, updatePayload, req.user!)
+  const flightLogs = await getAllFlightLogs({ flight_id: flightId })
+
+  const { status, message } = validateWriteAccess(flightLogs, req)
+  if (status !== 200) {
+    return res.status(status).json({ message })
+  }
+
+  const updatedLog = await updateFlightLog(flightId, validate.data, req.user!)
   if (updatedLog === 0n) {
-    return res
-      .status(404)
-      .json({ message: 'Flight log not found or flight not billable to member' })
+    return res.status(500).json({ message: 'Flight log update failed' })
   }
 
   res.status(204).end()
 })
 
 // Delete a flight log
-router.delete('/:id', validateUser(), async (req: Request, res: Response) => {
-  const { id } = req.params
+router.delete('/:id', async (req: Request, res: Response) => {
+  const flightId = Number(req.params.id)
 
-  const flightLogToDelete = await getAllFlightLogs({ flight_id: Number(id) })
-  if (flightLogToDelete.length === 0) {
-    return res.status(404).json({
-      message: 'Flight log not found',
-    })
+  const flightLogToDelete = await getAllFlightLogs({ flight_id: flightId })
+  const { status, message } = validateWriteAccess(flightLogToDelete, req)
+  if (status !== 200) {
+    return res.status(status).json({ message })
   }
 
-  // Check if the flight is owned by the user or the user is not an admin or committee member
-  if (
-    flightLogToDelete[0].billable_member_id !== req.user!.memberId &&
-    !req.user!.roles.some(role => [MIKRoles.ADMIN, MIKRoles.COMMITTEE].includes(role))
-  ) {
-    // Check if the flight is owned by the user
-    return res.status(403).json({
-      message: 'Flight log not owned by user and user has no admin rights',
-    })
-  }
+  logger.info(
+    `Deleting flight log ${flightId}. Deleted by member: ${req.user?.memberId} with permissions :${req.user?.permissions}`,
+  )
 
-  if (flightLogToDelete[0].is_billed) {
-    // Check if the flight is already billed
-    return res.status(400).json({
-      message: 'Flight already billed, unable to delete',
-    })
-  }
-
-  const deletedLogRows = await deleteFlightLog(Number(id), req.user!)
+  const deletedLogRows = await deleteFlightLog(flightId)
   if (deletedLogRows === 0n) {
-    return res.status(404).json({
-      message: 'Flight log not found, flight not owned by user or flight already billed',
+    return res.status(500).json({
+      message: 'Flight log deletion failed',
     })
   }
+
   res.status(204).end()
 })
 

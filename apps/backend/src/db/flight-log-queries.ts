@@ -1,12 +1,11 @@
 import { db } from './connection.ts'
-import logger from '../lib/logger.ts'
+import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   FlightLogFilters,
   FlightLogInsertRequest,
   FlightLogUpdateRequest,
   FlightLog,
 } from '../routes/flight-log/models.ts'
-import { MIKRoles } from '../routes/members/models.ts'
 
 // Get all flight logs with optional filters
 export async function getAllFlightLogs(filters: FlightLogFilters): Promise<FlightLog[]> {
@@ -92,23 +91,12 @@ export async function insertFlightLog(data: FlightLogInsertRequest): Promise<num
   return retval.flight_id
 }
 
-export async function deleteFlightLog(
-  flight_id: number,
-  user: { memberId: number; roles: MIKRoles[] },
-): Promise<bigint> {
+export async function deleteFlightLog(flight_id: number): Promise<bigint> {
   let delQuery = db
     .deleteFrom('flight.logs')
     .where('flight_id', '=', flight_id)
     .where('is_billed', '=', false)
 
-  // Only allow admins and committee members to delete logs that are not their own
-  if (!user.roles.includes(MIKRoles.ADMIN || user.roles.includes(MIKRoles.COMMITTEE))) {
-    delQuery = delQuery.where('billable_member_id', '=', user.memberId)
-  }
-
-  logger.info(
-    `Deleting flight log ${flight_id}. Deleted by member: ${user.memberId} with roles :${user.roles}`,
-  )
   var retval = await delQuery.executeTakeFirst()
   return retval.numDeletedRows
 }
@@ -116,20 +104,13 @@ export async function deleteFlightLog(
 export async function updateFlightLog(
   flight_id: number,
   data: FlightLogUpdateRequest,
-  user: { memberId: number; roles: MIKRoles[] },
+  user: JWTUser,
 ): Promise<bigint> {
-  data.updated_by = user.memberId
-  data.updated_at = new Date()
   let updQuery = db
     .updateTable('flight.logs')
-    .set(data)
+    .set({ ...data, updated_by: user?.memberId, updated_at: new Date() })
     .where('flight_id', '=', flight_id)
     .where('is_billed', '=', false)
-
-  // Only allow admins and committee members to delete logs that are not their own
-  if (!user.roles.includes(MIKRoles.ADMIN) && !user.roles.includes(MIKRoles.COMMITTEE)) {
-    updQuery = updQuery.where('billable_member_id', '=', user.memberId)
-  }
 
   var retval = await updQuery.executeTakeFirst()
   return retval.numUpdatedRows

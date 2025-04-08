@@ -23,9 +23,10 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
-import { Member, MIKRoles } from '@backend/routes/members/models'
+import { Member } from '@backend/routes/members/models'
 import { DateField } from '@mui/x-date-pickers/DateField'
 import dayjs from 'dayjs'
+import { useRoles } from '../../../hooks/useRoles'
 
 export type MemberEditMode =
   | 'personalInfo'
@@ -49,7 +50,7 @@ export const EditMemberModal = ({
   memberData,
   onSave,
 }: EditMemberModalProps) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
   const [loading, setLoading] = useState(false)
@@ -300,69 +301,47 @@ export const EditMemberModal = ({
     target,
   }: React.ChangeEvent<HTMLInputElement>) => {
     const oldRoles = formData.roles ?? []
-    const role = target.name as MIKRoles
+    const role = target.name
 
     if (target.checked) {
       setFormData((prev) => ({
         ...prev,
-        roles: [...oldRoles, role],
+        roles: [...oldRoles, { roleId: role }],
       }))
     } else {
       setFormData((prev) => ({
         ...prev,
-        roles: oldRoles.filter((r) => r !== role),
+        roles: oldRoles.filter((r) => r.roleId !== role),
       }))
     }
   }
 
-  const renderRolesForm = () => (
-    <Grid container spacing={2}>
-      <Grid size={12}>
-        <FormGroup>
-          <FormControlLabel
-            control={
-              <Checkbox
-                name='USER'
-                checked={formData.roles?.includes(MIKRoles.USER)}
-                onChange={handleChangeRole}
+  const RenderRolesForm = () => {
+    const { roles } = useRoles()
+
+    return (
+      <Grid container spacing={2}>
+        <Grid size={12}>
+          <FormGroup>
+            {roles.map((role) => (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    name={role.roleId}
+                    checked={formData.roles?.some(
+                      ({ roleId }) => roleId == role.roleId
+                    )}
+                    onChange={handleChangeRole}
+                  />
+                }
+                label={role.name[i18n.language == 'fi' ? 'fi' : 'en']}
               />
-            }
-            label={t('roles.USER')}
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                name='ADMIN'
-                checked={formData.roles?.includes(MIKRoles.ADMIN)}
-                onChange={handleChangeRole}
-              />
-            }
-            label={t('roles.ADMIN')}
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                name='INSTRUCTOR'
-                checked={formData.roles?.includes(MIKRoles.INSTRUCTOR)}
-                onChange={handleChangeRole}
-              />
-            }
-            label={t('roles.INSTRUCTOR')}
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                name='COMMITTEE'
-                checked={formData.roles?.includes(MIKRoles.COMMITTEE)}
-                onChange={handleChangeRole}
-              />
-            }
-            label={t('roles.COMMITTEE')}
-          />
-        </FormGroup>
+            ))}
+          </FormGroup>
+        </Grid>
       </Grid>
-    </Grid>
-  )
+    )
+  }
 
   const getForm = () => {
     switch (mode) {
@@ -375,7 +354,7 @@ export const EditMemberModal = ({
       case 'membership':
         return renderMembershipForm()
       case 'roles':
-        return renderRolesForm()
+        return <RenderRolesForm />
     }
   }
 

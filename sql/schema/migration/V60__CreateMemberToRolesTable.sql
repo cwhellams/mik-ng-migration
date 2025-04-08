@@ -1,7 +1,7 @@
 CREATE TABLE member.member_to_roles
 (
     member_id INT NOT NULL,
-    role_id VARCHAR(10) NOT NULL,
+    role_id VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_by INT NOT NULL REFERENCES member.register (member_id),
     PRIMARY KEY (member_id, role_id),

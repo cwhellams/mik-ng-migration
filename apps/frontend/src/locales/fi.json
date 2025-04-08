@@ -9,7 +9,8 @@
     "profile": "Omat tiedot",
     "language": "Kieli",
     "toggleTheme": "Vaihda palettia",
-    "flightLogs": "Lentopäiväkirja"
+    "flightLogs": "Lentopäiväkirja",
+    "roles": "Käyttäjäroolit"
   },
   "footer": {
     "quickLinks": "Pikalinkit",
@@ -41,6 +42,7 @@
     "info": "Jäsenen tiedot",
     "fullname": "Nimi",
     "firstName": "Etunimi",
+    "lastName": "Sukunimi",
     "email": "Sähköposti",
     "phone": "Puhelin",
     "postcode": "Postinumero",
@@ -86,14 +88,33 @@
     "loadingMemberData": "Virhe jäsentietojen lataamisessa."
   },
   "roles": {
-    "ADMIN": "Ylläpitäjä",
-    "COMMITTEE": "Hallituksen jäsen",
-    "INSTRUCTOR": "Lennonopettaja",
-    "USER": "Jäsen"
+    "name": {
+      "fi": "Käännös suomeksi",
+      "en": "Käännös englanniksi"
+    },
+    "newRole": "Uusi rooli",
+    "roleId": "Roolin tunniste",
+    "isPublic": "Näkyy jäsenille",
+    "permissions": "Oikeudet",
+    "description": "Kuvaus",
+    "details": "Roolin tiedot",
+    "all": "-- Kaikki --",
+    "unApproved": "-- Hyväksymättä --"
+  },
+  "permissions": {
+    "member": "MIK jäsen",
+    "member.admin": "Hyväksyy ja päivittää käyttäjien tietoja ja oikeuksia",
+    "flightlog.user": "Lisää ja muokkaa omia lentopäiväkirjan lentoja",
+    "flightlog.admin": "Hallitsee lentopäiväkirjan kaikkia lentoja ja laskutusta",
+    "booking.user": "Lisää ja muokkaa omia varauksia",
+    "booking.admin": "Hallitsee varauskirjan kaikkia varauksia",
+    "aircraft.user": "Näkee lentokoneiden vikatiedot ja hallien pin-koodit",
+    "aircraft.admin": "Hallitsee lentokoneiden tietoja ja vikataulua"
   },
   "general": {
     "edit": "Muokkaa",
     "save": "Tallenna",
-    "cancel": "Peruuta"
+    "cancel": "Peruuta",
+    "delete": "Poista"
   }
 }

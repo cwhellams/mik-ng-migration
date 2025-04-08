@@ -7,7 +7,7 @@ import {
   addMember,
   updateMember,
 } from '../../src/db/member-queries.ts'
-import { MIKMemberTypes, MIKRoles } from '../../src/routes/members/models.ts'
+import { MIKMemberTypes } from '../../src/routes/members/models.ts'
 
 describe('Db query member tests', () => {
   it('getMemberById should return member data for a valid member id', async () => {
@@ -17,11 +17,16 @@ describe('Db query member tests', () => {
       dateOfBirth: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+      roles: result?.roles.map(r => ({
+        ...r,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
     })
   })
 
   it('getMemberById should return undefined for an invalid member id', async () => {
-    const result = await getMemberById(0)
+    const result = await getMemberById(-1)
     expect(result).toBeUndefined()
   })
 
@@ -34,6 +39,11 @@ describe('Db query member tests', () => {
       dateOfBirth: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+      roles: result?.roles.map(r => ({
+        ...r,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
     })
   })
 
@@ -43,6 +53,11 @@ describe('Db query member tests', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+      roles: result?.roles.map(r => ({
+        ...r,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
     })
   })
 
@@ -55,7 +70,13 @@ describe('Db query member tests', () => {
 
   it('getMemberRoles should return roles for given valid member', async () => {
     const result = await getMemberRoles(1)
-    expect(result).toMatchSnapshot()
+    expect(result).toMatchSnapshot(
+      result.map(r => ({
+        ...r,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
+    )
   })
 
   it('getMemberRoles should return empty array for invalid member', async () => {
@@ -63,8 +84,14 @@ describe('Db query member tests', () => {
     expect(result).toEqual([])
   })
 
-  it('getMembers should return members', async () => {
-    const result = await getMembers()
+  it('getMembers should return only approved members for valid members', async () => {
+    const result = await getMembers(false, '', [])
+    // test only first 10 items in the test data
+    expect(result.filter(m => m.memberId <= 10)).toMatchSnapshot()
+  })
+
+  it('getMembers should return everything for admins', async () => {
+    const result = await getMembers(true, '', [])
     // test only first 10 items in the test data
     expect(result.filter(m => m.memberId <= 10)).toMatchSnapshot()
   })
@@ -85,6 +112,11 @@ describe('Db add member tests', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+      roles: result?.roles.map(r => ({
+        ...r,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
     })
   }
 
@@ -101,11 +133,11 @@ describe('Db add member tests', () => {
 
     await updateMember(
       memberId,
-      { firstName: 'test2', roles: [MIKRoles.USER] },
+      { firstName: 'test2', roles: [{ roleId: 'MEMBER', isPublic: true }] },
       {
         memberId: 1,
         email: 'loggedinuser',
-        roles: [],
+        permissions: [],
       },
     )
     await expectSnapshottetMember(memberId, email)

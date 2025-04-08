@@ -22,14 +22,14 @@ import { FormTitle } from './components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
 
 const MemberProfile = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { memberId } = useParams()
   const roles = useRoles()
 
   // no admin work can be done in own profile
-  const isAdmin = roles.isAdmin && memberId !== 'me'
+  const isAdmin = roles.isMembersAdmin && memberId !== 'me'
 
-  const { data, isLoading, error, patch } = useApi<Member>({
+  const { data, isLoading, error, mutate, update } = useApi<Member>({
     url: `v1/members/${memberId}`,
   })
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -43,7 +43,8 @@ const MemberProfile = () => {
   const handleSaveMemberData = async (
     updatedData: Partial<Member>
   ): Promise<void> => {
-    patch(updatedData)
+    const res = await update.trigger(updatedData)
+    mutate(() => res, { revalidate: true })
   }
 
   return (
@@ -79,9 +80,9 @@ const MemberProfile = () => {
               data.roles.map((role, index) => (
                 <Chip
                   key={index}
-                  label={t(`roles.${role}`)}
+                  label={role.name?.[i18n.language == 'fi' ? 'fi' : 'en']}
                   color='primary'
-                  icon={<Icon icon='mdi:key' />}
+                  icon={<Icon icon='mdi:shield-user' />}
                 />
               ))}
             {isAdmin && (
