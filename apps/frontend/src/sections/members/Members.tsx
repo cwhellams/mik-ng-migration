@@ -22,14 +22,18 @@ import {
 import { Link } from 'react-router-dom'
 import useApi from '../../hooks/useApi'
 import {
+  Member,
   MemberListFilters,
   MemberListResponse,
+  MIKMemberTypes,
 } from '@backend/routes/members/models'
 import { Icon } from '@iconify/react'
 import { useRoles } from '../../hooks/useRoles'
 import { t } from 'i18next'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { EditButton } from './components/EditButton'
+import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 
 const Members = () => {
   const [filters, setFilters] = useState<MemberListFilters>({
@@ -48,6 +52,12 @@ const Members = () => {
     }
   )
 
+  const { create } = useApi<Member>({
+    url: 'v1/members',
+  })
+
+  const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
+
   const { isMembersAdmin, roles } = useRoles()
   const { i18n } = useTranslation()
 
@@ -56,6 +66,19 @@ const Members = () => {
       <Typography variant='h2' gutterBottom>
         {t('header.members')}
       </Typography>
+
+      <Stack
+        direction='row'
+        spacing={1}
+        sx={{ mb: 3, justifyContent: 'flex-end' }}
+      >
+        <EditButton
+          mode='roles'
+          positionStatic={true}
+          onClick={() => setEditMode('register')}
+          icon='mdi:plus'
+        />
+      </Stack>
 
       <Grid
         container
@@ -193,6 +216,23 @@ const Members = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <EditMemberModal
+        mode={editMode}
+        onClose={() => setEditMode(undefined)}
+        memberData={
+          // full member data not needed
+          {
+            memberType: MIKMemberTypes.EXTERNAL,
+            email: '',
+            firstName: '',
+            lastName: '',
+            phoneNumber: '',
+            roles: [],
+          } as unknown as Member
+        }
+        mutate={create}
+      />
     </Box>
   )
 }

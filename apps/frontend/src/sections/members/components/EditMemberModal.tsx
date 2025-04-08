@@ -1,17 +1,11 @@
 import { useState, useEffect } from 'react'
 import {
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
   TextField,
-  Box,
   Grid,
   Typography,
-  IconButton,
-  useMediaQuery,
-  useTheme,
   CircularProgress,
   FormControl,
   FormControlLabel,
@@ -22,13 +16,15 @@ import {
   FormGroup,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { Icon } from '@iconify/react'
 import { Member } from '@backend/routes/members/models'
 import { DateField } from '@mui/x-date-pickers/DateField'
 import dayjs from 'dayjs'
 import { useRoles } from '../../../hooks/useRoles'
+import { EditModal } from './EditModal'
+import { APIMutation } from '../../../hooks/useApi'
 
 export type MemberEditMode =
+  | 'register'
   | 'personalInfo'
   | 'emergencyContact'
   | 'training'
@@ -36,32 +32,43 @@ export type MemberEditMode =
   | 'roles'
 
 interface EditMemberModalProps {
-  open: boolean
   onClose: () => void
-  mode: MemberEditMode
+  mode: MemberEditMode | undefined
   memberData?: Member
-  onSave: (updatedData: Partial<Member>) => Promise<void>
+
+  // either create or update members
+  mutate: APIMutation<Member>
 }
 
 export const EditMemberModal = ({
-  open,
   onClose,
   mode,
   memberData,
-  onSave,
+  mutate,
 }: EditMemberModalProps) => {
   const { t, i18n } = useTranslation()
-  const theme = useTheme()
-  const isXs = useMediaQuery(theme.breakpoints.down('sm'))
-  const [loading, setLoading] = useState(false)
 
   // Define form states based on the mode
   const [formData, setFormData] = useState<Partial<Member>>({})
 
+  const [errorMsg, setErrorMsg] = useState('')
+
   // Initialize form data when modal opens
   useEffect(() => {
     if (memberData) {
-      if (mode === 'personalInfo') {
+      if (mode === 'register') {
+        setFormData({
+          memberType: memberData.memberType,
+          firstName: memberData.firstName,
+          lastName: memberData.lastName,
+          email: memberData.email,
+          phoneNumber: memberData.phoneNumber || '',
+          streetAddress: memberData.streetAddress || '',
+          postcode: memberData.postcode || '',
+          townCity: memberData.townCity || '',
+          dateOfBirth: memberData.dateOfBirth,
+        })
+      } else if (mode === 'personalInfo') {
         setFormData({
           firstName: memberData.firstName,
           lastName: memberData.lastName,
@@ -94,7 +101,8 @@ export const EditMemberModal = ({
         })
       }
     }
-  }, [memberData, mode, open])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode])
 
   const handleChange =
     (field: keyof Member) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,18 +112,88 @@ export const EditMemberModal = ({
       }))
     }
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMsg('')
     try {
-      setLoading(true)
-      await onSave(formData)
+      await mutate.trigger(formData)
       onClose()
     } catch (error) {
       console.error('Error saving member data:', error)
-      // Could add error handling / feedback here
-    } finally {
-      setLoading(false)
+      setErrorMsg(mutate.error?.message ?? 'Error')
     }
   }
+
+  const renderRegisterForm = () => (
+    <Grid container spacing={2}>
+      <Grid size={12}>
+        <FormControl>
+          <FormLabel id='member-type-label'>{t('member.memberType')}</FormLabel>
+          <RadioGroup
+            aria-labelledby='member-type-label'
+            value={formData.memberType}
+            onChange={handleChange('memberType')}
+          >
+            <FormControlLabel
+              value='FLYING'
+              control={<Radio />}
+              label={t('member.types.flying')}
+            />
+            <FormControlLabel
+              value='NON-FLYING'
+              control={<Radio />}
+              label={t('member.types.non-flying')}
+            />
+            <FormControlLabel
+              value='JUNIOR'
+              control={<Radio />}
+              label={t('member.types.junior')}
+            />
+            <FormControlLabel
+              value='EXTERNAL'
+              control={<Radio />}
+              label={t('member.types.external')}
+            />
+          </RadioGroup>
+        </FormControl>
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <TextField
+          fullWidth
+          required
+          label={t('member.firstName')}
+          value={formData.firstName || ''}
+          onChange={handleChange('firstName')}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <TextField
+          fullWidth
+          required
+          label={t('member.lastName')}
+          value={formData.lastName || ''}
+          onChange={handleChange('lastName')}
+        />
+      </Grid>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          required
+          label={t('member.email')}
+          value={formData.email || ''}
+          onChange={handleChange('email')}
+        />
+      </Grid>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          label={t('member.phone')}
+          value={formData.phoneNumber || ''}
+          onChange={handleChange('phoneNumber')}
+        />
+      </Grid>
+    </Grid>
+  )
 
   const renderPersonalInfoForm = () => (
     <Grid container spacing={2}>
@@ -345,6 +423,8 @@ export const EditMemberModal = ({
 
   const getForm = () => {
     switch (mode) {
+      case 'register':
+        return renderRegisterForm()
       case 'personalInfo':
         return renderPersonalInfoForm()
       case 'emergencyContact':
@@ -359,38 +439,43 @@ export const EditMemberModal = ({
   }
 
   return (
-    <Dialog
-      open={open}
+    <EditModal
+      title={mode && `member.edit.${mode}`}
+      open={mode !== undefined}
       onClose={onClose}
-      maxWidth='sm'
-      fullWidth
-      fullScreen={isXs}
     >
-      <DialogTitle>
-        <Box display='flex' alignItems='center' justifyContent='space-between'>
-          <Typography variant='h6'>{t(`member.edit.${mode}`)}</Typography>
-          <IconButton onClick={onClose} aria-label='close'>
-            <Icon icon='mdi:close' />
-          </IconButton>
-        </Box>
-      </DialogTitle>
+      <form onSubmit={handleSubmit}>
+        <DialogContent dividers>{getForm()}</DialogContent>
 
-      <DialogContent dividers>{getForm()}</DialogContent>
+        <DialogActions>
+          <Button onClick={onClose} color='inherit'>
+            {t('general.cancel', 'Cancel')}
+          </Button>
+          <Button
+            type='submit'
+            color='primary'
+            variant='contained'
+            disabled={mutate.isMutating}
+            startIcon={
+              mutate.isMutating ? <CircularProgress size={20} /> : null
+            }
+          >
+            {t('general.save', 'Save')}
+          </Button>
+        </DialogActions>
 
-      <DialogActions>
-        <Button onClick={onClose} color='inherit'>
-          {t('general.cancel', 'Cancel')}
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          color='primary'
-          variant='contained'
-          disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} /> : null}
-        >
-          {t('general.save', 'Save')}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        {errorMsg.length > 0 && (
+          <Grid
+            alignItems='center'
+            display='flex'
+            sx={{ mr: 10, fontSize: 24 }}
+          >
+            <Typography color='error' variant='body2'>
+              {errorMsg}
+            </Typography>
+          </Grid>
+        )}
+      </form>
+    </EditModal>
   )
 }

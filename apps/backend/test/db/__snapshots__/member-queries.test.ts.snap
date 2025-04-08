@@ -23,7 +23,7 @@ exports[`Db add member tests Member Role Tests Adds a member role to the databas
 exports[`Db add member tests add member and update member 1`] = `
 {
   "billingId": "MEMBER",
-  "canMakeReservations": true,
+  "canMakeReservations": false,
   "createdAt": Any<String>,
   "createdBy": 0,
   "dateOfBirth": undefined,
@@ -50,7 +50,7 @@ exports[`Db add member tests add member and update member 1`] = `
 exports[`Db add member tests add member and update member 2`] = `
 {
   "billingId": "MEMBER",
-  "canMakeReservations": true,
+  "canMakeReservations": false,
   "createdAt": Any<String>,
   "createdBy": 0,
   "dateOfBirth": undefined,

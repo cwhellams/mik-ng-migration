@@ -58,6 +58,7 @@
     "trainingProgram": "Training Program",
     "noRolesAssigned": "No roles assigned",
     "edit": {
+      "register": "Add new user",
       "personalInfo": "Edit your information",
       "emergencyContact": "Edit Emergency Contact",
       "training": "Edit Training Programs",
@@ -68,7 +69,8 @@
     "types": {
       "flying": "Full Member",
       "non-flying": "Supporting Member",
-      "junior": "Junior"
+      "junior": "Junior",
+      "external": "External user"
     },
     "isTrainingProgramPilot": "Training Program Pilot",
     "membership": "Membership Details",

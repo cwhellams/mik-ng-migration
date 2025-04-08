@@ -161,7 +161,7 @@ export async function getMembers(
   }))
 }
 
-export async function addMember(member: RegisterRequest): Promise<number> {
+export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise<number> {
   const now = new Date()
   const result = await db
     .insertInto('member.register')
@@ -182,9 +182,9 @@ export async function addMember(member: RegisterRequest): Promise<number> {
       member_since: now,
 
       created_at: now,
-      created_by: sql<number>`currval('member.register_member_id_seq')`,
+      created_by: jwt?.memberId ?? sql<number>`currval('member.register_member_id_seq')`,
       updated_at: now,
-      updated_by: sql<number>`currval('member.register_member_id_seq')`,
+      updated_by: jwt?.memberId ?? sql<number>`currval('member.register_member_id_seq')`,
       email_verified_at: undefined,
     })
     .returning('member_id')

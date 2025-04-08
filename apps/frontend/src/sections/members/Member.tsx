@@ -29,22 +29,13 @@ const MemberProfile = () => {
   // no admin work can be done in own profile
   const isAdmin = roles.isMembersAdmin && memberId !== 'me'
 
-  const { data, isLoading, error, mutate, update } = useApi<Member>({
+  const { data, isLoading, error, update } = useApi<Member>({
     url: `v1/members/${memberId}`,
   })
-  const [editModalOpen, setEditModalOpen] = useState(false)
-  const [editMode, setEditMode] = useState<MemberEditMode>('personalInfo')
+  const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
 
   const handleOpenEditModal = (mode: MemberEditMode) => {
     setEditMode(mode)
-    setEditModalOpen(true)
-  }
-
-  const handleSaveMemberData = async (
-    updatedData: Partial<Member>
-  ): Promise<void> => {
-    const res = await update.trigger(updatedData)
-    mutate(() => res, { revalidate: true })
   }
 
   return (
@@ -243,11 +234,10 @@ const MemberProfile = () => {
           </Stack>
 
           <EditMemberModal
-            open={editModalOpen}
-            onClose={() => setEditModalOpen(false)}
             mode={editMode}
+            onClose={() => setEditMode(undefined)}
             memberData={data}
-            onSave={handleSaveMemberData}
+            mutate={update}
           />
         </>
       )}

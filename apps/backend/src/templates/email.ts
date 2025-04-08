@@ -5,10 +5,10 @@ type LoginVars = {
   code: number
 }
 
-export const loginEmailTitle = (lang: string): string =>
+export const loginEmailTitle = (lang: string | undefined): string =>
   lang == 'fi' ? 'Kirjaudu MIK sivustolle' : 'Your login to MIK'
 
-export const loginEmailBody = (lang: string, vars: LoginVars): string =>
+export const loginEmailBody = (lang: string | undefined, vars: LoginVars): string =>
   marked.parse(lang == 'fi' ? loginEmailBodyFi(vars) : loginEmailBodyEn(vars), { async: false })
 
 const loginEmailBodyFi = ({ href, code }: LoginVars): string => `
@@ -41,10 +41,10 @@ type RegisterVars = {
   code: number
 }
 
-export const registerEmailTitle = (lang: string): string =>
+export const registerEmailTitle = (lang: string | undefined): string =>
   lang == 'fi' ? 'Tervetuloa Malmin ilmailukerhoon' : 'Welcome to Malmin Ilmailukerho'
 
-export const registerEmailBody = (lang: string, vars: RegisterVars): string =>
+export const registerEmailBody = (lang: string | undefined, vars: RegisterVars): string =>
   marked.parse(lang == 'fi' ? registerEmailBodyFi(vars) : registerEmailBodyEn(vars), {
     async: false,
   })

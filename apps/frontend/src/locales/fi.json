@@ -58,6 +58,7 @@
     "trainingProgram": "Koulutusohjelma",
     "noRolesAssigned": "Ei rooleja",
     "edit": {
+      "register": "Lisää uusi käyttäjä",
       "personalInfo": "Muokkaa omia tietojasi",
       "emergencyContact": "Muokkaa hätäyhteyshenkilön tietoja",
       "training": "Muokkaa koulutusohjelmia",
@@ -69,7 +70,8 @@
     "types": {
       "flying": "Täysijäsen",
       "non-flying": "Kannatusjäsen",
-      "junior": "Nuorisojäsen"
+      "junior": "Nuorisojäsen",
+      "external": "Ulkoinen käyttäjä"
     },
     "membership": "Jäsenyyden lisätiedot",
     "memberId": "Jäsennumero",

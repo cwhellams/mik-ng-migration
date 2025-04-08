@@ -14,7 +14,7 @@ CREATE TABLE member.register
     street_address VARCHAR(255),
     town_city VARCHAR(100),
     postcode VARCHAR(20),
-    can_make_reservations BOOLEAN NOT NULL DEFAULT TRUE,
+    can_make_reservations BOOLEAN NOT NULL DEFAULT FALSE,
     is_training_program_pilot BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -21,8 +21,10 @@ import {
   updateMemberRole,
   addMemberRole,
   removeMemberRole,
+  addMember,
 } from '../../db/member-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
+import { RegisterRequestSchema } from '../auth/schema.ts'
 import type { JWTUser } from '../auth/token.ts'
 import type { ErrorResponse } from '../response.ts'
 
@@ -157,6 +159,18 @@ router.delete(
 //
 // Admin only member routes
 //
+
+router.post(
+  '/',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request, res: Response<Member | ErrorResponse>) => {
+    const member = RegisterRequestSchema.parse(req.body)
+    const memberId = await addMember(member, req.user!)
+
+    const created = await getMemberById(memberId)
+    res.status(200).json(created)
+  },
+)
 
 router.get(
   '/:memberId',
