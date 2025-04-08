@@ -22,7 +22,7 @@ import { FormTitle } from './components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
 
 const MemberProfile = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { memberId } = useParams()
   const roles = useRoles()
 
@@ -80,7 +80,7 @@ const MemberProfile = () => {
               data.roles.map((role, index) => (
                 <Chip
                   key={index}
-                  label={t(`roles.${role.roleId}`, role.roleId)}
+                  label={role.name?.[i18n.language == 'fi' ? 'fi' : 'en']}
                   color='primary'
                   icon={<Icon icon='mdi:shield-user' />}
                 />

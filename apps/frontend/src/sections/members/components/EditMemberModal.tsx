@@ -50,7 +50,7 @@ export const EditMemberModal = ({
   memberData,
   onSave,
 }: EditMemberModalProps) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
   const [loading, setLoading] = useState(false)
@@ -334,7 +334,7 @@ export const EditMemberModal = ({
                     onChange={handleChangeRole}
                   />
                 }
-                label={t(`roles.${role.roleId}`, role.roleId)}
+                label={role.name[i18n.language == 'fi' ? 'fi' : 'en']}
               />
             ))}
           </FormGroup>

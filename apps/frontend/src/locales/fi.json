@@ -88,15 +88,10 @@
     "loadingMemberData": "Virhe jäsentietojen lataamisessa."
   },
   "roles": {
-    "ADMIN": "Ylläpitäjä",
-    "MEMBER": "Jäsen",
-    "COMMITTEE": "Hallituksen jäsen",
-    "PLAINCAPTAIN": "Kalustovastaava",
-    "SECRETARY": "Sihteeri",
-    "INSTRUCTOR": "Lennonopettaja",
-    "EXAMINER": "Tarkastuslentäjä",
-    "MAINTENANCE": "Huolto",
-    "FLYING_MEMBER": "Lento-oikeus",
+    "name": {
+      "fi": "Käännös suomeksi",
+      "en": "Käännös englanniksi"
+    },
     "newRole": "Uusi rooli",
     "roleId": "Roolin tunniste",
     "isPublic": "Näkyy jäsenille",
@@ -119,6 +114,7 @@
   "general": {
     "edit": "Muokkaa",
     "save": "Tallenna",
-    "cancel": "Peruuta"
+    "cancel": "Peruuta",
+    "delete": "Poista"
   }
 }

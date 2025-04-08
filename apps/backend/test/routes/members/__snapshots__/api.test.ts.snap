@@ -74,6 +74,14 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
 exports[`GET /members should return 200 without search filters for user id 2 1`] = `
 [
   {
+    "memberId": 0,
+    "name": "MIK Admin",
+    "phoneNumber": null,
+    "roles": [
+      "ADMIN",
+    ],
+  },
+  {
     "memberId": 7,
     "name": "Antti Heikkinen",
     "phoneNumber": "0467890123",
@@ -182,22 +190,30 @@ exports[`GET /members/me should return 200 with valid token for user id 1 1`] = 
       "createdBy": 1,
       "description": "Instructor with permissions to manage training",
       "isPublic": true,
+      "name": {
+        "en": "Instructor",
+        "fi": "Lennonopettaja",
+      },
       "permissions": [],
       "roleId": "INSTRUCTOR",
       "updatedAt": Any<String>,
-      "updatedBy": 1,
+      "updatedBy": 0,
     },
     {
       "createdAt": Any<String>,
       "createdBy": 1,
       "description": "MIK member with basic access",
       "isPublic": true,
+      "name": {
+        "en": "Member",
+        "fi": "Jäsen",
+      },
       "permissions": [
         "member",
       ],
       "roleId": "MEMBER",
       "updatedAt": Any<String>,
-      "updatedBy": 1,
+      "updatedBy": 0,
     },
   ],
   "streetAddress": "Keskuskatu 1",
@@ -231,6 +247,10 @@ exports[`GET /members/me should return 200 with valid token for user id 2 1`] = 
       "createdBy": 1,
       "description": "Administrator with full access",
       "isPublic": false,
+      "name": {
+        "en": "Administrator",
+        "fi": "Ylläpitäjä",
+      },
       "permissions": [
         "member.admin",
         "flightlog.admin",
@@ -239,17 +259,21 @@ exports[`GET /members/me should return 200 with valid token for user id 2 1`] = 
       ],
       "roleId": "ADMIN",
       "updatedAt": Any<String>,
-      "updatedBy": 1,
+      "updatedBy": 0,
     },
     {
       "createdAt": Any<String>,
       "createdBy": 1,
       "description": "MIK board member with decision-making authority in the club",
       "isPublic": true,
+      "name": {
+        "en": "Committee Member",
+        "fi": "Hallituksen jäsen",
+      },
       "permissions": [],
       "roleId": "COMMITTEE",
       "updatedAt": Any<String>,
-      "updatedBy": 1,
+      "updatedBy": 0,
     },
   ],
   "streetAddress": "Mannerheimintie 10",
@@ -283,10 +307,14 @@ exports[`GET /members/me should return 200 with valid token for user id 3 1`] = 
       "createdBy": 1,
       "description": "Instructor with permissions to manage training",
       "isPublic": true,
+      "name": {
+        "en": "Instructor",
+        "fi": "Lennonopettaja",
+      },
       "permissions": [],
       "roleId": "INSTRUCTOR",
       "updatedAt": Any<String>,
-      "updatedBy": 1,
+      "updatedBy": 0,
     },
   ],
   "streetAddress": "Aleksanterinkatu 5",

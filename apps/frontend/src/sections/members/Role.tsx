@@ -17,6 +17,7 @@ import {
   UpsertMemberRole,
   MemberRole,
   MIKPermissions,
+  MIKLang,
 } from '@backend/routes/members/models'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
@@ -41,6 +42,10 @@ const MemberRoleEditor = () => {
     })
   const [formData, setFormData] = useState<UpsertMemberRole>({
     roleId: '',
+    name: {
+      en: '',
+      fi: '',
+    },
     description: '',
     isPublic: false,
     permissions: [],
@@ -117,6 +122,17 @@ const MemberRoleEditor = () => {
     }
   }
 
+  const handleChangeName =
+    (lang: MIKLang) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({
+        ...prev,
+        ['name']: {
+          ...prev.name,
+          [lang]: e.target.value,
+        },
+      }))
+    }
+
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant='h2' gutterBottom>
@@ -159,6 +175,22 @@ const MemberRoleEditor = () => {
                       label={t('roles.description')}
                       value={formData.description || ''}
                       onChange={handleChange('description')}
+                    />
+                  </Grid>
+                  <Grid size={12}>
+                    <TextField
+                      fullWidth
+                      label={t('roles.name.en')}
+                      value={formData.name[MIKLang.EN] || ''}
+                      onChange={handleChangeName(MIKLang.EN)}
+                    />
+                  </Grid>
+                  <Grid size={12}>
+                    <TextField
+                      fullWidth
+                      label={t('roles.name.fi')}
+                      value={formData.name[MIKLang.FI] || ''}
+                      onChange={handleChangeName(MIKLang.FI)}
                     />
                   </Grid>
                 </Grid>

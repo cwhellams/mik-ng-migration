@@ -27,11 +27,22 @@ export enum MIKMemberTypes {
   EXTERNAL = 'EXTERNAL',
 }
 
+export enum MIKLang {
+  FI = 'fi',
+  EN = 'en',
+}
+
 // roles endpoint
+
+export const LocalizedSchema = z.object({
+  [MIKLang.EN]: z.string(),
+  [MIKLang.FI]: z.string(),
+})
 
 export const MemberRoleSchema = z.object({
   roleId: z.string().max(20),
   description: z.string().nullable(),
+  name: LocalizedSchema,
   isPublic: z.boolean(),
   permissions: z.array(z.nativeEnum(MIKPermissions)),
   createdAt: z.string().datetime(),
@@ -111,6 +122,7 @@ export const MemberSchema = z.object({
   roles: z.array(
     MemberRoleSchema.partial({
       description: true,
+      name: true,
       isPublic: true,
       permissions: true,
       createdAt: true,

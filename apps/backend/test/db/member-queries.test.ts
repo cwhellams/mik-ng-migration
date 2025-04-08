@@ -26,7 +26,7 @@ describe('Db query member tests', () => {
   })
 
   it('getMemberById should return undefined for an invalid member id', async () => {
-    const result = await getMemberById(0)
+    const result = await getMemberById(-1)
     expect(result).toBeUndefined()
   })
 

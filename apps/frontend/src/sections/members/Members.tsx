@@ -29,6 +29,7 @@ import { Icon } from '@iconify/react'
 import { useRoles } from '../../hooks/useRoles'
 import { t } from 'i18next'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const Members = () => {
   const [filters, setFilters] = useState<MemberListFilters>({
@@ -48,6 +49,7 @@ const Members = () => {
   )
 
   const { isMembersAdmin, roles } = useRoles()
+  const { i18n } = useTranslation()
 
   return (
     <Box>
@@ -120,7 +122,7 @@ const Members = () => {
               )}
               {roles.map((role) => (
                 <MenuItem key={role.roleId} value={role.roleId}>
-                  {t(`roles.${role.roleId}`, role.roleId)}
+                  {role.name?.[i18n.language == 'fi' ? 'fi' : 'en']}
                 </MenuItem>
               ))}
             </Select>
@@ -169,7 +171,11 @@ const Members = () => {
                       {row.roles.map((role, index) => (
                         <Chip
                           key={index}
-                          label={t(`roles.${role}`, role)}
+                          label={
+                            roles.find((r) => r.roleId === role)?.name[
+                              i18n.language == 'fi' ? 'fi' : 'en'
+                            ] ?? role
+                          }
                           color='primary'
                         />
                       ))}

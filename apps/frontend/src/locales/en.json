@@ -101,15 +101,10 @@
     "noLogs": "No flight logs found"
   },
   "roles": {
-    "ADMIN": "Administrator",
-    "MEMBER": "Member",
-    "COMMITTEE": "Committee Member",
-    "PLAINCAPTAIN": "Plane Captain",
-    "SECRETARY": "Secretary",
-    "INSTRUCTOR": "Instructor",
-    "EXAMINER": "Examiner",
-    "MAINTENANCE": "Maintenance",
-    "FLYING_MEMBER": "Flying Member",
+    "name": {
+      "fi": "Translation in Finnish",
+      "en": "Translation in English"
+    },
     "newRole": "New Role",
     "roleId": "Role ID",
     "isPublic": "Visible to Members",
@@ -132,6 +127,7 @@
   "general": {
     "edit": "Edit",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "delete": "Delete"
   }
 }

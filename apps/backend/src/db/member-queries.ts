@@ -5,7 +5,7 @@ import { db } from './connection.ts'
 import type { MemberRegister, MemberRoles } from './schema.js'
 import type { RegisterRequest } from '../routes/auth/schema.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
-import { MIKMemberTypes, type UpsertMemberRole } from '../routes/members/models.ts'
+import { MIKLang, MIKMemberTypes, type UpsertMemberRole } from '../routes/members/models.ts'
 import {
   MIKPermissions,
   type Member,
@@ -287,6 +287,10 @@ function toMemberRole(role: Selectable<MemberRoles>): MemberRole {
   return {
     roleId: role.role_id,
     description: role.description,
+    name: {
+      [MIKLang.EN]: role.name_en,
+      [MIKLang.FI]: role.name_fi,
+    },
     isPublic: role.is_public,
     permissions: role.permissions as MIKPermissions[],
     createdAt: role.created_at.toISOString(),
@@ -335,6 +339,8 @@ export async function addMemberRole(role: UpsertMemberRole, jwt: JWTUser): Promi
     .values({
       role_id: role.roleId,
       description: role.description,
+      name_en: role.name[MIKLang.EN],
+      name_fi: role.name[MIKLang.FI],
       is_public: role.isPublic,
       permissions: JSON.stringify(role.permissions),
 
@@ -368,6 +374,8 @@ export async function updateMemberRole(
     .set({
       role_id: patch.roleId,
       description: patch.description,
+      name_en: patch.name?.[MIKLang.EN],
+      name_fi: patch.name?.[MIKLang.FI],
       is_public: patch.isPublic,
       permissions: JSON.stringify(patch.permissions),
 

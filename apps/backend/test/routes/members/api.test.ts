@@ -38,7 +38,7 @@ const noPermissionsToken = generateAccessToken({
 })
 
 const missingUserToken = generateAccessToken({
-  memberId: 0,
+  memberId: -1,
   email: 'no-permissions@mik.fi',
   permissions: [],
 })
@@ -164,6 +164,10 @@ describe('GET /members', () => {
 
     expect(members.map(({ name, roles }) => ({ name, roles }))).toEqual([
       {
+        name: 'MIK Admin',
+        roles: ['ADMIN'],
+      },
+      {
         name: 'Pekka Hämäläinen',
         roles: ['ADMIN', 'MEMBER'],
       },
@@ -194,6 +198,10 @@ describe('GET /members', () => {
     })
 
     expect(members.map(({ name, roles }) => ({ name, roles }))).toEqual([
+      {
+        name: 'MIK Admin',
+        roles: ['ADMIN'],
+      },
       {
         name: 'Pekka Hämäläinen',
         roles: ['ADMIN', 'MEMBER'],
@@ -301,7 +309,7 @@ describe('GET /members/roles', () => {
       { permissions: [], roleId: 'EXAMINER' },
       { permissions: [], roleId: 'INSTRUCTOR' },
       { permissions: [], roleId: 'MEMBER' },
-      { permissions: [], roleId: 'PLAINCAPTAIN' },
+      { permissions: [], roleId: 'PLANE_CAPTAIN' },
       { permissions: [], roleId: 'SECRETARY' },
     ])
   })
@@ -333,7 +341,7 @@ describe('GET /members/roles', () => {
       { permissions: ['member'], roleId: 'MEMBER' },
       {
         permissions: ['flightlog.admin', 'booking.admin', 'aircraft.admin'],
-        roleId: 'PLAINCAPTAIN',
+        roleId: 'PLANE_CAPTAIN',
       },
       { permissions: ['member.admin', 'flightlog.admin'], roleId: 'SECRETARY' },
     ])
