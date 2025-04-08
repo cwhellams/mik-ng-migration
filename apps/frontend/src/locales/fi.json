@@ -95,10 +95,11 @@
       "en": "Käännös englanniksi"
     },
     "newRole": "Uusi rooli",
+    "editRole": "Muokkaa roolia",
     "roleId": "Roolin tunniste",
     "isPublic": "Näkyy jäsenille",
     "permissions": "Oikeudet",
-    "description": "Kuvaus",
+    "description": "Vapaamuotoinen kuvaus (ylläpitäjälle)",
     "details": "Roolin tiedot",
     "all": "-- Kaikki --",
     "unApproved": "-- Hyväksymättä --"

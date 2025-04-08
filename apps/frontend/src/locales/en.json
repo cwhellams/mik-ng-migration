@@ -108,10 +108,11 @@
       "en": "Translation in English"
     },
     "newRole": "New Role",
+    "editRole": "Edit Role",
     "roleId": "Role ID",
     "isPublic": "Visible to Members",
     "permissions": "Permissions",
-    "description": "Description",
+    "description": "Free-text Description (admin only)",
     "details": "Role Details",
     "all": "-- All --",
     "unApproved": "-- Unapproved --"

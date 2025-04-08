@@ -62,23 +62,16 @@ const Members = () => {
   const { i18n } = useTranslation()
 
   return (
-    <Box>
+    <Box sx={{ position: 'relative' }}>
       <Typography variant='h2' gutterBottom>
         {t('header.members')}
       </Typography>
 
-      <Stack
-        direction='row'
-        spacing={1}
-        sx={{ mb: 3, justifyContent: 'flex-end' }}
-      >
-        <EditButton
-          mode='roles'
-          positionStatic={true}
-          onClick={() => setEditMode('register')}
-          icon='mdi:plus'
-        />
-      </Stack>
+      <EditButton
+        title='member.edit.register'
+        onClick={() => setEditMode('register')}
+        icon='mdi:plus'
+      />
 
       <Grid
         container
@@ -154,7 +147,7 @@ const Members = () => {
       </Grid>
 
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label='simple table'>
+        <Table aria-label='simple table'>
           <TableHead>
             <TableRow>
               <TableCell>{t('member.fullname')}</TableCell>
@@ -189,11 +182,18 @@ const Members = () => {
                     <Stack
                       direction='row'
                       spacing={1}
-                      sx={{ mb: 3, justifyContent: 'flex-end' }}
+                      display='inline-flex'
+                      sx={{
+                        flexWrap: 'wrap',
+                        justifyContent: 'flex-end',
+                      }}
                     >
                       {row.roles.map((role, index) => (
                         <Chip
                           key={index}
+                          sx={{ width: 'fit-content' }}
+                          size='small'
+                          variant='outlined'
                           label={
                             roles.find((r) => r.roleId === role)?.name[
                               i18n.language == 'fi' ? 'fi' : 'en'

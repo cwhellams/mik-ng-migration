@@ -1,28 +1,27 @@
 import { IconButton, Tooltip } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { MemberEditMode } from './EditMemberModal'
 import { t } from 'i18next'
 
 export const EditButton = ({
-  mode,
+  title,
   onClick,
-  positionStatic,
+  position = 'absolute',
   icon = 'mdi:pencil',
 }: {
-  mode: MemberEditMode
+  title: string
   onClick?: () => void
-  positionStatic?: boolean
+  position?: 'absolute' | 'static'
   icon?: string
 }) => {
-  const title = t(`member.edit.${mode}`)
+  const translated = t(title)
   return (
-    <Tooltip title={title}>
+    <Tooltip title={translated}>
       <IconButton
         size='small'
-        aria-label={title}
+        aria-label={translated}
         onClick={onClick}
         sx={{
-          position: positionStatic == true ? 'static' : 'absolute',
+          position,
           top: 8,
           right: 8,
           backgroundColor: 'background.paper',

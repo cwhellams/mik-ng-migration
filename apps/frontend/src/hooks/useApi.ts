@@ -1,5 +1,5 @@
 import useSWR, { SWRConfiguration, SWRResponse } from 'swr'
-import { Key, PublicConfiguration, useSWRConfig } from 'swr/_internal'
+import { PublicConfiguration, useSWRConfig } from 'swr/_internal'
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { ErrorResponse } from '@backend/routes/response'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -73,38 +73,49 @@ api.interceptors.response.use(
   }
 )
 
-interface Return<Data, Error>
-  extends Omit<SWRResponse<AxiosResponse<Data>, AxiosError<Error>>, 'data'> {
+export type APIMutation<
+  Data,
+  Input = Partial<Data>,
+  Error = ErrorResponse,
+> = SWRMutationResponse<AxiosResponse<Data>, AxiosError<Error>, object, Input>
+
+type AxiosConfig<Data, Error> = Readonly<
+  PublicConfiguration<
+    AxiosResponse<Data>,
+    AxiosError<Error>,
+    (path: string) => unknown
+  >
+>
+
+export default function useApi<
+  // returned data type
+  Data = unknown,
+  // payload for POST
+  Create = Partial<Data>,
+  // payload for PATCH
+  Update = Partial<Data>,
+  // payload for DELETE
+  Delete = Partial<Data>,
+  // payload for errors
+  Error = ErrorResponse,
+>(
+  request: AxiosRequestConfig & {
+    allowUnauthenticated?: boolean
+    skipFetch?: boolean
+  },
+  config: SWRConfiguration<AxiosResponse<Data>, AxiosError<Error>> = {}
+): Omit<SWRResponse<AxiosResponse<Data>, AxiosError<Error>>, 'data'> & {
   // actual payload
   data: Data | undefined
 
   // the whole response object with http status codes, headers, etc
   response: AxiosResponse<Data> | undefined
 
-  create: SWRMutationResponse<
-    AxiosResponse<Data>,
-    AxiosError<Error>,
-    Key,
-    Partial<Data>
-  >
-
-  update: SWRMutationResponse<
-    AxiosResponse<Data>,
-    AxiosError<Error>,
-    Key,
-    Partial<Data>
-  >
-
-  remove: SWRMutationResponse<AxiosResponse<Data>, AxiosError<Error>, Key>
-}
-
-export default function useApi<Data = unknown, Error = ErrorResponse>(
-  request: AxiosRequestConfig & {
-    allowUnauthenticated?: boolean
-    skipFetch?: boolean
-  },
-  config: SWRConfiguration<AxiosResponse<Data>, AxiosError<Error>> = {}
-): Return<Data, Error> {
+  // mutation hooks
+  create: APIMutation<Data, Create, Error>
+  update: APIMutation<Data, Update, Error>
+  remove: APIMutation<Data, Delete, Error>
+} {
   const navigate = useNavigate()
   const location = useLocation()
   const { onErrorRetry } = useSWRConfig()
@@ -130,43 +141,26 @@ export default function useApi<Data = unknown, Error = ErrorResponse>(
         if (err.status && err.status >= 400 && err.status < 500) return
 
         // otherwise the default retry logic
-        onErrorRetry(
-          err,
-          key,
-          config as Readonly<
-            PublicConfiguration<
-              AxiosResponse<Data>,
-              AxiosError<Error>,
-              (path: string) => unknown
-            >
-          >,
-          ...args
-        )
+        onErrorRetry(err, key, config as AxiosConfig<Data, Error>, ...args)
       },
     }
   )
 
-  const create = useSWRMutation<
-    AxiosResponse<Data>,
-    AxiosError<Error>,
-    Key,
-    Partial<Data>
-  >(cacheKey, (_key: Key, { arg }: { arg: Partial<Data> }) =>
-    api.request({ ...request, method: 'POST', data: arg })
-  )
-
-  const update = useSWRMutation<
-    AxiosResponse<Data>,
-    AxiosError<Error>,
-    Key,
-    Partial<Data>
-  >(cacheKey, (_key: Key, { arg }: { arg: Partial<Data> }) =>
-    api.request({ ...request, method: 'PATCH', data: arg })
-  )
-
-  const remove = useSWRMutation<AxiosResponse<Data>, AxiosError<Error>, Key>(
+  const create = useSWRMutation(
     cacheKey,
-    (_key: Key, { arg }: { arg: Partial<Data> }) =>
+    (_key: typeof cacheKey, { arg }: { arg: Create }) =>
+      api.request({ ...request, method: 'POST', data: arg })
+  )
+
+  const update = useSWRMutation(
+    cacheKey,
+    (_key: object, { arg }: { arg: Update }) =>
+      api.request({ ...request, method: 'PATCH', data: arg })
+  )
+
+  const remove = useSWRMutation(
+    cacheKey,
+    (_key: object, { arg }: { arg: Delete }) =>
       api.request({ ...request, method: 'DELETE', data: arg })
   )
 

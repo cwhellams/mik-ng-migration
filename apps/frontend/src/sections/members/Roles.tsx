@@ -11,46 +11,62 @@ import {
   CircularProgress,
   Stack,
 } from '@mui/material'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useRoles } from '../../hooks/useRoles'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { EditButton } from './components/EditButton'
+import {
+  MemberRole,
+  MIKLang,
+  UpsertMemberRole,
+} from '@backend/routes/members/models'
+import { useState } from 'react'
+import { MemberRoleEditor } from './components/EditRoleModal'
 
 const Roles = () => {
   const { t } = useTranslation()
   const { roles, error } = useRoles()
-  const navigate = useNavigate()
+
+  const [editMode, setEditMode] = useState<UpsertMemberRole | undefined>(
+    undefined
+  )
 
   const handleNewRole = () => {
-    navigate('/members/roles/new')
+    setEditMode({
+      roleId: '',
+      name: {
+        en: '',
+        fi: '',
+      },
+      description: '',
+      isPublic: false,
+      permissions: [],
+    })
+  }
+
+  const handleEditMode = (role: MemberRole) => {
+    setEditMode(role)
   }
 
   return (
-    <Box>
+    <Box sx={{ position: 'relative' }}>
       <Typography variant='h2' gutterBottom>
         {t('header.roles')}
       </Typography>
 
-      <Stack
-        direction='row'
-        spacing={1}
-        sx={{ mb: 3, justifyContent: 'flex-end' }}
-      >
-        <EditButton
-          mode='roles'
-          positionStatic={true}
-          onClick={() => handleNewRole()}
-          icon='mdi:plus'
-        />
-      </Stack>
+      <EditButton
+        title='roles.newRole'
+        onClick={handleNewRole}
+        icon='mdi:plus'
+      />
 
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label='simple table'>
+        <Table aria-label='simple table'>
           <TableHead>
             <TableRow>
               <TableCell>{t('roles.roleId')}</TableCell>
-              <TableCell>{t('roles.isPublic')}</TableCell>
+              <TableCell width={50}>{t('roles.isPublic')}</TableCell>
               <TableCell align='right'>{t('roles.permissions')}</TableCell>
             </TableRow>
           </TableHead>
@@ -70,15 +86,24 @@ const Roles = () => {
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 >
                   <TableCell component='th' scope='row'>
-                    <Link to={`/members/roles/${row.roleId}`}>
-                      {row.roleId}
-                    </Link>
+                    <Stack direction='column' display='flex'>
+                      <Link to={'#'} onClick={() => handleEditMode(row)}>
+                        {row.roleId}
+                      </Link>
+                      <Box>{row.name[MIKLang.EN]}</Box>
+                      <Box>{row.name[MIKLang.FI]}</Box>
+                    </Stack>
                   </TableCell>
-                  <TableCell align='right' sx={{ fontSize: 20 }}>
+                  <TableCell sx={{ fontSize: 20 }}>
                     {row.isPublic && <Icon icon='mdi:check' color='green' />}
                   </TableCell>
                   <TableCell align='right'>
-                    {row.permissions.join(', ')}
+                    {row.permissions.map((perm) => (
+                      <>
+                        {perm}
+                        <br />
+                      </>
+                    ))}
                   </TableCell>
                 </TableRow>
               )) ?? (
@@ -92,6 +117,11 @@ const Roles = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <MemberRoleEditor
+        role={editMode}
+        onClose={() => setEditMode(undefined)}
+      />
     </Box>
   )
 }

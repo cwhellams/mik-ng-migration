@@ -78,8 +78,8 @@ const MemberProfile = () => {
               ))}
             {isAdmin && (
               <EditButton
-                mode='roles'
-                positionStatic={true}
+                title='member.edit.roles'
+                position='static'
                 onClick={() => handleOpenEditModal('roles')}
               />
             )}
@@ -87,9 +87,9 @@ const MemberProfile = () => {
 
           <Stack spacing={3}>
             <Stack direction={{ sm: 'column', md: 'row' }} spacing={3}>
-              <Card sx={{ flex: 1, position: 'relative' }}>
+              <Card sx={{ flex: 1, mb: 3 }}>
                 <EditButton
-                  mode='personalInfo'
+                  title='member.edit.personalInfo'
                   onClick={() => handleOpenEditModal('personalInfo')}
                 />
                 <CardContent>
@@ -124,9 +124,9 @@ const MemberProfile = () => {
                 </CardContent>
               </Card>
 
-              <Card sx={{ flex: 1, position: 'relative' }}>
+              <Card sx={{ flex: 1 }}>
                 <EditButton
-                  mode='emergencyContact'
+                  title='member.edit.emergencyContact'
                   onClick={() => handleOpenEditModal('emergencyContact')}
                 />
                 <CardContent>
@@ -151,7 +151,7 @@ const MemberProfile = () => {
             <Card>
               {isAdmin && (
                 <EditButton
-                  mode='training'
+                  title='member.edit.training'
                   onClick={() => handleOpenEditModal('training')}
                 />
               )}
@@ -172,7 +172,7 @@ const MemberProfile = () => {
             <Card>
               {isAdmin && (
                 <EditButton
-                  mode='membership'
+                  title='member.edit.membership'
                   onClick={() => handleOpenEditModal('membership')}
                 />
               )}

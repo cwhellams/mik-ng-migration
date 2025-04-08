@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import {
+  Dialog,
   DialogContent,
   DialogActions,
   Button,
   TextField,
   Grid,
   Typography,
+  useMediaQuery,
+  useTheme,
   CircularProgress,
   FormControl,
   FormControlLabel,
@@ -14,14 +17,15 @@ import {
   RadioGroup,
   Checkbox,
   FormGroup,
+  Alert,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { Member } from '@backend/routes/members/models'
 import { DateField } from '@mui/x-date-pickers/DateField'
 import dayjs from 'dayjs'
 import { useRoles } from '../../../hooks/useRoles'
-import { EditModal } from './EditModal'
 import { APIMutation } from '../../../hooks/useApi'
+import { EditDialogTitle } from './EditDialogTitle'
 
 export type MemberEditMode =
   | 'register'
@@ -47,6 +51,8 @@ export const EditMemberModal = ({
   mutate,
 }: EditMemberModalProps) => {
   const { t, i18n } = useTranslation()
+  const theme = useTheme()
+  const isXs = useMediaQuery(theme.breakpoints.down('sm'))
 
   // Define form states based on the mode
   const [formData, setFormData] = useState<Partial<Member>>({})
@@ -55,6 +61,8 @@ export const EditMemberModal = ({
 
   // Initialize form data when modal opens
   useEffect(() => {
+    setErrorMsg('')
+
     if (memberData) {
       if (mode === 'register') {
         setFormData({
@@ -439,43 +447,47 @@ export const EditMemberModal = ({
   }
 
   return (
-    <EditModal
-      title={mode && `member.edit.${mode}`}
+    <Dialog
       open={mode !== undefined}
       onClose={onClose}
+      maxWidth='sm'
+      fullWidth
+      fullScreen={isXs}
+      slotProps={{
+        paper: {
+          component: 'form',
+          onSubmit: handleSubmit,
+        },
+      }}
     >
-      <form onSubmit={handleSubmit}>
-        <DialogContent dividers>{getForm()}</DialogContent>
-
-        <DialogActions>
-          <Button onClick={onClose} color='inherit'>
-            {t('general.cancel', 'Cancel')}
-          </Button>
-          <Button
-            type='submit'
-            color='primary'
-            variant='contained'
-            disabled={mutate.isMutating}
-            startIcon={
-              mutate.isMutating ? <CircularProgress size={20} /> : null
-            }
-          >
-            {t('general.save', 'Save')}
-          </Button>
-        </DialogActions>
+      <EditDialogTitle
+        title={mode && `member.edit.${mode}`}
+        onClose={onClose}
+      />
+      <DialogContent dividers>
+        {getForm()}
 
         {errorMsg.length > 0 && (
-          <Grid
-            alignItems='center'
-            display='flex'
-            sx={{ mr: 10, fontSize: 24 }}
-          >
-            <Typography color='error' variant='body2'>
-              {errorMsg}
-            </Typography>
-          </Grid>
+          <Alert severity='error' sx={{ mt: 2 }}>
+            {errorMsg}
+          </Alert>
         )}
-      </form>
-    </EditModal>
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose} color='inherit'>
+          {t('general.cancel', 'Cancel')}
+        </Button>
+        <Button
+          type='submit'
+          color='primary'
+          variant='contained'
+          disabled={mutate.isMutating}
+          startIcon={mutate.isMutating ? <CircularProgress size={20} /> : null}
+        >
+          {t('general.save', 'Save')}
+        </Button>
+      </DialogActions>
+    </Dialog>
   )
 }
