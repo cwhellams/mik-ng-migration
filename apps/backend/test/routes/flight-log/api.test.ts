@@ -1,16 +1,15 @@
 import dotenv from 'dotenv'
 import express from 'express'
-
 import request from 'supertest'
+
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import flightLogRouter from '../../../src/routes/flight-log/api.ts'
-import { MIKRoles } from '../../../src/routes/members/models.ts'
-
 import {
   FlightLogInsertSchema,
   type FlightLogInsertRequest,
   type FlightLogUpdateRequest,
 } from '../../../src/routes/flight-log/models.ts'
+import { MIKPermissions } from '../../../src/routes/members/models.ts'
 
 const test_member_id = 1
 dotenv.config()
@@ -23,7 +22,7 @@ app.use('/flight-log', flightLogRouter)
 const token = generateAccessToken({
   memberId: test_member_id,
   email: 'jonny.depp@mik.fi',
-  roles: [MIKRoles.ADMIN, MIKRoles.USER],
+  permissions: [MIKPermissions.FLIGHTLOG_USER],
 })
 
 describe('GET /flight-log', () => {
@@ -183,23 +182,21 @@ describe('POST /flight-log', () => {
 
 describe('PATCH /flight-log/', () => {
   test.each([
-    [1, [MIKRoles.ADMIN]],
-    [1, [MIKRoles.COMMITTEE]],
-    [4, [MIKRoles.USER]],
-    [1, [MIKRoles.COMMITTEE, MIKRoles.USER]],
+    [1, [MIKPermissions.FLIGHTLOG_ADMIN]],
+    [4, [MIKPermissions.FLIGHTLOG_USER]],
   ])(
     'should update a flight log when billable member matches token member or user has elevated role, using %d and %s',
-    async (memberId, roles) => {
+    async (memberId, permissions) => {
       const payload: FlightLogUpdateRequest = {
         copilot: 'Smith',
         copilot_member_id: 2,
       }
 
-      //Creaate a token with a member id that matches billable member id
+      //Create a token with a member id that matches billable member id
       const token = generateAccessToken({
         memberId: memberId,
         email: 'valid@mik.fi',
-        roles: roles,
+        permissions: permissions,
       })
 
       const response = await request(app)
@@ -245,7 +242,7 @@ describe('PATCH /flight-log/', () => {
     const invalidToken = generateAccessToken({
       memberId: 2, // billable_member_id
       email: 'test@mik.fi',
-      roles: [MIKRoles.USER],
+      permissions: [MIKPermissions.FLIGHTLOG_USER],
     })
 
     //Creaate a token with a member id that matches billable member id
@@ -254,11 +251,13 @@ describe('PATCH /flight-log/', () => {
       .set('Authorization', `Bearer ${invalidToken}`)
       .send(payload)
 
-    expect(response.status).toBe(404)
-    expect(response.body.message).toMatch(/Flight log not found or flight not billable to member/)
+    expect(response.status).toBe(403)
+    expect(response.body.message).toMatch(
+      /Flight log not owned by user or user has no admin rights/,
+    )
   })
   it('should return a 400 if the payload is not valid', async () => {
-    const payload: any = {
+    const payload = {
       this_is_invalid: 'invalid',
     }
 
@@ -288,7 +287,7 @@ describe('DELETE /flight-log', () => {
     const delToken = generateAccessToken({
       memberId: 99,
       email: 'invalid@mik.fi',
-      roles: [MIKRoles.USER],
+      permissions: [MIKPermissions.FLIGHTLOG_USER],
     })
 
     const response = await request(app)

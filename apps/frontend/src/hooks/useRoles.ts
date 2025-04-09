@@ -1,19 +1,38 @@
-import { Member, MIKRoles } from '@backend/routes/members/models'
+import {
+  Member,
+  MemberRolesResponse,
+  MIKPermissions,
+} from '@backend/routes/members/models'
 import useApi from './useApi'
+import { AxiosError } from 'axios'
+import { ErrorResponse } from '@backend/routes/response'
 
 export function useRoles(): {
   isLoading: boolean
-  isUser: boolean
-  isAdmin: boolean
+  isMember: boolean
+  isMembersAdmin: boolean
+  roles: MemberRolesResponse['roles']
+  permissions: MemberRolesResponse['permissions']
+  error: AxiosError<ErrorResponse> | undefined
 } {
   const { data, isLoading } = useApi<Member | null>({
     url: 'v1/members/me',
     allowUnauthenticated: true,
   })
 
+  const { data: rolesData, error } = useApi<MemberRolesResponse>({
+    url: 'v1/members/roles',
+  })
+
+  const withPermission = (permission: MIKPermissions) =>
+    data?.roles.some((role) => role.permissions?.includes(permission)) ?? false
+
   return {
     isLoading,
-    isUser: data?.roles?.includes(MIKRoles.USER) || false,
-    isAdmin: data?.roles?.includes(MIKRoles.ADMIN) || false,
+    isMember: withPermission(MIKPermissions.MEMBER),
+    isMembersAdmin: withPermission(MIKPermissions.MEMBER_ADMIN),
+    roles: rolesData?.roles ?? [],
+    permissions: rolesData?.permissions ?? [],
+    error,
   }
 }

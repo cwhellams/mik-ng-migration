@@ -3,7 +3,7 @@ import { FormField } from './FormField'
 import { Link } from 'react-router-dom'
 import { toLocalDate } from '../../../utils/date'
 
-const AuditBy = ({ by, memberId }: { by?: number; memberId: number }) => {
+const AuditBy = ({ by, memberId }: { by?: number; memberId?: number }) => {
   if (!by) {
     return <></>
   }
@@ -30,7 +30,7 @@ export const AuditFormField = ({
   width?: number
   at?: string
   by?: number
-  memberId: number
+  memberId?: number
 }) => (
   <FormField label={label} width={width}>
     <Tooltip title={at}>

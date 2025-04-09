@@ -173,8 +173,16 @@ export interface MemberRegisterAudit {
 }
 
 export interface MemberRoles {
+  created_at: Generated<Timestamp>
+  created_by: number
   description: string | null
+  is_public: Generated<boolean>
+  name_en: string
+  name_fi: string
+  permissions: Json | null
   role_id: string
+  updated_at: Generated<Timestamp>
+  updated_by: number
 }
 
 export interface MemberType {

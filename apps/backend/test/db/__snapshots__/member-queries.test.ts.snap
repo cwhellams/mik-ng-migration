@@ -47,7 +47,22 @@ exports[`Db add member tests add member and update member 2`] = `
   "phoneNumber": null,
   "postcode": null,
   "roles": [
-    "USER",
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "MIK member with basic access",
+      "isPublic": true,
+      "name": {
+        "en": "Member",
+        "fi": "Jäsen",
+      },
+      "permissions": [
+        "member",
+      ],
+      "roleId": "MEMBER",
+      "updatedAt": Any<String>,
+      "updatedBy": 0,
+    },
   ],
   "streetAddress": null,
   "townCity": null,
@@ -76,8 +91,36 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
   "phoneNumber": "0401234567",
   "postcode": "00100",
   "roles": [
-    "USER",
-    "INSTRUCTOR",
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "Instructor with permissions to manage training",
+      "isPublic": true,
+      "name": {
+        "en": "Instructor",
+        "fi": "Lennonopettaja",
+      },
+      "permissions": [],
+      "roleId": "INSTRUCTOR",
+      "updatedAt": Any<String>,
+      "updatedBy": 0,
+    },
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "MIK member with basic access",
+      "isPublic": true,
+      "name": {
+        "en": "Member",
+        "fi": "Jäsen",
+      },
+      "permissions": [
+        "member",
+      ],
+      "roleId": "MEMBER",
+      "updatedAt": Any<String>,
+      "updatedBy": 0,
+    },
   ],
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
@@ -106,8 +149,36 @@ exports[`Db query member tests getMemberById should return member data for a val
   "phoneNumber": "0401234567",
   "postcode": "00100",
   "roles": [
-    "USER",
-    "INSTRUCTOR",
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "Instructor with permissions to manage training",
+      "isPublic": true,
+      "name": {
+        "en": "Instructor",
+        "fi": "Lennonopettaja",
+      },
+      "permissions": [],
+      "roleId": "INSTRUCTOR",
+      "updatedAt": Any<String>,
+      "updatedBy": 0,
+    },
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "MIK member with basic access",
+      "isPublic": true,
+      "name": {
+        "en": "Member",
+        "fi": "Jäsen",
+      },
+      "permissions": [
+        "member",
+      ],
+      "roleId": "MEMBER",
+      "updatedAt": Any<String>,
+      "updatedBy": 0,
+    },
   ],
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
@@ -136,8 +207,36 @@ exports[`Db query member tests getMemberById should return member data for a val
   "phoneNumber": "0401234567",
   "postcode": "00100",
   "roles": [
-    "USER",
-    "INSTRUCTOR",
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "Instructor with permissions to manage training",
+      "isPublic": true,
+      "name": {
+        "en": "Instructor",
+        "fi": "Lennonopettaja",
+      },
+      "permissions": [],
+      "roleId": "INSTRUCTOR",
+      "updatedAt": Any<String>,
+      "updatedBy": 0,
+    },
+    {
+      "createdAt": Any<String>,
+      "createdBy": 1,
+      "description": "MIK member with basic access",
+      "isPublic": true,
+      "name": {
+        "en": "Member",
+        "fi": "Jäsen",
+      },
+      "permissions": [
+        "member",
+      ],
+      "roleId": "MEMBER",
+      "updatedAt": Any<String>,
+      "updatedBy": 0,
+    },
   ],
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
@@ -148,62 +247,201 @@ exports[`Db query member tests getMemberById should return member data for a val
 
 exports[`Db query member tests getMemberRoles should return roles for given valid member 1`] = `
 [
-  "USER",
-  "INSTRUCTOR",
+  {
+    "createdAt": Any<String>,
+    "createdBy": 1,
+    "description": "Instructor with permissions to manage training",
+    "isPublic": true,
+    "name": {
+      "en": "Instructor",
+      "fi": "Lennonopettaja",
+    },
+    "permissions": [],
+    "roleId": "INSTRUCTOR",
+    "updatedAt": Any<String>,
+    "updatedBy": 0,
+  },
+  {
+    "createdAt": Any<String>,
+    "createdBy": 1,
+    "description": "MIK member with basic access",
+    "isPublic": true,
+    "name": {
+      "en": "Member",
+      "fi": "Jäsen",
+    },
+    "permissions": [
+      "member",
+    ],
+    "roleId": "MEMBER",
+    "updatedAt": Any<String>,
+    "updatedBy": 0,
+  },
 ]
 `;
 
-exports[`Db query member tests getMembers should return members 1`] = `
+exports[`Db query member tests getMembers should return everything for admins 1`] = `
 [
+  {
+    "memberId": 0,
+    "name": "MIK Admin",
+    "phoneNumber": null,
+    "roles": [
+      "ADMIN",
+    ],
+  },
   {
     "memberId": 7,
     "name": "Antti Heikkinen",
     "phoneNumber": "0467890123",
+    "roles": [
+      "INSTRUCTOR",
+      "MEMBER",
+    ],
   },
   {
     "memberId": 5,
     "name": "Pekka Hämäläinen",
     "phoneNumber": "0445678901",
+    "roles": [
+      "ADMIN",
+      "MEMBER",
+    ],
   },
   {
     "memberId": 2,
     "name": "Liisa Korhonen",
     "phoneNumber": "0412345678",
+    "roles": [
+      "ADMIN",
+      "COMMITTEE",
+    ],
   },
   {
     "memberId": 8,
     "name": "Sanna Koskinen",
     "phoneNumber": "0478901234",
+    "roles": [
+      "COMMITTEE",
+    ],
   },
   {
     "memberId": 6,
     "name": "Kaisa Laine",
     "phoneNumber": "0456789012",
+    "roles": [
+      "ADMIN",
+    ],
   },
   {
     "memberId": 4,
     "name": "Anna Mäkinen",
     "phoneNumber": "0434567890",
+    "roles": [
+      "COMMITTEE",
+    ],
   },
   {
     "memberId": 3,
     "name": "Jukka Nieminen",
     "phoneNumber": "0423456789",
+    "roles": [
+      "INSTRUCTOR",
+    ],
   },
   {
     "memberId": 10,
     "name": "Marja Salminen",
     "phoneNumber": "0490123456",
+    "roles": [],
   },
   {
     "memberId": 9,
     "name": "Juha Seppälä",
     "phoneNumber": "0489012345",
+    "roles": [
+      "MEMBER",
+    ],
   },
   {
     "memberId": 1,
     "name": "Matti Virtanen",
     "phoneNumber": "0401234567",
+    "roles": [
+      "INSTRUCTOR",
+      "MEMBER",
+    ],
+  },
+]
+`;
+
+exports[`Db query member tests getMembers should return only approved members for valid members 1`] = `
+[
+  {
+    "memberId": 7,
+    "name": "Antti Heikkinen",
+    "phoneNumber": "0467890123",
+    "roles": [
+      "INSTRUCTOR",
+      "MEMBER",
+    ],
+  },
+  {
+    "memberId": 5,
+    "name": "Pekka Hämäläinen",
+    "phoneNumber": "0445678901",
+    "roles": [
+      "MEMBER",
+    ],
+  },
+  {
+    "memberId": 2,
+    "name": "Liisa Korhonen",
+    "phoneNumber": "0412345678",
+    "roles": [
+      "COMMITTEE",
+    ],
+  },
+  {
+    "memberId": 8,
+    "name": "Sanna Koskinen",
+    "phoneNumber": "0478901234",
+    "roles": [
+      "COMMITTEE",
+    ],
+  },
+  {
+    "memberId": 4,
+    "name": "Anna Mäkinen",
+    "phoneNumber": "0434567890",
+    "roles": [
+      "COMMITTEE",
+    ],
+  },
+  {
+    "memberId": 3,
+    "name": "Jukka Nieminen",
+    "phoneNumber": "0423456789",
+    "roles": [
+      "INSTRUCTOR",
+    ],
+  },
+  {
+    "memberId": 9,
+    "name": "Juha Seppälä",
+    "phoneNumber": "0489012345",
+    "roles": [
+      "MEMBER",
+    ],
+  },
+  {
+    "memberId": 1,
+    "name": "Matti Virtanen",
+    "phoneNumber": "0401234567",
+    "roles": [
+      "INSTRUCTOR",
+      "MEMBER",
+    ],
   },
 ]
 `;
