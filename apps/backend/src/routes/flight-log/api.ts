@@ -1,14 +1,16 @@
 import { Router, type Request, type Response } from 'express'
+import type { ZodIssue } from 'zod'
 
 import {
   flightLogFiltersSchema,
-  FlightLogInsertSchema,
-  FlightLogUpdateSchema,
+  flightLogInsertSchema,
+  flightLogUpdateSchema,
   type FlightLog,
+  type FlightLogInsertRequest,
 } from './models.ts'
 import {
   deleteFlightLog,
-  getAllFlightLogs,
+  getFlightLogs,
   insertFlightLog,
   updateFlightLog,
 } from '../../db/flight-log-queries.ts'
@@ -26,18 +28,14 @@ const isFlightLogAdmin = (user?: JWTUser): boolean =>
 
 // Create a flight log
 router.post('/', async (req: Request, res: Response) => {
-  const payload = FlightLogInsertSchema.safeParse(req.body)
+  const payload = flightLogInsertSchema.safeParse(req.body)
 
   if (!payload.success) {
     return res.status(400).json({ error: payload.error.errors })
   }
 
-  //Override any supplied created by and updated by fields and use token
-  payload.data.created_by = req.user!.memberId
-  payload.data.updated_by = req.user!.memberId
-
-  const flightId = await insertFlightLog(payload.data)
-
+  const insPayload: FlightLogInsertRequest = payload.data
+  const flightId = await insertFlightLog(insPayload, req.user!)
   res.status(201).json({ flight_id: flightId })
 })
 
@@ -54,7 +52,8 @@ router.get('/my-flights', async (req: Request, res: Response) => {
     billable_member_id: req.user!.memberId,
   }
 
-  const logs = await getAllFlightLogs(filters)
+  const logs = await getFlightLogs(filters)
+
   res.status(200).json(logs)
 })
 
@@ -65,7 +64,7 @@ router.get('/', async (req: Request, res: Response) => {
     return res.status(400).json({ error: parsedQuery.error.errors })
   }
 
-  const logs = await getAllFlightLogs(parsedQuery.data)
+  const logs = await getFlightLogs(parsedQuery.data)
   res.status(200).json(logs)
 })
 
@@ -73,7 +72,7 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
-  const flight_log = await getAllFlightLogs({ flight_id: Number(id) })
+  const flight_log = await getFlightLogs({ flight_id: id })
   if (flight_log.length === 0) {
     return res.status(404).json({ message: 'Flight log not found' })
   }
@@ -115,14 +114,15 @@ const validateWriteAccess = (
 
 // Update a flight log
 router.patch('/:id', async (req: Request, res: Response) => {
-  const flightId = Number(req.params.id)
+  const flightId = req.params.id
 
-  const validate = FlightLogUpdateSchema.safeParse(req.body)
+  const validate = flightLogUpdateSchema.safeParse(req.body)
+
   if (!validate.success) {
-    return res.status(400).json({ error: validate.error.errors.map(e => e.message) })
+    return res.status(400).json({ error: validate.error.errors.map((e: ZodIssue) => e.message) })
   }
 
-  const flightLogs = await getAllFlightLogs({ flight_id: flightId })
+  const flightLogs = await getFlightLogs({ flight_id: flightId })
 
   const { status, message } = validateWriteAccess(flightLogs, req)
   if (status !== 200) {
@@ -139,9 +139,9 @@ router.patch('/:id', async (req: Request, res: Response) => {
 
 // Delete a flight log
 router.delete('/:id', async (req: Request, res: Response) => {
-  const flightId = Number(req.params.id)
+  const flightId = req.params.id
 
-  const flightLogToDelete = await getAllFlightLogs({ flight_id: flightId })
+  const flightLogToDelete = await getFlightLogs({ flight_id: flightId })
   const { status, message } = validateWriteAccess(flightLogToDelete, req)
   if (status !== 200) {
     return res.status(status).json({ message })

@@ -1,5 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Db add member tests Member Role Tests Adds a member role to the database and then deletes it 1`] = `
+{
+  "createdAt": Any<String>,
+  "createdBy": 1,
+  "description": "My Desc",
+  "isPublic": true,
+  "name": {
+    "en": "en name",
+    "fi": "fi name",
+  },
+  "permissions": [
+    "aircraft.admin",
+    "booking.admin",
+  ],
+  "roleId": "TEST_ROLE",
+  "updatedAt": Any<String>,
+  "updatedBy": 1,
+}
+`;
+
 exports[`Db add member tests add member and update member 1`] = `
 {
   "billingId": "MEMBER",
@@ -373,6 +393,28 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
 ]
+`;
+
+exports[`Db query member tests getMembers should return everything for admins 2`] = `
+{
+  "createdAt": Any<String>,
+  "createdBy": 0,
+  "description": "Administrator with full access",
+  "isPublic": false,
+  "name": {
+    "en": "Administrator",
+    "fi": "Ylläpitäjä",
+  },
+  "permissions": [
+    "member.admin",
+    "flightlog.admin",
+    "booking.admin",
+    "aircraft.admin",
+  ],
+  "roleId": "ADMIN",
+  "updatedAt": Any<String>,
+  "updatedBy": 0,
+}
 `;
 
 exports[`Db query member tests getMembers should return only approved members for valid members 1`] = `
