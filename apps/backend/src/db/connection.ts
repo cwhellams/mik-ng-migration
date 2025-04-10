@@ -18,11 +18,7 @@ const useSSL = process.env.DB_SSL
 // and retrieved back as Date objects
 pg.types.setTypeParser(1082, val => val) // 1082 is the OID for DATE
 
-// pg type ID for int8
-//const BIGINT_OID = 20
-//pg.types.setTypeParser(BIGINT_OID, val => BigInt(val))
 // Override the built-in parser for int8
-
 pg.types.setTypeParser(20, val => val) //
 
 const ca_cert_filename = 'ca-certificate.crt'

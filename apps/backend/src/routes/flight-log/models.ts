@@ -9,12 +9,6 @@ export const CrewRoleEnum = z.enum(['FE', 'FI', 'OBS', 'PIC', 'STU'])
 export const PrivOrComFlightEnum = z.enum(['P', 'C'])
 export const FlightLogStatusEnum = z.enum(['INVOICED', 'NEW', 'PAID', 'VALIDATED'])
 
-// const bigint = z
-//   .string()
-//   .regex(/^-?\d+$/) // make sure it looks like a number
-//   .or(z.number())
-//   .transform(val => BigInt(val))
-
 const epochDateTime = z.preprocess(
   val => {
     if (typeof val === 'string' && /^-?\d+$/.test(val)) {
