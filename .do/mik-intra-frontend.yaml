@@ -16,4 +16,4 @@ static_sites:
         scope: RUN_AND_BUILD_TIME
     routes:
       - path: /
-    catchall_document: /index.html
+    catchall_document: index.html
