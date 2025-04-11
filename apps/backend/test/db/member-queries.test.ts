@@ -6,8 +6,18 @@ import {
   getMemberById,
   addMember,
   updateMember,
+  getAllMemberRoleById,
+  addMemberRole,
+  updateMemberRole,
+  removeMemberRole,
 } from '../../src/db/member-queries.ts'
-import { MIKMemberTypes } from '../../src/routes/members/models.ts'
+import type { JWTUser } from '../../src/routes/auth/token.ts'
+
+import {
+  MIKMemberTypes,
+  MIKPermissions,
+  type UpsertMemberRole,
+} from '../../src/routes/members/models.ts'
 
 describe('Db query member tests', () => {
   it('getMemberById should return member data for a valid member id', async () => {
@@ -95,6 +105,15 @@ describe('Db query member tests', () => {
     // test only first 10 items in the test data
     expect(result.filter(m => m.memberId <= 10)).toMatchSnapshot()
   })
+
+  it('getMembers should return everything for admins', async () => {
+    const result = await getAllMemberRoleById('ADMIN')
+    // test only first 10 items in the test data
+    expect(result).toMatchSnapshot({
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    })
+  })
 })
 
 describe('Db add member tests', () => {
@@ -143,8 +162,75 @@ describe('Db add member tests', () => {
     await expectSnapshottetMember(memberId, email)
   })
 
-  afterAll(async () => {
-    // Close the pool after all tests
-    await closeDb()
+  describe('Member Role Tests', () => {
+    it('Adds a member role to the database and then deletes it', async () => {
+      const testRoleId = 'TEST_ROLE'
+
+      const newRole: UpsertMemberRole = {
+        roleId: testRoleId,
+        description: 'My Desc',
+        name: {
+          en: 'en name',
+          fi: 'fi name',
+        },
+        isPublic: true,
+        permissions: [MIKPermissions.AIRCRAFT_ADMIN, MIKPermissions.BOOKING_ADMIN],
+        createdBy: 1,
+        updatedBy: 1,
+      }
+
+      const jwtUser: JWTUser = {
+        memberId: 1,
+        email: 'test@mik.fi',
+        permissions: [MIKPermissions.MEMBER_ADMIN],
+      }
+
+      const createdRole = await addMemberRole(newRole, jwtUser)
+      expect(createdRole).toMatchSnapshot({
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })
+
+      await removeMemberRole(testRoleId)
+    })
   })
+
+  it('Updates a member role in the database', async () => {
+    const updRole = {
+      description:
+        'External service center user can log in and see flight logs and plane hours UPDATED',
+    }
+
+    const jwtUser: JWTUser = {
+      memberId: 1,
+      email: 'test@mik.fi',
+      permissions: [MIKPermissions.MEMBER_ADMIN],
+    }
+
+    await updateMemberRole('MAINTENANCE', updRole, jwtUser)
+  })
+
+  it('Update to a non existent role throws', async () => {
+    const updRole = {
+      description:
+        'External service center user can log in and see flight logs and plane hours UPDATED',
+    }
+
+    const jwtUser: JWTUser = {
+      memberId: 1,
+      email: 'test@mik.fi',
+      permissions: [MIKPermissions.MEMBER_ADMIN],
+    }
+
+    await expect(updateMemberRole('NOT_FOUND', updRole, jwtUser)).rejects.toThrow()
+  })
+
+  it('Removing a member role that does not exist will throw', async () => {
+    await expect(removeMemberRole('CANT_find_THIS')).rejects.toThrow()
+  })
+})
+
+afterAll(async () => {
+  // Close the pool after all tests
+  await closeDb()
 })

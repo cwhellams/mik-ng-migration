@@ -1,0 +1,1 @@
+CREATE TYPE CREW_ROLE AS ENUM ('PIC', 'FI', 'STU', 'OBS', 'FE');

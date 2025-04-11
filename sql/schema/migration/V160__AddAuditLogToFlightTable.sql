@@ -1,6 +1,6 @@
 CREATE TABLE flight.logs_audit (
     audit_id SERIAL PRIMARY KEY,
-    flight_id INT NOT NULL,
+    flight_id VARCHAR(9) NOT NULL,
     operation_type TEXT NOT NULL, -- 'INSERT', 'UPDATE', 'DELETE'
     changed_data JSONB, -- Stores the old data for DELETE and UPDATE
     new_data JSONB, -- Stores the new data for INSERT and UPDATE

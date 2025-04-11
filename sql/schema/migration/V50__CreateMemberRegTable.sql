@@ -9,7 +9,7 @@ CREATE TABLE member.register
     phone_number VARCHAR(20),
     ice_contact_name VARCHAR(100),
     ice_contact_phone_number VARCHAR(20),
-    member_type_id VARCHAR(10) NOT NULL,
+    member_type MEMBER_TYPE NOT NULL,
     billing_id VARCHAR(50),
     street_address VARCHAR(255),
     town_city VARCHAR(100),
@@ -20,6 +20,5 @@ CREATE TABLE member.register
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email_verified_at TIMESTAMP,
     created_by INT NOT NULL REFERENCES member.register (member_id),
-    updated_by INT NOT NULL REFERENCES member.register (member_id),
-    FOREIGN KEY (member_type_id) REFERENCES member.type (id)
+    updated_by INT NOT NULL REFERENCES member.register (member_id)
 );

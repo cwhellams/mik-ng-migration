@@ -5,10 +5,16 @@
 
 import type { ColumnType } from 'kysely'
 
+export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
+
+export type FlightLogStatus = 'INVOICED' | 'NEW' | 'PAID' | 'VALIDATED'
+
 export type Generated<T> =
   T extends ColumnType<infer S, infer I, infer U>
     ? ColumnType<S, I | undefined, U>
     : ColumnType<T, T | undefined, T>
+
+export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>
 
 export type Json = JsonValue
 
@@ -21,6 +27,8 @@ export type JsonObject = {
 export type JsonPrimitive = boolean | number | string | null
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive
+
+export type MemberType = 'EXTERNAL' | 'FLYING' | 'JUNIOR' | 'NON-FLYING'
 
 export type Numeric = ColumnType<number, number | string, number | string>
 
@@ -61,36 +69,65 @@ export interface FlightAircraft {
   year_of_manufacture: number
 }
 
+export interface FlightAircraftJourneyLogBook {
+  aircraft_registration: string
+  ajlb_seq_no: number
+  ajlb_start_date: Timestamp
+  hours_at_start: Numeric | null
+  no_of_pages: number
+  rows_per_page: number
+  start_page: number
+}
+
 export interface FlightLogs {
   aircraft_registration: string
+  ajlb_blank_rows_before: number
+  ajlb_seq_number: number
   arrival_airport: string
   billable_member_id: number
   billing_remarks: string | null
-  captain: string
-  captain_member_id: number | null
-  copilot: string | null
-  copilot_member_id: number | null
+  block_mins: Generated<number | null>
+  block_time: Generated<string | null>
   created_at: Generated<Timestamp>
   created_by: number
+  crew2_member_id: number | null
+  crew2_role: CrewRole | null
+  crew3_member_id: number | null
+  crew3_role: CrewRole | null
+  crew4_member_id: number | null
+  crew4_role: CrewRole | null
   departure_airport: string
-  flight_id: Generated<number>
+  flight_id: string
+  flight_mins: Generated<number | null>
+  flight_time: Generated<string | null>
   flight_type: string
-  fuel_uplift_litres: Numeric | null
-  instrument_hours: string | null
+  fuel_remaining_litres: Numeric
+  fuel_uplift_litres: Numeric
+  incident_or_observations: string | null
+  instrument_flying_mins: number
   invoice_number: Generated<string | null>
-  is_billable_flight: Generated<boolean>
+  is_billable_flight: boolean
   is_billed: Generated<boolean>
-  landing_time_utc: Timestamp
-  night_hours: string | null
+  landing_time_epoch: Int8
+  landing_time_utc: Generated<Timestamp | null>
+  night_flying_mins: number
   non_billing_approved_by_member_id: number | null
   non_billing_reason: string | null
   number_of_landings: number
-  off_block_time_utc: Timestamp
-  oil_uplift_litres: Numeric | null
-  on_block_time_utc: Timestamp
+  off_block_time_epoch: Int8
+  off_block_time_utc: Generated<Timestamp | null>
+  oil_uplift_litres: Numeric
+  on_block_time_epoch: Int8
+  on_block_time_utc: Generated<Timestamp | null>
+  personal_remarks: string | null
   persons_on_board: number
-  remarks: string | null
-  takeoff_time_utc: Timestamp
+  pic_member_id: number
+  pic_role: CrewRole
+  priv_or_com_flight: string
+  status: Generated<FlightLogStatus>
+  takeoff_time_epoch: Int8
+  takeoff_time_utc: Generated<Timestamp | null>
+  total_time_in_service: Numeric
   updated_at: Generated<Timestamp>
   updated_by: number
 }
@@ -100,7 +137,7 @@ export interface FlightLogsAudit {
   changed_at: Generated<Timestamp>
   changed_by: string
   changed_data: Json | null
-  flight_id: number
+  flight_id: string
   new_data: Json | null
   operation_type: string
 }
@@ -153,7 +190,7 @@ export interface MemberRegister {
   last_name: string
   member_id: Generated<number>
   member_since: Generated<Timestamp>
-  member_type_id: string
+  member_type: MemberType
   phone_number: string | null
   postcode: string | null
   street_address: string | null
@@ -185,13 +222,15 @@ export interface MemberRoles {
   updated_by: number
 }
 
-export interface MemberType {
-  description: string
-  id: string
+export interface StaticAirfields {
+  ident: string
+  iso_country: string | null
+  name: string | null
 }
 
 export interface DB {
   'flight.aircraft': FlightAircraft
+  'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit
   flyway_data_history: FlywayDataHistory
@@ -200,5 +239,5 @@ export interface DB {
   'member.register': MemberRegister
   'member.register_audit': MemberRegisterAudit
   'member.roles': MemberRoles
-  'member.type': MemberType
+  'static.airfields': StaticAirfields
 }

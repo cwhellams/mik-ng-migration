@@ -40,7 +40,7 @@ export async function getMemberByEmail(email: string): Promise<Member | undefine
 async function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Promise<Member> {
   return {
     memberId: member.member_id,
-    memberType: member.member_type_id as MIKMemberTypes,
+    memberType: member.member_type as MIKMemberTypes,
     email: member.email,
     firstName: member.first_name,
     lastName: member.last_name,
@@ -116,7 +116,7 @@ export async function getMembers(
     )
 
     // hide external users from non-admins
-    .$if(!isAdmin, qb => qb.where('member_type_id', '!=', 'EXTERNAL'))
+    .$if(!isAdmin, qb => qb.where('member_type', '!=', 'EXTERNAL'))
 
     // query users with roles
     .$if(filterRoles.length > 0, qb =>
@@ -167,7 +167,7 @@ export async function addMember(member: RegisterRequest): Promise<number> {
     .insertInto('member.register')
     .values({
       member_id: sql<number>`nextval('member.register_member_id_seq')`,
-      member_type_id: member.memberType,
+      member_type: member.memberType,
       email: member.email,
       first_name: member.firstName,
       last_name: member.lastName,
@@ -206,7 +206,7 @@ export async function updateMember(
   const result = await db
     .updateTable('member.register')
     .set({
-      member_type_id: patch.memberType?.toString(),
+      member_type: patch.memberType,
       email: patch.email,
       first_name: patch.firstName,
       last_name: patch.lastName,

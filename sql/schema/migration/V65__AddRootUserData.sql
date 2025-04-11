@@ -4,7 +4,7 @@ INSERT INTO member.register (
     last_name,
     member_since,
     email,
-    member_type_id,
+    member_type,
     can_make_reservations,
     is_training_program_pilot,
     created_by,

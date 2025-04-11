@@ -3,19 +3,19 @@
 exports[`GET /members should return 200 without search filters for user id 1 1`] = `
 [
   {
+    "memberId": 5,
+    "name": "Pekka Hämäläinen",
+    "phoneNumber": "0445678901",
+    "roles": [
+      "MEMBER",
+    ],
+  },
+  {
     "memberId": 7,
     "name": "Antti Heikkinen",
     "phoneNumber": "0467890123",
     "roles": [
       "INSTRUCTOR",
-      "MEMBER",
-    ],
-  },
-  {
-    "memberId": 5,
-    "name": "Pekka Hämäläinen",
-    "phoneNumber": "0445678901",
-    "roles": [
       "MEMBER",
     ],
   },
@@ -82,20 +82,20 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
     ],
   },
   {
-    "memberId": 7,
-    "name": "Antti Heikkinen",
-    "phoneNumber": "0467890123",
-    "roles": [
-      "INSTRUCTOR",
-      "MEMBER",
-    ],
-  },
-  {
     "memberId": 5,
     "name": "Pekka Hämäläinen",
     "phoneNumber": "0445678901",
     "roles": [
       "ADMIN",
+      "MEMBER",
+    ],
+  },
+  {
+    "memberId": 7,
+    "name": "Antti Heikkinen",
+    "phoneNumber": "0467890123",
+    "roles": [
+      "INSTRUCTOR",
       "MEMBER",
     ],
   },

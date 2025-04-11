@@ -2,6 +2,7 @@ CREATE DATABASE mik_ng
 WITH 
     OWNER = admin
 ENCODING = 'UTF8'
-    LOCALE_PROVIDER = icu
-    ICU_LOCALE = 'fi-FI'
+    LC_COLLATE = 'en_US.UTF-8'
+    LC_CTYPE = 'en_US.UTF-8'
+    LOCALE_PROVIDER = 'libc'
     TEMPLATE = template0;
