@@ -75,7 +75,7 @@ const Roles = () => {
               <TableRow>
                 <TableCell colSpan={2} height={150}>
                   <Typography variant='h6' color='error' align='center'>
-                    Error loading role data.
+                    {error.message}
                   </Typography>
                 </TableCell>
               </TableRow>

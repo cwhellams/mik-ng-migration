@@ -87,7 +87,8 @@
     "pageNotFoundMessage": "Hups, sivua ei löytynyt.",
     "backToHome": "Takaisin kotisivulle",
     "logout": "Uloskirjaudu",
-    "loadingMemberData": "Virhe jäsentietojen lataamisessa."
+    "loadingMemberData": "Virhe jäsentietojen lataamisessa",
+    "noMembersAccess": "Ei oikeuksia jäsentietoihin"
   },
   "roles": {
     "name": {

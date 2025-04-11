@@ -87,7 +87,8 @@
     "pageNotFoundMessage": "Oops, the page you're looking for doesn't exist.",
     "backToHome": "Back to homepage",
     "logout": "Log out",
-    "loadingMemberData": "Error loading member data."
+    "loadingMemberData": "Error loading member data",
+    "noMembersAccess": "No access to members data"
   },
   "flightLog": {
     "title": "Flight Logs",

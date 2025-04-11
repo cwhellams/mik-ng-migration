@@ -160,7 +160,9 @@ const Members = () => {
               <TableRow>
                 <TableCell colSpan={2} height={150}>
                   <Typography variant='h6' color='error' align='center'>
-                    Error loading member data.
+                    {error.status == 403
+                      ? t('error.noMembersAccess')
+                      : error.message}
                   </Typography>
                 </TableCell>
               </TableRow>

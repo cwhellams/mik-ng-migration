@@ -74,7 +74,7 @@ export const MemberRoleEditor = ({
     }
   }, [role])
 
-  const trigger = async (op: APIMutation<UpsertMemberRole>) => {
+  const trigger = async (api: APIMutation<UpsertMemberRole>) => {
     setErrorMsg('')
 
     try {
@@ -85,8 +85,8 @@ export const MemberRoleEditor = ({
 
       onClose()
     } catch {
-      setErrorMsg(op.error?.message ?? 'Error')
-      console.error('Error modifying role:', op.error)
+      setErrorMsg(api.error?.message ?? 'Error')
+      console.error('Error modifying role:', api.error)
     }
   }
 

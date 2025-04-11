@@ -31,7 +31,7 @@ api.interceptors.request.use(
 
 const refreshTheToken = async () => {
   await axios
-    .post<VerifyResponse>('/auth/refresh')
+    .post<VerifyResponse>(`${API_BASE}/auth/refresh`)
     .then((response) => {
       const accessToken = response.data.accessToken
       if (accessToken) {
