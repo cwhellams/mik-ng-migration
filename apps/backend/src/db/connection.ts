@@ -18,6 +18,9 @@ const useSSL = process.env.DB_SSL
 // and retrieved back as Date objects
 pg.types.setTypeParser(1082, val => val) // 1082 is the OID for DATE
 
+// Override the built-in parser for int8
+pg.types.setTypeParser(20, val => val) //
+
 const ca_cert_filename = 'ca-certificate.crt'
 
 const pool = new pg.Pool({
@@ -25,6 +28,7 @@ const pool = new pg.Pool({
   max: 10, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
   connectionTimeoutMillis: 2000, // Wait for a connection for 2 seconds
+  options: '-c timezone=UTC',
   ssl: useSSL
     ? {
         rejectUnauthorized: true,
@@ -47,5 +51,5 @@ export { closeDb } // Export the pool for testing
 
 const cert_exists = fs.existsSync(ca_cert_filename)
 logger.info(`Checking postgres security cert exists :${cert_exists}`)
-await db.selectFrom('member.roles').limit(1).execute()
+await db.selectFrom('static.airfields').limit(1).execute()
 logger.info('✅ PostgreSQL connection successful')

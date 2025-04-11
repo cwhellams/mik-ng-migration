@@ -1,0 +1,6 @@
+CREATE TYPE FLIGHT_LOG_STATUS AS ENUM (
+    'NEW',
+    'VALIDATED',
+    'INVOICED',
+    'PAID'
+)
