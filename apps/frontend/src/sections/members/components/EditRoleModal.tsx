@@ -78,7 +78,7 @@ export const MemberRoleEditor = ({
     setErrorMsg('')
 
     try {
-      await op.trigger(formData)
+      await api.trigger(formData)
 
       // clear the cache for roles list
       mutate((key) => Array.isArray(key) && key[0] == 'v1/members/roles')

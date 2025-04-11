@@ -22,7 +22,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Member } from '@backend/routes/members/models'
 import { DateField } from '@mui/x-date-pickers/DateField'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
+import { mutate } from 'swr'
 import { useRoles } from '../../../hooks/useRoles'
 import { APIMutation } from '../../../hooks/useApi'
 import { EditDialogTitle } from './EditDialogTitle'
@@ -41,14 +42,14 @@ interface EditMemberModalProps {
   memberData?: Member
 
   // either create or update members
-  mutate: APIMutation<Member>
+  api: APIMutation<Member>
 }
 
 export const EditMemberModal = ({
   onClose,
   mode,
   memberData,
-  mutate,
+  api,
 }: EditMemberModalProps) => {
   const { t, i18n } = useTranslation()
   const theme = useTheme()
@@ -124,11 +125,17 @@ export const EditMemberModal = ({
     e.preventDefault()
     setErrorMsg('')
     try {
-      await mutate.trigger(formData)
+      await api.trigger(formData)
+
+      if (mode == 'register') {
+        // clear the members list
+        mutate((key) => Array.isArray(key) && key[0] == 'v1/members')
+      }
+
       onClose()
     } catch (error) {
       console.error('Error saving member data:', error)
-      setErrorMsg(mutate.error?.message ?? 'Error')
+      setErrorMsg(api.error?.message ?? 'Error')
     }
   }
 
@@ -265,7 +272,7 @@ export const EditMemberModal = ({
         <DateField
           label={t('member.dateOfBirth')}
           value={formData.dateOfBirth ? dayjs(formData.dateOfBirth) : undefined}
-          onChange={(value) => {
+          onChange={(value: Dayjs | null) => {
             setFormData({
               ...formData,
               dateOfBirth: value?.format('YYYY-MM-DD'),
@@ -372,7 +379,7 @@ export const EditMemberModal = ({
           required
           margin='normal'
           value={dayjs(formData.memberSince)}
-          onChange={(value) => {
+          onChange={(value: Dayjs | null) => {
             setFormData({
               ...formData,
               memberSince: value?.format('YYYY-MM-DD'),
@@ -482,8 +489,8 @@ export const EditMemberModal = ({
           type='submit'
           color='primary'
           variant='contained'
-          disabled={mutate.isMutating}
-          startIcon={mutate.isMutating ? <CircularProgress size={20} /> : null}
+          disabled={api.isMutating}
+          startIcon={api.isMutating ? <CircularProgress size={20} /> : null}
         >
           {t('general.save', 'Save')}
         </Button>

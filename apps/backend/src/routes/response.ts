@@ -14,7 +14,7 @@ export function throwError(message: string): never {
 
 export const defaultErrorHandler = (
   err: Error,
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction,
 ) => {

@@ -6,6 +6,8 @@ import {
   Box,
   Stack,
   Chip,
+  Button,
+  Grid,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
 import { Member } from '@backend/routes/members/models'
@@ -13,7 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { EditButton } from './components/EditButton'
 import { FormField } from './components/FormField'
 import { AuditFormField } from './components/AuditFormField'
@@ -24,18 +26,24 @@ import { useRoles } from '../../hooks/useRoles'
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
   const { memberId } = useParams()
+  const navigate = useNavigate()
   const roles = useRoles()
 
   // no admin work can be done in own profile
   const isAdmin = roles.isMembersAdmin && memberId !== 'me'
 
-  const { data, isLoading, error, update } = useApi<Member>({
+  const { data, isLoading, error, update, remove } = useApi<Member>({
     url: `v1/members/${memberId}`,
   })
   const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
 
   const handleOpenEditModal = (mode: MemberEditMode) => {
     setEditMode(mode)
+  }
+
+  const handleRemove = () => {
+    remove.trigger({})
+    navigate('/members')
   }
 
   return (
@@ -231,13 +239,29 @@ const MemberProfile = () => {
                 </Stack>
               </CardContent>
             </Card>
+
+            <Grid>
+              {isAdmin && (
+                <Button
+                  color='secondary'
+                  variant='outlined'
+                  onClick={handleRemove}
+                  disabled={remove.isMutating}
+                  startIcon={
+                    remove.isMutating ? <CircularProgress size={20} /> : null
+                  }
+                >
+                  {t('general.delete', 'Delete')}
+                </Button>
+              )}
+            </Grid>
           </Stack>
 
           <EditMemberModal
             mode={editMode}
             onClose={() => setEditMode(undefined)}
             memberData={data}
-            mutate={update}
+            api={update}
           />
         </>
       )}

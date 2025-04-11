@@ -2,6 +2,7 @@ import dotenv from 'dotenv'
 import express from 'express'
 import request from 'supertest'
 
+import type { RegisterRequest } from '../../../src/routes/auth/schema.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { router } from '../../../src/routes/members/api.ts'
 import {
@@ -15,7 +16,6 @@ import {
   type UpsertMemberRole,
 } from '../../../src/routes/members/models.ts'
 import { defaultErrorHandler } from '../../../src/routes/response.ts'
-import type { RegisterRequest } from '../../../src/routes/auth/schema.ts'
 
 dotenv.config()
 

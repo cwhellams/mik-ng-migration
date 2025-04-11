@@ -123,7 +123,7 @@ const Members = () => {
             <Select
               labelId='role-label'
               id='role'
-              value={filters.role}
+              value={filters.role ?? ''}
               label={t('member.memberType')}
               onChange={({ target }) => {
                 setFilters({
@@ -233,7 +233,7 @@ const Members = () => {
             roles: [],
           } as unknown as Member
         }
-        mutate={create}
+        api={create}
       />
     </Box>
   )

@@ -99,10 +99,9 @@ const Roles = () => {
                   </TableCell>
                   <TableCell align='right'>
                     {row.permissions.map((perm) => (
-                      <>
+                      <Typography variant='body2' key={perm}>
                         {perm}
-                        <br />
-                      </>
+                      </Typography>
                     ))}
                   </TableCell>
                 </TableRow>
