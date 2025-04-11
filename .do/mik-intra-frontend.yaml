@@ -16,6 +16,4 @@ static_sites:
         scope: RUN_AND_BUILD_TIME
     routes:
       - path: /
-      - path: "/*"
-        preserve_path: true
-        redirect_to: /
+    catchall_document: index.html
