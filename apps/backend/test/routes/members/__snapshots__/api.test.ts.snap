@@ -166,6 +166,51 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
 ]
 `;
 
+exports[`GET /members/id Get member details as an admin 1`] = `
+{
+  "billingId": null,
+  "canMakeReservations": true,
+  "createdAt": Any<String>,
+  "createdBy": 0,
+  "email": "admin@mik.fi",
+  "firstName": "MIK",
+  "iceContactName": null,
+  "iceContactPhoneNumber": null,
+  "isTrainingProgramPilot": false,
+  "lastName": "Admin",
+  "memberId": 0,
+  "memberSince": Any<String>,
+  "memberType": "FLYING",
+  "phoneNumber": null,
+  "postcode": null,
+  "roles": [
+    {
+      "createdAt": Any<String>,
+      "createdBy": 0,
+      "description": "Administrator with full access",
+      "isPublic": false,
+      "name": {
+        "en": "Administrator",
+        "fi": "Ylläpitäjä",
+      },
+      "permissions": [
+        "member.admin",
+        "flightlog.admin",
+        "booking.admin",
+        "aircraft.admin",
+      ],
+      "roleId": "ADMIN",
+      "updatedAt": Any<String>,
+      "updatedBy": 0,
+    },
+  ],
+  "streetAddress": null,
+  "townCity": null,
+  "updatedAt": Any<String>,
+  "updatedBy": 0,
+}
+`;
+
 exports[`GET /members/me should return 200 with valid token for user id 1 1`] = `
 {
   "billingId": "BILL001",
@@ -225,6 +270,51 @@ exports[`GET /members/me should return 200 with valid token for user id 1 1`] = 
 
 exports[`GET /members/me should return 200 with valid token for user id 2 1`] = `
 {
+  "billingId": null,
+  "canMakeReservations": true,
+  "createdAt": Any<String>,
+  "createdBy": 0,
+  "email": "admin@mik.fi",
+  "firstName": "MIK",
+  "iceContactName": null,
+  "iceContactPhoneNumber": null,
+  "isTrainingProgramPilot": false,
+  "lastName": "Admin",
+  "memberId": 0,
+  "memberSince": Any<String>,
+  "memberType": "FLYING",
+  "phoneNumber": null,
+  "postcode": null,
+  "roles": [
+    {
+      "createdAt": Any<String>,
+      "createdBy": 0,
+      "description": "Administrator with full access",
+      "isPublic": false,
+      "name": {
+        "en": "Administrator",
+        "fi": "Ylläpitäjä",
+      },
+      "permissions": [
+        "member.admin",
+        "flightlog.admin",
+        "booking.admin",
+        "aircraft.admin",
+      ],
+      "roleId": "ADMIN",
+      "updatedAt": Any<String>,
+      "updatedBy": 0,
+    },
+  ],
+  "streetAddress": null,
+  "townCity": null,
+  "updatedAt": Any<String>,
+  "updatedBy": 0,
+}
+`;
+
+exports[`GET /members/me should return 200 with valid token for user id 3 1`] = `
+{
   "billingId": "BILL002",
   "canMakeReservations": true,
   "createdAt": Any<String>,
@@ -280,46 +370,5 @@ exports[`GET /members/me should return 200 with valid token for user id 2 1`] = 
   "townCity": "Espoo",
   "updatedAt": Any<String>,
   "updatedBy": 2,
-}
-`;
-
-exports[`GET /members/me should return 200 with valid token for user id 3 1`] = `
-{
-  "billingId": "BILL003",
-  "canMakeReservations": true,
-  "createdAt": Any<String>,
-  "createdBy": 3,
-  "dateOfBirth": "1990-03-25",
-  "email": "jukka.nieminen@example.com",
-  "firstName": "Jukka",
-  "iceContactName": "Anna Nieminen",
-  "iceContactPhoneNumber": "0429876543",
-  "isTrainingProgramPilot": false,
-  "lastName": "Nieminen",
-  "memberId": 3,
-  "memberSince": Any<String>,
-  "memberType": "NON-FLYING",
-  "phoneNumber": "0423456789",
-  "postcode": "33100",
-  "roles": [
-    {
-      "createdAt": Any<String>,
-      "createdBy": 1,
-      "description": "Instructor with permissions to manage training",
-      "isPublic": true,
-      "name": {
-        "en": "Instructor",
-        "fi": "Lennonopettaja",
-      },
-      "permissions": [],
-      "roleId": "INSTRUCTOR",
-      "updatedAt": Any<String>,
-      "updatedBy": 0,
-    },
-  ],
-  "streetAddress": "Aleksanterinkatu 5",
-  "townCity": "Tampere",
-  "updatedAt": Any<String>,
-  "updatedBy": 3,
 }
 `;

@@ -5,12 +5,17 @@ import request from 'supertest'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { router } from '../../../src/routes/members/api.ts'
 import {
+  MIKMemberTypes,
   MIKPermissions,
   type Member,
   type MemberListFilters,
   type MemberListResponse,
+  type MemberRole,
   type MemberRolesResponse,
+  type UpsertMemberRole,
 } from '../../../src/routes/members/models.ts'
+import { defaultErrorHandler } from '../../../src/routes/response.ts'
+import type { RegisterRequest } from '../../../src/routes/auth/schema.ts'
 
 dotenv.config()
 
@@ -18,6 +23,13 @@ dotenv.config()
 const app = express()
 app.use(express.json())
 app.use('/members', router)
+app.use(defaultErrorHandler)
+
+const adminToken = generateAccessToken({
+  memberId: 0,
+  email: 'admin@mik.fi',
+  permissions: [MIKPermissions.MEMBER_ADMIN],
+})
 
 const memberToken = generateAccessToken({
   memberId: 1,
@@ -25,14 +37,8 @@ const memberToken = generateAccessToken({
   permissions: [MIKPermissions.MEMBER],
 })
 
-const adminToken = generateAccessToken({
-  memberId: 2,
-  email: 'admin@mik.fi',
-  permissions: [MIKPermissions.MEMBER_ADMIN],
-})
-
 const noPermissionsToken = generateAccessToken({
-  memberId: 3,
+  memberId: 2,
   email: 'no-permissions@mik.fi',
   permissions: [],
 })
@@ -297,7 +303,7 @@ describe('GET /members/roles', () => {
     expect(response.status).toBe(401)
   })
 
-  it('Get return ponly public roles without permissions as a member', async () => {
+  it('Get return only public roles without permissions as a member', async () => {
     const response = await query(memberToken)
     expect(response.status).toBe(200)
 
@@ -345,5 +351,309 @@ describe('GET /members/roles', () => {
       },
       { permissions: ['member.admin', 'flightlog.admin'], roleId: 'SECRETARY' },
     ])
+  })
+})
+
+describe('GET /members/roles/id', () => {
+  const query = async (id: string, token: string) =>
+    request(app).get(`/members/roles/${id}`).set('Authorization', `Bearer ${token}`).query({})
+
+  it('Get return 401 if no token in authorization header', async () => {
+    const response = await request(app).get('/members/roles/ADMIN').query({})
+
+    expect(response.status).toBe(401)
+  })
+  it('Get return 401 if invalid token', async () => {
+    const response = await query('ADMIN', 'invalid_token')
+    expect(response.status).toBe(401)
+  })
+
+  it('Get return 403 as a reqular member', async () => {
+    const response = await query('ADMIN', memberToken)
+    expect(response.status).toBe(403)
+  })
+
+  it('Get return 404 as an admin with unknown role id', async () => {
+    const response = await query('NOTFOUND', adminToken)
+    expect(response.status).toBe(404)
+  })
+
+  it('Get return role as an admin', async () => {
+    const response = await query('ADMIN', adminToken)
+    const role = response.body as MemberRole
+
+    expect(role).toEqual({
+      roleId: 'ADMIN',
+      description: 'Administrator with full access',
+      name: {
+        en: 'Administrator',
+        fi: 'Ylläpitäjä',
+      },
+      isPublic: false,
+      permissions: ['member.admin', 'flightlog.admin', 'booking.admin', 'aircraft.admin'],
+      createdAt: expect.any(String),
+      createdBy: 0,
+      updatedAt: expect.any(String),
+      updatedBy: 0,
+    })
+  })
+})
+
+describe('PATCH /members/roles/id', () => {
+  const patch = async (id: string, payload: Partial<UpsertMemberRole>, token: string) =>
+    request(app).patch(`/members/roles/${id}`).set('Authorization', `Bearer ${token}`).send(payload)
+
+  it('Get return 401 if no token in authorization header', async () => {
+    const response = await request(app).patch('/members/roles/ADMIN').send({})
+
+    expect(response.status).toBe(401)
+  })
+  it('Return 401 if invalid token', async () => {
+    const response = await patch('ADMIN', {}, 'invalid_token')
+    expect(response.status).toBe(401)
+  })
+
+  it('Return 403 as a reqular member', async () => {
+    const response = await patch('ADMIN', {}, memberToken)
+    expect(response.status).toBe(403)
+  })
+
+  it('Return 404 as an admin with unknown role id', async () => {
+    const response = await patch('NOTFOUND', {}, adminToken)
+    expect(response.status).toBe(404)
+  })
+
+  it('Patch role as an admin', async () => {
+    const response = await patch('ADMIN', { isPublic: true }, adminToken)
+    expect(response.status).toBe(200)
+
+    const updatedRole = response.body as MemberRole
+
+    expect(updatedRole.isPublic).toEqual(true)
+
+    const reverted = await patch('ADMIN', { isPublic: false }, adminToken)
+    const revertedRole = reverted.body as MemberRole
+    expect(revertedRole.isPublic).toEqual(false)
+  })
+})
+
+const post = async (payload: UpsertMemberRole, token: string) =>
+  request(app).post(`/members/roles`).set('Authorization', `Bearer ${token}`).send(payload)
+
+const remove = async (id: string, token: string) =>
+  request(app).delete(`/members/roles/${id}`).set('Authorization', `Bearer ${token}`).send({})
+
+describe('POST /members/roles', () => {
+  const role: UpsertMemberRole = {
+    roleId: new Date().getTime().toString(),
+    description: 'description',
+    isPublic: true,
+    name: {
+      en: 'English',
+      fi: 'Finnish',
+    },
+    permissions: [MIKPermissions.MEMBER_ADMIN, MIKPermissions.FLIGHTLOG_ADMIN],
+  }
+
+  it('Return 401 if no token in authorization header', async () => {
+    const response = await request(app).post('/members/roles').send({})
+
+    expect(response.status).toBe(401)
+  })
+  it('Return 401 if invalid token', async () => {
+    const response = await post(role, 'invalid_token')
+    expect(response.status).toBe(401)
+  })
+
+  it('Return 403 as a reqular member', async () => {
+    const response = await post(role, memberToken)
+    expect(response.status).toBe(403)
+  })
+
+  it('Post role as an admin', async () => {
+    const response = await post(role, adminToken)
+    expect(response.status).toBe(200)
+
+    await remove(role.roleId, adminToken)
+  })
+
+  it('Return 500 is duplicate role id', async () => {
+    const response = await post({ ...role, roleId: 'ADMIN' }, adminToken)
+    expect(response.status).toBe(500)
+  })
+
+  it('Return 400 with missing fields', async () => {
+    const response = await post(
+      { ...role, name: undefined } as unknown as UpsertMemberRole,
+      adminToken,
+    )
+    expect(response.status).toBe(400)
+  })
+})
+
+describe('DELETE /members/roles/id', () => {
+  const role: UpsertMemberRole = {
+    roleId: new Date().getTime().toString(),
+    description: 'description',
+    isPublic: true,
+    name: {
+      en: 'English',
+      fi: 'Finnish',
+    },
+    permissions: [MIKPermissions.MEMBER_ADMIN, MIKPermissions.FLIGHTLOG_ADMIN],
+  }
+
+  it('Return 401 if no token in authorization header', async () => {
+    const response = await request(app).delete('/members/roles/id').send({})
+
+    expect(response.status).toBe(401)
+  })
+  it('Return 401 if invalid token', async () => {
+    const response = await post(role, 'invalid_token')
+    expect(response.status).toBe(401)
+  })
+
+  it('Return 403 as a reqular member', async () => {
+    const response = await post(role, memberToken)
+    expect(response.status).toBe(403)
+  })
+
+  it('Delete role as an admin', async () => {
+    await post(role, adminToken)
+
+    const response = await remove(role.roleId, adminToken)
+    expect(response.status).toBe(204)
+  })
+
+  it('Return 404 if role not found', async () => {
+    const response = await remove('NOTFOUND', adminToken)
+    expect(response.status).toBe(404)
+  })
+})
+
+describe('PATCH /members/id', () => {
+  const patch = async (id: string, payload: Partial<Member>, token: string) =>
+    request(app).patch(`/members/${id}`).set('Authorization', `Bearer ${token}`).send(payload)
+
+  it('Get return 401 if no token in authorization header', async () => {
+    const response = await request(app).patch('/members/1').send({})
+
+    expect(response.status).toBe(401)
+  })
+  it('Return 401 if invalid token', async () => {
+    const response = await patch('0', {}, 'invalid_token')
+    expect(response.status).toBe(401)
+  })
+
+  it('Return 403 as a reqular member', async () => {
+    const response = await patch('0', {}, memberToken)
+    expect(response.status).toBe(403)
+  })
+
+  it('Return 404 as an admin with unknown member id', async () => {
+    const response = await patch('-1', {}, adminToken)
+    expect(response.status).toBe(404)
+  })
+
+  it('Patch member as an admin', async () => {
+    const response = await patch('0', { firstName: 'Test' }, adminToken)
+    expect(response.status).toBe(200)
+
+    const updatedRole = response.body as Member
+
+    expect(updatedRole.firstName).toEqual('Test')
+
+    const reverted = await patch('0', { firstName: 'MIK' }, adminToken)
+    const revertedRole = reverted.body as Member
+    expect(revertedRole.firstName).toEqual('MIK')
+  })
+})
+
+describe('GET /members/id', () => {
+  const get = async (id: number, token: string) =>
+    request(app).get(`/members/${id}`).set('Authorization', `Bearer ${token}`).query({})
+
+  it('Return 401 if no token in authorization header', async () => {
+    const response = await request(app).get('/members/0').query({})
+
+    expect(response.status).toBe(401)
+  })
+  it('Return 401 if invalid token', async () => {
+    const response = await get(0, 'invalid_token')
+    expect(response.status).toBe(401)
+  })
+
+  it('Return 403 as a reqular member', async () => {
+    const response = await get(0, memberToken)
+    expect(response.status).toBe(403)
+  })
+
+  it('Get member details as an admin', async () => {
+    const response = await get(0, adminToken)
+    expect(response.status).toBe(200)
+
+    const member = response.body as Member
+    expect(member).toMatchSnapshot({
+      memberSince: expect.any(String),
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+      roles: member.roles.map(role => ({
+        ...role,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
+    })
+  })
+})
+
+describe('POST /members', () => {
+  const post = async (payload: RegisterRequest, token: string) =>
+    request(app).post(`/members`).set('Authorization', `Bearer ${token}`).send(payload)
+
+  const remove = async (id: number, token: string) =>
+    request(app).delete(`/members/${id}`).set('Authorization', `Bearer ${token}`).send({})
+
+  const req: RegisterRequest = {
+    memberType: MIKMemberTypes.NONFLYING,
+    email: 'test@email.com',
+    firstName: 'first',
+    lastName: 'last',
+  }
+
+  it('Return 401 if no token in authorization header', async () => {
+    const response = await request(app).post('/members').send({})
+
+    expect(response.status).toBe(401)
+  })
+  it('Return 401 if invalid token', async () => {
+    const response = await post(req, 'invalid_token')
+    expect(response.status).toBe(401)
+  })
+
+  it('Return 403 as a reqular member', async () => {
+    const response = await post(req, memberToken)
+    expect(response.status).toBe(403)
+  })
+
+  it('Create and delete member as an admin', async () => {
+    const response = await post(req, adminToken)
+    expect(response.status).toBe(200)
+
+    const member = response.body as Member
+
+    await remove(member.memberId, adminToken)
+  })
+
+  it('Return 500 with duplicate email', async () => {
+    const response = await post({ ...req, email: 'admin@mik.fi' }, adminToken)
+    expect(response.status).toBe(500)
+  })
+
+  it('Return 400 with missing fields', async () => {
+    const response = await post(
+      { ...req, firstName: undefined } as unknown as RegisterRequest,
+      adminToken,
+    )
+    expect(response.status).toBe(400)
   })
 })

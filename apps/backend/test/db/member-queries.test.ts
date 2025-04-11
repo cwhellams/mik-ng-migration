@@ -1,6 +1,6 @@
 import { closeDb } from '../../src/db/connection.ts'
 import {
-  getMemberRoles,
+  getMemberRolesByMemberId,
   getMembers,
   getMemberByEmail,
   getMemberById,
@@ -10,14 +10,19 @@ import {
   addMemberRole,
   updateMemberRole,
   removeMemberRole,
+  removeMember,
 } from '../../src/db/member-queries.ts'
-import type { JWTUser } from '../../src/routes/auth/token.ts'
-
 import {
   MIKMemberTypes,
   MIKPermissions,
   type UpsertMemberRole,
 } from '../../src/routes/members/models.ts'
+
+const jwt = {
+  memberId: 0,
+  email: 'loggedinuser',
+  permissions: [],
+}
 
 describe('Db query member tests', () => {
   it('getMemberById should return member data for a valid member id', async () => {
@@ -78,8 +83,8 @@ describe('Db query member tests', () => {
     expect(result).toBeUndefined()
   })
 
-  it('getMemberRoles should return roles for given valid member', async () => {
-    const result = await getMemberRoles(1)
+  it('getMemberRolesByMemberId should return roles for given valid member', async () => {
+    const result = await getMemberRolesByMemberId(1)
     expect(result).toMatchSnapshot(
       result.map(r => ({
         ...r,
@@ -89,8 +94,8 @@ describe('Db query member tests', () => {
     )
   })
 
-  it('getMemberRoles should return empty array for invalid member', async () => {
-    const result = await getMemberRoles(-99)
+  it('getMemberRolesByMemberId should return empty array for invalid member', async () => {
+    const result = await getMemberRolesByMemberId(-99)
     expect(result).toEqual([])
   })
 
@@ -153,13 +158,11 @@ describe('Db add member tests', () => {
     await updateMember(
       memberId,
       { firstName: 'test2', roles: [{ roleId: 'MEMBER', isPublic: true }] },
-      {
-        memberId: 1,
-        email: 'loggedinuser',
-        permissions: [],
-      },
+      jwt,
     )
     await expectSnapshottetMember(memberId, email)
+
+    await removeMember(memberId)
   })
 
   describe('Member Role Tests', () => {
@@ -175,20 +178,14 @@ describe('Db add member tests', () => {
         },
         isPublic: true,
         permissions: [MIKPermissions.AIRCRAFT_ADMIN, MIKPermissions.BOOKING_ADMIN],
-        createdBy: 1,
-        updatedBy: 1,
       }
 
-      const jwtUser: JWTUser = {
-        memberId: 1,
-        email: 'test@mik.fi',
-        permissions: [MIKPermissions.MEMBER_ADMIN],
-      }
-
-      const createdRole = await addMemberRole(newRole, jwtUser)
+      const createdRole = await addMemberRole(newRole, jwt)
       expect(createdRole).toMatchSnapshot({
         createdAt: expect.any(String),
+        createdBy: jwt.memberId,
         updatedAt: expect.any(String),
+        updatedBy: jwt.memberId,
       })
 
       await removeMemberRole(testRoleId)
@@ -197,36 +194,33 @@ describe('Db add member tests', () => {
 
   it('Updates a member role in the database', async () => {
     const updRole = {
-      description:
-        'External service center user can log in and see flight logs and plane hours UPDATED',
+      description: new Date().toISOString(),
     }
 
-    const jwtUser: JWTUser = {
-      memberId: 1,
-      email: 'test@mik.fi',
-      permissions: [MIKPermissions.MEMBER_ADMIN],
-    }
+    const beforeUpdate = await getAllMemberRoleById('MAINTENANCE')
 
-    await updateMemberRole('MAINTENANCE', updRole, jwtUser)
+    expect(await updateMemberRole('MAINTENANCE', updRole, jwt)).toEqual(true)
+
+    const afterUpdate = await getAllMemberRoleById('MAINTENANCE')
+
+    expect(afterUpdate).toEqual({
+      ...beforeUpdate,
+      ...updRole,
+      updatedAt: expect.any(String),
+    })
   })
 
-  it('Update to a non existent role throws', async () => {
+  it('Update to a non existent role returns false', async () => {
     const updRole = {
       description:
         'External service center user can log in and see flight logs and plane hours UPDATED',
     }
 
-    const jwtUser: JWTUser = {
-      memberId: 1,
-      email: 'test@mik.fi',
-      permissions: [MIKPermissions.MEMBER_ADMIN],
-    }
-
-    await expect(updateMemberRole('NOT_FOUND', updRole, jwtUser)).rejects.toThrow()
+    expect(await updateMemberRole('NOT_FOUND', updRole, jwt)).toEqual(false)
   })
 
-  it('Removing a member role that does not exist will throw', async () => {
-    await expect(removeMemberRole('CANT_find_THIS')).rejects.toThrow()
+  it('Removing a member role that does not exist will return false', async () => {
+    expect(await removeMemberRole('CANT_find_THIS')).toEqual(false)
   })
 })
 

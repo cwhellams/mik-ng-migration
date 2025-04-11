@@ -3,7 +3,7 @@
 exports[`Db add member tests Member Role Tests Adds a member role to the database and then deletes it 1`] = `
 {
   "createdAt": Any<String>,
-  "createdBy": 1,
+  "createdBy": 0,
   "description": "My Desc",
   "isPublic": true,
   "name": {
@@ -16,7 +16,7 @@ exports[`Db add member tests Member Role Tests Adds a member role to the databas
   ],
   "roleId": "TEST_ROLE",
   "updatedAt": Any<String>,
-  "updatedBy": 1,
+  "updatedBy": 0,
 }
 `;
 
@@ -69,7 +69,7 @@ exports[`Db add member tests add member and update member 2`] = `
   "roles": [
     {
       "createdAt": Any<String>,
-      "createdBy": 1,
+      "createdBy": 0,
       "description": "MIK member with basic access",
       "isPublic": true,
       "name": {
@@ -265,7 +265,7 @@ exports[`Db query member tests getMemberById should return member data for a val
 }
 `;
 
-exports[`Db query member tests getMemberRoles should return roles for given valid member 1`] = `
+exports[`Db query member tests getMemberRolesByMemberId should return roles for given valid member 1`] = `
 [
   {
     "createdAt": Any<String>,
