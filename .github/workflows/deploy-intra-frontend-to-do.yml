@@ -6,6 +6,7 @@ on:
     paths:
       - 'apps/frontend/**' # Only trigger if changes are in apps/frontend
       - '.github/workflows/**' # or in the workflows
+      - '.do/**' # or in digital ocean yaml
 
 jobs:
   deploy:
