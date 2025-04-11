@@ -89,16 +89,16 @@ CREATE TABLE flight.logs
     ),
     -- Computed columns to convert BIGINT timestamps to TIMESTAMPTZ
     off_block_time_utc TIMESTAMPTZ GENERATED ALWAYS AS (
-        TO_TIMESTAMP(off_block_time_epoch) AT TIME ZONE 'UTC'
+        TO_TIMESTAMP(off_block_time_epoch)
     ) STORED,
     takeoff_time_utc TIMESTAMPTZ GENERATED ALWAYS AS (
-        TO_TIMESTAMP(takeoff_time_epoch) AT TIME ZONE 'UTC'
+        TO_TIMESTAMP(takeoff_time_epoch)
     ) STORED,
     landing_time_utc TIMESTAMPTZ GENERATED ALWAYS AS (
-        TO_TIMESTAMP(landing_time_epoch) AT TIME ZONE 'UTC'
+        TO_TIMESTAMP(landing_time_epoch)
     ) STORED,
     on_block_time_utc TIMESTAMPTZ GENERATED ALWAYS AS (
-        TO_TIMESTAMP(on_block_time_epoch) AT TIME ZONE 'UTC'
+        TO_TIMESTAMP(on_block_time_epoch)
     ) STORED,
     block_mins INTEGER
     GENERATED ALWAYS AS (
