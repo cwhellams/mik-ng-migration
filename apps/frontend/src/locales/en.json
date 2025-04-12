@@ -58,6 +58,7 @@
     "trainingProgram": "Training Program",
     "noRolesAssigned": "No roles assigned",
     "edit": {
+      "register": "Add new user",
       "personalInfo": "Edit your information",
       "emergencyContact": "Edit Emergency Contact",
       "training": "Edit Training Programs",
@@ -68,7 +69,8 @@
     "types": {
       "flying": "Full Member",
       "non-flying": "Supporting Member",
-      "junior": "Junior"
+      "junior": "Junior",
+      "external": "External user"
     },
     "isTrainingProgramPilot": "Training Program Pilot",
     "membership": "Membership Details",
@@ -85,7 +87,8 @@
     "pageNotFoundMessage": "Oops, the page you're looking for doesn't exist.",
     "backToHome": "Back to homepage",
     "logout": "Log out",
-    "loadingMemberData": "Error loading member data."
+    "loadingMemberData": "Error loading member data",
+    "noMembersAccess": "No access to members data"
   },
   "flightLog": {
     "title": "Flight Logs",
@@ -106,10 +109,11 @@
       "en": "Translation in English"
     },
     "newRole": "New Role",
+    "editRole": "Edit Role",
     "roleId": "Role ID",
     "isPublic": "Visible to Members",
     "permissions": "Permissions",
-    "description": "Description",
+    "description": "Free-text Description (admin only)",
     "details": "Role Details",
     "all": "-- All --",
     "unApproved": "-- Unapproved --"

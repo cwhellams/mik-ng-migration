@@ -21,8 +21,11 @@ import {
   updateMemberRole,
   addMemberRole,
   removeMemberRole,
+  addMember,
+  removeMember,
 } from '../../db/member-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
+import { RegisterRequestSchema } from '../auth/schema.ts'
 import type { JWTUser } from '../auth/token.ts'
 import type { ErrorResponse } from '../response.ts'
 
@@ -126,7 +129,10 @@ router.patch(
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{ roleId: string }>, res: Response<MemberRole | ErrorResponse>) => {
     const patch = UpsertMemberRoleSchema.partial().parse(req.body)
-    await updateMemberRole(req.params.roleId, patch, req.user!)
+    const success = await updateMemberRole(req.params.roleId, patch, req.user!)
+    if (!success) {
+      return res.status(404).json({ message: 'Not found' })
+    }
 
     const role = await getAllMemberRoleById(req.params.roleId)
     res.status(200).json(role)
@@ -148,7 +154,10 @@ router.delete(
   '/roles/:roleId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{ roleId: string }>, res: Response<MemberRole | ErrorResponse>) => {
-    await removeMemberRole(req.params.roleId)
+    const success = await removeMemberRole(req.params.roleId)
+    if (!success) {
+      return res.status(404).json({ message: 'Not found' })
+    }
 
     res.status(204).end()
   },
@@ -157,6 +166,18 @@ router.delete(
 //
 // Admin only member routes
 //
+
+router.post(
+  '/',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request, res: Response<Member | ErrorResponse>) => {
+    const member = RegisterRequestSchema.parse(req.body)
+    const memberId = await addMember(member, req.user!)
+
+    const created = await getMemberById(memberId)
+    res.status(200).json(created)
+  },
+)
 
 router.get(
   '/:memberId',
@@ -179,7 +200,26 @@ router.patch(
     const memberId = Number(req.params.memberId)
 
     const patch = MemberSchema.partial().parse(req.body)
-    await updateMember(memberId, patch, req.user!)
+    const updated = await updateMember(memberId, patch, req.user!)
+    if (!updated) {
+      return res.status(404).json({ message: 'Not found' })
+    }
+
+    const member = await getMemberById(memberId)
+    res.status(200).json(member)
+  },
+)
+
+router.delete(
+  '/:memberId',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request<{ memberId: string }>, res: Response<Member | ErrorResponse>) => {
+    const memberId = Number(req.params.memberId)
+
+    const updated = await removeMember(memberId)
+    if (!updated) {
+      return res.status(404).json({ message: 'Not found' })
+    }
 
     const member = await getMemberById(memberId)
     res.status(200).json(member)

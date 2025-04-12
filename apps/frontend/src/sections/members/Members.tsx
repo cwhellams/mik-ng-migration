@@ -22,14 +22,18 @@ import {
 import { Link } from 'react-router-dom'
 import useApi from '../../hooks/useApi'
 import {
+  Member,
   MemberListFilters,
   MemberListResponse,
+  MIKMemberTypes,
 } from '@backend/routes/members/models'
 import { Icon } from '@iconify/react'
 import { useRoles } from '../../hooks/useRoles'
 import { t } from 'i18next'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { EditButton } from './components/EditButton'
+import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 
 const Members = () => {
   const [filters, setFilters] = useState<MemberListFilters>({
@@ -48,14 +52,26 @@ const Members = () => {
     }
   )
 
+  const { create } = useApi<Member>({
+    url: 'v1/members',
+  })
+
+  const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
+
   const { isMembersAdmin, roles } = useRoles()
   const { i18n } = useTranslation()
 
   return (
-    <Box>
+    <Box sx={{ position: 'relative' }}>
       <Typography variant='h2' gutterBottom>
         {t('header.members')}
       </Typography>
+
+      <EditButton
+        title='member.edit.register'
+        onClick={() => setEditMode('register')}
+        icon='mdi:plus'
+      />
 
       <Grid
         container
@@ -107,7 +123,7 @@ const Members = () => {
             <Select
               labelId='role-label'
               id='role'
-              value={filters.role}
+              value={filters.role ?? ''}
               label={t('member.memberType')}
               onChange={({ target }) => {
                 setFilters({
@@ -131,7 +147,7 @@ const Members = () => {
       </Grid>
 
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label='simple table'>
+        <Table aria-label='simple table'>
           <TableHead>
             <TableRow>
               <TableCell>{t('member.fullname')}</TableCell>
@@ -144,7 +160,9 @@ const Members = () => {
               <TableRow>
                 <TableCell colSpan={2} height={150}>
                   <Typography variant='h6' color='error' align='center'>
-                    Error loading member data.
+                    {error.status == 403
+                      ? t('error.noMembersAccess')
+                      : error.message}
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -166,11 +184,18 @@ const Members = () => {
                     <Stack
                       direction='row'
                       spacing={1}
-                      sx={{ mb: 3, justifyContent: 'flex-end' }}
+                      display='inline-flex'
+                      sx={{
+                        flexWrap: 'wrap',
+                        justifyContent: 'flex-end',
+                      }}
                     >
                       {row.roles.map((role, index) => (
                         <Chip
                           key={index}
+                          sx={{ width: 'fit-content' }}
+                          size='small'
+                          variant='outlined'
                           label={
                             roles.find((r) => r.roleId === role)?.name[
                               i18n.language == 'fi' ? 'fi' : 'en'
@@ -193,6 +218,23 @@ const Members = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <EditMemberModal
+        mode={editMode}
+        onClose={() => setEditMode(undefined)}
+        memberData={
+          // full member data not needed
+          {
+            memberType: MIKMemberTypes.EXTERNAL,
+            email: '',
+            firstName: '',
+            lastName: '',
+            phoneNumber: '',
+            roles: [],
+          } as unknown as Member
+        }
+        api={create}
+      />
     </Box>
   )
 }

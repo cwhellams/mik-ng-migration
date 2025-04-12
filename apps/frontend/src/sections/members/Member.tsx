@@ -6,6 +6,8 @@ import {
   Box,
   Stack,
   Chip,
+  Button,
+  Grid,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
 import { Member } from '@backend/routes/members/models'
@@ -13,7 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { EditButton } from './components/EditButton'
 import { FormField } from './components/FormField'
 import { AuditFormField } from './components/AuditFormField'
@@ -24,27 +26,24 @@ import { useRoles } from '../../hooks/useRoles'
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
   const { memberId } = useParams()
+  const navigate = useNavigate()
   const roles = useRoles()
 
   // no admin work can be done in own profile
   const isAdmin = roles.isMembersAdmin && memberId !== 'me'
 
-  const { data, isLoading, error, mutate, update } = useApi<Member>({
+  const { data, isLoading, error, update, remove } = useApi<Member>({
     url: `v1/members/${memberId}`,
   })
-  const [editModalOpen, setEditModalOpen] = useState(false)
-  const [editMode, setEditMode] = useState<MemberEditMode>('personalInfo')
+  const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
 
   const handleOpenEditModal = (mode: MemberEditMode) => {
     setEditMode(mode)
-    setEditModalOpen(true)
   }
 
-  const handleSaveMemberData = async (
-    updatedData: Partial<Member>
-  ): Promise<void> => {
-    const res = await update.trigger(updatedData)
-    mutate(() => res, { revalidate: true })
+  const handleRemove = () => {
+    remove.trigger({})
+    navigate('/members')
   }
 
   return (
@@ -87,8 +86,8 @@ const MemberProfile = () => {
               ))}
             {isAdmin && (
               <EditButton
-                mode='roles'
-                positionStatic={true}
+                title='member.edit.roles'
+                position='static'
                 onClick={() => handleOpenEditModal('roles')}
               />
             )}
@@ -96,9 +95,9 @@ const MemberProfile = () => {
 
           <Stack spacing={3}>
             <Stack direction={{ sm: 'column', md: 'row' }} spacing={3}>
-              <Card sx={{ flex: 1, position: 'relative' }}>
+              <Card sx={{ flex: 1, mb: 3 }}>
                 <EditButton
-                  mode='personalInfo'
+                  title='member.edit.personalInfo'
                   onClick={() => handleOpenEditModal('personalInfo')}
                 />
                 <CardContent>
@@ -133,9 +132,9 @@ const MemberProfile = () => {
                 </CardContent>
               </Card>
 
-              <Card sx={{ flex: 1, position: 'relative' }}>
+              <Card sx={{ flex: 1 }}>
                 <EditButton
-                  mode='emergencyContact'
+                  title='member.edit.emergencyContact'
                   onClick={() => handleOpenEditModal('emergencyContact')}
                 />
                 <CardContent>
@@ -160,7 +159,7 @@ const MemberProfile = () => {
             <Card>
               {isAdmin && (
                 <EditButton
-                  mode='training'
+                  title='member.edit.training'
                   onClick={() => handleOpenEditModal('training')}
                 />
               )}
@@ -181,7 +180,7 @@ const MemberProfile = () => {
             <Card>
               {isAdmin && (
                 <EditButton
-                  mode='membership'
+                  title='member.edit.membership'
                   onClick={() => handleOpenEditModal('membership')}
                 />
               )}
@@ -240,14 +239,29 @@ const MemberProfile = () => {
                 </Stack>
               </CardContent>
             </Card>
+
+            <Grid>
+              {isAdmin && (
+                <Button
+                  color='secondary'
+                  variant='outlined'
+                  onClick={handleRemove}
+                  disabled={remove.isMutating}
+                  startIcon={
+                    remove.isMutating ? <CircularProgress size={20} /> : null
+                  }
+                >
+                  {t('general.delete', 'Delete')}
+                </Button>
+              )}
+            </Grid>
           </Stack>
 
           <EditMemberModal
-            open={editModalOpen}
-            onClose={() => setEditModalOpen(false)}
             mode={editMode}
+            onClose={() => setEditMode(undefined)}
             memberData={data}
-            onSave={handleSaveMemberData}
+            api={update}
           />
         </>
       )}

@@ -21,7 +21,7 @@ export async function getMemberById(memberId: number): Promise<Member | undefine
     .executeTakeFirst()
 
   if (member !== undefined) {
-    return toMember(member, await getMemberRoles(memberId))
+    return toMember(member, await getMemberRolesByMemberId(memberId))
   }
 }
 
@@ -33,7 +33,7 @@ export async function getMemberByEmail(email: string): Promise<Member | undefine
     .where('email', '=', email)
     .executeTakeFirst()
   if (member !== undefined) {
-    return toMember(member, await getMemberRoles(member.member_id))
+    return toMember(member, await getMemberRolesByMemberId(member.member_id))
   }
 }
 
@@ -161,7 +161,7 @@ export async function getMembers(
   }))
 }
 
-export async function addMember(member: RegisterRequest): Promise<number> {
+export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise<number> {
   const now = new Date()
   const result = await db
     .insertInto('member.register')
@@ -182,9 +182,9 @@ export async function addMember(member: RegisterRequest): Promise<number> {
       member_since: now,
 
       created_at: now,
-      created_by: sql<number>`currval('member.register_member_id_seq')`,
+      created_by: jwt?.memberId ?? sql<number>`currval('member.register_member_id_seq')`,
       updated_at: now,
-      updated_by: sql<number>`currval('member.register_member_id_seq')`,
+      updated_by: jwt?.memberId ?? sql<number>`currval('member.register_member_id_seq')`,
       email_verified_at: undefined,
     })
     .returning('member_id')
@@ -200,7 +200,7 @@ export async function updateMember(
   memberId: number,
   patch: Partial<Member>,
   jwt: JWTUser,
-): Promise<void> {
+): Promise<boolean> {
   const now = new Date()
 
   const result = await db
@@ -232,7 +232,7 @@ export async function updateMember(
     .where('member_id', '=', memberId)
     .executeTakeFirstOrThrow()
   if (!result.numUpdatedRows) {
-    throw new Error('Member update failed')
+    return false
   }
 
   if (patch.roles) {
@@ -242,6 +242,21 @@ export async function updateMember(
       jwt,
     )
   }
+
+  return true
+}
+
+export async function removeMember(memberId: number): Promise<boolean> {
+  await db
+    .deleteFrom('member.member_to_roles')
+    .where('member_id', '=', memberId)
+    .executeTakeFirstOrThrow()
+
+  const result = await db
+    .deleteFrom('member.register')
+    .where('member_id', '=', memberId)
+    .executeTakeFirstOrThrow()
+  return result.numDeletedRows == BigInt(1)
 }
 
 export async function updateMemberRoles(
@@ -251,7 +266,7 @@ export async function updateMemberRoles(
 ): Promise<void> {
   const now = new Date()
 
-  const existingRoleIds = (await getMemberRoles(memberId)).map(role => role.roleId)
+  const existingRoleIds = (await getMemberRolesByMemberId(memberId)).map(role => role.roleId)
 
   const newRoles = roles.filter(role => !existingRoleIds.includes(role))
   const oldRoles = existingRoleIds.filter(existingRoleId => !roles.includes(existingRoleId))
@@ -300,6 +315,18 @@ function toMemberRole(role: Selectable<MemberRoles>): MemberRole {
   }
 }
 
+export async function getMemberRolesByMemberId(memberId: number): Promise<MemberRole[]> {
+  const roles = await db
+    .selectFrom('member.roles')
+    .selectAll()
+    .innerJoin('member.member_to_roles', 'member.member_to_roles.role_id', 'member.roles.role_id')
+    .where('member_id', '=', memberId)
+    .orderBy('member.roles.role_id')
+    .execute()
+
+  return roles.map(toMemberRole)
+}
+
 export async function getAllMemberRoles(isPublic?: boolean): Promise<MemberRole[]> {
   const roles = await db
     .selectFrom('member.roles')
@@ -317,18 +344,6 @@ export async function getAllMemberRoleById(roleId: string): Promise<MemberRole |
     .where('role_id', '=', roleId)
     .executeTakeFirst()
   return role ? toMemberRole(role) : undefined
-}
-
-export async function getMemberRoles(memberId: number): Promise<MemberRole[]> {
-  const roles = await db
-    .selectFrom('member.roles')
-    .selectAll()
-    .innerJoin('member.member_to_roles', 'member.member_to_roles.role_id', 'member.roles.role_id')
-    .where('member_id', '=', memberId)
-    .orderBy('member.roles.role_id')
-    .execute()
-
-  return roles.map(toMemberRole)
 }
 
 export async function addMemberRole(role: UpsertMemberRole, jwt: JWTUser): Promise<MemberRole> {
@@ -366,7 +381,7 @@ export async function updateMemberRole(
   roleId: string,
   patch: Partial<MemberRole>,
   jwt: JWTUser,
-): Promise<void> {
+): Promise<boolean> {
   const now = new Date()
 
   const result = await db
@@ -384,17 +399,13 @@ export async function updateMemberRole(
     })
     .where('role_id', '=', roleId)
     .executeTakeFirstOrThrow()
-  if (!result.numUpdatedRows) {
-    throw new Error('Role update failed')
-  }
+  return result.numUpdatedRows == BigInt(1)
 }
 
-export async function removeMemberRole(roleId: string): Promise<void> {
+export async function removeMemberRole(roleId: string): Promise<boolean> {
   const result = await db
     .deleteFrom('member.roles')
     .where('role_id', '=', roleId)
     .executeTakeFirstOrThrow()
-  if (!result.numDeletedRows) {
-    throw new Error('Role delete failed')
-  }
+  return result.numDeletedRows == BigInt(1)
 }

@@ -9,7 +9,7 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
   memberType: z.nativeEnum(MIKMemberTypes),
 
   // language needed for sending emails
-  lang: z.string(),
+  lang: z.string().optional(),
 })
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 

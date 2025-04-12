@@ -9,14 +9,13 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import pg from 'pg'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
-import { ZodError } from 'zod'
 
 import logger from './lib/logger.ts'
 import { router as aircraftRoutes } from './routes/aircrafts/api.ts'
 import { router as passportRoutes } from './routes/auth/login.ts'
 import flightLogRoutes from './routes/flight-log/api.ts'
 import { router as memberRoutes } from './routes/members/api.ts'
-import type { ErrorResponse } from './routes/response.ts'
+import { defaultErrorHandler } from './routes/response.ts'
 
 // Load environment variables for local development - we will not ship this file to production and will use environment variables from the hosting provider
 dotenv.config()
@@ -82,19 +81,7 @@ app.use('/api/v1/members', memberRoutes)
 app.use('/api/v1/flight-log', flightLogRoutes)
 app.use('/api/v1/aircrafts', aircraftRoutes)
 
-// Error Handling
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err)
-  if (res.headersSent) {
-    return next(err)
-  }
-
-  if (err instanceof ZodError) {
-    return res.status(400).json(<ErrorResponse>{ message: err.message })
-  }
-
-  res.status(500).json(<ErrorResponse>{ message: 'Internal Server Error' })
-})
+app.use(defaultErrorHandler)
 
 //Digital ocean requires that app services bind to 0.0.0.0
 //docs.digitalocean.com/products/app-platform/how-to/manage-services/
