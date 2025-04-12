@@ -186,7 +186,7 @@ const MemberProfile = () => {
                 </FormField>
 
                 <FormField
-                  label='member.canMakeReservations'
+                  label={t('member.canMakeReservations')}
                   icon={
                     data?.canMakeReservations
                       ? 'mdi:check-box-outline'

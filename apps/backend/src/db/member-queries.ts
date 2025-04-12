@@ -38,7 +38,7 @@ export async function getMemberByEmail(email: string): Promise<Member | undefine
   }
 }
 
-async function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Promise<Member> {
+function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Member {
   return {
     memberId: member.member_id,
     memberType: member.member_type as MIKMemberTypes,
@@ -57,8 +57,8 @@ async function toMember(member: Selectable<MemberRegister>, roles: MemberRole[])
     isTrainingProgramPilot: member.is_training_program_pilot,
     canMakeReservations: member.can_make_reservations,
     billingId: member.billing_id,
-    dateOfBirth: member.date_of_birth ? (member.date_of_birth as unknown as string) : undefined,
-    memberSince: member.member_since as unknown as string,
+    dateOfBirth: member.date_of_birth,
+    memberSince: member.member_since,
 
     createdAt: member.created_at.toISOString(),
     createdBy: member.created_by,

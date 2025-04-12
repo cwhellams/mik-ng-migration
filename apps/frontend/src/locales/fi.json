@@ -2,7 +2,7 @@
   "header": {
     "dashboard": "Kojelauta",
     "schedule": "Aikataulu",
-    "aircraft": "Lentokoneet",
+    "aircrafts": "Lentokoneet",
     "members": "Jäsenet",
     "login": "Kirjaudu",
     "logout": "Kirjaudu ulos",
@@ -81,6 +81,10 @@
     "created": "Luotu",
     "updated": "Päivitetty",
     "emailVerifiedAt": "Ensimmäinen kirjautuminen"
+  },
+  "aircraft": {
+    "location": "Sijainti",
+    "notes": "Huomiot"
   },
   "error": {
     "pageNotFound": "Sivua ei löytynyt",

@@ -1,45 +1,40 @@
 import { Router, type Request, type Response } from 'express'
-import { z } from 'zod'
 
-import { baseAircraftSchema } from './models.ts'
-import { getAircraftByRegistration, getAllAircraft } from '../../db/aircraft_queries.ts'
+import type { Aircraft, AircraftListResponse } from './models.ts'
+import { getAllAircraft, getAircraftByRegistration } from '../../db/aircraft-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
+import type { JWTUser } from '../auth/token.ts'
+import { MIKPermissions } from '../members/models.ts'
+import type { ErrorResponse } from '../response.ts'
 
+// all aircarft routes are protected by aircraft permissions
 export const router = Router()
+router.use(validateUser(MIKPermissions.AIRCRAFT_USER, MIKPermissions.AIRCRAFT_ADMIN))
+
+const isAircraftAdmin = (user?: JWTUser): boolean =>
+  user?.permissions?.includes(MIKPermissions.AIRCRAFT_ADMIN) ?? false
 
 // Get all aircraft
-router.get('/', validateUser(), async (_req: Request, res: Response) => {
-  try {
-    const aircraftData = await getAllAircraft()
-    // Validate response data against schema
-    const validatedAircraft = z.array(baseAircraftSchema).parse(aircraftData)
-    res.status(200).json(validatedAircraft)
-  } catch (error) {
-    console.error('Error fetching aircraft:', error)
-    res.status(500).json({ message: 'Failed to retrieve aircraft' })
-  }
+router.get('/', async (req: Request, res: Response<AircraftListResponse>) => {
+  const aircrafts = await getAllAircraft(!isAircraftAdmin(req.user))
+  res.status(200).json({ aircrafts })
 })
 
 // Get aircraft by registration
-router.get('/:registration', validateUser(), async (req: Request, res: Response) => {
-  try {
-    const { registration } = req.params
-    const aircraftData = await getAircraftByRegistration(registration)
+router.get(
+  '/:registration',
+  async (req: Request<{ registration: string }>, res: Response<Aircraft | ErrorResponse>) => {
+    const aircraft = await getAircraftByRegistration(
+      req.params.registration,
+      !isAircraftAdmin(req.user),
+    )
 
-    if (!aircraftData) {
+    if (!aircraft) {
       return res.status(404).json({ message: 'Aircraft not found' })
     }
 
     // Validate response data against schema
-    const validatedAircraft = baseAircraftSchema.parse(aircraftData)
-    res.status(200).json(validatedAircraft)
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(500).json({ message: 'Data validation error', errors: error.errors })
-    }
-    console.error('Error fetching aircraft:', error)
-    res.status(500).json({ message: 'Failed to retrieve aircraft' })
-  }
-})
 
-export default router
+    res.status(200).json(aircraft)
+  },
+)

@@ -5,35 +5,18 @@ CREATE TABLE flight.aircraft
     model VARCHAR(50) NOT NULL,
     manufacturer VARCHAR(50) NOT NULL,
     year_of_manufacture INT NOT NULL,
-    total_hours DECIMAL(10, 2) NOT NULL DEFAULT 0.0,
-    engine_tbo_hours INT NOT NULL,
-    prop_tbo_hours INT NOT NULL,
-    hours_at_last_engine_overhaul DECIMAL(10, 2) NOT NULL,
-    hours_at_last_prop_overhaul DECIMAL(10, 2) NOT NULL,
-    engine_hours_remaining_before_tbo DECIMAL(10, 2) GENERATED ALWAYS AS (
-        engine_tbo_hours - (total_hours - hours_at_last_engine_overhaul)
-    ) STORED,
-    prop_hours_remaining_before_tbo DECIMAL(10, 2) GENERATED ALWAYS AS (
-        prop_tbo_hours - (total_hours - hours_at_last_prop_overhaul)
-    ) STORED,
-    last_annual DATE NULL,
-    next_annual DATE NULL,
-    last_100hr DATE NULL,
-    last_50hr DATE NULL,
-    last_100hr_tach DECIMAL(10, 2) NULL,
-    next_100hr_tach DECIMAL(10, 2) GENERATED ALWAYS AS (
-        last_100hr_tach + 100
-    ) STORED,
-    last_50hr_tach DECIMAL(10, 2) NULL,
-    next_50hr_tach DECIMAL(10, 2) GENERATED ALWAYS AS (
-        last_50hr_tach + 50
-    ) STORED,
-    insurance_cert_expiry DATE NULL,
-    radio_cert_expiry DATE NULL,
-    transponder_cert_expiry DATE NULL,
-    elt_cert_expiry DATE NULL,
-    gps_cert_expiry DATE NULL,
-    harness_expiry DATE NULL,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    maintenance_cycle INT NOT NULL,
+    last_maintenance_date DATE NOT NULL,
+    last_maintenance_type VARCHAR(20) NOT NULL,
+    last_maintenance_tach INT NOT NULL,
+    next_maintenance_date DATE,
+    next_maintenance_type VARCHAR(20) NOT NULL,
+    next_maintenance_tach INT NOT NULL,
+    total_percentage_hours INT NOT NULL,
+    usable_percentage_hours INT NOT NULL,
+    notes JSONB,
+    location VARCHAR(255),
     equipment VARCHAR(255),
     hourly_rate_eur DECIMAL(10, 2) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -35,49 +35,56 @@ export type Numeric = ColumnType<number, number | string, number | string>
 export type Timestamp = ColumnType<Date, Date | string, Date | string>
 
 export interface FlightAircraft {
+  active: Generated<boolean>
   created_at: Generated<Timestamp>
   created_by: string
   display_name: string
-  elt_cert_expiry: Timestamp | null
-  engine_hours_remaining_before_tbo: Generated<Numeric | null>
-  engine_tbo_hours: number
   equipment: string | null
-  gps_cert_expiry: Timestamp | null
-  harness_expiry: Timestamp | null
   hourly_rate_eur: Numeric
-  hours_at_last_engine_overhaul: Numeric
-  hours_at_last_prop_overhaul: Numeric
-  insurance_cert_expiry: Timestamp | null
-  last_100hr: Timestamp | null
-  last_100hr_tach: Numeric | null
-  last_50hr: Timestamp | null
-  last_50hr_tach: Numeric | null
-  last_annual: Timestamp | null
+  last_maintenance_date: string
+  last_maintenance_tach: number
+  last_maintenance_type: string
+  location: string | null
+  maintenance_cycle: number
   manufacturer: string
   model: string
-  next_100hr_tach: Generated<Numeric | null>
-  next_50hr_tach: Generated<Numeric | null>
-  next_annual: Timestamp | null
-  prop_hours_remaining_before_tbo: Generated<Numeric | null>
-  prop_tbo_hours: number
-  radio_cert_expiry: Timestamp | null
+  next_maintenance_date: string | null
+  next_maintenance_tach: number
+  next_maintenance_type: string
+  notes: Json | null
   registration: string
-  total_hours: Generated<Numeric>
-  transponder_cert_expiry: Timestamp | null
+  total_percentage_hours: number
   updated_at: Generated<Timestamp>
   updated_by: string
+  usable_percentage_hours: number
   year_of_manufacture: number
+}
+
+export interface FlightAircraftDocuments {
+  alert_days_before: number | null
+  created_at: Generated<Timestamp>
+  created_by: string
+  display_name: string
+  document_id: string
+  end_date: string
+  hard_limit: number | null
+  is_public: Generated<boolean>
+  registration: string
+  soft_limit: number | null
+  start_date: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface FlightAircraftJourneyLogBook {
   aircraft_registration: string
-  end_date: Timestamp | null
-  flight_time: Generated<string>
+  end_date: string | null
+  flight_time: Generated<string | null>
   minutes_at_start: number
   no_of_pages: number
   rows_per_page: number
   seq_no: number
-  start_date: Timestamp
+  start_date: string
   start_page: number
 }
 
@@ -192,7 +199,7 @@ export interface MemberRegister {
   can_make_reservations: Generated<boolean>
   created_at: Generated<Timestamp>
   created_by: string
-  date_of_birth: Timestamp | null
+  date_of_birth: string | null
   email: string
   email_verified_at: Timestamp | null
   first_name: string
@@ -201,7 +208,7 @@ export interface MemberRegister {
   is_training_program_pilot: Generated<boolean>
   last_name: string
   member_id: string
-  member_since: Generated<Timestamp>
+  member_since: Generated<string>
   member_type: MemberType
   phone_number: string | null
   postcode: string | null
@@ -242,6 +249,7 @@ export interface StaticAirfields {
 
 export interface DB {
   'flight.aircraft': FlightAircraft
+  'flight.aircraft_documents': FlightAircraftDocuments
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit

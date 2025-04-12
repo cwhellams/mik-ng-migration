@@ -2,7 +2,7 @@
   "header": {
     "dashboard": "Dashboard",
     "schedule": "Schedule",
-    "aircraft": "Aircraft",
+    "aircrafts": "Aircrafts",
     "members": "Members",
     "login": "Login",
     "logout": "Logout",
@@ -94,6 +94,10 @@
     "flightType": "Type",
     "billed": "Billed",
     "noLogs": "No flight logs found"
+  },
+  "aircraft": {
+    "location": "Location",
+    "notes": "Notes"
   },
   "error": {
     "pageNotFound": "Page not found",

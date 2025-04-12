@@ -29,7 +29,7 @@ const Register = () => {
 
   const [member, setMember] = useState<RegisterRequest>({
     email: '',
-    firstName: undefined as unknown as string,
+    firstName: '',
     lastName: '',
 
     phoneNumber: '',

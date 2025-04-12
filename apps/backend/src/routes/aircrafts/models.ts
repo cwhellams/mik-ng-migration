@@ -1,57 +1,81 @@
 import { z } from 'zod'
 
-const Numeric = z.union([z.number(), z.string()])
-const Timestamp = z.union([z.date(), z.string()])
+export const AircraftMaintenanceSchema = z.object({
+  engineTBOCycle: z.number().int(),
+  propTBOCycle: z.number().int(),
+  lastEngineOverhaulTach: z.number().int().positive(),
+  lastPropOverhaulTach: z.number().int().positive(),
 
-export const baseAircraftSchema = z.object({
-  registration: z.string().max(10).nonempty(),
-  display_name: z.string().max(50).nonempty(),
-  model: z.string().max(50).nonempty(),
-  manufacturer: z.string().max(50).nonempty(),
-  year_of_manufacture: z.number().int().positive(),
-  total_hours: Numeric,
-  engine_tbo_hours: z.number().int().positive(),
-  prop_tbo_hours: z.number().int().positive(),
-  hours_at_last_engine_overhaul: Numeric,
-  hours_at_last_prop_overhaul: Numeric,
-  engine_hours_remaining_before_tbo: Numeric.nullable(),
-  prop_hours_remaining_before_tbo: Numeric.nullable(),
-  last_annual: Timestamp.nullable(),
-  next_annual: Timestamp.nullable(),
-  last_100hr: Timestamp.nullable(),
-  last_50hr: Timestamp.nullable(),
-  last_100hr_tach: Numeric.nullable(),
-  next_100hr_tach: Numeric.nullable(),
-  last_50hr_tach: Numeric.nullable(),
-  next_50hr_tach: Numeric.nullable(),
-  insurance_cert_expiry: Timestamp.nullable(),
-  radio_cert_expiry: Timestamp.nullable(),
-  transponder_cert_expiry: Timestamp.nullable(),
-  elt_cert_expiry: Timestamp.nullable(),
-  gps_cert_expiry: Timestamp.nullable(),
-  harness_expiry: Timestamp.nullable(),
-  equipment: z.string().nullable(),
-  hourly_rate_eur: Numeric,
-  created_by: z.string().nonempty(),
-  updated_by: z.string().nonempty(),
+  lastAnnualDate: z.string().date(),
+  nextAnnualDate: z.string().date(),
+
+  maintenanceCycle: z.number().int(),
+
+  lastMaintenanceDate: z.string().date().nullable(),
+  lastMaintenanceType: z.string(),
+  lastMaintenanceTach: z.number().int().positive(),
+
+  nextMaintenanceDate: z.string().date().nullable(),
+  nextMaintenanceType: z.string(),
+  nextMaintenanceTach: z.number().int().positive(),
+
+  totalPercentageHours: z.number().int().positive(),
+  usablePercentageHours: z.number().int().positive(),
 })
 
-export const AircraftInsertSchema = baseAircraftSchema
+export enum Severity {
+  warning,
+  caution,
+  note,
+}
 
-export const AircraftResponseSchema = baseAircraftSchema.extend({
-  created_at: Timestamp,
-  updated_at: Timestamp,
+export const AircraftNoteSchema = z.object({
+  text: z.string(),
+  severity: z.nativeEnum(Severity),
+  enabled: z.boolean(),
+})
+
+export const AircraftSchema = z.object({
+  registration: z.string().max(10).nonempty(),
+  displayName: z.string().max(50).nonempty(),
+  model: z.string().max(50).nonempty(),
+  manufacturer: z.string().max(50).nonempty(),
+  yearOfManufacture: z.number().int().positive(),
+
+  maintenance: AircraftMaintenanceSchema,
+
+  notes: z.array(AircraftNoteSchema),
+
+  location: z.string().nullable(),
+  equipment: z.string().nullable(),
+
+  hourlyRateEur: z.number(),
+
+  createdAt: z.string().datetime(),
+  createdBy: z.string(),
+  updatedAt: z.string().datetime(),
+  updatedBy: z.string(),
+})
+
+// Allow only subset of fields for new aircraft
+export const AircraftInsertSchema = AircraftSchema.omit({
+  createdAt: true,
+  createdBy: true,
+  updatedAt: true,
+  updatedBy: true,
 })
 
 // We use partial to allow only updating some fields
-export const AircraftUpdateSchema = baseAircraftSchema
-  .omit({
-    created_by: true,
-  })
-  .partial()
-  .strict()
+export const AircraftUpdateSchema = AircraftInsertSchema.partial().strict()
 
 // Infer the TypeScript types from the Zod schemas
-export type Aircraft = z.infer<typeof AircraftResponseSchema>
+export type Aircraft = z.infer<typeof AircraftSchema>
+export type AircraftStatus = z.infer<typeof AircraftStatusSchema>
 export type AircraftInsertRequest = z.infer<typeof AircraftInsertSchema>
 export type AircraftUpdateRequest = z.infer<typeof AircraftUpdateSchema>
+
+export const AircraftListResponseSchema = z.object({
+  aircrafts: z.array(AircraftSchema),
+})
+
+export type AircraftListResponse = z.infer<typeof AircraftListResponseSchema>

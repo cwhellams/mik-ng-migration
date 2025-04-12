@@ -48,8 +48,3 @@ const closeDb = async (): Promise<void> => {
 
 export const db = new Kysely<DB>({ dialect })
 export { closeDb } // Export the pool for testing
-
-const cert_exists = fs.existsSync(ca_cert_filename)
-logger.info(`Checking postgres security cert exists :${cert_exists}`)
-await db.selectFrom('static.airfields').limit(1).execute()
-logger.info('✅ PostgreSQL connection successful')

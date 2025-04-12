@@ -153,4 +153,3 @@ export const MemberProfileSchema = MemberSchema.pick({
 })
 
 export type MemberProfile = z.infer<typeof MemberProfileSchema>
-export type MemberResponse = z.infer<typeof MemberSchema>

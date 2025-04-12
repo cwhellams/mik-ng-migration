@@ -20,12 +20,12 @@ export const menuItems: MenuItem[] = [
   },
   {
     label: 'Aircraft',
-    path: '/aircraft',
-    translationKey: 'header.aircraft',
+    path: '/aircrafts',
+    translationKey: 'header.aircrafts',
   },
   {
     label: 'Members',
     path: '/members',
     translationKey: 'header.members',
   },
-] 
+]

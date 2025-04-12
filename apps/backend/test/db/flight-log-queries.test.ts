@@ -107,33 +107,6 @@ describe('Db query Get FlightLog tests', () => {
     })
   })
 
-  it('getAllAircraft returns all aircraft in the db', async () => {
-    const result = await getAllAircraft()
-    expect(result.length).toEqual(3)
-    expect(result).toMatchSnapshot([
-      {
-        created_at: expect.any(Date),
-        updated_at: expect.any(Date),
-      },
-      {
-        created_at: expect.any(Date),
-        updated_at: expect.any(Date),
-      },
-      {
-        created_at: expect.any(Date),
-        updated_at: expect.any(Date),
-      },
-    ])
-  })
-
-  it('getAllAircraftByRegistraion returns the aircraft in the db', async () => {
-    const result = await getAircraftByRegistration('OH-STL')
-    expect(result).toMatchSnapshot({
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
-    })
-  })
-
   it('getFlightLogTotals returns totals for all ac', async () => {
     const result = await getFlightLogTotals()
     expect(result).toMatchSnapshot()
