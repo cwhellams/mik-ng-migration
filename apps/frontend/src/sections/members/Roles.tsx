@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom'
 import { useRoles } from '../../hooks/useRoles'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { EditButton } from './components/EditButton'
+import { EditButton } from '../../components/EditButton'
 import {
   MemberRole,
   MIKLang,
@@ -56,7 +56,7 @@ const Roles = () => {
       </Typography>
 
       <EditButton
-        title='roles.newRole'
+        title={t('roles.newRole')}
         onClick={handleNewRole}
         icon='mdi:plus'
       />

@@ -31,7 +31,7 @@ import { useRoles } from '../../hooks/useRoles'
 import { t } from 'i18next'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { EditButton } from './components/EditButton'
+import { EditButton } from '../../components/EditButton'
 import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 
 const Members = () => {

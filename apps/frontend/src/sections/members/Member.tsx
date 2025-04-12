@@ -16,11 +16,11 @@ import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 import { useNavigate, useParams } from 'react-router-dom'
-import { EditButton } from './components/EditButton'
-import { FormField } from './components/FormField'
+import { EditButton } from '../../components/EditButton'
+import { FormField } from '../../components/FormField'
 import { AuditFormField } from './components/AuditFormField'
 import { toLocalDate } from '../../utils/date'
-import { FormTitle } from './components/FormTitle'
+import { FormTitle } from '../../components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
 
 const MemberProfile = () => {
@@ -97,26 +97,26 @@ const MemberProfile = () => {
             <Stack direction={{ sm: 'column', md: 'row' }} spacing={3}>
               <Card sx={{ flex: 1, mb: 3 }}>
                 <EditButton
-                  title='member.edit.personalInfo'
+                  title={t('member.edit.personalInfo')}
                   onClick={() => handleOpenEditModal('personalInfo')}
                 />
                 <CardContent>
-                  <FormTitle title='member.info' icon='mdi:account' />
+                  <FormTitle title={t('member.info')} icon='mdi:account' />
 
                   <Stack spacing={1.5}>
-                    <FormField label='member.fullname' width={100}>
-                      {data.firstName} {data.lastName}
+                    <FormField label={t('member.fullname')} width={100}>
+                      {data?.firstName} {data?.lastName}
                     </FormField>
 
-                    <FormField label='member.email' width={100}>
-                      {data.email}
+                    <FormField label={t('member.email')} width={100}>
+                      {data?.email}
                     </FormField>
 
-                    <FormField label='member.phone' width={100}>
-                      {data.phoneNumber || 'N/A'}
+                    <FormField label={t('member.phone')} width={100}>
+                      {data?.phoneNumber || 'N/A'}
                     </FormField>
 
-                    <FormField label='member.address' width={100}>
+                    <FormField label={t('member.address')} width={100}>
                       {[
                         data.streetAddress,
                         `${data.postcode || ''} ${data.townCity || ''}`,
@@ -125,8 +125,8 @@ const MemberProfile = () => {
                         .join(', ') || 'N/A'}
                     </FormField>
 
-                    <FormField label='member.dateOfBirth' width={100}>
-                      {data.dateOfBirth && toLocalDate(data.dateOfBirth)}
+                    <FormField label={t('member.dateOfBirth')} width={100}>
+                      {data?.dateOfBirth && toLocalDate(data?.dateOfBirth)}
                     </FormField>
                   </Stack>
                 </CardContent>
@@ -134,22 +134,22 @@ const MemberProfile = () => {
 
               <Card sx={{ flex: 1 }}>
                 <EditButton
-                  title='member.edit.emergencyContact'
+                  title={t('member.edit.emergencyContact')}
                   onClick={() => handleOpenEditModal('emergencyContact')}
                 />
                 <CardContent>
                   <FormTitle
-                    title='member.emergencyContact'
+                    title={t('member.emergencyContact')}
                     icon='mdi:phone-alert'
                   />
 
                   <Stack spacing={1.5}>
-                    <FormField label='member.iceContact'>
-                      {data.iceContactName || 'N/A'}
+                    <FormField label={t('member.iceContact')}>
+                      {data?.iceContactName || 'N/A'}
                     </FormField>
 
-                    <FormField label='member.icePhone'>
-                      {data.iceContactPhoneNumber || 'N/A'}
+                    <FormField label={t('member.icePhone')}>
+                      {data?.iceContactPhoneNumber || 'N/A'}
                     </FormField>
                   </Stack>
                 </CardContent>
@@ -159,13 +159,13 @@ const MemberProfile = () => {
             <Card>
               {isAdmin && (
                 <EditButton
-                  title='member.edit.training'
+                  title={t('member.edit.training')}
                   onClick={() => handleOpenEditModal('training')}
                 />
               )}
               <CardContent>
                 <FormTitle
-                  title='member.trainingProgram'
+                  title={t('member.trainingProgram')}
                   icon='mdi:account-school'
                 />
 
@@ -180,20 +180,25 @@ const MemberProfile = () => {
             <Card>
               {isAdmin && (
                 <EditButton
-                  title='member.edit.membership'
+                  title={t('member.edit.membership')}
                   onClick={() => handleOpenEditModal('membership')}
                 />
               )}
+
               <CardContent>
-                <FormTitle title='member.membership' icon='mdi:information' />
+                <FormTitle
+                  title={t('member.membership')}
+                  icon='mdi:information'
+                />
 
                 <Stack spacing={1.5}>
-                  <FormField label='member.memberId'>
-                    {data.memberId.toString()}
+                  <FormField label={t('member.memberId')}>
+                    {data?.memberId.toString()}
                   </FormField>
 
-                  <FormField label='member.memberType'>
-                    {t(`member.types.${data.memberType.toLowerCase()}`)}
+                  <FormField label={t('member.memberType')}>
+                    {data &&
+                      t(`member.types.${data?.memberType.toLowerCase()}`)}
                   </FormField>
 
                   <FormField
@@ -205,32 +210,32 @@ const MemberProfile = () => {
                     }
                   />
 
-                  <FormField label='member.billingId'>
-                    {data.billingId}
+                  <FormField label={t('member.billingId')}>
+                    {data?.billingId}
                   </FormField>
 
-                  <FormField label='member.memberSince'>
-                    {toLocalDate(data.memberSince)}
+                  <FormField label={t('member.memberSince')}>
+                    {toLocalDate(data?.memberSince)}
                   </FormField>
 
                   {isAdmin && (
                     <>
                       <AuditFormField
-                        label='member.created'
+                        label={t('member.created')}
                         by={data.createdBy}
                         at={data.createdAt}
                         memberId={data.memberId}
                       />
 
                       <AuditFormField
-                        label='member.updated'
+                        label={t('member.updated')}
                         by={data.updatedBy}
                         at={data.updatedAt}
                         memberId={data.memberId}
                       />
 
                       <AuditFormField
-                        label='member.emailVerifiedAt'
+                        label={t('member.emailVerifiedAt')}
                         at={data.emailVerifiedAt}
                         memberId={data.memberId}
                       />

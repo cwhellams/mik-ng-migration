@@ -1,6 +1,5 @@
-import { Box, Typography } from '@mui/material'
+import { Box, SxProps, Theme, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { t } from 'i18next'
 import { ReactNode } from 'react'
 
 export const FormField = ({
@@ -8,19 +7,21 @@ export const FormField = ({
   width,
   icon,
   children,
+  sx,
 }: {
   label: string
   width?: number
   icon?: string
   children?: ReactNode
+  sx?: SxProps<Theme>
 }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+  <Box sx={{ display: 'flex', alignItems: 'center', ...sx }}>
     <Typography
       variant='body2'
       color='text.secondary'
       sx={{ width: width ?? 150 }}
     >
-      {t(label)}:
+      {label}:
     </Typography>
     {icon && <Icon icon={icon} />}
     <Typography variant='body1'>{children}</Typography>

@@ -27,7 +27,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { AuditFormField } from './AuditFormField'
-import { FormTitle } from './FormTitle'
+import { FormTitle } from '../../../components/FormTitle'
 import { useRoles } from '../../../hooks/useRoles'
 import { mutate } from 'swr'
 import { EditDialogTitle } from './EditDialogTitle'
@@ -196,7 +196,10 @@ export const MemberRoleEditor = ({
   const permissionsCard = () => (
     <Card>
       <CardContent>
-        <FormTitle title='roles.permissions' icon='mdi:user-access-control' />
+        <FormTitle
+          title={t('roles.permissions')}
+          icon='mdi:user-access-control'
+        />
 
         <Grid size={12}>
           <FormGroup>
@@ -225,17 +228,17 @@ export const MemberRoleEditor = ({
     role && (
       <Card>
         <CardContent>
-          <FormTitle title='roles.details' icon='mdi:information' />
+          <FormTitle title={t('roles.details')} icon='mdi:information' />
 
           <Stack spacing={1.5}>
             <AuditFormField
-              label='member.created'
+              label={t('member.created')}
               by={role.createdBy}
               at={role.createdAt}
             />
 
             <AuditFormField
-              label='member.updated'
+              label={t('member.updated')}
               by={role.updatedBy}
               at={role.updatedAt}
             />

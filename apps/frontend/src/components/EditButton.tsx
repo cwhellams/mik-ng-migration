@@ -1,6 +1,5 @@
 import { IconButton, Tooltip } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { t } from 'i18next'
 
 export const EditButton = ({
   title,
@@ -13,12 +12,11 @@ export const EditButton = ({
   position?: 'absolute' | 'static'
   icon?: string
 }) => {
-  const translated = t(title)
   return (
-    <Tooltip title={translated}>
+    <Tooltip title={title}>
       <IconButton
         size='small'
-        aria-label={translated}
+        aria-label={title}
         onClick={onClick}
         sx={{
           position,
