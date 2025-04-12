@@ -20,13 +20,14 @@ import {
   Alert,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { Member } from '@backend/routes/members/models'
+import { Member, MIKMemberTypes } from '@backend/routes/members/models'
 import { DateField } from '@mui/x-date-pickers/DateField'
 import dayjs, { Dayjs } from 'dayjs'
 import { mutate } from 'swr'
 import { useRoles } from '../../../hooks/useRoles'
 import { APIMutation } from '../../../hooks/useApi'
 import { EditDialogTitle } from './EditDialogTitle'
+import { RegisterRequest } from '@backend/routes/auth/schema'
 
 export type MemberEditMode =
   | 'register'
@@ -64,20 +65,17 @@ export const EditMemberModal = ({
   useEffect(() => {
     setErrorMsg('')
 
-    if (memberData) {
-      if (mode === 'register') {
-        setFormData({
-          memberType: memberData.memberType,
-          firstName: memberData.firstName,
-          lastName: memberData.lastName,
-          email: memberData.email,
-          phoneNumber: memberData.phoneNumber || '',
-          streetAddress: memberData.streetAddress || '',
-          postcode: memberData.postcode || '',
-          townCity: memberData.townCity || '',
-          dateOfBirth: memberData.dateOfBirth,
-        })
-      } else if (mode === 'personalInfo') {
+    if (mode === 'register') {
+      // subset required for creating new users
+      setFormData({
+        memberType: MIKMemberTypes.EXTERNAL,
+        firstName: '',
+        lastName: '',
+        email: '',
+        phoneNumber: '',
+      } as RegisterRequest)
+    } else if (memberData) {
+      if (mode === 'personalInfo') {
         setFormData({
           firstName: memberData.firstName,
           lastName: memberData.lastName,

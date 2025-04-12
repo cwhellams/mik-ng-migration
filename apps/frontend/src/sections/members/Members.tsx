@@ -20,12 +20,11 @@ import {
   MenuItem,
 } from '@mui/material'
 import { Link } from 'react-router-dom'
-import useApi from '../../hooks/useApi'
+import useApi, { APIMutation } from '../../hooks/useApi'
 import {
   Member,
   MemberListFilters,
   MemberListResponse,
-  MIKMemberTypes,
 } from '@backend/routes/members/models'
 import { Icon } from '@iconify/react'
 import { useRoles } from '../../hooks/useRoles'
@@ -41,7 +40,7 @@ const Members = () => {
     role: '',
   })
 
-  const { data, error, mutate } = useApi<MemberListResponse>(
+  const { data, error, mutate, create } = useApi<MemberListResponse>(
     {
       url: 'v1/members',
       params: filters,
@@ -51,10 +50,6 @@ const Members = () => {
       keepPreviousData: true,
     }
   )
-
-  const { create } = useApi<Member>({
-    url: 'v1/members',
-  })
 
   const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
 
@@ -67,11 +62,13 @@ const Members = () => {
         {t('header.members')}
       </Typography>
 
-      <EditButton
-        title='member.edit.register'
-        onClick={() => setEditMode('register')}
-        icon='mdi:plus'
-      />
+      {isMembersAdmin && (
+        <EditButton
+          title={t('member.edit.register')}
+          onClick={() => setEditMode('register')}
+          icon='mdi:plus'
+        />
+      )}
 
       <Grid
         container
@@ -222,18 +219,8 @@ const Members = () => {
       <EditMemberModal
         mode={editMode}
         onClose={() => setEditMode(undefined)}
-        memberData={
-          // full member data not needed
-          {
-            memberType: MIKMemberTypes.EXTERNAL,
-            email: '',
-            firstName: '',
-            lastName: '',
-            phoneNumber: '',
-            roles: [],
-          } as unknown as Member
-        }
-        api={create}
+        // use the same url with different payload
+        api={create as unknown as APIMutation<Member>}
       />
     </Box>
   )
