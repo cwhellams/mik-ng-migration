@@ -23,6 +23,7 @@ import {
 } from '@backend/routes/members/models'
 import { useState } from 'react'
 import { MemberRoleEditor } from './components/EditRoleModal'
+import { RemoteContent } from '../../components/RemoteContent'
 
 const Roles = () => {
   const { t } = useTranslation()
@@ -54,7 +55,6 @@ const Roles = () => {
       <Typography variant='h2' gutterBottom>
         {t('header.roles')}
       </Typography>
-
       <EditButton
         title={t('roles.newRole')}
         onClick={handleNewRole}
@@ -71,16 +71,8 @@ const Roles = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {error ? (
-              <TableRow>
-                <TableCell colSpan={2} height={150}>
-                  <Typography variant='h6' color='error' align='center'>
-                    {error.message}
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              (roles.map((row) => (
+            <RemoteContent error={error} colSpan={3}>
+              {roles.map((row) => (
                 <TableRow
                   key={row.roleId}
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -105,18 +97,11 @@ const Roles = () => {
                     ))}
                   </TableCell>
                 </TableRow>
-              )) ?? (
-                <TableRow>
-                  <TableCell colSpan={2} height={150} align='center'>
-                    <CircularProgress size={24} color='inherit' />
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
+              ))}
+            </RemoteContent>
           </TableBody>
         </Table>
       </TableContainer>
-
       <MemberRoleEditor
         role={editMode}
         onClose={() => setEditMode(undefined)}

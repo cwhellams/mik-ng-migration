@@ -33,6 +33,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { EditButton } from '../../components/EditButton'
 import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
+import { RemoteContent } from '../../components/RemoteContent'
 
 const Members = () => {
   const [filters, setFilters] = useState<MemberListFilters>({
@@ -40,7 +41,7 @@ const Members = () => {
     role: '',
   })
 
-  const { data, error, mutate, create } = useApi<MemberListResponse>(
+  const { data, isLoading, error, mutate, create } = useApi<MemberListResponse>(
     {
       url: 'v1/members',
       params: filters,
@@ -153,18 +154,8 @@ const Members = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {error ? (
-              <TableRow>
-                <TableCell colSpan={2} height={150}>
-                  <Typography variant='h6' color='error' align='center'>
-                    {error.status == 403
-                      ? t('error.noMembersAccess')
-                      : error.message}
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              (data?.members.map((row) => (
+            <RemoteContent isLoading={isLoading} error={error} colSpan={3}>
+              {data?.members.map((row) => (
                 <TableRow
                   key={row.memberId}
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -204,14 +195,8 @@ const Members = () => {
                     </Stack>
                   </TableCell>
                 </TableRow>
-              )) ?? (
-                <TableRow>
-                  <TableCell colSpan={2} height={150} align='center'>
-                    <CircularProgress size={24} color='inherit' />
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
+              ))}
+            </RemoteContent>
           </TableBody>
         </Table>
       </TableContainer>

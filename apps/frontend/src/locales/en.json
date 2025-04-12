@@ -82,14 +82,6 @@
     "updated": "Updated",
     "emailVerifiedAt": "First Login"
   },
-  "error": {
-    "pageNotFound": "Page not found",
-    "pageNotFoundMessage": "Oops, the page you're looking for doesn't exist.",
-    "backToHome": "Back to homepage",
-    "logout": "Log out",
-    "loadingMemberData": "Error loading member data",
-    "noMembersAccess": "No access to members data"
-  },
   "flightLog": {
     "title": "Flight Logs",
     "newEntry": "New Entry",
@@ -102,6 +94,14 @@
     "flightType": "Type",
     "billed": "Billed",
     "noLogs": "No flight logs found"
+  },
+  "error": {
+    "pageNotFound": "Page not found",
+    "pageNotFoundMessage": "Oops, the page you're looking for doesn't exist.",
+    "backToHome": "Back to homepage",
+    "logout": "Log out",
+    "loadingMemberData": "Error loading member data",
+    "noAccess": "No access"
   },
   "roles": {
     "name": {

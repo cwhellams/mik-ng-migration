@@ -88,7 +88,7 @@
     "backToHome": "Takaisin kotisivulle",
     "logout": "Uloskirjaudu",
     "loadingMemberData": "Virhe jäsentietojen lataamisessa",
-    "noMembersAccess": "Ei oikeuksia jäsentietoihin"
+    "noAccess": "Ei oikeuksia tietoihin"
   },
   "roles": {
     "name": {
