@@ -5,7 +5,6 @@ import request from 'supertest'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import flightLogRouter from '../../../src/routes/flight-log/api.ts'
 import {
-  type FlightLogFilters,
   type FlightLogInsertRequest,
   type FlightLogUpdateRequest,
 } from '../../../src/routes/flight-log/models.ts'
