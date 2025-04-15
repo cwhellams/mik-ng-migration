@@ -60,14 +60,7 @@ jobs:
         run: |
           envsubst < .do/mik-intra-api.yaml > .do/mik-intra-api.yaml.temp && mv .do/mik-intra-api.yaml.temp .do/mik-intra-api.yaml
 
-      # The App Create is handled manually , so we have an APP ID available,
-      # using doctl we just need to update the deployed app and pass the --update-sources flag
-      # so that the latest docker file is deployed
-      - name: Update app on DigitalOcean App Platform
-        id: update-app
-        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/mik-intra-api.yaml
-
-      # Database
+      # Database deploy here - the app service will need this
       - name: Run Flyway migrations
         working-directory: ${{ github.workspace }}
         run: |
@@ -78,6 +71,7 @@ jobs:
             -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_PASSWORD }} \
             -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_URL}} \
             flyway/flyway:latest clean migrate
+
       - name: Run Flyway test data
         working-directory: ${{ github.workspace }}
         run: |
@@ -88,3 +82,10 @@ jobs:
             -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_PASSWORD }} \
             -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_URL}} \
             flyway/flyway:latest migrate
+
+      # The App Create is handled manually , so we have an APP ID available,
+      # using doctl we just need to update the deployed app and pass the --update-sources flag
+      # so that the latest docker file is deployed
+      - name: Update app on DigitalOcean App Platform
+        id: update-app
+        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/mik-intra-api.yaml
