@@ -51,10 +51,9 @@ describe('Db query Get FlightLog tests', () => {
   })
 
   it('getAllFlightLogs for specific member id should match snapshot', async () => {
-    const result = await getFlightLogs({ member_id: 1 })
+    const result = await getFlightLogs({ billable_member_id: 1 })
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
-      //flight_id: expect.any(String),
       created_at: expect.any(Date),
       updated_at: expect.any(Date),
     })
@@ -66,7 +65,6 @@ describe('Db query Get FlightLog tests', () => {
     })
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
-      //flight_id: expect.any(String),
       created_at: expect.any(Date),
       updated_at: expect.any(Date),
     })
@@ -78,7 +76,6 @@ describe('Db query Get FlightLog tests', () => {
     })
     expect(result.length).toEqual(5)
     expect(result[0]).toMatchSnapshot({
-      //flight_id: expect.any(String),
       created_at: expect.any(Date),
       updated_at: expect.any(Date),
     })
@@ -100,7 +97,6 @@ describe('Db query Get FlightLog tests', () => {
     expect(result.length).toEqual(3)
 
     expect(result[2]).toMatchSnapshot({
-      //flight_id: expect.any(String),
       created_at: expect.any(Date),
       updated_at: expect.any(Date),
     })

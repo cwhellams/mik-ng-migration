@@ -70,8 +70,8 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     query = query.where('flight_id', '=', filters.flight_id)
   }
 
-  if (filters.member_id) {
-    query = query.where('billable_member_id', '=', filters.member_id)
+  if (filters.billable_member_id) {
+    query = query.where('billable_member_id', '=', filters.billable_member_id)
   }
 
   if (filters.pic) {

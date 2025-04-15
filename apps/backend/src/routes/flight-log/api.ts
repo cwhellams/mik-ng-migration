@@ -6,6 +6,7 @@ import {
   flightLogInsertSchema,
   flightLogUpdateSchema,
   type FlightLog,
+  type FlightLogFilters,
   type FlightLogInsertRequest,
 } from './models.ts'
 import {
@@ -47,7 +48,13 @@ router.get('/', async (req: Request, res: Response) => {
     return res.status(400).json({ error: parsedQuery.error.errors })
   }
 
-  const logs = await getFlightLogs(parsedQuery.data)
+  // If user is not Flight Log Admin they can only see their own flights
+  const filters: FlightLogFilters = {
+    ...parsedQuery.data,
+    ...(isFlightLogAdmin(req.user) ? {} : { billable_member_id: req.user!.memberId }),
+  }
+
+  const logs = await getFlightLogs(filters)
   res.status(200).json(logs)
 })
 

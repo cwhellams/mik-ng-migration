@@ -27,17 +27,19 @@ const epochDateTime = z.preprocess(
 
 const bigintAsString = z.string().regex(/^\d+$/)
 
-export const flightLogFiltersSchema = z.object({
-  flight_id: z.string().optional(),
-  member_id: z.coerce.number().optional(),
-  aircraft_registration: z.string().optional(),
-  pic: z.coerce.number().optional(),
-  crew2: z.coerce.number().optional(),
-  crew3: z.coerce.number().optional(),
-  crew4: z.coerce.number().optional(),
-  startDate: epochDateTime.optional(),
-  endDate: epochDateTime.optional(),
-})
+export const flightLogFiltersSchema = z
+  .object({
+    flight_id: z.string().optional(),
+    billable_member_id: z.coerce.number().optional(),
+    aircraft_registration: z.string().optional(),
+    pic: z.coerce.number().optional(),
+    crew2: z.coerce.number().optional(),
+    crew3: z.coerce.number().optional(),
+    crew4: z.coerce.number().optional(),
+    startDate: epochDateTime.optional(),
+    endDate: epochDateTime.optional(),
+  })
+  .strict()
 
 // Type inference from the schema (should match your interface)
 export type FlightLogFilters = z.infer<typeof flightLogFiltersSchema>
