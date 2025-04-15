@@ -4,7 +4,7 @@ exports[`GET /flight-log Get flight log with Id should return a single row when 
 {
   "aircraft_registration": "OH-STL",
   "ajlb_blank_rows_before": 0,
-  "ajlb_seq_number": 1,
+  "ajlb_seq_no": 1,
   "arrival_airport": "EFHK",
   "billable_member_id": 1,
   "billing_remarks": "N/A",
@@ -55,7 +55,7 @@ exports[`GET /flight-log should allow query parameters to be optional 1`] = `
 {
   "aircraft_registration": "OH-STL",
   "ajlb_blank_rows_before": 0,
-  "ajlb_seq_number": 2,
+  "ajlb_seq_no": 2,
   "arrival_airport": "EFTU",
   "billable_member_id": 5,
   "billing_remarks": "Night navigation exercise",
@@ -108,7 +108,7 @@ exports[`GET /flight-log should return 200 with valid query params 1`] = `
 {
   "aircraft_registration": "OH-STL",
   "ajlb_blank_rows_before": 0,
-  "ajlb_seq_number": 1,
+  "ajlb_seq_no": 1,
   "arrival_airport": "EFHK",
   "billable_member_id": 1,
   "billing_remarks": "N/A",
@@ -152,5 +152,29 @@ exports[`GET /flight-log should return 200 with valid query params 1`] = `
   "total_time_in_service": "2.00",
   "updated_at": Any<String>,
   "updated_by": 10,
+}
+`;
+
+exports[`GET /flight-log/totals should return 200 with all ac totals 1`] = `
+{
+  "ac_total_flight_time": "250:55",
+  "aircraft_registration": "OH-STL",
+  "ajlb_seq_no": 3,
+  "flight_log_mins_this_ajlb": 0,
+  "flight_time_this_ajlb": "0:00",
+  "total_flight_mins_at_ajlb_start": 15055,
+  "total_flight_time_at_ajlb_start": "250:55",
+}
+`;
+
+exports[`GET /flight-log/totals should return 200 with valid registration 1`] = `
+{
+  "ac_total_flight_time": "250:55",
+  "aircraft_registration": "OH-STL",
+  "ajlb_seq_no": 3,
+  "flight_log_mins_this_ajlb": 0,
+  "flight_time_this_ajlb": "0:00",
+  "total_flight_mins_at_ajlb_start": 15055,
+  "total_flight_time_at_ajlb_start": "250:55",
 }
 `;

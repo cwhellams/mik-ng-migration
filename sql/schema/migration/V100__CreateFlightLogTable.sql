@@ -47,7 +47,7 @@ CREATE TABLE flight.logs
         priv_or_com_flight IN ('P', 'C')
     ),
     -- P = Private, C = Commercial
-    ajlb_seq_number SMALLINT NOT NULL, --Aircraft Journey Log Book
+    ajlb_seq_no SMALLINT NOT NULL, --Aircraft Journey Log Book
     ajlb_blank_rows_before SMALLINT NOT NULL,
     total_time_in_service DECIMAL(7, 2) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

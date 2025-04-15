@@ -1,11 +1,11 @@
 import dotenv from 'dotenv'
 
+import { getAircraftByRegistration, getAllAircraft } from '../../src/db/aircraft_queries.ts'
 import { closeDb } from '../../src/db/connection.ts'
 import {
   deleteFlightLog,
-  getAircraftByRegistration,
-  getAllAircraft,
   getFlightLogs,
+  getFlightLogTotals,
   insertFlightLog,
   updateFlightLog,
 } from '../../src/db/flight-log-queries.ts'
@@ -132,6 +132,16 @@ describe('Db query Get FlightLog tests', () => {
       updated_at: expect.any(Date),
     })
   })
+
+  it('getFlightLogTotals returns totals for all ac', async () => {
+    const result = await getFlightLogTotals()
+    expect(result).toMatchSnapshot()
+  })
+
+  it('getFlightLogTotals returns totals for all ac', async () => {
+    const result = await getFlightLogTotals('OH-STL')
+    expect(result).toMatchSnapshot()
+  })
 })
 
 describe('Db query insert tests', () => {
@@ -166,7 +176,7 @@ describe('Db query insert tests', () => {
       fuel_remaining_litres: 22,
       incident_or_observations: null,
       priv_or_com_flight: 'P',
-      ajlb_seq_number: 1,
+      ajlb_seq_no: 1,
       ajlb_blank_rows_before: 0,
       total_time_in_service: 1023.5,
       instrument_flying_mins: 0,

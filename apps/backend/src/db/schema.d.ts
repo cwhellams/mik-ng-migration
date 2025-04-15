@@ -71,18 +71,20 @@ export interface FlightAircraft {
 
 export interface FlightAircraftJourneyLogBook {
   aircraft_registration: string
-  ajlb_seq_no: number
-  ajlb_start_date: Timestamp
-  hours_at_start: Numeric | null
+  end_date: Timestamp | null
+  flight_time: Generated<string | null>
+  minutes_at_start: number
   no_of_pages: number
   rows_per_page: number
+  seq_no: number
+  start_date: Timestamp
   start_page: number
 }
 
 export interface FlightLogs {
   aircraft_registration: string
   ajlb_blank_rows_before: number
-  ajlb_seq_number: number
+  ajlb_seq_no: number
   arrival_airport: string
   billable_member_id: number
   billing_remarks: string | null
@@ -140,6 +142,16 @@ export interface FlightLogsAudit {
   flight_id: string
   new_data: Json | null
   operation_type: string
+}
+
+export interface FlightVwFlightTimeTotals {
+  ac_total_flight_time: string | null
+  aircraft_registration: string | null
+  ajlb_seq_no: number | null
+  flight_log_mins_this_ajlb: number | null
+  flight_time_this_ajlb: string | null
+  total_flight_mins_at_ajlb_start: number | null
+  total_flight_time_at_ajlb_start: string | null
 }
 
 export interface FlywayDataHistory {
@@ -233,6 +245,7 @@ export interface DB {
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit
+  'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory
   'member.member_to_roles': MemberMemberToRoles

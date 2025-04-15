@@ -5,6 +5,7 @@ import request from 'supertest'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import flightLogRouter from '../../../src/routes/flight-log/api.ts'
 import {
+  type FlightLogFilters,
   type FlightLogInsertRequest,
   type FlightLogUpdateRequest,
 } from '../../../src/routes/flight-log/models.ts'
@@ -152,7 +153,7 @@ describe('POST /flight-log', () => {
       oil_uplift_litres: 0.2,
       persons_on_board: 3,
       personal_remarks: 'N/A',
-      ajlb_seq_number: 1,
+      ajlb_seq_no: 1,
       ajlb_blank_rows_before: 0,
       total_time_in_service: 0.2,
       priv_or_com_flight: 'P',
@@ -330,5 +331,33 @@ describe('DELETE /flight-log', () => {
       .set('Authorization', `Bearer ${token}`)
 
     expect(response.status).toBe(400)
+  })
+})
+
+describe('GET /flight-log/totals', () => {
+  it('should return 200 with all ac totals', async () => {
+    const response = await request(app)
+      .get('/flight-log/totals')
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body[0]).toMatchSnapshot()
+  })
+
+  it('should return 200 with valid registration', async () => {
+    const response = await request(app)
+      .get('/flight-log/OH-STL/totals')
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body[0]).toMatchSnapshot()
+  })
+
+  it('should return 404 with invalid registration', async () => {
+    const response = await request(app)
+      .get('/flight-log/OH-ABC/totals')
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.status).toBe(404)
   })
 })

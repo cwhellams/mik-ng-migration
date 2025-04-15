@@ -46,7 +46,7 @@ describe('Db query member tests', () => {
   })
 
   it('getMemberByEmail should return member data for a valid email address', async () => {
-    const email = 'matti.virtanen@example.com'
+    const email = 'pekka.hamalainen@example.com'
 
     const result = await getMemberByEmail(email)
     expect(result).toMatchSnapshot({
