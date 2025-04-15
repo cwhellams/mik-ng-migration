@@ -12,6 +12,7 @@ import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { generateShortId } from '../../../src/util/nanoId.ts'
 
 const test_member_id = 1
+const admin_member_id = 5
 dotenv.config()
 
 // Create an instance of the Express app
@@ -25,13 +26,60 @@ const token = generateAccessToken({
   permissions: [MIKPermissions.FLIGHTLOG_USER],
 })
 
+const adminToken = generateAccessToken({
+  memberId: admin_member_id,
+  email: 'jonny.depp@mik.fi',
+  permissions: [MIKPermissions.FLIGHTLOG_ADMIN],
+})
+
 describe('GET /flight-log', () => {
+  it('should only return data for the logged in user when not admin', async () => {
+    const response = await request(app)
+      .get('/flight-log')
+      .set('Authorization', `Bearer ${token}`)
+      .query({ aircraft_registration: 'OH-STL' })
+
+    expect(response.status).toBe(200)
+
+    expect(response.body[0]).toMatchSnapshot({
+      flight_id: expect.any(String),
+      created_at: expect.any(String),
+      updated_at: expect.any(String),
+    })
+  })
+
+  it('should return all data for ac when user is admin', async () => {
+    const response = await request(app)
+      .get('/flight-log')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .query({ aircraft_registration: 'OH-STL' })
+
+    expect(response.status).toBe(200)
+    expect(response.body).toMatchSnapshot([
+      {
+        created_at: expect.any(String),
+        updated_at: expect.any(String),
+        updated_by: expect.any(Number),
+      },
+      {
+        created_at: expect.any(String),
+        updated_at: expect.any(String),
+        updated_by: expect.any(Number),
+      },
+      {
+        created_at: expect.any(String),
+        updated_at: expect.any(String),
+        updated_by: expect.any(Number),
+      },
+    ])
+  })
+
   it('should return 200 with valid query params', async () => {
     const response = await request(app)
       .get('/flight-log')
       .set('Authorization', `Bearer ${token}`)
       .query({
-        member_id: test_member_id,
+        billable_member_id: test_member_id,
       })
 
     expect(response.status).toBe(200)
@@ -48,7 +96,7 @@ describe('GET /flight-log', () => {
       .get('/flight-log')
       .set('Authorization', `Bearer ${token}`)
       .query({
-        member_id: 'not_a_number',
+        billable_member_id: 'not_a_number',
       })
 
     expect(response.status).toBe(400)
@@ -152,7 +200,7 @@ describe('POST /flight-log', () => {
       oil_uplift_litres: 0.2,
       persons_on_board: 3,
       personal_remarks: 'N/A',
-      ajlb_seq_number: 1,
+      ajlb_seq_no: 1,
       ajlb_blank_rows_before: 0,
       total_time_in_service: 0.2,
       priv_or_com_flight: 'P',
@@ -233,11 +281,20 @@ describe('PATCH /flight-log/', () => {
         .patch('/flight-log/bLwnAstr0')
         .set('Authorization', `Bearer ${token}`)
         .send(payload)
-
       expect(response.status).toBe(204)
 
+      const checkPatch = await request(app)
+        .get('/flight-log/bLwnAstr0')
+        .set('Authorization', `Bearer ${token}`)
+
+      expect(checkPatch.status).toBe(200)
+      expect(checkPatch.body).toMatchSnapshot({
+        updated_at: expect.any(String),
+        created_at: expect.any(String),
+      })
+
       const undoPayload: FlightLogUpdateRequest = {
-        crew2_member_id: null,
+        crew2_member_id: 8,
       }
       const undoResponse = await request(app)
         .patch('/flight-log/bLwnAstr0')
@@ -245,6 +302,16 @@ describe('PATCH /flight-log/', () => {
         .send(undoPayload)
 
       expect(undoResponse.status).toBe(204)
+
+      const checkUndo = await request(app)
+        .get('/flight-log/bLwnAstr0')
+        .set('Authorization', `Bearer ${token}`)
+
+      expect(checkUndo.status).toBe(200)
+      expect(checkUndo.body).toMatchSnapshot({
+        updated_at: expect.any(String),
+        created_at: expect.any(String),
+      })
     },
   )
   it('should return a 401 if an invalid JWT token is passed', async () => {
@@ -330,5 +397,33 @@ describe('DELETE /flight-log', () => {
       .set('Authorization', `Bearer ${token}`)
 
     expect(response.status).toBe(400)
+  })
+})
+
+describe('GET /flight-log/totals', () => {
+  it('should return 200 with all ac totals', async () => {
+    const response = await request(app)
+      .get('/flight-log/totals')
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body[0]).toMatchSnapshot()
+  })
+
+  it('should return 200 with valid registration', async () => {
+    const response = await request(app)
+      .get('/flight-log/OH-STL/totals')
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body[0]).toMatchSnapshot()
+  })
+
+  it('should return 404 with invalid registration', async () => {
+    const response = await request(app)
+      .get('/flight-log/OH-ABC/totals')
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.status).toBe(404)
   })
 })

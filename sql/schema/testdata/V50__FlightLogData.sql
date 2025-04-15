@@ -33,7 +33,7 @@ INSERT INTO flight.logs (
     non_billing_reason,
     non_billing_approved_by_member_id,
     priv_or_com_flight,
-    ajlb_seq_number,
+    ajlb_seq_no,
     ajlb_blank_rows_before,
     total_time_in_service,
     status

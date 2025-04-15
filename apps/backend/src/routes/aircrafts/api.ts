@@ -1,8 +1,9 @@
 import { Router, type Request, type Response } from 'express'
-import { validateUser } from '../../middleware/authMiddleware.ts'
-import { getAllAircraft, getAircraftByRegistration } from '../../db/flight-log-queries.ts'
 import { z } from 'zod'
+
 import { baseAircraftSchema } from './models.ts'
+import { getAircraftByRegistration, getAllAircraft } from '../../db/aircraft_queries.ts'
+import { validateUser } from '../../middleware/authMiddleware.ts'
 
 export const router = Router()
 

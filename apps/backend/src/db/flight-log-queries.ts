@@ -6,6 +6,7 @@ import type {
   InsertableFlightLog,
   FlightLogInsertRequest,
   FlightLogUpdateRequest,
+  FlightVwFlightTimeTotals,
 } from '../routes/flight-log/models.ts'
 import type { MIKPermissions } from '../routes/members/models.ts'
 import { generateShortId } from '../util/nanoId.ts'
@@ -53,7 +54,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'non_billing_reason',
       'non_billing_approved_by_member_id',
       'priv_or_com_flight',
-      'ajlb_seq_number',
+      'ajlb_seq_no',
       'ajlb_blank_rows_before',
       'total_time_in_service',
       'created_at',
@@ -69,8 +70,8 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     query = query.where('flight_id', '=', filters.flight_id)
   }
 
-  if (filters.member_id) {
-    query = query.where('billable_member_id', '=', filters.member_id)
+  if (filters.billable_member_id) {
+    query = query.where('billable_member_id', '=', filters.billable_member_id)
   }
 
   if (filters.pic) {
@@ -128,7 +129,7 @@ export async function deleteFlightLog(flight_id: string): Promise<bigint> {
     .where('flight_id', '=', flight_id)
     .where('is_billed', '=', false)
 
-  var retval = await delQuery.executeTakeFirst()
+  const retval = await delQuery.executeTakeFirst()
   return retval.numDeletedRows
 }
 
@@ -143,20 +144,16 @@ export async function updateFlightLog(
     .where('flight_id', '=', flight_id)
     .where('is_billed', '=', false)
 
-  var retval = await updQuery.executeTakeFirst()
+  const retval = await updQuery.executeTakeFirst()
   return retval.numUpdatedRows
 }
 
-// Get all aircraft
-export async function getAllAircraft() {
-  return connection.db.selectFrom('flight.aircraft').selectAll().orderBy('display_name').execute()
-}
-
-// Get aircraft by registration
-export async function getAircraftByRegistration(registration: string) {
-  return connection.db
-    .selectFrom('flight.aircraft')
-    .selectAll()
-    .where('registration', '=', registration)
-    .executeTakeFirst()
+export async function getFlightLogTotals(
+  registration?: string,
+): Promise<FlightVwFlightTimeTotals[]> {
+  let query = connection.db.selectFrom('flight.vw_flight_time_totals').selectAll()
+  if (registration) {
+    query = query.where('aircraft_registration', '=', registration)
+  }
+  return await query.execute()
 }

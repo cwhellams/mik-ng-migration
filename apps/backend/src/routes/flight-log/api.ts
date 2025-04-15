@@ -6,11 +6,13 @@ import {
   flightLogInsertSchema,
   flightLogUpdateSchema,
   type FlightLog,
+  type FlightLogFilters,
   type FlightLogInsertRequest,
 } from './models.ts'
 import {
   deleteFlightLog,
   getFlightLogs,
+  getFlightLogTotals,
   insertFlightLog,
   updateFlightLog,
 } from '../../db/flight-log-queries.ts'
@@ -39,24 +41,6 @@ router.post('/', async (req: Request, res: Response) => {
   res.status(201).json({ flight_id: flightId })
 })
 
-// Get logged in member's own flights
-router.get('/my-flights', async (req: Request, res: Response) => {
-  const parsedQuery = flightLogFiltersSchema.safeParse(req.query)
-  if (!parsedQuery.success) {
-    return res.status(400).json({ error: parsedQuery.error.errors })
-  }
-
-  // Combine the parsed query filters with the member ID filter
-  const filters = {
-    ...parsedQuery.data,
-    billable_member_id: req.user!.memberId,
-  }
-
-  const logs = await getFlightLogs(filters)
-
-  res.status(200).json(logs)
-})
-
 // Get flight logs using filter
 router.get('/', async (req: Request, res: Response) => {
   const parsedQuery = flightLogFiltersSchema.safeParse(req.query)
@@ -64,11 +48,38 @@ router.get('/', async (req: Request, res: Response) => {
     return res.status(400).json({ error: parsedQuery.error.errors })
   }
 
-  const logs = await getFlightLogs(parsedQuery.data)
+  // If user is not Flight Log Admin they can only see their own flights
+  const filters: FlightLogFilters = {
+    ...parsedQuery.data,
+    ...(isFlightLogAdmin(req.user) ? {} : { billable_member_id: req.user!.memberId }),
+  }
+
+  const logs = await getFlightLogs(filters)
   res.status(200).json(logs)
 })
 
+// Get flight log total times by registraion
+router.get('/totals', async (req: Request, res: Response) => {
+  const flight_time_totals = await getFlightLogTotals()
+
+  if (flight_time_totals.length === 0) {
+    return res.status(404).json({ message: 'Flight Times not found' })
+  }
+  res.status(200).json(flight_time_totals)
+})
+
+// Get flight log total times by registraion
+router.get('/:registration/totals', async (req: Request, res: Response) => {
+  const reg = req.params.registration
+  const flight_time_totals = await getFlightLogTotals(reg)
+  if (flight_time_totals.length === 0) {
+    return res.status(404).json({ message: 'Flight Times not found' })
+  }
+  res.status(200).json(flight_time_totals)
+})
+
 // Get a flight log by ID
+// Caution - KEEP THIS LASTin Get endpoints so that other paths are used first
 router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 

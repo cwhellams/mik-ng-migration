@@ -27,17 +27,19 @@ const epochDateTime = z.preprocess(
 
 const bigintAsString = z.string().regex(/^\d+$/)
 
-export const flightLogFiltersSchema = z.object({
-  flight_id: z.string().optional(),
-  member_id: z.coerce.number().optional(),
-  aircraft_registration: z.string().optional(),
-  pic: z.coerce.number().optional(),
-  crew2: z.coerce.number().optional(),
-  crew3: z.coerce.number().optional(),
-  crew4: z.coerce.number().optional(),
-  startDate: epochDateTime.optional(),
-  endDate: epochDateTime.optional(),
-})
+export const flightLogFiltersSchema = z
+  .object({
+    flight_id: z.string().optional(),
+    billable_member_id: z.coerce.number().optional(),
+    aircraft_registration: z.string().optional(),
+    pic: z.coerce.number().optional(),
+    crew2: z.coerce.number().optional(),
+    crew3: z.coerce.number().optional(),
+    crew4: z.coerce.number().optional(),
+    startDate: epochDateTime.optional(),
+    endDate: epochDateTime.optional(),
+  })
+  .strict()
 
 // Type inference from the schema (should match your interface)
 export type FlightLogFilters = z.infer<typeof flightLogFiltersSchema>
@@ -45,7 +47,7 @@ export type FlightLogFilters = z.infer<typeof flightLogFiltersSchema>
 export const baseFlightLogSchema = z.object({
   aircraft_registration: z.string(),
   ajlb_blank_rows_before: z.number().int().min(0),
-  ajlb_seq_number: z.number().int().positive(),
+  ajlb_seq_no: z.number().int().positive(),
   arrival_airport: z.string(),
   billable_member_id: z.number().int().positive(),
   billing_remarks: z.string().nullable(), // string | null
@@ -132,3 +134,15 @@ export type FlightLogUpdateRequest = z.infer<typeof flightLogUpdateSchema>
 
 export type InsertableFlightLog = Insertable<FlightLogs>
 export type FlightLogUpdateable = Updateable<FlightLogs>
+
+export const FlightVwFlightTimeTotalsSchema = z.object({
+  ac_total_flight_time: z.string().nullable(),
+  aircraft_registration: z.string().nullable(),
+  ajlb_seq_no: z.number().int().nullable(),
+  flight_log_mins_this_ajlb: z.number().int().nullable(),
+  flight_time_this_ajlb: z.string().nullable(),
+  total_flight_mins_at_ajlb_start: z.number().int().nullable(),
+  total_flight_time_at_ajlb_start: z.string().nullable(),
+})
+
+export type FlightVwFlightTimeTotals = z.infer<typeof FlightVwFlightTimeTotalsSchema>
