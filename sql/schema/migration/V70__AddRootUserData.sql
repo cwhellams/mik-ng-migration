@@ -12,7 +12,7 @@ INSERT INTO member.register (
 
 ) VALUES
 (
-    0,
+    'k1mnimda',
     'MIK',
     'Admin',
     CURRENT_DATE,
@@ -20,6 +20,6 @@ INSERT INTO member.register (
     'FLYING',
     TRUE,
     FALSE,
-    0,
-    0
+    'k1mnimda',
+    'k1mnimda'
 );

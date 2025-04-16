@@ -26,7 +26,7 @@ describe('Db query Get FlightLog tests', () => {
   })
 
   it('getAllFlightLogs with Captain and copilot should return filtered logs', async () => {
-    const result = await getFlightLogs({ pic: 8, crew2: 9 })
+    const result = await getFlightLogs({ pic: 'Liisa1', crew2: 'Jukka1' })
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
       created_at: expect.any(Date),
@@ -35,12 +35,17 @@ describe('Db query Get FlightLog tests', () => {
   })
 
   it('getAllFlightLogs with 4 crew should return no results', async () => {
-    const result = await getFlightLogs({ pic: 8, crew2: 9, crew3: 2, crew4: 3 })
+    const result = await getFlightLogs({
+      pic: 'Anna1',
+      crew2: 'Kaisa1',
+      crew3: 'Antti1',
+      crew4: 'Sanna1',
+    })
     expect(result.length).toEqual(0)
   })
 
   it('getAllFlightLogs with invalid Captain should not return data', async () => {
-    const result = await getFlightLogs({ pic: 12 })
+    const result = await getFlightLogs({ pic: 'Maverik' })
     expect(result.length).toEqual(0)
     expect(result).toEqual([])
   })
@@ -51,7 +56,7 @@ describe('Db query Get FlightLog tests', () => {
   })
 
   it('getAllFlightLogs for specific member id should match snapshot', async () => {
-    const result = await getFlightLogs({ billable_member_id: 1 })
+    const result = await getFlightLogs({ billable_member_id: 'Matti1' })
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
       created_at: expect.any(Date),
@@ -145,9 +150,9 @@ describe('Db query insert tests', () => {
     const data: FlightLogInsertRequest = {
       flight_id: generateShortId(),
       aircraft_registration: 'OH-STL',
-      billable_member_id: 1,
-      pic_member_id: 2,
-      crew2_member_id: 7,
+      billable_member_id: 'Matti1',
+      pic_member_id: 'Liisa1',
+      crew2_member_id: 'Pekka1',
       on_block_time_epoch: '1741584000',
       off_block_time_epoch: '1741579500',
       takeoff_time_epoch: '1741580100',
@@ -180,7 +185,7 @@ describe('Db query insert tests', () => {
     }
 
     const flightId = await insertFlightLog(data, {
-      memberId: 1,
+      memberId: 'Matti1',
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     })
     expect(flightId).toHaveLength(9)
@@ -214,7 +219,7 @@ describe('Db query update tests', () => {
     }
 
     const user = {
-      memberId: 4,
+      memberId: 'Liisa1',
       email: '',
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     }

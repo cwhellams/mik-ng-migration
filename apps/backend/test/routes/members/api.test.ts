@@ -26,25 +26,25 @@ app.use('/members', router)
 app.use(defaultErrorHandler)
 
 const adminToken = generateAccessToken({
-  memberId: 0,
+  memberId: 'k1mnimda',
   email: 'admin@mik.fi',
   permissions: [MIKPermissions.MEMBER_ADMIN],
 })
 
 const memberToken = generateAccessToken({
-  memberId: 1,
+  memberId: 'Matti1',
   email: 'member@mik.fi',
   permissions: [MIKPermissions.MEMBER],
 })
 
 const noPermissionsToken = generateAccessToken({
-  memberId: 2,
+  memberId: 'Liisa1',
   email: 'no-permissions@mik.fi',
   permissions: [],
 })
 
 const missingUserToken = generateAccessToken({
-  memberId: -1,
+  memberId: 'Iceman99',
   email: 'no-permissions@mik.fi',
   permissions: [],
 })
@@ -58,9 +58,7 @@ describe('GET /members', () => {
 
     expect(response.status).toBe(200)
 
-    const body = response.body as MemberListResponse
-
-    return body.members.filter(m => m.memberId <= 10)
+    return response.body as MemberListResponse
   }
 
   test.each([
@@ -73,26 +71,26 @@ describe('GET /members', () => {
   })
 
   it('should return prefix matches with name filter', async () => {
-    const members = await query(memberToken, {
+    const membersQry = await query(memberToken, {
       name: 'an',
     })
 
-    expect(members.map(m => m.name)).toEqual(['Antti Heikkinen', 'Anna Mäkinen'])
+    expect(membersQry.members.map(m => m.name)).toEqual(['Antti Heikkinen', 'Anna Mäkinen'])
   })
 
   it('should return empty list with non-existing name filter', async () => {
-    const members = await query(memberToken, {
+    const membersQry = await query(memberToken, {
       name: 'sdfoisusdfj',
     })
 
-    expect(members).toEqual([])
+    expect(membersQry.members).toEqual([])
   })
 
   it('should search by public role as a member', async () => {
-    const members = await query(memberToken, {
+    const membersQry = await query(memberToken, {
       role: 'INSTRUCTOR',
     })
-    expect(members.map(({ name, roles }) => ({ name, roles }))).toEqual([
+    expect(membersQry.members.map(({ name, roles }) => ({ name, roles }))).toEqual([
       {
         name: 'Antti Heikkinen',
         roles: ['INSTRUCTOR', 'MEMBER'],
@@ -109,10 +107,10 @@ describe('GET /members', () => {
   })
 
   it('should search by multiple public roles as a member', async () => {
-    const members = await query(memberToken, {
+    const membersQry = await query(memberToken, {
       role: ['INSTRUCTOR', 'COMMITTEE'],
     })
-    expect(members.map(({ name, roles }) => ({ name, roles }))).toEqual([
+    expect(membersQry.members.map(({ name, roles }) => ({ name, roles }))).toEqual([
       {
         name: 'Antti Heikkinen',
         roles: ['INSTRUCTOR', 'MEMBER'],
@@ -141,34 +139,34 @@ describe('GET /members', () => {
   })
 
   it('should skip search by invalid roles', async () => {
-    const members = await query(memberToken, {
+    const membersQry = await query(memberToken, {
       role: 'NOT_ROLE',
     })
-    expect(members.length).toEqual(8)
+    expect(membersQry.members.length).toEqual(8)
   })
 
   it('should skip search by private roles as a member', async () => {
-    const members = await query(memberToken, {
+    const membersQry = await query(memberToken, {
       role: 'ADMIN',
     })
 
-    expect(members.length).toEqual(8)
+    expect(membersQry.members.length).toEqual(8)
   })
 
   it('should skip search by unapproved roles as a member', async () => {
-    const members = await query(memberToken, {
+    const membersQry = await query(memberToken, {
       role: 'null',
     })
 
-    expect(members.length).toEqual(8)
+    expect(membersQry.members.length).toEqual(8)
   })
 
   it('should search by private roles as an admin', async () => {
-    const members = await query(adminToken, {
+    const membersQry = await query(adminToken, {
       role: 'ADMIN',
     })
 
-    expect(members.map(({ name, roles }) => ({ name, roles }))).toEqual([
+    expect(membersQry.members.map(({ name, roles }) => ({ name, roles }))).toEqual([
       {
         name: 'MIK Admin',
         roles: ['ADMIN'],
@@ -189,21 +187,20 @@ describe('GET /members', () => {
   })
 
   it('should search by unapproved roles as an admin', async () => {
-    const members = await query(adminToken, {
+    const membersQry = await query(adminToken, {
       role: 'null',
     })
 
-    expect(members).toEqual([
-      { memberId: 10, name: 'Marja Salminen', phoneNumber: '0490123456', roles: [] },
-    ])
+    const member = membersQry.members.filter(m => m.memberId === 'Marja1')
+    expect(member).toMatchSnapshot()
   })
 
   it('should search by private and unapproved roles as an admin', async () => {
-    const members = await query(adminToken, {
+    const membersQry = await query(adminToken, {
       role: ['ADMIN', 'null'],
     })
 
-    expect(members.map(({ name, roles }) => ({ name, roles }))).toEqual([
+    expect(membersQry.members.map(({ name, roles }) => ({ name, roles }))).toEqual([
       {
         name: 'MIK Admin',
         roles: ['ADMIN'],
@@ -243,6 +240,7 @@ describe('GET /members/me', () => {
       memberSince: expect.any(String),
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
+      updatedBy: expect.any(String),
       roles: member.roles.map(role => ({
         ...role,
         createdAt: expect.any(String),
@@ -392,9 +390,9 @@ describe('GET /members/roles/id', () => {
       isPublic: false,
       permissions: ['member.admin', 'flightlog.admin', 'booking.admin', 'aircraft.admin'],
       createdAt: expect.any(String),
-      createdBy: 0,
+      createdBy: 'k1mnimda',
       updatedAt: expect.any(String),
-      updatedBy: 0,
+      updatedBy: 'k1mnimda',
     })
   })
 })
@@ -556,21 +554,21 @@ describe('PATCH /members/id', () => {
   })
 
   it('Patch member as an admin', async () => {
-    const response = await patch('0', { firstName: 'Test' }, adminToken)
+    const response = await patch('k1mnimda', { firstName: 'Test' }, adminToken)
     expect(response.status).toBe(200)
 
     const updatedRole = response.body as Member
 
     expect(updatedRole.firstName).toEqual('Test')
 
-    const reverted = await patch('0', { firstName: 'MIK' }, adminToken)
+    const reverted = await patch('k1mnimda', { firstName: 'MIK' }, adminToken)
     const revertedRole = reverted.body as Member
     expect(revertedRole.firstName).toEqual('MIK')
   })
 })
 
 describe('GET /members/id', () => {
-  const get = async (id: number, token: string) =>
+  const get = async (id: string, token: string) =>
     request(app).get(`/members/${id}`).set('Authorization', `Bearer ${token}`).query({})
 
   it('Return 401 if no token in authorization header', async () => {
@@ -584,12 +582,12 @@ describe('GET /members/id', () => {
   })
 
   it('Return 403 as a reqular member', async () => {
-    const response = await get(0, memberToken)
+    const response = await get('Marja1', memberToken)
     expect(response.status).toBe(403)
   })
 
   it('Get member details as an admin', async () => {
-    const response = await get(0, adminToken)
+    const response = await get('k1mnimda', adminToken)
     expect(response.status).toBe(200)
 
     const member = response.body as Member
@@ -610,7 +608,7 @@ describe('POST /members', () => {
   const post = async (payload: RegisterRequest, token: string) =>
     request(app).post(`/members`).set('Authorization', `Bearer ${token}`).send(payload)
 
-  const remove = async (id: number, token: string) =>
+  const remove = async (id: string, token: string) =>
     request(app).delete(`/members/${id}`).set('Authorization', `Bearer ${token}`).send({})
 
   const req: RegisterRequest = {

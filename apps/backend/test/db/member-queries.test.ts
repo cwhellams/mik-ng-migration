@@ -12,21 +12,22 @@ import {
   removeMemberRole,
   removeMember,
 } from '../../src/db/member-queries.ts'
+import type { JWTUser } from '../../src/routes/auth/token.ts'
 import {
   MIKMemberTypes,
   MIKPermissions,
   type UpsertMemberRole,
 } from '../../src/routes/members/models.ts'
 
-const jwt = {
-  memberId: 0,
+const jwt: JWTUser = {
+  memberId: 'k1mnimda',
   email: 'loggedinuser',
   permissions: [],
 }
 
 describe('Db query member tests', () => {
   it('getMemberById should return member data for a valid member id', async () => {
-    const result = await getMemberById(1)
+    const result = await getMemberById('Matti1')
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
       dateOfBirth: expect.any(String),
@@ -41,7 +42,7 @@ describe('Db query member tests', () => {
   })
 
   it('getMemberById should return undefined for an invalid member id', async () => {
-    const result = await getMemberById(-1)
+    const result = await getMemberById('Iceman99')
     expect(result).toBeUndefined()
   })
 
@@ -63,7 +64,7 @@ describe('Db query member tests', () => {
   })
 
   it('getMemberById should return member data for a valid id', async () => {
-    const result = await getMemberById(1)
+    const result = await getMemberById('Matti1')
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
@@ -84,7 +85,7 @@ describe('Db query member tests', () => {
   })
 
   it('getMemberRolesByMemberId should return roles for given valid member', async () => {
-    const result = await getMemberRolesByMemberId(1)
+    const result = await getMemberRolesByMemberId('Matti1')
     expect(result).toMatchSnapshot(
       result.map(r => ({
         ...r,
@@ -95,20 +96,20 @@ describe('Db query member tests', () => {
   })
 
   it('getMemberRolesByMemberId should return empty array for invalid member', async () => {
-    const result = await getMemberRolesByMemberId(-99)
+    const result = await getMemberRolesByMemberId('Iceman99')
     expect(result).toEqual([])
   })
 
   it('getMembers should return only approved members for valid members', async () => {
     const result = await getMembers(false, '', [])
     // test only first 10 items in the test data
-    expect(result.filter(m => m.memberId <= 10)).toMatchSnapshot()
+    expect(result.slice(0, 10)).toMatchSnapshot()
   })
 
   it('getMembers should return everything for admins', async () => {
     const result = await getMembers(true, '', [])
     // test only first 10 items in the test data
-    expect(result.filter(m => m.memberId <= 10)).toMatchSnapshot()
+    expect(result.slice(0, 10)).toMatchSnapshot()
   })
 
   it('getMembers should return everything for admins', async () => {
@@ -122,7 +123,7 @@ describe('Db query member tests', () => {
 })
 
 describe('Db add member tests', () => {
-  const expectSnapshottetMember = async (memberId: number, email: string) => {
+  const expectSnapshottetMember = async (memberId: string, email: string) => {
     const result = await getMemberById(memberId)
     expect(result?.memberId).toEqual(memberId)
     expect(result?.email).toEqual(email)

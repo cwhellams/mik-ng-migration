@@ -1,6 +1,6 @@
 CREATE TABLE member.register
 (
-    member_id SERIAL PRIMARY KEY,
+    member_id VARCHAR(9) PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     date_of_birth DATE,
@@ -19,6 +19,6 @@ CREATE TABLE member.register
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email_verified_at TIMESTAMP,
-    created_by INT NOT NULL REFERENCES member.register (member_id),
-    updated_by INT NOT NULL REFERENCES member.register (member_id)
+    created_by VARCHAR(9) NOT NULL REFERENCES member.register (member_id),
+    updated_by VARCHAR(9) NOT NULL REFERENCES member.register (member_id)
 );

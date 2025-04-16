@@ -103,7 +103,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
 
 export async function insertFlightLog(
   data: FlightLogInsertRequest,
-  user: { memberId: number; permissions: MIKPermissions[] },
+  user: { memberId: string; permissions: MIKPermissions[] },
 ): Promise<string> {
   const insertableData: InsertableFlightLog = {
     ...data,

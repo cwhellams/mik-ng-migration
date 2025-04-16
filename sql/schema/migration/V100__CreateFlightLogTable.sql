@@ -2,18 +2,20 @@ CREATE TABLE flight.logs
 (
     flight_id VARCHAR(9) NOT NULL CONSTRAINT pk_flight_logs PRIMARY KEY,
     aircraft_registration VARCHAR(10) NOT NULL,
-    billable_member_id SMALLINT NOT NULL REFERENCES member.register (member_id),
-    pic_member_id SMALLINT NOT NULL REFERENCES member.register (member_id),
+    billable_member_id VARCHAR(9) NOT NULL REFERENCES member.register (
+        member_id
+    ),
+    pic_member_id VARCHAR(9) NOT NULL REFERENCES member.register (member_id),
     pic_role CREW_ROLE NOT NULL,
-    crew2_member_id SMALLINT DEFAULT NULL REFERENCES member.register (
+    crew2_member_id VARCHAR(9) DEFAULT NULL REFERENCES member.register (
         member_id
     ),
     crew2_role CREW_ROLE,
-    crew3_member_id SMALLINT DEFAULT NULL REFERENCES member.register (
+    crew3_member_id VARCHAR(9) DEFAULT NULL REFERENCES member.register (
         member_id
     ),
     crew3_role CREW_ROLE,
-    crew4_member_id SMALLINT DEFAULT NULL REFERENCES member.register (
+    crew4_member_id VARCHAR(9) DEFAULT NULL REFERENCES member.register (
         member_id
     ),
     crew4_role CREW_ROLE,
@@ -40,7 +42,7 @@ CREATE TABLE flight.logs
     incident_or_observations TEXT,
     is_billable_flight BOOLEAN NOT NULL,
     non_billing_reason VARCHAR(255),
-    non_billing_approved_by_member_id INT REFERENCES member.register (
+    non_billing_approved_by_member_id VARCHAR(9) REFERENCES member.register (
         member_id
     ),
     priv_or_com_flight CHAR(1) NOT NULL CHECK (
@@ -52,8 +54,8 @@ CREATE TABLE flight.logs
     total_time_in_service DECIMAL(7, 2) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_by INT NOT NULL REFERENCES member.register (member_id),
-    updated_by INT NOT NULL REFERENCES member.register (member_id),
+    created_by VARCHAR(9) NOT NULL REFERENCES member.register (member_id),
+    updated_by VARCHAR(9) NOT NULL REFERENCES member.register (member_id),
     status FLIGHT_LOG_STATUS NOT NULL DEFAULT 'NEW',
     FOREIGN KEY (aircraft_registration) REFERENCES flight.aircraft (
         registration

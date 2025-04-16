@@ -1,9 +1,9 @@
 CREATE TABLE member.member_to_roles
 (
-    member_id INT NOT NULL,
+    member_id VARCHAR(9) NOT NULL,
     role_id VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_by INT NOT NULL REFERENCES member.register (member_id),
+    created_by VARCHAR(9) NOT NULL REFERENCES member.register (member_id),
     CONSTRAINT pk_member_to_roles PRIMARY KEY (member_id, role_id),
     CONSTRAINT fk_member_to_roles_member_id FOREIGN KEY (
         member_id

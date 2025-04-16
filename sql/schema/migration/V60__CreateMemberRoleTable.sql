@@ -7,7 +7,7 @@ CREATE TABLE member.roles
     is_public BOOLEAN NOT NULL DEFAULT FALSE,
     permissions JSONB,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_by INT NOT NULL REFERENCES member.register (member_id),
+    created_by VARCHAR(50) NOT NULL REFERENCES member.register (member_id),
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_by INT NOT NULL REFERENCES member.register (member_id)
+    updated_by VARCHAR(50) NOT NULL REFERENCES member.register (member_id)
 );

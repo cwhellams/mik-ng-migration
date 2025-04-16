@@ -3,7 +3,7 @@
 exports[`Db add member tests Member Role Tests Adds a member role to the database and then deletes it 1`] = `
 {
   "createdAt": Any<String>,
-  "createdBy": 0,
+  "createdBy": "k1mnimda",
   "description": "My Desc",
   "isPublic": true,
   "name": {
@@ -16,7 +16,7 @@ exports[`Db add member tests Member Role Tests Adds a member role to the databas
   ],
   "roleId": "TEST_ROLE",
   "updatedAt": Any<String>,
-  "updatedBy": 0,
+  "updatedBy": "k1mnimda",
 }
 `;
 
@@ -69,7 +69,7 @@ exports[`Db add member tests add member and update member 2`] = `
   "roles": [
     {
       "createdAt": Any<String>,
-      "createdBy": 0,
+      "createdBy": "k1mnimda",
       "description": "MIK member with basic access",
       "isPublic": true,
       "name": {
@@ -81,7 +81,7 @@ exports[`Db add member tests add member and update member 2`] = `
       ],
       "roleId": "MEMBER",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
   ],
   "streetAddress": null,
@@ -96,7 +96,7 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
   "billingId": "BILL005",
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": 5,
+  "createdBy": "k1mnimda",
   "dateOfBirth": Any<String>,
   "email": "pekka.hamalainen@example.com",
   "emailVerifiedAt": undefined,
@@ -105,7 +105,7 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
   "iceContactPhoneNumber": "0441098765",
   "isTrainingProgramPilot": false,
   "lastName": "Hämäläinen",
-  "memberId": 5,
+  "memberId": "Pekka1",
   "memberSince": Any<String>,
   "memberType": "JUNIOR",
   "phoneNumber": "0445678901",
@@ -113,7 +113,7 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
   "roles": [
     {
       "createdAt": Any<String>,
-      "createdBy": 1,
+      "createdBy": "k1mnimda",
       "description": "Administrator with full access",
       "isPublic": false,
       "name": {
@@ -128,11 +128,11 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
       ],
       "roleId": "ADMIN",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
     {
       "createdAt": Any<String>,
-      "createdBy": 1,
+      "createdBy": "k1mnimda",
       "description": "MIK member with basic access",
       "isPublic": true,
       "name": {
@@ -144,13 +144,13 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
       ],
       "roleId": "MEMBER",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
   ],
   "streetAddress": "Lönnrotinkatu 20",
   "townCity": "Turku",
   "updatedAt": Any<String>,
-  "updatedBy": 5,
+  "updatedBy": "k1mnimda",
 }
 `;
 
@@ -159,7 +159,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "billingId": "BILL001",
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": 1,
+  "createdBy": "k1mnimda",
   "dateOfBirth": "1980-01-15",
   "email": "chris.whellams@gmail.com",
   "emailVerifiedAt": undefined,
@@ -168,7 +168,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "iceContactPhoneNumber": "0407654321",
   "isTrainingProgramPilot": false,
   "lastName": "Virtanen",
-  "memberId": 1,
+  "memberId": "Matti1",
   "memberSince": Any<String>,
   "memberType": "FLYING",
   "phoneNumber": "0401234567",
@@ -176,7 +176,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "roles": [
     {
       "createdAt": Any<String>,
-      "createdBy": 1,
+      "createdBy": "k1mnimda",
       "description": "Instructor with permissions to manage training",
       "isPublic": true,
       "name": {
@@ -186,11 +186,11 @@ exports[`Db query member tests getMemberById should return member data for a val
       "permissions": [],
       "roleId": "INSTRUCTOR",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
     {
       "createdAt": Any<String>,
-      "createdBy": 1,
+      "createdBy": "k1mnimda",
       "description": "MIK member with basic access",
       "isPublic": true,
       "name": {
@@ -202,13 +202,13 @@ exports[`Db query member tests getMemberById should return member data for a val
       ],
       "roleId": "MEMBER",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
   ],
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
   "updatedAt": Any<String>,
-  "updatedBy": 1,
+  "updatedBy": "Matti1",
 }
 `;
 
@@ -217,7 +217,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "billingId": "BILL001",
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": 1,
+  "createdBy": "k1mnimda",
   "dateOfBirth": Any<String>,
   "email": "chris.whellams@gmail.com",
   "emailVerifiedAt": undefined,
@@ -226,7 +226,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "iceContactPhoneNumber": "0407654321",
   "isTrainingProgramPilot": false,
   "lastName": "Virtanen",
-  "memberId": 1,
+  "memberId": "Matti1",
   "memberSince": Any<String>,
   "memberType": "FLYING",
   "phoneNumber": "0401234567",
@@ -234,7 +234,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "roles": [
     {
       "createdAt": Any<String>,
-      "createdBy": 1,
+      "createdBy": "k1mnimda",
       "description": "Instructor with permissions to manage training",
       "isPublic": true,
       "name": {
@@ -244,11 +244,11 @@ exports[`Db query member tests getMemberById should return member data for a val
       "permissions": [],
       "roleId": "INSTRUCTOR",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
     {
       "createdAt": Any<String>,
-      "createdBy": 1,
+      "createdBy": "k1mnimda",
       "description": "MIK member with basic access",
       "isPublic": true,
       "name": {
@@ -260,13 +260,13 @@ exports[`Db query member tests getMemberById should return member data for a val
       ],
       "roleId": "MEMBER",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
   ],
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
   "updatedAt": Any<String>,
-  "updatedBy": 1,
+  "updatedBy": "Matti1",
 }
 `;
 
@@ -274,7 +274,7 @@ exports[`Db query member tests getMemberRolesByMemberId should return roles for 
 [
   {
     "createdAt": Any<String>,
-    "createdBy": 1,
+    "createdBy": "k1mnimda",
     "description": "Instructor with permissions to manage training",
     "isPublic": true,
     "name": {
@@ -284,11 +284,11 @@ exports[`Db query member tests getMemberRolesByMemberId should return roles for 
     "permissions": [],
     "roleId": "INSTRUCTOR",
     "updatedAt": Any<String>,
-    "updatedBy": 0,
+    "updatedBy": "k1mnimda",
   },
   {
     "createdAt": Any<String>,
-    "createdBy": 1,
+    "createdBy": "k1mnimda",
     "description": "MIK member with basic access",
     "isPublic": true,
     "name": {
@@ -300,7 +300,7 @@ exports[`Db query member tests getMemberRolesByMemberId should return roles for 
     ],
     "roleId": "MEMBER",
     "updatedAt": Any<String>,
-    "updatedBy": 0,
+    "updatedBy": "k1mnimda",
   },
 ]
 `;
@@ -308,7 +308,7 @@ exports[`Db query member tests getMemberRolesByMemberId should return roles for 
 exports[`Db query member tests getMembers should return everything for admins 1`] = `
 [
   {
-    "memberId": 0,
+    "memberId": "k1mnimda",
     "name": "MIK Admin",
     "phoneNumber": null,
     "roles": [
@@ -316,7 +316,7 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
-    "memberId": 5,
+    "memberId": "Pekka1",
     "name": "Pekka Hämäläinen",
     "phoneNumber": "0445678901",
     "roles": [
@@ -325,7 +325,7 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
-    "memberId": 7,
+    "memberId": "Antti1",
     "name": "Antti Heikkinen",
     "phoneNumber": "0467890123",
     "roles": [
@@ -334,7 +334,7 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
-    "memberId": 2,
+    "memberId": "Liisa1",
     "name": "Liisa Korhonen",
     "phoneNumber": "0412345678",
     "roles": [
@@ -343,7 +343,7 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
-    "memberId": 8,
+    "memberId": "Sanna1",
     "name": "Sanna Koskinen",
     "phoneNumber": "0478901234",
     "roles": [
@@ -351,7 +351,7 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
-    "memberId": 6,
+    "memberId": "Kaisa1",
     "name": "Kaisa Laine",
     "phoneNumber": "0456789012",
     "roles": [
@@ -359,7 +359,7 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
-    "memberId": 4,
+    "memberId": "Anna1",
     "name": "Anna Mäkinen",
     "phoneNumber": "0434567890",
     "roles": [
@@ -367,7 +367,7 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
-    "memberId": 3,
+    "memberId": "Jukka1",
     "name": "Jukka Nieminen",
     "phoneNumber": "0423456789",
     "roles": [
@@ -375,25 +375,16 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
-    "memberId": 10,
+    "memberId": "Marja1",
     "name": "Marja Salminen",
     "phoneNumber": "0490123456",
     "roles": [],
   },
   {
-    "memberId": 9,
+    "memberId": "Juha1",
     "name": "Juha Seppälä",
     "phoneNumber": "0489012345",
     "roles": [
-      "MEMBER",
-    ],
-  },
-  {
-    "memberId": 1,
-    "name": "Matti Virtanen",
-    "phoneNumber": "0401234567",
-    "roles": [
-      "INSTRUCTOR",
       "MEMBER",
     ],
   },
@@ -403,7 +394,7 @@ exports[`Db query member tests getMembers should return everything for admins 1`
 exports[`Db query member tests getMembers should return everything for admins 2`] = `
 {
   "createdAt": Any<String>,
-  "createdBy": 0,
+  "createdBy": "k1mnimda",
   "description": "Administrator with full access",
   "isPublic": false,
   "name": {
@@ -418,14 +409,14 @@ exports[`Db query member tests getMembers should return everything for admins 2`
   ],
   "roleId": "ADMIN",
   "updatedAt": Any<String>,
-  "updatedBy": 0,
+  "updatedBy": "k1mnimda",
 }
 `;
 
 exports[`Db query member tests getMembers should return only approved members for valid members 1`] = `
 [
   {
-    "memberId": 5,
+    "memberId": "Pekka1",
     "name": "Pekka Hämäläinen",
     "phoneNumber": "0445678901",
     "roles": [
@@ -433,7 +424,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     ],
   },
   {
-    "memberId": 7,
+    "memberId": "Antti1",
     "name": "Antti Heikkinen",
     "phoneNumber": "0467890123",
     "roles": [
@@ -442,7 +433,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     ],
   },
   {
-    "memberId": 2,
+    "memberId": "Liisa1",
     "name": "Liisa Korhonen",
     "phoneNumber": "0412345678",
     "roles": [
@@ -450,7 +441,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     ],
   },
   {
-    "memberId": 8,
+    "memberId": "Sanna1",
     "name": "Sanna Koskinen",
     "phoneNumber": "0478901234",
     "roles": [
@@ -458,7 +449,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     ],
   },
   {
-    "memberId": 4,
+    "memberId": "Anna1",
     "name": "Anna Mäkinen",
     "phoneNumber": "0434567890",
     "roles": [
@@ -466,7 +457,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     ],
   },
   {
-    "memberId": 3,
+    "memberId": "Jukka1",
     "name": "Jukka Nieminen",
     "phoneNumber": "0423456789",
     "roles": [
@@ -474,7 +465,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     ],
   },
   {
-    "memberId": 9,
+    "memberId": "Juha1",
     "name": "Juha Seppälä",
     "phoneNumber": "0489012345",
     "roles": [
@@ -482,7 +473,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     ],
   },
   {
-    "memberId": 1,
+    "memberId": "Matti1",
     "name": "Matti Virtanen",
     "phoneNumber": "0401234567",
     "roles": [

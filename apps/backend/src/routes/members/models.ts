@@ -46,9 +46,9 @@ export const MemberRoleSchema = z.object({
   isPublic: z.boolean(),
   permissions: z.array(z.nativeEnum(MIKPermissions)),
   createdAt: z.string().datetime(),
-  createdBy: z.number(),
+  createdBy: z.string(),
   updatedAt: z.string().datetime(),
-  updatedBy: z.number(),
+  updatedBy: z.string(),
 })
 export type MemberRole = z.infer<typeof MemberRoleSchema>
 
@@ -70,7 +70,7 @@ export type MemberRolesResponse = z.infer<typeof MemberRolesResponseSchema>
 
 const MemberListSchema = z.object({
   name: z.string(),
-  memberId: z.number(),
+  memberId: z.string(),
   phoneNumber: z.string().nullish(),
   roles: z.array(z.string()),
 })
@@ -93,7 +93,7 @@ export type MemberListResponse = z.infer<typeof MemberListResponseSchema>
 // member details endpoint
 
 export const MemberSchema = z.object({
-  memberId: z.number(),
+  memberId: z.string(),
   memberType: z.nativeEnum(MIKMemberTypes),
   email: z.string(),
   firstName: z.string(),
@@ -114,9 +114,9 @@ export const MemberSchema = z.object({
   memberSince: z.string().date(),
 
   createdAt: z.string().datetime(),
-  createdBy: z.number(),
+  createdBy: z.string(),
   updatedAt: z.string().datetime(),
-  updatedBy: z.number(),
+  updatedBy: z.string(),
   emailVerifiedAt: z.string().datetime().optional(),
 
   roles: z.array(

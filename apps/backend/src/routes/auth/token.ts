@@ -7,7 +7,7 @@ import { throwError } from '../response.ts'
 
 // should match User in types/express.d.ts
 export const JWTUserSchema = z.object({
-  memberId: z.number(),
+  memberId: z.string(),
   email: z.string(),
   permissions: z.array(z.nativeEnum(MIKPermissions)),
 })

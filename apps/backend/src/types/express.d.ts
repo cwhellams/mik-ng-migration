@@ -1,6 +1,6 @@
 declare namespace Express {
   export interface User {
-    memberId: number
+    memberId: string
     email: string
     permissions: MIKPermissions[]
   }

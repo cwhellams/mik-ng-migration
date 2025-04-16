@@ -20,8 +20,8 @@ VALUES
             'member.admin', 'flightlog.admin', 'booking.admin', 'aircraft.admin'
         ]
     ),
-    0,
-    0
+    'k1mnimda',
+    'k1mnimda'
 ),
 (
     'MEMBER',
@@ -30,8 +30,8 @@ VALUES
     'Jäsen',
     TRUE,
     to_jsonb(ARRAY['member']),
-    0,
-    0
+    'k1mnimda',
+    'k1mnimda'
 ),
 (
     'FLYING_MEMBER',
@@ -40,8 +40,8 @@ VALUES
     'Lento-oikeus',
     FALSE,
     to_jsonb(ARRAY['flightlog.user', 'booking.user', 'aircraft.user']),
-    0,
-    0
+    'k1mnimda',
+    'k1mnimda'
 ),
 (
     'COMMITTEE',
@@ -50,8 +50,8 @@ VALUES
     'Hallituksen jäsen',
     TRUE,
     to_jsonb(ARRAY[]::varchar []),
-    0,
-    0
+    'k1mnimda',
+    'k1mnimda'
 ),
 (
     'SECRETARY',
@@ -60,8 +60,8 @@ VALUES
     'Sihteeri',
     TRUE,
     to_jsonb(ARRAY['member.admin', 'flightlog.admin']),
-    0,
-    0
+    'k1mnimda',
+    'k1mnimda'
 ),
 (
     'PLANE_CAPTAIN',
@@ -70,8 +70,8 @@ VALUES
     'Kalustovastaava',
     TRUE,
     to_jsonb(ARRAY['flightlog.admin', 'booking.admin', 'aircraft.admin']),
-    0,
-    0
+    'k1mnimda',
+    'k1mnimda'
 ),
 (
     'MAINTENANCE',
@@ -80,8 +80,8 @@ VALUES
     'Huolto',
     FALSE,
     to_jsonb(ARRAY['flightlog.user', 'aircraft.user']),
-    0,
-    0
+    'k1mnimda',
+    'k1mnimda'
 ),
 (
     'INSTRUCTOR',
@@ -90,8 +90,8 @@ VALUES
     'Lennonopettaja',
     TRUE,
     to_jsonb(ARRAY[]::varchar []),
-    0,
-    0
+    'k1mnimda',
+    'k1mnimda'
 ),
 (
     'EXAMINER',
@@ -100,6 +100,6 @@ VALUES
     'Tarkastuslentäjä',
     TRUE,
     to_jsonb(ARRAY[]::varchar []),
-    0,
-    0
+    'k1mnimda',
+    'k1mnimda'
 );

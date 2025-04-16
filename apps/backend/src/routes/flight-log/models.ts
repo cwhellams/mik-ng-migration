@@ -30,12 +30,12 @@ const bigintAsString = z.string().regex(/^\d+$/)
 export const flightLogFiltersSchema = z
   .object({
     flight_id: z.string().optional(),
-    billable_member_id: z.coerce.number().optional(),
+    billable_member_id: z.string().optional(),
     aircraft_registration: z.string().optional(),
-    pic: z.coerce.number().optional(),
-    crew2: z.coerce.number().optional(),
-    crew3: z.coerce.number().optional(),
-    crew4: z.coerce.number().optional(),
+    pic: z.string().optional(),
+    crew2: z.string().optional(),
+    crew3: z.string().optional(),
+    crew4: z.string().optional(),
     startDate: epochDateTime.optional(),
     endDate: epochDateTime.optional(),
   })
@@ -49,17 +49,17 @@ export const baseFlightLogSchema = z.object({
   ajlb_blank_rows_before: z.number().int().min(0),
   ajlb_seq_no: z.number().int().positive(),
   arrival_airport: z.string(),
-  billable_member_id: z.number().int().positive(),
+  billable_member_id: z.string(),
   billing_remarks: z.string().nullable(), // string | null
   block_mins: z.number().int().nullable().optional(), // Generated<number | null>
   block_time: z.string().nullable().optional(), // Generated<string | null>
   created_at: z.date().optional(), // Generated<Timestamp> (assuming JS Date)
-  created_by: z.number().int(),
-  crew2_member_id: z.number().int().nullable().optional(),
+  created_by: z.string(),
+  crew2_member_id: z.string().nullable().optional(),
   crew2_role: CrewRoleEnum.nullable().optional(),
-  crew3_member_id: z.number().int().nullable().optional(),
+  crew3_member_id: z.string().nullable().optional(),
   crew3_role: CrewRoleEnum.nullable().optional(),
-  crew4_member_id: z.number().int().nullable().optional(),
+  crew4_member_id: z.string().nullable().optional(),
   crew4_role: CrewRoleEnum.nullable().optional(),
   departure_airport: z.string(),
   flight_id: z.string().optional(), // Generated<number>
@@ -75,7 +75,7 @@ export const baseFlightLogSchema = z.object({
   is_billed: z.boolean().optional(), // Generated<boolean>
   landing_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
   night_flying_mins: z.number().int().min(0), // number (required)
-  non_billing_approved_by_member_id: z.number().int().nullable(),
+  non_billing_approved_by_member_id: z.string().nullable(),
   non_billing_reason: z.string().nullable(), // string | null
   number_of_landings: z.number().int(),
   off_block_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
@@ -87,14 +87,14 @@ export const baseFlightLogSchema = z.object({
   on_block_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
   personal_remarks: z.string().nullable(),
   persons_on_board: z.number().int(),
-  pic_member_id: z.number().int(),
+  pic_member_id: z.string(),
   pic_role: CrewRoleEnum, // CrewRole (required)
   priv_or_com_flight: z.string(),
   status: FlightLogStatusEnum.optional(), // Generated<FlightLogStatus>
   takeoff_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
   total_time_in_service: Numeric, // Numeric (required)
   updated_at: z.date().optional(), // Generated<Timestamp>
-  updated_by: z.number().int(),
+  updated_by: z.string(),
 })
 
 // We use partial to allow only updating some fields
