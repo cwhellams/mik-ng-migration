@@ -1,0 +1,180 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Db query ajlb get tests getAllAjlbs should return all ajlbs 1`] = `
+[
+  {
+    "aircraft_registration": "OH-IHQ",
+    "end_date": "2025-04-04",
+    "flight_time": "40:45",
+    "minutes_at_start": 2445,
+    "no_of_pages": 80,
+    "rows_per_page": 20,
+    "seq_no": 1,
+    "start_date": "2024-04-03",
+    "start_page": 1,
+  },
+  {
+    "aircraft_registration": "OH-IHQ",
+    "end_date": null,
+    "flight_time": "62:55",
+    "minutes_at_start": 3775,
+    "no_of_pages": 90,
+    "rows_per_page": 25,
+    "seq_no": 2,
+    "start_date": "2025-04-04",
+    "start_page": 81,
+  },
+  {
+    "aircraft_registration": "OH-P28",
+    "end_date": null,
+    "flight_time": "100:37",
+    "minutes_at_start": 6037,
+    "no_of_pages": 90,
+    "rows_per_page": 25,
+    "seq_no": 4,
+    "start_date": "2003-04-04",
+    "start_page": 81,
+  },
+  {
+    "aircraft_registration": "OH-STL",
+    "end_date": "2024-04-02",
+    "flight_time": "10:10",
+    "minutes_at_start": 610,
+    "no_of_pages": 100,
+    "rows_per_page": 25,
+    "seq_no": 1,
+    "start_date": "2023-04-01",
+    "start_page": 1,
+  },
+  {
+    "aircraft_registration": "OH-STL",
+    "end_date": "2025-04-02",
+    "flight_time": "167:00",
+    "minutes_at_start": 10020,
+    "no_of_pages": 120,
+    "rows_per_page": 30,
+    "seq_no": 2,
+    "start_date": "2024-04-02",
+    "start_page": 101,
+  },
+  {
+    "aircraft_registration": "OH-STL",
+    "end_date": null,
+    "flight_time": "250:55",
+    "minutes_at_start": 15055,
+    "no_of_pages": 120,
+    "rows_per_page": 30,
+    "seq_no": 3,
+    "start_date": "2025-04-02",
+    "start_page": 101,
+  },
+]
+`;
+
+exports[`Db query ajlb get tests getCurrentAjlbs should return all current ajlbs 1`] = `
+[
+  {
+    "aircraft_registration": "OH-IHQ",
+    "end_date": null,
+    "flight_time": "62:55",
+    "minutes_at_start": 3775,
+    "no_of_pages": 90,
+    "rows_per_page": 25,
+    "seq_no": 2,
+    "start_date": "2025-04-04",
+    "start_page": 81,
+  },
+  {
+    "aircraft_registration": "OH-P28",
+    "end_date": null,
+    "flight_time": "100:37",
+    "minutes_at_start": 6037,
+    "no_of_pages": 90,
+    "rows_per_page": 25,
+    "seq_no": 4,
+    "start_date": "2003-04-04",
+    "start_page": 81,
+  },
+  {
+    "aircraft_registration": "OH-STL",
+    "end_date": null,
+    "flight_time": "250:55",
+    "minutes_at_start": 15055,
+    "no_of_pages": 120,
+    "rows_per_page": 30,
+    "seq_no": 3,
+    "start_date": "2025-04-02",
+    "start_page": 101,
+  },
+]
+`;
+
+exports[`Db query ajlb get tests getFilteredAjlbs for date should return expected ajlbs 1`] = `
+[
+  {
+    "aircraft_registration": "OH-IHQ",
+    "end_date": null,
+    "flight_time": "62:55",
+    "minutes_at_start": 3775,
+    "no_of_pages": 90,
+    "rows_per_page": 25,
+    "seq_no": 2,
+    "start_date": "2025-04-04",
+    "start_page": 81,
+  },
+]
+`;
+
+exports[`Db query ajlb get tests getFilteredAjlbs should return IHQ ajlbs 1`] = `
+[
+  {
+    "aircraft_registration": "OH-IHQ",
+    "end_date": "2025-04-04",
+    "flight_time": "40:45",
+    "minutes_at_start": 2445,
+    "no_of_pages": 80,
+    "rows_per_page": 20,
+    "seq_no": 1,
+    "start_date": "2024-04-03",
+    "start_page": 1,
+  },
+]
+`;
+
+exports[`Db query ajlb get tests getFilteredAjlbs should return STL ajlbs 1`] = `
+[
+  {
+    "aircraft_registration": "OH-STL",
+    "end_date": "2024-04-02",
+    "flight_time": "10:10",
+    "minutes_at_start": 610,
+    "no_of_pages": 100,
+    "rows_per_page": 25,
+    "seq_no": 1,
+    "start_date": "2023-04-01",
+    "start_page": 1,
+  },
+  {
+    "aircraft_registration": "OH-STL",
+    "end_date": "2025-04-02",
+    "flight_time": "167:00",
+    "minutes_at_start": 10020,
+    "no_of_pages": 120,
+    "rows_per_page": 30,
+    "seq_no": 2,
+    "start_date": "2024-04-02",
+    "start_page": 101,
+  },
+  {
+    "aircraft_registration": "OH-STL",
+    "end_date": null,
+    "flight_time": "250:55",
+    "minutes_at_start": 15055,
+    "no_of_pages": 120,
+    "rows_per_page": 30,
+    "seq_no": 3,
+    "start_date": "2025-04-02",
+    "start_page": 101,
+  },
+]
+`;

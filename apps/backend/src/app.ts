@@ -12,6 +12,7 @@ import { RateLimiterMemory } from 'rate-limiter-flexible'
 
 import logger from './lib/logger.ts'
 import { router as aircraftRoutes } from './routes/aircrafts/api.ts'
+import ajlbRoutes from './routes/ajlb/api.ts'
 import { router as passportRoutes } from './routes/auth/login.ts'
 import flightLogRoutes from './routes/flight-log/api.ts'
 import { router as memberRoutes } from './routes/members/api.ts'
@@ -80,6 +81,7 @@ app.use('/auth', passportRoutes)
 app.use('/api/v1/members', memberRoutes)
 app.use('/api/v1/flight-log', flightLogRoutes)
 app.use('/api/v1/aircrafts', aircraftRoutes)
+app.use('/api/v1/ajlb', ajlbRoutes)
 
 app.use(defaultErrorHandler)
 
