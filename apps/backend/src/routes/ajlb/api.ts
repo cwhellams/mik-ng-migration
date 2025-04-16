@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express'
 
 import { flightAircraftJourneyLogBookFilter, type AjlbFilter } from './model.ts'
-import { getAllAjlbs, getCurrentAjlbs, getFilteredAjlbs } from '../../db/ajlb-queries.ts'
+import { getCurrentAjlbs, getFilteredAjlbs } from '../../db/ajlb-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
 
