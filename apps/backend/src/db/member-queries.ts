@@ -1,4 +1,4 @@
-import { sql, type Selectable } from 'kysely'
+import { type Selectable } from 'kysely'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
 import { db } from './connection.ts'
@@ -12,8 +12,9 @@ import {
   type MemberList,
   type MemberRole,
 } from '../routes/members/models.ts'
+import { generateShortId } from '../util/nanoId.ts'
 
-export async function getMemberById(memberId: number): Promise<Member | undefined> {
+export async function getMemberById(memberId: string): Promise<Member | undefined> {
   const member = await db
     .selectFrom('member.register')
     .selectAll()
@@ -161,12 +162,13 @@ export async function getMembers(
   }))
 }
 
-export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise<number> {
+export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise<string> {
   const now = new Date()
+  const new_member_id = generateShortId()
   const result = await db
     .insertInto('member.register')
     .values({
-      member_id: sql<number>`nextval('member.register_member_id_seq')`,
+      member_id: new_member_id,
       member_type: member.memberType,
       email: member.email,
       first_name: member.firstName,
@@ -182,9 +184,9 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       member_since: now,
 
       created_at: now,
-      created_by: jwt?.memberId ?? sql<number>`currval('member.register_member_id_seq')`,
+      created_by: jwt?.memberId ?? new_member_id,
       updated_at: now,
-      updated_by: jwt?.memberId ?? sql<number>`currval('member.register_member_id_seq')`,
+      updated_by: jwt?.memberId ?? new_member_id,
       email_verified_at: undefined,
     })
     .returning('member_id')
@@ -197,7 +199,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
 }
 
 export async function updateMember(
-  memberId: number,
+  memberId: string,
   patch: Partial<Member>,
   jwt: JWTUser,
 ): Promise<boolean> {
@@ -246,7 +248,7 @@ export async function updateMember(
   return true
 }
 
-export async function removeMember(memberId: number): Promise<boolean> {
+export async function removeMember(memberId: string): Promise<boolean> {
   await db
     .deleteFrom('member.member_to_roles')
     .where('member_id', '=', memberId)
@@ -260,7 +262,7 @@ export async function removeMember(memberId: number): Promise<boolean> {
 }
 
 export async function updateMemberRoles(
-  memberId: number,
+  memberId: string,
   roles: string[],
   jwt: JWTUser,
 ): Promise<void> {
@@ -315,7 +317,7 @@ function toMemberRole(role: Selectable<MemberRoles>): MemberRole {
   }
 }
 
-export async function getMemberRolesByMemberId(memberId: number): Promise<MemberRole[]> {
+export async function getMemberRolesByMemberId(memberId: string): Promise<MemberRole[]> {
   const roles = await db
     .selectFrom('member.roles')
     .selectAll()

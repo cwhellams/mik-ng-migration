@@ -33,7 +33,7 @@ INSERT INTO flight.aircraft (
     '2024-01-15', '2025-01-15', '2024-02-10', '2024-03-05', 3100.00, 3150.00,
     '2024-12-31', '2025-06-30', '2025-01-01', '2025-02-01',
     '2025-03-15', '2026-01-01', 'SFDY', 180.00,
-    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'admin', 'admin'
+    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'k1mnimda', 'k1mnimda'
 ),
 
 (
@@ -42,7 +42,7 @@ INSERT INTO flight.aircraft (
     '2024-02-20', '2025-02-20', '2024-03-01', '2024-04-10', 4000.00, 4050.00,
     '2024-11-30', '2025-05-31', '2024-12-01', '2025-01-15',
     '2025-06-20', '2026-03-10', 'SF', 160.00,
-    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'admin', 'admin'
+    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'k1mnimda', 'k1mnimda'
 ),
 
 (
@@ -51,5 +51,5 @@ INSERT INTO flight.aircraft (
     '2024-03-10', '2025-03-10', '2024-04-15', '2024-05-20', 5150.00, 5180.00,
     '2025-07-01', '2025-12-15', '2026-02-01', '2026-03-10',
     '2025-08-20', '2026-04-01', 'SFD', 140.00,
-    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'admin', 'admin'
+    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'k1mnimda', 'k1mnimda'
 );

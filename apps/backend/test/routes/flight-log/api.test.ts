@@ -11,8 +11,8 @@ import {
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { generateShortId } from '../../../src/util/nanoId.ts'
 
-const test_member_id = 1
-const admin_member_id = 5
+const test_member_id = 'Matti1'
+const admin_member_id = 'Pekka1'
 dotenv.config()
 
 // Create an instance of the Express app
@@ -59,17 +59,17 @@ describe('GET /flight-log', () => {
       {
         created_at: expect.any(String),
         updated_at: expect.any(String),
-        updated_by: expect.any(Number),
+        updated_by: expect.any(String),
       },
       {
         created_at: expect.any(String),
         updated_at: expect.any(String),
-        updated_by: expect.any(Number),
+        updated_by: expect.any(String),
       },
       {
         created_at: expect.any(String),
         updated_at: expect.any(String),
-        updated_by: expect.any(Number),
+        updated_by: expect.any(String),
       },
     ])
   })
@@ -96,12 +96,14 @@ describe('GET /flight-log', () => {
       .get('/flight-log')
       .set('Authorization', `Bearer ${token}`)
       .query({
-        billable_member_id: 'not_a_number',
+        billable_member_id2: null,
       })
 
     expect(response.status).toBe(400)
     expect(response.body.error).toBeDefined()
-    expect(response.body.error[0].message).toMatch(/Expected number, received nan/)
+    expect(response.body.error[0].message).toMatch(
+      "Unrecognized key(s) in object: 'billable_member_id2'",
+    )
   })
 
   it('should return 200 for Start Date with time offset', async () => {
@@ -182,7 +184,7 @@ describe('POST /flight-log', () => {
       arrival_airport: 'EFHK',
       billable_member_id: test_member_id,
       billing_remarks: 'N/A',
-      pic_member_id: 1,
+      pic_member_id: 'Pekka1',
       pic_role: 'FI',
       departure_airport: 'EFHK',
       flight_type: 'KOU',
@@ -261,13 +263,13 @@ describe('POST /flight-log', () => {
 
 describe('PATCH /flight-log/', () => {
   test.each([
-    [1, [MIKPermissions.FLIGHTLOG_ADMIN]],
-    [4, [MIKPermissions.FLIGHTLOG_USER]],
+    ['Matti1', [MIKPermissions.FLIGHTLOG_ADMIN]],
+    ['Kaisa1', [MIKPermissions.FLIGHTLOG_USER]],
   ])(
     'should update a flight log when billable member matches token member or user has elevated role, using %d and %s',
     async (memberId, permissions) => {
       const payload: FlightLogUpdateRequest = {
-        crew2_member_id: 2,
+        crew2_member_id: 'Antti1',
       }
 
       //Create a token with a member id that matches billable member id
@@ -294,7 +296,7 @@ describe('PATCH /flight-log/', () => {
       })
 
       const undoPayload: FlightLogUpdateRequest = {
-        crew2_member_id: 8,
+        crew2_member_id: 'Antti1',
       }
       const undoResponse = await request(app)
         .patch('/flight-log/bLwnAstr0')
@@ -316,7 +318,7 @@ describe('PATCH /flight-log/', () => {
   )
   it('should return a 401 if an invalid JWT token is passed', async () => {
     const payload: FlightLogUpdateRequest = {
-      crew2_member_id: 2,
+      crew2_member_id: 'Liisa1',
     }
 
     const invalidToken = 'THIS WILL NOT WORK'
@@ -330,11 +332,11 @@ describe('PATCH /flight-log/', () => {
   })
   it('should return a 404 if the billable member id does not match token ID for a USER', async () => {
     const payload: FlightLogUpdateRequest = {
-      crew2_member_id: 2,
+      crew2_member_id: 'Liisa1',
     }
 
     const invalidToken = generateAccessToken({
-      memberId: 2, // billable_member_id
+      memberId: 'Liisa1', // billable_member_id
       email: 'test@mik.fi',
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     })
@@ -379,7 +381,7 @@ describe('DELETE /flight-log', () => {
 
   it('should return 403 when user does not have rights to delete a flight log', async () => {
     const delToken = generateAccessToken({
-      memberId: 99,
+      memberId: 'Iceman99',
       email: 'invalid@mik.fi',
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     })

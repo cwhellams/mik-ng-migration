@@ -1,167 +1,182 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GET /members should return 200 without search filters for user id 1 1`] = `
-[
-  {
-    "memberId": 5,
-    "name": "Pekka Hämäläinen",
-    "phoneNumber": "0445678901",
-    "roles": [
-      "MEMBER",
-    ],
-  },
-  {
-    "memberId": 7,
-    "name": "Antti Heikkinen",
-    "phoneNumber": "0467890123",
-    "roles": [
-      "INSTRUCTOR",
-      "MEMBER",
-    ],
-  },
-  {
-    "memberId": 2,
-    "name": "Liisa Korhonen",
-    "phoneNumber": "0412345678",
-    "roles": [
-      "COMMITTEE",
-    ],
-  },
-  {
-    "memberId": 8,
-    "name": "Sanna Koskinen",
-    "phoneNumber": "0478901234",
-    "roles": [
-      "COMMITTEE",
-    ],
-  },
-  {
-    "memberId": 4,
-    "name": "Anna Mäkinen",
-    "phoneNumber": "0434567890",
-    "roles": [
-      "COMMITTEE",
-    ],
-  },
-  {
-    "memberId": 3,
-    "name": "Jukka Nieminen",
-    "phoneNumber": "0423456789",
-    "roles": [
-      "INSTRUCTOR",
-    ],
-  },
-  {
-    "memberId": 9,
-    "name": "Juha Seppälä",
-    "phoneNumber": "0489012345",
-    "roles": [
-      "MEMBER",
-    ],
-  },
-  {
-    "memberId": 1,
-    "name": "Matti Virtanen",
-    "phoneNumber": "0401234567",
-    "roles": [
-      "INSTRUCTOR",
-      "MEMBER",
-    ],
-  },
-]
+{
+  "members": [
+    {
+      "memberId": "Pekka1",
+      "name": "Pekka Hämäläinen",
+      "phoneNumber": "0445678901",
+      "roles": [
+        "MEMBER",
+      ],
+    },
+    {
+      "memberId": "Antti1",
+      "name": "Antti Heikkinen",
+      "phoneNumber": "0467890123",
+      "roles": [
+        "INSTRUCTOR",
+        "MEMBER",
+      ],
+    },
+    {
+      "memberId": "Liisa1",
+      "name": "Liisa Korhonen",
+      "phoneNumber": "0412345678",
+      "roles": [
+        "COMMITTEE",
+      ],
+    },
+    {
+      "memberId": "Sanna1",
+      "name": "Sanna Koskinen",
+      "phoneNumber": "0478901234",
+      "roles": [
+        "COMMITTEE",
+      ],
+    },
+    {
+      "memberId": "Anna1",
+      "name": "Anna Mäkinen",
+      "phoneNumber": "0434567890",
+      "roles": [
+        "COMMITTEE",
+      ],
+    },
+    {
+      "memberId": "Jukka1",
+      "name": "Jukka Nieminen",
+      "phoneNumber": "0423456789",
+      "roles": [
+        "INSTRUCTOR",
+      ],
+    },
+    {
+      "memberId": "Juha1",
+      "name": "Juha Seppälä",
+      "phoneNumber": "0489012345",
+      "roles": [
+        "MEMBER",
+      ],
+    },
+    {
+      "memberId": "Matti1",
+      "name": "Matti Virtanen",
+      "phoneNumber": "0401234567",
+      "roles": [
+        "INSTRUCTOR",
+        "MEMBER",
+      ],
+    },
+  ],
+}
 `;
 
 exports[`GET /members should return 200 without search filters for user id 2 1`] = `
+{
+  "members": [
+    {
+      "memberId": "k1mnimda",
+      "name": "MIK Admin",
+      "phoneNumber": null,
+      "roles": [
+        "ADMIN",
+      ],
+    },
+    {
+      "memberId": "Pekka1",
+      "name": "Pekka Hämäläinen",
+      "phoneNumber": "0445678901",
+      "roles": [
+        "ADMIN",
+        "MEMBER",
+      ],
+    },
+    {
+      "memberId": "Antti1",
+      "name": "Antti Heikkinen",
+      "phoneNumber": "0467890123",
+      "roles": [
+        "INSTRUCTOR",
+        "MEMBER",
+      ],
+    },
+    {
+      "memberId": "Liisa1",
+      "name": "Liisa Korhonen",
+      "phoneNumber": "0412345678",
+      "roles": [
+        "ADMIN",
+        "COMMITTEE",
+      ],
+    },
+    {
+      "memberId": "Sanna1",
+      "name": "Sanna Koskinen",
+      "phoneNumber": "0478901234",
+      "roles": [
+        "COMMITTEE",
+      ],
+    },
+    {
+      "memberId": "Kaisa1",
+      "name": "Kaisa Laine",
+      "phoneNumber": "0456789012",
+      "roles": [
+        "ADMIN",
+      ],
+    },
+    {
+      "memberId": "Anna1",
+      "name": "Anna Mäkinen",
+      "phoneNumber": "0434567890",
+      "roles": [
+        "COMMITTEE",
+      ],
+    },
+    {
+      "memberId": "Jukka1",
+      "name": "Jukka Nieminen",
+      "phoneNumber": "0423456789",
+      "roles": [
+        "INSTRUCTOR",
+      ],
+    },
+    {
+      "memberId": "Marja1",
+      "name": "Marja Salminen",
+      "phoneNumber": "0490123456",
+      "roles": [],
+    },
+    {
+      "memberId": "Juha1",
+      "name": "Juha Seppälä",
+      "phoneNumber": "0489012345",
+      "roles": [
+        "MEMBER",
+      ],
+    },
+    {
+      "memberId": "Matti1",
+      "name": "Matti Virtanen",
+      "phoneNumber": "0401234567",
+      "roles": [
+        "INSTRUCTOR",
+        "MEMBER",
+      ],
+    },
+  ],
+}
+`;
+
+exports[`GET /members should search by unapproved roles as an admin 1`] = `
 [
   {
-    "memberId": 0,
-    "name": "MIK Admin",
-    "phoneNumber": null,
-    "roles": [
-      "ADMIN",
-    ],
-  },
-  {
-    "memberId": 5,
-    "name": "Pekka Hämäläinen",
-    "phoneNumber": "0445678901",
-    "roles": [
-      "ADMIN",
-      "MEMBER",
-    ],
-  },
-  {
-    "memberId": 7,
-    "name": "Antti Heikkinen",
-    "phoneNumber": "0467890123",
-    "roles": [
-      "INSTRUCTOR",
-      "MEMBER",
-    ],
-  },
-  {
-    "memberId": 2,
-    "name": "Liisa Korhonen",
-    "phoneNumber": "0412345678",
-    "roles": [
-      "ADMIN",
-      "COMMITTEE",
-    ],
-  },
-  {
-    "memberId": 8,
-    "name": "Sanna Koskinen",
-    "phoneNumber": "0478901234",
-    "roles": [
-      "COMMITTEE",
-    ],
-  },
-  {
-    "memberId": 6,
-    "name": "Kaisa Laine",
-    "phoneNumber": "0456789012",
-    "roles": [
-      "ADMIN",
-    ],
-  },
-  {
-    "memberId": 4,
-    "name": "Anna Mäkinen",
-    "phoneNumber": "0434567890",
-    "roles": [
-      "COMMITTEE",
-    ],
-  },
-  {
-    "memberId": 3,
-    "name": "Jukka Nieminen",
-    "phoneNumber": "0423456789",
-    "roles": [
-      "INSTRUCTOR",
-    ],
-  },
-  {
-    "memberId": 10,
+    "memberId": "Marja1",
     "name": "Marja Salminen",
     "phoneNumber": "0490123456",
     "roles": [],
-  },
-  {
-    "memberId": 9,
-    "name": "Juha Seppälä",
-    "phoneNumber": "0489012345",
-    "roles": [
-      "MEMBER",
-    ],
-  },
-  {
-    "memberId": 1,
-    "name": "Matti Virtanen",
-    "phoneNumber": "0401234567",
-    "roles": [
-      "INSTRUCTOR",
-      "MEMBER",
-    ],
   },
 ]
 `;
@@ -171,14 +186,14 @@ exports[`GET /members/id Get member details as an admin 1`] = `
   "billingId": null,
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": 0,
+  "createdBy": "k1mnimda",
   "email": "admin@mik.fi",
   "firstName": "MIK",
   "iceContactName": null,
   "iceContactPhoneNumber": null,
   "isTrainingProgramPilot": false,
   "lastName": "Admin",
-  "memberId": 0,
+  "memberId": "k1mnimda",
   "memberSince": Any<String>,
   "memberType": "FLYING",
   "phoneNumber": null,
@@ -186,7 +201,7 @@ exports[`GET /members/id Get member details as an admin 1`] = `
   "roles": [
     {
       "createdAt": Any<String>,
-      "createdBy": 0,
+      "createdBy": "k1mnimda",
       "description": "Administrator with full access",
       "isPublic": false,
       "name": {
@@ -201,13 +216,13 @@ exports[`GET /members/id Get member details as an admin 1`] = `
       ],
       "roleId": "ADMIN",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
   ],
   "streetAddress": null,
   "townCity": null,
   "updatedAt": Any<String>,
-  "updatedBy": 0,
+  "updatedBy": "k1mnimda",
 }
 `;
 
@@ -216,7 +231,7 @@ exports[`GET /members/me should return 200 with valid token for user id 1 1`] = 
   "billingId": "BILL001",
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": 1,
+  "createdBy": "k1mnimda",
   "dateOfBirth": "1980-01-15",
   "email": "chris.whellams@gmail.com",
   "firstName": "Matti",
@@ -224,7 +239,7 @@ exports[`GET /members/me should return 200 with valid token for user id 1 1`] = 
   "iceContactPhoneNumber": "0407654321",
   "isTrainingProgramPilot": false,
   "lastName": "Virtanen",
-  "memberId": 1,
+  "memberId": "Matti1",
   "memberSince": Any<String>,
   "memberType": "FLYING",
   "phoneNumber": "0401234567",
@@ -232,7 +247,7 @@ exports[`GET /members/me should return 200 with valid token for user id 1 1`] = 
   "roles": [
     {
       "createdAt": Any<String>,
-      "createdBy": 1,
+      "createdBy": "k1mnimda",
       "description": "Instructor with permissions to manage training",
       "isPublic": true,
       "name": {
@@ -242,11 +257,11 @@ exports[`GET /members/me should return 200 with valid token for user id 1 1`] = 
       "permissions": [],
       "roleId": "INSTRUCTOR",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
     {
       "createdAt": Any<String>,
-      "createdBy": 1,
+      "createdBy": "k1mnimda",
       "description": "MIK member with basic access",
       "isPublic": true,
       "name": {
@@ -258,13 +273,13 @@ exports[`GET /members/me should return 200 with valid token for user id 1 1`] = 
       ],
       "roleId": "MEMBER",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
   ],
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
   "updatedAt": Any<String>,
-  "updatedBy": 1,
+  "updatedBy": Any<String>,
 }
 `;
 
@@ -273,14 +288,14 @@ exports[`GET /members/me should return 200 with valid token for user id 2 1`] = 
   "billingId": null,
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": 0,
+  "createdBy": "k1mnimda",
   "email": "admin@mik.fi",
   "firstName": "MIK",
   "iceContactName": null,
   "iceContactPhoneNumber": null,
   "isTrainingProgramPilot": false,
   "lastName": "Admin",
-  "memberId": 0,
+  "memberId": "k1mnimda",
   "memberSince": Any<String>,
   "memberType": "FLYING",
   "phoneNumber": null,
@@ -288,7 +303,7 @@ exports[`GET /members/me should return 200 with valid token for user id 2 1`] = 
   "roles": [
     {
       "createdAt": Any<String>,
-      "createdBy": 0,
+      "createdBy": "k1mnimda",
       "description": "Administrator with full access",
       "isPublic": false,
       "name": {
@@ -303,13 +318,13 @@ exports[`GET /members/me should return 200 with valid token for user id 2 1`] = 
       ],
       "roleId": "ADMIN",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
   ],
   "streetAddress": null,
   "townCity": null,
   "updatedAt": Any<String>,
-  "updatedBy": 0,
+  "updatedBy": Any<String>,
 }
 `;
 
@@ -318,7 +333,7 @@ exports[`GET /members/me should return 200 with valid token for user id 3 1`] = 
   "billingId": "BILL002",
   "canMakeReservations": true,
   "createdAt": Any<String>,
-  "createdBy": 2,
+  "createdBy": "k1mnimda",
   "dateOfBirth": "1985-02-20",
   "email": "juho.kolehmainen@iki.fi",
   "firstName": "Liisa",
@@ -326,7 +341,7 @@ exports[`GET /members/me should return 200 with valid token for user id 3 1`] = 
   "iceContactPhoneNumber": "0418765432",
   "isTrainingProgramPilot": false,
   "lastName": "Korhonen",
-  "memberId": 2,
+  "memberId": "Liisa1",
   "memberSince": Any<String>,
   "memberType": "JUNIOR",
   "phoneNumber": "0412345678",
@@ -334,7 +349,7 @@ exports[`GET /members/me should return 200 with valid token for user id 3 1`] = 
   "roles": [
     {
       "createdAt": Any<String>,
-      "createdBy": 1,
+      "createdBy": "k1mnimda",
       "description": "Administrator with full access",
       "isPublic": false,
       "name": {
@@ -349,11 +364,11 @@ exports[`GET /members/me should return 200 with valid token for user id 3 1`] = 
       ],
       "roleId": "ADMIN",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
     {
       "createdAt": Any<String>,
-      "createdBy": 1,
+      "createdBy": "k1mnimda",
       "description": "MIK board member with decision-making authority in the club",
       "isPublic": true,
       "name": {
@@ -363,12 +378,12 @@ exports[`GET /members/me should return 200 with valid token for user id 3 1`] = 
       "permissions": [],
       "roleId": "COMMITTEE",
       "updatedAt": Any<String>,
-      "updatedBy": 0,
+      "updatedBy": "k1mnimda",
     },
   ],
   "streetAddress": "Mannerheimintie 10",
   "townCity": "Espoo",
   "updatedAt": Any<String>,
-  "updatedBy": 2,
+  "updatedBy": Any<String>,
 }
 `;

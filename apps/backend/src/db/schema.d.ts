@@ -86,17 +86,17 @@ export interface FlightLogs {
   ajlb_blank_rows_before: number
   ajlb_seq_no: number
   arrival_airport: string
-  billable_member_id: number
+  billable_member_id: string
   billing_remarks: string | null
   block_mins: Generated<number | null>
   block_time: Generated<string | null>
   created_at: Generated<Timestamp>
-  created_by: number
-  crew2_member_id: number | null
+  created_by: string
+  crew2_member_id: Generated<string | null>
   crew2_role: CrewRole | null
-  crew3_member_id: number | null
+  crew3_member_id: Generated<string | null>
   crew3_role: CrewRole | null
-  crew4_member_id: number | null
+  crew4_member_id: Generated<string | null>
   crew4_role: CrewRole | null
   departure_airport: string
   flight_id: string
@@ -113,7 +113,7 @@ export interface FlightLogs {
   landing_time_epoch: Int8
   landing_time_utc: Generated<Timestamp | null>
   night_flying_mins: number
-  non_billing_approved_by_member_id: number | null
+  non_billing_approved_by_member_id: string | null
   non_billing_reason: string | null
   number_of_landings: number
   off_block_time_epoch: Int8
@@ -123,7 +123,7 @@ export interface FlightLogs {
   on_block_time_utc: Generated<Timestamp | null>
   personal_remarks: string | null
   persons_on_board: number
-  pic_member_id: number
+  pic_member_id: string
   pic_role: CrewRole
   priv_or_com_flight: string
   status: Generated<FlightLogStatus>
@@ -131,7 +131,7 @@ export interface FlightLogs {
   takeoff_time_utc: Generated<Timestamp | null>
   total_time_in_service: Numeric
   updated_at: Generated<Timestamp>
-  updated_by: number
+  updated_by: string
 }
 
 export interface FlightLogsAudit {
@@ -182,8 +182,8 @@ export interface FlywaySchemaHistory {
 
 export interface MemberMemberToRoles {
   created_at: Generated<Timestamp>
-  created_by: number
-  member_id: number
+  created_by: string
+  member_id: string
   role_id: string
 }
 
@@ -191,7 +191,7 @@ export interface MemberRegister {
   billing_id: string | null
   can_make_reservations: Generated<boolean>
   created_at: Generated<Timestamp>
-  created_by: number
+  created_by: string
   date_of_birth: Timestamp | null
   email: string
   email_verified_at: Timestamp | null
@@ -200,7 +200,7 @@ export interface MemberRegister {
   ice_contact_phone_number: string | null
   is_training_program_pilot: Generated<boolean>
   last_name: string
-  member_id: Generated<number>
+  member_id: string
   member_since: Generated<Timestamp>
   member_type: MemberType
   phone_number: string | null
@@ -208,7 +208,7 @@ export interface MemberRegister {
   street_address: string | null
   town_city: string | null
   updated_at: Generated<Timestamp>
-  updated_by: number
+  updated_by: string
 }
 
 export interface MemberRegisterAudit {
@@ -216,14 +216,14 @@ export interface MemberRegisterAudit {
   changed_at: Generated<Timestamp>
   changed_by: string
   changed_data: Json | null
-  member_id: number
+  member_id: string
   new_data: Json | null
   operation_type: string
 }
 
 export interface MemberRoles {
   created_at: Generated<Timestamp>
-  created_by: number
+  created_by: string
   description: string | null
   is_public: Generated<boolean>
   name_en: string
@@ -231,7 +231,7 @@ export interface MemberRoles {
   permissions: Json | null
   role_id: string
   updated_at: Generated<Timestamp>
-  updated_by: number
+  updated_by: string
 }
 
 export interface StaticAirfields {

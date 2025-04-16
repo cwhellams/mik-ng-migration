@@ -1,10 +1,10 @@
 CREATE TABLE member.register_audit (
     audit_id SERIAL PRIMARY KEY,
-    member_id INT NOT NULL,
+    member_id VARCHAR(9) NOT NULL,
     operation_type TEXT NOT NULL, -- 'INSERT', 'UPDATE', 'DELETE'
     changed_data JSONB, -- Stores the old data for DELETE and UPDATE
     new_data JSONB, -- Stores the new data for INSERT and UPDATE
-    changed_by TEXT NOT NULL,
+    changed_by VARCHAR(9) NOT NULL,
     changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

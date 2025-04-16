@@ -1,15 +1,15 @@
 INSERT INTO member.member_to_roles (member_id, role_id, created_by)
 VALUES
-(1, 'MEMBER', 1),
-(1, 'INSTRUCTOR', 1),
-(2, 'ADMIN', 1),
-(2, 'COMMITTEE', 1),
-(3, 'INSTRUCTOR', 1),
-(4, 'COMMITTEE', 1),
-(5, 'MEMBER', 1),
-(5, 'ADMIN', 1),
-(6, 'ADMIN', 1),
-(7, 'INSTRUCTOR', 1),
-(7, 'MEMBER', 1),
-(8, 'COMMITTEE', 1),
-(9, 'MEMBER', 1)
+('Matti1', 'MEMBER', 'k1mnimda'),
+('Matti1', 'INSTRUCTOR', 'k1mnimda'),
+('Liisa1', 'ADMIN', 'k1mnimda'),
+('Liisa1', 'COMMITTEE', 'k1mnimda'),
+('Jukka1', 'INSTRUCTOR', 'k1mnimda'),
+('Anna1', 'COMMITTEE', 'k1mnimda'),
+('Pekka1', 'MEMBER', 'k1mnimda'),
+('Pekka1', 'ADMIN', 'k1mnimda'),
+('Kaisa1', 'ADMIN', 'k1mnimda'),
+('Antti1', 'INSTRUCTOR', 'k1mnimda'),
+('Antti1', 'MEMBER', 'k1mnimda'),
+('Sanna1', 'COMMITTEE', 'k1mnimda'),
+('Juha1', 'MEMBER', 'k1mnimda')

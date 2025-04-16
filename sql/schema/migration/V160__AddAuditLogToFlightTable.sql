@@ -4,7 +4,7 @@ CREATE TABLE flight.logs_audit (
     operation_type TEXT NOT NULL, -- 'INSERT', 'UPDATE', 'DELETE'
     changed_data JSONB, -- Stores the old data for DELETE and UPDATE
     new_data JSONB, -- Stores the new data for INSERT and UPDATE
-    changed_by TEXT NOT NULL,
+    changed_by VARCHAR(9) NOT NULL,
     changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

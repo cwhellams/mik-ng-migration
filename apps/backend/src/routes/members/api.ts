@@ -183,7 +183,7 @@ router.get(
   '/:memberId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{ memberId: string }>, res: Response<Member | ErrorResponse>) => {
-    const memberId = Number(req.params.memberId)
+    const memberId = req.params.memberId
 
     const member = await getMemberById(memberId)
     if (!member) {
@@ -197,7 +197,7 @@ router.patch(
   '/:memberId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{ memberId: string }>, res: Response<Member | ErrorResponse>) => {
-    const memberId = Number(req.params.memberId)
+    const memberId = req.params.memberId
 
     const patch = MemberSchema.partial().parse(req.body)
     const updated = await updateMember(memberId, patch, req.user!)
@@ -214,7 +214,7 @@ router.delete(
   '/:memberId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{ memberId: string }>, res: Response<Member | ErrorResponse>) => {
-    const memberId = Number(req.params.memberId)
+    const memberId = req.params.memberId
 
     const updated = await removeMember(memberId)
     if (!updated) {

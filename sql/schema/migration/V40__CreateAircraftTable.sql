@@ -38,7 +38,6 @@ CREATE TABLE flight.aircraft
     hourly_rate_eur DECIMAL(10, 2) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_by TEXT NOT NULL,
-    updated_by TEXT NOT NULL
-
+    created_by VARCHAR(9) NOT NULL REFERENCES member.register (member_id),
+    updated_by VARCHAR(9) NOT NULL REFERENCES member.register (member_id)
 );
