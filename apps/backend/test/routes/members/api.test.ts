@@ -577,7 +577,7 @@ describe('GET /members/id', () => {
     expect(response.status).toBe(401)
   })
   it('Return 401 if invalid token', async () => {
-    const response = await get(0, 'invalid_token')
+    const response = await get('anything', 'invalid_token')
     expect(response.status).toBe(401)
   })
 
