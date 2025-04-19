@@ -97,7 +97,23 @@
   },
   "aircraft": {
     "location": "Location",
-    "notes": "Notes"
+    "notes": "Notes",
+    "documents": "Documents",
+    "maintenance": "Next Maintenance",
+    "maintenanceHours": "{{tachUntilNextMaintenance}} hours of flight time remaining, {{usablePercentageHours}}h usable until ferry",
+    "maintenanceDays": "Maintenance in {{daysUntilNextMaintenance}} days",
+    "document": {
+      "arc": "ARC",
+      "finavia": "Finavia",
+      "insurance": "Insurance",
+      "radio": "Radio"
+    },
+    "alerts": {
+      "expired": "{{alertId}} expired {{untilExpiration}} ago",
+      "expiring": "{{alertId}} expiring in {{untilExpiration}} days",
+      "noUsableHours": "No usable flight time remaining, {{untilExpiration}} available for ferry flight",
+      "usableHours": "Only {{untilExpiration}} usable percentage hours remaining"
+    }
   },
   "error": {
     "pageNotFound": "Page not found",

@@ -1,6 +1,5 @@
 import dotenv from 'dotenv'
 
-import { getAircraftByRegistration, getAllAircraft } from '../../src/db/aircraft_queries.ts'
 import { closeDb } from '../../src/db/connection.ts'
 import {
   deleteFlightLog,

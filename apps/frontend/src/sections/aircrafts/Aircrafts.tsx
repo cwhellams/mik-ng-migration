@@ -1,16 +1,58 @@
-import { Typography, Box, Stack, Card, CardContent } from '@mui/material'
+import { Typography, Box, Stack, Card, CardContent, Alert } from '@mui/material'
 import useApi from '../../hooks/useApi'
-import { AircraftListResponse } from '@backend/routes/aircrafts/models'
+import {
+  Aircraft,
+  AircraftAlert,
+  AircraftListResponse,
+  Severity,
+} from '@backend/routes/aircrafts/models'
 import { t } from 'i18next'
 import { EditButton } from '../../components/EditButton'
 import { FormTitle } from '../../components/FormTitle'
 import { RemoteContent } from '../../components/RemoteContent'
 import { FormField } from '../../components/FormField'
 
+import ProgressLine from './components/Progress'
+
 const Aircrafts = () => {
   const { data, isLoading, error } = useApi<AircraftListResponse>({
     url: 'v1/aircrafts',
   })
+
+  const translateAlert = (alert: AircraftAlert): AircraftAlert => {
+    return {
+      ...alert,
+      description: t(alert.description, {
+        ...alert,
+        alertId: alert.alertId ? t(alert.alertId) : undefined,
+      }),
+    }
+  }
+
+  const getMsg = (aircraft: Aircraft, level: Severity) => {
+    const messages: AircraftAlert[] = aircraft.notes
+      .filter((note) => note.severity == level && note.enabled !== false)
+      .map((note) => ({
+        alertId: '',
+        description: note.text,
+        untilExpiration: 0,
+        hardLimit: 0,
+        softLimit: 0,
+      }))
+
+    switch (level) {
+      case Severity.warning: {
+        const warnings = aircraft.status?.warnings ?? []
+        return [...messages, ...warnings.map(translateAlert)]
+      }
+      case Severity.caution: {
+        const cautions = aircraft.status?.cautions ?? []
+        return [...messages, ...cautions.map(translateAlert)]
+      }
+      default:
+        return messages
+    }
+  }
 
   return (
     <Box sx={{ position: 'relative' }}>
@@ -25,31 +67,121 @@ const Aircrafts = () => {
       />
 
       <RemoteContent isLoading={isLoading} error={error}>
-        <Stack direction={{ sm: 'column', md: 'row' }} spacing={3}>
-          {data?.aircrafts.map((aircraft) => (
-            <Card key={aircraft.registration} sx={{ flex: 1, mb: 3 }}>
-              <CardContent>
-                <FormTitle title={aircraft.registration} sx={{ mb: 0 }} />
-                <Typography variant='body2' color='text.primary' sx={{ mb: 2 }}>
-                  {aircraft.displayName}
-                </Typography>
+        <Stack
+          direction={{ sm: 'column', md: 'row' }}
+          useFlexGap
+          flexWrap={'wrap'}
+          spacing={{ xs: 2, sm: 3 }}
+        >
+          {data?.aircrafts.map((aircraft) => {
+            const warnings = getMsg(aircraft, Severity.warning)
+            const cautions = getMsg(aircraft, Severity.caution)
+            const notes = getMsg(aircraft, Severity.note)
 
-                <FormField
-                  label={t('aircraft.location')}
-                  sx={{ mb: 2, display: 'block' }}
-                >
-                  {aircraft.location}
-                </FormField>
+            return (
+              <Card
+                key={aircraft.registration}
+                sx={{ flex: 1, flexBasis: '40%' }}
+              >
+                <CardContent>
+                  <Stack spacing={2}>
+                    <Box>
+                      <FormTitle title={aircraft.registration} sx={{ mb: 0 }} />
+                      <Typography variant='body2' color='text.primary'>
+                        {aircraft.displayName}
+                      </Typography>
+                    </Box>
 
-                <FormField
-                  label={t('aircraft.notes')}
-                  sx={{ mb: 2, display: 'block' }}
-                >
-                  {aircraft.notes.map((note) => note.text)}
-                </FormField>
-              </CardContent>
-            </Card>
-          ))}
+                    {warnings.map((warn, index) => {
+                      return (
+                        <Alert key={index} severity='error' sx={{ mb: 2 }}>
+                          {warn.description}
+                        </Alert>
+                      )
+                    })}
+
+                    {cautions.map((caution, index) => {
+                      return (
+                        <Alert key={index} severity='warning' sx={{ mb: 2 }}>
+                          {caution.description}
+                        </Alert>
+                      )
+                    })}
+                    <FormField
+                      label={t('aircraft.location')}
+                      sx={{ display: 'block' }}
+                    >
+                      {aircraft.location}
+                    </FormField>
+
+                    {notes.length > 0 && (
+                      <FormField
+                        label={t('aircraft.notes')}
+                        sx={{ display: 'block' }}
+                      >
+                        {notes.map((note) => note.description)}
+                      </FormField>
+                    )}
+
+                    <Box>
+                      <Typography variant='subtitle1' color='text.primary'>
+                        {t('aircraft.documents', 'Documents')}
+                      </Typography>
+                      {aircraft.documents.map((doc) => {
+                        return (
+                          <FormField
+                            key={doc.documentId}
+                            label={t(`aircraft.document.${doc.documentId}`)}
+                            width={200}
+                            sx={{
+                              color: warnings.find((alert) =>
+                                alert.alertId?.includes(doc.documentId)
+                              )
+                                ? 'red'
+                                : cautions.find((alert) =>
+                                      alert.alertId?.includes(doc.documentId)
+                                    )
+                                  ? 'orange'
+                                  : 'black',
+                            }}
+                          >
+                            {doc.endDate}
+                          </FormField>
+                        )
+                      })}
+                    </Box>
+
+                    <Box>
+                      <Typography
+                        variant='subtitle1'
+                        color='text.primary'
+                        sx={{ width: 150 }}
+                      >
+                        {t('aircraft.maintenance')}
+                      </Typography>
+
+                      <Typography>
+                        {t('aircraft.maintenanceHours', aircraft.status)}
+                      </Typography>
+
+                      {aircraft.status?.daysUntilNextMaintenance && (
+                        <Typography>
+                          {t('aircraft.maintenanceDays', aircraft.status)}
+                        </Typography>
+                      )}
+                    </Box>
+
+                    <ProgressLine
+                      hardLimit={-aircraft.maintenance.totalPercentageHours}
+                      softLimit={-aircraft.maintenance.usablePercentageHours}
+                      current={aircraft.status?.tachUntilNextMaintenance ?? 0}
+                      max={aircraft.maintenance.maintenanceCycle}
+                    />
+                  </Stack>
+                </CardContent>
+              </Card>
+            )
+          })}
         </Stack>
       </RemoteContent>
     </Box>

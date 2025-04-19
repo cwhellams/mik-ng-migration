@@ -2,19 +2,22 @@ import { useEffect, useState } from 'react'
 
 import { useTheme } from '@mui/material'
 
+const marketWidth = 15
+const marketHeight = 10
+
 const Marker = () => {
   const theme = useTheme()
   return (
-    <svg width='22' height='100' xmlns='http://www.w3.org/2000/svg'>
+    <svg width={marketWidth} height='100' xmlns='http://www.w3.org/2000/svg'>
       <path
         fill={
           theme.palette.mode == 'dark'
-            ? theme.palette.primary.light
-            : theme.palette.primary.dark
+            ? theme.palette.grey[200]
+            : theme.palette.grey[800]
         }
-        stroke={theme.palette.primary.main}
+        stroke={'#000'}
         strokeWidth='2px'
-        d='M 1 5 L 21 5 L 21 20 L 11 30 L 1 20 Z'
+        d={`M 1 0 L ${marketWidth - 1} 0 L ${marketWidth - 1} ${marketHeight} L ${marketWidth / 2} ${marketHeight + 10} L 1 ${marketHeight} Z`}
       />
     </svg>
   )
@@ -31,7 +34,8 @@ const ProgressLine = ({
   current: number
   max: number
 }) => {
-  const colors = ['red', 'yellow', 'green', 'green']
+  const colors = ['#dd5235', '#f9de55', '#66cc66', '#66cc66']
+  const borders = ['#993333', '#cc9933', '#669933', '#669933']
 
   const zeroPoint = Math.abs(hardLimit)
   const totalWidth = zeroPoint + max
@@ -57,54 +61,57 @@ const ProgressLine = ({
   }, [])
 
   return (
-    <>
+    <div
+      style={{
+        backgroundColor: 'gray',
+        display: 'flex',
+        height: '10px',
+        margin: '20px 0',
+        position: 'relative',
+      }}
+    >
       <div
         style={{
-          backgroundColor: 'gray',
-          display: 'flex',
-          height: '20px',
-          margin: '20px 0',
-          position: 'relative',
+          left: `${width(zeroPoint + current)}%`,
+          transition: 'left 1s',
+          marginTop: `-${marketHeight + 3}px`,
+          marginLeft: `-${marketWidth / 2}px`,
+          position: 'absolute',
         }}
       >
-        <div
-          style={{
-            left: `${width(zeroPoint + current)}%`,
-            transition: 'left 1s',
-            marginTop: '-20px',
-            // half of the width
-            marginLeft: '-11px',
-            position: 'absolute',
-          }}
-        >
-          <Marker />
-        </div>
+        <Marker />
+      </div>
 
-        {visualParts.map((item, index, { length }) => {
-          return (
+      {visualParts.map((item, index, { length }) => {
+        return (
+          <div
+            key={index}
+            style={{
+              width: `${width(item)}%`,
+              backgroundColor: colors[index],
+              transition: 'width 1s',
+              borderTop: `1px solid ${borders[index]}`,
+              borderBottom: `1px solid ${borders[index]}`,
+              borderLeft:
+                index == 0 ? `1px solid ${borders[index]}` : undefined,
+              borderRight:
+                index == length - 1 ? `1px solid ${borders[index]}` : undefined,
+            }}
+          >
             <div
-              key={index}
               style={{
-                width: `${width(item)}%`,
-                backgroundColor: colors[index],
-                transition: 'width 1s',
+                marginTop: '10px',
+                width: index < length - 1 ? 0 : 'auto',
+                display: 'flex',
+                justifyContent: index < length - 1 ? 'center' : 'right',
               }}
             >
-              <div
-                style={{
-                  marginTop: '20px',
-                  width: index < length - 1 ? 0 : 'auto',
-                  display: 'flex',
-                  justifyContent: index < length - 1 ? 'center' : 'right',
-                }}
-              >
-                {index !== 0 ? titles[index] : ''}
-              </div>
+              {index !== 0 ? titles[index] : ''}
             </div>
-          )
-        })}
-      </div>
-    </>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 

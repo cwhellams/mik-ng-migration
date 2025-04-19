@@ -180,8 +180,8 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       town_city: member.townCity,
 
       billing_id: member.lastName.toUpperCase(),
-      date_of_birth: member.dateOfBirth ? new Date(member.dateOfBirth) : undefined,
-      member_since: now,
+      date_of_birth: member.dateOfBirth,
+      member_since: now.toISOString(),
 
       created_at: now,
       created_by: jwt?.memberId ?? new_member_id,

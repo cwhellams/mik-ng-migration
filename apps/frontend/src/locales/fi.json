@@ -84,7 +84,23 @@
   },
   "aircraft": {
     "location": "Sijainti",
-    "notes": "Huomiot"
+    "notes": "Huomiot",
+    "documents": "Dokumentit",
+    "maintenance": "Seuraava huolto",
+    "maintenanceHours": "Lentoaikaa {{tachUntilNextMaintenance}} tuntia jäljellä, käytettävissä {{usablePercentageHours}}h ennen siirtolentoa",
+    "maintenanceDays": "Huolto tilattu {{daysUntilNextMaintenance}} päivän päähän",
+    "document": {
+      "arc": "ARC",
+      "finavia": "Finavia",
+      "insurance": "Vakuutus",
+      "radio": "Radio"
+    },
+    "alerts": {
+      "expired": "{{alertId}} vanhentui {{untilExpiration}} päivää sitten",
+      "expiring": "{{alertId}} vanhenee {{untilExpiration}} päivän kuluttua",
+      "noUsableHours": "Lentotunnit täynnä, siirtolentoon jäljellä {{untilExpiration}}h",
+      "usableHours": "Vain {{untilExpiration}} prosenttituntia ilma-aikaa käytettävissä"
+    }
   },
   "error": {
     "pageNotFound": "Sivua ei löytynyt",
