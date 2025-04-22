@@ -19,24 +19,24 @@ import {
 } from '@mui/material'
 import useApi, { APIMutation } from '../../../hooks/useApi'
 import {
-  UpsertMemberRole,
   MemberRole,
   MIKPermissions,
   MIKLang,
 } from '@backend/routes/members/models'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
-import { AuditFormField } from './AuditFormField'
+import { AuditFormField } from '../../../components/AuditFormField'
 import { FormTitle } from '../../../components/FormTitle'
 import { useRoles } from '../../../hooks/useRoles'
 import { mutate } from 'swr'
-import { EditDialogTitle } from './EditDialogTitle'
+import { EditDialogTitle } from '../../../components/EditDialogTitle'
+import { Upsert } from '@backend/types/schema'
 
 export const MemberRoleEditor = ({
   role,
   onClose,
 }: {
-  role: UpsertMemberRole | undefined
+  role: Upsert<MemberRole> | undefined
   onClose: () => void
 }) => {
   const { t } = useTranslation()
@@ -47,11 +47,11 @@ export const MemberRoleEditor = ({
 
   const { permissions } = useRoles()
 
-  const { create, update, remove } = useApi<UpsertMemberRole>({
+  const { create, update, remove } = useApi<MemberRole>({
     url: `v1/members/roles${isNewRole ? '' : `/${role?.roleId}`}`,
     skipFetch: true,
   })
-  const [formData, setFormData] = useState<UpsertMemberRole>({
+  const [formData, setFormData] = useState<Upsert<MemberRole>>({
     roleId: '',
     name: {
       en: '',
@@ -74,7 +74,7 @@ export const MemberRoleEditor = ({
     }
   }, [role])
 
-  const trigger = async (api: APIMutation<UpsertMemberRole>) => {
+  const trigger = async (api: APIMutation<MemberRole>) => {
     setErrorMsg('')
 
     try {

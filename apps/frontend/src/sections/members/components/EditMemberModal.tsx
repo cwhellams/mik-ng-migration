@@ -26,7 +26,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import { mutate } from 'swr'
 import { useRoles } from '../../../hooks/useRoles'
 import { APIMutation } from '../../../hooks/useApi'
-import { EditDialogTitle } from './EditDialogTitle'
+import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { RegisterRequest } from '@backend/routes/auth/schema'
 
 export type MemberEditMode =

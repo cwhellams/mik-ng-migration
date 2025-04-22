@@ -10,7 +10,7 @@ import {
   type MemberListFilters,
   type MemberRolesResponse,
   type MemberRole,
-  UpsertMemberRoleSchema,
+  MemberRoleSchema,
 } from './models.ts'
 import {
   getMemberById,
@@ -25,6 +25,7 @@ import {
   removeMember,
 } from '../../db/member-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
+import { UpsertSchema } from '../../types/schema.ts'
 import { RegisterRequestSchema } from '../auth/schema.ts'
 import type { JWTUser } from '../auth/token.ts'
 import type { ErrorResponse } from '../response.ts'
@@ -128,7 +129,7 @@ router.patch(
   '/roles/:roleId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{ roleId: string }>, res: Response<MemberRole | ErrorResponse>) => {
-    const patch = UpsertMemberRoleSchema.partial().parse(req.body)
+    const patch = MemberRoleSchema.partial().parse(req.body)
     const success = await updateMemberRole(req.params.roleId, patch, req.user!)
     if (!success) {
       return res.status(404).json({ message: 'Not found' })
@@ -143,7 +144,7 @@ router.post(
   '/roles',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request, res: Response<MemberRole | ErrorResponse>) => {
-    const role = UpsertMemberRoleSchema.parse(req.body)
+    const role = UpsertSchema(MemberRoleSchema).parse(req.body)
     const created = await addMemberRole(role, req.user!)
 
     res.status(200).json(created)
@@ -153,7 +154,7 @@ router.post(
 router.delete(
   '/roles/:roleId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request<{ roleId: string }>, res: Response<MemberRole | ErrorResponse>) => {
+  async (req: Request<{ roleId: string }>, res: Response<ErrorResponse>) => {
     const success = await removeMemberRole(req.params.roleId)
     if (!success) {
       return res.status(404).json({ message: 'Not found' })
@@ -213,7 +214,7 @@ router.patch(
 router.delete(
   '/:memberId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request<{ memberId: string }>, res: Response<Member | ErrorResponse>) => {
+  async (req: Request<{ memberId: string }>, res: Response<ErrorResponse>) => {
     const memberId = req.params.memberId
 
     const updated = await removeMember(memberId)
@@ -221,7 +222,6 @@ router.delete(
       return res.status(404).json({ message: 'Not found' })
     }
 
-    const member = await getMemberById(memberId)
-    res.status(200).json(member)
+    res.status(204).end()
   },
 )

@@ -3,6 +3,7 @@ import useApi from '../../hooks/useApi'
 import {
   Aircraft,
   AircraftAlert,
+  AircraftDocument,
   AircraftListResponse,
   Severity,
 } from '@backend/routes/aircrafts/models'
@@ -13,18 +14,43 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { FormField } from '../../components/FormField'
 
 import ProgressLine from './components/Progress'
+import { useRoles } from '../../hooks/useRoles'
+import { useState } from 'react'
+import {
+  AircraftEditMode,
+  EditAircraftModal,
+} from './components/EditAircraftModal'
+import { Upsert } from '@backend/types/schema'
+import { EditDocumentModal } from './components/EditDocumentModal'
+import dayjs from 'dayjs'
 
 const Aircrafts = () => {
-  const { data, isLoading, error } = useApi<AircraftListResponse>({
+  const { data, isLoading, error } = useApi<
+    AircraftListResponse,
+    Aircraft,
+    Partial<Aircraft>
+  >({
     url: 'v1/aircrafts',
   })
+  const { isAircraftAdmin } = useRoles()
+
+  const [editMode, setEditMode] = useState<AircraftEditMode | undefined>(
+    undefined
+  )
+  const [editData, setEditData] = useState<Aircraft | undefined>(undefined)
+
+  const [editDocument, setEditDocument] = useState<
+    Upsert<AircraftDocument> | undefined
+  >(undefined)
 
   const translateAlert = (alert: AircraftAlert): AircraftAlert => {
     return {
       ...alert,
       description: t(alert.description, {
         ...alert,
-        alertId: alert.alertId ? t(alert.alertId) : undefined,
+        documentId: alert.documentId
+          ? t(`aircraft.document.${alert.documentId}`)
+          : undefined,
       }),
     }
   }
@@ -33,11 +59,10 @@ const Aircrafts = () => {
     const messages: AircraftAlert[] = aircraft.notes
       .filter((note) => note.severity == level && note.enabled !== false)
       .map((note) => ({
-        alertId: '',
         description: note.text,
         untilExpiration: 0,
-        hardLimit: 0,
-        softLimit: 0,
+        hardLimit: null,
+        softLimit: null,
       }))
 
     switch (level) {
@@ -60,11 +85,16 @@ const Aircrafts = () => {
         {t('header.aircrafts')}
       </Typography>
 
-      <EditButton
-        title={t('member.edit.register')}
-        onClick={() => {}}
-        icon='mdi:plus'
-      />
+      {isAircraftAdmin && (
+        <EditButton
+          title={t('aircraft.edit.new')}
+          onClick={() => {
+            setEditData(undefined)
+            setEditMode('new')
+          }}
+          icon='mdi:plus'
+        />
+      )}
 
       <RemoteContent isLoading={isLoading} error={error}>
         <Stack
@@ -90,6 +120,16 @@ const Aircrafts = () => {
                       <Typography variant='body2' color='text.primary'>
                         {aircraft.displayName}
                       </Typography>
+
+                      {isAircraftAdmin && (
+                        <EditButton
+                          title={t('aircraft.edit.details')}
+                          onClick={() => {
+                            setEditData(aircraft)
+                            setEditMode('details')
+                          }}
+                        />
+                      )}
                     </Box>
 
                     {warnings.map((warn, index) => {
@@ -123,32 +163,62 @@ const Aircrafts = () => {
                       </FormField>
                     )}
 
-                    <Box>
+                    <Box sx={{ position: 'relative' }}>
                       <Typography variant='subtitle1' color='text.primary'>
                         {t('aircraft.documents', 'Documents')}
                       </Typography>
-                      {aircraft.documents.map((doc) => {
-                        return (
-                          <FormField
-                            key={doc.documentId}
-                            label={t(`aircraft.document.${doc.documentId}`)}
-                            width={200}
-                            sx={{
-                              color: warnings.find((alert) =>
-                                alert.alertId?.includes(doc.documentId)
-                              )
-                                ? 'red'
-                                : cautions.find((alert) =>
-                                      alert.alertId?.includes(doc.documentId)
-                                    )
-                                  ? 'orange'
-                                  : 'black',
-                            }}
-                          >
-                            {doc.endDate}
-                          </FormField>
-                        )
-                      })}
+
+                      {isAircraftAdmin && (
+                        <EditButton
+                          title={t('aircraft.document.edit.new')}
+                          icon='mdi:plus'
+                          onClick={() => {
+                            setEditData(aircraft)
+                            setEditDocument({
+                              documentId: '',
+                              startDate: dayjs().format('YYYY-MM-DD'),
+                              endDate: '',
+                              alertDaysBefore: null,
+                              softLimit: null,
+                              hardLimit: null,
+                            })
+                          }}
+                          sx={{ top: 0, right: 0 }}
+                        />
+                      )}
+
+                      {aircraft.documents.map((doc) => (
+                        <FormField
+                          key={doc.documentId}
+                          label={t(`aircraft.document.${doc.documentId}`)}
+                          width={200}
+                          sx={{
+                            position: 'relative',
+                            color: warnings.find((alert) =>
+                              alert.documentId?.includes(doc.documentId)
+                            )
+                              ? 'red'
+                              : cautions.find((alert) =>
+                                    alert.documentId?.includes(doc.documentId)
+                                  )
+                                ? 'orange'
+                                : 'black',
+                          }}
+                        >
+                          {doc.endDate}
+
+                          {isAircraftAdmin && (
+                            <EditButton
+                              title={t('aircraft.document.edit.details')}
+                              onClick={() => {
+                                setEditData(aircraft)
+                                setEditDocument(doc)
+                              }}
+                              sx={{ top: 0, right: 0 }}
+                            />
+                          )}
+                        </FormField>
+                      ))}
                     </Box>
 
                     <Box>
@@ -183,6 +253,16 @@ const Aircrafts = () => {
             )
           })}
         </Stack>
+        <EditAircraftModal
+          mode={editMode}
+          onClose={() => setEditMode(undefined)}
+          aircraft={editData}
+        />
+        <EditDocumentModal
+          registration={editData?.registration}
+          document={editDocument}
+          onClose={() => setEditDocument(undefined)}
+        />
       </RemoteContent>
     </Box>
   )

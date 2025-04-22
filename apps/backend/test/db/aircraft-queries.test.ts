@@ -9,35 +9,33 @@ describe('Db query Get aircrafts tests', () => {
   it('getAllAircraft returns all aircraft in the db', async () => {
     const result = await getAllAircraft(false)
     expect(result.length).toEqual(3)
-    expect(result).toMatchSnapshot([
-      {
+    expect(result).toMatchSnapshot(
+      result.map(res => ({
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
-      },
-      {
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-      },
-      {
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-      },
-    ])
+        documents: res?.documents.map(doc => ({
+          ...doc,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        })),
+      })),
+    )
   })
 
   it('getAllAircraft returns all active aircraft in the db', async () => {
     const result = await getAllAircraft(true)
     expect(result.length).toEqual(2)
-    expect(result).toMatchSnapshot([
-      {
+    expect(result).toMatchSnapshot(
+      result.map(res => ({
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
-      },
-      {
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-      },
-    ])
+        documents: res?.documents.map(doc => ({
+          ...doc,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        })),
+      })),
+    )
   })
 
   it('getAllAircraftByRegistration returns the active aircraft in the db', async () => {
@@ -45,6 +43,11 @@ describe('Db query Get aircrafts tests', () => {
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
+      documents: result?.documents.map(doc => ({
+        ...doc,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
     })
   })
 

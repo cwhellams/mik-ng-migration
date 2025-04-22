@@ -3,7 +3,7 @@ import express from 'express'
 import request from 'supertest'
 
 import { router } from '../../../src/routes/aircrafts/api.ts'
-import type { AircraftListResponse } from '../../../src/routes/aircrafts/models.ts'
+import type { Aircraft, AircraftListResponse } from '../../../src/routes/aircrafts/models.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { defaultErrorHandler } from '../../../src/routes/response.ts'
@@ -17,19 +17,19 @@ app.use('/aircrafts', router)
 app.use(defaultErrorHandler)
 
 const adminToken = generateAccessToken({
-  memberId: 0,
+  memberId: 'admin',
   email: 'admin@mik.fi',
   permissions: [MIKPermissions.AIRCRAFT_ADMIN],
 })
 
 const userToken = generateAccessToken({
-  memberId: 1,
+  memberId: 'user',
   email: 'user@mik.fi',
   permissions: [MIKPermissions.AIRCRAFT_USER],
 })
 
 const noPermissionsToken = generateAccessToken({
-  memberId: 2,
+  memberId: 'na',
   email: 'no-permissions@mik.fi',
   permissions: [],
 })
@@ -62,9 +62,14 @@ describe('GET /aircrafts', () => {
 
     const list = response.body as AircraftListResponse
     expect(list.aircrafts).toMatchSnapshot(
-      list.aircrafts.map(() => ({
+      list.aircrafts.map(aircraft => ({
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
+        documents: aircraft.documents.map(doc => ({
+          ...doc,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        })),
       })),
     )
   })
@@ -74,9 +79,14 @@ describe('GET /aircrafts', () => {
 
     const list = response.body as AircraftListResponse
     expect(list.aircrafts).toMatchSnapshot(
-      list.aircrafts.map(() => ({
+      list.aircrafts.map(aircraft => ({
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
+        documents: aircraft.documents.map(doc => ({
+          ...doc,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        })),
       })),
     )
   })
@@ -108,9 +118,17 @@ describe('GET /aircrafts/id', () => {
     const response = await query(userToken, 'OH-STL')
 
     expect(response.status).toBe(200)
-    expect(response.body).toMatchSnapshot({
+
+    const aircraft = response.body as Aircraft
+
+    expect(aircraft).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
+      documents: aircraft.documents.map(doc => ({
+        ...doc,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
     })
   })
 

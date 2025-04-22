@@ -1,7 +1,7 @@
 import { Tooltip } from '@mui/material'
-import { FormField } from '../../../components/FormField'
+import { FormField } from './FormField'
 import { Link } from 'react-router-dom'
-import { toLocalDate } from '../../../utils/date'
+import { toLocalDate } from '../utils/date'
 
 const AuditBy = ({ by, memberId }: { by?: string; memberId?: string }) => {
   if (!by) {

@@ -64,11 +64,9 @@ export interface FlightAircraftDocuments {
   alert_days_before: number | null
   created_at: Generated<Timestamp>
   created_by: string
-  display_name: string
   document_id: string
   end_date: string
   hard_limit: number | null
-  is_public: Generated<boolean>
   registration: string
   soft_limit: number | null
   start_date: string

@@ -5,13 +5,15 @@ import { db } from './connection.ts'
 import type { MemberRegister, MemberRoles } from './schema.js'
 import type { RegisterRequest } from '../routes/auth/schema.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
-import { MIKLang, MIKMemberTypes, type UpsertMemberRole } from '../routes/members/models.ts'
 import {
+  MIKLang,
+  MIKMemberTypes,
   MIKPermissions,
   type Member,
   type MemberList,
   type MemberRole,
 } from '../routes/members/models.ts'
+import type { Upsert } from '../types/schema.ts'
 import { generateShortId } from '../util/nanoId.ts'
 
 export async function getMemberById(memberId: string): Promise<Member | undefined> {
@@ -348,7 +350,7 @@ export async function getAllMemberRoleById(roleId: string): Promise<MemberRole |
   return role ? toMemberRole(role) : undefined
 }
 
-export async function addMemberRole(role: UpsertMemberRole, jwt: JWTUser): Promise<MemberRole> {
+export async function addMemberRole(role: Upsert<MemberRole>, jwt: JWTUser): Promise<MemberRole> {
   const now = new Date()
 
   const result = await db

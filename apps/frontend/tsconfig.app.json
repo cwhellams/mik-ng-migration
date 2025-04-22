@@ -23,6 +23,7 @@
     "noUncheckedSideEffectImports": true,
 
     "paths": {
+      "@backend/types/*": ["../backend/src/types/*"],
       "@backend/routes/*": ["../backend/src/routes/*"]
     }
   },

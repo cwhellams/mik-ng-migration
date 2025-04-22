@@ -73,12 +73,14 @@ const Login = () => {
           required
           error={!!emailError}
           helperText={emailError}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position='start'>
-                <Icon icon='mdi:email' color='#646cff' />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <Icon icon='mdi:email' color='#646cff' />
+                </InputAdornment>
+              ),
+            },
           }}
           sx={{
             '& .MuiOutlinedInput-root': {

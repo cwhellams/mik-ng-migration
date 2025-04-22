@@ -18,7 +18,7 @@ import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 import { useNavigate, useParams } from 'react-router-dom'
 import { EditButton } from '../../components/EditButton'
 import { FormField } from '../../components/FormField'
-import { AuditFormField } from './components/AuditFormField'
+import { AuditFormField } from '../../components/AuditFormField'
 import { toLocalDate } from '../../utils/date'
 import { FormTitle } from '../../components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
@@ -72,8 +72,8 @@ const MemberProfile = () => {
           {isAdmin && (
             <EditButton
               title={t('member.edit.roles')}
-              position='static'
               onClick={() => handleOpenEditModal('roles')}
+              sx={{ position: 'static' }}
             />
           )}
         </Stack>

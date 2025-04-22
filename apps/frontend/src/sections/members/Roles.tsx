@@ -8,7 +8,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  CircularProgress,
   Stack,
 } from '@mui/material'
 import { Link } from 'react-router-dom'
@@ -16,20 +15,17 @@ import { useRoles } from '../../hooks/useRoles'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { EditButton } from '../../components/EditButton'
-import {
-  MemberRole,
-  MIKLang,
-  UpsertMemberRole,
-} from '@backend/routes/members/models'
+import { MemberRole, MIKLang } from '@backend/routes/members/models'
 import { useState } from 'react'
 import { MemberRoleEditor } from './components/EditRoleModal'
 import { RemoteContent } from '../../components/RemoteContent'
+import { Upsert } from '@backend/types/schema'
 
 const Roles = () => {
   const { t } = useTranslation()
   const { roles, error } = useRoles()
 
-  const [editMode, setEditMode] = useState<UpsertMemberRole | undefined>(
+  const [editMode, setEditMode] = useState<Upsert<MemberRole> | undefined>(
     undefined
   )
 

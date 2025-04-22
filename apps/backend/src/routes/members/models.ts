@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { AuditableSchema } from '../../types/schema.ts'
+
 export enum MIKPermissions {
   // can see other club members and their public roles
   MEMBER = 'member',
@@ -39,26 +41,14 @@ export const LocalizedSchema = z.object({
   [MIKLang.FI]: z.string(),
 })
 
-export const MemberRoleSchema = z.object({
+export const MemberRoleSchema = AuditableSchema.extend({
   roleId: z.string().max(20),
   description: z.string().nullable(),
   name: LocalizedSchema,
   isPublic: z.boolean(),
   permissions: z.array(z.nativeEnum(MIKPermissions)),
-  createdAt: z.string().datetime(),
-  createdBy: z.string(),
-  updatedAt: z.string().datetime(),
-  updatedBy: z.string(),
 })
 export type MemberRole = z.infer<typeof MemberRoleSchema>
-
-export const UpsertMemberRoleSchema = MemberRoleSchema.partial({
-  createdAt: true,
-  createdBy: true,
-  updatedAt: true,
-  updatedBy: true,
-})
-export type UpsertMemberRole = z.infer<typeof UpsertMemberRoleSchema>
 
 export const MemberRolesResponseSchema = z.object({
   roles: z.array(MemberRoleSchema),
@@ -92,7 +82,7 @@ export type MemberListResponse = z.infer<typeof MemberListResponseSchema>
 
 // member details endpoint
 
-export const MemberSchema = z.object({
+export const MemberSchema = AuditableSchema.extend({
   memberId: z.string(),
   memberType: z.nativeEnum(MIKMemberTypes),
   email: z.string(),
@@ -113,10 +103,6 @@ export const MemberSchema = z.object({
   dateOfBirth: z.string().date().nullish(),
   memberSince: z.string().date(),
 
-  createdAt: z.string().datetime(),
-  createdBy: z.string(),
-  updatedAt: z.string().datetime(),
-  updatedBy: z.string(),
   emailVerifiedAt: z.string().datetime().optional(),
 
   roles: z.array(

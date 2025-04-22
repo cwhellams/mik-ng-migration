@@ -1,16 +1,16 @@
-import { IconButton, Tooltip } from '@mui/material'
+import { IconButton, SxProps, Theme, Tooltip } from '@mui/material'
 import { Icon } from '@iconify/react'
 
 export const EditButton = ({
   title,
   onClick,
-  position = 'absolute',
   icon = 'mdi:pencil',
+  sx,
 }: {
   title: string
   onClick?: () => void
-  position?: 'absolute' | 'static'
   icon?: string
+  sx?: SxProps<Theme>
 }) => {
   return (
     <Tooltip title={title}>
@@ -19,12 +19,13 @@ export const EditButton = ({
         aria-label={title}
         onClick={onClick}
         sx={{
-          position,
+          position: 'absolute',
           top: 8,
           right: 8,
           backgroundColor: 'background.paper',
           boxShadow: 0,
           '&:hover': { backgroundColor: 'background.default' },
+          ...sx,
         }}
       >
         <Icon icon={icon} width={18} />

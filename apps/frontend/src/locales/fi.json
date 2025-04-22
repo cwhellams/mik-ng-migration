@@ -84,6 +84,7 @@
   },
   "aircraft": {
     "location": "Sijainti",
+    "details": "Perustiedot",
     "notes": "Huomiot",
     "documents": "Dokumentit",
     "maintenance": "Seuraava huolto",
@@ -93,13 +94,39 @@
       "arc": "ARC",
       "finavia": "Finavia",
       "insurance": "Vakuutus",
-      "radio": "Radio"
+      "radio": "Radio",
+      "edit": {
+        "new": "Lisää uusi dokumentti",
+        "details": "Muokkaa dokumenttia",
+        "documentId": "Documentti",
+        "startDate": "Alkupäivä",
+        "endDate": "Loppupäivä",
+        "alertDaysBefore": "Hälytys päivää ennen",
+        "softLimit": "Huomioraja",
+        "hardLimit": "Varoitusraja"
+      }
     },
     "alerts": {
-      "expired": "{{alertId}} vanhentui {{untilExpiration}} päivää sitten",
-      "expiring": "{{alertId}} vanhenee {{untilExpiration}} päivän kuluttua",
+      "expired": "{{documentId}} vanhentui {{untilExpiration}} päivää sitten",
+      "expiring": "{{documentId}} vanhenee {{untilExpiration}} päivän kuluttua",
       "noUsableHours": "Lentotunnit täynnä, siirtolentoon jäljellä {{untilExpiration}}h",
       "usableHours": "Vain {{untilExpiration}} prosenttituntia ilma-aikaa käytettävissä"
+    },
+    "edit": {
+      "new": "Lisää uusi lentokone",
+      "details": "Muokkaa lentokoneen tietoja",
+      "operations": "Operaatiotiedot",
+      "audit": "Historiatiedot",
+      "created": "Luotu",
+      "updated": "Päivitetty",
+      "registration": "Rekisteri",
+      "displayName": "Nimi",
+      "model": "Malli",
+      "manufacturer": "Valmistaja",
+      "yearOfManufacture": "Valmistusvuosi",
+      "location": "Sijainti",
+      "equipment": "Varustelu",
+      "hourlyRateEur": "Tuntihinta"
     }
   },
   "error": {

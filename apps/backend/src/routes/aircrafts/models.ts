@@ -1,18 +1,20 @@
 import { z } from 'zod'
 
+import { AuditableSchema } from '../../types/schema.ts'
+
 export const AircraftMaintenanceRecordSchema = z.object({
   maintenanceCycle: z.number().int(),
 
-  lastMaintenanceDate: z.string().date().nullable(),
+  lastMaintenanceDate: z.string().date(),
   lastMaintenanceType: z.string(),
-  lastMaintenanceTach: z.number().int().positive(),
+  lastMaintenanceTach: z.number().int(),
 
   nextMaintenanceDate: z.string().date().nullable(),
   nextMaintenanceType: z.string(),
-  nextMaintenanceTach: z.number().int().positive(),
+  nextMaintenanceTach: z.number().int(),
 
-  totalPercentageHours: z.number().int().positive(),
-  usablePercentageHours: z.number().int().positive(),
+  totalPercentageHours: z.number().int(),
+  usablePercentageHours: z.number().int(),
 })
 
 export enum Severity {
@@ -29,25 +31,19 @@ export const AircraftNoteSchema = z.object({
 
 export type AircraftNote = z.infer<typeof AircraftNoteSchema>
 
-export const AircraftDocumentsSchema = z.object({
+export const AircraftDocumentSchema = AuditableSchema.extend({
   documentId: z.string(),
-  description: z.string(),
-  startDate: z.string().date().nullable(),
-  endDate: z.string().date().nullable(),
+  startDate: z.string().date(),
+  endDate: z.string().date(),
   alertDaysBefore: z.number().int().nullable(),
   softLimit: z.number().int().nullable(),
   hardLimit: z.number().int().nullable(),
-  isPublic: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-  createdBy: z.string(),
-  updatedBy: z.string(),
 })
 
-export type AircraftDocument = z.infer<typeof AircraftDocumentsSchema>
+export type AircraftDocument = z.infer<typeof AircraftDocumentSchema>
 
 export const AircraftAlertSchema = z.object({
-  alertId: z.string().optional(),
+  documentId: z.string().optional(),
   description: z.string(),
   untilExpiration: z.number().int(),
   hardLimit: z.number().int().nullable(),
@@ -70,7 +66,7 @@ export const AircraftStatusSchema = z.object({
 
 export type AircraftStatus = z.infer<typeof AircraftStatusSchema>
 
-export const AircraftSchema = z.object({
+export const AircraftSchema = AuditableSchema.extend({
   registration: z.string().max(10).nonempty(),
   displayName: z.string().max(50).nonempty(),
   model: z.string().max(50).nonempty(),
@@ -80,36 +76,18 @@ export const AircraftSchema = z.object({
   status: AircraftStatusSchema.optional(),
 
   maintenance: AircraftMaintenanceRecordSchema,
-  documents: z.array(AircraftDocumentsSchema),
+  documents: z.array(AircraftDocumentSchema),
 
   notes: z.array(AircraftNoteSchema),
 
   location: z.string().nullable(),
   equipment: z.string().nullable(),
 
-  hourlyRateEur: z.number(),
-
-  createdAt: z.string().datetime(),
-  createdBy: z.string(),
-  updatedAt: z.string().datetime(),
-  updatedBy: z.string(),
+  hourlyRateEur: z.coerce.number(),
 })
-
-// Allow only subset of fields for new aircraft
-export const AircraftInsertSchema = AircraftSchema.omit({
-  createdAt: true,
-  createdBy: true,
-  updatedAt: true,
-  updatedBy: true,
-})
-
-// We use partial to allow only updating some fields
-export const AircraftUpdateSchema = AircraftInsertSchema.partial().strict()
 
 // Infer the TypeScript types from the Zod schemas
 export type Aircraft = z.infer<typeof AircraftSchema>
-export type AircraftInsertRequest = z.infer<typeof AircraftInsertSchema>
-export type AircraftUpdateRequest = z.infer<typeof AircraftUpdateSchema>
 
 export const AircraftListResponseSchema = z.object({
   aircrafts: z.array(AircraftSchema),

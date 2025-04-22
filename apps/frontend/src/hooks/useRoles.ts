@@ -11,6 +11,7 @@ export function useRoles(): {
   isLoading: boolean
   isMember: boolean
   isMembersAdmin: boolean
+  isAircraftAdmin: boolean
   roles: MemberRolesResponse['roles']
   permissions: MemberRolesResponse['permissions']
   error: AxiosError<ErrorResponse> | undefined
@@ -31,6 +32,7 @@ export function useRoles(): {
     isLoading,
     isMember: withPermission(MIKPermissions.MEMBER),
     isMembersAdmin: withPermission(MIKPermissions.MEMBER_ADMIN),
+    isAircraftAdmin: withPermission(MIKPermissions.AIRCRAFT_ADMIN),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
     error,
