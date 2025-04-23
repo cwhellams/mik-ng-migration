@@ -1,5 +1,20 @@
 name: mik-intranet
 region: fra1
+ingress:
+  rules:
+  - component:
+      name: mik-intranet-api
+    match:
+      path:
+        prefix: /api
+  - component:
+      name: mik-intranet-frontend
+    cors:
+      allow_origins:
+      - prefix: https://mik-intra-khnt3.ondigitalocean.app/
+    match:
+      path:
+        prefix: /
 services:
   - name: mik-intranet-api
     
