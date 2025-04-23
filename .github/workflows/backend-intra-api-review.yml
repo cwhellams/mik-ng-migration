@@ -5,8 +5,9 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'apps/backend/**'
+      - 'apps/**'
       - '.github/workflows/**'
+      - '.do/**' # or in digital ocean yaml
   push:
     branches: [main]
     paths:
@@ -18,7 +19,7 @@ env: # Set environment variables for entire workflow
   POSTGRES_PORT: 5432
   POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-
+  VITE_API_TARGET: ${{ vars.VITE_API_TARGET }}
 jobs:
   build-and-test:
     runs-on: ubuntu-latest

@@ -5,7 +5,8 @@ on:
     branches: [test] # Adjust branch names as needed
 
     paths:
-      - 'apps/backend/**'
+      - 'apps/**' # Only trigger if changes are in apps/
+      - '.do/**' # or in digital ocean yaml
       - '.github/workflows/**'
 
 jobs:
@@ -18,7 +19,8 @@ jobs:
 
       # Set the lowercase repository name as an environment variable
       - name: Set repository name in lowercase
-        run: echo "REPO_NAME=${{ github.repository }}" >> $GITHUB_ENV
+        run: |
+          echo "REPO_NAME=${{ github.repository }}" >> $GITHUB_ENV
 
       - name: Convert to lowercase
         run: echo "REPO_NAME=${REPO_NAME,,}" >> $GITHUB_ENV # Bash syntax to convert to lowercase
@@ -54,11 +56,12 @@ jobs:
           echo "REFRESH_TOKEN_EXPIRATION=365 days" >> $GITHUB_ENV          
           echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> $GITHUB_ENV
           echo "PUBLIC_URL=${{ vars.PUBLIC_URL }}" >> $GITHUB_ENV
+          echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET }}" >> $GITHUB_ENV
 
       # Now we use good 'ol envsubst to substitue the env vars from above into the mik-intra-api.yaml file
-      - name: Replace placeholders in mik-intra-api.yaml
+      - name: Replace placeholders in mik-intranet.yaml
         run: |
-          envsubst < .do/mik-intra-api.yaml > .do/mik-intra-api.yaml.temp && mv .do/mik-intra-api.yaml.temp .do/mik-intra-api.yaml
+          envsubst < .do/mik-intranet.yaml > .do/mik-intranet.yaml.temp && mv .do/mik-intranet.yaml.temp .do/mik-intranet.yaml
 
       # Database deploy here - the app service will need this
       - name: Run Flyway migrations
@@ -88,4 +91,4 @@ jobs:
       # so that the latest docker file is deployed
       - name: Update app on DigitalOcean App Platform
         id: update-app
-        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/mik-intra-api.yaml
+        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/mik-intranet.yaml --wait
