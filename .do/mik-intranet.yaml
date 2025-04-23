@@ -9,9 +9,9 @@ ingress:
         prefix: /api
   - component:
       name: mik-intranet-frontend
-    cors:
-      allow_origins:
-      - prefix: https://mik-intra-khnt3.ondigitalocean.app/
+#    cors:
+#      allow_origins:
+#      - prefix: https://mik-intra-khnt3.ondigitalocean.app/
     match:
       path:
         prefix: /
@@ -91,6 +91,4 @@ static_sites:
         value: ${VITE_API_TARGET}
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
-    routes:
-      - path: /
     catchall_document: index.html

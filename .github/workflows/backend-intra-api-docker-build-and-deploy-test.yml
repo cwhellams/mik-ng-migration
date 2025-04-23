@@ -5,9 +5,7 @@ on:
     branches: [test] # Adjust branch names as needed
 
     paths:
-      - 'apps/**' # Only trigger if changes are in apps/
-      - '.do/**' # or in digital ocean yaml
-      - '.github/workflows/**'
+      - 'apps/backend' # Only trigger if changes are in apps/
 
 jobs:
   build_and_push:
