@@ -43,13 +43,6 @@ jobs:
 
       # Deploy to DigitalOcean App Platform using mik-intra-frontend.yml
       - name: Deploy App
-        run: |
-          # Check if app exists, update or create
-          APP_ID=$(doctl apps list --format ID,Spec.Name --no-header | grep mik-intra-frontend | awk '{print $1}')
-          if [ -n "$APP_ID" ]; then
-            doctl apps update $APP_ID --spec .do/mik-intra-frontend.yaml --wait
-          else
-            doctl apps create --spec .do/mik-intra-frontend.yaml --wait
-          fi
+        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --spec .do/mik-intra-frontend.yaml --wait
         env:
           DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITAL_OCEAN_TEST_API_KEY }}
