@@ -11,13 +11,13 @@ app.use(express.json())
 app.use('/ajlb', ajlbRouter)
 
 const token = generateAccessToken({
-  memberId: 2,
+  memberId: 'Matti1',
   email: 'jonny.depp@mik.fi',
   permissions: [MIKPermissions.FLIGHTLOG_USER],
 })
 
 const adminToken = generateAccessToken({
-  memberId: 1,
+  memberId: 'k1mnimda',
   email: 'jonny.depp@mik.fi',
   permissions: [MIKPermissions.FLIGHTLOG_ADMIN],
 })
