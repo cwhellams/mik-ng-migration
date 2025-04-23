@@ -1,7 +1,7 @@
-name: mik-intra-frontend
+name: mik-intra-frontend-test
 region: fra1
 static_sites:
-  - name: mik-intra-frontend    
+  - name: mik-intra-frontend-test    
     github:
       repo: MIK-dev-team/mik-ng
       branch: test
