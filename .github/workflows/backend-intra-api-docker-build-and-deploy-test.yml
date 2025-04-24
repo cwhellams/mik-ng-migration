@@ -5,25 +5,41 @@ on:
     branches: [test] # Adjust branch names as needed
 
     paths:
-      - 'apps/backend' # Only trigger if changes are in apps/
-
+      - 'apps/**' # Only trigger if changes are in apps/frontend
+      - '.github/workflows/**' # or in the workflows
+      - '.do/**' # or in digital ocean yaml
+      - 'sql/schema/**' # or in sql files
 jobs:
-  build_and_push:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # Set the lowercase repository name as an environment variable
-      - name: Set repository name in lowercase
+      - name: Check changed paths
+        id: paths
         run: |
-          echo "REPO_NAME=${{ github.repository }}" >> $GITHUB_ENV
+          git fetch origin ${{ github.event.before }}
+          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          echo "CHANGED=$CHANGED"
 
-      - name: Convert to lowercase
-        run: echo "REPO_NAME=${REPO_NAME,,}" >> $GITHUB_ENV # Bash syntax to convert to lowercase
+          backend_changed=false
+          sql_changed=false
 
-      # Set up doctl (DigitalOcean CLI) using the API key stored in GitHub Secrets
+          while IFS= read -r path; do
+            if [[ "$path" =~ ^apps/backend/ ]]; then
+              backend_changed=true
+            fi
+            if [[ "$path" =~ ^sql/schema/ ]]; then
+              sql_changed=true
+            fi
+          done <<< "$CHANGED"
+
+          echo "backend_changed=$backend_changed" >> $GITHUB_ENV
+          echo "sql_changed=$sql_changed" >> $GITHUB_ENV
+
+      - name: Set repo name lowercase
+        run: echo "REPO_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
       - name: Set up doctl
         uses: digitalocean/action-doctl@v2
         with:
@@ -32,18 +48,7 @@ jobs:
       - name: Log in to DO Container Registry
         run: doctl registry login --expiry-seconds 1200
 
-      # Build and push the Docker image
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: . # Build the Dockerfile in the root of the repository
-          push: true # Push the image to the registry
-          tags: registry.digitalocean.com/mik-ng/${{ env.REPO_NAME }}:latest
-          #cache-from: type=gha # Use GitHub Actions cache
-          #cache-to: type=gha,mode=max # Store build cache in GitHub Actions cache for reuse
-
-      # Let's set the env vars we need for the DO app
-      - name: Setup env vars for Digital Ocean App
+      - name: Set environment variables
         run: |
           echo "DATABASE_URL=${{ secrets.POSTGRES_DO_TEST_DB }}" >> $GITHUB_ENV
           echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> $GITHUB_ENV
@@ -51,19 +56,22 @@ jobs:
           echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET }}" >> $GITHUB_ENV
           echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> $GITHUB_ENV
           echo "ACCESS_TOKEN_EXPIRATION=15 mins" >> $GITHUB_ENV
-          echo "REFRESH_TOKEN_EXPIRATION=365 days" >> $GITHUB_ENV          
+          echo "REFRESH_TOKEN_EXPIRATION=365 days" >> $GITHUB_ENV
           echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> $GITHUB_ENV
           echo "PUBLIC_URL=${{ vars.PUBLIC_URL }}" >> $GITHUB_ENV
           echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET }}" >> $GITHUB_ENV
+          echo "BETTERSTACK_API_TOKEN=${{ secrets.BETTERSTACK_API_TOKEN }}" >> $GITHUB_ENV
 
-      # Now we use good 'ol envsubst to substitue the env vars from above into the mik-intra-api.yaml file
-      - name: Replace placeholders in mik-intranet.yaml
-        run: |
-          envsubst < .do/mik-intranet.yaml > .do/mik-intranet.yaml.temp && mv .do/mik-intranet.yaml.temp .do/mik-intranet.yaml
+      - name: Build and push Docker image
+        if: env.backend_changed == 'true'
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: registry.digitalocean.com/mik-ng/${{ env.REPO_NAME }}:latest
 
-      # Database deploy here - the app service will need this
       - name: Run Flyway migrations
-        working-directory: ${{ github.workspace }}
+        if: env.sql_changed == 'true'
         run: |
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/migration:/flyway/sql \
@@ -74,7 +82,7 @@ jobs:
             flyway/flyway:latest clean migrate
 
       - name: Run Flyway test data
-        working-directory: ${{ github.workspace }}
+        if: env.sql_changed == 'true'
         run: |
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/testdata/:/flyway/sql \
@@ -84,9 +92,9 @@ jobs:
             -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_URL}} \
             flyway/flyway:latest migrate
 
-      # The App Create is handled manually , so we have an APP ID available,
-      # using doctl we just need to update the deployed app and pass the --update-sources flag
-      # so that the latest docker file is deployed
-      - name: Update app on DigitalOcean App Platform
-        id: update-app
+      - name: Replace placeholders in mik-intranet.yaml
+        run: |
+          envsubst < .do/mik-intranet.yaml > .do/mik-intranet.yaml.temp && mv .do/mik-intranet.yaml.temp .do/mik-intranet.yaml
+
+      - name: Update app on DigitalOcean
         run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/mik-intranet.yaml --wait

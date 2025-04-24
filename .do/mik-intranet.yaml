@@ -4,14 +4,27 @@ ingress:
   rules:
   - component:
       name: mik-intranet-api
+      preserve_path_prefix: true
     match:
       path:
-        prefix: /api
+        prefix: /api        
+  - component:
+      name: mik-intranet-api
+      preserve_path_prefix: true
+    match:
+      path:
+        prefix: /auth
+  - component:
+      name: mik-intranet-api
+      preserve_path_prefix: true
+    match:
+      path:
+        prefix: /health    
   - component:
       name: mik-intranet-frontend
-#    cors:
-#      allow_origins:
-#      - prefix: https://mik-intra-khnt3.ondigitalocean.app/
+    #cors:
+    #  allow_origins:
+    #  - prefix: https://mik-intra-khnt3.ondigitalocean.app/
     match:
       path:
         prefix: /
@@ -24,6 +37,10 @@ services:
 
     http_port: 3000 #Setup port mapping from public internet port 80 or 443, the platform will forward traffic to this port
     
+    log_destinations:
+      - name: mik-intranet-logtail
+        logtail:
+          token: ${BETTERSTACK_API_TOKEN}
     envs:
       - key: DATABASE_URL
         value: ${DATABASE_URL}
@@ -39,6 +56,9 @@ services:
         type: SECRET
       - key: REFRESH_TOKEN_SECRET
         value: ${REFRESH_TOKEN_SECRET}
+        type: SECRET
+      - key: BETTERSTACK_API_TOKEN
+        value: ${BETTERSTACK_API_TOKEN}
         type: SECRET
       - key: ACCESS_TOKEN_EXPIRATION
         value: ${ACCESS_TOKEN_EXPIRATION}
