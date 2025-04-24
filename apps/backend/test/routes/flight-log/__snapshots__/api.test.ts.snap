@@ -357,25 +357,25 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
 
 exports[`GET /flight-log/totals should return 200 with all ac totals 1`] = `
 {
-  "ac_total_flight_time": "250:55",
+  "ac_total_flight_time": "4783:20",
   "aircraft_registration": "OH-STL",
   "ajlb_seq_no": 3,
   "flight_log_mins_this_ajlb": 0,
   "flight_time_this_ajlb": "0:00",
-  "total_flight_mins_at_ajlb_start": 15055,
-  "total_flight_time_at_ajlb_start": "250:55",
+  "total_flight_mins_at_ajlb_start": 287000,
+  "total_flight_time_at_ajlb_start": "4783:20",
 }
 `;
 
 exports[`GET /flight-log/totals should return 200 with valid registration 1`] = `
 {
-  "ac_total_flight_time": "250:55",
+  "ac_total_flight_time": "4783:20",
   "aircraft_registration": "OH-STL",
   "ajlb_seq_no": 3,
   "flight_log_mins_this_ajlb": 0,
   "flight_time_this_ajlb": "0:00",
-  "total_flight_mins_at_ajlb_start": 15055,
-  "total_flight_time_at_ajlb_start": "250:55",
+  "total_flight_mins_at_ajlb_start": 287000,
+  "total_flight_time_at_ajlb_start": "4783:20",
 }
 `;
 

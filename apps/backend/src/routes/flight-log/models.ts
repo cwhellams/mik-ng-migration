@@ -38,6 +38,11 @@ export const flightLogFiltersSchema = z
     crew4: z.string().optional(),
     startDate: epochDateTime.optional(),
     endDate: epochDateTime.optional(),
+    last: z
+      .enum(['true', 'false'])
+      .nullish()
+      .transform(v => v === 'true')
+      .optional(),
   })
   .strict()
 

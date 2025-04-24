@@ -77,7 +77,7 @@ export interface FlightAircraftDocuments {
 export interface FlightAircraftJourneyLogBook {
   aircraft_registration: string
   end_date: string | null
-  flight_time: Generated<string | null>
+  flight_time: Generated<string>
   minutes_at_start: number
   no_of_pages: number
   rows_per_page: number

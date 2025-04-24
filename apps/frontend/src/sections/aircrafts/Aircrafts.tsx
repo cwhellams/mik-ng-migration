@@ -222,6 +222,17 @@ const Aircrafts = () => {
                     </Box>
 
                     <Box>
+                      <Typography variant='subtitle1' color='text.primary'>
+                        {t('aircraft.totalTime', {
+                          ...aircraft.status,
+                          lastLanding: dayjs(
+                            aircraft.status?.lastLandingTimeUtc
+                          ).format('YYYY-MM-DD HH:mm'),
+                        })}
+                      </Typography>
+                    </Box>
+
+                    <Box>
                       <Typography
                         variant='subtitle1'
                         color='text.primary'

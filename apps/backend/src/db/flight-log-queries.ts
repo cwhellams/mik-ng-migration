@@ -64,6 +64,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'status',
     ])
     .orderBy('off_block_time_epoch')
+    .orderBy('off_block_time_epoch', filters.last ? 'desc' : 'asc')
 
   // Apply filters dynamically
   if (filters.flight_id) {
@@ -96,6 +97,9 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
   }
   if (filters.endDate) {
     query = query.where('on_block_time_epoch', '<=', filters.endDate.toString())
+  }
+  if (filters.last) {
+    query = query.limit(1)
   }
 
   return await query.execute()

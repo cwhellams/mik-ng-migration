@@ -54,6 +54,8 @@ export type AircraftAlert = z.infer<typeof AircraftAlertSchema>
 
 export const AircraftStatusSchema = z.object({
   totalTime: z.number().int().optional(),
+  lastLandingTimeUtc: z.string().date().optional(),
+  remainingFuelLitres: z.number().optional(),
 
   daysUntilNextMaintenance: z.number().int().optional(),
   tachUntilNextMaintenance: z.number().int(),

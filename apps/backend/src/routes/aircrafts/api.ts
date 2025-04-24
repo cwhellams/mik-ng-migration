@@ -20,8 +20,10 @@ import {
   addAircraftDocument,
   removeAircraftDocument,
 } from '../../db/aircraft-queries.ts'
+import { getFlightLogs, getFlightLogTotals } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { UpsertSchema } from '../../types/schema.ts'
+import { splitTime } from '../../util/math-utils.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
 import type { ErrorResponse } from '../response.ts'
@@ -36,11 +38,14 @@ const isAircraftAdmin = (user?: JWTUser): boolean =>
 // Get all aircraft
 router.get('/', async (req: Request, res: Response<AircraftListResponse>) => {
   const aircrafts = await getAllAircraft(!isAircraftAdmin(req.user))
+
   res.status(200).json({
-    aircrafts: aircrafts.map(aircraft => ({
-      ...aircraft,
-      status: aircraftStatus(aircraft),
-    })),
+    aircrafts: await Promise.all(
+      aircrafts.map(async aircraft => ({
+        ...aircraft,
+        status: await aircraftStatus(aircraft),
+      })),
+    ),
   })
 })
 
@@ -57,11 +62,9 @@ router.get(
       return res.status(404).json({ message: 'Aircraft not found' })
     }
 
-    // Validate response data against schema
-
     res.status(200).json({
       ...aircraft,
-      status: aircraftStatus(aircraft),
+      status: await aircraftStatus(aircraft),
     })
   },
 )
@@ -188,10 +191,20 @@ const expiredDocuments = (aircraft: Aircraft) => {
   }
 }
 
-const aircraftStatus = (aircraft: Aircraft): AircraftStatus => {
+const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   const maintenance = aircraft.maintenance
 
-  const totalTime = maintenance.lastMaintenanceTach + 45
+  const totals = (await getFlightLogTotals(aircraft.registration))?.[0]
+
+  const lastFlight = (
+    await getFlightLogs({
+      aircraft_registration: aircraft.registration,
+      last: true,
+    })
+  )?.[0]
+
+  const totalTime =
+    totals.ac_total_flight_time !== null ? splitTime(totals.ac_total_flight_time).hours : 0
 
   const tachUntilNextMaintenance = maintenance.nextMaintenanceTach - totalTime
   const usablePercentageHours = tachUntilNextMaintenance + maintenance.usablePercentageHours
@@ -241,6 +254,8 @@ const aircraftStatus = (aircraft: Aircraft): AircraftStatus => {
 
   return {
     totalTime,
+    lastLandingTimeUtc: lastFlight?.landing_time_utc?.toISOString() ?? undefined,
+    remainingFuelLitres: Math.round(lastFlight?.fuel_remaining_litres),
 
     daysUntilNextMaintenance,
     tachUntilNextMaintenance,

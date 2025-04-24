@@ -99,13 +99,11 @@ export const EditAircraftModal = ({
     }
   }, [mode, aircraft])
 
-  const handleChange =
-    (field: keyof Aircraft) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: e.target.value,
-      }))
-    }
+  const handleChange = (field: keyof Aircraft, value: string | number | null) =>
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
 
   const trigger = async (api: APIMutation<Upsert<Aircraft>>) => {
     setErrorMsg('')
@@ -140,7 +138,7 @@ export const EditAircraftModal = ({
           required
           label={t('aircraft.edit.registration')}
           value={formData.registration || ''}
-          onChange={handleChange('registration')}
+          onChange={({ target }) => handleChange('registration', target.value)}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>
@@ -149,7 +147,7 @@ export const EditAircraftModal = ({
           required
           label={t('aircraft.edit.displayName')}
           value={formData.displayName || ''}
-          onChange={handleChange('displayName')}
+          onChange={({ target }) => handleChange('displayName', target.value)}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 4 }}>
@@ -158,7 +156,7 @@ export const EditAircraftModal = ({
           required
           label={t('aircraft.edit.manufacturer')}
           value={formData.manufacturer || ''}
-          onChange={handleChange('manufacturer')}
+          onChange={({ target }) => handleChange('manufacturer', target.value)}
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 4 }}>
@@ -167,7 +165,7 @@ export const EditAircraftModal = ({
           required
           label={t('aircraft.edit.model')}
           value={formData.model || ''}
-          onChange={handleChange('model')}
+          onChange={({ target }) => handleChange('model', target.value)}
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 4 }}>
@@ -177,7 +175,9 @@ export const EditAircraftModal = ({
           inputMode='numeric'
           label={t('aircraft.edit.yearOfManufacture')}
           value={formData.yearOfManufacture || ''}
-          onChange={handleChange('yearOfManufacture')}
+          onChange={({ target }) =>
+            handleChange('yearOfManufacture', Number(target.value))
+          }
         />
       </Grid>
     </Grid>
@@ -198,7 +198,7 @@ export const EditAircraftModal = ({
               required
               label={t('aircraft.edit.location')}
               value={formData.location || ''}
-              onChange={handleChange('location')}
+              onChange={({ target }) => handleChange('location', target.value)}
             />
           </Grid>
 
@@ -208,7 +208,7 @@ export const EditAircraftModal = ({
               required
               label={t('aircraft.edit.equipment')}
               value={formData.equipment || ''}
-              onChange={handleChange('equipment')}
+              onChange={({ target }) => handleChange('equipment', target.value)}
             />
           </Grid>
 
@@ -227,7 +227,9 @@ export const EditAircraftModal = ({
               }}
               label={t('aircraft.edit.hourlyRateEur')}
               value={formData.hourlyRateEur || ''}
-              onChange={handleChange('hourlyRateEur')}
+              onChange={({ target }) =>
+                handleChange('hourlyRateEur', target.value)
+              }
             />
           </Grid>
         </Stack>

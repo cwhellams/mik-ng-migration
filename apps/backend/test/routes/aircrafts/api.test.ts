@@ -82,6 +82,14 @@ describe('GET /aircrafts', () => {
       list.aircrafts.map(aircraft => ({
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
+        status: {
+          ...aircraft.status,
+          ...(aircraft.maintenance.nextMaintenanceDate
+            ? {
+                daysUntilNextMaintenance: expect.any(Number),
+              }
+            : {}),
+        },
         documents: aircraft.documents.map(doc => ({
           ...doc,
           createdAt: expect.any(String),

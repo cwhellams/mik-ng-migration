@@ -87,6 +87,7 @@
     "details": "Perustiedot",
     "notes": "Huomiot",
     "documents": "Dokumentit",
+    "totalTime": "Viimeinen laskeutuminen {{lastLanding}}, polttoainetta jäljellä {{remainingFuelLitres}} litraa.",
     "maintenance": "Seuraava huolto",
     "maintenanceHours": "Lentoaikaa {{tachUntilNextMaintenance}} tuntia jäljellä, käytettävissä {{usablePercentageHours}}h ennen siirtolentoa",
     "maintenanceDays": "Huolto tilattu {{daysUntilNextMaintenance}} päivän päähän",

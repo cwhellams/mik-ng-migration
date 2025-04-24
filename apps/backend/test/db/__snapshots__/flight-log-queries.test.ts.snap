@@ -258,31 +258,31 @@ exports[`Db query Get FlightLog tests getAllFlightLogs with Captain and copilot 
 exports[`Db query Get FlightLog tests getFlightLogTotals returns totals for all ac 1`] = `
 [
   {
-    "ac_total_flight_time": "250:55",
+    "ac_total_flight_time": "4783:20",
     "aircraft_registration": "OH-STL",
     "ajlb_seq_no": 3,
     "flight_log_mins_this_ajlb": 0,
     "flight_time_this_ajlb": "0:00",
-    "total_flight_mins_at_ajlb_start": 15055,
-    "total_flight_time_at_ajlb_start": "250:55",
+    "total_flight_mins_at_ajlb_start": 287000,
+    "total_flight_time_at_ajlb_start": "4783:20",
   },
   {
-    "ac_total_flight_time": "64:55",
+    "ac_total_flight_time": "6118:40",
     "aircraft_registration": "OH-IHQ",
     "ajlb_seq_no": 2,
     "flight_log_mins_this_ajlb": 120,
     "flight_time_this_ajlb": "2:00",
-    "total_flight_mins_at_ajlb_start": 3775,
-    "total_flight_time_at_ajlb_start": "62:55",
+    "total_flight_mins_at_ajlb_start": 367000,
+    "total_flight_time_at_ajlb_start": "6116:40",
   },
   {
-    "ac_total_flight_time": "102:27",
+    "ac_total_flight_time": "5230:10",
     "aircraft_registration": "OH-P28",
     "ajlb_seq_no": 4,
     "flight_log_mins_this_ajlb": 110,
     "flight_time_this_ajlb": "1:50",
-    "total_flight_mins_at_ajlb_start": 6037,
-    "total_flight_time_at_ajlb_start": "100:37",
+    "total_flight_mins_at_ajlb_start": 313700,
+    "total_flight_time_at_ajlb_start": "5228:20",
   },
 ]
 `;
@@ -290,13 +290,13 @@ exports[`Db query Get FlightLog tests getFlightLogTotals returns totals for all 
 exports[`Db query Get FlightLog tests getFlightLogTotals returns totals for all ac 2`] = `
 [
   {
-    "ac_total_flight_time": "250:55",
+    "ac_total_flight_time": "4783:20",
     "aircraft_registration": "OH-STL",
     "ajlb_seq_no": 3,
     "flight_log_mins_this_ajlb": 0,
     "flight_time_this_ajlb": "0:00",
-    "total_flight_mins_at_ajlb_start": 15055,
-    "total_flight_time_at_ajlb_start": "250:55",
+    "total_flight_mins_at_ajlb_start": 287000,
+    "total_flight_time_at_ajlb_start": "4783:20",
   },
 ]
 `;

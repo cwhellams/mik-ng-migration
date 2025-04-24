@@ -34,24 +34,41 @@ const ProgressLine = ({
   current: number
   max: number
 }) => {
-  const colors = ['#dd5235', '#f9de55', '#66cc66', '#66cc66']
-  const borders = ['#993333', '#cc9933', '#669933', '#669933']
+  const parts = [
+    {
+      color: '#dd5235',
+      border: '#993333',
+      title: undefined,
+      tooltip: '',
+      width: Math.abs(hardLimit - softLimit),
+    },
+    {
+      color: '#f9de55',
+      border: '#cc9933',
+      title: softLimit,
+      width: Math.abs(softLimit),
+    },
+    {
+      color: '#66cc66',
+      border: '#669933',
+      title: 0,
+      width: 0,
+    },
+    {
+      color: '#66cc66',
+      border: '#669933',
+      title: max,
+      width: max,
+    },
+  ]
 
   const zeroPoint = Math.abs(hardLimit)
   const totalWidth = zeroPoint + max
 
-  const titles = [hardLimit, softLimit, 0, max]
-  const visualParts = [
-    Math.abs(hardLimit - softLimit),
-    Math.abs(softLimit),
-    0,
-    max,
-  ]
-
   const [animation, setAnimation] = useState(0)
 
-  const width = (val: number) => {
-    return (animation * (100 * val)) / totalWidth
+  const animateWidth = (width: number) => {
+    return (animation * (100 * width)) / totalWidth
   }
 
   useEffect(() => {
@@ -72,7 +89,7 @@ const ProgressLine = ({
     >
       <div
         style={{
-          left: `${width(zeroPoint + current)}%`,
+          left: `${animateWidth(zeroPoint + current)}%`,
           transition: 'left 1s',
           marginTop: `-${marketHeight + 3}px`,
           marginLeft: `-${marketWidth / 2}px`,
@@ -82,31 +99,31 @@ const ProgressLine = ({
         <Marker />
       </div>
 
-      {visualParts.map((item, index, { length }) => {
+      {parts.map((part, index, { length }) => {
+        const isFirst = index == 0
+        const isLast = index == length - 1
         return (
           <div
-            key={index}
+            key={part.title}
             style={{
-              width: `${width(item)}%`,
-              backgroundColor: colors[index],
+              width: `${animateWidth(part.width)}%`,
+              backgroundColor: part.color,
               transition: 'width 1s',
-              borderTop: `1px solid ${borders[index]}`,
-              borderBottom: `1px solid ${borders[index]}`,
-              borderLeft:
-                index == 0 ? `1px solid ${borders[index]}` : undefined,
-              borderRight:
-                index == length - 1 ? `1px solid ${borders[index]}` : undefined,
+              borderTop: `1px solid ${part.border}`,
+              borderBottom: `1px solid ${part.border}`,
+              borderLeft: isFirst ? `1px solid ${part.border}` : undefined,
+              borderRight: isLast ? `1px solid ${part.border}` : undefined,
             }}
           >
             <div
               style={{
                 marginTop: '10px',
-                width: index < length - 1 ? 0 : 'auto',
+                width: !isLast ? 0 : 'auto',
                 display: 'flex',
-                justifyContent: index < length - 1 ? 'center' : 'right',
+                justifyContent: !isLast ? 'center' : 'right',
               }}
             >
-              {index !== 0 ? titles[index] : ''}
+              {part.title}
             </div>
           </div>
         )
