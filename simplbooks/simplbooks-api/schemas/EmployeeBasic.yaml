@@ -1,0 +1,35 @@
+type: object
+properties:
+  first_name:
+    type: string
+    description: First name
+    example: "John"
+  last_name:
+    type: string
+    description: Last name
+    example: "Smith"
+  full_name:
+    type: string
+    description: Full name
+    example: "John Smith"
+  social_security_no:
+    type: string
+    description: Social security no. (ID code)
+    example: "31212121234"
+  profession:
+    type: string
+    description: Job title
+    example: "Manager"
+  starting_date:
+    type: string
+    format: date
+    description: Beginning of employment relationship
+    example: "2016-01-15"
+  finishing_date:
+    oneOf:
+      - type: string
+        format: date
+      - type: string
+        enum: [ "0000-00-00" ]
+    description: End of employment relationship
+    example: "0000-00-00"

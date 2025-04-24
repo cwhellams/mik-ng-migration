@@ -1,0 +1,28 @@
+get:
+  tags:
+    - Items
+  summary: Get
+  description: Get information about the item with given ID.
+  parameters:
+    - name: id
+      in: path
+      description: ID of the item
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/ArticleResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

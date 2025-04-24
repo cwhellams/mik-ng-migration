@@ -1,0 +1,39 @@
+post:
+  tags:
+    - Sales orders
+  summary: Update
+  description: Updates information for sales order with given ID number.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            SalesOrder:
+              allOf:
+                - type: object
+                  properties:
+                    id:
+                      type: integer
+                - $ref: '../schemas/SalesOrderCreate.yaml'
+            SalesOrderRows:
+              type: array
+              items:
+                type: object
+                properties:
+                  SalesOrderRow:
+                    $ref: '../schemas/SalesOrderRowCreate.yaml'
+                  Projects:
+                    $ref: '../schemas/Projects.yaml'
+  responses:
+    200:
+      $ref: '../schemas/UpdateSuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

@@ -1,0 +1,36 @@
+post:
+  tags:
+    - Receipts
+  summary: Update
+  description: Updates existing receipt info with information from given parameters.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            Incoming:
+              allOf:
+                - type: object
+                  properties:
+                    id:
+                      type: integer
+                - $ref: '../schemas/Incoming.yaml'
+            Projects:
+              $ref: '../schemas/Projects.yaml'
+            invoice_id:
+              type: integer
+              description: ID of the associated invoice
+              example: 5
+  responses:
+    200:
+      $ref: '../schemas/UpdateSuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

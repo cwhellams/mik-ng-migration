@@ -1,0 +1,46 @@
+type: object
+properties:
+  number:
+    type: string
+    description: Unique number of the price offer
+    example: "4321"
+  currency_name:
+    type: string
+    description: ISO 4217 currency code
+    example: "USD"
+  currency_rate:
+    type: number
+    description: Ratio of chosen currency to the base currency
+    example: 1.01
+  client_id:
+    type: integer
+    description: ID of the associated partner
+    example: 574
+  client_location_id:
+    type: integer
+    description: Delivery address ID
+    example: 1
+  created:
+    type: string
+    description: Creation date of the price offer
+    example: "2022-01-01"
+  valid_until:
+    type: string
+    description: Maximum valid date of the price offer
+    example: "2022-01-02"
+  sent:
+    type: string
+    description: The date that the price offer was sent
+    example: "2022-01-01"
+  additional_info:
+    type: string
+    description: String note
+    example: "Think fast"
+  language:
+    type: string
+    description: language code
+    example: "et_EE"
+  document_template_id:
+    type: integer
+    description: Specifies a template for the document
+    example: 1

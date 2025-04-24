@@ -1,0 +1,31 @@
+post:
+  tags:
+    - Payments
+  summary: Bind with purchase
+  description: Binds payment with purchase with given ID number. If the payment sum is big enough, the purchase will be marked as paid as well.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            payment_id:
+              type: integer
+              description: ID of the associated payment
+              example: 5
+            purchase_id:
+              type: integer
+              description: ID of the associated purchase
+              example: 2
+  responses:
+    200:
+      $ref: '../schemas/SuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

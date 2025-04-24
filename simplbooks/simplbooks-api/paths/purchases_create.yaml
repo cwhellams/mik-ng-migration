@@ -1,0 +1,34 @@
+post:
+  tags:
+    - Purchases
+  summary: Create
+  description: Create new purchase based on given parameters.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            Purchase:
+              $ref: '../schemas/PurchaseCreate.yaml'
+            PurchaseRows:
+              type: array
+              items:
+                type: object
+                properties:
+                  PurchaseRow:
+                    $ref: '../schemas/PurchaseRowCreate.yaml'
+                  Projects:
+                    $ref: '../schemas/Projects.yaml'
+  responses:
+    200:
+      $ref: '../schemas/CreateSuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

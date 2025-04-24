@@ -1,0 +1,44 @@
+get:
+  tags:
+    - Invoices
+  summary: Get
+  description: Returns detailed information for invoice with given ID.
+  parameters:
+    - name: id
+      in: path
+      description: ID of the invoice
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              duration:
+                type: number
+                example: 0.0531
+              data:
+                type: object
+                properties:
+                  Invoice:
+                    $ref: '../schemas/Invoice.yaml'
+                  Task:
+                    type: array
+                    items:
+                      $ref: '../schemas/InvoiceRow.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

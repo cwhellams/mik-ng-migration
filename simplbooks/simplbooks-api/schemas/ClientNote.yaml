@@ -1,0 +1,27 @@
+type: object
+properties:
+  id:
+    type: integer
+    example: 1
+  created:
+    type: string
+    example: 2016-01-15 15:26:02
+  creator:
+    type: integer
+    description: User ID
+    example: 2
+  client_id:
+    type: integer
+    description: Client ID
+    example: 5
+  note:
+    type: string
+    example: This is a test note for client
+  object_type:
+    type: string
+    description: Object type. Empty if note is not bound to a specific document.
+    example: Invoice
+  object_id:
+    type: integer
+    description: Object ID, e.g related invoice ID. Filled only if object type is set.
+    example: 123

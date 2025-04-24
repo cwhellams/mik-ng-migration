@@ -1,0 +1,35 @@
+post:
+  tags:
+    - Receipts
+  summary: Bind with invoice
+  description: Binds receipt with invoice with given ID number. If the income sum is big enough, the invoice will be marked as paid as well.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            incoming_id:
+              type: integer
+              description: ID of the associated receipt
+              example: 3
+            invoice_id:
+              type: integer
+              description: ID of the associated invoice
+              example: 6
+            full_cover:
+              type: boolean
+              description: Whether or not the given receipt should fully cover the given invoice
+              example: true
+  responses:
+    200:
+      $ref: '../schemas/SuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

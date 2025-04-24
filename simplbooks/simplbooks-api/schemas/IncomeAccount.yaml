@@ -1,0 +1,25 @@
+type: object
+properties:
+  id:
+    type: integer
+  account_name:
+    type: string
+    example: 'My account'
+  bank_name:
+    type: string
+    example: 'Thabank'
+  account_no:
+    type: string
+    example: '123456789'
+  iban_number:
+    type: string
+    example: 'EE1111111111'
+  swift_code:
+    type: string
+    example: '123ABC'
+  account_description:
+    type: string
+    example: 'Perfectly balanced'
+  active:
+    type: boolean
+    example: true

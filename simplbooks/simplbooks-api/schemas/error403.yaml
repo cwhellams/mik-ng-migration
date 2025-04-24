@@ -1,0 +1,17 @@
+description: Forbidden
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 403
+        duration:
+          type: number
+          example: 0.0531
+        errors:
+          type: array
+          items:
+            type: string
+            example: User is not allowed to use API calls.

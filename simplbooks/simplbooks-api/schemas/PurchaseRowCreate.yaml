@@ -1,0 +1,46 @@
+type: object
+properties:
+  warehouse_id:
+    type: integer
+    description: ID of the associated warehouse
+    example: 3
+  article_id:
+    type: integer
+    description: ID of the associated item
+    example: 654
+  code:
+    type: string
+    description: Code of the associated item
+    example: "939"
+  name:
+    type: string
+    description: Name of the item or service
+    example: "Inedible fruit and vegetables"
+  unit:
+    type: string
+    description: Name of the unit
+    example: "Kg."
+  amount:
+    type: number
+    description: Quantity
+    example: 3
+  sum:
+    type: number
+    description: Row sum
+    example: 0.99
+  vat:
+    type: number
+    description: VAT percentage value
+    example: 10
+  vat_type_id:
+    type: integer
+    description: ID of the associated VAT type
+    example: 4
+  discount:
+    type: number
+    description: Discount percentage value
+    example: 0
+  expense_account_id:
+    type: integer
+    description: Expense account ID
+    example: 53

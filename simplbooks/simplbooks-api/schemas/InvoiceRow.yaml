@@ -1,0 +1,57 @@
+type: object
+properties:
+  id:
+    type: integer
+    description: Unique identifier for the invoice line
+  warehouse_id:
+    type: integer
+    description: Unique identifier for the warehouse associated with the inventory item
+    example: 1
+  article_id:
+    type: integer
+    description: ID of the associated inventory item
+    example: 2
+  code:
+    type: string
+    description: Code assigned to the inventory item
+    example: "A-5451"
+  name:
+    type: string
+    description: Name of the item or service
+    example: "Keyboard Dell X-55"
+  contents:
+    type: string
+    description: Description or details
+    example: "Types good, nice, 15% off!"
+  unit:
+    type: string
+    description: Unit of measurement
+    example: "pcs."
+  amount:
+    type: number
+    description: Quantity
+    example: 10
+  price_per_unit:
+    type: number
+    description: Price per unit
+    example: "3.5"
+  worker:
+    type: string
+    description: Name of the worker responsible
+    example: "Admin"
+  vat:
+    type: number
+    description: VAT rate
+    example: 20
+  vat_type_id:
+    type: integer
+    description: Identifier for the type of VAT applied
+    example: 5
+  discount:
+    type: number
+    description: Discount percentage
+    example: 15
+  income_account_id:
+    type: integer
+    description: Income account identifier
+    example: 3

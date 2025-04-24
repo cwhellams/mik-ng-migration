@@ -1,0 +1,17 @@
+description: Unauthorized
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 401
+        duration:
+          type: number
+          example: 0.0531
+        errors:
+          type: array
+          items:
+            type: string
+            example: API token in HTTP header is missing.

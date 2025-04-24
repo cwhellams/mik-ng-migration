@@ -1,0 +1,35 @@
+post:
+  tags:
+    - Invoices
+  summary: Create from XML
+  description: Creates new invoice based on data in XML format (E-invoice).
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            xml:
+              type: string
+      application/x-www-form-urlencoded:
+        schema:
+          type: object
+          properties:
+            xml:
+              type: string
+      application/octet-stream:
+        schema:
+          type: string
+          description: XML
+  responses:
+    200:
+      $ref: '../schemas/SuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

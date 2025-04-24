@@ -1,0 +1,66 @@
+post:
+  tags:
+    - Items
+  summary: Remnant
+  description: Returns current remaining stock of the item with the given ID.
+  parameters:
+    - name: id
+      in: path
+      description: ID of the item
+      required: true
+      schema:
+        type: integer
+        format: int64
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            warehouse_id:
+              type: integer
+              description: exact search by ID of the warehouse
+              example: 4
+            date:
+              type: string
+              format: date
+              description: Specifies the date as of which the stock balance should be returned.
+              example: 2024-11-26
+  responses:
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              duration:
+                type: number
+                example: 0.0531
+              data:
+                type: object
+                additionalProperties:
+                  x-additionalPropertiesName: article_id
+                  type: object
+                  additionalProperties:
+                    x-additionalPropertiesName: warehouse_id
+                    type: number
+                example:
+                  52: {
+                    1: 557,
+                    2: 12,
+                    3: -22
+                  }
+
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

@@ -1,0 +1,28 @@
+type: object
+properties:
+  status:
+    type: integer
+    example: 200
+  duration:
+    type: number
+    example: 0.0531
+  data:
+    type: object
+    properties:
+      Article:
+        allOf:
+          - $ref: 'Article.yaml#/Article'
+          - type: object
+            properties:
+              income_account_id:
+                description: ID of the sales revenue account
+                type: integer
+              income_account:
+                description: Code and name of the sales revenue account
+                type: string
+              expense_account_id:
+                description: ID of the cost account or warehouse account
+                type: integer
+              expense_account:
+                description: Code and name of the cost account or warehouse account
+                type: string

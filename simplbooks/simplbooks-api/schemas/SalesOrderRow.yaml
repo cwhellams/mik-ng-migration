@@ -1,0 +1,39 @@
+type: object
+properties:
+  id:
+    type: integer
+  warehouse_id:
+    type: integer
+    example: 5
+  article_id:
+    type: integer
+    example: 1
+  code:
+    type: string
+    example: "A01"
+  name:
+    type: string
+    example: "Edible Politican Figurine"
+  contents:
+    type: string
+    example: "100% white chocolate"
+  unit:
+    type: string
+    example: "g"
+  amount:
+    type: number
+    example: 100
+  price_per_unit:
+    type: number
+    example: 0.5
+  vat:
+    type: number
+    example: 20
+  vat_type_id:
+    type: integer
+    example: 5
+  discount:
+    type: number
+    example: 0
+  Projects:
+    $ref: '../schemas/Projects.yaml'

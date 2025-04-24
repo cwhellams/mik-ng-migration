@@ -1,0 +1,65 @@
+get:
+  tags:
+    - Bank accounts and cash
+  summary: List
+  description: Returns a list of existing bank accounts and cash registers.
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: filter accounts to match a specific nonzero ID
+              example: 2
+            account_name:
+              type: string
+              description: search for accounts by name containing the given string
+              example: pank
+            account_no:
+              type: string
+              description: search for accounts by account number containing the given string
+              example: 512
+            iban_number:
+              type: string
+              description: search for accounts by IBAN containing the given string
+              example: ee123
+            page:
+              type: integer
+              description: specifies from which page the list starts
+              default: 1
+            per_page:
+              type: integer
+              description: specifies how many records will be displayed per page
+              default: 10
+  responses:
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              duration:
+                type: number
+                example: 0.0531
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    IncomeAccount:
+                      $ref: '../schemas/IncomeAccount.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

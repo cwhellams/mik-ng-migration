@@ -1,0 +1,90 @@
+type: object
+properties:
+  client_id:
+    type: integer
+    example: 5
+  client_name:
+    type: string
+    example: "SimplBooks OÜ"
+  client_reg_no:
+    type: string
+    example: "12213296"
+  client_vat_no:
+    type: string
+    example: "EE101506652"
+  client_address_street:
+    type: string
+    example: "Sõpruse pst. 151a"
+  client_address_city:
+    type: string
+    example: "Tallinn"
+  client_address_postal_code:
+    type: string
+    example: "11311"
+  client_address_county:
+    type: string
+    example: "Harjumaa"
+  client_address_country:
+    type: string
+    example: "EE"
+  client_location_id:
+    type: integer
+    description: Delivery address ID
+    example: 3
+  created:
+    type: string
+    example: "2022-01-01"
+  valid_until:
+    type: string
+    example: "2023-01-01"
+  sent:
+    type: string
+    example: "2022-01-01"
+  cancelled:
+    type: string
+    example: "0000-00-00"
+  number:
+    type: string
+    example: "1234"
+  sum:
+    type: number
+    example: 9.95
+  vat:
+    type: number
+    example: 14
+  rounding:
+    type: number
+    example: 2
+  total_sum:
+    type: number
+    example: 9.95
+  row_sum_with_vat:
+    type: boolean
+    example: false
+  currency_name:
+    type: string
+    example: "EUR"
+  currency_rate:
+    type: number
+    example: 1
+  assembler_name:
+    type: string
+    example: "Mike Cool"
+  additional_info:
+    type: string
+    example: "Take it or leave it"
+  language:
+    type: string
+    example: "en_GB"
+  contact_reference:
+    type: string
+    example: "Jaan Tamm"
+  invoice_id:
+    type: integer
+    example: 66
+  sales_order_id:
+    type: integer
+    example: 35
+  document_template_id:
+    type: integer
+    example: 5

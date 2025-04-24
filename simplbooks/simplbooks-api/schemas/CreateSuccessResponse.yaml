@@ -1,0 +1,18 @@
+description: OK
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 200
+        duration:
+          type: number
+          example: 0.0531
+        inserted_id:
+          type: integer
+          example: 3
+        response:
+          type: string
+          example: New entry saved.

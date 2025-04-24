@@ -1,0 +1,82 @@
+type: object
+properties:
+  number:
+    type: string
+    description: Unique number of the invoice, automatic generation can be set up in the settings
+    example: 1565452
+  currency_name:
+    type: string
+    description: ISO 4217 currency code
+    example: EUR
+  currency_rate:
+    type: number
+    description: Exchange rate of the chosen currency to the base currency
+    example: 1
+  overdue_charge_percent:
+    type: number
+    description: Percentage of overdue charge to be applied
+    example: 0.1
+  created:
+    type: string
+    description: Date of the invoice
+    example: 2015-06-01
+  transaction_date:
+    type: string
+    description: Accounting date of the invoice
+    example: 2015-06-01
+  due:
+    type: string
+    description: Due date for the invoice payment
+    example: 2015-07-01
+  sent:
+    type: string
+    description: Date when the invoice was sent
+    example: 2015-06-02
+  reference:
+    type: string
+    description: Reference number for the transaction
+    example: 201506262811
+  client_id:
+    type: integer
+    description: Unique identifier for the associated partner
+    example: 5
+  client_location_id:
+    type: integer
+    description: Delivery address ID
+    example: 1
+  language:
+    type: string
+    description: Language code for the invoice
+    example: et_EE
+  additional_info:
+    type: string
+    description: Additional notes or information on the invoice
+    example: Thank you for your business!
+  credit_invoice_for:
+    type: number
+    description: "ID of the credited invoice"
+    example: 0
+  proforma:
+    type: boolean
+    description: Indicates if this is a prepayment invoice
+    example: true
+  proforma_percent:
+    type: number
+    description: Percentage of the prepayment required
+    example: 50
+  rounding:
+    type: number
+    description: Correction amount for rounding on the invoice
+    example: 0
+  row_sum_with_vat:
+    type: boolean
+    description: Indicates whether the invoice line amounts include VAT
+    example: false
+  document_template_id:
+    type: integer
+    description: Template identifier for the document PDF
+    example: 1
+  copy:
+    type: string
+    description: Invoice copy in PDF format (base64 encoded), if created outside of SimplBooks
+    example: "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGl..."

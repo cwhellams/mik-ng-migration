@@ -1,0 +1,76 @@
+get:
+  tags:
+    - Warehouses
+  summary: List
+  description: Returns list of warehouses matching given criteria.
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: exact search by ID of the warehouse
+            name:
+              type: string
+              description: search for warehouses with name containing given string
+            description:
+              type: string
+              description: search for warehouses with description containing given string
+            address:
+              type: string
+              description: search for warehouses with address containing given string
+            page:
+              type: integer
+              description: specifies from which page the list starts
+              default: 1
+            per_page:
+              type: integer
+              description: specifies how many records will be displayed per page
+              default: 10
+  responses:
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              duration:
+                type: number
+                example: 0.0531
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    Warehouse:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name:
+                            type: string
+                            example: Warehouse 1
+                          description:
+                            type: string
+                            example: Central warehouse
+                          address:
+                            type: string
+                            example: Sõpruse pst 151, Tallinn
+                          active:
+                            type: boolean
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

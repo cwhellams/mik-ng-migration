@@ -1,0 +1,38 @@
+type: object
+properties:
+  client_id:
+    type: integer
+    description: Client ID
+    example: 5
+  code:
+    type: string
+    description: Address name
+    example: Headquarter
+  address_street:
+    type: string
+    description: Street address
+    example: Main street
+  address_city:
+    type: string
+    description: City
+    example: Tallinn
+  address_county:
+    type: string
+    description: County
+    example: Harjumaa
+  address_country:
+    type: string
+    description: Country code
+    example: EE
+  address_postal_code:
+    type: string
+    description: Postal code
+    example: 13417
+  active:
+    type: boolean
+    description: Whether this address is currently active
+    example: true
+  contact_id:
+    type: integer
+    description: Contact person's ID
+    example: 3

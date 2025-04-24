@@ -1,0 +1,125 @@
+get:
+  tags:
+    - Purchase orders
+  summary: List
+  description: Returns list of purchase orders matching given criteria.
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            client_id:
+              type: integer
+              description: search for purchase orders where client ID is exactly same as given number
+            number:
+              type: string
+              description: search for purchase orders with number containing given string
+            created_from:
+              type: string
+              description: search for purchase orders created later than given date
+            created_until:
+              type: string
+              description: search for purchase orders created earlier than given date
+            page:
+              type: integer
+              description: specifies from which page the list starts
+              default: 1
+            per_page:
+              type: integer
+              description: specifies how many records will be displayed per page
+              default: 10
+  responses:
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              duration:
+                type: number
+                example: 0.0531
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    PurchaseOrder:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 18
+                        client_id:
+                          type: integer
+                          example: 123
+                        client_name:
+                          type: string
+                          example: "SimplBooks OÜ"
+                        client_reg_no:
+                          type: string
+                          example: "12213296"
+                        client_vat_no:
+                          type: string
+                          example: EE101555357
+                        client_address_street:
+                          type: string
+                          example: Sõpruse pst 151
+                        client_address_city:
+                          type: string
+                          example: Tallinn
+                        client_address_postal_code:
+                          type: string
+                          example: 13417
+                        client_address_county:
+                          type: string
+                          example: Harjumaa
+                        client_address_country:
+                          type: string
+                          example: EE
+                        created:
+                          type: string
+                          example: 2019-06-01
+                        supply_date:
+                          type: string
+                          example: 2019-07-01
+                        number:
+                          type: string
+                          example: 1532323
+                        sum:
+                          type: number
+                          example: 9
+                        vat:
+                          type: number
+                          example: 1.8
+                        rounding:
+                          type: number
+                          example: 0
+                        total_sum:
+                          type: number
+                          example: 10.8
+                        currency_name:
+                          type: string
+                          example: EUR
+                        currency_rate:
+                          type: number
+                          example: 1.0000
+                        sent:
+                          type: string
+                          example: 0000-00-00
+                        cancelled:
+                          type: string
+                          example: 0000-00-00
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

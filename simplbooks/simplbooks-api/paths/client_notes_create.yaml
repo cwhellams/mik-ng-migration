@@ -1,0 +1,42 @@
+post:
+  tags:
+    - Client notes
+  summary: Create
+  description: Create new client note for existing client.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            ClientNote:
+              type: object
+              properties:
+                  note:
+                    type: string
+                    description: The string content of the note
+                    example: This is a test note for client
+                  client_id:
+                    type: integer
+                    description: The ID of the client
+                    example: 5
+                  object_type:
+                    type: string
+                    description: Object type. Leave empty to not bind note with a specific document.
+                    example: Invoice
+                  object_id:
+                    type: integer
+                    description: Object ID, e.g related invoice ID. Required only if object type is set.
+                    example: 123
+  responses:
+    200:
+      $ref: '../schemas/CreateSuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

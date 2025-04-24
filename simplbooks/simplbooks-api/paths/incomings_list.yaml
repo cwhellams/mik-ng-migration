@@ -1,0 +1,76 @@
+get:
+  tags:
+    - Receipts
+  summary: List
+  description: Returns list of receipts matching given criteria.
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: filter receipts to match a specific nonzero ID
+              example: 2
+            income_date:
+              type: string
+              description: filter receipts to match a specific date
+              example: 2022-01-01
+            description:
+              type: string
+              description: search for receipts by description containing the given string
+              example: "sissetulek"
+            income_account_id:
+              type: integer
+              description: filter receipts to match a specific income account ID
+              example: 5
+            page:
+              type: integer
+              description: specifies from which page the list starts
+              default: 1
+            per_page:
+              type: integer
+              description: specifies how many records will be displayed per page
+              default: 10
+            fields:
+              type: array
+              description: Specifies the data field names to be returned
+              items:
+                type: string
+                example: income_sum
+  responses:
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              duration:
+                type: number
+                example: 0.0531
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    Incoming:
+                      allOf:
+                        - type: object
+                          properties:
+                            id:
+                              type: integer
+                        - $ref: '../schemas/Incoming.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

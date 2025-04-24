@@ -1,0 +1,39 @@
+post:
+  tags:
+    - Purchase orders
+  summary: Update
+  description: Updates information for purchase order with given ID number.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            PurchaseOrder:
+              allOf:
+                - type: object
+                  properties:
+                    id:
+                      type: integer
+                - $ref: '../schemas/PurchaseOrderCreate.yaml'
+            PurchaseOrderRows:
+              type: array
+              items:
+                type: object
+                properties:
+                  PurchaseOrderRow:
+                    $ref: '../schemas/PurchaseOrderRowCreate.yaml'
+                  Projects:
+                    $ref: '../schemas/Projects.yaml'
+  responses:
+    200:
+      $ref: '../schemas/UpdateSuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

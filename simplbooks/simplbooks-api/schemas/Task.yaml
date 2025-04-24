@@ -1,0 +1,58 @@
+type: object
+properties:
+  client_id:
+    type: integer
+    description: ID of the associated partner
+    example: 8
+  warehouse_id:
+    type: integer
+    description: ID of the warehouse where the item is located
+    example: 13
+  article_id:
+    type: integer
+    description: ID of the associated article (SKU)
+    example: 89
+  code:
+    type: string
+    description: Code of the associated item
+    example: "13132"
+  name:
+    type: string
+    description: Name of the associated item
+    example: "Suspicious ice cream cone"
+  contents:
+    type: string
+    description: Contents of the associated item (varied usage)
+    example: "Unmeltable ice cream, gag-gift, latex-free, mothers day"
+  unit:
+    type: string
+    description: Name of the unit of the associated item
+    example: "Pcs"
+  amount:
+    type: number
+    description: Number of units of the associated item
+    example: 10
+  price_per_unit:
+    type: number
+    description: Given price of a single unit of the associated item
+    example: 80
+  date_of_doing:
+    type: string
+    description: Date for the taks to be fulfilled
+    example: "2022-01-01"
+  worker:
+    type: string
+    description: Identification of the party responsible for the task
+    example: "Samwise Solomon"
+  vat:
+    type: number
+    description: Percentage value of VAT
+    example: 20
+  vat_type_id:
+    type: integer
+    description: ID of the associated VAT type
+    example: 5
+  discount:
+    type: number
+    description: Percentage value of discount
+    example: 0

@@ -1,0 +1,163 @@
+type: object
+properties:
+  id:
+    type: integer
+    description: Unique identifier for the invoice
+  client_id:
+    type: integer
+    description: Unique identifier for the client
+    example: 123
+  client_name:
+    type: string
+    description: Name of the client
+    example: "SimplBooks OÜ"
+  client_reg_no:
+    type: string
+    description: Registration number of the client
+    example: "12213296"
+  client_vat_no:
+    type: string
+    description: VAT registration number of the client
+    example: EE101555357
+  client_address_street:
+    type: string
+    description: Street address of the client
+    example: Sõpruse pst 151
+  client_address_city:
+    type: string
+    description: City where the client is located
+    example: Tallinn
+  client_address_postal_code:
+    type: string
+    description: Postal code of the client's address
+    example: 13417
+  client_address_county:
+    type: string
+    description: County where the client is located
+    example: Harjumaa
+  client_address_country:
+    type: string
+    description: Country code of the client’s address
+    example: EE
+  contact_reference:
+    type: string
+    description: Contact person's name or other reference for the client
+    example: Jaan Tamm
+  client_location_id:
+    type: integer
+    description: Delivery address ID
+    example: 3
+  created:
+    type: string
+    format: date
+    description: Date of the invoice
+    example: "2018-01-01"
+  transaction_date:
+    type: string
+    format: date
+    description: Accounting date of the invoice
+    example: 2018-01-01
+  due:
+    type: string
+    format: date
+    description: Due date for the invoice payment
+    example: 2018-01-14
+  number:
+    type: string
+    description: Unique number assigned to the invoice
+    example: "18001"
+  reference:
+    type: string
+    description: Reference number for the transaction
+    example: 201506162801
+  sum:
+    type: number
+    description: Total amount of the invoice, excluding VAT
+    example: 13.73
+  vat:
+    type: number
+    description: Total VAT amount of the invoice
+    example: 2.75
+  rounding:
+    type: number
+    description: Correction amount for rounding
+  total_sum:
+    type: number
+    description: Total amount of the invoice, including VAT
+    example: 16.48
+  row_sum_with_vat:
+    type: boolean
+    description: Indicates whether the invoice line amounts include VAT
+  currency_name:
+    type: string
+    description: ISO 4217 currency code of the invoice
+    example: EUR
+  currency_rate:
+    type: number
+    description: Exchange rate of the chosen currency to the base currency
+    example: 1
+  overdue_charge_percent:
+    type: number
+    description: Percentage of the overdue charge
+    example: 0.1
+  overdue_charge_period:
+    type: string
+    description: Period for which the overdue charge percentage applies
+    example: day
+  assembler_name:
+    type: string
+    description: Name of the person who created the invoice
+    example: Mati Rebane
+  sent:
+    oneOf:
+      - type: string
+        format: date
+      - type: string
+        enum: [ "0000-00-00" ]
+    description: Date when the invoice was sent
+    example: 0000-00-00
+  paid:
+    oneOf:
+      - type: string
+        format: date
+      - type: string
+        enum: [ "0000-00-00" ]
+    description: Date when the invoice was paid
+    example: 0000-00-00
+  remnant:
+    type: number
+    description: Unpaid amount remaining on the invoice
+    example: 16.48
+  additional_info:
+    type: string
+    description: Additional notes or information on the invoice
+    example: Test invoice
+  credit_invoice_for:
+    type: number
+    example: 0
+    description: "ID of the credited invoice"
+  proforma:
+    type: boolean
+    description: Indicates if this is a prepayment invoice
+  proforma_percent:
+    type: number
+    description: Percentage of the prepayment
+    example: 0
+  language:
+    type: string
+    description: Language code of the invoice
+    example: et_EE
+  document_template_id:
+    type: integer
+    description: Template identifier for the document PDF
+    example: 4
+  period_start:
+    type: string
+    description: Start date of the billing period for a recurring invoice
+    format: date
+    example: 2018-01-01
+  period_end:
+    type: string
+    description: End date of the billing period for a recurring invoice
+    format: date
+    example: 2018-01-31

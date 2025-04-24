@@ -1,0 +1,62 @@
+type: object
+properties:
+  name:
+    type: string
+    description: Name of the client
+    example: Simplbooks OÜ
+  reg_no:
+    type: string
+    description: Client personal ID or company registration number
+    example: 12213296
+  vat_no:
+    type: string
+    description: VAT number (if any)
+    example: EE101555357
+  address_street:
+    type: string
+    description: Address street address
+    example: Sõpruse pst 151
+  address_city:
+    type: string
+    description: Address city
+    example: Tallinn
+  address_postal_code:
+    type: string
+    description: Address zip code
+    example: 13417
+  address_county:
+    type: string
+    description: Address county
+    example: Harjumaa
+  address_country:
+    type: string
+    description: Address country
+    example: EE
+  webpage:
+    type: string
+    description: URL of the client web page (if any)
+    example: www.simplbooks.ee
+  e_mail:
+    type: string
+    description: Client's e-mail address
+    example: info@simplbooks.ee
+  phone:
+    type: string
+    description: Client's phone number
+    example: 5224658
+  fax:
+    type: string
+    description: Client's fax number
+    example: 5224658
+  account_no:
+    type: string
+    description: Bank account IBAN
+    example: EE772200221060591752
+  bank:
+    type: string
+    description: Bank account bank name
+    example: Swedbank Estonia
+  swift_code:
+    type: string
+    description: Bank account bank SWIFT code
+    example: HABAEE2X

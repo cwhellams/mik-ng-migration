@@ -1,0 +1,57 @@
+allOf:
+  - $ref: 'ClientBasicData.yaml'
+  - type: object
+    properties:
+      client_settings_discount:
+        type: number
+        description: Default discount percentage in sales, invoices and offers.
+        example: 10
+      client_settings_due_days:
+        type: integer
+        description: Default payment term for sales invoices. 0 will default to general settings.
+        example: 3
+      client_settings_purchase_due_days:
+        type: integer
+        description: Default payment term for purchase invoices. 0 will default to current date.
+        example: 7
+      client_settings_supply_days:
+        type: integer
+        description: Default value to use for calculating delivery times. 0 will default to general settings.
+        example: 10
+      client_settings_price_offer_due_days:
+        type: integer
+        description: Default duration of price offers. 0 will default to general settings.
+        example: 5
+      client_settings_overdue_percent:
+        type: number
+        description: Default late payment percentage in invoices. 0 will default to general settings.
+        example: 1
+      client_settings_sales_vat_type_id:
+        type: integer
+        description: Default VAT class ID for price offers, sales, invoices and sales orders.
+        example: 7
+      client_settings_purchase_vat_type_id:
+        type: integer
+        description: Default VAT class ID for purchases and purchase orders.
+        example: 12
+      client_settings_language:
+        type: string
+        description: Default language setting of documents sent.
+        example: et_EE
+      invoice_document_template_id:
+        type: integer
+        description: Default invoice document template ID.
+        example: 2
+      price_offer_document_template_id:
+        type: integer
+        description: Default price offer document template ID.
+        example: 3
+      sales_order_document_template_id:
+        type: integer
+        description: Default sales order document template ID.
+      edi_identifier:
+        type: string
+        description: For overriding default E-invoice recipient address/identifier.
+      intermediator_identifier:
+        type: string
+        description: Use specified E-invoice intermediator instead of choosing it automatically.

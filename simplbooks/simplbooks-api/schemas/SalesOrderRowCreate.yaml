@@ -1,0 +1,42 @@
+type: object
+properties:
+  article_id:
+    type: integer
+    description: ID of the article
+    example: 53
+  warehouse_id:
+    type: integer
+    description: ID of the warehouse where the article is kept
+    example: 32
+  name:
+    type: string
+    description: Name of the article
+    example: "Spring Loaded T-shirt"
+  unit:
+    type: string
+    description: Unit name of the given article
+    example: "Pcs."
+  amount:
+    type: number
+    description: Number of units ordered
+    example: 1
+  price_per_unit:
+    type: number
+    description: Price of an individual unit of this article
+    example: 19.95
+  vat:
+    type: number
+    description: VAT percentage value
+    example: 20
+  vat_type_id:
+    type: integer
+    description: ID of the associated VAT type
+    example: 5
+  discount:
+    type: number
+    description: Discount percentage value
+    example: 0
+  contents:
+    type: string
+    description: Description of the article
+    example: "Jumpotron XXL wearable exoskeleton."

@@ -1,0 +1,42 @@
+type: object
+properties:
+  warehouse_id:
+    type: integer
+    description: ID of the article warehouse
+    example: 5
+  article_id:
+    type: integer
+    description: ID of the associated article
+    example: 6
+  name:
+    type: string
+    description: Name of the article
+    example: "Lead dancing shoes"
+  contents:
+    type: string
+    description: Contents of the article (various usage)
+    example: "Enhance the thump of your footsteps for more attention."
+  unit:
+    type: string
+    description: Name of the unit of the article
+    example: "Pairs"
+  amount:
+    type: number
+    description: Amount of the given article in the price offer
+    example: 5
+  price_per_unit:
+    type: number
+    description: Price per individual unit of the article
+    example: 49.95
+  vat:
+    type: number
+    description: Vat percentage value
+    example: 20
+  vat_type_id:
+    type: integer
+    description: ID of the associated VAT type
+    example: 5
+  discount:
+    type: number
+    description: Discount percentage value
+    example: 10

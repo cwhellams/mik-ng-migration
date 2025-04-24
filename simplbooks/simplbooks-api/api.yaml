@@ -1,0 +1,457 @@
+openapi: 3.0.0
+info:
+  version: v1
+  title: SimplBooks API
+  description: |
+    ## Overview
+    
+    ### What is SimplBooks API?
+    
+    SimplBooks API is built for accessing your account data directly via HTTP programmatically. It means that you can add and modify your data on your Simplbooks account without opening it in your web browser. API allows connecting 3rd party applications or custom software such as cash registers or production management systems and to exchange information automatically.
+    
+    ### How to use SimplBooks API?
+    
+    In order to use SimplBooks API you have to have **API enabled** on your account. If you are not sure wheather your subscription includes API then please do contact our sales or support staff and we'll help you get started.
+    
+    After activating API you will need to create additional API user under Settings > users, generate API token for the new user and you are all set to start using API. We strongly recommend you read through all the general info as there are some standards which have to be followed by developers.
+    
+    ### Request sending limits
+    
+    We have implemented some limitations as to how many requests per minute can be sent and processed to ensure best experience for both our regular users as well as our power users via API. One can send up to **60 requests per minute**. Over 60 requests per minute will generate an error response but will still be counted as usual requests so it is necessary to wait before sending new requests.
+    
+    ## Authentication
+    
+      All API calls made to your SimplBooks account need to be authenticated with special token and sent over secure channel (https). API users and tokens can be created and modified only if API module has been activated on your account.
+      Token is generated for all API users on your account and it can be easily regenerated in case you think it has leaked. This token is used to check and validate if the query is authorized.
+    
+      Each query must have a `X-Simplbooks-Token` header set for this reason.
+    
+      Generated token consists of numbers and letters, e.g: 5e7c2b8035bb7533453450f7bce3e3cd
+    
+      As soon as you know your token you can start building API requests.
+    
+      Request header example with CURL
+      ```
+      curl -H "X-Simplbooks-Token: 5e7c2b8035bb7533453450f7bce3e3cd" \
+      https://app.simplbooks.com/company_id/api/invoices/get/123
+      ```
+    
+      <SecurityDefinitions />
+    
+    ## Requests
+    
+      Here is some more info on building API requests to help you get started. On the left you'll fint a complete list of API calls you can use to interact with your SimplBooks account.
+    
+      ### Request URL format
+    
+      `https://app.simplbooks.com/company_id/api/category/action/id`
+    
+      Every API request URL consisting of the following parts:
+    
+      |   |   |
+      | --- | --- |
+      | company_id | Unique ID of your account (for example 0fdf33a5c10c384986f81fc45a444f22) |
+      | category | Category of the request (such as clients, invoices, etc) |
+      | action | Action to be performed by this request (for example list, get, create, delete) |
+      | id | ID of the object to perform the request on. Used only for some of the API calls. |
+    
+      If we put all these parts together, we will get a request URL like this:
+    
+      `https://app.simplbooks.com/company_id/api/clients/get/1`
+    
+      Request example with CURL
+      ```
+      curl -H "X-Simplbooks-Token: 5e7c2b8035bb7533453450f7bce3e3cd" \
+      https://app.simplbooks.com/company_id/api/clients/get/1
+      ```
+    
+      ### Request body
+      For some API request you have to include more information than only URL. These parameters are forwarded in request body. Detailed information can be found on each request category page.
+    
+      Request body is typically needed for calls like create and update.
+    
+      ### Data types
+      All API calls follow some common rules on data types:
+    
+      * Dates are always represented as "yyyy-MM-dd" (e.g. 2015-07-15)
+      * Timestamps are always represented as "yyyy-MM-dd HH:mm:ss" (e.g. 2015-07-15 14:31:12)
+      * Booleans are represented as 1 (true) or 0 (false) when submitting data as "form data"
+      * Decimals use dot as decimal place separator (no commas)
+    
+      ### Data formats
+      Request body can be submitted in different formats. Request format can be adjusted with HTTP header `X-Input-Format` which will accept one of the following values:
+    
+      * FormData (default)
+      * JSON
+      * Raw - data in original format, e.g E-Invoice XML
+    
+      POST request example with CURL (form data)
+      ```
+      curl \
+      -H "X-Simplbooks-Token: 5e7c2b8035bb7533453450f7bce3e3cd" \
+      -X POST \
+      -F "Client[name]=Company" \
+      -F "Client[address_street]=Test" \
+      https://app.simplbooks.com/company_id/api/clients/create
+      ```
+    
+      POST request example with CURL (JSON)
+      ```
+      curl \
+      -H "X-Simplbooks-Token: 5e7c2b8035bb7533453450f7bce3e3cd" \
+      -H "X-Input-Format: json" \
+      -X POST \
+      -d '{"Client":{"name":"Company","address_street":"Test"}}' \
+      https://app.simplbooks.com/company_id/api/clients/create
+      ```
+    
+    ## Responses
+    
+      Each response from server contains information about the request itself as well as data returned by called action. In case your request couldn't be executed you will find an error code and description in response.
+    
+      Response has a unified overall structure and contains the same fields, except the information stored under data key which is category and action specific. Please see the API calls specification for any specific calls.
+    
+      Following table shows the structure of the response:
+    
+      | Key | Description |
+      | --- | --- |
+      | status | response status code which is also reflected in HTTP header |
+      | duration | duration of request in seconds |
+      | inserted_id | ID of newly created object e.g. in case of create action |
+      | data | data returned by called action |
+      | response | response message on successful operation |
+      | errors | error description - can be general error or validation error |
+    
+      ### Examples
+    
+      ```
+      {
+        "status": 200,
+        "duration": "0.0463",
+        "inserted_id": 0,
+        "data": {...}
+      }
+      ```
+    
+      ```
+      {
+        "status": 200,
+        "duration": "0.3343",
+        "inserted_id": "1",
+        "response": "New invoice saved."
+      }
+      ```
+    
+      ```
+      {
+        "status": 401,
+        "duration": "0.0181",
+        "inserted_id": 0,
+        "errors": [
+            "API token is missing"
+        ],
+      }
+      ```
+    
+      ### Response status code
+    
+      Status can be one of the following values:
+    
+      * 200 - successful request
+      * 4XX - invalid request
+      * 5XX - temporary server error
+    
+      ### Response formats
+      Response can be returned in three different formats depending on your needs. By default API will respond with JSON formated response structure. Response output format can be easily adjusted with HTTP header `X-Output-Format` which will accept one of the following values:
+    
+      * JSON (default)
+      * XML
+      * Screen - data is printed out in human-readable form. Useful for testing/debugging
+      * Raw - data is returned in original format, e.g PDF invoice
+    
+    ## Error handling
+    
+      In case submitted request cannot be performed or fails validation then server will return appropriate error response.
+    
+      If status code is not `200` then there was some kind of error or failure with the request and in this case `errors` element should be checked. This element contains a list which is usually just one item in length but in case of validation errors might contain more than one item.
+    
+      ### Example
+    
+      For example if you send a request to get details about an invoice with ID number 22 but this invoice doesn't exist in system. In this server will will return with the following response:
+    
+      URL for the request
+      `https://app.simplbooks.com/company_id/api/invoices/get/22`
+    
+      Response from server
+      ```
+      {
+        "status": 400,
+        "duration: "0.0297",
+        "inserted_id": 0,
+        "errors": [
+            "Invoice with given ID does not exist."
+        ],
+      }
+      ```
+      Please note that even though we received an error - `duration` and `inserted_id` fields are still filled and returned.
+    
+      ### Error codes and descriptions
+      See the following list for standard error codes and their descriptions:
+
+      * 400 - Signature of the request is missing.
+      * 400 - Signature of the request is invalid.
+      * 400 - Validation error from SimplBooks system.
+      * 400 - The number of requested entries is too big.
+      * 401 - API token in HTTP header is missing.
+      * 403 - Used API token is expired or wrong.
+      * 403 - User is not allowed to use API calls.
+      * 403 - User is not active in the system.
+      * 403 - User doesn't have permissions to perform this operation.
+      * 404 - Category of API call is missing.
+      * 404 - Action of API call is missing.
+      * 404 - Specified API call is not recognized.
+      * 429 - Number of requests in over quota.
+  x-logo:
+    url: "https://cdn.simplbooks.com/images/logo/dark_green.svg"
+    backgroundColor: "#FFFFFF"
+    href: "/api-documentation/"
+servers:
+  - url: https://app.simplbooks.com/{company_id}/api
+    variables:
+      company_id:
+        default: ""
+        description: Unique ID of your account (for example 0fdf33a5c10c384986f81fc45a444f22)
+tags:
+  - name: Items
+    description: API calls to manage inventory items. Here you can find calls to create new, update or delete existing items. Includes also search call and call used to query current remaining stock of the item.
+  - name: Clients
+    description: Includes API calls to managing client information such as creating new client, updating data for existing client or deleting client from database. You can also search clients and display already saved client's data.
+  - name: Client notes
+    description: Includes API calls to managing client notes such as creating new, updating data for existing note or deleting note from database.
+  - name: Delivery addresses
+    description: This section includes API calls for managing delivery addresses. You can create new addresses, update or delete existing ones, or retrieve a list of addresses based on specified criteria.
+  - name: Employees
+    description: This section contains API calls to manage employees - such as create, update or delete existing employee. Also you can use a call for listing according to specified criteria.
+  - name: Financial accounts
+    description: This section contains API calls to get information about existing financial accounts.
+  - name: Bank accounts and cash
+    description: This section contains API calls to get information about existing bank accounts and cash registers.
+  - name: Receipts
+    description: Contains API calls to manage receipts - you can create, update or delete existing receipt. Also you can use a call for listing according to specified criteria and other more specific calls listed below.
+  - name: Invoices
+    description: This section contains API calls to manage sales invoices - such as create new one or update or delete existing sales invoices. Also you can use a call for listing according to specified criteria.
+  - name: Payments
+    description: Contains API calls to manage payments to suppliers or reporting persons - you can create, update or delete existing payment. Also you can use a call for listing according to specified criteria and other more specific calls listed below.
+  - name: Price offers
+    description: This section contains API calls to manage price offers - such as create, update or delete existing price offer. Also you can use a call for listing according to specified criteria.
+  - name: Purchases
+    description: This section contains API calls to manage purchase invoices - such as create, update or delete existing purchase invoice. Also you can use a call for listing according to specified criteria.
+  - name: Purchase orders
+    description: This section contains API calls to manage purchase orders - such as create, update or delete purchase order. Also you can use a call for listing according to specified criteria.
+  - name: Sales orders
+    description: This section contains API calls to manage sales orders - such as create new one or update or delete existing sales orders. Also you can use a call for listing according to specified criteria.
+  - name: Unbilled works
+    description: This section contains API calls to manage unbilled works - such as create, update or delete existing task. Also you can use a call for listing according to specified criteria.
+  - name: VAT types
+    description: This section contains API calls to get information about existing VAT types.
+  - name: Warehouses
+    description: This section contains API calls to manage warehouses - such as create, update or delete existing warehouse. Also you can use a call for listing according to specified criteria.
+security:
+  - api_key: [ ]
+paths:
+  /articles/get/{id}:
+    $ref: 'paths/articles_get.yaml'
+  /articles/create:
+    $ref: 'paths/articles_create.yaml'
+  /articles/update:
+    $ref: 'paths/articles_update.yaml'
+  /articles/delete/{id}:
+    $ref: 'paths/articles_delete.yaml'
+  /articles/list:
+    $ref: 'paths/articles_list.yaml'
+  /articles/remnant/{id}:
+    $ref: 'paths/articles_remnant.yaml'
+  /client_notes/create:
+    $ref: 'paths/client_notes_create.yaml'
+  /client_notes/delete/{id}:
+    $ref: 'paths/client_notes_delete.yaml'
+  /client_notes/get/{id}:
+    $ref: 'paths/client_notes_get.yaml'
+  /client_notes/list:
+    $ref: 'paths/client_notes_list.yaml'
+  /client_notes/update:
+    $ref: 'paths/client_notes_update.yaml'
+  /client_locations/create:
+    $ref: 'paths/client_locations_create.yaml'
+  /client_locations/delete/{id}:
+    $ref: 'paths/client_locations_delete.yaml'
+  /client_locations/get/{id}:
+    $ref: 'paths/client_locations_get.yaml'
+  /client_locations/list:
+    $ref: 'paths/client_locations_list.yaml'
+  /client_locations/update:
+    $ref: 'paths/client_locations_update.yaml'
+  /employees/create:
+    $ref: 'paths/employees_create.yaml'
+  /employees/delete/{id}:
+    $ref: 'paths/employees_delete.yaml'
+  /employees/get/{id}:
+    $ref: 'paths/employees_get.yaml'
+  /employees/list:
+    $ref: 'paths/employees_list.yaml'
+  /employees/update:
+    $ref: 'paths/employees_update.yaml'
+  /clients/create:
+    $ref: 'paths/clients_create.yaml'
+  /clients/delete/{id}:
+    $ref: 'paths/clients_delete.yaml'
+  /clients/get/{id}:
+    $ref: 'paths/clients_get.yaml'
+  /clients/list:
+    $ref: 'paths/clients_list.yaml'
+  /clients/update:
+    $ref: 'paths/clients_update.yaml'
+  /clients/contacts/{id}:
+    $ref: 'paths/clients_contacts.yaml'
+  /clients/incomings/{id}:
+    $ref: 'paths/clients_incomings.yaml'
+  /clients/invoices/{id}:
+    $ref: 'paths/clients_invoices.yaml'
+  /clients/payments/{id}:
+    $ref: 'paths/clients_payments.yaml'
+  /clients/purchases/{id}:
+    $ref: 'paths/clients_purchases.yaml'
+  /financial_accounts/get/{id}:
+    $ref: 'paths/financial_accounts_get.yaml'
+  /financial_accounts/list:
+    $ref: 'paths/financial_accounts_list.yaml'
+  /income_accounts/get/{id}:
+    $ref: 'paths/income_accounts_get.yaml'
+  /income_accounts/list:
+    $ref: 'paths/income_accounts_list.yaml'
+  /incomings/create:
+    $ref: 'paths/incomings_create.yaml'
+  /incomings/delete/{id}:
+    $ref: 'paths/incomings_delete.yaml'
+  /incomings/get/{id}:
+    $ref: 'paths/incomings_get.yaml'
+  /incomings/list:
+    $ref: 'paths/incomings_list.yaml'
+  /incomings/update:
+    $ref: 'paths/incomings_update.yaml'
+  /incomings/invoice_paid:
+    $ref: 'paths/incomings_invoice_paid.yaml'
+  /invoices/get/{id}:
+    $ref: 'paths/invoices_get.yaml'
+  /invoices/get_pdf/{id}:
+    $ref: 'paths/invoices_get_pdf.yaml'
+  /invoices/get_xml/{id}:
+    $ref: 'paths/invoices_get_xml.yaml'
+  /invoices/create:
+    $ref: 'paths/invoices_create.yaml'
+  /invoices/create_from_xml:
+    $ref: 'paths/invoices_create_from_xml.yaml'
+  /invoices/delete/{id}:
+    $ref: 'paths/invoices_delete.yaml'
+  /invoices/list:
+    $ref: 'paths/invoices_list.yaml'
+  /invoices/sent/{id}:
+    $ref: 'paths/invoices_sent.yaml'
+  /invoices/update:
+    $ref: 'paths/invoices_update.yaml'
+  /invoices/get_bound_receipts/{id}:
+    $ref: 'paths/invoices_get_bound_receipts.yaml'
+  /payments/create:
+    $ref: 'paths/payments_create.yaml'
+  /payments/delete/{id}:
+    $ref: 'paths/payments_delete.yaml'
+  /payments/get/{id}:
+    $ref: 'paths/payments_get.yaml'
+  /payments/list:
+    $ref: 'paths/payments_list.yaml'
+  /payments/purchase_paid:
+    $ref: 'paths/payments_purchase_paid.yaml'
+  /payments/update:
+    $ref: 'paths/payments_update.yaml'
+  /price_offers/create:
+    $ref: 'paths/price_offers_create.yaml'
+  /price_offers/delete/{id}:
+    $ref: 'paths/price_offers_delete.yaml'
+  /price_offers/get/{id}:
+    $ref: 'paths/price_offers_get.yaml'
+  /price_offers/get_pdf/{id}:
+    $ref: 'paths/price_offers_get_pdf.yaml'
+  /price_offers/list:
+    $ref: 'paths/price_offers_list.yaml'
+  /price_offers/update:
+    $ref: 'paths/price_offers_update.yaml'
+  /price_offers/cancel/{id}:
+    $ref: 'paths/price_offers_cancel.yaml'
+  /purchases/get/{id}:
+    $ref: 'paths/purchases_get.yaml'
+  /purchases/get_xml/{id}:
+    $ref: 'paths/purchases_get_xml.yaml'
+  /purchases/get_copy/{id}:
+    $ref: 'paths/purchases_get_copy.yaml'
+  /purchases/create:
+    $ref: 'paths/purchases_create.yaml'
+  /purchases/create_from_xml:
+    $ref: 'paths/purchases_create_from_xml.yaml'
+  /purchases/delete/{id}:
+    $ref: 'paths/purchases_delete.yaml'
+  /purchases/list:
+    $ref: 'paths/purchases_list.yaml'
+  /purchases/update:
+    $ref: 'paths/purchases_update.yaml'
+  /purchases/get_bound_payments/{id}:
+    $ref: 'paths/purchaces_get_bound_payments.yaml'
+  /purchase_orders/get/{id}:
+    $ref: 'paths/purchase_orders_get.yaml'
+  /purchase_orders/list:
+    $ref: 'paths/purchase_orders_list.yaml'
+  /purchase_orders/create:
+    $ref: 'paths/purchase_orders_create.yaml'
+  /purchase_orders/update:
+    $ref: 'paths/purchase_orders_update.yaml'
+  /purchase_orders/delete/{id}:
+    $ref: 'paths/purchase_orders_delete.yaml'
+  /sales_orders/create:
+    $ref: 'paths/sales_orders_create.yaml'
+  /sales_orders/delete/{id}:
+    $ref: 'paths/sales_orders_delete.yaml'
+  /sales_orders/get/{id}:
+    $ref: 'paths/sales_orders_get.yaml'
+  /sales_orders/list:
+    $ref: 'paths/sales_orders_list.yaml'
+  /sales_orders/update:
+    $ref: 'paths/sales_orders_update.yaml'
+  /tasks/create:
+    $ref: 'paths/tasks_create.yaml'
+  /tasks/delete/{id}:
+    $ref: 'paths/tasks_delete.yaml'
+  /tasks/get/{id}:
+    $ref: 'paths/tasks_get.yaml'
+  /tasks/list:
+    $ref: 'paths/tasks_list.yaml'
+  /tasks/update:
+    $ref: 'paths/tasks_update.yaml'
+  /vat_types/list:
+    $ref: 'paths/vat_types_list.yaml'
+  /warehouses/create:
+    $ref: 'paths/warehouses_create.yaml'
+  /warehouses/delete/{id}:
+    $ref: 'paths/warehouses_delete.yaml'
+  /warehouses/get/{id}:
+    $ref: 'paths/warehouses_get.yaml'
+  /warehouses/list:
+    $ref: 'paths/warehouses_list.yaml'
+  /warehouses/update:
+    $ref: 'paths/warehouses_update.yaml'
+  /warehouses/remnant/{id}:
+    $ref: 'paths/warehouses_remnant.yaml'
+components:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: X-Simplbooks-Token
+      in: header

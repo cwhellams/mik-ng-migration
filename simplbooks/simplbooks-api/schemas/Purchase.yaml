@@ -1,0 +1,102 @@
+type: object
+properties:
+  id:
+    type: integer
+    description: ID of the purchase invoice
+    example: 6
+  client_id:
+    type: integer
+    description: ID of the supplier
+    example: 123
+  client_name:
+    type: string
+    description: Name of the supplier
+    example: "SimplBooks OÜ"
+  client_reg_no:
+    type: string
+    description: Registration number of the supplier
+    example: "12213296"
+  client_vat_no:
+    type: string
+    description: VAT registration number of the supplier
+    example: EE101555357
+  client_address_street:
+    type: string
+    description: Street address of the supplier
+    example: Sõpruse pst 151
+  client_address_city:
+    type: string
+    description: City where the supplier is located
+    example: Tallinn
+  client_address_postal_code:
+    type: string
+    description: Postal code of the supplier's address
+    example: 13417
+  client_address_county:
+    type: string
+    description: County where the supplier is located
+    example: Harjumaa
+  client_address_country:
+    type: string
+    description: Country code of the supplier’s address
+    example: EE
+  number:
+    type: string
+    description: Purchase invoice number
+    example: "12345"
+  internal_number:
+    type: string
+    description: Internal document number for the purpose of structuring the documents
+    example: "12345"
+  created:
+    type: string
+    description: Date of the purchase invoice
+    example: "2022-01-01"
+  transaction_date:
+    type: string
+    description: Accounting date of the purchase invoice
+    example: "2022-01-01"
+  due:
+    type: string
+    description: Due date of the purchase invoice
+    example: "2022-01-02"
+  paid:
+    type: string
+    description: Date when the invoice was paid
+    example: "0000-00-00"
+  sum:
+    type: number
+    description: Total amount of the invoice, excluding VAT
+    example: 43.15
+  vat:
+    type: number
+    description: Total VAT amount of the invoice
+    example: 20.45
+  rounding:
+    type: number
+    description: Correction amount for rounding
+    example: 0
+  total_sum:
+    type: number
+    description: Total amount of the invoice, including VAT
+    example: 16.48
+  row_sum_with_vat:
+    type: boolean
+    description: Indicates whether the invoice line amounts include VAT
+    example: false
+  currency_name:
+    type: string
+    description: ISO 4217 currency code
+    example: "EUR"
+  currency_rate:
+    type: number
+    description: Ratio of chosen currency to the base currency
+    example: 1
+  comments:
+    type: string
+    description: Additional notes or information on the invoice
+    example: "Absolutely necessary"
+  reference:
+    type: string
+    description: Reference number for the transaction
+    example: "201506262811"

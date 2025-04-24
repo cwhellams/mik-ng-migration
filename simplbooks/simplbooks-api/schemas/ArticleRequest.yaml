@@ -1,0 +1,4 @@
+type: object
+properties:
+  Article:
+    $ref: 'ArticleCreate.yaml#/Article'

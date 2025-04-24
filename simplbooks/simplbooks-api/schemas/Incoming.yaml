@@ -1,0 +1,30 @@
+type: object
+properties:
+  income_account_id:
+    type: integer
+    description: ID of the associated income account
+    example: 1
+  income_sum:
+    type: number
+    description: Sum
+    example: 3.5
+  income_date:
+    type: string
+    description: Date
+    example: 2022-01-01
+  description:
+    type: string
+    description: Description
+    example: Invoice no. 22022
+  currency_name:
+    type: string
+    description: ISO 4217 currency code
+    example: EUR
+  currency_rate:
+    type: number
+    description: Ratio of used currency to base currency
+    example: 1.0
+  client_id:
+    type: integer
+    description: ID of the associated partner
+    example: 2

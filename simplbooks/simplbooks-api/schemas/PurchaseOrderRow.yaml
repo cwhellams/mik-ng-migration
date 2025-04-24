@@ -1,0 +1,36 @@
+type: object
+properties:
+  id:
+    type: integer
+  purchase_order_id:
+    type: integer
+    example: "555"
+  article_id:
+    type: integer
+    example: "898"
+  code:
+    type: string
+    example: "AA1234"
+  name:
+    type: string
+    example: "Double ended plunger"
+  unit:
+    type: string
+    example: "Pcs."
+  amount:
+    type: number
+    example: 1
+  sum:
+    type: number
+    example: 12.95
+  vat:
+    type: number
+    example: 20
+  vat_type_id:
+    type: integer
+    example: 5
+  discount:
+    type: number
+    example: 0
+  Projects:
+    $ref: '../schemas/Projects.yaml'

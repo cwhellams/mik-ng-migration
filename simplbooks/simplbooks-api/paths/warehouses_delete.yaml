@@ -1,0 +1,24 @@
+post:
+  tags:
+    - Warehouses
+  summary: Delete
+  description: Deletes the warehouse with the given ID.
+  parameters:
+    - name: id
+      in: path
+      description: ID of the warehouse
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    200:
+      $ref: '../schemas/DeleteSuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

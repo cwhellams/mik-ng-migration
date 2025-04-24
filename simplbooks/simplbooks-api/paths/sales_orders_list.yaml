@@ -1,0 +1,106 @@
+get:
+  tags:
+    - Sales orders
+  summary: List
+  description: Returns list of sales orders matching given criteria.
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            client_id:
+              type: integer
+              description: filter purchases to match a specific nonzero ID
+              example: 5
+            number:
+              type: string
+              description: search for sales order by number containing the given string
+              example: 234
+            client_name:
+              type: string
+              description: search for sales order by partner name containing the given string
+              example: oü
+            client_reg_no:
+              type: string
+              description: search for sales order by partner registration number containing the given string
+              example: 443
+            created_from:
+              type: string
+              description: filter invoices by creation date after and including
+              example: "01-01-2021"
+            created_until:
+              type: string
+              description: filter invoices by creation date before and including
+              example: "01-01-2022"
+            page:
+              type: integer
+              description: specifies from which page the list starts
+              default: 1
+            per_page:
+              type: integer
+              description: specifies how many records will be displayed per page
+              default: 10
+  responses:
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              duration:
+                type: number
+                example: 0.0531
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    SalesOrder:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        client_id:
+                          type: integer
+                        client_name:
+                          type: string
+                        client_reg_no:
+                          type: string
+                        client_vat_no:
+                          type: string
+                        created:
+                          type: string
+                        supply_date:
+                          type: string
+                        number:
+                          type: string
+                        sum:
+                          type: number
+                        vat:
+                          type: number
+                        rounding:
+                          type: number
+                        total_sum:
+                          type: number
+                        currency_name:
+                          type: string
+                        currency_rate:
+                          type: number
+                        sent:
+                          type: string
+                        cancelled:
+                          type: string
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

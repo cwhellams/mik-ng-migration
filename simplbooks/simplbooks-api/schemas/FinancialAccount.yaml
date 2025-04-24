@@ -1,0 +1,13 @@
+type: object
+properties:
+  id:
+    type: integer
+  code:
+    type: string
+    example: '1020'
+  name:
+    type: string
+    example: 'Development expenses'
+  active:
+    type: boolean
+    example: false

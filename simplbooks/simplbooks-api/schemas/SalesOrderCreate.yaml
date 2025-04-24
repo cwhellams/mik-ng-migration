@@ -1,0 +1,54 @@
+type: object
+properties:
+  number:
+    type: string
+    description: Unique number of the sales order
+    example: "333"
+  client_id:
+    type: string
+    description: ID of the associated partner
+    example: 15
+  client_location_id:
+    type: integer
+    description: Delivery address ID
+    example: 1
+  created:
+    type: string
+    description: Creation date of the sales order
+    example: "2022-01-01"
+  supply_date:
+    type: string
+    description: Supply date of the sales order
+    example: "2023-01-01"
+  sent:
+    type: string
+    description: The date when the sales order was sent
+    example: "2022-01-01"
+  cancelled:
+    type: string
+    description: The date when the sales order was cancelled
+    example: "0000-00-00"
+  currency_name:
+    type: string
+    description: ISO 4217 currency code
+    example: "EEK"
+  currency_rate:
+    type: number
+    description: Ratio of chosen currency to the base currency
+    example: 0.06
+  row_sum_with_vat:
+    type: boolean
+    description: Whether or not the row sums contain VAT
+    example: true
+  additional_info:
+    type: string
+    description: Additional string note
+    example: "Cash only"
+  language:
+    type: string
+    description: language code
+    example: "et_EE"
+  document_template_id:
+    type: integer
+    description: Specify the ID of a document template to use
+    example: 55

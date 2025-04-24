@@ -1,0 +1,94 @@
+get:
+  tags:
+    - Clients
+  summary: List
+  description: Returns list of clients found on given criteria.
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: filter clients to match a specific nonzero ID
+              example: 2
+            name:
+              type: string
+              description: search for clients by name containing the given string
+              example: Simplbooks OÜ
+            reg_no:
+              type: string
+              description: search for clients by registry number containing the given string
+              example: 12213296
+            vat_no:
+              type: string
+              description: search for clients by VAT number containing the given string
+              example: EE101506652
+            e_mail:
+              type: string
+              description: search for clients by email containing the given string
+              example: info@simplbooks.ee
+            address_street:
+              type: string
+              description: search for clients by street address containing the given string
+              example: Sõpruse pst. 151a
+            address_city:
+              type: string
+              description: search for clients by city containing the given string
+              example: Tallinn
+            address_postal_code:
+              type: string
+              description: search for clients by postal code containing the given string
+              example: 123223
+            address_county:
+              type: string
+              description: search for clients by county containing the given string
+              example: Harjumaa
+            address_country:
+              type: string
+              description: search for clients by country containing the given string
+              example: EE
+            page:
+              type: integer
+              description: specifies from which page the list starts
+              default: 1
+            per_page:
+              type: integer
+              description: specifies how many records will be displayed per page
+              default: 10
+  responses:
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              duration:
+                type: number
+                example: 0.0531
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    Client:
+                      allOf:
+                        - type: object
+                          properties:
+                            id:
+                              type: integer
+                        - $ref: '../schemas/ClientBasicData.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

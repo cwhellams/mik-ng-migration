@@ -1,0 +1,30 @@
+type: object
+properties:
+  client_id:
+    type: integer
+    description: search for client notes where client's id is exactly given number
+    example: 123
+  client_name:
+    type: string
+    description: search for client notes where client's name contains given string
+    example: Juku Jukats
+  created_from:
+    type: string
+    description: search for client notes created on the same date or later
+    example: 2022-01-01
+  created_until:
+    type: string
+    description: search for client notes created on the same date or before
+    example: 2023-01-01
+  client_note:
+    type: string
+    description: search for client notes containing given string
+    example: my note
+  page:
+    type: integer
+    description: specifies from which page the list starts
+    default: 1
+  per_page:
+    type: integer
+    description: specifies how many records will be displayed per page
+    default: 10

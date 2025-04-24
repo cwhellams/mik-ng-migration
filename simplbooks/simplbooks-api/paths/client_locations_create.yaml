@@ -1,0 +1,25 @@
+post:
+  tags:
+    - Delivery addresses
+  summary: Create
+  description: Create new delivery address for existing client.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            ClientLocation:
+              $ref: '../schemas/ClientLocation.yaml'
+  responses:
+    200:
+      $ref: '../schemas/CreateSuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

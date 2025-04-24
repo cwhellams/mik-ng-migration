@@ -1,0 +1,28 @@
+type: object
+properties:
+  id:
+    type: integer
+    description: exact search by ID of the item
+  name:
+    type: string
+    description: search for items with name containing given string
+  code:
+    type: string
+    description: search for items with code containing given string
+  ean:
+    type: string
+    description: search for items with EAN containing given string
+  page:
+    type: integer
+    description: specifies from which page the list starts
+    default: 1
+  per_page:
+    type: integer
+    description: specifies how many records will be displayed per page
+    default: 10
+    maximum: 1000
+  fields:
+    type: array
+    items:
+      type: string
+    description: specifies fields that will be returned

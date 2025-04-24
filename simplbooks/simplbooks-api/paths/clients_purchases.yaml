@@ -1,0 +1,24 @@
+get:
+  tags:
+    - Clients
+  summary: Purchases
+  description: Returns list of purchases assigned with the client with given ID.
+  parameters:
+    - name: id
+      in: path
+      description: ID of client
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    200:
+      $ref: '../schemas/OkResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

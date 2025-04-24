@@ -1,0 +1,22 @@
+type: object
+properties:
+  name:
+    type: string
+    description: Name of the warehouse
+    example: Warehouse 1
+  description:
+    type: string
+    description: Description of the warehouse
+    example: Central warehouse
+  address:
+    type: string
+    description: Address of the warehouse
+    example: Sõpruse pst 151, Tallinn
+  financial_account_id:
+    type: integer
+    example: 5601
+    description: Account code (not ID)
+  active:
+    type: boolean
+    description: Whether or not this warehouse is active
+    example: true

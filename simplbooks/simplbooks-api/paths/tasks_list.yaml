@@ -1,0 +1,74 @@
+get:
+  tags:
+    - Unbilled works
+  summary: List
+  description: Returns list of tasks matching given criteria.
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: filter tasks to match a specific nonzero ID
+              example: 5
+            warehouse_id:
+              type: integer
+              description: filter tasks to match a specific warehouse ID
+              example: 67
+            article_id:
+              type: integer
+              description: filter tasks to match a specific article ID
+              example: 33
+            date_of_doing_from:
+              type: string
+              description: earliest date of fulfillment
+              example: 2023-01-02
+            date_of_doing_until:
+              type: string
+              description: latest date of fulfillment
+              example: 2023-02-01
+            page:
+              type: integer
+              description: specifies from which page the list starts
+              default: 1
+            per_page:
+              type: integer
+              description: specifies how many records will be displayed per page
+              default: 10
+  responses:
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              duration:
+                type: number
+                example: 0.0531
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    Warehouse:
+                      allOf:
+                        - type: object
+                          properties:
+                            id:
+                              type: integer
+                        - $ref: '../schemas/Task.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

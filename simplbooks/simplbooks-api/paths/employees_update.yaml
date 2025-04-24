@@ -1,0 +1,32 @@
+post:
+  tags:
+    - Employees
+  summary: Update
+  description: Updates an existing employee.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            Employee:
+              allOf:
+                - type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: Unique identifier (ID)
+                      example: 1
+                - $ref: '../schemas/Employee.yaml'
+  responses:
+    200:
+      $ref: '../schemas/UpdateSuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

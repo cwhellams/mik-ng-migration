@@ -1,0 +1,62 @@
+type: object
+properties:
+  id:
+    type: integer
+    example: 18
+  client_id:
+    type: integer
+    example: 123
+  client_name:
+    type: string
+    example: "SimplBooks OÜ"
+  client_reg_no:
+    type: string
+    example: "12213296"
+  client_vat_no:
+    type: string
+    example: EE101555357
+  client_address_street:
+    type: string
+    example: Sõpruse pst 151
+  client_address_city:
+    type: string
+    example: Tallinn
+  client_address_postal_code:
+    type: string
+    example: 13417
+  client_address_county:
+    type: string
+    example: Harjumaa
+  client_address_country:
+    type: string
+    example: EE
+  number:
+    type: string
+    example: "12345"
+  created:
+    type: string
+    example: 2019-06-01
+  supply_date:
+    type: string
+    example: 2019-07-01
+  sum:
+    type: number
+    example: 34.56
+  vat:
+    type: number
+    example: 20
+  rounding:
+    type: number
+    example: 2
+  total_sum:
+    type: number
+    example: 34.56
+  sent:
+    type: string
+    example: "2022-01-01"
+  cancelled:
+    type: string
+    example: "0000-00-00"
+  language:
+    type: string
+    example: "et_EE"

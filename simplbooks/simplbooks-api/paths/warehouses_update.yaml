@@ -1,0 +1,31 @@
+post:
+  tags:
+    - Warehouses
+  summary: Update
+  description: Updates existing warehouse info with information from given parameters.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            Warehouse:
+              allOf:
+                - type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                - $ref: '../schemas/WarehouseCreate.yaml'
+  responses:
+    200:
+      $ref: '../schemas/UpdateSuccessResponse.yaml'
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

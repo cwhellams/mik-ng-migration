@@ -1,0 +1,50 @@
+get:
+  tags:
+    - VAT types
+  summary: List
+  description: Returns a list of existing VAT types.
+  responses:
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              duration:
+                type: number
+                example: 0.0531
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    VatType:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: Kaup Eesti 20%
+                        vat_percent:
+                          type: number
+                          example: 20
+                        is_sales:
+                          type: boolean
+                        is_purchase:
+                          type: boolean
+                        active:
+                          type: boolean
+    400:
+      $ref: '../schemas/error400.yaml'
+    401:
+      $ref: '../schemas/error401.yaml'
+    403:
+      $ref: '../schemas/error403.yaml'
+    429:
+      $ref: '../schemas/error429.yaml'

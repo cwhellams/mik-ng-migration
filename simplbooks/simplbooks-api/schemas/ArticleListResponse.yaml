@@ -1,0 +1,28 @@
+type: object
+properties:
+  status:
+    type: integer
+    example: 200
+  duration:
+    type: number
+    example: 0.0531
+  data:
+    type: array
+    items:
+      type: object
+      properties:
+        Article:
+          allOf:
+            - $ref: 'Article.yaml#/Article'
+            - type: object
+              properties:
+                remnant:
+                  type: object
+                  description: Current remaining stock of the item. This field is excluded by default, but can be enabled through the "fields" parameter.
+                  additionalProperties:
+                    x-additionalPropertiesName: warehouse_id
+                    type: number
+                  example:
+                    1: 557
+                    2: 12
+                    3: -22

@@ -1,0 +1,58 @@
+type: object
+properties:
+  client_id:
+    type: integer
+    description: ID of the supplier
+    example: 6
+  number:
+    type: string
+    description: Purchase invoice number
+    example: "a12"
+  internal_number:
+    type: string
+    description: Internal document number for the purpose of structuring the documents
+    example: "23"
+  created:
+    type: string
+    description: Date of the purchase invoice
+    example: "2022-01-01"
+  transaction_date:
+    type: string
+    description: Accounting date of the purchase invoice
+    example: "2022-01-01"
+  due:
+    type: string
+    description: Due date of the purchase invoice
+    example: "2022-01-02"
+  currency_name:
+    type: string
+    description: ISO 4217 currency code
+    example: "PLZ"
+  currency_rate:
+    type: number
+    description: Ratio of chosen currency to the base currency
+    example: 0.24
+  comments:
+    type: string
+    description: Additional notes or information on the invoice
+    example: "I created this"
+  reference:
+    type: string
+    description: Reference number for the transaction
+    example: "201506262811"
+  vat:
+    type: number
+    description: Total VAT amount of the invoice. Optional - if not set, then calculated automatically
+    example: 20.45
+  row_sum_with_vat:
+    type: boolean
+    description: Whether or not the row sum includes VAT
+    example: false
+  file_type:
+    type: string
+    description: Purchase attachment file type (e.g pdf, jpg)
+    example: "pdf"
+  file_contents:
+    type: string
+    description: Purchase attachment content (base64 encoded)
+    example: "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGl..."

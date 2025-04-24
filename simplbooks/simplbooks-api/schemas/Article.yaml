@@ -1,0 +1,69 @@
+Article:
+  type: object
+  properties:
+    id:
+      type: integer
+      example: 12
+    code:
+      type: string
+      description: Code of the given item
+      example: "A-2565"
+    ean:
+      type: string
+      description: EAN of the given item
+      example: "4740123456789"
+    name:
+      type: string
+      description: Name of the item
+      example: "Ergonomic keyboard Dell X-56"
+    contents:
+      type: string
+      description: Description
+      example: "Model 2014, EN keyboard layout, black"
+    unit:
+      type: string
+      description: Unit of measurement
+      example: "pcs"
+    amount:
+      type: number
+      description: Default amount of the given item
+      example: 1
+    price_per_unit:
+      type: number
+      description: Default price of the given item
+      example: 24.99
+    sum_with_vat:
+      type: boolean
+      description: Whether or not the price accounts for VAT
+      example: 0
+      default: 0
+    markup_value:
+      description: In case of percent or fixed markup type, the amount of markup as either an absolute value or a percentage (without the percentage sign)
+      type: number
+      example: 0.00
+    markup_type:
+      type: string
+      description: Default markup type
+      example: "none"
+      enum: [percent, fixed, none]
+      default: none
+    is_inventory:
+      type: boolean
+      description: true if the given item is an inventory item, false if the given item is a service
+      example: true
+      default: false
+    active:
+      type: boolean
+      description: whether or not this item is currently active
+      example: true
+      default: false
+    sales_vat_type_id:
+      type: integer
+      description: ID of the vat type in case of a sale
+      example: 2
+      readOnly: true
+    purchase_vat_type_id:
+      type: integer
+      description: ID of the vat type in case of a purchase
+      example: 3
+      readOnly: true

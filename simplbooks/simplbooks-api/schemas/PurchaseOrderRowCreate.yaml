@@ -1,0 +1,34 @@
+type: object
+properties:
+  article_id:
+    type: integer
+    description: ID of the associated article
+    example: 64
+  name:
+    type: string
+    description: Name of the associated article
+    example: "Bath salts"
+  unit:
+    type: string
+    description: Unit name of the associated article
+    example: "lbs."
+  amount:
+    type: number
+    description: Number of units of the associated article within this order
+    example: 5000
+  sum:
+    type: number
+    description: Total value of the amount ordered
+    example: 71449
+  vat:
+    type: number
+    description: VAT percentage value
+    example: 20
+  vat_type_id:
+    type: integer
+    description: ID of the associated VAT type
+    example: 5
+  discount:
+    type: number
+    description: Discount percentage value
+    example: 5

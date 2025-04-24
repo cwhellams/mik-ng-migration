@@ -1,0 +1,30 @@
+type: object
+properties:
+  income_account_id:
+    type: integer
+    description: ID of the associated income account
+    example: 5
+  payment_sum:
+    type: number
+    description: Sum amount of the payment
+    example: 59.59
+  payment_date:
+    type: string
+    description: Date of the payment
+    example: 2022-01-01
+  description:
+    type: string
+    description: Description of the payment
+    example: "Black friday rebate"
+  currency_name:
+    type: string
+    description: ISO 4217 currency code
+    example: "EUR"
+  currency_rate:
+    type: number
+    description: Ratio of chosen currency to the base currency
+    example: 1
+  client_id:
+    type: integer
+    description: ID of the associated partner
+    example: 3
