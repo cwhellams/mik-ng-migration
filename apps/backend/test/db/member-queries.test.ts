@@ -13,11 +13,8 @@ import {
   removeMember,
 } from '../../src/db/member-queries.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
-import {
-  MIKMemberTypes,
-  MIKPermissions,
-  type UpsertMemberRole,
-} from '../../src/routes/members/models.ts'
+import { MIKMemberTypes, MIKPermissions, type MemberRole } from '../../src/routes/members/models.ts'
+import type { Upsert } from '../../src/types/schema.ts'
 
 const jwt: JWTUser = {
   memberId: 'k1mnimda',
@@ -170,7 +167,7 @@ describe('Db add member tests', () => {
     it('Adds a member role to the database and then deletes it', async () => {
       const testRoleId = 'TEST_ROLE'
 
-      const newRole: UpsertMemberRole = {
+      const newRole: Upsert<MemberRole> = {
         roleId: testRoleId,
         description: 'My Desc',
         name: {

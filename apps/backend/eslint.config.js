@@ -38,7 +38,7 @@ export default [
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
       // TypeScript ESLint rules
-      '@typescript-eslint/explicit-function-return-type': 'warn',
+      '@typescript-eslint/explicit-function-return-type': 'off',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',

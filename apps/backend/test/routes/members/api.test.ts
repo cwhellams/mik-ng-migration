@@ -13,9 +13,9 @@ import {
   type MemberListResponse,
   type MemberRole,
   type MemberRolesResponse,
-  type UpsertMemberRole,
 } from '../../../src/routes/members/models.ts'
 import { defaultErrorHandler } from '../../../src/routes/response.ts'
+import type { Upsert } from '../../../src/types/schema.ts'
 
 dotenv.config()
 
@@ -397,7 +397,7 @@ describe('GET /members/roles/id', () => {
 })
 
 describe('PATCH /members/roles/id', () => {
-  const patch = async (id: string, payload: Partial<UpsertMemberRole>, token: string) =>
+  const patch = async (id: string, payload: Partial<Upsert<MemberRole>>, token: string) =>
     request(app).patch(`/members/roles/${id}`).set('Authorization', `Bearer ${token}`).send(payload)
 
   it('Get return 401 if no token in authorization header', async () => {
@@ -434,14 +434,14 @@ describe('PATCH /members/roles/id', () => {
   })
 })
 
-const post = async (payload: UpsertMemberRole, token: string) =>
+const post = async (payload: Upsert<MemberRole>, token: string) =>
   request(app).post(`/members/roles`).set('Authorization', `Bearer ${token}`).send(payload)
 
 const remove = async (id: string, token: string) =>
   request(app).delete(`/members/roles/${id}`).set('Authorization', `Bearer ${token}`).send({})
 
 describe('POST /members/roles', () => {
-  const role: UpsertMemberRole = {
+  const role: Upsert<MemberRole> = {
     roleId: new Date().getTime().toString(),
     description: 'description',
     isPublic: true,
@@ -481,7 +481,7 @@ describe('POST /members/roles', () => {
 
   it('Return 400 with missing fields', async () => {
     const response = await post(
-      { ...role, name: undefined } as unknown as UpsertMemberRole,
+      { ...role, name: undefined } as unknown as Upsert<MemberRole>,
       adminToken,
     )
     expect(response.status).toBe(400)
@@ -489,7 +489,7 @@ describe('POST /members/roles', () => {
 })
 
 describe('DELETE /members/roles/id', () => {
-  const role: UpsertMemberRole = {
+  const role: Upsert<MemberRole> = {
     roleId: new Date().getTime().toString(),
     description: 'description',
     isPublic: true,

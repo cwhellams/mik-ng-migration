@@ -1,13 +1,22 @@
 import { jest } from '@jest/globals'
+import type { SentMessageInfo } from 'nodemailer'
+import type Mail from 'nodemailer/lib/mailer/index.js'
+import type SMTPTransport from 'nodemailer/lib/smtp-transport/index.js'
+import type { Logger } from 'winston'
 
 import logger from '../../src/lib/logger.ts'
-import type { Logger } from 'winston'
 
 process.env.SMTP_LOGIN = 'no-reply@mik.fi'
 process.env.SMTP_PASSWORD = 'test'
 
 // Define the mock function first
-const sendMailMock = jest.fn()
+const sendMailMock =
+  jest.fn<
+    (
+      mailOptions: Mail.Options,
+      callback: (err: Error | null, info?: SMTPTransport.SentMessageInfo) => void,
+    ) => void
+  >()
 
 // Mock the nodemailer module
 jest.mock('nodemailer', () => ({
@@ -24,7 +33,7 @@ const errorSpy = jest.spyOn(logger, 'error').mockImplementation((_infoObject: ob
 const originalEnv = process.env
 
 describe('sendEmail', () => {
-  let sendEmail: any
+  let sendEmail: (to: string, subject: string, html: string) => void
   beforeAll(async () => {
     const module = await import('../../src/lib/sendGmail.ts')
     sendEmail = module.sendEmail
@@ -50,10 +59,7 @@ describe('sendEmail', () => {
   test('should send email successfully', async () => {
     // Setup successful email sending response
     sendMailMock.mockImplementation((options, callback) => {
-      if (callback) {
-        callback(null, { response: '250 Message sent' })
-      }
-      return Promise.resolve({ response: '250 Message sent' })
+      callback(null, { response: '250 Message sent' } as SentMessageInfo)
     })
 
     // Test data
@@ -80,21 +86,17 @@ describe('sendEmail', () => {
     // Setup error case
     const testError = new Error('Failed to send email')
     sendMailMock.mockImplementation((_options, callback) => {
-      if (callback) {
-        callback(testError, null)
-      }
-      return Promise.resolve(testError)
+      callback(testError)
     })
 
     // Test data
     const to = 'recipient@example.com'
     const subject = 'Test Subject'
-    const text = 'Test plain text'
     const html = '<p>Test HTML content</p>'
 
     // Execute and expect error
     expect(() => {
-      sendEmail(to, subject, text, html)
+      sendEmail(to, subject, html)
     }).toThrow('Failed to send email')
 
     // Verify logger.error was called

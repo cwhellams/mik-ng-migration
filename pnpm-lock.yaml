@@ -103,6 +103,9 @@ importers:
         specifier: ^3.24.2
         version: 3.24.2
     devDependencies:
+      '@jest/globals':
+        specifier: ^29.7.0
+        version: 29.7.0
       '@types/compression':
         specifier: ^1.7.5
         version: 1.7.5

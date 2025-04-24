@@ -51,11 +51,11 @@ export async function getFilteredAjlbs(
   }
 
   if (filter.to_date) {
-    query = query.where('end_date', '<=', new Date(filter.to_date))
+    query = query.where('end_date', '<=', filter.to_date)
   }
 
   if (filter.from_date) {
-    query = query.where('start_date', '>=', new Date(filter.from_date))
+    query = query.where('start_date', '>=', filter.from_date)
   }
 
   const results = await query.execute()

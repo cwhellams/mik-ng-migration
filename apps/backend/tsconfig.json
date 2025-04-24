@@ -108,8 +108,7 @@
     "test/**/*.ts",
     "test/routes/flight-log/api.test.mts",
     "test/db/flight-log-queries.test.mts",
-    "test/db/member-queries.test.mts",
-    "test/lib/sendGmail.test.js"
+    "test/db/member-queries.test.mts"
   ],
-  "exclude": ["node_modules", "test/lib/sendGmail.test.ts"]
+  "exclude": ["node_modules"]
 }
