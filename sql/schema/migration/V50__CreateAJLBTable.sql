@@ -12,7 +12,7 @@ create table flight.aircraft_journey_log_book
         floor(minutes_at_start / 60)
         || ':'
         || lpad((minutes_at_start % 60)::text, 2, '0')
-    ) stored,  -- You can use "virtual" instead of "stored" if you don't want to store the value physically
+    ) stored not null,  -- You can use "virtual" instead of "stored" if you don't want to store the value physically
     start_date date not null,
     end_date date,
     constraint pk_ajlb primary key (aircraft_registration, seq_no),

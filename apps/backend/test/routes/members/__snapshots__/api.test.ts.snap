@@ -226,7 +226,7 @@ exports[`GET /members/id Get member details as an admin 1`] = `
 }
 `;
 
-exports[`GET /members/me should return 200 with valid token for user id 1 1`] = `
+exports[`GET /members/me should return 200 with valid token for user 1`] = `
 {
   "billingId": "BILL001",
   "canMakeReservations": true,
@@ -283,7 +283,7 @@ exports[`GET /members/me should return 200 with valid token for user id 1 1`] = 
 }
 `;
 
-exports[`GET /members/me should return 200 with valid token for user id 2 1`] = `
+exports[`GET /members/me should return 200 with valid token for user 2`] = `
 {
   "billingId": null,
   "canMakeReservations": true,
@@ -328,7 +328,7 @@ exports[`GET /members/me should return 200 with valid token for user id 2 1`] = 
 }
 `;
 
-exports[`GET /members/me should return 200 with valid token for user id 3 1`] = `
+exports[`GET /members/me should return 200 with valid token for user 3`] = `
 {
   "billingId": "BILL002",
   "canMakeReservations": true,

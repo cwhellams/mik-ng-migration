@@ -226,28 +226,27 @@ describe('GET /members/me', () => {
   const query = async (token: string) =>
     request(app).get('/members/me').set('Authorization', `Bearer ${token}`).query({})
 
-  test.each([
-    [1, memberToken],
-    [2, adminToken],
-    [3, noPermissionsToken],
-  ])('should return 200 with valid token for user id %d', async (userId, token) => {
-    const response = await query(token)
+  test.each([[memberToken], [adminToken], [noPermissionsToken]])(
+    'should return 200 with valid token for user',
+    async token => {
+      const response = await query(token)
 
-    expect(response.status).toBe(200)
+      expect(response.status).toBe(200)
 
-    const member = response.body as Member
-    expect(member).toMatchSnapshot({
-      memberSince: expect.any(String),
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-      updatedBy: expect.any(String),
-      roles: member.roles.map(role => ({
-        ...role,
+      const member = response.body as Member
+      expect(member).toMatchSnapshot({
+        memberSince: expect.any(String),
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
-      })),
-    })
-  })
+        updatedBy: expect.any(String),
+        roles: member.roles.map(role => ({
+          ...role,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        })),
+      })
+    },
+  )
 
   it('Get return 401 if no token in authorization header', async () => {
     const response = await request(app).get('/members/1')

@@ -33,7 +33,7 @@ describe('Db query ajlb get tests', () => {
 
   it('getFilteredAjlbs for date should return expected ajlbs', async () => {
     const filter: AjlbFilter = {
-      from_date: new Date('2025-04-04'),
+      from_date: '2025-04-04',
     }
 
     const result = await getFilteredAjlbs(filter)
@@ -42,7 +42,7 @@ describe('Db query ajlb get tests', () => {
 
   it('getFilteredAjlbs for too early date should return an empty array', async () => {
     const filter: AjlbFilter = {
-      to_date: new Date('2023-04-04'),
+      to_date: '2023-04-04',
     }
 
     const result = await getFilteredAjlbs(filter)
