@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import 'dotenv/config'
 
 import { closeDb } from '../../src/db/connection.ts'
 import {
@@ -15,8 +15,6 @@ import type {
 } from '../../src/routes/flight-log/models.ts'
 import { MIKPermissions } from '../../src/routes/members/models.ts'
 import { generateShortId } from '../../src/util/nanoId.ts'
-
-dotenv.config()
 
 describe('Db query Get FlightLog tests', () => {
   it('getAllFlightLogs with no params should return all logs', async () => {

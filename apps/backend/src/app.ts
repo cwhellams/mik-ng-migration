@@ -1,7 +1,7 @@
 import { HttpStatusCode } from 'axios'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import dotenv from 'dotenv'
+import 'dotenv/config'
 import express from 'express'
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
 import helmet from 'helmet'
@@ -18,8 +18,6 @@ import flightLogRoutes from './routes/flight-log/api.ts'
 import { router as memberRoutes } from './routes/members/api.ts'
 import { defaultErrorHandler } from './routes/response.ts'
 
-// Load environment variables for local development - we will not ship this file to production and will use environment variables from the hosting provider
-dotenv.config()
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
 })

@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import 'dotenv/config'
 import express from 'express'
 import request from 'supertest'
 
@@ -7,8 +7,6 @@ import type { Aircraft, AircraftListResponse } from '../../../src/routes/aircraf
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { defaultErrorHandler } from '../../../src/routes/response.ts'
-
-dotenv.config()
 
 // Create an instance of the Express app
 const app = express()

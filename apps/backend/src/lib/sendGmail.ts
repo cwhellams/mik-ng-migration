@@ -1,5 +1,4 @@
-import dotenv from 'dotenv'
-dotenv.config()
+import 'dotenv/config'
 import * as nodemailer from 'nodemailer'
 
 import logger from './logger.ts'

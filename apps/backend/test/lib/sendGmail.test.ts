@@ -113,9 +113,7 @@ describe('sendEmail', () => {
     jest.resetModules()
 
     // Mock dotenv to avoid reading .env file
-    jest.mock('dotenv', () => ({
-      config: jest.fn(),
-    }))
+    jest.mock('dotenv/config', () => ({}))
 
     // Remove required environment variables
     const modifiedEnv = { ...process.env }

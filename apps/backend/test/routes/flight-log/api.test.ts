@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import 'dotenv/config'
 import express from 'express'
 import request from 'supertest'
 
@@ -14,7 +14,6 @@ import { generateShortId } from '../../../src/util/nanoId.ts'
 const test_member_id = 'Matti1'
 const test_member_id2 = 'Sanna1'
 const admin_member_id = 'Pekka1'
-dotenv.config()
 
 // Create an instance of the Express app
 const app = express()

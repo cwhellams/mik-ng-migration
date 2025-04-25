@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import 'dotenv/config'
 import express from 'express'
 import request from 'supertest'
 
@@ -16,8 +16,6 @@ import {
 } from '../../../src/routes/members/models.ts'
 import { defaultErrorHandler } from '../../../src/routes/response.ts'
 import type { Upsert } from '../../../src/types/schema.ts'
-
-dotenv.config()
 
 // Create an instance of the Express app
 const app = express()

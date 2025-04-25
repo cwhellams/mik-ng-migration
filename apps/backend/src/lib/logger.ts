@@ -1,5 +1,4 @@
-import dotenv from 'dotenv'
-dotenv.config()
+import 'dotenv/config'
 import { createLogger, format, transports } from 'winston'
 
 const logFormat = format.combine(

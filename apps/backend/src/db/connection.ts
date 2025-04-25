@@ -1,7 +1,6 @@
 import * as fs from 'fs'
 
-import dotenv from 'dotenv'
-dotenv.config()
+import 'dotenv/config'
 import { Kysely, PostgresDialect } from 'kysely'
 import pg from 'pg'
 
