@@ -36,7 +36,8 @@ INSERT INTO flight.logs (
     ajlb_seq_no,
     ajlb_blank_rows_before,
     total_time_in_service,
-    status
+    status,
+    is_dto_training_flight
 ) VALUES
 -- Record 1
 (
@@ -54,7 +55,7 @@ INSERT INTO flight.logs (
     1740816000, 1740816900, 1740823200, 1740824100,
     1.5, 50.0, 0, 4, 1, 30, 45, 'EFHK', 'EFHK',
     'INV001', 'KOU', 'N/A', 'Smooth flight',
-    'Matti1', 'Matti1', TRUE, NULL, NULL, 'C', 1, 0, 2.0, 'NEW'
+    'Matti1', 'Matti1', TRUE, NULL, NULL, 'C', 1, 0, 2.0, 'NEW', TRUE
 ),
 -- Record 2
 (
@@ -72,7 +73,7 @@ INSERT INTO flight.logs (
     1740906000, 1740907200, 1740914400, 1740915000,
     2.0, 60.0, 0, 2, 2, 45, 60, 'EFHK', 'EFTP',
     'INV002', 'MAT', 'N/A', 'Training flight',
-    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 2, 0, 2.0, 'NEW'
+    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 2, 0, 2.0, 'NEW', FALSE
 ),
 -- Record 3
 (
@@ -90,7 +91,17 @@ INSERT INTO flight.logs (
     1740996000, 1740997800, 1741003200, 1741003920,
     1.0, 40.0, 0, 3, 1, 20, 30, 'EFHK', 'EFHK',
     NULL, 'OTH', 'N/A', 'Routine check',
-    'Antti1', 'Antti1', FALSE, 'Club activity', 'Juha1', 'C', 2, 0, 1.5, 'NEW'
+    'Antti1',
+    'Antti1',
+    FALSE,
+    'Club activity',
+    'Juha1',
+    'C',
+    2,
+    0,
+    1.5,
+    'NEW',
+    FALSE
 ),
 -- Record 4
 (
@@ -108,7 +119,7 @@ INSERT INTO flight.logs (
     1741086000, 1741087800, 1741094400, 1741095300,
     1.2, 55.0, 0, 5, 3, 60, 75, 'EFHK', 'EFHK',
     'INV003', 'SAR', 'N/A', 'Cargo delivery',
-    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 4, 0, 1.735, 'NEW'
+    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 4, 0, 1.735, 'NEW', TRUE
 ),
 -- Record 5 (Cross-day flight)
 (
@@ -129,5 +140,5 @@ INSERT INTO flight.logs (
     1710205800, -- 2025-03-12 01:00:00 (20 min taxi)
     1.0, 45.0, 0, 2, 1, 115, 60, 'EFHK', 'EFTU',
     'INV004', 'NAV', 'Night navigation exercise', 'Cross-day night flight',
-    'Sanna1', 'Sanna1', TRUE, NULL, NULL, 'C', 2, 0, 1.92, 'NEW'
+    'Sanna1', 'Sanna1', TRUE, NULL, NULL, 'C', 2, 0, 1.92, 'NEW', FALSE
 );

@@ -46,6 +46,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'arrival_airport',
       'invoice_number',
       'is_billed',
+      'is_dto_training_flight',
       'flight_type',
       'billing_remarks',
       'personal_remarks',

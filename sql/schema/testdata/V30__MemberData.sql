@@ -36,7 +36,7 @@ INSERT INTO member.register (
     'Helsinki',
     '00100',
     TRUE,
-    FALSE,
+    TRUE,
     'k1mnimda',
     'k1mnimda'
 ),
@@ -76,7 +76,7 @@ INSERT INTO member.register (
     'Tampere',
     '33100',
     TRUE,
-    FALSE,
+    TRUE,
     'k1mnimda',
     'k1mnimda'
 ),

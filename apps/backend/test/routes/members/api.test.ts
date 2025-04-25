@@ -279,10 +279,14 @@ describe('PATCH /members/me', () => {
   })
 
   it('should not update priviledged fields', async () => {
-    const response = await patch(memberToken, { canMakeReservations: false })
+    const response = await patch(memberToken, {
+      canMakeReservations: false,
+      isTrainingProgramPilot: false,
+    })
 
     expect(response.status).toBe(200)
     expect(response.body.canMakeReservations).toEqual(true)
+    expect(response.body.isTrainingProgramPilot).toEqual(true)
   })
 })
 
@@ -542,7 +546,7 @@ describe('PATCH /members/id', () => {
     expect(response.status).toBe(401)
   })
 
-  it('Return 403 as a reqular member', async () => {
+  it('Return 403 as a regular member', async () => {
     const response = await patch('0', {}, memberToken)
     expect(response.status).toBe(403)
   })
@@ -553,16 +557,26 @@ describe('PATCH /members/id', () => {
   })
 
   it('Patch member as an admin', async () => {
-    const response = await patch('k1mnimda', { firstName: 'Test' }, adminToken)
+    const response = await patch(
+      'k1mnimda',
+      { firstName: 'Test', isTrainingProgramPilot: true },
+      adminToken,
+    )
     expect(response.status).toBe(200)
 
     const updatedRole = response.body as Member
 
     expect(updatedRole.firstName).toEqual('Test')
+    expect(updatedRole.isTrainingProgramPilot).toBe(true)
 
-    const reverted = await patch('k1mnimda', { firstName: 'MIK' }, adminToken)
+    const reverted = await patch(
+      'k1mnimda',
+      { firstName: 'MIK', isTrainingProgramPilot: false },
+      adminToken,
+    )
     const revertedRole = reverted.body as Member
     expect(revertedRole.firstName).toEqual('MIK')
+    expect(revertedRole.isTrainingProgramPilot).toBe(false)
   })
 })
 

@@ -16,6 +16,7 @@ import {
   insertFlightLog,
   updateFlightLog,
 } from '../../db/flight-log-queries.ts'
+import { getMemberById } from '../../db/member-queries.ts'
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import type { JWTUser } from '../auth/token.ts'
@@ -37,6 +38,12 @@ router.post('/', async (req: Request, res: Response) => {
   }
 
   const insPayload: FlightLogInsertRequest = payload.data
+
+  // Check if user is a DTO training pilot and set the flag accordingly, this is used for billing
+  // and should not be set by the user
+  const member = await getMemberById(req.user!.memberId)
+  insPayload.is_dto_training_flight = member?.isTrainingProgramPilot ?? false
+
   const flightId = await insertFlightLog(insPayload, req.user!)
   res.status(201).json({ flight_id: flightId })
 })
@@ -139,6 +146,11 @@ router.patch('/:id', async (req: Request, res: Response) => {
   if (status !== 200) {
     return res.status(status).json({ message })
   }
+
+  // Check if user is a DTO training pilot and set the flag accordingly, this is used for billing
+  // and should not be set by the user
+  const member = await getMemberById(req.user!.memberId)
+  validate.data.is_dto_training_flight = member?.isTrainingProgramPilot ?? false
 
   const updatedLog = await updateFlightLog(flightId, validate.data, req.user!)
   if (updatedLog === 0n) {

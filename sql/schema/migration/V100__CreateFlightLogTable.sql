@@ -36,6 +36,7 @@ CREATE TABLE flight.logs
     is_billed BOOLEAN NOT NULL GENERATED ALWAYS AS (
         invoice_number IS NOT NULL
     ) STORED,
+    is_dto_training_flight BOOLEAN NOT NULL,
     flight_type VARCHAR(5) NOT NULL,
     billing_remarks TEXT,
     personal_remarks TEXT,

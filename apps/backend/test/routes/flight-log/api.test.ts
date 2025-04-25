@@ -12,6 +12,7 @@ import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { generateShortId } from '../../../src/util/nanoId.ts'
 
 const test_member_id = 'Matti1'
+const test_member_id2 = 'Sanna1'
 const admin_member_id = 'Pekka1'
 dotenv.config()
 
@@ -20,8 +21,14 @@ const app = express()
 app.use(express.json())
 app.use('/flight-log', flightLogRouter)
 
-const token = generateAccessToken({
+const mattiToken = generateAccessToken({
   memberId: test_member_id,
+  email: 'jonny.depp@mik.fi',
+  permissions: [MIKPermissions.FLIGHTLOG_USER],
+})
+
+const sannaToken = generateAccessToken({
+  memberId: test_member_id2,
   email: 'jonny.depp@mik.fi',
   permissions: [MIKPermissions.FLIGHTLOG_USER],
 })
@@ -36,7 +43,7 @@ describe('GET /flight-log', () => {
   it('should only return data for the logged in user when not admin', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
       .query({ aircraft_registration: 'OH-STL' })
 
     expect(response.status).toBe(200)
@@ -77,7 +84,7 @@ describe('GET /flight-log', () => {
   it('should return 200 with valid query params', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
       .query({
         billable_member_id: test_member_id,
       })
@@ -94,7 +101,7 @@ describe('GET /flight-log', () => {
   it('should return 400 for invalid member_id', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
       .query({
         billable_member_id2: null,
       })
@@ -109,7 +116,7 @@ describe('GET /flight-log', () => {
   it('should return 200 for Start Date with time offset', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
       .query({
         startDate: (new Date('2025-03-04T13:15:00+02:00').getTime() / 1000).toString(),
       })
@@ -121,7 +128,7 @@ describe('GET /flight-log', () => {
   it('should return 400 for non-existent startDate', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
       .query({
         startDate: '2025-02-29',
       })
@@ -134,7 +141,7 @@ describe('GET /flight-log', () => {
   it('should return 400 for invalid startDate', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
       .query({
         endDate: 'not-a-date',
       })
@@ -145,7 +152,9 @@ describe('GET /flight-log', () => {
   })
 
   it('should allow query parameters to be optional', async () => {
-    const response = await request(app).get('/flight-log').set('Authorization', `Bearer ${token}`)
+    const response = await request(app)
+      .get('/flight-log')
+      .set('Authorization', `Bearer ${mattiToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body[0]).toMatchSnapshot({
@@ -157,7 +166,7 @@ describe('GET /flight-log', () => {
   it('Get flight log with Id should return a single row when data is present for the given Id', async () => {
     const response = await request(app)
       .get('/flight-log/mikify')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body).toMatchSnapshot({
@@ -170,63 +179,75 @@ describe('GET /flight-log', () => {
   it('Get flight log with Id should return a 404 when now row is present for the given Id', async () => {
     const response = await request(app)
       .get('/flight-log/100')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
     expect(response.status).toBe(404)
     expect(response.body.message).toMatch(/Flight log not found/)
   })
 })
 
 describe('POST /flight-log', () => {
-  it('should create a flight log with valid payload , return flight_id and be deleted using the returned id', async () => {
-    const payload: FlightLogInsertRequest = {
-      flight_id: generateShortId(),
-      aircraft_registration: 'OH-STL',
-      arrival_airport: 'EFHK',
-      billable_member_id: test_member_id,
-      billing_remarks: 'N/A',
-      pic_member_id: 'Pekka1',
-      pic_role: 'FI',
-      departure_airport: 'EFHK',
-      flight_type: 'KOU',
-      is_billable_flight: true,
-      non_billing_reason: null,
-      fuel_uplift_litres: 40,
-      fuel_remaining_litres: 20,
-      incident_or_observations: 'N/A',
-      night_flying_mins: 20,
-      number_of_landings: 1,
-      off_block_time_epoch: (new Date('2025-03-22T10:30:00Z').getTime() / 1000).toString(),
-      takeoff_time_epoch: (new Date('2025-03-22T10:45:00Z').getTime() / 1000).toString(),
-      landing_time_epoch: (new Date('2025-03-22T11:40:00Z').getTime() / 1000).toString(),
-      on_block_time_epoch: (new Date('2025-03-22T11:45:00Z').getTime() / 1000).toString(),
-      oil_uplift_litres: 0.2,
-      persons_on_board: 3,
-      personal_remarks: 'N/A',
-      ajlb_seq_no: 1,
-      ajlb_blank_rows_before: 0,
-      total_time_in_service: 0.2,
-      priv_or_com_flight: 'P',
-      instrument_flying_mins: 0,
-    }
+  test.each([
+    ['Sanna1', false, sannaToken],
+    ['Matti1', true, mattiToken],
+  ])(
+    'should create a flight log with valid payload , return flight_id and be deleted using the returned id',
+    async (memberId: string, isDtoFlight: boolean, token: string) => {
+      const payload: FlightLogInsertRequest = {
+        flight_id: generateShortId(),
+        aircraft_registration: 'OH-STL',
+        arrival_airport: 'EFHK',
+        billable_member_id: test_member_id,
+        billing_remarks: 'N/A',
+        pic_member_id: memberId,
+        pic_role: 'FI',
+        departure_airport: 'EFHK',
+        flight_type: 'KOU',
+        is_billable_flight: true,
+        non_billing_reason: null,
+        fuel_uplift_litres: 40,
+        fuel_remaining_litres: 20,
+        incident_or_observations: 'N/A',
+        night_flying_mins: 20,
+        number_of_landings: 1,
+        off_block_time_epoch: (new Date('2025-03-22T10:30:00Z').getTime() / 1000).toString(),
+        takeoff_time_epoch: (new Date('2025-03-22T10:45:00Z').getTime() / 1000).toString(),
+        landing_time_epoch: (new Date('2025-03-22T11:40:00Z').getTime() / 1000).toString(),
+        on_block_time_epoch: (new Date('2025-03-22T11:45:00Z').getTime() / 1000).toString(),
+        oil_uplift_litres: 0.2,
+        persons_on_board: 3,
+        personal_remarks: 'N/A',
+        ajlb_seq_no: 1,
+        ajlb_blank_rows_before: 0,
+        total_time_in_service: 0.2,
+        priv_or_com_flight: 'P',
+        instrument_flying_mins: 0,
+      }
 
-    const response = await request(app)
-      .post('/flight-log')
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload)
+      const response = await request(app)
+        .post('/flight-log')
+        .set('Authorization', `Bearer ${token}`)
+        .send(payload)
 
-    expect(response.body.flight_id).toBeDefined()
-    const id = response.body.flight_id
-    expect(id).toHaveLength(9)
-    expect(response.status).toBe(201)
+      expect(response.body.flight_id).toBeDefined()
+      const id = response.body.flight_id
+      expect(id).toHaveLength(9)
+      expect(response.status).toBe(201)
 
-    // Cleanup
-    const delResponse = await request(app)
-      .delete(`/flight-log/${id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .set('Accept', 'application/json')
-    expect(delResponse.status).toBe(204)
-    expect(delResponse.body).toEqual({})
-  })
+      const checkPost = await request(app)
+        .get(`/flight-log/${id}`)
+        .set('Authorization', `Bearer ${token}`)
+      expect(checkPost.status).toBe(200)
+      expect(checkPost.body.is_dto_training_flight).toBe(isDtoFlight)
+
+      // Cleanup
+      const delResponse = await request(app)
+        .delete(`/flight-log/${id}`)
+        .set('Authorization', `Bearer ${mattiToken}`)
+        .set('Accept', 'application/json')
+      expect(delResponse.status).toBe(204)
+      expect(delResponse.body).toEqual({})
+    },
+  )
 
   it('should return 400 for invalid payload', async () => {
     const payload = {
@@ -237,7 +258,7 @@ describe('POST /flight-log', () => {
 
     const response = await request(app)
       .post('/flight-log')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
       .send(payload)
 
     expect(response.status).toBe(400)
@@ -252,7 +273,7 @@ describe('POST /flight-log', () => {
 
     const response = await request(app)
       .post('/flight-log')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
       .send(payload)
 
     expect(response.status).toBe(400)
@@ -360,7 +381,7 @@ describe('PATCH /flight-log/', () => {
     //Creaate a token with a member id that matches billable member id
     const response = await request(app)
       .patch('/flight-log/efnu4evr')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
       .send(payload)
 
     expect(response.status).toBe(400)
@@ -374,7 +395,7 @@ describe('DELETE /flight-log', () => {
   it('should return 404 when flight does not exist', async () => {
     const response = await request(app)
       .delete('/flight-log/100')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
 
     expect(response.status).toBe(404)
   })
@@ -396,7 +417,7 @@ describe('DELETE /flight-log', () => {
   it('should return 400 when flight has been billed', async () => {
     const response = await request(app)
       .delete('/flight-log/mikify')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
 
     expect(response.status).toBe(400)
   })
@@ -406,7 +427,7 @@ describe('GET /flight-log/totals', () => {
   it('should return 200 with all ac totals', async () => {
     const response = await request(app)
       .get('/flight-log/totals')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body[0]).toMatchSnapshot()
@@ -415,7 +436,7 @@ describe('GET /flight-log/totals', () => {
   it('should return 200 with valid registration', async () => {
     const response = await request(app)
       .get('/flight-log/OH-STL/totals')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body[0]).toMatchSnapshot()
@@ -424,7 +445,7 @@ describe('GET /flight-log/totals', () => {
   it('should return 404 with invalid registration', async () => {
     const response = await request(app)
       .get('/flight-log/OH-ABC/totals')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${mattiToken}`)
 
     expect(response.status).toBe(404)
   })

@@ -55,7 +55,7 @@ describe('Db query Get FlightLog tests', () => {
   })
 
   it('getAllFlightLogs for specific member id should match snapshot', async () => {
-    const result = await getFlightLogs({ billable_member_id: 'Matti1' })
+    const result = await getFlightLogs({ billable_member_id: 'Sanna1' })
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
       created_at: expect.any(Date),
@@ -139,6 +139,7 @@ describe('Db query insert tests', () => {
       billing_remarks: 'Test flight',
       personal_remarks: 'No remarks',
       is_billable_flight: false,
+      is_dto_training_flight: false,
       non_billing_reason: null,
       pic_role: 'FE',
       crew2_role: null,

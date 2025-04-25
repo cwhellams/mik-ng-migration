@@ -115,6 +115,7 @@ export interface FlightLogs {
   invoice_number: Generated<string | null>
   is_billable_flight: boolean
   is_billed: Generated<boolean>
+  is_dto_training_flight: boolean
   landing_time_epoch: Int8
   landing_time_utc: Generated<Timestamp | null>
   night_flying_mins: number
