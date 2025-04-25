@@ -1,4 +1,11 @@
 {
   "editor.formatOnSave": true,
-  "editor.formatOnPaste": true
+  "editor.formatOnPaste": true,
+  "jestrunner.jestCommand": "pnpm test",
+  "jestrunner.runOptions": ["--colors"],
+  "jestrunner.debugOptions": {
+    "runtimeArgs": [
+      "--experimental-vm-modules"
+    ]
+  }
 }

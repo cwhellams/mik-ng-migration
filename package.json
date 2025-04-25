@@ -8,7 +8,7 @@
     "dev": "concurrently \"pnpm --filter mik_ng-backend-service dev\" \"pnpm --filter frontend dev\"",
     "build": "pnpm --recursive run build",
     "start": "pnpm --recursive run start",
-    "test": "pnpm --recursive run test",
+    "test": "pnpm --recursive --reporter append-only run test",
     "lint": "pnpm --recursive run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "clean": "pnpm --recursive run clean",
