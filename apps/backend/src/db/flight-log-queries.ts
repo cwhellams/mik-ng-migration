@@ -3,7 +3,6 @@ import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   FlightLogFilters,
   FlightLog,
-  InsertableFlightLog,
   FlightLogInsertRequest,
   FlightLogUpdateRequest,
   FlightVwFlightTimeTotals,
@@ -110,18 +109,21 @@ export async function insertFlightLog(
   data: FlightLogInsertRequest,
   user: { memberId: string; permissions: MIKPermissions[] },
 ): Promise<string> {
-  const insertableData: InsertableFlightLog = {
-    ...data,
-    flight_id: generateShortId(),
-    created_by: user.memberId,
-    created_at: new Date().toISOString(),
-    updated_by: user.memberId,
-    updated_at: new Date().toISOString(),
-  }
-
   const retval = await connection.db
     .insertInto('flight.logs')
-    .values(insertableData)
+    .values(eb => ({
+      ...data,
+      flight_id: generateShortId(),
+      created_by: user.memberId,
+      created_at: new Date().toISOString(),
+      updated_by: user.memberId,
+      updated_at: new Date().toISOString(),
+      is_dto_training_flight: eb
+        .selectFrom('member.register')
+        .select('is_training_program_pilot')
+        .where('member_id', '=', user.memberId)
+        .limit(1),
+    }))
     .returning('flight_id')
     .executeTakeFirstOrThrow()
 
@@ -145,7 +147,16 @@ export async function updateFlightLog(
 ): Promise<bigint> {
   let updQuery = connection.db
     .updateTable('flight.logs')
-    .set({ ...data, updated_by: user?.memberId, updated_at: new Date() })
+    .set(eb => ({
+      ...data,
+      updated_by: user?.memberId,
+      updated_at: new Date(),
+      is_dto_training_flight: eb
+        .selectFrom('member.register')
+        .select('is_training_program_pilot')
+        .where('member_id', '=', user.memberId)
+        .limit(1),
+    }))
     .where('flight_id', '=', flight_id)
     .where('is_billed', '=', false)
 

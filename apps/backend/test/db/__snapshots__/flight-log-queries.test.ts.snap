@@ -336,7 +336,7 @@ exports[`Db query insert tests insertFlightLog inserts a new flight log to the d
   "invoice_number": null,
   "is_billable_flight": false,
   "is_billed": false,
-  "is_dto_training_flight": false,
+  "is_dto_training_flight": true,
   "landing_time_utc": 2025-03-10T05:15:00.000Z,
   "night_flying_mins": 0,
   "non_billing_approved_by_member_id": null,

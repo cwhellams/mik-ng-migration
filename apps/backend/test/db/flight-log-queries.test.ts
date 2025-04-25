@@ -139,7 +139,6 @@ describe('Db query insert tests', () => {
       billing_remarks: 'Test flight',
       personal_remarks: 'No remarks',
       is_billable_flight: false,
-      is_dto_training_flight: false,
       non_billing_reason: null,
       pic_role: 'FE',
       crew2_role: null,

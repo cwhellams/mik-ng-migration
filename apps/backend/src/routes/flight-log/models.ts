@@ -77,7 +77,7 @@ export const baseFlightLogSchema = z.object({
   instrument_flying_mins: z.number().int().min(0), // number (required)
   invoice_number: z.string().nullable().optional(), // Generated<string | null>
   is_billable_flight: z.boolean(), // boolean (required)
-  is_dto_training_flight: z.boolean().optional(),
+  is_dto_training_flight: z.boolean(),
   is_billed: z.boolean().optional(), // Generated<boolean>
   landing_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
   night_flying_mins: z.number().int().min(0), // number (required)
@@ -122,6 +122,7 @@ export const flightLogInsertSchema = baseFlightLogSchema
     block_time: true,
     flight_mins: true,
     block_mins: true,
+    is_dto_training_flight: true,
   })
   .extend({
     flight_id: z.string(),
