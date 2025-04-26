@@ -28,7 +28,7 @@ import { validateUser } from '../../middleware/authMiddleware.ts'
 import { UpsertSchema } from '../../types/schema.ts'
 import { RegisterRequestSchema } from '../auth/schema.ts'
 import type { JWTUser } from '../auth/token.ts'
-import type { ErrorResponse } from '../response.ts'
+import { problem } from '../response.ts'
 
 export const router = Router()
 
@@ -63,10 +63,10 @@ router.get(
   '/me',
   // anyone can fetch their own details
   validateUser(),
-  async (req: Request, res: Response<Member | ErrorResponse>) => {
+  async (req: Request, res: Response<Member>) => {
     const member = await getMemberById(req.user!.memberId)
     if (!member) {
-      return res.status(404).json({ message: 'Not found' })
+      return problem({ status: 404 })
     }
     res.status(200).json(member)
   },
@@ -76,7 +76,7 @@ router.patch(
   '/me',
   // anyone can update their own (limited) details
   validateUser(),
-  async (req: Request, res: Response<Member | ErrorResponse>): Promise<void> => {
+  async (req: Request, res: Response<Member>): Promise<void> => {
     // only subset of member fields are editable here, the rest are skipped
     const patch = MemberProfileSchema.partial().parse(req.body)
 
@@ -116,10 +116,10 @@ router.get(
 router.get(
   '/roles/:roleId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request<{ roleId: string }>, res: Response<MemberRole | ErrorResponse>) => {
+  async (req: Request<{ roleId: string }>, res: Response<MemberRole>) => {
     const role = await getAllMemberRoleById(req.params.roleId)
     if (!role) {
-      return res.status(404).json({ message: 'Not found' })
+      return problem({ status: 404 })
     }
     res.status(200).json(role)
   },
@@ -128,11 +128,11 @@ router.get(
 router.patch(
   '/roles/:roleId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request<{ roleId: string }>, res: Response<MemberRole | ErrorResponse>) => {
+  async (req: Request<{ roleId: string }>, res: Response<MemberRole>) => {
     const patch = MemberRoleSchema.partial().parse(req.body)
     const success = await updateMemberRole(req.params.roleId, patch, req.user!)
     if (!success) {
-      return res.status(404).json({ message: 'Not found' })
+      return problem({ status: 404 })
     }
 
     const role = await getAllMemberRoleById(req.params.roleId)
@@ -143,7 +143,7 @@ router.patch(
 router.post(
   '/roles',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request, res: Response<MemberRole | ErrorResponse>) => {
+  async (req: Request, res: Response<MemberRole>) => {
     const role = UpsertSchema(MemberRoleSchema).parse(req.body)
     const created = await addMemberRole(role, req.user!)
 
@@ -154,10 +154,10 @@ router.post(
 router.delete(
   '/roles/:roleId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request<{ roleId: string }>, res: Response<ErrorResponse>) => {
+  async (req: Request<{ roleId: string }>, res: Response) => {
     const success = await removeMemberRole(req.params.roleId)
     if (!success) {
-      return res.status(404).json({ message: 'Not found' })
+      return problem({ status: 404 })
     }
 
     res.status(204).end()
@@ -171,7 +171,7 @@ router.delete(
 router.post(
   '/',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request, res: Response<Member | ErrorResponse>) => {
+  async (req: Request, res: Response<Member>) => {
     const member = RegisterRequestSchema.parse(req.body)
     const memberId = await addMember(member, req.user!)
 
@@ -183,12 +183,12 @@ router.post(
 router.get(
   '/:memberId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request<{ memberId: string }>, res: Response<Member | ErrorResponse>) => {
+  async (req: Request<{ memberId: string }>, res: Response<Member>) => {
     const memberId = req.params.memberId
 
     const member = await getMemberById(memberId)
     if (!member) {
-      return res.status(404).json({ message: 'Not found' })
+      return problem({ status: 404 })
     }
     res.status(200).json(member)
   },
@@ -197,13 +197,13 @@ router.get(
 router.patch(
   '/:memberId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request<{ memberId: string }>, res: Response<Member | ErrorResponse>) => {
+  async (req: Request<{ memberId: string }>, res: Response<Member>) => {
     const memberId = req.params.memberId
 
     const patch = MemberSchema.partial().parse(req.body)
     const updated = await updateMember(memberId, patch, req.user!)
     if (!updated) {
-      return res.status(404).json({ message: 'Not found' })
+      return problem({ status: 404 })
     }
 
     const member = await getMemberById(memberId)
@@ -214,12 +214,12 @@ router.patch(
 router.delete(
   '/:memberId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request<{ memberId: string }>, res: Response<ErrorResponse>) => {
+  async (req: Request<{ memberId: string }>, res: Response) => {
     const memberId = req.params.memberId
 
     const updated = await removeMember(memberId)
     if (!updated) {
-      return res.status(404).json({ message: 'Not found' })
+      return problem({ status: 404 })
     }
 
     res.status(204).end()

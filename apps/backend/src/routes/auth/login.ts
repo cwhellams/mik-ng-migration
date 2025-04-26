@@ -22,6 +22,7 @@ import {
   registerEmailTitle,
 } from '../../templates/email.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
+import { problem } from '../response.ts'
 
 const magicLogin = new MIKMagicLoginStrategy()
 passport.use(magicLogin)
@@ -117,7 +118,7 @@ router.post(
 router.post('/refresh', async (req: Request, res: Response<VerifyResponse>, next: NextFunction) => {
   const refreshToken = req.cookies?.refreshToken
   if (!refreshToken) {
-    return res.status(401).send({ error: 'Refresh token not found' })
+    return problem({ status: 401, detail: 'Refresh token not found' })
   }
 
   const payload = decodeRefreshToken(refreshToken)

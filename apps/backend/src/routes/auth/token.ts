@@ -3,7 +3,7 @@ import type ms from 'ms'
 import { z } from 'zod'
 
 import { MIKPermissions, type Member } from '../members/models.ts'
-import { throwError } from '../response.ts'
+import { problem } from '../response.ts'
 
 // should match User in types/express.d.ts
 export const JWTUserSchema = z.object({
@@ -28,7 +28,7 @@ export const generateToken = (
   secret: string | undefined,
   options: SignOptions,
 ): string => {
-  return jwt.sign(payload, secret ?? throwError('No secret'), options)
+  return jwt.sign(payload, secret ?? problem({ status: 500, detail: 'No secret' }), options)
 }
 
 export const generateAccessToken = (user: JWTUser): string => {

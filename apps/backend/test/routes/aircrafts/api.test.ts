@@ -6,13 +6,13 @@ import { router } from '../../../src/routes/aircrafts/api.ts'
 import type { Aircraft, AircraftListResponse } from '../../../src/routes/aircrafts/models.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
-import { defaultErrorHandler } from '../../../src/routes/response.ts'
+import { problemErrorHandler } from '../../../src/routes/response.ts'
 
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
 app.use('/aircrafts', router)
-app.use(defaultErrorHandler)
+app.use(problemErrorHandler)
 
 const adminToken = generateAccessToken({
   memberId: 'admin',
@@ -51,7 +51,13 @@ describe('GET /aircrafts', () => {
   it('should return 403 as user without required roles', async () => {
     const response = await query(noPermissionsToken)
 
-    expect(response.status).toBe(403)
+    expect(response.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Protected Content',
+      instance: '/aircrafts',
+      timestamp: expect.any(String),
+    })
   })
 
   it('should return only active aircrafts as a user', async () => {
@@ -117,7 +123,13 @@ describe('GET /aircrafts/id', () => {
   it('should return 403 as user without required roles', async () => {
     const response = await query(noPermissionsToken, 'OH-STL')
 
-    expect(response.status).toBe(403)
+    expect(response.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Protected Content',
+      instance: '/aircrafts/OH-STL',
+      timestamp: expect.any(String),
+    })
   })
 
   it('Get aircraft with valid registration should return the aircraft', async () => {
@@ -141,6 +153,12 @@ describe('GET /aircrafts/id', () => {
   it('Get aircraft with nonexisting registration should return 404', async () => {
     const response = await query(userToken, 'OH-CTL')
 
-    expect(response.status).toBe(404)
+    expect(response.body).toEqual({
+      status: 404,
+      title: 'Not Found',
+      detail: 'Aircraft not found',
+      instance: '/aircrafts/OH-CTL',
+      timestamp: expect.any(String),
+    })
   })
 })

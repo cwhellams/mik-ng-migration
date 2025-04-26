@@ -26,7 +26,7 @@ import { UpsertSchema } from '../../types/schema.ts'
 import { splitTime } from '../../util/math-utils.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
-import type { ErrorResponse } from '../response.ts'
+import { problem } from '../response.ts'
 
 // all aircarft routes are protected by aircraft permissions
 export const router = Router()
@@ -52,14 +52,14 @@ router.get('/', async (req: Request, res: Response<AircraftListResponse>) => {
 // Get aircraft by registration
 router.get(
   '/:registration',
-  async (req: Request<{ registration: string }>, res: Response<Aircraft | ErrorResponse>) => {
+  async (req: Request<{ registration: string }>, res: Response<Aircraft>) => {
     const aircraft = await getAircraftByRegistration(
       req.params.registration,
       !isAircraftAdmin(req.user),
     )
 
     if (!aircraft) {
-      return res.status(404).json({ message: 'Aircraft not found' })
+      return problem({ status: 404, detail: 'Aircraft not found' })
     }
 
     res.status(200).json({
@@ -72,11 +72,11 @@ router.get(
 router.patch(
   '/:registration',
   validateUser(MIKPermissions.AIRCRAFT_ADMIN),
-  async (req: Request<{ registration: string }>, res: Response<Aircraft | ErrorResponse>) => {
+  async (req: Request<{ registration: string }>, res: Response<Aircraft>) => {
     const patch = AircraftSchema.partial().parse(req.body)
     const success = await updateAircraft(req.params.registration, patch, req.user!)
     if (!success) {
-      return res.status(404).json({ message: 'Not found' })
+      return problem({ status: 404, detail: 'Aircraft not found' })
     }
 
     const aircraft = await getAircraftByRegistration(req.params.registration, false)
@@ -87,7 +87,7 @@ router.patch(
 router.post(
   '/',
   validateUser(MIKPermissions.AIRCRAFT_ADMIN),
-  async (req: Request, res: Response<Aircraft | ErrorResponse>) => {
+  async (req: Request, res: Response<Aircraft>) => {
     const aircraft = UpsertSchema(AircraftSchema).parse(req.body)
     const created = await addAircraft(aircraft, req.user!)
 
@@ -100,7 +100,7 @@ router.patch(
   validateUser(MIKPermissions.AIRCRAFT_ADMIN),
   async (
     req: Request<{ registration: string; documentId: string }>,
-    res: Response<AircraftDocument | ErrorResponse>,
+    res: Response<AircraftDocument>,
   ) => {
     const patch = AircraftDocumentSchema.partial().parse(req.body)
     const success = await updateAircraftDocument(
@@ -110,7 +110,7 @@ router.patch(
       req.user!,
     )
     if (!success) {
-      return res.status(404).json({ message: 'Not found' })
+      return problem({ status: 404, detail: 'Aircraft document not found' })
     }
 
     const document = await getDocuments(req.params.registration, req.params.documentId)
@@ -121,10 +121,7 @@ router.patch(
 router.post(
   '/:registration/documents',
   validateUser(MIKPermissions.AIRCRAFT_ADMIN),
-  async (
-    req: Request<{ registration: string }>,
-    res: Response<AircraftDocument | ErrorResponse>,
-  ) => {
+  async (req: Request<{ registration: string }>, res: Response<AircraftDocument>) => {
     const document = UpsertSchema(AircraftDocumentSchema).parse(req.body)
     const created = await addAircraftDocument(req.params.registration, document, req.user!)
 
@@ -135,13 +132,10 @@ router.post(
 router.delete(
   ':registration/documents/:documentId',
   validateUser(MIKPermissions.AIRCRAFT_ADMIN),
-  async (
-    req: Request<{ registration: string; documentId: string }>,
-    res: Response<ErrorResponse>,
-  ) => {
+  async (req: Request<{ registration: string; documentId: string }>, res: Response) => {
     const removed = await removeAircraftDocument(req.params.registration, req.params.documentId)
     if (!removed) {
-      return res.status(404).json({ message: 'Not found' })
+      return problem({ status: 404, detail: 'Aircraft document not found' })
     }
 
     res.status(204).end()
@@ -170,7 +164,7 @@ const expiredDocuments = (aircraft: Aircraft) => {
 
   const warnings = alerts.filter(doc => {
     return doc.hardLimit !== null && doc.untilExpiration !== null
-      ? doc.untilExpiration <= doc.hardLimit
+      ? doc.untilExpiration < doc.hardLimit
       : false
   })
 

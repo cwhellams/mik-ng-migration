@@ -4,8 +4,7 @@ import {
   MIKPermissions,
 } from '@backend/routes/members/models'
 import useApi from './useApi'
-import { AxiosError } from 'axios'
-import { ErrorResponse } from '@backend/routes/response'
+import { Problem } from '@backend/routes/response'
 
 export function useRoles(): {
   isLoading: boolean
@@ -14,7 +13,7 @@ export function useRoles(): {
   isAircraftAdmin: boolean
   roles: MemberRolesResponse['roles']
   permissions: MemberRolesResponse['permissions']
-  error: AxiosError<ErrorResponse> | undefined
+  error: Problem | undefined
 } {
   const { data, isLoading } = useApi<Member | null>({
     url: 'v1/members/me',
@@ -35,6 +34,6 @@ export function useRoles(): {
     isAircraftAdmin: withPermission(MIKPermissions.AIRCRAFT_ADMIN),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
-    error,
+    error: error?.response,
   }
 }

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 
-import { flightAircraftJourneyLogBookFilter, type AjlbFilter } from './model.ts'
+import { flightAircraftJourneyLogBookFilter } from './model.ts'
 import { getCurrentAjlbs, getFilteredAjlbs } from '../../db/ajlb-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
@@ -16,13 +16,7 @@ router.use(
 )
 
 router.get('/', async (req: Request, res: Response) => {
-  const parsedQuery = flightAircraftJourneyLogBookFilter.safeParse(req.query)
-  if (!parsedQuery.success) {
-    return res.status(400).json({ error: parsedQuery.error.errors })
-  }
-
-  // If user is not Flight Log Admin they can only see their own flights
-  const filters: AjlbFilter = parsedQuery.data
+  const filters = flightAircraftJourneyLogBookFilter.parse(req.query)
 
   const logs = await getFilteredAjlbs(filters)
   res.status(200).json(logs)

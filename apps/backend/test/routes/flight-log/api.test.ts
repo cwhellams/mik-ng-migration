@@ -9,6 +9,7 @@ import {
   type FlightLogUpdateRequest,
 } from '../../../src/routes/flight-log/models.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { problemErrorHandler } from '../../../src/routes/response.ts'
 import { generateShortId } from '../../../src/util/nanoId.ts'
 
 const test_member_id = 'Matti1'
@@ -19,6 +20,7 @@ const admin_member_id = 'Pekka1'
 const app = express()
 app.use(express.json())
 app.use('/flight-log', flightLogRouter)
+app.use(problemErrorHandler)
 
 const mattiToken = generateAccessToken({
   memberId: test_member_id,
@@ -105,11 +107,20 @@ describe('GET /flight-log', () => {
         billable_member_id2: null,
       })
 
-    expect(response.status).toBe(400)
-    expect(response.body.error).toBeDefined()
-    expect(response.body.error[0].message).toMatch(
-      "Unrecognized key(s) in object: 'billable_member_id2'",
-    )
+    expect(response.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      instance: '/flight-log',
+      timestamp: expect.any(String),
+      errors: [
+        {
+          code: 'unrecognized_keys',
+          keys: ['billable_member_id2'],
+          message: "Unrecognized key(s) in object: 'billable_member_id2'",
+          path: [],
+        },
+      ],
+    })
   })
 
   it('should return 200 for Start Date with time offset', async () => {
@@ -133,8 +144,8 @@ describe('GET /flight-log', () => {
       })
 
     expect(response.status).toBe(400)
-    expect(response.body.error).toBeDefined()
-    expect(response.body.error[0].message).toMatch('Must be a valid epoch time in seconds')
+    expect(response.body.errors).toBeDefined()
+    expect(response.body.errors[0].message).toMatch('Must be a valid epoch time in seconds')
   })
 
   it('should return 400 for invalid startDate', async () => {
@@ -146,8 +157,8 @@ describe('GET /flight-log', () => {
       })
 
     expect(response.status).toBe(400)
-    expect(response.body.error).toBeDefined()
-    expect(response.body.error[0].message).toMatch('Must be a valid epoch time in seconds')
+    expect(response.body.errors).toBeDefined()
+    expect(response.body.errors[0].message).toMatch('Must be a valid epoch time in seconds')
   })
 
   it('should allow query parameters to be optional', async () => {
@@ -180,7 +191,7 @@ describe('GET /flight-log', () => {
       .get('/flight-log/100')
       .set('Authorization', `Bearer ${mattiToken}`)
     expect(response.status).toBe(404)
-    expect(response.body.message).toMatch(/Flight log not found/)
+    expect(response.body.detail).toMatch(/Flight log not found/)
   })
 })
 
@@ -261,8 +272,8 @@ describe('POST /flight-log', () => {
       .send(payload)
 
     expect(response.status).toBe(400)
-    expect(response.body.error).toBeDefined()
-    expect(response.body.error[0].message).toMatch(/Required/)
+    expect(response.body.errors).toBeDefined()
+    expect(response.body.errors[0].message).toMatch(/Required/)
   })
 
   it('should return 400 for missing required fields', async () => {
@@ -276,8 +287,8 @@ describe('POST /flight-log', () => {
       .send(payload)
 
     expect(response.status).toBe(400)
-    expect(response.body.error).toBeDefined()
-    expect(response.body.error[0].message).toMatch(/Required/)
+    expect(response.body.errors).toBeDefined()
+    expect(response.body.errors[0].message).toMatch(/Required/)
   })
 })
 
@@ -350,7 +361,7 @@ describe('PATCH /flight-log/', () => {
 
     expect(response.status).toBe(401)
   })
-  it('should return a 404 if the billable member id does not match token ID for a USER', async () => {
+  it('should return a 403 if the billable member id does not match token ID for a USER', async () => {
     const payload: FlightLogUpdateRequest = {
       crew2_member_id: 'Liisa1',
     }
@@ -367,10 +378,13 @@ describe('PATCH /flight-log/', () => {
       .set('Authorization', `Bearer ${invalidToken}`)
       .send(payload)
 
-    expect(response.status).toBe(403)
-    expect(response.body.message).toMatch(
-      /Flight log not owned by user or user has no admin rights/,
-    )
+    expect(response.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Flight log not owned by user or user has no admin rights',
+      instance: '/flight-log/efnu4evr',
+      timestamp: expect.any(String),
+    })
   })
   it('should return a 400 if the payload is not valid', async () => {
     const payload = {
@@ -383,9 +397,19 @@ describe('PATCH /flight-log/', () => {
       .set('Authorization', `Bearer ${mattiToken}`)
       .send(payload)
 
-    expect(response.status).toBe(400)
-    expect(response.body).toMatchObject({
-      error: [`Unrecognized key(s) in object: 'this_is_invalid'`],
+    expect(response.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      instance: '/flight-log/efnu4evr',
+      timestamp: expect.any(String),
+      errors: [
+        {
+          code: 'unrecognized_keys',
+          keys: ['this_is_invalid'],
+          message: "Unrecognized key(s) in object: 'this_is_invalid'",
+          path: [],
+        },
+      ],
     })
   })
 })
@@ -410,7 +434,13 @@ describe('DELETE /flight-log', () => {
       .delete('/flight-log/mikify')
       .set('Authorization', `Bearer ${delToken}`)
 
-    expect(response.status).toBe(403)
+    expect(response.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Flight log not owned by user or user has no admin rights',
+      instance: '/flight-log/mikify',
+      timestamp: expect.any(String),
+    })
   })
 
   it('should return 400 when flight has been billed', async () => {
@@ -418,7 +448,13 @@ describe('DELETE /flight-log', () => {
       .delete('/flight-log/mikify')
       .set('Authorization', `Bearer ${mattiToken}`)
 
-    expect(response.status).toBe(400)
+    expect(response.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      detail: 'Flight already billed and read-only',
+      instance: '/flight-log/mikify',
+      timestamp: expect.any(String),
+    })
   })
 })
 

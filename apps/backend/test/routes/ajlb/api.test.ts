@@ -4,11 +4,13 @@ import request from 'supertest'
 import ajlbRouter from '../../../src/routes/ajlb/api.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { problemErrorHandler } from '../../../src/routes/response.ts'
 
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
 app.use('/ajlb', ajlbRouter)
+app.use(problemErrorHandler)
 
 const token = generateAccessToken({
   memberId: 'Matti1',
@@ -31,7 +33,13 @@ describe('GET /ajlb', () => {
 
   it('should return 403 for a regular user', async () => {
     const response = await request(app).get('/ajlb').set('Authorization', `Bearer ${token}`)
-    expect(response.status).toBe(403)
+    expect(response.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Protected Content',
+      instance: '/ajlb',
+      timestamp: expect.any(String),
+    })
   })
 
   it('should return 400 for a bad filter', async () => {
@@ -42,7 +50,20 @@ describe('GET /ajlb', () => {
       .get('/ajlb')
       .set('Authorization', `Bearer ${adminToken}`)
       .query(badFilter)
-    expect(response.status).toBe(400)
+    expect(response.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      instance: '/ajlb',
+      timestamp: expect.any(String),
+      errors: [
+        {
+          code: 'unrecognized_keys',
+          keys: ['someField'],
+          message: "Unrecognized key(s) in object: 'someField'",
+          path: [],
+        },
+      ],
+    })
   })
 
   it('should get latest ajlbs for an admin user', async () => {

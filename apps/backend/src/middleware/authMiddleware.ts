@@ -6,7 +6,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 import logger from '../lib/logger.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { MIKPermissions } from '../routes/members/models.ts'
-import type { ErrorResponse } from '../routes/response.ts'
+import { problem, type Problem } from '../routes/response.ts'
 
 //
 // Passport strategy to authenticate the user with JWT tokens
@@ -32,7 +32,7 @@ export const validateUser = (...permissions: MIKPermissions[]): RequestHandler[]
   passport.authenticate('jwt', { session: false }),
 
   // the second middleware validates the existence of roles
-  (req: Request, res: Response<ErrorResponse>, next: NextFunction): void => {
+  (req: Request, res: Response<Problem>, next: NextFunction): void => {
     // If no roles are required, any valid user is fine
     if (!permissions.length) {
       return next()
@@ -45,6 +45,6 @@ export const validateUser = (...permissions: MIKPermissions[]): RequestHandler[]
 
     logger.warn(`Forbidden required: %j user: %j`, permissions, req.user)
 
-    res.status(403).json({ errorCode: 'forbidden', message: 'Permission denied' })
+    return problem({ status: 403, detail: 'Protected Content' })
   },
 ]

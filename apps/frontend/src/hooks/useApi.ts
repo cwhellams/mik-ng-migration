@@ -1,7 +1,7 @@
 import useSWR, { SWRConfiguration, SWRResponse } from 'swr'
 import { PublicConfiguration, useSWRConfig } from 'swr/_internal'
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
-import { ErrorResponse } from '@backend/routes/response'
+import { Problem } from '@backend/routes/response'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { VerifyResponse } from '@backend/routes/auth/schema'
 import useSWRMutation, { SWRMutationResponse } from 'swr/mutation'
@@ -73,18 +73,11 @@ api.interceptors.response.use(
   }
 )
 
-export type APIMutation<
-  Data,
-  Input = Partial<Data>,
-  Error = ErrorResponse,
-> = SWRMutationResponse<AxiosResponse<Data>, AxiosError<Error>, object, Input>
-
-type AxiosConfig<Data, Error> = Readonly<
-  PublicConfiguration<
-    AxiosResponse<Data>,
-    AxiosError<Error>,
-    (path: string) => unknown
-  >
+export type APIMutation<Data, Input = Partial<Data>> = SWRMutationResponse<
+  AxiosResponse<Data>,
+  AxiosError<Problem>,
+  object,
+  Input
 >
 
 export default function useApi<
@@ -96,15 +89,13 @@ export default function useApi<
   Update = Partial<Data>,
   // payload for DELETE
   Delete = Partial<Data>,
-  // payload for errors
-  Error = ErrorResponse,
 >(
   request: AxiosRequestConfig & {
     allowUnauthenticated?: boolean
     skipFetch?: boolean
   },
-  config: SWRConfiguration<AxiosResponse<Data>, AxiosError<Error>> = {}
-): Omit<SWRResponse<AxiosResponse<Data>, AxiosError<Error>>, 'data'> & {
+  config: SWRConfiguration<AxiosResponse<Data>, AxiosError<Problem>> = {}
+): Omit<SWRResponse<AxiosResponse<Data>, AxiosError<Problem>>, 'data'> & {
   // actual payload
   data: Data | undefined
 
@@ -112,9 +103,9 @@ export default function useApi<
   response: AxiosResponse<Data> | undefined
 
   // mutation hooks
-  create: APIMutation<Data, Create, Error>
-  update: APIMutation<Data, Update, Error>
-  remove: APIMutation<Data, Delete, Error>
+  create: APIMutation<Data, Create>
+  update: APIMutation<Data, Update>
+  remove: APIMutation<Data, Delete>
 } {
   const navigate = useNavigate()
   const location = useLocation()
@@ -128,7 +119,7 @@ export default function useApi<
     error,
     mutate,
     ...rest
-  } = useSWR<AxiosResponse<Data>, AxiosError<Error>>(
+  } = useSWR<AxiosResponse<Data>, AxiosError<Problem>>(
     request.skipFetch ? null : cacheKey,
     () => api.request<Data>(request),
     {
@@ -141,7 +132,14 @@ export default function useApi<
         if (err.status && err.status >= 400 && err.status < 500) return
 
         // otherwise the default retry logic
-        onErrorRetry(err, key, config as AxiosConfig<Data, Error>, ...args)
+        onErrorRetry(
+          err,
+          key,
+          config as Readonly<
+            PublicConfiguration<AxiosResponse<Data>, AxiosError<Problem>>
+          >,
+          ...args
+        )
       },
     }
   )

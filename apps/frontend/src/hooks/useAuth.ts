@@ -1,16 +1,19 @@
 import axios, { AxiosResponse, AxiosError } from 'axios'
 import useSWRMutation, { SWRMutationResponse } from 'swr/mutation'
 import { Key } from 'swr'
+import { Problem } from '@backend/routes/response'
 
 interface Return<Input, Output, Error>
   extends Omit<
     SWRMutationResponse<AxiosResponse<Output>, AxiosError<Error>, Key, Input>,
-    'data'
+    'data' | 'error'
   > {
   // actual payload
   data: Output | undefined
+  // problem details
+  error: Problem | undefined
   // the whole response object with http status codes, headers, etc
-  response: AxiosResponse<Output> | undefined
+  //response: AxiosResponse<Output> | undefined
 }
 
 export function useAuth<Input, Output>(
@@ -21,16 +24,19 @@ export function useAuth<Input, Output>(
 
   const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 
-  const { data: response, ...rest } = useSWRMutation<
-    AxiosResponse<Output>,
-    AxiosError<Error>,
-    Key,
-    Input
-  >(`${API_BASE}/auth/${endpoint}`, fetcher)
+  const {
+    data: response,
+    error,
+    ...rest
+  } = useSWRMutation<AxiosResponse<Output>, AxiosError<Error>, Key, Input>(
+    `${API_BASE}/auth/${endpoint}`,
+    fetcher
+  )
 
   return {
     data: response && response.data,
-    response,
+    error: error?.response,
+    //response,
     ...rest,
   }
 }

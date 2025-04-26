@@ -1,5 +1,4 @@
 import { Router, type Request, type Response } from 'express'
-import type { ZodIssue } from 'zod'
 
 import {
   flightLogFiltersSchema,
@@ -7,7 +6,6 @@ import {
   flightLogUpdateSchema,
   type FlightLog,
   type FlightLogFilters,
-  type FlightLogInsertRequest,
 } from './models.ts'
 import {
   deleteFlightLog,
@@ -20,6 +18,7 @@ import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
+import { problem } from '../response.ts'
 
 // all flight log routes are protected by flightlog permissions
 const router = Router()
@@ -30,28 +29,19 @@ const isFlightLogAdmin = (user?: JWTUser): boolean =>
 
 // Create a flight log
 router.post('/', async (req: Request, res: Response) => {
-  const payload = flightLogInsertSchema.safeParse(req.body)
+  const data = flightLogInsertSchema.parse(req.body)
 
-  if (!payload.success) {
-    return res.status(400).json({ error: payload.error.errors })
-  }
-
-  const insPayload: FlightLogInsertRequest = payload.data
-
-  const flightId = await insertFlightLog(insPayload, req.user!)
+  const flightId = await insertFlightLog(data, req.user!)
   res.status(201).json({ flight_id: flightId })
 })
 
 // Get flight logs using filter
 router.get('/', async (req: Request, res: Response) => {
-  const parsedQuery = flightLogFiltersSchema.safeParse(req.query)
-  if (!parsedQuery.success) {
-    return res.status(400).json({ error: parsedQuery.error.errors })
-  }
+  const data = flightLogFiltersSchema.parse(req.query)
 
   // If user is not Flight Log Admin they can only see their own flights
   const filters: FlightLogFilters = {
-    ...parsedQuery.data,
+    ...data,
     ...(isFlightLogAdmin(req.user) ? {} : { billable_member_id: req.user!.memberId }),
   }
 
@@ -59,12 +49,12 @@ router.get('/', async (req: Request, res: Response) => {
   res.status(200).json(logs)
 })
 
-// Get flight log total times by registraion
+// Get flight log total times by registration
 router.get('/totals', async (req: Request, res: Response) => {
   const flight_time_totals = await getFlightLogTotals()
 
   if (flight_time_totals.length === 0) {
-    return res.status(404).json({ message: 'Flight Times not found' })
+    return problem({ status: 404, detail: 'Flight totals not found' })
   }
   res.status(200).json(flight_time_totals)
 })
@@ -74,7 +64,7 @@ router.get('/:registration/totals', async (req: Request, res: Response) => {
   const reg = req.params.registration
   const flight_time_totals = await getFlightLogTotals(reg)
   if (flight_time_totals.length === 0) {
-    return res.status(404).json({ message: 'Flight Times not found' })
+    return problem({ status: 404, detail: 'Flight totals not found' })
   }
   res.status(200).json(flight_time_totals)
 })
@@ -86,41 +76,30 @@ router.get('/:id', async (req: Request, res: Response) => {
 
   const flight_log = await getFlightLogs({ flight_id: id })
   if (flight_log.length === 0) {
-    return res.status(404).json({ message: 'Flight log not found' })
+    return problem({ status: 404, detail: 'Flight log not found' })
   }
   res.status(200).json(flight_log[0])
 })
 
-const validateWriteAccess = (
-  flights: FlightLog[],
-  req: Request,
-): { status: number; message: string } => {
+const validateWriteAccess = (flights: FlightLog[], req: Request) => {
   if (flights.length === 0) {
-    return {
-      status: 404,
-      message: 'Flight log not found',
-    }
+    return problem({ status: 404, detail: 'Flight log not found' })
   }
 
   // Check if the flight is owned by the user or the user is not an flightlog admin
   if (flights[0].billable_member_id !== req.user?.memberId && !isFlightLogAdmin(req.user)) {
-    return {
+    return problem({
       status: 403,
-      message: 'Flight log not owned by user or user has no admin rights',
-    }
+      detail: 'Flight log not owned by user or user has no admin rights',
+    })
   }
 
   if (flights[0].is_billed) {
     // Check if the flight is already billed
-    return {
+    return problem({
       status: 400,
-      message: 'Flight already billed and read-only',
-    }
-  }
-
-  return {
-    status: 200,
-    message: 'ok',
+      detail: 'Flight already billed and read-only',
+    })
   }
 }
 
@@ -128,22 +107,18 @@ const validateWriteAccess = (
 router.patch('/:id', async (req: Request, res: Response) => {
   const flightId = req.params.id
 
-  const validate = flightLogUpdateSchema.safeParse(req.body)
-
-  if (!validate.success) {
-    return res.status(400).json({ error: validate.error.errors.map((e: ZodIssue) => e.message) })
-  }
+  const data = flightLogUpdateSchema.parse(req.body)
 
   const flightLogs = await getFlightLogs({ flight_id: flightId })
 
-  const { status, message } = validateWriteAccess(flightLogs, req)
-  if (status !== 200) {
-    return res.status(status).json({ message })
-  }
+  validateWriteAccess(flightLogs, req)
 
-  const updatedLog = await updateFlightLog(flightId, validate.data, req.user!)
+  const updatedLog = await updateFlightLog(flightId, data, req.user!)
   if (updatedLog === 0n) {
-    return res.status(500).json({ message: 'Flight log update failed' })
+    return problem({
+      status: 500,
+      detail: 'Flight log update failed',
+    })
   }
 
   res.status(204).end()
@@ -154,10 +129,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
   const flightId = req.params.id
 
   const flightLogToDelete = await getFlightLogs({ flight_id: flightId })
-  const { status, message } = validateWriteAccess(flightLogToDelete, req)
-  if (status !== 200) {
-    return res.status(status).json({ message })
-  }
+  validateWriteAccess(flightLogToDelete, req)
 
   logger.info(
     `Deleting flight log ${flightId}. Deleted by member: ${req.user?.memberId} with permissions :${req.user?.permissions}`,
@@ -165,8 +137,9 @@ router.delete('/:id', async (req: Request, res: Response) => {
 
   const deletedLogRows = await deleteFlightLog(flightId)
   if (deletedLogRows === 0n) {
-    return res.status(500).json({
-      message: 'Flight log deletion failed',
+    return problem({
+      status: 500,
+      detail: 'Flight log deletion failed',
     })
   }
 

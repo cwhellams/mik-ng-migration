@@ -6,7 +6,7 @@ import {
   TableRow,
 } from '@mui/material'
 import { t } from 'i18next'
-import { ErrorResponse } from '@backend/routes/response'
+import { Problem } from '@backend/routes/response'
 import { AxiosError } from 'axios'
 import { ReactNode } from 'react'
 
@@ -17,7 +17,7 @@ export const RemoteContent = ({
   children,
 }: {
   isLoading?: boolean
-  error?: AxiosError<ErrorResponse | undefined>
+  error?: AxiosError<Problem | undefined>
   colSpan?: number
   children: ReactNode
 }) => {

@@ -13,6 +13,7 @@ import {
   type MemberList,
   type MemberRole,
 } from '../routes/members/models.ts'
+import { problem } from '../routes/response.ts'
 import type { Upsert } from '../types/schema.ts'
 import { generateShortId } from '../util/nanoId.ts'
 
@@ -194,7 +195,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
     .returning('member_id')
     .executeTakeFirst()
   if (!result?.member_id) {
-    throw new Error('Member insert failed')
+    return problem({ status: 500, detail: 'Member insert failed' })
   }
 
   return result.member_id
@@ -370,7 +371,7 @@ export async function addMemberRole(role: Upsert<MemberRole>, jwt: JWTUser): Pro
     })
     .executeTakeFirst()
   if (!result.numInsertedOrUpdatedRows) {
-    throw new Error('Role insert failed')
+    return problem({ status: 500, detail: 'Member insert failed' })
   }
   return {
     ...role,

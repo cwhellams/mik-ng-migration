@@ -8,6 +8,7 @@ import {
   type AircraftNote,
 } from '../routes/aircrafts/models.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
+import { problem } from '../routes/response.ts'
 import type { Upsert } from '../types/schema.ts'
 
 // Get all aircraft
@@ -109,7 +110,7 @@ export async function addAircraft(aircraft: Upsert<Aircraft>, jwt: JWTUser): Pro
     })
     .executeTakeFirst()
   if (!result.numInsertedOrUpdatedRows) {
-    throw new Error('Role insert failed')
+    return problem({ status: 500, detail: 'Role insert failed' })
   }
   return {
     ...aircraft,
@@ -222,7 +223,7 @@ export async function addAircraftDocument(
     })
     .executeTakeFirst()
   if (!result.numInsertedOrUpdatedRows) {
-    throw new Error('Document insert failed')
+    return problem({ status: 500, detail: 'Document insert failed' })
   }
   return {
     ...document,

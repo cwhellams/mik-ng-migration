@@ -1,12 +1,12 @@
-import { throwError } from '../../src/routes/response.ts'
+import { problem } from '../../src/routes/response.ts'
 
-describe('throwError', () => {
+describe('throwProblem', () => {
   test('should throw an error with the provided message', () => {
     const errorMessage = 'Test error message'
-    expect(() => throwError(errorMessage)).toThrowError(errorMessage)
+    expect(() => problem({ status: 500, detail: errorMessage })).toThrow(errorMessage)
   })
 
   test('should throw an instance of Error', () => {
-    expect(() => throwError('Some error')).toThrowError(Error)
+    expect(() => problem({ status: 500, detail: 'Some error' })).toThrow(Error)
   })
 })

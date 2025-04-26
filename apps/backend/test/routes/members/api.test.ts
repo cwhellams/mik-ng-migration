@@ -14,14 +14,14 @@ import {
   type MemberRole,
   type MemberRolesResponse,
 } from '../../../src/routes/members/models.ts'
-import { defaultErrorHandler } from '../../../src/routes/response.ts'
+import { problemErrorHandler } from '../../../src/routes/response.ts'
 import type { Upsert } from '../../../src/types/schema.ts'
 
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
 app.use('/members', router)
-app.use(defaultErrorHandler)
+app.use(problemErrorHandler)
 
 const adminToken = generateAccessToken({
   memberId: 'k1mnimda',
@@ -466,7 +466,13 @@ describe('POST /members/roles', () => {
 
   it('Return 403 as a reqular member', async () => {
     const response = await post(role, memberToken)
-    expect(response.status).toBe(403)
+    expect(response.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Protected Content',
+      instance: '/members/roles',
+      timestamp: expect.any(String),
+    })
   })
 
   it('Post role as an admin', async () => {
@@ -478,7 +484,13 @@ describe('POST /members/roles', () => {
 
   it('Return 500 is duplicate role id', async () => {
     const response = await post({ ...role, roleId: 'ADMIN' }, adminToken)
-    expect(response.status).toBe(500)
+    expect(response.body).toEqual({
+      status: 500,
+      title: 'Internal Server Error',
+      detail: 'duplicate key value violates unique constraint \"roles_pkey\"',
+      instance: '/members/roles',
+      timestamp: expect.any(String),
+    })
   })
 
   it('Return 400 with missing fields', async () => {
@@ -655,7 +667,13 @@ describe('POST /members', () => {
 
   it('Return 500 with duplicate email', async () => {
     const response = await post({ ...req, email: 'admin@mik.fi' }, adminToken)
-    expect(response.status).toBe(500)
+    expect(response.body).toEqual({
+      status: 500,
+      title: 'Internal Server Error',
+      detail: 'duplicate key value violates unique constraint \"register_email_key\"',
+      instance: '/members',
+      timestamp: expect.any(String),
+    })
   })
 
   it('Return 400 with missing fields', async () => {

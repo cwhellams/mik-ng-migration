@@ -16,7 +16,7 @@ import ajlbRoutes from './routes/ajlb/api.ts'
 import { router as passportRoutes } from './routes/auth/login.ts'
 import flightLogRoutes from './routes/flight-log/api.ts'
 import { router as memberRoutes } from './routes/members/api.ts'
-import { defaultErrorHandler } from './routes/response.ts'
+import { problemErrorHandler, problem, notFoundProblemHandler } from './routes/response.ts'
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -56,7 +56,7 @@ const rateLimiterMiddleware: RequestHandler = async (
     await rateLimiter.consume(req.ip ?? req.socket.remoteAddress ?? '0.0.0.0')
     next()
   } catch {
-    res.status(429).json({ message: 'Too many requests, slow down.' })
+    return problem({ status: 429, title: 'Too many requests, slow down.' })
   }
 }
 app.use(rateLimiterMiddleware)
@@ -81,7 +81,9 @@ app.use('/api/v1/flight-log', flightLogRoutes)
 app.use('/api/v1/aircrafts', aircraftRoutes)
 app.use('/api/v1/ajlb', ajlbRoutes)
 
-app.use(defaultErrorHandler)
+app.use(problemErrorHandler)
+
+app.use(notFoundProblemHandler)
 
 //Digital ocean requires that app services bind to 0.0.0.0
 //docs.digitalocean.com/products/app-platform/how-to/manage-services/
