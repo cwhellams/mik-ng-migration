@@ -25,11 +25,7 @@ import { EditDocumentModal } from './components/EditDocumentModal'
 import dayjs from 'dayjs'
 
 const Aircrafts = () => {
-  const { data, isLoading, error } = useApi<
-    AircraftListResponse,
-    Aircraft,
-    Partial<Aircraft>
-  >({
+  const { data, isLoading, error } = useApi<AircraftListResponse, Aircraft>({
     url: 'v1/aircrafts',
   })
   const { isAircraftAdmin } = useRoles()

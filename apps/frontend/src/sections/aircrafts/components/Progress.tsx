@@ -104,7 +104,7 @@ const ProgressLine = ({
         const isLast = index == length - 1
         return (
           <div
-            key={part.title}
+            key={index}
             style={{
               width: `${animateWidth(part.width)}%`,
               backgroundColor: part.color,

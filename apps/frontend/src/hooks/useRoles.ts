@@ -1,10 +1,10 @@
 import {
-  Member,
   MemberRolesResponse,
   MIKPermissions,
 } from '@backend/routes/members/models'
 import useApi from './useApi'
 import { Problem } from '@backend/routes/response'
+import { useMe } from './useMe'
 
 export function useRoles(): {
   isLoading: boolean
@@ -15,17 +15,22 @@ export function useRoles(): {
   permissions: MemberRolesResponse['permissions']
   error: Problem | undefined
 } {
-  const { data, isLoading } = useApi<Member | null>({
-    url: 'v1/members/me',
-    allowUnauthenticated: true,
-  })
+  const { me, isLoading } = useMe()
 
-  const { data: rolesData, error } = useApi<MemberRolesResponse>({
-    url: 'v1/members/roles',
-  })
+  const { data: rolesData, error } = useApi<MemberRolesResponse>(
+    {
+      url: 'v1/members/roles',
+    },
+    {
+      // roles do not change often so skip automatic revalidations
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  )
 
   const withPermission = (permission: MIKPermissions) =>
-    data?.roles.some((role) => role.permissions?.includes(permission)) ?? false
+    me?.roles.some((role) => role.permissions?.includes(permission)) ?? false
 
   return {
     isLoading,
@@ -34,6 +39,6 @@ export function useRoles(): {
     isAircraftAdmin: withPermission(MIKPermissions.AIRCRAFT_ADMIN),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
-    error: error?.response,
+    error,
   }
 }

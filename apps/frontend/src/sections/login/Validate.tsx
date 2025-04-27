@@ -19,21 +19,20 @@ const LoginValidate = () => {
     const token = searchParams.get('token')
     const target = searchParams.get('target')
     if (token) {
-      trigger({ token })
-        .then((response) => {
-          if (response.data.accessToken) {
-            localStorage.setItem('accessToken', response.data.accessToken)
-            navigate(target ?? '/')
-          }
-        })
-        .catch((error) => {
+      trigger({ token }).then(({ data, error }) => {
+        if (data?.accessToken) {
+          localStorage.setItem('accessToken', data.accessToken)
+          navigate(target ?? '/')
+        } else {
           console.log(error)
           setCodeError('Login failed, try again')
-        })
+        }
+      })
     } else {
       setCodeError('Login failed, try again')
     }
-  }, [navigate, trigger, searchParams])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   return (
     <LoginLayout title='Login'>

@@ -57,7 +57,7 @@ const Register = () => {
     return email && regex.test(email)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setRegisterError('')
 
@@ -66,21 +66,15 @@ const Register = () => {
       return
     }
 
-    trigger(member)
-      .then((response) => {
-        if (response.data.code) {
-          navigate('/login/sent', {
-            state: { email: member.email, code: response.data.code },
-          })
-        } else {
-          console.log('Error:', response)
-          setRegisterError('Error')
-        }
-      })
-      .catch((error) => {
-        console.log('Error:', error)
-        setRegisterError(error.response.statusText)
-      })
+    const { data, error } = await trigger(member)
+    if (!data?.code || error) {
+      console.log('Error:', error)
+      return setRegisterError(error?.detail ?? error?.title ?? 'Error')
+    }
+
+    navigate('/login/sent', {
+      state: { email: member.email, code: data?.code },
+    })
   }
 
   return (

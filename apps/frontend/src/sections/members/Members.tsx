@@ -19,7 +19,7 @@ import {
   MenuItem,
 } from '@mui/material'
 import { Link } from 'react-router-dom'
-import useApi, { APIMutation } from '../../hooks/useApi'
+import useApi from '../../hooks/useApi'
 import {
   Member,
   MemberListFilters,
@@ -40,7 +40,10 @@ const Members = () => {
     role: '',
   })
 
-  const { data, isLoading, error, mutate, create } = useApi<MemberListResponse>(
+  const { data, isLoading, error, mutate, mutation } = useApi<
+    MemberListResponse,
+    Member
+  >(
     {
       url: 'v1/members',
       params: filters,
@@ -203,8 +206,7 @@ const Members = () => {
       <EditMemberModal
         mode={editMode}
         onClose={() => setEditMode(undefined)}
-        // use the same url with different payload
-        api={create as unknown as APIMutation<Member>}
+        api={mutation}
       />
     </Box>
   )

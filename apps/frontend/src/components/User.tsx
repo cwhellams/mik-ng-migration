@@ -10,11 +10,10 @@ import {
 } from '@mui/material'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Member } from '@backend/routes/members/models'
-import useApi from '../hooks/useApi'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
 import { useAuth } from '../hooks/useAuth'
+import { useMe } from '../hooks/useMe'
 
 const User = () => {
   const { t, i18n } = useTranslation()
@@ -22,10 +21,7 @@ const User = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
 
-  const { data, isLoading, mutate } = useApi<Member | null>({
-    url: 'v1/members/me',
-    allowUnauthenticated: true,
-  })
+  const { me, isLoading, mutate } = useMe()
 
   const logout = useAuth('logout')
 
@@ -37,14 +33,18 @@ const User = () => {
     setAnchorEl(null)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     // clear refresh and access tokens
-    logout.trigger().then(() => {
-      localStorage.removeItem('accessToken')
+    const { error } = await logout.trigger()
+    if (error) {
+      console.log(error)
+      return
+    }
 
-      // invalidate caches
-      mutate()
-    })
+    localStorage.removeItem('accessToken')
+
+    // invalidate cache
+    mutate(undefined)
 
     handleClose()
     navigate('/')
@@ -68,7 +68,7 @@ const User = () => {
 
   return (
     <Box>
-      {data ? (
+      {me ? (
         <>
           <Avatar
             sx={{
@@ -79,7 +79,7 @@ const User = () => {
             }}
             onClick={handleClick}
           >
-            {getInitials(data.firstName, data.lastName)}
+            {getInitials(me.firstName, me.lastName)}
           </Avatar>
           <Menu
             anchorEl={anchorEl}
@@ -102,10 +102,10 @@ const User = () => {
           >
             <Box sx={{ px: 2, py: 1 }}>
               <Typography variant='subtitle1' fontWeight='bold'>
-                {data.firstName} {data.lastName}
+                {me.firstName} {me.lastName}
               </Typography>
               <Typography variant='body2' color='text.secondary'>
-                {data.email}
+                {me.email}
               </Typography>
             </Box>
             <Divider />

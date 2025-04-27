@@ -1,42 +1,21 @@
-import axios, { AxiosResponse, AxiosError } from 'axios'
-import useSWRMutation, { SWRMutationResponse } from 'swr/mutation'
-import { Key } from 'swr'
-import { Problem } from '@backend/routes/response'
+import useApi, { APIResponse } from './useApi'
 
-interface Return<Input, Output, Error>
-  extends Omit<
-    SWRMutationResponse<AxiosResponse<Output>, AxiosError<Error>, Key, Input>,
-    'data' | 'error'
-  > {
-  // actual payload
-  data: Output | undefined
-  // problem details
-  error: Problem | undefined
-  // the whole response object with http status codes, headers, etc
-  //response: AxiosResponse<Output> | undefined
-}
+// trigger authentication calls
 
-export function useAuth<Input, Output>(
+export const useAuth = <Input, Output>(
   endpoint: 'login' | 'login/validate' | 'register' | 'logout'
-): Return<Input, Output, Error> {
-  const fetcher = async (url: string, { arg }: { arg: Input }) =>
-    axios.post(url, arg)
-
-  const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
-
-  const {
-    data: response,
-    error,
-    ...rest
-  } = useSWRMutation<AxiosResponse<Output>, AxiosError<Error>, Key, Input>(
-    `${API_BASE}/auth/${endpoint}`,
-    fetcher
-  )
+): {
+  isMutating: boolean
+  trigger: (request?: Input) => Promise<APIResponse<Output>>
+} => {
+  const { mutation } = useApi<Output>({
+    url: `auth/${endpoint}`,
+    allowUnauthenticated: true,
+    skipFetch: true,
+  })
 
   return {
-    data: response && response.data,
-    error: error?.response,
-    //response,
-    ...rest,
+    trigger: async (request?: Input) => mutation.trigger('POST', request),
+    isMutating: mutation.isMutating,
   }
 }

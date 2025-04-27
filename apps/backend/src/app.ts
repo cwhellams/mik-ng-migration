@@ -75,7 +75,7 @@ app.get('/health', (_req, res) => {
 })
 
 // Routes
-app.use('/auth', passportRoutes)
+app.use('/api/auth', passportRoutes)
 app.use('/api/v1/members', memberRoutes)
 app.use('/api/v1/flight-log', flightLogRoutes)
 app.use('/api/v1/aircrafts', aircraftRoutes)

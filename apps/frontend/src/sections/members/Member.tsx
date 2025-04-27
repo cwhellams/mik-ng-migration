@@ -33,7 +33,7 @@ const MemberProfile = () => {
   // no admin work can be done in own profile
   const isAdmin = roles.isMembersAdmin && memberId !== 'me'
 
-  const { data, isLoading, error, update, remove } = useApi<Member>({
+  const { data, isLoading, error, mutation } = useApi<Member>({
     url: `v1/members/${memberId}`,
   })
   const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
@@ -42,8 +42,8 @@ const MemberProfile = () => {
     setEditMode(mode)
   }
 
-  const handleRemove = () => {
-    remove.trigger({})
+  const handleRemove = async () => {
+    await mutation.trigger('DELETE', {})
     navigate('/members')
   }
 
@@ -235,9 +235,9 @@ const MemberProfile = () => {
                 color='secondary'
                 variant='outlined'
                 onClick={handleRemove}
-                disabled={remove.isMutating}
+                disabled={mutation.isMutating}
                 startIcon={
-                  remove.isMutating ? <CircularProgress size={20} /> : null
+                  mutation.isMutating ? <CircularProgress size={20} /> : null
                 }
               >
                 {t('general.delete', 'Delete')}
@@ -250,7 +250,7 @@ const MemberProfile = () => {
           mode={editMode}
           onClose={() => setEditMode(undefined)}
           memberData={data}
-          api={update}
+          api={mutation}
         />
       </Box>
     </RemoteContent>

@@ -17,7 +17,7 @@ import {
   useTheme,
   Alert,
 } from '@mui/material'
-import useApi, { APIMutation } from '../../../hooks/useApi'
+import useApi, { MutateMethods } from '../../../hooks/useApi'
 import {
   MemberRole,
   MIKPermissions,
@@ -47,7 +47,7 @@ export const MemberRoleEditor = ({
 
   const { permissions } = useRoles()
 
-  const { create, update, remove } = useApi<MemberRole>({
+  const { mutation } = useApi<MemberRole>({
     url: `v1/members/roles${isNewRole ? '' : `/${role?.roleId}`}`,
     skipFetch: true,
   })
@@ -74,29 +74,28 @@ export const MemberRoleEditor = ({
     }
   }, [role])
 
-  const trigger = async (api: APIMutation<MemberRole>) => {
+  const trigger = async (method: MutateMethods) => {
     setErrorMsg('')
 
-    try {
-      await api.trigger(formData)
-
-      // clear the cache for roles list
-      mutate((key) => Array.isArray(key) && key[0] == 'v1/members/roles')
-
-      onClose()
-    } catch {
-      setErrorMsg(api.error?.message ?? 'Error')
-      console.error('Error modifying role:', api.error)
+    const { error } = await mutation.trigger(method, formData)
+    if (error) {
+      console.error('Error saving role data:', error)
+      return setErrorMsg(error?.detail ?? error?.title ?? 'Error')
     }
+
+    // clear the cache for roles list
+    mutate((key) => Array.isArray(key) && key[0] == 'v1/members/roles')
+
+    onClose()
   }
 
-  const handleRemove = async () => trigger(remove)
+  const handleRemove = async () => trigger('DELETE')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg('')
 
-    await trigger(isNewRole ? create : update)
+    await trigger(isNewRole ? 'POST' : 'PATCH')
   }
 
   const handleChange =
@@ -291,9 +290,9 @@ export const MemberRoleEditor = ({
                 color='secondary'
                 variant='outlined'
                 onClick={handleRemove}
-                disabled={remove.isMutating}
+                disabled={mutation.isMutating}
                 startIcon={
-                  remove.isMutating ? <CircularProgress size={20} /> : null
+                  mutation.isMutating ? <CircularProgress size={20} /> : null
                 }
               >
                 {t('general.delete', 'Delete')}
@@ -309,11 +308,9 @@ export const MemberRoleEditor = ({
               type='submit'
               color='primary'
               variant='contained'
-              disabled={create.isMutating || update.isMutating}
+              disabled={mutation.isMutating}
               startIcon={
-                create.isMutating || update.isMutating ? (
-                  <CircularProgress size={20} />
-                ) : null
+                mutation.isMutating ? <CircularProgress size={20} /> : null
               }
             >
               {t('general.save', 'Save')}

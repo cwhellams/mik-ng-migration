@@ -4,7 +4,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { Problem } from '@backend/routes/response'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { VerifyResponse } from '@backend/routes/auth/schema'
-import useSWRMutation, { SWRMutationResponse } from 'swr/mutation'
+import useSWRMutation from 'swr/mutation'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 const api = axios.create({
@@ -14,24 +14,29 @@ const api = axios.create({
 // Add a request interceptor to add the access token to the authorization header
 api.interceptors.request.use(
   (config) => {
-    // if not authenticated at all, cancel the request
     const token = localStorage.getItem('accessToken')
-    if (token == null) {
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+      return config
+    } else {
+      if ('allowUnauthenticated' in config && config.allowUnauthenticated) {
+        // can be used without auth
+        return config
+      }
+
+      // no token, cancel the request
       return {
         ...config,
         signal: AbortSignal.abort(),
       }
     }
-
-    config.headers.Authorization = `Bearer ${token}`
-    return config
   },
   (error) => Promise.reject(error)
 )
 
 const refreshTheToken = async () => {
   await axios
-    .post<VerifyResponse>(`${API_BASE}/auth/refresh`)
+    .post<VerifyResponse>(`${API_BASE}/api/auth/refresh`)
     .then((response) => {
       const accessToken = response.data.accessToken
       if (accessToken) {
@@ -73,40 +78,45 @@ api.interceptors.response.use(
   }
 )
 
-export type APIMutation<Data, Input = Partial<Data>> = SWRMutationResponse<
-  AxiosResponse<Data>,
-  AxiosError<Problem>,
-  object,
-  Input
->
+// API responses are either payload or problem
+export type APIResponse<Data> = {
+  data?: Data
+  error?: Problem
+}
+
+// Simplified API for using useSWRMutation hooks
+export type APIMutation<Data> = {
+  // is the mutation currently ongoing
+  isMutating: boolean
+
+  // trigger the mutation with any payload, and return responses
+  trigger: <T>(method: MutateMethods, payload: T) => Promise<APIResponse<Data>>
+}
+
+export type MutateMethods = 'POST' | 'PATCH' | 'DELETE'
 
 export default function useApi<
   // returned data type
   Data = unknown,
-  // payload for POST
-  Create = Partial<Data>,
-  // payload for PATCH
-  Update = Partial<Data>,
-  // payload for DELETE
-  Delete = Partial<Data>,
+  // returned data from mutations
+  MutateData = Data,
 >(
   request: AxiosRequestConfig & {
+    // if true don't navigate to login page
     allowUnauthenticated?: boolean
+
+    // if true, mutation calls only
     skipFetch?: boolean
   },
   config: SWRConfiguration<AxiosResponse<Data>, AxiosError<Problem>> = {}
-): Omit<SWRResponse<AxiosResponse<Data>, AxiosError<Problem>>, 'data'> & {
-  // actual payload
-  data: Data | undefined
-
-  // the whole response object with http status codes, headers, etc
-  response: AxiosResponse<Data> | undefined
-
-  // mutation hooks
-  create: APIMutation<Data, Create>
-  update: APIMutation<Data, Update>
-  remove: APIMutation<Data, Delete>
-} {
+): Omit<
+  // remove Axios wrappers from data and error
+  SWRResponse<AxiosResponse<Data>, AxiosError<Problem>>,
+  'data' | 'error'
+> &
+  APIResponse<Data> & {
+    mutation: APIMutation<MutateData>
+  } {
   const navigate = useNavigate()
   const location = useLocation()
   const { onErrorRetry } = useSWRConfig()
@@ -117,7 +127,6 @@ export default function useApi<
   const {
     data: response,
     error,
-    mutate,
     ...rest
   } = useSWR<AxiosResponse<Data>, AxiosError<Problem>>(
     request.skipFetch ? null : cacheKey,
@@ -144,41 +153,54 @@ export default function useApi<
     }
   )
 
-  const create = useSWRMutation(
-    cacheKey,
-    (_key: typeof cacheKey, { arg }: { arg: Create }) =>
-      api.request({ ...request, method: 'POST', data: arg })
-  )
-
-  const update = useSWRMutation(
-    cacheKey,
-    (_key: object, { arg }: { arg: Update }) =>
-      api.request({ ...request, method: 'PATCH', data: arg })
-  )
-
-  const remove = useSWRMutation(
-    cacheKey,
-    (_key: object, { arg }: { arg: Delete }) =>
-      api.request({ ...request, method: 'DELETE', data: arg })
-  )
-
   const isLoggedOut = error?.name == 'CanceledError'
   if (isLoggedOut && !request.allowUnauthenticated) {
-    // cancelled because not authenticated
+    // authentication is required
     navigate('/login', {
       state: { target: location.pathname },
     })
   }
 
+  const mutation = useSWRMutation<
+    AxiosResponse<MutateData>,
+    AxiosError<Problem>,
+    typeof cacheKey,
+    {
+      method: MutateMethods
+      payload: unknown
+    }
+  >(cacheKey, (_key: object, { arg }) =>
+    api.request({ ...request, method: arg.method, data: arg.payload })
+  )
+
   return {
     data: isLoggedOut ? undefined : response?.data,
-    response,
-    error,
-    mutate,
+    error: error ? error?.response?.data : undefined,
 
-    create,
-    update,
-    remove,
+    mutation: {
+      isMutating: mutation.isMutating,
+
+      trigger: async <T>(
+        method: MutateMethods,
+        payload: T
+      ): Promise<APIResponse<MutateData>> =>
+        mutation
+          .trigger({ method, payload })
+          .then((res) => ({
+            data: res?.data,
+          }))
+          .catch((err: Error | AxiosError) =>
+            axios.isAxiosError<Problem>(err)
+              ? { error: err.response?.data }
+              : // unknown error type
+                {
+                  error: {
+                    status: 0,
+                    detail: err.message,
+                  },
+                }
+          ),
+    },
 
     ...rest,
   }

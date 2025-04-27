@@ -1,12 +1,14 @@
 import { z, ZodObject } from 'zod'
 
 // common audit fields
-export const AuditableSchema = z.object({
-  createdAt: z.string().datetime(),
-  createdBy: z.string(),
-  updatedAt: z.string().datetime(),
-  updatedBy: z.string(),
-})
+export const AuditableSchema = z
+  .object({
+    createdAt: z.string().datetime(),
+    createdBy: z.string(),
+    updatedAt: z.string().datetime(),
+    updatedBy: z.string(),
+  })
+  .strict()
 
 // object with auditable fields
 export type Auditable = z.infer<typeof AuditableSchema>

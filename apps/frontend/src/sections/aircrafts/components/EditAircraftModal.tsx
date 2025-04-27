@@ -17,12 +17,11 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
-import useApi, { APIMutation } from '../../../hooks/useApi'
+import useApi from '../../../hooks/useApi'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { Aircraft } from '@backend/routes/aircrafts/models'
 import { AuditFormField } from '../../../components/AuditFormField'
 import { FormTitle } from '../../../components/FormTitle'
-import { Upsert } from '@backend/types/schema'
 
 export type AircraftEditMode = 'new' | 'details' | 'maintenance' | 'notes'
 
@@ -43,7 +42,7 @@ export const EditAircraftModal = ({
 
   const isNewAircraft = !aircraft?.registration
 
-  const { create, update } = useApi<Upsert<Aircraft>>({
+  const { mutation } = useApi<Aircraft>({
     url: `v1/aircrafts${isNewAircraft ? '' : `/${aircraft?.registration}`}`,
     skipFetch: true,
   })
@@ -105,20 +104,19 @@ export const EditAircraftModal = ({
       [field]: value,
     }))
 
-  const trigger = async (api: APIMutation<Upsert<Aircraft>>) => {
+  const trigger = async (method: 'POST' | 'PATCH') => {
     setErrorMsg('')
 
-    try {
-      await api.trigger(formData)
-
-      // clear the cache for aircrafts
-      mutate((key) => Array.isArray(key) && key[0] == 'v1/aircrafts')
-
-      onClose()
-    } catch {
-      setErrorMsg(api.error?.message ?? 'Error')
-      console.error('Error modifying aircraft:', api.error)
+    const { error } = await mutation.trigger(method, formData)
+    if (error) {
+      console.error('Error modifying aircraft:', error)
+      return setErrorMsg(error?.detail ?? error?.title ?? 'Error')
     }
+
+    // clear the cache for aircrafts
+    mutate((key) => Array.isArray(key) && key[0] == 'v1/aircrafts')
+
+    onClose()
   }
 
   // const handleRemove = async () => trigger(remove)
@@ -127,7 +125,7 @@ export const EditAircraftModal = ({
     e.preventDefault()
     setErrorMsg('')
 
-    await trigger(isNewAircraft ? create : update)
+    await trigger(isNewAircraft ? 'POST' : 'PATCH')
   }
 
   const renderDetailsForm = () => (
@@ -299,11 +297,9 @@ export const EditAircraftModal = ({
           type='submit'
           color='primary'
           variant='contained'
-          disabled={create.isMutating || update.isMutating}
+          disabled={mutation.isMutating}
           startIcon={
-            create.isMutating || update.isMutating ? (
-              <CircularProgress size={20} />
-            ) : null
+            mutation.isMutating ? <CircularProgress size={20} /> : null
           }
         >
           {t('general.save', 'Save')}

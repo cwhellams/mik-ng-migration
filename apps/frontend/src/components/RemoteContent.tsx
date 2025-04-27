@@ -7,7 +7,6 @@ import {
 } from '@mui/material'
 import { t } from 'i18next'
 import { Problem } from '@backend/routes/response'
-import { AxiosError } from 'axios'
 import { ReactNode } from 'react'
 
 export const RemoteContent = ({
@@ -17,7 +16,7 @@ export const RemoteContent = ({
   children,
 }: {
   isLoading?: boolean
-  error?: AxiosError<Problem | undefined>
+  error?: Problem | undefined
   colSpan?: number
   children: ReactNode
 }) => {
@@ -27,7 +26,9 @@ export const RemoteContent = ({
 
   const content = error ? (
     <Alert severity='error'>
-      {error.status == 403 ? t('error.noAccess') : error.message}
+      {error.status == 403
+        ? t('error.noAccess')
+        : (error.detail ?? error.title)}
     </Alert>
   ) : (
     <Box

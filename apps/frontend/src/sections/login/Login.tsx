@@ -30,7 +30,7 @@ const Login = () => {
     return regex.test(email)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setEmailError('')
 
@@ -39,25 +39,20 @@ const Login = () => {
       return
     }
 
-    trigger({
+    const { data, error } = await trigger({
       email: email,
       target: location.state?.target,
       lang: i18n.language,
     })
-      .then((response) => {
-        if (response.data.code) {
-          navigate('/login/sent', {
-            state: { email, code: response.data.code },
-          })
-        } else {
-          console.log('Error:', response)
-          setEmailError('Error')
-        }
-      })
-      .catch((error) => {
-        console.log('Error:', error)
-        setEmailError(error.response.statusText)
-      })
+
+    if (!data?.code || error) {
+      console.log('Error:', error)
+      return setEmailError(error?.detail ?? error?.title ?? 'Error')
+    }
+
+    navigate('/login/sent', {
+      state: { email, code: data.code },
+    })
   }
 
   return (

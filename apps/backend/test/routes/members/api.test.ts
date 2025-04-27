@@ -282,9 +282,20 @@ describe('PATCH /members/me', () => {
       isTrainingProgramPilot: false,
     })
 
-    expect(response.status).toBe(200)
-    expect(response.body.canMakeReservations).toEqual(true)
-    expect(response.body.isTrainingProgramPilot).toEqual(true)
+    expect(response.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      instance: '/members/me',
+      timestamp: expect.any(String),
+      errors: [
+        {
+          code: 'unrecognized_keys',
+          keys: ['canMakeReservations', 'isTrainingProgramPilot'],
+          path: [],
+          message: "Unrecognized key(s) in object: 'canMakeReservations', 'isTrainingProgramPilot'",
+        },
+      ],
+    })
   })
 })
 

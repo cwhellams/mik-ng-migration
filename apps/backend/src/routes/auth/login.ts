@@ -95,7 +95,7 @@ const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response<VerifyRes
     sameSite: 'strict',
 
     // cookie is only sent to refresh endpoint
-    path: '/auth/refresh',
+    path: '/api/auth/refresh',
   })
 
   // Access token is used to verify requests and is valid only for a short time.

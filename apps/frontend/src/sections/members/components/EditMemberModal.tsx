@@ -122,19 +122,21 @@ export const EditMemberModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg('')
-    try {
-      await api.trigger(formData)
 
-      if (mode == 'register') {
-        // clear the members list
-        mutate((key) => Array.isArray(key) && key[0] == 'v1/members')
-      }
+    const method = mode == 'register' ? 'POST' : 'PATCH'
 
-      onClose()
-    } catch (error) {
+    const { error } = await api.trigger(method, formData)
+    if (error) {
       console.error('Error saving member data:', error)
-      setErrorMsg(api.error?.message ?? 'Error')
+      return setErrorMsg(error?.detail ?? error?.title ?? 'Error')
     }
+
+    if (mode == 'register') {
+      // clear the members list
+      await mutate((key) => Array.isArray(key) && key[0] == 'v1/members')
+    }
+
+    onClose()
   }
 
   const renderRegisterForm = () => (
@@ -416,6 +418,7 @@ export const EditMemberModal = ({
           <FormGroup>
             {roles.map((role) => (
               <FormControlLabel
+                key={role.roleId}
                 control={
                   <Checkbox
                     name={role.roleId}
