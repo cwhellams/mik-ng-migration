@@ -48,6 +48,7 @@ const toAircraft = (
   model: aircraft.model,
   manufacturer: aircraft.manufacturer,
   yearOfManufacture: aircraft.year_of_manufacture,
+  active: aircraft.active,
 
   documents: documents,
   maintenance: {
@@ -85,6 +86,7 @@ export async function addAircraft(aircraft: Upsert<Aircraft>, jwt: JWTUser): Pro
       model: aircraft.model,
       manufacturer: aircraft.manufacturer,
       year_of_manufacture: aircraft.yearOfManufacture,
+      active: aircraft.active,
 
       maintenance_cycle: aircraft.maintenance.maintenanceCycle,
       last_maintenance_date: aircraft.maintenance.lastMaintenanceDate,
@@ -136,6 +138,7 @@ export async function updateAircraft(
       model: patch.model,
       manufacturer: patch.manufacturer,
       year_of_manufacture: patch.yearOfManufacture,
+      active: patch.active,
 
       notes: patch.notes ? JSON.stringify(patch.notes) : undefined,
       location: patch.location,

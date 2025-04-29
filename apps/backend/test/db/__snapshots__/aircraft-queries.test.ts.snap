@@ -3,6 +3,7 @@
 exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft in the db 1`] = `
 [
   {
+    "active": true,
     "createdAt": Any<String>,
     "createdBy": "k1mnimda",
     "displayName": "Diamond DA40",
@@ -62,11 +63,11 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
     "maintenance": {
       "lastMaintenanceDate": "2024-11-10",
       "lastMaintenanceTach": 4709,
-      "lastMaintenanceType": "200",
+      "lastMaintenanceType": "200h",
       "maintenanceCycle": 100,
       "nextMaintenanceDate": null,
       "nextMaintenanceTach": 4778,
-      "nextMaintenanceType": "100",
+      "nextMaintenanceType": "100h",
       "totalPercentageHours": 10,
       "usablePercentageHours": 8,
     },
@@ -84,6 +85,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
     "yearOfManufacture": 2007,
   },
   {
+    "active": true,
     "createdAt": Any<String>,
     "createdBy": "k1mnimda",
     "displayName": "Diamond DV20",
@@ -143,11 +145,11 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
     "maintenance": {
       "lastMaintenanceDate": "2025-03-01",
       "lastMaintenanceTach": 6085,
-      "lastMaintenanceType": "200",
+      "lastMaintenanceType": "200h",
       "maintenanceCycle": 50,
       "nextMaintenanceDate": null,
       "nextMaintenanceTach": 6130,
-      "nextMaintenanceType": "50",
+      "nextMaintenanceType": "50h",
       "totalPercentageHours": 5,
       "usablePercentageHours": 3,
     },
@@ -170,6 +172,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
 exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the db 1`] = `
 [
   {
+    "active": true,
     "createdAt": Any<String>,
     "createdBy": "k1mnimda",
     "displayName": "Diamond DA40",
@@ -229,11 +232,11 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
     "maintenance": {
       "lastMaintenanceDate": "2024-11-10",
       "lastMaintenanceTach": 4709,
-      "lastMaintenanceType": "200",
+      "lastMaintenanceType": "200h",
       "maintenanceCycle": 100,
       "nextMaintenanceDate": null,
       "nextMaintenanceTach": 4778,
-      "nextMaintenanceType": "100",
+      "nextMaintenanceType": "100h",
       "totalPercentageHours": 10,
       "usablePercentageHours": 8,
     },
@@ -251,6 +254,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
     "yearOfManufacture": 2007,
   },
   {
+    "active": true,
     "createdAt": Any<String>,
     "createdBy": "k1mnimda",
     "displayName": "Diamond DV20",
@@ -310,11 +314,11 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
     "maintenance": {
       "lastMaintenanceDate": "2025-03-01",
       "lastMaintenanceTach": 6085,
-      "lastMaintenanceType": "200",
+      "lastMaintenanceType": "200h",
       "maintenanceCycle": 50,
       "nextMaintenanceDate": null,
       "nextMaintenanceTach": 6130,
-      "nextMaintenanceType": "50",
+      "nextMaintenanceType": "50h",
       "totalPercentageHours": 5,
       "usablePercentageHours": 3,
     },
@@ -332,6 +336,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
     "yearOfManufacture": 2010,
   },
   {
+    "active": false,
     "createdAt": Any<String>,
     "createdBy": "k1mnimda",
     "displayName": "Piper PA-28",
@@ -342,11 +347,11 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
     "maintenance": {
       "lastMaintenanceDate": "2024-04-15",
       "lastMaintenanceTach": 5180,
-      "lastMaintenanceType": "50",
+      "lastMaintenanceType": "50h",
       "maintenanceCycle": 50,
       "nextMaintenanceDate": "2025-05-05",
       "nextMaintenanceTach": 5230,
-      "nextMaintenanceType": "50",
+      "nextMaintenanceType": "50h",
       "totalPercentageHours": 5,
       "usablePercentageHours": 3,
     },
@@ -368,6 +373,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
 
 exports[`Db query Get aircrafts tests getAllAircraftByRegistration returns the active aircraft in the db 1`] = `
 {
+  "active": true,
   "createdAt": Any<String>,
   "createdBy": "k1mnimda",
   "displayName": "Diamond DA40",
@@ -427,11 +433,11 @@ exports[`Db query Get aircrafts tests getAllAircraftByRegistration returns the a
   "maintenance": {
     "lastMaintenanceDate": "2024-11-10",
     "lastMaintenanceTach": 4709,
-    "lastMaintenanceType": "200",
+    "lastMaintenanceType": "200h",
     "maintenanceCycle": 100,
     "nextMaintenanceDate": null,
     "nextMaintenanceTach": 4778,
-    "nextMaintenanceType": "100",
+    "nextMaintenanceType": "100h",
     "totalPercentageHours": 10,
     "usablePercentageHours": 8,
   },

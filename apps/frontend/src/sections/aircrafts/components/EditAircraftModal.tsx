@@ -14,6 +14,9 @@ import {
   Card,
   CardContent,
   Stack,
+  CardActions,
+  Typography,
+  Checkbox,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
@@ -22,6 +25,8 @@ import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { Aircraft } from '@backend/routes/aircrafts/models'
 import { AuditFormField } from '../../../components/AuditFormField'
 import { FormTitle } from '../../../components/FormTitle'
+import dayjs from 'dayjs'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 
 export type AircraftEditMode = 'new' | 'details' | 'maintenance' | 'notes'
 
@@ -63,6 +68,7 @@ export const EditAircraftModal = ({
         model: aircraft?.model ?? '',
         manufacturer: aircraft?.manufacturer ?? '',
         yearOfManufacture: aircraft?.yearOfManufacture ?? 2020,
+        active: aircraft?.active ?? false,
 
         location: aircraft?.location,
         equipment: aircraft?.equipment,
@@ -103,6 +109,37 @@ export const EditAircraftModal = ({
       ...prev,
       [field]: value,
     }))
+
+  const handleMaintenanceChange = (
+    field: keyof Aircraft['maintenance'],
+    value: string | number | null
+  ) =>
+    setFormData((prev) => ({
+      ...prev,
+      maintenance: {
+        ...prev.maintenance!,
+        [field]: value,
+      },
+    }))
+
+  const startNextCycle = () => {
+    setFormData((prev) => {
+      const m = prev.maintenance!
+      return {
+        ...prev,
+        maintenance: {
+          ...m,
+          lastMaintenanceDate:
+            m.nextMaintenanceDate ?? dayjs().format('YYYY-MM-DD'),
+          lastMaintenanceType: m.nextMaintenanceType,
+          lastMaintenanceTach: m.nextMaintenanceTach,
+          nextMaintenanceDate: null,
+          nextMaintenanceType: m.maintenanceCycle.toString(),
+          nextMaintenanceTach: m.nextMaintenanceTach + m.maintenanceCycle,
+        },
+      }
+    })
+  }
 
   const trigger = async (method: 'POST' | 'PATCH') => {
     setErrorMsg('')
@@ -190,6 +227,27 @@ export const EditAircraftModal = ({
         />
 
         <Stack spacing={1.5}>
+          <Grid container spacing={2}>
+            <Grid size={12} display='flex' alignItems='center'>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{ width: 150 }}
+              >
+                {t('aircraft.edit.active')}
+              </Typography>
+              <Checkbox
+                checked={formData.active}
+                onChange={({ target }) => {
+                  setFormData({
+                    ...formData,
+                    active: target.checked,
+                  })
+                }}
+              />
+            </Grid>
+          </Grid>
+
           <Grid size={12}>
             <TextField
               fullWidth
@@ -235,6 +293,125 @@ export const EditAircraftModal = ({
     </Card>
   )
 
+  const renderMaintenanceForm = () => (
+    <Grid container spacing={2}>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <TextField
+          fullWidth
+          required
+          inputMode='numeric'
+          label={t('aircraft.maintenance.maintenanceCycle')}
+          value={formData.maintenance?.maintenanceCycle || ''}
+          onChange={({ target }) =>
+            handleMaintenanceChange('maintenanceCycle', Number(target.value))
+          }
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <TextField
+          fullWidth
+          required
+          inputMode='numeric'
+          label={t('aircraft.maintenance.totalPercentageHours')}
+          value={formData.maintenance?.totalPercentageHours || ''}
+          onChange={({ target }) =>
+            handleMaintenanceChange(
+              'totalPercentageHours',
+              Number(target.value)
+            )
+          }
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <TextField
+          fullWidth
+          required
+          inputMode='numeric'
+          label={t('aircraft.maintenance.usablePercentageHours')}
+          value={formData.maintenance?.usablePercentageHours || ''}
+          onChange={({ target }) =>
+            handleMaintenanceChange(
+              'usablePercentageHours',
+              Number(target.value)
+            )
+          }
+        />
+      </Grid>
+    </Grid>
+  )
+
+  const maintenanceCard = (
+    titleKey: string,
+    icon: string,
+    dateKey: keyof Aircraft['maintenance'],
+    typeKey: keyof Aircraft['maintenance'],
+    tachKey: keyof Aircraft['maintenance']
+  ) => {
+    const next = dateKey.includes('next')
+    return (
+      <Card>
+        <CardContent>
+          <FormTitle title={t(titleKey)} icon={icon} />
+
+          <Stack spacing={1.5}>
+            <DatePicker
+              disableFuture={!next}
+              label={t('aircraft.maintenance.date')}
+              value={
+                formData.maintenance?.[dateKey] !== null
+                  ? dayjs(formData.maintenance?.[dateKey])
+                  : null
+              }
+              onChange={(value) =>
+                handleMaintenanceChange(
+                  dateKey,
+                  value?.format('YYYY-MM-DD') ?? null
+                )
+              }
+              slotProps={{
+                field: {
+                  clearable: next,
+                  onClear: () => handleMaintenanceChange(dateKey, ''),
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              required
+              inputMode='numeric'
+              label={t('aircraft.maintenance.type')}
+              value={formData.maintenance?.[typeKey] ?? ''}
+              onChange={({ target }) =>
+                handleMaintenanceChange(typeKey, target.value)
+              }
+            />
+            <TextField
+              fullWidth
+              required
+              inputMode='numeric'
+              label={t('aircraft.maintenance.tach')}
+              value={formData.maintenance?.[tachKey] ?? ''}
+              onChange={({ target }) =>
+                handleMaintenanceChange(tachKey, Number(target.value))
+              }
+            />
+          </Stack>
+        </CardContent>
+        {next && (
+          <CardActions>
+            <Button
+              onClick={startNextCycle}
+              color='primary'
+              variant='contained'
+            >
+              {t('aircraft.maintenance.nextCycle')}
+            </Button>
+          </CardActions>
+        )}
+      </Card>
+    )
+  }
+
   const auditCard = () =>
     aircraft && (
       <Card>
@@ -278,9 +455,31 @@ export const EditAircraftModal = ({
       />
       <DialogContent dividers>
         <Stack spacing={3}>
-          {renderDetailsForm()}
-          {operationsCard()}
-          {auditCard()}
+          {mode == 'maintenance' ? (
+            <>
+              {renderMaintenanceForm()}
+              {maintenanceCard(
+                'aircraft.maintenance.lastMaintenance',
+                'mdi:wrench-check',
+                'lastMaintenanceDate',
+                'lastMaintenanceType',
+                'lastMaintenanceTach'
+              )}
+              {maintenanceCard(
+                'aircraft.maintenance.nextMaintenance',
+                'mdi:wrench-clock',
+                'nextMaintenanceDate',
+                'nextMaintenanceType',
+                'nextMaintenanceTach'
+              )}
+            </>
+          ) : (
+            <>
+              {renderDetailsForm()}
+              {operationsCard()}
+              {auditCard()}
+            </>
+          )}
         </Stack>
         {errorMsg.length > 0 && (
           <Alert severity='error' sx={{ mt: 2 }}>

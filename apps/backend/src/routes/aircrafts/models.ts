@@ -74,6 +74,7 @@ export const AircraftSchema = AuditableSchema.extend({
   model: z.string().max(50).nonempty(),
   manufacturer: z.string().max(50).nonempty(),
   yearOfManufacture: z.number().int().positive(),
+  active: z.boolean(),
 
   status: AircraftStatusSchema.optional(),
 

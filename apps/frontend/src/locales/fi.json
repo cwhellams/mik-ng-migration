@@ -87,10 +87,9 @@
     "details": "Perustiedot",
     "notes": "Huomiot",
     "documents": "Dokumentit",
-    "totalTime": "Viimeinen laskeutuminen {{lastLanding}}, polttoainetta jäljellä {{remainingFuelLitres}} litraa.",
-    "maintenance": "Seuraava huolto",
-    "maintenanceHours": "Lentoaikaa {{tachUntilNextMaintenance}} tuntia jäljellä, käytettävissä {{usablePercentageHours}}h ennen siirtolentoa",
-    "maintenanceDays": "Huolto tilattu {{daysUntilNextMaintenance}} päivän päähän",
+    "totalTime": "Viimeinen laskeutuminen {{lastLanding}}, polttoainetta jäljellä {{remainingFuelLitres}} litraa. ",
+    "maintenanceHours": "Lentoaikaa {{tachUntilNextMaintenance}} tuntia jäljellä, käytettävissä {{usablePercentageHours}}h ennen siirtolentoa. ",
+    "maintenanceDays": "Huoltoon {{daysUntilNextMaintenance}} päivää.",
     "document": {
       "arc": "ARC",
       "finavia": "Finavia",
@@ -118,6 +117,7 @@
       "details": "Muokkaa lentokoneen tietoja",
       "operations": "Operaatiotiedot",
       "audit": "Historiatiedot",
+      "maintenance": "Huoltotiedot",
       "created": "Luotu",
       "updated": "Päivitetty",
       "registration": "Rekisteri",
@@ -125,9 +125,28 @@
       "model": "Malli",
       "manufacturer": "Valmistaja",
       "yearOfManufacture": "Valmistusvuosi",
+      "active": "Aktiivinen",
       "location": "Sijainti",
       "equipment": "Varustelu",
       "hourlyRateEur": "Tuntihinta"
+    },
+    "maintenance": {
+      "edit": "Muokkaa huoltotietoja",
+      "nextCycle": "Huolto suoritettu",
+
+      "title": "Seuraava huolto",
+      "maintenanceCycle": "Huoltosykli",
+
+      "lastMaintenance": "Viimeinen huolto",
+
+      "date": "Päivä",
+      "type": "Huollon tyyppi",
+      "tach": "Tunnit",
+
+      "nextMaintenance": "Seuraava huolto",
+
+      "totalPercentageHours": "Sallitut %-tunnit",
+      "usablePercentageHours": "Käyttökelpoiset %-tunnit"
     }
   },
   "error": {

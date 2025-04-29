@@ -228,24 +228,33 @@ const Aircrafts = () => {
                       </Typography>
                     </Box>
 
-                    <Box>
+                    <Box position='relative'>
                       <Typography
                         variant='subtitle1'
                         color='text.primary'
                         sx={{ width: 150 }}
                       >
-                        {t('aircraft.maintenance')}
+                        {t('aircraft.maintenance.title')}
                       </Typography>
+
+                      {isAircraftAdmin && (
+                        <EditButton
+                          title={t('aircraft.maintenance.edit')}
+                          onClick={() => {
+                            setEditData(aircraft)
+                            setEditMode('maintenance')
+                          }}
+                          sx={{ top: 0, right: 0 }}
+                        />
+                      )}
 
                       <Typography>
                         {t('aircraft.maintenanceHours', aircraft.status)}
-                      </Typography>
 
-                      {aircraft.status?.daysUntilNextMaintenance && (
-                        <Typography>
-                          {t('aircraft.maintenanceDays', aircraft.status)}
-                        </Typography>
-                      )}
+                        {aircraft.status?.daysUntilNextMaintenance !==
+                          undefined &&
+                          t('aircraft.maintenanceDays', aircraft.status)}
+                      </Typography>
                     </Box>
 
                     <ProgressLine

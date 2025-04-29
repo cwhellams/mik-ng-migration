@@ -101,9 +101,8 @@
     "notes": "Notes",
     "documents": "Documents",
     "totalTime": "Last landing {{lastLanding}}, {{remainingFuelLitres}} litres of fuel remaining.",
-    "maintenance": "Next Maintenance",
-    "maintenanceHours": "{{tachUntilNextMaintenance}} hours of flight time remaining, {{usablePercentageHours}}h usable until ferry",
-    "maintenanceDays": "Maintenance in {{daysUntilNextMaintenance}} days",
+    "maintenanceHours": "{{tachUntilNextMaintenance}} hours of flight time remaining, {{usablePercentageHours}}h usable until ferry. ",
+    "maintenanceDays": "Maintenance in {{daysUntilNextMaintenance}} days.",
     "document": {
       "arc": "ARC",
       "finavia": "Finavia",
@@ -131,6 +130,7 @@
       "details": "Edit Aircraft Details",
       "operations": "Operations",
       "audit": "Audit",
+      "maintenance": "Huoltotiedot",
       "created": "Created",
       "updated": "Updated",
       "registration": "Registration",
@@ -138,9 +138,28 @@
       "model": "Model",
       "manufacturer": "Manufacturer",
       "yearOfManufacture": "Year Of Manufacture",
+      "active": "Is Active",
       "location": "Location",
       "equipment": "Equipment",
       "hourlyRateEur": "Hourly Rate"
+    },
+    "maintenance": {
+      "edit": "Edit Maintenance Details",
+      "nextCycle": "Maintenance Performed",
+
+      "title": "Next Maintenance",
+      "maintenanceCycle": "Maintenance Cycle",
+
+      "lastMaintenance": "Last Maintenance",
+
+      "date": "Date",
+      "type": "Type of Maintenance",
+      "tach": "At Tach Hours",
+
+      "nextMaintenance": "Next Maintenance",
+
+      "totalPercentageHours": "Total Percentage Hours",
+      "usablePercentageHours": "Usable Percentage Hours"
     }
   },
   "error": {

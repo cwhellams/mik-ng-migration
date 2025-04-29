@@ -3,6 +3,7 @@
 exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
 [
   {
+    "active": true,
     "createdAt": Any<String>,
     "createdBy": "k1mnimda",
     "displayName": "Diamond DA40",
@@ -62,11 +63,11 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
     "maintenance": {
       "lastMaintenanceDate": "2024-11-10",
       "lastMaintenanceTach": 4709,
-      "lastMaintenanceType": "200",
+      "lastMaintenanceType": "200h",
       "maintenanceCycle": 100,
       "nextMaintenanceDate": null,
       "nextMaintenanceTach": 4778,
-      "nextMaintenanceType": "100",
+      "nextMaintenanceType": "100h",
       "totalPercentageHours": 10,
       "usablePercentageHours": 8,
     },
@@ -101,6 +102,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
     "yearOfManufacture": 2007,
   },
   {
+    "active": true,
     "createdAt": Any<String>,
     "createdBy": "k1mnimda",
     "displayName": "Diamond DV20",
@@ -160,11 +162,11 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
     "maintenance": {
       "lastMaintenanceDate": "2025-03-01",
       "lastMaintenanceTach": 6085,
-      "lastMaintenanceType": "200",
+      "lastMaintenanceType": "200h",
       "maintenanceCycle": 50,
       "nextMaintenanceDate": null,
       "nextMaintenanceTach": 6130,
-      "nextMaintenanceType": "50",
+      "nextMaintenanceType": "50h",
       "totalPercentageHours": 5,
       "usablePercentageHours": 3,
     },
@@ -192,6 +194,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
     "yearOfManufacture": 2010,
   },
   {
+    "active": false,
     "createdAt": Any<String>,
     "createdBy": "k1mnimda",
     "displayName": "Piper PA-28",
@@ -202,11 +205,11 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
     "maintenance": {
       "lastMaintenanceDate": "2024-04-15",
       "lastMaintenanceTach": 5180,
-      "lastMaintenanceType": "50",
+      "lastMaintenanceType": "50h",
       "maintenanceCycle": 50,
       "nextMaintenanceDate": "2025-05-05",
       "nextMaintenanceTach": 5230,
-      "nextMaintenanceType": "50",
+      "nextMaintenanceType": "50h",
       "totalPercentageHours": 5,
       "usablePercentageHours": 3,
     },
@@ -247,6 +250,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
 exports[`GET /aircrafts should return only active aircrafts as a user 1`] = `
 [
   {
+    "active": true,
     "createdAt": Any<String>,
     "createdBy": "k1mnimda",
     "displayName": "Diamond DA40",
@@ -306,11 +310,11 @@ exports[`GET /aircrafts should return only active aircrafts as a user 1`] = `
     "maintenance": {
       "lastMaintenanceDate": "2024-11-10",
       "lastMaintenanceTach": 4709,
-      "lastMaintenanceType": "200",
+      "lastMaintenanceType": "200h",
       "maintenanceCycle": 100,
       "nextMaintenanceDate": null,
       "nextMaintenanceTach": 4778,
-      "nextMaintenanceType": "100",
+      "nextMaintenanceType": "100h",
       "totalPercentageHours": 10,
       "usablePercentageHours": 8,
     },
@@ -345,6 +349,7 @@ exports[`GET /aircrafts should return only active aircrafts as a user 1`] = `
     "yearOfManufacture": 2007,
   },
   {
+    "active": true,
     "createdAt": Any<String>,
     "createdBy": "k1mnimda",
     "displayName": "Diamond DV20",
@@ -404,11 +409,11 @@ exports[`GET /aircrafts should return only active aircrafts as a user 1`] = `
     "maintenance": {
       "lastMaintenanceDate": "2025-03-01",
       "lastMaintenanceTach": 6085,
-      "lastMaintenanceType": "200",
+      "lastMaintenanceType": "200h",
       "maintenanceCycle": 50,
       "nextMaintenanceDate": null,
       "nextMaintenanceTach": 6130,
-      "nextMaintenanceType": "50",
+      "nextMaintenanceType": "50h",
       "totalPercentageHours": 5,
       "usablePercentageHours": 3,
     },
@@ -440,6 +445,7 @@ exports[`GET /aircrafts should return only active aircrafts as a user 1`] = `
 
 exports[`GET /aircrafts/id Get aircraft with valid registration should return the aircraft 1`] = `
 {
+  "active": true,
   "createdAt": Any<String>,
   "createdBy": "k1mnimda",
   "displayName": "Diamond DA40",
@@ -499,11 +505,11 @@ exports[`GET /aircrafts/id Get aircraft with valid registration should return th
   "maintenance": {
     "lastMaintenanceDate": "2024-11-10",
     "lastMaintenanceTach": 4709,
-    "lastMaintenanceType": "200",
+    "lastMaintenanceType": "200h",
     "maintenanceCycle": 100,
     "nextMaintenanceDate": null,
     "nextMaintenanceTach": 4778,
-    "nextMaintenanceType": "100",
+    "nextMaintenanceType": "100h",
     "totalPercentageHours": 10,
     "usablePercentageHours": 8,
   },
