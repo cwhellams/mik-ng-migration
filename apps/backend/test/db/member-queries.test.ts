@@ -1,4 +1,3 @@
-import { closeDb } from '../../src/db/connection.ts'
 import {
   getMemberRolesByMemberId,
   getMembers,
@@ -15,6 +14,7 @@ import {
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import { MIKMemberTypes, MIKPermissions, type MemberRole } from '../../src/routes/members/models.ts'
 import type { Upsert } from '../../src/types/schema.ts'
+import { deleteSimplbooksOutbox, expectAddMember1Row } from './__helpers__/simplbooksDbHelpers.ts'
 
 const jwt: JWTUser = {
   memberId: 'k1mnimda',
@@ -23,6 +23,10 @@ const jwt: JWTUser = {
 }
 
 describe('Db query member tests', () => {
+  beforeEach(async () => {
+    await deleteSimplbooksOutbox()
+  })
+
   it('getMemberById should return member data for a valid member id', async () => {
     const result = await getMemberById('Matti1')
     expect(result).toMatchSnapshot({
@@ -30,6 +34,7 @@ describe('Db query member tests', () => {
       dateOfBirth: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+      updatedBy: expect.any(String),
       roles: result?.roles.map(r => ({
         ...r,
         createdAt: expect.any(String),
@@ -65,6 +70,7 @@ describe('Db query member tests', () => {
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
+      updatedBy: expect.any(String),
       memberSince: expect.any(String),
       roles: result?.roles.map(r => ({
         ...r,
@@ -120,7 +126,7 @@ describe('Db query member tests', () => {
 })
 
 describe('Db add member tests', () => {
-  const expectSnapshottetMember = async (memberId: string, email: string) => {
+  const expectSnapshottedMember = async (memberId: string, email: string) => {
     const result = await getMemberById(memberId)
     expect(result?.memberId).toEqual(memberId)
     expect(result?.email).toEqual(email)
@@ -151,14 +157,14 @@ describe('Db add member tests', () => {
       lastName: 'member',
       lang: 'fi',
     })
-    await expectSnapshottetMember(memberId, email)
-
+    await expectSnapshottedMember(memberId, email)
+    await expectAddMember1Row()
     await updateMember(
       memberId,
       { firstName: 'test2', roles: [{ roleId: 'MEMBER', isPublic: true }] },
       jwt,
     )
-    await expectSnapshottetMember(memberId, email)
+    await expectSnapshottedMember(memberId, email)
 
     await removeMember(memberId)
   })
@@ -220,9 +226,4 @@ describe('Db add member tests', () => {
   it('Removing a member role that does not exist will return false', async () => {
     expect(await removeMemberRole('CANT_find_THIS')).toEqual(false)
   })
-})
-
-afterAll(async () => {
-  // Close the pool after all tests
-  await closeDb()
 })

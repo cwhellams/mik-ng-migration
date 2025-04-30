@@ -17,6 +17,7 @@ import { problem } from '../routes/response.ts'
 import type { Upsert } from '../types/schema.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import { randomUUID } from 'node:crypto'
+import { SimplbooksEventType } from '../services/simplbooks/models.ts'
 
 export async function getMemberById(memberId: string): Promise<Member | undefined> {
   const member = await db
@@ -205,7 +206,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       .insertInto('accts.outbox_simplbooks')
       .values({
         id: randomUUID(),
-        event_type: 'addMember',
+        event_type: SimplbooksEventType.ADD_MEMBER,
         payload: member,
       })
       .execute()

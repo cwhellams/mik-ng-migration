@@ -177,6 +177,24 @@ exports[`Db query member tests getMemberById should return member data for a val
     {
       "createdAt": Any<String>,
       "createdBy": "k1mnimda",
+      "description": "MIK member with additional flying rights",
+      "isPublic": false,
+      "name": {
+        "en": "Flying Member",
+        "fi": "Lento-oikeus",
+      },
+      "permissions": [
+        "flightlog.user",
+        "booking.user",
+        "aircraft.user",
+      ],
+      "roleId": "FLYING_MEMBER",
+      "updatedAt": Any<String>,
+      "updatedBy": "k1mnimda",
+    },
+    {
+      "createdAt": Any<String>,
+      "createdBy": "k1mnimda",
       "description": "Instructor with permissions to manage training",
       "isPublic": true,
       "name": {
@@ -208,7 +226,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
   "updatedAt": Any<String>,
-  "updatedBy": "Matti1",
+  "updatedBy": Any<String>,
 }
 `;
 
@@ -235,6 +253,24 @@ exports[`Db query member tests getMemberById should return member data for a val
     {
       "createdAt": Any<String>,
       "createdBy": "k1mnimda",
+      "description": "MIK member with additional flying rights",
+      "isPublic": false,
+      "name": {
+        "en": "Flying Member",
+        "fi": "Lento-oikeus",
+      },
+      "permissions": [
+        "flightlog.user",
+        "booking.user",
+        "aircraft.user",
+      ],
+      "roleId": "FLYING_MEMBER",
+      "updatedAt": Any<String>,
+      "updatedBy": "k1mnimda",
+    },
+    {
+      "createdAt": Any<String>,
+      "createdBy": "k1mnimda",
       "description": "Instructor with permissions to manage training",
       "isPublic": true,
       "name": {
@@ -266,12 +302,30 @@ exports[`Db query member tests getMemberById should return member data for a val
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
   "updatedAt": Any<String>,
-  "updatedBy": "Matti1",
+  "updatedBy": Any<String>,
 }
 `;
 
 exports[`Db query member tests getMemberRolesByMemberId should return roles for given valid member 1`] = `
 [
+  {
+    "createdAt": Any<String>,
+    "createdBy": "k1mnimda",
+    "description": "MIK member with additional flying rights",
+    "isPublic": false,
+    "name": {
+      "en": "Flying Member",
+      "fi": "Lento-oikeus",
+    },
+    "permissions": [
+      "flightlog.user",
+      "booking.user",
+      "aircraft.user",
+    ],
+    "roleId": "FLYING_MEMBER",
+    "updatedAt": Any<String>,
+    "updatedBy": "k1mnimda",
+  },
   {
     "createdAt": Any<String>,
     "createdBy": "k1mnimda",

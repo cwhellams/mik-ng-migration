@@ -200,6 +200,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "memberId": "Matti1",
       "phoneNumber": "0401234567",
       "roles": [
+        "FLYING_MEMBER",
         "INSTRUCTOR",
         "MEMBER",
       ],
@@ -286,6 +287,24 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
   "phoneNumber": "0401234567",
   "postcode": "00100",
   "roles": [
+    {
+      "createdAt": Any<String>,
+      "createdBy": "k1mnimda",
+      "description": "MIK member with additional flying rights",
+      "isPublic": false,
+      "name": {
+        "en": "Flying Member",
+        "fi": "Lento-oikeus",
+      },
+      "permissions": [
+        "flightlog.user",
+        "booking.user",
+        "aircraft.user",
+      ],
+      "roleId": "FLYING_MEMBER",
+      "updatedAt": Any<String>,
+      "updatedBy": "k1mnimda",
+    },
     {
       "createdAt": Any<String>,
       "createdBy": "k1mnimda",

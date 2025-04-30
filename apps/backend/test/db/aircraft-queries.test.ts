@@ -54,8 +54,3 @@ describe('Db query Get aircrafts tests', () => {
     expect(result).toBeUndefined()
   })
 })
-
-afterAll(async () => {
-  // Close the pool after all tests
-  await closeDb()
-})

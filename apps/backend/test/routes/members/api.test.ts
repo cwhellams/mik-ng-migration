@@ -16,6 +16,10 @@ import {
 } from '../../../src/routes/members/models.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import type { Upsert } from '../../../src/types/schema.ts'
+import {
+  deleteSimplbooksOutbox,
+  expectAddMember1Row,
+} from '../../db/__helpers__/simplbooksDbHelpers.ts'
 
 // Create an instance of the Express app
 const app = express()
@@ -361,6 +365,8 @@ describe('GET /members/roles', () => {
       'booking.admin',
       'aircraft.user',
       'aircraft.admin',
+      'invoicing.user',
+      'invoicing.admin',
     ])
     expect(roles.map(({ roleId, permissions }) => ({ roleId, permissions }))).toEqual([
       {
@@ -657,17 +663,23 @@ describe('GET /members/id', () => {
 })
 
 describe('POST /members', () => {
+  beforeEach(async () => {
+    await deleteSimplbooksOutbox()
+  })
+
   const post = async (payload: RegisterRequest, token: string) =>
     request(app).post(`/members`).set('Authorization', `Bearer ${token}`).send(payload)
 
   const remove = async (id: string, token: string) =>
     request(app).delete(`/members/${id}`).set('Authorization', `Bearer ${token}`).send({})
 
+  const email = `${new Date().getTime()}@testdata.com`
   const req: RegisterRequest = {
     memberType: MIKMemberTypes.NONFLYING,
-    email: 'test@email.com',
+    email,
     firstName: 'first',
     lastName: 'last',
+    lang: 'en',
   }
 
   it('Return 401 if no token in authorization header', async () => {
@@ -688,6 +700,7 @@ describe('POST /members', () => {
   it('Create and delete member as an admin', async () => {
     const response = await post(req, adminToken)
     expect(response.status).toBe(200)
+    await expectAddMember1Row()
 
     const member = response.body as Member
 

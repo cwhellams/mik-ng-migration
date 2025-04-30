@@ -207,9 +207,4 @@ describe('Db query update tests', () => {
     user.memberId = originalLog[0].updated_by
     await updateFlightLog(flight_id, data, user)
   })
-
-  afterAll(async () => {
-    // Close the pool after all tests
-    await closeDb()
-  })
 })

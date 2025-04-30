@@ -7,6 +7,10 @@ const datePattern = /^\d{2}-\d{2}-\d{4}$/ // Matches dates in the format dd-mm-y
 // Regex pattern for yyyy-mm-dd
 const datePatternISO = z.string().regex(/^\d{4}-\d{2}-\d{2}$/) // Matches dates in the format yyyy-mm-dd
 
+export enum SimplbooksEventType {
+  ADD_MEMBER = 'addMember',
+}
+
 export const clientSchema = z.object({
   Client: z.object({
     name: z.string(),

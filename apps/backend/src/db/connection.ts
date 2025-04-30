@@ -42,6 +42,7 @@ const dialect = new PostgresDialect({
 // Function to close the pool
 const closeDb = async (): Promise<void> => {
   await pool.end() // Close all connections in the pool
+  await db.destroy() // Destroy the Kysely instance
 }
 
 export const db = new Kysely<DB>({ dialect })
