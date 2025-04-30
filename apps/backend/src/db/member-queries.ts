@@ -16,6 +16,7 @@ import {
 import { problem } from '../routes/response.ts'
 import type { Upsert } from '../types/schema.ts'
 import { generateShortId } from '../util/nanoId.ts'
+import { randomUUID } from 'node:crypto'
 
 export async function getMemberById(memberId: string): Promise<Member | undefined> {
   const member = await db
@@ -171,37 +172,49 @@ export async function getMembers(
 export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise<string> {
   const now = new Date()
   const new_member_id = generateShortId()
-  const result = await db
-    .insertInto('member.register')
-    .values({
-      member_id: new_member_id,
-      member_type: member.memberType,
-      email: member.email,
-      first_name: member.firstName,
-      last_name: member.lastName,
+  member.memberId = new_member_id
 
-      phone_number: member.phoneNumber,
-      street_address: member.streetAddress,
-      postcode: member.postcode,
-      town_city: member.townCity,
+  await db.transaction().execute(async trx => {
+    const insMember = await trx
+      .insertInto('member.register')
+      .values({
+        member_id: member.memberId!,
+        member_type: member.memberType,
+        email: member.email,
+        first_name: member.firstName,
+        last_name: member.lastName,
+        phone_number: member.phoneNumber,
+        street_address: member.streetAddress,
+        postcode: member.postcode,
+        town_city: member.townCity,
 
-      billing_id: member.lastName.toUpperCase(),
-      date_of_birth: member.dateOfBirth,
-      member_since: now.toISOString(),
+        billing_id: member.lastName.toUpperCase(),
+        date_of_birth: member.dateOfBirth,
+        member_since: now.toISOString(),
 
-      created_at: now,
-      created_by: jwt?.memberId ?? new_member_id,
-      updated_at: now,
-      updated_by: jwt?.memberId ?? new_member_id,
-      email_verified_at: undefined,
-    })
-    .returning('member_id')
-    .executeTakeFirst()
-  if (!result?.member_id) {
-    return problem({ status: 500, detail: 'Member insert failed' })
-  }
+        created_at: now,
+        created_by: jwt?.memberId ?? new_member_id,
+        updated_at: now,
+        updated_by: jwt?.memberId ?? new_member_id,
+        email_verified_at: undefined,
+      })
+      .returning('member_id')
+      .executeTakeFirst()
 
-  return result.member_id
+    await trx
+      .insertInto('accts.outbox_simplbooks')
+      .values({
+        id: randomUUID(),
+        event_type: 'addMember',
+        payload: member,
+      })
+      .execute()
+
+    if (!insMember?.member_id) {
+      throw new Error('Member insert failed')
+    }
+  })
+  return member.memberId
 }
 
 export async function updateMember(

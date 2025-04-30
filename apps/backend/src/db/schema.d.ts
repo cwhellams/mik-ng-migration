@@ -32,7 +32,20 @@ export type MemberType = 'EXTERNAL' | 'FLYING' | 'JUNIOR' | 'NON-FLYING'
 
 export type Numeric = ColumnType<number, number | string, number | string>
 
+export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SYNCED'
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>
+
+export interface AcctsOutboxSimplbooks {
+  created_at_utc: Generated<Timestamp>
+  error_message: string | null
+  event_type: string
+  id: string
+  payload: Json
+  processed_at: Timestamp | null
+  status: Generated<SimplbooksOutboxStatus>
+  updated_at_utc: Generated<Timestamp>
+}
 
 export interface FlightAircraft {
   active: Generated<boolean>
@@ -247,6 +260,7 @@ export interface StaticAirfields {
 }
 
 export interface DB {
+  'accts.outbox_simplbooks': AcctsOutboxSimplbooks
   'flight.aircraft': FlightAircraft
   'flight.aircraft_documents': FlightAircraftDocuments
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook

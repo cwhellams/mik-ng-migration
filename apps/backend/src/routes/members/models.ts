@@ -20,6 +20,10 @@ export enum MIKPermissions {
   // can see plane hours, hangar codes
   AIRCRAFT_USER = 'aircraft.user',
   AIRCRAFT_ADMIN = 'aircraft.admin',
+
+  // can see invoices, admin can create and edit
+  INVOICING_USER = 'invoicing.user',
+  INVOICING_ADMIN = 'invoicing.admin',
 }
 
 export enum MIKMemberTypes {

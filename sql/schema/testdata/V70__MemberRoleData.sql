@@ -1,6 +1,7 @@
 INSERT INTO member.member_to_roles (member_id, role_id, created_by)
 VALUES
 ('Matti1', 'MEMBER', 'k1mnimda'),
+('Matti1', 'FLYING_MEMBER', 'k1mnimda'),
 ('Matti1', 'INSTRUCTOR', 'k1mnimda'),
 ('Liisa1', 'ADMIN', 'k1mnimda'),
 ('Liisa1', 'COMMITTEE', 'k1mnimda'),

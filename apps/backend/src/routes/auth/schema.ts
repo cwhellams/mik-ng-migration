@@ -10,6 +10,7 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
 
   // language needed for sending emails
   lang: z.string().optional(),
+  memberId: z.string().optional(),
 })
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 

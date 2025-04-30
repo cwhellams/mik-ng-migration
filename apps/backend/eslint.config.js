@@ -5,7 +5,6 @@ import prettierPlugin from 'eslint-plugin-prettier'
 import importPlugin from 'eslint-plugin-import'
 import promisePlugin from 'eslint-plugin-promise'
 import jestPlugin from 'eslint-plugin-jest'
-import js from '@eslint/js'
 import globals from 'globals'
 
 export default [

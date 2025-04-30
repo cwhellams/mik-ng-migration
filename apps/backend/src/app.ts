@@ -17,6 +17,7 @@ import { router as passportRoutes } from './routes/auth/login.ts'
 import flightLogRoutes from './routes/flight-log/api.ts'
 import { router as memberRoutes } from './routes/members/api.ts'
 import { problemErrorHandler, problem, notFoundProblemHandler } from './routes/response.ts'
+import invoiceRoutes from './routes/invoicing/api.ts'
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -80,6 +81,7 @@ app.use('/api/v1/members', memberRoutes)
 app.use('/api/v1/flight-log', flightLogRoutes)
 app.use('/api/v1/aircrafts', aircraftRoutes)
 app.use('/api/v1/ajlb', ajlbRoutes)
+app.use('/api/v1/invoice', invoiceRoutes)
 
 app.use(problemErrorHandler)
 
