@@ -105,6 +105,7 @@ export async function getMembers(
       'first_name',
       'last_name',
       'phone_number',
+      'email',
       jsonArrayFrom(
         eb
           .selectFrom('member.member_to_roles')
@@ -157,8 +158,10 @@ export async function getMembers(
 
   return list.map(member => ({
     memberId: member.member_id,
-    name: `${member.first_name} ${member.last_name}`,
+    first: member.first_name,
+    last: member.last_name,
     phoneNumber: member.phone_number,
+    email: member.email,
     roles: member.roles
       .map(role => role.role_id)
       .filter(role => isAdmin || publicRoles.includes(role)),

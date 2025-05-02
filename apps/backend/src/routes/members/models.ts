@@ -59,9 +59,11 @@ export type MemberRolesResponse = z.infer<typeof MemberRolesResponseSchema>
 // member list endpoint
 
 const MemberListSchema = z.object({
-  name: z.string(),
+  first: z.string(),
+  last: z.string(),
   memberId: z.string(),
   phoneNumber: z.string().nullish(),
+  email: z.string(),
   roles: z.array(z.string()),
 })
 

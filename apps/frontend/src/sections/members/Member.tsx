@@ -23,6 +23,7 @@ import { toLocalDate } from '../../utils/date'
 import { FormTitle } from '../../components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
 import { RemoteContent } from '../../components/RemoteContent'
+import UserAvatar from './components/UserAvatar'
 
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
@@ -47,12 +48,46 @@ const MemberProfile = () => {
     navigate('/members')
   }
 
+  //Deconstructing the data object to extract the properties we need
+  const { 
+    email, 
+    firstName, 
+    lastName, 
+    //roles, 
+    phoneNumber, 
+    streetAddress, 
+    postcode, 
+    townCity, 
+    dateOfBirth, 
+    iceContactName, 
+    iceContactPhoneNumber, 
+    isTrainingProgramPilot, 
+    //memberId, 
+    memberType, 
+    canMakeReservations, 
+    billingId, 
+    memberSince, 
+  } = data || {};
+
   return (
     <RemoteContent isLoading={isLoading} error={error}>
       <Box sx={{ padding: 3 }}>
-        <Typography variant='h2' gutterBottom>
-          {isAdmin ? data?.firstName : t('member.profile')}
+      
+        
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <UserAvatar
+            email={email || ''}
+            firstName={firstName || ''}
+            lastName={lastName || ''}
+            size={100}            
+            className='user-avatar'
+          />
+          <Typography variant='h2' >
+          {isAdmin ? firstName : t('member.profile')}
         </Typography>
+        </Box>
+        
+        
 
         <Stack
           direction='row'
@@ -90,28 +125,28 @@ const MemberProfile = () => {
 
                 <Stack spacing={1.5}>
                   <FormField label={t('member.fullname')} width={100}>
-                    {data?.firstName} {data?.lastName}
+                    {firstName} {lastName || 'N/A'}
                   </FormField>
 
                   <FormField label={t('member.email')} width={100}>
-                    {data?.email}
+                    {email}
                   </FormField>
 
                   <FormField label={t('member.phone')} width={100}>
-                    {data?.phoneNumber || 'N/A'}
+                    {phoneNumber || 'N/A'}
                   </FormField>
 
                   <FormField label={t('member.address')} width={100}>
                     {[
-                      data?.streetAddress,
-                      `${data?.postcode || ''} ${data?.townCity || ''}`,
+                      streetAddress,
+                      `${postcode || ''} ${townCity || ''}`,
                     ]
                       .filter(Boolean)
                       .join(', ') || 'N/A'}
                   </FormField>
 
                   <FormField label={t('member.dateOfBirth')} width={100}>
-                    {data?.dateOfBirth && toLocalDate(data?.dateOfBirth)}
+                    {dateOfBirth && toLocalDate(dateOfBirth)}
                   </FormField>
                 </Stack>
               </CardContent>
@@ -130,11 +165,11 @@ const MemberProfile = () => {
 
                 <Stack spacing={1.5}>
                   <FormField label={t('member.iceContact')}>
-                    {data?.iceContactName || 'N/A'}
+                    {iceContactName || 'N/A'}
                   </FormField>
 
                   <FormField label={t('member.icePhone')}>
-                    {data?.iceContactPhoneNumber || 'N/A'}
+                    {iceContactPhoneNumber || 'N/A'}
                   </FormField>
                 </Stack>
               </CardContent>
@@ -155,7 +190,7 @@ const MemberProfile = () => {
               />
 
               <Typography variant='body1'>
-                {data?.isTrainingProgramPilot
+                {isTrainingProgramPilot
                   ? 'Is a Training Program Pilot'
                   : 'Not a Training Program Pilot'}
               </Typography>
@@ -182,24 +217,24 @@ const MemberProfile = () => {
                 </FormField>
 
                 <FormField label={t('member.memberType')}>
-                  {data && t(`member.types.${data?.memberType.toLowerCase()}`)}
+                  {data && t(`member.types.${memberType?.toLowerCase()}`)}
                 </FormField>
 
                 <FormField
                   label={t('member.canMakeReservations')}
                   icon={
-                    data?.canMakeReservations
+                    canMakeReservations
                       ? 'mdi:check-box-outline'
                       : 'mdi:check-box-outline-blank'
                   }
                 />
 
                 <FormField label={t('member.billingId')}>
-                  {data?.billingId}
+                  {billingId}
                 </FormField>
 
                 <FormField label={t('member.memberSince')}>
-                  {toLocalDate(data?.memberSince)}
+                  {toLocalDate(memberSince)}
                 </FormField>
 
                 {isAdmin && data && (

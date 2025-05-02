@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles'
 
 // Create a theme instance
 const theme = createTheme({
@@ -90,6 +90,18 @@ const theme = createTheme({
         },
       },
     },
+    MuiTableCell: {
+      styleOverrides: {
+        head: {
+          fontWeight: 'bold', // Make header text bold
+          backgroundColor: '#f5f5f5', // Optional: Set background color for header
+          color: '#002385', // Optional: Set text color for header
+        },
+        root: {
+          padding: '16px', // Add padding if needed
+        },
+      },
+    },
     MuiAppBar: {
       styleOverrides: {
         root: {
@@ -112,7 +124,7 @@ const theme = createTheme({
       },
     },
   },
-});
+})
 
 // Create the light theme
 export const lightTheme = createTheme({
@@ -147,7 +159,7 @@ export const lightTheme = createTheme({
       },
     },
   },
-});
+})
 
 // Create the dark theme with the same card styling but adapted for dark mode
 export const darkTheme = createTheme({
@@ -182,6 +194,6 @@ export const darkTheme = createTheme({
       },
     },
   },
-});
+})
 
-export default theme;
+export default theme

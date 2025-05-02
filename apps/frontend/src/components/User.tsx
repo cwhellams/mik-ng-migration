@@ -2,7 +2,7 @@ import {
   Box,
   Button,
   Typography,
-  Avatar,
+
   Menu,
   MenuItem,
   ListItemIcon,
@@ -10,10 +10,11 @@ import {
 } from '@mui/material'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import {  useState } from 'react'
 import { Icon } from '@iconify/react'
 import { useAuth } from '../hooks/useAuth'
 import { useMe } from '../hooks/useMe'
+import UserAvatar from '../sections/members/components/UserAvatar'
 
 const User = () => {
   const { t, i18n } = useTranslation()
@@ -25,6 +26,7 @@ const User = () => {
 
   const logout = useAuth('logout')
 
+    
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
   }
@@ -54,14 +56,7 @@ const User = () => {
     i18n.changeLanguage(language)
     handleClose()
   }
-
-  // Function to get initials from name
-  const getInitials = (firstName: string, lastName?: string) => {
-    const firstInitial = firstName ? firstName.charAt(0) : ''
-    const lastInitial = lastName ? lastName.charAt(0) : ''
-    return `${firstInitial}${lastInitial}`.toUpperCase()
-  }
-
+  
   if (isLoading) {
     return <></>
   }
@@ -70,17 +65,13 @@ const User = () => {
     <Box>
       {me ? (
         <>
-          <Avatar
-            sx={{
-              bgcolor: 'primary.main',
-              cursor: 'pointer',
-              width: 40,
-              height: 40,
-            }}
-            onClick={handleClick}
-          >
-            {getInitials(me.firstName, me.lastName)}
-          </Avatar>
+          <UserAvatar
+            email={me.email} 
+          firstName={me.firstName}
+          lastName={me.lastName}
+          onClick={handleClick}
+          />
+          
           <Menu
             anchorEl={anchorEl}
             open={open}
