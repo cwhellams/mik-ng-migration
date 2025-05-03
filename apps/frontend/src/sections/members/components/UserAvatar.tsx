@@ -43,6 +43,7 @@ const UserAvatar: React.FC<Props> = ({
         width: size,
         height: size,
         cursor: onClick ? 'pointer' : 'default',
+        fontSize: size / 2,
       }}
       className={className}
     >

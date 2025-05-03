@@ -8,7 +8,10 @@
     "build": "tsc -b && vite build --mode production",
     "serve": "tsc -b && vite build --mode production && serve -s dist",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

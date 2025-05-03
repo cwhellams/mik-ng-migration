@@ -57,6 +57,7 @@
     "roles": "Roles",
     "trainingProgram": "Training Program",
     "noRolesAssigned": "No roles assigned",
+    "avatar": "Picture",
     "edit": {
       "register": "Add new user",
       "personalInfo": "Edit your information",

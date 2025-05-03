@@ -57,6 +57,7 @@
     "roles": "Roolit",
     "trainingProgram": "Koulutusohjelma",
     "noRolesAssigned": "Ei rooleja",
+    "avatar": "Profiilikuva",
     "edit": {
       "register": "Lisää uusi käyttäjä",
       "personalInfo": "Muokkaa omia tietojasi",

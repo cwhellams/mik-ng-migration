@@ -67,9 +67,9 @@ const User = () => {
         <>
           <UserAvatar
             email={me.email} 
-          firstName={me.firstName}
-          lastName={me.lastName}
-          onClick={handleClick}
+            firstName={me.firstName}
+            lastName={me.lastName}
+            onClick={handleClick}
           />
           
           <Menu

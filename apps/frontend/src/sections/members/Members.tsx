@@ -34,6 +34,7 @@ import { EditButton } from '../../components/EditButton'
 import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 import { RemoteContent } from '../../components/RemoteContent'
 import UserAvatar from './components/UserAvatar'
+import { formatFinnishPhoneNumber } from '../../utils/format'
 
 const Members = () => {
   const [filters, setFilters] = useState<MemberListFilters>({
@@ -151,9 +152,9 @@ const Members = () => {
         <Table aria-label='simple table'>
           <TableHead>
             <TableRow>
-              <TableCell>Image</TableCell>
+              <TableCell>{t('member.avatar')}</TableCell>
               <TableCell>{t('member.fullname')}</TableCell>
-              <TableCell align='right'>{t('member.phone')}</TableCell>
+              <TableCell >{t('member.phone')}</TableCell>
               <TableCell align='right'>{t('member.roles')}</TableCell>
             </TableRow>
           </TableHead>
@@ -174,7 +175,7 @@ const Members = () => {
                       `${row.first} ${row.last}`
                     )}
                   </TableCell>
-                  <TableCell align='right'>{row.phoneNumber}</TableCell>
+                  <TableCell>{formatFinnishPhoneNumber(row.phoneNumber ?? '')}</TableCell>
                   <TableCell align='right'>
                     <Stack
                       direction='row'
