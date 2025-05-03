@@ -20,6 +20,7 @@ import {
   loginEmailBody,
   registerEmailBody,
   registerEmailTitle,
+  loginEmailPlainText,
 } from '../../templates/email.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 import { problem } from '../response.ts'
@@ -52,7 +53,12 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
   }
 
   const link = magicLogin.generateLink(member.email, target)
-  sendEmail(member.email, loginEmailTitle(lang), await loginEmailBody(lang, link))
+  sendEmail(
+    member.email,
+    loginEmailTitle(lang),
+    loginEmailBody(lang, link),
+    loginEmailPlainText(lang, link),
+  )
   logger.info('magic login link sent for validation %j', link)
 
   return res.json({ code: link.code })
@@ -80,6 +86,7 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   sendEmail(
     member.email,
     registerEmailTitle(member.lang),
+    registerEmailBody(member.lang, { ...member, ...link }),
     registerEmailBody(member.lang, { ...member, ...link }),
   )
   logger.info('magic registration link sent for validation %j', link)

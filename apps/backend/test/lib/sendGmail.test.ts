@@ -33,7 +33,7 @@ const errorSpy = jest.spyOn(logger, 'error').mockImplementation((_infoObject: ob
 const originalEnv = process.env
 
 describe('sendEmail', () => {
-  let sendEmail: (to: string, subject: string, html: string) => void
+  let sendEmail: (to: string, subject: string, html: string, text: string) => void
   beforeAll(async () => {
     const module = await import('../../src/lib/sendGmail.ts')
     sendEmail = module.sendEmail
@@ -66,9 +66,10 @@ describe('sendEmail', () => {
     const to = 'recipient@example.com'
     const subject = 'Test Subject'
     const html = '<p>Test HTML content</p>'
+    const text = 'Test HTML content'
 
     // Call the function
-    await sendEmail(to, subject, html)
+    await sendEmail(to, subject, html, text)
 
     // Verify correct parameters are passed to sendMail
     expect(sendMailMock).toHaveBeenCalledWith(
@@ -77,6 +78,7 @@ describe('sendEmail', () => {
         to: 'recipient@example.com',
         subject: 'Test Subject',
         html: '<p>Test HTML content</p>',
+        text: 'Test HTML content',
       },
       expect.any(Function),
     )
@@ -93,10 +95,11 @@ describe('sendEmail', () => {
     const to = 'recipient@example.com'
     const subject = 'Test Subject'
     const html = '<p>Test HTML content</p>'
+    const text = 'Test HTML content'
 
     // Execute and expect error
     expect(() => {
-      sendEmail(to, subject, html)
+      sendEmail(to, subject, html, text)
     }).toThrow('Failed to send email')
 
     // Verify logger.error was called

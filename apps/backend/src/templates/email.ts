@@ -6,34 +6,133 @@ type LoginVars = {
 }
 
 export const loginEmailTitle = (lang: string | undefined): string =>
-  lang == 'fi' ? 'Kirjaudu MIK sivustolle' : 'Your login to MIK'
+  lang == 'fi' ? 'Kirjaudu MIK sivustolle' : 'Confirm your login to MIK Intranet'
 
 export const loginEmailBody = (lang: string | undefined, vars: LoginVars): string =>
-  marked.parse(lang == 'fi' ? loginEmailBodyFi(vars) : loginEmailBodyEn(vars), { async: false })
+  lang == 'fi' ? loginEmailBodyHtmlFi(vars) : loginEmailBodyHtmlEn(vars)
 
-const loginEmailBodyFi = ({ href, code }: LoginVars): string => `
-  Olet kirjautumassa MIK sivustolle. Jatka kirjautumista klikkaamalla linkkiä:
+export const loginEmailPlainText = (lang: string | undefined, vars: LoginVars): string =>
+  marked.parse(lang == 'fi' ? loginEmailPlainTextFi(vars) : loginEmailPlainTextEn(vars), {
+    async: false,
+  })
 
-  [Vahvista kirjautuminen](${href})
-    
-  Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:
+const loginEmailBodyHtmlFi = ({ href, code }: LoginVars): string => `
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://mik-intranet-846xw.ondigitalocean.app/logo192.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
 
-  ${href}
-    
-  Kirjautumisen vahvistuskoodi ${code}.
+      <h2 style="text-align: center; color: #003366;">Kirjautumisen vahvistus</h2>
+
+      <p style="color: #333333;">Hei,</p>
+
+      <p style="color: #333333;">
+        Olet kirjautumassa <strong>MIK-verkkosivustolle</strong>. Vahvista kirjautumisesi napsauttamalla alla olevaa painiketta:
+      </p>
+
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="${href}" style="
+          background-color: #003366;
+          color: #ffffff;
+          padding: 12px 24px;
+          text-decoration: none;
+          border-radius: 6px;
+          display: inline-block;
+          font-weight: bold;
+        ">Vahvista kirjautuminen</a>
+      </div>
+
+      <p style="color: #333333;">
+        Jos painike ei toimi, kopioi ja liitä seuraava linkki selaimeesi:
+      </p>
+      <p style="word-break: break-all; color: #333333;"><a href="${href}">${href}</a></p>
+
+      <p style="color: #333333;">Vahvistuskoodisi on:</p>
+      <p style="font-size: 1.25em; font-weight: bold; color: #003366;">${code}</p>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+
+      <p style="font-size: 0.9em; color: #666666;">
+        Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.
+      </p>
+    </div>
+  </div>
+`
+
+const loginEmailBodyHtmlEn = ({ href, code }: LoginVars): string => `
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://mik-intranet-846xw.ondigitalocean.app/assets/mik-blue-8kylorAU.svg" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <h2 style="text-align: center; color: #003366;">Login Confirmation</h2>
+
+      <p style="color: #333333;">Hello,</p>
+
+      <p style="color: #333333;">
+        You are attempting to log in to the <strong>MIK website</strong>. Please confirm your login by clicking the button below:
+      </p>
+
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="${href}" style="
+          background-color: #003366;
+          color: #ffffff;
+          padding: 12px 24px;
+          text-decoration: none;
+          border-radius: 6px;
+          display: inline-block;
+          font-weight: bold;
+        ">Confirm Login</a>
+      </div>
+
+      <p style="color: #333333;">
+        If the button above doesn't work, please copy and paste the following link into your browser:
+      </p>
+      <p style="word-break: break-all; color: #333333;"><a href="${href}">${href}</a></p>
+
+      <p style="color: #333333;">Your verification code is:</p>
+      <p style="font-size: 1.25em; font-weight: bold; color: #003366;">${code}</p>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+
+      <p style="font-size: 0.9em; color: #666666;">
+        If you didn’t request this email, you can safely ignore it.
+      </p>
+    </div>
+  </div>
+`
+
+const loginEmailPlainTextEn = ({ href, code }: LoginVars): string => `
+MIK Login Confirmation
+
+You are logging in to the MIK website.
+
+Please confirm your login by clicking the link below:
+${href}
+
+If the link doesn't work, copy and paste it into your browser.
+
+Your verification code is: ${code}
+
+If you didn’t request this login, you can safely ignore this message.
+`
+
+const loginEmailPlainTextFi = ({ href, code }: LoginVars): string =>
   `
+Hei,
 
-const loginEmailBodyEn = ({ href, code }: LoginVars): string => `
-  You are logging in to MIK website. Click the link below to continue:
+Olet kirjautumassa MIK-verkkosivustolle. Vahvista kirjautumisesi napsauttamalla alla olevaa linkkiä:
 
-  [Confirm login](${href})
-    
-  Alternatively you can also copy and paste the link into your browser:
+${href}
 
-  ${href}
+Jos linkki ei toimi, kopioi ja liitä se selaimeesi.
 
-  Verification code ${code}.
-  `
+Vahvistuskoodisi on: ${code}
+
+Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.
+`.trim()
 
 type RegisterVars = {
   firstName: string
