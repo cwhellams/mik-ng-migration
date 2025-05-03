@@ -73,7 +73,8 @@ describe('GET /members', () => {
       name: 'an',
     })
 
-    expect(membersQry.members.map(m => m.name)).toEqual(['Antti Heikkinen', 'Anna Mäkinen'])
+    expect(membersQry.members.map(m => m.first)).toEqual(['Antti', 'Anna'])
+    expect(membersQry.members.map(m => m.last)).toEqual(['Heikkinen', 'Mäkinen'])
   })
 
   it('should return empty list with non-existing name filter', async () => {
@@ -88,17 +89,20 @@ describe('GET /members', () => {
     const membersQry = await query(memberToken, {
       role: 'INSTRUCTOR',
     })
-    expect(membersQry.members.map(({ name, roles }) => ({ name, roles }))).toEqual([
+    expect(membersQry.members.map(({ first, last, roles }) => ({ first, last, roles }))).toEqual([
       {
-        name: 'Antti Heikkinen',
+        first: 'Antti',
+        last: 'Heikkinen',
         roles: ['INSTRUCTOR', 'MEMBER'],
       },
       {
-        name: 'Jukka Nieminen',
+        first: 'Jukka',
+        last: 'Nieminen',
         roles: ['INSTRUCTOR'],
       },
       {
-        name: 'Matti Virtanen',
+        first: 'Matti',
+        last: 'Virtanen',
         roles: ['INSTRUCTOR', 'MEMBER'],
       },
     ])
@@ -108,29 +112,35 @@ describe('GET /members', () => {
     const membersQry = await query(memberToken, {
       role: ['INSTRUCTOR', 'COMMITTEE'],
     })
-    expect(membersQry.members.map(({ name, roles }) => ({ name, roles }))).toEqual([
+    expect(membersQry.members.map(({ first, last, roles }) => ({ first, last, roles }))).toEqual([
       {
-        name: 'Antti Heikkinen',
+        first: 'Antti',
+        last: 'Heikkinen',
         roles: ['INSTRUCTOR', 'MEMBER'],
       },
       {
-        name: 'Liisa Korhonen',
+        first: 'Liisa',
+        last: 'Korhonen',
         roles: ['COMMITTEE'],
       },
       {
-        name: 'Sanna Koskinen',
+        first: 'Sanna',
+        last: 'Koskinen',
         roles: ['COMMITTEE'],
       },
       {
-        name: 'Anna Mäkinen',
+        first: 'Anna',
+        last: 'Mäkinen',
         roles: ['COMMITTEE'],
       },
       {
-        name: 'Jukka Nieminen',
+        first: 'Jukka',
+        last: 'Nieminen',
         roles: ['INSTRUCTOR'],
       },
       {
-        name: 'Matti Virtanen',
+        first: 'Matti',
+        last: 'Virtanen',
         roles: ['INSTRUCTOR', 'MEMBER'],
       },
     ])
@@ -164,21 +174,25 @@ describe('GET /members', () => {
       role: 'ADMIN',
     })
 
-    expect(membersQry.members.map(({ name, roles }) => ({ name, roles }))).toEqual([
+    expect(membersQry.members.map(({ first, last, roles }) => ({ first, last, roles }))).toEqual([
       {
-        name: 'MIK Admin',
+        first: 'MIK',
+        last: 'Admin',
         roles: ['ADMIN'],
       },
       {
-        name: 'Pekka Hämäläinen',
+        first: 'Pekka',
+        last: 'Hämäläinen',
         roles: ['ADMIN', 'MEMBER'],
       },
       {
-        name: 'Liisa Korhonen',
+        first: 'Liisa',
+        last: 'Korhonen',
         roles: ['ADMIN', 'COMMITTEE'],
       },
       {
-        name: 'Kaisa Laine',
+        first: 'Kaisa',
+        last: 'Laine',
         roles: ['ADMIN'],
       },
     ])
@@ -198,24 +212,28 @@ describe('GET /members', () => {
       role: ['ADMIN', 'null'],
     })
 
-    expect(membersQry.members.map(({ name, roles }) => ({ name, roles }))).toEqual([
+    expect(membersQry.members.map(({ first, last, roles }) => ({ first, last, roles }))).toEqual([
       {
-        name: 'MIK Admin',
+        first: 'MIK',
+        last: 'Admin',
         roles: ['ADMIN'],
       },
       {
-        name: 'Pekka Hämäläinen',
+        first: 'Pekka',
+        last: 'Hämäläinen',
         roles: ['ADMIN', 'MEMBER'],
       },
       {
-        name: 'Liisa Korhonen',
+        first: 'Liisa',
+        last: 'Korhonen',
         roles: ['ADMIN', 'COMMITTEE'],
       },
       {
-        name: 'Kaisa Laine',
+        first: 'Kaisa',
+        last: 'Laine',
         roles: ['ADMIN'],
       },
-      { name: 'Marja Salminen', roles: [] },
+      { first: 'Marja', last: 'Salminen', roles: [] },
     ])
   })
 })

@@ -308,16 +308,20 @@ exports[`Db query member tests getMemberRolesByMemberId should return roles for 
 exports[`Db query member tests getMembers should return everything for admins 1`] = `
 [
   {
+    "email": "admin@mik.fi",
+    "first": "MIK",
+    "last": "Admin",
     "memberId": "k1mnimda",
-    "name": "MIK Admin",
     "phoneNumber": null,
     "roles": [
       "ADMIN",
     ],
   },
   {
+    "email": "pekka.hamalainen@example.com",
+    "first": "Pekka",
+    "last": "Hämäläinen",
     "memberId": "Pekka1",
-    "name": "Pekka Hämäläinen",
     "phoneNumber": "0445678901",
     "roles": [
       "ADMIN",
@@ -325,8 +329,10 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
+    "email": "antti.heikkinen@example.com",
+    "first": "Antti",
+    "last": "Heikkinen",
     "memberId": "Antti1",
-    "name": "Antti Heikkinen",
     "phoneNumber": "0467890123",
     "roles": [
       "INSTRUCTOR",
@@ -334,8 +340,10 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
+    "email": "juho.kolehmainen@iki.fi",
+    "first": "Liisa",
+    "last": "Korhonen",
     "memberId": "Liisa1",
-    "name": "Liisa Korhonen",
     "phoneNumber": "0412345678",
     "roles": [
       "ADMIN",
@@ -343,46 +351,58 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
+    "email": "sanna.koskinen@example.com",
+    "first": "Sanna",
+    "last": "Koskinen",
     "memberId": "Sanna1",
-    "name": "Sanna Koskinen",
     "phoneNumber": "0478901234",
     "roles": [
       "COMMITTEE",
     ],
   },
   {
+    "email": "kaisa.laine@example.com",
+    "first": "Kaisa",
+    "last": "Laine",
     "memberId": "Kaisa1",
-    "name": "Kaisa Laine",
     "phoneNumber": "0456789012",
     "roles": [
       "ADMIN",
     ],
   },
   {
+    "email": "anna.makinen@example.com",
+    "first": "Anna",
+    "last": "Mäkinen",
     "memberId": "Anna1",
-    "name": "Anna Mäkinen",
     "phoneNumber": "0434567890",
     "roles": [
       "COMMITTEE",
     ],
   },
   {
+    "email": "jukka.nieminen@example.com",
+    "first": "Jukka",
+    "last": "Nieminen",
     "memberId": "Jukka1",
-    "name": "Jukka Nieminen",
     "phoneNumber": "0423456789",
     "roles": [
       "INSTRUCTOR",
     ],
   },
   {
+    "email": "nurmikko@gmail.com",
+    "first": "Marja",
+    "last": "Salminen",
     "memberId": "Marja1",
-    "name": "Marja Salminen",
     "phoneNumber": "0490123456",
     "roles": [],
   },
   {
+    "email": "juha.seppala@example.com",
+    "first": "Juha",
+    "last": "Seppälä",
     "memberId": "Juha1",
-    "name": "Juha Seppälä",
     "phoneNumber": "0489012345",
     "roles": [
       "MEMBER",
@@ -416,16 +436,20 @@ exports[`Db query member tests getMembers should return everything for admins 2`
 exports[`Db query member tests getMembers should return only approved members for valid members 1`] = `
 [
   {
+    "email": "pekka.hamalainen@example.com",
+    "first": "Pekka",
+    "last": "Hämäläinen",
     "memberId": "Pekka1",
-    "name": "Pekka Hämäläinen",
     "phoneNumber": "0445678901",
     "roles": [
       "MEMBER",
     ],
   },
   {
+    "email": "antti.heikkinen@example.com",
+    "first": "Antti",
+    "last": "Heikkinen",
     "memberId": "Antti1",
-    "name": "Antti Heikkinen",
     "phoneNumber": "0467890123",
     "roles": [
       "INSTRUCTOR",
@@ -433,48 +457,60 @@ exports[`Db query member tests getMembers should return only approved members fo
     ],
   },
   {
+    "email": "juho.kolehmainen@iki.fi",
+    "first": "Liisa",
+    "last": "Korhonen",
     "memberId": "Liisa1",
-    "name": "Liisa Korhonen",
     "phoneNumber": "0412345678",
     "roles": [
       "COMMITTEE",
     ],
   },
   {
+    "email": "sanna.koskinen@example.com",
+    "first": "Sanna",
+    "last": "Koskinen",
     "memberId": "Sanna1",
-    "name": "Sanna Koskinen",
     "phoneNumber": "0478901234",
     "roles": [
       "COMMITTEE",
     ],
   },
   {
+    "email": "anna.makinen@example.com",
+    "first": "Anna",
+    "last": "Mäkinen",
     "memberId": "Anna1",
-    "name": "Anna Mäkinen",
     "phoneNumber": "0434567890",
     "roles": [
       "COMMITTEE",
     ],
   },
   {
+    "email": "jukka.nieminen@example.com",
+    "first": "Jukka",
+    "last": "Nieminen",
     "memberId": "Jukka1",
-    "name": "Jukka Nieminen",
     "phoneNumber": "0423456789",
     "roles": [
       "INSTRUCTOR",
     ],
   },
   {
+    "email": "juha.seppala@example.com",
+    "first": "Juha",
+    "last": "Seppälä",
     "memberId": "Juha1",
-    "name": "Juha Seppälä",
     "phoneNumber": "0489012345",
     "roles": [
       "MEMBER",
     ],
   },
   {
+    "email": "chris.whellams@gmail.com",
+    "first": "Matti",
+    "last": "Virtanen",
     "memberId": "Matti1",
-    "name": "Matti Virtanen",
     "phoneNumber": "0401234567",
     "roles": [
       "INSTRUCTOR",
