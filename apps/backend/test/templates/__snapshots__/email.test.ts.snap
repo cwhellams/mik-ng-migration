@@ -1,0 +1,217 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Login Email template tests loginEmailBodyHtml for lang: en 1`] = `
+"
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://mik-intranet-846xw.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <h2 style="text-align: center; color: #003366;">Login Confirmation</h2>
+
+      <p style="color: #333333;">Hello,</p>
+
+      <p style="color: #333333;">
+        You are attempting to log in to the <strong>MIK website</strong>. Please confirm your login by clicking the button below:
+      </p>
+
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="https://example.com" style="
+          background-color: #003366;
+          color: #ffffff;
+          padding: 12px 24px;
+          text-decoration: none;
+          border-radius: 6px;
+          display: inline-block;
+          font-weight: bold;
+        ">Confirm Login</a>
+      </div>
+
+      <p style="color: #333333;">
+        If the button above doesn't work, please copy and paste the following link into your browser:
+      </p>
+      <p style="word-break: break-all; color: #333333;"><a href="https://example.com">https://example.com</a></p>
+
+      <p style="color: #333333;">Your verification code is:</p>
+      <p style="font-size: 1.25em; font-weight: bold; color: #003366;">12345</p>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+
+      <p style="font-size: 0.9em; color: #666666;">
+        If you didn’t request this email, you can safely ignore it.
+      </p>
+    </div>
+  </div>
+"
+`;
+
+exports[`Login Email template tests loginEmailBodyHtml for lang: fi 1`] = `
+"
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://mik-intranet-846xw.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <h2 style="text-align: center; color: #003366;">Kirjautumisen vahvistus</h2>
+
+      <p style="color: #333333;">Hei,</p>
+
+      <p style="color: #333333;">
+        Olet kirjautumassa <strong>MIK-verkkosivustolle</strong>. Vahvista kirjautumisesi napsauttamalla alla olevaa painiketta:
+      </p>
+
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="https://example.com" style="
+          background-color: #003366;
+          color: #ffffff;
+          padding: 12px 24px;
+          text-decoration: none;
+          border-radius: 6px;
+          display: inline-block;
+          font-weight: bold;
+        ">Vahvista kirjautuminen</a>
+      </div>
+
+      <p style="color: #333333;">
+        Jos painike ei toimi, kopioi ja liitä seuraava linkki selaimeesi:
+      </p>
+      <p style="word-break: break-all; color: #333333;"><a href="https://example.com">https://example.com</a></p>
+
+      <p style="color: #333333;">Vahvistuskoodisi on:</p>
+      <p style="font-size: 1.25em; font-weight: bold; color: #003366;">12345</p>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+
+      <p style="font-size: 0.9em; color: #666666;">
+        Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.
+      </p>
+    </div>
+  </div>
+"
+`;
+
+exports[`Login Email template tests loginEmailPlainText 1`] = `
+"<p>MIK Login Confirmation</p>
+<p>You are logging in to the MIK website.</p>
+<p>Please confirm your login by clicking the link below:
+<a href="https://example.com">https://example.com</a></p>
+<p>If the link doesn&#39;t work, copy and paste it into your browser.</p>
+<p>Your verification code is: 12345</p>
+<p>If you didn’t request this login, you can safely ignore this message.</p>
+"
+`;
+
+exports[`Register Email template tests registerEmailBody 1`] = `
+"<p>  Hei Tester1,</p>
+<p>  kiitos hakemuksestasi Malmin Ilmailukerho ry:n jäseneksi. 
+  Käsittelemme hakemuksesi pian ja olemme sinuun yhteydessä.</p>
+<p>  Sillä välin, voit vahvistaa sähköpostiosoitteesi klikkaamalla alla olevaa linkkiä:</p>
+<p>  <a href="https://example.com">Vahvista sähköpostiosoite</a></p>
+<p>  Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:</p>
+<p>  <a href="https://example.com">https://example.com</a>
+  </p>
+"
+`;
+
+exports[`Register Email template tests registerEmailBody 2`] = `
+"<p>  Hello Tester1,</p>
+<p>  thank you for applying as a member of Malmin Ilmailukerho ry. 
+  We will review your application as soon as possible and get back to you.</p>
+<p>  In the meantime, you can confirm your email address by clicking the link below:</p>
+<p>  <a href="https://example.com">Confirm email</a></p>
+<p>  Alternatively you can also copy and paste the link into your browser:</p>
+<p>  <a href="https://example.com">https://example.com</a></p>
+"
+`;
+
+exports[`Register Email template tests registerEmailBodyHtml 1`] = `
+"
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://mik-intranet-846xw.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+
+      <h2 style="text-align: center; color: #003366;">Registration Confirmation</h2>
+
+      <p style="color: #333333;">Hei Tester1,</p>
+
+      <p style="color: #333333;">
+        kiitos hakemuksestasi Malmin Ilmailukerho ry:n jäseneksi. Käsittelemme hakemuksesi pian ja olemme sinuun yhteydessä.
+        Sillä välin, voit vahvistaa sähköpostiosoitteesi klikkaamalla alla olevaa linkkiä:
+      </p>
+
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="https://example.com" style="
+          background-color: #003366;
+          color: #ffffff;
+          padding: 12px 24px;
+          text-decoration: none;
+          border-radius: 6px;
+          display: inline-block;
+          font-weight: bold;
+        ">Vahvista sähköpostiosoite</a>
+      </div>
+
+      <p style="color: #333333;">
+        Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:
+      </p>
+      <p style="word-break: break-all; color: #333333;"><a href="https://example.com">https://example.com</a></p>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+
+      <p style="font-size: 0.9em; color: #666666;">
+        If you didn’t request this email, you can safely ignore it.
+      </p>
+    </div>
+  </div>
+"
+`;
+
+exports[`Register Email template tests registerEmailBodyHtml 2`] = `
+"
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://mik-intranet-846xw.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+
+      <h2 style="text-align: center; color: #003366;">Registration Confirmation</h2>
+
+      <p style="color: #333333;">Hello Tester1,</p>
+
+      <p style="color: #333333;">
+        Thank you for applying to become a member of Malmin Ilmailukerho ry. We will review your application as soon as possible and get back to you.
+        In the meantime, you can confirm your email address by clicking the link below:
+      </p>
+
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="https://example.com" style="
+          background-color: #003366;
+          color: #ffffff;
+          padding: 12px 24px;
+          text-decoration: none;
+          border-radius: 6px;
+          display: inline-block;
+          font-weight: bold;
+        ">Confirm Email Address</a>
+      </div>
+
+      <p style="color: #333333;">
+        If the button above doesn't work, please copy and paste the following link into your browser:
+      </p>
+      <p style="word-break: break-all; color: #333333;"><a href="https://example.com">https://example.com</a></p>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+
+      <p style="font-size: 0.9em; color: #666666;">
+        If you didn’t request this email, you can safely ignore it.
+      </p>
+    </div>
+  </div>
+"
+`;

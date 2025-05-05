@@ -17,10 +17,11 @@ import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import {
   loginEmailTitle,
-  loginEmailBody,
+  loginEmailBodyHtml,
   registerEmailBody,
   registerEmailTitle,
   loginEmailPlainText,
+  registerEmailBodyHtml,
 } from '../../templates/email.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 import { problem } from '../response.ts'
@@ -56,7 +57,7 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
   sendEmail(
     member.email,
     loginEmailTitle(lang),
-    loginEmailBody(lang, link),
+    loginEmailBodyHtml(lang, link),
     loginEmailPlainText(lang, link),
   )
   logger.info('magic login link sent for validation %j', link)
@@ -86,7 +87,7 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   sendEmail(
     member.email,
     registerEmailTitle(member.lang),
-    registerEmailBody(member.lang, { ...member, ...link }),
+    registerEmailBodyHtml(member.lang, { ...member, ...link }),
     registerEmailBody(member.lang, { ...member, ...link }),
   )
   logger.info('magic registration link sent for validation %j', link)
