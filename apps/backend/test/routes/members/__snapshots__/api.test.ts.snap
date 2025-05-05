@@ -194,6 +194,16 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       ],
     },
     {
+      "email": "simplbks@mik.fi",
+      "first": "SimpleBooks",
+      "last": "User",
+      "memberId": "simplbks",
+      "phoneNumber": null,
+      "roles": [
+        "SERVICE",
+      ],
+    },
+    {
       "email": "chris.whellams@gmail.com",
       "first": "Matti",
       "last": "Virtanen",

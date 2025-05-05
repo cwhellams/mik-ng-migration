@@ -384,6 +384,7 @@ describe('GET /members/roles', () => {
         roleId: 'PLANE_CAPTAIN',
       },
       { permissions: ['member.admin', 'flightlog.admin'], roleId: 'SECRETARY' },
+      { permissions: null, roleId: 'SERVICE' },
     ])
   })
 })

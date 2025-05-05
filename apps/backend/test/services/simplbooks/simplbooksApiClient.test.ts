@@ -9,17 +9,25 @@ import {
   searchInvoices,
   simplbooksApiClient,
 } from '../../../src/services/simplbooks/simplbooksApiClient.ts'
-import { mockSimplbooksGet, mockSimplbooksPost } from '../../__mocks__/simplbooksMock.ts'
+import {
+  mockSimplbooksFailure,
+  mockSimplbooksGet,
+  mockSimplbooksPost,
+} from '../../__mocks__/simplbooksMock.ts'
 import type {
   ClientFilter,
   Invoice,
   InvoiceFilter,
 } from '../../../src/services/simplbooks/models.ts'
 
-jest.spyOn(simplbooksApiClient, 'post').mockImplementation(mockSimplbooksPost)
-jest.spyOn(simplbooksApiClient, 'get').mockImplementation(mockSimplbooksGet)
+describe('Simplebooks API Tests Happy Case', () => {
+  beforeAll(() => {
+    jest.clearAllMocks()
 
-describe('Simplebooks API Tests', () => {
+    jest.spyOn(simplbooksApiClient, 'post').mockImplementation(mockSimplbooksPost)
+    jest.spyOn(simplbooksApiClient, 'get').mockImplementation(mockSimplbooksGet)
+  })
+
   it('should create a new client', async () => {
     const client: Member = {
       memberId: 'abc123',
@@ -124,5 +132,72 @@ describe('Simplebooks API Tests', () => {
     expect(inserted).toBeDefined()
     expect(inserted.status).toEqual(200)
     expect(inserted.inserted_id).toEqual(3788)
+  })
+})
+
+describe('Simplebooks API Tests Error Case', () => {
+  beforeAll(() => {
+    jest.clearAllMocks()
+
+    jest.spyOn(simplbooksApiClient, 'post').mockImplementation(mockSimplbooksFailure)
+    jest.spyOn(simplbooksApiClient, 'get').mockImplementation(mockSimplbooksFailure)
+  })
+
+  it('should return 400 creating a new client', async () => {
+    const badClient: Member = {
+      memberId: 'abc123',
+      memberType: MIKMemberTypes.FLYING,
+      firstName: 'John',
+      lastName: 'Doe',
+      streetAddress: '123 Main St',
+      townCity: 'Helsinki',
+      postcode: '00100',
+      email: 'mickey@mik.fi',
+      isTrainingProgramPilot: false,
+      canMakeReservations: true,
+      memberSince: '2023-01-01',
+      createdBy: 'admin',
+      updatedBy: 'admin',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      roles: [],
+    }
+
+    await expect(createNewClient(badClient)).rejects.toThrow('Failed to create client: Bad Request')
+  })
+
+  it('should return a 400 error and message', async () => {
+    await expect(getInvoice(99)).rejects.toThrow('Failed to get invoice: Bad Request')
+  })
+
+  it('should return a 400 error and message  createInvoice', async () => {
+    const badInvoice: Invoice = {
+      Invoice: {
+        overdue_charge_percent: 5,
+        created: '2023-10-01',
+        transaction_date: '2023-10-01',
+        reference: 'Test Invoice',
+        client_id: 22,
+        sent: '2023-10-01',
+        due: '2023-10-15',
+      },
+      Tasks: [
+        {
+          Task: {
+            article_id: 1,
+            amount: 20,
+            price_per_unit: 3.6,
+            contents: 'OH-IHQ some flying',
+          },
+          Projects: [
+            {
+              code: 'FLYING',
+            },
+          ],
+        },
+      ],
+    }
+
+    await expect(createInvoice(badInvoice)).rejects.toThrow('Failed to create invoice: Bad Request')
   })
 })

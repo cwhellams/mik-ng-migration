@@ -11,7 +11,7 @@ import {
   type InvoiceFilter,
 } from './models.ts'
 import logger from '../../lib/logger.ts'
-import { MemberSchema, type Member } from '../../routes/members/models.ts'
+import { MemberSchema, type MemberProfile } from '../../routes/members/models.ts'
 
 dotenv.config()
 
@@ -22,8 +22,9 @@ export const simplbooksApiClient: AxiosInstance = axios.create({
   baseURL: simplbooksBaseUri,
   timeout: 5000,
   headers: {
-    'Content-Type': 'application/json',
     'X-Simplbooks-Token': simplbooksApiKey,
+    'Content-Type': 'application/json',
+    'X-Input-Format': 'json',
   },
 })
 
@@ -41,11 +42,14 @@ function handleApiError(error: unknown) {
   }
 }
 
-export async function createNewClient(client: Member): Promise<number> {
+export async function createNewClient(client: MemberProfile): Promise<number> {
   try {
     MemberSchema.parse(client)
     const simplbooksClient = mapMemberToClient(client)
     const response = await simplbooksApiClient.post(`/clients/create`, simplbooksClient)
+    if (response.status !== 200) {
+      throw new Error(`Failed to create client: ${response.statusText}`)
+    }
     return response.data.inserted_id
   } catch (error) {
     handleApiError(error)
@@ -67,6 +71,9 @@ export async function searchClient(filter: ClientFilter): Promise<unknown> {
 export async function getInvoice(id: number): Promise<unknown> {
   try {
     const response = await simplbooksApiClient.get(`/invoices/get/${id}`)
+    if (response.status !== 200) {
+      throw new Error(`Failed to get invoice: ${response.statusText}`)
+    }
     return response.data
   } catch (error) {
     handleApiError(error)
@@ -89,6 +96,9 @@ export async function createInvoice(invoice: Invoice): Promise<unknown> {
   try {
     InvoiceRootSchema.parse(invoice)
     const response = await simplbooksApiClient.post(`/invoices/create`, invoice)
+    if (response.status !== 200) {
+      throw new Error(`Failed to create invoice: ${response.statusText}`)
+    }
     return response.data
   } catch (error) {
     handleApiError(error)

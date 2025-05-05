@@ -3,12 +3,10 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import 'dotenv/config'
 import express from 'express'
-import type { Request, Response, NextFunction, RequestHandler } from 'express'
 import helmet from 'helmet'
 // import compression from "compression";
 import morgan from 'morgan'
 import pg from 'pg'
-import { RateLimiterMemory } from 'rate-limiter-flexible'
 
 import logger from './lib/logger.ts'
 import { router as aircraftRoutes } from './routes/aircrafts/api.ts'
@@ -16,15 +14,17 @@ import ajlbRoutes from './routes/ajlb/api.ts'
 import { router as passportRoutes } from './routes/auth/login.ts'
 import flightLogRoutes from './routes/flight-log/api.ts'
 import { router as memberRoutes } from './routes/members/api.ts'
-import { problemErrorHandler, problem, notFoundProblemHandler } from './routes/response.ts'
+import { problemErrorHandler, notFoundProblemHandler } from './routes/response.ts'
 import invoiceRoutes from './routes/invoicing/api.ts'
+import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
+import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
 })
 
 const app = express()
-const PORT = process.env.BACKEND_PORT || 3000
+const PORT = process.env.BACKEND_PORT ?? 3000
 
 logger.info('Bootstrapping mik-ng service on port %d', PORT)
 
@@ -46,20 +46,6 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 
-// Rate Limiting
-const rateLimiter = new RateLimiterMemory({ points: 10, duration: 1 }) // 10 requests per second
-const rateLimiterMiddleware: RequestHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    await rateLimiter.consume(req.ip ?? req.socket.remoteAddress ?? '0.0.0.0')
-    next()
-  } catch {
-    return problem({ status: 429, title: 'Too many requests, slow down.' })
-  }
-}
 app.use(rateLimiterMiddleware)
 
 // Basic application status information
@@ -75,6 +61,8 @@ app.get('/health', (_req, res) => {
   res.status(HttpStatusCode.Ok).send(appStatus)
 })
 
+app.use(problemErrorHandler)
+
 // Routes
 app.use('/api/auth', passportRoutes)
 app.use('/api/v1/members', memberRoutes)
@@ -83,10 +71,10 @@ app.use('/api/v1/aircrafts', aircraftRoutes)
 app.use('/api/v1/ajlb', ajlbRoutes)
 app.use('/api/v1/invoice', invoiceRoutes)
 
-app.use(problemErrorHandler)
-
+//Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
 
+const poller = startSimpleBooksOutboxProcessor()
 //Digital ocean requires that app services bind to 0.0.0.0
 //docs.digitalocean.com/products/app-platform/how-to/manage-services/
 const server = app.listen(PORT, () => {
@@ -97,6 +85,7 @@ const server = app.listen(PORT, () => {
 const shutdown = async (): Promise<void> => {
   console.warn('\nShutting down server...')
   await pool.end() // Close DB connections
+  poller?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)

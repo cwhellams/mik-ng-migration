@@ -24,6 +24,16 @@ VALUES
     'k1mnimda'
 ),
 (
+    'SERVICE',
+    'Service user',
+    'Service User',
+    'Service User',
+    FALSE,
+    NULL,
+    'k1mnimda',
+    'k1mnimda'
+),
+(
     'MEMBER',
     'MIK member with basic access',
     'Member',

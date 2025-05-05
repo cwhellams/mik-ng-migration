@@ -22,4 +22,16 @@ INSERT INTO member.register (
     FALSE,
     'k1mnimda',
     'k1mnimda'
+),
+(
+    'simplbks',
+    'SimpleBooks',
+    'User',
+    CURRENT_DATE,
+    'simplbks@mik.fi',
+    'NON-FLYING',
+    FALSE,
+    FALSE,
+    'k1mnimda',
+    'k1mnimda'
 );

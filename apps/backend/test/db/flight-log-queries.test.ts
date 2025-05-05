@@ -1,6 +1,5 @@
 import 'dotenv/config'
 
-import { closeDb } from '../../src/db/connection.ts'
 import {
   deleteFlightLog,
   getFlightLogs,

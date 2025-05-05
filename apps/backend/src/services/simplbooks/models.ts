@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { MemberSchema } from '../../routes/members/models.ts'
+import { type MemberProfile } from '../../routes/members/models.ts'
 
 // Regex pattern for dd-mm-yyyy
 const datePattern = /^\d{2}-\d{2}-\d{4}$/ // Matches dates in the format dd-mm-yyyy
@@ -9,6 +9,13 @@ const datePatternISO = z.string().regex(/^\d{4}-\d{2}-\d{2}$/) // Matches dates 
 
 export enum SimplbooksEventType {
   ADD_MEMBER = 'addMember',
+}
+
+export enum SimplbooksStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  SYNCED = 'SYNCED',
+  FAILED = 'FAILED',
 }
 
 export const clientSchema = z.object({
@@ -59,9 +66,7 @@ export const invoiceFilterSchema = z
 
 export type InvoiceFilter = z.infer<typeof invoiceFilterSchema>
 
-export function mapMemberToClient(
-  member: z.infer<typeof MemberSchema>,
-): z.infer<typeof clientSchema> {
+export function mapMemberToClient(member: MemberProfile): ClientData {
   return {
     Client: {
       name: `${member.firstName} ${member.lastName}`,
@@ -113,3 +118,16 @@ export const InvoiceRootSchema = z.object({
 })
 
 export type Invoice = z.infer<typeof InvoiceRootSchema>
+
+export const AcctsOutboxSimplbooksSchema = z.object({
+  created_at_utc: z.union([z.string().datetime(), z.date()]).optional(), // Generated<Timestamp>
+  error_message: z.string().nullable(),
+  event_type: z.string(),
+  id: z.string(),
+  payload: z.unknown(), // Can be improved if Json shape is known
+  processed_at: z.union([z.string().datetime(), z.date()]).nullable(),
+  status: z.enum(['FAILED', 'PENDING', 'PROCESSING', 'SYNCED']).optional(), // Generated<SimplbooksOutboxStatus>
+  updated_at_utc: z.union([z.string().datetime(), z.date()]).optional(), // Generated<Timestamp>
+})
+
+export type AcctsOutboxSimplbooks = z.infer<typeof AcctsOutboxSimplbooksSchema>

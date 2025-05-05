@@ -119,3 +119,17 @@ export function mockSimplbooksGet(url: string, data?: any): Promise<AxiosRespons
   }
   return Promise.reject(new Error(`Unhandled URL: ${url}`))
 }
+
+export function mockSimplbooksFailure(url: string, data?: any): Promise<AxiosResponse> {
+  return Promise.resolve({
+    status: 400,
+    statusText: 'Bad Request',
+    headers: {},
+    config: {} as any,
+    data: {
+      status: 400,
+      duration: 0.0531,
+      errors: ['Dummy error msg.'],
+    },
+  })
+}

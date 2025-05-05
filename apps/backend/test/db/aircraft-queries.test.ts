@@ -1,7 +1,6 @@
 import 'dotenv/config'
 
 import { getAircraftByRegistration, getAllAircraft } from '../../src/db/aircraft-queries.ts'
-import { closeDb } from '../../src/db/connection.ts'
 
 describe('Db query Get aircrafts tests', () => {
   it('getAllAircraft returns all aircraft in the db', async () => {

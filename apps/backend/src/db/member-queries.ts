@@ -175,8 +175,8 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
   const new_member_id = generateShortId()
   member.memberId = new_member_id
 
-  await db.transaction().execute(async trx => {
-    const insMember = await trx
+  await db.transaction().execute(async txn => {
+    const insMember = await txn
       .insertInto('member.register')
       .values({
         member_id: member.memberId!,
@@ -202,7 +202,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       .returning('member_id')
       .executeTakeFirst()
 
-    await trx
+    await txn
       .insertInto('accts.outbox_simplbooks')
       .values({
         id: randomUUID(),
