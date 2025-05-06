@@ -18,8 +18,8 @@ import Member from './sections/members/Member'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/LocalizationProvider'
 import Roles from './sections/members/Roles'
-// import FlightLogLanding from './sections/flightLog/Landing'
-// import NewFlightLogEntry from './sections/flightLog/NewFlightLogEntry'
+import FlightLogLanding from './sections/flightLog/Landing'
+import NewFlightLogEntry from './sections/flightLog/NewFlightLogEntry'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -58,8 +58,9 @@ function App() {
             <Route index path='/members/roles' element={<Roles />} />
             <Route index path='/members' element={<Members />} />
             <Route path='/members/:memberId' element={<Member />} />
-            {/* <Route path='/flight-logs' element={<FlightLogLanding />} /> */}
-            {/* <Route path='/flight-logs/new' element={<NewFlightLogEntry />} /> */}
+            /** Flight Log Routes */
+            <Route path='/flight-logs' element={<FlightLogLanding />} />
+            <Route path='/flight-logs/new' element={<NewFlightLogEntry />} />
           </Route>
 
           {/* Auth Layout without header */}

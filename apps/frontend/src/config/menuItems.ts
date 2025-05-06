@@ -24,6 +24,11 @@ export const menuItems: MenuItem[] = [
     translationKey: 'header.aircrafts',
   },
   {
+    label: 'Flight Logs',
+    path: '/flight-logs',
+    translationKey: 'header.flightLogs',
+  },
+  {
     label: 'Members',
     path: '/members',
     translationKey: 'header.members',
