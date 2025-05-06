@@ -10,6 +10,7 @@ out
 *.tsbuildinfo
 *.js
 !eslint.config.js
+!global-teardown.js
 
 # Environment variables
 **/.env*
