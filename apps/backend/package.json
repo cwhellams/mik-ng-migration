@@ -11,7 +11,7 @@
     "schema": "kysely-codegen --numeric-parser number --date-parser string --dialect postgres --out-file ./src/db/schema.d.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --forceExit --logHeapUsage --runInBand",
+    "test": "NODE_OPTIONS=\"--loader ts-node/esm\" node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --forceExit --logHeapUsage --runInBand",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix"
   },
