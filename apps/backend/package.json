@@ -128,6 +128,7 @@
     "prettier": "^3.5.3",
     "supertest": "^7.0.0",
     "ts-jest": "^29.3.2",
+    "ts-node": "^10.9.2",
     "typescript": "^5.0.0"
   }
 }
