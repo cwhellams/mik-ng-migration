@@ -16,7 +16,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix"
   },
   "jest": {
-    "globalTeardown": "./test/global-teardown.js",
+    "globalTeardown": "./test/global-teardown.ts",
     "preset": "ts-jest/presets/default-esm",
     "reporters": [
       "default",

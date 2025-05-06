@@ -109,7 +109,7 @@
     "test/routes/flight-log/api.test.mts",
     "test/db/flight-log-queries.test.mts",
     "test/db/member-queries.test.mts",
-    "test/global-teardown.js"
+    "test/global-teardown.ts"
   ],
   "exclude": ["node_modules"]
 }
