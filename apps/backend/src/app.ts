@@ -71,10 +71,11 @@ app.use('/api/v1/aircrafts', aircraftRoutes)
 app.use('/api/v1/ajlb', ajlbRoutes)
 app.use('/api/v1/invoice', invoiceRoutes)
 
+const poller = startSimpleBooksOutboxProcessor()
+
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
 
-const poller = startSimpleBooksOutboxProcessor()
 //Digital ocean requires that app services bind to 0.0.0.0
 //docs.digitalocean.com/products/app-platform/how-to/manage-services/
 const server = app.listen(PORT, () => {

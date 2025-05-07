@@ -173,13 +173,12 @@ export async function getMembers(
 export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise<string> {
   const now = new Date()
   const new_member_id = generateShortId()
-  member.memberId = new_member_id
 
-  await db.transaction().execute(async txn => {
-    const insMember = await txn
+  const txnMemberId = await db.transaction().execute(async txn => {
+    const insRetval = await txn
       .insertInto('member.register')
       .values({
-        member_id: member.memberId!,
+        member_id: new_member_id,
         member_type: member.memberType,
         email: member.email,
         first_name: member.firstName,
@@ -197,25 +196,27 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
         created_by: jwt?.memberId ?? new_member_id,
         updated_at: now,
         updated_by: jwt?.memberId ?? new_member_id,
-        email_verified_at: undefined,
       })
       .returning('member_id')
-      .executeTakeFirst()
+      .executeTakeFirstOrThrow()
 
     await txn
       .insertInto('accts.outbox_simplbooks')
       .values({
         id: randomUUID(),
         event_type: SimplbooksEventType.ADD_MEMBER,
-        payload: member,
+        payload: { memberId: insRetval.member_id, ...member },
       })
       .execute()
 
-    if (!insMember?.member_id) {
-      throw new Error('Member insert failed')
-    }
+    return insRetval.member_id
   })
-  return member.memberId
+
+  if (txnMemberId) {
+    return txnMemberId
+  }
+
+  throw new Error('Member insert failed, no member id returned')
 }
 
 export async function updateMember(
