@@ -61,7 +61,7 @@ jobs:
           echo "PUBLIC_URL=${{ vars.PUBLIC_URL }}" >> $GITHUB_ENV
           echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET }}" >> $GITHUB_ENV
           echo "BETTERSTACK_API_TOKEN=${{ secrets.BETTERSTACK_API_TOKEN }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED"=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED }}" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         if: env.backend_changed == 'true'
