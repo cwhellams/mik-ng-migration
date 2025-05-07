@@ -224,6 +224,7 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
     // expired documents
     ...documents.warnings.map(doc => ({
       ...doc,
+      untilExpiration: Math.abs(doc.untilExpiration),
       description: 'aircraft.alerts.expired',
     })),
   ].filter(w => w !== undefined)

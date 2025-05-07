@@ -26,7 +26,6 @@ export enum Severity {
 export const AircraftNoteSchema = z.object({
   text: z.string(),
   severity: z.nativeEnum(Severity),
-  enabled: z.boolean(),
 })
 
 export type AircraftNote = z.infer<typeof AircraftNoteSchema>

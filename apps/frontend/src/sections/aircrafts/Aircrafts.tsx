@@ -53,7 +53,7 @@ const Aircrafts = () => {
 
   const getMsg = (aircraft: Aircraft, level: Severity) => {
     const messages: AircraftAlert[] = aircraft.notes
-      .filter((note) => note.severity == level && note.enabled !== false)
+      .filter((note) => note.severity == level)
       .map((note) => ({
         description: note.text,
         untilExpiration: 0,
@@ -118,13 +118,24 @@ const Aircrafts = () => {
                       </Typography>
 
                       {isAircraftAdmin && (
-                        <EditButton
-                          title={t('aircraft.edit.details')}
-                          onClick={() => {
-                            setEditData(aircraft)
-                            setEditMode('details')
-                          }}
-                        />
+                        <>
+                          <EditButton
+                            title={t('aircraft.edit.notes')}
+                            onClick={() => {
+                              setEditData(aircraft)
+                              setEditMode('notes')
+                            }}
+                            sx={{ right: 35 }}
+                            icon='mdi:notes'
+                          />
+                          <EditButton
+                            title={t('aircraft.edit.details')}
+                            onClick={() => {
+                              setEditData(aircraft)
+                              setEditMode('details')
+                            }}
+                          />
+                        </>
                       )}
                     </Box>
 
@@ -152,10 +163,17 @@ const Aircrafts = () => {
 
                     {notes.length > 0 && (
                       <FormField
-                        label={t('aircraft.notes')}
+                        label={t('aircraft.notes.title')}
                         sx={{ display: 'block' }}
                       >
-                        {notes.map((note) => note.description)}
+                        {notes.map((note) => {
+                          return (
+                            <span key={note.description}>
+                              {note.description}
+                              <br />
+                            </span>
+                          )
+                        })}
                       </FormField>
                     )}
 
@@ -229,14 +247,6 @@ const Aircrafts = () => {
                     </Box>
 
                     <Box position='relative'>
-                      <Typography
-                        variant='subtitle1'
-                        color='text.primary'
-                        sx={{ width: 150 }}
-                      >
-                        {t('aircraft.maintenance.title')}
-                      </Typography>
-
                       {isAircraftAdmin && (
                         <EditButton
                           title={t('aircraft.maintenance.edit')}
@@ -249,7 +259,10 @@ const Aircrafts = () => {
                       )}
 
                       <Typography>
-                        {t('aircraft.maintenanceHours', aircraft.status)}
+                        {t('aircraft.maintenanceHours', {
+                          ...aircraft.maintenance,
+                          ...aircraft.status,
+                        })}
 
                         {aircraft.status?.daysUntilNextMaintenance !==
                           undefined &&

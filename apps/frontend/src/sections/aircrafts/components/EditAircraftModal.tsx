@@ -17,16 +17,26 @@ import {
   CardActions,
   Typography,
   Checkbox,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Divider,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import useApi from '../../../hooks/useApi'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
-import { Aircraft } from '@backend/routes/aircrafts/models'
+import {
+  Aircraft,
+  AircraftNote,
+  Severity,
+} from '@backend/routes/aircrafts/models'
 import { AuditFormField } from '../../../components/AuditFormField'
 import { FormTitle } from '../../../components/FormTitle'
 import dayjs from 'dayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { EditButton } from '../../../components/EditButton'
 
 export type AircraftEditMode = 'new' | 'details' | 'maintenance' | 'notes'
 
@@ -120,6 +130,32 @@ export const EditAircraftModal = ({
         ...prev.maintenance!,
         [field]: value,
       },
+    }))
+
+  const handleNoteChange = (
+    index: number,
+    field: keyof AircraftNote,
+    value: string | number | boolean | null
+  ) =>
+    setFormData((prev) => ({
+      ...prev,
+      notes: [
+        ...prev.notes!.slice(0, index),
+        { ...prev.notes![index], [field]: value },
+        ...prev.notes!.slice(index + 1),
+      ],
+    }))
+
+  const handleNoteCreate = () =>
+    setFormData((prev) => ({
+      ...prev,
+      notes: [...prev.notes!, { text: '', severity: Severity.note }],
+    }))
+
+  const handleNoteDelete = (index: number) =>
+    setFormData((prev) => ({
+      ...prev,
+      notes: [...prev.notes!.slice(0, index), ...prev.notes!.slice(index + 1)],
     }))
 
   const startNextCycle = () => {
@@ -412,6 +448,74 @@ export const EditAircraftModal = ({
     )
   }
 
+  const notesCard = () => (
+    <Stack spacing={3}>
+      {(formData.notes ?? []).map((note, index) => (
+        <Grid container key={index}>
+          <Grid container size={'grow'} spacing={1.5} mr={2}>
+            <Grid size={{ xs: 12, sm: 2 }} minWidth={150}>
+              <FormControl fullWidth>
+                <InputLabel id='severity-label'>
+                  {t('aircraft.notes.severity')}
+                </InputLabel>
+
+                <Select
+                  labelId='severity-label'
+                  id='severity'
+                  value={note.severity ?? ''}
+                  label={t('aircraft.notes.severity')}
+                  onChange={({ target }) =>
+                    handleNoteChange(index, 'severity', target.value)
+                  }
+                >
+                  <MenuItem value='off'>{t('aircraft.notes.off')}</MenuItem>
+                  <MenuItem value='note'>{t('aircraft.notes.note')}</MenuItem>
+                  <MenuItem value='caution'>
+                    {t('aircraft.notes.caution')}
+                  </MenuItem>
+                  <MenuItem value='warning'>
+                    {t('aircraft.notes.warning')}
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 'grow' }}>
+              <TextField
+                required
+                fullWidth
+                label={t('aircraft.notes.text')}
+                value={note.text ?? ''}
+                onChange={({ target }) =>
+                  handleNoteChange(index, 'text', target.value)
+                }
+              />
+            </Grid>
+          </Grid>
+          <Grid size={'auto'} display={'flex'}>
+            <EditButton
+              title={t('aircraft.notes.delete')}
+              icon='mdi:delete'
+              onClick={() => handleNoteDelete(index)}
+              sx={{ position: 'static', float: 'right' }}
+            />
+          </Grid>
+
+          <Grid size={12} mt={4} mb={4}>
+            <Divider variant='middle' />
+          </Grid>
+        </Grid>
+      ))}
+      <Grid size={12} display='flex' justifyContent='center'>
+        <EditButton
+          title={t('aircraft.notes.new')}
+          onClick={handleNoteCreate}
+          icon='mdi:plus'
+          sx={{ position: 'static' }}
+        />
+      </Grid>
+    </Stack>
+  )
+
   const auditCard = () =>
     aircraft && (
       <Card>
@@ -473,6 +577,8 @@ export const EditAircraftModal = ({
                 'nextMaintenanceTach'
               )}
             </>
+          ) : mode == 'notes' ? (
+            notesCard()
           ) : (
             <>
               {renderDetailsForm()}

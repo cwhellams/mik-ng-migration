@@ -99,10 +99,9 @@
   "aircraft": {
     "location": "Location",
     "details": "Basic Details",
-    "notes": "Notes",
     "documents": "Documents",
-    "totalTime": "Last landing {{lastLanding}}, {{remainingFuelLitres}} litres of fuel remaining.",
-    "maintenanceHours": "{{tachUntilNextMaintenance}} hours of flight time remaining, {{usablePercentageHours}}h usable until ferry. ",
+    "totalTime": "Last landing {{lastLanding}}, hours {{totalTime}}, {{remainingFuelLitres}} litres of fuel remaining.",
+    "maintenanceHours": "Next {{nextMaintenanceType}} maintenance at hours {{nextMaintenanceTach}}, {{tachUntilNextMaintenance}}h remaining, {{usablePercentageHours}}h usable until ferry flight. ",
     "maintenanceDays": "Maintenance in {{daysUntilNextMaintenance}} days.",
     "document": {
       "arc": "ARC",
@@ -121,7 +120,7 @@
       }
     },
     "alerts": {
-      "expired": "{{documentId}} expired {{untilExpiration}} ago",
+      "expired": "{{documentId}} expired {{untilExpiration}} days ago",
       "expiring": "{{documentId}} expiring in {{untilExpiration}} days",
       "noUsableHours": "No usable flight time remaining, {{untilExpiration}} available for ferry flight",
       "usableHours": "Only {{untilExpiration}} usable percentage hours remaining"
@@ -131,7 +130,8 @@
       "details": "Edit Aircraft Details",
       "operations": "Operations",
       "audit": "Audit",
-      "maintenance": "Huoltotiedot",
+      "maintenance": "Maintenance",
+      "notes": "Edit Notes and Alerts",
       "created": "Created",
       "updated": "Updated",
       "registration": "Registration",
@@ -148,7 +148,6 @@
       "edit": "Edit Maintenance Details",
       "nextCycle": "Maintenance Performed",
 
-      "title": "Next Maintenance",
       "maintenanceCycle": "Maintenance Cycle",
 
       "lastMaintenance": "Last Maintenance",
@@ -161,6 +160,19 @@
 
       "totalPercentageHours": "Total Percentage Hours",
       "usablePercentageHours": "Usable Percentage Hours"
+    },
+    "notes": {
+      "new": "Add New Note",
+      "delete": "Remove Note",
+
+      "title": "Notes",
+      "text": "Text",
+
+      "severity": "Severity",
+      "off": "Turn Off",
+      "note": "Note",
+      "caution": "Caution",
+      "warning": "Warning"
     }
   },
   "error": {

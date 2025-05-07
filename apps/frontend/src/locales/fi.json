@@ -86,10 +86,9 @@
   "aircraft": {
     "location": "Sijainti",
     "details": "Perustiedot",
-    "notes": "Huomiot",
     "documents": "Dokumentit",
-    "totalTime": "Viimeinen laskeutuminen {{lastLanding}}, polttoainetta jäljellä {{remainingFuelLitres}} litraa. ",
-    "maintenanceHours": "Lentoaikaa {{tachUntilNextMaintenance}} tuntia jäljellä, käytettävissä {{usablePercentageHours}}h ennen siirtolentoa. ",
+    "totalTime": "Viimeinen laskeutuminen {{lastLanding}}, tunnit {{totalTime}}, polttoainetta jäljellä {{remainingFuelLitres}} litraa. ",
+    "maintenanceHours": "Seuraava {{nextMaintenanceType}} huolto tunneilla {{nextMaintenanceTach}}, {{tachUntilNextMaintenance}}h jäljellä, käytettävissä {{usablePercentageHours}}h ennen siirtolentoa. ",
     "maintenanceDays": "Huoltoon {{daysUntilNextMaintenance}} päivää.",
     "document": {
       "arc": "ARC",
@@ -119,6 +118,7 @@
       "operations": "Operaatiotiedot",
       "audit": "Historiatiedot",
       "maintenance": "Huoltotiedot",
+      "notes": "Muokaa huomioita ja varoituksia",
       "created": "Luotu",
       "updated": "Päivitetty",
       "registration": "Rekisteri",
@@ -135,7 +135,6 @@
       "edit": "Muokkaa huoltotietoja",
       "nextCycle": "Huolto suoritettu",
 
-      "title": "Seuraava huolto",
       "maintenanceCycle": "Huoltosykli",
 
       "lastMaintenance": "Viimeinen huolto",
@@ -148,6 +147,19 @@
 
       "totalPercentageHours": "Sallitut %-tunnit",
       "usablePercentageHours": "Käyttökelpoiset %-tunnit"
+    },
+    "notes": {
+      "new": "Lisää uusi huomio tai varoitus",
+      "delete": "Poista huomio tai varoitus",
+
+      "title": "Huomiot",
+      "text": "Teksti",
+
+      "severity": "Vakavuus",
+      "off": "Piilotettu",
+      "note": "Huomio",
+      "caution": "Varoitus",
+      "warning": "Vaara"
     }
   },
   "error": {
