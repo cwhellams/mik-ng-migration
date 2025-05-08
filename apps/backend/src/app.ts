@@ -60,9 +60,6 @@ app.get('/health', (_req, res) => {
   appStatus.uptime = Math.floor((Date.now() - appStatus.startTime) / 1000)
   res.status(HttpStatusCode.Ok).send(appStatus)
 })
-
-app.use(problemErrorHandler)
-
 // Routes
 app.use('/api/auth', passportRoutes)
 app.use('/api/v1/members', memberRoutes)
@@ -75,6 +72,7 @@ const poller = startSimpleBooksOutboxProcessor()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
+app.use(problemErrorHandler)
 
 //Digital ocean requires that app services bind to 0.0.0.0
 //docs.digitalocean.com/products/app-platform/how-to/manage-services/

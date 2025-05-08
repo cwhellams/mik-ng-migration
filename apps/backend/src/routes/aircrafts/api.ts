@@ -198,14 +198,16 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   )?.[0]
 
   const totalTime =
-    totals.ac_total_flight_time !== null ? splitTime(totals.ac_total_flight_time).hours : 0
+    totals && totals.ac_total_flight_time !== null
+      ? splitTime(totals.ac_total_flight_time).hours
+      : 0
 
   const tachUntilNextMaintenance = maintenance.nextMaintenanceTach - totalTime
   const usablePercentageHours = tachUntilNextMaintenance + maintenance.usablePercentageHours
   const totalPercentageHours = tachUntilNextMaintenance + maintenance.totalPercentageHours
 
   const daysUntilNextMaintenance = maintenance.nextMaintenanceDate
-    ? daysUntilExpiration(maintenance.nextMaintenanceDate)
+    ? Math.max(0, daysUntilExpiration(maintenance.nextMaintenanceDate))
     : undefined
 
   const documents = expiredDocuments(aircraft)

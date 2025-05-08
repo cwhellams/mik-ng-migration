@@ -88,18 +88,18 @@ export const EditAircraftModal = ({
         notes: [],
         maintenance: !aircraft
           ? {
-              maintenanceCycle: 0,
+              maintenanceCycle: 50,
 
               lastMaintenanceDate: '2020-01-01',
-              lastMaintenanceType: '0',
+              lastMaintenanceType: '0h',
               lastMaintenanceTach: 1,
 
-              nextMaintenanceDate: '2030-01-01',
-              nextMaintenanceType: '0',
-              nextMaintenanceTach: 1,
+              nextMaintenanceDate: null,
+              nextMaintenanceType: '50h',
+              nextMaintenanceTach: 50,
 
-              totalPercentageHours: 0,
-              usablePercentageHours: 0,
+              totalPercentageHours: 5,
+              usablePercentageHours: 3,
             }
           : undefined,
       })
@@ -320,7 +320,7 @@ export const EditAircraftModal = ({
               label={t('aircraft.edit.hourlyRateEur')}
               value={formData.hourlyRateEur || ''}
               onChange={({ target }) =>
-                handleChange('hourlyRateEur', target.value)
+                handleChange('hourlyRateEur', Number(target.value))
               }
             />
           </Grid>

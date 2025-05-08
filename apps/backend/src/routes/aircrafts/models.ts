@@ -21,6 +21,7 @@ export enum Severity {
   warning = 'warning',
   caution = 'caution',
   note = 'note',
+  off = 'off',
 }
 
 export const AircraftNoteSchema = z.object({

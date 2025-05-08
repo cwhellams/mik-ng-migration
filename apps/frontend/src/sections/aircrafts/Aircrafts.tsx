@@ -118,14 +118,30 @@ const Aircrafts = () => {
                       </Typography>
 
                       {isAircraftAdmin && (
-                        <>
+                        <Stack
+                          direction='row'
+                          sx={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                          }}
+                        >
+                          <EditButton
+                            title={t('aircraft.maintenance.edit')}
+                            icon='mdi:wrench'
+                            onClick={() => {
+                              setEditData(aircraft)
+                              setEditMode('maintenance')
+                            }}
+                            sx={{ position: 'static' }}
+                          />
                           <EditButton
                             title={t('aircraft.edit.notes')}
                             onClick={() => {
                               setEditData(aircraft)
                               setEditMode('notes')
                             }}
-                            sx={{ right: 35 }}
+                            sx={{ position: 'static' }}
                             icon='mdi:notes'
                           />
                           <EditButton
@@ -134,8 +150,9 @@ const Aircrafts = () => {
                               setEditData(aircraft)
                               setEditMode('details')
                             }}
+                            sx={{ position: 'static' }}
                           />
-                        </>
+                        </Stack>
                       )}
                     </Box>
 
@@ -246,29 +263,22 @@ const Aircrafts = () => {
                       </Typography>
                     </Box>
 
-                    <Box position='relative'>
-                      {isAircraftAdmin && (
-                        <EditButton
-                          title={t('aircraft.maintenance.edit')}
-                          onClick={() => {
-                            setEditData(aircraft)
-                            setEditMode('maintenance')
-                          }}
-                          sx={{ top: 0, right: 0 }}
-                        />
-                      )}
+                    <Typography>
+                      {t('aircraft.maintenanceHours', {
+                        ...aircraft.maintenance,
+                        ...aircraft.status,
+                        tachUntilNextMaintenance: aircraft.status
+                          ? Math.max(
+                              0,
+                              aircraft.status?.tachUntilNextMaintenance
+                            )
+                          : undefined,
+                      })}
 
-                      <Typography>
-                        {t('aircraft.maintenanceHours', {
-                          ...aircraft.maintenance,
-                          ...aircraft.status,
-                        })}
-
-                        {aircraft.status?.daysUntilNextMaintenance !==
-                          undefined &&
-                          t('aircraft.maintenanceDays', aircraft.status)}
-                      </Typography>
-                    </Box>
+                      {aircraft.status?.daysUntilNextMaintenance !==
+                        undefined &&
+                        t('aircraft.maintenanceDays', aircraft.status)}
+                    </Typography>
 
                     <ProgressLine
                       hardLimit={-aircraft.maintenance.totalPercentageHours}

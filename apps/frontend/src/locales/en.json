@@ -101,7 +101,7 @@
     "details": "Basic Details",
     "documents": "Documents",
     "totalTime": "Last landing {{lastLanding}}, hours {{totalTime}}, {{remainingFuelLitres}} litres of fuel remaining.",
-    "maintenanceHours": "Next {{nextMaintenanceType}} maintenance at hours {{nextMaintenanceTach}}, {{tachUntilNextMaintenance}}h remaining, {{usablePercentageHours}}h usable until ferry flight. ",
+    "maintenanceHours": "Next {{nextMaintenanceType}} maintenance at hours {{nextMaintenanceTach}}, {{tachUntilNextMaintenance}} flight hours remaining, {{usablePercentageHours}}h usable until ferry flight. ",
     "maintenanceDays": "Maintenance in {{daysUntilNextMaintenance}} days.",
     "document": {
       "arc": "ARC",
