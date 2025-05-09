@@ -16,13 +16,9 @@ import {
 } from '../../../src/routes/members/models.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import type { Upsert } from '../../../src/types/schema.ts'
-import {
-  deleteSimplbooksOutbox,
-  expectAddMember1Row,
-} from '../../db/__helpers__/simplbooksDbHelpers.ts'
+import { deleteSimplbooksOutbox } from '../../db/__helpers__/simplbooksDbHelpers.ts'
 import { HttpStatusCode } from 'axios'
 import { db } from '../../../src/db/connection.ts'
-import { admin } from 'googleapis/build/src/apis/admin/index.js'
 
 // Create an instance of the Express app
 const app = express()
@@ -648,7 +644,7 @@ describe('GET /members/id', () => {
   })
 
   it('Return 403 as a reqular member', async () => {
-    const response = await get('Marja1', memberToken)
+    const response = await get('Liisa1', memberToken)
     expect(response.status).toBe(403)
   })
 

@@ -18,9 +18,9 @@ import {
 } from '@backend/routes/members/models'
 import { Link } from 'react-router-dom'
 
-const Dashboard = ({ memberId }: { memberId: string }) => {
+const Dashboard = () => {
   const roles = useRoles()
-  const isAdmin = roles.isMembersAdmin && memberId !== 'me'
+  const isAdmin = roles.isMembersAdmin
 
   const unapprovedUsersFilter: MemberListFilters = {
     name: '',

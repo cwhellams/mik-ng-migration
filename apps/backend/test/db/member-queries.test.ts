@@ -14,7 +14,7 @@ import {
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import { MIKMemberTypes, MIKPermissions, type MemberRole } from '../../src/routes/members/models.ts'
 import type { Upsert } from '../../src/types/schema.ts'
-import { deleteSimplbooksOutbox, expectAddMember1Row } from './__helpers__/simplbooksDbHelpers.ts'
+import { deleteSimplbooksOutbox } from './__helpers__/simplbooksDbHelpers.ts'
 
 const jwt: JWTUser = {
   memberId: 'k1mnimda',
