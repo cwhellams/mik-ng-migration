@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Typography,
-
   Menu,
   MenuItem,
   ListItemIcon,
@@ -10,7 +9,7 @@ import {
 } from '@mui/material'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {  useState } from 'react'
+import { useState } from 'react'
 import { Icon } from '@iconify/react'
 import { useAuth } from '../hooks/useAuth'
 import { useMe } from '../hooks/useMe'
@@ -26,7 +25,6 @@ const User = () => {
 
   const logout = useAuth('logout')
 
-    
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
   }
@@ -56,7 +54,7 @@ const User = () => {
     i18n.changeLanguage(language)
     handleClose()
   }
-  
+
   if (isLoading) {
     return <></>
   }
@@ -66,12 +64,12 @@ const User = () => {
       {me ? (
         <>
           <UserAvatar
-            email={me.email} 
+            email={me.email}
             firstName={me.firstName}
             lastName={me.lastName}
             onClick={handleClick}
           />
-          
+
           <Menu
             anchorEl={anchorEl}
             open={open}

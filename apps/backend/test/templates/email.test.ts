@@ -1,11 +1,13 @@
 import {
   loginEmailBodyHtml,
   loginEmailPlainText,
+  type LoginVars,
+} from '../../src/templates/loginEmailTemplate.ts'
+import {
   registerEmailBody,
   registerEmailBodyHtml,
-  type LoginVars,
   type RegisterVars,
-} from '../../src/templates/email.ts'
+} from '../../src/templates/registrationEmailTemplate.ts'
 
 describe('Login Email template tests', () => {
   const loginVars: LoginVars = {

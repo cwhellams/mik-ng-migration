@@ -10,6 +10,7 @@ import {
   MIKMemberTypes,
   MIKPermissions,
   type Member,
+  type MemberApproval,
   type MemberList,
   type MemberRole,
 } from '../routes/members/models.ts'
@@ -71,6 +72,10 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     updatedBy: member.updated_by,
     emailVerifiedAt: member.email_verified_at?.toISOString(),
 
+    isMembershipApproved: member.is_membership_approved,
+    membershipApprovedAt: member.membership_approved_at?.toISOString(),
+    membershipApprovedBy: member.membership_approved_by ?? undefined,
+
     roles: roles,
   }
 }
@@ -95,6 +100,7 @@ export async function getMembers(
   isAdmin: boolean,
   name: string | undefined,
   roles: (string | null)[],
+  isMembershipApproved: boolean | undefined,
 ): Promise<MemberList[]> {
   // admin can search any roles
   const publicRoles = (await getAllMemberRoles(true)).map(role => role.roleId)
@@ -121,6 +127,11 @@ export async function getMembers(
     .$if(!!name, qb =>
       qb.where(eb => eb('first_name', 'ilike', `${name}%`).or('last_name', 'ilike', `${name}%`)),
     )
+    .$if(isAdmin && !!isMembershipApproved, qb =>
+      qb.where('is_membership_approved', '=', isMembershipApproved ?? true),
+    )
+
+    .$if(!isAdmin, qb => qb.where('is_membership_approved', '=', true))
 
     // hide external users from non-admins
     .$if(!isAdmin, qb => qb.where('member_type', '!=', 'EXTERNAL'))
@@ -130,26 +141,26 @@ export async function getMembers(
       qb.where(eb =>
         eb.or(
           filterRoles.map(role =>
-            role == null
-              ? // unapproved members has no roles
-                eb.not(
-                  eb.exists(
-                    eb
-                      .selectFrom('member.member_to_roles')
-                      .whereRef(
-                        'member.register.member_id',
-                        '=',
-                        'member.member_to_roles.member_id',
-                      ),
-                  ),
-                )
-              : // user with specific role
-                eb.exists(
-                  eb
-                    .selectFrom('member.member_to_roles')
-                    .whereRef('member.register.member_id', '=', 'member.member_to_roles.member_id')
-                    .where('role_id', '=', role),
-                ),
+            // role == null
+            //   ? // unapproved members has no roles
+            //     eb.not(
+            //       eb.exists(
+            //         eb
+            //           .selectFrom('member.member_to_roles')
+            //           .whereRef(
+            //             'member.register.member_id',
+            //             '=',
+            //             'member.member_to_roles.member_id',
+            //           ),
+            //       ),
+            //     )
+            // : // user with specific role
+            eb.exists(
+              eb
+                .selectFrom('member.member_to_roles')
+                .whereRef('member.register.member_id', '=', 'member.member_to_roles.member_id')
+                .where('role_id', '=', role),
+            ),
           ),
         ),
       ),
@@ -174,46 +185,33 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
   const now = new Date()
   const new_member_id = generateShortId()
 
-  const txnMemberId = await db.transaction().execute(async txn => {
-    const insRetval = await txn
-      .insertInto('member.register')
-      .values({
-        member_id: new_member_id,
-        member_type: member.memberType,
-        email: member.email,
-        first_name: member.firstName,
-        last_name: member.lastName,
-        phone_number: member.phoneNumber,
-        street_address: member.streetAddress,
-        postcode: member.postcode,
-        town_city: member.townCity,
+  const insRetval = await db
+    .insertInto('member.register')
+    .values({
+      member_id: new_member_id,
+      member_type: member.memberType,
+      email: member.email,
+      first_name: member.firstName,
+      last_name: member.lastName,
+      phone_number: member.phoneNumber,
+      street_address: member.streetAddress,
+      postcode: member.postcode,
+      town_city: member.townCity,
 
-        billing_id: member.lastName.toUpperCase(),
-        date_of_birth: member.dateOfBirth,
-        member_since: now.toISOString(),
+      billing_id: member.lastName.toUpperCase(),
+      date_of_birth: member.dateOfBirth,
+      member_since: now.toISOString(),
 
-        created_at: now,
-        created_by: jwt?.memberId ?? new_member_id,
-        updated_at: now,
-        updated_by: jwt?.memberId ?? new_member_id,
-      })
-      .returning('member_id')
-      .executeTakeFirstOrThrow()
+      created_at: now,
+      created_by: jwt?.memberId ?? new_member_id,
+      updated_at: now,
+      updated_by: jwt?.memberId ?? new_member_id,
+    })
+    .returning('member_id')
+    .executeTakeFirstOrThrow()
 
-    await txn
-      .insertInto('accts.outbox_simplbooks')
-      .values({
-        id: randomUUID(),
-        event_type: SimplbooksEventType.ADD_MEMBER,
-        payload: { memberId: insRetval.member_id, ...member },
-      })
-      .execute()
-
+  if (insRetval) {
     return insRetval.member_id
-  })
-
-  if (txnMemberId) {
-    return txnMemberId
   }
 
   throw new Error('Member insert failed, no member id returned')
@@ -250,7 +248,6 @@ export async function updateMember(
 
       updated_at: now,
       updated_by: jwt.memberId,
-      email_verified_at: patch.emailVerifiedAt,
     })
     .where('member_id', '=', memberId)
     .executeTakeFirstOrThrow()
@@ -280,6 +277,71 @@ export async function removeMember(memberId: string): Promise<boolean> {
     .where('member_id', '=', memberId)
     .executeTakeFirstOrThrow()
   return result.numDeletedRows == BigInt(1)
+}
+
+export async function getMembersAwaitingApproval(): Promise<Member[] | undefined> {
+  const members = await db
+    .selectFrom('member.register')
+    .selectAll()
+    .where('is_membership_approved', '=', false)
+    .orderBy('created_at', 'desc')
+    .execute()
+
+  return members.map(member => toMember(member, []))
+}
+
+export async function setMembershipApproval(
+  member_id: string,
+  approved_by: string,
+): Promise<MemberApproval | null> {
+  await db.transaction().execute(async txn => {
+    const member = await txn
+      .updateTable('member.register')
+      .set({
+        membership_approved_at: new Date(),
+        membership_approved_by: approved_by,
+      })
+      .where('member_id', '=', member_id)
+      .where('is_membership_approved', '=', false)
+      .returningAll()
+      .executeTakeFirstOrThrow()
+
+    await txn
+      .insertInto('accts.outbox_simplbooks')
+      .values({
+        id: randomUUID(),
+        event_type: SimplbooksEventType.ADD_MEMBER,
+        payload: {
+          ...member,
+          created_at: member.created_at.toISOString(),
+          updated_at: member.updated_at.toISOString(),
+          email_verified_at: member.email_verified_at?.toISOString(),
+          membership_approved_at: member.membership_approved_at?.toISOString(),
+        },
+      })
+      .execute()
+  })
+
+  const approval = await db
+    .selectFrom('member.register')
+    .select([
+      'member_id',
+      'membership_approved_at',
+      'membership_approved_by',
+      'email',
+      'first_name',
+    ])
+    .where('member_id', '=', member_id)
+    .executeTakeFirstOrThrow()
+
+  const retval: MemberApproval = {
+    memberId: approval.member_id,
+    membershipApprovedAt: approval.membership_approved_at!.toISOString(),
+    membershipApprovedBy: approval.membership_approved_by!,
+    email: approval.email,
+    firstName: approval.first_name,
+  }
+  return retval
 }
 
 export async function updateMemberRoles(

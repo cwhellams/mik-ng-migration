@@ -2,7 +2,7 @@
   "header": {
     "dashboard": "Dashboard",
     "schedule": "Schedule",
-    "aircrafts": "Aircrafts",
+    "aircrafts": "Aircraft",
     "members": "Members",
     "login": "Login",
     "logout": "Logout",
@@ -71,7 +71,8 @@
       "flying": "Full Member",
       "non-flying": "Supporting Member",
       "junior": "Junior",
-      "external": "External user"
+      "external": "External user",
+      "honorary": "Honorary"
     },
     "isTrainingProgramPilot": "Training Program Pilot",
     "membership": "Membership Details",
@@ -81,7 +82,15 @@
     "memberSince": "Member Since",
     "created": "Created",
     "updated": "Updated",
-    "emailVerifiedAt": "First Login"
+    "emailVerifiedAt": "Email Verified",
+    "emailVerified": "Email Verified ?",
+    "approvalDisabledMsg": "Approval disabled until pre-flight check completed",
+    "preFlightChkComplete": "Pre-flight checks completed for member approval",
+    "membershipApproved": "Membership Approved",
+    "membershipApprovedAt": "Membership Approved At",
+    "membershipPending": "Membership Pending Approval",
+    "approveMembership": "Approve Membership",
+    "approvedSnackbarMessage": "Membership Approved for"
   },
   "flightLog": {
     "title": "Flight Logs",

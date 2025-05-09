@@ -14,7 +14,7 @@ import {
   ListItemText,
   Divider,
   useMediaQuery,
-  ListItemIcon
+  ListItemIcon,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Link, useLocation } from 'react-router-dom'
@@ -45,7 +45,7 @@ const Header = (props: HeaderProps) => {
   const scrollTrigger = useScrollTrigger({
     disableHysteresis: true,
     threshold: 0,
-    target: window ? window() : undefined
+    target: window ? window() : undefined,
   })
 
   // Hide on scroll down, show on scroll up
@@ -73,22 +73,25 @@ const Header = (props: HeaderProps) => {
   const swipeHandlers = useSwipeable({
     onSwipedRight: () => setDrawerOpen(true),
     onSwipedLeft: () => setDrawerOpen(false),
-    trackMouse: false
+    trackMouse: false,
   })
 
   const drawerContent = (
-    <Box
-      sx={{ width: 250 }}
-      role="presentation"
-      onClick={closeDrawer}
-    >
-      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <Box sx={{ width: 250 }} role='presentation' onClick={closeDrawer}>
+      <Box
+        sx={{
+          p: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <img
           src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
-          alt="MIK Logo"
+          alt='MIK Logo'
           style={{
             height: 40,
-            width: 'auto'
+            width: 'auto',
           }}
         />
       </Box>
@@ -103,33 +106,32 @@ const Header = (props: HeaderProps) => {
               sx={{
                 '&.Mui-selected': {
                   backgroundColor: 'rgba(0, 35, 133, 0.08)',
-                }
+                },
               }}
             >
-              {item.icon && (
-                <ListItemIcon>
-                  {item.icon}
-                </ListItemIcon>
-              )}
+              {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
               <ListItemText primary={t(item.translationKey)} />
             </ListItemButton>
           </ListItem>
         ))}
       </List>
     </Box>
-  );
+  )
 
   return (
     <AppBar
-      position="fixed"
+      position='fixed'
       elevation={isScrolled ? 2 : 0}
       sx={{
-        backgroundColor: theme => theme.palette.mode === 'dark'
-          ? 'rgba(30, 30, 30, 0.85)'
-          : 'rgba(255, 255, 255, 0.85)',
+        backgroundColor: (theme) =>
+          theme.palette.mode === 'dark'
+            ? 'rgba(30, 30, 30, 0.85)'
+            : 'rgba(255, 255, 255, 0.85)',
         backdropFilter: 'blur(8px)',
         transition: 'transform 0.3s, backdrop-filter 0.3s, box-shadow 0.3s',
-        borderBottom: isScrolled ? 'none' : `1px solid ${theme.palette.divider}`,
+        borderBottom: isScrolled
+          ? 'none'
+          : `1px solid ${theme.palette.divider}`,
         width: '100%',
         left: 0,
         right: 0,
@@ -137,24 +139,27 @@ const Header = (props: HeaderProps) => {
       }}
     >
       <Toolbar sx={{ height: 70 }}>
-        <Container maxWidth="lg" sx={{ display: 'flex', width: '100%', alignItems: 'center' }}>
+        <Container
+          maxWidth='lg'
+          sx={{ display: 'flex', width: '100%', alignItems: 'center' }}
+        >
           {/* Burger Menu for Mobile */}
           {isMobile && (
             <IconButton
-              edge="start"
-              color="inherit"
-              size="large"
-              aria-label="menu"
+              edge='start'
+              color='inherit'
+              size='large'
+              aria-label='menu'
               onClick={toggleDrawer}
               sx={{
                 mr: 1,
                 color: theme.palette.text.primary,
                 '&:focus': {
-                  outline: 'none',  // Remove outline on focus
+                  outline: 'none', // Remove outline on focus
                 },
               }}
             >
-              <Icon icon="mdi:menu" width={24} height={24} />
+              <Icon icon='mdi:menu' width={24} height={24} />
             </IconButton>
           )}
 
@@ -164,17 +169,17 @@ const Header = (props: HeaderProps) => {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                mr: 4
+                mr: 4,
               }}
               component={Link}
-              to="/"
+              to='/'
             >
               <img
                 src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
-                alt="MIK Logo"
+                alt='MIK Logo'
                 style={{
                   height: 40,
-                  width: 'auto'
+                  width: 'auto',
                 }}
               />
             </Box>
@@ -188,10 +193,11 @@ const Header = (props: HeaderProps) => {
                   key={item.path}
                   component={Link}
                   to={item.path}
-                  color="inherit"
+                  color='inherit'
                   sx={{
                     color: theme.palette.text.primary,
-                    fontWeight: location.pathname === item.path ? 'bold' : 'normal'
+                    fontWeight:
+                      location.pathname === item.path ? 'bold' : 'normal',
                   }}
                 >
                   {t(item.translationKey)}
@@ -202,13 +208,15 @@ const Header = (props: HeaderProps) => {
 
           {/* Mobile Logo - Center */}
           {isMobile && (
-            <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+            <Box
+              sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}
+            >
               <img
                 src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
-                alt="MIK Logo"
+                alt='MIK Logo'
                 style={{
                   height: 40,
-                  width: 'auto'
+                  width: 'auto',
                 }}
               />
             </Box>
@@ -224,7 +232,7 @@ const Header = (props: HeaderProps) => {
 
       {/* Mobile Drawer */}
       <Drawer
-        anchor="left"
+        anchor='left'
         open={drawerOpen}
         onClose={closeDrawer}
         ModalProps={{
@@ -233,7 +241,7 @@ const Header = (props: HeaderProps) => {
         PaperProps={{
           sx: {
             boxShadow: 3,
-          }
+          },
         }}
       >
         <Box {...swipeHandlers} sx={{ width: '100%' }}>

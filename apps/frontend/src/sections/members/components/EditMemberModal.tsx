@@ -18,6 +18,7 @@ import {
   Checkbox,
   FormGroup,
   Alert,
+  Box,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { Member, MIKMemberTypes } from '@backend/routes/members/models'
@@ -99,6 +100,7 @@ export const EditMemberModal = ({
         setFormData({
           memberType: memberData.memberType,
           canMakeReservations: memberData.canMakeReservations,
+          isMembershipApproved: memberData.isMembershipApproved,
           billingId: memberData.billingId,
           memberSince: memberData.memberSince,
         })
@@ -168,6 +170,11 @@ export const EditMemberModal = ({
               value='EXTERNAL'
               control={<Radio />}
               label={t('member.types.external')}
+            />
+            <FormControlLabel
+              value='HONORARY'
+              control={<Radio />}
+              label={t('member.types.honorary')}
             />
           </RadioGroup>
         </FormControl>
@@ -348,29 +355,47 @@ export const EditMemberModal = ({
               control={<Radio />}
               label={t('member.types.junior')}
             />
+            <FormControlLabel
+              value='HONORARY'
+              control={<Radio />}
+              label={t('member.types.honorary')}
+            />
           </RadioGroup>
         </FormControl>
       </Grid>
-      <Grid size={12} display='flex' alignItems='center'>
-        <Typography variant='body2' color='text.secondary' sx={{ width: 150 }}>
-          {t('member.canMakeReservations')}
-        </Typography>
-        <Checkbox
-          checked={formData.canMakeReservations}
-          onChange={({ target }) => {
-            setFormData({
-              ...formData,
-              canMakeReservations: target.checked,
-            })
-          }}
-        />
-      </Grid>
+      <Box mb={3} display={'flex'} flexDirection={'column'}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formData.canMakeReservations}
+              size='medium'
+              onChange={({ target }) => {
+                setFormData({
+                  ...formData,
+                  canMakeReservations: target.checked,
+                })
+              }}
+            />
+          }
+          label={t('member.canMakeReservations')}
+        ></FormControlLabel>
+      </Box>
+      <></>
       <Grid size={12}>
         <TextField
+          id='outlined'
           fullWidth
           label={t('member.billingId')}
-          value={formData.billingId || ''}
+          value={formData.billingId}
+          placeholder={
+            'Leave blank, value will be automatically assigned from Simplbooks'
+          }
           onChange={handleChange('billingId')}
+          slotProps={{
+            inputLabel: {
+              shrink: true, // Keeps the label above even when the field is empty
+            },
+          }}
         />
       </Grid>
       <Grid size={12}>

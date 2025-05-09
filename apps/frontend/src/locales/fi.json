@@ -72,7 +72,8 @@
       "flying": "Täysijäsen",
       "non-flying": "Kannatusjäsen",
       "junior": "Nuorisojäsen",
-      "external": "Ulkoinen käyttäjä"
+      "external": "Ulkoinen käyttäjä",
+      "honorary": "Kunniajäsen"
     },
     "membership": "Jäsenyyden lisätiedot",
     "memberId": "Jäsennumero",
@@ -81,7 +82,15 @@
     "memberSince": "Jäsen alkaen",
     "created": "Luotu",
     "updated": "Päivitetty",
-    "emailVerifiedAt": "Ensimmäinen kirjautuminen"
+    "emailVerifiedAt": "Email verified",
+    "emailVerified": "Email Verified ?",
+    "preFlightChkComplete": "Pre-flight checks completed for member approval",
+    "approvalDisabledMsg": "Approval is disabled until the member verifies their email",
+    "membershipApproved": "Membership Approved",
+    "membershipApprovedAt": "Membership Approved At",
+    "membershipPending": "Membership Pending Approval",
+    "approveMembership": "Approve Membership",
+    "approvedSnackbarMessage": "Membership Approved for"
   },
   "aircraft": {
     "location": "Sijainti",

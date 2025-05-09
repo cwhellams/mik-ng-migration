@@ -19,6 +19,9 @@ CREATE TABLE member.register
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email_verified_at TIMESTAMP,
+    is_membership_approved BOOLEAN NOT NULL GENERATED ALWAYS AS (membership_approved_by IS NOT NULL) STORED,
+    membership_approved_at TIMESTAMP,
+    membership_approved_by VARCHAR(9) REFERENCES member.register (member_id),
     created_by VARCHAR(9) NOT NULL REFERENCES member.register (member_id),
     updated_by VARCHAR(9) NOT NULL REFERENCES member.register (member_id)
 );

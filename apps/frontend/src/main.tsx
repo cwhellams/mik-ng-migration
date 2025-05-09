@@ -16,5 +16,5 @@ createRoot(document.getElementById('root')!).render(
       <CssBaseline /> {/* Provides a consistent baseline CSS */}
       <App />
     </ThemeProvider>
-  </StrictMode>,
+  </StrictMode>
 )

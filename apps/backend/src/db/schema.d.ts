@@ -217,11 +217,14 @@ export interface MemberRegister {
   first_name: string
   ice_contact_name: string | null
   ice_contact_phone_number: string | null
+  is_membership_approved: Generated<boolean>
   is_training_program_pilot: Generated<boolean>
   last_name: string
   member_id: string
   member_since: Generated<string>
   member_type: MemberType
+  membership_approved_at: Timestamp | null
+  membership_approved_by: string | null
   phone_number: string | null
   postcode: string | null
   street_address: string | null

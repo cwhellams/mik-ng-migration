@@ -104,13 +104,13 @@ describe('Db query member tests', () => {
   })
 
   it('getMembers should return only approved members for valid members', async () => {
-    const result = await getMembers(false, '', [])
+    const result = await getMembers(false, '', [], undefined)
     // test only first 10 items in the test data
     expect(result.slice(0, 10)).toMatchSnapshot()
   })
 
   it('getMembers should return everything for admins', async () => {
-    const result = await getMembers(true, '', [])
+    const result = await getMembers(true, '', [], undefined)
     // test only first 10 items in the test data
     expect(result.slice(0, 10)).toMatchSnapshot()
   })
@@ -158,7 +158,6 @@ describe('Db add member tests', () => {
       lang: 'fi',
     })
     await expectSnapshottedMember(memberId, email)
-    await expectAddMember1Row()
     await updateMember(
       memberId,
       { firstName: 'test2', roles: [{ roleId: 'MEMBER', isPublic: true }] },

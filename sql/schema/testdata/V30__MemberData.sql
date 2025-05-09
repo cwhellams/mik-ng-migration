@@ -55,7 +55,7 @@ INSERT INTO member.register (
     'Mannerheimintie 10',
     'Espoo',
     '02100',
-    TRUE,
+    FALSE,
     FALSE,
     'k1mnimda',
     'k1mnimda'
@@ -70,13 +70,13 @@ INSERT INTO member.register (
     '0423456789',
     'Anna Nieminen',
     '0429876543',
-    'NON-FLYING',
+    'HONORARY',
     'BILL003',
     'Aleksanterinkatu 5',
     'Tampere',
     '33100',
-    TRUE,
-    TRUE,
+    FALSE,
+    FALSE,
     'k1mnimda',
     'k1mnimda'
 ),
@@ -115,7 +115,7 @@ INSERT INTO member.register (
     'Lönnrotinkatu 20',
     'Turku',
     '20100',
-    TRUE,
+    FALSE,
     FALSE,
     'k1mnimda',
     'k1mnimda'
@@ -135,7 +135,7 @@ INSERT INTO member.register (
     'Esplanadi 30',
     'Oulu',
     '90100',
-    TRUE,
+    FALSE,
     FALSE,
     'k1mnimda',
     'k1mnimda'
@@ -175,7 +175,7 @@ INSERT INTO member.register (
     'Satamakatu 50',
     'Lahti',
     '15100',
-    TRUE,
+    FALSE,
     FALSE,
     'k1mnimda',
     'k1mnimda'
@@ -195,7 +195,7 @@ INSERT INTO member.register (
     'Rantakatu 60',
     'Kuopio',
     '70100',
-    TRUE,
+    FALSE,
     FALSE,
     'k1mnimda',
     'k1mnimda'

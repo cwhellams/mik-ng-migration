@@ -23,27 +23,34 @@ const NotFound = () => {
         left: 0,
       }}
     >
-      <Icon icon="mdi:airplane" fontSize={80} color="#1976d2" />
+      <Icon icon='mdi:airplane' fontSize={80} color='#1976d2' />
 
-      <Typography variant="h1" sx={{ mt: 4, mb: 2, fontSize: { xs: '3rem', md: '4rem' } }}>
+      <Typography
+        variant='h1'
+        sx={{ mt: 4, mb: 2, fontSize: { xs: '3rem', md: '4rem' } }}
+      >
         404
       </Typography>
 
-      <Typography variant="h4" color="text.secondary" gutterBottom>
+      <Typography variant='h4' color='text.secondary' gutterBottom>
         {t('error.pageNotFound')}
       </Typography>
 
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 500 }}>
+      <Typography
+        variant='body1'
+        color='text.secondary'
+        sx={{ mb: 4, maxWidth: 500 }}
+      >
         {t('error.pageNotFoundMessage')}
       </Typography>
 
       <Button
         component={Link}
-        to="/"
-        variant="contained"
-        color="primary"
-        size="large"
-        startIcon={<Icon icon="mdi:home" />}
+        to='/'
+        variant='contained'
+        color='primary'
+        size='large'
+        startIcon={<Icon icon='mdi:home' />}
         sx={{
           borderRadius: 2,
           py: 1,
@@ -56,4 +63,4 @@ const NotFound = () => {
   )
 }
 
-export default NotFound 
+export default NotFound
