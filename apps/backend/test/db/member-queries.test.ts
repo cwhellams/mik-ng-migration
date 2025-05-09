@@ -35,6 +35,7 @@ describe('Db query member tests', () => {
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
       updatedBy: expect.any(String),
+      membershipApprovedAt: expect.any(String),
       roles: result?.roles.map(r => ({
         ...r,
         createdAt: expect.any(String),
@@ -57,6 +58,7 @@ describe('Db query member tests', () => {
       dateOfBirth: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
+      membershipApprovedAt: expect.any(String),
       roles: result?.roles.map(r => ({
         ...r,
         createdAt: expect.any(String),
@@ -72,6 +74,7 @@ describe('Db query member tests', () => {
       updatedAt: expect.any(String),
       updatedBy: expect.any(String),
       memberSince: expect.any(String),
+      membershipApprovedAt: expect.any(String),
       roles: result?.roles.map(r => ({
         ...r,
         createdAt: expect.any(String),

@@ -268,6 +268,7 @@ describe('GET /members/me', () => {
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         updatedBy: expect.any(String),
+        ...(token !== adminToken ? { membershipApprovedAt: expect.any(String) } : {}),
         roles: member.roles.map(role => ({
           ...role,
           createdAt: expect.any(String),
