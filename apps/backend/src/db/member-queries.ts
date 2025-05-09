@@ -141,20 +141,6 @@ export async function getMembers(
       qb.where(eb =>
         eb.or(
           filterRoles.map(role =>
-            // role == null
-            //   ? // unapproved members has no roles
-            //     eb.not(
-            //       eb.exists(
-            //         eb
-            //           .selectFrom('member.member_to_roles')
-            //           .whereRef(
-            //             'member.register.member_id',
-            //             '=',
-            //             'member.member_to_roles.member_id',
-            //           ),
-            //       ),
-            //     )
-            // : // user with specific role
             eb.exists(
               eb
                 .selectFrom('member.member_to_roles')
