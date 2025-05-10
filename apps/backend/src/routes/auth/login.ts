@@ -22,6 +22,8 @@ import {
 } from '../../templates/loginEmailTemplate.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 import { problem } from '../response.ts'
+import ms from 'ms'
+import dayjs from 'dayjs'
 import {
   registerEmailBody,
   registerEmailBodyHtml,
@@ -103,6 +105,9 @@ const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response<VerifyRes
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
+    expires: dayjs()
+      .add(ms(process.env.REFRESH_TOKEN_EXPIRATION as ms.StringValue), 'milliseconds')
+      .toDate(),
 
     // cookie is only sent to refresh endpoint
     path: '/api/auth/refresh',

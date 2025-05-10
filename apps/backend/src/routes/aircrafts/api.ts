@@ -27,6 +27,7 @@ import { splitTime } from '../../util/math-utils.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
+import type { FlightLog, FlightVwFlightTimeTotals } from '../flight-log/models.ts'
 
 // all aircarft routes are protected by aircraft permissions
 export const router = Router()
@@ -188,24 +189,25 @@ const expiredDocuments = (aircraft: Aircraft) => {
 const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   const maintenance = aircraft.maintenance
 
-  const totals = (await getFlightLogTotals(aircraft.registration))?.[0]
+  const totals: FlightVwFlightTimeTotals | undefined = (
+    await getFlightLogTotals(aircraft.registration)
+  )?.[0]
 
-  const lastFlight = (
+  const lastFlight: FlightLog | undefined = (
     await getFlightLogs({
       aircraft_registration: aircraft.registration,
       last: true,
     })
   )?.[0]
 
-  const totalTime =
-    totals.ac_total_flight_time !== null ? splitTime(totals.ac_total_flight_time).hours : 0
+  const totalTime = totals?.ac_total_flight_time ? splitTime(totals.ac_total_flight_time).hours : 0
 
   const tachUntilNextMaintenance = maintenance.nextMaintenanceTach - totalTime
   const usablePercentageHours = tachUntilNextMaintenance + maintenance.usablePercentageHours
   const totalPercentageHours = tachUntilNextMaintenance + maintenance.totalPercentageHours
 
   const daysUntilNextMaintenance = maintenance.nextMaintenanceDate
-    ? daysUntilExpiration(maintenance.nextMaintenanceDate)
+    ? Math.max(0, daysUntilExpiration(maintenance.nextMaintenanceDate))
     : undefined
 
   const documents = expiredDocuments(aircraft)
@@ -224,6 +226,7 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
     // expired documents
     ...documents.warnings.map(doc => ({
       ...doc,
+      untilExpiration: Math.abs(doc.untilExpiration),
       description: 'aircraft.alerts.expired',
     })),
   ].filter(w => w !== undefined)
