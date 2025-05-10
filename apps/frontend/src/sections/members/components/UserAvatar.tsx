@@ -9,6 +9,7 @@ type Props = {
   size?: number
   onClick?: (event: React.MouseEvent<HTMLElement>) => void
   className?: string
+  isMembershipApproved?: boolean
 }
 
 const getInitials = (firstName: string, lastName?: string) => {
@@ -28,14 +29,13 @@ const UserAvatar: React.FC<Props> = ({
   lastName,
   size = 40,
   onClick,
-  className,
 }) => {
   const [error, setError] = useState(false)
-
   const showGravatar = email && !error
+
   return (
     <Avatar
-      src={showGravatar ? getGravatarUrl(email, size): undefined}
+      src={showGravatar ? getGravatarUrl(email, size) : undefined}
       onError={() => setError(true)}
       onClick={onClick}
       sx={{
@@ -45,7 +45,6 @@ const UserAvatar: React.FC<Props> = ({
         cursor: onClick ? 'pointer' : 'default',
         fontSize: size / 2,
       }}
-      className={className}
     >
       {!showGravatar && getInitials(firstName, lastName)}
     </Avatar>

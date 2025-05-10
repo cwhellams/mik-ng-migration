@@ -8,9 +8,15 @@ import {
   Chip,
   Button,
   Grid,
+  Badge,
+  Tooltip,
+  FormControlLabel,
+  Checkbox,
+  Snackbar,
+  SnackbarContent,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
-import { Member } from '@backend/routes/members/models'
+import { Member, MemberApproval } from '@backend/routes/members/models'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
@@ -24,6 +30,10 @@ import { FormTitle } from '../../components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
 import { RemoteContent } from '../../components/RemoteContent'
 import UserAvatar from './components/UserAvatar'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import PendingActionsIcon from '@mui/icons-material/PendingActions'
+import Watermark from '../../components/watermark'
+import { mutate } from 'swr'
 
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
@@ -37,7 +47,21 @@ const MemberProfile = () => {
   const { data, isLoading, error, mutation } = useApi<Member>({
     url: `v1/members/${memberId}`,
   })
+
+  const { mutation: approveMutation } = useApi<string, MemberApproval>({
+    url: `v1/members/${memberId}/approve`,
+    skipFetch: true,
+  })
+
   const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
+  const [isPreFlightChecked, setIsPreFlightChecked] = useState<boolean>(false)
+  const [sbState, setSbState] = useState<boolean>(false)
+
+  const handlePreFlightCheckboxChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setIsPreFlightChecked(event.target.checked)
+  }
 
   const handleOpenEditModal = (mode: MemberEditMode) => {
     setEditMode(mode)
@@ -48,46 +72,89 @@ const MemberProfile = () => {
     navigate('/members')
   }
 
+  const handleApprove = async () => {
+    await approveMutation.trigger('POST', memberId)
+    setSbState(true)
+    mutate((key) => Array.isArray(key) && key[0] == `v1/members/${memberId}`)
+  }
+
+  const handleClose = () => {
+    setSbState(false)
+  }
+
   //Deconstructing the data object to extract the properties we need
-  const { 
-    email, 
-    firstName, 
-    lastName, 
-    //roles, 
-    phoneNumber, 
-    streetAddress, 
-    postcode, 
-    townCity, 
-    dateOfBirth, 
-    iceContactName, 
-    iceContactPhoneNumber, 
-    isTrainingProgramPilot, 
-    //memberId, 
-    memberType, 
-    canMakeReservations, 
-    billingId, 
-    memberSince, 
-  } = data || {};
+  const {
+    email,
+    firstName,
+    lastName,
+    //roles,
+    phoneNumber,
+    streetAddress,
+    postcode,
+    townCity,
+    dateOfBirth,
+    iceContactName,
+    iceContactPhoneNumber,
+    isTrainingProgramPilot,
+    //memberId,
+    memberType,
+    canMakeReservations,
+    billingId,
+    memberSince,
+    isMembershipApproved,
+  } = data || {}
 
   return (
     <RemoteContent isLoading={isLoading} error={error}>
       <Box sx={{ padding: 3 }}>
-      
-        
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <UserAvatar
-            email={email || ''}
-            firstName={firstName || ''}
-            lastName={lastName || ''}
-            size={100}            
-            className='user-avatar'
+        <Snackbar
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          open={sbState}
+          autoHideDuration={3000}
+          onClose={handleClose}
+        >
+          <SnackbarContent
+            sx={{ backgroundColor: 'green', color: 'white' }}
+            message={`${t('member.approvedSnackbarMessage')} ${data?.firstName} ${data?.lastName}`}
           />
-          <Typography variant='h2' >
-          {isAdmin ? firstName : t('member.profile')}
-        </Typography>
+        </Snackbar>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <Badge
+            overlap='circular'
+            //variant="dot"
+            badgeContent={
+              <Tooltip
+                title={
+                  isMembershipApproved
+                    ? t('member.membershipApproved')
+                    : t('member.membershipPending')
+                }
+              >
+                {isMembershipApproved ? (
+                  <CheckCircleIcon fontSize='large' color='success' />
+                ) : (
+                  <PendingActionsIcon fontSize='large' color='error' />
+                )}
+              </Tooltip>
+            }
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+          >
+            <UserAvatar
+              email={email || ''}
+              firstName={firstName || ''}
+              lastName={lastName || ''}
+              size={100}
+              className='user-avatar'
+            />
+          </Badge>
+
+          <Typography variant='h2'>
+            {isAdmin ? firstName : t('member.profile')}
+          </Typography>
         </Box>
-        
-        
 
         <Stack
           direction='row'
@@ -114,6 +181,59 @@ const MemberProfile = () => {
         </Stack>
 
         <Stack spacing={3}>
+          {isAdmin && !isMembershipApproved && (
+            <Stack spacing={3}>
+              <Card sx={{ flex: 1, mb: 3 }}>
+                <CardContent
+                  sx={{
+                    borderWidth: '8px',
+                    borderStyle: 'solid',
+                    borderImage: `
+          repeating-linear-gradient(
+            45deg,
+            #fdd835 0px,
+            #fdd835 10px,
+            #000 10px,
+            #000 20px
+          ) 8
+        `,
+                    borderRadius: 2,
+                    boxShadow: 1,
+                  }}
+                >
+                  <FormTitle
+                    title={t('member.membershipPending')}
+                    icon='mdi:account-check'
+                  />
+                  <Stack>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={isPreFlightChecked}
+                          onChange={handlePreFlightCheckboxChange}
+                          size='medium'
+                        />
+                      }
+                      label={t('member.preFlightChkComplete')}
+                    />
+
+                    {!isPreFlightChecked && (
+                      <Typography sx={{ mb: 2, color: 'red' }} variant='h6'>
+                        {t('member.approvalDisabledMsg')}
+                      </Typography>
+                    )}
+                    <Button
+                      variant='contained'
+                      disabled={!isPreFlightChecked}
+                      onClick={async () => await handleApprove()}
+                    >
+                      {t('member.approveMembership')}
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Stack>
+          )}
           <Stack direction={{ sm: 'column', md: 'row' }} spacing={3}>
             <Card sx={{ flex: 1, mb: 3 }}>
               <EditButton
@@ -137,10 +257,7 @@ const MemberProfile = () => {
                   </FormField>
 
                   <FormField label={t('member.address')} width={100}>
-                    {[
-                      streetAddress,
-                      `${postcode || ''} ${townCity || ''}`,
-                    ]
+                    {[streetAddress, `${postcode || ''} ${townCity || ''}`]
                       .filter(Boolean)
                       .join(', ') || 'N/A'}
                   </FormField>
@@ -190,9 +307,12 @@ const MemberProfile = () => {
               />
 
               <Typography variant='body1'>
-                {isTrainingProgramPilot
-                  ? 'Is a Training Program Pilot'
-                  : 'Not a Training Program Pilot'}
+                <FormControlLabel
+                  control={
+                    <Checkbox checked={isTrainingProgramPilot} size='medium' />
+                  }
+                  label={t('member.isTrainingProgramPilot')}
+                />
               </Typography>
             </CardContent>
           </Card>
@@ -220,18 +340,14 @@ const MemberProfile = () => {
                   {data && t(`member.types.${memberType?.toLowerCase()}`)}
                 </FormField>
 
-                <FormField
-                  label={t('member.canMakeReservations')}
-                  icon={
-                    canMakeReservations
-                      ? 'mdi:check-box-outline'
-                      : 'mdi:check-box-outline-blank'
-                  }
-                />
-
-                <FormField label={t('member.billingId')}>
-                  {billingId}
+                <FormField label={t('member.canMakeReservations')}>
+                  <Checkbox
+                    checked={canMakeReservations}
+                    size='medium'
+                    sx={{ p: 0, pl: 0 }}
+                  />
                 </FormField>
+                <FormField label={t('member.billingId')}>{billingId}</FormField>
 
                 <FormField label={t('member.memberSince')}>
                   {toLocalDate(memberSince)}
@@ -256,6 +372,13 @@ const MemberProfile = () => {
                     <AuditFormField
                       label={t('member.emailVerifiedAt')}
                       at={data.emailVerifiedAt}
+                      memberId={data.memberId}
+                    />
+
+                    <AuditFormField
+                      label={t('member.membershipApproved')}
+                      at={data.membershipApprovedAt}
+                      by={data.membershipApprovedBy}
                       memberId={data.memberId}
                     />
                   </>
@@ -288,6 +411,9 @@ const MemberProfile = () => {
           api={mutation}
         />
       </Box>
+      {!isMembershipApproved && (
+        <Watermark text={t('member.membershipPending')} />
+      )}
     </RemoteContent>
   )
 }

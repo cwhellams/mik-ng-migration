@@ -76,6 +76,7 @@ export type MemberList = z.infer<typeof MemberListSchema>
 export const MemberListFiltersSchema = z.object({
   name: z.string().optional(),
   role: z.string().or(z.array(z.string())).nullish(),
+  isMembershipApproved: z.boolean().optional(),
 })
 
 export type MemberListFilters = z.infer<typeof MemberListFiltersSchema>
@@ -104,11 +105,13 @@ export const MemberSchema = AuditableSchema.extend({
   iceContactPhoneNumber: z.string().nullish(),
 
   isTrainingProgramPilot: z.boolean(),
+  isMembershipApproved: z.boolean(),
   canMakeReservations: z.boolean(),
   billingId: z.string().nullish(),
   dateOfBirth: z.string().date().nullish(),
   memberSince: z.string().date(),
-
+  membershipApprovedAt: z.string().datetime().optional(),
+  membershipApprovedBy: z.string().optional(),
   emailVerifiedAt: z.string().datetime().optional(),
 
   roles: z.array(
@@ -145,3 +148,13 @@ export const MemberProfileSchema = MemberSchema.pick({
 })
 
 export type MemberProfile = z.infer<typeof MemberProfileSchema>
+
+export const MemberApprovalSchema = MemberSchema.pick({
+  memberId: true,
+  membershipApprovedAt: true,
+  membershipApprovedBy: true,
+  email: true,
+  firstName: true,
+})
+
+export type MemberApproval = z.infer<typeof MemberApprovalSchema>

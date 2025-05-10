@@ -18,15 +18,17 @@ import { sendEmail } from '../../lib/sendGmail.ts'
 import {
   loginEmailTitle,
   loginEmailBodyHtml,
-  registerEmailBody,
-  registerEmailTitle,
   loginEmailPlainText,
-  registerEmailBodyHtml,
-} from '../../templates/email.ts'
+} from '../../templates/loginEmailTemplate.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 import { problem } from '../response.ts'
 import ms from 'ms'
 import dayjs from 'dayjs'
+import {
+  registerEmailBody,
+  registerEmailBodyHtml,
+  registerEmailTitle,
+} from '../../templates/registrationEmailTemplate.ts'
 
 const magicLogin = new MIKMagicLoginStrategy()
 passport.use(magicLogin)

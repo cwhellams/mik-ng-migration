@@ -40,6 +40,7 @@ const Members = () => {
   const [filters, setFilters] = useState<MemberListFilters>({
     name: '',
     role: '',
+    isMembershipApproved: undefined,
   })
 
   const { data, isLoading, error, mutate, mutation } = useApi<
@@ -128,15 +129,27 @@ const Members = () => {
               value={filters.role ?? ''}
               label={t('member.memberType')}
               onChange={({ target }) => {
-                setFilters({
-                  role: target.value,
-                })
+                const filter: MemberListFilters = {
+                  ...(target.value == 'unapproved'
+                    ? { isMembershipApproved: false }
+                    : {
+                        isMembershipApproved:
+                          target.value == '' ? undefined : true,
+                      }),
+                  ...(target.value != 'unapproved'
+                    ? { role: target.value }
+                    : { role: null }),
+                }
+
+                setFilters(filter)
                 mutate()
               }}
             >
               <MenuItem value=''>{t('roles.all')}</MenuItem>
               {isMembersAdmin && (
-                <MenuItem value={'null'}>{t('roles.unApproved')}</MenuItem>
+                <MenuItem value={'unapproved'}>
+                  {t('roles.unApproved')}
+                </MenuItem>
               )}
               {roles.map((role) => (
                 <MenuItem key={role.roleId} value={role.roleId}>
@@ -154,7 +167,7 @@ const Members = () => {
             <TableRow>
               <TableCell>{t('member.avatar')}</TableCell>
               <TableCell>{t('member.fullname')}</TableCell>
-              <TableCell >{t('member.phone')}</TableCell>
+              <TableCell>{t('member.phone')}</TableCell>
               <TableCell align='right'>{t('member.roles')}</TableCell>
             </TableRow>
           </TableHead>
@@ -166,16 +179,25 @@ const Members = () => {
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 >
                   <TableCell>
-                    <UserAvatar email={row.email} size={40} firstName={row.first} lastName={row.last} />
+                    <UserAvatar
+                      email={row.email}
+                      size={40}
+                      firstName={row.first}
+                      lastName={row.last}
+                    />
                   </TableCell>
                   <TableCell component='th' scope='row'>
                     {isMembersAdmin ? (
-                      <Link to={`/members/${row.memberId}`}>`${row.first} ${row.last}`</Link>
+                      <Link to={`/members/${row.memberId}`}>
+                        {row.first} {row.last}
+                      </Link>
                     ) : (
                       `${row.first} ${row.last}`
                     )}
                   </TableCell>
-                  <TableCell>{formatFinnishPhoneNumber(row.phoneNumber ?? '')}</TableCell>
+                  <TableCell>
+                    {formatFinnishPhoneNumber(row.phoneNumber ?? '')}
+                  </TableCell>
                   <TableCell align='right'>
                     <Stack
                       direction='row'

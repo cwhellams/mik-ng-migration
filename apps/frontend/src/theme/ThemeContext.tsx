@@ -1,4 +1,10 @@
-import { createContext, useState, useContext, useEffect, ReactNode } from 'react'
+import {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  ReactNode,
+} from 'react'
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles'
 import { lightTheme, darkTheme } from './theme'
 
@@ -46,4 +52,4 @@ export const useThemeMode = () => {
     throw new Error('useThemeMode must be used within a ThemeProvider')
   }
   return context
-} 
+}

@@ -11,13 +11,13 @@ const AuthLayout = () => {
         minHeight: '100vh',
       }}
     >
-      <Container 
-        maxWidth="md" 
-        sx={{ 
+      <Container
+        maxWidth='md'
+        sx={{
           my: 4,
           display: 'flex',
           justifyContent: 'center',
-          width: '100%'
+          width: '100%',
         }}
       >
         <Outlet />
@@ -26,4 +26,4 @@ const AuthLayout = () => {
   )
 }
 
-export default AuthLayout 
+export default AuthLayout

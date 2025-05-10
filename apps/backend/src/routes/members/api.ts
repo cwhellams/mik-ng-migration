@@ -11,6 +11,7 @@ import {
   type MemberRolesResponse,
   type MemberRole,
   MemberRoleSchema,
+  type MemberApproval,
 } from './models.ts'
 import {
   getMemberById,
@@ -23,12 +24,21 @@ import {
   removeMemberRole,
   addMember,
   removeMember,
+  getMembersAwaitingApproval,
+  setMembershipApproval,
 } from '../../db/member-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { UpsertSchema } from '../../types/schema.ts'
 import { RegisterRequestSchema } from '../auth/schema.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
+import { HttpStatusCode } from 'axios'
+import { sendEmail } from '../../lib/sendGmail.ts'
+import {
+  membershipApprovedEmailBodyHtml,
+  membershipApprovedEmailPlainText,
+  membershipApprovedEmailSubject,
+} from '../../templates/newMemberApprovedEmailTemplate.ts'
 
 export const router = Router()
 
@@ -36,11 +46,42 @@ const isMemberAdmin = (user?: JWTUser): boolean =>
   user?.permissions?.includes(MIKPermissions.MEMBER_ADMIN) ?? false
 
 router.get(
+  '/awaiting-approval',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request, res: Response<Member[]>) => {
+    const membersAwaitingApproval = await getMembersAwaitingApproval()
+    res.status(HttpStatusCode.Ok).json(membersAwaitingApproval)
+  },
+)
+
+router.post(
+  '/:memberId/approve',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request<{ memberId: string }>, res: Response<MemberApproval>) => {
+    const memberId = req.params.memberId
+
+    const approval = await setMembershipApproval(memberId, req.user!.memberId)
+    if (!approval) {
+      return problem({ status: HttpStatusCode.NotFound })
+    }
+
+    sendEmail(
+      approval.email,
+      membershipApprovedEmailSubject('en'),
+      membershipApprovedEmailBodyHtml('en', { firstName: approval.firstName }),
+      membershipApprovedEmailPlainText('en', { firstName: approval.firstName }),
+    )
+
+    res.status(HttpStatusCode.Created).json(approval)
+  },
+)
+
+router.get(
   '/',
   // Only validated members can list other members
   validateUser(MIKPermissions.MEMBER, MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{}, {}, {}, MemberListFilters>, res: Response<MemberListResponse>) => {
-    const { name, role } = req.query
+    const { name, role, isMembershipApproved } = req.query
 
     // either no roles filter, or one/multiple roles
     const roles = role ? (Array.isArray(role) ? role : [role]) : []
@@ -50,7 +91,8 @@ router.get(
       name,
 
       // map query of unapproved members to null
-      roles.map(role => (role == 'null' ? null : role)),
+      roles,
+      isMembershipApproved,
     )
 
     res.status(200).json({
@@ -169,12 +211,20 @@ router.delete(
 //
 
 router.post(
+  '/approve/:memberId',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request, res: Response<MemberApproval>) => {
+    const created = await setMembershipApproval(req.params.memberId, req.user?.memberId!)
+    created ? res.status(HttpStatusCode.Ok).json(created) : res.status(HttpStatusCode.NotFound)
+  },
+)
+
+router.post(
   '/',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request, res: Response<Member>) => {
     const member = RegisterRequestSchema.parse(req.body)
-    const memberId = await addMember(member, req.user!)
-
+    const memberId = await addMember(member, req.user)
     const created = await getMemberById(memberId)
     res.status(200).json(created)
   },

@@ -54,15 +54,15 @@ const SplashScreen = ({ loading = true }: SplashScreenProps) => {
           },
         }}
       >
-        <img 
-          src={MikLogo} 
-          alt="MIK Logo" 
-          style={{ 
+        <img
+          src={MikLogo}
+          alt='MIK Logo'
+          style={{
             width: '100%',
-            filter: 'drop-shadow(0 0 8px rgba(100, 108, 255, 0.3))'
-          }} 
+            filter: 'drop-shadow(0 0 8px rgba(100, 108, 255, 0.3))',
+          }}
         />
-      </Box>      
+      </Box>
     </Box>
   )
 }

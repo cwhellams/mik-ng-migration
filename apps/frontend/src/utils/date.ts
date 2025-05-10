@@ -6,4 +6,4 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 
 export const toLocalDate = (date?: string | null) =>
-  dayjs.tz(dayjs(date), 'Europe/Helsinki').format('DD.MM.YYYY')
+  date ? dayjs.tz(dayjs(date), 'Europe/Helsinki').format('DD.MM.YYYY') : null

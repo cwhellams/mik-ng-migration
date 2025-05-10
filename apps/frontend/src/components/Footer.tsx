@@ -11,21 +11,22 @@ const Footer = () => {
 
   return (
     <Box
-      component="footer"
+      component='footer'
       mt={6}
       px={5}
       sx={{
         py: 4,
-        backgroundColor: theme => theme.palette.mode === 'dark'
-          ? 'rgba(30, 30, 30, 0.8)'
-          : 'rgba(245, 245, 245, 0.8)',
+        backgroundColor: (theme) =>
+          theme.palette.mode === 'dark'
+            ? 'rgba(30, 30, 30, 0.8)'
+            : 'rgba(245, 245, 245, 0.8)',
         backdropFilter: 'blur(8px)',
         borderTop: '1px solid',
         borderColor: 'divider',
         width: '100vw',
       }}
     >
-      <Container maxWidth="lg">
+      <Container maxWidth='lg'>
         <Box
           sx={{
             display: 'flex',
@@ -47,27 +48,32 @@ const Footer = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
               <img
                 src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
-                alt="MIK Logo"
+                alt='MIK Logo'
                 style={{ height: 30, width: 'auto', marginRight: '8px' }}
               />
             </Box>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Malmin Ilmailukerho ry
             </Typography>
           </Box>
 
           {/* Quick links */}
           <Stack spacing={1} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-            <Typography variant="subtitle2" color="text.primary" gutterBottom>
+            <Typography variant='subtitle2' color='text.primary' gutterBottom>
               {t('footer.quickLinks')}
             </Typography>
-            <Link href="https://www.mik.fi" target="_blank" color="inherit" underline="hover">
+            <Link
+              href='https://www.mik.fi'
+              target='_blank'
+              color='inherit'
+              underline='hover'
+            >
               {t('footer.website')}
             </Link>
-            <Link href="#" color="inherit" underline="hover">
+            <Link href='#' color='inherit' underline='hover'>
               {t('footer.contact')}
             </Link>
-            <Link href="#" color="inherit" underline="hover">
+            <Link href='#' color='inherit' underline='hover'>
               {t('footer.privacy')}
             </Link>
           </Stack>
@@ -77,7 +83,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant='body2' color='text.secondary'>
             © {currentYear} Malmin Ilmailukerho ry.
           </Typography>
         </Box>
@@ -86,4 +92,4 @@ const Footer = () => {
   )
 }
 
-export default Footer 
+export default Footer

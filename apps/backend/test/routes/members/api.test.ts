@@ -16,10 +16,9 @@ import {
 } from '../../../src/routes/members/models.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import type { Upsert } from '../../../src/types/schema.ts'
-import {
-  deleteSimplbooksOutbox,
-  expectAddMember1Row,
-} from '../../db/__helpers__/simplbooksDbHelpers.ts'
+import { deleteSimplbooksOutbox } from '../../db/__helpers__/simplbooksDbHelpers.ts'
+import { HttpStatusCode } from 'axios'
+import { db } from '../../../src/db/connection.ts'
 
 // Create an instance of the Express app
 const app = express()
@@ -51,6 +50,12 @@ const missingUserToken = generateAccessToken({
   permissions: [],
 })
 
+const post = async (payload: Upsert<MemberRole>, token: string) =>
+  request(app).post(`/members/roles`).set('Authorization', `Bearer ${token}`).send(payload)
+
+const remove = async (id: string, token: string) =>
+  request(app).delete(`/members/roles/${id}`).set('Authorization', `Bearer ${token}`).send({})
+
 describe('GET /members', () => {
   const query = async (token: string, query?: MemberListFilters) => {
     const response = await request(app)
@@ -73,8 +78,9 @@ describe('GET /members', () => {
   })
 
   it('should return prefix matches with name filter', async () => {
-    const membersQry = await query(memberToken, {
+    const membersQry = await query(adminToken, {
       name: 'an',
+      isMembershipApproved: undefined,
     })
 
     expect(membersQry.members.map(m => m.first)).toEqual(['Antti', 'Anna'])
@@ -113,8 +119,9 @@ describe('GET /members', () => {
   })
 
   it('should search by multiple public roles as a member', async () => {
-    const membersQry = await query(memberToken, {
+    const membersQry = await query(adminToken, {
       role: ['INSTRUCTOR', 'COMMITTEE'],
+      isMembershipApproved: undefined,
     })
     expect(membersQry.members.map(({ first, last, roles }) => ({ first, last, roles }))).toEqual([
       {
@@ -125,7 +132,7 @@ describe('GET /members', () => {
       {
         first: 'Liisa',
         last: 'Korhonen',
-        roles: ['COMMITTEE'],
+        roles: ['ADMIN', 'COMMITTEE'],
       },
       {
         first: 'Sanna',
@@ -145,7 +152,7 @@ describe('GET /members', () => {
       {
         first: 'Matti',
         last: 'Virtanen',
-        roles: ['INSTRUCTOR', 'MEMBER'],
+        roles: ['FLYING_MEMBER', 'INSTRUCTOR', 'MEMBER'],
       },
     ])
   })
@@ -154,23 +161,25 @@ describe('GET /members', () => {
     const membersQry = await query(memberToken, {
       role: 'NOT_ROLE',
     })
-    expect(membersQry.members.length).toEqual(8)
+    expect(membersQry.members.length).toEqual(6)
   })
 
   it('should skip search by private roles as a member', async () => {
     const membersQry = await query(memberToken, {
       role: 'ADMIN',
+      isMembershipApproved: undefined,
     })
 
-    expect(membersQry.members.length).toEqual(8)
+    expect(membersQry.members.length).toEqual(6)
   })
 
   it('should skip search by unapproved roles as a member', async () => {
     const membersQry = await query(memberToken, {
       role: 'null',
+      isMembershipApproved: true,
     })
 
-    expect(membersQry.members.length).toEqual(8)
+    expect(membersQry.members.length).toEqual(6)
   })
 
   it('should search by private roles as an admin', async () => {
@@ -214,6 +223,7 @@ describe('GET /members', () => {
   it('should search by private and unapproved roles as an admin', async () => {
     const membersQry = await query(adminToken, {
       role: ['ADMIN', 'null'],
+      isMembershipApproved: undefined,
     })
 
     expect(membersQry.members.map(({ first, last, roles }) => ({ first, last, roles }))).toEqual([
@@ -237,7 +247,6 @@ describe('GET /members', () => {
         last: 'Laine',
         roles: ['ADMIN'],
       },
-      { first: 'Marja', last: 'Salminen', roles: [] },
     ])
   })
 })
@@ -259,6 +268,7 @@ describe('GET /members/me', () => {
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         updatedBy: expect.any(String),
+        ...(token !== adminToken ? { membershipApprovedAt: expect.any(String) } : {}),
         roles: member.roles.map(role => ({
           ...role,
           createdAt: expect.any(String),
@@ -472,12 +482,6 @@ describe('PATCH /members/roles/id', () => {
   })
 })
 
-const post = async (payload: Upsert<MemberRole>, token: string) =>
-  request(app).post(`/members/roles`).set('Authorization', `Bearer ${token}`).send(payload)
-
-const remove = async (id: string, token: string) =>
-  request(app).delete(`/members/roles/${id}`).set('Authorization', `Bearer ${token}`).send({})
-
 describe('POST /members/roles', () => {
   const role: Upsert<MemberRole> = {
     roleId: new Date().getTime().toString(),
@@ -641,7 +645,7 @@ describe('GET /members/id', () => {
   })
 
   it('Return 403 as a reqular member', async () => {
-    const response = await get('Marja1', memberToken)
+    const response = await get('Liisa1', memberToken)
     expect(response.status).toBe(403)
   })
 
@@ -701,7 +705,6 @@ describe('POST /members', () => {
   it('Create and delete member as an admin', async () => {
     const response = await post(req, adminToken)
     expect(response.status).toBe(200)
-    await expectAddMember1Row()
 
     const member = response.body as Member
 
@@ -725,5 +728,53 @@ describe('POST /members', () => {
       adminToken,
     )
     expect(response.status).toBe(400)
+  })
+})
+
+describe('Membership approval tests', () => {
+  it('Get awaiting approval member details should return list of members awaiting approval', async () => {
+    const response = await request(app)
+      .get('/members/awaiting-approval')
+      .set('Authorization', `Bearer ${adminToken}`)
+    expect(response.status).toBe(200)
+    expect(response.body).toMatchSnapshot(
+      response.body.map((member: Member) => ({
+        ...member,
+        memberSince: expect.any(String),
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
+    )
+  })
+
+  it('Get awaiting approval member details should return error when not a member admin', async () => {
+    const response = await request(app)
+      .get('/members/awaiting-approval')
+      .set('Authorization', `Bearer ${memberToken}`)
+    expect(response.status).toBe(403)
+  })
+
+  it('POST approval should approve a new member by updating the member.register table ', async () => {
+    const response = await request(app)
+      .post('/members/approve/Marja1')
+      .set('Authorization', `Bearer ${adminToken}`)
+    expect(response.status).toBe(HttpStatusCode.Ok)
+
+    //revert changes
+    await db
+      .updateTable('member.register')
+      .set({
+        membership_approved_at: null,
+        membership_approved_by: null,
+      })
+      .where('member_id', '=', 'Marja1')
+      .execute()
+  })
+
+  it('POST approval should not be allowed for non admin users', async () => {
+    const response = await request(app)
+      .post('/members/approve/Marja1')
+      .set('Authorization', `Bearer ${memberToken}`)
+    expect(response.status).toBe(HttpStatusCode.Forbidden)
   })
 })
