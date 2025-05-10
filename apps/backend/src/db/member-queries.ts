@@ -234,6 +234,7 @@ export async function updateMember(
 
       updated_at: now,
       updated_by: jwt.memberId,
+      email_verified_at: patch.emailVerifiedAt,
     })
     .where('member_id', '=', memberId)
     .executeTakeFirstOrThrow()

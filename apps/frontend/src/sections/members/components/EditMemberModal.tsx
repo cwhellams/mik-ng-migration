@@ -386,7 +386,7 @@ export const EditMemberModal = ({
           id='outlined'
           fullWidth
           label={t('member.billingId')}
-          value={formData.billingId}
+          value={formData.billingId || ''}
           placeholder={
             'Leave blank, value will be automatically assigned from Simplbooks'
           }

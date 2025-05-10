@@ -740,6 +740,7 @@ describe('Membership approval tests', () => {
     expect(response.body).toMatchSnapshot(
       response.body.map((member: Member) => ({
         ...member,
+        memberSince: expect.any(String),
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       })),
