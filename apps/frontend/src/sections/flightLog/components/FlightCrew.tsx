@@ -46,7 +46,7 @@ const FlightCrew = ({
 
   if (!flightType) {
     return (
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <Box
           sx={{
             p: 3,
@@ -136,41 +136,45 @@ const FlightCrew = ({
         {/* Self (Pilot/Captain) */}
         {isSinglePilotFlight ? (
           // Single pilot mode - just display Self field
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <TextField
               fullWidth
               label={t('flightLog.self', 'Self')}
               disabled={true}
               value='SELF'
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <PicButton position='self' />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <PicButton position='self' />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
           </Grid>
         ) : (
           // Multi crew mode - display Self with duty selection
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Grid container spacing={2}>
-              <Grid item xs={8}>
+              <Grid size={{ xs: 8 }}>
                 <TextField
                   fullWidth
                   label={t('flightLog.self', 'Self')}
                   disabled={true}
                   value='SELF'
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <PicButton position='self' />
-                      </InputAdornment>
-                    ),
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <PicButton position='self' />
+                        </InputAdornment>
+                      ),
+                    },
                   }}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid size={{ xs: 4 }}>
                 <Controller
                   name='selfType'
                   control={control}
@@ -205,25 +209,27 @@ const FlightCrew = ({
         {!isSinglePilotFlight && (
           <>
             {/* Copilot */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Grid container spacing={2}>
-                <Grid item xs={8}>
+                <Grid size={{ xs: 8 }}>
                   <TextField
                     fullWidth
                     label={t('flightLog.crew1', 'Crew #1')}
                     {...register('copilot')}
                     error={!!errors.copilot}
                     helperText={errors.copilot?.message?.toString()}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <PicButton position='copilot' />
-                        </InputAdornment>
-                      ),
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <InputAdornment position='start'>
+                            <PicButton position='copilot' />
+                          </InputAdornment>
+                        ),
+                      },
                     }}
                   />
                 </Grid>
-                <Grid item xs={4}>
+                <Grid size={{ xs: 4 }}>
                   <Controller
                     name='copilotType'
                     control={control}
@@ -256,9 +262,9 @@ const FlightCrew = ({
 
             {/* Additional crew members */}
             {Array.from({ length: additionalCrewCount }).map((_, index) => (
-              <Grid item xs={12} key={`crew-${index}`}>
+              <Grid size={{ xs: 12 }} key={`crew-${index}`}>
                 <Grid container spacing={2}>
-                  <Grid item xs={7}>
+                  <Grid size={{ xs: 7 }}>
                     <TextField
                       fullWidth
                       label={t(
@@ -270,16 +276,18 @@ const FlightCrew = ({
                       helperText={errors[
                         `additionalCrew${index}`
                       ]?.message?.toString()}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <PicButton position={`additional${index}`} />
-                          </InputAdornment>
-                        ),
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <PicButton position={`additional${index}`} />
+                            </InputAdornment>
+                          ),
+                        },
                       }}
                     />
                   </Grid>
-                  <Grid item xs={4}>
+                  <Grid size={{ xs: 4 }}>
                     <Controller
                       name={`additionalCrewType${index}`}
                       control={control}
@@ -313,8 +321,7 @@ const FlightCrew = ({
                     />
                   </Grid>
                   <Grid
-                    item
-                    xs={1}
+                    size={{ xs: 12 }}
                     sx={{ display: 'flex', alignItems: 'center' }}
                   >
                     <Button
@@ -331,7 +338,7 @@ const FlightCrew = ({
 
             {/* Add crew button */}
             {additionalCrewCount < 2 && (
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Box>
                   <Button
                     variant='outlined'

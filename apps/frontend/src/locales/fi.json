@@ -262,7 +262,7 @@
     "billingInfo": "Laskutustiedot",
     "billableMemberId": "Laskutettavan jäsennumero",
     "billingRemarks": "Laskutushuomautukset",
-    "remarks": "Huomautukset",
+    "personalRemarks": "Huomautukset",
     "flightTimeline": "Lennon aikajana",
     "taxiOut": "Rullaus lentoonlähtöön",
     "flight": "Lentoaika",

@@ -262,7 +262,7 @@
     "billingInfo": "Billing Information",
     "billableMemberId": "Billable Member ID",
     "billingRemarks": "Billing Remarks",
-    "remarks": "Remarks",
+    "personalRemarks": "Remarks",
     "flightTimeline": "Flight Timeline",
     "taxiOut": "Taxi Out",
     "flight": "Flight",

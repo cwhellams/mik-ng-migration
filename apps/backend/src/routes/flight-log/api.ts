@@ -1,9 +1,9 @@
 import { Router, type Request, type Response } from 'express'
 
 import {
-  flightLogFiltersSchema,
-  flightLogInsertSchema,
-  flightLogUpdateSchema,
+  FlightLogFiltersSchema,
+  FlightLogInsertSchema,
+  FlightLogSchema,
   type FlightLog,
   type FlightLogFilters,
 } from './models.ts'
@@ -19,6 +19,7 @@ import { validateUser } from '../../middleware/authMiddleware.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
+import { UpsertSchema } from '../../types/schema.ts'
 
 // all flight log routes are protected by flightlog permissions
 const router = Router()
@@ -29,7 +30,7 @@ const isFlightLogAdmin = (user?: JWTUser): boolean =>
 
 // Create a flight log
 router.post('/', async (req: Request, res: Response) => {
-  const data = flightLogInsertSchema.parse(req.body)
+  const data = FlightLogInsertSchema.parse(req.body)
 
   const flightId = await insertFlightLog(data, req.user!)
   res.status(201).json({ flight_id: flightId })
@@ -37,7 +38,7 @@ router.post('/', async (req: Request, res: Response) => {
 
 // Get flight logs using filter
 router.get('/', async (req: Request, res: Response) => {
-  const data = flightLogFiltersSchema.parse(req.query)
+  const data = FlightLogFiltersSchema.parse(req.query)
 
   // If user is not Flight Log Admin they can only see their own flights
   const filters: FlightLogFilters = {
@@ -107,7 +108,7 @@ const validateWriteAccess = (flights: FlightLog[], req: Request) => {
 router.patch('/:id', async (req: Request, res: Response) => {
   const flightId = req.params.id
 
-  const data = flightLogUpdateSchema.parse(req.body)
+  const data = UpsertSchema(FlightLogSchema).parse(req.body)
 
   const flightLogs = await getFlightLogs({ flight_id: flightId })
 

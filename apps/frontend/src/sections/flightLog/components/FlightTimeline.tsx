@@ -170,7 +170,7 @@ const FlightTimeline = ({
 
       <Grid container spacing={2}>
         {offBlockTime && takeoffTime && (
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <Box
               sx={{
                 p: { xs: 1, sm: 1.5 },
@@ -193,7 +193,7 @@ const FlightTimeline = ({
         )}
 
         {takeoffTime && landingTime && (
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <Box
               sx={{
                 p: { xs: 1, sm: 1.5 },
@@ -218,7 +218,7 @@ const FlightTimeline = ({
         )}
 
         {landingTime && onBlockTime && (
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <Box
               sx={{
                 p: { xs: 1, sm: 1.5 },
@@ -245,7 +245,7 @@ const FlightTimeline = ({
           color='text.secondary'
           sx={{ mb: 1, display: 'block' }}
         >
-          {t('flightLog.timelineView', 'Timeline View')}
+          {t('flightLog.flightTimeline')}
         </Typography>
         {taxiOutTime > 0 && (
           <Box
@@ -394,7 +394,7 @@ const FlightTimeline = ({
           <Collapse in={calculatorExpanded}>
             <Box sx={{ p: { xs: 1, sm: 1.5 } }}>
               <Grid container spacing={2} sx={{ mb: 1.5 }}>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Box
                     sx={{
                       borderRadius: 1,
@@ -449,7 +449,7 @@ const FlightTimeline = ({
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Box
                     sx={{
                       borderRadius: 1,
@@ -474,7 +474,7 @@ const FlightTimeline = ({
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Box
                     sx={{
                       borderRadius: 1,

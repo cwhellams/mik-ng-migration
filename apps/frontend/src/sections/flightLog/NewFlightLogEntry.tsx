@@ -118,10 +118,10 @@ const NewFlightLogEntry = () => {
       number_of_landings: 1,
       persons_on_board: 1,
       aircraft_registration: undefined,
-      off_block_time_utc: undefined,
-      takeoff_time_utc: undefined,
-      landing_time_utc: undefined,
-      on_block_time_utc: undefined,
+      off_block_time_epoch: undefined,
+      takeoff_time_epoch: undefined,
+      landing_time_epoch: undefined,
+      on_block_time_epoch: undefined,
     },
   })
 
@@ -377,13 +377,13 @@ const NewFlightLogEntry = () => {
           >
             <Grid container spacing={3}>
               {/* Aircraft Information */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Typography variant='h6' gutterBottom>
                   {t('flightLog.aircraftInfo', 'Aircraft Information')}
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth error={!!errors.aircraft_registration}>
                   <InputLabel>
                     {t('flightLog.aircraft', 'Aircraft Registration')}
@@ -418,7 +418,7 @@ const NewFlightLogEntry = () => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth error={!!errors.flight_type}>
                   <InputLabel>
                     {t('flightLog.flightType', 'Flight Type')}
@@ -453,12 +453,12 @@ const NewFlightLogEntry = () => {
               </Grid>
 
               {/* Flight Crew */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Typography variant='h6' gutterBottom>
                   {t('flightLog.crew', 'Flight Crew')}
                 </Typography>
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <FlightCrew
                   flightType={flightType}
                   register={register}
@@ -468,13 +468,13 @@ const NewFlightLogEntry = () => {
               </Grid>
 
               {/* Flight Date and Time Settings */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Typography variant='h6' gutterBottom>
                   {t('flightLog.times', 'Flight Times')}
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <DatePicker
                   label={t('flightLog.flightDate', 'Flight Date')}
                   value={flightDate}
@@ -488,7 +488,7 @@ const NewFlightLogEntry = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box>
                   <Typography variant='body2' gutterBottom>
                     {t('flightLog.timeFormat', 'Time Format')}
@@ -548,7 +548,7 @@ const NewFlightLogEntry = () => {
                 </Box>
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Typography
                   variant='subtitle2'
                   gutterBottom
@@ -561,7 +561,7 @@ const NewFlightLogEntry = () => {
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} md={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <TextField
                   fullWidth
                   label={
@@ -581,7 +581,7 @@ const NewFlightLogEntry = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <TextField
                   fullWidth
                   label={
@@ -601,7 +601,7 @@ const NewFlightLogEntry = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <TextField
                   fullWidth
                   label={
@@ -621,7 +621,7 @@ const NewFlightLogEntry = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <TextField
                   fullWidth
                   label={
@@ -645,7 +645,7 @@ const NewFlightLogEntry = () => {
                 takeoffDayjs ||
                 landingDayjs ||
                 onBlockDayjs) && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant='body2' color='text.secondary'>
                     {offBlockDayjs &&
                       ` ${t('flightLog.offBlockTime', 'Off Block')}: ${offBlockDayjs.format('DD.MM.YYYY HH:mm')}`}
@@ -660,7 +660,7 @@ const NewFlightLogEntry = () => {
               )}
 
               {/* Flight Timeline Visualization */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <FlightTimeline
                   offBlockTime={offBlockDayjs}
                   takeoffTime={takeoffDayjs}
@@ -670,13 +670,13 @@ const NewFlightLogEntry = () => {
               </Grid>
 
               {/* Additional flight info */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Typography variant='h6' gutterBottom>
                   {t('flightLog.additionalInfo', 'Additional Information')}
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   label={t('flightLog.departureAirport', 'Departure Airport')}
@@ -686,7 +686,7 @@ const NewFlightLogEntry = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   label={t('flightLog.arrivalAirport', 'Arrival Airport')}
@@ -696,7 +696,7 @@ const NewFlightLogEntry = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
                   type='number'
@@ -707,7 +707,7 @@ const NewFlightLogEntry = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
                   type='number'
@@ -718,18 +718,18 @@ const NewFlightLogEntry = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
                   label={t('flightLog.nightHours', 'Night Hours (HH:MM)')}
                   placeholder='00:00'
-                  {...register('night_hours')}
-                  error={!!errors.night_hours}
-                  helperText={errors.night_hours?.message?.toString()}
+                  {...register('night_flying_mins')}
+                  error={!!errors.night_flying_mins}
+                  helperText={errors.night_flying_mins?.message?.toString()}
                 />
               </Grid>
 
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
                   label={t(
@@ -737,14 +737,14 @@ const NewFlightLogEntry = () => {
                     'Instrument Hours (HH:MM)'
                   )}
                   placeholder='00:00'
-                  {...register('instrument_hours')}
-                  error={!!errors.instrument_hours}
-                  helperText={errors.instrument_hours?.message?.toString()}
+                  {...register('instrument_flying_mins')}
+                  error={!!errors.instrument_flying_mins}
+                  helperText={errors.instrument_flying_mins?.message?.toString()}
                 />
               </Grid>
 
               {/* Fuel and Oil */}
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   type='number'
@@ -756,7 +756,7 @@ const NewFlightLogEntry = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   type='number'
@@ -769,13 +769,13 @@ const NewFlightLogEntry = () => {
               </Grid>
 
               {/* Billing Information */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Typography variant='h6' gutterBottom>
                   {t('flightLog.billingInfo', 'Billing Information')}
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   type='number'
@@ -786,7 +786,7 @@ const NewFlightLogEntry = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
                   label={t('flightLog.billingRemarks', 'Billing Remarks')}
@@ -798,15 +798,15 @@ const NewFlightLogEntry = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
-                  label={t('flightLog.remarks', 'Remarks')}
+                  label={t('flightLog.personalRemarks', 'Personal Remarks')}
                   multiline
                   rows={3}
-                  {...register('remarks')}
-                  error={!!errors.remarks}
-                  helperText={errors.remarks?.message?.toString()}
+                  {...register('personal_remarks')}
+                  error={!!errors.personal_remarks}
+                  helperText={errors.personal_remarks?.message?.toString()}
                 />
               </Grid>
             </Grid>

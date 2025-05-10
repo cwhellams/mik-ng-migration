@@ -1,7 +1,6 @@
-import type { Insertable, Updateable } from 'kysely'
 import { z } from 'zod'
 
-import type { FlightLogs } from '../../db/schema.js'
+import { AuditableSchema, UpsertSchema } from '../../types/schema.ts'
 
 const Numeric = z.union([z.number(), z.string()])
 
@@ -27,7 +26,7 @@ const epochDateTime = z.preprocess(
 
 const bigintAsString = z.string().regex(/^\d+$/)
 
-export const flightLogFiltersSchema = z
+export const FlightLogFiltersSchema = z
   .object({
     flight_id: z.string().optional(),
     billable_member_id: z.string().optional(),
@@ -47,9 +46,9 @@ export const flightLogFiltersSchema = z
   .strict()
 
 // Type inference from the schema (should match your interface)
-export type FlightLogFilters = z.infer<typeof flightLogFiltersSchema>
+export type FlightLogFilters = z.infer<typeof FlightLogFiltersSchema>
 
-export const baseFlightLogSchema = z.object({
+export const FlightLogSchema = AuditableSchema.extend({
   aircraft_registration: z.string(),
   ajlb_blank_rows_before: z.number().int().min(0),
   ajlb_seq_no: z.number().int().positive(),
@@ -58,8 +57,6 @@ export const baseFlightLogSchema = z.object({
   billing_remarks: z.string().nullable(), // string | null
   block_mins: z.number().int().nullable().optional(), // Generated<number | null>
   block_time: z.string().nullable().optional(), // Generated<string | null>
-  created_at: z.date().optional(), // Generated<Timestamp> (assuming JS Date)
-  created_by: z.string(),
   crew2_member_id: z.string().nullable().optional(),
   crew2_role: CrewRoleEnum.nullable().optional(),
   crew3_member_id: z.string().nullable().optional(),
@@ -79,17 +76,18 @@ export const baseFlightLogSchema = z.object({
   is_billable_flight: z.boolean(), // boolean (required)
   is_dto_training_flight: z.boolean(),
   is_billed: z.boolean().optional(), // Generated<boolean>
-  landing_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
   night_flying_mins: z.number().int().min(0), // number (required)
   non_billing_approved_by_member_id: z.string().nullable(),
   non_billing_reason: z.string().nullable(), // string | null
   number_of_landings: z.number().int(),
   off_block_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
+  off_block_time_epoch: bigintAsString, // Int8 (required)
   oil_uplift_litres: Numeric, // Numeric (required)
-  off_block_time_epoch: bigintAsString.optional(), // Int8 (required)
-  takeoff_time_epoch: bigintAsString.optional(), // Int8 (required)// on_block_time_epoch: bigintAsString.optional(), // Int8 (required)
-  landing_time_epoch: bigintAsString.optional(), // Int8 (required)
-  on_block_time_epoch: bigintAsString.optional(), // Int8 (required)
+  takeoff_time_epoch: bigintAsString, // Int8 (required)// on_block_time_epoch: bigintAsString, // Int8 (required)
+  takeoff_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
+  landing_time_epoch: bigintAsString, // Int8 (required)
+  landing_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
+  on_block_time_epoch: bigintAsString, // Int8 (required)
   on_block_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
   personal_remarks: z.string().nullable(),
   persons_on_board: z.number().int(),
@@ -97,19 +95,12 @@ export const baseFlightLogSchema = z.object({
   pic_role: CrewRoleEnum, // CrewRole (required)
   priv_or_com_flight: z.string(),
   status: FlightLogStatusEnum.optional(), // Generated<FlightLogStatus>
-  takeoff_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
   total_time_in_service: Numeric, // Numeric (required)
-  updated_at: z.date().optional(), // Generated<Timestamp>
-  updated_by: z.string(),
 })
 
 // We use partial to allow only updating some fields
-export const flightLogInsertSchema = baseFlightLogSchema
+export const FlightLogInsertSchema = UpsertSchema(FlightLogSchema)
   .omit({
-    created_by: true,
-    created_at: true,
-    updated_by: true,
-    updated_at: true,
     non_billing_approved_by_member_id: true,
     status: true,
     invoice_number: true,
@@ -132,15 +123,9 @@ export const flightLogInsertSchema = baseFlightLogSchema
     on_block_time_epoch: bigintAsString,
   })
 
-export const flightLogUpdateSchema = flightLogInsertSchema.partial().strict()
-
 // Infer the TypeScript type from the Zod schema
-export type FlightLog = z.infer<typeof baseFlightLogSchema>
-export type FlightLogInsertRequest = z.infer<typeof flightLogInsertSchema>
-export type FlightLogUpdateRequest = z.infer<typeof flightLogUpdateSchema>
-
-export type InsertableFlightLog = Insertable<FlightLogs>
-export type FlightLogUpdateable = Updateable<FlightLogs>
+export type FlightLog = z.infer<typeof FlightLogSchema>
+export type FlightLogInsertRequest = z.infer<typeof FlightLogInsertSchema>
 
 export const FlightVwFlightTimeTotalsSchema = z.object({
   ac_total_flight_time: z.string().nullable(),

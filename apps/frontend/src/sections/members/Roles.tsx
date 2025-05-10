@@ -86,7 +86,7 @@ const Roles = () => {
                     {row.isPublic && <Icon icon='mdi:check' color='green' />}
                   </TableCell>
                   <TableCell align='right'>
-                    {row.permissions.map((perm) => (
+                    {row.permissions?.map((perm) => (
                       <Typography variant='body2' key={perm}>
                         {perm}
                       </Typography>
