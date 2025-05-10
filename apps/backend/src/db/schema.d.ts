@@ -28,7 +28,7 @@ export type JsonPrimitive = boolean | number | string | null
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive
 
-export type MemberType = 'EXTERNAL' | 'FLYING' | 'JUNIOR' | 'NON-FLYING'
+export type MemberType = 'EXTERNAL' | 'FLYING' | 'HONORARY' | 'JUNIOR' | 'NON-FLYING'
 
 export type Numeric = ColumnType<number, number | string, number | string>
 

@@ -110,8 +110,8 @@
     "details": "Basic Details",
     "documents": "Documents",
     "totalTime": "Last landing {{lastLanding}}, hours {{totalTime}}, {{remainingFuelLitres}} litres of fuel remaining.",
-    "maintenanceHours": "Next {{nextMaintenanceType}} maintenance at hours {{nextMaintenanceTach}}, {{tachUntilNextMaintenance}} flight hours remaining, {{usablePercentageHours}}h usable until ferry flight. ",
-    "maintenanceDays": "Maintenance in {{daysUntilNextMaintenance}} days.",
+    "maintenanceHours": "Next {{nextMaintenanceType}} maintenance at hours {{nextMaintenanceTach}}, {{tachUntilNextMaintenance}} flight hour(s) remaining, {{usablePercentageHours}}h usable until ferry flight. ",
+    "maintenanceDays": "Maintenance in {{daysUntilNextMaintenance}} day(s).",
     "document": {
       "arc": "ARC",
       "finavia": "Finavia",
@@ -132,7 +132,7 @@
       "expired": "{{documentId}} expired {{untilExpiration}} days ago",
       "expiring": "{{documentId}} expiring in {{untilExpiration}} days",
       "noUsableHours": "No usable flight time remaining, {{untilExpiration}} available for ferry flight",
-      "usableHours": "Only {{untilExpiration}} usable percentage hours remaining"
+      "usableHours": "Only {{untilExpiration}} usable percentage hour(s) remaining"
     },
     "edit": {
       "new": "Add New Aircraft",
