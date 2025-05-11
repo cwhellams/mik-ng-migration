@@ -9,40 +9,119 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  InputAdornment,
-  Paper,
+  Autocomplete,
 } from '@mui/material'
-import { Control, Controller, UseFormRegister } from 'react-hook-form'
+import {
+  Control,
+  Controller,
+  FieldErrors,
+  UseFormGetValues,
+  UseFormRegister,
+  UseFormSetValue,
+} from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
-import { useState } from 'react'
-import { FlightLogInsertRequest } from '@backend/routes/flight-log/models'
+import { useEffect, useState } from 'react'
+import { FlightLogMemberRequest } from '@backend/routes/flight-log/models'
+import { MemberListResponse } from '@backend/routes/members/models'
+import useApi from '../../../hooks/useApi'
+import { useMe } from '../../../hooks/useMe'
 
 interface FlightCrewProps {
   flightType: string
-  register: UseFormRegister<FlightLogInsertRequest>
-  control: Control<FlightLogInsertRequest>
-  errors: Record<string, any>
+  register: UseFormRegister<FlightLogMemberRequest>
+  control: Control<FlightLogMemberRequest>
+  getValues: UseFormGetValues<FlightLogMemberRequest>
+  setValue: UseFormSetValue<FlightLogMemberRequest>
+  errors: FieldErrors<FlightLogMemberRequest>
 }
 
 // Crew member types
-const CREW_TYPES = [
+const CREW_ROLES = [
   { value: 'STU', label: 'Student' },
   { value: 'FI', label: 'Flight Instructor' },
   { value: 'FE', label: 'Flight Examiner' },
   { value: 'OBS', label: 'Observer' },
 ]
 
+type CrewSlot = 'pic' | 'crew2' | 'crew3' | 'crew4'
+
+type CrewMember = {
+  value: string
+  label: string
+  role: string
+}
+
 const FlightCrew = ({
   flightType,
-  register,
   control,
+  getValues,
+  setValue,
   errors,
 }: FlightCrewProps) => {
   const { t } = useTranslation()
-  const [additionalCrewCount, setAdditionalCrewCount] = useState(0)
-  // Set copilot as default PIC (index 1)
-  const [picPosition, setPicPosition] = useState('copilot')
+  const [crewCount, setCrewCount] = useState(1)
+
+  // crew positions currently in use
+  const crewSlots = (['pic', 'crew2', 'crew3', 'crew4'] as CrewSlot[]).slice(
+    0,
+    crewCount
+  )
+
+  // Check if flight type is one that only needs a pilot
+  const singlePilotTypes = ['HAR', 'MAT', 'SII', 'KOE']
+  const isSinglePilotFlight = singlePilotTypes.includes(flightType)
+  const minimumCrewCount = isSinglePilotFlight ? 1 : 2
+
+  const handleAddCrew = () => setCrewCount((c) => c + 1)
+  const handleRemoveCrew = () => setCrewCount((c) => c - 1)
+
+  const { me } = useMe()
+
+  const { data: memberList } = useApi<MemberListResponse>({
+    url: 'v1/members',
+    params: {
+      isMembershipApproved: true,
+    },
+  })
+
+  const self: CrewMember = {
+    value: me?.memberId ?? 'SELF',
+    label: 'SELF',
+    role: 'SELF',
+  }
+
+  const members: CrewMember[] = [self]
+    .concat(
+      memberList?.members
+        ?.filter((m) => m.roles.includes('INSTRUCTOR'))
+        ?.map((m) => ({
+          value: m.memberId,
+          label: `${m.first} ${m.last}`,
+          role: 'INSTRUCTOR',
+        })) ?? []
+    )
+    .concat(
+      memberList?.members
+        ?.filter((m) => !m.roles.includes('INSTRUCTOR'))
+        ?.map((m) => ({
+          value: m.memberId,
+          label: `${m.first} ${m.last}`,
+          role: 'MEMBER',
+        })) ?? []
+    )
+
+  useEffect(() => {
+    if (isSinglePilotFlight) {
+      // single pilot operations
+      setValue('picRole', 'PIC')
+      setCrewCount(1)
+    } else if (crewCount < 2) {
+      // add second crew
+      setCrewCount(2)
+      setValue('picRole', 'STU')
+    }
+  }, [isSinglePilotFlight, crewCount, setValue, me, getValues])
 
   if (!flightType) {
     return (
@@ -72,290 +151,137 @@ const FlightCrew = ({
     )
   }
 
-  // Check if flight type is one that only needs a pilot
-  const singlePilotTypes = ['HAR', 'MAT', 'SII', 'KOE']
-  const isSinglePilotFlight = singlePilotTypes.includes(flightType)
-
-  // If we're showing a single pilot flight type, set self as PIC
-  if (isSinglePilotFlight && picPosition !== 'self') {
-    setPicPosition('self')
-  }
-
-  const handleAddCrew = () => {
-    if (additionalCrewCount < 2) {
-      setAdditionalCrewCount(additionalCrewCount + 1)
-    }
-  }
-
-  const handleRemoveCrew = (index: number) => {
-    if (additionalCrewCount > 0) {
-      setAdditionalCrewCount(additionalCrewCount - 1)
-      // If removed crew was PIC, reset to copilot
-      if (picPosition === `additional${index}`) {
-        setPicPosition('copilot')
-      }
-    }
-  }
-
-  // PIC button component to use as InputAdornment
-  const PicButton = ({ position }: { position: string }) => {
-    const isSelected = picPosition === position
-
-    return (
-      <Paper
-        elevation={0}
-        sx={{
-          width: '55px',
-          height: '38px',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          cursor: 'pointer',
-          bgcolor: isSelected ? 'primary.main' : 'background.default',
-          color: isSelected ? 'primary.contrastText' : 'text.secondary',
-          border: isSelected ? 'none' : '1px solid',
-          borderColor: 'divider',
-          borderTopRightRadius: 0,
-          borderBottomRightRadius: 0,
-          transition: 'background-color 0.2s, color 0.2s',
-          '&:hover': {
-            bgcolor: isSelected ? 'primary.dark' : 'action.hover',
-          },
-          mr: 0, // Remove gap between button and input
-        }}
-        onClick={() => setPicPosition(position)}
-      >
-        PIC
-      </Paper>
-    )
-  }
-
   return (
-    <>
-      <Grid container spacing={2}>
-        {/* Self (Pilot/Captain) */}
-        {isSinglePilotFlight ? (
-          // Single pilot mode - just display Self field
-          <Grid size={{ xs: 12 }}>
-            <TextField
-              fullWidth
-              label={t('flightLog.self', 'Self')}
-              disabled={true}
-              value='SELF'
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <PicButton position='self' />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-          </Grid>
-        ) : (
-          // Multi crew mode - display Self with duty selection
-          <Grid size={{ xs: 12 }}>
+    <Grid container spacing={2}>
+      {crewSlots.map((slot, index) => {
+        const crewId = `${slot}MemberId` as keyof FlightLogMemberRequest
+        const crewType = `${slot}Role` as keyof FlightLogMemberRequest
+
+        return (
+          <Grid key={slot} size={{ xs: 12 }}>
             <Grid container spacing={2}>
-              <Grid size={{ xs: 8 }}>
-                <TextField
-                  fullWidth
-                  label={t('flightLog.self', 'Self')}
-                  disabled={true}
-                  value='SELF'
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <PicButton position='self' />
-                        </InputAdornment>
-                      ),
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid size={{ xs: 4 }}>
+              <Grid size={{ xs: isSinglePilotFlight ? 12 : 8 }}>
                 <Controller
-                  name='selfType'
+                  name={crewId}
                   control={control}
-                  defaultValue='PILOT'
-                  render={({ field }) => (
-                    <FormControl fullWidth error={!!errors.selfType}>
-                      <InputLabel>{t('flightLog.duty', 'Duty')}</InputLabel>
-                      <Select
-                        {...field}
-                        label={t('flightLog.duty', 'Duty')}
-                        renderValue={(value) => value}
-                      >
-                        {CREW_TYPES.map((type) => (
-                          <MenuItem key={type.value} value={type.value}>
-                            {type.value} - {type.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors.selfType && (
-                        <FormHelperText>
-                          {errors.selfType.message?.toString()}
-                        </FormHelperText>
+                  rules={{ required: true }}
+                  render={({ field: { onChange, value } }) => (
+                    <Autocomplete
+                      options={members}
+                      value={
+                        members.find((member) => member.value === value) ?? null
+                      }
+                      groupBy={(option) => option.role}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label={t(`flightLog.crews.${slot}`)}
+                          placeholder={t('flightLog.selectCrew')}
+                          margin='normal'
+                          slotProps={{
+                            inputLabel: {
+                              shrink: true, // Keeps the label above even when the field is empty
+                            },
+                          }}
+                        />
                       )}
-                    </FormControl>
+                      onChange={(_e, crew) => {
+                        console.log(value, crew)
+                        onChange(crew?.value ?? '')
+
+                        if (flightType == 'KOU' || flightType == 'TAR') {
+                          // default roles for school flights
+
+                          if (crew?.role == 'INSTRUCTOR') {
+                            // instructor has been selected
+                            setValue(crewType, 'FI')
+
+                            // put self as a student to the other position
+                            setValue(
+                              slot == 'pic' ? 'crew2MemberId' : 'picMemberId',
+                              me?.memberId ?? ''
+                            )
+                            setValue(
+                              slot == 'pic' ? 'crew2Role' : 'picRole',
+                              'STU'
+                            )
+                          } else if (crew?.role == 'SELF') {
+                            // self has been selected
+                            setValue(crewType, 'STU')
+                          }
+                        }
+                      }}
+                    />
                   )}
                 />
               </Grid>
-            </Grid>
-          </Grid>
-        )}
-
-        {!isSinglePilotFlight && (
-          <>
-            {/* Copilot */}
-            <Grid size={{ xs: 12 }}>
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 8 }}>
-                  <TextField
-                    fullWidth
-                    label={t('flightLog.crew1', 'Crew #1')}
-                    {...register('copilot')}
-                    error={!!errors.copilot}
-                    helperText={errors.copilot?.message?.toString()}
-                    slotProps={{
-                      input: {
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <PicButton position='copilot' />
-                          </InputAdornment>
-                        ),
-                      },
-                    }}
-                  />
-                </Grid>
+              {!isSinglePilotFlight && (
                 <Grid size={{ xs: 4 }}>
                   <Controller
-                    name='copilotType'
+                    name={crewType}
                     control={control}
-                    defaultValue='FI'
+                    defaultValue={'STU'}
                     render={({ field }) => (
-                      <FormControl fullWidth error={!!errors.copilotType}>
-                        <InputLabel>{t('flightLog.duty', 'Duty')}</InputLabel>
-                        <Select
-                          {...field}
-                          label={t('flightLog.duty', 'Duty')}
-                          renderValue={(value) => value}
-                        >
-                          {CREW_TYPES.map((type) => (
+                      <FormControl
+                        fullWidth
+                        error={!!errors[crewType]}
+                        margin='normal'
+                      >
+                        <InputLabel>{t('flightLog.duty')}</InputLabel>
+                        <Select {...field} label={t('flightLog.duty')}>
+                          {CREW_ROLES.map((type) => (
                             <MenuItem key={type.value} value={type.value}>
                               {type.value} - {type.label}
                             </MenuItem>
                           ))}
                         </Select>
-                        {errors.copilotType && (
+                        {errors[crewType] && (
                           <FormHelperText>
-                            {errors.copilotType.message?.toString()}
+                            {errors[crewType].message?.toString()}
                           </FormHelperText>
                         )}
                       </FormControl>
                     )}
                   />
                 </Grid>
-              </Grid>
+              )}
             </Grid>
 
-            {/* Additional crew members */}
-            {Array.from({ length: additionalCrewCount }).map((_, index) => (
-              <Grid size={{ xs: 12 }} key={`crew-${index}`}>
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 7 }}>
-                    <TextField
-                      fullWidth
-                      label={t(
-                        'flightLog.additionalCrew',
-                        `Additional Crew ${index + 1}`
-                      )}
-                      {...register(`additionalCrew${index}`)}
-                      error={!!errors[`additionalCrew${index}`]}
-                      helperText={errors[
-                        `additionalCrew${index}`
-                      ]?.message?.toString()}
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <PicButton position={`additional${index}`} />
-                            </InputAdornment>
-                          ),
-                        },
-                      }}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 4 }}>
-                    <Controller
-                      name={`additionalCrewType${index}`}
-                      control={control}
-                      defaultValue='OBS'
-                      render={({ field }) => (
-                        <FormControl
-                          fullWidth
-                          error={!!errors[`additionalCrewType${index}`]}
-                        >
-                          <InputLabel>{t('flightLog.duty', 'Duty')}</InputLabel>
-                          <Select
-                            {...field}
-                            label={t('flightLog.duty', 'Duty')}
-                            renderValue={(value) => value}
-                          >
-                            {CREW_TYPES.map((type) => (
-                              <MenuItem key={type.value} value={type.value}>
-                                {type.value} - {type.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                          {errors[`additionalCrewType${index}`] && (
-                            <FormHelperText>
-                              {errors[
-                                `additionalCrewType${index}`
-                              ].message?.toString()}
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      )}
-                    />
-                  </Grid>
-                  <Grid
-                    size={{ xs: 12 }}
-                    sx={{ display: 'flex', alignItems: 'center' }}
-                  >
-                    <Button
-                      color='error'
-                      onClick={() => handleRemoveCrew(index)}
-                      sx={{ minWidth: 'auto', p: 1 }}
-                    >
-                      <Icon icon='mdi:close' />
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Grid>
-            ))}
-
-            {/* Add crew button */}
-            {additionalCrewCount < 2 && (
-              <Grid size={{ xs: 12 }}>
-                <Box>
-                  <Button
-                    variant='outlined'
-                    startIcon={<Icon icon='mdi:account-plus' />}
-                    onClick={handleAddCrew}
-                    fullWidth
-                    sx={{ mt: 1 }}
-                  >
-                    {t('flightLog.addCrew', 'Add Crew Member')}
-                  </Button>
-                </Box>
+            {index >= minimumCrewCount && index == crewSlots.length - 1 && (
+              // only last crew slot can be removed
+              <Grid
+                size={{ xs: 12 }}
+                sx={{ display: 'flex', alignItems: 'center' }}
+              >
+                <Button
+                  color='error'
+                  onClick={handleRemoveCrew}
+                  sx={{ minWidth: 'auto', p: 1 }}
+                >
+                  <Icon icon='mdi:close' />
+                </Button>
               </Grid>
             )}
-          </>
-        )}
-      </Grid>
-    </>
+          </Grid>
+        )
+      })}
+
+      {!isSinglePilotFlight && crewCount < 4 && (
+        <Grid size={{ xs: 12 }}>
+          <Box>
+            <Button
+              variant='outlined'
+              startIcon={<Icon icon='mdi:account-plus' />}
+              onClick={handleAddCrew}
+              fullWidth
+              sx={{ mt: 1 }}
+            >
+              {t('flightLog.addCrew')}
+            </Button>
+          </Box>
+        </Grid>
+      )}
+    </Grid>
   )
 }
 

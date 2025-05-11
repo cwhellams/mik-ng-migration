@@ -249,8 +249,15 @@
 
     "self": "Self",
     "crew": "Flight Crew",
-    "captainMemberId": "Captain Member ID",
-    "copilotMemberId": "Copilot Member ID",
+    "crews": {
+      "pic": "PIC",
+      "crew2": "Crew #2",
+      "crew3": "Crew #3",
+      "crew4": "Crew #4"
+    },
+    "selectCrew": "Select crew",
+    "duty": "Duty",
+    "addCrew": "Add Crew Member",
     "aircraftInfo": "Aircraft Information",
     "additionalInfo": "Additional Information",
     "departureAirport": "Departure Airport",

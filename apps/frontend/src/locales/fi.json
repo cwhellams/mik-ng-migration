@@ -249,8 +249,15 @@
 
     "self": "Self",
     "crew": "Miehistö",
-    "captainMemberId": "Päällikön jäsennumero",
-    "copilotMemberId": "Perämiehen jäsennumero",
+    "crews": {
+      "pic": "PIC",
+      "crew2": "Miehistö #2",
+      "crew3": "Miehistö #3",
+      "crew4": "Miehistö #4"
+    },
+    "selectCrew": "Valitse henkilö",
+    "duty": "Rooli",
+    "addCrew": "Lisää miehistön jäsen",
     "aircraftInfo": "Ilma-aluksen tiedot",
     "additionalInfo": "Lisätiedot",
     "departureAirport": "Lähtökenttä",

@@ -106,7 +106,9 @@ const NewFlightLogEntry = () => {
     setValue('picMemberId', me?.memberId ?? '')
   }, [me, setValue])
 
-  console.log(errors)
+  if (Object.keys(errors).length > 0) {
+    console.log(errors)
+  }
 
   const epochToDayjs = (
     field:
@@ -116,6 +118,7 @@ const NewFlightLogEntry = () => {
       | 'onBlockTimeEpoch'
   ) => (getValues(field) ? dayjs.unix(Number(getValues(field))) : null)
 
+  // reprocess all times when any of the time inputs change
   useEffect(() => {
     if (!flightDate) return
 
@@ -132,7 +135,6 @@ const NewFlightLogEntry = () => {
       } else {
         clearErrors(field)
       }
-      // console.log('setTimeValues', field, error, date)
       setValue(field, date?.unix()?.toString() ?? '')
       return date ?? flightDate
     }
@@ -300,6 +302,8 @@ const NewFlightLogEntry = () => {
                 flightType={watch('flightType')}
                 register={register}
                 control={control}
+                getValues={getValues}
+                setValue={setValue}
                 errors={errors}
               />
             </Grid>

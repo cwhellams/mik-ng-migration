@@ -30,7 +30,9 @@ export const validateTimeInput = (
 
 /**
  * Converts a HHMM time string to a dayjs object
- * If the time is earlier than the previous time, adds a day to handle cross-day flights
+ * If the time is earlier than the previous time, adds a day to handle cross-day flights.
+ * Optionally validate against a maximum number of minutes from the previous time
+ * (having 23h taxi time is not reasonable, but 2359 to 0001 is).
  */
 export const timeStringToDayjs = (
   timeStr: string,
@@ -43,7 +45,7 @@ export const timeStringToDayjs = (
   }
 
   // Create a date object with the provided date and time
-  const baseline = previousTime.clone() //useUtcTime ? previousTime.utc() : previousTime.local()
+  const baseline = previousTime.clone()
   let date = baseline.hour(hours).minute(minutes).second(0)
 
   // If we have a previous time and this time is earlier, add a day
