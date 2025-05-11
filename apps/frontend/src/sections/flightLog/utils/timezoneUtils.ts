@@ -11,13 +11,13 @@ export const getTimeExample = (
   const currentHour = currentTime.hour()
   const currentMinute = currentTime.minute()
 
-  // Use flight date if selected, otherwise use today
-  const referenceDate = flightDate || currentTime
-
   if (useUtcTime) {
     // For UTC, we just need the current time in UTC
     return currentTime.utc().format('HH:mm')
   } else {
+    // Use flight date if selected, otherwise use today
+    const referenceDate = flightDate || currentTime
+
     // For local time, we need to use the selected date to account for DST
     // but with current time
     return referenceDate.hour(currentHour).minute(currentMinute).format('HH:mm')

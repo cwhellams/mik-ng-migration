@@ -15,24 +15,19 @@ import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router-dom'
-import { FlightLog } from '@backend/routes/flight-log/models'
-import { Aircraft } from '@backend/routes/aircrafts/models'
+import { FlightLogListResponse } from '@backend/routes/flight-log/models'
 import { RemoteContent } from '../../components/RemoteContent'
+import dayjs from 'dayjs'
 
 const FlightLogLanding = () => {
   const { t } = useTranslation()
-  const { data, isLoading, error } = useApi<{ logs: FlightLog[] }>({
-    url: 'v1/flight-log',
+  const { data, isLoading, error } = useApi<FlightLogListResponse>({
+    url: 'v1/flight-logs',
   })
-
-  const { data: aircraftData } = useApi<Aircraft[]>({
-    url: 'v1/aircrafts',
-  })
-  console.log('AD DATA', aircraftData)
 
   // Format date from timestamp to localized format
   const formatDate = (timestamp: string | Date) => {
-    return new Date(timestamp).toLocaleDateString()
+    return dayjs(timestamp).format('D.M.YY')
   }
 
   // Format time from timestamp to display format
@@ -83,19 +78,19 @@ const FlightLogLanding = () => {
           <TableBody>
             <RemoteContent isLoading={isLoading} error={error} colSpan={9}>
               {data?.logs?.map((log) => (
-                <TableRow key={log.flight_id}>
-                  <TableCell>{formatDate(log.takeoff_time_epoch)}</TableCell>
-                  <TableCell>{log.aircraft_registration}</TableCell>
-                  <TableCell>{log.pic_member_id}</TableCell>
-                  <TableCell>{log.departure_airport}</TableCell>
-                  <TableCell>{log.arrival_airport}</TableCell>
+                <TableRow key={log.flightId}>
+                  <TableCell>{formatDate(log.takeoffTimeUtc)}</TableCell>
+                  <TableCell>{log.aircraftRegistration}</TableCell>
+                  <TableCell>{log.picMemberId}</TableCell>
+                  <TableCell>{log.departureAirport}</TableCell>
+                  <TableCell>{log.arrivalAirport}</TableCell>
                   <TableCell>
-                    {formatTime(log.off_block_time_epoch)} -{' '}
-                    {formatTime(log.on_block_time_epoch)}
+                    {formatTime(log.offBlockTimeUtc)} -{' '}
+                    {formatTime(log.onBlockTimeUtc)}
                   </TableCell>
-                  <TableCell>{log.flight_type || '-'}</TableCell>
+                  <TableCell>{log.flightType || '-'}</TableCell>
                   <TableCell>
-                    {log.is_billed ? (
+                    {log.isBilled ? (
                       <Icon icon='mdi:check-circle' color='success.main' />
                     ) : (
                       <Icon icon='mdi:close-circle' color='error.main' />
@@ -108,7 +103,7 @@ const FlightLogLanding = () => {
                         variant='outlined'
                         startIcon={<Icon icon='mdi:eye' />}
                         component={Link}
-                        to={`/flight-logs/${log.flight_id}`}
+                        to={`/flight-logs/${log.flightId}`}
                       >
                         {t('general.view', 'View')}
                       </Button>
@@ -118,7 +113,7 @@ const FlightLogLanding = () => {
                         color='primary'
                         startIcon={<Icon icon='mdi:pencil' />}
                         component={Link}
-                        to={`/flight-logs/${log.flight_id}/edit`}
+                        to={`/flight-logs/${log.flightId}/edit`}
                       >
                         {t('general.edit', 'Edit')}
                       </Button>

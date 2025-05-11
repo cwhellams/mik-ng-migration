@@ -210,10 +210,12 @@
     "save": "Save",
     "saving": "Saving...",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "view": "View"
   },
   "flightLog": {
     "title": "Flight Logs",
+    "noLogs": "No flight logs found",
     "newEntry": "New Entry",
     "date": "Date",
     "aircraft": "Aircraft Registration",
@@ -227,7 +229,8 @@
 
     "times": "Flight Times",
     "flightDate": "Flight Date",
-    "timeFormat": "Time Format",
+    "timeZone": "Time Zone",
+    "timeFormat": "Format: HHMM",
     "utcTime": "UTC",
     "localTime": "Local (Finland)",
     "usingUtcTime": "Using Coordinated Universal Time (UTC)",
@@ -242,10 +245,9 @@
     "onBlockTime": "On Block",
 
     "invalidTimeFormat": "Invalid time format",
-    "takeoffBeforeOffBlock": "Takeoff time should be after off-block time",
-    "landingBeforeTakeoff": "Landing time should be after takeoff time",
-    "onBlockBeforeLanding": "On-block time should be after landing time",
+    "invalidTime": "Invalid time",
 
+    "self": "Self",
     "crew": "Flight Crew",
     "captainMemberId": "Captain Member ID",
     "copilotMemberId": "Copilot Member ID",
@@ -257,7 +259,9 @@
     "numberOfLandings": "Number of Landings",
     "nightHours": "Night Hours (HH:MM)",
     "instrumentHours": "Instrument Hours (HH:MM)",
+    "fuelInfo": "Fuel and Oil Information",
     "fuelUplift": "Fuel Uplift (litres)",
+    "fuelRemaining": "Fuel remaining (litres)",
     "oilUplift": "Oil Uplift (litres)",
     "billingInfo": "Billing Information",
     "billableMemberId": "Billable Member ID",

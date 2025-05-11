@@ -76,7 +76,7 @@ describe('GET /ajlb', () => {
 
   it('should get filtered ajlbs for an admin user', async () => {
     const filter = {
-      aircraft_registration: 'OH-P28',
+      aircraftRegistration: 'OH-P28',
     }
 
     const response = await request(app)

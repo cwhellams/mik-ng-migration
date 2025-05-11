@@ -23,11 +23,10 @@ import {
 import { getFlightLogs, getFlightLogTotals } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { UpsertSchema } from '../../types/schema.ts'
-import { splitTime } from '../../util/math-utils.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
-import type { FlightLog, FlightVwFlightTimeTotals } from '../flight-log/models.ts'
+import type { FlightLog } from '../flight-log/models.ts'
 
 // all aircarft routes are protected by aircraft permissions
 export const router = Router()
@@ -189,18 +188,14 @@ const expiredDocuments = (aircraft: Aircraft) => {
 const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   const maintenance = aircraft.maintenance
 
-  const totals: FlightVwFlightTimeTotals | undefined = (
-    await getFlightLogTotals(aircraft.registration)
-  )?.[0]
+  const totalTime = (await getFlightLogTotals(aircraft.registration))?.[0]?.acTotalFlightHours ?? 0
 
   const lastFlight: FlightLog | undefined = (
     await getFlightLogs({
-      aircraft_registration: aircraft.registration,
+      aircraftRegistration: aircraft.registration,
       last: true,
     })
   )?.[0]
-
-  const totalTime = totals?.ac_total_flight_time ? splitTime(totals.ac_total_flight_time).hours : 0
 
   const tachUntilNextMaintenance = maintenance.nextMaintenanceTach - totalTime
   const usablePercentageHours = tachUntilNextMaintenance + maintenance.usablePercentageHours
@@ -251,8 +246,8 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
 
   return {
     totalTime,
-    lastLandingTimeUtc: lastFlight?.landing_time_utc?.toISOString() ?? undefined,
-    remainingFuelLitres: Math.round(lastFlight?.fuel_remaining_litres),
+    lastLandingTimeUtc: lastFlight?.landingTimeUtc?.toISOString() ?? undefined,
+    remainingFuelLitres: Math.round(lastFlight?.fuelRemainingLitres),
 
     daysUntilNextMaintenance,
     tachUntilNextMaintenance,

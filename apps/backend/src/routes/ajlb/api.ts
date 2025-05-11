@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 
-import { flightAircraftJourneyLogBookFilter } from './model.ts'
+import { AircraftJourneyLogBookFilter } from './model.ts'
 import { getCurrentAjlbs, getFilteredAjlbs } from '../../db/ajlb-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
@@ -16,7 +16,7 @@ router.use(
 )
 
 router.get('/', async (req: Request, res: Response) => {
-  const filters = flightAircraftJourneyLogBookFilter.parse(req.query)
+  const filters = AircraftJourneyLogBookFilter.parse(req.query)
 
   const logs = await getFilteredAjlbs(filters)
   res.status(200).json(logs)

@@ -7,13 +7,8 @@ import {
   insertFlightLog,
   updateFlightLog,
 } from '../../src/db/flight-log-queries.ts'
-import type {
-  FlightLog,
-  FlightLogInsertRequest,
-  FlightLogUpdateRequest,
-} from '../../src/routes/flight-log/models.ts'
+import type { FlightLog, FlightLogMemberRequest } from '../../src/routes/flight-log/models.ts'
 import { MIKPermissions } from '../../src/routes/members/models.ts'
-import { generateShortId } from '../../src/util/nanoId.ts'
 
 describe('Db query Get FlightLog tests', () => {
   it('getAllFlightLogs with no params should return all logs', async () => {
@@ -25,8 +20,8 @@ describe('Db query Get FlightLog tests', () => {
     const result = await getFlightLogs({ pic: 'Liisa1', crew2: 'Jukka1' })
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     })
   })
 
@@ -47,44 +42,44 @@ describe('Db query Get FlightLog tests', () => {
   })
 
   it('getAllFlightLogs for specified aircraft should match snapshot', async () => {
-    const result = await getFlightLogs({ aircraft_registration: 'OH-STL' })
+    const result = await getFlightLogs({ aircraftRegistration: 'OH-STL' })
     expect(result.length).toEqual(3)
   })
 
   it('getAllFlightLogs for specific member id should match snapshot', async () => {
-    const result = await getFlightLogs({ billable_member_id: 'Sanna1' })
+    const result = await getFlightLogs({ billableMemberId: 'Sanna1' })
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     })
   })
 
   it('getAllFlightLogs for start date should match snapshot', async () => {
     const result = await getFlightLogs({
-      startDate: BigInt(new Date('2025-03-04').getTime() / 1000),
+      startDate: '2025-03-04',
     })
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     })
   })
 
   it('getAllFlightLogs for end date should match snapshot', async () => {
     const result: FlightLog[] = await getFlightLogs({
-      endDate: BigInt(new Date('2025-03-06').getTime() / 1000),
+      endDate: '2025-03-06',
     })
     expect(result.length).toEqual(5)
     expect(result[0]).toMatchSnapshot({
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     })
   })
 
   it('getAllFlightLogs for end date should not return data', async () => {
     const result = await getFlightLogs({
-      endDate: BigInt(new Date('2024-03-05').getTime() / 1000),
+      endDate: '2024-03-05',
     })
     expect(result.length).toEqual(0)
     expect(result).toEqual([])
@@ -92,14 +87,14 @@ describe('Db query Get FlightLog tests', () => {
 
   it('getAllFlightLogs between start and end date should match snapshot', async () => {
     const result = await getFlightLogs({
-      endDate: BigInt(new Date('2025-03-06T00:00:00Z').getTime() / 1000),
-      startDate: BigInt(new Date('2025-03-02T09:00:00Z').getTime() / 1000),
+      endDate: '2025-03-06T00:00:00Z',
+      startDate: '2025-03-02T09:00:00Z',
     })
     expect(result.length).toEqual(3)
 
     expect(result[2]).toMatchSnapshot({
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     })
   })
 
@@ -116,41 +111,36 @@ describe('Db query Get FlightLog tests', () => {
 
 describe('Db query insert tests', () => {
   it('insertFlightLog inserts a new flight log to the db, querying using returned flight id returns the row, row can be deleted using flight id', async () => {
-    const data: FlightLogInsertRequest = {
-      flight_id: generateShortId(),
-      aircraft_registration: 'OH-STL',
-      billable_member_id: 'Matti1',
-      pic_member_id: 'Liisa1',
-      crew2_member_id: 'Pekka1',
-      on_block_time_epoch: '1741584000',
-      off_block_time_epoch: '1741579500',
-      takeoff_time_epoch: '1741580100',
-      landing_time_epoch: '1741583700',
-      oil_uplift_litres: 5,
-      fuel_uplift_litres: 100,
-      persons_on_board: 4,
-      number_of_landings: 1,
-      departure_airport: 'EFHK',
-      arrival_airport: 'EFVA',
-      flight_type: 'KOU',
-      billing_remarks: 'Test flight',
-      personal_remarks: 'No remarks',
-      is_billable_flight: false,
-      non_billing_reason: null,
-      pic_role: 'FE',
-      crew2_role: null,
-      crew3_member_id: null,
-      crew3_role: null,
-      crew4_member_id: null,
-      crew4_role: null,
-      fuel_remaining_litres: 22,
-      incident_or_observations: null,
-      priv_or_com_flight: 'P',
-      ajlb_seq_no: 1,
-      ajlb_blank_rows_before: 0,
-      total_time_in_service: 1023.5,
-      instrument_flying_mins: 0,
-      night_flying_mins: 0,
+    const data: FlightLogMemberRequest = {
+      aircraftRegistration: 'OH-STL',
+      billableMemberId: 'Matti1',
+      picMemberId: 'Liisa1',
+      crew2MemberId: 'Pekka1',
+      onBlockTimeEpoch: '1741584000',
+      offBlockTimeEpoch: '1741579500',
+      takeoffTimeEpoch: '1741580100',
+      landingTimeEpoch: '1741583700',
+      oilUpliftLitres: 5,
+      fuelUpliftLitres: 100,
+      personsOnBoard: 4,
+      numberOfLandings: 1,
+      departureAirport: 'EFHK',
+      arrivalAirport: 'EFVA',
+      flightType: 'KOU',
+      billingRemarks: 'Test flight',
+      personalRemarks: 'No remarks',
+      picRole: 'FE',
+      crew2Role: null,
+      crew3MemberId: null,
+      crew3Role: null,
+      crew4MemberId: null,
+      crew4Role: null,
+      fuelRemainingLitres: 22,
+      incidentOrObservations: null,
+      privOrComFlight: 'P',
+      totalTimeInService: 1023.5,
+      instrumentFlyingMins: 0,
+      nightFlyingMins: 0,
     }
 
     const flightId = await insertFlightLog(data, {
@@ -159,12 +149,12 @@ describe('Db query insert tests', () => {
     })
     expect(flightId).toHaveLength(9)
 
-    const result = await getFlightLogs({ flight_id: flightId })
+    const result = await getFlightLogs({ flightId: flightId })
     expect(result.length).toEqual(1)
     expect(result[0]).toMatchSnapshot({
-      flight_id: expect.any(String),
-      created_at: expect.any(Date),
-      updated_at: expect.any(Date),
+      flightId: expect.any(String),
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
     })
 
     //cleanup
@@ -175,16 +165,16 @@ describe('Db query insert tests', () => {
 
 describe('Db query update tests', () => {
   it('updatesFlightLog with remarks and dep aprt then reverts the change', async () => {
-    const flight_id = 'bLwnAstr0'
+    const flightId = 'bLwnAstr0'
     const testObs = 'Observation from test'
     const departureAirport = 'EFNU'
 
-    const originalLog = await getFlightLogs({ flight_id })
+    const originalLog = await getFlightLogs({ flightId })
     expect(originalLog.length).toEqual(1)
 
-    const data: FlightLogUpdateRequest = {
-      incident_or_observations: testObs,
-      departure_airport: departureAirport,
+    const data: Partial<FlightLog> = {
+      incidentOrObservations: testObs,
+      departureAirport: departureAirport,
     }
 
     const user = {
@@ -192,18 +182,18 @@ describe('Db query update tests', () => {
       email: '',
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     }
-    const flightId = await updateFlightLog(flight_id, data, user)
-    expect(flightId).toEqual(1n)
+    const res = await updateFlightLog(flightId, data, user)
+    expect(res).toEqual(1n)
 
-    const result = await getFlightLogs({ flight_id })
+    const result = await getFlightLogs({ flightId })
     expect(result.length).toEqual(1)
-    expect(result[0].incident_or_observations).toEqual(testObs)
-    expect(result[0].departure_airport).toEqual(departureAirport)
+    expect(result[0].incidentOrObservations).toEqual(testObs)
+    expect(result[0].departureAirport).toEqual(departureAirport)
 
     //cleanup
-    data.incident_or_observations = originalLog[0].incident_or_observations
-    data.departure_airport = originalLog[0].departure_airport
-    user.memberId = originalLog[0].updated_by
-    await updateFlightLog(flight_id, data, user)
+    data.incidentOrObservations = originalLog[0].incidentOrObservations
+    data.departureAirport = originalLog[0].departureAirport
+    user.memberId = originalLog[0].updatedBy
+    await updateFlightLog(flightId, data, user)
   })
 })

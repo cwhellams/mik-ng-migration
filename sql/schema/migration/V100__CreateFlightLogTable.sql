@@ -29,8 +29,8 @@ CREATE TABLE flight.logs
     number_of_landings SMALLINT NOT NULL,
     departure_airport VARCHAR(10) NOT NULL REFERENCES static.airfields (ident),
     arrival_airport VARCHAR(10) NOT NULL REFERENCES static.airfields (ident),
-    oil_uplift_litres DECIMAL(5, 2) NOT NULL,
-    fuel_uplift_litres DECIMAL(5, 2) NOT NULL,
+    oil_uplift_litres DECIMAL(5, 2),
+    fuel_uplift_litres DECIMAL(5, 2),
     fuel_remaining_litres DECIMAL(5, 2) NOT NULL,
     invoice_number VARCHAR(50) DEFAULT NULL,
     is_billed BOOLEAN NOT NULL GENERATED ALWAYS AS (
@@ -52,7 +52,7 @@ CREATE TABLE flight.logs
     -- P = Private, C = Commercial
     ajlb_seq_no SMALLINT NOT NULL, --Aircraft Journey Log Book
     ajlb_blank_rows_before SMALLINT NOT NULL,
-    total_time_in_service DECIMAL(7, 2) NOT NULL,
+    total_time_in_service DECIMAL(7, 2),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(9) NOT NULL REFERENCES member.register (member_id),
@@ -77,9 +77,7 @@ CREATE TABLE flight.logs
     ),
     CONSTRAINT check_fuel_oil_pob_ldg_reasonable
     CHECK (
-        fuel_uplift_litres >= 0
-        AND oil_uplift_litres >= 0
-        AND fuel_remaining_litres >= 0
+        fuel_remaining_litres >= 0
         AND persons_on_board >= 1
         AND number_of_landings >= 1
     ),

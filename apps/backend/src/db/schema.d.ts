@@ -122,7 +122,7 @@ export interface FlightLogs {
   flight_time: Generated<string | null>
   flight_type: string
   fuel_remaining_litres: Numeric
-  fuel_uplift_litres: Numeric
+  fuel_uplift_litres: Numeric | null
   incident_or_observations: string | null
   instrument_flying_mins: number
   invoice_number: Generated<string | null>
@@ -137,7 +137,7 @@ export interface FlightLogs {
   number_of_landings: number
   off_block_time_epoch: Int8
   off_block_time_utc: Generated<Timestamp | null>
-  oil_uplift_litres: Numeric
+  oil_uplift_litres: Numeric | null
   on_block_time_epoch: Int8
   on_block_time_utc: Generated<Timestamp | null>
   personal_remarks: string | null
@@ -148,7 +148,7 @@ export interface FlightLogs {
   status: Generated<FlightLogStatus>
   takeoff_time_epoch: Int8
   takeoff_time_utc: Generated<Timestamp | null>
-  total_time_in_service: Numeric
+  total_time_in_service: Numeric | null
   updated_at: Generated<Timestamp>
   updated_by: string
 }
@@ -164,6 +164,7 @@ export interface FlightLogsAudit {
 }
 
 export interface FlightVwFlightTimeTotals {
+  ac_total_flight_hours: number | null
   ac_total_flight_time: string | null
   aircraft_registration: string | null
   ajlb_seq_no: number | null

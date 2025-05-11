@@ -210,10 +210,12 @@
     "save": "Tallenna",
     "saving": "Tallennetaan...",
     "cancel": "Peruuta",
-    "delete": "Poista"
+    "delete": "Poista",
+    "view": "Näytä"
   },
   "flightLog": {
     "title": "Lentopäiväkirja",
+    "noLogs": "Ei merkintöjä",
     "newEntry": "Uusi merkintä",
     "date": "Päivämäärä",
     "aircraft": "Ilma-aluksen rekisteritunnus",
@@ -227,7 +229,8 @@
 
     "times": "Lentoajat",
     "flightDate": "Lentopäivä",
-    "timeFormat": "Aikamuoto",
+    "timeZone": "Aikavyöhyke",
+    "timeFormat": "Muodossa HHMM",
     "utcTime": "UTC",
     "localTime": "Paikallinen (Suomi)",
     "usingUtcTime": "Käyttää koordinoitua yleisaikaa (UTC)",
@@ -242,10 +245,9 @@
     "onBlockTime": "Saapumisaika",
 
     "invalidTimeFormat": "Virheellinen aikamuoto",
-    "takeoffBeforeOffBlock": "Nousuajan tulee olla lähtöajan jälkeen",
-    "landingBeforeTakeoff": "Laskuajan tulee olla nousuajan jälkeen",
-    "onBlockBeforeLanding": "Saapumisajan tulee olla laskuajan jälkeen",
+    "invalidTime": "Virheellinen aika",
 
+    "self": "Self",
     "crew": "Miehistö",
     "captainMemberId": "Päällikön jäsennumero",
     "copilotMemberId": "Perämiehen jäsennumero",
@@ -257,7 +259,9 @@
     "numberOfLandings": "Laskujen määrä",
     "nightHours": "Yölentotunnit (HH:MM)",
     "instrumentHours": "Mittarilentotunnit (HH:MM)",
+    "fuelInfo": "Polttoaineen tiedot",
     "fuelUplift": "Polttoainetäydennys (litraa)",
+    "fuelRemaining": "Polttoainetta jäljellä (litraa)",
     "oilUplift": "Öljytäydennys (litraa)",
     "billingInfo": "Laskutustiedot",
     "billableMemberId": "Laskutettavan jäsennumero",

@@ -1,16 +1,26 @@
 import * as connection from './connection.ts'
-import type { AjlbFilter, FlightAircraftJourneyLogBook } from '../routes/ajlb/model.ts'
+import type { AjlbFilter, AircraftJourneyLogBook } from '../routes/ajlb/model.ts'
+import type { FlightAircraftJourneyLogBook } from './schema.js'
+import type { Selectable } from 'kysely'
 
-function mapResultToAjlb(results: any): FlightAircraftJourneyLogBook[] {
-  return (results as any[]).map((row: any) => ({
-    ...row,
-    start_date: row.start_date,
-    end_date: row.end_date ? row.end_date : null,
+function mapResultToAjlb(
+  results: Selectable<FlightAircraftJourneyLogBook>[],
+): AircraftJourneyLogBook[] {
+  return results.map((row: Selectable<FlightAircraftJourneyLogBook>) => ({
+    seqNo: row.seq_no,
+    aircraftRegistration: row.aircraft_registration,
+    minutesAtStart: row.minutes_at_start,
+    noOfPages: row.no_of_pages,
+    rowsPerPage: row.rows_per_page,
+    startPage: row.start_page,
+    startDate: row.start_date,
+    endDate: row.end_date ? row.end_date : null,
+    flightTime: row.flight_time,
   }))
 }
 
 // Get all aircraft
-export async function getAllAjlbs(): Promise<FlightAircraftJourneyLogBook[]> {
+export async function getAllAjlbs(): Promise<AircraftJourneyLogBook[]> {
   const results = await connection.db
     .selectFrom('flight.aircraft_journey_log_book')
     .selectAll()
@@ -21,7 +31,7 @@ export async function getAllAjlbs(): Promise<FlightAircraftJourneyLogBook[]> {
   return mapResultToAjlb(results)
 }
 
-export async function getCurrentAjlbs(): Promise<FlightAircraftJourneyLogBook[]> {
+export async function getCurrentAjlbs(): Promise<AircraftJourneyLogBook[]> {
   const results = await connection.db
     .selectFrom('flight.aircraft_journey_log_book')
     .selectAll()
@@ -33,29 +43,27 @@ export async function getCurrentAjlbs(): Promise<FlightAircraftJourneyLogBook[]>
   return mapResultToAjlb(results)
 }
 
-export async function getFilteredAjlbs(
-  filter: AjlbFilter,
-): Promise<FlightAircraftJourneyLogBook[]> {
+export async function getFilteredAjlbs(filter: AjlbFilter): Promise<AircraftJourneyLogBook[]> {
   let query = connection.db
     .selectFrom('flight.aircraft_journey_log_book')
     .selectAll()
     .orderBy('aircraft_registration')
     .orderBy('seq_no')
 
-  if (filter.aircraft_registration) {
-    query = query.where('aircraft_registration', '=', filter.aircraft_registration)
+  if (filter.aircraftRegistration) {
+    query = query.where('aircraft_registration', '=', filter.aircraftRegistration)
   }
 
-  if (filter.seq_no) {
-    query = query.where('seq_no', '=', filter.seq_no)
+  if (filter.seqNo) {
+    query = query.where('seq_no', '=', filter.seqNo)
   }
 
-  if (filter.to_date) {
-    query = query.where('end_date', '<=', filter.to_date)
+  if (filter.toDate) {
+    query = query.where('end_date', '<=', filter.toDate)
   }
 
-  if (filter.from_date) {
-    query = query.where('start_date', '>=', filter.from_date)
+  if (filter.fromDate) {
+    query = query.where('start_date', '>=', filter.fromDate)
   }
 
   const results = await query.execute()
@@ -64,9 +72,21 @@ export async function getFilteredAjlbs(
 }
 
 export async function createNextSequentialAjlbForAircraft(
-  ajlb: FlightAircraftJourneyLogBook,
+  ajlb: AircraftJourneyLogBook,
 ): Promise<void> {
-  await connection.db.insertInto('flight.aircraft_journey_log_book').values(ajlb).execute()
+  await connection.db
+    .insertInto('flight.aircraft_journey_log_book')
+    .values({
+      aircraft_registration: ajlb.aircraftRegistration,
+      seq_no: ajlb.seqNo,
+      minutes_at_start: ajlb.minutesAtStart,
+      no_of_pages: ajlb.noOfPages,
+      rows_per_page: ajlb.rowsPerPage,
+      start_page: ajlb.startPage,
+      start_date: ajlb.startDate,
+      end_date: ajlb.endDate,
+    })
+    .execute()
 }
 
 export async function deleteAjlb(aircraft_registration: string, seq_no: number): Promise<void> {
@@ -80,11 +100,20 @@ export async function deleteAjlb(aircraft_registration: string, seq_no: number):
 export async function updateAjlb(
   aircraft_registration: string,
   seq_no: number,
-  ajlb: FlightAircraftJourneyLogBook,
+  ajlb: AircraftJourneyLogBook,
 ): Promise<void> {
   await connection.db
     .updateTable('flight.aircraft_journey_log_book')
-    .set(ajlb)
+    .set({
+      aircraft_registration: ajlb.aircraftRegistration,
+      seq_no: ajlb.seqNo,
+      minutes_at_start: ajlb.minutesAtStart,
+      no_of_pages: ajlb.noOfPages,
+      rows_per_page: ajlb.rowsPerPage,
+      start_page: ajlb.startPage,
+      start_date: ajlb.startDate,
+      end_date: ajlb.endDate,
+    })
     .where('aircraft_registration', '=', aircraft_registration)
     .where('seq_no', '=', seq_no)
     .execute()

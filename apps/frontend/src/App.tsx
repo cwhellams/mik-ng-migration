@@ -20,9 +20,12 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/L
 import Roles from './sections/members/Roles'
 import FlightLogLanding from './sections/flightLog/Landing'
 import NewFlightLogEntry from './sections/flightLog/NewFlightLogEntry'
+import { useTranslation } from 'react-i18next'
 
 function App() {
   const [loading, setLoading] = useState(true)
+
+  const { i18n } = useTranslation()
 
   useEffect(() => {
     // Check if document fonts are loaded
@@ -46,7 +49,10 @@ function App() {
   }, [])
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='fi'>
+    <LocalizationProvider
+      dateAdapter={AdapterDayjs}
+      adapterLocale={i18n.language}
+    >
       <SplashScreen loading={loading} />
       <BrowserRouter>
         <Routes>

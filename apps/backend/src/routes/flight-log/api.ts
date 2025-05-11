@@ -1,11 +1,12 @@
 import { Router, type Request, type Response } from 'express'
 
 import {
+  FlightLogAdminUpsertSchema,
   FlightLogFiltersSchema,
-  FlightLogInsertSchema,
-  FlightLogSchema,
+  FlightLogMemberUpsertSchema,
   type FlightLog,
   type FlightLogFilters,
+  type FlightLogListResponse,
 } from './models.ts'
 import {
   deleteFlightLog,
@@ -19,7 +20,6 @@ import { validateUser } from '../../middleware/authMiddleware.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
-import { UpsertSchema } from '../../types/schema.ts'
 
 // all flight log routes are protected by flightlog permissions
 const router = Router()
@@ -30,14 +30,14 @@ const isFlightLogAdmin = (user?: JWTUser): boolean =>
 
 // Create a flight log
 router.post('/', async (req: Request, res: Response) => {
-  const data = FlightLogInsertSchema.parse(req.body)
+  const data = FlightLogMemberUpsertSchema.parse(req.body)
 
   const flightId = await insertFlightLog(data, req.user!)
   res.status(201).json({ flight_id: flightId })
 })
 
 // Get flight logs using filter
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogListResponse>) => {
   const data = FlightLogFiltersSchema.parse(req.query)
 
   // If user is not Flight Log Admin they can only see their own flights
@@ -47,27 +47,27 @@ router.get('/', async (req: Request, res: Response) => {
   }
 
   const logs = await getFlightLogs(filters)
-  res.status(200).json(logs)
+  res.status(200).json({ logs })
 })
 
 // Get flight log total times by registration
 router.get('/totals', async (req: Request, res: Response) => {
-  const flight_time_totals = await getFlightLogTotals()
+  const totals = await getFlightLogTotals()
 
-  if (flight_time_totals.length === 0) {
+  if (totals.length === 0) {
     return problem({ status: 404, detail: 'Flight totals not found' })
   }
-  res.status(200).json(flight_time_totals)
+  res.status(200).json(totals)
 })
 
 // Get flight log total times by registraion
 router.get('/:registration/totals', async (req: Request, res: Response) => {
   const reg = req.params.registration
-  const flight_time_totals = await getFlightLogTotals(reg)
-  if (flight_time_totals.length === 0) {
+  const totals = await getFlightLogTotals(reg)
+  if (totals.length === 0) {
     return problem({ status: 404, detail: 'Flight totals not found' })
   }
-  res.status(200).json(flight_time_totals)
+  res.status(200).json(totals)
 })
 
 // Get a flight log by ID
@@ -75,11 +75,11 @@ router.get('/:registration/totals', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
-  const flight_log = await getFlightLogs({ flight_id: id })
-  if (flight_log.length === 0) {
+  const flights = await getFlightLogs({ flightId: id })
+  if (flights.length === 0) {
     return problem({ status: 404, detail: 'Flight log not found' })
   }
-  res.status(200).json(flight_log[0])
+  res.status(200).json(flights[0])
 })
 
 const validateWriteAccess = (flights: FlightLog[], req: Request) => {
@@ -88,14 +88,14 @@ const validateWriteAccess = (flights: FlightLog[], req: Request) => {
   }
 
   // Check if the flight is owned by the user or the user is not an flightlog admin
-  if (flights[0].billable_member_id !== req.user?.memberId && !isFlightLogAdmin(req.user)) {
+  if (flights[0].billableMemberId !== req.user?.memberId && !isFlightLogAdmin(req.user)) {
     return problem({
       status: 403,
       detail: 'Flight log not owned by user or user has no admin rights',
     })
   }
 
-  if (flights[0].is_billed) {
+  if (flights[0].isBilled) {
     // Check if the flight is already billed
     return problem({
       status: 400,
@@ -108,9 +108,13 @@ const validateWriteAccess = (flights: FlightLog[], req: Request) => {
 router.patch('/:id', async (req: Request, res: Response) => {
   const flightId = req.params.id
 
-  const data = UpsertSchema(FlightLogSchema).parse(req.body)
+  const schema = isFlightLogAdmin(req.user)
+    ? FlightLogAdminUpsertSchema
+    : FlightLogMemberUpsertSchema
 
-  const flightLogs = await getFlightLogs({ flight_id: flightId })
+  const data = schema.partial().parse(req.body)
+
+  const flightLogs = await getFlightLogs({ flightId: flightId })
 
   validateWriteAccess(flightLogs, req)
 
@@ -129,7 +133,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   const flightId = req.params.id
 
-  const flightLogToDelete = await getFlightLogs({ flight_id: flightId })
+  const flightLogToDelete = await getFlightLogs({ flightId: flightId })
   validateWriteAccess(flightLogToDelete, req)
 
   logger.info(

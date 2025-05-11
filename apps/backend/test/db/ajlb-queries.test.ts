@@ -14,7 +14,7 @@ describe('Db query ajlb get tests', () => {
 
   it('getFilteredAjlbs should return STL ajlbs', async () => {
     const filter: AjlbFilter = {
-      aircraft_registration: 'OH-STL',
+      aircraftRegistration: 'OH-STL',
     }
 
     const result = await getFilteredAjlbs(filter)
@@ -23,8 +23,8 @@ describe('Db query ajlb get tests', () => {
 
   it('getFilteredAjlbs should return IHQ ajlbs', async () => {
     const filter: AjlbFilter = {
-      aircraft_registration: 'OH-IHQ',
-      seq_no: 1,
+      aircraftRegistration: 'OH-IHQ',
+      seqNo: 1,
     }
 
     const result = await getFilteredAjlbs(filter)
@@ -33,7 +33,7 @@ describe('Db query ajlb get tests', () => {
 
   it('getFilteredAjlbs for date should return expected ajlbs', async () => {
     const filter: AjlbFilter = {
-      from_date: '2025-04-04',
+      fromDate: '2025-04-04',
     }
 
     const result = await getFilteredAjlbs(filter)
@@ -42,7 +42,7 @@ describe('Db query ajlb get tests', () => {
 
   it('getFilteredAjlbs for too early date should return an empty array', async () => {
     const filter: AjlbFilter = {
-      to_date: '2023-04-04',
+      toDate: '2023-04-04',
     }
 
     const result = await getFilteredAjlbs(filter)

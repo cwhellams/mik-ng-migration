@@ -2,41 +2,23 @@ import { z } from 'zod'
 
 import { AuditableSchema, UpsertSchema } from '../../types/schema.ts'
 
-const Numeric = z.union([z.number(), z.string()])
-
 export const CrewRoleEnum = z.enum(['FE', 'FI', 'OBS', 'PIC', 'STU'])
 export const PrivOrComFlightEnum = z.enum(['P', 'C'])
 export const FlightLogStatusEnum = z.enum(['INVOICED', 'NEW', 'PAID', 'VALIDATED'])
-
-const epochDateTime = z.preprocess(
-  val => {
-    if (typeof val === 'string' && /^-?\d+$/.test(val)) {
-      return BigInt(val)
-    }
-    if (typeof val === 'number' && Number.isInteger(val)) {
-      return BigInt(val)
-    }
-    return val // let z.bigint() handle the failure
-  },
-  z.bigint({
-    required_error: 'This field is required',
-    invalid_type_error: 'Must be a valid epoch time in seconds',
-  }),
-)
 
 const bigintAsString = z.string().regex(/^\d+$/)
 
 export const FlightLogFiltersSchema = z
   .object({
-    flight_id: z.string().optional(),
-    billable_member_id: z.string().optional(),
-    aircraft_registration: z.string().optional(),
+    flightId: z.string().optional(),
+    billableMemberId: z.string().optional(),
+    aircraftRegistration: z.string().optional(),
     pic: z.string().optional(),
     crew2: z.string().optional(),
     crew3: z.string().optional(),
     crew4: z.string().optional(),
-    startDate: epochDateTime.optional(),
-    endDate: epochDateTime.optional(),
+    startDate: z.string().datetime().optional(),
+    endDate: z.string().datetime().optional(),
     last: z
       .enum(['true', 'false'])
       .nullish()
@@ -49,92 +31,126 @@ export const FlightLogFiltersSchema = z
 export type FlightLogFilters = z.infer<typeof FlightLogFiltersSchema>
 
 export const FlightLogSchema = AuditableSchema.extend({
-  aircraft_registration: z.string(),
-  ajlb_blank_rows_before: z.number().int().min(0),
-  ajlb_seq_no: z.number().int().positive(),
-  arrival_airport: z.string(),
-  billable_member_id: z.string(),
-  billing_remarks: z.string().nullable(), // string | null
-  block_mins: z.number().int().nullable().optional(), // Generated<number | null>
-  block_time: z.string().nullable().optional(), // Generated<string | null>
-  crew2_member_id: z.string().nullable().optional(),
-  crew2_role: CrewRoleEnum.nullable().optional(),
-  crew3_member_id: z.string().nullable().optional(),
-  crew3_role: CrewRoleEnum.nullable().optional(),
-  crew4_member_id: z.string().nullable().optional(),
-  crew4_role: CrewRoleEnum.nullable().optional(),
-  departure_airport: z.string(),
-  flight_id: z.string().optional(), // Generated<number>
-  flight_mins: z.number().int().nullable().optional(), // Generated<number | null>
-  flight_time: z.string().nullable().optional(), // Generated<string | null>
-  flight_type: z.string(),
-  fuel_remaining_litres: z.number().positive(), // Numeric (required)
-  fuel_uplift_litres: z.number().positive(), // Numeric (required)
-  incident_or_observations: z.string().nullable(),
-  instrument_flying_mins: z.number().int().min(0), // number (required)
-  invoice_number: z.string().nullable().optional(), // Generated<string | null>
-  is_billable_flight: z.boolean(), // boolean (required)
-  is_dto_training_flight: z.boolean(),
-  is_billed: z.boolean().optional(), // Generated<boolean>
-  night_flying_mins: z.number().int().min(0), // number (required)
-  non_billing_approved_by_member_id: z.string().nullable(),
-  non_billing_reason: z.string().nullable(), // string | null
-  number_of_landings: z.number().int(),
-  off_block_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
-  off_block_time_epoch: bigintAsString, // Int8 (required)
-  oil_uplift_litres: Numeric, // Numeric (required)
-  takeoff_time_epoch: bigintAsString, // Int8 (required)// on_block_time_epoch: bigintAsString, // Int8 (required)
-  takeoff_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
-  landing_time_epoch: bigintAsString, // Int8 (required)
-  landing_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
-  on_block_time_epoch: bigintAsString, // Int8 (required)
-  on_block_time_utc: z.date().nullable().optional(), // Generated<Timestamp | null>
-  personal_remarks: z.string().nullable(),
-  persons_on_board: z.number().int(),
-  pic_member_id: z.string(),
-  pic_role: CrewRoleEnum, // CrewRole (required)
-  priv_or_com_flight: z.string(),
-  status: FlightLogStatusEnum.optional(), // Generated<FlightLogStatus>
-  total_time_in_service: Numeric, // Numeric (required)
+  aircraftRegistration: z.string(),
+  ajlbBlankRowsBefore: z.number().int().min(0),
+  ajlbSeqNo: z.number().int().positive(),
+  arrivalAirport: z.string(),
+  billableMemberId: z.string(),
+  billingRemarks: z.string().nullable(),
+  blockMins: z.number().readonly(),
+  blockTime: z.string().readonly(),
+  crew2MemberId: z.string().nullable().optional(),
+  crew2Role: CrewRoleEnum.nullable().optional(),
+  crew3MemberId: z.string().nullable().optional(),
+  crew3Role: CrewRoleEnum.nullable().optional(),
+  crew4MemberId: z.string().nullable().optional(),
+  crew4Role: CrewRoleEnum.nullable().optional(),
+  departureAirport: z.string(),
+  flightId: z.string().readonly(),
+  flightMins: z.number().readonly(),
+  flightTime: z.string().readonly(),
+  flightType: z.string(),
+  fuelRemainingLitres: z.number().positive(),
+  fuelUpliftLitres: z.number().min(0).nullable(),
+  incidentOrObservations: z.string().nullable(),
+  instrumentFlyingMins: z.number().int().min(0),
+  invoiceNumber: z.string(),
+  isBillableFlight: z.boolean(),
+  isDtoTrainingFlight: z.boolean(),
+  isBilled: z.boolean().readonly(),
+  nightFlyingMins: z.number().int().min(0),
+  nonBillingApprovedByMemberId: z.string().nullable(),
+  nonBillingReason: z.string().nullable(),
+  numberOfLandings: z.number().int().min(0),
+  oilUpliftLitres: z.number().min(0).nullable(),
+  offBlockTimeEpoch: bigintAsString,
+  offBlockTimeUtc: z.date().readonly(),
+  takeoffTimeEpoch: bigintAsString,
+  takeoffTimeUtc: z.date().readonly(),
+  landingTimeEpoch: bigintAsString,
+  landingTimeUtc: z.date().readonly(),
+  onBlockTimeEpoch: bigintAsString,
+  onBlockTimeUtc: z.date().readonly(),
+  personalRemarks: z.string().nullable(),
+  personsOnBoard: z.number().int(),
+  picMemberId: z.string(),
+  picRole: CrewRoleEnum,
+  privOrComFlight: z.string(),
+  status: FlightLogStatusEnum,
+  totalTimeInService: z.number(),
 })
 
-// We use partial to allow only updating some fields
-export const FlightLogInsertSchema = UpsertSchema(FlightLogSchema)
-  .omit({
-    non_billing_approved_by_member_id: true,
-    status: true,
-    invoice_number: true,
-    is_billed: true,
-    takeoff_time_utc: true,
-    landing_time_utc: true,
-    off_block_time_utc: true,
-    on_block_time_utc: true,
-    flight_time: true,
-    block_time: true,
-    flight_mins: true,
-    block_mins: true,
-    is_dto_training_flight: true,
-  })
-  .extend({
-    flight_id: z.string(),
-    off_block_time_epoch: bigintAsString,
-    takeoff_time_epoch: bigintAsString,
-    landing_time_epoch: bigintAsString,
-    on_block_time_epoch: bigintAsString,
-  })
+// Admin editable fields which are not generated by the database
+export const FlightLogAdminUpsertSchema = UpsertSchema(FlightLogSchema).pick({
+  aircraftRegistration: true,
+  ajlbBlankRowsBefore: true,
+  ajlbSeqNo: true,
+  arrivalAirport: true,
+  billableMemberId: true,
+  billingRemarks: true,
+  crew2MemberId: true,
+  crew2Role: true,
+  crew3MemberId: true,
+  crew3Role: true,
+  crew4MemberId: true,
+  crew4Role: true,
+  departureAirport: true,
+  flightType: true,
+  fuelRemainingLitres: true,
+  fuelUpliftLitres: true,
+  incidentOrObservations: true,
+  instrumentFlyingMins: true,
+  invoiceNumber: true,
+  isBillableFlight: true,
+  nightFlyingMins: true,
+  nonBillingApprovedByMemberId: true,
+  nonBillingReason: true,
+  numberOfLandings: true,
+  oilUpliftLitres: true,
+  offBlockTimeEpoch: true,
+  takeoffTimeEpoch: true,
+  landingTimeEpoch: true,
+  onBlockTimeEpoch: true,
+  personalRemarks: true,
+  personsOnBoard: true,
+  picMemberId: true,
+  picRole: true,
+  privOrComFlight: true,
+  status: true,
+  totalTimeInService: true,
+})
+
+// Member editable fields
+export const FlightLogMemberUpsertSchema = FlightLogAdminUpsertSchema.omit({
+  ajlbBlankRowsBefore: true,
+  ajlbSeqNo: true,
+  invoiceNumber: true,
+  isBillableFlight: true,
+  nonBillingApprovedByMemberId: true,
+  nonBillingReason: true,
+  status: true,
+})
 
 // Infer the TypeScript type from the Zod schema
 export type FlightLog = z.infer<typeof FlightLogSchema>
-export type FlightLogInsertRequest = z.infer<typeof FlightLogInsertSchema>
+export type FlightLogAdminRequest = z.infer<typeof FlightLogAdminUpsertSchema>
+export type FlightLogMemberRequest = z.infer<typeof FlightLogMemberUpsertSchema>
 
-export const FlightVwFlightTimeTotalsSchema = z.object({
-  ac_total_flight_time: z.string().nullable(),
-  aircraft_registration: z.string().nullable(),
-  ajlb_seq_no: z.number().int().nullable(),
-  flight_log_mins_this_ajlb: z.number().int().nullable(),
-  flight_time_this_ajlb: z.string().nullable(),
-  total_flight_mins_at_ajlb_start: z.number().int().nullable(),
-  total_flight_time_at_ajlb_start: z.string().nullable(),
+export const FlightLogListResponseSchema = z.object({
+  logs: z.array(FlightLogSchema),
 })
 
-export type FlightVwFlightTimeTotals = z.infer<typeof FlightVwFlightTimeTotalsSchema>
+export type FlightLogListResponse = z.infer<typeof FlightLogListResponseSchema>
+
+export const FlightTimeTotalsSchema = z.object({
+  acTotalFlightTime: z.string(),
+  acTotalFlightHours: z.number(),
+  aircraftRegistration: z.string(),
+  ajlbSeqNo: z.number().int(),
+  flightLogMinsThisAjlb: z.number().int(),
+  flightTimeThisAjlb: z.string(),
+  totalTlightMinsAtAjlbStart: z.number().int(),
+  totalTlightTimeAtAjlbStart: z.string(),
+})
+
+export type FlightTimeTotals = z.infer<typeof FlightTimeTotalsSchema>

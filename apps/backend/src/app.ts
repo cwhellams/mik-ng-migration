@@ -63,7 +63,7 @@ app.get('/health', (_req, res) => {
 // Routes
 app.use('/api/auth', passportRoutes)
 app.use('/api/v1/members', memberRoutes)
-app.use('/api/v1/flight-log', flightLogRoutes)
+app.use('/api/v1/flight-logs', flightLogRoutes)
 app.use('/api/v1/aircrafts', aircraftRoutes)
 app.use('/api/v1/ajlb', ajlbRoutes)
 app.use('/api/v1/invoice', invoiceRoutes)

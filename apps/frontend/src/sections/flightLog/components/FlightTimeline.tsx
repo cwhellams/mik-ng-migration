@@ -12,6 +12,8 @@ import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
+import { getTimezoneDisplay } from '../utils/timezoneUtils'
+import { formatDuration } from '../utils/timeUtils'
 
 interface FlightTimelineProps {
   offBlockTime: dayjs.Dayjs | null
@@ -51,13 +53,6 @@ const FlightTimeline = ({
   const flightTime = calculateDuration(takeoffTime, landingTime)
   const taxiInTime = calculateDuration(landingTime, onBlockTime)
   const totalTime = taxiOutTime + flightTime + taxiInTime
-
-  const formatDuration = (minutes: number): string => {
-    if (minutes <= 0) return '--'
-    const hrs = Math.floor(minutes / 60)
-    const mins = minutes % 60
-    return `${hrs > 0 ? `${hrs}h ` : ''}${mins}m`
-  }
 
   const taxiOutPercent = totalTime ? (taxiOutTime / totalTime) * 100 : 0
   const flightPercent = totalTime ? (flightTime / totalTime) * 100 : 0
@@ -169,148 +164,30 @@ const FlightTimeline = ({
       </Box>
 
       <Grid container spacing={2}>
-        {offBlockTime && takeoffTime && (
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <Box
-              sx={{
-                p: { xs: 1, sm: 1.5 },
-                borderRadius: 1,
-                bgcolor: alpha(theme.palette.info.light, 0.1),
-                height: '100%',
-              }}
-            >
-              <Typography variant='body2' fontWeight='medium' color='info.main'>
-                {t('flightLog.taxiOut', 'Taxi Out')}
-              </Typography>
-              <Typography variant='h6'>
-                {formatDuration(taxiOutTime)}
-              </Typography>
-              <Typography variant='caption' color='text.secondary'>
-                {offBlockTime.format('HH:mm')} - {takeoffTime.format('HH:mm')}
-              </Typography>
-            </Box>
-          </Grid>
-        )}
+        <TimeBlock
+          from={offBlockTime}
+          to={takeoffTime}
+          label={t('flightLog.taxiOut')}
+          duration={taxiOutTime}
+          color='info'
+        />
 
-        {takeoffTime && landingTime && (
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <Box
-              sx={{
-                p: { xs: 1, sm: 1.5 },
-                borderRadius: 1,
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                height: '100%',
-              }}
-            >
-              <Typography
-                variant='body2'
-                fontWeight='medium'
-                color='primary.main'
-              >
-                {t('flightLog.flight', 'Flight')}
-              </Typography>
-              <Typography variant='h6'>{formatDuration(flightTime)}</Typography>
-              <Typography variant='caption' color='text.secondary'>
-                {takeoffTime.format('HH:mm')} - {landingTime.format('HH:mm')}
-              </Typography>
-            </Box>
-          </Grid>
-        )}
+        <TimeBlock
+          from={takeoffTime}
+          to={landingTime}
+          label={t('flightLog.flight')}
+          duration={flightTime}
+          color='primary'
+        />
 
-        {landingTime && onBlockTime && (
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <Box
-              sx={{
-                p: { xs: 1, sm: 1.5 },
-                borderRadius: 1,
-                bgcolor: alpha(theme.palette.info.light, 0.1),
-                height: '100%',
-              }}
-            >
-              <Typography variant='body2' fontWeight='medium' color='info.main'>
-                {t('flightLog.taxiIn', 'Taxi In')}
-              </Typography>
-              <Typography variant='h6'>{formatDuration(taxiInTime)}</Typography>
-              <Typography variant='caption' color='text.secondary'>
-                {landingTime.format('HH:mm')} - {onBlockTime.format('HH:mm')}
-              </Typography>
-            </Box>
-          </Grid>
-        )}
+        <TimeBlock
+          from={landingTime}
+          to={onBlockTime}
+          label={t('flightLog.taxiIn')}
+          duration={taxiInTime}
+          color='info'
+        />
       </Grid>
-
-      <Box sx={{ display: 'none' }}>
-        <Typography
-          variant='caption'
-          color='text.secondary'
-          sx={{ mb: 1, display: 'block' }}
-        >
-          {t('flightLog.flightTimeline')}
-        </Typography>
-        {taxiOutTime > 0 && (
-          <Box
-            sx={{
-              height: 24,
-              mb: 1,
-              borderRadius: 1,
-              backgroundColor: theme.palette.info.light,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              px: 1.5,
-            }}
-          >
-            <Typography variant='caption'>
-              {t('flightLog.taxiOut', 'Taxi Out')}
-            </Typography>
-            <Typography variant='caption'>
-              {formatDuration(taxiOutTime)}
-            </Typography>
-          </Box>
-        )}
-        {flightTime > 0 && (
-          <Box
-            sx={{
-              height: 24,
-              mb: 1,
-              borderRadius: 1,
-              backgroundColor: theme.palette.primary.main,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              px: 1.5,
-            }}
-          >
-            <Typography variant='caption' color='primary.contrastText'>
-              {t('flightLog.flight', 'Flight')}
-            </Typography>
-            <Typography variant='caption' color='primary.contrastText'>
-              {formatDuration(flightTime)}
-            </Typography>
-          </Box>
-        )}
-        {taxiInTime > 0 && (
-          <Box
-            sx={{
-              height: 24,
-              mb: 1,
-              borderRadius: 1,
-              backgroundColor: theme.palette.info.light,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              px: 1.5,
-            }}
-          >
-            <Typography variant='caption'>
-              {t('flightLog.taxiIn', 'Taxi In')}
-            </Typography>
-            <Typography variant='caption'>
-              {formatDuration(taxiInTime)}
-            </Typography>
-          </Box>
-        )}
-      </Box>
 
       {offBlockTime && onBlockTime && (
         <Box
@@ -375,7 +252,7 @@ const FlightTimeline = ({
                 fontWeight='medium'
                 color='success.main'
               >
-                {t('flightLog.logbookCalculator', 'Logbook Calculator')}
+                {t('flightLog.logbookCalculator')}
               </Typography>
             </Box>
             <IconButton
@@ -409,15 +286,12 @@ const FlightTimeline = ({
                       gutterBottom
                       display='block'
                     >
-                      {t(
-                        'flightLog.currentLogbookTime',
-                        'Current Logbook Time'
-                      )}
+                      {t('flightLog.currentLogbookTime')}
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
                       <TextField
                         size='small'
-                        label={t('flightLog.hours', 'Hours')}
+                        label={t('flightLog.hours')}
                         type='number'
                         value={currentHours}
                         onChange={(e) =>
@@ -425,13 +299,15 @@ const FlightTimeline = ({
                             e.target.value === '' ? '' : Number(e.target.value)
                           )
                         }
-                        inputProps={{ min: 0 }}
+                        slotProps={{
+                          htmlInput: { min: 0 },
+                          inputLabel: { shrink: true },
+                        }}
                         sx={{ width: '100%' }}
-                        InputLabelProps={{ shrink: true }}
                       />
                       <TextField
                         size='small'
-                        label={t('flightLog.minutes', 'Minutes')}
+                        label={t('flightLog.minutes')}
                         type='number'
                         value={currentMinutes}
                         onChange={(e) => {
@@ -441,9 +317,11 @@ const FlightTimeline = ({
                             setCurrentMinutes(value)
                           }
                         }}
-                        inputProps={{ min: 0, max: 59 }}
+                        slotProps={{
+                          htmlInput: { min: 0, max: 59 },
+                          inputLabel: { shrink: true },
+                        }}
                         sx={{ width: '100%' }}
-                        InputLabelProps={{ shrink: true }}
                       />
                     </Box>
                   </Box>
@@ -527,6 +405,57 @@ const FlightTimeline = ({
         </Box>
       )}
     </Paper>
+  )
+}
+
+const TimeBlock = ({
+  duration,
+  from,
+  to,
+  label,
+  color,
+}: {
+  duration: number
+  from: dayjs.Dayjs | null
+  to: dayjs.Dayjs | null
+  label: string
+  color: 'info' | 'primary'
+}) => {
+  const theme = useTheme()
+
+  if (!from || !to) return <></>
+  return (
+    <Grid size={{ xs: 12, sm: 4 }}>
+      <Box
+        sx={{
+          p: { xs: 1, sm: 1.5 },
+          borderRadius: 1,
+          height: '100%',
+          bgcolor: alpha(
+            color == 'primary'
+              ? theme.palette.primary.main
+              : theme.palette.info.light,
+            0.1
+          ),
+        }}
+      >
+        <Typography
+          variant='body2'
+          fontWeight='medium'
+          color={color == 'primary' ? 'primary.main' : 'info.main'}
+        >
+          {label}
+        </Typography>
+        <Typography variant='h6'>{formatDuration(duration)}</Typography>
+        <Typography variant='caption' color='text.secondary'>
+          {from.utc().format('HH:mm')} - {to.utc().format('HH:mm')} (
+          {getTimezoneDisplay(true, from)})
+          <br />
+          {from.format('HH:mm')} - {to.format('HH:mm')} (
+          {getTimezoneDisplay(false, from)})
+        </Typography>
+      </Box>
+    </Grid>
   )
 }
 
