@@ -305,7 +305,7 @@ export async function getMembersAwaitingApproval(): Promise<Member[] | undefined
 export async function setMembershipApproval(
   member_id: string,
   approved_by: string,
-): Promise<MemberApproval | null> {
+): Promise<MemberApproval> {
   await db.transaction().execute(async txn => {
     const member = await txn
       .updateTable('member.register')

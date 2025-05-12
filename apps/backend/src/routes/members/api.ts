@@ -66,7 +66,7 @@ router.post(
     const approval = await setMembershipApproval(memberId, req.user!.memberId)
 
     sendEmail(
-      approval!.email,
+      approval.email,
       membershipApprovedEmailSubject('en'),
       membershipApprovedEmailBodyHtml('en', { firstName: approval!.firstName }),
       membershipApprovedEmailPlainText('en', { firstName: approval!.firstName }),
