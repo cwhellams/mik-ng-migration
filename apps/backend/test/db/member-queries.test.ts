@@ -72,6 +72,24 @@ describe('Db query member tests', () => {
     })
   })
 
+  it('getMemberByEmail should return member data regardless of the case', async () => {
+    const email = 'Pekka.HAMALAINEN@eXaMpLe.coM'
+
+    const result = await getMemberByEmail(email)
+    expect(result).toMatchSnapshot({
+      createdAt: expect.any(String),
+      dateOfBirth: expect.any(String),
+      updatedAt: expect.any(String),
+      memberSince: expect.any(String),
+      membershipApprovedAt: expect.any(String),
+      roles: result?.roles.map(r => ({
+        ...r,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      })),
+    })
+  })
+
   it('getMemberById should return member data for a valid id', async () => {
     const result = await getMemberById('Matti1')
     expect(result).toMatchSnapshot({
@@ -157,7 +175,7 @@ describe('Db add member tests', () => {
   }
 
   it('add member and update member', async () => {
-    const email = `${new Date().getTime()}@testdata.com`
+    const email = `${new Date().getTime()}@TESTDATA.com`
     const memberId = await addMember({
       memberType: MIKMemberTypes.FLYING,
       email,
@@ -165,13 +183,13 @@ describe('Db add member tests', () => {
       lastName: 'member',
       lang: MIKLang.FI,
     })
-    await expectSnapshottedMember(memberId, email)
+    await expectSnapshottedMember(memberId, email.toLowerCase())
     await updateMember(
       memberId,
-      { firstName: 'test2', roles: [{ roleId: 'MEMBER', isPublic: true }] },
+      { firstName: 'test2', email: `NEW-${email}`, roles: [{ roleId: 'MEMBER', isPublic: true }] },
       jwt,
     )
-    await expectSnapshottedMember(memberId, email)
+    await expectSnapshottedMember(memberId, `NEW-${email}`.toLowerCase())
 
     await removeMember(memberId)
   })

@@ -37,7 +37,7 @@ export async function getMemberByEmail(email: string): Promise<Member | undefine
   const member = await db
     .selectFrom('member.register')
     .selectAll()
-    .where('email', '=', email)
+    .where('email', '=', email.toLowerCase())
     .executeTakeFirst()
   if (member !== undefined) {
     return toMember(member, await getMemberRolesByMemberId(member.member_id))
@@ -177,7 +177,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
     .values({
       member_id: new_member_id,
       member_type: member.memberType,
-      email: member.email,
+      email: member.email.toLowerCase(),
       first_name: member.firstName,
       last_name: member.lastName,
       phone_number: member.phoneNumber,
@@ -239,7 +239,7 @@ export async function updateMember(
     .updateTable('member.register')
     .set({
       member_type: patch.memberType,
-      email: patch.email,
+      email: patch.email?.toLowerCase(),
       first_name: patch.firstName,
       last_name: patch.lastName,
 

@@ -166,6 +166,73 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
 }
 `;
 
+exports[`Db query member tests getMemberByEmail should return member data regardless of the case 1`] = `
+{
+  "billingId": "BILL005",
+  "canMakeReservations": false,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "dateOfBirth": Any<String>,
+  "email": "pekka.hamalainen@example.com",
+  "emailVerifiedAt": undefined,
+  "firstName": "Pekka",
+  "iceContactName": "Kaisa Hämäläinen",
+  "iceContactPhoneNumber": "0441098765",
+  "isMembershipApproved": true,
+  "isTrainingProgramPilot": false,
+  "lang": "fi",
+  "lastName": "Hämäläinen",
+  "memberId": "Pekka1",
+  "memberSince": Any<String>,
+  "memberType": "JUNIOR",
+  "membershipApprovedAt": Any<String>,
+  "membershipApprovedBy": "Matti1",
+  "phoneNumber": "0445678901",
+  "postcode": "20100",
+  "roles": [
+    {
+      "createdAt": Any<String>,
+      "createdBy": "k1mnimda",
+      "description": "Administrator with full access",
+      "isPublic": false,
+      "name": {
+        "en": "Administrator",
+        "fi": "Ylläpitäjä",
+      },
+      "permissions": [
+        "member.admin",
+        "flightlog.admin",
+        "booking.admin",
+        "aircraft.admin",
+      ],
+      "roleId": "ADMIN",
+      "updatedAt": Any<String>,
+      "updatedBy": "k1mnimda",
+    },
+    {
+      "createdAt": Any<String>,
+      "createdBy": "k1mnimda",
+      "description": "MIK member with basic access",
+      "isPublic": true,
+      "name": {
+        "en": "Member",
+        "fi": "Jäsen",
+      },
+      "permissions": [
+        "member",
+      ],
+      "roleId": "MEMBER",
+      "updatedAt": Any<String>,
+      "updatedBy": "k1mnimda",
+    },
+  ],
+  "streetAddress": "Lönnrotinkatu 20",
+  "townCity": "Turku",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+}
+`;
+
 exports[`Db query member tests getMemberById should return member data for a valid id 1`] = `
 {
   "billingId": "BILL001",
