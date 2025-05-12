@@ -30,6 +30,8 @@ export type JsonValue = JsonArray | JsonObject | JsonPrimitive
 
 export type MemberType = 'EXTERNAL' | 'FLYING' | 'HONORARY' | 'JUNIOR' | 'NON-FLYING'
 
+export type MikLang = 'en' | 'fi'
+
 export type Numeric = ColumnType<number, number | string, number | string>
 
 export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SYNCED'
@@ -220,6 +222,7 @@ export interface MemberRegister {
   ice_contact_phone_number: string | null
   is_membership_approved: Generated<boolean>
   is_training_program_pilot: Generated<boolean>
+  lang_iso639: Generated<MikLang>
   last_name: string
   member_id: string
   member_since: Generated<string>

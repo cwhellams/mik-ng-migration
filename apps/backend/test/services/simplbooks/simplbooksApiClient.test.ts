@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals'
 
-import { MIKMemberTypes, type Member } from '../../../src/routes/members/models.ts'
+import { MIKLang, MIKMemberTypes, type Member } from '../../../src/routes/members/models.ts'
 import {
   createInvoice,
   createNewClient,
@@ -41,6 +41,7 @@ describe('Simplebooks API Tests Happy Case', () => {
       isTrainingProgramPilot: false,
       isMembershipApproved: false,
       canMakeReservations: true,
+      lang: MIKLang.FI,
       memberSince: '2023-01-01',
       createdBy: 'admin',
       updatedBy: 'admin',
@@ -157,6 +158,7 @@ describe('Simplebooks API Tests Error Case', () => {
       isTrainingProgramPilot: false,
       isMembershipApproved: false,
       canMakeReservations: true,
+      lang: MIKLang.EN,
       memberSince: '2023-01-01',
       createdBy: 'admin',
       updatedBy: 'admin',

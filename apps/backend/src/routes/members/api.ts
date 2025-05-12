@@ -12,6 +12,7 @@ import {
   type MemberRole,
   MemberRoleSchema,
   type MemberApproval,
+  MIKLang,
 } from './models.ts'
 import {
   getMemberById,
@@ -26,6 +27,7 @@ import {
   removeMember,
   getMembersAwaitingApproval,
   setMembershipApproval,
+  updateMemberLang,
 } from '../../db/member-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { UpsertSchema } from '../../types/schema.ts'
@@ -39,6 +41,7 @@ import {
   membershipApprovedEmailPlainText,
   membershipApprovedEmailSubject,
 } from '../../templates/newMemberApprovedEmailTemplate.ts'
+import { z } from 'zod'
 
 export const router = Router()
 
@@ -128,6 +131,11 @@ router.patch(
     res.status(200).json(member)
   },
 )
+
+router.patch('/me/lang', validateUser(), async (req: Request, res: Response): Promise<void> => {
+  const validatedLang = z.nativeEnum(MIKLang).parse(req.body.lang)
+  await updateMemberLang(req.user?.memberId!, validatedLang, req.user!)
+})
 
 // list roles and permissions
 router.get(

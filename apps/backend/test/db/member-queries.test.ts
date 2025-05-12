@@ -12,7 +12,12 @@ import {
   removeMember,
 } from '../../src/db/member-queries.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
-import { MIKMemberTypes, MIKPermissions, type MemberRole } from '../../src/routes/members/models.ts'
+import {
+  MIKLang,
+  MIKMemberTypes,
+  MIKPermissions,
+  type MemberRole,
+} from '../../src/routes/members/models.ts'
 import type { Upsert } from '../../src/types/schema.ts'
 import { deleteSimplbooksOutbox } from './__helpers__/simplbooksDbHelpers.ts'
 
@@ -158,7 +163,7 @@ describe('Db add member tests', () => {
       email,
       firstName: 'test',
       lastName: 'member',
-      lang: 'fi',
+      lang: MIKLang.FI,
     })
     await expectSnapshottedMember(memberId, email)
     await updateMember(

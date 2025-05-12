@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { MemberProfileSchema, MIKMemberTypes } from '../members/models.ts'
+import { MemberProfileSchema, MIKLang, MIKMemberTypes } from '../members/models.ts'
 
 // register
 
@@ -9,7 +9,7 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
   memberType: z.nativeEnum(MIKMemberTypes),
 
   // language needed for sending emails
-  lang: z.string().optional(),
+  lang: z.nativeEnum(MIKLang),
 })
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 
@@ -18,8 +18,6 @@ export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 export const LoginRequestSchema = z.object({
   // email of the user to log in
   email: z.string(),
-
-  lang: z.string(),
 
   // where to navigate after login
   target: z.string().optional(),

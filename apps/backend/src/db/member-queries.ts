@@ -76,6 +76,7 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     membershipApprovedAt: member.membership_approved_at?.toISOString(),
     membershipApprovedBy: member.membership_approved_by ?? undefined,
 
+    lang: member.lang_iso639 as MIKLang,
     roles: roles,
   }
 }
@@ -188,6 +189,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       date_of_birth: member.dateOfBirth,
       member_since: now.toISOString(),
 
+      lang_iso639: member.lang,
       created_at: now,
       created_by: jwt?.memberId ?? new_member_id,
       updated_at: now,
@@ -201,6 +203,29 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
   }
 
   throw new Error('Member insert failed, no member id returned')
+}
+
+export async function updateMemberLang(
+  memberId: string,
+  lang: MIKLang,
+  jwt: JWTUser,
+): Promise<boolean> {
+  const now = new Date()
+
+  const result = await db
+    .updateTable('member.register')
+    .set({
+      lang_iso639: lang,
+      updated_at: now,
+      updated_by: jwt.memberId,
+    })
+    .where('member_id', '=', memberId)
+    .executeTakeFirstOrThrow()
+  if (!result.numUpdatedRows) {
+    return false
+  }
+
+  return true
 }
 
 export async function updateMember(

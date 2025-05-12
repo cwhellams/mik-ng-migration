@@ -14,6 +14,7 @@ CREATE TABLE member.register
     street_address VARCHAR(255),
     town_city VARCHAR(100),
     postcode VARCHAR(20),
+    lang_iso639 MIK_LANG NOT NULL DEFAULT 'fi',
     can_make_reservations BOOLEAN NOT NULL DEFAULT FALSE,
     is_training_program_pilot BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

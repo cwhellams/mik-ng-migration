@@ -113,7 +113,7 @@ export const MemberSchema = AuditableSchema.extend({
   membershipApprovedAt: z.string().datetime().optional(),
   membershipApprovedBy: z.string().optional(),
   emailVerifiedAt: z.string().datetime().optional(),
-
+  lang: z.nativeEnum(MIKLang),
   roles: z.array(
     MemberRoleSchema.partial({
       description: true,

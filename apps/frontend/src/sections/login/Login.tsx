@@ -21,7 +21,7 @@ const Login = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
   const { isMutating, trigger } = useAuth<LoginRequest, LoginResponse>('login')
 
@@ -42,7 +42,6 @@ const Login = () => {
     const { data, error } = await trigger({
       email: email,
       target: location.state?.target,
-      lang: i18n.language,
     })
 
     if (!data?.code || error) {

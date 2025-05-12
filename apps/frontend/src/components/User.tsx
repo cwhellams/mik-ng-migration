@@ -14,6 +14,9 @@ import { Icon } from '@iconify/react'
 import { useAuth } from '../hooks/useAuth'
 import { useMe } from '../hooks/useMe'
 import UserAvatar from '../sections/members/components/UserAvatar'
+import useApi from '../hooks/useApi'
+import { Member, MIKLang } from '@backend/routes/members/models'
+import { z } from 'zod'
 
 const User = () => {
   const { t, i18n } = useTranslation()
@@ -24,6 +27,11 @@ const User = () => {
   const { me, isLoading, mutate } = useMe()
 
   const logout = useAuth('logout')
+
+  const { mutation } = useApi<Member>({
+    url: `v1/members/me/lang`,
+    skipFetch: true,
+  })
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -50,8 +58,12 @@ const User = () => {
     navigate('/')
   }
 
-  const changeLanguage = (language: string) => {
+  const changeLanguage = async (language: string) => {
     i18n.changeLanguage(language)
+    const member: Partial<Member> = {
+      lang: z.nativeEnum(MIKLang).parse(language),
+    }
+    await mutation.trigger('PATCH', member)
     handleClose()
   }
 

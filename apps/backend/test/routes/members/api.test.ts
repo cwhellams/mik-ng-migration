@@ -6,6 +6,7 @@ import type { RegisterRequest } from '../../../src/routes/auth/schema.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { router } from '../../../src/routes/members/api.ts'
 import {
+  MIKLang,
   MIKMemberTypes,
   MIKPermissions,
   type Member,
@@ -684,7 +685,7 @@ describe('POST /members', () => {
     email,
     firstName: 'first',
     lastName: 'last',
-    lang: 'en',
+    lang: MIKLang.EN,
   }
 
   it('Return 401 if no token in authorization header', async () => {

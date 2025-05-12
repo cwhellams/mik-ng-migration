@@ -45,7 +45,7 @@ const silentFailure = (message: string, res: Response<LoginResponse>): void => {
 
 // Login existing user
 router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResponse>) => {
-  const { email, target, lang } = LoginRequestSchema.parse(req.body)
+  const { email, target } = LoginRequestSchema.parse(req.body)
 
   // Check that we have a memeber with this email address, to avoid sending magic link to non-existing user.
   // Do not leak information about existing users, if nothing found still return 200 with a random verification code and log a warning.
@@ -60,9 +60,9 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
   const link = magicLogin.generateLink(member.email, target)
   sendEmail(
     member.email,
-    loginEmailTitle(lang),
-    loginEmailBodyHtml(lang, link),
-    loginEmailPlainText(lang, link),
+    loginEmailTitle(member.lang),
+    loginEmailBodyHtml(member.lang, link),
+    loginEmailPlainText(member.lang, link),
   )
   logger.info('magic login link sent for validation %j', link)
 
