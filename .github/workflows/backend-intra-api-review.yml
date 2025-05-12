@@ -114,8 +114,11 @@ jobs:
         run: pnpm audit --audit-level=high || echo "Security issues found with NPM packages"
 
       - name: Test backend
+        env:
+          SMTP_LOGIN: ${{ vars.SMTP_LOGIN }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          DATABASE_URL: postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
         run: |
-          DATABASE_URL=postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
           pnpm test
 
       - name: Upload test coverage
