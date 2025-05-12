@@ -650,6 +650,11 @@ describe('GET /members/id', () => {
     expect(response.status).toBe(403)
   })
 
+  it('Return 404 if memeber  does not exist', async () => {
+    const response = await get('iceman', adminToken)
+    expect(response.status).toBe(404)
+  })
+
   it('Get member details as an admin', async () => {
     const response = await get('k1mnimda', adminToken)
     expect(response.status).toBe(200)
@@ -757,9 +762,9 @@ describe('Membership approval tests', () => {
 
   it('POST approval should approve a new member by updating the member.register table ', async () => {
     const response = await request(app)
-      .post('/members/approve/Marja1')
+      .post('/members/Marja1/approve')
       .set('Authorization', `Bearer ${adminToken}`)
-    expect(response.status).toBe(HttpStatusCode.Ok)
+    expect(response.status).toBe(HttpStatusCode.Created)
 
     //revert changes
     await db
@@ -772,10 +777,33 @@ describe('Membership approval tests', () => {
       .execute()
   })
 
+  it('POST approval should return not found when member does not exist', async () => {
+    const response = await request(app)
+      .post('/members/Brewster/approve')
+      .set('Authorization', `Bearer ${adminToken}`)
+    expect(response.status).toBe(HttpStatusCode.InternalServerError)
+  })
+
   it('POST approval should not be allowed for non admin users', async () => {
     const response = await request(app)
-      .post('/members/approve/Marja1')
+      .post('/members/Marja1/approve')
       .set('Authorization', `Bearer ${memberToken}`)
     expect(response.status).toBe(HttpStatusCode.Forbidden)
+  })
+})
+describe('Set language tests', () => {
+  it('Updates the language', async () => {
+    const response = await request(app)
+      .patch('/members/me/lang')
+      .set('Authorization', `Bearer ${memberToken}`)
+      .send({ lang: 'en' })
+    expect(response.status).toBe(200)
+
+    const undoResponse = await request(app)
+      .patch('/members/me/lang')
+      .set('Authorization', `Bearer ${memberToken}`)
+      .send({ lang: 'fi' })
+
+    expect(undoResponse.status).toBe(200)
   })
 })

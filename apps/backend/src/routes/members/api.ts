@@ -64,18 +64,15 @@ router.post(
     const memberId = req.params.memberId
 
     const approval = await setMembershipApproval(memberId, req.user!.memberId)
-    if (!approval) {
-      return problem({ status: HttpStatusCode.NotFound })
-    }
 
     sendEmail(
-      approval.email,
+      approval!.email,
       membershipApprovedEmailSubject('en'),
-      membershipApprovedEmailBodyHtml('en', { firstName: approval.firstName }),
-      membershipApprovedEmailPlainText('en', { firstName: approval.firstName }),
+      membershipApprovedEmailBodyHtml('en', { firstName: approval!.firstName }),
+      membershipApprovedEmailPlainText('en', { firstName: approval!.firstName }),
     )
 
-    res.status(HttpStatusCode.Created).json(approval)
+    res.status(HttpStatusCode.Created).json(approval!)
   },
 )
 
@@ -135,6 +132,7 @@ router.patch(
 router.patch('/me/lang', validateUser(), async (req: Request, res: Response): Promise<void> => {
   const validatedLang = z.nativeEnum(MIKLang).parse(req.body.lang)
   await updateMemberLang(req.user?.memberId!, validatedLang, req.user!)
+  res.sendStatus(200)
 })
 
 // list roles and permissions
@@ -219,15 +217,6 @@ router.delete(
 //
 
 router.post(
-  '/approve/:memberId',
-  validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request, res: Response<MemberApproval>) => {
-    const created = await setMembershipApproval(req.params.memberId, req.user?.memberId!)
-    created ? res.status(HttpStatusCode.Ok).json(created) : res.status(HttpStatusCode.NotFound)
-  },
-)
-
-router.post(
   '/',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request, res: Response<Member>) => {
@@ -245,7 +234,7 @@ router.get(
     const memberId = req.params.memberId
 
     const member = await getMemberById(memberId)
-    if (!member) {
+    if (member === undefined) {
       return problem({ status: 404 })
     }
     res.status(200).json(member)

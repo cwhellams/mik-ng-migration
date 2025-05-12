@@ -1,4 +1,4 @@
-import { getRandomInt } from '../../src/util/math-utils.ts'
+import { getRandomInt, splitTime } from '../../src/util/math-utils.ts'
 
 describe('getRandomInt', () => {
   test('returns a number within the given range', () => {
@@ -33,5 +33,13 @@ describe('getRandomInt', () => {
 
     expect(result).toBeGreaterThanOrEqual(min)
     expect(result).toBeLessThanOrEqual(max)
+  })
+})
+
+describe('splitTime Tests', () => {
+  test('splits a time as expected', () => {
+    const split = splitTime('22:44')
+    expect(split.hours).toEqual(22)
+    expect(split.minutes).toEqual(44)
   })
 })
