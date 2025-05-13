@@ -324,6 +324,7 @@ const NewFlightLogEntry = () => {
                   textField: {
                     fullWidth: true,
                     required: true,
+                    margin: 'normal',
                   },
                 }}
               />
