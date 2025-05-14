@@ -63,6 +63,11 @@ export const timeStringToDayjs = (
   return { date }
 }
 
+// Converts a dayjs object to a HHMM time string
+export const toTimeString = (time: dayjs.Dayjs, isUtc: boolean): string => {
+  return isUtc ? time.utc().format('HHmm') : time.utc().format('HHmm')
+}
+
 export const formatDuration = (minutes: number): string => {
   if (minutes <= 0) return '--'
   const hrs = Math.floor(minutes / 60)

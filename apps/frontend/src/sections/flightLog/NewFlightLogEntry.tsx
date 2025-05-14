@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import {
   Box,
   Paper,
@@ -14,14 +14,12 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  ToggleButtonGroup,
-  ToggleButton,
   Alert,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -32,12 +30,11 @@ import {
 } from '@backend/routes/flight-log/models'
 import useApi from '../../hooks/useApi'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import FlightTimeline from './components/FlightTimeline'
-import { formatTimeInput, timeStringToDayjs } from './utils/timeUtils'
-import { getTimeExample, getTimezoneDisplay } from './utils/timezoneUtils'
 import FlightCrew from './components/FlightCrew'
 import { useMe } from '../../hooks/useMe'
+import { FlightTime } from './components/FlightTime'
+
 const flightTypes = [
   { code: 'HAR', labelKey: 'flightLog.flightTypes.practice' },
   { code: 'MAT', labelKey: 'flightLog.flightTypes.cross_country' },
@@ -52,25 +49,37 @@ const flightTypes = [
 const NewFlightLogEntry = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const [useUtcTime, setUseUtcTime] = useState(true)
-  const [flightDate, setFlightDate] = useState<dayjs.Dayjs | null>(null)
 
-  // Text input state for time entries
-  const [offBlockTime, setOffBlockTime] = useState<string>('')
-  const [takeoffTime, setTakeoffTime] = useState<string>('')
-  const [landingTime, setLandingTime] = useState<string>('')
-  const [onBlockTime, setOnBlockTime] = useState<string>('')
+  const { flightId } = useParams()
 
   const { me } = useMe()
 
-  const { mutation } = useApi<FlightLog>({
-    url: 'v1/flight-logs',
-    skipFetch: true,
-  })
+  const isNew = flightId == 'new'
 
-  const { data: aircraftData } = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
-  })
+  const { data, mutation } = useApi<FlightLog>(
+    {
+      url: `v1/flight-logs${isNew ? '' : `/${flightId}`}`,
+      skipFetch: isNew,
+    },
+    {
+      // nobody else is modifying the aircraft at the same time
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  )
+
+  const { data: aircraftData } = useApi<AircraftListResponse>(
+    {
+      url: 'v1/aircrafts',
+    },
+    {
+      // no need to revalidate aircrafts here
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  )
 
   const {
     register,
@@ -82,29 +91,44 @@ const NewFlightLogEntry = () => {
     setError,
     setValue,
     getValues,
+    reset,
   } = useForm<FlightLogMemberRequest>({
     mode: 'onChange',
-    resolver: zodResolver(FlightLogMemberUpsertSchema),
+    resolver: zodResolver(FlightLogMemberUpsertSchema.strip(), {}),
+
+    // defaults for new flights
     defaultValues: {
-      numberOfLandings: 1,
-      personsOnBoard: 1,
+      aircraftRegistration: '',
+      flightType: '',
 
       picRole: 'PIC',
       totalTimeInService: 0,
       privOrComFlight: 'P',
       incidentOrObservations: null,
 
+      personsOnBoard: 1,
+      numberOfLandings: 1,
       nightFlyingMins: 0,
       instrumentFlyingMins: 0,
+
+      fuelRemainingLitres: undefined,
       fuelUpliftLitres: null,
       oilUpliftLitres: null,
     },
   })
 
   useEffect(() => {
-    setValue('billableMemberId', me?.memberId ?? '')
-    setValue('picMemberId', me?.memberId ?? '')
-  }, [me, setValue])
+    if (isNew) {
+      setValue('billableMemberId', me?.memberId ?? '')
+      setValue('picMemberId', me?.memberId ?? '')
+    }
+  }, [me, setValue, isNew])
+
+  useEffect(() => {
+    if (data) {
+      reset(data)
+    }
+  }, [data, reset])
 
   if (Object.keys(errors).length > 0) {
     console.log(errors)
@@ -118,75 +142,13 @@ const NewFlightLogEntry = () => {
       | 'onBlockTimeEpoch'
   ) => (getValues(field) ? dayjs.unix(Number(getValues(field))) : null)
 
-  // reprocess all times when any of the time inputs change
-  useEffect(() => {
-    if (!flightDate) return
-
-    const setTimeValues = (
-      field:
-        | 'offBlockTimeEpoch'
-        | 'takeoffTimeEpoch'
-        | 'landingTimeEpoch'
-        | 'onBlockTimeEpoch',
-      { date, error }: { date?: dayjs.Dayjs; error?: string }
-    ) => {
-      if (error) {
-        setError(field, { type: 'manual', message: t(error) })
-      } else {
-        clearErrors(field)
-      }
-      setValue(field, date?.unix()?.toString() ?? '')
-      return date ?? flightDate
-    }
-
-    // off block date
-    const date = useUtcTime
-      ? dayjs.utc(flightDate.format('YYYY-MM-DD'))
-      : flightDate.clone()
-
-    // off block time
-    const offBlock = setTimeValues(
-      'offBlockTimeEpoch',
-      timeStringToDayjs(offBlockTime, date)
-    )
-
-    // takeoff must be within 100 minutes of off block
-    const takeoff = setTimeValues(
-      'takeoffTimeEpoch',
-      timeStringToDayjs(takeoffTime, offBlock, 100)
-    )
-
-    // max 10 hours flight time allowed
-    const landing = setTimeValues(
-      'landingTimeEpoch',
-      timeStringToDayjs(landingTime, takeoff, 600)
-    )
-
-    // on block time within 100 minutes of landing
-    setTimeValues(
-      'onBlockTimeEpoch',
-      timeStringToDayjs(onBlockTime, landing, 100)
-    )
-  }, [
-    flightDate,
-    offBlockTime,
-    takeoffTime,
-    landingTime,
-    onBlockTime,
-    setError,
-    clearErrors,
-    setValue,
-    t,
-    useUtcTime,
-  ])
-
   // Update onSubmit to use our dayjs objects
   const onSubmit = async (data: FlightLogMemberRequest) => {
-    if (!flightDate) {
+    if (Object.keys(errors).length > 0) {
       return
     }
 
-    const { error } = await mutation.trigger('POST', data)
+    const { error } = await mutation.trigger(isNew ? 'POST' : 'PATCH', data)
     if (error) {
       console.error('Error saving flight data:', error)
       return setError('root', {
@@ -239,19 +201,17 @@ const NewFlightLogEntry = () => {
                   render={({ field }) => (
                     <Select
                       {...field}
-                      value={field.value || ''}
                       label={t('flightLog.aircraft')}
                       disabled={!aircraftData?.aircrafts}
                     >
-                      {aircraftData?.aircrafts &&
-                        aircraftData.aircrafts.map((aircraft) => (
-                          <MenuItem
-                            key={aircraft.registration}
-                            value={aircraft.registration}
-                          >
-                            {aircraft.registration}
-                          </MenuItem>
-                        ))}
+                      {(
+                        aircraftData?.aircrafts?.map((r) => r.registration) ??
+                        [data?.aircraftRegistration].filter(Boolean)
+                      ).map((registration) => (
+                        <MenuItem key={registration} value={registration}>
+                          {registration}
+                        </MenuItem>
+                      ))}
                     </Select>
                   )}
                 />
@@ -270,11 +230,7 @@ const NewFlightLogEntry = () => {
                   name='flightType'
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      {...field}
-                      value={field.value || ''}
-                      label={`${t('flightLog.flightType')}`}
-                    >
+                    <Select {...field} label={`${t('flightLog.flightType')}`}>
                       {flightTypes.map((type) => (
                         <MenuItem key={type.code} value={type.code}>
                           {t(type.labelKey)}
@@ -315,176 +271,14 @@ const NewFlightLogEntry = () => {
               </Typography>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
-              <DatePicker
-                label={t('flightLog.flightDate')}
-                value={flightDate}
-                onChange={setFlightDate}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    required: true,
-                    margin: 'normal',
-                  },
-                }}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Box>
-                <Typography variant='body2' gutterBottom>
-                  {t('flightLog.timeZone')}
-                </Typography>
-                <ToggleButtonGroup
-                  value={useUtcTime ? 'utc' : 'local'}
-                  exclusive
-                  onChange={(_, newValue) => {
-                    if (newValue !== null) {
-                      setUseUtcTime(newValue === 'utc')
-                    }
-                  }}
-                  aria-label='time format'
-                  size='small'
-                  sx={{ mb: 1 }}
-                >
-                  <ToggleButton value='utc' aria-label='UTC time'>
-                    <Icon icon='mdi:earth' style={{ marginRight: '8px' }} />
-                    {t('flightLog.utcTime')}
-                  </ToggleButton>
-                  <ToggleButton value='local' aria-label='Local time'>
-                    <Icon
-                      icon='mdi:map-marker'
-                      style={{ marginRight: '8px' }}
-                    />
-                    {t('flightLog.localTime')}
-                  </ToggleButton>
-                </ToggleButtonGroup>
-
-                {/* Time zone information on its own row */}
-                <Box sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
-                  <Icon
-                    icon={
-                      useUtcTime
-                        ? 'mdi:clock-outline'
-                        : 'mdi:clock-time-eight-outline'
-                    }
-                    style={{ marginRight: '8px', fontSize: '16px' }}
-                  />
-                  <Typography variant='caption' color='text.secondary'>
-                    {useUtcTime
-                      ? t('flightLog.usingUtcTime')
-                      : t('flightLog.usingLocalTime')}{' '}
-                    {!useUtcTime &&
-                      `(${getTimezoneDisplay(useUtcTime, flightDate)})`}
-                    {' - '}
-                    {t('flightLog.currentTime')}:{' '}
-                    {getTimeExample(useUtcTime, flightDate)}
-                  </Typography>
-                </Box>
-              </Box>
-            </Grid>
-
-            <Grid size={{ xs: 12 }}>
-              <Typography
-                variant='subtitle2'
-                gutterBottom
-                color='text.secondary'
-              >
-                {t('flightLog.timeInputFormat')}
-              </Typography>
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField
-                fullWidth
-                required
-                label={
-                  useUtcTime
-                    ? `${t('flightLog.offBlockTime')} (UTC)`
-                    : `${t('flightLog.offBlockTime')} (${t('flightLog.local')})`
-                }
-                placeholder='HHMM'
-                value={offBlockTime}
-                onChange={({ target }) =>
-                  setOffBlockTime(formatTimeInput(target.value))
-                }
-                error={!!errors.offBlockTimeEpoch}
-                helperText={
-                  errors.offBlockTimeEpoch?.message?.toString() ||
-                  t('flightLog.timeFormat')
-                }
-                slotProps={{ htmlInput: { maxLength: 4, inputMode: 'number' } }}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField
-                fullWidth
-                required
-                label={
-                  useUtcTime
-                    ? `${t('flightLog.takeoffTime')} (UTC)`
-                    : `${t('flightLog.takeoffTime')} (${t('flightLog.local')})`
-                }
-                placeholder='HHMM'
-                value={takeoffTime}
-                onChange={({ target }) =>
-                  setTakeoffTime(formatTimeInput(target.value))
-                }
-                error={!!errors.takeoffTimeEpoch}
-                helperText={
-                  errors.takeoffTimeEpoch?.message?.toString() ||
-                  t('flightLog.timeFormat')
-                }
-                slotProps={{ htmlInput: { maxLength: 4, inputMode: 'number' } }}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField
-                fullWidth
-                required
-                label={
-                  useUtcTime
-                    ? `${t('flightLog.landingTime')} (UTC)`
-                    : `${t('flightLog.landingTime')} (${t('flightLog.local')})`
-                }
-                placeholder='HHMM'
-                value={landingTime}
-                onChange={({ target }) =>
-                  setLandingTime(formatTimeInput(target.value))
-                }
-                error={!!errors.landingTimeEpoch}
-                helperText={
-                  errors.landingTimeEpoch?.message?.toString() ||
-                  t('flightLog.timeFormat')
-                }
-                slotProps={{ htmlInput: { maxLength: 4 } }}
-              />
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField
-                fullWidth
-                required
-                label={
-                  useUtcTime
-                    ? `${t('flightLog.onBlockTime')} (UTC)`
-                    : `${t('flightLog.onBlockTime')} (${t('flightLog.local')})`
-                }
-                placeholder='HHMM'
-                value={onBlockTime}
-                onChange={({ target }) =>
-                  setOnBlockTime(formatTimeInput(target.value))
-                }
-                error={!!errors.onBlockTimeEpoch}
-                helperText={
-                  errors.onBlockTimeEpoch?.message?.toString() ||
-                  t('flightLog.timeFormat')
-                }
-                slotProps={{ htmlInput: { maxLength: 4 } }}
-              />
-            </Grid>
+            <FlightTime
+              data={data}
+              register={register}
+              setValue={setValue}
+              errors={errors}
+              setError={setError}
+              clearErrors={clearErrors}
+            />
 
             {/* Flight Timeline Visualization */}
             <Grid size={{ xs: 12 }}>
@@ -507,6 +301,7 @@ const NewFlightLogEntry = () => {
               <TextField
                 fullWidth
                 required
+                defaultValue={''}
                 label={t('flightLog.departureAirport')}
                 {...register('departureAirport')}
                 error={!!errors.departureAirport}
@@ -531,7 +326,9 @@ const NewFlightLogEntry = () => {
                 required
                 type='number'
                 label={t('flightLog.personsOnBoard')}
-                {...register('personsOnBoard', { valueAsNumber: true })}
+                {...register('personsOnBoard', {
+                  valueAsNumber: true,
+                })}
                 error={!!errors.personsOnBoard}
                 helperText={errors.personsOnBoard?.message?.toString()}
               />
@@ -678,7 +475,7 @@ const NewFlightLogEntry = () => {
               variant='contained'
               color='primary'
               startIcon={<Icon icon='mdi:content-save' />}
-              disabled={mutation.isMutating}
+              disabled={mutation.isMutating || Object.keys(errors).length > 0}
             >
               {mutation.isMutating ? t('general.saving') : t('general.save')}
             </Button>

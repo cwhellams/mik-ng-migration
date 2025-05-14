@@ -72,7 +72,7 @@ export const FlightLogSchema = AuditableSchema.extend({
   onBlockTimeEpoch: bigintAsString,
   onBlockTimeUtc: z.date().readonly(),
   personalRemarks: z.string().nullable(),
-  personsOnBoard: z.number().int(),
+  personsOnBoard: z.number().int().min(1).max(4),
   picMemberId: z.string(),
   picRole: CrewRoleEnum,
   privOrComFlight: z.string(),

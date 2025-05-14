@@ -14,10 +14,13 @@ const useSSL = process.env.DB_SSL
 // due to times being included in the date with timezone conversions
 // This can result in dates being off by a day when stored in the database
 // and retrieved back as Date objects
-pg.types.setTypeParser(1082, val => val) // 1082 is the OID for DATE
+pg.types.setTypeParser(pg.types.builtins.DATE, val => val)
 
 // Override the built-in parser for int8
-pg.types.setTypeParser(20, val => val) //
+pg.types.setTypeParser(pg.types.builtins.INT8, val => val)
+
+// Decimals as numbers
+pg.types.setTypeParser(pg.types.builtins.NUMERIC, val => parseFloat(val))
 
 const ca_cert_filename = 'ca-certificate.crt'
 

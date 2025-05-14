@@ -58,7 +58,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
       },
     ],
     "equipment": "SDFGY/S",
-    "hourlyRateEur": "216.00",
+    "hourlyRateEur": 216,
     "location": "EFNU BF-hangar 21",
     "maintenance": {
       "lastMaintenanceDate": "2024-11-10",
@@ -140,7 +140,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
       },
     ],
     "equipment": "VOY/S",
-    "hourlyRateEur": "147.00",
+    "hourlyRateEur": 147,
     "location": "EFNU Cumulus Hangar",
     "maintenance": {
       "lastMaintenanceDate": "2025-03-01",
@@ -227,7 +227,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
       },
     ],
     "equipment": "SDFGY/S",
-    "hourlyRateEur": "216.00",
+    "hourlyRateEur": 216,
     "location": "EFNU BF-hangar 21",
     "maintenance": {
       "lastMaintenanceDate": "2024-11-10",
@@ -309,7 +309,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
       },
     ],
     "equipment": "VOY/S",
-    "hourlyRateEur": "147.00",
+    "hourlyRateEur": 147,
     "location": "EFNU Cumulus Hangar",
     "maintenance": {
       "lastMaintenanceDate": "2025-03-01",
@@ -342,7 +342,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
     "displayName": "Piper PA-28",
     "documents": [],
     "equipment": "SFD",
-    "hourlyRateEur": "228.00",
+    "hourlyRateEur": 228,
     "location": "EFNU",
     "maintenance": {
       "lastMaintenanceDate": "2024-04-15",
@@ -428,7 +428,7 @@ exports[`Db query Get aircrafts tests getAllAircraftByRegistration returns the a
     },
   ],
   "equipment": "SDFGY/S",
-  "hourlyRateEur": "216.00",
+  "hourlyRateEur": 216,
   "location": "EFNU BF-hangar 21",
   "maintenance": {
     "lastMaintenanceDate": "2024-11-10",

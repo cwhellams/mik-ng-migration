@@ -78,12 +78,20 @@ const FlightCrew = ({
 
   const { me } = useMe()
 
-  const { data: memberList } = useApi<MemberListResponse>({
-    url: 'v1/members',
-    params: {
-      isMembershipApproved: true,
+  const { data: memberList } = useApi<MemberListResponse>(
+    {
+      url: 'v1/members',
+      params: {
+        isMembershipApproved: true,
+      },
     },
-  })
+    {
+      // members do not change while adding a flight
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  )
 
   const self: CrewMember = {
     value: me?.memberId ?? 'SELF',
