@@ -204,7 +204,11 @@ const NewFlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <FormControl fullWidth error={!!errors.aircraftRegistration}>
+              <FormControl
+                required
+                fullWidth
+                error={!!errors.aircraftRegistration}
+              >
                 <InputLabel>{t('flightLog.aircraft')}</InputLabel>
                 <Controller
                   name='aircraftRegistration'
@@ -247,7 +251,7 @@ const NewFlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <FormControl fullWidth error={!!errors.flightType}>
+              <FormControl required fullWidth error={!!errors.flightType}>
                 <InputLabel>{t('flightLog.flightType')}</InputLabel>
                 <Controller
                   name='flightType'
@@ -486,7 +490,11 @@ const NewFlightLogEntry = () => {
               variant='contained'
               color='primary'
               startIcon={<Icon icon='mdi:content-save' />}
-              disabled={mutation.isMutating || Object.keys(errors).length > 0}
+              disabled={
+                mutation.isMutating ||
+                Object.keys(errors).filter((e) => !e.startsWith('root'))
+                  .length > 0
+              }
             >
               {mutation.isMutating ? t('general.saving') : t('general.save')}
             </Button>

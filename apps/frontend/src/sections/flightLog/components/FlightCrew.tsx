@@ -188,7 +188,7 @@ const FlightCrew = ({
                           margin='normal'
                           slotProps={{
                             inputLabel: {
-                              shrink: true, // Keeps the label above even when the field is empty
+                              shrink: true,
                             },
                           }}
                         />

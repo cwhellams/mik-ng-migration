@@ -86,6 +86,7 @@ const Register = () => {
           label={t('member.email')}
           margin='normal'
           value={member.email}
+          type='email'
           onChange={(e) => setMember({ ...member, email: e.target.value })}
           required
           slotProps={{

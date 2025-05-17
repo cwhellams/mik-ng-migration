@@ -63,6 +63,7 @@ const Login = () => {
           variant='outlined'
           margin='normal'
           value={email}
+          type='email'
           onChange={(e) => setEmail(e.target.value)}
           required
           error={!!emailError}
