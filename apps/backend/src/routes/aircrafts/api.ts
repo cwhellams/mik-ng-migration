@@ -247,6 +247,8 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   return {
     totalTime,
     lastLandingTimeUtc: lastFlight?.landingTimeUtc?.toISOString() ?? undefined,
+    lastLandingAirport: lastFlight?.arrivalAirport,
+
     remainingFuelLitres: Math.round(lastFlight?.fuelRemainingLitres),
 
     daysUntilNextMaintenance,

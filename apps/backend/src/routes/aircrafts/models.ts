@@ -55,6 +55,7 @@ export type AircraftAlert = z.infer<typeof AircraftAlertSchema>
 export const AircraftStatusSchema = z.object({
   totalTime: z.number().int().optional(),
   lastLandingTimeUtc: z.string().date().optional(),
+  lastLandingAirport: z.string().optional(),
   remainingFuelLitres: z.number().optional(),
 
   daysUntilNextMaintenance: z.number().int().optional(),
@@ -89,7 +90,6 @@ export const AircraftSchema = AuditableSchema.extend({
   hourlyRateEur: z.coerce.number(),
 })
 
-// Infer the TypeScript types from the Zod schemas
 export type Aircraft = z.infer<typeof AircraftSchema>
 
 export const AircraftListResponseSchema = z.object({

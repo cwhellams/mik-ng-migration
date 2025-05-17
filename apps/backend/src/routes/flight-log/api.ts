@@ -20,6 +20,7 @@ import { validateUser } from '../../middleware/authMiddleware.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
+import { getAirfields } from '../../db/airfields-queries.ts'
 
 // all flight log routes are protected by flightlog permissions
 const router = Router()
@@ -27,6 +28,16 @@ router.use(validateUser(MIKPermissions.FLIGHTLOG_USER, MIKPermissions.FLIGHTLOG_
 
 const isFlightLogAdmin = (user?: JWTUser): boolean =>
   user?.permissions?.includes(MIKPermissions.FLIGHTLOG_ADMIN) ?? false
+
+// Get flight log total times by registraion
+router.get('/airfields', async (req: Request, res: Response) => {
+  const reg = req.params.registration
+  const airfields = await getAirfields(reg)
+  if (airfields.length === 0) {
+    return problem({ status: 404, detail: 'Airfields not found' })
+  }
+  res.status(200).json({ airfields })
+})
 
 // Create a flight log
 router.post('/', async (req: Request, res: Response) => {

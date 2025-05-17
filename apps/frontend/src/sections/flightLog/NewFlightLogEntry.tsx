@@ -35,6 +35,7 @@ import FlightCrew from './components/FlightCrew'
 import { useMe } from '../../hooks/useMe'
 import { FlightTime } from './components/FlightTime'
 import { MinutesField } from './components/MinutesField'
+import { Airfields } from './components/Airfields'
 
 const flightTypes = [
   { code: 'HAR', labelKey: 'flightLog.flightTypes.practice' },
@@ -202,6 +203,21 @@ const NewFlightLogEntry = () => {
                   render={({ field }) => (
                     <Select
                       {...field}
+                      onChange={({ target }) => {
+                        if (!getValues('departureAirport')) {
+                          // set last known landing location as the default departure airport
+                          const plane = aircraftData?.aircrafts.find(
+                            (plane) => plane.registration == target.value
+                          )
+                          if (plane?.status?.lastLandingAirport) {
+                            setValue(
+                              'departureAirport',
+                              plane.status.lastLandingAirport
+                            )
+                          }
+                        }
+                        field.onChange(target.value)
+                      }}
                       label={t('flightLog.aircraft')}
                       disabled={!aircraftData?.aircrafts}
                     >
@@ -299,25 +315,18 @@ const NewFlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                required
-                defaultValue={''}
-                label={t('flightLog.departureAirport')}
-                {...register('departureAirport')}
-                error={!!errors.departureAirport}
-                helperText={errors.departureAirport?.message?.toString()}
+              <Airfields
+                name='departureAirport'
+                control={control}
+                error={errors.departureAirport}
               />
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                required
-                label={t('flightLog.arrivalAirport')}
-                {...register('arrivalAirport')}
-                error={!!errors.arrivalAirport}
-                helperText={errors.arrivalAirport?.message?.toString()}
+              <Airfields
+                name='arrivalAirport'
+                control={control}
+                error={errors.arrivalAirport}
               />
             </Grid>
 

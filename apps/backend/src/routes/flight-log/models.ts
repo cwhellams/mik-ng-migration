@@ -154,3 +154,15 @@ export const FlightTimeTotalsSchema = z.object({
 })
 
 export type FlightTimeTotals = z.infer<typeof FlightTimeTotalsSchema>
+
+export const AirfieldListResponseSchema = z.object({
+  airfields: z.array(
+    z.object({
+      ident: z.string(),
+      name: z.string(),
+      country: z.string(),
+    }),
+  ),
+})
+
+export type AirfieldListResponse = z.infer<typeof AirfieldListResponseSchema>
