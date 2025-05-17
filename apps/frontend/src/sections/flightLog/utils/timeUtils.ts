@@ -74,3 +74,9 @@ export const formatDuration = (minutes: number): string => {
   const mins = minutes % 60
   return `${hrs > 0 ? `${hrs}h ` : ''}${mins}m`
 }
+
+export const durationToDayjs = (minutes: number): dayjs.Dayjs => {
+  const hrs = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  return dayjs().hour(hrs).minute(mins)
+}

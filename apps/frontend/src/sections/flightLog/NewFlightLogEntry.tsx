@@ -34,6 +34,7 @@ import FlightTimeline from './components/FlightTimeline'
 import FlightCrew from './components/FlightCrew'
 import { useMe } from '../../hooks/useMe'
 import { FlightTime } from './components/FlightTime'
+import { MinutesField } from './components/MinutesField'
 
 const flightTypes = [
   { code: 'HAR', labelKey: 'flightLog.flightTypes.practice' },
@@ -347,22 +348,18 @@ const NewFlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                fullWidth
-                label={t('flightLog.nightHours')}
-                {...register('nightFlyingMins', { valueAsNumber: true })}
-                error={!!errors.nightFlyingMins}
-                helperText={errors.nightFlyingMins?.message?.toString()}
+              <MinutesField
+                name='nightFlyingMins'
+                control={control}
+                error={errors.nightFlyingMins}
               />
             </Grid>
 
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                fullWidth
-                label={t('flightLog.instrumentHours')}
-                {...register('instrumentFlyingMins', { valueAsNumber: true })}
-                error={!!errors.instrumentFlyingMins}
-                helperText={errors.instrumentFlyingMins?.message?.toString()}
+              <MinutesField
+                name='instrumentFlyingMins'
+                control={control}
+                error={errors.instrumentFlyingMins}
               />
             </Grid>
 
