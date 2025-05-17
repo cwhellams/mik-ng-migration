@@ -51,14 +51,14 @@ export const FlightTime = ({
 
   // date and text inputs for time entries
   const [timeComponents, setTimeComponents] = useState<{
-    flightDate: dayjs.Dayjs | null
+    flightDate: dayjs.Dayjs
     offBlockTime: string
     takeoffTime: string
     landingTime: string
     onBlockTime: string
     useUtcTime: boolean
   }>({
-    flightDate: null,
+    flightDate: dayjs().startOf('day'),
     offBlockTime: '',
     takeoffTime: '',
     landingTime: '',
@@ -152,10 +152,11 @@ export const FlightTime = ({
         <DatePicker
           label={t('flightLog.flightDate')}
           value={timeComponents.flightDate}
+          disableFuture={true}
           onChange={(flightDate) =>
             setTimeComponents((prev) => ({
               ...prev,
-              flightDate,
+              flightDate: flightDate ?? prev.flightDate,
             }))
           }
           slotProps={{
@@ -316,6 +317,7 @@ const TimeStringEditor = ({
       error={!!error}
       helperText={error?.message?.toString() || t('flightLog.timeFormat')}
       slotProps={{ htmlInput: { maxLength: 4, inputMode: 'number' } }}
+      type='number'
     />
   )
 }
