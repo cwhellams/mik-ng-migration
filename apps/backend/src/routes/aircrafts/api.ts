@@ -3,10 +3,12 @@ import { Router, type Request, type Response } from 'express'
 
 import {
   AircraftDocumentSchema,
+  AircraftFiltersSchema,
   AircraftSchema,
   type Aircraft,
   type AircraftAlert,
   type AircraftDocument,
+  type AircraftFilters,
   type AircraftListResponse,
   type AircraftStatus,
 } from './models.ts'
@@ -36,8 +38,10 @@ const isAircraftAdmin = (user?: JWTUser): boolean =>
   user?.permissions?.includes(MIKPermissions.AIRCRAFT_ADMIN) ?? false
 
 // Get all aircraft
-router.get('/', async (req: Request, res: Response<AircraftListResponse>) => {
-  const aircrafts = await getAllAircraft(!isAircraftAdmin(req.user))
+router.get('/', async (req: Request<AircraftFilters>, res: Response<AircraftListResponse>) => {
+  const data = AircraftFiltersSchema.parse(req.query)
+  const activeOnly = isAircraftAdmin(req.user) ? (data.activeOnly ?? false) : true
+  const aircrafts = await getAllAircraft(activeOnly)
 
   res.status(200).json({
     aircrafts: await Promise.all(

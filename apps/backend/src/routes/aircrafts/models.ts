@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { AuditableSchema } from '../../types/schema.ts'
+import { AuditableSchema, BooleanSchema } from '../../types/schema.ts'
 
 export const AircraftMaintenanceRecordSchema = z.object({
   maintenanceCycle: z.number().int(),
@@ -97,3 +97,11 @@ export const AircraftListResponseSchema = z.object({
 })
 
 export type AircraftListResponse = z.infer<typeof AircraftListResponseSchema>
+
+export const AircraftFiltersSchema = z
+  .object({
+    activeOnly: BooleanSchema.optional(),
+  })
+  .strict()
+
+export type AircraftFilters = z.infer<typeof AircraftFiltersSchema>

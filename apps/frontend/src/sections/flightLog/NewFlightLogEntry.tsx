@@ -74,6 +74,7 @@ const NewFlightLogEntry = () => {
   const { data: aircraftData } = useApi<AircraftListResponse>(
     {
       url: 'v1/aircrafts',
+      params: { activeOnly: true },
     },
     {
       // no need to revalidate aircrafts here
@@ -82,6 +83,13 @@ const NewFlightLogEntry = () => {
       revalidateOnReconnect: false,
     }
   )
+  // make sure old aircrafts are shown in the list
+  const currentAircrafts =
+    aircraftData?.aircrafts.map((a) => a.registration) ?? []
+  const aircrafts =
+    data && !currentAircrafts.includes(data.aircraftRegistration)
+      ? [...currentAircrafts, data.aircraftRegistration]
+      : currentAircrafts
 
   const {
     register,
@@ -221,10 +229,7 @@ const NewFlightLogEntry = () => {
                       label={t('flightLog.aircraft')}
                       disabled={!aircraftData?.aircrafts}
                     >
-                      {(
-                        aircraftData?.aircrafts?.map((r) => r.registration) ??
-                        [data?.aircraftRegistration].filter(Boolean)
-                      ).map((registration) => (
+                      {aircrafts?.map((registration) => (
                         <MenuItem key={registration} value={registration}>
                           {registration}
                         </MenuItem>

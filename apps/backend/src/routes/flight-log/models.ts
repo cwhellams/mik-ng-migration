@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { AuditableSchema, UpsertSchema } from '../../types/schema.ts'
+import { AuditableSchema, BooleanSchema, UpsertSchema } from '../../types/schema.ts'
 
 export const CrewRoleEnum = z.enum(['FE', 'FI', 'OBS', 'PIC', 'STU'])
 export const PrivOrComFlightEnum = z.enum(['P', 'C'])
@@ -19,11 +19,7 @@ export const FlightLogFiltersSchema = z
     crew4: z.string().optional(),
     startDate: z.string().datetime().optional(),
     endDate: z.string().datetime().optional(),
-    last: z
-      .enum(['true', 'false'])
-      .nullish()
-      .transform(v => v === 'true')
-      .optional(),
+    last: BooleanSchema.optional(),
   })
   .strict()
 
