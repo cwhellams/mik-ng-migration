@@ -11,10 +11,14 @@ const api = axios.create({
   baseURL: `${API_BASE}/api/`,
 })
 
+const tokenRefresh: {
+  refreshing?: Promise<string>
+} = {}
+
 // Add a request interceptor to add the access token to the authorization header
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('accessToken')
+  async (config) => {
+    const token = await getTheToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
       return config
@@ -34,24 +38,35 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
+const getTheToken = async () => {
+  return tokenRefresh.refreshing
+    ? // wait ongoing token refresh to return the new token
+      await tokenRefresh.refreshing
+    : localStorage.getItem('accessToken')
+}
+
 const refreshTheToken = async () => {
-  await axios
-    .post<VerifyResponse>(`${API_BASE}/api/auth/refresh`)
-    .then((response) => {
-      const accessToken = response.data.accessToken
-      if (accessToken) {
-        localStorage.setItem('accessToken', accessToken)
-        return accessToken
-      } else {
+  if (!tokenRefresh.refreshing) {
+    // only single refresh needed
+    tokenRefresh.refreshing = axios
+      .post<VerifyResponse>(`${API_BASE}/api/auth/refresh`)
+      .then((response) => {
+        const accessToken = response.data.accessToken
+        if (accessToken) {
+          localStorage.setItem('accessToken', accessToken)
+          return accessToken
+        } else {
+          localStorage.removeItem('accessToken')
+          return Promise.reject('No token')
+        }
+      })
+      .catch((err) => {
+        // If there is an error refreshing the token, log out the user
         localStorage.removeItem('accessToken')
-        return Promise.reject('No token')
-      }
-    })
-    .catch((err) => {
-      // If there is an error refreshing the token, log out the user
-      localStorage.removeItem('accessToken')
-      return Promise.reject(err)
-    })
+        return Promise.reject(err)
+      })
+  }
+  return tokenRefresh.refreshing
 }
 
 // Add a response interceptor to refresh the access token if it's expired
