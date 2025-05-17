@@ -34,6 +34,7 @@ import FlightTimeline from './components/FlightTimeline'
 import FlightCrew from './components/FlightCrew'
 import { useMe } from '../../hooks/useMe'
 import { FlightTime } from './components/FlightTime'
+import { NumberField } from './components/NumberField'
 import { MinutesField } from './components/MinutesField'
 import { Airfields } from './components/Airfields'
 
@@ -336,28 +337,26 @@ const NewFlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                fullWidth
-                required
-                type='number'
-                label={t('flightLog.personsOnBoard')}
-                {...register('personsOnBoard', {
-                  valueAsNumber: true,
-                })}
-                error={!!errors.personsOnBoard}
-                helperText={errors.personsOnBoard?.message?.toString()}
+              <NumberField
+                name='personsOnBoard'
+                control={control}
+                error={errors.personsOnBoard}
+                props={{
+                  required: true,
+                  slotProps: { htmlInput: { min: 1, max: 4 } },
+                }}
               />
             </Grid>
 
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                fullWidth
-                required
-                type='number'
-                label={t('flightLog.numberOfLandings')}
-                {...register('numberOfLandings', { valueAsNumber: true })}
-                error={!!errors.numberOfLandings}
-                helperText={errors.numberOfLandings?.message?.toString()}
+              <NumberField
+                name='numberOfLandings'
+                control={control}
+                error={errors.numberOfLandings}
+                props={{
+                  required: true,
+                  slotProps: { htmlInput: { min: 0, max: 99 } },
+                }}
               />
             </Grid>
 
@@ -386,39 +385,40 @@ const NewFlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                required
-                type='number'
-                label={t('flightLog.fuelRemaining')}
-                {...register('fuelRemainingLitres', { valueAsNumber: true })}
-                error={!!errors.fuelRemainingLitres}
-                helperText={errors.fuelRemainingLitres?.message?.toString()}
-                slotProps={{ htmlInput: { step: '0.1' } }}
+              <NumberField
+                name='fuelRemainingLitres'
+                control={control}
+                error={errors.fuelRemainingLitres}
+                props={{
+                  required: true,
+                  slotProps: {
+                    htmlInput: { step: 1, required: true, min: 0, max: 300 },
+                  },
+                }}
               />
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                type='number'
-                label={t('flightLog.fuelUplift')}
-                {...register('fuelUpliftLitres', { valueAsNumber: true })}
-                error={!!errors.fuelUpliftLitres}
-                helperText={errors.fuelUpliftLitres?.message?.toString()}
-                slotProps={{ htmlInput: { step: '0.1' } }}
+              <NumberField
+                name='fuelUpliftLitres'
+                control={control}
+                error={errors.fuelUpliftLitres}
+                props={{
+                  slotProps: {
+                    htmlInput: { step: 1, required: false, min: 0, max: 300 },
+                  },
+                }}
               />
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                type='number'
-                label={t('flightLog.oilUplift')}
-                {...register('oilUpliftLitres', { valueAsNumber: true })}
-                error={!!errors.oilUpliftLitres}
-                helperText={errors.oilUpliftLitres?.message?.toString()}
-                slotProps={{ htmlInput: { step: '0.1' } }}
+              <NumberField
+                name='oilUpliftLitres'
+                control={control}
+                error={errors.oilUpliftLitres}
+                props={{
+                  slotProps: { htmlInput: { step: '0.1', min: 0, max: 10 } },
+                }}
               />
             </Grid>
 
