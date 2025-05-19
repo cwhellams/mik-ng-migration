@@ -67,12 +67,12 @@ router.post(
 
     sendEmail(
       approval.email,
-      membershipApprovedEmailSubject('en'),
-      membershipApprovedEmailBodyHtml('en', { firstName: approval!.firstName }),
-      membershipApprovedEmailPlainText('en', { firstName: approval!.firstName }),
+      membershipApprovedEmailSubject(approval.lang),
+      membershipApprovedEmailBodyHtml(approval.lang, { firstName: approval.firstName }),
+      membershipApprovedEmailPlainText(approval.lang, { firstName: approval.firstName }),
     )
 
-    res.status(HttpStatusCode.Created).json(approval!)
+    res.status(HttpStatusCode.Created).json(approval)
   },
 )
 

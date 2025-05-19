@@ -5,6 +5,8 @@ import {
   createInvoice,
   createNewClient,
   getInvoice,
+  getItemByCode,
+  getOverdueInvoices,
   searchClient,
   searchInvoices,
   simplbooksApiClient,
@@ -16,9 +18,10 @@ import {
 } from '../../__mocks__/simplbooksMock.ts'
 import type {
   ClientFilter,
-  Invoice,
   InvoiceFilter,
+  InvoicePost,
 } from '../../../src/services/simplbooks/models.ts'
+import logger from '../../../src/lib/logger.ts'
 
 describe('Simplebooks API Tests Happy Case', () => {
   beforeAll(() => {
@@ -94,6 +97,20 @@ describe('Simplebooks API Tests Happy Case', () => {
     expect(invoices.data[0].invoices.id).toEqual(5787)
   })
 
+  it('should get overdue invoices', async () => {
+    const invoices = (await getOverdueInvoices('01-01-2023', '31-12-2023', 1, 50)) as any
+
+    expect(invoices).toBeDefined()
+    expect(invoices[0].id).toEqual(5787)
+  })
+
+  it('should get an item', async () => {
+    const item = await getItemByCode('OH-IHQ')
+
+    expect(item).toBeDefined()
+    expect(item.id).toEqual(12)
+  })
+
   it('should throw for an invalid invoices filter', async () => {
     const filter = {
       donald: 'duck',
@@ -103,12 +120,12 @@ describe('Simplebooks API Tests Happy Case', () => {
   })
 
   it('should create an invoices', async () => {
-    const invoice: Invoice = {
+    const invoice: InvoicePost = {
       Invoice: {
         overdue_charge_percent: 5,
         created: '2023-10-01',
         transaction_date: '2023-10-01',
-        reference: 'Test Invoice',
+        reference: 2023080122212,
         client_id: 22,
         sent: '2023-10-01',
         due: '2023-10-15',
@@ -175,12 +192,12 @@ describe('Simplebooks API Tests Error Case', () => {
   })
 
   it('should return a 400 error and message  createInvoice', async () => {
-    const badInvoice: Invoice = {
+    const badInvoice: InvoicePost = {
       Invoice: {
         overdue_charge_percent: 5,
         created: '2023-10-01',
         transaction_date: '2023-10-01',
-        reference: 'Test Invoice',
+        reference: 2025043012345,
         client_id: 22,
         sent: '2023-10-01',
         due: '2023-10-15',
@@ -203,5 +220,70 @@ describe('Simplebooks API Tests Error Case', () => {
     }
 
     await expect(createInvoice(badInvoice)).rejects.toThrow('Failed to create invoice: Bad Request')
+  })
+})
+
+describe('Test error handler', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('should call handleApiError and log the correct error when axios fails with a known response shape', async () => {
+    // Arrange: mock logger
+    const loggerSpy = jest.spyOn(logger, 'error')
+
+    // Arrange: mock Axios GET to throw an error
+    const mockedError = {
+      isAxiosError: true,
+      response: {
+        status: 400,
+        data: {
+          status: 400,
+          errors: ['Invalid ID', 'Something else went wrong'],
+        },
+      },
+    }
+    jest.spyOn(simplbooksApiClient, 'get').mockRejectedValue(mockedError)
+
+    // Act & Assert
+    await expect(getInvoice(123)).rejects.toEqual(mockedError)
+
+    // Assert logger was called with expected error message
+    expect(loggerSpy).toHaveBeenCalledWith('API Error [400]: Invalid ID; Something else went wrong')
+  })
+
+  it('should log unexpected response format if errors is not an array', async () => {
+    const loggerSpy = jest.spyOn(logger, 'error')
+
+    const mockedError = {
+      isAxiosError: true,
+      response: {
+        status: 500,
+        data: {
+          status: 500,
+          errors: 'Not an array',
+        },
+      },
+    }
+
+    jest.spyOn(simplbooksApiClient, 'get').mockRejectedValue(mockedError)
+
+    await expect(getInvoice(456)).rejects.toEqual(mockedError)
+
+    expect(loggerSpy).toHaveBeenCalledWith(
+      'Unexpected error response format:',
+      mockedError.response.data,
+    )
+  })
+
+  it('should log unexpected error for non-Axios errors', async () => {
+    const loggerSpy = jest.spyOn(logger, 'error')
+
+    const randomError = new Error('Some non-axios error')
+    jest.spyOn(simplbooksApiClient, 'get').mockRejectedValue(randomError)
+
+    await expect(getInvoice(789)).rejects.toThrow('Some non-axios error')
+
+    expect(loggerSpy).toHaveBeenCalledWith('Unexpected error:', randomError)
   })
 })

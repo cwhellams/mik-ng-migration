@@ -31,6 +31,7 @@ export enum MIKMemberTypes {
   NONFLYING = 'NON-FLYING',
   JUNIOR = 'JUNIOR',
   EXTERNAL = 'EXTERNAL',
+  HONORARY = 'HONORARY',
 }
 
 export enum MIKLang {
@@ -155,6 +156,7 @@ export const MemberApprovalSchema = MemberSchema.pick({
   membershipApprovedBy: true,
   email: true,
   firstName: true,
+  lang: true,
 })
 
 export type MemberApproval = z.infer<typeof MemberApprovalSchema>

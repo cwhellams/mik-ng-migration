@@ -4,19 +4,27 @@ import dotenv from 'dotenv'
 import {
   clientFilterSchema,
   invoiceFilterSchema,
-  InvoiceRootSchema,
+  ItemListSchema,
   mapMemberToClient,
   type ClientFilter,
-  type Invoice,
   type InvoiceFilter,
+  type InvoiceListItem,
+  type InvoiceListResponse,
+  type InvoicePost,
+  type InvoiceResponse,
+  type ItemListArticle,
+  type SimplBooksInsertResponse,
 } from './models.ts'
 import logger from '../../lib/logger.ts'
-import { MemberSchema, type MemberProfile } from '../../routes/members/models.ts'
+import { MemberSchema, type Member } from '../../routes/members/models.ts'
+import dayjs from 'dayjs'
 
 dotenv.config()
 
 const simplbooksBaseUri = process.env.SIMPLBOOKS_BASE_URI
 const simplbooksApiKey = process.env.SIMPLBOOKS_API_KEY
+
+const ZERO_DATE = '0000-00-00'
 
 export const simplbooksApiClient: AxiosInstance = axios.create({
   baseURL: simplbooksBaseUri,
@@ -42,7 +50,7 @@ function handleApiError(error: unknown) {
   }
 }
 
-export async function createNewClient(client: MemberProfile): Promise<number> {
+export async function createNewClient(client: Member): Promise<number> {
   try {
     MemberSchema.parse(client)
     const simplbooksClient = mapMemberToClient(client)
@@ -68,7 +76,7 @@ export async function searchClient(filter: ClientFilter): Promise<unknown> {
   }
 }
 
-export async function getInvoice(id: number): Promise<unknown> {
+export async function getInvoice(id: number): Promise<InvoiceResponse> {
   try {
     const response = await simplbooksApiClient.get(`/invoices/get/${id}`)
     if (response.status !== 200) {
@@ -81,7 +89,31 @@ export async function getInvoice(id: number): Promise<unknown> {
   }
 }
 
-export async function searchInvoices(filter: InvoiceFilter): Promise<unknown> {
+export async function getOverdueInvoices(
+  fromDate: string,
+  toDate: string,
+  page: number,
+  perPage: number,
+): Promise<InvoiceListItem[]> {
+  const filter: InvoiceFilter = {
+    created_from: fromDate,
+    created_until: toDate,
+    per_page: perPage,
+    page: page,
+  }
+
+  const invoices = await searchInvoices(filter)
+
+  return invoices.data
+    .filter(
+      i =>
+        i.invoices.paid == ZERO_DATE &&
+        dayjs(i.invoices.due).startOf('day').isBefore(dayjs().startOf('day')),
+    )
+    .map(i => i.invoices)
+}
+
+export async function searchInvoices(filter: InvoiceFilter): Promise<InvoiceListResponse> {
   try {
     invoiceFilterSchema.parse(filter)
     const response = await simplbooksApiClient.get(`/invoices/list`, { data: filter })
@@ -92,14 +124,31 @@ export async function searchInvoices(filter: InvoiceFilter): Promise<unknown> {
   }
 }
 
-export async function createInvoice(invoice: Invoice): Promise<unknown> {
+export async function createInvoice(invoice: InvoicePost): Promise<SimplBooksInsertResponse> {
   try {
-    InvoiceRootSchema.parse(invoice)
     const response = await simplbooksApiClient.post(`/invoices/create`, invoice)
     if (response.status !== 200) {
       throw new Error(`Failed to create invoice: ${response.statusText}`)
     }
     return response.data
+  } catch (error) {
+    handleApiError(error)
+    throw error
+  }
+}
+
+export async function getItemByCode(code: string): Promise<ItemListArticle> {
+  try {
+    const filter = {
+      code,
+    }
+
+    const response = await simplbooksApiClient.get(`/articles/list`, { data: filter })
+    if (response.status !== 200) {
+      throw new Error(`Failed to get articles for code ${code} response: ${response.statusText}`)
+    }
+    const listItem = ItemListSchema.parse(response)
+    return listItem.data[0].Article
   } catch (error) {
     handleApiError(error)
     throw error

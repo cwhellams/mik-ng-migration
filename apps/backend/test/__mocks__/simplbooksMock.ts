@@ -1,5 +1,7 @@
 import type { AxiosResponse } from 'axios'
 
+const ZERO_DATE = '0000-00-00'
+
 export function mockSimplbooksPost(url: string, data?: any): Promise<AxiosResponse> {
   if (url === '/invoices/create') {
     return Promise.resolve({
@@ -33,6 +35,42 @@ export function mockSimplbooksPost(url: string, data?: any): Promise<AxiosRespon
 }
 
 export function mockSimplbooksGet(url: string, data?: any): Promise<AxiosResponse> {
+  if (url === '/articles/list') {
+    return Promise.resolve({
+      data: [
+        {
+          Article: {
+            id: 12,
+            code: 'OH-IHQ',
+            ean: '4740123456789',
+            name: 'OH-IHQ Flying',
+            contents: 'Test content',
+            unit: 'pcs',
+            amount: 1,
+            price_per_unit: 24.99,
+            sum_with_vat: 0,
+            markup_value: 0,
+            markup_type: 'none',
+            is_inventory: true,
+            active: true,
+            sales_vat_type_id: 2,
+            purchase_vat_type_id: 3,
+            remnant: {
+              '1': 557,
+              '2': 12,
+              '3': -22,
+            },
+          },
+        },
+      ],
+      status: 200,
+      statusText: 'OK',
+      duration: 0.02,
+      headers: {},
+      config: {} as any,
+    })
+  }
+
   if (url === '/clients/list') {
     return Promise.resolve({
       data: [
@@ -70,6 +108,7 @@ export function mockSimplbooksGet(url: string, data?: any): Promise<AxiosRespons
             client_id: 123,
             client_name: 'SimplBooks OÜ',
             client_reg_no: '12213296',
+            due: '2025-05-01',
           },
           Task: [
             {
@@ -110,7 +149,8 @@ export function mockSimplbooksGet(url: string, data?: any): Promise<AxiosRespons
               id: 5787,
               client_id: 123,
               client_name: 'SimplBooks OÜ',
-              client_reg_no: '12213296',
+              paid: ZERO_DATE,
+              due: '2023-06-01',
             },
           },
         ],

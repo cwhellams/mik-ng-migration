@@ -7,7 +7,7 @@ import { SimplbooksStatus, type AcctsOutboxSimplbooks } from '../services/simplb
 import logger from '../lib/logger.ts'
 import {
   checkAndClearStuckMessages,
-  handleOutboxMsg,
+  dispatchOutboxMsg,
 } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 
 let intervalId: any = null
@@ -15,6 +15,8 @@ let intervalMs = 1000 // 1 second
 
 export function startSimpleBooksOutboxProcessor() {
   let shouldRun = process.env.SIMPLBOOKS_OUTBOX_WORKER_ENABLED === 'true'
+
+  shouldRun && checkAndClearStuckMessages()
 
   async function loop() {
     if (!shouldRun) {
@@ -44,8 +46,6 @@ async function processOutbox() {
   // in case the worker was not stopped properly but it may result in data loss or duplication , this is a tradeoff
   // we need to make sure that the worker is not running before we do this
   // THIS IS NOT SAFE IF THE WORKER IS RUNNING IN MULTIPLE SERVICE INSTANCES !!!!!
-
-  await checkAndClearStuckMessages()
 
   logger.info(`Outbox worker run : ${intervalId ?? 'initial'} started`)
   intervalMs = 1000 // reset to 1 second
@@ -81,7 +81,7 @@ async function processOutbox() {
     return
   }
   logger.info(`Processing outbox item : ${taskRow.id} of type ${taskRow.event_type}`)
-  pRetry(async () => await handleOutboxMsg(taskRow), {
+  pRetry(async () => await dispatchOutboxMsg(taskRow), {
     retries: 5,
     minTimeout: 1000,
     maxTimeout: 10000,

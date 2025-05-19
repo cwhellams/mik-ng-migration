@@ -19,6 +19,7 @@ import type { Upsert } from '../types/schema.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import { randomUUID } from 'node:crypto'
 import { SimplbooksEventType } from '../services/simplbooks/models.ts'
+import { z } from 'zod'
 
 export async function getMemberById(memberId: string): Promise<Member | undefined> {
   const member = await db
@@ -342,6 +343,7 @@ export async function setMembershipApproval(
       'membership_approved_by',
       'email',
       'first_name',
+      'lang_iso639',
     ])
     .where('member_id', '=', member_id)
     .executeTakeFirstOrThrow()
@@ -352,6 +354,7 @@ export async function setMembershipApproval(
     membershipApprovedBy: approval.membership_approved_by!,
     email: approval.email,
     firstName: approval.first_name,
+    lang: z.nativeEnum(MIKLang).parse(approval.lang_iso639),
   }
   return retval
 }
