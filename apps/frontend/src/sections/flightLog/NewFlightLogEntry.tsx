@@ -27,6 +27,7 @@ import {
   FlightLog,
   FlightLogMemberUpsertSchema,
   type FlightLogMemberRequest,
+  flightLogDateValidator,
 } from '@backend/routes/flight-log/models'
 import useApi from '../../hooks/useApi'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
@@ -98,14 +99,17 @@ const NewFlightLogEntry = () => {
     control,
     watch,
     formState: { errors },
-    clearErrors,
     setError,
     setValue,
     getValues,
     reset,
+    trigger,
   } = useForm<FlightLogMemberRequest>({
     mode: 'onChange',
-    resolver: zodResolver(FlightLogMemberUpsertSchema.strip(), {}),
+    resolver: zodResolver(
+      flightLogDateValidator(FlightLogMemberUpsertSchema.strip()),
+      {}
+    ),
 
     // defaults for new flights
     defaultValues: {
@@ -151,7 +155,7 @@ const NewFlightLogEntry = () => {
       | 'takeoffTimeEpoch'
       | 'landingTimeEpoch'
       | 'onBlockTimeEpoch'
-  ) => (getValues(field) ? dayjs.unix(Number(getValues(field))) : null)
+  ) => (getValues(field) ? dayjs.unix(Number(watch(field))) : null)
 
   // Update onSubmit to use our dayjs objects
   const onSubmit = async (data: FlightLogMemberRequest) => {
@@ -300,11 +304,11 @@ const NewFlightLogEntry = () => {
 
             <FlightTime
               data={data}
-              register={register}
+              control={control}
+              watch={watch}
+              getValues={getValues}
               setValue={setValue}
-              errors={errors}
-              setError={setError}
-              clearErrors={clearErrors}
+              trigger={trigger}
             />
 
             {/* Flight Timeline Visualization */}

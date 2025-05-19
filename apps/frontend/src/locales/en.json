@@ -244,9 +244,6 @@
     "landingTime": "Landing",
     "onBlockTime": "On Block",
 
-    "invalidTimeFormat": "Invalid time format",
-    "invalidTime": "Invalid time",
-
     "self": "Self",
     "crew": "Flight Crew",
     "crews": {

@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express'
 
 import {
   FlightLogAdminUpsertSchema,
+  flightLogDateValidator,
   FlightLogFiltersSchema,
   FlightLogMemberUpsertSchema,
   type FlightLog,
@@ -41,7 +42,7 @@ router.get('/airfields', async (req: Request, res: Response) => {
 
 // Create a flight log
 router.post('/', async (req: Request, res: Response) => {
-  const data = FlightLogMemberUpsertSchema.parse(req.body)
+  const data = flightLogDateValidator(FlightLogMemberUpsertSchema).parse(req.body)
 
   const flightId = await insertFlightLog(data, req.user!)
   res.status(201).json({ flight_id: flightId })

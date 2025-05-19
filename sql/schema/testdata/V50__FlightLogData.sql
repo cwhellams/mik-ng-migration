@@ -44,7 +44,7 @@ INSERT INTO flight.logs (
     'mikify',
     'Matti1',
     'Liisa1',
-    'PIC',
+    'STU',
     'Jukka1',
     'FI',
     NULL,
@@ -62,7 +62,7 @@ INSERT INTO flight.logs (
     'efnu4evr',
     'Jukka1',
     'Jukka1',
-    'PIC',
+    'STU',
     'Pekka1',
     'FI',
     NULL,
@@ -80,7 +80,7 @@ INSERT INTO flight.logs (
     'bLwnAstr0',
     'Kaisa1',
     'Kaisa1',
-    'PIC',
+    'STU',
     'Antti1',
     'FE',
     NULL,
@@ -90,7 +90,7 @@ INSERT INTO flight.logs (
     'OH-STL',
     1740996000, 1740997800, 1741003200, 1741003920,
     1.0, 40.0, 0, 3, 1, 20, 30, 'EFHK', 'EFHK',
-    NULL, 'OTH', 'N/A', 'Routine check',
+    NULL, 'TAR', 'N/A', 'Routine check',
     'Antti1',
     'Antti1',
     FALSE,
@@ -126,7 +126,7 @@ INSERT INTO flight.logs (
     'eject',
     'Sanna1',
     'Sanna1',
-    'PIC',
+    'STU',
     'Juha1',
     'FE',
     NULL,
@@ -136,9 +136,9 @@ INSERT INTO flight.logs (
     'OH-STL',
     1710198300, -- 2025-03-11 23:05:00
     1710198900, -- 2025-03-11 23:15:00 (10 min taxi)
-    1710205200, -- 2025-03-12 00:40:00 (1h 25m flight)
-    1710205800, -- 2025-03-12 01:00:00 (20 min taxi)
+    1710205200, -- 2025-03-12 01:00:00 (1h 45m flight)
+    1710205800, -- 2025-03-12 01:10:00 (10 min taxi)
     1.0, 45.0, 0, 2, 1, 115, 60, 'EFHK', 'EFTU',
-    'INV004', 'NAV', 'Night navigation exercise', 'Cross-day night flight',
+    'INV004', 'MAT', 'Night navigation exercise', 'Cross-day night flight',
     'Sanna1', 'Sanna1', TRUE, NULL, NULL, 'C', 2, 0, 1.92, 'NEW', FALSE
 );

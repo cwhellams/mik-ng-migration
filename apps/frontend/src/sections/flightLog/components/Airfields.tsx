@@ -35,7 +35,6 @@ export const Airfields = ({ control, name, error }: AirfieldsProps) => {
     <Controller
       name={name}
       control={control}
-      rules={{ required: true }}
       render={({ field: { onChange, value } }) => (
         <Autocomplete
           options={airfields}
@@ -44,6 +43,7 @@ export const Airfields = ({ control, name, error }: AirfieldsProps) => {
           renderInput={(params) => (
             <TextField
               {...params}
+              required
               label={t(`flightLog.${name}`)}
               placeholder='ICAO'
               margin='normal'

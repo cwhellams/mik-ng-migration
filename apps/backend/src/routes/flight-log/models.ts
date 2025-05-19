@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z, ZodObject } from 'zod'
 
 import { AuditableSchema, BooleanSchema, UpsertSchema } from '../../types/schema.ts'
 
@@ -126,6 +126,81 @@ export const FlightLogMemberUpsertSchema = FlightLogAdminUpsertSchema.omit({
   nonBillingReason: true,
   status: true,
 })
+
+export const FlightLogTimesSchema = z.object({
+  offBlockTimeEpoch: bigintAsString,
+  takeoffTimeEpoch: bigintAsString,
+  landingTimeEpoch: bigintAsString,
+  onBlockTimeEpoch: bigintAsString,
+})
+type FlightLogTimes = z.infer<typeof FlightLogTimesSchema>
+
+export const flightLogDateValidator = <T extends ZodObject<typeof FlightLogTimesSchema.shape>>(
+  schema: T,
+) =>
+  // Zod's refine doesn't work unless all fields are valid.
+  // Use preprocessor instead to get error messages shown in the UI with incomplete form.
+  // https://github.com/colinhacks/zod/issues/479#issuecomment-2429834215
+  z.preprocess((input, ctx) => {
+    const parsed = schema
+      .pick({
+        offBlockTimeEpoch: true,
+        takeoffTimeEpoch: true,
+        landingTimeEpoch: true,
+        onBlockTimeEpoch: true,
+      })
+      .strip()
+      .partial()
+      .safeParse(input)
+
+    if (parsed.success) {
+      const validate = (
+        prevKey: keyof FlightLogTimes,
+        nextKey: keyof FlightLogTimes,
+        minutes: number,
+      ) => {
+        if (parsed.data[prevKey] && parsed.data[nextKey]) {
+          const prev = Number(parsed.data[prevKey])
+          const next = Number(parsed.data[nextKey])
+
+          // check the correct order
+          if (next <= prev) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.too_small,
+              minimum: prev,
+              inclusive: false,
+              message: prev.toString(),
+              type: 'bigint',
+              path: [nextKey],
+            })
+          }
+
+          // check limit how long the block can be
+          const maximum = prev + minutes * 60
+          if (next > maximum) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.too_big,
+              maximum,
+              message: maximum.toString(),
+              inclusive: true,
+              type: 'bigint',
+              path: [nextKey],
+            })
+          }
+        }
+      }
+
+      // taxi out is limited to 100 minutes
+      validate('offBlockTimeEpoch', 'takeoffTimeEpoch', 100)
+
+      // flight max 10 hours
+      validate('takeoffTimeEpoch', 'landingTimeEpoch', 600)
+
+      // taxi in is limited to 100 minutes
+      validate('landingTimeEpoch', 'onBlockTimeEpoch', 100)
+    }
+    return input
+  }, schema)
 
 // Infer the TypeScript type from the Zod schema
 export type FlightLog = z.infer<typeof FlightLogSchema>

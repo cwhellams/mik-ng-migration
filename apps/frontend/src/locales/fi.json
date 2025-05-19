@@ -244,9 +244,6 @@
     "landingTime": "Laskuaika",
     "onBlockTime": "Saapumisaika",
 
-    "invalidTimeFormat": "Virheellinen aikamuoto",
-    "invalidTime": "Virheellinen aika",
-
     "self": "Self",
     "crew": "Miehistö",
     "crews": {

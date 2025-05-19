@@ -1,18 +1,20 @@
 import {
   Grid,
-  TextField,
   Box,
   Typography,
   ToggleButton,
   ToggleButtonGroup,
+  FormControl,
+  FormHelperText,
 } from '@mui/material'
 import {
-  FieldErrors,
-  GlobalError,
-  UseFormClearErrors,
-  UseFormRegister,
-  UseFormSetError,
+  Control,
+  Controller,
+  FieldError,
+  UseFormGetValues,
   UseFormSetValue,
+  UseFormTrigger,
+  UseFormWatch,
 } from 'react-hook-form'
 import { Icon } from '@iconify/react'
 import { useEffect, useState } from 'react'
@@ -22,143 +24,89 @@ import {
 } from '@backend/routes/flight-log/models'
 import dayjs from 'dayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import {
-  toTimeString,
-  timeStringToDayjs,
-  formatTimeInput,
-} from '../utils/timeUtils'
 import { getTimezoneDisplay, getTimeExample } from '../utils/timezoneUtils'
 import { useTranslation } from 'react-i18next'
+import { TimeField } from '@mui/x-date-pickers/TimeField'
+import { calculateNext } from '../utils/timeUtils'
 
 interface FlightTimeProps {
   data?: FlightLog
-  register: UseFormRegister<FlightLogMemberRequest>
+  control: Control<FlightLogMemberRequest>
+  getValues: UseFormGetValues<FlightLogMemberRequest>
   setValue: UseFormSetValue<FlightLogMemberRequest>
-  errors: FieldErrors<FlightLogMemberRequest>
-  setError: UseFormSetError<FlightLogMemberRequest>
-  clearErrors: UseFormClearErrors<FlightLogMemberRequest>
+  watch: UseFormWatch<FlightLogMemberRequest>
+  trigger: UseFormTrigger<FlightLogMemberRequest>
 }
 
 export const FlightTime = ({
   data,
-  register,
+  control,
+  getValues,
   setValue,
-  errors,
-  setError,
-  clearErrors,
+  watch,
+  trigger,
 }: FlightTimeProps) => {
   const { t } = useTranslation()
 
   // date and text inputs for time entries
-  const [timeComponents, setTimeComponents] = useState<{
-    flightDate: dayjs.Dayjs
-    offBlockTime: string
-    takeoffTime: string
-    landingTime: string
-    onBlockTime: string
-    useUtcTime: boolean
-  }>({
-    flightDate: dayjs().startOf('day'),
-    offBlockTime: '',
-    takeoffTime: '',
-    landingTime: '',
-    onBlockTime: '',
-    useUtcTime: true,
-  })
+  const [flightDate, setFlightDate] = useState<dayjs.Dayjs>(
+    dayjs().utc().startOf('day')
+  )
 
-  // register epoch fields but set them manually
-  register('offBlockTimeEpoch')
-  register('takeoffTimeEpoch')
-  register('landingTimeEpoch')
-  register('onBlockTimeEpoch')
+  const [useUtcTime, setUseUtcTime] = useState<boolean>(true)
 
-  // load values for existing flight
+  // load the existing day
   useEffect(() => {
     if (data) {
-      setTimeComponents(({ useUtcTime }) => ({
-        flightDate: dayjs(data.offBlockTimeUtc).startOf('day'),
-        offBlockTime: toTimeString(dayjs(data.offBlockTimeUtc), useUtcTime),
-        takeoffTime: toTimeString(dayjs(data.takeoffTimeUtc), useUtcTime),
-        landingTime: toTimeString(dayjs(data.landingTimeUtc), useUtcTime),
-        onBlockTime: toTimeString(dayjs(data.onBlockTimeUtc), useUtcTime),
-        useUtcTime,
-      }))
-      console.log(data)
+      setFlightDate(dayjs(data.offBlockTimeUtc).startOf('day'))
     }
   }, [data])
 
-  // reprocess all timestring when any of the time inputs change
+  // if day changes, recalculate all times
   useEffect(() => {
-    const {
-      flightDate,
-      offBlockTime,
-      takeoffTime,
-      landingTime,
-      onBlockTime,
-      useUtcTime,
-    } = timeComponents
     if (!flightDate) return
 
-    const setTimeValues = (
+    const setTimeFromEpoch = (
+      base: dayjs.Dayjs,
       field:
         | 'offBlockTimeEpoch'
         | 'takeoffTimeEpoch'
         | 'landingTimeEpoch'
-        | 'onBlockTimeEpoch',
-      { date, error }: { date?: dayjs.Dayjs; error?: string }
+        | 'onBlockTimeEpoch'
     ) => {
-      if (error) {
-        setError(field, { type: 'manual', message: t(error) })
-      } else {
-        clearErrors(field)
+      const epoch = getValues(field)
+      if (!epoch) {
+        return null
       }
-      setValue(field, date?.unix()?.toString() ?? '')
-      return date ?? flightDate
+
+      const time = dayjs.unix(Number(getValues(field)))
+      const result = calculateNext(base, time)
+      setValue(field, result.unix().toString())
+
+      return result
     }
 
-    // off block date
-    const date = useUtcTime
-      ? dayjs.utc(flightDate.format('YYYY-MM-DD'))
-      : flightDate.clone()
+    const offBlockTime = setTimeFromEpoch(flightDate, 'offBlockTimeEpoch')
+    const takeOffTime =
+      offBlockTime && setTimeFromEpoch(offBlockTime, 'takeoffTimeEpoch')
 
-    // off block time
-    const offBlock = setTimeValues(
-      'offBlockTimeEpoch',
-      timeStringToDayjs(offBlockTime, date)
-    )
+    const landingTime =
+      takeOffTime && setTimeFromEpoch(takeOffTime, 'landingTimeEpoch')
 
-    // takeoff must be within 100 minutes of off block
-    const takeoff = setTimeValues(
-      'takeoffTimeEpoch',
-      timeStringToDayjs(takeoffTime, offBlock, 100)
-    )
-
-    // max 10 hours flight time allowed
-    const landing = setTimeValues(
-      'landingTimeEpoch',
-      timeStringToDayjs(landingTime, takeoff, 600)
-    )
-
-    // on block time within 100 minutes of landing
-    setTimeValues(
-      'onBlockTimeEpoch',
-      timeStringToDayjs(onBlockTime, landing, 100)
-    )
-  }, [timeComponents, setError, clearErrors, setValue, t])
+    if (landingTime) {
+      setTimeFromEpoch(landingTime, 'onBlockTimeEpoch')
+    }
+  }, [flightDate, setValue, getValues])
 
   return (
     <>
       <Grid size={{ xs: 12, md: 6 }}>
         <DatePicker
           label={t('flightLog.flightDate')}
-          value={timeComponents.flightDate}
+          value={flightDate}
           disableFuture={true}
-          onChange={(flightDate) =>
-            setTimeComponents((prev) => ({
-              ...prev,
-              flightDate: flightDate ?? prev.flightDate,
-            }))
-          }
+          format='DD.MM.YYYY'
+          onChange={(date) => setFlightDate(date ?? flightDate)}
           slotProps={{
             textField: {
               fullWidth: true,
@@ -174,14 +122,11 @@ export const FlightTime = ({
             {t('flightLog.timeZone')}
           </Typography>
           <ToggleButtonGroup
-            value={timeComponents.useUtcTime ? 'utc' : 'local'}
+            value={useUtcTime ? 'utc' : 'local'}
             exclusive
             onChange={(_, newValue) => {
               if (newValue !== null) {
-                setTimeComponents((prev) => ({
-                  ...prev,
-                  useUtcTime: newValue === 'utc',
-                }))
+                setUseUtcTime(newValue === 'utc')
               }
             }}
             aria-label='time format'
@@ -202,24 +147,20 @@ export const FlightTime = ({
           <Box sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
             <Icon
               icon={
-                timeComponents.useUtcTime
+                useUtcTime
                   ? 'mdi:clock-outline'
                   : 'mdi:clock-time-eight-outline'
               }
               style={{ marginRight: '8px', fontSize: '16px' }}
             />
             <Typography variant='caption' color='text.secondary'>
-              {timeComponents.useUtcTime
+              {useUtcTime
                 ? t('flightLog.usingUtcTime')
                 : t('flightLog.usingLocalTime')}{' '}
-              {!timeComponents.useUtcTime &&
-                `(${getTimezoneDisplay(timeComponents.useUtcTime, timeComponents.flightDate)})`}
+              {!useUtcTime && `(${getTimezoneDisplay(useUtcTime, flightDate)})`}
               {' - '}
               {t('flightLog.currentTime')}:{' '}
-              {getTimeExample(
-                timeComponents.useUtcTime,
-                timeComponents.flightDate
-              )}
+              {getTimeExample(useUtcTime, flightDate)}
             </Typography>
           </Box>
         </Box>
@@ -232,57 +173,45 @@ export const FlightTime = ({
       <Grid size={{ xs: 12, md: 3 }}>
         <TimeStringEditor
           label={t('flightLog.offBlockTime')}
-          value={timeComponents.offBlockTime}
-          setValue={(offBlockTime) =>
-            setTimeComponents((prev) => ({
-              ...prev,
-              offBlockTime,
-            }))
-          }
-          useUtcTime={timeComponents.useUtcTime}
-          error={errors.offBlockTimeEpoch}
+          control={control}
+          name='offBlockTimeEpoch'
+          min={flightDate.unix().toString()}
+          useUtcTime={useUtcTime}
+          trigger={trigger}
+          deps={['takeoffTimeEpoch']}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 3 }}>
         <TimeStringEditor
           label={t('flightLog.takeoffTime')}
-          value={timeComponents.takeoffTime}
-          setValue={(takeoffTime) =>
-            setTimeComponents((prev) => ({
-              ...prev,
-              takeoffTime,
-            }))
-          }
-          useUtcTime={timeComponents.useUtcTime}
-          error={errors.takeoffTimeEpoch}
+          control={control}
+          name='takeoffTimeEpoch'
+          min={watch('offBlockTimeEpoch')}
+          useUtcTime={useUtcTime}
+          trigger={trigger}
+          deps={['landingTimeEpoch']}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 3 }}>
         <TimeStringEditor
           label={t('flightLog.landingTime')}
-          value={timeComponents.landingTime}
-          setValue={(landingTime) =>
-            setTimeComponents((prev) => ({
-              ...prev,
-              landingTime,
-            }))
-          }
-          useUtcTime={timeComponents.useUtcTime}
-          error={errors.landingTimeEpoch}
+          control={control}
+          name='landingTimeEpoch'
+          min={watch('takeoffTimeEpoch')}
+          useUtcTime={useUtcTime}
+          trigger={trigger}
+          deps={['onBlockTimeEpoch']}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 3 }}>
         <TimeStringEditor
           label={t('flightLog.onBlockTime')}
-          value={timeComponents.onBlockTime}
-          setValue={(onBlockTime) =>
-            setTimeComponents((prev) => ({
-              ...prev,
-              onBlockTime,
-            }))
-          }
-          useUtcTime={timeComponents.useUtcTime}
-          error={errors.onBlockTimeEpoch}
+          control={control}
+          name='onBlockTimeEpoch'
+          min={watch('landingTimeEpoch')}
+          useUtcTime={useUtcTime}
+          trigger={trigger}
+          deps={[]}
         />
       </Grid>
     </>
@@ -291,33 +220,80 @@ export const FlightTime = ({
 
 const TimeStringEditor = ({
   label,
-  value,
-  setValue,
+  name,
+  control,
+  min,
   useUtcTime,
-  error,
+  trigger,
+  deps,
 }: {
   label: string
-  value: string
-  setValue: (time: string) => void
+  name: keyof FlightLogMemberRequest
+  control: Control<FlightLogMemberRequest>
+  min: string
   useUtcTime: boolean
-  error?: GlobalError
+  trigger: UseFormTrigger<FlightLogMemberRequest>
+  deps: (keyof FlightLogMemberRequest)[]
 }) => {
   const { t } = useTranslation()
 
+  const toDate = (epoch: string | number) => {
+    const date = dayjs.unix(Number(epoch))
+    return useUtcTime ? date.utc() : date
+  }
+
+  const formatError = (error: FieldError) => {
+    if (error.type == 'too_small') {
+      return `> ${toDate(error.message ?? '').format('HH:mm')}`
+    }
+    if (error.type == 'too_big') {
+      return `<= ${toDate(error.message ?? '').format('HH:mm')}`
+    }
+    return error.message ?? error.type
+  }
+
+  const minDate = min ? toDate(min) : undefined
+
   return (
-    <TextField
-      fullWidth
-      required
-      label={
-        useUtcTime ? `${label} (UTC)` : `${label} (${t('flightLog.local')})`
-      }
-      placeholder='HHMM'
-      value={value}
-      onChange={({ target }) => setValue(formatTimeInput(target.value))}
-      error={!!error}
-      helperText={error?.message?.toString() || t('flightLog.timeFormat')}
-      slotProps={{ htmlInput: { maxLength: 4, inputMode: 'number' } }}
-      type='number'
+    <Controller
+      name={name}
+      control={control}
+      render={({ field, formState, fieldState: { error } }) => (
+        <FormControl fullWidth error={!!error}>
+          <TimeField
+            {...field}
+            required
+            ampm={false}
+            disableFuture
+            inputRef={field.ref}
+            disableIgnoringDatePartForTimeValidation={true}
+            timezone={useUtcTime ? 'UTC' : 'system'}
+            referenceDate={useUtcTime ? minDate?.utc() : minDate}
+            value={field.value ? toDate(field.value) : null}
+            onChange={(time) => {
+              if (!time?.isValid() || !minDate) {
+                return field.onChange('')
+              }
+              const dateTime = calculateNext(minDate, time)
+              field.onChange(dateTime.unix().toString())
+
+              // validate dependent fields if they have some value set
+              deps.forEach((dep) => {
+                // dirtyfields prevent saying the field is mandatory
+                if (formState.dirtyFields[dep]) {
+                  trigger(dep)
+                }
+              })
+            }}
+            label={
+              useUtcTime
+                ? `${label} (UTC)`
+                : `${label} (${t('flightLog.local')})`
+            }
+          />
+          {error && <FormHelperText>{formatError(error)}</FormHelperText>}
+        </FormControl>
+      )}
     />
   )
 }
