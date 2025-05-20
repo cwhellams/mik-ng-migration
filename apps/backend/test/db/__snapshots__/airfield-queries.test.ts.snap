@@ -1,0 +1,511 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Db query Get aircrafts tests getAirfields returns all airfields in the db 1`] = `
+[
+  {
+    "country": "FI",
+    "ident": "EFAA",
+    "name": "Aavahelukka Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFAH",
+    "name": "Ahmosuo Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFAL",
+    "name": "Alavus Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFEJ",
+    "name": "Jorvin Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFEK",
+    "name": "Kilpisjärvi Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFET",
+    "name": "Enontekio Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFEU",
+    "name": "Eura Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFFO",
+    "name": "Forssa Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFGE",
+    "name": "Genböle Airfield UL",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHA",
+    "name": "Halli Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHE",
+    "name": "Hernesaari Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHH",
+    "name": "Kanta-Hämeen Central Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHK",
+    "name": "Helsinki Vantaa Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHL",
+    "name": "Hailuoto Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHM",
+    "name": "Hämeenkyrö Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHN",
+    "name": "Hanko Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHO",
+    "name": "Oulun University Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHP",
+    "name": "Haapavesi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHS",
+    "name": "Seinäjoen Central Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHV",
+    "name": "Hyvinkää Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFHY",
+    "name": "Meilahti Hospital Helipad",
+  },
+  {
+    "country": "FI",
+    "ident": "EFII",
+    "name": "Iisalmi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFIK",
+    "name": "Kiikala Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFIM",
+    "name": "Immola Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFIT",
+    "name": "Kitee Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFIV",
+    "name": "Ivalo Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFJE",
+    "name": "North Karelia Central Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFJI",
+    "name": "Ilvesjoki UL",
+  },
+  {
+    "country": "FI",
+    "ident": "EFJM",
+    "name": "Jämijärvi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFJO",
+    "name": "Joensuu Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFJP",
+    "name": "Jäkäläpää Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFJV",
+    "name": "Central Finland Central Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFJY",
+    "name": "Jyväskylä Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKA",
+    "name": "Kauhava Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKE",
+    "name": "Kemi-Tornio Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKG",
+    "name": "Kumlinge Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKH",
+    "name": "Kuhmo Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKI",
+    "name": "Kajaani Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKJ",
+    "name": "Kauhajoki Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKK",
+    "name": "Kokkola-Pietarsaari Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKM",
+    "name": "Kemijärvi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKN",
+    "name": "Kannus Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKO",
+    "name": "Kalajoki Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKR",
+    "name": "Kärsämäki Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKS",
+    "name": "Kuusamo Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKT",
+    "name": "Kittilä Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKU",
+    "name": "Kuopio Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKV",
+    "name": "Kivijärvi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFKY",
+    "name": "Kymi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFLA",
+    "name": "Lahti Vesivehmaa Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFLL",
+    "name": "Lapinlahti Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFLN",
+    "name": "Lieksa Nurmes Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFLP",
+    "name": "Lappeenranta Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFLR",
+    "name": "Lapland Central Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFMA",
+    "name": "Mariehamn Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFME",
+    "name": "Menkijärvi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFMI",
+    "name": "Mikkeli Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFML",
+    "name": "Ii Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFMN",
+    "name": "Mäntsälä Airfield UL",
+  },
+  {
+    "country": "FI",
+    "ident": "EFNS",
+    "name": "Savikko Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFNU",
+    "name": "Nummela Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFOP",
+    "name": "Oripää Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFOU",
+    "name": "Oulu Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPA",
+    "name": "Pokka Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPE",
+    "name": "Peijaksen Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPI",
+    "name": "Piikajarvi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPJ",
+    "name": "Kuopio University Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPK",
+    "name": "Pieksämäki Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPL",
+    "name": "Päijät-Hämeen Central Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPN",
+    "name": "Punkaharju Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPO",
+    "name": "Pori Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPR",
+    "name": "Helsinki East-Redstone Aerodrome",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPT",
+    "name": "Tampere University Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPU",
+    "name": "Pudasjärvi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFPY",
+    "name": "Pyhäsalmi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFRA",
+    "name": "Rautavaara Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFRH",
+    "name": "Raahe Pattijoki Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFRN",
+    "name": "Rantasalmi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFRO",
+    "name": "Rovaniemi Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFRU",
+    "name": "Ranua Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFRV",
+    "name": "Kiuruvesi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFRY",
+    "name": "Räyskälä Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFSA",
+    "name": "Savonlinna Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFSE",
+    "name": "Selanpaa Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFSI",
+    "name": "Seinäjoki Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFSO",
+    "name": "Sodankyla Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFSU",
+    "name": "Suomussalmi Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFTO",
+    "name": "Torbacka Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFTP",
+    "name": "Tampere-Pirkkala Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFTU",
+    "name": "Turku Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFTV",
+    "name": "Turku University Central Hospital Heliport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFUT",
+    "name": "Utti Air Base",
+  },
+  {
+    "country": "FI",
+    "ident": "EFVA",
+    "name": "Vaasa Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFVI",
+    "name": "Viitasaari Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFVL",
+    "name": "Vaala Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFVP",
+    "name": "Vampula Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFVR",
+    "name": "Varkaus Airport",
+  },
+  {
+    "country": "FI",
+    "ident": "EFVT",
+    "name": "Sulkaharju Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFVU",
+    "name": "Vuotso Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFWB",
+    "name": "Wredeby Airfield",
+  },
+  {
+    "country": "FI",
+    "ident": "EFYL",
+    "name": "Ylivieska Airfield",
+  },
+]
+`;

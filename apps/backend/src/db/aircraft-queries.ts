@@ -112,7 +112,7 @@ export async function addAircraft(aircraft: Upsert<Aircraft>, jwt: JWTUser): Pro
     })
     .executeTakeFirst()
   if (!result.numInsertedOrUpdatedRows) {
-    return problem({ status: 500, detail: 'Role insert failed' })
+    return problem({ status: 500, detail: 'Aircraft insert failed' })
   }
   return {
     ...aircraft,

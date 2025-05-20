@@ -1,5 +1,97 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Db add aircraft tests add aircraft and update aircraft 1`] = `
+{
+  "active": true,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "displayName": "Test plane",
+  "documents": [],
+  "equipment": "test",
+  "hourlyRateEur": 100,
+  "location": "test",
+  "maintenance": {
+    "lastMaintenanceDate": "2023-10-01",
+    "lastMaintenanceTach": 100,
+    "lastMaintenanceType": "100h",
+    "maintenanceCycle": 100,
+    "nextMaintenanceDate": null,
+    "nextMaintenanceTach": 150,
+    "nextMaintenanceType": "50h",
+    "totalPercentageHours": 5,
+    "usablePercentageHours": 3,
+  },
+  "manufacturer": "Jest",
+  "model": "Jest",
+  "notes": [],
+  "registration": "OH-TST",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+  "yearOfManufacture": 2000,
+}
+`;
+
+exports[`Db add aircraft tests add aircraft and update aircraft 2`] = `
+{
+  "active": true,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "displayName": "Test plane 2",
+  "documents": [],
+  "equipment": "test",
+  "hourlyRateEur": 100,
+  "location": "test",
+  "maintenance": {
+    "lastMaintenanceDate": "2023-10-01",
+    "lastMaintenanceTach": 100,
+    "lastMaintenanceType": "100h",
+    "maintenanceCycle": 100,
+    "nextMaintenanceDate": null,
+    "nextMaintenanceTach": 150,
+    "nextMaintenanceType": "50h",
+    "totalPercentageHours": 5,
+    "usablePercentageHours": 3,
+  },
+  "manufacturer": "Jest",
+  "model": "Jest",
+  "notes": [],
+  "registration": "OH-TST",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+  "yearOfManufacture": 2000,
+}
+`;
+
+exports[`Db document tests add document and update document 1`] = `
+{
+  "alertDaysBefore": 30,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "documentId": "TST",
+  "endDate": "2023-10-01",
+  "hardLimit": 0,
+  "softLimit": 7,
+  "startDate": "2023-10-01",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+}
+`;
+
+exports[`Db document tests add document and update document 2`] = `
+{
+  "alertDaysBefore": 15,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "documentId": "TST2",
+  "endDate": "2023-10-02",
+  "hardLimit": 1,
+  "softLimit": 5,
+  "startDate": "2023-10-02",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+}
+`;
+
 exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft in the db 1`] = `
 [
   {
