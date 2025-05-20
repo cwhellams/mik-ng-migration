@@ -3,302 +3,303 @@
  * Please do not edit it manually.
  */
 
-import type { ColumnType } from "kysely";
+import type { ColumnType } from 'kysely'
 
-export type CrewRole = "FE" | "FI" | "OBS" | "PIC" | "STU";
+export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
 
-export type FlightLogStatus = "INVOICED" | "NEW" | "PAID" | "VALIDATED";
+export type FlightLogStatus = 'INVOICED' | 'NEW' | 'PAID' | 'VALIDATED'
 
-export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
-  ? ColumnType<S, I | undefined, U>
-  : ColumnType<T, T | undefined, T>;
+export type Generated<T> =
+  T extends ColumnType<infer S, infer I, infer U>
+    ? ColumnType<S, I | undefined, U>
+    : ColumnType<T, T | undefined, T>
 
-export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>;
+export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>
 
-export type InvoiceType = "ANNUAL_FEE" | "EQUIPMENT_FEE" | "FLIGHT" | "INSTRUCTION" | "MISC";
+export type InvoiceType = 'ANNUAL_FEE' | 'EQUIPMENT_FEE' | 'FLIGHT' | 'INSTRUCTION' | 'MISC'
 
-export type Json = JsonValue;
+export type Json = JsonValue
 
-export type JsonArray = JsonValue[];
+export type JsonArray = JsonValue[]
 
 export type JsonObject = {
-  [x: string]: JsonValue | undefined;
-};
+  [x: string]: JsonValue | undefined
+}
 
-export type JsonPrimitive = boolean | number | string | null;
+export type JsonPrimitive = boolean | number | string | null
 
-export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive
 
-export type MemberType = "EXTERNAL" | "FLYING" | "HONORARY" | "JUNIOR" | "NON-FLYING";
+export type MemberType = 'EXTERNAL' | 'FLYING' | 'HONORARY' | 'JUNIOR' | 'NON-FLYING'
 
-export type MikLang = "en" | "fi";
+export type MikLang = 'en' | 'fi'
 
-export type Numeric = ColumnType<number, number | string, number | string>;
+export type Numeric = ColumnType<number, number | string, number | string>
 
-export type SimplbooksOutboxStatus = "FAILED" | "PENDING" | "PROCESSING" | "SYNCED";
+export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SYNCED'
 
-export type Timestamp = ColumnType<Date, Date | string, Date | string>;
+export type Timestamp = ColumnType<Date, Date | string, Date | string>
 
 export interface AcctsInvoice {
-  created_at: Generated<Timestamp>;
-  created_by: string;
-  currency: Generated<string | null>;
-  description: string | null;
-  due_at: string;
-  id: Int8;
-  invoice_type: InvoiceType;
-  is_paid: Generated<boolean | null>;
-  member_id: string;
-  paid_at: string | null;
-  pmt_ref: string;
-  sent_at: string | null;
-  total_sum: Numeric | null;
-  updated_at: Generated<Timestamp>;
-  updated_by: string;
+  created_at: Generated<Timestamp>
+  created_by: string
+  currency: Generated<string | null>
+  description: string | null
+  due_at: string
+  id: Int8
+  invoice_type: InvoiceType
+  is_paid: Generated<boolean | null>
+  member_id: string
+  paid_at: string | null
+  pmt_ref: string
+  sent_at: string | null
+  total_sum: Numeric | null
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface AcctsOutboxSimplbooks {
-  created_at_utc: Generated<Timestamp>;
-  error_message: string | null;
-  event_type: string;
-  id: string;
-  payload: Json;
-  processed_at: Timestamp | null;
-  status: Generated<SimplbooksOutboxStatus>;
-  updated_at_utc: Generated<Timestamp>;
+  created_at_utc: Generated<Timestamp>
+  error_message: string | null
+  event_type: string
+  id: string
+  payload: Json
+  processed_at: Timestamp | null
+  status: Generated<SimplbooksOutboxStatus>
+  updated_at_utc: Generated<Timestamp>
 }
 
 export interface FlightAircraft {
-  active: Generated<boolean>;
-  created_at: Generated<Timestamp>;
-  created_by: string;
-  display_name: string;
-  equipment: string | null;
-  hourly_rate_eur: Numeric;
-  last_maintenance_date: string;
-  last_maintenance_tach: number;
-  last_maintenance_type: string;
-  location: string | null;
-  maintenance_cycle: number;
-  manufacturer: string;
-  model: string;
-  next_maintenance_date: string | null;
-  next_maintenance_tach: number;
-  next_maintenance_type: string;
-  notes: Json | null;
-  registration: string;
-  total_percentage_hours: number;
-  updated_at: Generated<Timestamp>;
-  updated_by: string;
-  usable_percentage_hours: number;
-  year_of_manufacture: number;
+  active: Generated<boolean>
+  created_at: Generated<Timestamp>
+  created_by: string
+  display_name: string
+  equipment: string | null
+  hourly_rate_eur: Numeric
+  last_maintenance_date: string
+  last_maintenance_tach: number
+  last_maintenance_type: string
+  location: string | null
+  maintenance_cycle: number
+  manufacturer: string
+  model: string
+  next_maintenance_date: string | null
+  next_maintenance_tach: number
+  next_maintenance_type: string
+  notes: Json | null
+  registration: string
+  total_percentage_hours: number
+  updated_at: Generated<Timestamp>
+  updated_by: string
+  usable_percentage_hours: number
+  year_of_manufacture: number
 }
 
 export interface FlightAircraftDocuments {
-  alert_days_before: number | null;
-  created_at: Generated<Timestamp>;
-  created_by: string;
-  document_id: string;
-  end_date: string;
-  hard_limit: number | null;
-  registration: string;
-  soft_limit: number | null;
-  start_date: string;
-  updated_at: Generated<Timestamp>;
-  updated_by: string;
+  alert_days_before: number | null
+  created_at: Generated<Timestamp>
+  created_by: string
+  document_id: string
+  end_date: string
+  hard_limit: number | null
+  registration: string
+  soft_limit: number | null
+  start_date: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface FlightAircraftJourneyLogBook {
-  aircraft_registration: string;
-  end_date: string | null;
-  flight_time: Generated<string>;
-  minutes_at_start: number;
-  no_of_pages: number;
-  rows_per_page: number;
-  seq_no: number;
-  start_date: string;
-  start_page: number;
+  aircraft_registration: string
+  end_date: string | null
+  flight_time: Generated<string>
+  minutes_at_start: number
+  no_of_pages: number
+  rows_per_page: number
+  seq_no: number
+  start_date: string
+  start_page: number
 }
 
 export interface FlightLogs {
-  aircraft_registration: string;
-  ajlb_blank_rows_before: number;
-  ajlb_seq_no: number;
-  arrival_airport: string;
-  billable_member_id: string;
-  billing_remarks: string | null;
-  block_mins: Generated<number | null>;
-  block_time: Generated<string | null>;
-  created_at: Generated<Timestamp>;
-  created_by: string;
-  crew2_member_id: Generated<string | null>;
-  crew2_role: CrewRole | null;
-  crew3_member_id: Generated<string | null>;
-  crew3_role: CrewRole | null;
-  crew4_member_id: Generated<string | null>;
-  crew4_role: CrewRole | null;
-  departure_airport: string;
-  flight_id: string;
-  flight_mins: Generated<number | null>;
-  flight_time: Generated<string | null>;
-  flight_type: string;
-  fuel_remaining_litres: Numeric;
-  fuel_uplift_litres: Numeric | null;
-  incident_or_observations: string | null;
-  instrument_flying_mins: number;
-  invoice_number: Generated<string | null>;
-  is_billable_flight: boolean;
-  is_billed: Generated<boolean>;
-  is_dto_training_flight: boolean;
-  landing_time_epoch: Int8;
-  landing_time_utc: Generated<Timestamp | null>;
-  night_flying_mins: number;
-  non_billing_approved_by_member_id: string | null;
-  non_billing_reason: string | null;
-  number_of_landings: number;
-  off_block_time_epoch: Int8;
-  off_block_time_utc: Generated<Timestamp | null>;
-  oil_uplift_litres: Numeric | null;
-  on_block_time_epoch: Int8;
-  on_block_time_utc: Generated<Timestamp | null>;
-  personal_remarks: string | null;
-  persons_on_board: number;
-  pic_member_id: string;
-  pic_role: CrewRole;
-  priv_or_com_flight: string;
-  status: Generated<FlightLogStatus>;
-  takeoff_time_epoch: Int8;
-  takeoff_time_utc: Generated<Timestamp | null>;
-  total_time_in_service: Numeric | null;
-  updated_at: Generated<Timestamp>;
-  updated_by: string;
+  aircraft_registration: string
+  ajlb_blank_rows_before: number
+  ajlb_seq_no: number
+  arrival_airport: string
+  billable_member_id: string
+  billing_remarks: string | null
+  block_mins: Generated<number | null>
+  block_time: Generated<string | null>
+  created_at: Generated<Timestamp>
+  created_by: string
+  crew2_member_id: Generated<string | null>
+  crew2_role: CrewRole | null
+  crew3_member_id: Generated<string | null>
+  crew3_role: CrewRole | null
+  crew4_member_id: Generated<string | null>
+  crew4_role: CrewRole | null
+  departure_airport: string
+  flight_id: string
+  flight_mins: Generated<number | null>
+  flight_time: Generated<string | null>
+  flight_type: string
+  fuel_remaining_litres: Numeric
+  fuel_uplift_litres: Numeric | null
+  incident_or_observations: string | null
+  instrument_flying_mins: number
+  invoice_number: Generated<string | null>
+  is_billable_flight: boolean
+  is_billed: Generated<boolean>
+  is_dto_training_flight: boolean
+  landing_time_epoch: Int8
+  landing_time_utc: Generated<Timestamp | null>
+  night_flying_mins: number
+  non_billing_approved_by_member_id: string | null
+  non_billing_reason: string | null
+  number_of_landings: number
+  off_block_time_epoch: Int8
+  off_block_time_utc: Generated<Timestamp | null>
+  oil_uplift_litres: Numeric | null
+  on_block_time_epoch: Int8
+  on_block_time_utc: Generated<Timestamp | null>
+  personal_remarks: string | null
+  persons_on_board: number
+  pic_member_id: string
+  pic_role: CrewRole
+  priv_or_com_flight: string
+  status: Generated<FlightLogStatus>
+  takeoff_time_epoch: Int8
+  takeoff_time_utc: Generated<Timestamp | null>
+  total_time_in_service: Numeric | null
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface FlightLogsAudit {
-  audit_id: Generated<number>;
-  changed_at: Generated<Timestamp>;
-  changed_by: string;
-  changed_data: Json | null;
-  flight_id: string;
-  new_data: Json | null;
-  operation_type: string;
+  audit_id: Generated<number>
+  changed_at: Generated<Timestamp>
+  changed_by: string
+  changed_data: Json | null
+  flight_id: string
+  new_data: Json | null
+  operation_type: string
 }
 
 export interface FlightVwFlightTimeTotals {
-  ac_total_flight_hours: number | null;
-  ac_total_flight_time: string | null;
-  aircraft_registration: string | null;
-  ajlb_seq_no: number | null;
-  flight_log_mins_this_ajlb: number | null;
-  flight_time_this_ajlb: string | null;
-  total_flight_mins_at_ajlb_start: number | null;
-  total_flight_time_at_ajlb_start: string | null;
+  ac_total_flight_hours: number | null
+  ac_total_flight_time: string | null
+  aircraft_registration: string | null
+  ajlb_seq_no: number | null
+  flight_log_mins_this_ajlb: number | null
+  flight_time_this_ajlb: string | null
+  total_flight_mins_at_ajlb_start: number | null
+  total_flight_time_at_ajlb_start: string | null
 }
 
 export interface FlywayDataHistory {
-  checksum: number | null;
-  description: string;
-  execution_time: number;
-  installed_by: string;
-  installed_on: Generated<Timestamp>;
-  installed_rank: number;
-  script: string;
-  success: boolean;
-  type: string;
-  version: string | null;
+  checksum: number | null
+  description: string
+  execution_time: number
+  installed_by: string
+  installed_on: Generated<Timestamp>
+  installed_rank: number
+  script: string
+  success: boolean
+  type: string
+  version: string | null
 }
 
 export interface FlywaySchemaHistory {
-  checksum: number | null;
-  description: string;
-  execution_time: number;
-  installed_by: string;
-  installed_on: Generated<Timestamp>;
-  installed_rank: number;
-  script: string;
-  success: boolean;
-  type: string;
-  version: string | null;
+  checksum: number | null
+  description: string
+  execution_time: number
+  installed_by: string
+  installed_on: Generated<Timestamp>
+  installed_rank: number
+  script: string
+  success: boolean
+  type: string
+  version: string | null
 }
 
 export interface MemberMemberToRoles {
-  created_at: Generated<Timestamp>;
-  created_by: string;
-  member_id: string;
-  role_id: string;
+  created_at: Generated<Timestamp>
+  created_by: string
+  member_id: string
+  role_id: string
 }
 
 export interface MemberRegister {
-  billing_id: string | null;
-  can_make_reservations: Generated<boolean>;
-  created_at: Generated<Timestamp>;
-  created_by: string;
-  date_of_birth: string | null;
-  email: string;
-  email_verified_at: Timestamp | null;
-  first_name: string;
-  ice_contact_name: string | null;
-  ice_contact_phone_number: string | null;
-  is_membership_approved: Generated<boolean>;
-  is_training_program_pilot: Generated<boolean>;
-  lang_iso639: Generated<MikLang>;
-  last_name: string;
-  member_id: string;
-  member_since: Generated<string>;
-  member_type: MemberType;
-  membership_approved_at: Timestamp | null;
-  membership_approved_by: string | null;
-  phone_number: string | null;
-  postcode: string | null;
-  street_address: string | null;
-  town_city: string | null;
-  updated_at: Generated<Timestamp>;
-  updated_by: string;
+  billing_id: string | null
+  can_make_reservations: Generated<boolean>
+  created_at: Generated<Timestamp>
+  created_by: string
+  date_of_birth: string | null
+  email: string
+  email_verified_at: Timestamp | null
+  first_name: string
+  ice_contact_name: string | null
+  ice_contact_phone_number: string | null
+  is_membership_approved: Generated<boolean>
+  is_training_program_pilot: Generated<boolean>
+  lang_iso639: Generated<MikLang>
+  last_name: string
+  member_id: string
+  member_since: Generated<string>
+  member_type: MemberType
+  membership_approved_at: Timestamp | null
+  membership_approved_by: string | null
+  phone_number: string | null
+  postcode: string | null
+  street_address: string | null
+  town_city: string | null
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface MemberRegisterAudit {
-  audit_id: Generated<number>;
-  changed_at: Generated<Timestamp>;
-  changed_by: string;
-  changed_data: Json | null;
-  member_id: string;
-  new_data: Json | null;
-  operation_type: string;
+  audit_id: Generated<number>
+  changed_at: Generated<Timestamp>
+  changed_by: string
+  changed_data: Json | null
+  member_id: string
+  new_data: Json | null
+  operation_type: string
 }
 
 export interface MemberRoles {
-  created_at: Generated<Timestamp>;
-  created_by: string;
-  description: string | null;
-  is_public: Generated<boolean>;
-  name_en: string;
-  name_fi: string;
-  permissions: Json | null;
-  role_id: string;
-  updated_at: Generated<Timestamp>;
-  updated_by: string;
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: string | null
+  is_public: Generated<boolean>
+  name_en: string
+  name_fi: string
+  permissions: Json | null
+  role_id: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface StaticAirfields {
-  ident: string;
-  iso_country: string | null;
-  name: string | null;
+  ident: string
+  iso_country: string | null
+  name: string | null
 }
 
 export interface DB {
-  "accts.invoice": AcctsInvoice;
-  "accts.outbox_simplbooks": AcctsOutboxSimplbooks;
-  "flight.aircraft": FlightAircraft;
-  "flight.aircraft_documents": FlightAircraftDocuments;
-  "flight.aircraft_journey_log_book": FlightAircraftJourneyLogBook;
-  "flight.logs": FlightLogs;
-  "flight.logs_audit": FlightLogsAudit;
-  "flight.vw_flight_time_totals": FlightVwFlightTimeTotals;
-  flyway_data_history: FlywayDataHistory;
-  flyway_schema_history: FlywaySchemaHistory;
-  "member.member_to_roles": MemberMemberToRoles;
-  "member.register": MemberRegister;
-  "member.register_audit": MemberRegisterAudit;
-  "member.roles": MemberRoles;
-  "static.airfields": StaticAirfields;
+  'accts.invoice': AcctsInvoice
+  'accts.outbox_simplbooks': AcctsOutboxSimplbooks
+  'flight.aircraft': FlightAircraft
+  'flight.aircraft_documents': FlightAircraftDocuments
+  'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
+  'flight.logs': FlightLogs
+  'flight.logs_audit': FlightLogsAudit
+  'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
+  flyway_data_history: FlywayDataHistory
+  flyway_schema_history: FlywaySchemaHistory
+  'member.member_to_roles': MemberMemberToRoles
+  'member.register': MemberRegister
+  'member.register_audit': MemberRegisterAudit
+  'member.roles': MemberRoles
+  'static.airfields': StaticAirfields
 }
