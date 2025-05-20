@@ -156,7 +156,11 @@ const NewFlightLogEntry = () => {
   ) => (getValues(field) ? dayjs.unix(Number(watch(field))) : null)
 
   const onSubmit = async (data: FlightLogMemberRequest) => {
-    const { error } = await mutation.trigger(isNew ? 'POST' : 'PATCH', data)
+    const { error } = await mutation.trigger(isNew ? 'POST' : 'PATCH', data, {
+      // put returned payload to the cache
+      revalidate: false,
+      populateCache: (result) => result,
+    })
     if (error) {
       console.error('Error saving flight data:', error)
       setSbState(true)

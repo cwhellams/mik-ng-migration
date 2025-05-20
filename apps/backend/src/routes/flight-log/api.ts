@@ -94,20 +94,20 @@ router.get('/:id', async (req: Request, res: Response) => {
   res.status(200).json(flights[0])
 })
 
-const validateWriteAccess = (flights: FlightLog[], req: Request) => {
-  if (flights.length === 0) {
+const validateWriteAccess = (flight: FlightLog | undefined, req: Request) => {
+  if (!flight) {
     return problem({ status: 404, detail: 'Flight log not found' })
   }
 
   // Check if the flight is owned by the user or the user is not an flightlog admin
-  if (flights[0].billableMemberId !== req.user?.memberId && !isFlightLogAdmin(req.user)) {
+  if (flight.billableMemberId !== req.user?.memberId && !isFlightLogAdmin(req.user)) {
     return problem({
       status: 403,
       detail: 'Flight log not owned by user or user has no admin rights',
     })
   }
 
-  if (flights[0].isBilled) {
+  if (flight.isBilled) {
     // Check if the flight is already billed
     return problem({
       status: 400,
@@ -128,7 +128,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
 
   const flightLogs = await getFlightLogs({ flightId: flightId })
 
-  validateWriteAccess(flightLogs, req)
+  validateWriteAccess(flightLogs.at(0), req)
 
   const updatedLog = await updateFlightLog(flightId, data, req.user!)
   if (updatedLog === 0n) {
@@ -138,7 +138,9 @@ router.patch('/:id', async (req: Request, res: Response) => {
     })
   }
 
-  res.status(204).end()
+  const afterUpdate = await getFlightLogs({ flightId: flightId })
+
+  res.status(200).json(afterUpdate[0])
 })
 
 // Delete a flight log
@@ -146,7 +148,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
   const flightId = req.params.id
 
   const flightLogToDelete = await getFlightLogs({ flightId: flightId })
-  validateWriteAccess(flightLogToDelete, req)
+  validateWriteAccess(flightLogToDelete.at(0), req)
 
   logger.info(
     `Deleting flight log ${flightId}. Deleted by member: ${req.user?.memberId} with permissions :${req.user?.permissions}`,

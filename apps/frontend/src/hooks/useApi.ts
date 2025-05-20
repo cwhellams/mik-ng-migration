@@ -4,7 +4,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { Problem } from '@backend/routes/response'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { VerifyResponse } from '@backend/routes/auth/schema'
-import useSWRMutation from 'swr/mutation'
+import useSWRMutation, { SWRMutationConfiguration } from 'swr/mutation'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 const api = axios.create({
@@ -105,7 +105,11 @@ export type APIMutation<Data> = {
   isMutating: boolean
 
   // trigger the mutation with any payload, and return responses
-  trigger: <T>(method: MutateMethods, payload: T) => Promise<APIResponse<Data>>
+  trigger: <T>(
+    method: MutateMethods,
+    payload: T,
+    options?: SWRMutationConfiguration<AxiosResponse<Data>, AxiosError<Problem>>
+  ) => Promise<APIResponse<Data>>
 }
 
 export type MutateMethods = 'POST' | 'PATCH' | 'DELETE'
@@ -197,10 +201,14 @@ export default function useApi<
 
       trigger: async <T>(
         method: MutateMethods,
-        payload: T
+        payload: T,
+        options?: SWRMutationConfiguration<
+          AxiosResponse<MutateData>,
+          AxiosError<Problem>
+        >
       ): Promise<APIResponse<MutateData>> =>
         mutation
-          .trigger({ method, payload })
+          .trigger({ method, payload }, options)
           .then((res) => ({
             data: res?.data,
           }))
