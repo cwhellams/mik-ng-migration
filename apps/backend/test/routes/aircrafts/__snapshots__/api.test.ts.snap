@@ -1,5 +1,97 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Add and update aircraft documents Add and update documents 1`] = `
+{
+  "alertDaysBefore": 30,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "documentId": "TST",
+  "endDate": "2023-10-01",
+  "hardLimit": 0,
+  "softLimit": 7,
+  "startDate": "2023-10-01",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+}
+`;
+
+exports[`Add and update aircraft documents Add and update documents 2`] = `
+{
+  "alertDaysBefore": 30,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "documentId": "TST",
+  "endDate": "2023-10-01",
+  "hardLimit": 0,
+  "softLimit": 7,
+  "startDate": "2023-10-02",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+}
+`;
+
+exports[`Add and update aircrafts Get aircraft with valid registration should return the aircraft 1`] = `
+{
+  "active": true,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "displayName": "Test plane",
+  "documents": [],
+  "equipment": "test",
+  "hourlyRateEur": 100,
+  "location": "test",
+  "maintenance": {
+    "lastMaintenanceDate": "2023-10-01",
+    "lastMaintenanceTach": 100,
+    "lastMaintenanceType": "100h",
+    "maintenanceCycle": 100,
+    "nextMaintenanceDate": null,
+    "nextMaintenanceTach": 150,
+    "nextMaintenanceType": "50h",
+    "totalPercentageHours": 5,
+    "usablePercentageHours": 3,
+  },
+  "manufacturer": "Jest",
+  "model": "Jest",
+  "notes": [],
+  "registration": "OH-TST",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+  "yearOfManufacture": 2000,
+}
+`;
+
+exports[`Add and update aircrafts Get aircraft with valid registration should return the aircraft 2`] = `
+{
+  "active": true,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "displayName": "Test plane 2",
+  "documents": [],
+  "equipment": "test",
+  "hourlyRateEur": 100,
+  "location": "test",
+  "maintenance": {
+    "lastMaintenanceDate": "2023-10-01",
+    "lastMaintenanceTach": 100,
+    "lastMaintenanceType": "100h",
+    "maintenanceCycle": 100,
+    "nextMaintenanceDate": null,
+    "nextMaintenanceTach": 150,
+    "nextMaintenanceType": "50h",
+    "totalPercentageHours": 5,
+    "usablePercentageHours": 3,
+  },
+  "manufacturer": "Jest",
+  "model": "Jest",
+  "notes": [],
+  "registration": "OH-TST",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+  "yearOfManufacture": 2000,
+}
+`;
+
 exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
 [
   {

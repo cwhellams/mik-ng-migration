@@ -21,6 +21,7 @@ import {
   updateAircraftDocument,
   addAircraftDocument,
   removeAircraftDocument,
+  removeAircraft,
 } from '../../db/aircraft-queries.ts'
 import { getFlightLogs, getFlightLogTotals } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
@@ -99,6 +100,19 @@ router.post(
   },
 )
 
+router.delete(
+  '/:registration',
+  validateUser(MIKPermissions.AIRCRAFT_ADMIN),
+  async (req: Request<{ registration: string }>, res: Response) => {
+    const removed = await removeAircraft(req.params.registration)
+    if (!removed) {
+      return problem({ status: 404, detail: 'Aircraft document not found' })
+    }
+
+    res.status(204).end()
+  },
+)
+
 router.patch(
   '/:registration/documents/:documentId',
   validateUser(MIKPermissions.AIRCRAFT_ADMIN),
@@ -134,7 +148,7 @@ router.post(
 )
 
 router.delete(
-  ':registration/documents/:documentId',
+  '/:registration/documents/:documentId',
   validateUser(MIKPermissions.AIRCRAFT_ADMIN),
   async (req: Request<{ registration: string; documentId: string }>, res: Response) => {
     const removed = await removeAircraftDocument(req.params.registration, req.params.documentId)

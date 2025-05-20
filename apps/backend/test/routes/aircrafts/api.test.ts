@@ -3,10 +3,15 @@ import express from 'express'
 import request from 'supertest'
 
 import { router } from '../../../src/routes/aircrafts/api.ts'
-import type { Aircraft, AircraftListResponse } from '../../../src/routes/aircrafts/models.ts'
+import type {
+  Aircraft,
+  AircraftDocument,
+  AircraftListResponse,
+} from '../../../src/routes/aircrafts/models.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
+import type { Upsert } from '../../../src/types/schema.ts'
 
 // Create an instance of the Express app
 const app = express()
@@ -15,7 +20,7 @@ app.use('/aircrafts', router)
 app.use(problemErrorHandler)
 
 const adminToken = generateAccessToken({
-  memberId: 'admin',
+  memberId: 'k1mnimda',
   email: 'admin@mik.fi',
   permissions: [MIKPermissions.AIRCRAFT_ADMIN],
 })
@@ -160,5 +165,158 @@ describe('GET /aircrafts/id', () => {
       instance: '/aircrafts/OH-CTL',
       timestamp: expect.any(String),
     })
+  })
+})
+
+describe('Add and update aircrafts', () => {
+  const aircraft: Upsert<Aircraft> = {
+    registration: 'OH-TST',
+    displayName: 'Test plane',
+    model: 'Jest',
+    manufacturer: 'Jest',
+    yearOfManufacture: 2000,
+    active: true,
+    maintenance: {
+      maintenanceCycle: 100,
+      lastMaintenanceDate: '2023-10-01',
+      lastMaintenanceType: '100h',
+      lastMaintenanceTach: 100,
+      nextMaintenanceDate: null,
+      nextMaintenanceType: '50h',
+      nextMaintenanceTach: 150,
+      totalPercentageHours: 5,
+      usablePercentageHours: 3,
+    },
+    notes: [],
+    location: 'test',
+    equipment: 'test',
+    hourlyRateEur: 100,
+    documents: [],
+  }
+
+  const post = async (token: string, payload: Upsert<Aircraft>) =>
+    request(app).post('/aircrafts').set('Authorization', `Bearer ${token}`).send(payload)
+
+  const patch = async (token: string, registration: string, payload: Partial<Aircraft>) =>
+    request(app)
+      .patch(`/aircrafts/${registration}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+
+  const remove = async (token: string, registration: string) =>
+    request(app)
+      .delete(`/aircrafts/${registration}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({})
+
+  it('should return 401 for invalid token', async () => {
+    const response = await post('NOUP', aircraft)
+
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 403 as user without required roles', async () => {
+    const response = await post(userToken, aircraft)
+
+    expect(response.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Protected Content',
+      instance: '/aircrafts',
+      timestamp: expect.any(String),
+    })
+  })
+
+  it('Get aircraft with valid registration should return the aircraft', async () => {
+    const response = await post(adminToken, aircraft)
+
+    expect(response.status).toBe(200)
+
+    const res = response.body as Aircraft
+    expect(res).toMatchSnapshot({
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    })
+
+    const updated = await patch(adminToken, res.registration, {
+      displayName: 'Test plane 2',
+    })
+    expect(updated.body).toMatchSnapshot({
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    })
+
+    const removed = await remove(adminToken, res.registration)
+    expect(removed.status).toBe(204)
+  })
+})
+
+describe('Add and update aircraft documents', () => {
+  const doc: Upsert<AircraftDocument> = {
+    documentId: 'TST',
+    startDate: '2023-10-01',
+    endDate: '2023-10-01',
+    alertDaysBefore: 30,
+    hardLimit: 0,
+    softLimit: 7,
+  }
+
+  const post = async (token: string, payload: Upsert<AircraftDocument>) =>
+    request(app)
+      .post('/aircrafts/OH-STL/documents')
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+
+  const patch = async (token: string, payload: Partial<AircraftDocument>) =>
+    request(app)
+      .patch(`/aircrafts/OH-STL/documents/${doc.documentId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+
+  const remove = async (token: string) =>
+    request(app)
+      .delete(`/aircrafts/OH-STL/documents/${doc.documentId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({})
+
+  it('should return 401 for invalid token', async () => {
+    const response = await post('NOUP', doc)
+
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 403 as user without required roles', async () => {
+    const response = await post(userToken, doc)
+
+    expect(response.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Protected Content',
+      instance: '/aircrafts/OH-STL/documents',
+      timestamp: expect.any(String),
+    })
+  })
+
+  it('Add and update documents', async () => {
+    const response = await post(adminToken, doc)
+
+    expect(response.status).toBe(200)
+
+    const res = response.body as Aircraft
+    expect(res).toMatchSnapshot({
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    })
+
+    const updated = await patch(adminToken, {
+      startDate: '2023-10-02',
+    })
+    expect(updated.body).toMatchSnapshot({
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    })
+
+    const removed = await remove(adminToken)
+    expect(removed.status).toBe(204)
   })
 })
