@@ -743,14 +743,18 @@ describe('Membership approval tests', () => {
       .get('/members/awaiting-approval')
       .set('Authorization', `Bearer ${adminToken}`)
     expect(response.status).toBe(200)
-    expect(response.body).toMatchSnapshot(
-      response.body.map((member: Member) => ({
+
+    var payload = response.body
+      .slice()
+      .sort((a: Member, b: Member) => a.memberId.localeCompare(b.memberId))
+      .map((member: Member) => ({
         ...member,
         memberSince: expect.any(String),
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
-      })),
-    )
+      }))
+
+    expect(payload).toMatchSnapshot()
   })
 
   it('Get awaiting approval member details should return error when not a member admin', async () => {
