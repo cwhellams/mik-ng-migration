@@ -159,10 +159,6 @@ const NewFlightLogEntry = () => {
 
   // Update onSubmit to use our dayjs objects
   const onSubmit = async (data: FlightLogMemberRequest) => {
-    if (Object.keys(errors).length > 0) {
-      return
-    }
-
     const { error } = await mutation.trigger(isNew ? 'POST' : 'PATCH', data)
     if (error) {
       console.error('Error saving flight data:', error)

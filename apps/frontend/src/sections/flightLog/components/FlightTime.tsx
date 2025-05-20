@@ -178,7 +178,7 @@ export const FlightTime = ({
           min={flightDate.unix().toString()}
           useUtcTime={useUtcTime}
           trigger={trigger}
-          deps={['takeoffTimeEpoch']}
+          deps={getValues('takeoffTimeEpoch') ? ['takeoffTimeEpoch'] : []}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 3 }}>
@@ -189,7 +189,7 @@ export const FlightTime = ({
           min={watch('offBlockTimeEpoch')}
           useUtcTime={useUtcTime}
           trigger={trigger}
-          deps={['landingTimeEpoch']}
+          deps={getValues('landingTimeEpoch') ? ['landingTimeEpoch'] : []}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 3 }}>
@@ -200,7 +200,7 @@ export const FlightTime = ({
           min={watch('takeoffTimeEpoch')}
           useUtcTime={useUtcTime}
           trigger={trigger}
-          deps={['onBlockTimeEpoch']}
+          deps={getValues('onBlockTimeEpoch') ? ['onBlockTimeEpoch'] : []}
         />
       </Grid>
       <Grid size={{ xs: 12, md: 3 }}>
@@ -258,7 +258,7 @@ const TimeStringEditor = ({
     <Controller
       name={name}
       control={control}
-      render={({ field, formState, fieldState: { error } }) => (
+      render={({ field, fieldState: { error } }) => (
         <FormControl fullWidth error={!!error}>
           <TimeField
             {...field}
@@ -277,12 +277,9 @@ const TimeStringEditor = ({
               const dateTime = calculateNext(minDate, time)
               field.onChange(dateTime.unix().toString())
 
-              // validate dependent fields if they have some value set
+              // trigger validation of dependent fields
               deps.forEach((dep) => {
-                // dirtyfields prevent saying the field is mandatory
-                if (formState.dirtyFields[dep]) {
-                  trigger(dep)
-                }
+                trigger(dep)
               })
             }}
             label={
