@@ -190,14 +190,14 @@ export const flightLogDateValidator = <T extends ZodObject<typeof FlightLogTimes
         }
       }
 
-      // taxi out is limited to 100 minutes
-      validate('offBlockTimeEpoch', 'takeoffTimeEpoch', 100)
+      // taxi out is limited to 1 hour
+      validate('offBlockTimeEpoch', 'takeoffTimeEpoch', 60)
 
-      // flight max 10 hours
-      validate('takeoffTimeEpoch', 'landingTimeEpoch', 600)
+      // flight max 6 hours
+      validate('takeoffTimeEpoch', 'landingTimeEpoch', 360)
 
-      // taxi in is limited to 100 minutes
-      validate('landingTimeEpoch', 'onBlockTimeEpoch', 100)
+      // taxi in is limited to 30 minutes
+      validate('landingTimeEpoch', 'onBlockTimeEpoch', 30)
     }
     return input
   }, schema)

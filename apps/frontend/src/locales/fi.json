@@ -209,6 +209,7 @@
     "edit": "Muokkaa",
     "save": "Tallenna",
     "saving": "Tallennetaan...",
+    "savingError": "Virhe tallennuksessa",
     "cancel": "Peruuta",
     "delete": "Poista",
     "view": "Näytä"
@@ -217,6 +218,7 @@
     "title": "Lentopäiväkirja",
     "noLogs": "Ei merkintöjä",
     "newEntry": "Uusi merkintä",
+    "existingEntry": "Muokkaa merkintää",
     "date": "Päivä",
     "aircraft": "Kone",
     "captain": "Päällikkö",

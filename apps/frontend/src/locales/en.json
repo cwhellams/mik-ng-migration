@@ -209,6 +209,7 @@
     "edit": "Edit",
     "save": "Save",
     "saving": "Saving...",
+    "savingError": "Error Saving",
     "cancel": "Cancel",
     "delete": "Delete",
     "view": "View"
@@ -217,6 +218,7 @@
     "title": "Flight Logs",
     "noLogs": "No flight logs found",
     "newEntry": "New Entry",
+    "existingEntry": "Edit Entry",
     "date": "Date",
     "aircraft": "Aircraft",
     "captain": "Captain",

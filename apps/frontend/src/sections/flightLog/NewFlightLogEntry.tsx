@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Box,
   Paper,
@@ -15,6 +15,8 @@ import {
   MenuItem,
   FormHelperText,
   Alert,
+  Snackbar,
+  Slide,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
@@ -145,10 +147,6 @@ const NewFlightLogEntry = () => {
     }
   }, [data, reset])
 
-  if (Object.keys(errors).length > 0) {
-    console.log(errors)
-  }
-
   const epochToDayjs = (
     field:
       | 'offBlockTimeEpoch'
@@ -157,11 +155,11 @@ const NewFlightLogEntry = () => {
       | 'onBlockTimeEpoch'
   ) => (getValues(field) ? dayjs.unix(Number(watch(field))) : null)
 
-  // Update onSubmit to use our dayjs objects
   const onSubmit = async (data: FlightLogMemberRequest) => {
     const { error } = await mutation.trigger(isNew ? 'POST' : 'PATCH', data)
     if (error) {
       console.error('Error saving flight data:', error)
+      setSbState(true)
       return setError('root', {
         type: error?.detail ?? error?.title ?? 'Error',
       })
@@ -170,12 +168,29 @@ const NewFlightLogEntry = () => {
     navigate('/flight-logs')
   }
 
+  const [sbState, setSbState] = useState<boolean>(false)
+  const handleClose = () => {
+    setSbState(false)
+  }
+
   const handleCancel = () => {
     navigate('/flight-logs')
   }
 
+  const title = isNew ? t('flightLog.newEntry') : t('flightLog.existingEntry')
+
   return (
     <Box>
+      <Snackbar
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={sbState}
+        autoHideDuration={3000}
+        onClose={handleClose}
+        slots={{ transition: Slide }}
+      >
+        <Alert severity='error'>{t('general.savingError')}</Alert>
+      </Snackbar>
+
       {/* Breadcrumb navigation */}
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link
@@ -186,11 +201,11 @@ const NewFlightLogEntry = () => {
         >
           {t('flightLog.title')}
         </Link>
-        <Typography color='text.primary'>{t('flightLog.newEntry')}</Typography>
+        <Typography color='text.primary'>{title}</Typography>
       </Breadcrumbs>
       {/* Page title */}
       <Typography variant='h2' gutterBottom>
-        {t('flightLog.newEntry')}
+        {title}
       </Typography>
 
       <Paper sx={{ p: 3, mt: 2 }}>
