@@ -4,17 +4,24 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { Problem } from '@backend/routes/response'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { VerifyResponse } from '@backend/routes/auth/schema'
-import useSWRMutation from 'swr/mutation'
+import useSWRMutation, { SWRMutationConfiguration } from 'swr/mutation'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 const api = axios.create({
   baseURL: `${API_BASE}/api/`,
 })
 
+const tokenRefresh: {
+  // refresh is ongoing
+  refreshing?: Promise<string>
+  // time when refresh finished and new token in use
+  refreshed?: Date
+} = {}
+
 // Add a request interceptor to add the access token to the authorization header
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('accessToken')
+  async (config) => {
+    const token = await getTheToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
       return config
@@ -34,24 +41,47 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
+const getTheToken = async () => {
+  if (tokenRefresh.refreshing) {
+    if (
+      tokenRefresh.refreshed &&
+      new Date().getTime() > tokenRefresh.refreshed.getTime()
+    ) {
+      // refresh is done, remove the ongoing status
+      tokenRefresh.refreshing = undefined
+    } else {
+      // refresh is still ongoing
+      return await tokenRefresh.refreshing
+    }
+  }
+
+  return localStorage.getItem('accessToken')
+}
+
 const refreshTheToken = async () => {
-  await axios
-    .post<VerifyResponse>(`${API_BASE}/api/auth/refresh`)
-    .then((response) => {
-      const accessToken = response.data.accessToken
-      if (accessToken) {
-        localStorage.setItem('accessToken', accessToken)
-        return accessToken
-      } else {
+  if (!tokenRefresh.refreshing) {
+    // only single refresh needed
+    tokenRefresh.refreshing = axios
+      .post<VerifyResponse>(`${API_BASE}/api/auth/refresh`)
+      .then((response) => {
+        const accessToken = response.data.accessToken
+        if (accessToken) {
+          localStorage.setItem('accessToken', accessToken)
+          tokenRefresh.refreshed = new Date()
+          return accessToken
+        } else {
+          localStorage.removeItem('accessToken')
+          tokenRefresh.refreshed = new Date()
+          return Promise.reject('No token')
+        }
+      })
+      .catch((err) => {
+        // If there is an error refreshing the token, log out the user
         localStorage.removeItem('accessToken')
-        return Promise.reject('No token')
-      }
-    })
-    .catch((err) => {
-      // If there is an error refreshing the token, log out the user
-      localStorage.removeItem('accessToken')
-      return Promise.reject(err)
-    })
+        return Promise.reject(err)
+      })
+  }
+  return tokenRefresh.refreshing
 }
 
 // Add a response interceptor to refresh the access token if it's expired
@@ -90,7 +120,11 @@ export type APIMutation<Data> = {
   isMutating: boolean
 
   // trigger the mutation with any payload, and return responses
-  trigger: <T>(method: MutateMethods, payload: T) => Promise<APIResponse<Data>>
+  trigger: <T>(
+    method: MutateMethods,
+    payload: T,
+    options?: SWRMutationConfiguration<AxiosResponse<Data>, AxiosError<Problem>>
+  ) => Promise<APIResponse<Data>>
 }
 
 export type MutateMethods = 'POST' | 'PATCH' | 'DELETE'
@@ -182,10 +216,14 @@ export default function useApi<
 
       trigger: async <T>(
         method: MutateMethods,
-        payload: T
+        payload: T,
+        options?: SWRMutationConfiguration<
+          AxiosResponse<MutateData>,
+          AxiosError<Problem>
+        >
       ): Promise<APIResponse<MutateData>> =>
         mutation
-          .trigger({ method, payload })
+          .trigger({ method, payload }, options)
           .then((res) => ({
             data: res?.data,
           }))

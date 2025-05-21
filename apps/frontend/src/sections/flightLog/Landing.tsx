@@ -10,6 +10,8 @@ import {
   TableRow,
   Button,
   Stack,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
@@ -38,15 +40,19 @@ const FlightLogLanding = () => {
     })
   }
 
+  const theme = useTheme()
+  const isXs = useMediaQuery(theme.breakpoints.down('sm'))
+  const isMd = useMediaQuery(theme.breakpoints.up('md'))
+
   return (
     <Box>
       <Stack
-        direction='row'
+        direction={{ xs: 'column', md: 'row' }}
         justifyContent='space-between'
         alignItems='center'
         mb={3}
       >
-        <Typography variant='h2' gutterBottom>
+        <Typography variant={isXs ? 'h4' : 'h2'} gutterBottom>
           {t('flightLog.title', 'Flight Logs')}
         </Typography>
         <Button
@@ -65,60 +71,69 @@ const FlightLogLanding = () => {
           <TableHead>
             <TableRow>
               <TableCell>{t('flightLog.date', 'Date')}</TableCell>
-              <TableCell>{t('flightLog.aircraft', 'Aircraft')}</TableCell>
-              <TableCell>{t('flightLog.captain', 'Captain')}</TableCell>
+              <TableCell>{t('flightLog.aircraft')}</TableCell>
               <TableCell>{t('flightLog.departure', 'Departure')}</TableCell>
               <TableCell>{t('flightLog.arrival', 'Arrival')}</TableCell>
-              <TableCell>{t('flightLog.blockTime', 'Block Time')}</TableCell>
-              <TableCell>{t('flightLog.flightType', 'Type')}</TableCell>
-              <TableCell>{t('flightLog.billed', 'Billed')}</TableCell>
-              <TableCell>{t('general.actions', 'Actions')}</TableCell>
+              {!isXs && (
+                <>
+                  <TableCell>{t('flightLog.blockTime')}</TableCell>
+                  <TableCell>{t('flightLog.flightType')}</TableCell>
+                  <TableCell>{t('flightLog.billed')}</TableCell>
+                </>
+              )}
+              {isMd && <TableCell>{t('general.actions')}</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
             <RemoteContent isLoading={isLoading} error={error} colSpan={9}>
               {data?.logs?.map((log) => (
                 <TableRow key={log.flightId}>
-                  <TableCell>{formatDate(log.takeoffTimeUtc)}</TableCell>
-                  <TableCell>{log.aircraftRegistration}</TableCell>
-                  <TableCell>{log.picMemberId}</TableCell>
-                  <TableCell>{log.departureAirport}</TableCell>
-                  <TableCell>{log.arrivalAirport}</TableCell>
                   <TableCell>
-                    {formatTime(log.offBlockTimeUtc)} -{' '}
-                    {formatTime(log.onBlockTimeUtc)}
-                  </TableCell>
-                  <TableCell>{log.flightType || '-'}</TableCell>
-                  <TableCell>
-                    {log.isBilled ? (
-                      <Icon icon='mdi:check-circle' color='success.main' />
-                    ) : (
-                      <Icon icon='mdi:close-circle' color='error.main' />
-                    )}
+                    <Link to={`/flight-logs/${log.flightId}`}>
+                      {formatDate(log.takeoffTimeUtc)}
+                    </Link>
                   </TableCell>
                   <TableCell>
-                    <Stack direction='row' spacing={1}>
-                      <Button
-                        size='small'
-                        variant='outlined'
-                        startIcon={<Icon icon='mdi:eye' />}
-                        component={Link}
-                        to={`/flight-logs/${log.flightId}`}
-                      >
-                        {t('general.view', 'View')}
-                      </Button>
-                      <Button
-                        size='small'
-                        variant='outlined'
-                        color='primary'
-                        startIcon={<Icon icon='mdi:pencil' />}
-                        component={Link}
-                        to={`/flight-logs/${log.flightId}/edit`}
-                      >
-                        {t('general.edit', 'Edit')}
-                      </Button>
-                    </Stack>
+                    {log.aircraftRegistration}
+                    {isXs && <Box>{log.flightType}</Box>}
                   </TableCell>
+                  <TableCell>
+                    {log.departureAirport}
+                    {isXs && <Box>{formatTime(log.offBlockTimeUtc)}</Box>}
+                  </TableCell>
+                  <TableCell>
+                    {log.arrivalAirport}
+                    {isXs && <Box>{formatTime(log.onBlockTimeUtc)}</Box>}
+                  </TableCell>
+                  {!isXs && (
+                    <>
+                      <TableCell>
+                        {formatTime(log.offBlockTimeUtc)} -{' '}
+                        {formatTime(log.onBlockTimeUtc)}
+                      </TableCell>
+                      <TableCell>{log.flightType}</TableCell>
+                      <TableCell>
+                        {log.isBilled && (
+                          <Icon icon='mdi:check-circle' color='success.main' />
+                        )}
+                      </TableCell>
+                    </>
+                  )}
+                  {isMd && (
+                    <TableCell>
+                      <Stack direction='row' spacing={1}>
+                        <Button
+                          size='small'
+                          variant='outlined'
+                          startIcon={<Icon icon='mdi:eye' />}
+                          component={Link}
+                          to={`/flight-logs/${log.flightId}`}
+                        >
+                          {t('general.view', 'View')}
+                        </Button>
+                      </Stack>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
               {(!data?.logs || data.logs.length === 0) && (

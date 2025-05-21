@@ -78,12 +78,20 @@ const FlightCrew = ({
 
   const { me } = useMe()
 
-  const { data: memberList } = useApi<MemberListResponse>({
-    url: 'v1/members',
-    params: {
-      isMembershipApproved: true,
+  const { data: memberList } = useApi<MemberListResponse>(
+    {
+      url: 'v1/members',
+      params: {
+        isMembershipApproved: true,
+      },
     },
-  })
+    {
+      // members do not change while adding a flight
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  )
 
   const self: CrewMember = {
     value: me?.memberId ?? 'SELF',
@@ -180,7 +188,7 @@ const FlightCrew = ({
                           margin='normal'
                           slotProps={{
                             inputLabel: {
-                              shrink: true, // Keeps the label above even when the field is empty
+                              shrink: true,
                             },
                           }}
                         />

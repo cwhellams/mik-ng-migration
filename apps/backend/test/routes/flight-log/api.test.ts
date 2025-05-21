@@ -303,15 +303,18 @@ describe('PATCH /flight-log/', () => {
         permissions: permissions,
       })
 
-      const response = await request(app)
+      const patchResponse = await request(app)
         .patch('/flight-log/bLwnAstr0')
         .set('Authorization', `Bearer ${token}`)
         .send(payload)
-      expect(response.status).toBe(204)
 
       const checkPatch = await request(app)
         .get('/flight-log/bLwnAstr0')
         .set('Authorization', `Bearer ${token}`)
+
+      // patch returns the same as another get
+      expect(patchResponse.status).toBe(200)
+      expect(patchResponse.body).toEqual(checkPatch.body)
 
       expect(checkPatch.status).toBe(200)
       expect(checkPatch.body).toMatchSnapshot({
@@ -327,11 +330,12 @@ describe('PATCH /flight-log/', () => {
         .set('Authorization', `Bearer ${token}`)
         .send(undoPayload)
 
-      expect(undoResponse.status).toBe(204)
-
       const checkUndo = await request(app)
         .get('/flight-log/bLwnAstr0')
         .set('Authorization', `Bearer ${token}`)
+
+      expect(undoResponse.status).toBe(200)
+      expect(undoResponse.body).toEqual(checkUndo.body)
 
       expect(checkUndo.status).toBe(200)
       expect(checkUndo.body).toMatchSnapshot({

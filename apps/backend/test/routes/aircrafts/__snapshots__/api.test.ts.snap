@@ -1,5 +1,97 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Add and update aircraft documents Add and update documents 1`] = `
+{
+  "alertDaysBefore": 30,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "documentId": "TST",
+  "endDate": "2023-10-01",
+  "hardLimit": 0,
+  "softLimit": 7,
+  "startDate": "2023-10-01",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+}
+`;
+
+exports[`Add and update aircraft documents Add and update documents 2`] = `
+{
+  "alertDaysBefore": 30,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "documentId": "TST",
+  "endDate": "2023-10-01",
+  "hardLimit": 0,
+  "softLimit": 7,
+  "startDate": "2023-10-02",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+}
+`;
+
+exports[`Add and update aircrafts Get aircraft with valid registration should return the aircraft 1`] = `
+{
+  "active": true,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "displayName": "Test plane",
+  "documents": [],
+  "equipment": "test",
+  "hourlyRateEur": 100,
+  "location": "test",
+  "maintenance": {
+    "lastMaintenanceDate": "2023-10-01",
+    "lastMaintenanceTach": 100,
+    "lastMaintenanceType": "100h",
+    "maintenanceCycle": 100,
+    "nextMaintenanceDate": null,
+    "nextMaintenanceTach": 150,
+    "nextMaintenanceType": "50h",
+    "totalPercentageHours": 5,
+    "usablePercentageHours": 3,
+  },
+  "manufacturer": "Jest",
+  "model": "Jest",
+  "notes": [],
+  "registration": "OH-TST",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+  "yearOfManufacture": 2000,
+}
+`;
+
+exports[`Add and update aircrafts Get aircraft with valid registration should return the aircraft 2`] = `
+{
+  "active": true,
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "displayName": "Test plane 2",
+  "documents": [],
+  "equipment": "test",
+  "hourlyRateEur": 100,
+  "location": "test",
+  "maintenance": {
+    "lastMaintenanceDate": "2023-10-01",
+    "lastMaintenanceTach": 100,
+    "lastMaintenanceType": "100h",
+    "maintenanceCycle": 100,
+    "nextMaintenanceDate": null,
+    "nextMaintenanceTach": 150,
+    "nextMaintenanceType": "50h",
+    "totalPercentageHours": 5,
+    "usablePercentageHours": 3,
+  },
+  "manufacturer": "Jest",
+  "model": "Jest",
+  "notes": [],
+  "registration": "OH-TST",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+  "yearOfManufacture": 2000,
+}
+`;
+
 exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
 [
   {
@@ -58,7 +150,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
       },
     ],
     "equipment": "SDFGY/S",
-    "hourlyRateEur": "216.00",
+    "hourlyRateEur": 216,
     "location": "EFNU BF-hangar 21",
     "maintenance": {
       "lastMaintenanceDate": "2024-11-10",
@@ -89,6 +181,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
           "untilExpiration": 3,
         },
       ],
+      "lastLandingAirport": "EFHK",
       "lastLandingTimeUtc": "2025-03-03T12:00:00.000Z",
       "remainingFuelLitres": 0,
       "tachUntilNextMaintenance": -5,
@@ -157,7 +250,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
       },
     ],
     "equipment": "VOY/S",
-    "hourlyRateEur": "147.00",
+    "hourlyRateEur": 147,
     "location": "EFNU Cumulus Hangar",
     "maintenance": {
       "lastMaintenanceDate": "2025-03-01",
@@ -181,6 +274,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
     "registration": "OH-IHQ",
     "status": {
       "cautions": [],
+      "lastLandingAirport": "EFTP",
       "lastLandingTimeUtc": "2025-03-02T11:20:00.000Z",
       "remainingFuelLitres": 0,
       "tachUntilNextMaintenance": 12,
@@ -200,7 +294,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
     "displayName": "Piper PA-28",
     "documents": [],
     "equipment": "SFD",
-    "hourlyRateEur": "228.00",
+    "hourlyRateEur": 228,
     "location": "EFNU",
     "maintenance": {
       "lastMaintenanceDate": "2024-04-15",
@@ -232,6 +326,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
         },
       ],
       "daysUntilNextMaintenance": Any<Number>,
+      "lastLandingAirport": "EFHK",
       "lastLandingTimeUtc": "2025-03-04T13:20:00.000Z",
       "remainingFuelLitres": 0,
       "tachUntilNextMaintenance": 0,
@@ -305,7 +400,7 @@ exports[`GET /aircrafts should return only active aircrafts as a user 1`] = `
       },
     ],
     "equipment": "SDFGY/S",
-    "hourlyRateEur": "216.00",
+    "hourlyRateEur": 216,
     "location": "EFNU BF-hangar 21",
     "maintenance": {
       "lastMaintenanceDate": "2024-11-10",
@@ -336,6 +431,7 @@ exports[`GET /aircrafts should return only active aircrafts as a user 1`] = `
           "untilExpiration": 3,
         },
       ],
+      "lastLandingAirport": "EFHK",
       "lastLandingTimeUtc": "2025-03-03T12:00:00.000Z",
       "remainingFuelLitres": 0,
       "tachUntilNextMaintenance": -5,
@@ -404,7 +500,7 @@ exports[`GET /aircrafts should return only active aircrafts as a user 1`] = `
       },
     ],
     "equipment": "VOY/S",
-    "hourlyRateEur": "147.00",
+    "hourlyRateEur": 147,
     "location": "EFNU Cumulus Hangar",
     "maintenance": {
       "lastMaintenanceDate": "2025-03-01",
@@ -428,6 +524,7 @@ exports[`GET /aircrafts should return only active aircrafts as a user 1`] = `
     "registration": "OH-IHQ",
     "status": {
       "cautions": [],
+      "lastLandingAirport": "EFTP",
       "lastLandingTimeUtc": "2025-03-02T11:20:00.000Z",
       "remainingFuelLitres": 0,
       "tachUntilNextMaintenance": 12,
@@ -500,7 +597,7 @@ exports[`GET /aircrafts/id Get aircraft with valid registration should return th
     },
   ],
   "equipment": "SDFGY/S",
-  "hourlyRateEur": "216.00",
+  "hourlyRateEur": 216,
   "location": "EFNU BF-hangar 21",
   "maintenance": {
     "lastMaintenanceDate": "2024-11-10",
@@ -531,6 +628,7 @@ exports[`GET /aircrafts/id Get aircraft with valid registration should return th
         "untilExpiration": 3,
       },
     ],
+    "lastLandingAirport": "EFHK",
     "lastLandingTimeUtc": "2025-03-03T12:00:00.000Z",
     "remainingFuelLitres": 0,
     "tachUntilNextMaintenance": -5,

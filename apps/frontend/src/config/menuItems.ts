@@ -9,11 +9,6 @@ export interface MenuItem {
 
 export const menuItems: MenuItem[] = [
   {
-    label: 'Dashboard',
-    path: '/',
-    translationKey: 'header.dashboard',
-  },
-  {
     label: 'Schedule',
     path: '/schedule',
     translationKey: 'header.schedule',

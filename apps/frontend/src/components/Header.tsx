@@ -210,6 +210,8 @@ const Header = (props: HeaderProps) => {
           {isMobile && (
             <Box
               sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}
+              component={Link}
+              to='/'
             >
               <img
                 src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
@@ -238,9 +240,11 @@ const Header = (props: HeaderProps) => {
         ModalProps={{
           keepMounted: true, // Better open performance on mobile
         }}
-        PaperProps={{
-          sx: {
-            boxShadow: 3,
+        slotProps={{
+          paper: {
+            sx: {
+              boxShadow: 3,
+            },
           },
         }}
       >

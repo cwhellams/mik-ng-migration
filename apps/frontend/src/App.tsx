@@ -66,7 +66,10 @@ function App() {
             <Route path='/members/:memberId' element={<Member />} />
             /** Flight Log Routes */
             <Route path='/flight-logs' element={<FlightLogLanding />} />
-            <Route path='/flight-logs/new' element={<NewFlightLogEntry />} />
+            <Route
+              path='/flight-logs/:flightId'
+              element={<NewFlightLogEntry />}
+            />
           </Route>
 
           {/* Auth Layout without header */}

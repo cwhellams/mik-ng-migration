@@ -229,7 +229,14 @@ export async function updateFlightLog(
 
       // admin fields are editable
       ajlb_blank_rows_before: data.ajlbBlankRowsBefore,
-      ajlb_seq_no: data.ajlbSeqNo,
+      ajlb_seq_no:
+        // if aircraft changes but logbook not changed manually, pick the latest
+        !data.ajlbSeqNo && data.aircraftRegistration
+          ? eb
+              .selectFrom('flight.vw_flight_time_totals')
+              .select(eb.fn.coalesce('ajlb_seq_no', eb.lit(0)).as('ajlb_seq_no'))
+              .where('aircraft_registration', '=', data.aircraftRegistration)
+          : data.ajlbSeqNo,
       invoice_number: data.invoiceNumber,
       is_billable_flight: data.isBillableFlight,
       non_billing_approved_by_member_id: data.nonBillingApprovedByMemberId,

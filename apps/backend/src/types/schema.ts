@@ -27,3 +27,8 @@ export const UpsertSchema = <T extends ZodObject<typeof AuditableSchema.shape>>(
     updatedAt: true,
     updatedBy: true,
   }) as T
+
+export const BooleanSchema = z
+  .enum(['true', 'false'])
+  .nullish()
+  .transform(v => v === 'true')

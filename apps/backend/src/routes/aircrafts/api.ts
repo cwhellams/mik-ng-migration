@@ -3,10 +3,12 @@ import { Router, type Request, type Response } from 'express'
 
 import {
   AircraftDocumentSchema,
+  AircraftFiltersSchema,
   AircraftSchema,
   type Aircraft,
   type AircraftAlert,
   type AircraftDocument,
+  type AircraftFilters,
   type AircraftListResponse,
   type AircraftStatus,
 } from './models.ts'
@@ -19,6 +21,7 @@ import {
   updateAircraftDocument,
   addAircraftDocument,
   removeAircraftDocument,
+  removeAircraft,
 } from '../../db/aircraft-queries.ts'
 import { getFlightLogs, getFlightLogTotals } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
@@ -36,8 +39,10 @@ const isAircraftAdmin = (user?: JWTUser): boolean =>
   user?.permissions?.includes(MIKPermissions.AIRCRAFT_ADMIN) ?? false
 
 // Get all aircraft
-router.get('/', async (req: Request, res: Response<AircraftListResponse>) => {
-  const aircrafts = await getAllAircraft(!isAircraftAdmin(req.user))
+router.get('/', async (req: Request<AircraftFilters>, res: Response<AircraftListResponse>) => {
+  const data = AircraftFiltersSchema.parse(req.query)
+  const activeOnly = isAircraftAdmin(req.user) ? (data.activeOnly ?? false) : true
+  const aircrafts = await getAllAircraft(activeOnly)
 
   res.status(200).json({
     aircrafts: await Promise.all(
@@ -95,6 +100,19 @@ router.post(
   },
 )
 
+router.delete(
+  '/:registration',
+  validateUser(MIKPermissions.AIRCRAFT_ADMIN),
+  async (req: Request<{ registration: string }>, res: Response) => {
+    const removed = await removeAircraft(req.params.registration)
+    if (!removed) {
+      return problem({ status: 404, detail: 'Aircraft document not found' })
+    }
+
+    res.status(204).end()
+  },
+)
+
 router.patch(
   '/:registration/documents/:documentId',
   validateUser(MIKPermissions.AIRCRAFT_ADMIN),
@@ -130,7 +148,7 @@ router.post(
 )
 
 router.delete(
-  ':registration/documents/:documentId',
+  '/:registration/documents/:documentId',
   validateUser(MIKPermissions.AIRCRAFT_ADMIN),
   async (req: Request<{ registration: string; documentId: string }>, res: Response) => {
     const removed = await removeAircraftDocument(req.params.registration, req.params.documentId)
@@ -247,6 +265,8 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   return {
     totalTime,
     lastLandingTimeUtc: lastFlight?.landingTimeUtc?.toISOString() ?? undefined,
+    lastLandingAirport: lastFlight?.arrivalAirport,
+
     remainingFuelLitres: Math.round(lastFlight?.fuelRemainingLitres),
 
     daysUntilNextMaintenance,

@@ -1,6 +1,6 @@
-import { z } from 'zod'
+import { z, ZodObject } from 'zod'
 
-import { AuditableSchema, UpsertSchema } from '../../types/schema.ts'
+import { AuditableSchema, BooleanSchema, UpsertSchema } from '../../types/schema.ts'
 
 export const CrewRoleEnum = z.enum(['FE', 'FI', 'OBS', 'PIC', 'STU'])
 export const PrivOrComFlightEnum = z.enum(['P', 'C'])
@@ -19,11 +19,7 @@ export const FlightLogFiltersSchema = z
     crew4: z.string().optional(),
     startDate: z.string().datetime().optional(),
     endDate: z.string().datetime().optional(),
-    last: z
-      .enum(['true', 'false'])
-      .nullish()
-      .transform(v => v === 'true')
-      .optional(),
+    last: BooleanSchema.optional(),
   })
   .strict()
 
@@ -72,7 +68,7 @@ export const FlightLogSchema = AuditableSchema.extend({
   onBlockTimeEpoch: bigintAsString,
   onBlockTimeUtc: z.date().readonly(),
   personalRemarks: z.string().nullable(),
-  personsOnBoard: z.number().int(),
+  personsOnBoard: z.number().int().min(1).max(4),
   picMemberId: z.string(),
   picRole: CrewRoleEnum,
   privOrComFlight: z.string(),
@@ -131,6 +127,81 @@ export const FlightLogMemberUpsertSchema = FlightLogAdminUpsertSchema.omit({
   status: true,
 })
 
+export const FlightLogTimesSchema = z.object({
+  offBlockTimeEpoch: bigintAsString,
+  takeoffTimeEpoch: bigintAsString,
+  landingTimeEpoch: bigintAsString,
+  onBlockTimeEpoch: bigintAsString,
+})
+type FlightLogTimes = z.infer<typeof FlightLogTimesSchema>
+
+export const flightLogDateValidator = <T extends ZodObject<typeof FlightLogTimesSchema.shape>>(
+  schema: T,
+) =>
+  // Zod's refine doesn't work unless all fields are valid.
+  // Use preprocessor instead to get error messages shown in the UI with incomplete form.
+  // https://github.com/colinhacks/zod/issues/479#issuecomment-2429834215
+  z.preprocess((input, ctx) => {
+    const parsed = schema
+      .pick({
+        offBlockTimeEpoch: true,
+        takeoffTimeEpoch: true,
+        landingTimeEpoch: true,
+        onBlockTimeEpoch: true,
+      })
+      .strip()
+      .partial()
+      .safeParse(input)
+
+    if (parsed.success) {
+      const validate = (
+        prevKey: keyof FlightLogTimes,
+        nextKey: keyof FlightLogTimes,
+        minutes: number,
+      ) => {
+        if (parsed.data[prevKey] && parsed.data[nextKey]) {
+          const prev = Number(parsed.data[prevKey])
+          const next = Number(parsed.data[nextKey])
+
+          // check the correct order
+          if (next <= prev) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.too_small,
+              minimum: prev,
+              inclusive: false,
+              message: prev.toString(),
+              type: 'bigint',
+              path: [nextKey],
+            })
+          }
+
+          // check limit how long the block can be
+          const maximum = prev + minutes * 60
+          if (next > maximum) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.too_big,
+              maximum,
+              message: maximum.toString(),
+              inclusive: true,
+              type: 'bigint',
+              path: [nextKey],
+            })
+          }
+        }
+      }
+
+      // taxi out is limited to 1 hour
+      validate('offBlockTimeEpoch', 'takeoffTimeEpoch', 60)
+
+      // flight max 6 hours
+      validate('takeoffTimeEpoch', 'landingTimeEpoch', 360)
+
+      // taxi in is limited to 30 minutes
+      validate('landingTimeEpoch', 'onBlockTimeEpoch', 30)
+    }
+    return input
+  }, schema)
+
 // Infer the TypeScript type from the Zod schema
 export type FlightLog = z.infer<typeof FlightLogSchema>
 export type FlightLogAdminRequest = z.infer<typeof FlightLogAdminUpsertSchema>
@@ -154,3 +225,15 @@ export const FlightTimeTotalsSchema = z.object({
 })
 
 export type FlightTimeTotals = z.infer<typeof FlightTimeTotalsSchema>
+
+export const AirfieldListResponseSchema = z.object({
+  airfields: z.array(
+    z.object({
+      ident: z.string(),
+      name: z.string(),
+      country: z.string(),
+    }),
+  ),
+})
+
+export type AirfieldListResponse = z.infer<typeof AirfieldListResponseSchema>
