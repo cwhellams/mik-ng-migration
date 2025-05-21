@@ -12,7 +12,10 @@ const api = axios.create({
 })
 
 const tokenRefresh: {
+  // refresh is ongoing
   refreshing?: Promise<string>
+  // time when refresh finished and new token in use
+  refreshed?: Date
 } = {}
 
 // Add a request interceptor to add the access token to the authorization header
@@ -39,10 +42,20 @@ api.interceptors.request.use(
 )
 
 const getTheToken = async () => {
-  return tokenRefresh.refreshing
-    ? // wait ongoing token refresh to return the new token
-      await tokenRefresh.refreshing
-    : localStorage.getItem('accessToken')
+  if (tokenRefresh.refreshing) {
+    if (
+      tokenRefresh.refreshed &&
+      new Date().getTime() > tokenRefresh.refreshed.getTime()
+    ) {
+      // refresh is done, remove the ongoing status
+      tokenRefresh.refreshing = undefined
+    } else {
+      // refresh is still ongoing
+      return await tokenRefresh.refreshing
+    }
+  }
+
+  return localStorage.getItem('accessToken')
 }
 
 const refreshTheToken = async () => {
@@ -54,9 +67,11 @@ const refreshTheToken = async () => {
         const accessToken = response.data.accessToken
         if (accessToken) {
           localStorage.setItem('accessToken', accessToken)
+          tokenRefresh.refreshed = new Date()
           return accessToken
         } else {
           localStorage.removeItem('accessToken')
+          tokenRefresh.refreshed = new Date()
           return Promise.reject('No token')
         }
       })
