@@ -30,11 +30,6 @@ export enum MIKInvoiceType {
   MISC = 'MISC',
 }
 
-const IsoDateString = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (expected yyyy-mm-dd)')
-  .refine(str => !isNaN(Date.parse(str)), 'Invalid date')
-
 export const clientSchema = z.object({
   Client: z.object({
     name: z.string(),
@@ -134,7 +129,7 @@ export const InvoiceSchema = z
     client_address_country: z.string(),
     contact_reference: z.string(),
     client_location_id: z.number(),
-    created: IsoDateString,
+    created: z.string().date(),
     transaction_date: z.string(),
     due: z.string(),
     number: z.string(),
