@@ -6,9 +6,6 @@ import type { Logger } from 'winston'
 
 import logger from '../../src/lib/logger.ts'
 
-process.env.SMTP_LOGIN = 'no-reply@mik.fi'
-process.env.SMTP_PASSWORD = 'test'
-
 // Define the mock function first
 const sendMailMock =
   jest.fn<
@@ -106,8 +103,7 @@ describe('sendEmail', () => {
     expect(errorSpy).toHaveBeenCalled()
     // Check that error was logged with the test error
     expect(errorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Error occurred sending email'),
-      testError,
+      expect.stringContaining('Error occurred sending email to : recipient@example.com with error'),
     )
   })
 

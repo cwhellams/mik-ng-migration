@@ -1,0 +1,42 @@
+import { jest } from '@jest/globals'
+import type { Logger } from 'winston'
+
+// Mock nodemailer to prevent actual sending
+const sendMailMock = jest.fn()
+jest.mock('nodemailer', () => ({
+  createTransport: jest.fn().mockReturnValue({
+    sendMail: sendMailMock,
+  }),
+}))
+
+describe('sendEmail with DISABLE_EMAIL_SENDING=true', () => {
+  beforeAll(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+
+    process.env.SMTP_LOGIN = 'no-reply@mik.fi'
+    process.env.SMTP_PASSWORD = 'test'
+    process.env.DISABLE_EMAIL_SENDING = 'true'
+  })
+
+  afterAll(() => {
+    delete process.env.DISABLE_EMAIL_SENDING
+  })
+
+  it('should skip sending and log that email is disabled', async () => {
+    // Spy on logger.info
+    await jest.isolateModulesAsync(async () => {
+      const logger = await import('../../src/lib/logger.ts')
+      const infoSpy = jest
+        .spyOn(logger.default, 'info')
+        .mockImplementation(() => logger.default as unknown as Logger)
+
+      const { sendEmail } = await import('../../src/lib/sendGmail.ts')
+      sendEmail('recipient@example.com', 'Subject', '<p>HTML</p>', 'Text')
+      expect(infoSpy).toHaveBeenCalledWith(
+        'Email sending is disabled. Email not sent to recipient@example.com',
+      )
+      expect(sendMailMock).not.toHaveBeenCalled()
+    })
+  })
+})

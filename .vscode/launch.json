@@ -44,7 +44,7 @@
         "--runInBand",
         "--detectOpenHandles",
         "--no-cache",
-        "test/services/simplbooks/simplebooksOutboxHandler.test.ts"
+        "test/lib/disableSendMail.test.ts"
       ],
       "env": {
         "NODE_ENV": "test"
@@ -54,7 +54,5 @@
       "internalConsoleOptions": "neverOpen",
       "skipFiles": ["<node_internals>/**"]
     }
-    
-    
   ]
 }
