@@ -1,3 +1,4 @@
+INSERT INTO static.airfields VALUES ('ZZZZ', 'No ICAO code available', 'FI');
 INSERT INTO static.airfields VALUES ('EFAA', 'Aavahelukka Airfield', 'FI');
 INSERT INTO static.airfields VALUES ('EFAH', 'Ahmosuo Airfield', 'FI');
 INSERT INTO static.airfields VALUES ('EFAL', 'Alavus Airfield', 'FI');

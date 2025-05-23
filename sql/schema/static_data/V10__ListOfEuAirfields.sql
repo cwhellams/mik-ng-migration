@@ -1,3 +1,4 @@
+INSERT INTO static.airfields VALUES ('ZZZZ', 'No ICAO code available', 'FI');
 INSERT INTO static.airfields VALUES ('AD-0001', 'Terra Guindaldes Heliport', 'AD');
 INSERT INTO static.airfields VALUES ('AD-0002', 'Arinsal (Coll de la Botella) Heliport', 'AD');
 INSERT INTO static.airfields VALUES ('AD-ALV', 'Andorra la Vella (Our Lady of Meritxell Hospital) Heliport', 'AD');
