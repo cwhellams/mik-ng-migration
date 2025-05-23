@@ -4,6 +4,11 @@ exports[`Db query Get aircrafts tests getAirfields returns all airfields in the 
 [
   {
     "country": "FI",
+    "ident": "ZZZZ",
+    "name": "No ICAO code available",
+  },
+  {
+    "country": "FI",
     "ident": "EFAA",
     "name": "Aavahelukka Airfield",
   },
