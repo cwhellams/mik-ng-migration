@@ -8,6 +8,9 @@ exports[`Db add aircraft tests add aircraft and update aircraft 1`] = `
   "displayName": "Test plane",
   "documents": [],
   "equipment": "test",
+  "fuelTypes": [
+    "AVGAS",
+  ],
   "hourlyRateEur": 100,
   "location": "test",
   "maintenance": {
@@ -25,8 +28,10 @@ exports[`Db add aircraft tests add aircraft and update aircraft 1`] = `
   "model": "Jest",
   "notes": [],
   "registration": "OH-TST",
+  "seats": 2,
   "updatedAt": Any<String>,
   "updatedBy": "k1mnimda",
+  "usableFuelLitres": 100,
   "yearOfManufacture": 2000,
 }
 `;
@@ -39,6 +44,9 @@ exports[`Db add aircraft tests add aircraft and update aircraft 2`] = `
   "displayName": "Test plane 2",
   "documents": [],
   "equipment": "test",
+  "fuelTypes": [
+    "AVGAS",
+  ],
   "hourlyRateEur": 100,
   "location": "test",
   "maintenance": {
@@ -56,8 +64,10 @@ exports[`Db add aircraft tests add aircraft and update aircraft 2`] = `
   "model": "Jest",
   "notes": [],
   "registration": "OH-TST",
+  "seats": 2,
   "updatedAt": Any<String>,
   "updatedBy": "k1mnimda",
+  "usableFuelLitres": 100,
   "yearOfManufacture": 2000,
 }
 `;
@@ -150,6 +160,9 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
       },
     ],
     "equipment": "SDFGY/S",
+    "fuelTypes": [
+      "JETA-1",
+    ],
     "hourlyRateEur": 216,
     "location": "EFNU BF-hangar 21",
     "maintenance": {
@@ -172,8 +185,10 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
       },
     ],
     "registration": "OH-STL",
+    "seats": 4,
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
+    "usableFuelLitres": 148,
     "yearOfManufacture": 2007,
   },
   {
@@ -232,6 +247,10 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
       },
     ],
     "equipment": "VOY/S",
+    "fuelTypes": [
+      "AVGAS",
+      "MOGAS",
+    ],
     "hourlyRateEur": 147,
     "location": "EFNU Cumulus Hangar",
     "maintenance": {
@@ -254,8 +273,10 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
       },
     ],
     "registration": "OH-IHQ",
+    "seats": 2,
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
+    "usableFuelLitres": 77,
     "yearOfManufacture": 2010,
   },
 ]
@@ -319,6 +340,9 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
       },
     ],
     "equipment": "SDFGY/S",
+    "fuelTypes": [
+      "JETA-1",
+    ],
     "hourlyRateEur": 216,
     "location": "EFNU BF-hangar 21",
     "maintenance": {
@@ -341,8 +365,10 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
       },
     ],
     "registration": "OH-STL",
+    "seats": 4,
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
+    "usableFuelLitres": 148,
     "yearOfManufacture": 2007,
   },
   {
@@ -401,6 +427,10 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
       },
     ],
     "equipment": "VOY/S",
+    "fuelTypes": [
+      "AVGAS",
+      "MOGAS",
+    ],
     "hourlyRateEur": 147,
     "location": "EFNU Cumulus Hangar",
     "maintenance": {
@@ -423,8 +453,10 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
       },
     ],
     "registration": "OH-IHQ",
+    "seats": 2,
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
+    "usableFuelLitres": 77,
     "yearOfManufacture": 2010,
   },
   {
@@ -434,6 +466,9 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
     "displayName": "Piper PA-28",
     "documents": [],
     "equipment": "SFD",
+    "fuelTypes": [
+      "AVGAS",
+    ],
     "hourlyRateEur": 228,
     "location": "EFNU",
     "maintenance": {
@@ -456,8 +491,10 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
       },
     ],
     "registration": "OH-P28",
+    "seats": 4,
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
+    "usableFuelLitres": 182,
     "yearOfManufacture": 2005,
   },
 ]
@@ -520,6 +557,9 @@ exports[`Db query Get aircrafts tests getAllAircraftByRegistration returns the a
     },
   ],
   "equipment": "SDFGY/S",
+  "fuelTypes": [
+    "JETA-1",
+  ],
   "hourlyRateEur": 216,
   "location": "EFNU BF-hangar 21",
   "maintenance": {
@@ -542,8 +582,10 @@ exports[`Db query Get aircrafts tests getAllAircraftByRegistration returns the a
     },
   ],
   "registration": "OH-STL",
+  "seats": 4,
   "updatedAt": Any<String>,
   "updatedBy": "k1mnimda",
+  "usableFuelLitres": 148,
   "yearOfManufacture": 2007,
 }
 `;

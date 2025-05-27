@@ -78,6 +78,8 @@ export const EditAircraftModal = ({
         model: aircraft?.model ?? '',
         manufacturer: aircraft?.manufacturer ?? '',
         yearOfManufacture: aircraft?.yearOfManufacture ?? 2020,
+        seats: aircraft?.seats ?? 1,
+        usableFuelLitres: aircraft?.usableFuelLitres ?? 1,
         active: aircraft?.active ?? false,
 
         location: aircraft?.location,
@@ -243,11 +245,36 @@ export const EditAircraftModal = ({
         <TextField
           fullWidth
           required
+          type='number'
           inputMode='numeric'
           label={t('aircraft.edit.yearOfManufacture')}
           value={formData.yearOfManufacture || ''}
           onChange={({ target }) =>
             handleChange('yearOfManufacture', Number(target.value))
+          }
+        />
+      </Grid>
+      <Grid size={{ xs: 6, sm: 4 }}>
+        <TextField
+          fullWidth
+          required
+          type='number'
+          inputMode='numeric'
+          label={t('aircraft.edit.seats')}
+          value={formData.seats || ''}
+          onChange={({ target }) => handleChange('seats', Number(target.value))}
+        />
+      </Grid>
+      <Grid size={{ xs: 6, sm: 4 }}>
+        <TextField
+          fullWidth
+          required
+          type='number'
+          inputMode='numeric'
+          label={t('aircraft.edit.usableFuelLitres')}
+          value={formData.usableFuelLitres || ''}
+          onChange={({ target }) =>
+            handleChange('usableFuelLitres', Number(target.value))
           }
         />
       </Grid>
@@ -335,6 +362,7 @@ export const EditAircraftModal = ({
         <TextField
           fullWidth
           required
+          type='number'
           inputMode='numeric'
           label={t('aircraft.maintenance.maintenanceCycle')}
           value={formData.maintenance?.maintenanceCycle || ''}
@@ -347,6 +375,7 @@ export const EditAircraftModal = ({
         <TextField
           fullWidth
           required
+          type='number'
           inputMode='numeric'
           label={t('aircraft.maintenance.totalPercentageHours')}
           value={formData.maintenance?.totalPercentageHours || ''}
@@ -362,6 +391,7 @@ export const EditAircraftModal = ({
         <TextField
           fullWidth
           required
+          type='number'
           inputMode='numeric'
           label={t('aircraft.maintenance.usablePercentageHours')}
           value={formData.maintenance?.usablePercentageHours || ''}
@@ -414,7 +444,6 @@ export const EditAircraftModal = ({
             <TextField
               fullWidth
               required
-              inputMode='numeric'
               label={t('aircraft.maintenance.type')}
               value={formData.maintenance?.[typeKey] ?? ''}
               onChange={({ target }) =>
@@ -424,6 +453,7 @@ export const EditAircraftModal = ({
             <TextField
               fullWidth
               required
+              type='number'
               inputMode='numeric'
               label={t('aircraft.maintenance.tach')}
               value={formData.maintenance?.[tachKey] ?? ''}

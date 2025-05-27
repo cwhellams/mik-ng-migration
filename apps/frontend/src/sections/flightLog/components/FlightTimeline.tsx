@@ -10,16 +10,17 @@ import {
 import { alpha, useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Icon } from '@iconify/react'
 import { getTimezoneDisplay } from '../utils/timezoneUtils'
-import { formatDuration } from '../utils/timeUtils'
+import { formatDuration, splitTime } from '../utils/timeUtils'
 
-interface FlightTimelineProps {
+interface Props {
   offBlockTime: dayjs.Dayjs | null
   takeoffTime: dayjs.Dayjs | null
   landingTime: dayjs.Dayjs | null
   onBlockTime: dayjs.Dayjs | null
+  aircraftTotalFlightTime?: string
 }
 
 const FlightTimeline = ({
@@ -27,12 +28,23 @@ const FlightTimeline = ({
   takeoffTime,
   landingTime,
   onBlockTime,
-}: FlightTimelineProps) => {
+  aircraftTotalFlightTime,
+}: Props) => {
   const { t } = useTranslation()
   const theme = useTheme()
+
   const [currentHours, setCurrentHours] = useState<number | ''>('')
   const [currentMinutes, setCurrentMinutes] = useState<number | ''>('')
   const [calculatorExpanded, setCalculatorExpanded] = useState(false)
+
+  useEffect(() => {
+    if (aircraftTotalFlightTime) {
+      const { hours, minutes } = splitTime(aircraftTotalFlightTime)
+      setCurrentHours(hours)
+      setCurrentMinutes(minutes)
+      setCalculatorExpanded(true)
+    }
+  }, [aircraftTotalFlightTime])
 
   const hasEnoughData =
     (offBlockTime && takeoffTime) ||
@@ -288,9 +300,10 @@ const FlightTimeline = ({
                     >
                       {t('flightLog.currentLogbookTime')}
                     </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+
+                    <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
                       <TextField
-                        size='small'
+                        size='medium'
                         label={t('flightLog.hours')}
                         type='number'
                         value={currentHours}
@@ -303,10 +316,10 @@ const FlightTimeline = ({
                           htmlInput: { min: 0 },
                           inputLabel: { shrink: true },
                         }}
-                        sx={{ width: '100%' }}
+                        sx={{ width: '60%' }}
                       />
                       <TextField
-                        size='small'
+                        size='medium'
                         label={t('flightLog.minutes')}
                         type='number'
                         value={currentMinutes}
@@ -321,7 +334,7 @@ const FlightTimeline = ({
                           htmlInput: { min: 0, max: 59 },
                           inputLabel: { shrink: true },
                         }}
-                        sx={{ width: '100%' }}
+                        sx={{ width: '40%' }}
                       />
                     </Box>
                   </Box>

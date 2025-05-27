@@ -14,14 +14,14 @@ export const menuItems: MenuItem[] = [
     translationKey: 'header.schedule',
   },
   {
-    label: 'Aircraft',
-    path: '/aircrafts',
-    translationKey: 'header.aircrafts',
-  },
-  {
     label: 'Flight Logs',
     path: '/flight-logs',
     translationKey: 'header.flightLogs',
+  },
+  {
+    label: 'Aircraft',
+    path: '/aircrafts',
+    translationKey: 'header.aircrafts',
   },
   {
     label: 'Members',

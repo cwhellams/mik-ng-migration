@@ -14,14 +14,13 @@ import {
 import {
   Control,
   Controller,
-  FieldErrors,
-  UseFormGetValues,
   UseFormRegister,
   UseFormSetValue,
+  UseFormWatch,
 } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { FlightLogMemberRequest } from '@backend/routes/flight-log/models'
 import { MemberListResponse } from '@backend/routes/members/models'
 import useApi from '../../../hooks/useApi'
@@ -29,11 +28,11 @@ import { useMe } from '../../../hooks/useMe'
 
 interface FlightCrewProps {
   flightType: string
+  maximumCrewCount: number
   register: UseFormRegister<FlightLogMemberRequest>
   control: Control<FlightLogMemberRequest>
-  getValues: UseFormGetValues<FlightLogMemberRequest>
   setValue: UseFormSetValue<FlightLogMemberRequest>
-  errors: FieldErrors<FlightLogMemberRequest>
+  watch: UseFormWatch<FlightLogMemberRequest>
 }
 
 // Crew member types
@@ -54,27 +53,59 @@ type CrewMember = {
 
 const FlightCrew = ({
   flightType,
+  maximumCrewCount,
   control,
-  getValues,
   setValue,
-  errors,
+  watch,
 }: FlightCrewProps) => {
   const { t } = useTranslation()
-  const [crewCount, setCrewCount] = useState(1)
 
-  // crew positions currently in use
-  const crewSlots = (['pic', 'crew2', 'crew3', 'crew4'] as CrewSlot[]).slice(
-    0,
-    crewCount
-  )
+  // crew member ids currently in use
+  const crewMembers = watch([
+    'picMemberId',
+    'crew2MemberId',
+    'crew3MemberId',
+    'crew4MemberId',
+  ])
+
+  const slots: CrewSlot[] = ['pic', 'crew2', 'crew3', 'crew4']
 
   // Check if flight type is one that only needs a pilot
   const singlePilotTypes = ['HAR', 'MAT', 'SII', 'KOE']
+  // Check if flight type is one that needs a crew
+  const multiPilotTypes = ['TAR', 'LEN']
+
   const isSinglePilotFlight = singlePilotTypes.includes(flightType)
-  const minimumCrewCount = isSinglePilotFlight ? 1 : 2
+  const minimumCrewCount = multiPilotTypes.includes(flightType) ? 2 : 1
+
+  const [crewCount, setCrewCount] = useState(minimumCrewCount)
 
   const handleAddCrew = () => setCrewCount((c) => c + 1)
-  const handleRemoveCrew = () => setCrewCount((c) => c - 1)
+  const handleRemoveCrew = (slot: CrewSlot) => {
+    setCrewCount((c) => c - 1)
+    cleanCrew(slot)
+  }
+
+  const cleanCrew = useCallback(
+    (slot: CrewSlot) => {
+      setValue(`${slot}MemberId` as keyof FlightLogMemberRequest, null)
+      setValue(`${slot}Role` as keyof FlightLogMemberRequest, null)
+    },
+    [setValue]
+  )
+
+  const getDefaultMultiRole = (crew: CrewMember) => {
+    switch (crew.role) {
+      case 'INSTRUCTOR':
+        return 'FI'
+      case 'EXAMINER':
+        return 'FE'
+      case 'SELF':
+        return 'STU'
+      default:
+        return 'OBS'
+    }
+  }
 
   const { me } = useMe()
 
@@ -93,43 +124,86 @@ const FlightCrew = ({
     }
   )
 
-  const self: CrewMember = {
-    value: me?.memberId ?? 'SELF',
-    label: 'SELF',
-    role: 'SELF',
-  }
+  // list of all members, including self
+  const members: CrewMember[] = useMemo(
+    () =>
+      [
+        {
+          value: me?.memberId ?? '',
+          label: 'SELF',
+          role: 'SELF',
+        },
+      ]
+        .concat(
+          memberList?.members
+            ?.filter((m) => m.roles.includes('INSTRUCTOR'))
+            ?.map((m) => ({
+              value: m.memberId,
+              label: `${m.first} ${m.last}`,
+              role: 'INSTRUCTOR',
+            })) ?? []
+        )
+        .concat(
+          memberList?.members
+            ?.filter((m) => !m.roles.includes('INSTRUCTOR'))
+            ?.map((m) => ({
+              value: m.memberId,
+              label: `${m.first} ${m.last}`,
+              role: 'MEMBER',
+            })) ?? []
+        ),
+    [me, memberList]
+  )
 
-  const members: CrewMember[] = [self]
-    .concat(
-      memberList?.members
-        ?.filter((m) => m.roles.includes('INSTRUCTOR'))
-        ?.map((m) => ({
-          value: m.memberId,
-          label: `${m.first} ${m.last}`,
-          role: 'INSTRUCTOR',
-        })) ?? []
-    )
-    .concat(
-      memberList?.members
-        ?.filter((m) => !m.roles.includes('INSTRUCTOR'))
-        ?.map((m) => ({
-          value: m.memberId,
-          label: `${m.first} ${m.last}`,
-          role: 'MEMBER',
-        })) ?? []
-    )
-
+  // change between single and multi-pilot operations
   useEffect(() => {
+    const filledCrewCount = crewMembers.filter(Boolean).length
+    const picRole = watch('picRole')
+
     if (isSinglePilotFlight) {
-      // single pilot operations
-      setValue('picRole', 'PIC')
-      setCrewCount(1)
-    } else if (crewCount < 2) {
-      // add second crew
-      setCrewCount(2)
-      setValue('picRole', 'STU')
+      if (picRole !== 'PIC') {
+        setValue('picRole', 'PIC')
+      }
+      if (crewCount > 1) {
+        setCrewCount(1)
+      }
+      if (filledCrewCount > 1) {
+        // clean up hidden crew members
+        cleanCrew('crew2')
+        cleanCrew('crew3')
+        cleanCrew('crew4')
+      }
+    } else {
+      if (picRole === 'PIC') {
+        // PIC is not valid role for multi-pilot flights
+        const pic = members.find((m) => m.value === crewMembers[0])
+        if (pic) {
+          setValue('picRole', getDefaultMultiRole(pic))
+        }
+      }
+
+      // make sure all crew slots are shown after remote data is loaded
+      const min = Math.max(filledCrewCount, minimumCrewCount)
+      if (crewCount < min) {
+        setCrewCount(min)
+      }
+      const pob = watch('personsOnBoard')
+      if (pob < crewCount) {
+        // if persons on board is less than crew count, set it to crew count
+        setValue('personsOnBoard', crewCount)
+      }
     }
-  }, [isSinglePilotFlight, crewCount, setValue, me, getValues])
+  }, [
+    isSinglePilotFlight,
+    minimumCrewCount,
+    maximumCrewCount,
+    crewCount,
+    setValue,
+    crewMembers,
+    members,
+    cleanCrew,
+    watch,
+  ])
 
   if (!flightType) {
     return (
@@ -161,9 +235,9 @@ const FlightCrew = ({
 
   return (
     <Grid container spacing={2}>
-      {crewSlots.map((slot, index) => {
+      {slots.slice(0, crewCount).map((slot, index, { length }) => {
         const crewId = `${slot}MemberId` as keyof FlightLogMemberRequest
-        const crewType = `${slot}Role` as keyof FlightLogMemberRequest
+        const crewRole = `${slot}Role` as keyof FlightLogMemberRequest
 
         return (
           <Grid key={slot} size={{ xs: 12 }}>
@@ -175,7 +249,13 @@ const FlightCrew = ({
                   rules={{ required: true }}
                   render={({ field: { onChange, value } }) => (
                     <Autocomplete
-                      options={members}
+                      options={members.filter((m) => {
+                        // do not allow duplicates
+                        const atIndex = crewMembers.findIndex(
+                          (id) => id === m.value
+                        )
+                        return atIndex == index || atIndex == -1
+                      })}
                       value={
                         members.find((member) => member.value === value) ?? null
                       }
@@ -194,28 +274,27 @@ const FlightCrew = ({
                         />
                       )}
                       onChange={(_e, crew) => {
-                        console.log(value, crew)
-                        onChange(crew?.value ?? '')
+                        onChange(crew?.value ?? null)
 
-                        if (flightType == 'KOU' || flightType == 'TAR') {
-                          // default roles for school flights
+                        if (crew && !isSinglePilotFlight) {
+                          // improve usability by setting default role
+                          // based on selected crew member
 
-                          if (crew?.role == 'INSTRUCTOR') {
-                            // instructor has been selected
-                            setValue(crewType, 'FI')
+                          const defaultRole = getDefaultMultiRole(crew)
+                          setValue(crewRole, defaultRole)
 
-                            // put self as a student to the other position
-                            setValue(
-                              slot == 'pic' ? 'crew2MemberId' : 'picMemberId',
-                              me?.memberId ?? ''
-                            )
-                            setValue(
-                              slot == 'pic' ? 'crew2Role' : 'picRole',
-                              'STU'
-                            )
-                          } else if (crew?.role == 'SELF') {
-                            // self has been selected
-                            setValue(crewType, 'STU')
+                          if (
+                            slot == 'pic' &&
+                            (defaultRole == 'FI' || defaultRole == 'FE')
+                          ) {
+                            // instructor was selected as PIC, add missing self crew
+                            if (crewCount < 2) {
+                              setCrewCount(2)
+                            }
+                            if (!crewMembers[1]) {
+                              setValue('crew2MemberId', me?.memberId ?? '')
+                              setValue('crew2Role', 'STU')
+                            }
                           }
                         }
                       }}
@@ -226,26 +305,25 @@ const FlightCrew = ({
               {!isSinglePilotFlight && (
                 <Grid size={{ xs: 4 }}>
                   <Controller
-                    name={crewType}
+                    name={crewRole}
                     control={control}
-                    defaultValue={'STU'}
-                    render={({ field }) => (
-                      <FormControl
-                        fullWidth
-                        error={!!errors[crewType]}
-                        margin='normal'
-                      >
+                    render={({ field, fieldState: { error } }) => (
+                      <FormControl fullWidth error={!!error} margin='normal'>
                         <InputLabel>{t('flightLog.duty')}</InputLabel>
-                        <Select {...field} label={t('flightLog.duty')}>
+                        <Select
+                          {...field}
+                          value={field.value || ''}
+                          label={t('flightLog.duty')}
+                        >
                           {CREW_ROLES.map((type) => (
                             <MenuItem key={type.value} value={type.value}>
                               {type.value} - {type.label}
                             </MenuItem>
                           ))}
                         </Select>
-                        {errors[crewType] && (
+                        {error && (
                           <FormHelperText>
-                            {errors[crewType].message?.toString()}
+                            {error.message?.toString()}
                           </FormHelperText>
                         )}
                       </FormControl>
@@ -255,7 +333,7 @@ const FlightCrew = ({
               )}
             </Grid>
 
-            {index >= minimumCrewCount && index == crewSlots.length - 1 && (
+            {index >= minimumCrewCount && index == length - 1 && (
               // only last crew slot can be removed
               <Grid
                 size={{ xs: 12 }}
@@ -263,7 +341,7 @@ const FlightCrew = ({
               >
                 <Button
                   color='error'
-                  onClick={handleRemoveCrew}
+                  onClick={() => handleRemoveCrew(slot)}
                   sx={{ minWidth: 'auto', p: 1 }}
                 >
                   <Icon icon='mdi:close' />
@@ -274,7 +352,7 @@ const FlightCrew = ({
         )
       })}
 
-      {!isSinglePilotFlight && crewCount < 4 && (
+      {!isSinglePilotFlight && crewCount < maximumCrewCount && (
         <Grid size={{ xs: 12 }}>
           <Box>
             <Button

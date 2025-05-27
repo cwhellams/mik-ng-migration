@@ -207,6 +207,12 @@ describe('POST /flight-log', () => {
         billingRemarks: 'N/A',
         picMemberId: memberId,
         picRole: 'FI',
+        crew2MemberId: null,
+        crew2Role: null,
+        crew3MemberId: null,
+        crew3Role: null,
+        crew4MemberId: null,
+        crew4Role: null,
         departureAirport: 'EFHK',
         flightType: 'KOU',
         fuelUpliftLitres: 40,
@@ -288,7 +294,7 @@ describe('POST /flight-log', () => {
 describe('PATCH /flight-log/', () => {
   test.each([
     ['Matti1', [MIKPermissions.FLIGHTLOG_ADMIN]],
-    ['Kaisa1', [MIKPermissions.FLIGHTLOG_USER]],
+    ['Pekka1', [MIKPermissions.FLIGHTLOG_USER]],
   ])(
     'should update a flight log when billable member matches token member or user has elevated role, using %d and %s',
     async (memberId, permissions) => {

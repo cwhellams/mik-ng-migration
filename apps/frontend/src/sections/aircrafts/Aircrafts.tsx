@@ -256,6 +256,9 @@ const Aircrafts = () => {
                       <Typography variant='subtitle1' color='text.primary'>
                         {t('aircraft.totalTime', {
                           ...aircraft.status,
+                          remainingFuelGallons: Math.round(
+                            (aircraft.status?.remainingFuelLitres ?? 0) / 3.785
+                          ),
                           lastLanding: dayjs(
                             aircraft.status?.lastLandingTimeUtc
                           ).format('YYYY-MM-DD HH:mm'),

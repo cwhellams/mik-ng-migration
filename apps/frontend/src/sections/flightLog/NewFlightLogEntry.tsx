@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Box,
   Paper,
@@ -7,7 +7,6 @@ import {
   Stack,
   Breadcrumbs,
   Link,
-  TextField,
   Grid,
   FormControl,
   InputLabel,
@@ -37,9 +36,12 @@ import FlightTimeline from './components/FlightTimeline'
 import FlightCrew from './components/FlightCrew'
 import { useMe } from '../../hooks/useMe'
 import { FlightTime } from './components/FlightTime'
-import { NumberField } from './components/NumberField'
+import { TxtField } from './components/TxtField'
 import { MinutesField } from './components/MinutesField'
 import { Airfields } from './components/Airfields'
+import { PersonsOnBoard } from './components/PersonsOnBoard'
+import { NumberOfLandings } from './components/NumberOfLandings'
+import { Fuel } from './components/Fuel'
 
 const flightTypes = [
   { code: 'HAR', labelKey: 'flightLog.flightTypes.practice' },
@@ -119,6 +121,13 @@ const NewFlightLogEntry = () => {
       flightType: '',
 
       picRole: 'PIC',
+      crew2MemberId: null,
+      crew2Role: null,
+      crew3MemberId: null,
+      crew3Role: null,
+      crew4MemberId: null,
+      crew4Role: null,
+
       totalTimeInService: 0,
       privOrComFlight: 'P',
       incidentOrObservations: null,
@@ -131,6 +140,9 @@ const NewFlightLogEntry = () => {
       fuelRemainingLitres: undefined,
       fuelUpliftLitres: null,
       oilUpliftLitres: null,
+
+      personalRemarks: null,
+      billingRemarks: null,
     },
   })
 
@@ -146,6 +158,12 @@ const NewFlightLogEntry = () => {
       reset(data)
     }
   }, [data, reset])
+
+  const registration = watch('aircraftRegistration')
+  const aircraft = useMemo(
+    () => aircraftData?.aircrafts.find((a) => a.registration === registration),
+    [registration, aircraftData]
+  )
 
   const epochToDayjs = (
     field:
@@ -302,11 +320,11 @@ const NewFlightLogEntry = () => {
             <Grid size={{ xs: 12 }}>
               <FlightCrew
                 flightType={watch('flightType')}
+                maximumCrewCount={aircraft?.seats ?? 0}
                 register={register}
                 control={control}
-                getValues={getValues}
                 setValue={setValue}
-                errors={errors}
+                watch={watch}
               />
             </Grid>
 
@@ -333,6 +351,9 @@ const NewFlightLogEntry = () => {
                 takeoffTime={epochToDayjs('takeoffTimeEpoch')}
                 landingTime={epochToDayjs('landingTimeEpoch')}
                 onBlockTime={epochToDayjs('onBlockTimeEpoch')}
+                aircraftTotalFlightTime={
+                  isNew ? aircraft?.status?.totalTime : undefined
+                }
               />
             </Grid>
 
@@ -359,74 +380,49 @@ const NewFlightLogEntry = () => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 4 }}>
-              <NumberField
-                name='personsOnBoard'
+            <Grid size={{ xs: 12, md: 6 }}>
+              <PersonsOnBoard
                 control={control}
-                error={errors.personsOnBoard}
-                props={{
-                  required: true,
-                  slotProps: { htmlInput: { min: 1, max: 4 } },
-                }}
+                seats={aircraft?.seats ?? 0}
+                crew={watch([
+                  'crew2MemberId',
+                  'crew3MemberId',
+                  'crew4MemberId',
+                ])}
               />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 4 }}>
-              <NumberField
-                name='numberOfLandings'
-                control={control}
-                error={errors.numberOfLandings}
-                props={{
-                  required: true,
-                  slotProps: { htmlInput: { min: 0, max: 99 } },
-                }}
-              />
+            <Grid size={{ xs: 12, md: 6 }}>
+              <NumberOfLandings control={control} />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 4 }}>
-              <MinutesField
-                name='nightFlyingMins'
-                control={control}
-                error={errors.nightFlyingMins}
-              />
+            <Grid size={{ xs: 12, md: 6 }}>
+              <MinutesField name='nightFlyingMins' control={control} />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 4 }}>
-              <MinutesField
-                name='instrumentFlyingMins'
-                control={control}
-                error={errors.instrumentFlyingMins}
-              />
+            <Grid size={{ xs: 12, md: 6 }}>
+              <MinutesField name='instrumentFlyingMins' control={control} />
             </Grid>
 
             {/* Fuel and Oil */}
 
             <Grid size={{ xs: 12 }}>
-              <Typography variant='h6' gutterBottom>
-                {t('flightLog.fuelInfo')}
-              </Typography>
+              <Typography variant='h6'>{t('flightLog.fuelInfo')}</Typography>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
-              <NumberField
-                name='fuelRemainingLitres'
+            <Grid offset={1} size={{ xs: 10, md: 10 }}>
+              <Fuel
                 control={control}
-                error={errors.fuelRemainingLitres}
-                props={{
-                  required: true,
-                  slotProps: {
-                    htmlInput: { step: 1, required: true, min: 0, max: 300 },
-                  },
-                }}
+                usableFuelLitres={aircraft?.usableFuelLitres ?? 100}
               />
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <NumberField
+              <TxtField
                 name='fuelUpliftLitres'
                 control={control}
-                error={errors.fuelUpliftLitres}
                 props={{
+                  type: 'number',
                   slotProps: {
                     htmlInput: { step: 1, required: false, min: 0, max: 300 },
                   },
@@ -435,11 +431,11 @@ const NewFlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <NumberField
+              <TxtField
                 name='oilUpliftLitres'
                 control={control}
-                error={errors.oilUpliftLitres}
                 props={{
+                  type: 'number',
                   slotProps: { htmlInput: { step: '0.1', min: 0, max: 10 } },
                 }}
               />
@@ -453,37 +449,34 @@ const NewFlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                required
-                label={t('flightLog.billableMemberId')}
-                {...register('billableMemberId')}
-                error={!!errors.billableMemberId}
-                helperText={errors.billableMemberId?.message?.toString()}
+              <TxtField
+                name='billableMemberId'
+                control={control}
+                props={{
+                  required: true,
+                }}
               />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <TextField
-                fullWidth
-                label={t('flightLog.billingRemarks')}
-                multiline
-                rows={2}
-                {...register('billingRemarks')}
-                error={!!errors.billingRemarks}
-                helperText={errors.billingRemarks?.message?.toString()}
+              <TxtField
+                name='billingRemarks'
+                control={control}
+                props={{
+                  multiline: true,
+                  rows: 2,
+                }}
               />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <TextField
-                fullWidth
-                label={t('flightLog.personalRemarks')}
-                multiline
-                rows={3}
-                {...register('personalRemarks')}
-                error={!!errors.personalRemarks}
-                helperText={errors.personalRemarks?.message?.toString()}
+              <TxtField
+                name='personalRemarks'
+                control={control}
+                props={{
+                  multiline: true,
+                  rows: 3,
+                }}
               />
             </Grid>
           </Grid>

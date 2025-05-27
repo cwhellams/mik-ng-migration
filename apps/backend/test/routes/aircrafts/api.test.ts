@@ -3,10 +3,11 @@ import express from 'express'
 import request from 'supertest'
 
 import { router } from '../../../src/routes/aircrafts/api.ts'
-import type {
-  Aircraft,
-  AircraftDocument,
-  AircraftListResponse,
+import {
+  FuelType,
+  type Aircraft,
+  type AircraftDocument,
+  type AircraftListResponse,
 } from '../../../src/routes/aircrafts/models.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
@@ -175,6 +176,9 @@ describe('Add and update aircrafts', () => {
     model: 'Jest',
     manufacturer: 'Jest',
     yearOfManufacture: 2000,
+    seats: 2,
+    usableFuelLitres: 100,
+    fuelTypes: [FuelType.AVGAS],
     active: true,
     maintenance: {
       maintenanceCycle: 100,

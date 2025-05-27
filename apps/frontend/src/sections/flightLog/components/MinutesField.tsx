@@ -1,6 +1,6 @@
 import { FormControl, FormHelperText } from '@mui/material'
 import { t } from 'i18next'
-import { Control, Controller, GlobalError } from 'react-hook-form'
+import { Control, Controller } from 'react-hook-form'
 import { FlightLogMemberRequest } from '@backend/routes/flight-log/models'
 import { TimeField } from '@mui/x-date-pickers/TimeField'
 import { durationToDayjs } from '../utils/timeUtils'
@@ -8,15 +8,14 @@ import { durationToDayjs } from '../utils/timeUtils'
 interface MinutesFieldProps {
   name: keyof FlightLogMemberRequest
   control: Control<FlightLogMemberRequest>
-  error?: GlobalError
 }
 
-export const MinutesField = ({ name, control, error }: MinutesFieldProps) => {
+export const MinutesField = ({ name, control }: MinutesFieldProps) => {
   return (
     <Controller
       name={name}
       control={control}
-      render={({ field }) => (
+      render={({ field, fieldState: { error } }) => (
         <FormControl fullWidth error={!!error}>
           <TimeField
             {...field}

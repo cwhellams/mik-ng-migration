@@ -24,6 +24,12 @@ export enum Severity {
   off = 'off',
 }
 
+export enum FuelType {
+  AVGAS = 'AVGAS',
+  MOGAS = 'MOGAS',
+  'JETA-1' = 'JETA-1',
+}
+
 export const AircraftNoteSchema = z.object({
   text: z.string(),
   severity: z.nativeEnum(Severity),
@@ -53,7 +59,7 @@ export const AircraftAlertSchema = z.object({
 export type AircraftAlert = z.infer<typeof AircraftAlertSchema>
 
 export const AircraftStatusSchema = z.object({
-  totalTime: z.number().int().optional(),
+  totalTime: z.string().optional(),
   lastLandingTimeUtc: z.string().date().optional(),
   lastLandingAirport: z.string().optional(),
   remainingFuelLitres: z.number().optional(),
@@ -75,6 +81,9 @@ export const AircraftSchema = AuditableSchema.extend({
   model: z.string().max(50).nonempty(),
   manufacturer: z.string().max(50).nonempty(),
   yearOfManufacture: z.number().int().positive(),
+  seats: z.number().int().positive(),
+  usableFuelLitres: z.number().int().positive(),
+  fuelTypes: z.array(z.nativeEnum(FuelType)),
   active: z.boolean(),
 
   status: AircraftStatusSchema.optional(),

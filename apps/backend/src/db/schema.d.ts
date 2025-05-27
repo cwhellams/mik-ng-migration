@@ -75,6 +75,7 @@ export interface FlightAircraft {
   created_by: string
   display_name: string
   equipment: string | null
+  fuel_types: string[]
   hourly_rate_eur: Numeric
   last_maintenance_date: string
   last_maintenance_tach: number
@@ -88,9 +89,11 @@ export interface FlightAircraft {
   next_maintenance_type: string
   notes: Json | null
   registration: string
+  seats: number
   total_percentage_hours: number
   updated_at: Generated<Timestamp>
   updated_by: string
+  usable_fuel_litres: number
   usable_percentage_hours: number
   year_of_manufacture: number
 }
@@ -186,7 +189,7 @@ export interface FlightLogsAudit {
 }
 
 export interface FlightVwFlightTimeTotals {
-  ac_total_flight_hours: number | null
+  ac_total_flight_hours: Numeric | null
   ac_total_flight_time: string | null
   aircraft_registration: string | null
   ajlb_seq_no: number | null

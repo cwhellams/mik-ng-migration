@@ -39,7 +39,7 @@ select
     format_flight_time(
         ajlb.minutes_at_start + l.sum_flight_mins
     ) as ac_total_flight_time,
-    ((ajlb.minutes_at_start + l.sum_flight_mins)/60)::int4 as ac_total_flight_hours
+    (ajlb.minutes_at_start + l.sum_flight_mins)/60.0 as ac_total_flight_hours
 
 
 from

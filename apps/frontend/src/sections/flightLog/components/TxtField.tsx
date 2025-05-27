@@ -1,34 +1,32 @@
 import { TextField, TextFieldProps } from '@mui/material'
-import { t } from 'i18next'
-import { Control, Controller, GlobalError } from 'react-hook-form'
+import { Control, Controller } from 'react-hook-form'
 import { FlightLogMemberRequest } from '@backend/routes/flight-log/models'
+import { useTranslation } from 'react-i18next'
 
-interface NumberFieldProps {
+interface Props {
   control: Control<FlightLogMemberRequest>
   name: keyof FlightLogMemberRequest
-  error?: GlobalError
   props: TextFieldProps
 }
 
-export const NumberField = ({
-  name,
-  control,
-  error,
-  props,
-}: NumberFieldProps) => {
+export const TxtField = ({ name, control, props }: Props) => {
+  const { t } = useTranslation()
   return (
     <Controller
       name={name}
       control={control}
-      render={({ field }) => (
+      render={({ field, fieldState: { error } }) => (
         <TextField
           {...field}
           value={field.value ?? ''}
-          onChange={({ target }) =>
-            field.onChange(target.value ? Number(target.value) : null)
-          }
+          onChange={({ target }) => {
+            if (props.type === 'number') {
+              field.onChange(target.value ? Number(target.value) : null)
+            } else {
+              field.onChange(target.value)
+            }
+          }}
           fullWidth
-          type='number'
           label={t(`flightLog.${name}`)}
           error={!!error}
           helperText={error?.message?.toString()}

@@ -12,6 +12,7 @@ import {
   updateAircraftDocument,
 } from '../../src/db/aircraft-queries.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
+import { FuelType } from '../../src/routes/aircrafts/models.ts'
 
 const jwt: JWTUser = {
   memberId: 'k1mnimda',
@@ -88,6 +89,9 @@ describe('Db add aircraft tests', () => {
         model: 'Jest',
         manufacturer: 'Jest',
         yearOfManufacture: 2000,
+        seats: 2,
+        usableFuelLitres: 100,
+        fuelTypes: [FuelType.AVGAS],
         active: true,
         maintenance: {
           maintenanceCycle: 100,
@@ -134,6 +138,9 @@ describe('Db add aircraft tests', () => {
             model: 'Jest',
             manufacturer: 'Jest',
             yearOfManufacture: 2000,
+            seats: 4,
+            usableFuelLitres: 100,
+            fuelTypes: [FuelType.AVGAS],
             active: true,
             maintenance: {
               maintenanceCycle: 100,

@@ -3,6 +3,7 @@ import type { Selectable } from 'kysely'
 import * as connection from './connection.ts'
 import type { FlightAircraft } from './schema.js'
 import {
+  FuelType,
   type Aircraft,
   type AircraftDocument,
   type AircraftNote,
@@ -48,6 +49,9 @@ const toAircraft = (
   model: aircraft.model,
   manufacturer: aircraft.manufacturer,
   yearOfManufacture: aircraft.year_of_manufacture,
+  seats: aircraft.seats,
+  usableFuelLitres: aircraft.usable_fuel_litres,
+  fuelTypes: aircraft.fuel_types ? (aircraft.fuel_types as FuelType[]) : [],
   active: aircraft.active,
 
   documents: documents,
@@ -86,6 +90,9 @@ export async function addAircraft(aircraft: Upsert<Aircraft>, jwt: JWTUser): Pro
       model: aircraft.model,
       manufacturer: aircraft.manufacturer,
       year_of_manufacture: aircraft.yearOfManufacture,
+      seats: aircraft.seats,
+      usable_fuel_litres: aircraft.usableFuelLitres,
+      fuel_types: aircraft.fuelTypes,
       active: aircraft.active,
 
       maintenance_cycle: aircraft.maintenance.maintenanceCycle,
@@ -138,6 +145,7 @@ export async function updateAircraft(
       model: patch.model,
       manufacturer: patch.manufacturer,
       year_of_manufacture: patch.yearOfManufacture,
+      seats: patch.seats,
       active: patch.active,
 
       notes: patch.notes ? JSON.stringify(patch.notes) : undefined,

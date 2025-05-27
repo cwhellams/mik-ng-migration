@@ -32,3 +32,11 @@ export const calculateNext = (previous: dayjs.Dayjs, time: dayjs.Dayjs) => {
       ? dateTime.subtract(24, 'hours')
       : dateTime
 }
+
+export const splitTime = (hhMM: string) => {
+  const [hours, minutes] = hhMM.split(':')
+  return {
+    hours: Number(hours),
+    minutes: Number(minutes),
+  }
+}

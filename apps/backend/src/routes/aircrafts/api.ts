@@ -206,7 +206,8 @@ const expiredDocuments = (aircraft: Aircraft) => {
 const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   const maintenance = aircraft.maintenance
 
-  const totalTime = (await getFlightLogTotals(aircraft.registration))?.[0]?.acTotalFlightHours ?? 0
+  const totals = (await getFlightLogTotals(aircraft.registration))?.[0]
+  const totalTime = totals?.acTotalFlightHours ?? 0
 
   const lastFlight: FlightLog | undefined = (
     await getFlightLogs({
@@ -215,7 +216,7 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
     })
   )?.[0]
 
-  const tachUntilNextMaintenance = maintenance.nextMaintenanceTach - totalTime
+  const tachUntilNextMaintenance = Math.floor(maintenance.nextMaintenanceTach - totalTime)
   const usablePercentageHours = tachUntilNextMaintenance + maintenance.usablePercentageHours
   const totalPercentageHours = tachUntilNextMaintenance + maintenance.totalPercentageHours
 
@@ -263,7 +264,8 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   ].filter(w => w !== undefined)
 
   return {
-    totalTime,
+    totalTime: totals?.acTotalFlightTime,
+
     lastLandingTimeUtc: lastFlight?.landingTimeUtc?.toISOString() ?? undefined,
     lastLandingAirport: lastFlight?.arrivalAirport,
 
