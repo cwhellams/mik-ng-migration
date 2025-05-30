@@ -26,6 +26,23 @@ export enum MIKPermissions {
   INVOICING_ADMIN = 'invoicing.admin',
 }
 
+export const toUserRole = (permission: MIKPermissions): MIKPermissions => {
+  switch (permission) {
+    case MIKPermissions.MEMBER_ADMIN:
+      return MIKPermissions.MEMBER
+    case MIKPermissions.FLIGHTLOG_ADMIN:
+      return MIKPermissions.FLIGHTLOG_USER
+    case MIKPermissions.BOOKING_ADMIN:
+      return MIKPermissions.BOOKING_USER
+    case MIKPermissions.AIRCRAFT_ADMIN:
+      return MIKPermissions.AIRCRAFT_USER
+    case MIKPermissions.INVOICING_ADMIN:
+      return MIKPermissions.INVOICING_USER
+    default:
+      return permission
+  }
+}
+
 export enum MIKMemberTypes {
   FLYING = 'FLYING',
   NONFLYING = 'NON-FLYING',

@@ -5,7 +5,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 
 import logger from '../lib/logger.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
-import { MIKPermissions } from '../routes/members/models.ts'
+import { MIKPermissions, toUserRole } from '../routes/members/models.ts'
 import { problem, type Problem } from '../routes/response.ts'
 
 //
@@ -19,9 +19,15 @@ passport.use(
       secretOrKey: process.env.ACCESS_TOKEN_SECRET as ms.StringValue,
       issuer: 'mik',
       audience: 'api',
+      passReqToCallback: true,
     },
-    async (payload: JWTUser, callback) => {
-      callback(undefined, payload)
+    async (req: Request, payload: JWTUser, callback) => {
+      // allow UI to toggle admin permissions
+      const isSudo = req.headers['x-sudo'] !== 'false'
+      callback(undefined, {
+        ...payload,
+        permissions: isSudo ? payload.permissions : payload.permissions.map(toUserRole),
+      })
     },
   ),
 )

@@ -48,10 +48,22 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(200)
 
+    expect(response.body.logs).toHaveLength(1)
     expect(response.body.logs[0]).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     })
+  })
+
+  it('should only return data for the logged in user when admin without sudo', async () => {
+    const response = await request(app)
+      .get('/flight-log')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .set('x-sudo', 'false')
+      .query({ aircraftRegistration: 'OH-STL' })
+
+    expect(response.status).toBe(200)
+    expect(response.body.logs).toHaveLength(1)
   })
 
   it('should return all data for ac when user is admin', async () => {
@@ -61,6 +73,7 @@ describe('GET /flight-log', () => {
       .query({ aircraftRegistration: 'OH-STL' })
 
     expect(response.status).toBe(200)
+    expect(response.body.logs).toHaveLength(3)
     expect(response.body.logs).toMatchSnapshot([
       {
         createdAt: expect.any(String),
@@ -125,10 +138,11 @@ describe('GET /flight-log', () => {
       .get('/flight-log')
       .set('Authorization', `Bearer ${mattiToken}`)
       .query({
-        startDate: '2025-03-03T22:00:00Z',
+        startDate: '2025-03-01T00:00:00Z',
       })
 
     expect(response.status).toBe(200)
+    expect(response.body.logs).toHaveLength(1)
     expect(response.body.logs[0]).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),

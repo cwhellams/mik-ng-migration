@@ -38,11 +38,31 @@ const noPermissionsToken = generateAccessToken({
   permissions: [],
 })
 
+const removeTimestamps = (aircraft: Aircraft) => ({
+  ...aircraft,
+  createdAt: expect.any(String),
+  updatedAt: expect.any(String),
+  status: {
+    ...aircraft.status,
+    ...(aircraft.maintenance.nextMaintenanceDate
+      ? {
+          daysUntilNextMaintenance: expect.any(Number),
+        }
+      : {}),
+  },
+  documents: aircraft.documents.map(doc => ({
+    ...doc,
+    createdAt: expect.any(String),
+    updatedAt: expect.any(String),
+  })),
+})
+
 describe('GET /aircrafts', () => {
-  const query = async (token: string) =>
+  const query = async (token: string, sudo = true) =>
     request(app)
       .get('/aircrafts')
       .set('Authorization', `Bearer ${token}`)
+      .set('X-Sudo', sudo ? 'true' : 'false')
       .query(query ?? {})
 
   it('should return 401 for invalid token', async () => {
@@ -71,42 +91,22 @@ describe('GET /aircrafts', () => {
     expect(response.status).toBe(200)
 
     const list = response.body as AircraftListResponse
-    expect(list.aircrafts).toMatchSnapshot(
-      list.aircrafts.map(aircraft => ({
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-        documents: aircraft.documents.map(doc => ({
-          ...doc,
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
-        })),
-      })),
-    )
+    expect(list.aircrafts).toMatchSnapshot(list.aircrafts.map(removeTimestamps))
+  })
+
+  it('should return only active aircrafts as a admin without sudo', async () => {
+    const response = await query(adminToken, false)
+    expect(response.status).toBe(200)
+
+    const list = response.body as AircraftListResponse
+    expect(list.aircrafts).toMatchSnapshot(list.aircrafts.map(removeTimestamps))
   })
 
   it('should return all aircrafts as an admin', async () => {
     const response = await query(adminToken)
 
     const list = response.body as AircraftListResponse
-    expect(list.aircrafts).toMatchSnapshot(
-      list.aircrafts.map(aircraft => ({
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-        status: {
-          ...aircraft.status,
-          ...(aircraft.maintenance.nextMaintenanceDate
-            ? {
-                daysUntilNextMaintenance: expect.any(Number),
-              }
-            : {}),
-        },
-        documents: aircraft.documents.map(doc => ({
-          ...doc,
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
-        })),
-      })),
-    )
+    expect(list.aircrafts).toMatchSnapshot(list.aircrafts.map(removeTimestamps))
   })
 })
 
@@ -145,15 +145,7 @@ describe('GET /aircrafts/id', () => {
 
     const aircraft = response.body as Aircraft
 
-    expect(aircraft).toMatchSnapshot({
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-      documents: aircraft.documents.map(doc => ({
-        ...doc,
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-      })),
-    })
+    expect(aircraft).toMatchSnapshot(removeTimestamps(aircraft))
   })
 
   it('Get aircraft with nonexisting registration should return 404', async () => {

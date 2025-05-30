@@ -5,6 +5,7 @@ import { Problem } from '@backend/routes/response'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { VerifyResponse } from '@backend/routes/auth/schema'
 import useSWRMutation, { SWRMutationConfiguration } from 'swr/mutation'
+import { useThemeMode } from '../theme/ThemeContext'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 const api = axios.create({
@@ -154,6 +155,7 @@ export default function useApi<
   const navigate = useNavigate()
   const location = useLocation()
   const { onErrorRetry } = useSWRConfig()
+  const { sudo } = useThemeMode()
 
   // the url and params acts as a key for caching
   const cacheKey = [request.url, request.params]
@@ -164,7 +166,15 @@ export default function useApi<
     ...rest
   } = useSWR<AxiosResponse<Data>, AxiosError<Problem>>(
     request.skipFetch ? null : cacheKey,
-    () => api.request<Data>(request),
+    () =>
+      api.request<Data>({
+        ...request,
+        // globally allow admin permissions with sudo mode
+        headers: {
+          ...request.headers,
+          'x-sudo': sudo ? 'true' : 'false',
+        },
+      }),
     {
       ...config,
       onErrorRetry: (err, key, config, ...args) => {

@@ -9,6 +9,7 @@
     "profile": "My profile",
     "language": "Language",
     "toggleTheme": "Toggle dark/light mode",
+    "toggleSudo": "Toggle admin mode",
     "flightLogs": "Flight Log",
     "roles": "User Roles"
   },

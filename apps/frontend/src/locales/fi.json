@@ -9,6 +9,7 @@
     "profile": "Omat tiedot",
     "language": "Kieli",
     "toggleTheme": "Vaihda palettia",
+    "toggleSudo": "Vaihda admin moodia",
     "flightLogs": "Lentopäiväkirja",
     "roles": "Käyttäjäroolit"
   },

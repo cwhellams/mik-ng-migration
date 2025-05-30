@@ -26,6 +26,7 @@ import { Icon } from '@iconify/react'
 import { menuItems } from '../config/menuItems'
 import { useSwipeable } from 'react-swipeable'
 import ThemeToggle from './ThemeToggle'
+import AdminToggle from './AdminToggle'
 
 interface HeaderProps {
   window?: () => Window
@@ -226,6 +227,7 @@ const Header = (props: HeaderProps) => {
 
           {/* User Avatar and Theme Toggle - Always Visible */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AdminToggle />
             <ThemeToggle />
             <User />
           </Box>

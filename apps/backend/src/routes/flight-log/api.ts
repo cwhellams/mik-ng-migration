@@ -55,7 +55,7 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
   // If user is not Flight Log Admin they can only see their own flights
   const filters: FlightLogFilters = {
     ...data,
-    ...(isFlightLogAdmin(req.user) ? {} : { billable_member_id: req.user!.memberId }),
+    ...(isFlightLogAdmin(req.user) ? {} : { billableMemberId: req.user!.memberId }),
   }
 
   const logs = await getFlightLogs(filters)

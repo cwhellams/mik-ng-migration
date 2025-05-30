@@ -183,6 +183,19 @@ describe('GET /members', () => {
     expect(membersQry.members.length).toEqual(6)
   })
 
+  it('should skip search by private roles as a admin without sudo mode', async () => {
+    const res = await request(app)
+      .get('/members')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .set('X-Sudo', 'false')
+      .query(query ?? {})
+
+    expect(res.status).toBe(200)
+
+    const membersQry = res.body as MemberListResponse
+    expect(membersQry.members.length).toEqual(6)
+  })
+
   it('should search by private roles as an admin', async () => {
     const membersQry = await query(adminToken, {
       role: 'ADMIN',
