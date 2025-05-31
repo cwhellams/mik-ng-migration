@@ -69,7 +69,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: registry.digitalocean.com/mik-ng/${{ env.REPO_NAME }}:latest
+          tags: registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
 
       - name: Run Flyway migrations
         if: env.sql_changed == 'true'
