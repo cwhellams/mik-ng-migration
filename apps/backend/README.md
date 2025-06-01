@@ -58,3 +58,7 @@ To run the Jest tests
 or
 
     pnpm dev
+
+# Deploying
+
+
