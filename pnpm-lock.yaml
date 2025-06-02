@@ -250,18 +250,12 @@ importers:
       axios:
         specifier: ^1.9.0
         version: 1.9.0
-      composeClasses:
-        specifier: link:@mui/utils/composeClasses
-        version: link:@mui/utils/composeClasses
       crypto-js:
         specifier: ^4.2.0
         version: 4.2.0
       dayjs:
         specifier: ^1.11.13
         version: 1.11.13
-      formatMuiErrorMessage:
-        specifier: link:@mui/utils/formatMuiErrorMessage
-        version: link:@mui/utils/formatMuiErrorMessage
       html-parse-stringify:
         specifier: ^3.0.1
         version: 3.0.1
@@ -295,18 +289,12 @@ importers:
       react-swipeable:
         specifier: ^7.0.2
         version: 7.0.2(react@19.0.0)
-      styleFunctionSx:
-        specifier: link:@mui/system/styleFunctionSx
-        version: link:@mui/system/styleFunctionSx
       swr:
         specifier: ^2.3.3
         version: 2.3.3(react@19.0.0)
       void-elements:
         specifier: ^3.1.0
         version: 3.1.0
-      warning:
-        specifier: link:@mui/x-internals/warning
-        version: link:@mui/x-internals/warning
       zod:
         specifier: ^3.24.2
         version: 3.25.47

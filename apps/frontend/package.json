@@ -27,10 +27,8 @@
     "@mui/x-date-pickers": "^7.28.0",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.9.0",
-    "composeClasses": "link:@mui/utils/composeClasses",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.13",
-    "formatMuiErrorMessage": "link:@mui/utils/formatMuiErrorMessage",
     "html-parse-stringify": "^3.0.1",
     "i18next": "^24.2.2",
     "i18next-browser-languagedetector": "^8.0.4",
@@ -42,10 +40,8 @@
     "react-router": "^7.6.1",
     "react-router-dom": "^7.6.1",
     "react-swipeable": "^7.0.2",
-    "styleFunctionSx": "link:@mui/system/styleFunctionSx",
     "swr": "^2.3.3",
     "void-elements": "^3.1.0",
-    "warning": "link:@mui/x-internals/warning",
     "zod": "^3.24.2"
   },
   "devDependencies": {
