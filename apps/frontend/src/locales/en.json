@@ -40,7 +40,7 @@
     "withAccount": "Already a member?",
     "login": "Login"
   },
-  "simplbooks" : {
+  "simplbooks": {
     "refresh": "Refresh from Simplbooks"
   },
   "member": {
@@ -224,7 +224,7 @@
     "dateFormat": "YYYY-MM-DD"
   },
   "billing": {
-    "title": "My Invoices",    
+    "title": "My Invoices",
     "filters": {
       "last6Months": "6m",
       "last3Months": "3m",

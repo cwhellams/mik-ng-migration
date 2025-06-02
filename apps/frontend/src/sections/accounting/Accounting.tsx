@@ -2,7 +2,6 @@ import { Outlet } from 'react-router-dom'
 import { Box, Toolbar } from '@mui/material'
 import AccountingSubMenu from './AccountingSubMenu'
 
-
 export default function AccountingLayout() {
   return (
     <>

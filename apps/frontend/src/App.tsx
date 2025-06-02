@@ -74,8 +74,11 @@ function App() {
               path='/flight-logs/:flightId'
               element={<NewFlightLogEntry />}
             />
-            <Route path='/accounting' element={<AccountingLayout />} >
-              <Route path='dashboard' element={<div>Accounting Dashboard</div>} />
+            <Route path='/accounting' element={<AccountingLayout />}>
+              <Route
+                path='dashboard'
+                element={<div>Accounting Dashboard</div>}
+              />
               <Route path='invoicing' element={<div>Invoicing</div>} />
               <Route path='items' element={<InvoiceItemsPage />} />
             </Route>

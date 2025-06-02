@@ -29,7 +29,6 @@ import ThemeToggle from './ThemeToggle'
 import AdminToggle from './AdminToggle'
 import { useRoles } from '../hooks/useRoles'
 
-
 interface HeaderProps {
   window?: () => Window
 }
@@ -44,7 +43,7 @@ const Header = (props: HeaderProps) => {
   const location = useLocation()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const roles = useRoles()
-  
+
   // Check if the page has been scrolled
   const scrollTrigger = useScrollTrigger({
     disableHysteresis: true,
@@ -58,7 +57,6 @@ const Header = (props: HeaderProps) => {
     threshold: 100, // Add some threshold so it doesn't trigger on small scrolls
   })
 
-  
   useEffect(() => {
     setIsScrolled(scrollTrigger)
   }, [scrollTrigger])
@@ -103,27 +101,31 @@ const Header = (props: HeaderProps) => {
       <Divider />
       <List>
         {menuItems
-        .filter((item) => {
-          return (!item.requiredRoles || 
-          roles.permissions.some((requiredRole) => item.requiredRoles?.includes(requiredRole))
-        )})               
-        .map((item) => (          
-          <ListItem key={item.path} disablePadding>
-            <ListItemButton
-              component={Link}
-              to={item.path}
-              selected={location.pathname === item.path}
-              sx={{
-                '&.Mui-selected': {
-                  backgroundColor: 'rgba(0, 35, 133, 0.08)',
-                },
-              }}
-            >
-              {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
-              <ListItemText primary={t(item.translationKey)} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+          .filter((item) => {
+            return (
+              !item.requiredRoles ||
+              roles.permissions.some((requiredRole) =>
+                item.requiredRoles?.includes(requiredRole)
+              )
+            )
+          })
+          .map((item) => (
+            <ListItem key={item.path} disablePadding>
+              <ListItemButton
+                component={Link}
+                to={item.path}
+                selected={location.pathname === item.path}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: 'rgba(0, 35, 133, 0.08)',
+                  },
+                }}
+              >
+                {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
+                <ListItemText primary={t(item.translationKey)} />
+              </ListItemButton>
+            </ListItem>
+          ))}
       </List>
     </Box>
   )
@@ -199,26 +201,30 @@ const Header = (props: HeaderProps) => {
           {!isMobile && (
             <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
               {menuItems
-               .filter((item) => {
-                return (!item.requiredRoles || 
-                roles.permissions.some((requiredRole) => item.requiredRoles?.includes(requiredRole))
-              )})        
-              
-              .map((item) => (
-                <Button
-                  key={item.path}
-                  component={Link}
-                  to={item.path}
-                  color='inherit'
-                  sx={{
-                    color: theme.palette.text.primary,
-                    fontWeight:
-                      location.pathname === item.path ? 'bold' : 'normal',
-                  }}
-                >
-                  {t(item.translationKey)}
-                </Button>
-              ))}
+                .filter((item) => {
+                  return (
+                    !item.requiredRoles ||
+                    roles.permissions.some((requiredRole) =>
+                      item.requiredRoles?.includes(requiredRole)
+                    )
+                  )
+                })
+
+                .map((item) => (
+                  <Button
+                    key={item.path}
+                    component={Link}
+                    to={item.path}
+                    color='inherit'
+                    sx={{
+                      color: theme.palette.text.primary,
+                      fontWeight:
+                        location.pathname === item.path ? 'bold' : 'normal',
+                    }}
+                  >
+                    {t(item.translationKey)}
+                  </Button>
+                ))}
             </Box>
           )}
 

@@ -11,10 +11,9 @@
     "toggleTheme": "Vaihda palettia",
     "toggleSudo": "Vaihda admin moodia",
     "flightLogs": "Lentopäiväkirja",
-    "roles": "Käyttäjäroolit",    
+    "roles": "Käyttäjäroolit",
     "billing": "Laskutus",
     "accounts": "Accounts"
-
   },
   "footer": {
     "quickLinks": "Pikalinkit",
@@ -41,7 +40,7 @@
     "withAccount": "Oletko jo jäsen?",
     "login": "Kirjaudu sisään"
   },
-  "simplbooks" :{
+  "simplbooks": {
     "refresh": "Päivitä"
   },
   "member": {
@@ -226,7 +225,7 @@
   },
   "billing": {
     "description": "Omat Laskut",
-    "title": "Laskutus",    
+    "title": "Laskutus",
     "filters": {
       "last6Months": "6kk",
       "last3Months": "3kk",

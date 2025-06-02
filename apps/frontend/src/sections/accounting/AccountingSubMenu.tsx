@@ -42,10 +42,10 @@ export default function AccountingSubMenu() {
       <Tabs
         value={currentTab === -1 ? 0 : currentTab}
         onChange={handleChange}
-        aria-label="Accounting submenu"
+        aria-label='Accounting submenu'
         centered
-        textColor="primary"
-        indicatorColor="primary"
+        textColor='primary'
+        indicatorColor='primary'
       >
         {navItems.map((item) => (
           <Tab key={item.path} label={item.label} />

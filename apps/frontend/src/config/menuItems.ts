@@ -26,11 +26,6 @@ export const menuItems: MenuItem[] = [
     translationKey: 'header.aircrafts',
   },
   {
-    label: 'Invoicing',
-    path: '/invoicing',
-    translationKey: 'header.invoicing',
-  },
-  {
     label: 'Billing',
     path: '/billing',
     translationKey: 'header.billing',

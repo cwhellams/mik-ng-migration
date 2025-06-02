@@ -10,7 +10,7 @@ import {
   TableContainer,
   Paper,
   CircularProgress,
-  Button,  
+  Button,
   useMediaQuery,
   useTheme,
 } from '@mui/material'
@@ -18,7 +18,6 @@ import RefreshIcon from '@mui/icons-material/Refresh'
 import { ItemListResponse } from '@backend/routes/invoicing/models'
 import useApi from '../../hooks/useApi'
 import { eurFormatter } from '../../utils/format'
-
 
 export const InvoiceItemsPage: React.FC = () => {
   const theme = useTheme()
@@ -43,11 +42,11 @@ export const InvoiceItemsPage: React.FC = () => {
       sx={{
         p: 3,
         maxWidth: 1000,
-       
-        justifyContent: 'left'
+
+        justifyContent: 'left',
       }}
     >
-      <Box 
+      <Box
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -55,15 +54,15 @@ export const InvoiceItemsPage: React.FC = () => {
           mb: 3,
         }}
       >
-        <Typography variant={isXs ? 'h6' : 'h4'} fontWeight="bold">
+        <Typography variant={isXs ? 'h6' : 'h4'} fontWeight='bold'>
           Invoice Items
         </Typography>
 
         <Button
-          variant="outlined"
+          variant='outlined'
           startIcon={
             refreshMutation.isMutating ? (
-              <CircularProgress size={16} color="inherit" />
+              <CircularProgress size={16} color='inherit' />
             ) : (
               <RefreshIcon />
             )
@@ -76,44 +75,58 @@ export const InvoiceItemsPage: React.FC = () => {
       </Box>
 
       {isLoading ? (
-        <Box display="flex" justifyContent="center" my={3}>
+        <Box display='flex' justifyContent='center' my={3}>
           <CircularProgress />
         </Box>
       ) : error ? (
-        <Typography color="error" align="center">
+        <Typography color='error' align='center'>
           Failed to load items.
         </Typography>
       ) : data && data.items.length === 0 ? (
-        <Typography align="center">No items found.</Typography>
+        <Typography align='center'>No items found.</Typography>
       ) : (
-        
-          <TableContainer component={Paper} >
-            <Table size={isXs ? 'small' : 'medium'}>
-              <TableHead sx={{ backgroundColor: theme.palette.grey[200] }}>
-                <TableRow>
-                  <TableCell><strong>ID</strong></TableCell>
-                  <TableCell><strong>Code</strong></TableCell>
-                  <TableCell><strong>Name</strong></TableCell>
-                  <TableCell align="right"><strong>Markup</strong></TableCell>
-                  <TableCell align="center"><strong>Type</strong></TableCell>
-                  <TableCell align="center"><strong>Unit</strong></TableCell>
+        <TableContainer component={Paper}>
+          <Table size={isXs ? 'small' : 'medium'}>
+            <TableHead sx={{ backgroundColor: theme.palette.grey[200] }}>
+              <TableRow>
+                <TableCell>
+                  <strong>ID</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Code</strong>
+                </TableCell>
+                <TableCell>
+                  <strong>Name</strong>
+                </TableCell>
+                <TableCell align='right'>
+                  <strong>Markup</strong>
+                </TableCell>
+                <TableCell align='center'>
+                  <strong>Type</strong>
+                </TableCell>
+                <TableCell align='center'>
+                  <strong>Unit</strong>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(data?.items ?? []).map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.id}</TableCell>
+                  <TableCell>{item.code}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell align='right'>
+                    {eurFormatter.format(item.markup_value ?? 0)}
+                  </TableCell>
+                  <TableCell align='center'>
+                    {item.markup_type ?? 'N/A'}
+                  </TableCell>
+                  <TableCell align='center'>{item.unit ?? 'N/A'}</TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {(data?.items ?? []).map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.id}</TableCell>
-                    <TableCell>{item.code}</TableCell>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell align="right">{eurFormatter.format(item.markup_value ?? 0)}</TableCell>
-                    <TableCell align="center">{item.markup_type ?? 'N/A'}</TableCell>
-                    <TableCell align="center">{item.unit ?? 'N/A'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
     </Box>
   )

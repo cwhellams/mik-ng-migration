@@ -23,7 +23,7 @@ import {
   useMediaQuery,
   useTheme,
   Snackbar,
-  Alert
+  Alert,
 } from '@mui/material'
 
 import Grid from '@mui/material/Grid'
@@ -60,7 +60,7 @@ const Billing = () => {
 
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarError, setSnackbarError] = useState<string | null>(null)
-  
+
   const { data, isLoading, error } = useApi<InvoiceListResponse>(
     {
       url: 'v1/invoices',
@@ -75,24 +75,28 @@ const Billing = () => {
   const handleDownloadPdf = async (invoiceId: string) => {
     try {
       // If your useApi hook doesn’t expose a call-on-demand option, just use axios directly
-      const response = await getUrl(`v1/invoices/${invoiceId}/pdf`) as { data : {
-        data: string }
-      } 
-  
-      const base64Pdf = response.data.data;
-      const byteCharacters = atob(base64Pdf);
-      const byteNumbers = Array.from(byteCharacters).map((char) => char.charCodeAt(0));
-      const byteArray = new Uint8Array(byteNumbers);
-  
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-  
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `invoice-${invoiceId}.pdf`;
-      link.click();
-  
-      URL.revokeObjectURL(url);
+      const response = (await getUrl(`v1/invoices/${invoiceId}/pdf`)) as {
+        data: {
+          data: string
+        }
+      }
+
+      const base64Pdf = response.data.data
+      const byteCharacters = atob(base64Pdf)
+      const byteNumbers = Array.from(byteCharacters).map((char) =>
+        char.charCodeAt(0)
+      )
+      const byteArray = new Uint8Array(byteNumbers)
+
+      const blob = new Blob([byteArray], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `invoice-${invoiceId}.pdf`
+      link.click()
+
+      URL.revokeObjectURL(url)
       setSnackbarError(null)
       setSnackbarOpen(true)
     } catch (error) {
@@ -100,8 +104,7 @@ const Billing = () => {
       setSnackbarError('Failed to download PDF.')
       setSnackbarOpen(true)
     }
-  };
-  
+  }
 
   const setRange = (months: number) => {
     const now = dayjs()
@@ -119,7 +122,7 @@ const Billing = () => {
 
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
-  
+
   return (
     <Box sx={{ position: 'relative' }}>
       <Stack
@@ -197,9 +200,7 @@ const Billing = () => {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <FormControl fullWidth>
-              <InputLabel shrink>
-                {t('billing.filters.invoiceType')}
-              </InputLabel>
+              <InputLabel shrink>{t('billing.filters.invoiceType')}</InputLabel>
               <Select
                 label={t('billing.filters.invoiceType')}
                 value={invoiceType}
@@ -316,12 +317,21 @@ const Billing = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                      <div
-                        style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}
-                        onClick={() => handleDownloadPdf(invoice.id)}
-                      >
-                        <Icon icon="mdi:file-pdf" width={24} height={24} style={{ color: 'red' }} />
-                      </div>
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => handleDownloadPdf(invoice.id)}
+                        >
+                          <Icon
+                            icon='mdi:file-pdf'
+                            width={24}
+                            height={24}
+                            style={{ color: 'red' }}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -345,7 +355,6 @@ const Billing = () => {
           {snackbarError || 'PDF download started'}
         </Alert>
       </Snackbar>
-
     </Box>
   )
 }
