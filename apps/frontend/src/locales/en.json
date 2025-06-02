@@ -11,7 +11,9 @@
     "toggleTheme": "Toggle dark/light mode",
     "toggleSudo": "Toggle admin mode",
     "flightLogs": "Flight Log",
-    "roles": "User Roles"
+    "roles": "User Roles",
+    "billing": "Billing",
+    "accounts": "Accounts"
   },
   "footer": {
     "quickLinks": "Quick Links",
@@ -37,6 +39,9 @@
     "submitButton": "Send Application",
     "withAccount": "Already a member?",
     "login": "Login"
+  },
+  "simplbooks" : {
+    "refresh": "Refresh from Simplbooks"
   },
   "member": {
     "profile": "My Profile",
@@ -215,7 +220,34 @@
     "savingError": "Error Saving",
     "cancel": "Cancel",
     "delete": "Delete",
-    "view": "View"
+    "view": "View",
+    "dateFormat": "YYYY-MM-DD"
+  },
+  "billing": {
+    "title": "My Invoices",    
+    "filters": {
+      "last6Months": "6m",
+      "last3Months": "3m",
+      "last1Month": "1m",
+      "pastDueOnly": "Overdue",
+      "invoiceType": "Type",
+      "unpaid": "Unpaid",
+      "status": "Status",
+      "paid": "Paid",
+      "all": "All",
+      "endDate": "End Date",
+      "startDate": "Start Date"
+    },
+    "columns": {
+      "invoiceId": "Invoice ID",
+      "invoiceDate": "Invoice Date",
+      "dueDate": "Due Date",
+      "description": "Description",
+      "total": "Total",
+      "status": "Status",
+      "type": "Type",
+      "sentDate": "Sent Date"
+    }
   },
   "flightLog": {
     "title": "Flight Logs",

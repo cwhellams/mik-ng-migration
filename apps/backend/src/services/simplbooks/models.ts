@@ -285,13 +285,10 @@ export const ArticleListSchema = z
     unit: z.string(),
     amount: z.number(),
     price_per_unit: z.number(),
-    sum_with_vat: z.number(),
     markup_value: z.number(),
-    markup_type: z.string(), // Add more values if needed
+    markup_type: z.string(),
     is_inventory: z.boolean(),
     active: z.boolean(),
-    sales_vat_type_id: z.number(),
-    purchase_vat_type_id: z.number(),
   })
   .partial()
 

@@ -14,7 +14,7 @@ import { simplbooksApiClient } from '../../../src/services/simplbooks/simplbooks
 import { mockSimplbooksGet, mockSimplbooksPost } from '../../__mocks__/simplbooksMock.ts'
 import {
   checkForOutboxStuckRows,
-  deleteInvoices,
+  deleteCreatedInvoice,
   deleteSimplbooksOutbox,
   expectBillingIdSet,
   expectInvoiceForMemberFee,
@@ -71,13 +71,17 @@ describe('Simplbooks Outbox Handler tests', () => {
     jest.spyOn(simplbooksApiClient, 'get').mockImplementation(mockSimplbooksGet)
   })
 
+  afterEach(async () => {
+    await deleteSimplbooksOutbox()
+    jest.clearAllMocks()
+  })
+
   it('dispatches outbox messages for add member', async () => {
     await dispatchOutboxMsg(obMsgAddMember)
 
     await expectBillingIdSet(newMemberId)
     await expectmemberFee1Row()
 
-    await deleteSimplbooksOutbox()
     await revertBillingIdChanges(newMemberId, 'BILL004')
   })
 
@@ -86,14 +90,12 @@ describe('Simplbooks Outbox Handler tests', () => {
 
     await expectInvoiceForMemberFee(newMemberId)
     await revertBillingIdChanges(newMemberId, 'BILL004')
-    await deleteSimplbooksOutbox()
-    await deleteInvoices()
+    await deleteCreatedInvoice()
   })
 
   it('checks and clears stuck outbox messages ', async () => {
     await insertStuckRowToOutbox()
     await checkAndClearStuckMessages()
     await checkForOutboxStuckRows()
-    await deleteSimplbooksOutbox()
   })
 })

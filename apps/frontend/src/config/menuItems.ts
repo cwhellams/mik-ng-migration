@@ -1,3 +1,4 @@
+import { MIKPermissions } from '@backend/routes/members/models'
 import { ReactNode } from 'react'
 
 export interface MenuItem {
@@ -5,6 +6,7 @@ export interface MenuItem {
   path: string
   translationKey: string
   icon?: ReactNode
+  requiredRoles?: MIKPermissions[]
 }
 
 export const menuItems: MenuItem[] = [
@@ -24,8 +26,24 @@ export const menuItems: MenuItem[] = [
     translationKey: 'header.aircrafts',
   },
   {
+    label: 'Invoicing',
+    path: '/invoicing',
+    translationKey: 'header.invoicing',
+  },
+  {
+    label: 'Billing',
+    path: '/billing',
+    translationKey: 'header.billing',
+  },
+  {
     label: 'Members',
     path: '/members',
     translationKey: 'header.members',
+  },
+  {
+    label: 'Accounting',
+    path: '/accounting',
+    translationKey: 'header.accounts',
+    requiredRoles: [MIKPermissions.INVOICING_ADMIN],
   },
 ]

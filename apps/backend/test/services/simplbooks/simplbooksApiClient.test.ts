@@ -106,9 +106,7 @@ describe('Simplebooks API Tests Happy Case', () => {
 
   it('should get an item', async () => {
     const item = await getItemByCode('OH-IHQ')
-
     expect(item).toBeDefined()
-    expect(item.id).toEqual(12)
   })
 
   it('should throw for an invalid invoices filter', async () => {

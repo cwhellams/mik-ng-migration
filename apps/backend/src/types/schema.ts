@@ -1,4 +1,4 @@
-import { z, ZodObject } from 'zod'
+import { z } from 'zod'
 
 // common audit fields
 export const AuditableSchema = z
@@ -20,7 +20,7 @@ export type Upsert<T extends Auditable> = Partial<
   Omit<T, 'createdAt' | 'createdBy' | 'updatedAt' | 'updatedBy'>
 
 // audit fields are not used from incoming create or update requests
-export const UpsertSchema = <T extends ZodObject<typeof AuditableSchema.shape>>(schema: T) =>
+export const UpsertSchema = <T extends z.ZodObject<typeof AuditableSchema.shape>>(schema: T) =>
   schema.omit({
     createdAt: true,
     createdBy: true,

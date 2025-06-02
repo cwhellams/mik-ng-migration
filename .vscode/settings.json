@@ -4,8 +4,6 @@
   "jestrunner.jestCommand": "pnpm test",
   "jestrunner.runOptions": ["--colors"],
   "jestrunner.debugOptions": {
-    "runtimeArgs": [
-      "--experimental-vm-modules"
-    ]
+    "runtimeArgs": ["--experimental-vm-modules"]
   }
 }

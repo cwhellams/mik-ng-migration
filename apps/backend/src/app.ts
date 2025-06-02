@@ -66,7 +66,7 @@ app.use('/api/v1/members', memberRoutes)
 app.use('/api/v1/flight-logs', flightLogRoutes)
 app.use('/api/v1/aircrafts', aircraftRoutes)
 app.use('/api/v1/ajlb', ajlbRoutes)
-app.use('/api/v1/invoice', invoiceRoutes)
+app.use('/api/v1/invoices', invoiceRoutes)
 
 const poller = startSimpleBooksOutboxProcessor()
 

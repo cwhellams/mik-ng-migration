@@ -27,6 +27,8 @@ import { menuItems } from '../config/menuItems'
 import { useSwipeable } from 'react-swipeable'
 import ThemeToggle from './ThemeToggle'
 import AdminToggle from './AdminToggle'
+import { useRoles } from '../hooks/useRoles'
+
 
 interface HeaderProps {
   window?: () => Window
@@ -41,7 +43,8 @@ const Header = (props: HeaderProps) => {
   const { t } = useTranslation()
   const location = useLocation()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-
+  const roles = useRoles()
+  
   // Check if the page has been scrolled
   const scrollTrigger = useScrollTrigger({
     disableHysteresis: true,
@@ -55,6 +58,7 @@ const Header = (props: HeaderProps) => {
     threshold: 100, // Add some threshold so it doesn't trigger on small scrolls
   })
 
+  
   useEffect(() => {
     setIsScrolled(scrollTrigger)
   }, [scrollTrigger])
@@ -98,7 +102,12 @@ const Header = (props: HeaderProps) => {
       </Box>
       <Divider />
       <List>
-        {menuItems.map((item) => (
+        {menuItems
+        .filter((item) => {
+          return (!item.requiredRoles || 
+          roles.permissions.some((requiredRole) => item.requiredRoles?.includes(requiredRole))
+        )})               
+        .map((item) => (          
           <ListItem key={item.path} disablePadding>
             <ListItemButton
               component={Link}
@@ -189,7 +198,13 @@ const Header = (props: HeaderProps) => {
           {/* Navigation Links - Only on Desktop */}
           {!isMobile && (
             <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
-              {menuItems.map((item) => (
+              {menuItems
+               .filter((item) => {
+                return (!item.requiredRoles || 
+                roles.permissions.some((requiredRole) => item.requiredRoles?.includes(requiredRole))
+              )})        
+              
+              .map((item) => (
                 <Button
                   key={item.path}
                   component={Link}

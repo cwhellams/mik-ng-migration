@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Vite + Chrome",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src"
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Run Gmail File",
@@ -44,7 +51,7 @@
         "--runInBand",
         "--detectOpenHandles",
         "--no-cache",
-        "test/lib/disableSendMail.test.ts"
+        "test/routes/invoicing/api.test.ts"
       ],
       "env": {
         "NODE_ENV": "test"

@@ -62,6 +62,9 @@ jobs:
           echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET }}" >> $GITHUB_ENV
           echo "BETTERSTACK_API_TOKEN=${{ secrets.BETTERSTACK_API_TOKEN }}" >> $GITHUB_ENV
           echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_COMPANY_ID=${{ vars.SIMPLBOOKS_COMPANY_ID }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_BASE_URI=${{ vars.SIMPLBOOKS_BASE_URI }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_API_KEY=${{ secrets.SIMPLBOOKS_API_KEY }}" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         if: env.backend_changed == 'true'

@@ -43,12 +43,12 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>
 export interface AcctsInvoice {
   created_at: Generated<Timestamp>
   created_by: string
-  currency: Generated<string | null>
+  currency: Generated<string>
   description: string | null
   due_at: string
   id: Int8
   invoice_type: InvoiceType
-  is_paid: Generated<boolean | null>
+  is_paid: Generated<boolean>
   member_id: string
   paid_at: string | null
   pmt_ref: string
@@ -56,6 +56,13 @@ export interface AcctsInvoice {
   total_sum: Numeric | null
   updated_at: Generated<Timestamp>
   updated_by: string
+}
+
+export interface AcctsItems {
+  code: string
+  id: number
+  item: Json | null
+  name: string
 }
 
 export interface AcctsOutboxSimplbooks {
@@ -291,6 +298,7 @@ export interface StaticAirfields {
 
 export interface DB {
   'accts.invoice': AcctsInvoice
+  'accts.items': AcctsItems
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks
   'flight.aircraft': FlightAircraft
   'flight.aircraft_documents': FlightAircraftDocuments

@@ -117,6 +117,9 @@ jobs:
         env:
           SMTP_LOGIN: ${{ vars.SMTP_LOGIN }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SIMPLBOOKS_API_KEY: ${{ secrets.SIMPLBOOKS_API_KEY }}
+          SIMPLBOOKS_BASE_URI: ${{ vars.SIMPLBOOKS_BASE_URI }}
+          SIMPLBOOKS_COMPANY_ID: ${{ vars.SIMPLBOOKS_COMPANY_ID }}
           DATABASE_URL: postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
         run: |
           pnpm test

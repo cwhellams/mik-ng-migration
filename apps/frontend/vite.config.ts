@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
 
   const target = env.VITE_API_TARGET || 'http://localhost:3000'
   const isSecure = target.startsWith('https')
+
   return {
     plugins: [react()],
     server: {
@@ -28,7 +29,9 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@backend': path.resolve(__dirname, '../backend/src'),
       },
-      conditions: ['mui-modern', 'module', 'browser', 'development|production'],
+    },
+    optimizeDeps: {
+      include: ['zod'],
     },
   }
 })

@@ -81,6 +81,16 @@ services:
       - key: SIMPLBOOKS_OUTBOX_WORKER_ENABLED
         value: ${SIMPLBOOKS_OUTBOX_WORKER_ENABLED}
         type: GENERAL
+      - key: SIMPLBOOKS_COMPANY_ID
+        value: ${SIMPLBOOKS_COMPANY_ID}
+        type: GENERAL
+      - key: SIMPLBOOKS_BASE_URI
+        value: ${SIMPLBOOKS_BASE_URI}
+        type: GENERAL
+      - key: SIMPLBOOKS_API_KEY
+        value: ${SIMPLBOOKS_API_KEY}
+        type: SECRET
+  
         
 
     instance_count: 1

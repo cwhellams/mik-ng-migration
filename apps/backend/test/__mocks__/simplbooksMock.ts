@@ -37,37 +37,56 @@ export function mockSimplbooksPost(url: string, data?: any): Promise<AxiosRespon
 export function mockSimplbooksGet(url: string, data?: any): Promise<AxiosResponse> {
   if (url === '/articles/list') {
     return Promise.resolve({
-      data: [
-        {
-          Article: {
-            id: 12,
-            code: 'OH-IHQ',
-            ean: '4740123456789',
-            name: 'OH-IHQ Flying',
-            contents: 'Test content',
-            unit: 'pcs',
-            amount: 1,
-            price_per_unit: 24.99,
-            sum_with_vat: 0,
-            markup_value: 0,
-            markup_type: 'none',
-            is_inventory: true,
-            active: true,
-            sales_vat_type_id: 2,
-            purchase_vat_type_id: 3,
-            remnant: {
-              '1': 557,
-              '2': 12,
-              '3': -22,
-            },
-          },
-        },
-      ],
       status: 200,
       statusText: 'OK',
-      duration: 0.02,
+      duration: 0.0058,
       headers: {},
       config: {} as any,
+      data: {
+        status: 200,
+        duration: 0.0531,
+        inserted_id: 123456,
+        data: [
+          {
+            Article: {
+              id: 52,
+              code: 'SRH_Paketti_2021',
+              ean: '',
+              amount: 1,
+              price_per_unit: 0,
+              sum_with_vat: false,
+              sales_vat_type_id: 0,
+              purchase_vat_type_id: 0,
+              markup_value: 945,
+              markup_type: 'fixed',
+              is_inventory: false,
+              active: true,
+              name: 'SRH Paketti 2021',
+              contents: '5 tunnin ennakkotuntipaketti koneelle OH-SRH',
+              unit: 'kpl',
+            },
+          },
+          {
+            Article: {
+              id: 53,
+              code: 'IHQ_Paketti_2021',
+              ean: '',
+              amount: 1,
+              price_per_unit: 0,
+              sum_with_vat: false,
+              sales_vat_type_id: 0,
+              purchase_vat_type_id: 0,
+              markup_value: 645,
+              markup_type: 'fixed',
+              is_inventory: false,
+              active: true,
+              name: 'IHQ Paketti 2021',
+              contents: '5 tunnin ennakkotuntipaketti koneelle OH-IHQ',
+              unit: 'kpl',
+            },
+          },
+        ],
+      },
     })
   }
 
@@ -157,6 +176,7 @@ export function mockSimplbooksGet(url: string, data?: any): Promise<AxiosRespons
       },
     })
   }
+
   return Promise.reject(new Error(`Unhandled URL: ${url}`))
 }
 

@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance } from 'axios'
+import axios, { type AxiosInstance, type AxiosResponse } from 'axios'
 import dotenv from 'dotenv'
 
 import {
@@ -13,21 +13,38 @@ import {
   type InvoicePost,
   type InvoiceResponse,
   type ItemListArticle,
+  type ItemListPayload,
   type SimplBooksInsertResponse,
 } from './models.ts'
 import logger from '../../lib/logger.ts'
 import { MemberSchema, type Member } from '../../routes/members/models.ts'
 import dayjs from 'dayjs'
+import http from 'http'
+import https from 'https'
 
 dotenv.config()
 
 const simplbooksBaseUri = process.env.SIMPLBOOKS_BASE_URI
+const simplbooksCompanyId = process.env.SIMPLBOOKS_COMPANY_ID
 const simplbooksApiKey = process.env.SIMPLBOOKS_API_KEY
+const simplbooksApiVersion = process.env.SIMPLBOOKS_API || 'api'
 
 const ZERO_DATE = '0000-00-00'
 
+if (!simplbooksBaseUri || !simplbooksCompanyId || !simplbooksApiKey) {
+  throw new Error('Missing required SimplBooks environment variables to form Base URI')
+}
+
+const url = new URL(simplbooksBaseUri)
+url.pathname = `/${simplbooksCompanyId}/${simplbooksApiVersion}`
+
+const httpAgent = new http.Agent({ keepAlive: false, timeout: 5000 })
+const httpsAgent = new https.Agent({ keepAlive: false, timeout: 5000 })
+
 export const simplbooksApiClient: AxiosInstance = axios.create({
-  baseURL: simplbooksBaseUri,
+  baseURL: url.toString(),
+  httpAgent,
+  httpsAgent,
   timeout: 5000,
   headers: {
     'X-Simplbooks-Token': simplbooksApiKey,
@@ -35,6 +52,17 @@ export const simplbooksApiClient: AxiosInstance = axios.create({
     'X-Input-Format': 'json',
   },
 })
+
+simplbooksApiClient.interceptors.response.use(
+  response => {
+    logger.info(`[Response] ${response.status} ${response.config.url}`, response.data)
+    return response
+  },
+  error => {
+    logger.error(`[Error] ${error.response?.status} ${error.config.url}`, error)
+    return Promise.reject(error)
+  },
+)
 
 function handleApiError(error: unknown) {
   if (axios.isAxiosError(error) && error.response) {
@@ -79,6 +107,19 @@ export async function searchClient(filter: ClientFilter): Promise<unknown> {
 export async function getInvoice(id: number): Promise<InvoiceResponse> {
   try {
     const response = await simplbooksApiClient.get(`/invoices/get/${id}`)
+    if (response.status !== 200) {
+      throw new Error(`Failed to get invoice: ${response.statusText}`)
+    }
+    return response.data
+  } catch (error) {
+    handleApiError(error)
+    throw error
+  }
+}
+
+export async function getInvoicePdf(id: string): Promise<string> {
+  try {
+    const response = await simplbooksApiClient.get(`/invoices/get_pdf/${id}`)
     if (response.status !== 200) {
       throw new Error(`Failed to get invoice: ${response.statusText}`)
     }
@@ -138,19 +179,43 @@ export async function createInvoice(invoice: InvoicePost): Promise<SimplBooksIns
 }
 
 export async function getItemByCode(code: string): Promise<ItemListArticle> {
-  try {
-    const filter = {
-      code,
+  const item = await getItems(code)
+  return item[0] ?? undefined
+}
+
+export async function getItems(code?: string): Promise<ItemListArticle[]> {
+  const filter = (page: number) => ({
+    ...(code ? { code } : {}),
+    page: page,
+    per_page: 50,
+  })
+  let page: number = 1
+  let getNextPage: boolean = true
+  const allListItems: ItemListArticle[] = []
+  let response: AxiosResponse<any>
+  do {
+    logger.info(`Fetching items from SimplBooks, page: ${page}`)
+    response = await simplbooksApiClient.get(`/articles/list`, { data: filter(page) })
+    if (response.status !== 200) {
+      throw new Error(`Failed to get items from SimplBooks response: ${response.statusText}`)
+    }
+    const parsed = ItemListSchema.safeParse(response.data)
+
+    if (!parsed.success) {
+      logger.error(`Failed to parse SimplBooks response: ${JSON.stringify(parsed.error, null, 2)}`)
+      throw new Error(`Failed to parse SimplBooks response: ${parsed.error.message}`)
     }
 
-    const response = await simplbooksApiClient.get(`/articles/list`, { data: filter })
-    if (response.status !== 200) {
-      throw new Error(`Failed to get articles for code ${code} response: ${response.statusText}`)
-    }
-    const listItem = ItemListSchema.parse(response)
-    return listItem.data[0].Article
-  } catch (error) {
-    handleApiError(error)
-    throw error
-  }
+    const listItems: ItemListPayload = parsed.data
+    allListItems.push(
+      ...listItems.data.map(item => item.Article).filter(item => item.active === true),
+    )
+    page++
+    getNextPage = listItems.data.length > 0 && listItems.data.length === 50
+    logger.info(
+      `Received ${listItems.data.length} items from SimplBooks, next page: ${page}. Continue loading: ${getNextPage}`,
+    )
+  } while (getNextPage)
+
+  return allListItems.map(item => item as ItemListArticle)
 }

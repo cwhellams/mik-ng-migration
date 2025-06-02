@@ -253,3 +253,7 @@ export default function useApi<
     ...rest,
   }
 }
+
+export async function getUrl(url: string): Promise<unknown> {
+  return await api.get(url)
+}

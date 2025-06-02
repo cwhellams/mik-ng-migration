@@ -21,6 +21,9 @@ import Roles from './sections/members/Roles'
 import FlightLogLanding from './sections/flightLog/Landing'
 import NewFlightLogEntry from './sections/flightLog/NewFlightLogEntry'
 import { useTranslation } from 'react-i18next'
+import Billing from './sections/billing/billing'
+import AccountingLayout from './sections/accounting/Accounting'
+import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -62,6 +65,7 @@ function App() {
             {/* <Route path="/schedule" element={<Schedule />} /> */}
             <Route path='/aircrafts' element={<Aircrafts />} />
             <Route index path='/members/roles' element={<Roles />} />
+            <Route index path='/billing' element={<Billing />} />
             <Route index path='/members' element={<Members />} />
             <Route path='/members/:memberId' element={<Member />} />
             /** Flight Log Routes */
@@ -70,6 +74,11 @@ function App() {
               path='/flight-logs/:flightId'
               element={<NewFlightLogEntry />}
             />
+            <Route path='/accounting' element={<AccountingLayout />} >
+              <Route path='dashboard' element={<div>Accounting Dashboard</div>} />
+              <Route path='invoicing' element={<div>Invoicing</div>} />
+              <Route path='items' element={<InvoiceItemsPage />} />
+            </Route>
           </Route>
 
           {/* Auth Layout without header */}

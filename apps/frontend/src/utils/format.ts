@@ -11,3 +11,9 @@ export function formatFinnishPhoneNumber(phone: string): string {
 
   return phone // fallback
 }
+
+export const eurFormatter = new Intl.NumberFormat('fi-FI', {
+  style: 'currency',
+  currency: 'EUR',
+  minimumFractionDigits: 2,
+})

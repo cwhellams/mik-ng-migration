@@ -5,7 +5,12 @@ import { MIKInvoiceType, SimplbooksEventType } from '../../../src/services/simpl
 export const deleteSimplbooksOutbox = async () =>
   await db.deleteFrom('accts.outbox_simplbooks').execute()
 
-export const deleteInvoices = async () => await db.deleteFrom('accts.invoice').execute()
+export const deleteCreatedInvoice = async () =>
+  await db
+    .deleteFrom('accts.invoice')
+    .where('member_id', '=', 'Anna1')
+    .where('invoice_type', '=', MIKInvoiceType.ANNUAL_FEE)
+    .execute()
 
 // export const expectAddMember1Row = async () => {
 //   const result = await db.selectFrom('accts.outbox_simplbooks').selectAll().execute()
@@ -38,6 +43,7 @@ export const expectInvoiceForMemberFee = async (memberId: string) => {
     .selectFrom('accts.invoice')
     .selectAll()
     .where('member_id', '=', memberId)
+    .where('invoice_type', '=', MIKInvoiceType.ANNUAL_FEE)
     .execute()
 
   expect(result.length).toEqual(1)
