@@ -7,7 +7,7 @@ export type LoginVars = {
 }
 
 const mik_logo_url =
-  process.env.MIK_LOGO_URL ?? 'https://mik-intranet-846xw.ondigitalocean.app/mik-logo-blue.png'
+  process.env.MIK_LOGO_URL ?? 'https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png'
 
 export const loginEmailTitle = (lang: string | undefined): string =>
   lang == 'fi' ? 'Kirjaudu MIK sivustolle' : 'Confirm your login to MIK Intranet'

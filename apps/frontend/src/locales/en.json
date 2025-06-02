@@ -247,6 +247,31 @@
       "status": "Status",
       "type": "Type",
       "sentDate": "Sent Date"
+    },
+    "invoiceTypes": {
+      "annualFee": "Membership Fee",
+      "flight": "Flight",
+      "instruction": "Instruction",
+      "equipmentFee": "Equipment Fee",
+      "misc": "Other"
+    }
+  },
+  "invoiceItems": {
+    "title": "Invoice Items",
+    "infoText": "These are Simplbooks invoice 'items' held in our accounting system. When items are added or changed in Simplbooks you should reload from Simplbooks. This data is for information purposes only and cannot be edited here.",
+    "reloadFromSimplbooksTooltip": "This will call Simplbooks to update all accounting items",
+    "reloadFromSimplbooks": "Reload from Simplbooks",
+    "failedToLoad": "Failed to load items",
+    "noItemsFound": "No Items found",
+    "id": "ID",
+    "code": "Code",
+    "name": "Name",
+    "markup": "Markup",
+    "type": "Type",
+    "unit": "Unit",
+    "dates": {
+      "sent": "Sent:",
+      "due": "Due:"
     }
   },
   "flightLog": {

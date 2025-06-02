@@ -224,28 +224,54 @@
     "dateFormat": "YYYY-MM-DD"
   },
   "billing": {
-    "description": "Omat Laskut",
-    "title": "Laskutus",
+    "title": "Omat laskuni",
     "filters": {
       "last6Months": "6kk",
       "last3Months": "3kk",
-      "last1Month": "kk",
-      "pastDueOnly": "Overdue",
-      "invoiceType": "Tyypi",
-      "unpaid": "Unpaid",
-      "status": "Status",
-      "paid": "Paid",
-      "all": "All",
-      "endDate": "End Date",
-      "startDate": "Start Date"
+      "last1Month": "1kk",
+      "pastDueOnly": "Erääntyneet",
+      "invoiceType": "Tyyppi",
+      "unpaid": "Maksamattomat",
+      "status": "Tila",
+      "paid": "Maksetut",
+      "all": "Kaikki",
+      "endDate": "Päättymispäivä",
+      "startDate": "Alkupäivä"
     },
     "columns": {
-      "dueDate": "Due Date",
-      "description": "Description",
-      "total": "Summa",
-      "status": "Maksettu",
-      "type": "Tyypi",
-      "sentDate": "Sent Date"
+      "invoiceId": "Laskun ID",
+      "invoiceDate": "Laskutuspäivä",
+      "dueDate": "Eräpäivä",
+      "description": "Kuvaus",
+      "total": "Yhteensä",
+      "status": "Tila",
+      "type": "Tyyppi",
+      "sentDate": "Lähetyspäivä"
+    },
+    "invoiceTypes": {
+      "annualFee": "Jäsenmaksu",
+      "flight": "Lento",
+      "instruction": "Lennonopetus",
+      "equipmentFee": "Laitevuokra",
+      "misc": "Muu"
+    }
+  },
+  "invoiceItems": {
+    "title": "Laskutuserät",
+    "infoText": "Nämä ovat Simplbooksin laskutuserät, joita säilytetään kirjanpitojärjestelmässämme. Kun eriin tehdään muutoksia tai lisäyksiä Simplbooksissa, ne tulee päivittää manuaalisesti napsauttamalla 'Lataa uudelleen'. Nämä tiedot ovat vain informatiivisia eikä niitä voi muokata tässä näkymässä.",
+    "reloadFromSimplbooksTooltip": "Tämä hakee Simplbooksista päivitetyt laskutuserät",
+    "reloadFromSimplbooks": "Lataa uudelleen Simplbooksista",
+    "failedToLoad": "Erien lataus epäonnistui",
+    "noItemsFound": "Eräitä ei löytynyt",
+    "id": "ID",
+    "code": "Koodi",
+    "name": "Nimi",
+    "markup": "Kate",
+    "type": "Tyyppi",
+    "unit": "Yksikkö",
+    "dates": {
+      "sent": "Lähetetty:",
+      "due": "Eräpäivä:"
     }
   },
   "flightLog": {

@@ -13,11 +13,14 @@ import {
   Button,
   useMediaQuery,
   useTheme,
+  Tooltip,
 } from '@mui/material'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import { ItemListResponse } from '@backend/routes/invoicing/models'
 import useApi from '../../hooks/useApi'
 import { eurFormatter } from '../../utils/format'
+import { RemoteContent } from '../../components/RemoteContent'
+import { t } from 'i18next'
 
 export const InvoiceItemsPage: React.FC = () => {
   const theme = useTheme()
@@ -38,96 +41,115 @@ export const InvoiceItemsPage: React.FC = () => {
   }
 
   return (
-    <Box
-      sx={{
-        p: 3,
-        maxWidth: 1000,
-
-        justifyContent: 'left',
-      }}
-    >
+    <RemoteContent isLoading={isLoading} error={error}>
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 3,
+          p: 3,
+          maxWidth: 1000,
+          justifyContent: 'left',
         }}
       >
-        <Typography variant={isXs ? 'h6' : 'h4'} fontWeight='bold'>
-          Invoice Items
-        </Typography>
-
-        <Button
-          variant='outlined'
-          startIcon={
-            refreshMutation.isMutating ? (
-              <CircularProgress size={16} color='inherit' />
-            ) : (
-              <RefreshIcon />
-            )
-          }
-          onClick={handleRefresh}
-          disabled={refreshMutation.isMutating}
+        {/* Info Box */}
+        <Box
+          sx={{
+            mb: 2,
+            p: 2,
+            borderRadius: 2,
+            backgroundColor: theme.palette.info.light,
+            color: theme.palette.info.contrastText,
+          }}
         >
-          Refresh
-        </Button>
-      </Box>
-
-      {isLoading ? (
-        <Box display='flex' justifyContent='center' my={3}>
-          <CircularProgress />
+          <Typography variant='body1'>{t('invoiceItems.infoText')}</Typography>
         </Box>
-      ) : error ? (
-        <Typography color='error' align='center'>
-          Failed to load items.
-        </Typography>
-      ) : data && data.items.length === 0 ? (
-        <Typography align='center'>No items found.</Typography>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table size={isXs ? 'small' : 'medium'}>
-            <TableHead sx={{ backgroundColor: theme.palette.grey[200] }}>
-              <TableRow>
-                <TableCell>
-                  <strong>ID</strong>
-                </TableCell>
-                <TableCell>
-                  <strong>Code</strong>
-                </TableCell>
-                <TableCell>
-                  <strong>Name</strong>
-                </TableCell>
-                <TableCell align='right'>
-                  <strong>Markup</strong>
-                </TableCell>
-                <TableCell align='center'>
-                  <strong>Type</strong>
-                </TableCell>
-                <TableCell align='center'>
-                  <strong>Unit</strong>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(data?.items ?? []).map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.id}</TableCell>
-                  <TableCell>{item.code}</TableCell>
-                  <TableCell>{item.name}</TableCell>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 3,
+          }}
+        >
+          <Typography variant={isXs ? 'h6' : 'h4'} fontWeight='bold'>
+            {t('invoiceItems.title')}
+          </Typography>
+
+          <Tooltip title={t('invoiceItems.reloadFromSimplbooksTooltip')}>
+            <span>
+              {' '}
+              {/* Needed to avoid Tooltip warning when button is disabled */}
+              <Button
+                variant='outlined'
+                startIcon={
+                  refreshMutation.isMutating ? (
+                    <CircularProgress size={16} color='inherit' />
+                  ) : (
+                    <RefreshIcon />
+                  )
+                }
+                onClick={handleRefresh}
+                disabled={refreshMutation.isMutating}
+              >
+                {t('invoiceItems.reloadFromSimplbooks')}
+              </Button>
+            </span>
+          </Tooltip>
+        </Box>
+
+        {data && data.items.length === 0 ? (
+          <Typography align='center'>
+            {t('invoiceItems.noItemsFound')}
+          </Typography>
+        ) : (
+          <TableContainer
+            component={Paper}
+            sx={{
+              maxHeight: 500, // or any height that makes sense for your layout
+              overflowY: 'auto',
+            }}
+          >
+            <Table size={isXs ? 'small' : 'medium'}>
+              <TableHead sx={{ backgroundColor: theme.palette.grey[200] }}>
+                <TableRow>
+                  <TableCell>
+                    <strong>{t('invoiceItems.id')}</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>{t('invoiceItems.code')}</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>{t('invoiceItems.name')}</strong>
+                  </TableCell>
                   <TableCell align='right'>
-                    {eurFormatter.format(item.markup_value ?? 0)}
+                    <strong>{t('invoiceItems.markup')}</strong>
                   </TableCell>
                   <TableCell align='center'>
-                    {item.markup_type ?? 'N/A'}
+                    <strong>{t('invoiceItems.type')}</strong>
                   </TableCell>
-                  <TableCell align='center'>{item.unit ?? 'N/A'}</TableCell>
+                  <TableCell align='center'>
+                    <strong>{t('invoiceItems.unit')}</strong>
+                  </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-    </Box>
+              </TableHead>
+              <TableBody>
+                {(data?.items ?? []).map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>{item.id}</TableCell>
+                    <TableCell>{item.code}</TableCell>
+                    <TableCell>{item.name}</TableCell>
+                    <TableCell align='right'>
+                      {eurFormatter.format(item.markup_value ?? 0)}
+                    </TableCell>
+                    <TableCell align='center'>
+                      {item.markup_type ?? 'N/A'}
+                    </TableCell>
+                    <TableCell align='center'>{item.unit ?? 'N/A'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
+    </RemoteContent>
   )
 }

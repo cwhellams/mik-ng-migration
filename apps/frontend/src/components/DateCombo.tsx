@@ -1,5 +1,6 @@
 import React from 'react'
 import { TableCell, Typography, Box } from '@mui/material'
+import { t } from 'i18next'
 
 interface InvoiceDatesCellProps {
   sentAt: string | Date
@@ -25,10 +26,10 @@ const InvoiceDatesCell: React.FC<InvoiceDatesCellProps> = ({
           fontWeight='bold'
           color={isPastDue ? 'error.main' : 'text.primary'}
         >
-          Due: {dateFormatter.format(dueDate)}
+          {t('invoiceItems.dates.due')} {dateFormatter.format(dueDate)}
         </Typography>
         <Typography variant='body2' color='text.secondary'>
-          Sent: {dateFormatter.format(sentDate)}
+          {t('invoiceItems.dates.sent')} {dateFormatter.format(sentDate)}
         </Typography>
       </Box>
     </TableCell>
