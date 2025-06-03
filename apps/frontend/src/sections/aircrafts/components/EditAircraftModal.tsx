@@ -526,7 +526,7 @@ export const EditAircraftModal = ({
               title={t('aircraft.notes.delete')}
               icon='mdi:delete'
               onClick={() => handleNoteDelete(index)}
-              sx={{ position: 'static', float: 'right' }}
+              sx={{ float: 'right' }}
             />
           </Grid>
 
@@ -540,7 +540,6 @@ export const EditAircraftModal = ({
           title={t('aircraft.notes.new')}
           onClick={handleNoteCreate}
           icon='mdi:plus'
-          sx={{ position: 'static' }}
         />
       </Grid>
     </Stack>

@@ -175,7 +175,6 @@ const MemberProfile = () => {
             <EditButton
               title={t('member.edit.roles')}
               onClick={() => handleOpenEditModal('roles')}
-              sx={{ position: 'static' }}
             />
           )}
         </Stack>
@@ -239,6 +238,11 @@ const MemberProfile = () => {
               <EditButton
                 title={t('member.edit.personalInfo')}
                 onClick={() => handleOpenEditModal('personalInfo')}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                }}
               />
               <CardContent>
                 <FormTitle title={t('member.info')} icon='mdi:account' />
@@ -273,6 +277,11 @@ const MemberProfile = () => {
               <EditButton
                 title={t('member.edit.emergencyContact')}
                 onClick={() => handleOpenEditModal('emergencyContact')}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                }}
               />
               <CardContent>
                 <FormTitle
@@ -298,6 +307,11 @@ const MemberProfile = () => {
               <EditButton
                 title={t('member.edit.training')}
                 onClick={() => handleOpenEditModal('training')}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                }}
               />
             )}
             <CardContent>
@@ -322,6 +336,11 @@ const MemberProfile = () => {
               <EditButton
                 title={t('member.edit.membership')}
                 onClick={() => handleOpenEditModal('membership')}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                }}
               />
             )}
 

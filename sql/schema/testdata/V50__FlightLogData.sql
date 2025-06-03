@@ -55,7 +55,7 @@ INSERT INTO flight.logs (
     1740816000, 1740816900, 1740823200, 1740824100,
     1.5, 50.0, 20, 4, 1, 30, 45, 'EFHK', 'EFHK',
     'INV001', 'KOU', 'N/A', 'Smooth flight',
-    'Matti1', 'Matti1', TRUE, NULL, NULL, 'C', 1, 0, 2.0, 'NEW', TRUE
+    'Matti1', 'Matti1', TRUE, NULL, NULL, 'C', 2, 0, 2.0, 'PAID', TRUE
 ),
 -- Record 2
 (
@@ -73,7 +73,7 @@ INSERT INTO flight.logs (
     1740906000, 1740907200, 1740914400, 1740915000,
     2.0, 60.0, 60, 2, 2, 45, 60, 'EFHK', 'EFTP',
     'INV002', 'MAT', 'N/A', 'Training flight',
-    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 2, 0, 2.0, 'NEW', FALSE
+    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 2, 0, 2.0, 'INVOICED', FALSE
 ),
 -- Record 3
 (
@@ -119,7 +119,7 @@ INSERT INTO flight.logs (
     1741086000, 1741087800, 1741094400, 1741095300,
     1.2, 55.0, 10, 4, 3, 60, 75, 'EFHK', 'EFHK',
     'INV003', 'HAR', 'N/A', 'Cargo delivery',
-    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 4, 0, 1.735, 'NEW', TRUE
+    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 4, 0, 1.735, 'VALIDATED', TRUE
 ),
 -- Record 5 (Cross-day flight)
 (
@@ -140,5 +140,5 @@ INSERT INTO flight.logs (
     1710205800, -- 2025-03-12 01:10:00 (10 min taxi)
     1.0, 45.0, 60, 2, 1, 115, 60, 'EFHK', 'EFTU',
     'INV004', 'MAT', 'Night navigation exercise', 'Cross-day night flight',
-    'Sanna1', 'Sanna1', TRUE, NULL, NULL, 'C', 2, 0, 1.92, 'NEW', FALSE
+    'Sanna1', 'Sanna1', TRUE, NULL, NULL, 'C', 2, 0, 1.92, 'INVOICED', FALSE
 );

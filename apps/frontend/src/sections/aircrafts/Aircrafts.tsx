@@ -89,6 +89,11 @@ const Aircrafts = () => {
             setEditMode('new')
           }}
           icon='mdi:plus'
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+          }}
         />
       )}
 
@@ -133,7 +138,6 @@ const Aircrafts = () => {
                               setEditData(aircraft)
                               setEditMode('maintenance')
                             }}
-                            sx={{ position: 'static' }}
                           />
                           <EditButton
                             title={t('aircraft.edit.notes')}
@@ -141,7 +145,6 @@ const Aircrafts = () => {
                               setEditData(aircraft)
                               setEditMode('notes')
                             }}
-                            sx={{ position: 'static' }}
                             icon='mdi:notes'
                           />
                           <EditButton
@@ -150,7 +153,6 @@ const Aircrafts = () => {
                               setEditData(aircraft)
                               setEditMode('details')
                             }}
-                            sx={{ position: 'static' }}
                           />
                         </Stack>
                       )}
@@ -214,7 +216,11 @@ const Aircrafts = () => {
                               hardLimit: null,
                             })
                           }}
-                          sx={{ top: 0, right: 0 }}
+                          sx={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                          }}
                         />
                       )}
 
@@ -245,7 +251,11 @@ const Aircrafts = () => {
                                 setEditData(aircraft)
                                 setEditDocument(doc)
                               }}
-                              sx={{ top: 0, right: 0 }}
+                              sx={{
+                                position: 'absolute',
+                                top: 0,
+                                right: 0,
+                              }}
                             />
                           )}
                         </FormField>

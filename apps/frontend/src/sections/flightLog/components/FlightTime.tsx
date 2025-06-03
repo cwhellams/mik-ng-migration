@@ -20,7 +20,7 @@ import { Icon } from '@iconify/react'
 import { useEffect, useState } from 'react'
 import {
   FlightLog,
-  FlightLogMemberRequest,
+  FlightLogUpsertRequest,
 } from '@backend/routes/flight-log/models'
 import dayjs from 'dayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
@@ -31,11 +31,11 @@ import { calculateNext } from '../utils/timeUtils'
 
 interface FlightTimeProps {
   data?: FlightLog
-  control: Control<FlightLogMemberRequest>
-  getValues: UseFormGetValues<FlightLogMemberRequest>
-  setValue: UseFormSetValue<FlightLogMemberRequest>
-  watch: UseFormWatch<FlightLogMemberRequest>
-  trigger: UseFormTrigger<FlightLogMemberRequest>
+  control: Control<FlightLogUpsertRequest>
+  getValues: UseFormGetValues<FlightLogUpsertRequest>
+  setValue: UseFormSetValue<FlightLogUpsertRequest>
+  watch: UseFormWatch<FlightLogUpsertRequest>
+  trigger: UseFormTrigger<FlightLogUpsertRequest>
 }
 
 export const FlightTime = ({
@@ -228,16 +228,16 @@ const TimeStringEditor = ({
   deps,
 }: {
   label: string
-  name: keyof FlightLogMemberRequest
-  control: Control<FlightLogMemberRequest>
+  name: keyof FlightLogUpsertRequest
+  control: Control<FlightLogUpsertRequest>
   min: string
   useUtcTime: boolean
-  trigger: UseFormTrigger<FlightLogMemberRequest>
-  deps: (keyof FlightLogMemberRequest)[]
+  trigger: UseFormTrigger<FlightLogUpsertRequest>
+  deps: (keyof FlightLogUpsertRequest)[]
 }) => {
   const { t } = useTranslation()
 
-  const toDate = (epoch: string | number) => {
+  const toDate = (epoch: string | number | true) => {
     const date = dayjs.unix(Number(epoch))
     return useUtcTime ? date.utc() : date
   }

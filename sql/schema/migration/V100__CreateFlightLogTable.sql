@@ -89,31 +89,31 @@ CREATE TABLE flight.logs
         AND landing_time_epoch <= EXTRACT(EPOCH FROM NOW())
     ),
     -- Computed columns to convert BIGINT timestamps to TIMESTAMPTZ
-    off_block_time_utc TIMESTAMPTZ GENERATED ALWAYS AS (
+    off_block_time_utc TIMESTAMPTZ NOT NULL GENERATED ALWAYS AS (
         TO_TIMESTAMP(off_block_time_epoch)
     ) STORED,
-    takeoff_time_utc TIMESTAMPTZ GENERATED ALWAYS AS (
+    takeoff_time_utc TIMESTAMPTZ NOT NULL GENERATED ALWAYS AS (
         TO_TIMESTAMP(takeoff_time_epoch)
     ) STORED,
-    landing_time_utc TIMESTAMPTZ GENERATED ALWAYS AS (
+    landing_time_utc TIMESTAMPTZ NOT NULL GENERATED ALWAYS AS (
         TO_TIMESTAMP(landing_time_epoch)
     ) STORED,
-    on_block_time_utc TIMESTAMPTZ GENERATED ALWAYS AS (
+    on_block_time_utc TIMESTAMPTZ NOT NULL GENERATED ALWAYS AS (
         TO_TIMESTAMP(on_block_time_epoch)
     ) STORED,
-    block_mins INTEGER
+    block_mins INTEGER NOT NULL
     GENERATED ALWAYS AS (
         (on_block_time_epoch - off_block_time_epoch) / 60
     ) STORED,
-    flight_mins INTEGER
+    flight_mins INTEGER NOT NULL
     GENERATED ALWAYS AS (
         (landing_time_epoch - takeoff_time_epoch) / 60
     ) STORED,
-    block_time TEXT
+    block_time TEXT NOT NULL
     GENERATED ALWAYS AS (
         EPOCH_DIFF_TO_HHMM(off_block_time_epoch, on_block_time_epoch)
     ) STORED,
-    flight_time TEXT
+    flight_time TEXT NOT NULL
     GENERATED ALWAYS AS (
         EPOCH_DIFF_TO_HHMM(takeoff_time_epoch, landing_time_epoch)
     ) STORED

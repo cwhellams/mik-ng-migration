@@ -286,6 +286,7 @@
     "departure": "Lähtö",
     "arrival": "Saapuminen",
     "blockTime": "Block-aika",
+    "airborneTime": "Ilmassaoloaika",
     "flightType": "Tyyppi",
     "billed": "Laskutettu",
 
@@ -335,7 +336,7 @@
     "personalRemarks": "Huomautukset",
     "flightTimeline": "Lennon aikajana",
     "taxiOut": "Rullaus lentoonlähtöön",
-    "flight": "Lentoaika",
+    "flightTime": "Lento",
     "taxiIn": "Rullaus laskun jälkeen",
     "offBlock": "Lähtöaika",
     "takeoff": "Nousuaika",
@@ -361,6 +362,27 @@
       "skillTest": "Lentokoe",
       "ferry": "Siirtolento",
       "test": "Koelento"
+    },
+    "status": {
+      "title": "Laskutuksen tila",
+      "new": "Odottaa tarkastusta",
+      "validated": "Lentoajat täsmäytetty",
+      "invoiced": "Lasku lähetetty",
+      "paid": "Lasku maksettu"
+    },
+    "logbooks": {
+      "title": "Lokikirjat",
+      "ajlb": "Lentokoneen lokikirja",
+      "student": "Oppilas",
+      "totalFlightTime": "Lentotunnit",
+      "blankRow": "Tyhjä",
+      "status": "Tila",
+      "verifyThePage": "Vahvista lentopäiväkirjan sivu",
+      "verifyAll": "Vahvista {{count}} lentoa täsmäytetyksi ja valmiina laskutukseen",
+      "lastAirborneTime": "Kokonaisilmassaoloaika viimeisen lennon jälkeen",
+      "carriedForward": "Kokonaisilmassaoloajan siirto seuraavalle sivulle",
+      "showAll": "Näytä kaikki",
+      "current": "nykyinen"
     }
   }
 }

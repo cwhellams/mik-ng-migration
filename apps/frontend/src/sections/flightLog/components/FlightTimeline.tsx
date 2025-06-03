@@ -20,7 +20,8 @@ interface Props {
   takeoffTime: dayjs.Dayjs | null
   landingTime: dayjs.Dayjs | null
   onBlockTime: dayjs.Dayjs | null
-  aircraftTotalFlightTime?: string
+  acTotalFlightTimeBefore?: string
+  acTotalFlightTimeAfter?: string | null
 }
 
 const FlightTimeline = ({
@@ -28,30 +29,29 @@ const FlightTimeline = ({
   takeoffTime,
   landingTime,
   onBlockTime,
-  aircraftTotalFlightTime,
+  acTotalFlightTimeBefore,
+  acTotalFlightTimeAfter,
 }: Props) => {
   const { t } = useTranslation()
   const theme = useTheme()
 
-  const [currentHours, setCurrentHours] = useState<number | ''>('')
-  const [currentMinutes, setCurrentMinutes] = useState<number | ''>('')
+  const [currentHours, setCurrentHours] = useState<number | null>(null)
+  const [currentMinutes, setCurrentMinutes] = useState<number | null>(null)
   const [calculatorExpanded, setCalculatorExpanded] = useState(false)
 
   useEffect(() => {
-    if (aircraftTotalFlightTime) {
-      const { hours, minutes } = splitTime(aircraftTotalFlightTime)
+    if (acTotalFlightTimeBefore) {
+      const { hours, minutes } = splitTime(acTotalFlightTimeBefore)
       setCurrentHours(hours)
       setCurrentMinutes(minutes)
       setCalculatorExpanded(true)
     }
-  }, [aircraftTotalFlightTime])
+  }, [acTotalFlightTimeBefore])
 
   const hasEnoughData =
     (offBlockTime && takeoffTime) ||
     (takeoffTime && landingTime) ||
     (landingTime && onBlockTime)
-
-  if (!hasEnoughData) return null
 
   const calculateDuration = (
     start: dayjs.Dayjs | null,
@@ -70,6 +70,20 @@ const FlightTimeline = ({
   const flightPercent = totalTime ? (flightTime / totalTime) * 100 : 0
   const taxiInPercent = totalTime ? (taxiInTime / totalTime) * 100 : 0
 
+  useEffect(() => {
+    if (acTotalFlightTimeAfter) {
+      const { hours, minutes } = splitTime(acTotalFlightTimeAfter)
+
+      const totalMinutes = hours * 60 + minutes - flightTime
+
+      setCurrentHours(Math.floor(totalMinutes / 60))
+      setCurrentMinutes(totalMinutes % 60)
+      setCalculatorExpanded(true)
+    }
+  }, [acTotalFlightTimeAfter, flightTime])
+
+  if (!hasEnoughData) return null
+
   return (
     <Paper
       elevation={0}
@@ -82,7 +96,7 @@ const FlightTimeline = ({
       }}
     >
       <Typography variant='subtitle1' gutterBottom fontWeight='medium'>
-        {t('flightLog.flightTimeline', 'Flight Timeline')}
+        {t('flightLog.flightTimeline')}
       </Typography>
 
       <Box
@@ -187,7 +201,7 @@ const FlightTimeline = ({
         <TimeBlock
           from={takeoffTime}
           to={landingTime}
-          label={t('flightLog.flight')}
+          label={t('flightLog.flightTime')}
           duration={flightTime}
           color='primary'
         />
@@ -215,7 +229,7 @@ const FlightTimeline = ({
           }}
         >
           <Typography variant='body2' fontWeight='medium' color='primary.dark'>
-            {t('flightLog.totalBlockTime', 'Total Block Time')}
+            {t('flightLog.totalBlockTime')}
           </Typography>
           <Typography
             variant='h6'
@@ -306,10 +320,12 @@ const FlightTimeline = ({
                         size='medium'
                         label={t('flightLog.hours')}
                         type='number'
-                        value={currentHours}
+                        value={currentHours ?? ''}
                         onChange={(e) =>
                           setCurrentHours(
-                            e.target.value === '' ? '' : Number(e.target.value)
+                            e.target.value === ''
+                              ? null
+                              : Number(e.target.value)
                           )
                         }
                         slotProps={{
@@ -325,7 +341,9 @@ const FlightTimeline = ({
                         value={currentMinutes}
                         onChange={(e) => {
                           const value =
-                            e.target.value === '' ? '' : Number(e.target.value)
+                            e.target.value === ''
+                              ? null
+                              : Number(e.target.value)
                           if (typeof value !== 'number' || value <= 59) {
                             setCurrentMinutes(value)
                           }
@@ -383,18 +401,12 @@ const FlightTimeline = ({
                     </Typography>
                     <Typography variant='h6' color='success.main'>
                       {(() => {
-                        if (currentHours === '' && currentMinutes === '') {
+                        if (currentHours == null || currentMinutes == null) {
                           return '--'
                         }
 
                         const totalMinutes =
-                          (typeof currentHours === 'number'
-                            ? currentHours * 60
-                            : 0) +
-                          (typeof currentMinutes === 'number'
-                            ? currentMinutes
-                            : 0) +
-                          flightTime
+                          currentHours * 60 + currentMinutes + flightTime
 
                         const newHours = Math.floor(totalMinutes / 60)
                         const newMinutes = totalMinutes % 60
@@ -403,12 +415,9 @@ const FlightTimeline = ({
                       })()}
                     </Typography>
                     <Typography variant='caption' color='text.secondary'>
-                      {currentHours === '' && currentMinutes === ''
-                        ? t(
-                            'flightLog.enterCurrentTime',
-                            'Enter your current time'
-                          )
-                        : t('flightLog.calculatedTotal', 'Calculated total')}
+                      {!currentHours || !currentMinutes
+                        ? t('flightLog.enterCurrentTime')
+                        : t('flightLog.calculatedTotal')}
                     </Typography>
                   </Box>
                 </Grid>

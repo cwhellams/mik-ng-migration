@@ -12,10 +12,10 @@ app.use(express.json())
 app.use('/ajlb', ajlbRouter)
 app.use(problemErrorHandler)
 
-const token = generateAccessToken({
+const memberToken = generateAccessToken({
   memberId: 'Matti1',
   email: 'jonny.depp@mik.fi',
-  permissions: [MIKPermissions.FLIGHTLOG_USER],
+  permissions: [MIKPermissions.MEMBER],
 })
 
 const adminToken = generateAccessToken({
@@ -31,8 +31,8 @@ describe('GET /ajlb', () => {
     expect(response.body).toMatchSnapshot()
   })
 
-  it('should return 403 for a regular user', async () => {
-    const response = await request(app).get('/ajlb').set('Authorization', `Bearer ${token}`)
+  it('should return 403 for members', async () => {
+    const response = await request(app).get('/ajlb').set('Authorization', `Bearer ${memberToken}`)
     expect(response.body).toEqual({
       status: 403,
       title: 'Forbidden',
@@ -64,14 +64,6 @@ describe('GET /ajlb', () => {
         },
       ],
     })
-  })
-
-  it('should get latest ajlbs for an admin user', async () => {
-    const response = await request(app)
-      .get('/ajlb/latest')
-      .set('Authorization', `Bearer ${adminToken}`)
-    expect(response.status).toBe(200)
-    expect(response.body).toMatchSnapshot()
   })
 
   it('should get filtered ajlbs for an admin user', async () => {

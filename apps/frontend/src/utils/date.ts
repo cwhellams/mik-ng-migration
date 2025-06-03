@@ -19,3 +19,16 @@ dayjs.updateLocale('fi', {
 
 export const toLocalDate = (date?: string | null) =>
   date ? dayjs.tz(dayjs(date), 'Europe/Helsinki').format('DD.MM.YYYY') : null
+
+// Format date from timestamp to localized format
+export const formatDate = (timestamp: string | Date) => {
+  return dayjs(timestamp).format('D.M.YY')
+}
+
+// Format time from timestamp to display format
+export const formatTime = (timestamp: string | Date) => {
+  return new Date(timestamp).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}

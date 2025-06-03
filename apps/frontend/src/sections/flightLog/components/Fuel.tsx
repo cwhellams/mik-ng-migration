@@ -1,10 +1,10 @@
 import { Box, Slider, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { Control, Controller } from 'react-hook-form'
-import { FlightLogMemberRequest } from '@backend/routes/flight-log/models'
+import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
-  control: Control<FlightLogMemberRequest>
+  control: Control<FlightLogUpsertRequest>
   usableFuelLitres: number
 }
 

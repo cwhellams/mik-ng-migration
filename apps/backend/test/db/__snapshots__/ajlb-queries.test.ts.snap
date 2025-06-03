@@ -1,6 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Db query ajlb get tests getAllAjlbs should return all ajlbs 1`] = `
+exports[`Db query ajlb get tests from date should return expected ajlbs 1`] = `
+[
+  {
+    "aircraftRegistration": "OH-IHQ",
+    "endDate": null,
+    "flightTime": "6116:40",
+    "minutesAtStart": 367000,
+    "noOfPages": 90,
+    "pagesInUse": 1,
+    "rowsPerPage": 11,
+    "seqNo": 2,
+    "startDate": "2025-04-04",
+    "startPage": 81,
+  },
+]
+`;
+
+exports[`Db query ajlb get tests should return IHQ ajlbs 1`] = `
 [
   {
     "aircraftRegistration": "OH-IHQ",
@@ -8,40 +25,25 @@ exports[`Db query ajlb get tests getAllAjlbs should return all ajlbs 1`] = `
     "flightTime": "40:45",
     "minutesAtStart": 2445,
     "noOfPages": 80,
-    "rowsPerPage": 20,
+    "pagesInUse": 0,
+    "rowsPerPage": 11,
     "seqNo": 1,
     "startDate": "2024-04-03",
     "startPage": 1,
   },
-  {
-    "aircraftRegistration": "OH-IHQ",
-    "endDate": null,
-    "flightTime": "6116:40",
-    "minutesAtStart": 367000,
-    "noOfPages": 90,
-    "rowsPerPage": 25,
-    "seqNo": 2,
-    "startDate": "2025-04-04",
-    "startPage": 81,
-  },
-  {
-    "aircraftRegistration": "OH-P28",
-    "endDate": null,
-    "flightTime": "5228:20",
-    "minutesAtStart": 313700,
-    "noOfPages": 90,
-    "rowsPerPage": 25,
-    "seqNo": 4,
-    "startDate": "2003-04-04",
-    "startPage": 81,
-  },
+]
+`;
+
+exports[`Db query ajlb get tests should return STL ajlbs 1`] = `
+[
   {
     "aircraftRegistration": "OH-STL",
     "endDate": "2024-04-02",
     "flightTime": "10:10",
     "minutesAtStart": 610,
     "noOfPages": 100,
-    "rowsPerPage": 25,
+    "pagesInUse": 17,
+    "rowsPerPage": 12,
     "seqNo": 1,
     "startDate": "2023-04-01",
     "startPage": 1,
@@ -52,7 +54,8 @@ exports[`Db query ajlb get tests getAllAjlbs should return all ajlbs 1`] = `
     "flightTime": "167:00",
     "minutesAtStart": 10020,
     "noOfPages": 120,
-    "rowsPerPage": 30,
+    "pagesInUse": 1,
+    "rowsPerPage": 11,
     "seqNo": 2,
     "startDate": "2024-04-02",
     "startPage": 101,
@@ -63,7 +66,8 @@ exports[`Db query ajlb get tests getAllAjlbs should return all ajlbs 1`] = `
     "flightTime": "4783:20",
     "minutesAtStart": 287000,
     "noOfPages": 120,
-    "rowsPerPage": 30,
+    "pagesInUse": 0,
+    "rowsPerPage": 11,
     "seqNo": 3,
     "startDate": "2025-04-02",
     "startPage": 101,
@@ -71,15 +75,28 @@ exports[`Db query ajlb get tests getAllAjlbs should return all ajlbs 1`] = `
 ]
 `;
 
-exports[`Db query ajlb get tests getCurrentAjlbs should return all current ajlbs 1`] = `
+exports[`Db query ajlb get tests should return all ajlbs 1`] = `
 [
+  {
+    "aircraftRegistration": "OH-IHQ",
+    "endDate": "2025-04-04",
+    "flightTime": "40:45",
+    "minutesAtStart": 2445,
+    "noOfPages": 80,
+    "pagesInUse": 0,
+    "rowsPerPage": 11,
+    "seqNo": 1,
+    "startDate": "2024-04-03",
+    "startPage": 1,
+  },
   {
     "aircraftRegistration": "OH-IHQ",
     "endDate": null,
     "flightTime": "6116:40",
     "minutesAtStart": 367000,
     "noOfPages": 90,
-    "rowsPerPage": 25,
+    "pagesInUse": 1,
+    "rowsPerPage": 11,
     "seqNo": 2,
     "startDate": "2025-04-04",
     "startPage": 81,
@@ -90,66 +107,20 @@ exports[`Db query ajlb get tests getCurrentAjlbs should return all current ajlbs
     "flightTime": "5228:20",
     "minutesAtStart": 313700,
     "noOfPages": 90,
-    "rowsPerPage": 25,
+    "pagesInUse": 1,
+    "rowsPerPage": 10,
     "seqNo": 4,
     "startDate": "2003-04-04",
     "startPage": 81,
   },
   {
     "aircraftRegistration": "OH-STL",
-    "endDate": null,
-    "flightTime": "4783:20",
-    "minutesAtStart": 287000,
-    "noOfPages": 120,
-    "rowsPerPage": 30,
-    "seqNo": 3,
-    "startDate": "2025-04-02",
-    "startPage": 101,
-  },
-]
-`;
-
-exports[`Db query ajlb get tests getFilteredAjlbs for date should return expected ajlbs 1`] = `
-[
-  {
-    "aircraftRegistration": "OH-IHQ",
-    "endDate": null,
-    "flightTime": "6116:40",
-    "minutesAtStart": 367000,
-    "noOfPages": 90,
-    "rowsPerPage": 25,
-    "seqNo": 2,
-    "startDate": "2025-04-04",
-    "startPage": 81,
-  },
-]
-`;
-
-exports[`Db query ajlb get tests getFilteredAjlbs should return IHQ ajlbs 1`] = `
-[
-  {
-    "aircraftRegistration": "OH-IHQ",
-    "endDate": "2025-04-04",
-    "flightTime": "40:45",
-    "minutesAtStart": 2445,
-    "noOfPages": 80,
-    "rowsPerPage": 20,
-    "seqNo": 1,
-    "startDate": "2024-04-03",
-    "startPage": 1,
-  },
-]
-`;
-
-exports[`Db query ajlb get tests getFilteredAjlbs should return STL ajlbs 1`] = `
-[
-  {
-    "aircraftRegistration": "OH-STL",
     "endDate": "2024-04-02",
     "flightTime": "10:10",
     "minutesAtStart": 610,
     "noOfPages": 100,
-    "rowsPerPage": 25,
+    "pagesInUse": 17,
+    "rowsPerPage": 12,
     "seqNo": 1,
     "startDate": "2023-04-01",
     "startPage": 1,
@@ -160,7 +131,8 @@ exports[`Db query ajlb get tests getFilteredAjlbs should return STL ajlbs 1`] = 
     "flightTime": "167:00",
     "minutesAtStart": 10020,
     "noOfPages": 120,
-    "rowsPerPage": 30,
+    "pagesInUse": 1,
+    "rowsPerPage": 11,
     "seqNo": 2,
     "startDate": "2024-04-02",
     "startPage": 101,
@@ -171,7 +143,49 @@ exports[`Db query ajlb get tests getFilteredAjlbs should return STL ajlbs 1`] = 
     "flightTime": "4783:20",
     "minutesAtStart": 287000,
     "noOfPages": 120,
-    "rowsPerPage": 30,
+    "pagesInUse": 0,
+    "rowsPerPage": 11,
+    "seqNo": 3,
+    "startDate": "2025-04-02",
+    "startPage": 101,
+  },
+]
+`;
+
+exports[`Db query ajlb get tests should return all current ajlbs 1`] = `
+[
+  {
+    "aircraftRegistration": "OH-IHQ",
+    "endDate": null,
+    "flightTime": "6116:40",
+    "minutesAtStart": 367000,
+    "noOfPages": 90,
+    "pagesInUse": 1,
+    "rowsPerPage": 11,
+    "seqNo": 2,
+    "startDate": "2025-04-04",
+    "startPage": 81,
+  },
+  {
+    "aircraftRegistration": "OH-P28",
+    "endDate": null,
+    "flightTime": "5228:20",
+    "minutesAtStart": 313700,
+    "noOfPages": 90,
+    "pagesInUse": 1,
+    "rowsPerPage": 10,
+    "seqNo": 4,
+    "startDate": "2003-04-04",
+    "startPage": 81,
+  },
+  {
+    "aircraftRegistration": "OH-STL",
+    "endDate": null,
+    "flightTime": "4783:20",
+    "minutesAtStart": 287000,
+    "noOfPages": 120,
+    "pagesInUse": 0,
+    "rowsPerPage": 11,
     "seqNo": 3,
     "startDate": "2025-04-02",
     "startPage": 101,

@@ -29,7 +29,7 @@ import { UpsertSchema } from '../../types/schema.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
-import type { FlightLog } from '../flight-log/models.ts'
+import type { FlightLogListEntry } from '../flight-log/models.ts'
 
 // all aircarft routes are protected by aircraft permissions
 export const router = Router()
@@ -209,12 +209,14 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   const totals = (await getFlightLogTotals(aircraft.registration))?.[0]
   const totalTime = totals?.acTotalFlightHours ?? 0
 
-  const lastFlight: FlightLog | undefined = (
+  const lastFlight: FlightLogListEntry | undefined = (
     await getFlightLogs({
       aircraftRegistration: aircraft.registration,
-      last: true,
+      orderLatestFirst: true,
+      limit: 1,
+      page: 1,
     })
-  )?.[0]
+  ).logs?.[0]
 
   const tachUntilNextMaintenance = Math.floor(maintenance.nextMaintenanceTach - totalTime)
   const usablePercentageHours = tachUntilNextMaintenance + maintenance.usablePercentageHours
@@ -266,10 +268,10 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   return {
     totalTime: totals?.acTotalFlightTime,
 
-    lastLandingTimeUtc: lastFlight?.landingTimeUtc?.toISOString() ?? undefined,
+    lastLandingTimeUtc: lastFlight?.landingTimeUtc,
     lastLandingAirport: lastFlight?.arrivalAirport,
 
-    remainingFuelLitres: Math.round(lastFlight?.fuelRemainingLitres),
+    remainingFuelLitres: lastFlight ? Math.round(lastFlight?.fuelRemainingLitres) : undefined,
 
     daysUntilNextMaintenance,
     tachUntilNextMaintenance,

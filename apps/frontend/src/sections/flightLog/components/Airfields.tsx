@@ -1,6 +1,6 @@
 import {
   AirfieldListResponse,
-  FlightLogMemberRequest,
+  FlightLogUpsertRequest,
 } from '@backend/routes/flight-log/models'
 import { Autocomplete, TextField } from '@mui/material'
 import { t } from 'i18next'
@@ -8,8 +8,8 @@ import { Control, Controller, GlobalError } from 'react-hook-form'
 import useApi from '../../../hooks/useApi'
 
 interface AirfieldsProps {
-  control: Control<FlightLogMemberRequest>
-  name: keyof FlightLogMemberRequest
+  control: Control<FlightLogUpsertRequest>
+  name: keyof FlightLogUpsertRequest
   error?: GlobalError
 }
 

@@ -16,19 +16,26 @@ import {
   Alert,
   Snackbar,
   Slide,
+  ListItemIcon,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
+import {
+  Link as RouterLink,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   FlightLog,
-  FlightLogMemberUpsertSchema,
-  type FlightLogMemberRequest,
+  FlightLogUpsertSchema,
+  type FlightLogUpsertRequest,
   flightLogDateValidator,
+  FlightLogStatus,
 } from '@backend/routes/flight-log/models'
 import useApi from '../../hooks/useApi'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
@@ -54,9 +61,11 @@ const flightTypes = [
   // { code: 'TAI', labelKey: 'flightLog.flightTypes.aerobatics' },
 ]
 
-const NewFlightLogEntry = () => {
+const FlightLogEntry = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  // preserve search filters when navigating back
+  const location = useLocation()
 
   const { flightId } = useParams()
 
@@ -70,7 +79,7 @@ const NewFlightLogEntry = () => {
       skipFetch: isNew,
     },
     {
-      // nobody else is modifying the aircraft at the same time
+      // nobody else is modifying the same flight at the same time
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
@@ -108,10 +117,10 @@ const NewFlightLogEntry = () => {
     getValues,
     reset,
     trigger,
-  } = useForm<FlightLogMemberRequest>({
+  } = useForm<FlightLogUpsertRequest>({
     mode: 'onChange',
     resolver: zodResolver(
-      flightLogDateValidator(FlightLogMemberUpsertSchema.strip()),
+      flightLogDateValidator(FlightLogUpsertSchema.strip()),
       {}
     ),
 
@@ -143,6 +152,9 @@ const NewFlightLogEntry = () => {
 
       personalRemarks: null,
       billingRemarks: null,
+
+      // admin only fields
+      status: FlightLogStatus.NEW,
     },
   })
 
@@ -173,12 +185,17 @@ const NewFlightLogEntry = () => {
       | 'onBlockTimeEpoch'
   ) => (getValues(field) ? dayjs.unix(Number(watch(field))) : null)
 
-  const onSubmit = async (data: FlightLogMemberRequest) => {
-    const { error } = await mutation.trigger(isNew ? 'POST' : 'PATCH', data, {
-      // put returned payload to the cache
-      revalidate: false,
-      populateCache: (result) => result,
-    })
+  const onSubmit = async (data: FlightLogUpsertRequest) => {
+    const { error } = await mutation.trigger(
+      isNew ? 'POST' : 'PATCH',
+      data,
+      undefined,
+      {
+        // put returned payload to the cache
+        revalidate: false,
+        populateCache: (result) => result,
+      }
+    )
     if (error) {
       console.error('Error saving flight data:', error)
       setSbState(true)
@@ -187,7 +204,7 @@ const NewFlightLogEntry = () => {
       })
     }
 
-    navigate('/flight-logs')
+    navigate(`/flight-logs?${location.state}#${flightId}`)
   }
 
   const [sbState, setSbState] = useState<boolean>(false)
@@ -196,7 +213,8 @@ const NewFlightLogEntry = () => {
   }
 
   const handleCancel = () => {
-    navigate('/flight-logs')
+    console.log(location)
+    navigate(`/flight-logs?${location.state}#${flightId}`)
   }
 
   const title = isNew ? t('flightLog.newEntry') : t('flightLog.existingEntry')
@@ -351,9 +369,10 @@ const NewFlightLogEntry = () => {
                 takeoffTime={epochToDayjs('takeoffTimeEpoch')}
                 landingTime={epochToDayjs('landingTimeEpoch')}
                 onBlockTime={epochToDayjs('onBlockTimeEpoch')}
-                aircraftTotalFlightTime={
+                acTotalFlightTimeBefore={
                   isNew ? aircraft?.status?.totalTime : undefined
                 }
+                acTotalFlightTimeAfter={data?.acTotalFlightTime}
               />
             </Grid>
 
@@ -479,6 +498,61 @@ const NewFlightLogEntry = () => {
                 }}
               />
             </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <FormControl required fullWidth error={!!errors.status}>
+                <InputLabel>{t('flightLog.status.title')}</InputLabel>
+                <Controller
+                  name='status'
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      onChange={({ target }) => field.onChange(target.value)}
+                      label={t('flightLog.status.title')}
+                    >
+                      <MenuItem value={FlightLogStatus.NEW}>
+                        <ListItemIcon>
+                          <Icon icon='mdi:schedule' color='orange' width={20} />
+                        </ListItemIcon>
+                        {t('flightLog.status.new')}
+                      </MenuItem>
+                      <MenuItem value={FlightLogStatus.VALIDATED}>
+                        <ListItemIcon>
+                          <Icon icon='mdi:check' color='green' width={20} />
+                        </ListItemIcon>
+                        {t('flightLog.status.validated')}
+                      </MenuItem>
+                      <MenuItem value={FlightLogStatus.INVOICED}>
+                        <ListItemIcon>
+                          <Icon
+                            icon='mdi:invoice-send-outline'
+                            color='orange'
+                            width={20}
+                          />
+                        </ListItemIcon>
+                        {t('flightLog.status.invoiced')}
+                      </MenuItem>
+                      <MenuItem value={FlightLogStatus.PAID}>
+                        <ListItemIcon>
+                          <Icon
+                            icon='mdi:invoice-check'
+                            color='green'
+                            width={20}
+                          />
+                        </ListItemIcon>
+                        {t('flightLog.status.paid')}
+                      </MenuItem>
+                    </Select>
+                  )}
+                />
+                {errors.status && (
+                  <FormHelperText>
+                    {errors.status.message?.toString()}
+                  </FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
           </Grid>
 
           {errors.root?.type && (
@@ -517,4 +591,4 @@ const NewFlightLogEntry = () => {
   )
 }
 
-export default NewFlightLogEntry
+export default FlightLogEntry

@@ -138,8 +138,8 @@ export interface FlightLogs {
   arrival_airport: string
   billable_member_id: string
   billing_remarks: string | null
-  block_mins: Generated<number | null>
-  block_time: Generated<string | null>
+  block_mins: Generated<number>
+  block_time: Generated<string>
   created_at: Generated<Timestamp>
   created_by: string
   crew2_member_id: Generated<string | null>
@@ -150,8 +150,8 @@ export interface FlightLogs {
   crew4_role: CrewRole | null
   departure_airport: string
   flight_id: string
-  flight_mins: Generated<number | null>
-  flight_time: Generated<string | null>
+  flight_mins: Generated<number>
+  flight_time: Generated<string>
   flight_type: string
   fuel_remaining_litres: Numeric
   fuel_uplift_litres: Numeric | null
@@ -162,16 +162,16 @@ export interface FlightLogs {
   is_billed: Generated<boolean>
   is_dto_training_flight: boolean
   landing_time_epoch: Int8
-  landing_time_utc: Generated<Timestamp | null>
+  landing_time_utc: Generated<Timestamp>
   night_flying_mins: number
   non_billing_approved_by_member_id: string | null
   non_billing_reason: string | null
   number_of_landings: number
   off_block_time_epoch: Int8
-  off_block_time_utc: Generated<Timestamp | null>
+  off_block_time_utc: Generated<Timestamp>
   oil_uplift_litres: Numeric | null
   on_block_time_epoch: Int8
-  on_block_time_utc: Generated<Timestamp | null>
+  on_block_time_utc: Generated<Timestamp>
   personal_remarks: string | null
   persons_on_board: number
   pic_member_id: string
@@ -179,7 +179,7 @@ export interface FlightLogs {
   priv_or_com_flight: string
   status: Generated<FlightLogStatus>
   takeoff_time_epoch: Int8
-  takeoff_time_utc: Generated<Timestamp | null>
+  takeoff_time_utc: Generated<Timestamp>
   total_time_in_service: Numeric | null
   updated_at: Generated<Timestamp>
   updated_by: string
@@ -195,13 +195,27 @@ export interface FlightLogsAudit {
   operation_type: string
 }
 
+export interface FlightVwFlightLogs {
+  ac_total_flight_time: string | null
+  ajlb_flight_number: Int8 | null
+  crew2_last_name: string | null
+  flight_id: string | null
+  page_number: Int8 | null
+  pic_last_name: string | null
+  row_number: Int8 | null
+  rows_per_page: number | null
+}
+
 export interface FlightVwFlightTimeTotals {
   ac_total_flight_hours: Numeric | null
   ac_total_flight_time: string | null
   aircraft_registration: string | null
   ajlb_seq_no: number | null
+  current: boolean | null
   flight_log_mins_this_ajlb: number | null
+  flight_logs_this_ajlb: number | null
   flight_time_this_ajlb: string | null
+  pages_in_use: number | null
   total_flight_mins_at_ajlb_start: number | null
   total_flight_time_at_ajlb_start: string | null
 }
@@ -305,6 +319,7 @@ export interface DB {
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit
+  'flight.vw_flight_logs': FlightVwFlightLogs
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory

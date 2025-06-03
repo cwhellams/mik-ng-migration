@@ -49,10 +49,7 @@ describe('GET /flight-log', () => {
     expect(response.status).toBe(200)
 
     expect(response.body.logs).toHaveLength(1)
-    expect(response.body.logs[0]).toMatchSnapshot({
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    })
+    expect(response.body.logs[0]).toMatchSnapshot()
   })
 
   it('should only return data for the logged in user when admin without sudo', async () => {
@@ -74,23 +71,7 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(200)
     expect(response.body.logs).toHaveLength(3)
-    expect(response.body.logs).toMatchSnapshot([
-      {
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-        updatedBy: expect.any(String),
-      },
-      {
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-        updatedBy: expect.any(String),
-      },
-      {
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-        updatedBy: expect.any(String),
-      },
-    ])
+    expect(response.body.logs).toMatchSnapshot()
   })
 
   it('should return 200 with valid query params', async () => {
@@ -103,10 +84,7 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(200)
 
-    expect(response.body.logs[0]).toMatchSnapshot({
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    })
+    expect(response.body.logs[0]).toMatchSnapshot()
   })
 
   it('should return 400 for invalid member_id', async () => {
@@ -143,10 +121,7 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(200)
     expect(response.body.logs).toHaveLength(1)
-    expect(response.body.logs[0]).toMatchSnapshot({
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    })
+    expect(response.body.logs[0]).toMatchSnapshot()
   })
 
   it('should return 400 for invalid startDate timezone', async () => {
@@ -181,10 +156,7 @@ describe('GET /flight-log', () => {
       .set('Authorization', `Bearer ${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body.logs[0]).toMatchSnapshot({
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    })
+    expect(response.body.logs[0]).toMatchSnapshot()
   })
   it('Get flight log with Id should return a single row when data is present for the given Id', async () => {
     const response = await request(app)
@@ -482,7 +454,7 @@ describe('GET /flight-log/totals', () => {
       .set('Authorization', `Bearer ${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body[0]).toMatchSnapshot()
+    expect(response.body[2]).toMatchSnapshot()
   })
 
   it('should return 200 with valid registration', async () => {

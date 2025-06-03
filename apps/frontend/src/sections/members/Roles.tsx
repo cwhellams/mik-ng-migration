@@ -55,6 +55,11 @@ const Roles = () => {
         title={t('roles.newRole')}
         onClick={handleNewRole}
         icon='mdi:plus'
+        sx={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+        }}
       />
 
       <TableContainer component={Paper}>

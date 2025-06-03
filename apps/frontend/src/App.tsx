@@ -18,8 +18,8 @@ import Member from './sections/members/Member'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/LocalizationProvider'
 import Roles from './sections/members/Roles'
-import FlightLogLanding from './sections/flightLog/Landing'
-import NewFlightLogEntry from './sections/flightLog/NewFlightLogEntry'
+import FlightLogsList from './sections/flightLog/FlightLogsList'
+import NewFlightLogEntry from './sections/flightLog/FlightLogEntry'
 import { useTranslation } from 'react-i18next'
 import Billing from './sections/billing/billing'
 import AccountingLayout from './sections/accounting/Accounting'
@@ -69,7 +69,7 @@ function App() {
             <Route index path='/members' element={<Members />} />
             <Route path='/members/:memberId' element={<Member />} />
             /** Flight Log Routes */
-            <Route path='/flight-logs' element={<FlightLogLanding />} />
+            <Route path='/flight-logs' element={<FlightLogsList />} />
             <Route
               path='/flight-logs/:flightId'
               element={<NewFlightLogEntry />}

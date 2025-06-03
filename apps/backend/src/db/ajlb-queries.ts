@@ -1,61 +1,47 @@
 import * as connection from './connection.ts'
 import type { AjlbFilter, AircraftJourneyLogBook } from '../routes/ajlb/model.ts'
-import type { FlightAircraftJourneyLogBook } from './schema.js'
+import type { FlightAircraftJourneyLogBook, FlightVwFlightTimeTotals } from './schema.js'
 import type { Selectable } from 'kysely'
 
-function mapResultToAjlb(
-  results: Selectable<FlightAircraftJourneyLogBook>[],
-): AircraftJourneyLogBook[] {
-  return results.map((row: Selectable<FlightAircraftJourneyLogBook>) => ({
-    seqNo: row.seq_no,
-    aircraftRegistration: row.aircraft_registration,
-    minutesAtStart: row.minutes_at_start,
-    noOfPages: row.no_of_pages,
-    rowsPerPage: row.rows_per_page,
-    startPage: row.start_page,
-    startDate: row.start_date,
-    endDate: row.end_date ? row.end_date : null,
-    flightTime: row.flight_time,
-  }))
-}
+const mapResultToAjlb = (
+  row: Selectable<FlightAircraftJourneyLogBook & Pick<FlightVwFlightTimeTotals, 'pages_in_use'>>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): AircraftJourneyLogBook => ({
+  seqNo: row.seq_no,
+  aircraftRegistration: row.aircraft_registration,
+  minutesAtStart: row.minutes_at_start,
+  noOfPages: row.no_of_pages,
+  rowsPerPage: row.rows_per_page,
+  startPage: row.start_page,
+  startDate: row.start_date,
+  endDate: row.end_date ? row.end_date : null,
+  flightTime: row.flight_time,
+  pagesInUse: row.pages_in_use ?? 0,
+})
 
-// Get all aircraft
-export async function getAllAjlbs(): Promise<AircraftJourneyLogBook[]> {
-  const results = await connection.db
-    .selectFrom('flight.aircraft_journey_log_book')
-    .selectAll()
-    .orderBy('aircraft_registration')
-    .orderBy('seq_no')
-    .execute()
-
-  return mapResultToAjlb(results)
-}
-
-export async function getCurrentAjlbs(): Promise<AircraftJourneyLogBook[]> {
-  const results = await connection.db
-    .selectFrom('flight.aircraft_journey_log_book')
-    .selectAll()
-    .where('end_date', 'is', null)
-    .orderBy('aircraft_registration')
-    .orderBy('seq_no')
-    .execute()
-
-  return mapResultToAjlb(results)
-}
-
-export async function getFilteredAjlbs(filter: AjlbFilter): Promise<AircraftJourneyLogBook[]> {
+export async function getAjlbs(filter: AjlbFilter): Promise<AircraftJourneyLogBook[]> {
   let query = connection.db
-    .selectFrom('flight.aircraft_journey_log_book')
-    .selectAll()
+    .selectFrom('flight.aircraft_journey_log_book as ajlb')
+    .leftJoin('flight.vw_flight_time_totals as totals', join =>
+      join
+        .onRef('ajlb.aircraft_registration', '=', 'totals.aircraft_registration')
+        .onRef('ajlb.seq_no', '=', 'totals.ajlb_seq_no'),
+    )
+    .selectAll('ajlb')
+    .select(['totals.pages_in_use'])
     .orderBy('aircraft_registration')
     .orderBy('seq_no')
 
   if (filter.aircraftRegistration) {
-    query = query.where('aircraft_registration', '=', filter.aircraftRegistration)
+    query = query.where('ajlb.aircraft_registration', '=', filter.aircraftRegistration)
   }
 
   if (filter.seqNo) {
-    query = query.where('seq_no', '=', filter.seqNo)
+    query = query.where('ajlb.seq_no', '=', filter.seqNo)
+  }
+
+  if (filter.current) {
+    query = query.where('end_date', 'is', null)
   }
 
   if (filter.toDate) {
@@ -67,8 +53,7 @@ export async function getFilteredAjlbs(filter: AjlbFilter): Promise<AircraftJour
   }
 
   const results = await query.execute()
-
-  return mapResultToAjlb(results)
+  return results.map(mapResultToAjlb)
 }
 
 export async function createNextSequentialAjlbForAircraft(

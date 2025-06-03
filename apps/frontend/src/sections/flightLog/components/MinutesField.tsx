@@ -1,13 +1,13 @@
 import { FormControl, FormHelperText } from '@mui/material'
 import { t } from 'i18next'
 import { Control, Controller } from 'react-hook-form'
-import { FlightLogMemberRequest } from '@backend/routes/flight-log/models'
+import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
 import { TimeField } from '@mui/x-date-pickers/TimeField'
 import { durationToDayjs } from '../utils/timeUtils'
 
 interface MinutesFieldProps {
-  name: keyof FlightLogMemberRequest
-  control: Control<FlightLogMemberRequest>
+  name: keyof FlightLogUpsertRequest
+  control: Control<FlightLogUpsertRequest>
 }
 
 export const MinutesField = ({ name, control }: MinutesFieldProps) => {

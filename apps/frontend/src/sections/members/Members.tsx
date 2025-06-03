@@ -73,6 +73,11 @@ const Members = () => {
           title={t('member.edit.register')}
           onClick={() => setEditMode('register')}
           icon='mdi:plus'
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+          }}
         />
       )}
 

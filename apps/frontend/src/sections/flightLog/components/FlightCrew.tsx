@@ -21,7 +21,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { FlightLogMemberRequest } from '@backend/routes/flight-log/models'
+import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
 import { MemberListResponse } from '@backend/routes/members/models'
 import useApi from '../../../hooks/useApi'
 import { useMe } from '../../../hooks/useMe'
@@ -29,10 +29,10 @@ import { useMe } from '../../../hooks/useMe'
 interface FlightCrewProps {
   flightType: string
   maximumCrewCount: number
-  register: UseFormRegister<FlightLogMemberRequest>
-  control: Control<FlightLogMemberRequest>
-  setValue: UseFormSetValue<FlightLogMemberRequest>
-  watch: UseFormWatch<FlightLogMemberRequest>
+  register: UseFormRegister<FlightLogUpsertRequest>
+  control: Control<FlightLogUpsertRequest>
+  setValue: UseFormSetValue<FlightLogUpsertRequest>
+  watch: UseFormWatch<FlightLogUpsertRequest>
 }
 
 // Crew member types
@@ -88,8 +88,8 @@ const FlightCrew = ({
 
   const cleanCrew = useCallback(
     (slot: CrewSlot) => {
-      setValue(`${slot}MemberId` as keyof FlightLogMemberRequest, null)
-      setValue(`${slot}Role` as keyof FlightLogMemberRequest, null)
+      setValue(`${slot}MemberId` as keyof FlightLogUpsertRequest, null)
+      setValue(`${slot}Role` as keyof FlightLogUpsertRequest, null)
     },
     [setValue]
   )
@@ -236,8 +236,8 @@ const FlightCrew = ({
   return (
     <Grid container spacing={2}>
       {slots.slice(0, crewCount).map((slot, index, { length }) => {
-        const crewId = `${slot}MemberId` as keyof FlightLogMemberRequest
-        const crewRole = `${slot}Role` as keyof FlightLogMemberRequest
+        const crewId = `${slot}MemberId` as keyof FlightLogUpsertRequest
+        const crewRole = `${slot}Role` as keyof FlightLogUpsertRequest
 
         return (
           <Grid key={slot} size={{ xs: 12 }}>

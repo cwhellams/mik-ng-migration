@@ -1,16 +1,19 @@
 import { Router, type Request, type Response } from 'express'
 
 import {
-  FlightLogAdminUpsertSchema,
+  FlightLogUpsertSchema,
   flightLogDateValidator,
   FlightLogFiltersSchema,
   FlightLogMemberUpsertSchema,
   type FlightLog,
+  type FlightLogUpsertRequest,
   type FlightLogFilters,
   type FlightLogListResponse,
+  FlightLogStatus,
 } from './models.ts'
 import {
   deleteFlightLog,
+  getFlightLog,
   getFlightLogs,
   getFlightLogTotals,
   insertFlightLog,
@@ -22,6 +25,7 @@ import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
 import { getAirfields } from '../../db/airfields-queries.ts'
+import { getAjlbs } from '../../db/ajlb-queries.ts'
 
 // all flight log routes are protected by flightlog permissions
 const router = Router()
@@ -59,7 +63,7 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
   }
 
   const logs = await getFlightLogs(filters)
-  res.status(200).json({ logs })
+  res.status(200).json(logs)
 })
 
 // Get flight log total times by registration
@@ -87,14 +91,17 @@ router.get('/:registration/totals', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
-  const flights = await getFlightLogs({ flightId: id })
-  if (flights.length === 0) {
+  const flight = await getFlightLog(id)
+  if (!flight) {
     return problem({ status: 404, detail: 'Flight log not found' })
   }
-  res.status(200).json(flights[0])
+  res.status(200).json(flight)
 })
 
-const validateWriteAccess = (flight: FlightLog | undefined, req: Request) => {
+const validateWriteAccess = (
+  flight: Pick<FlightLog, 'billableMemberId' | 'isBilled'> | undefined,
+  req: Request,
+) => {
   if (!flight) {
     return problem({ status: 404, detail: 'Flight log not found' })
   }
@@ -116,21 +123,59 @@ const validateWriteAccess = (flight: FlightLog | undefined, req: Request) => {
   }
 }
 
+const getAjlb = async (registration: string) => {
+  const ajlbs = await getAjlbs({ current: true, aircraftRegistration: registration })
+  return ajlbs?.[0]?.seqNo
+}
+
+const isAdminRequest = (data: object): data is FlightLogUpsertRequest => 'ajlbSeqNo' in data
+
 // Update a flight log
 router.patch('/:id', async (req: Request, res: Response) => {
   const flightId = req.params.id
 
-  const schema = isFlightLogAdmin(req.user)
-    ? FlightLogAdminUpsertSchema
-    : FlightLogMemberUpsertSchema
+  const isFullPatch = isFlightLogAdmin(req.user)
+  const schema = isFullPatch ? FlightLogUpsertSchema : FlightLogMemberUpsertSchema
 
-  const data = schema.partial().parse(req.body)
+  const patch = schema.partial().parse(req.body)
 
-  const flightLogs = await getFlightLogs({ flightId: flightId })
+  const flightLog = await getFlightLog(flightId)
 
-  validateWriteAccess(flightLogs.at(0), req)
+  validateWriteAccess(flightLog, req)
 
-  const updatedLog = await updateFlightLog(flightId, data, req.user!)
+  // if plane changes the ajlbSeqNo must be updated too
+  const ajlbSeqNo =
+    patch.aircraftRegistration && flightLog?.aircraftRegistration !== patch.aircraftRegistration
+      ? await getAjlb(patch.aircraftRegistration)
+      : isAdminRequest(patch)
+        ? patch.ajlbSeqNo
+        : undefined
+
+  if (isFullPatch && (patch as FlightLogUpsertRequest).status === FlightLogStatus.VALIDATED) {
+    // all previous flights must be verified
+
+    const firstUnverifiedFlight = await getFlightLogs({
+      aircraftRegistration: flightLog?.aircraftRegistration,
+      status: FlightLogStatus.NEW,
+      limit: 1,
+      page: 1,
+    })
+    if (firstUnverifiedFlight.rows == 0 || firstUnverifiedFlight.logs[0].flightId !== flightId) {
+      return problem({
+        status: 400,
+        detail: `All previous flights must be first verified, verify ${firstUnverifiedFlight.logs?.[0]?.flightId} first`,
+      })
+    }
+  }
+
+  const updatedLog = await updateFlightLog(
+    flightId,
+    {
+      ...patch,
+      ajlbSeqNo,
+    },
+    req.user!,
+  )
   if (updatedLog === 0n) {
     return problem({
       status: 500,
@@ -138,17 +183,17 @@ router.patch('/:id', async (req: Request, res: Response) => {
     })
   }
 
-  const afterUpdate = await getFlightLogs({ flightId: flightId })
+  const afterUpdate = await getFlightLog(flightId)
 
-  res.status(200).json(afterUpdate[0])
+  res.status(200).json(afterUpdate)
 })
 
 // Delete a flight log
 router.delete('/:id', async (req: Request, res: Response) => {
   const flightId = req.params.id
 
-  const flightLogToDelete = await getFlightLogs({ flightId: flightId })
-  validateWriteAccess(flightLogToDelete.at(0), req)
+  const flightLogToDelete = await getFlightLog(flightId)
+  validateWriteAccess(flightLogToDelete, req)
 
   logger.info(
     `Deleting flight log ${flightId}. Deleted by member: ${req.user?.memberId} with permissions :${req.user?.permissions}`,

@@ -124,6 +124,7 @@ export type APIMutation<Data> = {
   trigger: <T>(
     method: MutateMethods,
     payload: T,
+    id?: string,
     options?: SWRMutationConfiguration<AxiosResponse<Data>, AxiosError<Problem>>
   ) => Promise<APIResponse<Data>>
 }
@@ -212,9 +213,15 @@ export default function useApi<
     {
       method: MutateMethods
       payload: unknown
+      id: string | undefined
     }
   >(cacheKey, (_key: object, { arg }) =>
-    api.request({ ...request, method: arg.method, data: arg.payload })
+    api.request({
+      ...request,
+      url: arg.id ? `${request.url}/${arg.id ?? ''}` : request.url,
+      method: arg.method,
+      data: arg.payload,
+    })
   )
 
   return {
@@ -227,13 +234,14 @@ export default function useApi<
       trigger: async <T>(
         method: MutateMethods,
         payload: T,
+        id?: string,
         options?: SWRMutationConfiguration<
           AxiosResponse<MutateData>,
           AxiosError<Problem>
         >
       ): Promise<APIResponse<MutateData>> =>
         mutation
-          .trigger({ method, payload }, options)
+          .trigger({ method, payload, id }, options)
           .then((res) => ({
             data: res?.data,
           }))

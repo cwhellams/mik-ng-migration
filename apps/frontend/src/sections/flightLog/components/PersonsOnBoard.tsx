@@ -1,4 +1,4 @@
-import { FlightLogMemberRequest } from '@backend/routes/flight-log/models'
+import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
 import {
   Box,
   Typography,
@@ -10,7 +10,7 @@ import { Control, Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
-  control: Control<FlightLogMemberRequest>
+  control: Control<FlightLogUpsertRequest>
   seats: number
   crew: (string | null)[]
 }

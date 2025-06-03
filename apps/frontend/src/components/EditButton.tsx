@@ -6,30 +6,37 @@ export const EditButton = ({
   onClick,
   icon = 'mdi:pencil',
   sx,
+  width = 20,
+  color = 'primary.main',
+  viewOnly = false,
 }: {
   title: string
   onClick?: () => void
   icon?: string
   sx?: SxProps<Theme>
+  width?: number
+  color?: string
+  viewOnly?: boolean
 }) => {
   return (
     <Tooltip title={title}>
-      <IconButton
-        size='small'
-        aria-label={title}
-        onClick={onClick}
-        sx={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          backgroundColor: 'background.paper',
-          boxShadow: 0,
-          '&:hover': { backgroundColor: 'background.default' },
-          ...sx,
-        }}
-      >
-        <Icon icon={icon} width={18} />
-      </IconButton>
+      {viewOnly ? (
+        <Icon icon={icon} color={color} width={width} />
+      ) : (
+        <IconButton
+          size='small'
+          aria-label={title}
+          onClick={onClick}
+          sx={{
+            backgroundColor: 'background.paper',
+            boxShadow: 0,
+            '&:hover': { backgroundColor: 'background.default' },
+            ...sx,
+          }}
+        >
+          <Icon icon={icon} color={color} width={width} />
+        </IconButton>
+      )}
     </Tooltip>
   )
 }

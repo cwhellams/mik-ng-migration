@@ -1,0 +1,68 @@
+INSERT INTO flight.logs (
+    flight_id,
+    billable_member_id,
+    pic_member_id,
+    pic_role,
+    aircraft_registration,
+    off_block_time_epoch,
+    takeoff_time_epoch,
+    landing_time_epoch,
+    on_block_time_epoch,
+    oil_uplift_litres,
+    fuel_uplift_litres,
+    fuel_remaining_litres,
+    persons_on_board,
+    number_of_landings,
+    night_flying_mins,
+    instrument_flying_mins,
+    departure_airport,
+    arrival_airport,
+    flight_type,
+    billing_remarks,
+    personal_remarks,
+    created_by,
+    updated_by,
+    is_billable_flight,
+    non_billing_reason,
+    non_billing_approved_by_member_id,
+    priv_or_com_flight,
+    ajlb_seq_no,
+    ajlb_blank_rows_before,
+    status,
+    is_dto_training_flight
+)
+SELECT 'mass' || i,
+    'Pekka1',
+    'Pekka1',
+    'PIC',
+    'OH-STL',
+    1262304000+i*72000, 
+    1262304000+i*72000 + 5*60 + round(random()*10)*60, 
+    1262304000+i*72000 + (5+11)*60 + round(random()*20)*60, 
+    1262304000+i*72000 + (5+11+21)*60+ round(random()*10)*60,
+    (ROUND(random()*10)/10), 
+    10 + ROUND(random()*50), 
+    10 + ROUND(random()*30), 
+    1 + ROUND(random()*3), 
+    1 + ROUND(random()*4), 
+    ROUND(random()*15), 
+    
+    0, 'EFHK', 'EFHK',
+    'HAR', NULL, NULL,
+    'Antti1',
+    'Antti1',
+    FALSE,
+    NULL,
+    NULL,
+    'P',
+    1,
+    0,
+    CASE
+        WHEN i < 50 THEN 'PAID'::flight_log_status
+        WHEN i < 100 THEN 'INVOICED'::flight_log_status
+        WHEN i < 150 THEN 'VALIDATED'::flight_log_status
+        ELSE 'NEW'::flight_log_status
+        END AS pvc,
+    FALSE
+
+FROM generate_series(1, 200) i;

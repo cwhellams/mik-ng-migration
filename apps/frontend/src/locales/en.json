@@ -283,9 +283,10 @@
     "aircraft": "Aircraft",
     "captain": "Captain",
     "copilot": "Copilot",
-    "departure": "Departure",
-    "arrival": "Arrival",
+    "departure": "Takeoff",
+    "arrival": "Landing",
     "blockTime": "Block Time",
+    "airborneTime": "Airborne Time",
     "flightType": "Type",
     "billed": "Billed",
 
@@ -335,7 +336,7 @@
     "personalRemarks": "Remarks",
     "flightTimeline": "Flight Timeline",
     "taxiOut": "Taxi Out",
-    "flight": "Flight",
+    "flightTime": "Flight",
     "taxiIn": "Taxi In",
     "offBlock": "Off Block",
     "takeoff": "Takeoff",
@@ -361,6 +362,28 @@
       "skillTest": "Skill Test Flight",
       "ferry": "Ferry Flight",
       "test": "Test flight"
+    },
+    "status": {
+      "title": "Billing Status",
+      "new": "Waiting for validation",
+      "validated": "Flight times validated and synchronized",
+      "invoiced": "Invoice sent",
+      "paid": "Invoice paid"
+    },
+    "logbooks": {
+      "title": "Logbooks",
+      "ajlb": "Aircraft Journal Logbook",
+      "student": "Student",
+      "totalFlightTime": "Total Airborne Time",
+      "addBlankRow": "Add empty row above",
+      "deleteBlankRow": "Remove empty row",
+      "status": "Status",
+      "verifyThePage": "Verify all flights on the physical logbook page",
+      "verifyAll": "Mark {{count}} flights as verified and ready for billing",
+      "lastAirborneTime": "Total airborne time after the last flight",
+      "carriedForward": "Total airborne time carried forward to the next page",
+      "showAll": "Show all",
+      "current": "current"
     }
   }
 }
