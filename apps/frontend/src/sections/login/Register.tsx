@@ -23,7 +23,6 @@ import { LoginResponse, RegisterRequest } from '@backend/routes/auth/schema'
 import { MIKLang, MIKMemberTypes } from '@backend/routes/members/models.ts'
 import dayjs, { Dayjs } from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import { z } from 'zod'
 
 const Register = () => {
   const { t, i18n } = useTranslation()
@@ -41,7 +40,7 @@ const Register = () => {
     memberType: MIKMemberTypes.FLYING,
     dateOfBirth: undefined,
 
-    lang: z.nativeEnum(MIKLang).parse(i18n.language),
+    lang: i18n.language.startsWith('fi') ? MIKLang.FI : MIKLang.EN,
   })
   const [dateOfBirth, setDateOfBirth] = useState<Dayjs | null>(dayjs())
 
