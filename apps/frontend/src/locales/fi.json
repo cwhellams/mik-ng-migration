@@ -72,7 +72,7 @@
       "membership": "Muokkaa jäsenyyden tietoja",
       "roles": "Muokkaa jäsenen rooleja"
     },
-    "isTrainingProgramPilot": "Koulutusohjelma pilotti",
+    "isTrainingProgramPilot": "Koulutusohjelmaoppilas",
     "memberType": "Jäsentyyppi",
     "types": {
       "flying": "Täysijäsen",
@@ -88,15 +88,15 @@
     "memberSince": "Jäsen alkaen",
     "created": "Luotu",
     "updated": "Päivitetty",
-    "emailVerifiedAt": "Email verified",
-    "emailVerified": "Email Verified ?",
-    "preFlightChkComplete": "Pre-flight checks completed for member approval",
-    "approvalDisabledMsg": "Approval is disabled until the member verifies their email",
-    "membershipApproved": "Membership Approved",
-    "membershipApprovedAt": "Membership Approved At",
-    "membershipPending": "Membership Pending Approval",
-    "approveMembership": "Approve Membership",
-    "approvedSnackbarMessage": "Membership Approved for"
+    "emailVerifiedAt": "Sähköpostiosoite vahvistettu",
+    "emailVerified": "Sähköposti vahvistettu?",
+    "preFlightChkComplete": "Jäsenyyden hyväksynnän tarkastuslista suoritettu",
+    "approvalDisabledMsg": "Kunnes jäsen vahvistaa sähköpostiosoitteensa, hyväksyntää ei voi tehdä",
+    "membershipApproved": "Jäsenyys hyväksytty",
+    "membershipApprovedAt": "Jäsenyys hyväksytty",
+    "membershipPending": "Jäsenyys odottaa hyväksyntää",
+    "approveMembership": "Hyväksy jäseneksi",
+    "approvedSnackbarMessage": "Jäsenyys hyväksytty jäsenelle"
   },
   "aircraft": {
     "location": "Sijainti",
@@ -257,12 +257,12 @@
     }
   },
   "invoiceItems": {
-    "title": "Laskutuserät",
-    "infoText": "Nämä ovat Simplbooksin laskutuserät, joita säilytetään kirjanpitojärjestelmässämme. Kun eriin tehdään muutoksia tai lisäyksiä Simplbooksissa, ne tulee päivittää manuaalisesti napsauttamalla 'Lataa uudelleen'. Nämä tiedot ovat vain informatiivisia eikä niitä voi muokata tässä näkymässä.",
-    "reloadFromSimplbooksTooltip": "Tämä hakee Simplbooksista päivitetyt laskutuserät",
+    "title": "Tuotteet",
+    "infoText": "Nämä ovat Simplbooksin tuotteet, joita säilytetään kirjanpitojärjestelmässämme. Kun tuotteisiin tehdään muutoksia tai lisäyksiä Simplbooksissa, ne tulee päivittää manuaalisesti napsauttamalla 'Lataa uudelleen'. Nämä tiedot ovat vain informatiivisia eikä niitä voi muokata tässä näkymässä.",
+    "reloadFromSimplbooksTooltip": "Tämä hakee Simplbooksista päivitetyt tuotteet",
     "reloadFromSimplbooks": "Lataa uudelleen Simplbooksista",
-    "failedToLoad": "Erien lataus epäonnistui",
-    "noItemsFound": "Eräitä ei löytynyt",
+    "failedToLoad": "Tuotteiden lataus epäonnistui",
+    "noItemsFound": "Tuotteita ei löytynyt",
     "id": "ID",
     "code": "Koodi",
     "name": "Nimi",
