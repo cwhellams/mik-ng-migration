@@ -37,6 +37,7 @@ export type MemberEditMode =
   | 'training'
   | 'membership'
   | 'roles'
+  | 'licence'
 
 interface EditMemberModalProps {
   onClose: () => void
@@ -92,7 +93,13 @@ export const EditMemberModal = ({
           iceContactName: memberData.iceContactName || '',
           iceContactPhoneNumber: memberData.iceContactPhoneNumber || '',
         })
-      } else if (mode === 'training') {
+      } else if (mode === 'licence') {
+        setFormData({
+          licenceId: memberData.licenceId || '',
+          licenceExpiry: memberData.licenceExpiry,
+          medicalExpiry: memberData.medicalExpiry,
+        })
+       } else if (mode === 'training') {
         setFormData({
           isTrainingProgramPilot: memberData.isTrainingProgramPilot,
         })
@@ -311,6 +318,47 @@ export const EditMemberModal = ({
     </Grid>
   )
 
+  const renderLicenceForm = () => (
+    <Grid container spacing={2}>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          label={t('member.licenceInfo.licenceId')}
+          value={formData.licenceId || ''}
+          onChange={handleChange('licenceId')}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <DateField
+          label={t('member.licenceInfo.licenceExpiry')}
+          value={
+            formData.licenceExpiry ? dayjs(formData.licenceExpiry) : undefined
+          }
+          onChange={(value: Dayjs | null) => {
+            setFormData({
+              ...formData,
+              licenceExpiry: value?.format('YYYY-MM-DD'),
+            })
+          }}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <DateField
+          label={t('member.licenceInfo.medicalExpiry')}
+          value={
+            formData.medicalExpiry ? dayjs(formData.medicalExpiry) : undefined
+          }
+          onChange={(value: Dayjs | null) => {
+            setFormData({
+              ...formData,
+              medicalExpiry: value?.format('YYYY-MM-DD'),
+            })
+          }}
+        />
+      </Grid>
+    </Grid>
+  )
+
   const renderTrainingForm = () => (
     <Grid container spacing={2}>
       <Grid size={12} display='flex' alignItems='center'>
@@ -474,6 +522,8 @@ export const EditMemberModal = ({
         return renderTrainingForm()
       case 'membership':
         return renderMembershipForm()
+      case 'licence':
+        return renderLicenceForm()
       case 'roles':
         return <RenderRolesForm />
     }

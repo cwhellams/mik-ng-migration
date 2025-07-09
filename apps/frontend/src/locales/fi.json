@@ -60,6 +60,12 @@
     "iceContact": "ICE-yhteyshenkilö",
     "icePhone": "ICE-puhelin",
     "dateOfBirth": "Syntymäpäivä",
+    "licenceInfo":{
+      "licenceInfo": "Licence Information",
+      "licenceId": "Licence ID",
+      "licenceExpiry": "Licence Expiry",
+      "medicalExpiry": "Medical Expiry"
+    },
     "roles": "Roolit",
     "trainingProgram": "Koulutusohjelma",
     "noRolesAssigned": "Ei rooleja",
@@ -70,7 +76,8 @@
       "emergencyContact": "Muokkaa hätäyhteyshenkilön tietoja",
       "training": "Muokkaa koulutusohjelmia",
       "membership": "Muokkaa jäsenyyden tietoja",
-      "roles": "Muokkaa jäsenen rooleja"
+      "roles": "Muokkaa jäsenen rooleja",
+      "licence": "Edit Licence Information"
     },
     "isTrainingProgramPilot": "Koulutusohjelmaoppilas",
     "memberType": "Jäsentyyppi",

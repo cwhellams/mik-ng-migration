@@ -12,6 +12,9 @@ export const deleteCreatedInvoice = async () =>
     .where('invoice_type', '=', MIKInvoiceType.ANNUAL_FEE)
     .execute()
 
+export const deleteCreatedInvoiceItems = async () =>
+  await db.deleteFrom('accts.items').where('id', '>', 30).execute()
+
 // export const expectAddMember1Row = async () => {
 //   const result = await db.selectFrom('accts.outbox_simplbooks').selectAll().execute()
 

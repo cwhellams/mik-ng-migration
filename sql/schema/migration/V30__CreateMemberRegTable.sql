@@ -1,5 +1,4 @@
-CREATE TABLE member.register
-(
+CREATE TABLE member.register (
     member_id VARCHAR(9) PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
@@ -17,6 +16,9 @@ CREATE TABLE member.register
     lang_iso639 MIK_LANG NOT NULL DEFAULT 'fi',
     can_make_reservations BOOLEAN NOT NULL DEFAULT FALSE,
     is_training_program_pilot BOOLEAN NOT NULL DEFAULT FALSE,
+    licence_id VARCHAR(50),
+    licence_expiry_date DATE,
+    medical_expiry_date DATE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email_verified_at TIMESTAMP,

@@ -73,6 +73,10 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     updatedBy: member.updated_by,
     emailVerifiedAt: member.email_verified_at?.toISOString(),
 
+    licenceId: member.licence_id ?? undefined,
+    licenceExpiry: member.licence_expiry_date,
+    medicalExpiry: member.medical_expiry_date,
+
     isMembershipApproved: member.is_membership_approved,
     membershipApprovedAt: member.membership_approved_at?.toISOString(),
     membershipApprovedBy: member.membership_approved_by ?? undefined,
@@ -190,6 +194,10 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       date_of_birth: member.dateOfBirth,
       member_since: now.toISOString(),
 
+      licence_id: member.licenceId,
+      licence_expiry_date: member.licenceExpiry,
+      medical_expiry_date: member.medicalExpiry,
+
       lang_iso639: member.lang,
       created_at: now,
       created_by: jwt?.memberId ?? new_member_id,
@@ -257,6 +265,10 @@ export async function updateMember(
       billing_id: patch.billingId,
       date_of_birth: patch.dateOfBirth,
       member_since: patch.memberSince,
+
+      licence_id: patch.licenceId,
+      licence_expiry_date: patch.licenceExpiry,
+      medical_expiry_date: patch.medicalExpiry,
 
       updated_at: now,
       updated_by: jwt.memberId,

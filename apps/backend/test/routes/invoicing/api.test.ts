@@ -9,6 +9,7 @@ import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { simplbooksApiClient } from '../../../src/services/simplbooks/simplbooksApiClient.ts'
 import { mockSimplbooksGet, mockSimplbooksPost } from '../../__mocks__/simplbooksMock.ts'
+import { deleteCreatedInvoiceItems } from '../../db/__helpers__/simplbooksDbHelpers.ts'
 
 const app = express()
 app.use(express.json())
@@ -79,6 +80,10 @@ describe('Invoice Simplbooks tests', () => {
     jest.clearAllMocks()
 
     jest.spyOn(simplbooksApiClient, 'post').mockImplementation(mockSimplbooksPost)
+  })
+
+  afterAll(() => {
+    deleteCreatedInvoiceItems()
   })
 
   it('should refresh items', async () => {

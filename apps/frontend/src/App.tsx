@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next'
 import Billing from './sections/billing/billing'
 import AccountingLayout from './sections/accounting/Accounting'
 import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
+import 'dayjs/locale/en-gb' 
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -54,7 +55,7 @@ function App() {
   return (
     <LocalizationProvider
       dateAdapter={AdapterDayjs}
-      adapterLocale={i18n.language}
+      adapterLocale={i18n.language === 'en' ? 'en-gb' : i18n.language}
     >
       <SplashScreen loading={loading} />
       <BrowserRouter>

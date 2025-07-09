@@ -96,6 +96,9 @@ const MemberProfile = () => {
     iceContactName,
     iceContactPhoneNumber,
     isTrainingProgramPilot,
+    licenceId,
+    licenceExpiry,
+    medicalExpiry,
     //memberId,
     memberType,
     canMakeReservations,
@@ -301,6 +304,37 @@ const MemberProfile = () => {
               </CardContent>
             </Card>
           </Stack>
+
+          <Card>
+            {
+              <EditButton
+                title={t('member.edit.licence')}
+                onClick={() => handleOpenEditModal('licence')}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                }}
+              />
+            }
+            <CardContent>
+            <FormTitle
+                  title={t('member.licenceInfo.licenceInfo')}
+                  icon='mdi:certificate'
+                />
+              <Stack spacing={1.5}>
+                  <FormField label={t('member.licenceInfo.licenceId')}>
+                    {licenceId || 'N/A'}
+                  </FormField>
+                  <FormField label={t('member.licenceInfo.licenceExpiry')}>
+                    {licenceExpiry || 'N/A'}
+                  </FormField>
+                  <FormField label={t('member.licenceInfo.medicalExpiry')}>
+                    {medicalExpiry || 'N/A'}
+                  </FormField>
+                </Stack>
+            </CardContent>
+          </Card>
 
           <Card>
             {isAdmin && (

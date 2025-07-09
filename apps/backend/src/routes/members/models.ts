@@ -122,6 +122,10 @@ export const MemberSchema = AuditableSchema.extend({
   iceContactName: z.string().nullish(),
   iceContactPhoneNumber: z.string().nullish(),
 
+  licenceId: z.string().nullish(),
+  licenceExpiry: z.string().date().nullish(),
+  medicalExpiry: z.string().date().nullish(),
+
   isTrainingProgramPilot: z.boolean(),
   isMembershipApproved: z.boolean(),
   canMakeReservations: z.boolean(),
@@ -163,6 +167,10 @@ export const MemberProfileSchema = MemberSchema.pick({
   iceContactPhoneNumber: true,
 
   dateOfBirth: true,
+
+  licenceId: true,
+  licenceExpiry: true,
+  medicalExpiry: true,
 })
 
 export type MemberProfile = z.infer<typeof MemberProfileSchema>

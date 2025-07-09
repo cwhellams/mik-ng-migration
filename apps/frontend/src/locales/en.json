@@ -60,6 +60,12 @@
     "iceContact": "ICE Contact",
     "icePhone": "ICE Phone",
     "dateOfBirth": "Date of Birth",
+    "licenceInfo":{
+      "licenceInfo": "Licence Information",
+      "licenceId": "Licence ID",
+      "licenceExpiry": "Licence Expiry",
+      "medicalExpiry": "Medical Expiry"      
+    },
     "roles": "Roles",
     "trainingProgram": "Training Program",
     "noRolesAssigned": "No roles assigned",
@@ -70,7 +76,8 @@
       "emergencyContact": "Edit Emergency Contact",
       "training": "Edit Training Programs",
       "membership": "Edit Membership Details",
-      "roles": "Edit Member Roles"
+      "roles": "Edit Member Roles",
+      "licence": "Edit Licence Information"
     },
     "memberType": "Member Type",
     "types": {

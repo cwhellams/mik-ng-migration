@@ -268,6 +268,9 @@ export interface MemberRegister {
   is_training_program_pilot: Generated<boolean>
   lang_iso639: Generated<MikLang>
   last_name: string
+  licence_expiry_date: string | null
+  licence_id: string | null
+  medical_expiry_date: string | null
   member_id: string
   member_since: Generated<string>
   member_type: MemberType
