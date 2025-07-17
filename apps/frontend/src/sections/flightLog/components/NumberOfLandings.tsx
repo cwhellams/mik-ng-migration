@@ -4,26 +4,36 @@ import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
+  name: keyof FlightLogUpsertRequest
   control: Control<FlightLogUpsertRequest>
+  min?: number
 }
 
-export const NumberOfLandings = ({ control }: Props) => {
+export const NumberOfLandings = ({ name, control, min = 1 }: Props) => {
   const { t } = useTranslation()
   return (
     <Controller
-      name={'numberOfLandings'}
+      name={name}
       control={control}
       render={({ field, fieldState: { error } }) => (
-        <Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
           <Typography variant='body2' gutterBottom>
-            {t('flightLog.numberOfLandings')}
+            {t('flightLog.' + name)}
           </Typography>
 
-          <ButtonGroup sx={{ mb: 3 }}>
+          <ButtonGroup sx={{ mb: 3, width: '100%' }} fullWidth>
             <Button
               value='-'
-              fullWidth
-              onClick={() => field.onChange(Math.max(1, field.value - 1))}
+              onClick={() =>
+                field.onChange(
+                  Math.max(
+                    min,
+                    (typeof field.value === 'number' && field.value !== null
+                      ? field.value
+                      : min) - 1
+                  )
+                )
+              }
             >
               -
             </Button>
@@ -44,8 +54,13 @@ export const NumberOfLandings = ({ control }: Props) => {
 
             <Button
               value='+'
-              fullWidth
-              onClick={() => field.onChange(Math.min(50, field.value + 1))}
+              onClick={() => {
+                const currentValue =
+                  typeof field.value === 'number' && field.value !== null
+                    ? field.value
+                    : min
+                field.onChange(Math.min(50, currentValue + 1))
+              }}
             >
               +
             </Button>

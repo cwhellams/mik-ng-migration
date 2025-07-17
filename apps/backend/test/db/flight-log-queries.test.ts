@@ -142,6 +142,7 @@ describe('Db query insert tests', () => {
       fuelUpliftLitres: 100,
       personsOnBoard: 4,
       numberOfLandings: 1,
+      numberOfNightLandings: 0,
       departureAirport: 'EFHK',
       arrivalAirport: 'EFVA',
       flightType: 'KOU',

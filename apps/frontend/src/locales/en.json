@@ -60,11 +60,11 @@
     "iceContact": "ICE Contact",
     "icePhone": "ICE Phone",
     "dateOfBirth": "Date of Birth",
-    "licenceInfo":{
+    "licenceInfo": {
       "licenceInfo": "Licence Information",
       "licenceId": "Licence ID",
       "licenceExpiry": "Licence Expiry",
-      "medicalExpiry": "Medical Expiry"      
+      "medicalExpiry": "Medical Expiry"
     },
     "roles": "Roles",
     "trainingProgram": "Training Program",
@@ -331,7 +331,12 @@
     "arrivalAirport": "Arrival Airport",
     "personsOnBoard": "Persons on Board",
     "numberOfLandings": "Number of Landings",
+
+    "nightFlying": "Night Flying",
     "nightFlyingMins": "Night Hours (HH:MM)",
+    "numberOfNightLandings": "Number of Night Landings",
+
+    "instrumentFlying": "Instrument Flying",
     "instrumentFlyingMins": "Instrument Hours (HH:MM)",
     "fuelInfo": "Fuel and Oil Information",
     "fuelUpliftLitres": "Fuel Uplift (litres)",

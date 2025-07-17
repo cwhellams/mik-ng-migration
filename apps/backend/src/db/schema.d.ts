@@ -167,6 +167,7 @@ export interface FlightLogs {
   non_billing_approved_by_member_id: string | null
   non_billing_reason: string | null
   number_of_landings: number
+  number_of_night_landings: Generated<number>
   off_block_time_epoch: Int8
   off_block_time_utc: Generated<Timestamp>
   oil_uplift_litres: Numeric | null

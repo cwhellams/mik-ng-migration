@@ -60,7 +60,7 @@
     "iceContact": "ICE-yhteyshenkilö",
     "icePhone": "ICE-puhelin",
     "dateOfBirth": "Syntymäpäivä",
-    "licenceInfo":{
+    "licenceInfo": {
       "licenceInfo": "Licence Information",
       "licenceId": "Licence ID",
       "licenceExpiry": "Licence Expiry",
@@ -331,7 +331,12 @@
     "arrivalAirport": "Saapumiskenttä",
     "personsOnBoard": "Henkilöitä kyydissä",
     "numberOfLandings": "Laskujen määrä",
+
+    "nightFlying": "Yölento",
     "nightFlyingMins": "Yölentotunnit (HH:MM)",
+    "numberOfNightLandings": "Laskujen määrä yöllä",
+
+    "instrumentFlying": "Mittarilento",
     "instrumentFlyingMins": "Mittarilentotunnit (HH:MM)",
     "fuelInfo": "Polttoaineen tiedot",
     "fuelUpliftLitres": "Polttoainetäydennys (litraa)",

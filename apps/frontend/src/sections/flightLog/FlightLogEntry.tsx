@@ -111,7 +111,7 @@ const FlightLogEntry = () => {
     handleSubmit,
     control,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting },
     setError,
     setValue,
     getValues,
@@ -143,6 +143,7 @@ const FlightLogEntry = () => {
 
       personsOnBoard: 1,
       numberOfLandings: 1,
+      numberOfNightLandings: 0,
       nightFlyingMins: 0,
       instrumentFlyingMins: 0,
 
@@ -186,25 +187,36 @@ const FlightLogEntry = () => {
   ) => (getValues(field) ? dayjs.unix(Number(watch(field))) : null)
 
   const onSubmit = async (data: FlightLogUpsertRequest) => {
-    const { error } = await mutation.trigger(
-      isNew ? 'POST' : 'PATCH',
-      data,
-      undefined,
-      {
-        // put returned payload to the cache
-        revalidate: false,
-        populateCache: (result) => result,
+    console.log('Form submitted with data:', data) // Debug log
+
+    try {
+      const { error } = await mutation.trigger(
+        isNew ? 'POST' : 'PATCH',
+        data,
+        undefined,
+        {
+          // put returned payload to the cache
+          revalidate: false,
+          populateCache: (result) => result,
+        }
+      )
+
+      if (error) {
+        console.error('Error saving flight data:', error)
+        setSbState(true)
+        return setError('root', {
+          type: error?.detail ?? error?.title ?? 'Error',
+        })
       }
-    )
-    if (error) {
-      console.error('Error saving flight data:', error)
+
+      navigate(`/flight-logs?${location.state}#${flightId}`)
+    } catch (err) {
+      console.error('Unexpected error:', err)
       setSbState(true)
-      return setError('root', {
-        type: error?.detail ?? error?.title ?? 'Error',
+      setError('root', {
+        type: 'Unexpected error occurred',
       })
     }
-
-    navigate(`/flight-logs?${location.state}#${flightId}`)
   }
 
   const [sbState, setSbState] = useState<boolean>(false)
@@ -216,6 +228,10 @@ const FlightLogEntry = () => {
     console.log(location)
     navigate(`/flight-logs?${location.state}#${flightId}`)
   }
+
+  // Check if form has validation errors (excluding root errors)
+  const hasValidationErrors =
+    Object.keys(errors).filter((key) => key !== 'root').length > 0
 
   const title = isNew ? t('flightLog.newEntry') : t('flightLog.existingEntry')
 
@@ -249,7 +265,7 @@ const FlightLogEntry = () => {
       </Typography>
 
       <Paper sx={{ p: 3, mt: 2 }}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Grid container spacing={3}>
             {/* Aircraft Information */}
             <Grid size={{ xs: 12 }}>
@@ -412,21 +428,36 @@ const FlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <NumberOfLandings control={control} />
+              <NumberOfLandings name='numberOfLandings' control={control} />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            {/* Night and Instrument Flying    */}
+            <Grid size={{ xs: 12 }}>
+              <Typography variant='h6' gutterBottom>
+                {t('flightLog.nightFlying')}
+              </Typography>
+            </Grid>
+            <Stack spacing={3}>
               <MinutesField name='nightFlyingMins' control={control} />
-            </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+              <NumberOfLandings
+                name='numberOfNightLandings'
+                control={control}
+                min={0}
+              />
+
+              <Typography variant='h6' gutterBottom>
+                {t('flightLog.instrumentFlying')}
+              </Typography>
+
               <MinutesField name='instrumentFlyingMins' control={control} />
-            </Grid>
+            </Stack>
 
             {/* Fuel and Oil */}
-
             <Grid size={{ xs: 12 }}>
-              <Typography variant='h6'>{t('flightLog.fuelInfo')}</Typography>
+              <Typography sx={{ mt: 4 }} variant='h6'>
+                {t('flightLog.fuelInfo')}
+              </Typography>
             </Grid>
 
             <Grid offset={1} size={{ xs: 10, md: 10 }}>
@@ -472,7 +503,7 @@ const FlightLogEntry = () => {
                 name='billableMemberId'
                 control={control}
                 props={{
-                  required: true,
+                  InputProps: { readOnly: true },
                 }}
               />
             </Grid>
@@ -500,7 +531,7 @@ const FlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <FormControl required fullWidth error={!!errors.status}>
+              <FormControl fullWidth error={!!errors.status}>
                 <InputLabel>{t('flightLog.status.title')}</InputLabel>
                 <Controller
                   name='status'
@@ -555,7 +586,7 @@ const FlightLogEntry = () => {
             </Grid>
           </Grid>
 
-          {errors.root?.type && (
+          {errors.root && (
             <Alert severity='error' sx={{ mt: 2 }}>
               {errors.root.type}
             </Alert>
@@ -567,7 +598,7 @@ const FlightLogEntry = () => {
               variant='outlined'
               onClick={handleCancel}
               startIcon={<Icon icon='mdi:close' />}
-              disabled={mutation.isMutating}
+              disabled={mutation.isMutating || isSubmitting}
             >
               {t('general.cancel')}
             </Button>
@@ -577,12 +608,12 @@ const FlightLogEntry = () => {
               color='primary'
               startIcon={<Icon icon='mdi:content-save' />}
               disabled={
-                mutation.isMutating ||
-                Object.keys(errors).filter((e) => !e.startsWith('root'))
-                  .length > 0
+                mutation.isMutating || isSubmitting || hasValidationErrors
               }
             >
-              {mutation.isMutating ? t('general.saving') : t('general.save')}
+              {mutation.isMutating || isSubmitting
+                ? t('general.saving')
+                : t('general.save')}
             </Button>
           </Stack>
         </form>

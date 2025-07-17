@@ -99,7 +99,7 @@ export const EditMemberModal = ({
           licenceExpiry: memberData.licenceExpiry,
           medicalExpiry: memberData.medicalExpiry,
         })
-       } else if (mode === 'training') {
+      } else if (mode === 'training') {
         setFormData({
           isTrainingProgramPilot: memberData.isTrainingProgramPilot,
         })

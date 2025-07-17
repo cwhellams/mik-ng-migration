@@ -206,6 +206,7 @@ describe('POST /flight-log', () => {
         incidentOrObservations: 'N/A',
         nightFlyingMins: 20,
         numberOfLandings: 1,
+        numberOfNightLandings: 0,
         offBlockTimeEpoch: (new Date('2025-03-22T10:30:00Z').getTime() / 1000).toString(),
         takeoffTimeEpoch: (new Date('2025-03-22T10:45:00Z').getTime() / 1000).toString(),
         landingTimeEpoch: (new Date('2025-03-22T11:40:00Z').getTime() / 1000).toString(),

@@ -318,21 +318,21 @@ const MemberProfile = () => {
               />
             }
             <CardContent>
-            <FormTitle
-                  title={t('member.licenceInfo.licenceInfo')}
-                  icon='mdi:certificate'
-                />
+              <FormTitle
+                title={t('member.licenceInfo.licenceInfo')}
+                icon='mdi:certificate'
+              />
               <Stack spacing={1.5}>
-                  <FormField label={t('member.licenceInfo.licenceId')}>
-                    {licenceId || 'N/A'}
-                  </FormField>
-                  <FormField label={t('member.licenceInfo.licenceExpiry')}>
-                    {licenceExpiry || 'N/A'}
-                  </FormField>
-                  <FormField label={t('member.licenceInfo.medicalExpiry')}>
-                    {medicalExpiry || 'N/A'}
-                  </FormField>
-                </Stack>
+                <FormField label={t('member.licenceInfo.licenceId')}>
+                  {licenceId || 'N/A'}
+                </FormField>
+                <FormField label={t('member.licenceInfo.licenceExpiry')}>
+                  {licenceExpiry || 'N/A'}
+                </FormField>
+                <FormField label={t('member.licenceInfo.medicalExpiry')}>
+                  {medicalExpiry || 'N/A'}
+                </FormField>
+              </Stack>
             </CardContent>
           </Card>
 

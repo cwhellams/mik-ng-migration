@@ -24,7 +24,7 @@ import { useTranslation } from 'react-i18next'
 import Billing from './sections/billing/billing'
 import AccountingLayout from './sections/accounting/Accounting'
 import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
-import 'dayjs/locale/en-gb' 
+import 'dayjs/locale/en-gb'
 
 function App() {
   const [loading, setLoading] = useState(true)
