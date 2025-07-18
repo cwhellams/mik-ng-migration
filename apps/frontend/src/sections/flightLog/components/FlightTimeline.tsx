@@ -411,7 +411,7 @@ const FlightTimeline = ({
                         const newHours = Math.floor(totalMinutes / 60)
                         const newMinutes = totalMinutes % 60
 
-                        return `${newHours}h ${newMinutes}m`
+                        return `${newHours}h ${newMinutes}min`
                       })()}
                     </Typography>
                     <Typography variant='caption' color='text.secondary'>
