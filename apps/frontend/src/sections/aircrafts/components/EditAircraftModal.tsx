@@ -85,6 +85,7 @@ export const EditAircraftModal = ({
         location: aircraft?.location,
         equipment: aircraft?.equipment,
         hourlyRateEur: aircraft?.hourlyRateEur,
+        imageUrl: aircraft?.imageUrl ?? null,
 
         documents: [],
         notes: [],
@@ -257,12 +258,22 @@ export const EditAircraftModal = ({
       <Grid size={{ xs: 6, sm: 4 }}>
         <TextField
           fullWidth
+          label={t('aircraft.edit.imageUrl')}
+          value={formData.imageUrl || ''}
+          onChange={({ target }) => handleChange('imageUrl', target.value)}
+        />
+      </Grid>
+      <Grid size={{ xs: 6, sm: 4 }}>
+        <TextField
+          fullWidth
           required
           type='number'
           inputMode='numeric'
-          label={t('aircraft.edit.seats')}
-          value={formData.seats || ''}
-          onChange={({ target }) => handleChange('seats', Number(target.value))}
+          label={t('aircraft.edit.usableFuelLitres')}
+          value={formData.usableFuelLitres || ''}
+          onChange={({ target }) =>
+            handleChange('usableFuelLitres', Number(target.value))
+          }
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 4 }}>

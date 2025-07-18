@@ -1,5 +1,4 @@
-CREATE TABLE flight.aircraft
-(
+CREATE TABLE flight.aircraft (
     registration VARCHAR(10) UNIQUE NOT NULL PRIMARY KEY,
     display_name VARCHAR(50) NOT NULL,
     model VARCHAR(50) NOT NULL,
@@ -7,7 +6,7 @@ CREATE TABLE flight.aircraft
     year_of_manufacture INT NOT NULL,
     seats INT NOT NULL,
     usable_fuel_litres INT NOT NULL,
-    fuel_types VARCHAR(50)[] NOT NULL,
+    fuel_types VARCHAR(50) [] NOT NULL,
     active BOOLEAN NOT NULL DEFAULT FALSE,
     maintenance_cycle INT NOT NULL,
     last_maintenance_date DATE NOT NULL,
@@ -22,6 +21,7 @@ CREATE TABLE flight.aircraft
     location VARCHAR(255),
     equipment VARCHAR(255),
     hourly_rate_eur DECIMAL(10, 2) NOT NULL,
+    image_url VARCHAR(255) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     created_by VARCHAR(9) NOT NULL REFERENCES member.register (member_id),

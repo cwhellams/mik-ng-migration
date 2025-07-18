@@ -1,4 +1,12 @@
-import { Typography, Box, Stack, Card, CardContent, Alert } from '@mui/material'
+import {
+  Typography,
+  Box,
+  Stack,
+  Card,
+  CardContent,
+  Alert,
+  CardMedia,
+} from '@mui/material'
 import useApi from '../../hooks/useApi'
 import {
   Aircraft,
@@ -23,6 +31,7 @@ import {
 import { Upsert } from '@backend/types/schema'
 import { EditDocumentModal } from './components/EditDocumentModal'
 import dayjs from 'dayjs'
+import MIKLogo from '../../assets/mik-logo-blue.png'
 
 const Aircrafts = () => {
   const { data, isLoading, error } = useApi<AircraftListResponse, Aircraft>({
@@ -114,6 +123,15 @@ const Aircrafts = () => {
                 key={aircraft.registration}
                 sx={{ flex: 1, flexBasis: '40%' }}
               >
+                <CardMedia
+                  component='img'
+                  height='180'
+                  image={aircraft.imageUrl || MIKLogo}
+                  alt={`Aircraft ${aircraft.registration}`}
+                  onError={(e) => {
+                    ;(e.target as HTMLImageElement).src = MIKLogo
+                  }}
+                />
                 <CardContent>
                   <Stack spacing={2}>
                     <Box>

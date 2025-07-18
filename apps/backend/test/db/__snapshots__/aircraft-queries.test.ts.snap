@@ -12,6 +12,7 @@ exports[`Db add aircraft tests add aircraft and update aircraft 1`] = `
     "AVGAS",
   ],
   "hourlyRateEur": 100,
+  "imageUrl": null,
   "location": "test",
   "maintenance": {
     "lastMaintenanceDate": "2023-10-01",
@@ -48,6 +49,7 @@ exports[`Db add aircraft tests add aircraft and update aircraft 2`] = `
     "AVGAS",
   ],
   "hourlyRateEur": 100,
+  "imageUrl": null,
   "location": "test",
   "maintenance": {
     "lastMaintenanceDate": "2023-10-01",
@@ -164,6 +166,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
       "JETA-1",
     ],
     "hourlyRateEur": 216,
+    "imageUrl": "https://www.flyfinland.fi/photos/original/29416.jpg",
     "location": "EFNU BF-hangar 21",
     "maintenance": {
       "lastMaintenanceDate": "2024-11-10",
@@ -252,6 +255,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all active aircraft
       "MOGAS",
     ],
     "hourlyRateEur": 147,
+    "imageUrl": "https://cdn.jetphotos.com/full/5/69415_1600241420.jpg",
     "location": "EFNU Cumulus Hangar",
     "maintenance": {
       "lastMaintenanceDate": "2025-03-01",
@@ -344,6 +348,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
       "JETA-1",
     ],
     "hourlyRateEur": 216,
+    "imageUrl": "https://www.flyfinland.fi/photos/original/29416.jpg",
     "location": "EFNU BF-hangar 21",
     "maintenance": {
       "lastMaintenanceDate": "2024-11-10",
@@ -432,6 +437,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
       "MOGAS",
     ],
     "hourlyRateEur": 147,
+    "imageUrl": "https://cdn.jetphotos.com/full/5/69415_1600241420.jpg",
     "location": "EFNU Cumulus Hangar",
     "maintenance": {
       "lastMaintenanceDate": "2025-03-01",
@@ -470,6 +476,7 @@ exports[`Db query Get aircrafts tests getAllAircraft returns all aircraft in the
       "AVGAS",
     ],
     "hourlyRateEur": 228,
+    "imageUrl": "https://cdn.jetphotos.com/full/6/927368_1715977239.jpg",
     "location": "EFNU",
     "maintenance": {
       "lastMaintenanceDate": "2024-04-15",
@@ -561,6 +568,7 @@ exports[`Db query Get aircrafts tests getAllAircraftByRegistration returns the a
     "JETA-1",
   ],
   "hourlyRateEur": 216,
+  "imageUrl": "https://www.flyfinland.fi/photos/original/29416.jpg",
   "location": "EFNU BF-hangar 21",
   "maintenance": {
     "lastMaintenanceDate": "2024-11-10",

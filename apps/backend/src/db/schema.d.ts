@@ -84,6 +84,7 @@ export interface FlightAircraft {
   equipment: string | null
   fuel_types: string[]
   hourly_rate_eur: Numeric
+  image_url: string | null
   last_maintenance_date: string
   last_maintenance_tach: number
   last_maintenance_type: string

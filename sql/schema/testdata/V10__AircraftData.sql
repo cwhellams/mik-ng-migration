@@ -1,64 +1,131 @@
 INSERT INTO flight.aircraft (
-    registration,
-    display_name,
-    model,
-    manufacturer,
-    year_of_manufacture,
-    seats,
-    usable_fuel_litres,
-    fuel_types,
-    active,
-    maintenance_cycle,
-    last_maintenance_date,
-    last_maintenance_type,
-    last_maintenance_tach,
-    next_maintenance_date,
-    next_maintenance_type,
-    next_maintenance_tach,
-    total_percentage_hours,
-    usable_percentage_hours,
-    location,
-    notes,
-    equipment,
-    hourly_rate_eur,
-    created_at,
-    updated_at,
-    created_by, updated_by
-) VALUES
-(
-    'OH-STL', 'Diamond DA40', 'DA40', 'Diamond Aircraft', 2007, 4, 
-    147.6, ARRAY['JETA-1'], TRUE, 
-    100, '2024-11-10', '200h', 4709, null, '100h', 4778,
-    10, 8, 'EFNU BF-hangar 21', 
-    to_jsonb(
-        ARRAY[
-            jsonb_object(ARRAY['text', 'severity'], ARRAY['Keep oil quantity level in the middle of the approved range - do not add to full!', 'note'])
-        ]
+        registration,
+        display_name,
+        model,
+        manufacturer,
+        year_of_manufacture,
+        seats,
+        usable_fuel_litres,
+        fuel_types,
+        active,
+        maintenance_cycle,
+        last_maintenance_date,
+        last_maintenance_type,
+        last_maintenance_tach,
+        next_maintenance_date,
+        next_maintenance_type,
+        next_maintenance_tach,
+        total_percentage_hours,
+        usable_percentage_hours,
+        location,
+        notes,
+        equipment,
+        hourly_rate_eur,
+        created_at,
+        updated_at,
+        created_by,
+        updated_by,
+        image_url
+    )
+VALUES (
+        'OH-STL',
+        'Diamond DA40',
+        'DA40',
+        'Diamond Aircraft',
+        2007,
+        4,
+        147.6,
+        ARRAY ['JETA-1'],
+        TRUE,
+        100,
+        '2024-11-10',
+        '200h',
+        4709,
+        null,
+        '100h',
+        4778,
+        10,
+        8,
+        'EFNU BF-hangar 21',
+        to_jsonb(
+            ARRAY [
+            jsonb_object(ARRAY['text', 'severity'],
+            ARRAY ['Keep oil quantity level in the middle of the approved range - do not add to full!', 'note']
+        ) ]
     ),
-    'SDFGY/S', 216.00,
-    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'k1mnimda', 'k1mnimda'
+    'SDFGY/S',
+    216.00,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP,
+    'k1mnimda',
+    'k1mnimda',
+    'https://www.flyfinland.fi/photos/original/29416.jpg'
 ),
-
 (
-    'OH-IHQ', 'Diamond DV20', 'DV20', 'Diamond Aircraft', 2010, 2, 
-    77, ARRAY['AVGAS', 'MOGAS'], TRUE, 
-    50, '2025-03-01', '200h', 6085, null, '50h', 6130,
-    5, 3, 'EFNU Cumulus Hangar', 
-    to_jsonb(ARRAY[
-        jsonb_object(ARRAY['text', 'severity'], ARRAY['Koneen palosammutin on huollossa. Ei ole pakollinen varuste, mutta huomioitava!', 'caution'])
-    ]),
-    'VOY/S', 147.00,
-    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'k1mnimda', 'k1mnimda'
+    'OH-IHQ',
+    'Diamond DV20',
+    'DV20',
+    'Diamond Aircraft',
+    2010,
+    2,
+    77,
+    ARRAY ['AVGAS', 'MOGAS'],
+    TRUE,
+    50,
+    '2025-03-01',
+    '200h',
+    6085,
+    null,
+    '50h',
+    6130,
+    5,
+    3,
+    'EFNU Cumulus Hangar',
+    to_jsonb(
+        ARRAY [
+        jsonb_object(ARRAY['text', 'severity'],
+        ARRAY ['Koneen palosammutin on huollossa. Ei ole pakollinen varuste, mutta huomioitava!', 'caution']
+    ) ]
 ),
-
+'VOY/S',
+147.00,
+CURRENT_TIMESTAMP,
+CURRENT_TIMESTAMP,
+'k1mnimda',
+'k1mnimda',
+'https://cdn.jetphotos.com/full/5/69415_1600241420.jpg'
+),
 (
-    'OH-P28', 'Piper PA-28', 'PA-28', 'Piper Aircraft', 2005, 4,
-    181.5, ARRAY['AVGAS'], FALSE, 
-    50, '2024-04-15', '50h', 5180.00, '2025-05-05', '50h', 5230,
-    5, 3, 'EFNU', 
-    to_jsonb(ARRAY[
-        jsonb_object(ARRAY['text', 'severity'], ARRAY['Waiting for annual', 'warning'])
-    ]),
-    'SFD', 228.00,
-    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'k1mnimda', 'k1mnimda'
+    'OH-P28',
+    'Piper PA-28',
+    'PA-28',
+    'Piper Aircraft',
+    2005,
+    4,
+    181.5,
+    ARRAY ['AVGAS'],
+    FALSE,
+    50,
+    '2024-04-15',
+    '50h',
+    5180.00,
+    '2025-05-05',
+    '50h',
+    5230,
+    5,
+    3,
+    'EFNU',
+    to_jsonb(
+        ARRAY [
+        jsonb_object(ARRAY['text', 'severity'],
+        ARRAY ['Waiting for annual', 'warning']
+    ) ]
+),
+'SFD',
+228.00,
+CURRENT_TIMESTAMP,
+CURRENT_TIMESTAMP,
+'k1mnimda',
+'k1mnimda',
+'https://cdn.jetphotos.com/full/6/927368_1715977239.jpg'
 );

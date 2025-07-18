@@ -97,6 +97,7 @@ export const AircraftSchema = AuditableSchema.extend({
   equipment: z.string().nullable(),
 
   hourlyRateEur: z.coerce.number(),
+  imageUrl: z.string().url().optional().nullable(),
 })
 
 export type Aircraft = z.infer<typeof AircraftSchema>

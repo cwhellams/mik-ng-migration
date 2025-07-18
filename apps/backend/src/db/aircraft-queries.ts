@@ -73,6 +73,7 @@ const toAircraft = (
   location: aircraft.location,
   equipment: aircraft.equipment,
   hourlyRateEur: aircraft.hourly_rate_eur,
+  imageUrl: aircraft.image_url,
   createdAt: aircraft.created_at?.toISOString(),
   updatedAt: aircraft.updated_at?.toISOString(),
   createdBy: aircraft.created_by,
@@ -111,6 +112,7 @@ export async function addAircraft(aircraft: Upsert<Aircraft>, jwt: JWTUser): Pro
       location: aircraft.location,
       equipment: aircraft.equipment,
       hourly_rate_eur: aircraft.hourlyRateEur,
+      image_url: aircraft.imageUrl,
 
       created_at: now,
       created_by: jwt.memberId,
@@ -152,6 +154,7 @@ export async function updateAircraft(
       location: patch.location,
       equipment: patch.equipment,
       hourly_rate_eur: patch.hourlyRateEur,
+      image_url: patch.imageUrl,
       updated_at: now,
       updated_by: jwt.memberId,
     })

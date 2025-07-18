@@ -153,7 +153,8 @@
       "active": "Is Active",
       "location": "Location",
       "equipment": "Equipment",
-      "hourlyRateEur": "Hourly Rate"
+      "hourlyRateEur": "Hourly Rate",
+      "imageUrl": "Image URL"
     },
     "maintenance": {
       "edit": "Edit Maintenance Details",
