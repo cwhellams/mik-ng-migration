@@ -244,4 +244,24 @@ VALUES (
         FALSE,
         'k1mnimda',
         'k1mnimda'
+    ),
+    (
+        'Examiner1',
+        'Exe',
+        'McExaminerface',
+        '1989-10-05',
+        current_date,
+        'examinerfe@mik.com',
+        '3584400012345',
+        'Mrs Examiner',
+        '0496543210',
+        'EXTERNAL',
+        'BILL010',
+        'Anykatu 710',
+        'Tampere',
+        '28100',
+        FALSE,
+        FALSE,
+        'k1mnimda',
+        'k1mnimda'
     );

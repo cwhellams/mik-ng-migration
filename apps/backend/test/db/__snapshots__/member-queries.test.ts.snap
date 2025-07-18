@@ -540,6 +540,16 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
+    "email": "examinerfe@mik.com",
+    "first": "Exe",
+    "last": "McExaminerface",
+    "memberId": "Examiner1",
+    "phoneNumber": "3584400012345",
+    "roles": [
+      "EXAMINER",
+    ],
+  },
+  {
     "email": "jukka.nieminen@example.com",
     "first": "Jukka",
     "last": "Nieminen",
@@ -556,16 +566,6 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     "memberId": "Marja1",
     "phoneNumber": "0490123456",
     "roles": [],
-  },
-  {
-    "email": "juha.seppala@example.com",
-    "first": "Juha",
-    "last": "Seppälä",
-    "memberId": "Juha1",
-    "phoneNumber": "0489012345",
-    "roles": [
-      "MEMBER",
-    ],
   },
 ]
 `;
@@ -633,6 +633,16 @@ exports[`Db query member tests getMembers should return only approved members fo
     "phoneNumber": "0478901234",
     "roles": [
       "COMMITTEE",
+    ],
+  },
+  {
+    "email": "examinerfe@mik.com",
+    "first": "Exe",
+    "last": "McExaminerface",
+    "memberId": "Examiner1",
+    "phoneNumber": "3584400012345",
+    "roles": [
+      "EXAMINER",
     ],
   },
   {

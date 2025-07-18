@@ -140,7 +140,7 @@ export async function getMembers(
     .$if(!isAdmin, qb => qb.where('is_membership_approved', '=', true))
 
     // hide external users from non-admins
-    .$if(!isAdmin, qb => qb.where('member_type', '!=', 'EXTERNAL'))
+    //.$if(!isAdmin, qb => qb.where('member_type', '!=', 'EXTERNAL'))
 
     // query users with roles
     .$if(filterRoles.length > 0, qb =>

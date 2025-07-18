@@ -45,6 +45,16 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
       ],
     },
     {
+      "email": "examinerfe@mik.com",
+      "first": "Exe",
+      "last": "McExaminerface",
+      "memberId": "Examiner1",
+      "phoneNumber": "3584400012345",
+      "roles": [
+        "EXAMINER",
+      ],
+    },
+    {
       "email": "jukka.nieminen@example.com",
       "first": "Jukka",
       "last": "Nieminen",
@@ -143,6 +153,16 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "phoneNumber": "0434567890",
       "roles": [
         "COMMITTEE",
+      ],
+    },
+    {
+      "email": "examinerfe@mik.com",
+      "first": "Exe",
+      "last": "McExaminerface",
+      "memberId": "Examiner1",
+      "phoneNumber": "3584400012345",
+      "roles": [
+        "EXAMINER",
       ],
     },
     {

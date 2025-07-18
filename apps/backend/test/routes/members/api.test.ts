@@ -162,7 +162,7 @@ describe('GET /members', () => {
     const membersQry = await query(memberToken, {
       role: 'NOT_ROLE',
     })
-    expect(membersQry.members.length).toEqual(6)
+    expect(membersQry.members.length).toEqual(7)
   })
 
   it('should skip search by private roles as a member', async () => {
@@ -171,7 +171,7 @@ describe('GET /members', () => {
       isMembershipApproved: undefined,
     })
 
-    expect(membersQry.members.length).toEqual(6)
+    expect(membersQry.members.length).toEqual(7)
   })
 
   it('should skip search by unapproved roles as a member', async () => {
@@ -180,7 +180,7 @@ describe('GET /members', () => {
       isMembershipApproved: true,
     })
 
-    expect(membersQry.members.length).toEqual(6)
+    expect(membersQry.members.length).toEqual(7)
   })
 
   it('should skip search by private roles as a admin without sudo mode', async () => {
@@ -193,7 +193,7 @@ describe('GET /members', () => {
     expect(res.status).toBe(200)
 
     const membersQry = res.body as MemberListResponse
-    expect(membersQry.members.length).toEqual(6)
+    expect(membersQry.members.length).toEqual(7)
   })
 
   it('should search by private roles as an admin', async () => {

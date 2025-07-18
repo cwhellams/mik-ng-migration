@@ -1,1 +1,12 @@
-update member.register set membership_approved_at = current_timestamp , membership_approved_by = 'Matti1' where member_id in ('Liisa1','Jukka1','Matti1','Pekka1','Antti1','Sanna1')
+update member.register
+set membership_approved_at = current_timestamp,
+    membership_approved_by = 'Matti1'
+where member_id in (
+        'Liisa1',
+        'Jukka1',
+        'Matti1',
+        'Pekka1',
+        'Antti1',
+        'Sanna1',
+        'Examiner1'
+    )
