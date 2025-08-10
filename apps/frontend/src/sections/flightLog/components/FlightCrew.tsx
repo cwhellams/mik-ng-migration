@@ -134,7 +134,7 @@ const FlightCrew = ({
           role: 'SELF',
         },
       ]
-      .concat(
+        .concat(
           memberList?.members
             ?.filter((m) => m.roles.includes('EXAMINER'))
             ?.map((m) => ({
@@ -154,7 +154,10 @@ const FlightCrew = ({
         )
         .concat(
           memberList?.members
-            ?.filter((m) => !m.roles.includes('INSTRUCTOR') && !m.roles.includes('EXAMINER'))
+            ?.filter(
+              (m) =>
+                !m.roles.includes('INSTRUCTOR') && !m.roles.includes('EXAMINER')
+            )
             ?.map((m) => ({
               value: m.memberId,
               label: `${m.first} ${m.last}`,

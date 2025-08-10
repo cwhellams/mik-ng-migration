@@ -135,7 +135,11 @@ export interface FlightAircraftJourneyLogBook {
 export interface FlightLogs {
   aircraft_registration: string
   ajlb_blank_rows_before: number
+  ajlb_page_number: number | null
+  ajlb_row_number: number | null
   ajlb_seq_no: number
+  ajlb_total_flight_mins: number | null
+  ajlb_total_flight_time: Generated<string | null>
   arrival_airport: string
   billable_member_id: string
   billing_remarks: string | null
@@ -143,10 +147,13 @@ export interface FlightLogs {
   block_time: Generated<string>
   created_at: Generated<Timestamp>
   created_by: string
+  crew2_last_name: string | null
   crew2_member_id: Generated<string | null>
   crew2_role: CrewRole | null
+  crew3_last_name: string | null
   crew3_member_id: Generated<string | null>
   crew3_role: CrewRole | null
+  crew4_last_name: string | null
   crew4_member_id: Generated<string | null>
   crew4_role: CrewRole | null
   departure_airport: string
@@ -176,6 +183,7 @@ export interface FlightLogs {
   on_block_time_utc: Generated<Timestamp>
   personal_remarks: string | null
   persons_on_board: number
+  pic_last_name: string
   pic_member_id: string
   pic_role: CrewRole
   priv_or_com_flight: string
@@ -198,14 +206,11 @@ export interface FlightLogsAudit {
 }
 
 export interface FlightVwFlightLogs {
+  ac_total_flight_mins: number | null
   ac_total_flight_time: string | null
-  ajlb_flight_number: Int8 | null
-  crew2_last_name: string | null
   flight_id: string | null
-  page_number: Int8 | null
-  pic_last_name: string | null
-  row_number: Int8 | null
-  rows_per_page: number | null
+  page_number: number | null
+  row_number: number | null
 }
 
 export interface FlightVwFlightTimeTotals {
@@ -214,12 +219,13 @@ export interface FlightVwFlightTimeTotals {
   aircraft_registration: string | null
   ajlb_seq_no: number | null
   current: boolean | null
-  flight_log_mins_this_ajlb: number | null
-  flight_logs_this_ajlb: number | null
-  flight_time_this_ajlb: string | null
+  new_flights_count: number | null
+  new_flights_page_number: number | null
+  new_flights_time: string | null
   pages_in_use: number | null
-  total_flight_mins_at_ajlb_start: number | null
-  total_flight_time_at_ajlb_start: string | null
+  validated_on_block_time_utc: Timestamp | null
+  validated_total_flight_mins: number | null
+  validated_total_flight_time: string | null
 }
 
 export interface FlywayDataHistory {

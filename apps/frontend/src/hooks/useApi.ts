@@ -213,12 +213,17 @@ export default function useApi<
     {
       method: MutateMethods
       payload: unknown
-      id: string | undefined
+      path: string | undefined
     }
   >(cacheKey, (_key: object, { arg }) =>
     api.request({
       ...request,
-      url: arg.id ? `${request.url}/${arg.id ?? ''}` : request.url,
+      url: arg.path ? `${request.url}/${arg.path ?? ''}` : request.url,
+      // globally allow admin permissions with sudo mode
+      headers: {
+        ...request.headers,
+        'x-sudo': sudo ? 'true' : 'false',
+      },
       method: arg.method,
       data: arg.payload,
     })
@@ -234,14 +239,14 @@ export default function useApi<
       trigger: async <T>(
         method: MutateMethods,
         payload: T,
-        id?: string,
+        path?: string,
         options?: SWRMutationConfiguration<
           AxiosResponse<MutateData>,
           AxiosError<Problem>
         >
       ): Promise<APIResponse<MutateData>> =>
         mutation
-          .trigger({ method, payload, id }, options)
+          .trigger({ method, payload, path }, options)
           .then((res) => ({
             data: res?.data,
           }))

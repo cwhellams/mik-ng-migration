@@ -15,8 +15,6 @@ import {
   Pagination,
   Snackbar,
   Alert,
-  Card,
-  CardContent,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
@@ -42,8 +40,8 @@ import {
 import { useEffect, useState } from 'react'
 import { EditButton } from '../../components/EditButton'
 import { Problem } from '@backend/routes/response'
-import { FormTitle } from '../../components/FormTitle'
-import { Status } from './components/Status'
+import { StatusButton } from './components/StatusButton'
+import { FlightLogValidation } from './components/FlightLogValidation'
 
 const FlightLogsList = () => {
   const { t } = useTranslation()
@@ -51,7 +49,7 @@ const FlightLogsList = () => {
   const { isFlightLogAdmin } = useRoles()
 
   // fetch list of aircraft journey log books
-  const { data: logbooks, mutate } = useApi<AjlbListResponse>(
+  const { data: logbooks, mutate: mutateLogbooks } = useApi<AjlbListResponse>(
     {
       url: 'v1/ajlb',
     },
@@ -111,24 +109,23 @@ const FlightLogsList = () => {
   )
 
   useEffect(() => {
-    // the page defaults to the last page
-    if (data?.page) {
+    // if not requested otherwise, server returns the last page
+    if (!searchParams.get('page') && data?.page) {
       setFilters((prev) => ({
         ...prev,
         page: data.page,
       }))
     }
-  }, [data, setFilters])
+  }, [data, searchParams, setFilters])
 
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
   const isMd = useMediaQuery(theme.breakpoints.up('md'))
 
   const singlePlane = !!filters.aircraftRegistration
-  const syncMode = !!filters.ajlbSeqNo
+  const syncMode = !!ajlb
 
-  const unverifiedFlights =
-    data?.logs.filter((log) => log.status === FlightLogStatus.NEW) ?? []
+  const rowHeight = syncMode ? 75 : 100
 
   const crewHeaders = isMd
     ? [t('flightLog.crews.pic'), t('flightLog.logbooks.student'), 'PoB']
@@ -144,8 +141,7 @@ const FlightLogsList = () => {
 
   const updateEntry = async (
     log: FlightLogListEntry,
-    patch: Partial<FlightLogUpsertRequest>,
-    clearCache = true
+    patch: Partial<FlightLogUpsertRequest>
   ) => {
     const res = await mutation.trigger<Partial<FlightLogUpsertRequest>>(
       'PATCH',
@@ -153,33 +149,74 @@ const FlightLogsList = () => {
       log.flightId
     )
 
-    if (clearCache) {
-      setSbState(res.error ? res.error : { status: 200 })
-      mutate()
-    }
+    setSbState(res.error ? res.error : { status: 200 })
+    mutateLogbooks()
+
     return res
   }
 
-  const EmptyRows = ({ log }: { log: FlightLogListEntry }) =>
-    syncMode &&
-    Array.from({ length: log.ajlbBlankRowsBefore }).map((_, index) => (
+  const validateEntry = async (log: FlightLogListEntry, isLast = true) => {
+    const res = await mutation.trigger<Partial<FlightLogUpsertRequest>>(
+      'POST',
+      {},
+      `${log.flightId}/validate`,
+      {
+        revalidate: isLast,
+      }
+    )
+
+    if (res.error) {
+      setSbState(res.error)
+    } else if (isLast) {
+      setSbState({ status: 200 })
+    }
+
+    if (isLast) {
+      mutateLogbooks()
+    }
+    return !res.error
+  }
+
+  const EmptyRows = ({
+    log,
+    currentRow,
+  }: {
+    log: FlightLogListEntry
+    currentRow: number
+  }) => {
+    if (!syncMode) {
+      return <></>
+    }
+
+    const rows = Math.min(
+      log.ajlbBlankRowsBefore,
+      // if blank rows are in the previous page, skip them
+      (log.ajlbRowNo ?? 0) - currentRow
+    )
+
+    return Array.from({ length: rows }).map((_, index) => (
       <TableRow key={`${log.flightId}-${index}`}>
-        <TableCell colSpan={colSpan - 1}>&nbsp;</TableCell>
+        <TableCell colSpan={colSpan - 2} sx={{ height: rowHeight }}>
+          &nbsp;
+        </TableCell>
         <TableCell>
-          <Stack direction='row' spacing={1}>
-            <EditButton
-              title={t('flightLog.logbooks.deleteBlankRow')}
-              onClick={() =>
-                updateEntry(log, {
-                  ajlbBlankRowsBefore: log.ajlbBlankRowsBefore - 1,
-                })
-              }
-              icon='mdi:table-row-remove'
-            />
-          </Stack>
+          {log.status === FlightLogStatus.NEW && (
+            <Stack direction='row' spacing={1}>
+              <EditButton
+                title={t('flightLog.logbooks.deleteBlankRow')}
+                onClick={() =>
+                  updateEntry(log, {
+                    ajlbBlankRowsBefore: log.ajlbBlankRowsBefore - 1,
+                  })
+                }
+                icon='mdi:table-row-remove'
+              />
+            </Stack>
+          )}
         </TableCell>
       </TableRow>
     ))
+  }
 
   return (
     <Box>
@@ -220,7 +257,6 @@ const FlightLogsList = () => {
         logbooks={logbooks?.books ?? []}
         filters={filters}
         setFilters={(filters: FlightLogFilters) => {
-          console.log('Setting filters', filters)
           setSearchParams({
             aircraftRegistration: filters.aircraftRegistration ?? '',
             ajlbSeqNo: filters.ajlbSeqNo?.toString() ?? '',
@@ -233,7 +269,9 @@ const FlightLogsList = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ pr: 0 }}>{t('flightLog.date')}</TableCell>
+              <TableCell sx={{ pr: 0, height: rowHeight }}>
+                {t('flightLog.date')}
+              </TableCell>
               {!singlePlane && <TableCell>{t('flightLog.aircraft')}</TableCell>}
               {crewHeaders.map((header, index) => (
                 <TableCell key={index}>{header}</TableCell>
@@ -262,11 +300,15 @@ const FlightLogsList = () => {
               error={error}
               colSpan={colSpan}
             >
-              {data?.logs?.map((log) => [
-                <EmptyRows key={`${log.flightId}-empty`} log={log} />,
+              {data?.logs?.map((log, index) => [
+                <EmptyRows
+                  key={`${log.flightId}-empty`}
+                  log={log}
+                  currentRow={index + 1}
+                />,
 
                 <TableRow key={log.flightId}>
-                  <TableCell>
+                  <TableCell sx={{ height: rowHeight }}>
                     <Link
                       ref={
                         location.hash == `#${log.flightId}`
@@ -307,15 +349,18 @@ const FlightLogsList = () => {
                   <TableCell>{log.flightType}</TableCell>
                   {syncMode && <TableCell>{log.totalTimeInService}</TableCell>}
                   {!isXs && (
-                    <TableCell>
-                      <Status
+                    <TableCell sx={{ textAlign: 'center' }}>
+                      <StatusButton
                         log={log}
-                        viewOnly={!syncMode || !isFlightLogAdmin}
-                        update={(status: FlightLogStatus) =>
-                          updateEntry(log, {
-                            status,
-                          })
+                        viewOnly={
+                          !syncMode ||
+                          !isFlightLogAdmin ||
+                          ajlb?.newFlightsPage !== data?.page ||
+                          data?.logs.find(
+                            (l) => l.status === FlightLogStatus.NEW
+                          ) !== log
                         }
+                        update={() => validateEntry(log)}
                       />
                     </TableCell>
                   )}
@@ -324,6 +369,23 @@ const FlightLogsList = () => {
                     log.status == FlightLogStatus.NEW && (
                       <TableCell>
                         <Stack direction='row' spacing={1}>
+                          {
+                            // allow to delete blank rows from the end of previous page
+                            log.ajlbRowNo == 1 &&
+                              log.ajlbBlankRowsBefore > 0 && (
+                                <EditButton
+                                  title={t('flightLog.logbooks.deleteBlankRow')}
+                                  onClick={() =>
+                                    updateEntry(log, {
+                                      ajlbBlankRowsBefore:
+                                        log.ajlbBlankRowsBefore - 1,
+                                    })
+                                  }
+                                  icon='mdi:table-row-remove'
+                                />
+                              )
+                          }
+
                           <EditButton
                             title={t('flightLog.logbooks.addBlankRow')}
                             onClick={() =>
@@ -366,66 +428,33 @@ const FlightLogsList = () => {
         showLastButton={true}
         siblingCount={2}
         sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}
+        // renderItem={(item) => {
+        //   if (item.type === 'page' && item.page !== null) {
+        //     return (
+        //       <PaginationItem
+        //         {...item}
+        //         page={(ajlb?.startPage ?? 1) - 1 + (item.page - 1) * 2 + 1}
+        //       />
+        //     )
+        //   }
+        //   return <PaginationItem {...item} />
+        // }}
       />
 
       {syncMode && !!data?.rows && (
-        <Card sx={{ flex: 1, mt: 10 }}>
-          <CardContent
-            sx={{
-              borderWidth: '8px',
-              borderStyle: 'solid',
-              borderColor: unverifiedFlights.length > 1 ? 'orange' : 'green',
-              borderRadius: 2,
-              boxShadow: 1,
-            }}
-          >
-            {unverifiedFlights.length > 1 && (
-              <FormTitle
-                title={t('flightLog.logbooks.verifyThePage')}
-                icon='mdi:check'
-              />
-            )}
-            <Stack spacing={2}>
-              <Stack direction={'row'} alignItems='center'>
-                <Typography variant='body1' mr={2}>
-                  {data?.logs.length == ajlb?.rowsPerPage
-                    ? t('flightLog.logbooks.carriedForward')
-                    : t('flightLog.logbooks.lastAirborneTime')}
-                </Typography>
-                <Typography variant='h3' mr={2}>
-                  {data?.logs.at(-1)?.acTotalFlightTime}
-                </Typography>
-              </Stack>
-
-              {unverifiedFlights.length > 0 && (
-                <Button
-                  variant='contained'
-                  color='primary'
-                  startIcon={<Icon icon='mdi:check' color='green' />}
-                  onClick={async () => {
-                    for (const log of unverifiedFlights) {
-                      const res = await updateEntry(
-                        log,
-                        {
-                          status: FlightLogStatus.VALIDATED,
-                        },
-                        false
-                      )
-                      if (res.error) {
-                        setSbState(res.error)
-                      }
-                    }
-                    mutate()
-                  }}
-                >
-                  {t('flightLog.logbooks.verifyAll', {
-                    count: unverifiedFlights.length,
-                  })}
-                </Button>
-              )}
-            </Stack>
-          </CardContent>
-        </Card>
+        <FlightLogValidation
+          ajlb={ajlb}
+          data={data}
+          navigateToNewFlightsPage={() => {
+            setSearchParams({
+              aircraftRegistration: filters.aircraftRegistration ?? '',
+              ajlbSeqNo: filters.ajlbSeqNo?.toString() ?? '',
+              page: ajlb.newFlightsPage?.toString() ?? '',
+            })
+          }}
+          validateEntry={validateEntry}
+          isMutating={mutation.isMutating}
+        />
       )}
     </Box>
   )

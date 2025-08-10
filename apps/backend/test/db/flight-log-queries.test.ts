@@ -7,8 +7,13 @@ import {
   getFlightLogTotals,
   insertFlightLog,
   updateFlightLog,
+  updateFlightLogStatus,
 } from '../../src/db/flight-log-queries.ts'
-import type { FlightLog, FlightLogMemberRequest } from '../../src/routes/flight-log/models.ts'
+import {
+  FlightLogStatus,
+  type FlightLog,
+  type FlightLogMemberRequest,
+} from '../../src/routes/flight-log/models.ts'
 import { MIKPermissions } from '../../src/routes/members/models.ts'
 
 describe('Db Get FlightLog tests', () => {
@@ -121,17 +126,16 @@ describe('Db query FlightLog tests', () => {
     expect(result).toMatchSnapshot()
   })
 
-  it('getFlightLogTotals returns totals for all ac', async () => {
+  it('getFlightLogTotals returns totals for single ac', async () => {
     const result = await getFlightLogTotals('OH-STL')
     expect(result).toMatchSnapshot()
   })
 })
 
-describe('Db query insert tests', () => {
+describe('Db insert tests', () => {
   it('insertFlightLog inserts a new flight log to the db, querying using returned flight id returns the row, row can be deleted using flight id', async () => {
     const data: FlightLogMemberRequest = {
       aircraftRegistration: 'OH-STL',
-      billableMemberId: 'Matti1',
       picMemberId: 'Liisa1',
       crew2MemberId: 'Pekka1',
       onBlockTimeEpoch: '1741584000',
@@ -162,7 +166,7 @@ describe('Db query insert tests', () => {
       nightFlyingMins: 0,
     }
 
-    const flightId = await insertFlightLog(data, {
+    const flightId = await insertFlightLog(data, 'Matti1', {
       memberId: 'Matti1',
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     })
@@ -181,7 +185,7 @@ describe('Db query insert tests', () => {
   })
 })
 
-describe('Db query update tests', () => {
+describe('Db update tests', () => {
   it('updatesFlightLog with remarks and dep aprt then reverts the change', async () => {
     const flightId = 'bLwnAstr0'
     const testObs = 'Observation from test'
@@ -211,5 +215,38 @@ describe('Db query update tests', () => {
     data.departureAirport = originalLog?.departureAirport
     user.memberId = originalLog!.updatedBy
     await updateFlightLog(flightId, data, user)
+  })
+})
+
+describe('Db update status tests', () => {
+  it('updatesFlightLogStatus copies ajlb data from the view', async () => {
+    const flightId = 'bLwnAstr0'
+
+    const originalLog = await getFlightLog(flightId)
+    expect(originalLog?.acTotalFlightTime).toEqual('172:00')
+    expect(originalLog?.ajlbPageNo).toEqual(1)
+    expect(originalLog?.ajlbRowNo).toEqual(3)
+
+    const user = {
+      memberId: 'Liisa1',
+      email: '',
+      permissions: [MIKPermissions.FLIGHTLOG_USER],
+    }
+    const res = await updateFlightLogStatus(flightId, FlightLogStatus.VALIDATED, {}, user)
+    expect(res).toEqual(1n)
+
+    const result = await getFlightLog(flightId)
+    expect(result?.acTotalFlightTime).toEqual('172:00')
+    expect(result?.ajlbPageNo).toEqual(1)
+    expect(result?.ajlbRowNo).toEqual(3)
+
+    //cleanup
+    const cleanup = await updateFlightLogStatus(flightId, FlightLogStatus.NEW, {}, user)
+    expect(cleanup).toEqual(1n)
+
+    const cleaned = await getFlightLog(flightId)
+    expect(cleaned?.acTotalFlightTime).toEqual('172:00')
+    expect(cleaned?.ajlbPageNo).toEqual(1)
+    expect(cleaned?.ajlbRowNo).toEqual(3)
   })
 })

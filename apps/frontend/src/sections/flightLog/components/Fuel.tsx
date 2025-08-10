@@ -70,7 +70,7 @@ export const Fuel = ({ control, usableFuelLitres }: Props) => {
           </Typography>
 
           <Slider
-            value={field.value ?? usableFuelLitres * 0.1}
+            value={field.value ?? 0}
             onChange={(_, value: number | number[]) => {
               field.onChange(value as number)
             }}

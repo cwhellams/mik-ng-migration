@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { jest } from '@jest/globals'
 import express from 'express'
 import request from 'supertest'
 
@@ -42,20 +43,21 @@ const removeTimestamps = (aircraft: Aircraft) => ({
   ...aircraft,
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
-  status: {
-    ...aircraft.status,
-    ...(aircraft.maintenance.nextMaintenanceDate
-      ? {
-          daysUntilNextMaintenance: expect.any(Number),
-        }
-      : {}),
-  },
   documents: aircraft.documents.map(doc => ({
     ...doc,
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
   })),
 })
+
+// keep document expiration date consistent for snapshots
+beforeEach(async () => {
+  jest
+    .useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
+    .setSystemTime(new Date('2025-06-07T06:00:00Z'))
+})
+
+afterEach(async () => {})
 
 describe('GET /aircrafts', () => {
   const query = async (token: string, sudo = true) =>

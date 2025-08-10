@@ -391,12 +391,17 @@
       "addBlankRow": "Add empty row above",
       "deleteBlankRow": "Remove empty row",
       "status": "Status",
-      "verifyThePage": "Verify all flights on the physical logbook page",
-      "verifyAll": "Mark {{count}} flights as verified and ready for billing",
-      "lastAirborneTime": "Total airborne time after the last flight",
-      "carriedForward": "Total airborne time carried forward to the next page",
+      "validateTitle": "Validate flights on the physical logbook",
+      "goToNewFlights": "Go to first unvalidated flight on page {{page}}",
+      "validateAll": "Mark {{count}} flights ready for billing",
+      "lastAirborneTime": "Confirm total airborne time after the last flight",
+      "carriedForward": "Confirm total airborne time carried forward to the next page",
       "showAll": "Show all",
-      "current": "current"
+      "current": "current",
+      "newFlightsSince": "New unverified flights since {{date}}",
+      "newFlightsCount": "Flights",
+      "newFlightsTime": "Flights time",
+      "goToFlight": "Open logbook {{seqNo}} on page {{page}} (row {{row}})"
     }
   }
 }

@@ -2,6 +2,7 @@ INSERT INTO flight.logs (
     flight_id,
     billable_member_id,
     pic_member_id,
+    pic_last_name,
     pic_role,
     aircraft_registration,
     off_block_time_epoch,
@@ -34,12 +35,13 @@ INSERT INTO flight.logs (
 SELECT 'mass' || i,
     'Pekka1',
     'Pekka1',
+    'Hämäläinen',
     'PIC',
     'OH-STL',
     1262304000+i*72000, 
-    1262304000+i*72000 + 5*60 + round(random()*10)*60, 
-    1262304000+i*72000 + (5+11)*60 + round(random()*20)*60, 
-    1262304000+i*72000 + (5+11+21)*60+ round(random()*10)*60,
+    1262304000+i*72000 + 5*60, -- 5 minute taxi to runway
+    1262304000+i*72000 + (10 + i)*60, -- 10 + i minutes flight time
+    1262304000+i*72000 + (15 + i)*60, -- 5 minute taxi to ramp
     (ROUND(random()*10)/10), 
     10 + ROUND(random()*50), 
     10 + ROUND(random()*30), 
@@ -57,12 +59,21 @@ SELECT 'mass' || i,
     'P',
     1,
     0,
-    CASE
-        WHEN i < 50 THEN 'PAID'::flight_log_status
-        WHEN i < 100 THEN 'INVOICED'::flight_log_status
-        WHEN i < 150 THEN 'VALIDATED'::flight_log_status
-        ELSE 'NEW'::flight_log_status
-        END AS pvc,
+    'NEW',
     FALSE
 
 FROM generate_series(1, 200) i;
+
+UPDATE flight.logs SET
+    status = CASE
+        WHEN off_block_time_epoch < 1262664000 THEN 'PAID'::flight_log_status
+        WHEN off_block_time_epoch < 1262880000 THEN 'INVOICED'::flight_log_status
+        ELSE 'VALIDATED'::flight_log_status
+    END,
+    ajlb_total_flight_mins =
+        (select ac_total_flight_mins from flight.vw_flight_logs where flight_id = flight.logs.flight_id),
+    ajlb_page_number =
+        (select page_number from flight.vw_flight_logs where flight_id = flight.logs.flight_id),
+    ajlb_row_number = 
+        (select row_number from flight.vw_flight_logs where flight_id = flight.logs.flight_id)
+WHERE off_block_time_epoch < 1263024000 -- before 2010-01-11 00:00:00 UTC

@@ -6,14 +6,14 @@ import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import flightLogRouter from '../../../src/routes/flight-log/api.ts'
 import {
   type FlightLog,
-  type FlightLogMemberRequest,
+  type FlightLogUpsertRequest,
 } from '../../../src/routes/flight-log/models.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 
 const test_member_id = 'Matti1'
 const test_member_id2 = 'Sanna1'
-const admin_member_id = 'Pekka1'
+const admin_member_id = 'Matti1'
 
 // Create an instance of the Express app
 const app = express()
@@ -48,7 +48,7 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(200)
 
-    expect(response.body.logs).toHaveLength(1)
+    expect(response.body.logs).toHaveLength(2)
     expect(response.body.logs[0]).toMatchSnapshot()
   })
 
@@ -60,7 +60,7 @@ describe('GET /flight-log', () => {
       .query({ aircraftRegistration: 'OH-STL' })
 
     expect(response.status).toBe(200)
-    expect(response.body.logs).toHaveLength(1)
+    expect(response.body.logs).toHaveLength(2)
   })
 
   it('should return all data for ac when user is admin', async () => {
@@ -120,7 +120,7 @@ describe('GET /flight-log', () => {
       })
 
     expect(response.status).toBe(200)
-    expect(response.body.logs).toHaveLength(1)
+    expect(response.body.logs).toHaveLength(2)
     expect(response.body.logs[0]).toMatchSnapshot()
   })
 
@@ -179,50 +179,118 @@ describe('GET /flight-log', () => {
   })
 })
 
+describe('GET /flight-log/flightid', () => {
+  it('should return flights for the logged in user when not admin', async () => {
+    const response = await request(app)
+      .get('/flight-log/mikify')
+      .set('Authorization', `Bearer ${mattiToken}`)
+      .query({})
+
+    expect(response.status).toBe(200)
+    expect(response.body).toMatchSnapshot({
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    })
+  })
+
+  it('should return 403 for the logged in user for other flights', async () => {
+    const response = await request(app)
+      .get('/flight-log/efnu4evr')
+      .set('Authorization', `Bearer ${mattiToken}`)
+      .query({})
+
+    expect(response.status).toBe(403)
+  })
+
+  it('should return 403 for admin without sudo rights', async () => {
+    const response = await request(app)
+      .get('/flight-log/efnu4evr')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .set('x-sudo', 'false')
+      .query({})
+
+    expect(response.status).toBe(403)
+  })
+
+  it('should return flight for admin with sudo rights', async () => {
+    const response = await request(app)
+      .get('/flight-log/efnu4evr')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .query({})
+
+    expect(response.status).toBe(200)
+    expect(response.body).toMatchSnapshot({
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    })
+  })
+
+  it('should return 404 for unknown flight', async () => {
+    const response = await request(app)
+      .get('/flight-log/noup')
+      .set('Authorization', `Bearer ${mattiToken}`)
+      .query({})
+
+    expect(response.status).toBe(404)
+  })
+})
+
 describe('POST /flight-log', () => {
+  const payload: FlightLogUpsertRequest = {
+    aircraftRegistration: 'OH-STL',
+    arrivalAirport: 'EFHK',
+    billingRemarks: 'N/A',
+    picMemberId: 'memberId',
+    picRole: 'FI',
+    crew2MemberId: null,
+    crew2Role: null,
+    crew3MemberId: null,
+    crew3Role: null,
+    crew4MemberId: null,
+    crew4Role: null,
+    departureAirport: 'EFHK',
+    flightType: 'KOU',
+    fuelUpliftLitres: 40,
+    fuelRemainingLitres: 20,
+    incidentOrObservations: 'N/A',
+    nightFlyingMins: 20,
+    numberOfLandings: 1,
+    numberOfNightLandings: 0,
+    offBlockTimeEpoch: (new Date('2025-03-22T10:30:00Z').getTime() / 1000).toString(),
+    takeoffTimeEpoch: (new Date('2025-03-22T10:45:00Z').getTime() / 1000).toString(),
+    landingTimeEpoch: (new Date('2025-03-22T11:40:00Z').getTime() / 1000).toString(),
+    onBlockTimeEpoch: (new Date('2025-03-22T11:45:00Z').getTime() / 1000).toString(),
+    oilUpliftLitres: 0.2,
+    personsOnBoard: 3,
+    personalRemarks: 'N/A',
+    totalTimeInService: 0.2,
+    privOrComFlight: 'P',
+    instrumentFlyingMins: 0,
+
+    // admin fields
+    ajlbBlankRowsBefore: 0,
+    ajlbSeqNo: 1,
+    billableMemberId: 'Sanna1',
+    isBillableFlight: true,
+    nonBillingReason: null,
+  }
+
   test.each([
     ['Sanna1', false, sannaToken],
     ['Matti1', true, mattiToken],
+    ['Pekka1', true, adminToken],
   ])(
     'should create a flight log with valid payload , return flight_id and be deleted using the returned id',
     async (memberId: string, isDtoFlight: boolean, token: string) => {
-      const payload: FlightLogMemberRequest = {
-        aircraftRegistration: 'OH-STL',
-        arrivalAirport: 'EFHK',
-        billableMemberId: test_member_id,
-        billingRemarks: 'N/A',
-        picMemberId: memberId,
-        picRole: 'FI',
-        crew2MemberId: null,
-        crew2Role: null,
-        crew3MemberId: null,
-        crew3Role: null,
-        crew4MemberId: null,
-        crew4Role: null,
-        departureAirport: 'EFHK',
-        flightType: 'KOU',
-        fuelUpliftLitres: 40,
-        fuelRemainingLitres: 20,
-        incidentOrObservations: 'N/A',
-        nightFlyingMins: 20,
-        numberOfLandings: 1,
-        numberOfNightLandings: 0,
-        offBlockTimeEpoch: (new Date('2025-03-22T10:30:00Z').getTime() / 1000).toString(),
-        takeoffTimeEpoch: (new Date('2025-03-22T10:45:00Z').getTime() / 1000).toString(),
-        landingTimeEpoch: (new Date('2025-03-22T11:40:00Z').getTime() / 1000).toString(),
-        onBlockTimeEpoch: (new Date('2025-03-22T11:45:00Z').getTime() / 1000).toString(),
-        oilUpliftLitres: 0.2,
-        personsOnBoard: 3,
-        personalRemarks: 'N/A',
-        totalTimeInService: 0.2,
-        privOrComFlight: 'P',
-        instrumentFlyingMins: 0,
-      }
-
       const response = await request(app)
         .post('/flight-log')
         .set('Authorization', `Bearer ${token}`)
-        .send(payload)
+        .send({
+          ...payload,
+          picMemberId: memberId,
+        })
+
+      console.log(response.body.errors)
 
       expect(response.body.flight_id).toBeDefined()
       const id = response.body.flight_id
@@ -233,12 +301,22 @@ describe('POST /flight-log', () => {
         .get(`/flight-log/${id}`)
         .set('Authorization', `Bearer ${token}`)
       expect(checkPost.status).toBe(200)
-      expect(checkPost.body.isDtoTrainingFlight).toBe(isDtoFlight)
+
+      const checkPostBody = checkPost.body as FlightLog
+      if (token !== adminToken) {
+        // billable member id should match logged in user
+        expect(checkPostBody.billableMemberId).toBe(memberId)
+      } else {
+        // admin can set any billable member id
+        expect(checkPostBody.billableMemberId).toBe(payload.billableMemberId)
+      }
+      expect(checkPostBody.picMemberId).toBe(memberId)
+      expect(checkPostBody.isDtoTrainingFlight).toBe(isDtoFlight)
 
       // Cleanup
       const delResponse = await request(app)
         .delete(`/flight-log/${id}`)
-        .set('Authorization', `Bearer ${mattiToken}`)
+        .set('Authorization', `Bearer ${token}`)
         .set('Accept', 'application/json')
       expect(delResponse.status).toBe(204)
       expect(delResponse.body).toEqual({})
@@ -276,25 +354,41 @@ describe('POST /flight-log', () => {
     expect(response.body.errors).toBeDefined()
     expect(response.body.errors[0].message).toMatch(/Required/)
   })
+
+  it('should return 400 for invalid flight times', async () => {
+    const response = await request(app)
+      .post('/flight-log')
+      .set('Authorization', `Bearer ${mattiToken}`)
+      .send({ ...payload, offBlockTimeEpoch: '0' })
+
+    expect(response.status).toBe(400)
+    expect(response.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      instance: '/flight-log',
+      timestamp: expect.any(String),
+      errors: [
+        {
+          code: 'too_big',
+          inclusive: true,
+          maximum: 3600,
+          message: '3600',
+          path: ['takeoffTimeEpoch'],
+          type: 'bigint',
+        },
+      ],
+    })
+  })
 })
 
 describe('PATCH /flight-log/', () => {
-  test.each([
-    ['Matti1', [MIKPermissions.FLIGHTLOG_ADMIN]],
-    ['Pekka1', [MIKPermissions.FLIGHTLOG_USER]],
-  ])(
-    'should update a flight log when billable member matches token member or user has elevated role, using %d and %s',
-    async (memberId, permissions) => {
+  test.each([mattiToken, adminToken])(
+    'should update a flight log when billable member matches token member or user has elevated role',
+    async token => {
       const payload: Partial<FlightLog> = {
         crew2MemberId: 'Antti1',
+        billableMemberId: 'Antti1',
       }
-
-      //Create a token with a member id that matches billable member id
-      const token = generateAccessToken({
-        memberId: memberId,
-        email: 'valid@mik.fi',
-        permissions: permissions,
-      })
 
       const patchResponse = await request(app)
         .patch('/flight-log/bLwnAstr0')
@@ -306,6 +400,7 @@ describe('PATCH /flight-log/', () => {
         .set('Authorization', `Bearer ${token}`)
 
       // patch returns the same as another get
+      console.log(patchResponse.body)
       expect(patchResponse.status).toBe(200)
       expect(patchResponse.body).toEqual(checkPatch.body)
 
@@ -317,6 +412,7 @@ describe('PATCH /flight-log/', () => {
 
       const undoPayload: Partial<FlightLog> = {
         crew2MemberId: 'Antti1',
+        billableMemberId: 'Matti1',
       }
       const undoResponse = await request(app)
         .patch('/flight-log/bLwnAstr0')
@@ -362,7 +458,6 @@ describe('PATCH /flight-log/', () => {
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     })
 
-    // Create a token with a member id that matches billable member id
     const response = await request(app)
       .patch('/flight-log/efnu4evr')
       .set('Authorization', `Bearer ${invalidToken}`)
@@ -376,31 +471,148 @@ describe('PATCH /flight-log/', () => {
       timestamp: expect.any(String),
     })
   })
-  it('should return a 400 if the payload is not valid', async () => {
-    const payload = {
-      this_is_invalid: 'invalid',
+  it('should return a 400 if trying to patch single flight time components to be invalid', async () => {
+    const payload: Partial<FlightLogUpsertRequest> = {
+      offBlockTimeEpoch: '0',
     }
 
-    //Creaate a token with a member id that matches billable member id
     const response = await request(app)
-      .patch('/flight-log/efnu4evr')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .patch('/flight-log/bLwnAstr0')
+      .set('Authorization', `Bearer ${adminToken}`)
       .send(payload)
 
     expect(response.body).toEqual({
       status: 400,
       title: 'Bad Request',
-      instance: '/flight-log/efnu4evr',
+      instance: '/flight-log/bLwnAstr0',
       timestamp: expect.any(String),
       errors: [
         {
-          code: 'unrecognized_keys',
-          keys: ['this_is_invalid'],
-          message: "Unrecognized key(s) in object: 'this_is_invalid'",
-          path: [],
+          code: 'too_big',
+          inclusive: true,
+          maximum: 3600,
+          message: '3600',
+          path: ['takeoffTimeEpoch'],
+          type: 'bigint',
         },
       ],
     })
+  })
+})
+
+describe('POST /flight-log/validate', () => {
+  it('should return a 401 if an invalid JWT token is passed', async () => {
+    const invalidToken = 'THIS WILL NOT WORK'
+
+    const response = await request(app)
+      .post('/flight-log/efnu4evr/validate')
+      .set('Authorization', `Bearer ${invalidToken}`)
+      .send()
+
+    expect(response.status).toBe(401)
+  })
+  it('should return a 403 if the billable member id does not match token ID for a USER', async () => {
+    const invalidToken = generateAccessToken({
+      memberId: 'Liisa1',
+      email: 'test@mik.fi',
+      permissions: [MIKPermissions.FLIGHTLOG_USER],
+    })
+
+    // Create a token with a member id that matches billable member id
+    const response = await request(app)
+      .post('/flight-log/efnu4evr/validate')
+      .set('Authorization', `Bearer ${invalidToken}`)
+      .send()
+
+    expect(response.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Flight log not owned by user or user has no admin rights',
+      instance: '/flight-log/efnu4evr/validate',
+      timestamp: expect.any(String),
+    })
+  })
+  it('should return a 404 if flight is not found', async () => {
+    const response = await request(app)
+      .post('/flight-log/noup/validate')
+      .set('Authorization', `Bearer ${mattiToken}`)
+      .send()
+
+    expect(response.body).toEqual({
+      status: 404,
+      title: 'Not Found',
+      instance: '/flight-log/noup/validate',
+      timestamp: expect.any(String),
+      detail: 'Flight log not found',
+    })
+  })
+
+  it('should return a 400 if flight is already billed', async () => {
+    const response = await request(app)
+      .post('/flight-log/eject/validate')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send()
+
+    expect(response.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      instance: '/flight-log/eject/validate',
+      timestamp: expect.any(String),
+      detail: 'Flight already billed and read-only',
+    })
+  })
+
+  it('should return a 400 if there are earlier unvalidated flights', async () => {
+    const response = await request(app)
+      .post('/flight-log/mass11/validate')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send()
+
+    expect(response.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      instance: '/flight-log/mass11/validate',
+      timestamp: expect.any(String),
+      detail: 'All previous flights must be first validated, validate mass10 first',
+    })
+  })
+
+  it('should return a 400 if there are later validated flights', async () => {
+    const response = await request(app)
+      .post('/flight-log/mass1/validate')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ revert: true })
+
+    expect(response.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      instance: '/flight-log/mass1/validate',
+      timestamp: expect.any(String),
+      detail: 'All later flights must be first reverted, revert mass9 first',
+    })
+  })
+
+  it('should validate and revert the first new flight', async () => {
+    const response = await request(app)
+      .post('/flight-log/mass10/validate')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send()
+
+    expect(response.status).toEqual(200)
+    expect(response.body.acTotalFlightTime).toEqual('11:55')
+    expect(response.body.ajlbPageNo).toEqual(1)
+    expect(response.body.ajlbRowNo).toEqual(10)
+    expect(response.body.status).toEqual('VALIDATED')
+
+    const revert = await request(app)
+      .post('/flight-log/mass10/validate')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ revert: true })
+    expect(revert.status).toEqual(200)
+    expect(revert.body.acTotalFlightTime).toEqual('11:55')
+    expect(revert.body.ajlbPageNo).toEqual(1)
+    expect(revert.body.ajlbRowNo).toEqual(10)
+    expect(revert.body.status).toEqual('NEW')
   })
 })
 
@@ -455,7 +667,7 @@ describe('GET /flight-log/totals', () => {
       .set('Authorization', `Bearer ${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body[2]).toMatchSnapshot()
+    expect(response.body[1]).toMatchSnapshot()
   })
 
   it('should return 200 with valid registration', async () => {

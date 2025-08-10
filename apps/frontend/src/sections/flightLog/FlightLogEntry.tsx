@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Box,
   Paper,
   Typography,
   Button,
   Stack,
   Breadcrumbs,
-  Link,
   Grid,
   FormControl,
   InputLabel,
@@ -16,17 +14,11 @@ import {
   Alert,
   Snackbar,
   Slide,
-  ListItemIcon,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import {
-  Link as RouterLink,
-  useLocation,
-  useNavigate,
-  useParams,
-} from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -35,7 +27,6 @@ import {
   FlightLogUpsertSchema,
   type FlightLogUpsertRequest,
   flightLogDateValidator,
-  FlightLogStatus,
 } from '@backend/routes/flight-log/models'
 import useApi from '../../hooks/useApi'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
@@ -49,6 +40,10 @@ import { Airfields } from './components/Airfields'
 import { PersonsOnBoard } from './components/PersonsOnBoard'
 import { NumberOfLandings } from './components/NumberOfLandings'
 import { Fuel } from './components/Fuel'
+import { StatusDisplay } from './components/StatusDisplay'
+import { RemoteContent } from '../../components/RemoteContent'
+import { useRoles } from '../../hooks/useRoles'
+import { BillableMember } from './components/BillableMember'
 
 const flightTypes = [
   { code: 'HAR', labelKey: 'flightLog.flightTypes.practice' },
@@ -63,6 +58,7 @@ const flightTypes = [
 
 const FlightLogEntry = () => {
   const { t } = useTranslation()
+
   const navigate = useNavigate()
   // preserve search filters when navigating back
   const location = useLocation()
@@ -70,10 +66,11 @@ const FlightLogEntry = () => {
   const { flightId } = useParams()
 
   const { me } = useMe()
+  const { isFlightLogAdmin } = useRoles()
 
   const isNew = flightId == 'new'
 
-  const { data, mutation } = useApi<FlightLog>(
+  const { data, mutation, isLoading, error } = useApi<FlightLog>(
     {
       url: `v1/flight-logs${isNew ? '' : `/${flightId}`}`,
       skipFetch: isNew,
@@ -86,18 +83,10 @@ const FlightLogEntry = () => {
     }
   )
 
-  const { data: aircraftData } = useApi<AircraftListResponse>(
-    {
-      url: 'v1/aircrafts',
-      params: { activeOnly: true },
-    },
-    {
-      // no need to revalidate aircrafts here
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
-  )
+  const { data: aircraftData } = useApi<AircraftListResponse>({
+    url: 'v1/aircrafts',
+    params: { activeOnly: true },
+  })
   // make sure old aircrafts are shown in the list
   const currentAircrafts =
     aircraftData?.aircrafts.map((a) => a.registration) ?? []
@@ -154,8 +143,12 @@ const FlightLogEntry = () => {
       personalRemarks: null,
       billingRemarks: null,
 
-      // admin only fields
-      status: FlightLogStatus.NEW,
+      // admin defaults, will be overwritten by the server
+      ajlbBlankRowsBefore: 0,
+      ajlbSeqNo: 1,
+      billableMemberId: me?.memberId ?? '',
+      isBillableFlight: true,
+      nonBillingReason: null,
     },
   })
 
@@ -236,7 +229,7 @@ const FlightLogEntry = () => {
   const title = isNew ? t('flightLog.newEntry') : t('flightLog.existingEntry')
 
   return (
-    <Box>
+    <RemoteContent isLoading={isLoading} error={error}>
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         open={sbState}
@@ -248,15 +241,8 @@ const FlightLogEntry = () => {
       </Snackbar>
 
       {/* Breadcrumb navigation */}
-      <Breadcrumbs sx={{ mb: 2 }}>
-        <Link
-          component={RouterLink}
-          to='/flight-logs'
-          underline='hover'
-          color='inherit'
-        >
-          {t('flightLog.title')}
-        </Link>
+      <Breadcrumbs sx={{ my: 2 }}>
+        <Link to='/flight-logs'>{t('flightLog.title')}</Link>
         <Typography color='text.primary'>{title}</Typography>
       </Breadcrumbs>
       {/* Page title */}
@@ -288,11 +274,12 @@ const FlightLogEntry = () => {
                     <Select
                       {...field}
                       onChange={({ target }) => {
+                        const plane = aircraftData?.aircrafts.find(
+                          (plane) => plane.registration == target.value
+                        )
                         if (!getValues('departureAirport')) {
                           // set last known landing location as the default departure airport
-                          const plane = aircraftData?.aircrafts.find(
-                            (plane) => plane.registration == target.value
-                          )
+
                           if (plane?.status?.lastLandingAirport) {
                             setValue(
                               'departureAirport',
@@ -300,6 +287,16 @@ const FlightLogEntry = () => {
                             )
                           }
                         }
+                        if (!getValues('fuelRemainingLitres')) {
+                          // set default fuel to 10% of usable fuel
+                          if (plane?.usableFuelLitres) {
+                            setValue(
+                              'fuelRemainingLitres',
+                              plane?.usableFuelLitres * 0.1
+                            )
+                          }
+                        }
+
                         field.onChange(target.value)
                       }}
                       label={t('flightLog.aircraft')}
@@ -498,15 +495,11 @@ const FlightLogEntry = () => {
               </Typography>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TxtField
-                name='billableMemberId'
-                control={control}
-                props={{
-                  InputProps: { readOnly: true },
-                }}
-              />
-            </Grid>
+            {isFlightLogAdmin && (
+              <Grid size={{ xs: 12, md: 6 }}>
+                <BillableMember control={control} />
+              </Grid>
+            )}
 
             <Grid size={{ xs: 12 }}>
               <TxtField
@@ -530,60 +523,11 @@ const FlightLogEntry = () => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12 }}>
-              <FormControl fullWidth error={!!errors.status}>
-                <InputLabel>{t('flightLog.status.title')}</InputLabel>
-                <Controller
-                  name='status'
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      onChange={({ target }) => field.onChange(target.value)}
-                      label={t('flightLog.status.title')}
-                    >
-                      <MenuItem value={FlightLogStatus.NEW}>
-                        <ListItemIcon>
-                          <Icon icon='mdi:schedule' color='orange' width={20} />
-                        </ListItemIcon>
-                        {t('flightLog.status.new')}
-                      </MenuItem>
-                      <MenuItem value={FlightLogStatus.VALIDATED}>
-                        <ListItemIcon>
-                          <Icon icon='mdi:check' color='green' width={20} />
-                        </ListItemIcon>
-                        {t('flightLog.status.validated')}
-                      </MenuItem>
-                      <MenuItem value={FlightLogStatus.INVOICED}>
-                        <ListItemIcon>
-                          <Icon
-                            icon='mdi:invoice-send-outline'
-                            color='orange'
-                            width={20}
-                          />
-                        </ListItemIcon>
-                        {t('flightLog.status.invoiced')}
-                      </MenuItem>
-                      <MenuItem value={FlightLogStatus.PAID}>
-                        <ListItemIcon>
-                          <Icon
-                            icon='mdi:invoice-check'
-                            color='green'
-                            width={20}
-                          />
-                        </ListItemIcon>
-                        {t('flightLog.status.paid')}
-                      </MenuItem>
-                    </Select>
-                  )}
-                />
-                {errors.status && (
-                  <FormHelperText>
-                    {errors.status.message?.toString()}
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
+            {data && (
+              <Grid size={{ xs: 12 }}>
+                <StatusDisplay log={data} />
+              </Grid>
+            )}
           </Grid>
 
           {errors.root && (
@@ -618,7 +562,7 @@ const FlightLogEntry = () => {
           </Stack>
         </form>
       </Paper>
-    </Box>
+    </RemoteContent>
   )
 }
 

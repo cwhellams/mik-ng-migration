@@ -21,8 +21,8 @@ export const toLocalDate = (date?: string | null) =>
   date ? dayjs.tz(dayjs(date), 'Europe/Helsinki').format('DD.MM.YYYY') : null
 
 // Format date from timestamp to localized format
-export const formatDate = (timestamp: string | Date) => {
-  return dayjs(timestamp).format('D.M.YY')
+export const formatDate = (timestamp: string | Date, template = 'D.M.YY') => {
+  return dayjs(timestamp).format(template)
 }
 
 // Format time from timestamp to display format

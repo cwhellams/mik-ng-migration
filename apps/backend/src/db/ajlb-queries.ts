@@ -4,8 +4,17 @@ import type { FlightAircraftJourneyLogBook, FlightVwFlightTimeTotals } from './s
 import type { Selectable } from 'kysely'
 
 const mapResultToAjlb = (
-  row: Selectable<FlightAircraftJourneyLogBook & Pick<FlightVwFlightTimeTotals, 'pages_in_use'>>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  row: Selectable<
+    FlightAircraftJourneyLogBook &
+      Pick<
+        FlightVwFlightTimeTotals,
+        | 'pages_in_use'
+        | 'new_flights_page_number'
+        | 'new_flights_time'
+        | 'new_flights_count'
+        | 'validated_on_block_time_utc'
+      >
+  >,
 ): AircraftJourneyLogBook => ({
   seqNo: row.seq_no,
   aircraftRegistration: row.aircraft_registration,
@@ -17,6 +26,10 @@ const mapResultToAjlb = (
   endDate: row.end_date ? row.end_date : null,
   flightTime: row.flight_time,
   pagesInUse: row.pages_in_use ?? 0,
+  newFlightsPage: row.new_flights_page_number,
+  newFlightsCount: row.new_flights_count ?? 0,
+  newFlightsTime: row.new_flights_time ?? '00:00',
+  validatedBeforeUTC: row.validated_on_block_time_utc?.toISOString() ?? null,
 })
 
 export async function getAjlbs(filter: AjlbFilter): Promise<AircraftJourneyLogBook[]> {
@@ -28,7 +41,13 @@ export async function getAjlbs(filter: AjlbFilter): Promise<AircraftJourneyLogBo
         .onRef('ajlb.seq_no', '=', 'totals.ajlb_seq_no'),
     )
     .selectAll('ajlb')
-    .select(['totals.pages_in_use'])
+    .select([
+      'totals.pages_in_use',
+      'totals.new_flights_page_number',
+      'totals.new_flights_time',
+      'totals.new_flights_count',
+      'totals.validated_on_block_time_utc',
+    ])
     .orderBy('aircraft_registration')
     .orderBy('seq_no')
 

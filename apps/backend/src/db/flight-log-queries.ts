@@ -8,24 +8,26 @@ import {
   type FlightLogListResponse,
   FlightLogStatus,
   type FlightLogListEntry,
+  type FlightLogUpsertRequest,
 } from '../routes/flight-log/models.ts'
 import type { MIKPermissions } from '../routes/members/models.ts'
 import { generateShortId } from '../util/nanoId.ts'
-import type { FlightLogs, FlightVwFlightLogs } from './schema.js'
-import type { Selectable } from 'kysely'
+import type { DB, FlightLogs, FlightVwFlightLogs } from './schema.js'
+import type { ExpressionBuilder, Selectable, UpdateObject } from 'kysely'
 import dayjs from 'dayjs'
 
 function mapFullResultToFlightLogs(
   row: Selectable<
-    FlightLogs &
-      Pick<FlightVwFlightLogs, 'ac_total_flight_time' | 'pic_last_name' | 'crew2_last_name'>
+    FlightLogs & Pick<FlightVwFlightLogs, 'ac_total_flight_time' | 'page_number' | 'row_number'>
   >,
 ): FlightLog {
   return {
-    acTotalFlightTime: row.ac_total_flight_time ?? '00:00',
+    acTotalFlightTime: row.ajlb_total_flight_time ?? row.ac_total_flight_time ?? '00:00',
     aircraftRegistration: row.aircraft_registration,
     ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
     ajlbSeqNo: row.ajlb_seq_no,
+    ajlbPageNo: row.ajlb_page_number ?? row.page_number ?? 0,
+    ajlbRowNo: row.ajlb_row_number ?? row.row_number ?? 0,
     arrivalAirport: row.arrival_airport,
     billableMemberId: row.billable_member_id,
     billingRemarks: row.billing_remarks,
@@ -34,8 +36,10 @@ function mapFullResultToFlightLogs(
     crew2LastName: row.crew2_last_name,
     crew2MemberId: row.crew2_member_id,
     crew2Role: row.crew2_role,
+    crew3LastName: row.crew3_last_name,
     crew3MemberId: row.crew3_member_id,
     crew3Role: row.crew3_role,
+    crew4LastName: row.crew4_last_name,
     crew4MemberId: row.crew4_member_id,
     crew4Role: row.crew4_role,
     departureAirport: row.departure_airport,
@@ -65,7 +69,7 @@ function mapFullResultToFlightLogs(
     onBlockTimeUtc: row.on_block_time_utc.toISOString(),
     personalRemarks: row.personal_remarks,
     personsOnBoard: row.persons_on_board,
-    picLastName: row.pic_last_name ?? row.pic_member_id,
+    picLastName: row.pic_last_name,
     picMemberId: row.pic_member_id,
     picRole: row.pic_role,
     privOrComFlight: row.priv_or_com_flight,
@@ -85,9 +89,9 @@ function mapFullResultToFlightLogs(
 export async function getFlightLog(flightId: string): Promise<FlightLog | undefined> {
   let res = await connection.db
     .selectFrom('flight.logs')
-    .innerJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
+    .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
     .selectAll('flight.logs')
-    .select(['totals.ac_total_flight_time', 'totals.pic_last_name', 'totals.crew2_last_name'])
+    .select(['totals.ac_total_flight_time', 'totals.page_number', 'totals.row_number'])
     .where('flight.logs.flight_id', '=', flightId)
     .executeTakeFirst()
 
@@ -99,7 +103,7 @@ export async function getFlightLog(flightId: string): Promise<FlightLog | undefi
 export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLogListResponse> {
   let query = connection.db
     .selectFrom('flight.logs')
-    .innerJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
+    .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
 
   if (filters.flightId) {
     query = query.where('flight.logs.flight_id', '=', filters.flightId)
@@ -140,9 +144,14 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
   // synch mode fetches physical pages from the ajlb
   const ajlbPaging = filters.ajlbSeqNo && filters.page !== undefined
   if (ajlbPaging) {
-    query = query
-      .where('ajlb_seq_no', '=', filters.ajlbSeqNo!)
-      .where('totals.page_number', '=', filters.page!.toString())
+    query = query.where('ajlb_seq_no', '=', filters.ajlbSeqNo!).where(eb =>
+      // search from both locked pages and pages waiting for validation
+      eb('flight.logs.ajlb_page_number', '=', filters.page!).or(
+        'totals.page_number',
+        '=',
+        filters.page!,
+      ),
+    )
   }
 
   // Calculate the total number of rows in the result set.
@@ -163,9 +172,13 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'flight.logs.aircraft_registration',
       'flight.logs.ajlb_blank_rows_before',
       'flight.logs.ajlb_seq_no',
+      'flight.logs.ajlb_total_flight_time',
+      'flight.logs.ajlb_page_number',
+      'flight.logs.ajlb_row_number',
       'flight.logs.arrival_airport',
       'flight.logs.billable_member_id',
       'flight.logs.block_time',
+      'flight.logs.crew2_last_name',
       'flight.logs.departure_airport',
       'flight.logs.flight_id',
       'flight.logs.flight_time',
@@ -183,18 +196,11 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'flight.logs.takeoff_time_utc',
       'flight.logs.landing_time_utc',
       'flight.logs.persons_on_board',
-      'flight.logs.pic_member_id',
+      'flight.logs.pic_last_name',
       'flight.logs.status',
       'flight.logs.total_time_in_service',
     ])
-    .select([
-      'totals.ac_total_flight_time',
-      'totals.row_number',
-      'totals.rows_per_page',
-      'totals.page_number',
-      'totals.pic_last_name',
-      'totals.crew2_last_name',
-    ])
+    .select(['totals.ac_total_flight_time', 'totals.row_number', 'totals.page_number'])
     .orderBy('off_block_time_epoch', filters.orderLatestFirst ? 'desc' : 'asc')
     // offset only valid with dynamic paging
     .offset(!ajlbPaging && page > 0 ? pageSize * (page - 1) : 0)
@@ -204,10 +210,11 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
   return {
     logs: results.map(row => {
       const res: FlightLogListEntry = {
-        acTotalFlightTime: row.ac_total_flight_time ?? '00:00',
+        acTotalFlightTime: row.ajlb_total_flight_time ?? row.ac_total_flight_time ?? '00:00',
         aircraftRegistration: row.aircraft_registration,
         ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
         ajlbSeqNo: row.ajlb_seq_no,
+        ajlbRowNo: row.ajlb_row_number ?? row.row_number ?? 1,
         arrivalAirport: row.arrival_airport,
         billableMemberId: row.billable_member_id,
         blockTime: row.block_time,
@@ -229,7 +236,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         landingTimeUtc: row.landing_time_utc.toISOString(),
         onBlockTimeUtc: row.on_block_time_utc.toISOString(),
         personsOnBoard: row.persons_on_board,
-        picLastName: row.pic_last_name ?? row.pic_member_id,
+        picLastName: row.pic_last_name,
         status: row.status as FlightLogStatus,
         totalTimeInService: row.total_time_in_service,
       }
@@ -244,6 +251,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
 
 export async function insertFlightLog(
   data: FlightLogMemberRequest,
+  billableMemberId: string,
   user: { memberId: string; permissions: MIKPermissions[] },
 ): Promise<string> {
   const retval = await connection.db
@@ -251,15 +259,30 @@ export async function insertFlightLog(
     .values(eb => ({
       aircraft_registration: data.aircraftRegistration,
       arrival_airport: data.arrivalAirport,
-      billable_member_id: data.billableMemberId,
+      billable_member_id: billableMemberId,
       billing_remarks: data.billingRemarks,
+      pic_last_name: eb
+        .selectFrom('member.register')
+        .select('last_name')
+        .where('member_id', '=', data.picMemberId),
       pic_member_id: data.picMemberId,
       pic_role: data.picRole,
-
+      crew2_last_name: eb
+        .selectFrom('member.register')
+        .select('last_name')
+        .where('member_id', '=', data.crew2MemberId),
       crew2_member_id: data.crew2MemberId,
       crew2_role: data.crew2Role,
+      crew3_last_name: eb
+        .selectFrom('member.register')
+        .select('last_name')
+        .where('member_id', '=', data.crew3MemberId),
       crew3_member_id: data.crew3MemberId,
       crew3_role: data.crew3Role,
+      crew4_last_name: eb
+        .selectFrom('member.register')
+        .select('last_name')
+        .where('member_id', '=', data.crew4MemberId),
       crew4_member_id: data.crew4MemberId,
       crew4_role: data.crew4Role,
       departure_airport: data.departureAirport,
@@ -315,63 +338,138 @@ export async function deleteFlightLog(flight_id: string): Promise<bigint> {
   return retval.numDeletedRows
 }
 
-export async function updateFlightLog(
+export const updateFlightLog = async (
   flight_id: string,
-  data: Partial<FlightLog>,
+  data: Partial<FlightLogUpsertRequest>,
   user: JWTUser,
-): Promise<bigint> {
+): Promise<bigint> =>
+  updateFlightLogWithAudit(flight_id, user, eb => ({
+    aircraft_registration: data.aircraftRegistration,
+    arrival_airport: data.arrivalAirport,
+    billable_member_id: data.billableMemberId,
+    billing_remarks: data.billingRemarks,
+    pic_last_name: data.picMemberId
+      ? eb
+          .selectFrom('member.register')
+          .select('last_name')
+          .where('member_id', '=', data.picMemberId)
+      : undefined,
+    pic_member_id: data.picMemberId,
+    pic_role: data.picRole,
+    crew2_last_name: data.crew2MemberId
+      ? eb
+          .selectFrom('member.register')
+          .select('last_name')
+          .where('member_id', '=', data.crew2MemberId)
+      : undefined,
+    crew2_member_id: data.crew2MemberId,
+    crew2_role: data.crew2Role,
+    crew3_last_name: data.crew3MemberId
+      ? eb
+          .selectFrom('member.register')
+          .select('last_name')
+          .where('member_id', '=', data.crew3MemberId)
+      : undefined,
+    crew3_member_id: data.crew3MemberId,
+    crew3_role: data.crew3Role,
+    crew4_last_name: data.crew4MemberId
+      ? eb
+          .selectFrom('member.register')
+          .select('last_name')
+          .where('member_id', '=', data.crew4MemberId)
+      : undefined,
+    crew4_member_id: data.crew4MemberId,
+    crew4_role: data.crew4Role,
+    departure_airport: data.departureAirport,
+    flight_type: data.flightType,
+    fuel_remaining_litres: data.fuelRemainingLitres,
+    fuel_uplift_litres: data.fuelUpliftLitres,
+    incident_or_observations: data.incidentOrObservations,
+    instrument_flying_mins: data.instrumentFlyingMins,
+    night_flying_mins: data.nightFlyingMins,
+    number_of_landings: data.numberOfLandings,
+    number_of_night_landings: data.numberOfNightLandings,
+    oil_uplift_litres: data.oilUpliftLitres,
+    off_block_time_epoch: data.offBlockTimeEpoch,
+    takeoff_time_epoch: data.takeoffTimeEpoch,
+    landing_time_epoch: data.landingTimeEpoch,
+    on_block_time_epoch: data.onBlockTimeEpoch,
+    personal_remarks: data.personalRemarks,
+    persons_on_board: data.personsOnBoard,
+    priv_or_com_flight: data.privOrComFlight,
+    total_time_in_service: data.totalTimeInService,
+
+    // admin fields are editable
+    ajlb_blank_rows_before: data.ajlbBlankRowsBefore,
+    ajlb_seq_no: data.ajlbSeqNo,
+    is_billable_flight: data.isBillableFlight,
+    //non_billing_approved_by_member_id: data.nonBillingApprovedByMemberId,
+    non_billing_reason: data.nonBillingReason,
+
+    is_dto_training_flight: eb
+      .selectFrom('member.register')
+      .select('is_training_program_pilot')
+      .where('member_id', '=', user.memberId)
+      .limit(1),
+  }))
+
+export const updateFlightLogStatus = async (
+  flightId: string,
+  status: FlightLogStatus,
+  patch: Partial<FlightLog>,
+  user: JWTUser,
+): Promise<bigint> => {
+  switch (status) {
+    case FlightLogStatus.NEW:
+      // reset ajlb values back to null
+      return updateFlightLogWithAudit(flightId, user, () => ({
+        status,
+        ajlb_total_flight_mins: null,
+        ajlb_page_number: null,
+        ajlb_row_number: null,
+      }))
+    case FlightLogStatus.VALIDATED:
+      // copy values from the view
+      return updateFlightLogWithAudit(flightId, user, eb => ({
+        status,
+        ajlb_total_flight_mins: eb
+          .selectFrom('flight.vw_flight_logs')
+          .select('ac_total_flight_mins')
+          .where('flight_id', '=', flightId),
+        ajlb_page_number: eb
+          .selectFrom('flight.vw_flight_logs')
+          .select('page_number')
+          .where('flight_id', '=', flightId),
+        ajlb_row_number: eb
+          .selectFrom('flight.vw_flight_logs')
+          .select('row_number')
+          .where('flight_id', '=', flightId),
+      }))
+    case FlightLogStatus.INVOICED:
+      return updateFlightLogWithAudit(flightId, user, () => ({
+        status,
+        invoice_number: patch.invoiceNumber,
+      }))
+    default:
+      // update only the status
+      return updateFlightLogWithAudit(flightId, user, () => ({
+        status,
+      }))
+  }
+}
+
+const updateFlightLogWithAudit = async (
+  flight_id: string,
+  user: JWTUser,
+  update: (eb: ExpressionBuilder<DB, 'flight.logs'>) => UpdateObject<DB, 'flight.logs'>,
+): Promise<bigint> => {
   let updQuery = connection.db
     .updateTable('flight.logs')
-    .set(eb => ({
-      aircraft_registration: data.aircraftRegistration,
-      arrival_airport: data.arrivalAirport,
-      billable_member_id: data.billableMemberId,
-      billing_remarks: data.billingRemarks,
-      pic_member_id: data.picMemberId,
-      pic_role: data.picRole,
-
-      crew2_member_id: data.crew2MemberId,
-      crew2_role: data.crew2Role,
-      crew3_member_id: data.crew3MemberId,
-      crew3_role: data.crew3Role,
-      crew4_member_id: data.crew4MemberId,
-      crew4_role: data.crew4Role,
-      departure_airport: data.departureAirport,
-      flight_type: data.flightType,
-      fuel_remaining_litres: data.fuelRemainingLitres,
-      fuel_uplift_litres: data.fuelUpliftLitres,
-      incident_or_observations: data.incidentOrObservations,
-      instrument_flying_mins: data.instrumentFlyingMins,
-      night_flying_mins: data.nightFlyingMins,
-      number_of_landings: data.numberOfLandings,
-      number_of_night_landings: data.numberOfNightLandings,
-      oil_uplift_litres: data.oilUpliftLitres,
-      off_block_time_epoch: data.offBlockTimeEpoch,
-      takeoff_time_epoch: data.takeoffTimeEpoch,
-      landing_time_epoch: data.landingTimeEpoch,
-      on_block_time_epoch: data.onBlockTimeEpoch,
-      personal_remarks: data.personalRemarks,
-      persons_on_board: data.personsOnBoard,
-      priv_or_com_flight: data.privOrComFlight,
-      total_time_in_service: data.totalTimeInService,
-
-      // admin fields are editable
-      ajlb_blank_rows_before: data.ajlbBlankRowsBefore,
-      ajlb_seq_no: data.ajlbSeqNo,
-      invoice_number: data.invoiceNumber,
-      is_billable_flight: data.isBillableFlight,
-      non_billing_approved_by_member_id: data.nonBillingApprovedByMemberId,
-      non_billing_reason: data.nonBillingReason,
-      status: data.status,
-
+    .set(update)
+    .set({
       updated_by: user.memberId,
       updated_at: new Date(),
-      is_dto_training_flight: eb
-        .selectFrom('member.register')
-        .select('is_training_program_pilot')
-        .where('member_id', '=', user.memberId)
-        .limit(1),
-    }))
+    })
     .where('flight_id', '=', flight_id)
     .where('is_billed', '=', false)
 
@@ -384,6 +482,7 @@ export async function getFlightLogTotals(registration?: string): Promise<FlightT
     .selectFrom('flight.vw_flight_time_totals')
     .selectAll()
     .where('current', '=', true)
+    .orderBy('aircraft_registration')
 
   if (registration) {
     query = query.where('aircraft_registration', '=', registration)
@@ -395,9 +494,5 @@ export async function getFlightLogTotals(registration?: string): Promise<FlightT
     acTotalFlightHours: row.ac_total_flight_hours!,
     aircraftRegistration: row.aircraft_registration!,
     ajlbSeqNo: row.ajlb_seq_no!,
-    flightLogMinsThisAjlb: row.flight_log_mins_this_ajlb!,
-    flightTimeThisAjlb: row.flight_time_this_ajlb!,
-    totalFlightMinsAtAjlbStart: row.total_flight_mins_at_ajlb_start!,
-    totalFlightTimeAtAjlbStart: row.total_flight_time_at_ajlb_start!,
   }))
 }

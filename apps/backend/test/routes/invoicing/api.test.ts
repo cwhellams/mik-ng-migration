@@ -98,7 +98,6 @@ describe('Invoice Simplbooks tests', () => {
       data: { page: 1, per_page: 50 },
     })
 
-    console.log(res.body)
     expect(res.status).toBe(200)
   })
 })

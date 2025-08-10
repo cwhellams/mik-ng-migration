@@ -23,6 +23,10 @@ export const AircraftJourneyLogBookSchema = z.object({
   endDate: z.string().date().nullable(),
   flightTime: z.string().readonly(),
   pagesInUse: z.number().int().readonly(),
+  newFlightsPage: z.number().int().readonly().nullable(),
+  newFlightsCount: z.number().int().readonly(),
+  newFlightsTime: z.string().readonly(),
+  validatedBeforeUTC: z.string().datetime().readonly().nullable(),
 })
 
 export type AircraftJourneyLogBook = z.infer<typeof AircraftJourneyLogBookSchema>

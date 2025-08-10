@@ -41,6 +41,8 @@ export const FlightLogSchema = AuditableSchema.extend({
   aircraftRegistration: z.string(),
   ajlbBlankRowsBefore: z.number().int().min(0),
   ajlbSeqNo: z.number().int().positive(),
+  ajlbPageNo: z.number().int().positive(),
+  ajlbRowNo: z.number().int().positive().readonly(),
   arrivalAirport: z.string(),
   billableMemberId: z.string(),
   billingRemarks: z.string().nullable(),
@@ -49,8 +51,10 @@ export const FlightLogSchema = AuditableSchema.extend({
   crew2LastName: z.string().nullable().readonly(),
   crew2MemberId: z.string().nullable(),
   crew2Role: CrewRoleEnum.nullable(),
+  crew3LastName: z.string().nullable().readonly(),
   crew3MemberId: z.string().nullable(),
   crew3Role: CrewRoleEnum.nullable(),
+  crew4LastName: z.string().nullable().readonly(),
   crew4MemberId: z.string().nullable(),
   crew4Role: CrewRoleEnum.nullable(),
   departureAirport: z.string(),
@@ -110,10 +114,8 @@ export const FlightLogUpsertSchema = UpsertSchema(FlightLogSchema).pick({
   fuelUpliftLitres: true,
   incidentOrObservations: true,
   instrumentFlyingMins: true,
-  invoiceNumber: true,
   isBillableFlight: true,
   nightFlyingMins: true,
-  nonBillingApprovedByMemberId: true,
   nonBillingReason: true,
   numberOfLandings: true,
   numberOfNightLandings: true,
@@ -127,7 +129,6 @@ export const FlightLogUpsertSchema = UpsertSchema(FlightLogSchema).pick({
   picMemberId: true,
   picRole: true,
   privOrComFlight: true,
-  status: true,
   totalTimeInService: true,
 })
 
@@ -135,11 +136,9 @@ export const FlightLogUpsertSchema = UpsertSchema(FlightLogSchema).pick({
 export const FlightLogMemberUpsertSchema = FlightLogUpsertSchema.omit({
   ajlbBlankRowsBefore: true,
   ajlbSeqNo: true,
-  invoiceNumber: true,
+  billableMemberId: true,
   isBillableFlight: true,
-  nonBillingApprovedByMemberId: true,
   nonBillingReason: true,
-  status: true,
 })
 
 export const FlightLogTimesSchema = z.object({
@@ -148,7 +147,58 @@ export const FlightLogTimesSchema = z.object({
   landingTimeEpoch: bigintAsString,
   onBlockTimeEpoch: bigintAsString,
 })
+
 type FlightLogTimes = z.infer<typeof FlightLogTimesSchema>
+
+export const validateFlightLogTimes = (
+  times: FlightLogTimes,
+  addIssue: (i: z.IssueData) => void,
+) => {
+  const validate = (
+    prevKey: keyof FlightLogTimes,
+    nextKey: keyof FlightLogTimes,
+    minutes: number,
+  ) => {
+    if (times[prevKey] && times[nextKey]) {
+      const prev = Number(times[prevKey])
+      const next = Number(times[nextKey])
+
+      // check the correct order
+      if (next <= prev) {
+        addIssue({
+          code: z.ZodIssueCode.too_small,
+          minimum: prev,
+          inclusive: false,
+          message: prev.toString(),
+          type: 'bigint',
+          path: [nextKey],
+        })
+      }
+
+      // check limit how long the block can be
+      const maximum = prev + minutes * 60
+      if (next > maximum) {
+        addIssue({
+          code: z.ZodIssueCode.too_big,
+          maximum,
+          message: maximum.toString(),
+          inclusive: true,
+          type: 'bigint',
+          path: [nextKey],
+        })
+      }
+    }
+  }
+
+  // taxi out is limited to 1 hour
+  validate('offBlockTimeEpoch', 'takeoffTimeEpoch', 60)
+
+  // flight max 6 hours
+  validate('takeoffTimeEpoch', 'landingTimeEpoch', 360)
+
+  // taxi in is limited to 30 minutes
+  validate('landingTimeEpoch', 'onBlockTimeEpoch', 30)
+}
 
 export const flightLogDateValidator = <T extends ZodObject<typeof FlightLogTimesSchema.shape>>(
   schema: T,
@@ -165,54 +215,10 @@ export const flightLogDateValidator = <T extends ZodObject<typeof FlightLogTimes
         onBlockTimeEpoch: true,
       })
       .strip()
-      .partial()
       .safeParse(input)
 
     if (parsed.success) {
-      const validate = (
-        prevKey: keyof FlightLogTimes,
-        nextKey: keyof FlightLogTimes,
-        minutes: number,
-      ) => {
-        if (parsed.data[prevKey] && parsed.data[nextKey]) {
-          const prev = Number(parsed.data[prevKey])
-          const next = Number(parsed.data[nextKey])
-
-          // check the correct order
-          if (next <= prev) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.too_small,
-              minimum: prev,
-              inclusive: false,
-              message: prev.toString(),
-              type: 'bigint',
-              path: [nextKey],
-            })
-          }
-
-          // check limit how long the block can be
-          const maximum = prev + minutes * 60
-          if (next > maximum) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.too_big,
-              maximum,
-              message: maximum.toString(),
-              inclusive: true,
-              type: 'bigint',
-              path: [nextKey],
-            })
-          }
-        }
-      }
-
-      // taxi out is limited to 1 hour
-      validate('offBlockTimeEpoch', 'takeoffTimeEpoch', 60)
-
-      // flight max 6 hours
-      validate('takeoffTimeEpoch', 'landingTimeEpoch', 360)
-
-      // taxi in is limited to 30 minutes
-      validate('landingTimeEpoch', 'onBlockTimeEpoch', 30)
+      validateFlightLogTimes(parsed.data, ctx.addIssue)
     }
     return input
   }, schema)
@@ -222,11 +228,16 @@ export type FlightLog = z.infer<typeof FlightLogSchema>
 export type FlightLogUpsertRequest = z.infer<typeof FlightLogUpsertSchema>
 export type FlightLogMemberRequest = z.infer<typeof FlightLogMemberUpsertSchema>
 
+export const FlightLogValidationRequestSchema = z.object({
+  revert: z.boolean().optional(),
+})
+
 export const FlightLogListEntrySchema = FlightLogSchema.pick({
   acTotalFlightTime: true,
   aircraftRegistration: true,
   ajlbBlankRowsBefore: true,
   ajlbSeqNo: true,
+  ajlbRowNo: true,
   arrivalAirport: true,
   billableMemberId: true,
   blockTime: true,
@@ -266,14 +277,10 @@ export const FlightLogListResponseSchema = z.object({
 export type FlightLogListResponse = z.infer<typeof FlightLogListResponseSchema>
 
 export const FlightTimeTotalsSchema = z.object({
-  acTotalFlightTime: z.string(),
-  acTotalFlightHours: z.number(),
   aircraftRegistration: z.string(),
   ajlbSeqNo: z.number().int(),
-  flightLogMinsThisAjlb: z.number().int(),
-  flightTimeThisAjlb: z.string(),
-  totalFlightMinsAtAjlbStart: z.number().int(),
-  totalFlightTimeAtAjlbStart: z.string(),
+  acTotalFlightTime: z.string(),
+  acTotalFlightHours: z.number(),
 })
 
 export type FlightTimeTotals = z.infer<typeof FlightTimeTotalsSchema>

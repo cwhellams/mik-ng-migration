@@ -58,7 +58,7 @@ export const FlightTime = ({
   // load the existing day
   useEffect(() => {
     if (data) {
-      setFlightDate(dayjs(data.offBlockTimeUtc).startOf('day'))
+      setFlightDate(dayjs.utc(data.offBlockTimeUtc).startOf('day'))
     }
   }, [data])
 
@@ -79,7 +79,7 @@ export const FlightTime = ({
         return null
       }
 
-      const time = dayjs.unix(Number(getValues(field)))
+      const time = dayjs.unix(Number(getValues(field))).utc()
       const result = calculateNext(base, time)
       setValue(field, result.unix().toString())
 
@@ -151,7 +151,7 @@ export const FlightTime = ({
                   ? 'mdi:clock-outline'
                   : 'mdi:clock-time-eight-outline'
               }
-              style={{ marginRight: '8px', fontSize: '16px' }}
+              style={{ marginRight: '8px' }}
             />
             <Typography variant='caption' color='text.secondary'>
               {useUtcTime

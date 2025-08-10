@@ -2,7 +2,7 @@ import {
   FlightLogListEntry,
   FlightLogStatus,
 } from '@backend/routes/flight-log/models'
-import { Tooltip } from '@mui/material'
+import { Tooltip, useTheme } from '@mui/material'
 import { t } from 'i18next'
 import { EditButton } from '../../../components/EditButton'
 import { Icon } from '@iconify/react'
@@ -13,7 +13,9 @@ type Props = {
   update: (status: FlightLogStatus) => void
 }
 
-export const Status = ({ log, viewOnly, update }: Props) => {
+export const StatusButton = ({ log, viewOnly, update }: Props) => {
+  const theme = useTheme()
+
   switch (log.status) {
     case 'NEW':
       return (
@@ -24,6 +26,10 @@ export const Status = ({ log, viewOnly, update }: Props) => {
           color='orange'
           width={28}
           viewOnly={viewOnly}
+          sx={{
+            backgroundColor: theme.palette.primary.main,
+            borderRadius: 2,
+          }}
         />
       )
 

@@ -1,0 +1,127 @@
+import {
+  FlightLogListEntry,
+  FlightLogListResponse,
+  FlightLogStatus,
+} from '@backend/routes/flight-log/models'
+import { Card, CardContent, Stack, Button, Typography } from '@mui/material'
+import { t } from 'i18next'
+import { FormField } from '../../../components/FormField'
+import { FormTitle } from '../../../components/FormTitle'
+import { formatDate } from '../../../utils/date'
+import { Icon } from '@iconify/react'
+import { AircraftJourneyLogBook } from '@backend/routes/ajlb/model'
+
+export const FlightLogValidation = ({
+  ajlb,
+  data,
+  navigateToNewFlightsPage,
+  validateEntry,
+  isMutating,
+}: {
+  ajlb: AircraftJourneyLogBook
+  data: FlightLogListResponse
+  navigateToNewFlightsPage: () => void
+  validateEntry: (log: FlightLogListEntry, isLast?: boolean) => Promise<boolean>
+  isMutating: boolean
+}) => {
+  const hasNewFlights = ajlb.newFlightsCount > 0
+
+  const pageValidated = data.logs.every(
+    (log) => log.status !== FlightLogStatus.NEW
+  )
+
+  const unverifiedFlights =
+    data?.logs.filter((log) => log.status === FlightLogStatus.NEW) ?? []
+
+  return (
+    <Card sx={{ flex: 1, mt: 10 }}>
+      <CardContent
+        sx={{
+          borderWidth: '8px',
+          borderStyle: 'solid',
+          borderColor: pageValidated ? 'green' : 'orange',
+          borderRadius: 2,
+          boxShadow: 1,
+        }}
+      >
+        <FormTitle
+          title={t('flightLog.logbooks.validateTitle')}
+          icon='mdi:check'
+        />
+
+        <Stack spacing={2}>
+          <Stack direction={'row'} alignItems='center'>
+            <Typography variant='body1' mr={2}>
+              {data?.page == ajlb.pagesInUse
+                ? t('flightLog.logbooks.lastAirborneTime')
+                : t('flightLog.logbooks.carriedForward')}
+            </Typography>
+            <Typography variant='h3' mr={2}>
+              {data?.logs.at(-1)?.acTotalFlightTime}
+            </Typography>
+          </Stack>
+
+          {hasNewFlights && ajlb.newFlightsPage != data.page && (
+            <Button
+              variant='outlined'
+              color='primary'
+              startIcon={<Icon icon='mdi:arrow' color='green' />}
+              onClick={navigateToNewFlightsPage}
+            >
+              {t('flightLog.logbooks.goToNewFlights', {
+                page: ajlb.newFlightsPage,
+              })}
+            </Button>
+          )}
+
+          {hasNewFlights && ajlb.newFlightsPage == data.page && (
+            <Button
+              variant='contained'
+              color='primary'
+              startIcon={<Icon icon='mdi:check' color='green' />}
+              disabled={isMutating}
+              onClick={async () => {
+                for (const [index, log] of unverifiedFlights.entries()) {
+                  const isLast = index == unverifiedFlights.length - 1
+
+                  const res = await validateEntry(log, isLast)
+                  if (!res) {
+                    // operation failed, stop processing
+                    return
+                  }
+                }
+              }}
+            >
+              {t('flightLog.logbooks.validateAll', {
+                count: unverifiedFlights.length,
+              })}
+            </Button>
+          )}
+          {hasNewFlights && (
+            <>
+              <Typography variant='h6' mb={2}>
+                {t('flightLog.logbooks.newFlightsSince', {
+                  date: ajlb.validatedBeforeUTC
+                    ? formatDate(ajlb.validatedBeforeUTC, 'DD.MM.YYYY')
+                    : '-',
+                })}
+              </Typography>
+              <FormField
+                label={t(`flightLog.logbooks.newFlightsCount`)}
+                width={200}
+              >
+                {ajlb.newFlightsCount}
+              </FormField>
+              <FormField
+                label={t(`flightLog.logbooks.newFlightsTime`)}
+                width={200}
+              >
+                {ajlb.newFlightsTime}
+              </FormField>
+            </>
+          )}
+        </Stack>
+      </CardContent>
+    </Card>
+  )
+}

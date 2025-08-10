@@ -3,12 +3,16 @@ CREATE TABLE flight.logs (
     aircraft_registration VARCHAR(10) NOT NULL,
     billable_member_id VARCHAR(9) NOT NULL REFERENCES member.register (member_id),
     pic_member_id VARCHAR(9) NOT NULL REFERENCES member.register (member_id),
+    pic_last_name VARCHAR(50) NOT NULL,
     pic_role CREW_ROLE NOT NULL,
     crew2_member_id VARCHAR(9) DEFAULT NULL REFERENCES member.register (member_id),
+    crew2_last_name VARCHAR(50),
     crew2_role CREW_ROLE,
     crew3_member_id VARCHAR(9) DEFAULT NULL REFERENCES member.register (member_id),
+    crew3_last_name VARCHAR(50),
     crew3_role CREW_ROLE,
     crew4_member_id VARCHAR(9) DEFAULT NULL REFERENCES member.register (member_id),
+    crew4_last_name VARCHAR(50),
     crew4_role CREW_ROLE,
     persons_on_board SMALLINT NOT NULL,
     off_block_time_epoch BIGINT NOT NULL,
@@ -39,6 +43,15 @@ CREATE TABLE flight.logs (
     ajlb_seq_no SMALLINT NOT NULL,
     --Aircraft Journey Log Book
     ajlb_blank_rows_before SMALLINT NOT NULL,
+
+    -- filled after validation
+    ajlb_total_flight_mins INT,
+    ajlb_total_flight_time text generated always as (format_flight_time(
+        ajlb_total_flight_mins
+    )) stored,
+    ajlb_page_number SMALLINT,
+    ajlb_row_number SMALLINT,
+
     total_time_in_service DECIMAL(7, 2),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -80,6 +93,17 @@ CREATE TABLE flight.logs (
             EPOCH
             FROM NOW()
         )
+    ),
+    CONSTRAINT check_verified_values
+    CHECK (
+        status = 'NEW'
+        AND ajlb_total_flight_mins IS NULL 
+        AND ajlb_page_number IS NULL 
+        AND ajlb_row_number IS NULL 
+        OR status != 'NEW' 
+        AND ajlb_total_flight_mins IS NOT NULL 
+        AND ajlb_page_number IS NOT NULL 
+        AND ajlb_row_number IS NOT NULL 
     ),
     -- Computed columns to convert BIGINT timestamps to TIMESTAMPTZ
     off_block_time_utc TIMESTAMPTZ NOT NULL GENERATED ALWAYS AS (TO_TIMESTAMP(off_block_time_epoch)) STORED,

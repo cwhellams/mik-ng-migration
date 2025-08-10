@@ -388,14 +388,20 @@
       "ajlb": "Lentokoneen lokikirja",
       "student": "Oppilas",
       "totalFlightTime": "Lentotunnit",
-      "blankRow": "Tyhjä",
+      "addBlankRow": "Lisää tyhjä rivi yläpuolelle",
+      "deleteBlankRow": "Poista tyhjä rivi",
       "status": "Tila",
-      "verifyThePage": "Vahvista lentopäiväkirjan sivu",
-      "verifyAll": "Vahvista {{count}} lentoa täsmäytetyksi ja valmiina laskutukseen",
+      "validateTitle": "Lentopäiväkirjan täsmäytys",
+      "goToNewFlights": "Siirry ensimmäiselle vahvistamattomalle lennolle sivulle {{page}}",
+      "validateAll": "Merkitse {{count}} lentoa valmiiksi laskutukseen",
       "lastAirborneTime": "Kokonaisilmassaoloaika viimeisen lennon jälkeen",
       "carriedForward": "Kokonaisilmassaoloajan siirto seuraavalle sivulle",
       "showAll": "Näytä kaikki",
-      "current": "nykyinen"
+      "current": "nykyinen",
+      "newFlightsSince": "Uudet vahvistamattomat lennot {{date}} jälkeen",
+      "newFlightsCount": "Lentojen määrä",
+      "newFlightsTime": "Lentojen ilmassaoloaika",
+      "goToFlight": "Avaa lokikirjan {{seqNo}} sivu {{page}} (rivi {{row}})"
     }
   }
 }

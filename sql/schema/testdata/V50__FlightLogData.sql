@@ -2,8 +2,10 @@ INSERT INTO flight.logs (
     flight_id,
     billable_member_id,
     pic_member_id,
+    pic_last_name,
     pic_role,
     crew2_member_id,
+    crew2_last_name,
     crew2_role,
     crew3_member_id,
     crew3_role,
@@ -37,6 +39,9 @@ INSERT INTO flight.logs (
     ajlb_blank_rows_before,
     total_time_in_service,
     status,
+    ajlb_total_flight_mins,
+    ajlb_page_number,
+    ajlb_row_number,
     is_dto_training_flight
 ) VALUES
 -- Record 1
@@ -44,8 +49,10 @@ INSERT INTO flight.logs (
     'mikify',
     'Matti1',
     'Liisa1',
+    (select last_name from member.register where member_id = 'Liisa1'),
     'STU',
     'Jukka1',
+    (select last_name from member.register where member_id = 'Jukka1'),
     'FI',
     NULL,
     NULL,
@@ -55,15 +62,22 @@ INSERT INTO flight.logs (
     1740816000, 1740816900, 1740823200, 1740824100,
     1.5, 50.0, 20, 4, 1, 30, 45, 'EFHK', 'EFHK',
     'INV001', 'KOU', 'N/A', 'Smooth flight',
-    'Matti1', 'Matti1', TRUE, NULL, NULL, 'C', 2, 0, 2.0, 'PAID', TRUE
+    'Matti1', 'Matti1', TRUE, NULL, NULL, 'C', 2, 0, 2.0, 
+    'PAID', 
+    170*60+30,
+    1,
+    2,
+    TRUE
 ),
 -- Record 2
 (
     'efnu4evr',
     'Jukka1',
     'Jukka1',
+    (select last_name from member.register where member_id = 'Jukka1'),
     'STU',
     'Pekka1',
+    (select last_name from member.register where member_id = 'Pekka1'),
     'FI',
     NULL,
     NULL,
@@ -73,15 +87,21 @@ INSERT INTO flight.logs (
     1740906000, 1740907200, 1740914400, 1740915000,
     2.0, 60.0, 60, 2, 2, 45, 60, 'EFHK', 'EFTP',
     'INV002', 'MAT', 'N/A', 'Training flight',
-    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 2, 0, 2.0, 'INVOICED', FALSE
+    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 2, 0, 2.0, 'INVOICED', 
+    6118*60+40,
+    1,
+    1,
+    FALSE
 ),
 -- Record 3
 (
     'bLwnAstr0',
+    'Matti1',
     'Pekka1',
-    'Pekka1',
+    (select last_name from member.register where member_id = 'Pekka1'),
     'STU',
     'Antti1',
+    (select last_name from member.register where member_id = 'Antti1'),
     'FI',
     NULL,
     NULL,
@@ -101,6 +121,9 @@ INSERT INTO flight.logs (
     0,
     1.5,
     'NEW',
+    NULL,
+    NULL,
+    NULL,
     FALSE
 ),
 -- Record 4
@@ -108,8 +131,10 @@ INSERT INTO flight.logs (
     'da40tndra',
     'Jukka1',
     'Jukka1',
+    (select last_name from member.register where member_id = 'Jukka1'),
     'PIC',
     'Pekka1',
+    (select last_name from member.register where member_id = 'Pekka1'),
     'FI',
     NULL,
     NULL,
@@ -119,15 +144,21 @@ INSERT INTO flight.logs (
     1741086000, 1741087800, 1741094400, 1741095300,
     1.2, 55.0, 10, 4, 3, 60, 75, 'EFHK', 'EFHK',
     'INV003', 'HAR', 'N/A', 'Cargo delivery',
-    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 4, 0, 1.735, 'VALIDATED', TRUE
+    'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 4, 0, 1.735, 'VALIDATED', 
+    5230*60+10,
+    1,
+    1,
+    TRUE
 ),
 -- Record 5 (Cross-day flight)
 (
     'eject',
     'Sanna1',
     'Sanna1',
+    (select last_name from member.register where member_id = 'Sanna1'),
     'STU',
     'Juha1',
+    (select last_name from member.register where member_id = 'Juha1'),
     'FE',
     NULL,
     NULL,
@@ -140,5 +171,9 @@ INSERT INTO flight.logs (
     1710205800, -- 2025-03-12 01:10:00 (10 min taxi)
     1.0, 45.0, 60, 2, 1, 115, 60, 'EFHK', 'EFTU',
     'INV004', 'MAT', 'Night navigation exercise', 'Cross-day night flight',
-    'Sanna1', 'Sanna1', TRUE, NULL, NULL, 'C', 2, 0, 1.92, 'INVOICED', FALSE
+    'Sanna1', 'Sanna1', TRUE, NULL, NULL, 'C', 2, 0, 1.92, 'INVOICED', 
+    168*60+45,
+    1,
+    1,
+    FALSE
 );
