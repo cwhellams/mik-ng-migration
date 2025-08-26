@@ -54,6 +54,7 @@ export enum MIKMemberTypes {
 export enum MIKLang {
   FI = 'fi',
   EN = 'en',
+  SV = 'sv',
 }
 
 // roles endpoint
@@ -61,6 +62,7 @@ export enum MIKLang {
 export const LocalizedSchema = z.object({
   [MIKLang.EN]: z.string(),
   [MIKLang.FI]: z.string(),
+  [MIKLang.SV]: z.string(),
 })
 
 export const MemberRoleSchema = AuditableSchema.extend({

@@ -32,7 +32,7 @@ export type JsonValue = JsonArray | JsonObject | JsonPrimitive
 
 export type MemberType = 'EXTERNAL' | 'FLYING' | 'HONORARY' | 'JUNIOR' | 'NON-FLYING'
 
-export type MikLang = 'en' | 'fi'
+export type MikLang = 'en' | 'fi' | 'sv'
 
 export type Numeric = ColumnType<number, number | string, number | string>
 
@@ -309,6 +309,7 @@ export interface MemberRoles {
   is_public: Generated<boolean>
   name_en: string
   name_fi: string
+  name_sv: string
   permissions: Json | null
   role_id: string
   updated_at: Generated<Timestamp>

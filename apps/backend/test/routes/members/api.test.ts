@@ -447,6 +447,7 @@ describe('GET /members/roles/id', () => {
       name: {
         en: 'Administrator',
         fi: 'Ylläpitäjä',
+        sv: 'Administratör',
       },
       isPublic: false,
       permissions: ['member.admin', 'flightlog.admin', 'booking.admin', 'aircraft.admin'],
@@ -504,6 +505,7 @@ describe('POST /members/roles', () => {
     name: {
       en: 'English',
       fi: 'Finnish',
+      sv: 'Swedish',
     },
     permissions: [MIKPermissions.MEMBER_ADMIN, MIKPermissions.FLIGHTLOG_ADMIN],
   }
@@ -564,6 +566,7 @@ describe('DELETE /members/roles/id', () => {
     name: {
       en: 'English',
       fi: 'Finnish',
+      sv: 'Swedish',
     },
     permissions: [MIKPermissions.MEMBER_ADMIN, MIKPermissions.FLIGHTLOG_ADMIN],
   }

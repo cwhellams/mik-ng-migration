@@ -148,6 +148,19 @@ const User = () => {
                 />
               )}
             </MenuItem>
+            <MenuItem onClick={() => changeLanguage('sv')}>
+              <ListItemIcon>
+                <Icon icon='circle-flags:se' fontSize={20} />
+              </ListItemIcon>
+              Svenska
+              {i18n.language === 'sv' && (
+                <Icon
+                  icon='mdi:check'
+                  fontSize={20}
+                  style={{ marginLeft: 'auto' }}
+                />
+              )}
+            </MenuItem>
             <Divider />
             <MenuItem onClick={handleLogout}>
               <ListItemIcon>

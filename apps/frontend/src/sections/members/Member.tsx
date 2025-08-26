@@ -169,7 +169,7 @@ const MemberProfile = () => {
             data?.roles.map((role, index) => (
               <Chip
                 key={index}
-                label={role.name?.[i18n.language == 'fi' ? 'fi' : 'en']}
+                label={role.name?.[i18n.language === 'fi' ? 'fi' : i18n.language === 'sv' ? 'sv' : 'en']}
                 color='primary'
                 icon={<Icon icon='mdi:shield-user' />}
               />

@@ -198,7 +198,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       licence_expiry_date: member.licenceExpiry,
       medical_expiry_date: member.medicalExpiry,
 
-      lang_iso639: member.lang,
+      lang_iso639: member.lang as any,
       created_at: now,
       created_by: jwt?.memberId ?? new_member_id,
       updated_at: now,
@@ -224,7 +224,7 @@ export async function updateMemberLang(
   const result = await db
     .updateTable('member.register')
     .set({
-      lang_iso639: lang,
+      lang_iso639: lang as any,
       updated_at: now,
       updated_by: jwt.memberId,
     })
@@ -417,6 +417,7 @@ function toMemberRole(role: Selectable<MemberRoles>): MemberRole {
     name: {
       [MIKLang.EN]: role.name_en,
       [MIKLang.FI]: role.name_fi,
+      [MIKLang.SV]: (role as any).name_sv,
     },
     isPublic: role.is_public,
     permissions: role.permissions as MIKPermissions[],
@@ -468,6 +469,7 @@ export async function addMemberRole(role: Upsert<MemberRole>, jwt: JWTUser): Pro
       description: role.description,
       name_en: role.name[MIKLang.EN],
       name_fi: role.name[MIKLang.FI],
+      name_sv: role.name[MIKLang.SV] as any,
       is_public: role.isPublic,
       permissions: JSON.stringify(role.permissions),
 
@@ -503,6 +505,7 @@ export async function updateMemberRole(
       description: patch.description,
       name_en: patch.name?.[MIKLang.EN],
       name_fi: patch.name?.[MIKLang.FI],
+      name_sv: patch.name?.[MIKLang.SV] as any,
       is_public: patch.isPublic,
       permissions: JSON.stringify(patch.permissions),
 

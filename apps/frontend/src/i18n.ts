@@ -5,6 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 // Import your translation files
 import enTranslation from './locales/en.json'
 import fiTranslation from './locales/fi.json'
+import svTranslation from './locales/sv.json'
 
 i18n
   // Detect user language
@@ -21,6 +22,7 @@ i18n
     resources: {
       en: { translation: enTranslation },
       fi: { translation: fiTranslation },
+      sv: { translation: svTranslation },
     },
     // Common namespace
     defaultNS: 'translation',

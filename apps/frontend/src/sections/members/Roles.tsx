@@ -35,6 +35,7 @@ const Roles = () => {
       name: {
         en: '',
         fi: '',
+        sv: '',
       },
       description: '',
       isPublic: false,

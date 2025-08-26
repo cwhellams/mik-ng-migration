@@ -252,6 +252,7 @@ exports[`GET /members/id Get member details as an admin 1`] = `
       "name": {
         "en": "Administrator",
         "fi": "Ylläpitäjä",
+        "sv": "Administratör",
       },
       "permissions": [
         "member.admin",
@@ -305,6 +306,7 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
       "name": {
         "en": "Flying Member",
         "fi": "Lento-oikeus",
+        "sv": "Flygmedlem",
       },
       "permissions": [
         "flightlog.user",
@@ -323,6 +325,7 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
       "name": {
         "en": "Instructor",
         "fi": "Lennonopettaja",
+        "sv": "Instruktör",
       },
       "permissions": [],
       "roleId": "INSTRUCTOR",
@@ -337,6 +340,7 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
       "name": {
         "en": "Member",
         "fi": "Jäsen",
+        "sv": "Medlem",
       },
       "permissions": [
         "member",
@@ -384,6 +388,7 @@ exports[`GET /members/me should return 200 with valid token for user 2`] = `
       "name": {
         "en": "Administrator",
         "fi": "Ylläpitäjä",
+        "sv": "Administratör",
       },
       "permissions": [
         "member.admin",
@@ -436,6 +441,7 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
       "name": {
         "en": "Administrator",
         "fi": "Ylläpitäjä",
+        "sv": "Administratör",
       },
       "permissions": [
         "member.admin",
@@ -455,6 +461,7 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
       "name": {
         "en": "Committee Member",
         "fi": "Hallituksen jäsen",
+        "sv": "Styrelsemedlem",
       },
       "permissions": [],
       "roleId": "COMMITTEE",

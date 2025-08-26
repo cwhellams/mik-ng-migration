@@ -204,6 +204,7 @@ describe('Db add member tests', () => {
         name: {
           en: 'en name',
           fi: 'fi name',
+          sv: 'sv name',
         },
         isPublic: true,
         permissions: [MIKPermissions.AIRCRAFT_ADMIN, MIKPermissions.BOOKING_ADMIN],

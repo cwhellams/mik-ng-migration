@@ -198,7 +198,8 @@
   "roles": {
     "name": {
       "fi": "Translation in Finnish",
-      "en": "Translation in English"
+      "en": "Translation in English",
+      "sv": "Translation in Swedish"
     },
     "newRole": "New Role",
     "editRole": "Edit Role",

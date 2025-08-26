@@ -158,7 +158,7 @@ const Members = () => {
               )}
               {roles.map((role) => (
                 <MenuItem key={role.roleId} value={role.roleId}>
-                  {role.name?.[i18n.language == 'fi' ? 'fi' : 'en']}
+                  {role.name?.[i18n.language === 'fi' ? 'fi' : i18n.language === 'sv' ? 'sv' : 'en']}
                 </MenuItem>
               ))}
             </Select>
@@ -221,7 +221,7 @@ const Members = () => {
                           variant='outlined'
                           label={
                             roles.find((r) => r.roleId === role)?.name[
-                              i18n.language == 'fi' ? 'fi' : 'en'
+                              i18n.language === 'fi' ? 'fi' : i18n.language === 'sv' ? 'sv' : 'en'
                             ] ?? role
                           }
                           color='primary'

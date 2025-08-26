@@ -56,6 +56,7 @@ export const MemberRoleEditor = ({
     name: {
       en: '',
       fi: '',
+      sv: '',
     },
     description: '',
     isPublic: false,
@@ -167,6 +168,13 @@ export const MemberRoleEditor = ({
             label={t('roles.name.fi')}
             value={formData.name[MIKLang.FI] || ''}
             onChange={handleChangeName(MIKLang.FI)}
+          />
+          <TextField
+            fullWidth
+            required
+            label={t('roles.name.sv')}
+            value={formData.name[MIKLang.SV] || ''}
+            onChange={handleChangeName(MIKLang.SV)}
           />
         </Grid>
 

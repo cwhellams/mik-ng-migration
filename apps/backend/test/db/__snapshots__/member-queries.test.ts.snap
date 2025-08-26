@@ -9,6 +9,7 @@ exports[`Db add member tests Member Role Tests Adds a member role to the databas
   "name": {
     "en": "en name",
     "fi": "fi name",
+    "sv": "sv name",
   },
   "permissions": [
     "aircraft.admin",
@@ -89,6 +90,7 @@ exports[`Db add member tests add member and update member 2`] = `
       "name": {
         "en": "Member",
         "fi": "Jäsen",
+        "sv": "Medlem",
       },
       "permissions": [
         "member",
@@ -140,6 +142,7 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
       "name": {
         "en": "Administrator",
         "fi": "Ylläpitäjä",
+        "sv": "Administratör",
       },
       "permissions": [
         "member.admin",
@@ -159,6 +162,7 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
       "name": {
         "en": "Member",
         "fi": "Jäsen",
+        "sv": "Medlem",
       },
       "permissions": [
         "member",
@@ -210,6 +214,7 @@ exports[`Db query member tests getMemberByEmail should return member data regard
       "name": {
         "en": "Administrator",
         "fi": "Ylläpitäjä",
+        "sv": "Administratör",
       },
       "permissions": [
         "member.admin",
@@ -229,6 +234,7 @@ exports[`Db query member tests getMemberByEmail should return member data regard
       "name": {
         "en": "Member",
         "fi": "Jäsen",
+        "sv": "Medlem",
       },
       "permissions": [
         "member",
@@ -280,6 +286,7 @@ exports[`Db query member tests getMemberById should return member data for a val
       "name": {
         "en": "Flying Member",
         "fi": "Lento-oikeus",
+        "sv": "Flygmedlem",
       },
       "permissions": [
         "flightlog.user",
@@ -298,6 +305,7 @@ exports[`Db query member tests getMemberById should return member data for a val
       "name": {
         "en": "Instructor",
         "fi": "Lennonopettaja",
+        "sv": "Instruktör",
       },
       "permissions": [],
       "roleId": "INSTRUCTOR",
@@ -312,6 +320,7 @@ exports[`Db query member tests getMemberById should return member data for a val
       "name": {
         "en": "Member",
         "fi": "Jäsen",
+        "sv": "Medlem",
       },
       "permissions": [
         "member",
@@ -363,6 +372,7 @@ exports[`Db query member tests getMemberById should return member data for a val
       "name": {
         "en": "Flying Member",
         "fi": "Lento-oikeus",
+        "sv": "Flygmedlem",
       },
       "permissions": [
         "flightlog.user",
@@ -381,6 +391,7 @@ exports[`Db query member tests getMemberById should return member data for a val
       "name": {
         "en": "Instructor",
         "fi": "Lennonopettaja",
+        "sv": "Instruktör",
       },
       "permissions": [],
       "roleId": "INSTRUCTOR",
@@ -395,6 +406,7 @@ exports[`Db query member tests getMemberById should return member data for a val
       "name": {
         "en": "Member",
         "fi": "Jäsen",
+        "sv": "Medlem",
       },
       "permissions": [
         "member",
@@ -421,6 +433,7 @@ exports[`Db query member tests getMemberRolesByMemberId should return roles for 
     "name": {
       "en": "Flying Member",
       "fi": "Lento-oikeus",
+      "sv": "Flygmedlem",
     },
     "permissions": [
       "flightlog.user",
@@ -439,6 +452,7 @@ exports[`Db query member tests getMemberRolesByMemberId should return roles for 
     "name": {
       "en": "Instructor",
       "fi": "Lennonopettaja",
+      "sv": "Instruktör",
     },
     "permissions": [],
     "roleId": "INSTRUCTOR",
@@ -453,6 +467,7 @@ exports[`Db query member tests getMemberRolesByMemberId should return roles for 
     "name": {
       "en": "Member",
       "fi": "Jäsen",
+      "sv": "Medlem",
     },
     "permissions": [
       "member",
@@ -579,6 +594,7 @@ exports[`Db query member tests getMembers should return everything for admins 2`
   "name": {
     "en": "Administrator",
     "fi": "Ylläpitäjä",
+    "sv": "Administratör",
   },
   "permissions": [
     "member.admin",
