@@ -40,6 +40,14 @@
     "withAccount": "Already a member?",
     "login": "Login"
   },
+  "logout": {
+    "title": "Successfully logged out",
+    "thankYou": "Thank you for using MIK Intranet",
+    "message": "Thanks for using the MIK Intranet, see you soon!",
+    "loginAgain": "Login again",
+    "needHelp": "Need help?",
+    "contact": "Contact us"
+  },
   "simplbooks": {
     "refresh": "Refresh from Simplbooks"
   },

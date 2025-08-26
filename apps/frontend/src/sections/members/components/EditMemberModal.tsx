@@ -501,7 +501,15 @@ export const EditMemberModal = ({
                     onChange={handleChangeRole}
                   />
                 }
-                label={role.name[i18n.language === 'fi' ? 'fi' : i18n.language === 'sv' ? 'sv' : 'en']}
+                label={
+                  role.name[
+                    i18n.language === 'fi'
+                      ? 'fi'
+                      : i18n.language === 'sv'
+                        ? 'sv'
+                        : 'en'
+                  ]
+                }
               />
             ))}
           </FormGroup>

@@ -55,7 +55,7 @@ const User = () => {
     mutate(undefined)
 
     handleClose()
-    navigate('/')
+    navigate('/logout')
   }
 
   const changeLanguage = async (language: string) => {

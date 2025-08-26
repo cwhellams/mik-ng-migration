@@ -40,8 +40,11 @@ const Register = () => {
     memberType: MIKMemberTypes.FLYING,
     dateOfBirth: undefined,
 
-    lang: i18n.language.startsWith('fi') ? MIKLang.FI : 
-          i18n.language.startsWith('sv') ? MIKLang.SV : MIKLang.EN,
+    lang: i18n.language.startsWith('fi')
+      ? MIKLang.FI
+      : i18n.language.startsWith('sv')
+        ? MIKLang.SV
+        : MIKLang.EN,
   })
   const [dateOfBirth, setDateOfBirth] = useState<Dayjs | null>(dayjs())
 

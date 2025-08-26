@@ -40,6 +40,14 @@
     "withAccount": "Oletko jo jäsen?",
     "login": "Kirjaudu sisään"
   },
+  "logout": {
+    "title": "Kirjauduttu ulos",
+    "thankYou": "Kiitos MIK Intranetin käyttämisestä",
+    "message": "Kiitos MIK Intranetin käyttämisestä, nähdään pian!",
+    "loginAgain": "Kirjaudu uudelleen",
+    "needHelp": "Tarvitsetko apua?",
+    "contact": "Ota yhteyttä"
+  },
   "simplbooks": {
     "refresh": "Päivitä"
   },

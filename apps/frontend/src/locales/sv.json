@@ -40,6 +40,14 @@
     "withAccount": "Är du redan medlem?",
     "login": "Logga in"
   },
+  "logout": {
+    "title": "Utloggad",
+    "thankYou": "Tack för att du använde MIK Intranät",
+    "message": "Tack för att du använde MIK Intranät, vi ses snart!",
+    "loginAgain": "Logga in igen",
+    "needHelp": "Behöver du hjälp?",
+    "contact": "Kontakta oss"
+  },
   "simplbooks": {
     "refresh": "Uppdatera från Simplbooks"
   },

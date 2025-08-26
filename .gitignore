@@ -65,4 +65,8 @@ coverage
 .vercel
 .turbo
 
+# Downloaded files
+*.tar.xz
+*.tar.gz
+
 **/junit.xml

@@ -5,7 +5,9 @@ Always reference these instructions first and fallback to search or bash command
 ## Working Effectively
 
 ### Bootstrap Environment
+
 Install required tools:
+
 ```bash
 # Install Node.js v22 (required for experimental transform types)
 wget https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz
@@ -23,7 +25,9 @@ sudo ln -s /opt/flyway/flyway /usr/local/bin/flyway
 ```
 
 ### Database Setup
+
 Start PostgreSQL and set up the database:
+
 ```bash
 # Start PostgreSQL container - takes ~11 seconds
 ./scripts/start_postgres.sh
@@ -36,7 +40,9 @@ PGPASSWORD=password psql -h localhost -U admin -d mydatabase -c "CREATE DATABASE
 ```
 
 ### Build and Dependencies
+
 Install dependencies and build:
+
 ```bash
 # Install all dependencies - takes ~64 seconds on first run. NEVER CANCEL. Set timeout to 120+ seconds.
 pnpm install
@@ -49,7 +55,9 @@ cd apps/backend && pnpm schema
 ```
 
 ### Development Workflow
+
 Run development servers:
+
 ```bash
 # Run both backend and frontend concurrently (recommended)
 pnpm dev
@@ -65,6 +73,7 @@ cd apps/frontend && pnpm dev
 ```
 
 ### Testing and Quality
+
 ```bash
 # Format code - takes ~5 seconds. NEVER CANCEL.
 pnpm format
@@ -91,8 +100,9 @@ After making changes, always test:
 ## Critical Timing Information
 
 **NEVER CANCEL** the following operations:
+
 - `pnpm install`: 60-120 seconds (first time)
-- `pnpm build`: 30-60 seconds  
+- `pnpm build`: 30-60 seconds
 - `pnpm test`: 15-30 seconds (all tests pass with proper environment)
 - `./scripts/baseline_database.sh`: 10-20 seconds
 
@@ -101,6 +111,7 @@ Always set timeouts of at least 2x the expected time to avoid premature cancella
 ## Environment Configuration
 
 The backend requires a `.env` file in `apps/backend/`. A working example exists with local development defaults:
+
 - Database: `postgres://admin:password@127.0.0.1:5432/mik_ng`
 - API Port: 3000
 - Frontend URL: http://localhost:5173
@@ -128,6 +139,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 ## Key Development Files
 
 Always check these locations when working on the codebase:
+
 - `apps/backend/src/db/schema.d.ts` - Generated database types
 - `apps/backend/.env` - Backend environment configuration
 - `sql/schema/migration/` - Database schema migrations
@@ -137,6 +149,7 @@ Always check these locations when working on the codebase:
 ## CI/CD Requirements
 
 The GitHub Actions workflows require:
+
 - ESLint error count below 15 errors per project
 - Prettier formatting compliance (`pnpm format:check`)
 - Successful build completion
