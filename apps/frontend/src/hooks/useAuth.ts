@@ -3,7 +3,12 @@ import useApi, { APIResponse } from './useApi'
 // trigger authentication calls
 
 export const useAuth = <Input, Output>(
-  endpoint: 'login' | 'login/validate' | 'register' | 'logout'
+  endpoint:
+    | 'login'
+    | 'login/validate'
+    | 'register'
+    | 'register/verify'
+    | 'logout'
 ): {
   isMutating: boolean
   trigger: (request?: Input) => Promise<APIResponse<Output>>

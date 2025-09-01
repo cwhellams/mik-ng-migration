@@ -1,7 +1,9 @@
 import { Router, type Request, type Response, type NextFunction } from 'express'
 import passport from 'passport'
+import jwt from 'jsonwebtoken'
 
 import { MIKMagicLoginStrategy } from './magiclink.ts'
+import { MIKRegistrationVerificationStrategy } from './registration-verification.ts'
 import {
   LoginRequestSchema,
   RegisterRequestSchema,
@@ -31,6 +33,7 @@ import {
 } from '../../templates/registrationEmailTemplate.ts'
 
 const magicLogin = new MIKMagicLoginStrategy()
+const registrationVerification = new MIKRegistrationVerificationStrategy()
 passport.use(magicLogin)
 
 //
@@ -85,8 +88,9 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   const memberId = await addMember(member)
   logger.info('new member registered with id %s : %j', memberId, member)
 
-  const link = magicLogin.generateLink(member.email)
-  logger.info('registration sent for validation %j', link)
+  // Use registration verification strategy instead of magic login
+  const link = registrationVerification.generateVerificationLink(member.email)
+  logger.info('registration verification link generated %j', link)
 
   sendEmail(
     member.email,
@@ -94,7 +98,7 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
     registerEmailBodyHtml(member.lang, { ...member, ...link }),
     registerEmailBody(member.lang, { ...member, ...link }),
   )
-  logger.info('magic registration link sent for validation %j', link)
+  logger.info('registration verification email sent %j', link)
 
   return res.json({ code: link.code })
 })
@@ -129,6 +133,32 @@ router.post(
     respondWithAccessAndRefreshToken(req.user!, res)
   },
 )
+
+// Registration verification endpoint
+router.post('/register/verify', async (req: Request, res: Response<VerifyResponse>) => {
+  const token = req.body.token || req.query.token
+
+  if (!token) {
+    return res.status(400).json({ error: 'Token is required' })
+  }
+
+  try {
+    // Verify the JWT token and extract payload
+    const payload = jwt.verify(token, process.env.MAGIC_LINK_SECRET!) as any
+
+    // Use registration verification strategy
+    const user = await registrationVerification.verifyRegistration(payload)
+
+    if (user) {
+      respondWithAccessAndRefreshToken(user, res)
+    } else {
+      res.status(401).json({ error: 'Registration verification failed' })
+    }
+  } catch (err) {
+    logger.error('Registration verification error:', err)
+    res.status(401).json({ error: 'Invalid or expired verification token' })
+  }
+})
 
 router.post('/refresh', async (req: Request, res: Response<VerifyResponse>, next: NextFunction) => {
   const refreshToken = req.cookies?.refreshToken

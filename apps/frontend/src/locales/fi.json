@@ -15,6 +15,9 @@
     "billing": "Laskutus",
     "accounts": "Accounts"
   },
+  "languageSelector": {
+    "selectLanguage": "Valitse kieli"
+  },
   "footer": {
     "quickLinks": "Pikalinkit",
     "website": "Kotisivut",
@@ -411,6 +414,52 @@
       "newFlightsCount": "Lentojen määrä",
       "newFlightsTime": "Lentojen ilmassaoloaika",
       "goToFlight": "Avaa lokikirjan {{seqNo}} sivu {{page}} (rivi {{row}})"
+    }
+  },
+  "registrationVerify": {
+    "title": "Vahvistetaan rekisteröitymistä",
+    "verifyingEmail": "Vahvistetaan sähköpostiosoitetta...",
+    "emailVerification": "Sähköpostivahvistus",
+    "verificationFailed": "Sähköpostivahvistus epäonnistui",
+    "verificationFailedMessage": "Sähköpostivahvistus epäonnistui. Linkki on ehkä vanhentunut tai virheellinen.",
+    "registerAgain": "Rekisteröidy uudelleen",
+    "login": "Kirjaudu sisään",
+    "welcomeTitle": "Tervetuloa Malmin Ilmailukerhoon!",
+    "emailVerifiedSuccess": "Sähköposti vahvistettu onnistuneesti!",
+    "thankYouMessage": "Kiitos liittymisestäsi Malmin Ilmailukerho ry:hyn. Sähköpostiosoitteesi on vahvistettu ja jäsenhakemustasi käsitellään parhaillaan.",
+    "nextStepsTitle": "Seuraavat vaiheet perehdytysprosessissasi",
+    "nextStepsDescription": "Näin etenee täysjäseneksi liittymisesi lentokerhoomme:",
+    "dashboardAccessMessage": "Voit nyt kirjautua jäsenten alueelle seuraamaan perehdytysprosessin etenemistä.",
+    "goToDashboard": "Siirry kojelautaan",
+    "onboardingSteps": {
+      "step1": {
+        "title": "Puhelu jäsensihteeriltä",
+        "description": "Jäsensihteerimme ottaa sinuun yhteyttä keskustellakseen hakemuksestasi ja vastatakseen kysymyksiisi."
+      },
+      "step2": {
+        "title": "Liittymismaksujen maksaminen",
+        "description": "Viimeistele jäsenyytesi maksamalla vaaditut liittymismaksut."
+      },
+      "step3": {
+        "title": "Asiakirjojen ja lupakirjan tarkistus",
+        "description": "Toimita ja vahvista lentolupakirjasi ja muut vaaditut asiakirjat."
+      },
+      "step4": {
+        "title": "Valinnainen rekisteröityminen oppilaslentäjäksi",
+        "description": "Mikäli soveltuu, rekisteröidy oppilaslentäjän koulutusohjelmaamme."
+      },
+      "step5": {
+        "title": "Tutustuminen kerhohuoneeseen Malmilla",
+        "description": "Vieraile kerhotiloillamme Malmin lentokentällä ja tutustu ympäristöön."
+      },
+      "step6": {
+        "title": "Kerhon avainten saaminen",
+        "description": "Vastaanota kerhon kulkuavaimesi ja opi kerhon toimintatavoista."
+      },
+      "step7": {
+        "title": "Tarkastuslento ohjaajan kanssa",
+        "description": "Suorita tarkastuslento yhden hyväksytyn lento-ohjaajamme kanssa."
+      }
     }
   }
 }

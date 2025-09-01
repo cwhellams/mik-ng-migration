@@ -13,17 +13,32 @@ import { useAuth } from '../../hooks/useAuth'
 import { LoginLayout } from './LoginLayout'
 import { LoginRequest, LoginResponse } from '@backend/routes/auth/schema'
 import { useTranslation } from 'react-i18next'
+import { MIKLang } from '@backend/routes/members/models'
+import LanguageSelector from '../../components/LanguageSelector'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState('')
+  
+  const { t, i18n } = useTranslation()
+
+  // Initialize language based on current i18n language
+  const [selectedLanguage, setSelectedLanguage] = useState<MIKLang>(() => {
+    if (i18n.language.startsWith('fi')) return MIKLang.FI
+    if (i18n.language.startsWith('sv')) return MIKLang.SV
+    return MIKLang.EN
+  })
 
   const navigate = useNavigate()
   const location = useLocation()
 
-  const { t } = useTranslation()
-
   const { isMutating, trigger } = useAuth<LoginRequest, LoginResponse>('login')
+
+  // Update i18n language when language selector changes
+  const handleLanguageChange = (language: MIKLang) => {
+    setSelectedLanguage(language)
+    i18n.changeLanguage(language)
+  }
 
   const validateEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -56,6 +71,15 @@ const Login = () => {
 
   return (
     <LoginLayout title={t('login.title')}>
+      {/* Language Selector */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <LanguageSelector
+          selectedLanguage={selectedLanguage}
+          onLanguageChange={handleLanguageChange}
+          showLabel={true}
+        />
+      </Box>
+
       <form onSubmit={handleSubmit}>
         <TextField
           fullWidth

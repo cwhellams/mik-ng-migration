@@ -13,6 +13,7 @@ import Login from './sections/login/Login'
 import LoginSent from './sections/login/Sent'
 import LoginValidate from './sections/login/Validate'
 import Register from './sections/login/Register'
+import RegistrationVerify from './sections/login/RegistrationVerify'
 import LogoutSuccess from './sections/login/LogoutSuccess'
 import NotFound from './sections/error/NotFound'
 import Member from './sections/members/Member'
@@ -92,6 +93,7 @@ function App() {
             <Route path='/login/sent' element={<LoginSent />} />
             <Route path='/login/validate' element={<LoginValidate />} />
             <Route path='/register' element={<Register />} />
+            <Route path='/register/verify' element={<RegistrationVerify />} />
             <Route path='/logout' element={<LogoutSuccess />} />
           </Route>
 

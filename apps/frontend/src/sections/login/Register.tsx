@@ -23,9 +23,19 @@ import { LoginResponse, RegisterRequest } from '@backend/routes/auth/schema'
 import { MIKLang, MIKMemberTypes } from '@backend/routes/members/models.ts'
 import dayjs, { Dayjs } from 'dayjs'
 import { useTranslation } from 'react-i18next'
+import LanguageSelector from '../../components/LanguageSelector'
 
 const Register = () => {
   const { t, i18n } = useTranslation()
+
+  // Initialize selectedLanguage state based on current i18n language
+  const initialLanguage = (() => {
+    if (i18n.language.startsWith('fi')) return MIKLang.FI
+    if (i18n.language.startsWith('sv')) return MIKLang.SV
+    return MIKLang.EN
+  })()
+
+  const [selectedLanguage, setSelectedLanguage] = useState<MIKLang>(initialLanguage)
 
   const [member, setMember] = useState<RegisterRequest>({
     email: '',
@@ -40,11 +50,7 @@ const Register = () => {
     memberType: MIKMemberTypes.FLYING,
     dateOfBirth: undefined,
 
-    lang: i18n.language.startsWith('fi')
-      ? MIKLang.FI
-      : i18n.language.startsWith('sv')
-        ? MIKLang.SV
-        : MIKLang.EN,
+    lang: initialLanguage, // Use the initial language
   })
   const [dateOfBirth, setDateOfBirth] = useState<Dayjs | null>(dayjs())
 
@@ -55,6 +61,13 @@ const Register = () => {
   const { isMutating, trigger } = useAuth<RegisterRequest, LoginResponse>(
     'register'
   )
+
+  // Handle language change and update both UI and member data
+  const handleLanguageChange = (language: MIKLang) => {
+    setSelectedLanguage(language)
+    setMember(prev => ({ ...prev, lang: language }))
+    i18n.changeLanguage(language)
+  }
 
   const validateEmail = (email?: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -83,6 +96,15 @@ const Register = () => {
 
   return (
     <LoginLayout title={t('register.title')}>
+      {/* Language Selector */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <LanguageSelector
+          selectedLanguage={selectedLanguage}
+          onLanguageChange={handleLanguageChange}
+          showLabel={true}
+        />
+      </Box>
+
       <form onSubmit={handleSubmit}>
         <TextField
           fullWidth

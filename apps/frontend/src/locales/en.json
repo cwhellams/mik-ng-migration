@@ -15,6 +15,9 @@
     "billing": "Billing",
     "accounts": "Accounts"
   },
+  "languageSelector": {
+    "selectLanguage": "Select language"
+  },
   "footer": {
     "quickLinks": "Quick Links",
     "website": "Website",
@@ -411,6 +414,52 @@
       "newFlightsCount": "Flights",
       "newFlightsTime": "Flights time",
       "goToFlight": "Open logbook {{seqNo}} on page {{page}} (row {{row}})"
+    }
+  },
+  "registrationVerify": {
+    "title": "Verifying Registration",
+    "verifyingEmail": "Verifying your email address...",
+    "emailVerification": "Email Verification",
+    "verificationFailed": "Email Verification Failed",
+    "verificationFailedMessage": "Email verification failed. The link may be expired or invalid.",
+    "registerAgain": "Register Again",
+    "login": "Login",
+    "welcomeTitle": "Welcome to Malmin Ilmailukerho!",
+    "emailVerifiedSuccess": "Email Successfully Verified!",
+    "thankYouMessage": "Thank you for joining Malmin Ilmailukerho ry. Your email has been verified and your membership application is now being processed.",
+    "nextStepsTitle": "Next Steps in Your Onboarding Process",
+    "nextStepsDescription": "Here's what happens next as you become a full member of our flying club:",
+    "dashboardAccessMessage": "You can now access your member dashboard to track your onboarding progress.",
+    "goToDashboard": "Go to Dashboard",
+    "onboardingSteps": {
+      "step1": {
+        "title": "Call from member secretary",
+        "description": "Our member secretary will contact you to discuss your application and answer any questions."
+      },
+      "step2": {
+        "title": "Payment of joining fees",
+        "description": "Complete your membership by paying the required joining fees."
+      },
+      "step3": {
+        "title": "Verification of documents and licence",
+        "description": "Submit and verify your flying licence and other required documentation."
+      },
+      "step4": {
+        "title": "Optional registration as a student pilot",
+        "description": "If applicable, register for our student pilot training programs."
+      },
+      "step5": {
+        "title": "Introduction to club room at Malmi",
+        "description": "Visit our club facilities at Malmi airfield and get oriented."
+      },
+      "step6": {
+        "title": "Getting keys to the club",
+        "description": "Receive your club access keys and learn about club procedures."
+      },
+      "step7": {
+        "title": "Check ride with instructor",
+        "description": "Complete a check ride with one of our certified flight instructors."
+      }
     }
   }
 }
