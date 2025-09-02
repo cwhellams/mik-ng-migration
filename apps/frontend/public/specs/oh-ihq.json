@@ -1,0 +1,108 @@
+{
+  "registration": "OH-IHQ",
+  "aircraftType": "Diamond DV20",
+  "dataOrigin": "Official Weighing Report 2025",
+  "fuelConversion": {
+    "litre2Kilo": 0.72
+  },
+  "weightLimits": {
+    "maxTakeoff": 730,
+    "maxLanding": 730,
+    "basicEmptyWeight": 515.2,
+    "minTakeoff": 560,
+    "minLanding": 560
+  },
+  "cgLimits": {
+    "forward": 25.0,
+    "aft": 39.0
+  },
+  "loadPoints": {
+    "basicEmptyWeight": {
+      "name": "Basic Empty Weight",
+      "translationFi": "Peruspaino",
+      "unit": "kg",
+      "value": 515.2,
+      "momentArm": 33.1,
+      "editable": false
+    },
+    "pilot": {
+      "name": "Pilot",
+      "translationFi": "Lentäjä",
+      "unit": "kg",
+      "defaultValue": 80,
+      "minValue": 0,
+      "maxValue": 110,
+      "momentArm": 14.3,
+      "step": 1,
+      "editable": true
+    },
+    "copilot": {
+      "name": "Co-Pilot",
+      "translationFi": "Perämies",
+      "unit": "kg",
+      "defaultValue": 0,
+      "minValue": 0,
+      "maxValue": 110,
+      "momentArm": 14.3,
+      "step": 1,
+      "editable": true
+    },
+    "baggage": {
+      "name": "Baggage",
+      "translationFi": "Matkatavarat",
+      "unit": "kg",
+      "defaultValue": 10,
+      "minValue": 0,
+      "maxValue": 20,
+      "momentArm": 82.4,
+      "step": 1,
+      "editable": true
+    },
+    "fuel": {
+      "name": "Fuel",
+      "translationFi": "Polttoaine",
+      "unit": "ltr",
+      "defaultValue": 55,
+      "minValue": 0,
+      "maxValue": 79,
+      "momentArm": 82.4,
+      "step": 1,
+      "editable": true
+    },
+    "taxiFuel": {
+      "name": "Taxi Fuel",
+      "translationFi": "Rullauspolttoaine",
+      "unit": "ltr",
+      "defaultValue": 3,
+      "minValue": 0,
+      "maxValue": 10,
+      "momentArm": 82.4,
+      "step": 0.5,
+      "editable": true
+    },
+    "fuelFlow": {
+      "name": "Fuel Flow",
+      "translationFi": "Polttoaineen kulutus",
+      "unit": "ltr/h",
+      "defaultValue": 17,
+      "minValue": 5,
+      "maxValue": 30,
+      "step": 1,
+      "editable": true
+    },
+    "flightTime": {
+      "name": "Flight Time",
+      "translationFi": "Lenttoaika",
+      "unit": "min",
+      "defaultValue": 60,
+      "minValue": 1,
+      "maxValue": 300,
+      "step": 5,
+      "editable": true
+    }
+  },
+  "seatingConfiguration": {
+    "hasRearSeats": false,
+    "maxSeats": 2
+  }
+}

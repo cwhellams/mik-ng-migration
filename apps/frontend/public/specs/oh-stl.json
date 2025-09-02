@@ -1,0 +1,135 @@
+{
+  "registration": "OH-STL",
+  "aircraftType": "Diamond DA 40 NG Star",
+  "dataOrigin": "Numbers: OH-STL weighing report (07.04.2016) and NG AFM Rev3",
+  "fuelConversion": {
+    "litre2Kilo": 0.84
+  },
+  "weightLimits": {
+    "maxTakeoff": 1280,
+    "maxLanding": 1280,
+    "basicEmptyWeight": 909.4
+  },
+  "cgLimits": {
+    "forward": 244.0,
+    "aft": 255.0
+  },
+  "flightEnvelopePoints": [
+    { "weight": 940, "momentArm": 240.0 },
+    { "weight": 1080, "momentArm": 240.0 },
+    { "weight": 1280, "momentArm": 246.0 },
+    { "weight": 1280, "momentArm": 253.0 },
+    { "weight": 940, "momentArm": 253.0 },
+    { "weight": 940, "momentArm": 240.0 }
+  ],
+  "loadPoints": {
+    "basicEmptyWeight": {
+      "name": "Basic Empty Weight",
+      "translationFi": "Perusmassa",
+      "unit": "kg",
+      "value": 909.4,
+      "momentArm": 243.0,
+      "editable": false
+    },
+    "pilot": {
+      "name": "Front Seat Left (Pilot)",
+      "translationFi": "Etupenkki vasen (Lentäjä)",
+      "unit": "kg",
+      "defaultValue": 80,
+      "minValue": 0,
+      "maxValue": 250,
+      "momentArm": 230.0,
+      "step": 1,
+      "editable": true
+    },
+    "copilot": {
+      "name": "Front Seat Right (Co-Pilot)",
+      "translationFi": "Etupenkki oikea (Perämies)",
+      "unit": "kg",
+      "defaultValue": 0,
+      "minValue": 0,
+      "maxValue": 250,
+      "momentArm": 230.0,
+      "step": 1,
+      "editable": true
+    },
+    "rearSeat": {
+      "name": "Back Seat",
+      "translationFi": "Takapenkki",
+      "unit": "kg",
+      "defaultValue": 0,
+      "minValue": 0,
+      "maxValue": 250,
+      "momentArm": 325.0,
+      "step": 1,
+      "editable": true
+    },
+    "baggage": {
+      "name": "Baggage",
+      "translationFi": "Matkatavarat",
+      "unit": "kg",
+      "defaultValue": 10,
+      "minValue": 0,
+      "maxValue": 30,
+      "momentArm": 365.0,
+      "step": 1,
+      "editable": true
+    },
+    "fuel": {
+      "name": "Fuel",
+      "translationFi": "Polttoaine",
+      "unit": "ltr",
+      "defaultValue": 104,
+      "minValue": 0,
+      "maxValue": 148,
+      "momentArm": 263.0,
+      "step": 1,
+      "editable": true
+    },
+    "taxiFuel": {
+      "name": "Taxi Fuel",
+      "translationFi": "Rullauspolttoaine",
+      "unit": "ltr",
+      "defaultValue": 5,
+      "minValue": 0,
+      "maxValue": 20,
+      "momentArm": 263.0,
+      "step": 0.5,
+      "editable": true
+    },
+    "fuelFlow": {
+      "name": "Fuel Flow",
+      "translationFi": "Polttoaineen kulutus",
+      "unit": "ltr/h",
+      "defaultValue": 23.2,
+      "minValue": 5,
+      "maxValue": 50,
+      "step": 0.1,
+      "editable": true
+    },
+    "flightTime": {
+      "name": "Flight Time",
+      "translationFi": "Lenttoaika",
+      "unit": "min",
+      "defaultValue": 60,
+      "minValue": 1,
+      "maxValue": 300,
+      "step": 1,
+      "editable": true
+    },
+    "endurance": {
+      "name": "Endurance",
+      "translationFi": "Lentoaika maksimi",
+      "unit": "min",
+      "defaultValue": 60,
+      "minValue": 1,
+      "maxValue": 800,
+      "step": 1,
+      "editable": false
+    }
+  },
+  "seatingConfiguration": {
+    "hasRearSeats": true,
+    "maxSeats": 4
+  }
+}

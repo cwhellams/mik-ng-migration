@@ -21,6 +21,11 @@ export const menuItems: MenuItem[] = [
     translationKey: 'header.flightLogs',
   },
   {
+    label: 'Mass & Balance',
+    path: '/mass-balance',
+    translationKey: 'header.massBalance',
+  },
+  {
     label: 'Aircraft',
     path: '/aircrafts',
     translationKey: 'header.aircrafts',

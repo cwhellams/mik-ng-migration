@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next'
 import Billing from './sections/billing/billing'
 import AccountingLayout from './sections/accounting/Accounting'
 import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
+import MassBalance from './sections/massBalance/MassBalance'
 import 'dayjs/locale/en-gb'
 
 function App() {
@@ -77,6 +78,7 @@ function App() {
               path='/flight-logs/:flightId'
               element={<NewFlightLogEntry />}
             />
+            <Route path='/mass-balance' element={<MassBalance />} />
             <Route path='/accounting' element={<AccountingLayout />}>
               <Route
                 path='dashboard'

@@ -53,14 +53,15 @@ coverage
 # Debug
 .debug
 
-# Misc
-.DS_Store
-*.pem
-.vercel
-.turbo
+# Development and test files
+*.tar.xz
+*.tar.gz
+test.html
+test_*.html
+*-demo.html
+*-test.html
 
 # Misc
-.DS_Store
 *.pem
 .vercel
 .turbo

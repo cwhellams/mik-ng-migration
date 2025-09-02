@@ -19,7 +19,7 @@ import LanguageSelector from '../../components/LanguageSelector'
 const Login = () => {
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState('')
-  
+
   const { t, i18n } = useTranslation()
 
   // Initialize language based on current i18n language
