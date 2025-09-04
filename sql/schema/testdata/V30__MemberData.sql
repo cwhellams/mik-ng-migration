@@ -1,4 +1,3 @@
--- Insert test data for the member.register table
 INSERT INTO member.register (
         member_id,
         first_name,
@@ -44,28 +43,8 @@ VALUES (
         'FI.FCL.123456',
         '2026-03-20',
         '2026-06-01'
-    );
-INSERT INTO member.register (
-        member_id,
-        first_name,
-        last_name,
-        date_of_birth,
-        member_since,
-        email,
-        phone_number,
-        ice_contact_name,
-        ice_contact_phone_number,
-        member_type,
-        billing_id,
-        street_address,
-        town_city,
-        postcode,
-        can_make_reservations,
-        is_training_program_pilot,
-        created_by,
-        updated_by
-    )
-VALUES (
+    ),
+    (
         'Liisa1',
         'Liisa',
         'Korhonen',
@@ -83,7 +62,10 @@ VALUES (
         FALSE,
         FALSE,
         'k1mnimda',
-        'k1mnimda'
+        'k1mnimda',
+        'FI.FCL.123456',
+        '2026-03-20',
+        '2026-06-01'
     ),
     (
         'Jukka1',
@@ -103,7 +85,10 @@ VALUES (
         FALSE,
         FALSE,
         'k1mnimda',
-        'k1mnimda'
+        'k1mnimda',
+        'FI.FCL.123456',
+        '2026-03-20',
+        '2026-06-01'
     ),
     (
         'Anna1',
@@ -123,7 +108,10 @@ VALUES (
         TRUE,
         FALSE,
         'k1mnimda',
-        'k1mnimda'
+        'k1mnimda',
+        'FI.FCL.123456',
+        '2026-03-20',
+        '2026-06-01'
     ),
     (
         'Pekka1',
@@ -143,7 +131,10 @@ VALUES (
         FALSE,
         FALSE,
         'k1mnimda',
-        'k1mnimda'
+        'k1mnimda',
+        'FI.FCL.123456',
+        '2026-03-20',
+        '2026-06-01'
     ),
     (
         'Kaisa1',
@@ -163,7 +154,10 @@ VALUES (
         FALSE,
         FALSE,
         'k1mnimda',
-        'k1mnimda'
+        'k1mnimda',
+        'FI.FCL.123456',
+        '2026-03-20',
+        '2026-06-01'
     ),
     (
         'Antti1',
@@ -183,7 +177,10 @@ VALUES (
         TRUE,
         FALSE,
         'k1mnimda',
-        'k1mnimda'
+        'k1mnimda',
+        'FI.FCL.123456',
+        '2026-03-20',
+        '2026-06-01'
     ),
     (
         'Sanna1',
@@ -203,7 +200,10 @@ VALUES (
         FALSE,
         FALSE,
         'k1mnimda',
-        'k1mnimda'
+        'k1mnimda',
+        'FI.FCL.123456',
+        '2026-03-20',
+        '2026-06-01'
     ),
     (
         'Juha1',
@@ -223,7 +223,10 @@ VALUES (
         FALSE,
         FALSE,
         'k1mnimda',
-        'k1mnimda'
+        'k1mnimda',
+        'FI.FCL.123456',
+        '2026-03-20',
+        '2026-06-01'
     ),
     (
         'Marja1',
@@ -243,7 +246,10 @@ VALUES (
         TRUE,
         FALSE,
         'k1mnimda',
-        'k1mnimda'
+        'k1mnimda',
+        'FI.FCL.123456',
+        '2026-03-20',
+        '2026-06-01'
     ),
     (
         'Examiner1',
@@ -263,32 +269,12 @@ VALUES (
         FALSE,
         FALSE,
         'k1mnimda',
-        'k1mnimda'
+        'k1mnimda',
+        'FI.FCL.123456',
+        '2026-03-20',
+        '2026-06-01'
     ),
-        INSERT INTO member.register (
-        member_id,
-        first_name,
-        last_name,
-        date_of_birth,
-        member_since,
-        email,
-        phone_number,
-        ice_contact_name,
-        ice_contact_phone_number,
-        member_type,
-        billing_id,
-        street_address,
-        town_city,
-        postcode,
-        can_make_reservations,
-        is_training_program_pilot,
-        created_by,
-        updated_by,
-        licence_id,
-        licence_expiry_date,
-        medical_expiry_date
-    )
-VALUES (
+    (
         'John1',
         'John',
         'McDoe',
