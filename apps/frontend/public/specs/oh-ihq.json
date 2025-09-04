@@ -1,14 +1,14 @@
 {
   "registration": "OH-IHQ",
   "aircraftType": "Diamond DV20",
-  "dataOrigin": "Official Weighing Report 2025",
+  "dataOrigin": "AeroTecno Weighing Report 23.5.2025 with LED correction 27.7.25",
   "fuelConversion": {
     "litre2Kilo": 0.72
   },
   "weightLimits": {
     "maxTakeoff": 730,
     "maxLanding": 730,
-    "basicEmptyWeight": 515.2,
+    "basicEmptyWeight": 513.4,
     "minTakeoff": 560,
     "minLanding": 560
   },
@@ -18,16 +18,12 @@
   },
   "loadPoints": {
     "basicEmptyWeight": {
-      "name": "Basic Empty Weight",
-      "translationFi": "Peruspaino",
       "unit": "kg",
-      "value": 515.2,
+      "value": 513.4,
       "momentArm": 33.1,
       "editable": false
     },
     "pilot": {
-      "name": "Pilot",
-      "translationFi": "Lentäjä",
       "unit": "kg",
       "defaultValue": 80,
       "minValue": 0,
@@ -37,8 +33,6 @@
       "editable": true
     },
     "copilot": {
-      "name": "Co-Pilot",
-      "translationFi": "Perämies",
       "unit": "kg",
       "defaultValue": 0,
       "minValue": 0,
@@ -48,8 +42,6 @@
       "editable": true
     },
     "baggage": {
-      "name": "Baggage",
-      "translationFi": "Matkatavarat",
       "unit": "kg",
       "defaultValue": 10,
       "minValue": 0,
@@ -59,8 +51,6 @@
       "editable": true
     },
     "fuel": {
-      "name": "Fuel",
-      "translationFi": "Polttoaine",
       "unit": "ltr",
       "defaultValue": 55,
       "minValue": 0,
@@ -70,8 +60,6 @@
       "editable": true
     },
     "taxiFuel": {
-      "name": "Taxi Fuel",
-      "translationFi": "Rullauspolttoaine",
       "unit": "ltr",
       "defaultValue": 3,
       "minValue": 0,
@@ -81,8 +69,6 @@
       "editable": true
     },
     "fuelFlow": {
-      "name": "Fuel Flow",
-      "translationFi": "Polttoaineen kulutus",
       "unit": "ltr/h",
       "defaultValue": 17,
       "minValue": 5,
@@ -91,8 +77,6 @@
       "editable": true
     },
     "flightTime": {
-      "name": "Flight Time",
-      "translationFi": "Lenttoaika",
       "unit": "min",
       "defaultValue": 60,
       "minValue": 1,

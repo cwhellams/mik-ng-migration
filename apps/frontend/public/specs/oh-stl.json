@@ -24,16 +24,12 @@
   ],
   "loadPoints": {
     "basicEmptyWeight": {
-      "name": "Basic Empty Weight",
-      "translationFi": "Perusmassa",
       "unit": "kg",
       "value": 909.4,
       "momentArm": 243.0,
       "editable": false
     },
     "pilot": {
-      "name": "Front Seat Left (Pilot)",
-      "translationFi": "Etupenkki vasen (Lentäjä)",
       "unit": "kg",
       "defaultValue": 80,
       "minValue": 0,
@@ -43,8 +39,6 @@
       "editable": true
     },
     "copilot": {
-      "name": "Front Seat Right (Co-Pilot)",
-      "translationFi": "Etupenkki oikea (Perämies)",
       "unit": "kg",
       "defaultValue": 0,
       "minValue": 0,
@@ -54,8 +48,6 @@
       "editable": true
     },
     "rearSeat": {
-      "name": "Back Seat",
-      "translationFi": "Takapenkki",
       "unit": "kg",
       "defaultValue": 0,
       "minValue": 0,
@@ -65,8 +57,6 @@
       "editable": true
     },
     "baggage": {
-      "name": "Baggage",
-      "translationFi": "Matkatavarat",
       "unit": "kg",
       "defaultValue": 10,
       "minValue": 0,
@@ -76,8 +66,6 @@
       "editable": true
     },
     "fuel": {
-      "name": "Fuel",
-      "translationFi": "Polttoaine",
       "unit": "ltr",
       "defaultValue": 104,
       "minValue": 0,
@@ -87,8 +75,6 @@
       "editable": true
     },
     "taxiFuel": {
-      "name": "Taxi Fuel",
-      "translationFi": "Rullauspolttoaine",
       "unit": "ltr",
       "defaultValue": 5,
       "minValue": 0,
@@ -98,8 +84,6 @@
       "editable": true
     },
     "fuelFlow": {
-      "name": "Fuel Flow",
-      "translationFi": "Polttoaineen kulutus",
       "unit": "ltr/h",
       "defaultValue": 23.2,
       "minValue": 5,
@@ -108,8 +92,6 @@
       "editable": true
     },
     "flightTime": {
-      "name": "Flight Time",
-      "translationFi": "Lenttoaika",
       "unit": "min",
       "defaultValue": 60,
       "minValue": 1,
@@ -118,8 +100,6 @@
       "editable": true
     },
     "endurance": {
-      "name": "Endurance",
-      "translationFi": "Lentoaika maksimi",
       "unit": "min",
       "defaultValue": 60,
       "minValue": 1,
