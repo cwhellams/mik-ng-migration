@@ -222,6 +222,11 @@ describe('GET /members', () => {
         last: 'Laine',
         roles: ['ADMIN'],
       },
+      {
+        first: 'John',
+        last: 'McDoe',
+        roles: ['ADMIN'],
+      },
     ])
   })
 
@@ -259,6 +264,11 @@ describe('GET /members', () => {
       {
         first: 'Kaisa',
         last: 'Laine',
+        roles: ['ADMIN'],
+      },
+      {
+        first: 'John',
+        last: 'McDoe',
         roles: ['ADMIN'],
       },
     ])

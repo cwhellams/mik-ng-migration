@@ -123,9 +123,9 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
   "isTrainingProgramPilot": false,
   "lang": "fi",
   "lastName": "Hämäläinen",
-  "licenceExpiry": null,
-  "licenceId": undefined,
-  "medicalExpiry": null,
+  "licenceExpiry": "2026-03-20",
+  "licenceId": "FI.FCL.123456",
+  "medicalExpiry": "2026-06-01",
   "memberId": "Pekka1",
   "memberSince": Any<String>,
   "memberType": "JUNIOR",
@@ -195,9 +195,9 @@ exports[`Db query member tests getMemberByEmail should return member data regard
   "isTrainingProgramPilot": false,
   "lang": "fi",
   "lastName": "Hämäläinen",
-  "licenceExpiry": null,
-  "licenceId": undefined,
-  "medicalExpiry": null,
+  "licenceExpiry": "2026-03-20",
+  "licenceId": "FI.FCL.123456",
+  "medicalExpiry": "2026-06-01",
   "memberId": "Pekka1",
   "memberSince": Any<String>,
   "memberType": "JUNIOR",
@@ -555,6 +555,16 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     ],
   },
   {
+    "email": "niko.ikonen@mik.fi",
+    "first": "John",
+    "last": "McDoe",
+    "memberId": "John1",
+    "phoneNumber": "0401234567",
+    "roles": [
+      "ADMIN",
+    ],
+  },
+  {
     "email": "examinerfe@mik.com",
     "first": "Exe",
     "last": "McExaminerface",
@@ -573,14 +583,6 @@ exports[`Db query member tests getMembers should return everything for admins 1`
     "roles": [
       "INSTRUCTOR",
     ],
-  },
-  {
-    "email": "nurmikko@gmail.com",
-    "first": "Marja",
-    "last": "Salminen",
-    "memberId": "Marja1",
-    "phoneNumber": "0490123456",
-    "roles": [],
   },
 ]
 `;
