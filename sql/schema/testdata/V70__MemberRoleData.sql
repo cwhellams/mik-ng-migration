@@ -13,4 +13,5 @@ VALUES ('Matti1', 'MEMBER', 'k1mnimda'),
     ('Antti1', 'MEMBER', 'k1mnimda'),
     ('Sanna1', 'COMMITTEE', 'k1mnimda'),
     ('Juha1', 'MEMBER', 'k1mnimda'),
+    ('John1', 'ADMIN', 'k1mnimda'),
     ('Examiner1', 'EXAMINER', 'k1mnimda');
