@@ -316,6 +316,22 @@ export interface MemberRoles {
   updated_by: string
 }
 
+export interface Secrets {
+  created_at: Generated<Timestamp>
+  created_by: string
+  id: Generated<Int8>
+  /**
+   * The name/description of the secret (e.g., "Club house key code")
+   */
+  secret_key: string
+  /**
+   * The actual secret value (e.g., door code, combination)
+   */
+  secret_value: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
 export interface StaticAirfields {
   ident: string
   iso_country: string | null
@@ -339,5 +355,6 @@ export interface DB {
   'member.register': MemberRegister
   'member.register_audit': MemberRegisterAudit
   'member.roles': MemberRoles
+  secrets: Secrets
   'static.airfields': StaticAirfields
 }

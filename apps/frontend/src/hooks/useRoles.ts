@@ -14,9 +14,12 @@ export function useRoles(): {
   isAircraftAdmin: boolean
   isFlightLogAdmin: boolean
   isInvoicingAdmin: boolean
+  isAccessCodesUser: boolean
+  isAccessCodesAdmin: boolean
   roles: MemberRolesResponse['roles']
   permissions: MemberRolesResponse['permissions']
   sudoers: boolean
+  userPermissions: Array<MIKPermissions>
   error: Problem | undefined
 } {
   const { me, isLoading } = useMe()
@@ -47,6 +50,8 @@ export function useRoles(): {
     isAircraftAdmin: withPermission(MIKPermissions.AIRCRAFT_ADMIN),
     isFlightLogAdmin: withPermission(MIKPermissions.FLIGHTLOG_ADMIN),
     isInvoicingAdmin: withPermission(MIKPermissions.INVOICING_ADMIN),
+    isAccessCodesUser: withPermission(MIKPermissions.ACCESS_CODES_USER),
+    isAccessCodesAdmin: withPermission(MIKPermissions.ACCESS_CODES_ADMIN),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
     // user is in sudoers file if they have any admin permission
@@ -54,6 +59,11 @@ export function useRoles(): {
       me?.roles.some((role) =>
         role.permissions?.some((p) => p.endsWith('.admin'))
       ) ?? false,
+    userPermissions:
+      me?.roles
+        .flatMap((r) => r.permissions)
+        .filter(Boolean)
+        .map((p) => p as MIKPermissions) ?? [],
     error,
   }
 }

@@ -7,6 +7,7 @@ export interface MenuItem {
   translationKey: string
   icon?: ReactNode
   requiredRoles?: MIKPermissions[]
+  adminModeOnly?: boolean
 }
 
 export const menuItems: MenuItem[] = [
@@ -41,9 +42,19 @@ export const menuItems: MenuItem[] = [
     translationKey: 'header.members',
   },
   {
+    label: 'Access codes',
+    path: '/access-codes',
+    translationKey: 'header.accessCodes',
+    requiredRoles: [
+      MIKPermissions.ACCESS_CODES_USER,
+      MIKPermissions.ACCESS_CODES_ADMIN,
+    ],
+  },
+  {
     label: 'Accounting',
     path: '/accounting',
     translationKey: 'header.accounts',
     requiredRoles: [MIKPermissions.INVOICING_ADMIN],
+    adminModeOnly: true,
   },
 ]

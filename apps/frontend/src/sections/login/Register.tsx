@@ -35,7 +35,8 @@ const Register = () => {
     return MIKLang.EN
   })()
 
-  const [selectedLanguage, setSelectedLanguage] = useState<MIKLang>(initialLanguage)
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<MIKLang>(initialLanguage)
 
   const [member, setMember] = useState<RegisterRequest>({
     email: '',
@@ -65,7 +66,7 @@ const Register = () => {
   // Handle language change and update both UI and member data
   const handleLanguageChange = (language: MIKLang) => {
     setSelectedLanguage(language)
-    setMember(prev => ({ ...prev, lang: language }))
+    setMember((prev) => ({ ...prev, lang: language }))
     i18n.changeLanguage(language)
   }
 

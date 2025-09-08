@@ -14,7 +14,8 @@
     "massBalance": "Massa ja tasapaino",
     "roles": "Käyttäjäroolit",
     "billing": "Laskutus",
-    "accounts": "Accounts"
+    "accounts": "Accounts",
+    "accessCodes": "Pääsykoodit"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -512,5 +513,22 @@
       "landingCGOutOfLimits": "Laskeutumisen painopiste on rajojen ulkopuolella",
       "loadExceedsMaximum": "Kuorma ylittää tämän osion suurimman arvon"
     }
+  },
+  "accessCodes": {
+    "title": "Pääsykoodit",
+    "secretKey": "Salaisuuden nimi",
+    "secretValue": "Salaisuuden arvo",
+    "addSecret": "Lisää uusi salaisuus",
+    "editSecret": "Muokkaa salaisuutta",
+    "deleteSecret": "Poista salaisuus",
+    "confirmDelete": "Oletko varma että haluat poistaa tämän salaisuuden?",
+    "showValue": "Näytä arvo",
+    "hideValue": "Piilota arvo",
+    "save": "Tallenna",
+    "cancel": "Peruuta",
+    "delete": "Poista",
+    "secretKeyRequired": "Salaisuuden nimi on pakollinen",
+    "secretValueRequired": "Salaisuuden arvo on pakollinen",
+    "noSecrets": "Ei salaisuuksia saatavilla"
   }
 }

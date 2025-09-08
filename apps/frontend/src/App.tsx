@@ -27,6 +27,7 @@ import Billing from './sections/billing/billing'
 import AccountingLayout from './sections/accounting/Accounting'
 import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
 import MassBalance from './sections/massBalance/MassBalance'
+import { AccessCodes } from './sections/accessCodes/AccessCodes'
 import 'dayjs/locale/en-gb'
 
 function App() {
@@ -79,6 +80,7 @@ function App() {
               element={<NewFlightLogEntry />}
             />
             <Route path='/mass-balance' element={<MassBalance />} />
+            <Route path='/access-codes' element={<AccessCodes />} />
             <Route path='/accounting' element={<AccountingLayout />}>
               <Route
                 path='dashboard'

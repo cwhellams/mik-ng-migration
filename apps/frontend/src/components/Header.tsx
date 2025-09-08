@@ -28,6 +28,8 @@ import { useSwipeable } from 'react-swipeable'
 import ThemeToggle from './ThemeToggle'
 import AdminToggle from './AdminToggle'
 import { useRoles } from '../hooks/useRoles'
+import { MIKPermissions } from '@backend/routes/members/models'
+import { useThemeMode } from '../theme/ThemeContext'
 
 interface HeaderProps {
   window?: () => Window
@@ -36,6 +38,7 @@ interface HeaderProps {
 const Header = (props: HeaderProps) => {
   const { window } = props
   const theme = useTheme()
+  const { sudo } = useThemeMode()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -79,6 +82,30 @@ const Header = (props: HeaderProps) => {
     trackMouse: false,
   })
 
+  function hasAccess(
+    userRoles: string[] | MIKPermissions[],
+    requiredRoles?: MIKPermissions[],
+    adminOnly?: boolean
+  ): boolean {
+    if (adminOnly === true && !sudo) {
+      return false
+    }
+
+    if (!requiredRoles || requiredRoles.length === 0) {
+      return true
+    }
+
+    // normalize to lowercase strings
+    const normalizedUserRoles = userRoles.map((r) => r.toString().toLowerCase())
+    const normalizedRequiredRoles = requiredRoles.map((r) => r.toLowerCase())
+
+    const res = normalizedUserRoles.some((userRole) =>
+      normalizedRequiredRoles.includes(userRole)
+    )
+
+    return res
+  }
+
   const drawerContent = (
     <Box sx={{ width: 250 }} role='presentation' onClick={closeDrawer}>
       <Box
@@ -101,14 +128,13 @@ const Header = (props: HeaderProps) => {
       <Divider />
       <List>
         {menuItems
-          .filter((item) => {
-            return (
-              !item.requiredRoles ||
-              roles.permissions.some((requiredRole) =>
-                item.requiredRoles?.includes(requiredRole)
-              )
+          .filter((item) =>
+            hasAccess(
+              roles.userPermissions,
+              item.requiredRoles,
+              item.adminModeOnly
             )
-          })
+          )
           .map((item) => (
             <ListItem key={item.path} disablePadding>
               <ListItemButton
@@ -201,15 +227,13 @@ const Header = (props: HeaderProps) => {
           {!isMobile && (
             <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
               {menuItems
-                .filter((item) => {
-                  return (
-                    !item.requiredRoles ||
-                    roles.permissions.some((requiredRole) =>
-                      item.requiredRoles?.includes(requiredRole)
-                    )
+                .filter((item) =>
+                  hasAccess(
+                    roles.userPermissions,
+                    item.requiredRoles,
+                    item.adminModeOnly
                   )
-                })
-
+                )
                 .map((item) => (
                   <Button
                     key={item.path}

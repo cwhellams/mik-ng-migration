@@ -14,6 +14,7 @@ import ajlbRoutes from './routes/ajlb/api.ts'
 import { router as passportRoutes } from './routes/auth/login.ts'
 import flightLogRoutes from './routes/flight-log/api.ts'
 import { router as memberRoutes } from './routes/members/api.ts'
+import { router as secretRoutes } from './routes/secrets/api.ts'
 import { problemErrorHandler, notFoundProblemHandler } from './routes/response.ts'
 import invoiceRoutes from './routes/invoicing/api.ts'
 import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
@@ -63,6 +64,7 @@ app.get('/health', (_req, res) => {
 // Routes
 app.use('/api/auth', passportRoutes)
 app.use('/api/v1/members', memberRoutes)
+app.use('/api/v1/secrets', secretRoutes)
 app.use('/api/v1/flight-logs', flightLogRoutes)
 app.use('/api/v1/aircrafts', aircraftRoutes)
 app.use('/api/v1/ajlb', ajlbRoutes)

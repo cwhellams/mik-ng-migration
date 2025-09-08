@@ -13,7 +13,8 @@
     "flightLogs": "Flyglogg",
     "roles": "Användarroller",
     "billing": "Fakturering",
-    "accounts": "Konton"
+    "accounts": "Konton",
+    "accessCodes": "Åtkomstkoder"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -499,5 +500,22 @@
       "landingCGOutOfLimits": "Tyngdpunkten vid landning är utanför gränserna",
       "loadExceedsMaximum": "Lasten överskrider maxgränsen för detta utrymme"
     }
+  },
+  "accessCodes": {
+    "title": "Åtkomstkoder",
+    "secretKey": "Hemlighetens namn",
+    "secretValue": "Hemlighetens värde",
+    "addSecret": "Lägg till ny hemlighet",
+    "editSecret": "Redigera hemlighet",
+    "deleteSecret": "Ta bort hemlighet",
+    "confirmDelete": "Är du säker på att du vill ta bort denna hemlighet?",
+    "showValue": "Visa värde",
+    "hideValue": "Dölj värde",
+    "save": "Spara",
+    "cancel": "Avbryt",
+    "delete": "Ta bort",
+    "secretKeyRequired": "Hemlighetens namn är obligatoriskt",
+    "secretValueRequired": "Hemlighetens värde är obligatoriskt",
+    "noSecrets": "Inga hemligheter tillgängliga"
   }
 }

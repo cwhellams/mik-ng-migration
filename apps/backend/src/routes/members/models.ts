@@ -24,6 +24,10 @@ export enum MIKPermissions {
   // can see invoices, admin can create and edit
   INVOICING_USER = 'invoicing.user',
   INVOICING_ADMIN = 'invoicing.admin',
+
+  // can access club secrets/access codes
+  ACCESS_CODES_USER = 'access_codes.user',
+  ACCESS_CODES_ADMIN = 'access_codes.admin',
 }
 
 export const toUserRole = (permission: MIKPermissions): MIKPermissions => {
@@ -38,6 +42,8 @@ export const toUserRole = (permission: MIKPermissions): MIKPermissions => {
       return MIKPermissions.AIRCRAFT_USER
     case MIKPermissions.INVOICING_ADMIN:
       return MIKPermissions.INVOICING_USER
+    case MIKPermissions.ACCESS_CODES_ADMIN:
+      return MIKPermissions.ACCESS_CODES_USER
     default:
       return permission
   }

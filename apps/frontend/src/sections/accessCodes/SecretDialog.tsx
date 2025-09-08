@@ -1,0 +1,200 @@
+import React, { useState, useEffect } from 'react'
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  Box,
+  Alert,
+  CircularProgress,
+} from '@mui/material'
+import { useTranslation } from 'react-i18next'
+import type {
+  Secret,
+  SecretsListResponse,
+} from '@backend/routes/secrets/models'
+import useApi from '../../hooks/useApi'
+
+interface SecretDialogProps {
+  open: boolean
+  onClose: () => void
+  onSuccess: () => void
+  secret?: Secret | null
+}
+
+export const SecretDialog: React.FC<SecretDialogProps> = ({
+  open,
+  onClose,
+  onSuccess,
+  secret,
+}) => {
+  const { t } = useTranslation()
+
+  const { error, isLoading, mutation } = useApi<SecretsListResponse>({
+    url: 'v1/secrets' + (secret ? `/${secret.id}` : ''),
+    skipFetch: true,
+  })
+
+  const [formData, setFormData] = useState({
+    secretKey: '',
+    secretValue: '',
+  })
+  const [errors, setErrors] = useState({
+    secretKey: '',
+    secretValue: '',
+  })
+
+  const isEditMode = !!secret
+
+  useEffect(() => {
+    if (open) {
+      if (secret) {
+        setFormData({
+          secretKey: secret.secretKey,
+          secretValue: secret.secretValue,
+        })
+      } else {
+        setFormData({
+          secretKey: '',
+          secretValue: '',
+        })
+      }
+      setErrors({
+        secretKey: '',
+        secretValue: '',
+      })
+    }
+  }, [open, secret])
+
+  const validateForm = () => {
+    const newErrors = {
+      secretKey: '',
+      secretValue: '',
+    }
+
+    if (!formData.secretKey.trim()) {
+      newErrors.secretKey = t('accessCodes.secretKeyRequired')
+    }
+
+    if (!formData.secretValue.trim()) {
+      newErrors.secretValue = t('accessCodes.secretValueRequired')
+    }
+
+    setErrors(newErrors)
+    return !newErrors.secretKey && !newErrors.secretValue
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
+    const secretData = {
+      secretKey: formData.secretKey.trim(),
+      secretValue: formData.secretValue.trim(),
+    }
+
+    let success = false
+
+    if (isEditMode && secret) {
+      const result = await mutation.trigger('PATCH', secretData)
+      success = !!result
+    } else {
+      const result = await mutation.trigger('POST', secretData)
+      success = !!result
+    }
+
+    if (success) {
+      onSuccess()
+    }
+  }
+
+  const handleChange =
+    (field: keyof typeof formData) =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: event.target.value,
+      }))
+
+      // Clear error when user starts typing
+      if (errors[field]) {
+        setErrors((prev) => ({
+          ...prev,
+          [field]: '',
+        }))
+      }
+    }
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth='sm'
+      fullWidth
+      PaperProps={{
+        sx: { minHeight: '300px' },
+      }}
+    >
+      <DialogTitle>
+        {isEditMode ? t('accessCodes.editSecret') : t('accessCodes.addSecret')}
+      </DialogTitle>
+
+      <form onSubmit={handleSubmit}>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            {error && (
+              <Alert severity='error'>
+                {error.detail || 'An error occurred'}
+              </Alert>
+            )}
+
+            <TextField
+              label={t('accessCodes.secretKey')}
+              value={formData.secretKey}
+              onChange={handleChange('secretKey')}
+              error={!!errors.secretKey}
+              helperText={errors.secretKey}
+              fullWidth
+              required
+              autoFocus
+              disabled={isLoading}
+            />
+
+            <TextField
+              label={t('accessCodes.secretValue')}
+              value={formData.secretValue}
+              onChange={handleChange('secretValue')}
+              error={!!errors.secretValue}
+              helperText={errors.secretValue}
+              fullWidth
+              required
+              multiline
+              rows={3}
+              disabled={isLoading}
+            />
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={onClose} disabled={isLoading} variant='outlined'>
+            {t('accessCodes.cancel')}
+          </Button>
+
+          <Button
+            type='submit'
+            variant='contained'
+            disabled={isLoading}
+            startIcon={isLoading ? <CircularProgress size={16} /> : undefined}
+          >
+            {t('accessCodes.save')}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
+  )
+}
