@@ -517,5 +517,56 @@
     "secretKeyRequired": "Hemlighetens namn är obligatoriskt",
     "secretValueRequired": "Hemlighetens värde är obligatoriskt",
     "noSecrets": "Inga hemligheter tillgängliga"
+  },
+  "schedule": {
+    "showPlanes": "Flygplan",
+    "showCancelled": "Visa avbokade",
+    "ALL": "Alla",
+    "newBooking": "Ny bokning",
+    "editBooking": "Redigera bokning",
+    "startDate": "Startdatum",
+    "endDate": "Slutdatum",
+    "registration": "Registrering",
+    "description": "Beskrivning",
+    "type": "Typ",
+    "types": {
+      "MAINTENANCE": "Underhåll",
+      "PRACTICE": "Övning",
+      "CROSSCOUNTRY": "Korsflyg",
+      "TRAINING": "Träning"
+    },
+    "status": "Status",
+    "statuses": {
+      "CONFIRMED": "Bekräftad",
+      "TENTATIVE": "Preliminär",
+      "CANCELLED": "Avbokad"
+    },
+    "details": "Bokningsdetaljer",
+    "bookingOverlapError": "Bokningen överlappar med befintlig bokning",
+    "owner": "Ägare",
+    "created": "Skapad",
+    "updated": "Uppdaterad",
+    "cancelled": "Avbokad",
+    "overlaps": "Överlappande bokningar",
+    "calendarMessages": {
+      "date": "Datum",
+      "time": "Tid",
+      "event": "Händelse",
+      "allDay": "Hela dagen",
+      "week": "Vecka",
+      "day": "Dag",
+      "month": "Månad",
+      "today": "Idag",
+      "previous": "Föregående",
+      "next": "Nästa",
+      "noEventsInRange": "Det finns inga händelser i detta intervall."
+    },
+    "bookingDuration": "Bokningens längd",
+    "freeBefore": "Ledigt före",
+    "freeAfter": "Ledigt efter",
+    "noPreviousBooking": "Ingen tidigare bokning",
+    "noNextBooking": "Ingen nästa bokning",
+    "ends": "Slutar {{at}}",
+    "starts": "Startar {{at}}"
   }
 }

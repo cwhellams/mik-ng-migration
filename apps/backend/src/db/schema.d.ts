@@ -5,6 +5,10 @@
 
 import type { ColumnType } from 'kysely'
 
+export type BookingStatus = 'CANCELLED' | 'CONFIRMED' | 'TENTATIVE'
+
+export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'TRAINING'
+
 export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
 
 export type FlightLogStatus = 'INVOICED' | 'NEW' | 'PAID' | 'VALIDATED'
@@ -316,6 +320,25 @@ export interface MemberRoles {
   updated_by: string
 }
 
+export interface ScheduleBookings {
+  booking_id: string
+  booking_status: BookingStatus
+  booking_type: BookingType
+  cancelled_at: Timestamp | null
+  cancelled_by: string | null
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: string | null
+  end_time_epoch: Int8
+  end_time_utc: Generated<Timestamp>
+  member_id: string
+  registration: string
+  start_time_epoch: Int8
+  start_time_utc: Generated<Timestamp>
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
 export interface Secrets {
   created_at: Generated<Timestamp>
   created_by: string
@@ -355,6 +378,7 @@ export interface DB {
   'member.register': MemberRegister
   'member.register_audit': MemberRegisterAudit
   'member.roles': MemberRoles
+  'schedule.bookings': ScheduleBookings
   secrets: Secrets
   'static.airfields': StaticAirfields
 }

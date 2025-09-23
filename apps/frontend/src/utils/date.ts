@@ -1,24 +1,24 @@
-import dayjs from 'dayjs'
+import dayJs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
 import updateLocale from 'dayjs/plugin/updateLocale'
 import 'dayjs/locale/fi'
 import 'dayjs/locale/en'
 
-dayjs.extend(utc)
-dayjs.extend(timezone)
-dayjs.extend(updateLocale)
+dayJs.extend(utc)
+dayJs.extend(updateLocale)
 
 // // Configure both locales to start week on Monday (1)
-dayjs.updateLocale('en', {
+dayJs.updateLocale('en', {
   weekStart: 1,
 })
-dayjs.updateLocale('fi', {
+dayJs.updateLocale('fi', {
   weekStart: 1,
 })
 
-export const toLocalDate = (date?: string | null) =>
-  date ? dayjs.tz(dayjs(date), 'Europe/Helsinki').format('DD.MM.YYYY') : null
+export const dayjs = dayJs
+
+export const toLocalDate = (date?: string | null, format = 'DD.MM.YYYY') =>
+  date ? dayjs(date).format(format) : null
 
 // Format date from timestamp to localized format
 export const formatDate = (timestamp: string | Date, template = 'D.M.YY') => {

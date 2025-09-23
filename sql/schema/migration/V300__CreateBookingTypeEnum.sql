@@ -1,0 +1,6 @@
+CREATE TYPE public.booking_type AS ENUM (
+	'MAINTENANCE',
+	'PRACTICE',
+	'CROSSCOUNTRY',
+	'TRAINING'
+);

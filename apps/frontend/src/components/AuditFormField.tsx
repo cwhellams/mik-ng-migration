@@ -25,16 +25,18 @@ export const AuditFormField = ({
   at,
   by,
   memberId,
+  format,
 }: {
   label: string
   width?: number
   at?: string
   by?: string
   memberId?: string
+  format?: string
 }) => (
   <FormField label={label} width={width}>
     <Tooltip title={at}>
-      <span>{toLocalDate(at)} </span>
+      <span>{toLocalDate(at, format)} </span>
     </Tooltip>
     {by && <AuditBy by={by} memberId={memberId} />}
   </FormField>

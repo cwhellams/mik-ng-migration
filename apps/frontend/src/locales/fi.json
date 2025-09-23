@@ -530,5 +530,56 @@
     "secretKeyRequired": "Salaisuuden nimi on pakollinen",
     "secretValueRequired": "Salaisuuden arvo on pakollinen",
     "noSecrets": "Ei salaisuuksia saatavilla"
+  },
+  "schedule": {
+    "showPlanes": "Lentokoneet",
+    "showCancelled": "Näytä peruutetut",
+    "ALL": "Kaikki",
+    "newBooking": "Uusi varaus",
+    "editBooking": "Muokkaa varausta",
+    "startDate": "Aloituspäivä ja -aika",
+    "endDate": "Loppupäivä ja -aika",
+    "registration": "Lentokone",
+    "description": "Kuvaus",
+    "type": "Tyyppi",
+    "types": {
+      "MAINTENANCE": "Huolto",
+      "PRACTICE": "Harjoituslento",
+      "CROSSCOUNTRY": "Matkalento",
+      "TRAINING": "Koululento"
+    },
+    "status": "Tila",
+    "statuses": {
+      "CONFIRMED": "Vahvistettu",
+      "TENTATIVE": "Alustava",
+      "CANCELLED": "Peruutettu"
+    },
+    "details": "Varauksen tiedot",
+    "bookingOverlapError": "Päällekkäisyys toiseen varaukseen",
+    "owner": "Omistaja",
+    "created": "Luotu",
+    "updated": "Päivitetty",
+    "cancelled": "Peruutettu",
+    "overlaps": "Päällekkäisyydet",
+    "calendarMessages": {
+      "date": "Päivä",
+      "time": "Aika",
+      "event": "Tapahtuma",
+      "allDay": "Koko päivä",
+      "week": "Viikko",
+      "day": "Päivä",
+      "month": "Kuukausi",
+      "today": "Tänään",
+      "previous": "Edellinen",
+      "next": "Seuraava",
+      "noEventsInRange": "Ei tapahtumia valitulla aikavälillä."
+    },
+    "bookingDuration": "Varaus kesto",
+    "freeBefore": "Vapaata ennen",
+    "freeAfter": "Vapaata jälkeen",
+    "noPreviousBooking": "Ei edellistä varausta",
+    "noNextBooking": "Ei seuraavaa varausta",
+    "ends": "Loppuu {{at}}",
+    "starts": "Alkaa {{at}}"
   }
 }

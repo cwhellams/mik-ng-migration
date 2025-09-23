@@ -1,0 +1,81 @@
+import { z } from 'zod'
+import { AuditableSchema, BigintAsString, BooleanSchema, UpsertSchema } from '../../types/schema.ts'
+
+export enum BookingType {
+  MAINTENANCE = 'MAINTENANCE',
+  PRACTICE = 'PRACTICE',
+  CROSSCOUNTRY = 'CROSSCOUNTRY',
+  TRAINING = 'TRAINING',
+}
+
+export enum BookingStatus {
+  TENTATIVE = 'TENTATIVE',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+}
+
+export const BookingSchema = AuditableSchema.extend({
+  bookingId: z.string().readonly(),
+  memberId: z.string(),
+  member: z
+    .object({
+      firstName: z.string().optional().readonly(),
+      lastName: z.string().optional().readonly(),
+      phoneNumber: z.string().optional().nullable().readonly(),
+    })
+    .optional()
+    .readonly(),
+  registration: z.string(),
+  type: z.nativeEnum(BookingType),
+  status: z.nativeEnum(BookingStatus),
+  startTimeEpoch: BigintAsString,
+  startTime: z.string().datetime(),
+  endTimeEpoch: BigintAsString,
+  endTime: z.string().datetime(),
+  description: z.string().optional(),
+  cancelledBy: z.string().nullable().nullish(),
+  cancelledAt: z.string().datetime().nullish(),
+})
+
+export type Booking = z.infer<typeof BookingSchema>
+
+export const BookingUpsertSchema = UpsertSchema(BookingSchema)
+  .pick({
+    memberId: true,
+    registration: true,
+    type: true,
+    status: true,
+    startTimeEpoch: true,
+    endTimeEpoch: true,
+    description: true,
+  })
+  .strip()
+
+export type BookingUpsertRequest = z.infer<typeof BookingUpsertSchema>
+
+// booking list endpoint
+
+export const BookingFiltersSchema = z
+  .object({
+    bookingId: z.string().optional(),
+    memberId: z.string().optional(),
+    'registration[]': z.union([z.string(), z.array(z.string())]).optional(),
+    from: z.string().datetime().optional(),
+    to: z.string().datetime().optional(),
+    showCancelled: BooleanSchema.optional(),
+    limit: z.coerce.number().int().optional(),
+    orderLatestFirst: BooleanSchema.optional(),
+    exclusiveStartEnd: BooleanSchema.optional(),
+    excludeBookingId: z.string().optional(),
+  })
+  .strict()
+
+export type BookingFilters = z.infer<typeof BookingFiltersSchema>
+
+export const BookingListResponseSchema = z.object({
+  bookings: z.array(BookingSchema),
+  previous: BookingSchema.optional(),
+  next: BookingSchema.optional(),
+})
+
+export type BookingListResponse = z.infer<typeof BookingListResponseSchema>

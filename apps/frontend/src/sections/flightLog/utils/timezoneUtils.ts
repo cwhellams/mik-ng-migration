@@ -36,8 +36,8 @@ export const getTimezoneDisplay = (
   }
 
   // Use flight date if selected, otherwise use today
-  const referenceDate = flightDate || dayjs()
-  const offset = referenceDate.utcOffset() / 60
+  const referenceDate = flightDate?.toDate() || new Date()
+  const offset = referenceDate.getTimezoneOffset() / -60
   const sign = offset >= 0 ? '+' : ''
 
   return `UTC${sign}${offset}`

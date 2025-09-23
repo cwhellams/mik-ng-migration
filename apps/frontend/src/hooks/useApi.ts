@@ -129,7 +129,7 @@ export type APIMutation<Data> = {
   ) => Promise<APIResponse<Data>>
 }
 
-export type MutateMethods = 'POST' | 'PATCH' | 'DELETE'
+export type MutateMethods = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 
 export default function useApi<
   // returned data type
@@ -151,6 +151,7 @@ export default function useApi<
   'data' | 'error'
 > &
   APIResponse<Data> & {
+    fetch: APIMutation<Data>
     mutation: APIMutation<MutateData>
   } {
   const navigate = useNavigate()
@@ -207,7 +208,7 @@ export default function useApi<
   }
 
   const mutation = useSWRMutation<
-    AxiosResponse<MutateData>,
+    AxiosResponse,
     AxiosError<Problem>,
     typeof cacheKey,
     {
@@ -218,6 +219,7 @@ export default function useApi<
   >(cacheKey, (_key: object, { arg }) =>
     api.request({
       ...request,
+      params: arg.method == 'GET' ? arg.payload : request.params,
       url: arg.path ? `${request.url}/${arg.path ?? ''}` : request.url,
       // globally allow admin permissions with sudo mode
       headers: {
@@ -229,38 +231,40 @@ export default function useApi<
     })
   )
 
+  const trigger = <P, R>(
+    method: MutateMethods,
+    payload: P,
+    path?: string,
+    options?: SWRMutationConfiguration<AxiosResponse<R>, AxiosError<Problem>>
+  ) =>
+    mutation
+      .trigger({ method, payload, path }, options)
+      .then((res) => {
+        return { data: res?.data }
+      })
+      .catch((err: Error | AxiosError) =>
+        axios.isAxiosError<Problem>(err)
+          ? { error: err.response?.data }
+          : // unknown error type
+            {
+              error: {
+                status: 0,
+                detail: err.message,
+              },
+            }
+      )
+
   return {
     data: isLoggedOut ? undefined : response?.data,
     error: error ? error?.response?.data : undefined,
 
+    fetch: {
+      isMutating: mutation.isMutating,
+      trigger,
+    },
     mutation: {
       isMutating: mutation.isMutating,
-
-      trigger: async <T>(
-        method: MutateMethods,
-        payload: T,
-        path?: string,
-        options?: SWRMutationConfiguration<
-          AxiosResponse<MutateData>,
-          AxiosError<Problem>
-        >
-      ): Promise<APIResponse<MutateData>> =>
-        mutation
-          .trigger({ method, payload, path }, options)
-          .then((res) => ({
-            data: res?.data,
-          }))
-          .catch((err: Error | AxiosError) =>
-            axios.isAxiosError<Problem>(err)
-              ? { error: err.response?.data }
-              : // unknown error type
-                {
-                  error: {
-                    status: 0,
-                    detail: err.message,
-                  },
-                }
-          ),
+      trigger,
     },
 
     ...rest,

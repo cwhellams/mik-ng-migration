@@ -6,7 +6,7 @@ import AuthLayout from './layouts/AuthLayout'
 
 // Import your page components (create these files)
 import Dashboard from './sections/dashboard/Dashboard'
-// import Schedule from './sections/Schedule'
+import Schedule from './sections/schedule/Schedule'
 import Aircrafts from './sections/aircrafts/Aircrafts'
 import Members from './sections/members/Members'
 import Login from './sections/login/Login'
@@ -67,7 +67,7 @@ function App() {
           {/* Main Layout with header */}
           <Route element={<MainLayout />}>
             <Route path='/' element={<Dashboard />} />
-            {/* <Route path="/schedule" element={<Schedule />} /> */}
+            <Route path='/schedule' element={<Schedule />} />
             <Route path='/aircrafts' element={<Aircrafts />} />
             <Route index path='/members/roles' element={<Roles />} />
             <Route index path='/billing' element={<Billing />} />

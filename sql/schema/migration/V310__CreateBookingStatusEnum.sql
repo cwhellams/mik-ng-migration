@@ -1,0 +1,1 @@
+CREATE TYPE public.booking_status AS ENUM ('TENTATIVE', 'CONFIRMED', 'CANCELLED');

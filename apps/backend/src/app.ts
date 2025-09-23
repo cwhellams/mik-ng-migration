@@ -17,6 +17,7 @@ import { router as memberRoutes } from './routes/members/api.ts'
 import { router as secretRoutes } from './routes/secrets/api.ts'
 import { problemErrorHandler, notFoundProblemHandler } from './routes/response.ts'
 import invoiceRoutes from './routes/invoicing/api.ts'
+import bookingRoutes from './routes/bookings/api.ts'
 import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
 import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
 
@@ -69,6 +70,7 @@ app.use('/api/v1/flight-logs', flightLogRoutes)
 app.use('/api/v1/aircrafts', aircraftRoutes)
 app.use('/api/v1/ajlb', ajlbRoutes)
 app.use('/api/v1/invoices', invoiceRoutes)
+app.use('/api/v1/bookings', bookingRoutes)
 
 const poller = startSimpleBooksOutboxProcessor()
 

@@ -530,5 +530,56 @@
     "secretKeyRequired": "Secret key is required",
     "secretValueRequired": "Secret value is required",
     "noSecrets": "No secrets available"
+  },
+  "schedule": {
+    "showPlanes": "Planes",
+    "showCancelled": "Show Cancelled",
+    "ALL": "All",
+    "newBooking": "New Booking",
+    "editBooking": "Edit Booking",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "registration": "Registration",
+    "description": "Description",
+    "type": "Type",
+    "types": {
+      "MAINTENANCE": "Maintenance",
+      "PRACTICE": "Practice",
+      "CROSSCOUNTRY": "Crosscountry",
+      "TRAINING": "Training"
+    },
+    "status": "Status",
+    "statuses": {
+      "CONFIRMED": "Confirmed",
+      "TENTATIVE": "Tentative",
+      "CANCELLED": "Cancelled"
+    },
+    "details": "Booking Details",
+    "bookingOverlapError": "Booking overlaps with existing booking",
+    "owner": "Owner",
+    "created": "Created",
+    "updated": "Updated",
+    "cancelled": "Cancelled",
+    "overlaps": "Overlapping Bookings",
+    "calendarMessages": {
+      "date": "Date",
+      "time": "Time",
+      "event": "Event",
+      "allDay": "All Day",
+      "week": "Week",
+      "day": "Day",
+      "month": "Month",
+      "today": "Today",
+      "previous": "Previous",
+      "next": "Next",
+      "noEventsInRange": "There are no events in this range."
+    },
+    "bookingDuration": "Booking Duration",
+    "freeBefore": "Free before",
+    "freeAfter": "Free after",
+    "noPreviousBooking": "No previous booking",
+    "noNextBooking": "No next booking",
+    "ends": "Ends {{at}}",
+    "starts": "Starts {{at}}"
   }
 }

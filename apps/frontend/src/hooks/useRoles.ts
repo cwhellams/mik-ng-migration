@@ -8,6 +8,7 @@ import { useMe } from './useMe'
 import { useThemeMode } from '../theme/ThemeContext'
 
 export function useRoles(): {
+  me: ReturnType<typeof useMe>['me']
   isLoading: boolean
   isMember: boolean
   isMembersAdmin: boolean
@@ -16,6 +17,7 @@ export function useRoles(): {
   isInvoicingAdmin: boolean
   isAccessCodesUser: boolean
   isAccessCodesAdmin: boolean
+  isBookingAdmin: boolean
   roles: MemberRolesResponse['roles']
   permissions: MemberRolesResponse['permissions']
   sudoers: boolean
@@ -44,6 +46,7 @@ export function useRoles(): {
     false
 
   return {
+    me,
     isLoading,
     isMember: withPermission(MIKPermissions.MEMBER),
     isMembersAdmin: withPermission(MIKPermissions.MEMBER_ADMIN),
@@ -52,6 +55,7 @@ export function useRoles(): {
     isInvoicingAdmin: withPermission(MIKPermissions.INVOICING_ADMIN),
     isAccessCodesUser: withPermission(MIKPermissions.ACCESS_CODES_USER),
     isAccessCodesAdmin: withPermission(MIKPermissions.ACCESS_CODES_ADMIN),
+    isBookingAdmin: withPermission(MIKPermissions.BOOKING_ADMIN),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
     // user is in sudoers file if they have any admin permission

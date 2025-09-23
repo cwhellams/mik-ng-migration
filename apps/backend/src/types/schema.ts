@@ -32,3 +32,5 @@ export const BooleanSchema = z
   .enum(['true', 'false'])
   .nullish()
   .transform(v => v === 'true')
+
+export const BigintAsString = z.string().regex(/^\d+$/)

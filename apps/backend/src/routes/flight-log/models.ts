@@ -1,6 +1,6 @@
 import { z, ZodObject } from 'zod'
 
-import { AuditableSchema, BooleanSchema, UpsertSchema } from '../../types/schema.ts'
+import { AuditableSchema, BigintAsString, BooleanSchema, UpsertSchema } from '../../types/schema.ts'
 
 export const CrewRoleEnum = z.enum(['FE', 'FI', 'OBS', 'PIC', 'STU'])
 export const PrivOrComFlightEnum = z.enum(['P', 'C'])
@@ -11,8 +11,6 @@ export enum FlightLogStatus {
   INVOICED = 'INVOICED',
   PAID = 'PAID',
 }
-
-const bigintAsString = z.string().regex(/^\d+$/)
 
 export const FlightLogFiltersSchema = z
   .object({
@@ -76,13 +74,13 @@ export const FlightLogSchema = AuditableSchema.extend({
   numberOfLandings: z.number().int().min(0),
   numberOfNightLandings: z.number().int().min(0),
   oilUpliftLitres: z.number().min(0).nullable(),
-  offBlockTimeEpoch: bigintAsString,
+  offBlockTimeEpoch: BigintAsString,
   offBlockTimeUtc: z.string().datetime().readonly(),
-  takeoffTimeEpoch: bigintAsString,
+  takeoffTimeEpoch: BigintAsString,
   takeoffTimeUtc: z.string().datetime().readonly(),
-  landingTimeEpoch: bigintAsString,
+  landingTimeEpoch: BigintAsString,
   landingTimeUtc: z.string().datetime().readonly(),
-  onBlockTimeEpoch: bigintAsString,
+  onBlockTimeEpoch: BigintAsString,
   onBlockTimeUtc: z.string().datetime().readonly(),
   personalRemarks: z.string().nullable(),
   personsOnBoard: z.number().int().min(1).max(4),
@@ -142,10 +140,10 @@ export const FlightLogMemberUpsertSchema = FlightLogUpsertSchema.omit({
 })
 
 export const FlightLogTimesSchema = z.object({
-  offBlockTimeEpoch: bigintAsString,
-  takeoffTimeEpoch: bigintAsString,
-  landingTimeEpoch: bigintAsString,
-  onBlockTimeEpoch: bigintAsString,
+  offBlockTimeEpoch: BigintAsString,
+  takeoffTimeEpoch: BigintAsString,
+  landingTimeEpoch: BigintAsString,
+  onBlockTimeEpoch: BigintAsString,
 })
 
 type FlightLogTimes = z.infer<typeof FlightLogTimesSchema>
