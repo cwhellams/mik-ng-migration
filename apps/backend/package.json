@@ -75,7 +75,7 @@
     "compression": "^1.8.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dayjs": "^1.11.13",
+    "dayjs": "^1.11.15",
     "dotenv": "^16.4.7",
     "express": "^5.0.1",
     "googleapis": "^146.0.0",
