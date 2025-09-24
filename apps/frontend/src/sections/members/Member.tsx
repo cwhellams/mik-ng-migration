@@ -362,14 +362,14 @@ const MemberProfile = () => {
                 icon='mdi:account-school'
               />
 
-              <Typography variant='body1'>
-                <FormControlLabel
-                  control={
-                    <Checkbox checked={isTrainingProgramPilot} size='medium' />
-                  }
-                  label={t('member.isTrainingProgramPilot')}
+              <FormField label={t('member.isTrainingProgramPilot')}>
+                <Checkbox
+                  checked={Boolean(isTrainingProgramPilot)}
+                  disabled
+                  size='medium'
+                  sx={{ p: 0, pl: 0 }}
                 />
-              </Typography>
+              </FormField>
             </CardContent>
           </Card>
 
@@ -403,7 +403,8 @@ const MemberProfile = () => {
 
                 <FormField label={t('member.canMakeReservations')}>
                   <Checkbox
-                    checked={canMakeReservations}
+                    checked={Boolean(canMakeReservations)}
+                    disabled
                     size='medium'
                     sx={{ p: 0, pl: 0 }}
                   />
