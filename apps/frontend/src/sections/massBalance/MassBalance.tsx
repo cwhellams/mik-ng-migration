@@ -26,17 +26,10 @@ import {
   isPointInFlightEnvelope,
 } from '../../utils/specsParser'
 import WeightBalanceEnvelope from '../../components/WeightBalanceEnvelope/WeightBalanceEnvelope'
-
-interface WeightPosition {
-  weight: number
-  arm: number
-}
-
-interface FuelState {
-  litres: number
-  weight: number
-  arm: number
-}
+import {
+  useMassBalanceState,
+  type WeightPosition,
+} from '../../hooks/useMassBalanceState'
 
 interface CalculationResults {
   zeroFuelWeight: number
@@ -70,37 +63,39 @@ const MassBalance: React.FC = () => {
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
   const { t } = useTranslation()
 
-  // Aircraft selection
-  const [selectedAircraftId, setSelectedAircraftId] = useState<string>('oh-ihq')
+  // Use custom hook for persistent state management
+  const {
+    state,
+    updatePilot,
+    updateCopilot,
+    updateRearLeft,
+    updateRearRight,
+    updateBaggage,
+    updateFuel,
+    updateTaxiFuel,
+    updateFuelFlow,
+    updateFlightTime,
+    updateSelectedAircraftId,
+  } = useMassBalanceState()
+
+  // Extract state values for easier access
+  const {
+    selectedAircraftId,
+    pilot,
+    copilot,
+    rearLeft,
+    rearRight,
+    baggage,
+    fuel,
+    taxiFuel,
+    fuelFlow,
+    flightTime,
+  } = state
+
+  // Aircraft loading and error states
   const [selectedAircraft, setSelectedAircraft] =
     useState<AircraftSpecs | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
-
-  // Load points based on aircraft specs
-  const [pilot, setPilot] = useState<WeightPosition>({ weight: 80, arm: 82 })
-  const [copilot, setCopilot] = useState<WeightPosition>({ weight: 0, arm: 82 })
-  const [rearLeft, setRearLeft] = useState<WeightPosition>({
-    weight: 0,
-    arm: 120,
-  })
-  const [rearRight, setRearRight] = useState<WeightPosition>({
-    weight: 0,
-    arm: 120,
-  })
-  const [baggage, setBaggage] = useState<WeightPosition>({
-    weight: 0,
-    arm: 140,
-  })
-
-  // Fuel (now in litres)
-  const [fuel, setFuel] = useState<FuelState>({
-    litres: 0,
-    weight: 0,
-    arm: 105,
-  })
-  const [taxiFuel, setTaxiFuel] = useState<number>(5)
-  const [fuelFlow, setFuelFlow] = useState<number>(25)
-  const [flightTime, setFlightTime] = useState<number>(60) // minutes
 
   // Aggregated values for calculations
   const [frontSeats, setFrontSeats] = useState<WeightPosition>({
@@ -167,7 +162,7 @@ const MassBalance: React.FC = () => {
     return { status: 'within', message: 'Within Limits', color: 'success.main' }
   }
 
-  // Load aircraft specifications
+  // Load aircraft specifications and initialize/update values
   useEffect(() => {
     const loadSpecs = async () => {
       try {
@@ -175,59 +170,101 @@ const MassBalance: React.FC = () => {
         const specs = await loadAircraftSpecs(selectedAircraftId)
         setSelectedAircraft(specs)
 
-        // Set all values from JSON specs with defaults
-        setPilot({
-          weight: specs.loadPoints.pilot.defaultValue || 80,
-          arm: specs.loadPoints.pilot.momentArm,
-        })
-        setCopilot({
-          weight: specs.loadPoints.copilot.defaultValue || 0,
-          arm: specs.loadPoints.copilot.momentArm,
-        })
+        // When aircraft changes, update the moment arms but preserve user weights
+        // We need to get the current state directly from localStorage to avoid dependency issues
+        const currentState = (() => {
+          try {
+            const saved = localStorage.getItem('massBalanceState')
+            return saved ? JSON.parse(saved) : null
+          } catch {
+            return null
+          }
+        })()
 
-        if (specs.loadPoints.rearLeft) {
-          setRearLeft({
-            weight: specs.loadPoints.rearLeft.defaultValue || 0,
-            arm: specs.loadPoints.rearLeft.momentArm,
+        if (currentState) {
+          // Update only the moment arms based on new aircraft specs, preserve weights
+          updatePilot({
+            weight:
+              currentState.pilot?.weight ||
+              specs.loadPoints.pilot.defaultValue ||
+              80,
+            arm: specs.loadPoints.pilot.momentArm,
           })
+
+          updateCopilot({
+            weight:
+              currentState.copilot?.weight ||
+              specs.loadPoints.copilot.defaultValue ||
+              0,
+            arm: specs.loadPoints.copilot.momentArm,
+          })
+
+          // Handle rear seats
+          if (specs.loadPoints.rearLeft) {
+            updateRearLeft({
+              weight:
+                currentState.rearLeft?.weight ||
+                specs.loadPoints.rearLeft.defaultValue ||
+                0,
+              arm: specs.loadPoints.rearLeft.momentArm,
+            })
+          }
+
+          if (specs.loadPoints.rearRight) {
+            updateRearRight({
+              weight:
+                currentState.rearRight?.weight ||
+                specs.loadPoints.rearRight.defaultValue ||
+                0,
+              arm: specs.loadPoints.rearRight.momentArm,
+            })
+          }
+
+          // Handle single rear seat for OH-STL
+          if (specs.loadPoints.rearSeat) {
+            updateRearLeft({
+              weight:
+                currentState.rearLeft?.weight ||
+                specs.loadPoints.rearSeat.defaultValue ||
+                0,
+              arm: specs.loadPoints.rearSeat.momentArm,
+            })
+            // For single rear seat, set rearRight to zero
+            updateRearRight({
+              weight: 0,
+              arm: specs.loadPoints.rearSeat.momentArm,
+            })
+          }
+
+          updateBaggage({
+            weight:
+              currentState.baggage?.weight ||
+              specs.loadPoints.baggage.defaultValue ||
+              10,
+            arm: specs.loadPoints.baggage.momentArm,
+          })
+
+          updateFuel({
+            litres:
+              currentState.fuel?.litres ||
+              specs.loadPoints.fuel.defaultValue ||
+              30,
+            weight: currentState.fuel?.weight || 0,
+            arm: specs.loadPoints.fuel.momentArm,
+          })
+
+          // Update fuel parameters only if they haven't been changed from defaults
+          if (!currentState.taxiFuel || currentState.taxiFuel === 5) {
+            updateTaxiFuel(specs.loadPoints.taxiFuel.defaultValue || 3)
+          }
+          if (!currentState.fuelFlow || currentState.fuelFlow === 25) {
+            updateFuelFlow(specs.loadPoints.fuelFlow.defaultValue || 25)
+          }
+          if (!currentState.flightTime || currentState.flightTime === 60) {
+            updateFlightTime(specs.loadPoints.flightTime.defaultValue || 45)
+          }
         }
-
-        if (specs.loadPoints.rearRight) {
-          setRearRight({
-            weight: specs.loadPoints.rearRight.defaultValue || 0,
-            arm: specs.loadPoints.rearRight.momentArm,
-          })
-        }
-
-        // Handle single rear seat for OH-STL
-        if (specs.loadPoints.rearSeat) {
-          setRearLeft({
-            weight: specs.loadPoints.rearSeat.defaultValue || 0,
-            arm: specs.loadPoints.rearSeat.momentArm,
-          })
-          // For single rear seat, set rearRight to zero
-          setRearRight({
-            weight: 0,
-            arm: specs.loadPoints.rearSeat.momentArm,
-          })
-        }
-
-        setBaggage({
-          weight: specs.loadPoints.baggage.defaultValue || 10,
-          arm: specs.loadPoints.baggage.momentArm,
-        })
-
-        setFuel({
-          litres: specs.loadPoints.fuel.defaultValue || 30,
-          weight: 0, // Will be calculated
-          arm: specs.loadPoints.fuel.momentArm,
-        })
-
-        setTaxiFuel(specs.loadPoints.taxiFuel.defaultValue || 3)
-        setFuelFlow(specs.loadPoints.fuelFlow.defaultValue || 25)
-        setFlightTime(specs.loadPoints.flightTime.defaultValue || 45)
       } catch (error) {
-        // Set user-friendly error message for display
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error occurred'
         setLoadError(
@@ -244,9 +281,9 @@ const MassBalance: React.FC = () => {
     if (selectedAircraft) {
       const fuelWeight =
         fuel.litres * selectedAircraft.fuelConversion.litre2Kilo
-      setFuel((prev) => ({ ...prev, weight: fuelWeight }))
+      updateFuel({ ...fuel, weight: fuelWeight })
     }
-  }, [fuel.litres, selectedAircraft])
+  }, [fuel.litres, selectedAircraft, updateFuel, fuel.arm])
 
   // Calculate aggregated front seats
   useEffect(() => {
@@ -434,7 +471,7 @@ const MassBalance: React.FC = () => {
             <Select
               value={selectedAircraftId}
               label={t('massBalance.selectAircraft')}
-              onChange={(e) => setSelectedAircraftId(e.target.value)}
+              onChange={(e) => updateSelectedAircraftId(e.target.value)}
             >
               <MenuItem value='oh-ihq'>OH-IHQ - Diamond DV20</MenuItem>
               <MenuItem value='oh-stl'>OH-STL - Diamond DA40NG</MenuItem>
@@ -714,7 +751,7 @@ const MassBalance: React.FC = () => {
                         type='number'
                         value={pilot.weight === 0 ? '0' : pilot.weight}
                         onChange={(e) =>
-                          setPilot({
+                          updatePilot({
                             ...pilot,
                             weight: Math.max(0, Number(e.target.value) || 0),
                           })
@@ -747,7 +784,7 @@ const MassBalance: React.FC = () => {
                             <Slider
                               value={pilot.weight}
                               onChange={(_, newValue) =>
-                                setPilot({
+                                updatePilot({
                                   ...pilot,
                                   weight: newValue as number,
                                 })
@@ -793,7 +830,7 @@ const MassBalance: React.FC = () => {
                         type='number'
                         value={copilot.weight === 0 ? '0' : copilot.weight}
                         onChange={(e) =>
-                          setCopilot({
+                          updateCopilot({
                             ...copilot,
                             weight: Math.max(0, Number(e.target.value) || 0),
                           })
@@ -826,7 +863,7 @@ const MassBalance: React.FC = () => {
                             <Slider
                               value={copilot.weight}
                               onChange={(_, newValue) =>
-                                setCopilot({
+                                updateCopilot({
                                   ...copilot,
                                   weight: newValue as number,
                                 })
@@ -882,7 +919,7 @@ const MassBalance: React.FC = () => {
                                 rearLeft.weight === 0 ? '0' : rearLeft.weight
                               }
                               onChange={(e) =>
-                                setRearLeft({
+                                updateRearLeft({
                                   ...rearLeft,
                                   weight: Math.max(
                                     0,
@@ -935,7 +972,7 @@ const MassBalance: React.FC = () => {
                                 <Slider
                                   value={rearLeft.weight}
                                   onChange={(_, newValue) =>
-                                    setRearLeft({
+                                    updateRearLeft({
                                       ...rearLeft,
                                       weight: newValue as number,
                                     })
@@ -990,7 +1027,7 @@ const MassBalance: React.FC = () => {
                                 rearLeft.weight === 0 ? '0' : rearLeft.weight
                               }
                               onChange={(e) =>
-                                setRearLeft({
+                                updateRearLeft({
                                   ...rearLeft,
                                   weight: Math.max(
                                     0,
@@ -1043,7 +1080,7 @@ const MassBalance: React.FC = () => {
                                 <Slider
                                   value={rearLeft.weight}
                                   onChange={(_, newValue) =>
-                                    setRearLeft({
+                                    updateRearLeft({
                                       ...rearLeft,
                                       weight: newValue as number,
                                     })
@@ -1097,7 +1134,7 @@ const MassBalance: React.FC = () => {
                                 rearRight.weight === 0 ? '0' : rearRight.weight
                               }
                               onChange={(e) =>
-                                setRearRight({
+                                updateRearRight({
                                   ...rearRight,
                                   weight: Math.max(
                                     0,
@@ -1150,7 +1187,7 @@ const MassBalance: React.FC = () => {
                                 <Slider
                                   value={rearRight.weight}
                                   onChange={(_, newValue) =>
-                                    setRearRight({
+                                    updateRearRight({
                                       ...rearRight,
                                       weight: newValue as number,
                                     })
@@ -1204,7 +1241,7 @@ const MassBalance: React.FC = () => {
                         type='number'
                         value={baggage.weight === 0 ? '0' : baggage.weight}
                         onChange={(e) =>
-                          setBaggage({
+                          updateBaggage({
                             ...baggage,
                             weight: Math.max(0, Number(e.target.value) || 0),
                           })
@@ -1237,7 +1274,7 @@ const MassBalance: React.FC = () => {
                             <Slider
                               value={baggage.weight}
                               onChange={(_, newValue) =>
-                                setBaggage({
+                                updateBaggage({
                                   ...baggage,
                                   weight: newValue as number,
                                 })
@@ -1287,7 +1324,7 @@ const MassBalance: React.FC = () => {
                         type='number'
                         value={fuel.litres === 0 ? '0' : fuel.litres}
                         onChange={(e) =>
-                          setFuel({
+                          updateFuel({
                             ...fuel,
                             litres: Math.max(0, Number(e.target.value) || 0),
                           })
@@ -1336,7 +1373,10 @@ const MassBalance: React.FC = () => {
                             <Slider
                               value={fuel.litres}
                               onChange={(_, newValue) =>
-                                setFuel({ ...fuel, litres: newValue as number })
+                                updateFuel({
+                                  ...fuel,
+                                  litres: newValue as number,
+                                })
                               }
                               min={selectedAircraft.loadPoints.fuel.minValue!}
                               max={maxLitres}
@@ -1382,7 +1422,7 @@ const MassBalance: React.FC = () => {
                 </Typography>
                 <Slider
                   value={taxiFuel}
-                  onChange={(_, newValue) => setTaxiFuel(newValue as number)}
+                  onChange={(_, newValue) => updateTaxiFuel(newValue as number)}
                   min={selectedAircraft?.loadPoints.taxiFuel.minValue || 0}
                   max={selectedAircraft?.loadPoints.taxiFuel.maxValue || 20}
                   step={selectedAircraft?.loadPoints.taxiFuel.step || 0.5}
@@ -1398,7 +1438,7 @@ const MassBalance: React.FC = () => {
                 </Typography>
                 <Slider
                   value={fuelFlow}
-                  onChange={(_, newValue) => setFuelFlow(newValue as number)}
+                  onChange={(_, newValue) => updateFuelFlow(newValue as number)}
                   min={selectedAircraft?.loadPoints.fuelFlow.minValue || 15}
                   max={selectedAircraft?.loadPoints.fuelFlow.maxValue || 50}
                   step={selectedAircraft?.loadPoints.fuelFlow.step || 1}
@@ -1414,7 +1454,9 @@ const MassBalance: React.FC = () => {
                 </Typography>
                 <Slider
                   value={flightTime}
-                  onChange={(_, newValue) => setFlightTime(newValue as number)}
+                  onChange={(_, newValue) =>
+                    updateFlightTime(newValue as number)
+                  }
                   min={selectedAircraft?.loadPoints.flightTime.minValue || 0}
                   max={selectedAircraft?.loadPoints.flightTime.maxValue || 480}
                   step={selectedAircraft?.loadPoints.flightTime.step || 5}
