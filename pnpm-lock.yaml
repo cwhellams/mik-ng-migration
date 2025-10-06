@@ -46,8 +46,8 @@ importers:
         specifier: ^2.8.5
         version: 2.8.5
       dayjs:
-        specifier: ^1.11.15
-        version: 1.11.15
+        specifier: ^1.11.18
+        version: 1.11.18
       dotenv:
         specifier: ^16.4.7
         version: 16.6.1
@@ -2536,9 +2536,6 @@ packages:
 
   date-arithmetic@4.1.0:
     resolution: {integrity: sha512-QWxYLR5P/6GStZcdem+V1xoto6DMadYWpMXU82ES3/RfR3Wdwr3D0+be7mgOJ+Ov0G9D5Dmb9T17sNLQYj9XOg==}
-
-  dayjs@1.11.15:
-    resolution: {integrity: sha512-MC+DfnSWiM9APs7fpiurHGCoeIx0Gdl6QZBy+5lu8MbYKN5FZEXqOgrundfibdfhGZ15o9hzmZ2xJjZnbvgKXQ==}
 
   dayjs@1.11.18:
     resolution: {integrity: sha512-zFBQ7WFRvVRhKcWoUh+ZA1g2HVgUbsZm9sbddh8EC5iv93sui8DVVz1Npvz+r6meo9VKfa8NyLWBsQK1VvIKPA==}
@@ -7910,8 +7907,6 @@ snapshots:
       is-data-view: 1.0.2
 
   date-arithmetic@4.1.0: {}
-
-  dayjs@1.11.15: {}
 
   dayjs@1.11.18: {}
 
