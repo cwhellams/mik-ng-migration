@@ -40,27 +40,36 @@ select
     ajlb.seq_no as ajlb_seq_no,
     end_date is NULL as current,
     validated.on_block_time_utc validated_on_block_time_utc,
-    coalesce(validated.ajlb_total_flight_mins, ajlb.minutes_at_start, 0) as validated_total_flight_mins,
-    format_flight_time(coalesce(validated.ajlb_total_flight_mins, ajlb.minutes_at_start, 0)) as validated_total_flight_time,
+    coalesce(validated.ajlb_total_flight_mins, ajlb.start_flight_mins, 0) as validated_total_flight_mins,
+    format_flight_time(coalesce(validated.ajlb_total_flight_mins, ajlb.start_flight_mins, 0)) as validated_total_flight_time,
 
     format_flight_time(
-        coalesce(validated.ajlb_total_flight_mins, minutes_at_start, 0) 
+        coalesce(validated.ajlb_total_flight_mins, start_flight_mins, 0) 
         + coalesce(nf.sum_unverified_mins, 0)
     ) as ac_total_flight_time,
 
-    (coalesce(validated.ajlb_total_flight_mins, minutes_at_start, 0) 
+    (coalesce(validated.ajlb_total_flight_mins, start_flight_mins, 0) 
         + coalesce(nf.sum_unverified_mins, 0))/60.0 as ac_total_flight_hours,
 
-    ceil((
-        coalesce(validated.ajlb_row_number + (validated.ajlb_page_number - 1) * ajlb.rows_per_page, 0)
+    ajlb.start_page + 2 * floor((
+        coalesce(
+            validated.ajlb_row_number + (validated.ajlb_page_number - ajlb.start_page) / 2 * ajlb.rows_per_page,
+            0
+        )
         + coalesce(nf.sum_unverified_flights, 0)
         + coalesce(nf.sum_empty_rows, 0)
-    )/ajlb.rows_per_page::float)::int4 as pages_in_use,
+        )/ajlb.rows_per_page::float
+    )::int4 as last_page,
 
-    ceil((
-        coalesce(validated.ajlb_row_number + (validated.ajlb_page_number - 1) * ajlb.rows_per_page, 0)
-        + coalesce(nf.first_empty_rows + 1, 0)
-    )/ajlb.rows_per_page::float)::int4 as new_flights_page_number,
+     
+    ajlb.start_page + 2 * floor((
+        coalesce(
+            validated.ajlb_row_number + (validated.ajlb_page_number - ajlb.start_page) / 2 * ajlb.rows_per_page,  
+            0
+        )
+            + coalesce(nf.first_empty_rows + 1, 0)
+        )/ajlb.rows_per_page::float
+    )::int4 as new_flights_page,
 
     nf.sum_unverified_flights::int4 as new_flights_count,
     format_flight_time(nf.sum_unverified_mins) as new_flights_time

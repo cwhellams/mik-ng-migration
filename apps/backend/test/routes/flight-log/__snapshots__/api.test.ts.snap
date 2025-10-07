@@ -2,10 +2,10 @@
 
 exports[`GET /flight-log Get flight log with Id should return a single row when data is present for the given Id 1`] = `
 {
-  "acTotalFlightTime": "170:30",
+  "acTotalFlightTime": "4781:50",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
-  "ajlbPageNo": 1,
+  "ajlbPageNo": 10,
   "ajlbRowNo": 2,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
@@ -33,9 +33,9 @@ exports[`GET /flight-log Get flight log with Id should return a single row when 
   "fuelUpliftLitres": 50,
   "incidentOrObservations": null,
   "instrumentFlyingMins": 45,
-  "invoiceNumber": "INV001",
+  "invoiceNumber": null,
   "isBillableFlight": true,
-  "isBilled": true,
+  "isBilled": false,
   "isDtoTrainingFlight": true,
   "landingTimeEpoch": "1740823200",
   "landingTimeUtc": "2025-03-01T10:00:00.000Z",
@@ -55,7 +55,7 @@ exports[`GET /flight-log Get flight log with Id should return a single row when 
   "picMemberId": "Liisa1",
   "picRole": "STU",
   "privOrComFlight": "C",
-  "status": "PAID",
+  "status": "NEW",
   "takeoffTimeEpoch": "1740816900",
   "takeoffTimeUtc": "2025-03-01T08:15:00.000Z",
   "totalTimeInService": 2,
@@ -66,7 +66,7 @@ exports[`GET /flight-log Get flight log with Id should return a single row when 
 
 exports[`GET /flight-log should allow query parameters to be optional 1`] = `
 {
-  "acTotalFlightTime": "170:30",
+  "acTotalFlightTime": "4781:50",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,
@@ -92,7 +92,7 @@ exports[`GET /flight-log should allow query parameters to be optional 1`] = `
   "onBlockTimeUtc": "2025-03-01T10:15:00.000Z",
   "personsOnBoard": 4,
   "picLastName": "Korhonen",
-  "status": "PAID",
+  "status": "NEW",
   "takeoffTimeUtc": "2025-03-01T08:15:00.000Z",
   "totalTimeInService": 2,
 }
@@ -100,7 +100,7 @@ exports[`GET /flight-log should allow query parameters to be optional 1`] = `
 
 exports[`GET /flight-log should only return data for the logged in user when not admin 1`] = `
 {
-  "acTotalFlightTime": "170:30",
+  "acTotalFlightTime": "4781:50",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,
@@ -126,7 +126,7 @@ exports[`GET /flight-log should only return data for the logged in user when not
   "onBlockTimeUtc": "2025-03-01T10:15:00.000Z",
   "personsOnBoard": 4,
   "picLastName": "Korhonen",
-  "status": "PAID",
+  "status": "NEW",
   "takeoffTimeUtc": "2025-03-01T08:15:00.000Z",
   "totalTimeInService": 2,
 }
@@ -134,7 +134,7 @@ exports[`GET /flight-log should only return data for the logged in user when not
 
 exports[`GET /flight-log should return 200 for Start Date with time offset 1`] = `
 {
-  "acTotalFlightTime": "170:30",
+  "acTotalFlightTime": "4781:50",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,
@@ -160,7 +160,7 @@ exports[`GET /flight-log should return 200 for Start Date with time offset 1`] =
   "onBlockTimeUtc": "2025-03-01T10:15:00.000Z",
   "personsOnBoard": 4,
   "picLastName": "Korhonen",
-  "status": "PAID",
+  "status": "NEW",
   "takeoffTimeUtc": "2025-03-01T08:15:00.000Z",
   "totalTimeInService": 2,
 }
@@ -168,7 +168,7 @@ exports[`GET /flight-log should return 200 for Start Date with time offset 1`] =
 
 exports[`GET /flight-log should return 200 with valid query params 1`] = `
 {
-  "acTotalFlightTime": "170:30",
+  "acTotalFlightTime": "4781:50",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,
@@ -194,7 +194,7 @@ exports[`GET /flight-log should return 200 with valid query params 1`] = `
   "onBlockTimeUtc": "2025-03-01T10:15:00.000Z",
   "personsOnBoard": 4,
   "picLastName": "Korhonen",
-  "status": "PAID",
+  "status": "NEW",
   "takeoffTimeUtc": "2025-03-01T08:15:00.000Z",
   "totalTimeInService": 2,
 }
@@ -203,7 +203,7 @@ exports[`GET /flight-log should return 200 with valid query params 1`] = `
 exports[`GET /flight-log should return all data for ac when user is admin 1`] = `
 [
   {
-    "acTotalFlightTime": "168:45",
+    "acTotalFlightTime": "4780:05",
     "aircraftRegistration": "OH-STL",
     "ajlbBlankRowsBefore": 0,
     "ajlbRowNo": 1,
@@ -229,12 +229,12 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
     "onBlockTimeUtc": "2024-03-12T01:10:00.000Z",
     "personsOnBoard": 2,
     "picLastName": "Koskinen",
-    "status": "INVOICED",
+    "status": "NEW",
     "takeoffTimeUtc": "2024-03-11T23:15:00.000Z",
     "totalTimeInService": 1.92,
   },
   {
-    "acTotalFlightTime": "170:30",
+    "acTotalFlightTime": "4781:50",
     "aircraftRegistration": "OH-STL",
     "ajlbBlankRowsBefore": 0,
     "ajlbRowNo": 2,
@@ -260,12 +260,12 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
     "onBlockTimeUtc": "2025-03-01T10:15:00.000Z",
     "personsOnBoard": 4,
     "picLastName": "Korhonen",
-    "status": "PAID",
+    "status": "NEW",
     "takeoffTimeUtc": "2025-03-01T08:15:00.000Z",
     "totalTimeInService": 2,
   },
   {
-    "acTotalFlightTime": "172:00",
+    "acTotalFlightTime": "4783:20",
     "aircraftRegistration": "OH-STL",
     "ajlbBlankRowsBefore": 0,
     "ajlbRowNo": 3,
@@ -303,7 +303,7 @@ exports[`GET /flight-log/flightid should return flight for admin with sudo right
   "acTotalFlightTime": "6118:40",
   "aircraftRegistration": "OH-IHQ",
   "ajlbBlankRowsBefore": 0,
-  "ajlbPageNo": 1,
+  "ajlbPageNo": 81,
   "ajlbRowNo": 1,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFTP",
@@ -364,10 +364,10 @@ exports[`GET /flight-log/flightid should return flight for admin with sudo right
 
 exports[`GET /flight-log/flightid should return flights for the logged in user when not admin 1`] = `
 {
-  "acTotalFlightTime": "170:30",
+  "acTotalFlightTime": "4781:50",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
-  "ajlbPageNo": 1,
+  "ajlbPageNo": 10,
   "ajlbRowNo": 2,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
@@ -395,9 +395,9 @@ exports[`GET /flight-log/flightid should return flights for the logged in user w
   "fuelUpliftLitres": 50,
   "incidentOrObservations": null,
   "instrumentFlyingMins": 45,
-  "invoiceNumber": "INV001",
+  "invoiceNumber": null,
   "isBillableFlight": true,
-  "isBilled": true,
+  "isBilled": false,
   "isDtoTrainingFlight": true,
   "landingTimeEpoch": "1740823200",
   "landingTimeUtc": "2025-03-01T10:00:00.000Z",
@@ -417,7 +417,7 @@ exports[`GET /flight-log/flightid should return flights for the logged in user w
   "picMemberId": "Liisa1",
   "picRole": "STU",
   "privOrComFlight": "C",
-  "status": "PAID",
+  "status": "NEW",
   "takeoffTimeEpoch": "1740816900",
   "takeoffTimeUtc": "2025-03-01T08:15:00.000Z",
   "totalTimeInService": 2,
@@ -440,16 +440,16 @@ exports[`GET /flight-log/totals should return 200 with valid registration 1`] = 
   "acTotalFlightHours": 4783.333333333333,
   "acTotalFlightTime": "4783:20",
   "aircraftRegistration": "OH-STL",
-  "ajlbSeqNo": 3,
+  "ajlbSeqNo": 2,
 }
 `;
 
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 1`] = `
 {
-  "acTotalFlightTime": "172:00",
+  "acTotalFlightTime": "4783:20",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
-  "ajlbPageNo": 1,
+  "ajlbPageNo": 10,
   "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
@@ -510,10 +510,10 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
 
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 2`] = `
 {
-  "acTotalFlightTime": "172:00",
+  "acTotalFlightTime": "4783:20",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
-  "ajlbPageNo": 1,
+  "ajlbPageNo": 10,
   "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
@@ -574,10 +574,10 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
 
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 3`] = `
 {
-  "acTotalFlightTime": "172:00",
+  "acTotalFlightTime": "4783:20",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
-  "ajlbPageNo": 1,
+  "ajlbPageNo": 10,
   "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
@@ -638,10 +638,10 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
 
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 4`] = `
 {
-  "acTotalFlightTime": "172:00",
+  "acTotalFlightTime": "4783:20",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
-  "ajlbPageNo": 1,
+  "ajlbPageNo": 10,
   "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",

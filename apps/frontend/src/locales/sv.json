@@ -11,6 +11,7 @@
     "toggleTheme": "Växla mörkt/ljust läge",
     "toggleSudo": "Växla administratörsläge",
     "flightLogs": "Flyglogg",
+    "massBalance": "Massa & Balans",
     "roles": "Användarroller",
     "billing": "Fakturering",
     "accounts": "Konton",
@@ -171,20 +172,27 @@
     "maintenance": {
       "edit": "Redigera underhållsdetaljer",
       "nextCycle": "Underhåll utfört",
+
       "maintenanceCycle": "Underhållscykel",
+
       "lastMaintenance": "Senaste underhåll",
+
       "date": "Datum",
       "type": "Typ av underhåll",
       "tach": "Vid tachtimmar",
+
       "nextMaintenance": "Nästa underhåll",
+
       "totalPercentageHours": "Totala procenttimmar",
       "usablePercentageHours": "Användbara procenttimmar"
     },
     "notes": {
       "new": "Lägg till ny anteckning",
       "delete": "Ta bort anteckning",
+
       "title": "Anteckningar",
       "text": "Text",
+
       "severity": "Allvarlighetsgrad",
       "off": "Stäng av",
       "note": "Anteckning",
@@ -301,8 +309,10 @@
     "arrival": "Landning",
     "blockTime": "Blocktid",
     "airborneTime": "Luftburen tid",
+    "landings": "Landningar",
     "flightType": "Typ",
     "billed": "Fakturerad",
+
     "times": "Flygtider",
     "flightDate": "Flygdatum",
     "timeZone": "Tidszon",
@@ -314,10 +324,12 @@
     "currentTime": "Aktuell tid",
     "timeInputFormat": "Ange tider i 24-timmarsformat (TTMM)",
     "local": "Lokal",
+
     "offBlockTime": "Från block",
     "takeoffTime": "Start",
     "landingTime": "Landning",
     "onBlockTime": "Till block",
+
     "self": "Själv",
     "crew": "Flygbesättning",
     "crews": {
@@ -335,9 +347,11 @@
     "arrivalAirport": "Ankomstflygplats",
     "personsOnBoard": "Personer ombord",
     "numberOfLandings": "Antal landningar",
+
     "nightFlying": "Nattflyg",
     "nightFlyingMins": "Natttimmar (TT:MM)",
     "numberOfNightLandings": "Antal nattlandningar",
+
     "instrumentFlying": "Instrumentflyg",
     "instrumentFlyingMins": "Instrumenttimmar (TT:MM)",
     "fuelInfo": "Bränsle- och oljeinformation",
@@ -387,6 +401,10 @@
     "logbooks": {
       "title": "Loggböcker",
       "ajlb": "Flygplansjournal",
+      "newAjlb": "Ny loggbok",
+      "editAjlb": "Redigera loggbok",
+      "details": "Loggbok Detaljer",
+      "seqNo": "Sekvensnummer",
       "student": "Student",
       "totalFlightTime": "Total luftburen tid",
       "addBlankRow": "Lägg till tom rad ovan",
@@ -402,7 +420,19 @@
       "newFlightsSince": "Nya overifierade flyg sedan {{date}}",
       "newFlightsCount": "Flyg",
       "newFlightsTime": "Flygtid",
-      "goToFlight": "Öppna loggbok {{seqNo}} på sida {{page}} (rad {{row}})"
+      "goToFlight": "Öppna loggbok {{seqNo}} på sida {{page}} (rad {{row}})",
+      "validFrom": "Giltig från",
+      "validTo": "Giltig till",
+      "rowsPerPage": "Rader per sida",
+      "noOfPages": "Antal sidor",
+      "pagesInUse": "Sidor i bruk",
+      "flightTimeAtStart": "Tid vid start",
+      "unverifiedFlights": "Overifierade flyg",
+      "unverifiedFlightTime": "Overifierad flygtid",
+      "validatedFlightTime": "Verifierad total flygtid",
+      "nextSequence": "Starta nästa loggbok",
+      "flightsToMove": "Obekräftade flyg att flytta till ny loggbok",
+      "oldBookMustBeEnded": "Den gamla loggboken måste avslutas först."
     }
   },
   "registrationVerify": {

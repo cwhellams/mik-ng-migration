@@ -126,14 +126,18 @@ export interface FlightAircraftDocuments {
 
 export interface FlightAircraftJourneyLogBook {
   aircraft_registration: string
+  created_at: Generated<Timestamp>
+  created_by: string
   end_date: string | null
-  flight_time: Generated<string>
-  minutes_at_start: number
   no_of_pages: number
   rows_per_page: number
   seq_no: number
   start_date: string
+  start_flight_mins: number
+  start_flight_time: Generated<string>
   start_page: number
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface FlightLogs {
@@ -223,10 +227,10 @@ export interface FlightVwFlightTimeTotals {
   aircraft_registration: string | null
   ajlb_seq_no: number | null
   current: boolean | null
+  last_page: number | null
   new_flights_count: number | null
-  new_flights_page_number: number | null
+  new_flights_page: number | null
   new_flights_time: string | null
-  pages_in_use: number | null
   validated_on_block_time_utc: Timestamp | null
   validated_total_flight_mins: number | null
   validated_total_flight_time: string | null

@@ -21,6 +21,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/LocalizationProvider'
 import Roles from './sections/members/Roles'
 import FlightLogsList from './sections/flightLog/FlightLogsList'
+import LogbooksList from './sections/flightLog/LogbooksList'
 import NewFlightLogEntry from './sections/flightLog/FlightLogEntry'
 import { useTranslation } from 'react-i18next'
 import Billing from './sections/billing/billing'
@@ -67,7 +68,7 @@ function App() {
           {/* Main Layout with header */}
           <Route element={<MainLayout />}>
             <Route path='/' element={<Dashboard />} />
-            <Route path='/schedule/:bookingId?' element={<Schedule />} />
+            <Route path='/schedule' element={<Schedule />} />
             <Route path='/aircrafts' element={<Aircrafts />} />
             <Route index path='/members/roles' element={<Roles />} />
             <Route index path='/billing' element={<Billing />} />
@@ -75,6 +76,7 @@ function App() {
             <Route path='/members/:memberId' element={<Member />} />
             /** Flight Log Routes */
             <Route path='/flight-logs' element={<FlightLogsList />} />
+            <Route path='/flight-logs/logbooks' element={<LogbooksList />} />
             <Route
               path='/flight-logs/:flightId'
               element={<NewFlightLogEntry />}

@@ -15,6 +15,7 @@ import {
   Pagination,
   Snackbar,
   Alert,
+  PaginationItem,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
@@ -46,20 +47,12 @@ import { FlightLogValidation } from './components/FlightLogValidation'
 const FlightLogsList = () => {
   const { t } = useTranslation()
 
-  const { isFlightLogAdmin } = useRoles()
+  const { me, isFlightLogAdmin } = useRoles()
 
   // fetch list of aircraft journey log books
-  const { data: logbooks, mutate: mutateLogbooks } = useApi<AjlbListResponse>(
-    {
-      url: 'v1/ajlb',
-    },
-    {
-      revalidateIfStale: true,
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
-      keepPreviousData: true,
-    }
-  )
+  const { data: logbooks, mutate: mutateLogbooks } = useApi<AjlbListResponse>({
+    url: 'v1/ajlb',
+  })
 
   const [ajlb, setAjlb] = useState<AircraftJourneyLogBook | null>(null)
 
@@ -70,14 +63,16 @@ const FlightLogsList = () => {
 
   const [filters, setFilters] = useState<FlightLogFilters>({})
 
+  
   useEffect(() => {
+    
     const aircraftRegistration = searchParams.get('aircraftRegistration') ?? ''
     const ajlbSeqNo = searchParams.get('ajlbSeqNo')
-      ? Number(searchParams.get('ajlbSeqNo'))
-      : undefined
+    ? Number(searchParams.get('ajlbSeqNo'))
+    : undefined
     const page = searchParams.get('page')
-      ? Number(searchParams.get('page'))
-      : undefined
+    ? Number(searchParams.get('page'))
+    : undefined
 
     setFilters({
       aircraftRegistration,
@@ -309,17 +304,22 @@ const FlightLogsList = () => {
 
                 <TableRow key={log.flightId}>
                   <TableCell sx={{ height: rowHeight }}>
-                    <Link
-                      ref={
-                        location.hash == `#${log.flightId}`
-                          ? scrollToRef
-                          : undefined
-                      }
-                      to={`/flight-logs/${log.flightId}`}
-                      state={searchParams.toString()}
-                    >
-                      {formatDate(log.takeoffTimeUtc)}
-                    </Link>
+                    {isFlightLogAdmin ||
+                    log.billableMemberId == me?.memberId ? (
+                      <Link
+                        ref={
+                          location.hash == `#${log.flightId}`
+                            ? scrollToRef
+                            : undefined
+                        }
+                        to={`/flight-logs/${log.flightId}`}
+                        state={searchParams.toString()}
+                      >
+                        {formatDate(log.takeoffTimeUtc)}
+                      </Link>
+                    ) : (
+                      formatDate(log.takeoffTimeUtc)
+                    )}
                   </TableCell>
                   {!singlePlane && (
                     <TableCell>{log.aircraftRegistration}</TableCell>
@@ -355,7 +355,7 @@ const FlightLogsList = () => {
                         viewOnly={
                           !syncMode ||
                           !isFlightLogAdmin ||
-                          ajlb?.newFlightsPage !== data?.page ||
+                          ajlb?.view?.newFlightsPage !== data?.page ||
                           data?.logs.find(
                             (l) => l.status === FlightLogStatus.NEW
                           ) !== log
@@ -417,31 +417,46 @@ const FlightLogsList = () => {
       </TableContainer>
 
       <Pagination
-        count={syncMode ? (ajlb?.pagesInUse ?? 1) : (data?.pages ?? 1)}
+        count={
+          syncMode && ajlb?.view
+            ? (ajlb.view.lastPage - ajlb.startPage) / 2 + 1
+            : (data?.pages ?? 1)
+        }
         size='large'
-        page={filters.page ?? 1}
+        page={
+          syncMode
+            ? ((filters.page ?? 1) - (ajlb?.startPage ?? 1)) / 2 + 1
+            : (filters.page ?? 1)
+        }
         onChange={(_, page) => {
-          searchParams.set('page', page.toString())
+          const newPage = syncMode
+            ? (ajlb?.startPage ?? 1) + 2 * (page - 1)
+            : page
+          searchParams.set('page', newPage.toString())
           setSearchParams(searchParams)
         }}
         showFirstButton={true}
         showLastButton={true}
         siblingCount={2}
         sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}
-        // renderItem={(item) => {
-        //   if (item.type === 'page' && item.page !== null) {
-        //     return (
-        //       <PaginationItem
-        //         {...item}
-        //         page={(ajlb?.startPage ?? 1) - 1 + (item.page - 1) * 2 + 1}
-        //       />
-        //     )
-        //   }
-        //   return <PaginationItem {...item} />
-        // }}
+        renderItem={(item) => {
+          if (item.type === 'page' && item.page !== null) {
+            return (
+              <PaginationItem
+                {...item}
+                page={
+                  syncMode
+                    ? (ajlb?.startPage ?? 1) + 2 * (item.page - 1)
+                    : item.page
+                }
+              />
+            )
+          }
+          return <PaginationItem {...item} />
+        }}
       />
 
-      {syncMode && !!data?.rows && (
+      {syncMode && isFlightLogAdmin && !!data?.rows && (
         <FlightLogValidation
           ajlb={ajlb}
           data={data}
@@ -449,7 +464,7 @@ const FlightLogsList = () => {
             setSearchParams({
               aircraftRegistration: filters.aircraftRegistration ?? '',
               ajlbSeqNo: filters.ajlbSeqNo?.toString() ?? '',
-              page: ajlb.newFlightsPage?.toString() ?? '',
+              page: ajlb.view?.newFlightsPage?.toString() ?? '',
             })
           }}
           validateEntry={validateEntry}

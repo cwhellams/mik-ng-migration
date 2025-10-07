@@ -3,7 +3,6 @@ import {
   Grid,
   Paper,
   Typography,
-  TextField,
   IconButton,
   Collapse,
 } from '@mui/material'
@@ -14,6 +13,7 @@ import { useEffect, useState } from 'react'
 import { Icon } from '@iconify/react'
 import { getTimezoneDisplay } from '../utils/timezoneUtils'
 import { formatDuration, splitTime } from '../utils/timeUtils'
+import { HoursAndMinutes } from './HoursAndMinutes'
 
 interface Props {
   offBlockTime: dayjs.Dayjs | null
@@ -315,46 +315,12 @@ const FlightTimeline = ({
                       {t('flightLog.currentLogbookTime')}
                     </Typography>
 
-                    <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                      <TextField
-                        size='medium'
-                        label={t('flightLog.hours')}
-                        type='number'
-                        value={currentHours ?? ''}
-                        onChange={(e) =>
-                          setCurrentHours(
-                            e.target.value === ''
-                              ? null
-                              : Number(e.target.value)
-                          )
-                        }
-                        slotProps={{
-                          htmlInput: { min: 0 },
-                          inputLabel: { shrink: true },
-                        }}
-                        sx={{ width: '60%' }}
-                      />
-                      <TextField
-                        size='medium'
-                        label={t('flightLog.minutes')}
-                        type='number'
-                        value={currentMinutes}
-                        onChange={(e) => {
-                          const value =
-                            e.target.value === ''
-                              ? null
-                              : Number(e.target.value)
-                          if (typeof value !== 'number' || value <= 59) {
-                            setCurrentMinutes(value)
-                          }
-                        }}
-                        slotProps={{
-                          htmlInput: { min: 0, max: 59 },
-                          inputLabel: { shrink: true },
-                        }}
-                        sx={{ width: '40%' }}
-                      />
-                    </Box>
+                    <HoursAndMinutes
+                      currentHours={currentHours}
+                      currentMinutes={currentMinutes}
+                      setCurrentHours={setCurrentHours}
+                      setCurrentMinutes={setCurrentMinutes}
+                    />
                   </Box>
                 </Grid>
 

@@ -30,7 +30,7 @@ export const FlightLogAdminDashboard = () => {
   )
 
   const logbooksToValidate = logbooks?.books.filter(
-    (logbook) => logbook.newFlightsCount > 0
+    (logbook) => (logbook.view?.newFlightsCount ?? 0) > 0
   )
 
   return (
@@ -50,12 +50,12 @@ export const FlightLogAdminDashboard = () => {
                 <ListItemText
                   primary={
                     <Link
-                      to={`/flight-logs?aircraftRegistration=${ajlb.aircraftRegistration}&ajlbSeqNo=${ajlb.seqNo}&page=${ajlb.newFlightsPage}`}
+                      to={`/flight-logs?aircraftRegistration=${ajlb.aircraftRegistration}&ajlbSeqNo=${ajlb.seqNo}&page=${ajlb.view?.newFlightsPage}`}
                     >
                       {ajlb.aircraftRegistration} - {ajlb.seqNo}
                     </Link>
                   }
-                  secondary={`${ajlb.newFlightsCount} new flights`}
+                  secondary={`${ajlb.view?.newFlightsCount} new flights`}
                 />
               </ListItem>
             ))}

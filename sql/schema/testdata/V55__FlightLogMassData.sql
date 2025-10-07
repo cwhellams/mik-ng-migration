@@ -76,4 +76,4 @@ UPDATE flight.logs SET
         (select page_number from flight.vw_flight_logs where flight_id = flight.logs.flight_id),
     ajlb_row_number = 
         (select row_number from flight.vw_flight_logs where flight_id = flight.logs.flight_id)
-WHERE off_block_time_epoch < 1263024000 -- before 2010-01-11 00:00:00 UTC
+WHERE off_block_time_epoch < 1276200000 -- before 2010-01-11 00:00:00 UTC

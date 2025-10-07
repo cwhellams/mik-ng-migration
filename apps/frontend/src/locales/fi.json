@@ -309,6 +309,7 @@
     "arrival": "Saapuminen",
     "blockTime": "Block-aika",
     "airborneTime": "Ilmassaoloaika",
+    "landings": "Laskuja",
     "flightType": "Tyyppi",
     "billed": "Laskutettu",
 
@@ -400,6 +401,10 @@
     "logbooks": {
       "title": "Lokikirjat",
       "ajlb": "Lentokoneen lokikirja",
+      "newAjlb": "Uusi lokikirja",
+      "editAjlb": "Muokkaa lokikirjaa",
+      "details": "Lokikirjan tiedot",
+      "seqNo": "Lokikirjan numero",
       "student": "Oppilas",
       "totalFlightTime": "Lentotunnit",
       "addBlankRow": "Lisää tyhjä rivi yläpuolelle",
@@ -415,7 +420,19 @@
       "newFlightsSince": "Uudet vahvistamattomat lennot {{date}} jälkeen",
       "newFlightsCount": "Lentojen määrä",
       "newFlightsTime": "Lentojen ilmassaoloaika",
-      "goToFlight": "Avaa lokikirjan {{seqNo}} sivu {{page}} (rivi {{row}})"
+      "goToFlight": "Avaa lokikirjan {{seqNo}} sivu {{page}} (rivi {{row}})",
+      "validFrom": "Alkupäivä",
+      "validTo": "Loppupäivä",
+      "rowsPerPage": "Rivejä per sivu",
+      "noOfPages": "Sivujen määrä",
+      "pagesInUse": "Sivuja käytössä",
+      "flightTimeAtStart": "Aika alussa",
+      "unverifiedFlights": "Vahvistamattomat lennot",
+      "unverifiedFlightTime": "Vahvistamaton lentoaika",
+      "validatedFlightTime": "Vahvistettu lentoaika",
+      "nextSequence": "Aloita seuraava lokikirja",
+      "flightsToMove": "Vahvistamattomat lennot, jotka siirretään uuteen lokikirjaan",
+      "oldBookMustBeEnded": "Vanha lokikirja on ensin päätettävä."
     }
   },
   "registrationVerify": {

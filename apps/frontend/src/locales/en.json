@@ -309,6 +309,7 @@
     "arrival": "Landing",
     "blockTime": "Block Time",
     "airborneTime": "Airborne Time",
+    "landings": "Landings",
     "flightType": "Type",
     "billed": "Billed",
 
@@ -400,6 +401,10 @@
     "logbooks": {
       "title": "Logbooks",
       "ajlb": "Aircraft Journal Logbook",
+      "newAjlb": "New Logbook",
+      "editAjlb": "Edit Logbook",
+      "details": "Logbook Details",
+      "seqNo": "Sequence No",
       "student": "Student",
       "totalFlightTime": "Total Airborne Time",
       "addBlankRow": "Add empty row above",
@@ -415,7 +420,19 @@
       "newFlightsSince": "New unverified flights since {{date}}",
       "newFlightsCount": "Flights",
       "newFlightsTime": "Flights time",
-      "goToFlight": "Open logbook {{seqNo}} on page {{page}} (row {{row}})"
+      "goToFlight": "Open logbook {{seqNo}} on page {{page}} (row {{row}})",
+      "validFrom": "Start date",
+      "validTo": "End date",
+      "rowsPerPage": "Rows per page",
+      "noOfPages": "Number of pages",
+      "pagesInUse": "Pages in use",
+      "flightTimeAtStart": "Time at start",
+      "unverifiedFlights": "Unverified flights",
+      "unverifiedFlightTime": "Unverified flight time",
+      "validatedFlightTime": "Verified Total Flight Time",
+      "nextSequence": "Start Next Logbook",
+      "flightsToMove": "Unconfirmed flights to move to new logbook",
+      "oldBookMustBeEnded": "Old logbook must be ended first."
     }
   },
   "registrationVerify": {

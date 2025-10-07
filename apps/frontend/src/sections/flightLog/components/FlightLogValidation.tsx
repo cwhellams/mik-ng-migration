@@ -24,7 +24,17 @@ export const FlightLogValidation = ({
   validateEntry: (log: FlightLogListEntry, isLast?: boolean) => Promise<boolean>
   isMutating: boolean
 }) => {
-  const hasNewFlights = ajlb.newFlightsCount > 0
+  const view = ajlb.view ?? {
+    lastPage: 0,
+    newFlightsCount: 0,
+    newFlightsPage: 0,
+    newFlightsTime: '00:00',
+    flightTime: '00:00',
+    totalFlightTime: '00:00',
+    validatedBeforeUTC: null,
+  }
+
+  const hasNewFlights = view.newFlightsCount > 0
 
   const pageValidated = data.logs.every(
     (log) => log.status !== FlightLogStatus.NEW
@@ -52,7 +62,7 @@ export const FlightLogValidation = ({
         <Stack spacing={2}>
           <Stack direction={'row'} alignItems='center'>
             <Typography variant='body1' mr={2}>
-              {data?.page == ajlb.pagesInUse
+              {data?.page == view.lastPage
                 ? t('flightLog.logbooks.lastAirborneTime')
                 : t('flightLog.logbooks.carriedForward')}
             </Typography>
@@ -61,7 +71,7 @@ export const FlightLogValidation = ({
             </Typography>
           </Stack>
 
-          {hasNewFlights && ajlb.newFlightsPage != data.page && (
+          {hasNewFlights && view.newFlightsPage != data.page && (
             <Button
               variant='outlined'
               color='primary'
@@ -69,12 +79,12 @@ export const FlightLogValidation = ({
               onClick={navigateToNewFlightsPage}
             >
               {t('flightLog.logbooks.goToNewFlights', {
-                page: ajlb.newFlightsPage,
+                page: view.newFlightsPage,
               })}
             </Button>
           )}
 
-          {hasNewFlights && ajlb.newFlightsPage == data.page && (
+          {hasNewFlights && view.newFlightsPage == data.page && (
             <Button
               variant='contained'
               color='primary'
@@ -101,8 +111,8 @@ export const FlightLogValidation = ({
             <>
               <Typography variant='h6' mb={2}>
                 {t('flightLog.logbooks.newFlightsSince', {
-                  date: ajlb.validatedBeforeUTC
-                    ? formatDate(ajlb.validatedBeforeUTC, 'DD.MM.YYYY')
+                  date: view.validatedBeforeUTC
+                    ? formatDate(view.validatedBeforeUTC, 'DD.MM.YYYY')
                     : '-',
                 })}
               </Typography>
@@ -110,13 +120,13 @@ export const FlightLogValidation = ({
                 label={t(`flightLog.logbooks.newFlightsCount`)}
                 width={200}
               >
-                {ajlb.newFlightsCount}
+                {view.newFlightsCount}
               </FormField>
               <FormField
                 label={t(`flightLog.logbooks.newFlightsTime`)}
                 width={200}
               >
-                {ajlb.newFlightsTime}
+                {view.newFlightsTime}
               </FormField>
             </>
           )}

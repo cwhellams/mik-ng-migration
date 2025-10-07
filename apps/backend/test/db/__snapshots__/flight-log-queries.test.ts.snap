@@ -69,9 +69,9 @@ exports[`Db insert tests insertFlightLog inserts a new flight log to the db, que
   "acTotalFlightTime": "4784:20",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
-  "ajlbPageNo": 1,
-  "ajlbRowNo": 1,
-  "ajlbSeqNo": 3,
+  "ajlbPageNo": 10,
+  "ajlbRowNo": 4,
+  "ajlbSeqNo": 2,
   "arrivalAirport": "EFVA",
   "billableMemberId": "Matti1",
   "billingRemarks": "Test flight",
@@ -146,7 +146,7 @@ exports[`Db query FlightLog tests getFlightLogTotals returns totals for all ac 1
     "acTotalFlightHours": 4783.333333333333,
     "acTotalFlightTime": "4783:20",
     "aircraftRegistration": "OH-STL",
-    "ajlbSeqNo": 3,
+    "ajlbSeqNo": 2,
   },
 ]
 `;
@@ -157,7 +157,7 @@ exports[`Db query FlightLog tests getFlightLogTotals returns totals for single a
     "acTotalFlightHours": 4783.333333333333,
     "acTotalFlightTime": "4783:20",
     "aircraftRegistration": "OH-STL",
-    "ajlbSeqNo": 3,
+    "ajlbSeqNo": 2,
   },
 ]
 `;
@@ -198,7 +198,7 @@ exports[`Db query FlightLog tests getFlightLogs between start and end date shoul
 
 exports[`Db query FlightLog tests getFlightLogs for end date should match snapshot 1`] = `
 {
-  "acTotalFlightTime": "168:45",
+  "acTotalFlightTime": "4780:05",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 1,
@@ -224,7 +224,7 @@ exports[`Db query FlightLog tests getFlightLogs for end date should match snapsh
   "onBlockTimeUtc": "2024-03-12T01:10:00.000Z",
   "personsOnBoard": 2,
   "picLastName": "Koskinen",
-  "status": "INVOICED",
+  "status": "NEW",
   "takeoffTimeUtc": "2024-03-11T23:15:00.000Z",
   "totalTimeInService": 1.92,
 }
@@ -235,7 +235,7 @@ exports[`Db query FlightLog tests getFlightLogs for specific member id should ma
   "limit": 50,
   "logs": [
     {
-      "acTotalFlightTime": "168:45",
+      "acTotalFlightTime": "4780:05",
       "aircraftRegistration": "OH-STL",
       "ajlbBlankRowsBefore": 0,
       "ajlbRowNo": 1,
@@ -261,7 +261,7 @@ exports[`Db query FlightLog tests getFlightLogs for specific member id should ma
       "onBlockTimeUtc": "2024-03-12T01:10:00.000Z",
       "personsOnBoard": 2,
       "picLastName": "Koskinen",
-      "status": "INVOICED",
+      "status": "NEW",
       "takeoffTimeUtc": "2024-03-11T23:15:00.000Z",
       "totalTimeInService": 1.92,
     },
@@ -308,7 +308,7 @@ exports[`Db query FlightLog tests getFlightLogs for start date should match snap
 
 exports[`Db query FlightLog tests getFlightLogs with Captain and copilot should return filtered logs 1`] = `
 {
-  "acTotalFlightTime": "170:30",
+  "acTotalFlightTime": "4781:50",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,
@@ -334,7 +334,7 @@ exports[`Db query FlightLog tests getFlightLogs with Captain and copilot should 
   "onBlockTimeUtc": "2025-03-01T10:15:00.000Z",
   "personsOnBoard": 4,
   "picLastName": "Korhonen",
-  "status": "PAID",
+  "status": "NEW",
   "takeoffTimeUtc": "2025-03-01T08:15:00.000Z",
   "totalTimeInService": 2,
 }

@@ -2,6 +2,9 @@ import { AircraftJourneyLogBook } from '@backend/routes/ajlb/model'
 import { FlightLogFilters } from '@backend/routes/flight-log/models'
 import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { t } from 'i18next'
+import { useRoles } from '../../../hooks/useRoles'
+import { Icon } from '@iconify/react'
+import { Link } from 'react-router-dom'
 
 type Props = {
   logbooks: AircraftJourneyLogBook[]
@@ -10,8 +13,12 @@ type Props = {
 }
 
 export const FlightLogQuery = ({ filters, setFilters, logbooks }: Props) => {
+  const { isFlightLogAdmin } = useRoles()
+
   const planeBooks = logbooks.filter(
-    (book) => book.aircraftRegistration == filters.aircraftRegistration
+    (book) =>
+      !filters.aircraftRegistration ||
+      book.aircraftRegistration == filters.aircraftRegistration
   )
 
   return (
@@ -35,10 +42,11 @@ export const FlightLogQuery = ({ filters, setFilters, logbooks }: Props) => {
               : ''
           }
           label={t('flightLog.aircraft')}
-          onChange={({ target }) =>
+          onChange={({ target }) => 
             setFilters({ aircraftRegistration: target.value })
           }
         >
+          <MenuItem value={''}>{t('flightLog.logbooks.showAll')}</MenuItem>
           {logbooks
             .reduce(
               (planes, book) =>
@@ -55,39 +63,64 @@ export const FlightLogQuery = ({ filters, setFilters, logbooks }: Props) => {
         </Select>
       </FormControl>
 
-      <FormControl sx={{ m: 1, minWidth: 250 }}>
-        <InputLabel id='role-label'>{t('flightLog.logbooks.ajlb')}</InputLabel>
+      <Grid
+        size={5}
+        direction='column'
+        display='flex'
+        justifyContent={'flex-end'}
+      >
+        <FormControl sx={{ m: 1, minWidth: 250 }}>
+          <InputLabel id='ajlb-label'>
+            {t('flightLog.logbooks.ajlb')}
+          </InputLabel>
 
-        <Select
-          labelId='role-label'
-          id='role'
-          value={
-            planeBooks.length > 0 && filters.ajlbSeqNo ? filters.ajlbSeqNo : ''
-          }
-          label={t('flightLog.logbooks.ajlb')}
-          onChange={({ target }) => {
-            const book = planeBooks.find(
-              (book) =>
-                book.aircraftRegistration == filters.aircraftRegistration &&
-                book.seqNo == target.value
-            )
-            setFilters({
-              ...filters,
-              ajlbSeqNo: target.value,
-              page: book?.pagesInUse,
-            })
-          }}
-        >
-          <MenuItem value=''>{t('flightLog.logbooks.showAll')}</MenuItem>
-          {planeBooks.map((book) => (
-            <MenuItem key={`${book.seqNo}`} value={book.seqNo}>
-              {book.endDate
-                ? `${book.startDate} - ${book.endDate}`
-                : `${book.startDate} - ${t('flightLog.logbooks.current')}`}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+          <Select
+            labelId='ajlb-label'
+            id='ajlb'
+            value={
+              filters.aircraftRegistration && filters.ajlbSeqNo
+                ? `${filters.aircraftRegistration}:${filters.ajlbSeqNo}`
+                : ''
+            }
+            label={t('flightLog.logbooks.ajlb')}
+            onChange={({ target }) => {
+              const [aircraftRegistration, seqNo] = target.value?.split(
+                ':'
+              ) ?? ['', '']
+              const book = planeBooks.find(
+                (book) =>
+                  book.aircraftRegistration == aircraftRegistration &&
+                  book.seqNo == Number(seqNo)
+              )
+              setFilters({
+                ...filters,
+                aircraftRegistration: book?.aircraftRegistration,
+                ajlbSeqNo: book?.seqNo,
+                page: book?.view?.lastPage ?? book?.startPage ?? 1,
+              })
+            }}
+          >
+            <MenuItem value=''>{t('flightLog.logbooks.showAll')}</MenuItem>
+            {planeBooks.map((book) => (
+              <MenuItem
+                key={`${book.aircraftRegistration}:${book.seqNo}`}
+                value={`${book.aircraftRegistration}:${book.seqNo}`}
+              >
+                {book.endDate
+                  ? `${book.aircraftRegistration}: ${book.startDate} - ${book.endDate}`
+                  : `${book.aircraftRegistration}: ${book.startDate} - ${t('flightLog.logbooks.current')}`}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        {isFlightLogAdmin && (
+          <Grid alignItems='center' display='flex' sx={{ mr: 1, fontSize: 24 }}>
+            <Link to='/flight-logs/logbooks'>
+              <Icon icon='mdi:gear' color='#646cff' />
+            </Link>
+          </Grid>
+        )}
+      </Grid>
     </Grid>
   )
 }

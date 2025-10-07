@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { BooleanSchema } from '../../types/schema.ts'
+import { AuditableSchema, BooleanSchema } from '../../types/schema.ts'
 
 export const AircraftJourneyLogBookFilterSchema = z
   .object({
@@ -12,21 +12,27 @@ export const AircraftJourneyLogBookFilterSchema = z
   .strict()
 export type AjlbFilter = z.infer<typeof AircraftJourneyLogBookFilterSchema>
 
-export const AircraftJourneyLogBookSchema = z.object({
+export const FlightTimeTotalsViewSchema = z.object({
+  lastPage: z.number().int().readonly(),
+  newFlightsPage: z.number().int().readonly().nullable(),
+  newFlightsCount: z.number().int().readonly(),
+  newFlightsTime: z.string().readonly(),
+  validatedBeforeUTC: z.string().datetime().readonly().nullable(),
+  validatedFlightTime: z.string().readonly(),
+  totalFlightTime: z.string().readonly(),
+})
+
+export const AircraftJourneyLogBookSchema = AuditableSchema.extend({
   seqNo: z.number(),
   aircraftRegistration: z.string(),
-  minutesAtStart: z.number(),
+  startFlightMins: z.number(),
+  startFlightTime: z.string().readonly().optional(),
   noOfPages: z.number(),
   rowsPerPage: z.number(),
   startPage: z.number(),
   startDate: z.string().date(),
   endDate: z.string().date().nullable(),
-  flightTime: z.string().readonly(),
-  pagesInUse: z.number().int().readonly(),
-  newFlightsPage: z.number().int().readonly().nullable(),
-  newFlightsCount: z.number().int().readonly(),
-  newFlightsTime: z.string().readonly(),
-  validatedBeforeUTC: z.string().datetime().readonly().nullable(),
+  view: FlightTimeTotalsViewSchema.optional(),
 })
 
 export type AircraftJourneyLogBook = z.infer<typeof AircraftJourneyLogBookSchema>

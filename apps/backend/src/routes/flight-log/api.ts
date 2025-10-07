@@ -69,10 +69,12 @@ router.post('/', async (req: Request, res: Response) => {
 router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogListResponse>) => {
   const data = FlightLogFiltersSchema.parse(req.query)
 
-  // If user is not Flight Log Admin they can only see their own flights
+  // FlightLog admin can see logs of all members, normal users only through logbooks
   const filters: FlightLogFilters = {
     ...data,
-    ...(isFlightLogAdmin(req.user) ? {} : { billableMemberId: req.user!.memberId }),
+    ...(!isFlightLogAdmin(req.user) && data.ajlbSeqNo == undefined
+      ? { billableMemberId: req.user!.memberId }
+      : {}),
   }
 
   const logs = await getFlightLogs(filters)
@@ -204,64 +206,68 @@ router.patch('/:id', async (req: Request, res: Response) => {
   res.status(200).json(afterUpdate)
 })
 
-// Update a flight log status
-router.post('/:id/validate', async (req: Request, res: Response) => {
-  const flightId = req.params.id
+// Admin only route: update a flight log status
+router.post(
+  '/:id/validate',
+  validateUser(MIKPermissions.FLIGHTLOG_ADMIN),
+  async (req: Request, res: Response) => {
+    const flightId = req.params.id
 
-  const { revert } = FlightLogValidationRequestSchema.parse(req.body ?? {})
+    const { revert } = FlightLogValidationRequestSchema.parse(req.body ?? {})
 
-  const flightLog = await getFlightLog(flightId)
+    const flightLog = await getFlightLog(flightId)
 
-  validateWriteAccess(flightLog, req)
+    validateWriteAccess(flightLog, req)
 
-  // all previous flights must be validated
+    // all previous flights must be validated
 
-  if (revert) {
-    const lastValidatedFlight = await getFlightLogs({
-      aircraftRegistration: flightLog?.aircraftRegistration,
-      status: FlightLogStatus.VALIDATED,
-      limit: 1,
-      page: 1,
-      orderLatestFirst: true,
-    })
-    if (lastValidatedFlight.rows == 0 || lastValidatedFlight.logs[0].flightId !== flightId) {
+    if (revert) {
+      const lastValidatedFlight = await getFlightLogs({
+        aircraftRegistration: flightLog?.aircraftRegistration,
+        status: FlightLogStatus.VALIDATED,
+        limit: 1,
+        page: 1,
+        orderLatestFirst: true,
+      })
+      if (lastValidatedFlight.rows == 0 || lastValidatedFlight.logs[0].flightId !== flightId) {
+        return problem({
+          status: 400,
+          detail: `All later flights must be first reverted, revert ${lastValidatedFlight.logs?.[0]?.flightId} first`,
+        })
+      }
+    } else {
+      const firstNewFlight = await getFlightLogs({
+        aircraftRegistration: flightLog?.aircraftRegistration,
+        status: FlightLogStatus.NEW,
+        limit: 1,
+        page: 1,
+      })
+      if (firstNewFlight.rows == 0 || firstNewFlight.logs[0].flightId !== flightId) {
+        return problem({
+          status: 400,
+          detail: `All previous flights must be first validated, validate ${firstNewFlight.logs?.[0]?.flightId} first`,
+        })
+      }
+    }
+
+    const updatedLog = await updateFlightLogStatus(
+      flightId,
+      revert ? FlightLogStatus.NEW : FlightLogStatus.VALIDATED,
+      {},
+      req.user!,
+    )
+    if (updatedLog === 0n) {
       return problem({
-        status: 400,
-        detail: `All later flights must be first reverted, revert ${lastValidatedFlight.logs?.[0]?.flightId} first`,
+        status: 500,
+        detail: 'Flight log update failed',
       })
     }
-  } else {
-    const firstNewFlight = await getFlightLogs({
-      aircraftRegistration: flightLog?.aircraftRegistration,
-      status: FlightLogStatus.NEW,
-      limit: 1,
-      page: 1,
-    })
-    if (firstNewFlight.rows == 0 || firstNewFlight.logs[0].flightId !== flightId) {
-      return problem({
-        status: 400,
-        detail: `All previous flights must be first validated, validate ${firstNewFlight.logs?.[0]?.flightId} first`,
-      })
-    }
-  }
 
-  const updatedLog = await updateFlightLogStatus(
-    flightId,
-    revert ? FlightLogStatus.NEW : FlightLogStatus.VALIDATED,
-    {},
-    req.user!,
-  )
-  if (updatedLog === 0n) {
-    return problem({
-      status: 500,
-      detail: 'Flight log update failed',
-    })
-  }
+    const afterUpdate = await getFlightLog(flightId)
 
-  const afterUpdate = await getFlightLog(flightId)
-
-  res.status(200).json(afterUpdate)
-})
+    res.status(200).json(afterUpdate)
+  },
+)
 
 // Delete a flight log
 router.delete('/:id', async (req: Request, res: Response) => {

@@ -61,12 +61,12 @@ INSERT INTO flight.logs (
     'OH-STL',
     1740816000, 1740816900, 1740823200, 1740824100,
     1.5, 50.0, 20, 4, 1, 30, 45, 'EFHK', 'EFHK',
-    'INV001', 'KOU', 'N/A', 'Smooth flight',
+    NULL, 'KOU', 'N/A', 'Smooth flight',
     'Matti1', 'Matti1', TRUE, NULL, NULL, 'C', 2, 0, 2.0, 
-    'PAID', 
-    170*60+30,
-    1,
-    2,
+    'NEW', 
+    NULL,
+    NULL,
+    NULL,
     TRUE
 ),
 -- Record 2
@@ -89,7 +89,7 @@ INSERT INTO flight.logs (
     'INV002', 'MAT', 'N/A', 'Training flight',
     'Jukka1', 'Jukka1', TRUE, NULL, NULL, 'C', 2, 0, 2.0, 'INVOICED', 
     6118*60+40,
-    1,
+    81,
     1,
     FALSE
 ),
@@ -170,10 +170,10 @@ INSERT INTO flight.logs (
     1710205200, -- 2025-03-12 01:00:00 (1h 45m flight)
     1710205800, -- 2025-03-12 01:10:00 (10 min taxi)
     1.0, 45.0, 60, 2, 1, 115, 60, 'EFHK', 'EFTU',
-    'INV004', 'MAT', 'Night navigation exercise', 'Cross-day night flight',
-    'Sanna1', 'Sanna1', TRUE, NULL, NULL, 'C', 2, 0, 1.92, 'INVOICED', 
-    168*60+45,
-    1,
-    1,
+    NULL, 'MAT', 'Night navigation exercise', 'Cross-day night flight',
+    'Sanna1', 'Sanna1', TRUE, NULL, NULL, 'C', 2, 0, 1.92, 'NEW', 
+    NULL,
+    NULL,
+    NULL,
     FALSE
 );

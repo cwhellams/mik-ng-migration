@@ -10,6 +10,7 @@ import {
 } from '../../../src/routes/flight-log/models.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
+import { flightPayload } from './fixtures.ts'
 
 const test_member_id = 'Matti1'
 const test_member_id2 = 'Sanna1'
@@ -236,45 +237,6 @@ describe('GET /flight-log/flightid', () => {
 })
 
 describe('POST /flight-log', () => {
-  const payload: FlightLogUpsertRequest = {
-    aircraftRegistration: 'OH-STL',
-    arrivalAirport: 'EFHK',
-    billingRemarks: 'N/A',
-    picMemberId: 'memberId',
-    picRole: 'FI',
-    crew2MemberId: null,
-    crew2Role: null,
-    crew3MemberId: null,
-    crew3Role: null,
-    crew4MemberId: null,
-    crew4Role: null,
-    departureAirport: 'EFHK',
-    flightType: 'KOU',
-    fuelUpliftLitres: 40,
-    fuelRemainingLitres: 20,
-    incidentOrObservations: 'N/A',
-    nightFlyingMins: 20,
-    numberOfLandings: 1,
-    numberOfNightLandings: 0,
-    offBlockTimeEpoch: (new Date('2025-03-22T10:30:00Z').getTime() / 1000).toString(),
-    takeoffTimeEpoch: (new Date('2025-03-22T10:45:00Z').getTime() / 1000).toString(),
-    landingTimeEpoch: (new Date('2025-03-22T11:40:00Z').getTime() / 1000).toString(),
-    onBlockTimeEpoch: (new Date('2025-03-22T11:45:00Z').getTime() / 1000).toString(),
-    oilUpliftLitres: 0.2,
-    personsOnBoard: 3,
-    personalRemarks: 'N/A',
-    totalTimeInService: 0.2,
-    privOrComFlight: 'P',
-    instrumentFlyingMins: 0,
-
-    // admin fields
-    ajlbBlankRowsBefore: 0,
-    ajlbSeqNo: 1,
-    billableMemberId: 'Sanna1',
-    isBillableFlight: true,
-    nonBillingReason: null,
-  }
-
   test.each([
     ['Sanna1', false, sannaToken],
     ['Matti1', true, mattiToken],
@@ -286,11 +248,9 @@ describe('POST /flight-log', () => {
         .post('/flight-log')
         .set('Authorization', `Bearer ${token}`)
         .send({
-          ...payload,
+          ...flightPayload,
           picMemberId: memberId,
         })
-
-      console.log(response.body.errors)
 
       expect(response.body.flight_id).toBeDefined()
       const id = response.body.flight_id
@@ -308,7 +268,7 @@ describe('POST /flight-log', () => {
         expect(checkPostBody.billableMemberId).toBe(memberId)
       } else {
         // admin can set any billable member id
-        expect(checkPostBody.billableMemberId).toBe(payload.billableMemberId)
+        expect(checkPostBody.billableMemberId).toBe(flightPayload.billableMemberId)
       }
       expect(checkPostBody.picMemberId).toBe(memberId)
       expect(checkPostBody.isDtoTrainingFlight).toBe(isDtoFlight)
@@ -359,7 +319,7 @@ describe('POST /flight-log', () => {
     const response = await request(app)
       .post('/flight-log')
       .set('Authorization', `Bearer ${mattiToken}`)
-      .send({ ...payload, offBlockTimeEpoch: '0' })
+      .send({ ...flightPayload, offBlockTimeEpoch: '0' })
 
     expect(response.status).toBe(400)
     expect(response.body).toEqual({
@@ -400,7 +360,6 @@ describe('PATCH /flight-log/', () => {
         .set('Authorization', `Bearer ${token}`)
 
       // patch returns the same as another get
-      console.log(patchResponse.body)
       expect(patchResponse.status).toBe(200)
       expect(patchResponse.body).toEqual(checkPatch.body)
 
@@ -511,31 +470,24 @@ describe('POST /flight-log/validate', () => {
 
     expect(response.status).toBe(401)
   })
-  it('should return a 403 if the billable member id does not match token ID for a USER', async () => {
-    const invalidToken = generateAccessToken({
-      memberId: 'Liisa1',
-      email: 'test@mik.fi',
-      permissions: [MIKPermissions.FLIGHTLOG_USER],
-    })
-
-    // Create a token with a member id that matches billable member id
+  it('should return a 403 if billable members tries to validate his own flight', async () => {
     const response = await request(app)
-      .post('/flight-log/efnu4evr/validate')
-      .set('Authorization', `Bearer ${invalidToken}`)
+      .post('/flight-log/mikify/validate')
+      .set('Authorization', `Bearer ${mattiToken}`)
       .send()
 
     expect(response.body).toEqual({
       status: 403,
       title: 'Forbidden',
-      detail: 'Flight log not owned by user or user has no admin rights',
-      instance: '/flight-log/efnu4evr/validate',
+      detail: 'Protected Content',
+      instance: '/flight-log/mikify/validate',
       timestamp: expect.any(String),
     })
   })
   it('should return a 404 if flight is not found', async () => {
     const response = await request(app)
       .post('/flight-log/noup/validate')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Authorization', `Bearer ${adminToken}`)
       .send()
 
     expect(response.body).toEqual({
@@ -549,14 +501,14 @@ describe('POST /flight-log/validate', () => {
 
   it('should return a 400 if flight is already billed', async () => {
     const response = await request(app)
-      .post('/flight-log/eject/validate')
+      .post('/flight-log/da40tndra/validate')
       .set('Authorization', `Bearer ${adminToken}`)
       .send()
 
     expect(response.body).toEqual({
       status: 400,
       title: 'Bad Request',
-      instance: '/flight-log/eject/validate',
+      instance: '/flight-log/da40tndra/validate',
       timestamp: expect.any(String),
       detail: 'Flight already billed and read-only',
     })
@@ -564,16 +516,16 @@ describe('POST /flight-log/validate', () => {
 
   it('should return a 400 if there are earlier unvalidated flights', async () => {
     const response = await request(app)
-      .post('/flight-log/mass11/validate')
+      .post('/flight-log/mass194/validate')
       .set('Authorization', `Bearer ${adminToken}`)
       .send()
 
     expect(response.body).toEqual({
       status: 400,
       title: 'Bad Request',
-      instance: '/flight-log/mass11/validate',
+      instance: '/flight-log/mass194/validate',
       timestamp: expect.any(String),
-      detail: 'All previous flights must be first validated, validate mass10 first',
+      detail: 'All previous flights must be first validated, validate mass193 first',
     })
   })
 
@@ -588,30 +540,30 @@ describe('POST /flight-log/validate', () => {
       title: 'Bad Request',
       instance: '/flight-log/mass1/validate',
       timestamp: expect.any(String),
-      detail: 'All later flights must be first reverted, revert mass9 first',
+      detail: 'All later flights must be first reverted, revert mass192 first',
     })
   })
 
   it('should validate and revert the first new flight', async () => {
     const response = await request(app)
-      .post('/flight-log/mass10/validate')
+      .post('/flight-log/mass193/validate')
       .set('Authorization', `Bearer ${adminToken}`)
       .send()
 
     expect(response.status).toEqual(200)
-    expect(response.body.acTotalFlightTime).toEqual('11:55')
-    expect(response.body.ajlbPageNo).toEqual(1)
-    expect(response.body.ajlbRowNo).toEqual(10)
+    expect(response.body.acTotalFlightTime).toEqual('338:16')
+    expect(response.body.ajlbPageNo).toEqual(33)
+    expect(response.body.ajlbRowNo).toEqual(1)
     expect(response.body.status).toEqual('VALIDATED')
 
     const revert = await request(app)
-      .post('/flight-log/mass10/validate')
+      .post('/flight-log/mass193/validate')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ revert: true })
     expect(revert.status).toEqual(200)
-    expect(revert.body.acTotalFlightTime).toEqual('11:55')
-    expect(revert.body.ajlbPageNo).toEqual(1)
-    expect(revert.body.ajlbRowNo).toEqual(10)
+    expect(revert.body.acTotalFlightTime).toEqual('338:16')
+    expect(revert.body.ajlbPageNo).toEqual(33)
+    expect(revert.body.ajlbRowNo).toEqual(1)
     expect(revert.body.status).toEqual('NEW')
   })
 })
@@ -633,28 +585,28 @@ describe('DELETE /flight-log', () => {
     })
 
     const response = await request(app)
-      .delete('/flight-log/mikify')
+      .delete('/flight-log/da40tndra')
       .set('Authorization', `Bearer ${delToken}`)
 
     expect(response.body).toEqual({
       status: 403,
       title: 'Forbidden',
       detail: 'Flight log not owned by user or user has no admin rights',
-      instance: '/flight-log/mikify',
+      instance: '/flight-log/da40tndra',
       timestamp: expect.any(String),
     })
   })
 
   it('should return 400 when flight has been billed', async () => {
     const response = await request(app)
-      .delete('/flight-log/mikify')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .delete('/flight-log/da40tndra')
+      .set('Authorization', `Bearer ${adminToken}`)
 
     expect(response.body).toEqual({
       status: 400,
       title: 'Bad Request',
       detail: 'Flight already billed and read-only',
-      instance: '/flight-log/mikify',
+      instance: '/flight-log/da40tndra',
       timestamp: expect.any(String),
     })
   })

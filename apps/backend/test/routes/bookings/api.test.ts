@@ -343,11 +343,11 @@ describe('PATCH /bookings/', () => {
   })
   it('should return a 403 if the member id does not match token ID for a USER', async () => {
     const payload: Partial<Booking> = {
-      memberId: 'Liisa1',
+      memberId: 'OtherUser',
     }
 
     const invalidToken = generateAccessToken({
-      memberId: 'Liisa1',
+      memberId: 'OtherUser',
       email: 'test@mik.fi',
       permissions: [MIKPermissions.BOOKING_USER],
     })

@@ -223,8 +223,8 @@ describe('Db update status tests', () => {
     const flightId = 'bLwnAstr0'
 
     const originalLog = await getFlightLog(flightId)
-    expect(originalLog?.acTotalFlightTime).toEqual('172:00')
-    expect(originalLog?.ajlbPageNo).toEqual(1)
+    expect(originalLog?.acTotalFlightTime).toEqual('4783:20')
+    expect(originalLog?.ajlbPageNo).toEqual(10)
     expect(originalLog?.ajlbRowNo).toEqual(3)
 
     const user = {
@@ -236,8 +236,8 @@ describe('Db update status tests', () => {
     expect(res).toEqual(1n)
 
     const result = await getFlightLog(flightId)
-    expect(result?.acTotalFlightTime).toEqual('172:00')
-    expect(result?.ajlbPageNo).toEqual(1)
+    expect(result?.acTotalFlightTime).toEqual('4783:20')
+    expect(result?.ajlbPageNo).toEqual(10)
     expect(result?.ajlbRowNo).toEqual(3)
 
     //cleanup
@@ -245,8 +245,8 @@ describe('Db update status tests', () => {
     expect(cleanup).toEqual(1n)
 
     const cleaned = await getFlightLog(flightId)
-    expect(cleaned?.acTotalFlightTime).toEqual('172:00')
-    expect(cleaned?.ajlbPageNo).toEqual(1)
+    expect(cleaned?.acTotalFlightTime).toEqual('4783:20')
+    expect(cleaned?.ajlbPageNo).toEqual(10)
     expect(cleaned?.ajlbRowNo).toEqual(3)
   })
 })
