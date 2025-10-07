@@ -564,7 +564,7 @@
     "calendarMessages": {
       "date": "Date",
       "time": "Time",
-      "event": "Event",
+      "event": "Booking",
       "allDay": "All Day",
       "week": "Week",
       "day": "Day",
@@ -574,6 +574,7 @@
       "next": "Next",
       "noEventsInRange": "There are no events in this range."
     },
+    "duration": "Duration",
     "bookingDuration": "Booking Duration",
     "freeBefore": "Free before",
     "freeAfter": "Free after",
@@ -581,5 +582,12 @@
     "noNextBooking": "No next booking",
     "ends": "Ends {{at}}",
     "starts": "Starts {{at}}"
+  },
+  "dashboard": {
+    "schedule": {
+      "upcoming": "Your Upcoming Bookings",
+      "noBookings": "No upcoming bookings, go book a plane!",
+      "editBooking": "Edit Booking"
+    }
   }
 }

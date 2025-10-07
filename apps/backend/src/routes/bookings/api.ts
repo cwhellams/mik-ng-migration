@@ -7,6 +7,7 @@ import {
   type Booking,
   type BookingFilters,
   type BookingListResponse,
+  type BookingUpsertRequest,
 } from './models.ts'
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
@@ -21,6 +22,13 @@ import {
   updateBooking,
 } from '../../db/booking-queries.ts'
 import dayjs from 'dayjs'
+import { sendEmail } from '../../lib/sendGmail.ts'
+import { getMemberById } from '../../db/member-queries.ts'
+import {
+  bookingCancelledEmailBodyHtml,
+  bookingCancelledEmailPlainText,
+  bookingCancelledEmailSubject,
+} from '../../templates/bookingCancelledEmailTemplate.ts'
 
 // all scheduling routes are protected by booking permissions
 const router = Router()
@@ -58,7 +66,7 @@ router.get('/', async (req: Request<BookingFilters>, res: Response<BookingListRe
   // If user is not Booking Admin they can only query their own bookings
   const filters: BookingFilters = {
     ...data,
-    ...(isBookingAdmin(req.user) ? {} : { memberId: req.user!.memberId }),
+    ...(isBookingAdmin(req.user) || !data.memberId ? {} : { memberId: req.user!.memberId }),
   }
 
   const previous = filters.from
@@ -98,8 +106,6 @@ router.get('/:id', async (req: Request, res: Response) => {
     return problem({ status: 404, detail: 'Booking not found' })
   }
 
-  validateWriteAccess(booking, req)
-
   res.status(200).json(booking)
 })
 
@@ -114,7 +120,7 @@ const validateWriteAccess = (booking: Pick<Booking, 'memberId'>, req: Request) =
 }
 
 const clearOverlappingBookings = async (
-  booking: Pick<Booking, 'bookingId' | 'registration' | 'startTimeEpoch' | 'endTimeEpoch'>,
+  booking: BookingUpsertRequest & { bookingId: string },
   jwt: JWTUser,
 ) => {
   const overlaps = await getBookings({
@@ -132,9 +138,21 @@ const clearOverlappingBookings = async (
     })
   }
 
+  const admin = await getMemberById(jwt.memberId)
+
   for (const overlap of overlaps) {
     console.log('Clearing overlapping booking', overlap)
     await updateBooking(overlap.bookingId, { status: BookingStatus.CANCELLED }, jwt)
+
+    const member = await getMemberById(overlap.memberId)
+    if (member?.email) {
+      sendEmail(
+        member.email,
+        bookingCancelledEmailSubject(member.lang),
+        bookingCancelledEmailBodyHtml(member.lang, admin!, overlap, booking),
+        bookingCancelledEmailPlainText(member.lang, admin!, overlap, booking),
+      )
+    }
   }
 }
 
@@ -177,6 +195,9 @@ router.delete('/:id', async (req: Request, res: Response) => {
   const booking = await getBookingById(bookingId)
   if (!booking) {
     return problem({ status: 404, detail: 'Booking not found' })
+  }
+  if (booking.status === BookingStatus.CANCELLED) {
+    return problem({ status: 409, detail: 'Booking already cancelled' })
   }
   validateWriteAccess(booking, req)
 

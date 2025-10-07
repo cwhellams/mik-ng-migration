@@ -1,10 +1,13 @@
 import dayjs from 'dayjs'
 
-export const formatDuration = (minutes: number): string => {
+export const formatDuration = (minutes: number, hideZeros = false): string => {
   if (minutes <= 0) return '--'
   const hrs = Math.floor(minutes / 60)
   const mins = minutes % 60
-  return `${hrs > 0 ? `${hrs}h ` : ''}${mins}min`
+
+  return [hrs > 0 && `${hrs}h`, (mins > 0 || !hideZeros) && `${mins}min`]
+    .filter(Boolean)
+    .join(' ')
 }
 
 export const durationToDayjs = (minutes: number): dayjs.Dayjs => {

@@ -1,8 +1,6 @@
 import 'dotenv/config'
 import { marked } from 'marked'
-
-const mik_logo_url =
-  process.env.MIK_LOGO_URL ?? 'https://mik-intranet-846xw.ondigitalocean.app/mik-logo-blue.png'
+import { emailButton, emailTemplate } from './emailTemplate.ts'
 
 export type RegisterVars = {
   firstName: string
@@ -50,88 +48,48 @@ const registerEmailBodyEn = ({ firstName, href }: RegisterVars): string => `
 
   ${href}`
 
-const registerEmailBodyHtmlEn = ({ firstName, href }: RegisterVars): string => `
-  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="${mik_logo_url}" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+const registerEmailBodyHtmlEn = ({ firstName, href }: RegisterVars): string =>
+  emailTemplate(
+    'Registration Confirmation',
+    `
 
+      <p>Hello ${firstName},</p>
 
-      <h2 style="text-align: center; color: #003366;">Registration Confirmation</h2>
-
-      <p style="color: #333333;">Hello ${firstName},</p>
-
-      <p style="color: #333333;">
+      <p>
         Thank you for applying to become a member of Malmin Ilmailukerho ry. We will review your application as soon as possible and get back to you.
         In the meantime, you can confirm your email address by clicking the link below:
       </p>
 
       <div style="text-align: center; margin: 24px 0;">
-        <a href="${href}" style="
-          background-color: #003366;
-          color: #ffffff;
-          padding: 12px 24px;
-          text-decoration: none;
-          border-radius: 6px;
-          display: inline-block;
-          font-weight: bold;
-        ">Confirm Email Address</a>
+        ${emailButton(href, 'Confirm Email Address')}
       </div>
 
-      <p style="color: #333333;">
+      <p>
         If the button above doesn't work, please copy and paste the following link into your browser:
       </p>
-      <p style="word-break: break-all; color: #333333;"><a href="${href}">${href}</a></p>
+      <p style="word-break: break-all; color: #333333;"><a href="${href}">${href}</a></p>`,
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+    'If you didn’t request this email, you can safely ignore it.',
+  )
 
-      <p style="font-size: 0.9em; color: #666666;">
-        If you didn’t request this email, you can safely ignore it.
-      </p>
-    </div>
-  </div>
-`
+const registerEmailBodyHtmlFi = ({ firstName, href }: RegisterVars): string =>
+  emailTemplate(
+    'Hakemuksen vahvistus',
+    `
+      <p>Hei ${firstName},</p>
 
-const registerEmailBodyHtmlFi = ({ firstName, href }: RegisterVars): string => `
-  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="${mik_logo_url}" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
-
-
-      <h2 style="text-align: center; color: #003366;">Registration Confirmation</h2>
-
-      <p style="color: #333333;">Hei ${firstName},</p>
-
-      <p style="color: #333333;">
+      <p>
         kiitos hakemuksestasi Malmin Ilmailukerho ry:n jäseneksi. Käsittelemme hakemuksesi pian ja olemme sinuun yhteydessä.
         Sillä välin, voit vahvistaa sähköpostiosoitteesi klikkaamalla alla olevaa linkkiä:
       </p>
 
       <div style="text-align: center; margin: 24px 0;">
-        <a href="${href}" style="
-          background-color: #003366;
-          color: #ffffff;
-          padding: 12px 24px;
-          text-decoration: none;
-          border-radius: 6px;
-          display: inline-block;
-          font-weight: bold;
-        ">Vahvista sähköpostiosoite</a>
+        ${emailButton(href, 'Vahvista sähköpostiosoite')}
       </div>
 
-      <p style="color: #333333;">
+      <p>
         Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:
       </p>
-      <p style="word-break: break-all; color: #333333;"><a href="${href}">${href}</a></p>
-
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-
-      <p style="font-size: 0.9em; color: #666666;">
-        If you didn’t request this email, you can safely ignore it.
-      </p>
-    </div>
-  </div>
-`
+      <p style="word-break: break-all;"><a href="${href}">${href}</a></p>`,
+    'Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.',
+  )

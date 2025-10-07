@@ -564,7 +564,7 @@
     "calendarMessages": {
       "date": "Päivä",
       "time": "Aika",
-      "event": "Tapahtuma",
+      "event": "Varaus",
       "allDay": "Koko päivä",
       "week": "Viikko",
       "day": "Päivä",
@@ -574,6 +574,7 @@
       "next": "Seuraava",
       "noEventsInRange": "Ei tapahtumia valitulla aikavälillä."
     },
+    "duration": "Kesto",
     "bookingDuration": "Varaus kesto",
     "freeBefore": "Vapaata ennen",
     "freeAfter": "Vapaata jälkeen",
@@ -581,5 +582,12 @@
     "noNextBooking": "Ei seuraavaa varausta",
     "ends": "Loppuu {{at}}",
     "starts": "Alkaa {{at}}"
+  },
+  "dashboard": {
+    "schedule": {
+      "upcoming": "Tulevat varauksesi",
+      "noBookings": "Ei tulevia varauksia, käypä varaamassa lentokone!",
+      "editBooking": "Muokkaa varausta"
+    }
   }
 }

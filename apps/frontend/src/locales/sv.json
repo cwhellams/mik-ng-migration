@@ -561,6 +561,7 @@
       "next": "Nästa",
       "noEventsInRange": "Det finns inga händelser i detta intervall."
     },
+    "duration": "Varaktighet",
     "bookingDuration": "Bokningens längd",
     "freeBefore": "Ledigt före",
     "freeAfter": "Ledigt efter",
@@ -568,5 +569,12 @@
     "noNextBooking": "Ingen nästa bokning",
     "ends": "Slutar {{at}}",
     "starts": "Startar {{at}}"
+  },
+  "dashboard": {
+    "schedule": {
+      "upcoming": "Dina kommande bokningar",
+      "noBookings": "Inga kommande bokningar, gå och boka ett flygplan!",
+      "editBooking": "Redigera bokning"
+    }
   }
 }

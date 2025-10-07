@@ -61,6 +61,10 @@ export const getBookings = async (filters: BookingFilters): Promise<Booking[]> =
     query = query.where('registration', 'in', toArray(filters['registration[]']))
   }
 
+  if (filters['memberId']) {
+    query = query.where('schedule.bookings.member_id', '=', filters['memberId'])
+  }
+
   if (!filters['showCancelled']) {
     query = query.where('booking_status', '!=', BookingStatus.CANCELLED)
   }
@@ -92,7 +96,7 @@ export const getBookings = async (filters: BookingFilters): Promise<Booking[]> =
 export const getBookingById = async (bookingId: string): Promise<Booking | undefined> => {
   let booking = await connection.db
     .selectFrom('schedule.bookings')
-    .selectAll()
+    .selectAll('schedule.bookings')
     .innerJoin('member.register', 'schedule.bookings.member_id', 'member.register.member_id')
     .select([
       'member.register.first_name',
@@ -166,6 +170,7 @@ export const updateBooking = async (
       description: patch.description,
       start_time_epoch: patch.startTimeEpoch,
       end_time_epoch: patch.endTimeEpoch,
+      member_id: patch.memberId,
       updated_at: now,
       updated_by: jwt.memberId,
       cancelled_at: patch.status === BookingStatus.CANCELLED ? now : undefined,

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Calendar,
   dayjsLocalizer,
@@ -16,6 +16,9 @@ import withDragAndDrop, {
 
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
+// https://github.com/jquense/react-big-calendar/issues/2739
+import './styles.css'
+
 import { dayjs } from '../../utils/date'
 import { useTranslation } from 'react-i18next'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
@@ -37,12 +40,14 @@ import {
   Snackbar,
   Checkbox,
   FormControlLabel,
+  CircularProgress,
 } from '@mui/material'
 import { BookingEditor } from './components/EditBookingModal'
 import { Upsert } from '@backend/types/schema'
-import { t } from 'i18next'
 import { useRoles } from '../../hooks/useRoles'
 import { Dayjs } from 'dayjs'
+import { useSearchParams } from 'react-router-dom'
+import { RemoteContent } from '../../components/RemoteContent'
 
 dayjs.locale('fi')
 
@@ -72,6 +77,8 @@ const localizer = dayjsLocalizer(dayjs)
 
 const Schedule = () => {
   const { me, isBookingAdmin } = useRoles()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const { t } = useTranslation()
 
   const { data: aircraftData } = useApi<AircraftListResponse>(
     {
@@ -113,7 +120,7 @@ const Schedule = () => {
         isCancelled: booking.status == BookingStatus.CANCELLED,
       }
     },
-    [me, isBookingAdmin]
+    [me, isBookingAdmin, t]
   )
 
   const [filters, setFilters] = useState<BookingFilters>({
@@ -124,6 +131,8 @@ const Schedule = () => {
     data: eventData,
     mutation,
     fetch,
+    error: eventError,
+    isLoading: eventLoading,
   } = useApi<BookingListResponse, Booking>({
     url: 'v1/bookings',
     params: filters,
@@ -156,8 +165,74 @@ const Schedule = () => {
 
   const { i18n } = useTranslation()
 
-  const [currentView, setCurrentView] = useState<View>(Views.WEEK)
-  const [currentDate, setCurrentDate] = useState<Date | undefined>(new Date())
+  const [currentView, setCurrentView] = useState<View>(
+    searchParams.has('day') ? Views.DAY : Views.WEEK
+  )
+
+  // it's recommended to memoize callbacks and values passed to the calendar
+  // https://jquense.github.io/react-big-calendar/examples/index.html?path=/docs/about-our-examples--page
+  const onView = useCallback(
+    (newView: View) => setCurrentView(newView),
+    [setCurrentView]
+  )
+
+  const [currentDate, setCurrentDate] = useState<Date | undefined>(
+    searchParams.has('day')
+      ? new Date(searchParams.get('day')!)
+      : searchParams.has('week')
+        ? new Date(searchParams.get('week')!)
+        : new Date()
+  )
+  const onNavigate = useCallback(
+    (newDate: Date) => setCurrentDate(newDate),
+    [setCurrentDate]
+  )
+
+  // memoize calendar options to avoid unnecessary rerenders
+  const calendarOpts = useMemo(
+    () => ({
+      messages: t('schedule.calendarMessages', {
+        returnObjects: true,
+      }) as Messages,
+      min: new Date(2000, 1, 1, 7, 0, 0),
+      max: new Date(2000, 1, 1, 22, 0, 0),
+    }),
+    [t]
+  )
+
+  useEffect(() => {
+    const date = dayjs(currentDate)
+
+    const { from, to } =
+      currentView == Views.AGENDA
+        ? {
+            // show one month of events in agenda view
+            from: date.startOf('day').toISOString(),
+            to: date.add(1, 'month').endOf('day').toISOString(),
+          }
+        : {
+            // show the whole weeks of the current month
+            from: date.startOf('month').startOf('week').toISOString(),
+            to: date.endOf('month').endOf('week').toISOString(),
+          }
+
+    if (filters.from != from || filters.to != to) {
+      setFilters((filters) => ({
+        ...filters,
+        from,
+        to,
+      }))
+    }
+
+    // update url to match the current view
+    if (currentView == Views.DAY) {
+      setSearchParams({ day: date.format('YYYY-MM-DD') })
+    } else if (currentView == Views.WEEK) {
+      setSearchParams({ week: date.format('YYYY-MM-DD') })
+    } else {
+      setSearchParams({})
+    }
+  }, [currentDate, currentView, filters, setFilters, setSearchParams])
 
   const [events, setEvents] = useState<BookingEvent[]>([])
 
@@ -243,27 +318,31 @@ const Schedule = () => {
     event,
   }) => moveEvent(event as BookingEvent, dayjs(start), dayjs(end))
 
-  const eventStyle: EventPropGetter<object> = (event) => {
-    if (currentView == Views.AGENDA) {
-      return {}
-    }
-    const reservation = event as BookingEvent
-    const backgroundColor =
-      colors[`${reservation.registration}-${reservation.type}`]
-    return {
-      style: {
-        border: reservation.isEditable ? '5px solid #000000' : 'none',
-        opacity: reservation.isCancelled ? 0.5 : 1,
-        color: reservation.registration == 'OH-IHQ' ? '#000000ca' : '#ffffff',
-        background: reservation.isCancelled
-          ? `repeating-linear-gradient(45deg, grey, ${backgroundColor} 1%, ${backgroundColor} 2%)`
-          : backgroundColor,
-      },
-    }
-  }
+  const eventStyle: EventPropGetter<object> = useCallback(
+    (event) => {
+      if (currentView == Views.AGENDA) {
+        return {}
+      }
+      const reservation = event as BookingEvent
+      const backgroundColor =
+        colors[`${reservation.registration}-${reservation.type}`]
+      return {
+        style: {
+          border: reservation.isEditable ? '5px solid #000000' : 'none',
+          opacity: reservation.isCancelled ? 0.5 : 1,
+          color: reservation.registration == 'OH-IHQ' ? '#000000ca' : '#ffffff',
+          background: reservation.isCancelled
+            ? `repeating-linear-gradient(45deg, grey, ${backgroundColor} 1%, ${backgroundColor} 2%)`
+            : backgroundColor,
+          marginLeft: '1px',
+        },
+      }
+    },
+    [currentView]
+  )
 
   return (
-    <>
+    <RemoteContent error={eventError}>
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         open={errorMsg.length > 0}
@@ -320,40 +399,53 @@ const Schedule = () => {
         ></FormControlLabel>
       </Box>
 
-      <DnDCalendar
-        onView={setCurrentView}
-        view={currentView}
-        date={currentDate}
-        onNavigate={(date) => {
-          setCurrentDate(date)
-        }}
-        events={events}
-        culture={i18n.language}
-        messages={
-          t('schedule.calendarMessages', { returnObjects: true }) as Messages
-        }
-        localizer={localizer}
-        min={new Date(2000, 1, 1, 7, 0, 0)}
-        max={new Date(2000, 1, 1, 22, 0, 0)}
-        onEventDrop={onEventDrop}
-        onEventResize={onEventResize}
-        onSelectSlot={handleAddEvent}
-        onSelectEvent={handleEditEvent}
-        showMultiDayTimes={true}
-        resizable
-        selectable
-        dayLayoutAlgorithm='no-overlap'
-        draggableAccessor={(event) => (event as BookingEvent).isEditable}
-        eventPropGetter={eventStyle}
-        style={{ height: '90vh' }}
-        tooltipAccessor={(event) => (event as BookingEvent).fullTitle}
-      />
+      <Box position='relative'>
+        <DnDCalendar
+          onView={onView}
+          view={currentView}
+          date={currentDate}
+          onNavigate={onNavigate}
+          events={events}
+          // en-gb has 24h time format
+          culture={i18n.language == 'fi' ? 'fi' : 'en-gb'}
+          localizer={localizer}
+          messages={calendarOpts.messages}
+          min={calendarOpts.min}
+          max={calendarOpts.max}
+          onEventDrop={onEventDrop}
+          onEventResize={onEventResize}
+          onSelectSlot={handleAddEvent}
+          onSelectEvent={handleEditEvent}
+          showMultiDayTimes={true}
+          resizable
+          selectable
+          dayLayoutAlgorithm='no-overlap'
+          draggableAccessor={(event) => (event as BookingEvent).isEditable}
+          eventPropGetter={eventStyle}
+          style={{ height: '80vh' }}
+          tooltipAccessor={(event) => (event as BookingEvent).fullTitle}
+          className={eventLoading ? 'reloading' : undefined}
+        />
+
+        {eventLoading && (
+          <CircularProgress
+            size={40}
+            color='inherit'
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+        )}
+      </Box>
 
       <BookingEditor
         booking={editMode}
         onClose={() => setEditMode(undefined)}
       />
-    </>
+    </RemoteContent>
   )
 }
 

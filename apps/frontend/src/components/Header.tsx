@@ -45,7 +45,7 @@ const Header = (props: HeaderProps) => {
   const { t } = useTranslation()
   const location = useLocation()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-  const roles = useRoles()
+  const { hasAccess } = useRoles()
 
   // Check if the page has been scrolled
   const scrollTrigger = useScrollTrigger({
@@ -82,28 +82,15 @@ const Header = (props: HeaderProps) => {
     trackMouse: false,
   })
 
-  function hasAccess(
-    userRoles: string[] | MIKPermissions[],
+  const hasMenuAccess = (
     requiredRoles?: MIKPermissions[],
     adminOnly?: boolean
-  ): boolean {
+  ): boolean => {
     if (adminOnly === true && !sudo) {
       return false
     }
 
-    if (!requiredRoles || requiredRoles.length === 0) {
-      return true
-    }
-
-    // normalize to lowercase strings
-    const normalizedUserRoles = userRoles.map((r) => r.toString().toLowerCase())
-    const normalizedRequiredRoles = requiredRoles.map((r) => r.toLowerCase())
-
-    const res = normalizedUserRoles.some((userRole) =>
-      normalizedRequiredRoles.includes(userRole)
-    )
-
-    return res
+    return hasAccess(...(requiredRoles ?? []))
   }
 
   const drawerContent = (
@@ -129,11 +116,7 @@ const Header = (props: HeaderProps) => {
       <List>
         {menuItems
           .filter((item) =>
-            hasAccess(
-              roles.userPermissions,
-              item.requiredRoles,
-              item.adminModeOnly
-            )
+            hasMenuAccess(item.requiredRoles, item.adminModeOnly)
           )
           .map((item) => (
             <ListItem key={item.path} disablePadding>
@@ -228,11 +211,7 @@ const Header = (props: HeaderProps) => {
             <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
               {menuItems
                 .filter((item) =>
-                  hasAccess(
-                    roles.userPermissions,
-                    item.requiredRoles,
-                    item.adminModeOnly
-                  )
+                  hasMenuAccess(item.requiredRoles, item.adminModeOnly)
                 )
                 .map((item) => (
                   <Button

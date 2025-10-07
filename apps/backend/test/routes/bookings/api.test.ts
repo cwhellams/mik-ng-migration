@@ -1,0 +1,387 @@
+import 'dotenv/config'
+import express from 'express'
+import request from 'supertest'
+
+import { generateAccessToken } from '../../../src/routes/auth/token.ts'
+import bookingsRouter from '../../../src/routes/bookings/api.ts'
+import { BookingStatus, BookingType } from '../../../src/routes/bookings/models.ts'
+import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import { problemErrorHandler } from '../../../src/routes/response.ts'
+import type {
+  Booking,
+  BookingFilters,
+  BookingUpsertRequest,
+} from '../../../src/routes/bookings/models.ts'
+import dayjs from 'dayjs'
+
+const userId = 'Matti1'
+const adminMemberId = 'Pekka1'
+
+// Create an instance of the Express app
+const app = express()
+app.use(express.json())
+app.use('/bookings', bookingsRouter)
+app.use(problemErrorHandler)
+
+const userToken = generateAccessToken({
+  memberId: userId,
+  email: 'jonny.depp@mik.fi',
+  permissions: [MIKPermissions.BOOKING_USER],
+})
+
+const adminToken = generateAccessToken({
+  memberId: adminMemberId,
+  email: 'jonny.depp@mik.fi',
+  permissions: [MIKPermissions.BOOKING_ADMIN],
+})
+
+describe('GET /bookings', () => {
+  it('should return all bookings for the logged in user', async () => {
+    const response = await request(app)
+      .get('/bookings')
+      .set('Authorization', `Bearer ${userToken}`)
+      .query(<BookingFilters>{})
+
+    expect(response.status).toBe(200)
+    expect(response.body.bookings.length >= 40).toBe(true)
+  })
+
+  it('should return 200 with valid query params', async () => {
+    const response = await request(app)
+      .get('/bookings')
+      .set('Authorization', `Bearer ${userToken}`)
+      .query(<BookingFilters>{
+        from: dayjs().startOf('day').add(1, 'day').toISOString(),
+        to: dayjs().startOf('day').add(2, 'day').toISOString(),
+        'registration[]': ['OH-IHQ'],
+      })
+
+    expect(response.status).toBe(200)
+    expect(response.body.bookings).toHaveLength(1)
+  })
+
+  it('should return 400 for invalid date format', async () => {
+    const response = await request(app)
+      .get('/bookings')
+      .set('Authorization', `Bearer ${userToken}`)
+      .query({
+        from: '2025',
+      })
+
+    expect(response.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      instance: '/bookings',
+      timestamp: expect.any(String),
+      errors: [
+        {
+          code: 'invalid_string',
+          validation: 'datetime',
+          message: 'Invalid datetime',
+          path: ['from'],
+        },
+      ],
+    })
+  })
+})
+
+describe('GET /bookings/bookingId', () => {
+  it('should return booking for the logged in user', async () => {
+    const response = await request(app)
+      .get('/bookings/stl1')
+      .set('Authorization', `Bearer ${userToken}`)
+      .query({})
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({
+      bookingId: 'stl1',
+      cancelledBy: null,
+      createdAt: expect.any(String),
+      createdBy: 'Liisa1',
+      endTime: expect.any(String),
+      endTimeEpoch: expect.any(String),
+      member: {
+        firstName: expect.any(String),
+        lastName: expect.any(String),
+        phoneNumber: expect.any(String),
+      },
+      memberId: expect.any(String),
+      registration: 'OH-STL',
+      startTime: expect.any(String),
+      startTimeEpoch: expect.any(String),
+      status: 'CONFIRMED',
+      type: 'TRAINING',
+      updatedAt: expect.any(String),
+      updatedBy: 'Liisa1',
+    })
+  })
+
+  it('should return 403 for the user without booking privileges', async () => {
+    const noAccess = generateAccessToken({
+      memberId: adminMemberId,
+      email: 'jonny.depp@mik.fi',
+      permissions: [],
+    })
+
+    const response = await request(app)
+      .get('/bookings/efnu4evr')
+      .set('Authorization', `Bearer ${noAccess}`)
+      .query({})
+
+    expect(response.status).toBe(403)
+  })
+
+  it('should return 404 for unknown flight', async () => {
+    const response = await request(app)
+      .get('/bookings/noup')
+      .set('Authorization', `Bearer ${userToken}`)
+      .query({})
+
+    expect(response.status).toBe(404)
+  })
+})
+
+describe('POST /bookings', () => {
+  const startTime = dayjs().startOf('day')
+  const payload: BookingUpsertRequest = {
+    memberId: userId,
+    registration: 'OH-IHQ',
+    status: BookingStatus.CONFIRMED,
+    type: BookingType.TRAINING,
+    description: 'API booking',
+    startTimeEpoch: startTime.unix().toString(),
+    endTimeEpoch: startTime.add(15, 'minutes').unix().toString(),
+  }
+
+  it('should create a booking with valid payload, return booking_id and be deleted using the returned id', async () => {
+    const response = await request(app)
+      .post('/bookings')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(payload)
+
+    expect(response.body.bookingId).toBeDefined()
+    const id = response.body.bookingId
+    expect(id).toHaveLength(9)
+    expect(response.status).toBe(201)
+
+    const checkPost = await request(app)
+      .get(`/bookings/${id}`)
+      .set('Authorization', `Bearer ${userToken}`)
+    expect(checkPost.status).toBe(200)
+
+    const checkPostBody = checkPost.body as Booking
+    expect(checkPostBody.createdBy).toBe(userId)
+    expect(checkPostBody.updatedBy).toBe(userId)
+    expect(checkPostBody.memberId).toBe(userId)
+
+    // Cleanup
+    const delResponse = await request(app)
+      .delete(`/bookings/${id}`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .set('Accept', 'application/json')
+    expect(delResponse.status).toBe(204)
+    expect(delResponse.body).toEqual({})
+  })
+
+  it('should create a new booking over cancelled booking with the same times', async () => {
+    const response = await request(app)
+      .post('/bookings')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(payload)
+
+    expect(response.body.bookingId).toBeDefined()
+    const id = response.body.bookingId
+    expect(id).toHaveLength(9)
+    expect(response.status).toBe(201)
+
+    const duplicate = await request(app)
+      .post('/bookings')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(payload)
+
+    expect(duplicate.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      detail: 'Overlapping bookings',
+      instance: '/bookings',
+      timestamp: expect.any(String),
+    })
+
+    // Cleanup
+    const delResponse = await request(app)
+      .delete(`/bookings/${id}`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .set('Accept', 'application/json')
+    expect(delResponse.status).toBe(204)
+    expect(delResponse.body).toEqual({})
+  })
+
+  it('should allow admins to overwrite existing bookings', async () => {
+    const response = await request(app)
+      .post('/bookings')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(payload)
+
+    expect(response.body.bookingId).toBeDefined()
+    const id = response.body.bookingId
+    expect(id).toHaveLength(9)
+    expect(response.status).toBe(201)
+
+    const overwrite = await request(app)
+      .post('/bookings')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ ...payload, memberId: adminMemberId })
+    expect(overwrite.status).toBe(201)
+    expect(overwrite.body.status).toEqual(BookingStatus.CONFIRMED)
+
+    const checkOriginal = await request(app)
+      .get(`/bookings/${id}`)
+      .set('Authorization', `Bearer ${userToken}`)
+    expect(checkOriginal.status).toBe(200)
+    expect(checkOriginal.body.status).toEqual(BookingStatus.CANCELLED)
+
+    // Cleanup
+    const delAgainResponse = await request(app)
+      .delete(`/bookings/${id}`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .set('Accept', 'application/json')
+    expect(delAgainResponse.status).toBe(409)
+    expect(delAgainResponse.body).toEqual({
+      status: 409,
+      title: 'Conflict',
+      detail: 'Booking already cancelled',
+      instance: `/bookings/${id}`,
+      timestamp: expect.any(String),
+    })
+
+    const delWrongUserResponse = await request(app)
+      .delete(`/bookings/${overwrite.body.bookingId}`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .set('Accept', 'application/json')
+    expect(delWrongUserResponse.status).toBe(403)
+    expect(delWrongUserResponse.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Booking not owned by user or user has no admin rights',
+      instance: `/bookings/${overwrite.body.bookingId}`,
+      timestamp: expect.any(String),
+    })
+
+    const delAdminResponse = await request(app)
+      .delete(`/bookings/${overwrite.body.bookingId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Accept', 'application/json')
+    expect(delAdminResponse.status).toBe(204)
+    expect(delAdminResponse.body).toEqual({})
+  })
+
+  it('should return 400 for invalid payload', async () => {
+    const response = await request(app)
+      .post('/bookings')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ ...payload, registration: undefined })
+
+    expect(response.status).toBe(400)
+    expect(response.body.errors).toBeDefined()
+    expect(response.body.errors[0].message).toMatch(/Required/)
+  })
+})
+
+describe('PATCH /bookings/', () => {
+  it('should update a flight log when billable member matches token member or user has elevated role', async () => {
+    const payload: Partial<BookingUpsertRequest> = {
+      memberId: 'Antti1',
+    }
+
+    const patchResponse = await request(app)
+      .patch('/bookings/stl3')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send(payload)
+
+    const checkPatch = await request(app)
+      .get('/bookings/stl3')
+      .set('Authorization', `Bearer ${adminToken}`)
+
+    // patch returns the same as another get
+    expect(patchResponse.status).toBe(200)
+    expect(patchResponse.body).toEqual(checkPatch.body)
+
+    expect(checkPatch.status).toBe(200)
+    expect(checkPatch.body.memberId).toBe('Antti1')
+
+    const undoPayload: Partial<BookingUpsertRequest> = {
+      memberId: 'Matti1',
+    }
+    const undoResponse = await request(app)
+      .patch('/bookings/stl3')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send(undoPayload)
+
+    const checkUndo = await request(app)
+      .get('/bookings/stl3')
+      .set('Authorization', `Bearer ${adminToken}`)
+
+    expect(undoResponse.status).toBe(200)
+    expect(undoResponse.body).toEqual(checkUndo.body)
+
+    expect(checkUndo.status).toBe(200)
+    expect(checkUndo.body.memberId).toBe('Matti1')
+  })
+  it('should return a 401 if an invalid JWT token is passed', async () => {
+    const payload: Partial<Booking> = {
+      memberId: 'Liisa1',
+    }
+
+    const invalidToken = 'THIS WILL NOT WORK'
+
+    const response = await request(app)
+      .patch('/bookings/efnu4evr')
+      .set('Authorization', `Bearer ${invalidToken}`)
+      .send(payload)
+
+    expect(response.status).toBe(401)
+  })
+  it('should return a 403 if the member id does not match token ID for a USER', async () => {
+    const payload: Partial<Booking> = {
+      memberId: 'Liisa1',
+    }
+
+    const invalidToken = generateAccessToken({
+      memberId: 'Liisa1',
+      email: 'test@mik.fi',
+      permissions: [MIKPermissions.BOOKING_USER],
+    })
+
+    const response = await request(app)
+      .patch('/bookings/stl2')
+      .set('Authorization', `Bearer ${invalidToken}`)
+      .send(payload)
+
+    expect(response.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Booking not owned by user or user has no admin rights',
+      instance: '/bookings/stl2',
+      timestamp: expect.any(String),
+    })
+  })
+  it('should return a 500 if trying to patch time components to be invalid', async () => {
+    const payload: Partial<BookingUpsertRequest> = {
+      endTimeEpoch: '0',
+    }
+
+    const response = await request(app)
+      .patch('/bookings/stl1')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send(payload)
+
+    expect(response.body).toEqual({
+      status: 500,
+      title: 'Internal Server Error',
+      detail:
+        'new row for relation \"bookings\" violates check constraint \"check_booking_time_sequence\"',
+      instance: '/bookings/stl1',
+      timestamp: expect.any(String),
+    })
+  })
+})

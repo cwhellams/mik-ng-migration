@@ -15,11 +15,16 @@ export const menuItems: MenuItem[] = [
     label: 'Schedule',
     path: '/schedule',
     translationKey: 'header.schedule',
+    requiredRoles: [MIKPermissions.BOOKING_USER, MIKPermissions.BOOKING_ADMIN],
   },
   {
     label: 'Flight Logs',
     path: '/flight-logs',
     translationKey: 'header.flightLogs',
+    requiredRoles: [
+      MIKPermissions.FLIGHTLOG_USER,
+      MIKPermissions.FLIGHTLOG_ADMIN,
+    ],
   },
   {
     label: 'Mass & Balance',
@@ -30,6 +35,10 @@ export const menuItems: MenuItem[] = [
     label: 'Aircraft',
     path: '/aircrafts',
     translationKey: 'header.aircrafts',
+    requiredRoles: [
+      MIKPermissions.AIRCRAFT_USER,
+      MIKPermissions.AIRCRAFT_ADMIN,
+    ],
   },
   {
     label: 'Billing',

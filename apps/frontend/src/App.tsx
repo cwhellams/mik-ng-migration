@@ -67,7 +67,7 @@ function App() {
           {/* Main Layout with header */}
           <Route element={<MainLayout />}>
             <Route path='/' element={<Dashboard />} />
-            <Route path='/schedule' element={<Schedule />} />
+            <Route path='/schedule/:bookingId?' element={<Schedule />} />
             <Route path='/aircrafts' element={<Aircrafts />} />
             <Route index path='/members/roles' element={<Roles />} />
             <Route index path='/billing' element={<Billing />} />

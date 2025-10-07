@@ -16,13 +16,6 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
 } from '@mui/material'
 import useApi, { MutateMethods } from '../../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
@@ -45,6 +38,7 @@ import { FormTitle } from '../../../components/FormTitle'
 import { FormField } from '../../../components/FormField'
 import { useRoles } from '../../../hooks/useRoles'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
+import { BookingTable } from './BookingTable'
 
 export const BookingEditor = ({
   booking,
@@ -71,6 +65,7 @@ export const BookingEditor = ({
     {
       url: 'v1/aircrafts',
       params: { activeOnly: true },
+      skipFetch: !booking,
     },
     {
       revalidateOnFocus: false,
@@ -97,6 +92,7 @@ export const BookingEditor = ({
 
   const { data: overlaps } = useApi<BookingListResponse>({
     url: 'v1/bookings',
+    skipFetch: !booking,
     params: {
       'registration[]': [formData.registration],
       exclusiveStartEnd: true,
@@ -170,7 +166,7 @@ export const BookingEditor = ({
           <Grid size={{ xs: 12, sm: 6 }}>
             <DateTimePicker
               label={t('schedule.startDate')}
-              readOnly={isReadonly}
+              disabled={isReadonly}
               value={startDate}
               format='DD.MM.YYYY HH:mm'
               minDateTime={minDate}
@@ -195,7 +191,7 @@ export const BookingEditor = ({
           <Grid size={{ xs: 12, sm: 6 }}>
             <DateTimePicker
               label={t('schedule.endDate')}
-              readOnly={isReadonly}
+              disabled={isReadonly}
               value={endDate}
               format='DD.MM.YYYY HH:mm'
               minDateTime={startDate}
@@ -233,7 +229,7 @@ export const BookingEditor = ({
 
             <Select
               labelId='registration-label'
-              readOnly={isReadonly}
+              disabled={isReadonly}
               value={formData.registration ?? ''}
               label={t('schedule.registration')}
               onChange={({ target }) =>
@@ -253,7 +249,7 @@ export const BookingEditor = ({
 
             <Select
               labelId='type-label'
-              readOnly={isReadonly}
+              disabled={isReadonly}
               value={formData.type ?? ''}
               label={t('schedule.type')}
               onChange={({ target }) => handleChange('type', target.value)}
@@ -278,6 +274,7 @@ export const BookingEditor = ({
             multiline
             rows={3}
             label={t('schedule.description')}
+            disabled={isReadonly}
             value={formData.description || ''}
             onChange={({ target }) => handleChange('description', target.value)}
           />
@@ -292,42 +289,12 @@ export const BookingEditor = ({
         <FormTitle title={t('schedule.overlaps')} icon='mdi:shield-alert' />
 
         <Grid size={12}>
-          <TableContainer component={Paper}>
-            <Table size={isXs ? 'small' : 'medium'}>
-              <TableHead sx={{ backgroundColor: theme.palette.grey[200] }}>
-                <TableRow>
-                  <TableCell>
-                    <strong>{t('schedule.calendarMessages.date')}</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>{t('schedule.calendarMessages.time')}</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>{t('schedule.calendarMessages.event')}</strong>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {overlappingBookings.map((overlap) => {
-                  const start = dayjs(overlap.startTime)
-                  const end = dayjs(overlap.endTime)
-
-                  return (
-                    <TableRow key={overlap.bookingId}>
-                      <TableCell>{start.format('DD.MM.')}</TableCell>
-                      <TableCell>
-                        {start.format('HH:mm')} -{' '}
-                        {start.diff(end, 'day') == 0
-                          ? end.format('HH:mm')
-                          : end.format('DD.MM. HH:mm')}
-                      </TableCell>
-                      <TableCell>{`${overlap.registration} ${overlap.member?.firstName} ${overlap.member?.lastName}`}</TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <BookingTable
+            bookings={overlappingBookings}
+            eventDescription={(booking) =>
+              `${booking.registration} ${booking.member?.firstName} ${booking.member?.lastName}`
+            }
+          />
         </Grid>
       </CardContent>
     </Card>

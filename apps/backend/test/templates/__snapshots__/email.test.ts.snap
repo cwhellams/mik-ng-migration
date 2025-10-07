@@ -1,8 +1,114 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Booking cancellation template tests bookingCancellationEmailBody 1`] = `
+"<p>Hei,</p>
+<p>Varauksesi koneelle OH-IHQ 15.11. 00:13 - 15.11. 01:13 on peruttu.</p>
+<p>Korvaava varaus on tehty ajalle 13.09. 15:26 - 15.01. 11:00.
+Syy MAINTENANCE. Varauksen tekijä Admin User.</p>
+<p>Tarkistele varauskalenteria sivustolla <a href="http://localhost:5173/schedule?day=2023-11-15">http://localhost:5173/schedule?day=2023-11-15</a>.</p>
+"
+`;
+
+exports[`Booking cancellation template tests bookingCancellationEmailBody 2`] = `
+"<p>Hello, </p>
+<p>Your booking for plane OH-IHQ 15.11. 00:13 - 15.11. 01:13 has been cancelled.</p>
+<p>A replacement booking has been made for the period 13.09. 15:26 - 15.01. 11:00.
+Reason: MAINTENANCE. Booking created by: Admin User.</p>
+<p>Check the booking calendar at <a href="http://localhost:5173/schedule?day=2023-11-15">http://localhost:5173/schedule?day=2023-11-15</a>.</p>
+"
+`;
+
+exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <h2 style="text-align: center; color: #003366;">Varauksesi on peruttu</h2>
+
+      <div style="color: #333333">
+        
+      <p>Hei,</p>
+
+      <p>
+        Varauksesi koneelle OH-IHQ 15.11. 00:13 - 15.11. 01:13 on peruttu.
+      </p>
+
+      <p>
+        Korvaava varaus on tehty ajalle 13.09. 15:26 - 15.01. 11:00.
+        Syy MAINTENANCE. Varauksen tekijä Admin User.
+      </p>
+
+      <div style="text-align: center; margin: 24px 0;">
+        
+  <a href="http://localhost:5173/schedule?day=2023-11-15" style="
+    background-color: #003366;
+    color: #ffffff;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 6px;
+    display: inline-block;
+    font-weight: bold;
+  ">Tarkistele varauskalenteria</a>
+      </div>
+      
+      </div>
+
+      
+    </div>
+  </div>"
+`;
+
+exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 2`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <h2 style="text-align: center; color: #003366;">Your booking is cancelled</h2>
+
+      <div style="color: #333333">
+        
+
+      <p>Hello,</p>
+
+      <p>
+        Your booking for plane OH-IHQ 15.11. 00:13 - 15.11. 01:13 has been cancelled.
+      </p>
+
+      <p>
+        A replacement booking has been made for the period
+        13.09. 15:26 - 15.01. 11:00.
+        Reason: MAINTENANCE. Booking created by: Admin User.
+      </p>
+
+      <div style="text-align: center; margin: 24px 0;">
+        
+  <a href="http://localhost:5173/schedule?day=2023-11-15" style="
+    background-color: #003366;
+    color: #ffffff;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 6px;
+    display: inline-block;
+    font-weight: bold;
+  ">Check the booking calendar</a>
+      </div>
+      
+      </div>
+
+      
+    </div>
+  </div>"
+`;
+
 exports[`Login Email template tests loginEmailBodyHtml for lang: en 1`] = `
 "
-  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
     <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
       <div style="text-align: center; margin-bottom: 24px;">
         <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
@@ -10,45 +116,53 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: en 1`] = `
 
       <h2 style="text-align: center; color: #003366;">Login Confirmation</h2>
 
-      <p style="color: #333333;">Hello,</p>
+      <div style="color: #333333">
+        
 
-      <p style="color: #333333;">
+      <p>Hello,</p>
+
+      <p>
         You are attempting to log in to the <strong>MIK website</strong>. Please confirm your login by clicking the button below:
       </p>
 
       <div style="text-align: center; margin: 24px 0;">
-        <a href="https://example.com" style="
-          background-color: #003366;
-          color: #ffffff;
-          padding: 12px 24px;
-          text-decoration: none;
-          border-radius: 6px;
-          display: inline-block;
-          font-weight: bold;
-        ">Confirm Login</a>
+        
+  <a href="https://example.com" style="
+    background-color: #003366;
+    color: #ffffff;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 6px;
+    display: inline-block;
+    font-weight: bold;
+  ">Confirm Login</a>
       </div>
 
-      <p style="color: #333333;">
+      <p>
         If the button above doesn't work, please copy and paste the following link into your browser:
       </p>
-      <p style="word-break: break-all; color: #333333;"><a href="https://example.com">https://example.com</a></p>
+      <p style="word-break: break-all;"><a href="https://example.com">https://example.com</a></p>
 
-      <p style="color: #333333;">Your verification code is:</p>
+      <p>Your verification code is:</p>
       <p style="font-size: 1.25em; font-weight: bold; color: #003366;">12345</p>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+      
+      </div>
+
+      
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
 
       <p style="font-size: 0.9em; color: #666666;">
         If you didn’t request this email, you can safely ignore it.
       </p>
+        
     </div>
-  </div>
-"
+  </div>"
 `;
 
 exports[`Login Email template tests loginEmailBodyHtml for lang: fi 1`] = `
 "
-  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
     <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
       <div style="text-align: center; margin-bottom: 24px;">
         <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
@@ -56,40 +170,46 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: fi 1`] = `
 
       <h2 style="text-align: center; color: #003366;">Kirjautumisen vahvistus</h2>
 
-      <p style="color: #333333;">Hei,</p>
+      <div style="color: #333333">
+        
+      <p>Hei,</p>
 
-      <p style="color: #333333;">
+      <p>
         Olet kirjautumassa <strong>MIK-verkkosivustolle</strong>. Vahvista kirjautumisesi napsauttamalla alla olevaa painiketta:
       </p>
 
       <div style="text-align: center; margin: 24px 0;">
-        <a href="https://example.com" style="
-          background-color: #003366;
-          color: #ffffff;
-          padding: 12px 24px;
-          text-decoration: none;
-          border-radius: 6px;
-          display: inline-block;
-          font-weight: bold;
-        ">Vahvista kirjautuminen</a>
+        
+  <a href="https://example.com" style="
+    background-color: #003366;
+    color: #ffffff;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 6px;
+    display: inline-block;
+    font-weight: bold;
+  ">Vahvista kirjautuminen</a>
       </div>
 
-      <p style="color: #333333;">
+      <p>
         Jos painike ei toimi, kopioi ja liitä seuraava linkki selaimeesi:
       </p>
-      <p style="word-break: break-all; color: #333333;"><a href="https://example.com">https://example.com</a></p>
+      <p style="word-break: break-all"><a href="https://example.com">https://example.com</a></p>
 
-      <p style="color: #333333;">Vahvistuskoodisi on:</p>
+      <p>Vahvistuskoodisi on:</p>
       <p style="font-size: 1.25em; font-weight: bold; color: #003366;">12345</p>
+      
+      </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+      
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
 
       <p style="font-size: 0.9em; color: #666666;">
         Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.
       </p>
+        
     </div>
-  </div>
-"
+  </div>"
 `;
 
 exports[`Login Email template tests loginEmailPlainText 1`] = `
@@ -128,90 +248,99 @@ exports[`Register Email template tests registerEmailBody 2`] = `
 
 exports[`Register Email template tests registerEmailBodyHtml 1`] = `
 "
-  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
     <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
       <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://mik-intranet-846xw.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
       </div>
 
+      <h2 style="text-align: center; color: #003366;">Hakemuksen vahvistus</h2>
 
-      <h2 style="text-align: center; color: #003366;">Registration Confirmation</h2>
+      <div style="color: #333333">
+        
+      <p>Hei Tester1,</p>
 
-      <p style="color: #333333;">Hei Tester1,</p>
-
-      <p style="color: #333333;">
+      <p>
         kiitos hakemuksestasi Malmin Ilmailukerho ry:n jäseneksi. Käsittelemme hakemuksesi pian ja olemme sinuun yhteydessä.
         Sillä välin, voit vahvistaa sähköpostiosoitteesi klikkaamalla alla olevaa linkkiä:
       </p>
 
       <div style="text-align: center; margin: 24px 0;">
-        <a href="https://example.com" style="
-          background-color: #003366;
-          color: #ffffff;
-          padding: 12px 24px;
-          text-decoration: none;
-          border-radius: 6px;
-          display: inline-block;
-          font-weight: bold;
-        ">Vahvista sähköpostiosoite</a>
+        
+  <a href="https://example.com" style="
+    background-color: #003366;
+    color: #ffffff;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 6px;
+    display: inline-block;
+    font-weight: bold;
+  ">Vahvista sähköpostiosoite</a>
       </div>
 
-      <p style="color: #333333;">
+      <p>
         Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:
       </p>
-      <p style="word-break: break-all; color: #333333;"><a href="https://example.com">https://example.com</a></p>
+      <p style="word-break: break-all;"><a href="https://example.com">https://example.com</a></p>
+      </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+      
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
 
       <p style="font-size: 0.9em; color: #666666;">
-        If you didn’t request this email, you can safely ignore it.
+        Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.
       </p>
+        
     </div>
-  </div>
-"
+  </div>"
 `;
 
 exports[`Register Email template tests registerEmailBodyHtml 2`] = `
 "
-  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
     <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
       <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://mik-intranet-846xw.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
       </div>
-
 
       <h2 style="text-align: center; color: #003366;">Registration Confirmation</h2>
 
-      <p style="color: #333333;">Hello Tester1,</p>
+      <div style="color: #333333">
+        
 
-      <p style="color: #333333;">
+      <p>Hello Tester1,</p>
+
+      <p>
         Thank you for applying to become a member of Malmin Ilmailukerho ry. We will review your application as soon as possible and get back to you.
         In the meantime, you can confirm your email address by clicking the link below:
       </p>
 
       <div style="text-align: center; margin: 24px 0;">
-        <a href="https://example.com" style="
-          background-color: #003366;
-          color: #ffffff;
-          padding: 12px 24px;
-          text-decoration: none;
-          border-radius: 6px;
-          display: inline-block;
-          font-weight: bold;
-        ">Confirm Email Address</a>
+        
+  <a href="https://example.com" style="
+    background-color: #003366;
+    color: #ffffff;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 6px;
+    display: inline-block;
+    font-weight: bold;
+  ">Confirm Email Address</a>
       </div>
 
-      <p style="color: #333333;">
+      <p>
         If the button above doesn't work, please copy and paste the following link into your browser:
       </p>
       <p style="word-break: break-all; color: #333333;"><a href="https://example.com">https://example.com</a></p>
+      </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+      
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
 
       <p style="font-size: 0.9em; color: #666666;">
         If you didn’t request this email, you can safely ignore it.
       </p>
+        
     </div>
-  </div>
-"
+  </div>"
 `;

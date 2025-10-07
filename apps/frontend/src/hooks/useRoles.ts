@@ -9,19 +9,17 @@ import { useThemeMode } from '../theme/ThemeContext'
 
 export function useRoles(): {
   me: ReturnType<typeof useMe>['me']
+  hasAccess: (...permission: MIKPermissions[]) => boolean
   isLoading: boolean
-  isMember: boolean
   isMembersAdmin: boolean
   isAircraftAdmin: boolean
   isFlightLogAdmin: boolean
   isInvoicingAdmin: boolean
-  isAccessCodesUser: boolean
   isAccessCodesAdmin: boolean
   isBookingAdmin: boolean
   roles: MemberRolesResponse['roles']
   permissions: MemberRolesResponse['permissions']
   sudoers: boolean
-  userPermissions: Array<MIKPermissions>
   error: Problem | undefined
 } {
   const { me, isLoading } = useMe()
@@ -40,34 +38,30 @@ export function useRoles(): {
     }
   )
 
-  const withPermission = (permission: MIKPermissions) =>
-    (sudo &&
-      me?.roles.some((role) => role.permissions?.includes(permission))) ??
-    false
+  const myPermissions =
+    me?.roles.flatMap((r) => r.permissions).filter((r) => !!r) ?? []
+
+  const hasAccess = (...permissions: MIKPermissions[]) =>
+    permissions.length === 0 ||
+    permissions.some((p) => myPermissions.includes(p))
+
+  const hasSudoAccess = (permission: MIKPermissions) =>
+    sudo ? hasAccess(permission) : false
 
   return {
     me,
+    hasAccess,
     isLoading,
-    isMember: withPermission(MIKPermissions.MEMBER),
-    isMembersAdmin: withPermission(MIKPermissions.MEMBER_ADMIN),
-    isAircraftAdmin: withPermission(MIKPermissions.AIRCRAFT_ADMIN),
-    isFlightLogAdmin: withPermission(MIKPermissions.FLIGHTLOG_ADMIN),
-    isInvoicingAdmin: withPermission(MIKPermissions.INVOICING_ADMIN),
-    isAccessCodesUser: withPermission(MIKPermissions.ACCESS_CODES_USER),
-    isAccessCodesAdmin: withPermission(MIKPermissions.ACCESS_CODES_ADMIN),
-    isBookingAdmin: withPermission(MIKPermissions.BOOKING_ADMIN),
+    isMembersAdmin: hasSudoAccess(MIKPermissions.MEMBER_ADMIN),
+    isAircraftAdmin: hasSudoAccess(MIKPermissions.AIRCRAFT_ADMIN),
+    isFlightLogAdmin: hasSudoAccess(MIKPermissions.FLIGHTLOG_ADMIN),
+    isInvoicingAdmin: hasSudoAccess(MIKPermissions.INVOICING_ADMIN),
+    isAccessCodesAdmin: hasSudoAccess(MIKPermissions.ACCESS_CODES_ADMIN),
+    isBookingAdmin: hasSudoAccess(MIKPermissions.BOOKING_ADMIN),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
     // user is in sudoers file if they have any admin permission
-    sudoers:
-      me?.roles.some((role) =>
-        role.permissions?.some((p) => p.endsWith('.admin'))
-      ) ?? false,
-    userPermissions:
-      me?.roles
-        .flatMap((r) => r.permissions)
-        .filter(Boolean)
-        .map((p) => p as MIKPermissions) ?? [],
+    sudoers: myPermissions.some((p) => p.endsWith('.admin')),
     error,
   }
 }
