@@ -11,6 +11,7 @@ import {
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import { flightPayload } from './fixtures.ts'
+import { audit } from '../../util/helpers.ts'
 
 const test_member_id = 'Matti1'
 const test_member_id2 = 'Sanna1'
@@ -24,6 +25,12 @@ app.use(problemErrorHandler)
 
 const mattiToken = generateAccessToken({
   memberId: test_member_id,
+  email: 'jonny.depp@mik.fi',
+  permissions: [MIKPermissions.FLIGHTLOG_USER],
+})
+
+const jukkaToken = generateAccessToken({
+  memberId: 'Jukka1',
   email: 'jonny.depp@mik.fi',
   permissions: [MIKPermissions.FLIGHTLOG_USER],
 })
@@ -223,6 +230,7 @@ describe('GET /flight-log/flightid', () => {
     expect(response.body).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
+      updatedBy: expect.any(String),
     })
   })
 
@@ -457,6 +465,112 @@ describe('PATCH /flight-log/', () => {
       ],
     })
   })
+
+  it('should prevent member updating admin only fields', async () => {
+    const original = (
+      await request(app).get('/flight-log/bLwnAstr0').set('Authorization', `Bearer ${mattiToken}`)
+    ).body
+
+    const patchResponse = await request(app)
+      .patch('/flight-log/bLwnAstr0')
+      .set('Authorization', `Bearer ${mattiToken}`)
+      .send({
+        ajlbBlankRowsBefore: 999,
+        ajlbSeqNo: 999,
+        billableMemberId: 'NOT-ME',
+        isBillableFlight: false,
+        nonBillingReason: 'NOT-ME',
+      })
+
+    expect(patchResponse.status).toBe(200)
+    expect(patchResponse.body).toEqual({
+      ...original,
+      ...audit('Matti1'),
+    })
+
+    const checkPatch = await request(app)
+      .get('/flight-log/bLwnAstr0')
+      .set('Authorization', `Bearer ${mattiToken}`)
+
+    // patch returns the same as another get
+    expect(checkPatch.status).toBe(200)
+    expect(checkPatch.body).toEqual(patchResponse.body)
+  })
+
+  const updateAndRevertFlight = async (
+    token: string,
+    userId: string,
+    flightId: string,
+    validPatch: Partial<FlightLogUpsertRequest>,
+  ) => {
+    const original = (
+      await request(app).get(`/flight-log/${flightId}`).set('Authorization', `Bearer ${token}`)
+    ).body
+
+    const patchResponse = await request(app)
+      .patch(`/flight-log/${flightId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(flightPayload)
+
+    expect(patchResponse.status).toBe(200)
+    expect(patchResponse.body).toEqual({
+      ...original,
+      ...audit(userId),
+      ...validPatch,
+    })
+
+    const checkPatch = await request(app)
+      .get(`/flight-log/${flightId}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    // patch returns the same as another get
+    expect(checkPatch.status).toBe(200)
+    expect(checkPatch.body).toEqual(patchResponse.body)
+
+    const undoResponse = await request(app)
+      .patch(`/flight-log/${flightId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(original)
+
+    const checkUndo = await request(app)
+      .get(`/flight-log/${flightId}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(undoResponse.status).toBe(200)
+    expect(undoResponse.body).toEqual(checkUndo.body)
+
+    expect(checkUndo.status).toBe(200)
+    expect(checkUndo.body).toEqual({
+      ...original,
+      ...audit(userId),
+    })
+  }
+
+  it('should lock fields for admin after flight is validated', async () =>
+    updateAndRevertFlight(adminToken, 'Matti1', 'da40tndra', {
+      billableMemberId: flightPayload.billableMemberId,
+      billingRemarks: flightPayload.billingRemarks,
+      isBillableFlight: flightPayload.isBillableFlight,
+      nonBillingReason: flightPayload.nonBillingReason,
+      personalRemarks: flightPayload.personalRemarks,
+      privOrComFlight: flightPayload.privOrComFlight,
+    }))
+
+  it('should lock fields for member after flight is validated', async () =>
+    updateAndRevertFlight(jukkaToken, 'Jukka1', 'da40tndra', {
+      billingRemarks: flightPayload.billingRemarks,
+      personalRemarks: flightPayload.personalRemarks,
+    }))
+
+  it('should lock fields for admin after flight is billed', async () =>
+    updateAndRevertFlight(adminToken, 'Matti1', 'efnu4evr', {
+      personalRemarks: flightPayload.personalRemarks,
+    }))
+
+  it('should lock fields for member after flight is billed', async () =>
+    updateAndRevertFlight(jukkaToken, 'Jukka1', 'efnu4evr', {
+      personalRemarks: flightPayload.personalRemarks,
+    }))
 })
 
 describe('POST /flight-log/validate', () => {
@@ -510,7 +624,7 @@ describe('POST /flight-log/validate', () => {
       title: 'Bad Request',
       instance: '/flight-log/da40tndra/validate',
       timestamp: expect.any(String),
-      detail: 'Flight already billed and read-only',
+      detail: 'Flight log status VALIDATED',
     })
   })
 
@@ -531,14 +645,14 @@ describe('POST /flight-log/validate', () => {
 
   it('should return a 400 if there are later validated flights', async () => {
     const response = await request(app)
-      .post('/flight-log/mass1/validate')
+      .post('/flight-log/mass100/validate')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ revert: true })
 
     expect(response.body).toEqual({
       status: 400,
       title: 'Bad Request',
-      instance: '/flight-log/mass1/validate',
+      instance: '/flight-log/mass100/validate',
       timestamp: expect.any(String),
       detail: 'All later flights must be first reverted, revert mass192 first',
     })
@@ -597,7 +711,7 @@ describe('DELETE /flight-log', () => {
     })
   })
 
-  it('should return 400 when flight has been billed', async () => {
+  it('should return 400 when flight has been validated', async () => {
     const response = await request(app)
       .delete('/flight-log/da40tndra')
       .set('Authorization', `Bearer ${adminToken}`)
@@ -605,7 +719,7 @@ describe('DELETE /flight-log', () => {
     expect(response.body).toEqual({
       status: 400,
       title: 'Bad Request',
-      detail: 'Flight already billed and read-only',
+      detail: 'Flight log in status VALIDATED and cannot be deleted',
       instance: '/flight-log/da40tndra',
       timestamp: expect.any(String),
     })

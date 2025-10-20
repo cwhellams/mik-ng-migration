@@ -67,7 +67,7 @@ INSERT INTO flight.logs (
     NULL,
     NULL,
     NULL,
-    TRUE
+    (select is_training_program_pilot from member.register where member_id = 'Matti1')
 ),
 -- Record 2
 (
@@ -91,7 +91,7 @@ INSERT INTO flight.logs (
     6118*60+40,
     81,
     1,
-    FALSE
+    (select is_training_program_pilot from member.register where member_id = 'Jukka1')
 ),
 -- Record 3
 (
@@ -124,7 +124,7 @@ INSERT INTO flight.logs (
     NULL,
     NULL,
     NULL,
-    FALSE
+    (select is_training_program_pilot from member.register where member_id = 'Matti1')
 ),
 -- Record 4
 (
@@ -148,7 +148,7 @@ INSERT INTO flight.logs (
     5230*60+10,
     1,
     1,
-    TRUE
+    (select is_training_program_pilot from member.register where member_id = 'Jukka1')
 ),
 -- Record 5 (Cross-day flight)
 (
@@ -175,5 +175,5 @@ INSERT INTO flight.logs (
     NULL,
     NULL,
     NULL,
-    FALSE
+    (select is_training_program_pilot from member.register where member_id = 'Sanna1')
 );

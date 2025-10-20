@@ -13,9 +13,10 @@ interface Props {
   control: Control<FlightLogUpsertRequest>
   seats: number
   crew: (string | null)[]
+  disabled?: boolean
 }
 
-export const PersonsOnBoard = ({ control, seats, crew }: Props) => {
+export const PersonsOnBoard = ({ control, seats, crew, disabled }: Props) => {
   const { t } = useTranslation()
 
   // number of crew members (pic not included)
@@ -32,6 +33,7 @@ export const PersonsOnBoard = ({ control, seats, crew }: Props) => {
           </Typography>
           <ToggleButtonGroup
             {...field}
+            disabled={disabled}
             value={field.value?.toString() ?? ''}
             exclusive
             onChange={(_, value) => field.onChange(Number(value))}

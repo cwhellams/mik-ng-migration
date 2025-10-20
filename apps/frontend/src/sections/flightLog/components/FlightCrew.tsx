@@ -31,7 +31,7 @@ interface FlightCrewProps {
   maximumCrewCount: number
   register: UseFormRegister<FlightLogUpsertRequest>
   control: Control<FlightLogUpsertRequest>
-  setValue: UseFormSetValue<FlightLogUpsertRequest>
+  setValue?: UseFormSetValue<FlightLogUpsertRequest>
   watch: UseFormWatch<FlightLogUpsertRequest>
 }
 
@@ -59,6 +59,8 @@ const FlightCrew = ({
   watch,
 }: FlightCrewProps) => {
   const { t } = useTranslation()
+
+  const isEditable = !!setValue
 
   // crew member ids currently in use
   const crewMembers = watch([
@@ -88,8 +90,8 @@ const FlightCrew = ({
 
   const cleanCrew = useCallback(
     (slot: CrewSlot) => {
-      setValue(`${slot}MemberId` as keyof FlightLogUpsertRequest, null)
-      setValue(`${slot}Role` as keyof FlightLogUpsertRequest, null)
+      setValue?.(`${slot}MemberId` as keyof FlightLogUpsertRequest, null)
+      setValue?.(`${slot}Role` as keyof FlightLogUpsertRequest, null)
     },
     [setValue]
   )
@@ -174,7 +176,7 @@ const FlightCrew = ({
 
     if (isSinglePilotFlight) {
       if (picRole !== 'PIC') {
-        setValue('picRole', 'PIC')
+        setValue?.('picRole', 'PIC')
       }
       if (crewCount > 1) {
         setCrewCount(1)
@@ -190,7 +192,7 @@ const FlightCrew = ({
         // PIC is not valid role for multi-pilot flights
         const pic = members.find((m) => m.value === crewMembers[0])
         if (pic) {
-          setValue('picRole', getDefaultMultiRole(pic))
+          setValue?.('picRole', getDefaultMultiRole(pic))
         }
       }
 
@@ -202,7 +204,7 @@ const FlightCrew = ({
       const pob = watch('personsOnBoard')
       if (pob < crewCount) {
         // if persons on board is less than crew count, set it to crew count
-        setValue('personsOnBoard', crewCount)
+        setValue?.('personsOnBoard', crewCount)
       }
     }
   }, [
@@ -261,6 +263,7 @@ const FlightCrew = ({
                   rules={{ required: true }}
                   render={({ field: { onChange, value } }) => (
                     <Autocomplete
+                      disabled={!isEditable}
                       options={members.filter((m) => {
                         // do not allow duplicates
                         const atIndex = crewMembers.findIndex(
@@ -293,7 +296,7 @@ const FlightCrew = ({
                           // based on selected crew member
 
                           const defaultRole = getDefaultMultiRole(crew)
-                          setValue(crewRole, defaultRole)
+                          setValue?.(crewRole, defaultRole)
 
                           if (
                             slot == 'pic' &&
@@ -304,8 +307,8 @@ const FlightCrew = ({
                               setCrewCount(2)
                             }
                             if (!crewMembers[1]) {
-                              setValue('crew2MemberId', me?.memberId ?? '')
-                              setValue('crew2Role', 'STU')
+                              setValue?.('crew2MemberId', me?.memberId ?? '')
+                              setValue?.('crew2Role', 'STU')
                             }
                           }
                         }
@@ -326,6 +329,7 @@ const FlightCrew = ({
                           {...field}
                           value={field.value || ''}
                           label={t('flightLog.duty')}
+                          disabled={!isEditable}
                         >
                           {CREW_ROLES.map((type) => (
                             <MenuItem key={type.value} value={type.value}>
@@ -355,6 +359,7 @@ const FlightCrew = ({
                   color='error'
                   onClick={() => handleRemoveCrew(slot)}
                   sx={{ minWidth: 'auto', p: 1 }}
+                  disabled={!isEditable}
                 >
                   <Icon icon='mdi:close' />
                 </Button>

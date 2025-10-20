@@ -9,11 +9,17 @@ import useApi from '../../../hooks/useApi'
 
 interface AirfieldsProps {
   control: Control<FlightLogUpsertRequest>
+  disabled?: boolean
   name: keyof FlightLogUpsertRequest
   error?: GlobalError
 }
 
-export const Airfields = ({ control, name, error }: AirfieldsProps) => {
+export const Airfields = ({
+  control,
+  disabled,
+  name,
+  error,
+}: AirfieldsProps) => {
   const { data } = useApi<AirfieldListResponse>(
     {
       url: 'v1/flight-logs/airfields',
@@ -38,6 +44,7 @@ export const Airfields = ({ control, name, error }: AirfieldsProps) => {
       render={({ field: { onChange, value } }) => (
         <Autocomplete
           options={airfields}
+          disabled={disabled}
           value={airfields.find((airfield) => airfield.ident === value) ?? null}
           getOptionLabel={(option) => `${option.ident}: ${option.name}`}
           renderInput={(params) => (

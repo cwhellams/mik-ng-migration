@@ -4,7 +4,7 @@ export const flightPayload: FlightLogUpsertRequest = {
   aircraftRegistration: 'OH-STL',
   arrivalAirport: 'EFHK',
   billingRemarks: 'N/A',
-  picMemberId: 'memberId',
+  picMemberId: 'Sanna1',
   picRole: 'FI',
   crew2MemberId: null,
   crew2Role: null,
@@ -35,6 +35,6 @@ export const flightPayload: FlightLogUpsertRequest = {
   ajlbBlankRowsBefore: 0,
   ajlbSeqNo: 1,
   billableMemberId: 'Sanna1',
-  isBillableFlight: true,
-  nonBillingReason: null,
+  isBillableFlight: false,
+  nonBillingReason: 'N/A',
 }

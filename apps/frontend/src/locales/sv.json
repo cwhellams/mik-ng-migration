@@ -396,7 +396,9 @@
       "new": "Väntar på validering",
       "validated": "Flygtider validerade och synkroniserade",
       "invoiced": "Faktura skickad",
-      "paid": "Faktura betald"
+      "paid": "Faktura betald",
+      "unvalidate": "Avvalidera",
+      "validate": "Validera"
     },
     "logbooks": {
       "title": "Loggböcker",
@@ -425,6 +427,7 @@
       "validTo": "Giltig till",
       "rowsPerPage": "Rader per sida",
       "noOfPages": "Antal sidor",
+      "startPage": "Start sida",
       "pagesInUse": "Sidor i bruk",
       "flightTimeAtStart": "Tid vid start",
       "unverifiedFlights": "Overifierade flyg",

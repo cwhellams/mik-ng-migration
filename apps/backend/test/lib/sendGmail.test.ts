@@ -45,6 +45,7 @@ describe('sendEmail', () => {
       ...originalEnv,
       SMTP_LOGIN: 'test@example.com',
       SMTP_PASSWORD: 'password123',
+      DISABLE_EMAIL_SENDING: undefined,
     }
   })
 

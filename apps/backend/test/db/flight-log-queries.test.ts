@@ -181,7 +181,7 @@ describe('Db insert tests', () => {
 
     //cleanup
     const delRowcount = await deleteFlightLog(flightId)
-    expect(delRowcount).toEqual(1n)
+    expect(delRowcount).toEqual(true)
   })
 })
 
@@ -204,7 +204,7 @@ describe('Db update tests', () => {
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     }
     const res = await updateFlightLog(flightId, data, user)
-    expect(res).toEqual(1n)
+    expect(res).toEqual(true)
 
     const result = await getFlightLog(flightId)
     expect(result?.incidentOrObservations).toEqual(testObs)
@@ -233,7 +233,7 @@ describe('Db update status tests', () => {
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     }
     const res = await updateFlightLogStatus(flightId, FlightLogStatus.VALIDATED, {}, user)
-    expect(res).toEqual(1n)
+    expect(res).toEqual(true)
 
     const result = await getFlightLog(flightId)
     expect(result?.acTotalFlightTime).toEqual('4783:20')
@@ -242,7 +242,7 @@ describe('Db update status tests', () => {
 
     //cleanup
     const cleanup = await updateFlightLogStatus(flightId, FlightLogStatus.NEW, {}, user)
-    expect(cleanup).toEqual(1n)
+    expect(cleanup).toEqual(true)
 
     const cleaned = await getFlightLog(flightId)
     expect(cleaned?.acTotalFlightTime).toEqual('4783:20')

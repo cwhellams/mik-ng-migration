@@ -36,7 +36,7 @@ exports[`Db Get FlightLog tests getFlightLog return existing flight 1`] = `
   "invoiceNumber": "INV003",
   "isBillableFlight": true,
   "isBilled": true,
-  "isDtoTrainingFlight": true,
+  "isDtoTrainingFlight": false,
   "landingTimeEpoch": "1741094400",
   "landingTimeUtc": "2025-03-04T13:20:00.000Z",
   "nightFlyingMins": 60,

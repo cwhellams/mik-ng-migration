@@ -17,8 +17,10 @@ type BillableMember = {
 
 export const BillableMember = ({
   control,
+  disabled,
 }: {
   control: Control<FlightLogUpsertRequest>
+  disabled?: boolean
 }) => {
   const { me } = useMe()
 
@@ -67,6 +69,7 @@ export const BillableMember = ({
       render={({ field: { onChange, value } }) => (
         <Autocomplete
           options={members}
+          disabled={disabled}
           value={members.find((member) => member.memberId === value) ?? null}
           renderInput={(params) => (
             <TextField

@@ -7,9 +7,15 @@ interface Props {
   name: keyof FlightLogUpsertRequest
   control: Control<FlightLogUpsertRequest>
   min?: number
+  disabled?: boolean
 }
 
-export const NumberOfLandings = ({ name, control, min = 1 }: Props) => {
+export const NumberOfLandings = ({
+  name,
+  control,
+  min = 1,
+  disabled,
+}: Props) => {
   const { t } = useTranslation()
   return (
     <Controller
@@ -21,7 +27,11 @@ export const NumberOfLandings = ({ name, control, min = 1 }: Props) => {
             {t('flightLog.' + name)}
           </Typography>
 
-          <ButtonGroup sx={{ mb: 3, width: '100%' }} fullWidth>
+          <ButtonGroup
+            sx={{ mb: 3, width: '100%' }}
+            fullWidth
+            disabled={disabled}
+          >
             <Button
               value='-'
               onClick={() =>
@@ -40,6 +50,7 @@ export const NumberOfLandings = ({ name, control, min = 1 }: Props) => {
 
             <TextField
               {...field}
+              disabled={disabled}
               value={field.value ?? ''}
               onChange={({ target }) => {
                 const parsedValue = Number(target.value)

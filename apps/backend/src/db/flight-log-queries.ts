@@ -328,21 +328,21 @@ export async function insertFlightLog(
   return retval.flight_id
 }
 
-export async function deleteFlightLog(flight_id: string): Promise<bigint> {
+export async function deleteFlightLog(flight_id: string): Promise<boolean> {
   let delQuery = connection.db
     .deleteFrom('flight.logs')
     .where('flight_id', '=', flight_id)
     .where('is_billed', '=', false)
 
   const retval = await delQuery.executeTakeFirst()
-  return retval.numDeletedRows
+  return retval.numDeletedRows == 1n
 }
 
 export const updateFlightLog = async (
   flight_id: string,
   data: Partial<FlightLogUpsertRequest>,
   user: JWTUser,
-): Promise<bigint> =>
+): Promise<boolean> =>
   updateFlightLogWithAudit(flight_id, user, eb => ({
     aircraft_registration: data.aircraftRegistration,
     arrival_airport: data.arrivalAirport,
@@ -406,11 +406,13 @@ export const updateFlightLog = async (
     //non_billing_approved_by_member_id: data.nonBillingApprovedByMemberId,
     non_billing_reason: data.nonBillingReason,
 
-    is_dto_training_flight: eb
-      .selectFrom('member.register')
-      .select('is_training_program_pilot')
-      .where('member_id', '=', user.memberId)
-      .limit(1),
+    is_dto_training_flight: data.billableMemberId
+      ? eb
+          .selectFrom('member.register')
+          .select('is_training_program_pilot')
+          .where('member_id', '=', data.billableMemberId)
+          .limit(1)
+      : undefined,
   }))
 
 export const updateFlightLogStatus = async (
@@ -418,7 +420,7 @@ export const updateFlightLogStatus = async (
   status: FlightLogStatus,
   patch: Partial<FlightLog>,
   user: JWTUser,
-): Promise<bigint> => {
+): Promise<boolean> => {
   switch (status) {
     case FlightLogStatus.NEW:
       // reset ajlb values back to null
@@ -462,7 +464,7 @@ const updateFlightLogWithAudit = async (
   flight_id: string,
   user: JWTUser,
   update: (eb: ExpressionBuilder<DB, 'flight.logs'>) => UpdateObject<DB, 'flight.logs'>,
-): Promise<bigint> => {
+): Promise<boolean> => {
   let updQuery = connection.db
     .updateTable('flight.logs')
     .set(update)
@@ -471,10 +473,9 @@ const updateFlightLogWithAudit = async (
       updated_at: new Date(),
     })
     .where('flight_id', '=', flight_id)
-    .where('is_billed', '=', false)
 
   const retval = await updQuery.executeTakeFirst()
-  return retval.numUpdatedRows
+  return retval.numUpdatedRows == 1n
 }
 
 export async function getFlightLogTotals(registration?: string): Promise<FlightTimeTotals[]> {

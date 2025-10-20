@@ -20,10 +20,12 @@ const transporter = nodemailer.createTransport({
 })
 
 export const sendEmail = (to: string, subject: string, html: string, text: string): void => {
-  const disableEmailSending: boolean =
-    process.env.DISABLE_EMAIL_SENDING?.toLocaleLowerCase() === 'true' ||
-    process.env.DISABLE_EMAIL_SENDING === '1'
-
+  const disableEmailSending = process.env.DISABLE_EMAIL_SENDING
+    ? // disabled completely or not whitelisted
+      process.env.DISABLE_EMAIL_SENDING.toLocaleLowerCase() === 'true' ||
+      process.env.DISABLE_EMAIL_SENDING === '1' ||
+      !process.env.DISABLE_EMAIL_SENDING.split(',').includes(to)
+    : false
   if (disableEmailSending) {
     logger.info(`Email sending is disabled. Email not sent to ${to}`)
     return

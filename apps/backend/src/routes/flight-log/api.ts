@@ -11,6 +11,10 @@ import {
   FlightLogStatus,
   FlightLogValidationRequestSchema,
   validateFlightLogTimes,
+  ValidatedFlightLogAdminUpsertSchema,
+  ValidatedFlightLogMemberUpsertSchema,
+  BilledFlightLogUpsertSchema,
+  type FlightLogUpsertRequest,
 } from './models.ts'
 import {
   deleteFlightLog,
@@ -106,17 +110,16 @@ router.get('/:registration/totals', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
-  const flight = await getFlightLog(id)
+  const flight = await getReadableFlight(id, req)
+  res.status(200).json(flight)
+})
+
+const getReadableFlight = async (flightId: string, req: Request): Promise<FlightLog | never> => {
+  const flight = await getFlightLog(flightId)
   if (!flight) {
     return problem({ status: 404, detail: 'Flight log not found' })
   }
 
-  validateReadAccess(flight, req)
-
-  res.status(200).json(flight)
-})
-
-const validateReadAccess = (flight: Pick<FlightLog, 'billableMemberId'>, req: Request) => {
   // Check if the flight is owned by the user or the user is not an flightlog admin
   if (flight.billableMemberId !== req.user?.memberId && !isFlightLogAdmin(req.user)) {
     return problem({
@@ -124,25 +127,8 @@ const validateReadAccess = (flight: Pick<FlightLog, 'billableMemberId'>, req: Re
       detail: 'Flight log not owned by user or user has no admin rights',
     })
   }
-}
 
-const validateWriteAccess = (
-  flight: Pick<FlightLog, 'billableMemberId' | 'isBilled'> | undefined,
-  req: Request,
-) => {
-  if (!flight) {
-    return problem({ status: 404, detail: 'Flight log not found' })
-  }
-
-  validateReadAccess(flight, req)
-
-  if (flight.isBilled) {
-    // Check if the flight is already billed
-    return problem({
-      status: 400,
-      detail: 'Flight already billed and read-only',
-    })
-  }
+  return flight
 }
 
 const getAjlb = async (registration: string) => {
@@ -150,51 +136,58 @@ const getAjlb = async (registration: string) => {
   return ajlbs?.[0]?.seqNo
 }
 
+const getValidPatchForUpdate = async (
+  flight: FlightLog,
+  req: Request,
+): Promise<Partial<FlightLogUpsertRequest>> => {
+  const admin = isFlightLogAdmin(req.user)
+
+  if (flight.status === FlightLogStatus.NEW) {
+    // flight is still full editable
+    const schema = admin ? FlightLogUpsertSchema : FlightLogMemberUpsertSchema.strip()
+    const patch = schema.partial().parse(req.body)
+
+    // validate all times are valid together
+    const errors: z.IssueData[] = []
+    validateFlightLogTimes(
+      {
+        offBlockTimeEpoch: patch?.offBlockTimeEpoch ?? flight.offBlockTimeEpoch,
+        takeoffTimeEpoch: patch?.takeoffTimeEpoch ?? flight.takeoffTimeEpoch,
+        landingTimeEpoch: patch?.landingTimeEpoch ?? flight.landingTimeEpoch,
+        onBlockTimeEpoch: patch?.onBlockTimeEpoch ?? flight.onBlockTimeEpoch,
+      },
+      issue => errors.push(issue),
+    )
+    if (errors.length > 0) {
+      return problem({ status: 400, extensions: { errors } })
+    }
+
+    // if plane changes the ajlbSeqNo must be updated too
+    const ajlbSeqNo =
+      patch.aircraftRegistration && flight.aircraftRegistration !== patch.aircraftRegistration
+        ? await getAjlb(patch.aircraftRegistration)
+        : flight.ajlbSeqNo
+
+    return { ...patch, ajlbSeqNo }
+  } else if (flight.status === FlightLogStatus.VALIDATED) {
+    const validatedSchema = admin
+      ? ValidatedFlightLogAdminUpsertSchema.strip()
+      : ValidatedFlightLogMemberUpsertSchema.strip()
+    return validatedSchema.partial().parse(req.body)
+  } else {
+    return BilledFlightLogUpsertSchema.strip().partial().parse(req.body)
+  }
+}
+
 // Update a flight log
 router.patch('/:id', async (req: Request, res: Response) => {
   const flightId = req.params.id
 
-  const schema = isFlightLogAdmin(req.user)
-    ? // admin can edit all editable fields
-      FlightLogUpsertSchema
-    : // strip any admin fields the UI might send in the request
-      FlightLogMemberUpsertSchema.strip()
+  const flight = await getReadableFlight(flightId, req)
+  const patch = await getValidPatchForUpdate(flight, req)
 
-  const patch = schema.partial().parse(req.body)
-
-  const flightLog = await getFlightLog(flightId)
-  validateWriteAccess(flightLog, req)
-
-  // validate all times are still valid together
-  const errors: z.IssueData[] = []
-  validateFlightLogTimes(
-    {
-      offBlockTimeEpoch: patch?.offBlockTimeEpoch ?? flightLog!.offBlockTimeEpoch,
-      takeoffTimeEpoch: patch?.takeoffTimeEpoch ?? flightLog!.takeoffTimeEpoch,
-      landingTimeEpoch: patch?.landingTimeEpoch ?? flightLog!.landingTimeEpoch,
-      onBlockTimeEpoch: patch?.onBlockTimeEpoch ?? flightLog!.onBlockTimeEpoch,
-    },
-    issue => errors.push(issue),
-  )
-  if (errors.length > 0) {
-    return problem({ status: 400, extensions: { errors } })
-  }
-
-  // if plane changes the ajlbSeqNo must be updated too
-  const ajlbSeqNo =
-    patch.aircraftRegistration && flightLog?.aircraftRegistration !== patch.aircraftRegistration
-      ? await getAjlb(patch.aircraftRegistration)
-      : flightLog?.ajlbSeqNo
-
-  const updatedLog = await updateFlightLog(
-    flightId,
-    {
-      ...patch,
-      ajlbSeqNo,
-    },
-    req.user!,
-  )
-  if (updatedLog === 0n) {
+  const updated = await updateFlightLog(flightId, patch, req.user!)
+  if (!updated) {
     return problem({
       status: 500,
       detail: 'Flight log update failed',
@@ -215,15 +208,13 @@ router.post(
 
     const { revert } = FlightLogValidationRequestSchema.parse(req.body ?? {})
 
-    const flightLog = await getFlightLog(flightId)
-
-    validateWriteAccess(flightLog, req)
+    const flight = await getReadableFlight(flightId, req)
 
     // all previous flights must be validated
 
-    if (revert) {
+    if (flight.status == FlightLogStatus.VALIDATED && revert) {
       const lastValidatedFlight = await getFlightLogs({
-        aircraftRegistration: flightLog?.aircraftRegistration,
+        aircraftRegistration: flight.aircraftRegistration,
         status: FlightLogStatus.VALIDATED,
         limit: 1,
         page: 1,
@@ -235,9 +226,9 @@ router.post(
           detail: `All later flights must be first reverted, revert ${lastValidatedFlight.logs?.[0]?.flightId} first`,
         })
       }
-    } else {
+    } else if (flight.status == FlightLogStatus.NEW && !revert) {
       const firstNewFlight = await getFlightLogs({
-        aircraftRegistration: flightLog?.aircraftRegistration,
+        aircraftRegistration: flight.aircraftRegistration,
         status: FlightLogStatus.NEW,
         limit: 1,
         page: 1,
@@ -248,15 +239,20 @@ router.post(
           detail: `All previous flights must be first validated, validate ${firstNewFlight.logs?.[0]?.flightId} first`,
         })
       }
+    } else {
+      return problem({
+        status: 400,
+        detail: `Flight log status ${flight.status}`,
+      })
     }
 
-    const updatedLog = await updateFlightLogStatus(
+    const updated = await updateFlightLogStatus(
       flightId,
       revert ? FlightLogStatus.NEW : FlightLogStatus.VALIDATED,
       {},
       req.user!,
     )
-    if (updatedLog === 0n) {
+    if (!updated) {
       return problem({
         status: 500,
         detail: 'Flight log update failed',
@@ -273,15 +269,20 @@ router.post(
 router.delete('/:id', async (req: Request, res: Response) => {
   const flightId = req.params.id
 
-  const flightLogToDelete = await getFlightLog(flightId)
-  validateWriteAccess(flightLogToDelete, req)
+  const flight = await getReadableFlight(flightId, req)
+  if (flight.status !== FlightLogStatus.NEW) {
+    return problem({
+      status: 400,
+      detail: `Flight log in status ${flight.status} and cannot be deleted`,
+    })
+  }
 
   logger.info(
     `Deleting flight log ${flightId}. Deleted by member: ${req.user?.memberId} with permissions :${req.user?.permissions}`,
   )
 
   const deletedLogRows = await deleteFlightLog(flightId)
-  if (deletedLogRows === 0n) {
+  if (!deletedLogRows) {
     return problem({
       status: 500,
       detail: 'Flight log deletion failed',

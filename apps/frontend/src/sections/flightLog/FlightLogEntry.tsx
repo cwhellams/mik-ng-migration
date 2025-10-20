@@ -27,6 +27,7 @@ import {
   FlightLogUpsertSchema,
   type FlightLogUpsertRequest,
   flightLogDateValidator,
+  FlightLogStatus,
 } from '@backend/routes/flight-log/models'
 import useApi from '../../hooks/useApi'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
@@ -70,18 +71,10 @@ const FlightLogEntry = () => {
 
   const isNew = flightId == 'new'
 
-  const { data, mutation, isLoading, error } = useApi<FlightLog>(
-    {
-      url: `v1/flight-logs${isNew ? '' : `/${flightId}`}`,
-      skipFetch: isNew,
-    },
-    {
-      // nobody else is modifying the same flight at the same time
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
-  )
+  const { data, mutation, isLoading, error } = useApi<FlightLog>({
+    url: `v1/flight-logs${isNew ? '' : `/${flightId}`}`,
+    skipFetch: isNew,
+  })
 
   const { data: aircraftData } = useApi<AircraftListResponse>({
     url: 'v1/aircrafts',
@@ -94,6 +87,10 @@ const FlightLogEntry = () => {
     data && !currentAircrafts.includes(data.aircraftRegistration)
       ? [...currentAircrafts, data.aircraftRegistration]
       : currentAircrafts
+
+  const isEditable = isNew || data?.status == FlightLogStatus.NEW
+  const isValidated = data?.status == FlightLogStatus.VALIDATED
+  const isInvoiced = !isEditable && !isValidated
 
   const {
     register,
@@ -300,7 +297,7 @@ const FlightLogEntry = () => {
                         field.onChange(target.value)
                       }}
                       label={t('flightLog.aircraft')}
-                      disabled={!aircraftData?.aircrafts}
+                      disabled={!isEditable || !aircraftData?.aircrafts}
                     >
                       {aircrafts?.map((registration) => (
                         <MenuItem key={registration} value={registration}>
@@ -325,7 +322,11 @@ const FlightLogEntry = () => {
                   name='flightType'
                   control={control}
                   render={({ field }) => (
-                    <Select {...field} label={`${t('flightLog.flightType')}`}>
+                    <Select
+                      {...field}
+                      label={`${t('flightLog.flightType')}`}
+                      disabled={!isEditable}
+                    >
                       {flightTypes.map((type) => (
                         <MenuItem key={type.code} value={type.code}>
                           {t(type.labelKey)}
@@ -354,7 +355,7 @@ const FlightLogEntry = () => {
                 maximumCrewCount={aircraft?.seats ?? 0}
                 register={register}
                 control={control}
-                setValue={setValue}
+                setValue={isEditable ? setValue : undefined}
                 watch={watch}
               />
             </Grid>
@@ -371,7 +372,7 @@ const FlightLogEntry = () => {
               control={control}
               watch={watch}
               getValues={getValues}
-              setValue={setValue}
+              setValue={isEditable ? setValue : undefined}
               trigger={trigger}
             />
 
@@ -400,6 +401,7 @@ const FlightLogEntry = () => {
               <Airfields
                 name='departureAirport'
                 control={control}
+                disabled={!isEditable}
                 error={errors.departureAirport}
               />
             </Grid>
@@ -408,6 +410,7 @@ const FlightLogEntry = () => {
               <Airfields
                 name='arrivalAirport'
                 control={control}
+                disabled={!isEditable}
                 error={errors.arrivalAirport}
               />
             </Grid>
@@ -416,6 +419,7 @@ const FlightLogEntry = () => {
               <PersonsOnBoard
                 control={control}
                 seats={aircraft?.seats ?? 0}
+                disabled={!isEditable}
                 crew={watch([
                   'crew2MemberId',
                   'crew3MemberId',
@@ -425,7 +429,11 @@ const FlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12, md: 6 }}>
-              <NumberOfLandings name='numberOfLandings' control={control} />
+              <NumberOfLandings
+                name='numberOfLandings'
+                control={control}
+                disabled={!isEditable}
+              />
             </Grid>
 
             {/* Night and Instrument Flying    */}
@@ -435,11 +443,16 @@ const FlightLogEntry = () => {
               </Typography>
             </Grid>
             <Stack spacing={3}>
-              <MinutesField name='nightFlyingMins' control={control} />
+              <MinutesField
+                name='nightFlyingMins'
+                control={control}
+                disabled={!isEditable}
+              />
 
               <NumberOfLandings
                 name='numberOfNightLandings'
                 control={control}
+                disabled={!isEditable}
                 min={0}
               />
 
@@ -447,7 +460,11 @@ const FlightLogEntry = () => {
                 {t('flightLog.instrumentFlying')}
               </Typography>
 
-              <MinutesField name='instrumentFlyingMins' control={control} />
+              <MinutesField
+                name='instrumentFlyingMins'
+                control={control}
+                disabled={!isEditable}
+              />
             </Stack>
 
             {/* Fuel and Oil */}
@@ -460,6 +477,7 @@ const FlightLogEntry = () => {
             <Grid offset={1} size={{ xs: 10, md: 10 }}>
               <Fuel
                 control={control}
+                disabled={!isEditable}
                 usableFuelLitres={aircraft?.usableFuelLitres ?? 100}
               />
             </Grid>
@@ -470,6 +488,7 @@ const FlightLogEntry = () => {
                 control={control}
                 props={{
                   type: 'number',
+                  disabled: !isEditable,
                   slotProps: {
                     htmlInput: { step: 1, required: false, min: 0, max: 300 },
                   },
@@ -483,6 +502,7 @@ const FlightLogEntry = () => {
                 control={control}
                 props={{
                   type: 'number',
+                  disabled: !isEditable,
                   slotProps: { htmlInput: { step: '0.1', min: 0, max: 10 } },
                 }}
               />
@@ -497,7 +517,7 @@ const FlightLogEntry = () => {
 
             {isFlightLogAdmin && (
               <Grid size={{ xs: 12, md: 6 }}>
-                <BillableMember control={control} />
+                <BillableMember control={control} disabled={isInvoiced} />
               </Grid>
             )}
 
@@ -506,6 +526,7 @@ const FlightLogEntry = () => {
                 name='billingRemarks'
                 control={control}
                 props={{
+                  disabled: isInvoiced,
                   multiline: true,
                   rows: 2,
                 }}
@@ -525,7 +546,29 @@ const FlightLogEntry = () => {
 
             {data && (
               <Grid size={{ xs: 12 }}>
-                <StatusDisplay log={data} />
+                <StatusDisplay
+                  log={data}
+                  showButton={isFlightLogAdmin && !isInvoiced}
+                  update={async (payload) => {
+                    const { error } = await mutation.trigger(
+                      'POST',
+                      payload,
+                      '/validate',
+                      {
+                        // put returned payload to the cache
+                        revalidate: false,
+                        populateCache: (result) => result,
+                      }
+                    )
+                    if (error) {
+                      console.error('Error changing status:', error)
+                      setSbState(true)
+                      return setError('root', {
+                        type: error?.detail ?? error?.title ?? 'Error',
+                      })
+                    }
+                  }}
+                />
               </Grid>
             )}
           </Grid>

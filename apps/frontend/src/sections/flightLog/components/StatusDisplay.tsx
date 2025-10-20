@@ -1,12 +1,24 @@
-import { FlightLog, FlightLogStatus } from '@backend/routes/flight-log/models'
-import { Box } from '@mui/material'
+import {
+  FlightLog,
+  FlightLogStatus,
+  FlightLogValidationRequest,
+} from '@backend/routes/flight-log/models'
+import { Box, Button } from '@mui/material'
 import { t } from 'i18next'
 import { Link } from 'react-router-dom'
 import { FormField } from '../../../components/FormField'
 import theme from '../../../theme/theme'
 import { Icon } from '@iconify/react'
 
-export const StatusDisplay = ({ log }: { log: FlightLog }) => {
+export const StatusDisplay = ({
+  log,
+  showButton,
+  update,
+}: {
+  log: FlightLog
+  showButton: boolean
+  update: (payload: FlightLogValidationRequest) => void
+}) => {
   return (
     <>
       <FormField label={t('flightLog.status.title')} sx={{ mb: 2 }}>
@@ -20,6 +32,17 @@ export const StatusDisplay = ({ log }: { log: FlightLog }) => {
                 style={{ marginRight: theme.spacing(1) }}
               />
               {t('flightLog.status.new')}
+
+              {showButton && (
+                <Button
+                  onClick={() => update({})}
+                  variant='outlined'
+                  startIcon={<Icon icon='mdi:check' color='green' />}
+                  sx={{ ml: 2 }}
+                >
+                  {t('flightLog.status.validate')}
+                </Button>
+              )}
             </>
           )}
 
@@ -32,6 +55,17 @@ export const StatusDisplay = ({ log }: { log: FlightLog }) => {
                 style={{ marginRight: theme.spacing(1) }}
               />
               {t('flightLog.status.validated')}
+
+              {showButton && (
+                <Button
+                  onClick={() => update({ revert: true })}
+                  variant='outlined'
+                  startIcon={<Icon icon='mdi:schedule' color='orange' />}
+                  sx={{ ml: 2 }}
+                >
+                  {t('flightLog.status.unvalidate')}
+                </Button>
+              )}
             </>
           )}
 

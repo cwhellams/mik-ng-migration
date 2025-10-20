@@ -39,4 +39,40 @@ describe('sendEmail with DISABLE_EMAIL_SENDING=true', () => {
       expect(sendMailMock).not.toHaveBeenCalled()
     })
   })
+
+  it('should skip sending emails outside whitelist and log that email is disabled', async () => {
+    // Spy on logger.info
+    await jest.isolateModulesAsync(async () => {
+      const logger = await import('../../src/lib/logger.ts')
+      const infoSpy = jest
+        .spyOn(logger.default, 'info')
+        .mockImplementation(() => logger.default as unknown as Logger)
+
+      process.env.DISABLE_EMAIL_SENDING = 'recipient@example.com,recipient2@example.com'
+
+      const { sendEmail } = await import('../../src/lib/sendGmail.ts')
+      sendEmail('recipient3@example.com', 'Subject', '<p>HTML</p>', 'Text')
+      expect(infoSpy).toHaveBeenCalledWith(
+        'Email sending is disabled. Email not sent to recipient3@example.com',
+      )
+      expect(sendMailMock).not.toHaveBeenCalled()
+    })
+  })
+
+  it('should sending emails to whitelistd email', async () => {
+    // Spy on logger.info
+    await jest.isolateModulesAsync(async () => {
+      const logger = await import('../../src/lib/logger.ts')
+      const infoSpy = jest
+        .spyOn(logger.default, 'info')
+        .mockImplementation(() => logger.default as unknown as Logger)
+
+      process.env.DISABLE_EMAIL_SENDING = 'recipient@example.com,recipient2@example.com'
+
+      const { sendEmail } = await import('../../src/lib/sendGmail.ts')
+      sendEmail('recipient2@example.com', 'Subject', '<p>HTML</p>', 'Text')
+      expect(infoSpy).toHaveBeenCalledTimes(0)
+      expect(sendMailMock).toHaveBeenCalled()
+    })
+  })
 })

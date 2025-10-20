@@ -33,7 +33,7 @@ interface FlightTimeProps {
   data?: FlightLog
   control: Control<FlightLogUpsertRequest>
   getValues: UseFormGetValues<FlightLogUpsertRequest>
-  setValue: UseFormSetValue<FlightLogUpsertRequest>
+  setValue: UseFormSetValue<FlightLogUpsertRequest> | undefined
   watch: UseFormWatch<FlightLogUpsertRequest>
   trigger: UseFormTrigger<FlightLogUpsertRequest>
 }
@@ -81,7 +81,7 @@ export const FlightTime = ({
 
       const time = dayjs.unix(Number(getValues(field))).utc()
       const result = calculateNext(base, time)
-      setValue(field, result.unix().toString())
+      setValue?.(field, result.unix().toString())
 
       return result
     }
@@ -98,12 +98,15 @@ export const FlightTime = ({
     }
   }, [flightDate, setValue, getValues])
 
+  const isEditable = !!setValue
+
   return (
     <>
       <Grid size={{ xs: 12, md: 6 }}>
         <DatePicker
           label={t('flightLog.flightDate')}
           value={flightDate}
+          disabled={!isEditable}
           disableFuture={true}
           format='DD.MM.YYYY'
           onChange={(date) => setFlightDate(date ?? flightDate)}
@@ -174,6 +177,7 @@ export const FlightTime = ({
         <TimeStringEditor
           label={t('flightLog.offBlockTime')}
           control={control}
+          disabled={!isEditable}
           name='offBlockTimeEpoch'
           min={flightDate.unix().toString()}
           useUtcTime={useUtcTime}
@@ -185,6 +189,7 @@ export const FlightTime = ({
         <TimeStringEditor
           label={t('flightLog.takeoffTime')}
           control={control}
+          disabled={!isEditable}
           name='takeoffTimeEpoch'
           min={watch('offBlockTimeEpoch')}
           useUtcTime={useUtcTime}
@@ -196,6 +201,7 @@ export const FlightTime = ({
         <TimeStringEditor
           label={t('flightLog.landingTime')}
           control={control}
+          disabled={!isEditable}
           name='landingTimeEpoch'
           min={watch('takeoffTimeEpoch')}
           useUtcTime={useUtcTime}
@@ -207,6 +213,7 @@ export const FlightTime = ({
         <TimeStringEditor
           label={t('flightLog.onBlockTime')}
           control={control}
+          disabled={!isEditable}
           name='onBlockTimeEpoch'
           min={watch('landingTimeEpoch')}
           useUtcTime={useUtcTime}
@@ -222,6 +229,7 @@ const TimeStringEditor = ({
   label,
   name,
   control,
+  disabled,
   min,
   useUtcTime,
   trigger,
@@ -230,6 +238,7 @@ const TimeStringEditor = ({
   label: string
   name: keyof FlightLogUpsertRequest
   control: Control<FlightLogUpsertRequest>
+  disabled: boolean
   min: string
   useUtcTime: boolean
   trigger: UseFormTrigger<FlightLogUpsertRequest>
@@ -263,6 +272,7 @@ const TimeStringEditor = ({
           <TimeField
             {...field}
             required
+            disabled={disabled}
             ampm={false}
             disableFuture
             inputRef={field.ref}

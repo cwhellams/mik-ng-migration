@@ -6,9 +6,10 @@ import { useTranslation } from 'react-i18next'
 interface Props {
   control: Control<FlightLogUpsertRequest>
   usableFuelLitres: number
+  disabled?: boolean
 }
 
-export const Fuel = ({ control, usableFuelLitres }: Props) => {
+export const Fuel = ({ control, usableFuelLitres, disabled }: Props) => {
   const theme = useTheme()
   const isMd = useMediaQuery(theme.breakpoints.up('md'))
 
@@ -71,6 +72,7 @@ export const Fuel = ({ control, usableFuelLitres }: Props) => {
 
           <Slider
             value={field.value ?? 0}
+            disabled={disabled}
             onChange={(_, value: number | number[]) => {
               field.onChange(value as number)
             }}

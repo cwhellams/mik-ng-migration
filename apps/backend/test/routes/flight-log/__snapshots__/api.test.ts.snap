@@ -358,7 +358,7 @@ exports[`GET /flight-log/flightid should return flight for admin with sudo right
   "takeoffTimeUtc": "2025-03-02T09:20:00.000Z",
   "totalTimeInService": 2,
   "updatedAt": Any<String>,
-  "updatedBy": "Jukka1",
+  "updatedBy": Any<String>,
 }
 `;
 
@@ -608,7 +608,7 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "invoiceNumber": null,
   "isBillableFlight": false,
   "isBilled": false,
-  "isDtoTrainingFlight": true,
+  "isDtoTrainingFlight": false,
   "landingTimeEpoch": "1741003200",
   "landingTimeUtc": "2025-03-03T12:00:00.000Z",
   "nightFlyingMins": 20,

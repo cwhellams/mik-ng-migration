@@ -396,7 +396,9 @@
       "new": "Odottaa tarkastusta",
       "validated": "Lentoajat täsmäytetty",
       "invoiced": "Lasku lähetetty",
-      "paid": "Lasku maksettu"
+      "paid": "Lasku maksettu",
+      "unvalidate": "Kumoa vahvistus",
+      "validate": "Vahvista"
     },
     "logbooks": {
       "title": "Lokikirjat",
@@ -425,6 +427,7 @@
       "validTo": "Loppupäivä",
       "rowsPerPage": "Rivejä per sivu",
       "noOfPages": "Sivujen määrä",
+      "startPage": "Aloitus sivu",
       "pagesInUse": "Sivuja käytössä",
       "flightTimeAtStart": "Aika alussa",
       "unverifiedFlights": "Vahvistamattomat lennot",

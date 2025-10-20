@@ -12,7 +12,7 @@ RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 -- 
-CREATE TRIGGER register_audit_trigger
+CREATE TRIGGER no_overlap_trigger
 AFTER
 INSERT
     OR

@@ -8,9 +8,14 @@ import { durationToDayjs } from '../utils/timeUtils'
 interface MinutesFieldProps {
   name: keyof FlightLogUpsertRequest
   control: Control<FlightLogUpsertRequest>
+  disabled?: boolean
 }
 
-export const MinutesField = ({ name, control }: MinutesFieldProps) => {
+export const MinutesField = ({
+  name,
+  control,
+  disabled,
+}: MinutesFieldProps) => {
   return (
     <Controller
       name={name}
@@ -19,6 +24,7 @@ export const MinutesField = ({ name, control }: MinutesFieldProps) => {
         <FormControl fullWidth error={!!error}>
           <TimeField
             {...field}
+            disabled={disabled}
             ampm={false}
             value={
               // convert minutes to dayjs

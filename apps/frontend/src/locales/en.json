@@ -396,7 +396,9 @@
       "new": "Waiting for validation",
       "validated": "Flight times validated and synchronized",
       "invoiced": "Invoice sent",
-      "paid": "Invoice paid"
+      "paid": "Invoice paid",
+      "unvalidate": "Unvalidate",
+      "validate": "Validate"
     },
     "logbooks": {
       "title": "Logbooks",
@@ -425,6 +427,7 @@
       "validTo": "End date",
       "rowsPerPage": "Rows per page",
       "noOfPages": "Number of pages",
+      "startPage": "Start page",
       "pagesInUse": "Pages in use",
       "flightTimeAtStart": "Time at start",
       "unverifiedFlights": "Unverified flights",

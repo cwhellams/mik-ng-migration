@@ -139,6 +139,25 @@ export const FlightLogMemberUpsertSchema = FlightLogUpsertSchema.omit({
   nonBillingReason: true,
 })
 
+// Editable fields after validation
+export const ValidatedFlightLogAdminUpsertSchema = FlightLogUpsertSchema.pick({
+  billableMemberId: true,
+  billingRemarks: true,
+  isBillableFlight: true,
+  nonBillingReason: true,
+  personalRemarks: true,
+  privOrComFlight: true,
+})
+export const ValidatedFlightLogMemberUpsertSchema = FlightLogUpsertSchema.pick({
+  billingRemarks: true,
+  personalRemarks: true,
+})
+
+// Editable fields after billing
+export const BilledFlightLogUpsertSchema = FlightLogUpsertSchema.pick({
+  personalRemarks: true,
+})
+
 export const FlightLogTimesSchema = z.object({
   offBlockTimeEpoch: BigintAsString,
   takeoffTimeEpoch: BigintAsString,
@@ -229,6 +248,8 @@ export type FlightLogMemberRequest = z.infer<typeof FlightLogMemberUpsertSchema>
 export const FlightLogValidationRequestSchema = z.object({
   revert: z.boolean().optional(),
 })
+
+export type FlightLogValidationRequest = z.infer<typeof FlightLogValidationRequestSchema>
 
 export const FlightLogListEntrySchema = FlightLogSchema.pick({
   acTotalFlightTime: true,
