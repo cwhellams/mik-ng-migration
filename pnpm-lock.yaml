@@ -67,8 +67,8 @@ importers:
         specifier: ^9.0.2
         version: 9.0.2
       kysely:
-        specifier: ^0.28.2
-        version: 0.28.5
+        specifier: ^0.28.7
+        version: 0.28.8
       marked:
         specifier: ^15.0.7
         version: 15.0.12
@@ -192,7 +192,7 @@ importers:
         version: 16.0.0
       kysely-codegen:
         specifier: ^0.18.5
-        version: 0.18.5(kysely@0.28.5)(pg@8.16.3)(typescript@5.9.2)
+        version: 0.18.5(kysely@0.28.8)(pg@8.16.3)(typescript@5.9.2)
       prettier:
         specifier: ^3.5.3
         version: 3.6.2
@@ -3723,8 +3723,8 @@ packages:
       tedious:
         optional: true
 
-  kysely@0.28.5:
-    resolution: {integrity: sha512-rlB0I/c6FBDWPcQoDtkxi9zIvpmnV5xoIalfCMSMCa7nuA6VGA3F54TW9mEgX4DVf10sXAWCF5fDbamI/5ZpKA==}
+  kysely@0.28.8:
+    resolution: {integrity: sha512-QUOgl5ZrS9IRuhq5FvOKFSsD/3+IA6MLE81/bOOTRA/YQpKDza2sFdN5g6JCB9BOpqMJDGefLCQ9F12hRS13TA==}
     engines: {node: '>=20.0.0'}
 
   leven@3.1.0:
@@ -9441,14 +9441,14 @@ snapshots:
 
   kuler@2.0.0: {}
 
-  kysely-codegen@0.18.5(kysely@0.28.5)(pg@8.16.3)(typescript@5.9.2):
+  kysely-codegen@0.18.5(kysely@0.28.8)(pg@8.16.3)(typescript@5.9.2):
     dependencies:
       chalk: 4.1.2
       cosmiconfig: 9.0.0(typescript@5.9.2)
       dotenv: 16.6.1
       dotenv-expand: 12.0.2
       git-diff: 2.0.6
-      kysely: 0.28.5
+      kysely: 0.28.8
       micromatch: 4.0.8
       minimist: 1.2.8
       pluralize: 8.0.0
@@ -9458,7 +9458,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  kysely@0.28.5: {}
+  kysely@0.28.8: {}
 
   leven@3.1.0: {}
 

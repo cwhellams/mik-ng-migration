@@ -82,7 +82,7 @@
     "helmet": "^8.0.0",
     "http-status-codes": "^2.3.0",
     "jsonwebtoken": "^9.0.2",
-    "kysely": "^0.28.2",
+    "kysely": "^0.28.7",
     "marked": "^15.0.7",
     "morgan": "^1.10.0",
     "ms": "^2.1.3",
