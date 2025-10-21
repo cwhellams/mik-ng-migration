@@ -116,7 +116,7 @@
     "membershipApprovedAt": "Membership Approved At",
     "membershipPending": "Membership Pending Approval",
     "approveMembership": "Approve Membership",
-    "approvedSnackbarMessage": "Membership Approved for"
+    "approvedSnackbarMessage": "Membership Approved for {{firstName}} {{lastName}}"
   },
   "aircraft": {
     "location": "Location",
@@ -544,9 +544,6 @@
     "confirmDelete": "Are you sure you want to delete this secret?",
     "showValue": "Show value",
     "hideValue": "Hide value",
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
     "secretKeyRequired": "Secret key is required",
     "secretValueRequired": "Secret value is required",
     "noSecrets": "No secrets available"

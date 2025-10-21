@@ -31,13 +31,10 @@ import {
 } from '@backend/routes/bookings/models'
 import useApi from '../../hooks/useApi'
 import {
-  Alert,
   Box,
   Typography,
   ToggleButtonGroup,
   ToggleButton,
-  Slide,
-  Snackbar,
   Checkbox,
   FormControlLabel,
   CircularProgress,
@@ -48,6 +45,8 @@ import { useRoles } from '../../hooks/useRoles'
 import { Dayjs } from 'dayjs'
 import { useSearchParams } from 'react-router-dom'
 import { RemoteContent } from '../../components/RemoteContent'
+import { SnackAlert } from '../../components/SnackAlert'
+import { Problem } from '@backend/routes/response'
 
 dayjs.locale('fi')
 
@@ -245,7 +244,7 @@ const Schedule = () => {
     setEvents(eventData.bookings.map((b) => toEvent(b)))
   }, [eventData, toEvent])
 
-  const [errorMsg, setErrorMsg] = useState('')
+  const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
   // add new event if no overlaps
   const handleAddEvent = useCallback(
@@ -293,10 +292,13 @@ const Schedule = () => {
         reservation.id
       )
     ) {
-      return setErrorMsg(t('schedule.bookingOverlapError'))
+      return setProblem({
+        status: 400,
+        detail: t('schedule.bookingOverlapError'),
+      })
     }
 
-    mutation.trigger(
+    const { error } = await mutation.trigger(
       'PATCH',
       {
         startTimeEpoch: startDate.unix().toString(),
@@ -304,6 +306,9 @@ const Schedule = () => {
       },
       reservation.id
     )
+    if (error) {
+      setProblem(error)
+    }
   }
 
   const onEventResize: withDragAndDropProps['onEventResize'] = ({
@@ -343,15 +348,7 @@ const Schedule = () => {
 
   return (
     <RemoteContent error={eventError}>
-      <Snackbar
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        open={errorMsg.length > 0}
-        autoHideDuration={3000}
-        onClose={() => setErrorMsg('')}
-        slots={{ transition: Slide }}
-      >
-        <Alert severity='error'>{errorMsg}</Alert>
-      </Snackbar>
+      <SnackAlert problem={problem} />
 
       <Box display='flex' flexDirection='row' alignItems='center' mb={2}>
         <Typography variant='body2'>{t('schedule.showPlanes')}</Typography>

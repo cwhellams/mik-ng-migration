@@ -8,8 +8,6 @@ import {
   Grid,
   useMediaQuery,
   useTheme,
-  CircularProgress,
-  Alert,
   InputAdornment,
   Card,
   CardContent,
@@ -37,6 +35,9 @@ import { FormTitle } from '../../../components/FormTitle'
 import dayjs from 'dayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { EditButton } from '../../../components/EditButton'
+import { SaveButton } from '../../../components/SaveButton'
+import { Problem } from '@backend/routes/response'
+import { SnackAlert } from '../../../components/SnackAlert'
 
 export type AircraftEditMode = 'new' | 'details' | 'maintenance' | 'notes'
 
@@ -65,11 +66,11 @@ export const EditAircraftModal = ({
   // Define form states based on the mode
   const [formData, setFormData] = useState<Partial<Aircraft>>({})
 
-  const [errorMsg, setErrorMsg] = useState('')
+  const [problem, setProblem] = useState<Problem | undefined>()
 
   // Initialize form data when modal opens
   useEffect(() => {
-    setErrorMsg('')
+    setProblem(undefined)
 
     if (!aircraft || mode === 'details') {
       setFormData({
@@ -181,12 +182,11 @@ export const EditAircraftModal = ({
   }
 
   const trigger = async (method: 'POST' | 'PATCH') => {
-    setErrorMsg('')
+    setProblem(undefined)
 
     const { error } = await mutation.trigger(method, formData)
     if (error) {
-      console.error('Error modifying aircraft:', error)
-      return setErrorMsg(error?.detail ?? error?.title ?? 'Error')
+      return setProblem(error)
     }
 
     // clear the cache for aircrafts
@@ -199,7 +199,7 @@ export const EditAircraftModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrorMsg('')
+    setProblem(undefined)
 
     await trigger(isNewAircraft ? 'POST' : 'PATCH')
   }
@@ -598,6 +598,7 @@ export const EditAircraftModal = ({
         onClose={onClose}
       />
       <DialogContent dividers>
+        <SnackAlert problem={problem} />
         <Stack spacing={3}>
           {mode == 'maintenance' ? (
             <>
@@ -627,28 +628,13 @@ export const EditAircraftModal = ({
             </>
           )}
         </Stack>
-        {errorMsg.length > 0 && (
-          <Alert severity='error' sx={{ mt: 2 }}>
-            {errorMsg}
-          </Alert>
-        )}
       </DialogContent>
 
       <DialogActions>
         <Button onClick={onClose} color='inherit'>
           {t('general.cancel', 'Cancel')}
         </Button>
-        <Button
-          type='submit'
-          color='primary'
-          variant='contained'
-          disabled={mutation.isMutating}
-          startIcon={
-            mutation.isMutating ? <CircularProgress size={20} /> : null
-          }
-        >
-          {t('general.save', 'Save')}
-        </Button>
+        <SaveButton loading={mutation.isMutating} />
       </DialogActions>
     </Dialog>
   )

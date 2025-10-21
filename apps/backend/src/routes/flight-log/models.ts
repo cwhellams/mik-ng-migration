@@ -168,7 +168,7 @@ export const FlightLogTimesSchema = z.object({
 type FlightLogTimes = z.infer<typeof FlightLogTimesSchema>
 
 export const validateFlightLogTimes = (
-  times: FlightLogTimes,
+  times: Partial<FlightLogTimes>,
   addIssue: (i: z.IssueData) => void,
 ) => {
   const validate = (
@@ -232,6 +232,7 @@ export const flightLogDateValidator = <T extends ZodObject<typeof FlightLogTimes
         onBlockTimeEpoch: true,
       })
       .strip()
+      .partial()
       .safeParse(input)
 
     if (parsed.success) {

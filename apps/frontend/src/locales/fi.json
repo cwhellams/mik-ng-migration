@@ -116,7 +116,7 @@
     "membershipApprovedAt": "Jäsenyys hyväksytty",
     "membershipPending": "Jäsenyys odottaa hyväksyntää",
     "approveMembership": "Hyväksy jäseneksi",
-    "approvedSnackbarMessage": "Jäsenyys hyväksytty jäsenelle"
+    "approvedSnackbarMessage": "Jäsenyys hyväksytty jäsenelle {{firstName}} {{lastName}}"
   },
   "aircraft": {
     "location": "Sijainti",
@@ -544,9 +544,6 @@
     "confirmDelete": "Oletko varma että haluat poistaa tämän salaisuuden?",
     "showValue": "Näytä arvo",
     "hideValue": "Piilota arvo",
-    "save": "Tallenna",
-    "cancel": "Peruuta",
-    "delete": "Poista",
     "secretKeyRequired": "Salaisuuden nimi on pakollinen",
     "secretValueRequired": "Salaisuuden arvo on pakollinen",
     "noSecrets": "Ei salaisuuksia saatavilla"

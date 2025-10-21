@@ -4,7 +4,6 @@ import {
   TextField,
   Button,
   InputAdornment,
-  CircularProgress,
 } from '@mui/material'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
@@ -116,7 +115,8 @@ const Login = () => {
           color='primary'
           fullWidth
           size='large'
-          disabled={isMutating}
+          loadingPosition='start'
+          loading={isMutating}
           sx={{
             mt: 3,
             mb: 2,
@@ -135,11 +135,7 @@ const Login = () => {
             },
           }}
         >
-          {isMutating ? (
-            <CircularProgress size={24} color='inherit' />
-          ) : (
-            t('login.submitButton')
-          )}
+          {t('login.submitButton')}
         </Button>
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>

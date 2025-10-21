@@ -7,8 +7,6 @@ import {
   TextField,
   Button,
   Box,
-  Alert,
-  CircularProgress,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import type {
@@ -16,6 +14,9 @@ import type {
   SecretsListResponse,
 } from '@backend/routes/secrets/models'
 import useApi from '../../hooks/useApi'
+import { SaveButton } from '../../components/SaveButton'
+import { Problem } from '@backend/routes/response'
+import { SnackAlert } from '../../components/SnackAlert'
 
 interface SecretDialogProps {
   open: boolean
@@ -32,7 +33,7 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
 }) => {
   const { t } = useTranslation()
 
-  const { error, isLoading, mutation } = useApi<SecretsListResponse>({
+  const { isLoading, mutation } = useApi<SecretsListResponse>({
     url: 'v1/secrets' + (secret ? `/${secret.id}` : ''),
     skipFetch: true,
   })
@@ -44,6 +45,7 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
   const [errors, setErrors] = useState({
     secretKey: '',
     secretValue: '',
+    problem: undefined as Problem | undefined,
   })
 
   const isEditMode = !!secret
@@ -64,6 +66,7 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
       setErrors({
         secretKey: '',
         secretValue: '',
+        problem: undefined,
       })
     }
   }, [open, secret])
@@ -72,6 +75,7 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
     const newErrors = {
       secretKey: '',
       secretValue: '',
+      problem: undefined,
     }
 
     if (!formData.secretKey.trim()) {
@@ -98,19 +102,17 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
       secretValue: formData.secretValue.trim(),
     }
 
-    let success = false
-
-    if (isEditMode && secret) {
-      const result = await mutation.trigger('PATCH', secretData)
-      success = !!result
-    } else {
-      const result = await mutation.trigger('POST', secretData)
-      success = !!result
+    const { error } = await mutation.trigger(
+      isEditMode && secret ? 'PATCH' : 'POST',
+      secretData
+    )
+    if (error) {
+      return setErrors((prev) => ({
+        ...prev,
+        problem: error,
+      }))
     }
-
-    if (success) {
-      onSuccess()
-    }
+    onSuccess()
   }
 
   const handleChange =
@@ -146,13 +148,8 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
 
       <form onSubmit={handleSubmit}>
         <DialogContent>
+          <SnackAlert problem={errors.problem} />
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            {error && (
-              <Alert severity='error'>
-                {error.detail || 'An error occurred'}
-              </Alert>
-            )}
-
             <TextField
               label={t('accessCodes.secretKey')}
               value={formData.secretKey}
@@ -181,18 +178,11 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
         </DialogContent>
 
         <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button onClick={onClose} disabled={isLoading} variant='outlined'>
-            {t('accessCodes.cancel')}
+          <Button onClick={onClose} variant='outlined'>
+            {t('general.cancel')}
           </Button>
 
-          <Button
-            type='submit'
-            variant='contained'
-            disabled={isLoading}
-            startIcon={isLoading ? <CircularProgress size={16} /> : undefined}
-          >
-            {t('accessCodes.save')}
-          </Button>
+          <SaveButton loading={mutation.isMutating} />
         </DialogActions>
       </form>
     </Dialog>

@@ -1,5 +1,4 @@
 import {
-  CircularProgress,
   Card,
   CardContent,
   Typography,
@@ -15,7 +14,6 @@ import {
   Dialog,
   useMediaQuery,
   useTheme,
-  Alert,
 } from '@mui/material'
 import useApi, { MutateMethods } from '../../../hooks/useApi'
 import {
@@ -31,6 +29,10 @@ import { useRoles } from '../../../hooks/useRoles'
 import { mutate } from 'swr'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { Upsert } from '@backend/types/schema'
+import { Problem } from '@backend/routes/response'
+import { SnackAlert } from '../../../components/SnackAlert'
+import { RemoveButton } from '../../../components/RemoveButton'
+import { SaveButton } from '../../../components/SaveButton'
 
 export const MemberRoleEditor = ({
   role,
@@ -63,11 +65,11 @@ export const MemberRoleEditor = ({
     permissions: [],
   })
 
-  const [errorMsg, setErrorMsg] = useState('')
+  const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
   useEffect(() => {
     if (role) {
-      setErrorMsg('')
+      setProblem(undefined)
       setFormData({
         ...role,
         description: role.description ?? '',
@@ -76,12 +78,11 @@ export const MemberRoleEditor = ({
   }, [role])
 
   const trigger = async (method: MutateMethods) => {
-    setErrorMsg('')
+    setProblem(undefined)
 
     const { error } = await mutation.trigger(method, formData)
     if (error) {
-      console.error('Error saving role data:', error)
-      return setErrorMsg(error?.detail ?? error?.title ?? 'Error')
+      return setProblem(error)
     }
 
     // clear the cache for roles list
@@ -94,7 +95,6 @@ export const MemberRoleEditor = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrorMsg('')
 
     await trigger(isNewRole ? 'POST' : 'PATCH')
   }
@@ -281,7 +281,7 @@ export const MemberRoleEditor = ({
 
           {!isNewRole && detailsCard()}
 
-          {errorMsg.length > 0 && <Alert severity='error'>{errorMsg}</Alert>}
+          <SnackAlert problem={problem} />
         </Stack>
       </DialogContent>
 
@@ -294,17 +294,10 @@ export const MemberRoleEditor = ({
         >
           <Grid>
             {!isNewRole && (
-              <Button
-                color='secondary'
-                variant='outlined'
+              <RemoveButton
                 onClick={handleRemove}
-                disabled={mutation.isMutating}
-                startIcon={
-                  mutation.isMutating ? <CircularProgress size={20} /> : null
-                }
-              >
-                {t('general.delete', 'Delete')}
-              </Button>
+                loading={mutation.isMutating}
+              />
             )}
           </Grid>
 
@@ -312,17 +305,7 @@ export const MemberRoleEditor = ({
             <Button onClick={onClose} color='inherit'>
               {t('general.cancel', 'Cancel')}
             </Button>
-            <Button
-              type='submit'
-              color='primary'
-              variant='contained'
-              disabled={mutation.isMutating}
-              startIcon={
-                mutation.isMutating ? <CircularProgress size={20} /> : null
-              }
-            >
-              {t('general.save', 'Save')}
-            </Button>
+            <SaveButton loading={mutation.isMutating} />
           </Grid>
         </Grid>
       </DialogActions>

@@ -1,5 +1,4 @@
 import {
-  CircularProgress,
   Card,
   CardContent,
   Stack,
@@ -11,7 +10,6 @@ import {
   Dialog,
   useMediaQuery,
   useTheme,
-  Alert,
   CardActions,
   Typography,
 } from '@mui/material'
@@ -34,6 +32,10 @@ import {
   FlightLogStatus,
 } from '@backend/routes/flight-log/models'
 import { FlightTable } from './FlightTable'
+import { Problem } from '@backend/routes/response'
+import { SnackAlert } from '../../../components/SnackAlert'
+import { SaveButton } from '../../../components/SaveButton'
+import { RemoveButton } from '../../../components/RemoveButton'
 
 export const AjlbEditor = ({
   book,
@@ -77,7 +79,7 @@ export const AjlbEditor = ({
 
   useEffect(() => {
     if (book) {
-      setErrorMsg('')
+      setProblem(undefined)
       setFormData(book)
 
       setCurrentHours(Math.floor(book.startFlightMins / 60))
@@ -85,15 +87,14 @@ export const AjlbEditor = ({
     }
   }, [book])
 
-  const [errorMsg, setErrorMsg] = useState('')
+  const [problem, setProblem] = useState<Problem | undefined>()
 
   const trigger = async (method: MutateMethods) => {
-    setErrorMsg('')
+    setProblem(undefined)
 
     const { error } = await mutation.trigger(method, formData)
     if (error) {
-      console.error('Error saving logbook data:', error)
-      return setErrorMsg(error?.detail ?? error?.title ?? 'Error')
+      return setProblem(error)
     }
 
     // clear the cache for roles list
@@ -106,7 +107,7 @@ export const AjlbEditor = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrorMsg('')
+    setProblem(undefined)
 
     await trigger(isNewBook ? 'POST' : 'PATCH')
   }
@@ -379,7 +380,7 @@ export const AjlbEditor = ({
 
           {!isNewBook && detailsCard()}
 
-          {errorMsg.length > 0 && <Alert severity='error'>{errorMsg}</Alert>}
+          <SnackAlert problem={problem} />
         </Stack>
       </DialogContent>
 
@@ -392,17 +393,10 @@ export const AjlbEditor = ({
         >
           <Grid>
             {!isNewBook && (
-              <Button
-                color='secondary'
-                variant='outlined'
+              <RemoveButton
                 onClick={handleRemove}
-                disabled={mutation.isMutating}
-                startIcon={
-                  mutation.isMutating ? <CircularProgress size={20} /> : null
-                }
-              >
-                {t('general.delete', 'Delete')}
-              </Button>
+                loading={mutation.isMutating}
+              />
             )}
           </Grid>
 
@@ -410,17 +404,7 @@ export const AjlbEditor = ({
             <Button onClick={() => onClose()} color='inherit'>
               {t('general.cancel', 'Cancel')}
             </Button>
-            <Button
-              type='submit'
-              color='primary'
-              variant='contained'
-              disabled={mutation.isMutating}
-              startIcon={
-                mutation.isMutating ? <CircularProgress size={20} /> : null
-              }
-            >
-              {t('general.save', 'Save')}
-            </Button>
+            <SaveButton loading={mutation.isMutating} />
           </Grid>
         </Grid>
       </DialogActions>

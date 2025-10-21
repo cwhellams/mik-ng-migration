@@ -13,8 +13,6 @@ import {
   useMediaQuery,
   useTheme,
   Pagination,
-  Snackbar,
-  Alert,
   PaginationItem,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
@@ -43,6 +41,7 @@ import { EditButton } from '../../components/EditButton'
 import { Problem } from '@backend/routes/response'
 import { StatusButton } from './components/StatusButton'
 import { FlightLogValidation } from './components/FlightLogValidation'
+import { SnackAlert } from '../../components/SnackAlert'
 
 const FlightLogsList = () => {
   const { t } = useTranslation()
@@ -56,23 +55,21 @@ const FlightLogsList = () => {
 
   const [ajlb, setAjlb] = useState<AircraftJourneyLogBook | null>(null)
 
-  const [sbState, setSbState] = useState<Problem | null>(null)
+  const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
   const [searchParams, setSearchParams] = useSearchParams()
   const scrollToRef = useScrollOnRender()
 
   const [filters, setFilters] = useState<FlightLogFilters>({})
 
-  
   useEffect(() => {
-    
     const aircraftRegistration = searchParams.get('aircraftRegistration') ?? ''
     const ajlbSeqNo = searchParams.get('ajlbSeqNo')
-    ? Number(searchParams.get('ajlbSeqNo'))
-    : undefined
+      ? Number(searchParams.get('ajlbSeqNo'))
+      : undefined
     const page = searchParams.get('page')
-    ? Number(searchParams.get('page'))
-    : undefined
+      ? Number(searchParams.get('page'))
+      : undefined
 
     setFilters({
       aircraftRegistration,
@@ -144,7 +141,7 @@ const FlightLogsList = () => {
       log.flightId
     )
 
-    setSbState(res.error ? res.error : { status: 200 })
+    setProblem(res.error ? res.error : { status: 200 })
     mutateLogbooks()
 
     return res
@@ -161,9 +158,9 @@ const FlightLogsList = () => {
     )
 
     if (res.error) {
-      setSbState(res.error)
+      setProblem(res.error)
     } else if (isLast) {
-      setSbState({ status: 200 })
+      setProblem({ status: 200 })
     }
 
     if (isLast) {
@@ -215,18 +212,7 @@ const FlightLogsList = () => {
 
   return (
     <Box>
-      <Snackbar
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        open={sbState !== null}
-        autoHideDuration={3000}
-        onClose={() => setSbState(null)}
-      >
-        <Alert severity={sbState?.status === 200 ? 'success' : 'error'}>
-          {sbState?.status === 200
-            ? 'success'
-            : (sbState?.detail ?? 'Error occurred')}
-        </Alert>
-      </Snackbar>
+      <SnackAlert problem={problem} />
 
       <Stack
         direction={{ xs: 'column', md: 'row' }}

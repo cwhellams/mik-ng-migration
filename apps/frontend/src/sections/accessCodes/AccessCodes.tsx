@@ -119,7 +119,6 @@ export const AccessCodes: React.FC = () => {
   )
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingSecret, setEditingSecret] = useState<Secret | null>(null)
-  const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [secretToDelete, setSecretToDelete] = useState<Secret | null>(null)
 
@@ -198,9 +197,7 @@ export const AccessCodes: React.FC = () => {
 
   const confirmDelete = async () => {
     if (!secretToDelete) return
-    setIsDeleting(true)
     await handleDelete()
-    setIsDeleting(false)
     mutate() // Refresh the list
     setVisibleSecrets((prev) => {
       const newSet = new Set(prev)
@@ -389,7 +386,7 @@ export const AccessCodes: React.FC = () => {
                               size='small'
                               onClick={() => handleDeleteSecret(secret)}
                               title={t('accessCodes.deleteSecret')}
-                              disabled={isDeleting}
+                              disabled={deleteMutation.isMutating}
                               sx={{
                                 color: theme.palette.error.main,
                                 '&:hover': {
@@ -424,8 +421,8 @@ export const AccessCodes: React.FC = () => {
           onConfirm={confirmDelete}
           title={t('accessCodes.deleteSecret')}
           message={t('accessCodes.confirmDelete')}
-          confirmText={t('accessCodes.delete')}
-          cancelText={t('accessCodes.cancel')}
+          confirmText={t('general.delete')}
+          cancelText={t('general.cancel')}
           severity='error'
         />
       </Box>

@@ -1,5 +1,4 @@
 import {
-  CircularProgress,
   Card,
   CardContent,
   Typography,
@@ -12,8 +11,6 @@ import {
   Tooltip,
   FormControlLabel,
   Checkbox,
-  Snackbar,
-  SnackbarContent,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
 import { Member, MemberApproval } from '@backend/routes/members/models'
@@ -34,6 +31,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import PendingActionsIcon from '@mui/icons-material/PendingActions'
 import Watermark from '../../components/watermark'
 import { mutate } from 'swr'
+import { SnackAlert } from '../../components/SnackAlert'
+import { Problem } from '@backend/routes/response'
 
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
@@ -55,7 +54,7 @@ const MemberProfile = () => {
 
   const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
   const [isPreFlightChecked, setIsPreFlightChecked] = useState<boolean>(false)
-  const [sbState, setSbState] = useState<boolean>(false)
+  const [problem, setProblem] = useState<Problem | undefined>()
 
   const handlePreFlightCheckboxChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -68,18 +67,25 @@ const MemberProfile = () => {
   }
 
   const handleRemove = async () => {
-    await mutation.trigger('DELETE', {})
+    const { error } = await mutation.trigger('DELETE', {})
+    if (error) {
+      return setProblem(error)
+    }
     navigate('/members')
   }
 
   const handleApprove = async () => {
-    await approveMutation.trigger('POST', memberId)
-    setSbState(true)
-    mutate((key) => Array.isArray(key) && key[0] == `v1/members/${memberId}`)
-  }
+    const { error } = await approveMutation.trigger('POST', memberId)
+    if (error) {
+      return setProblem(error)
+    }
 
-  const handleClose = () => {
-    setSbState(false)
+    setProblem({
+      status: 200,
+      detail: t('member.approvedSnackbarMessage', data),
+    })
+
+    mutate((key) => Array.isArray(key) && key[0] == `v1/members/${memberId}`)
   }
 
   //Deconstructing the data object to extract the properties we need
@@ -110,17 +116,7 @@ const MemberProfile = () => {
   return (
     <RemoteContent isLoading={isLoading} error={error}>
       <Box sx={{ padding: 3 }}>
-        <Snackbar
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-          open={sbState}
-          autoHideDuration={3000}
-          onClose={handleClose}
-        >
-          <SnackbarContent
-            sx={{ backgroundColor: 'green', color: 'white' }}
-            message={`${t('member.approvedSnackbarMessage')} ${data?.firstName} ${data?.lastName}`}
-          />
-        </Snackbar>
+        <SnackAlert problem={problem} />
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <Badge
             overlap='circular'
@@ -455,10 +451,9 @@ const MemberProfile = () => {
                 color='secondary'
                 variant='outlined'
                 onClick={handleRemove}
-                disabled={mutation.isMutating}
-                startIcon={
-                  mutation.isMutating ? <CircularProgress size={20} /> : null
-                }
+                loadingPosition='start'
+                loading={mutation.isMutating}
+                startIcon={<Icon icon='mdi:delete' />}
               >
                 {t('general.delete', 'Delete')}
               </Button>

@@ -8,8 +8,6 @@ import {
   Grid,
   useMediaQuery,
   useTheme,
-  CircularProgress,
-  Alert,
   Card,
   CardContent,
   Stack,
@@ -28,6 +26,9 @@ import { FormTitle } from '../../../components/FormTitle'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs from 'dayjs'
 import { Upsert } from '@backend/types/schema'
+import { SaveButton } from '../../../components/SaveButton'
+import { Problem } from '@backend/routes/response'
+import { SnackAlert } from '../../../components/SnackAlert'
 
 interface EditDocumentModalProps {
   onClose: () => void
@@ -54,23 +55,22 @@ export const EditDocumentModal = ({
   // Define form states based on the mode
   const [formData, setFormData] = useState<Partial<AircraftDocument>>({})
 
-  const [errorMsg, setErrorMsg] = useState('')
+  const [problem, setProblem] = useState<Problem | undefined>()
 
   // Initialize form data when modal opens
   useEffect(() => {
-    setErrorMsg('')
+    setProblem(undefined)
     if (document) {
       setFormData(document)
     }
   }, [document])
 
   const trigger = async (method: MutateMethods) => {
-    setErrorMsg('')
+    setProblem(undefined)
 
     const { error } = await mutation.trigger(method, formData)
     if (error) {
-      console.error('Error modifying aircraft:', error)
-      return setErrorMsg(error?.detail ?? error?.title ?? 'Error')
+      return setProblem(error)
     }
 
     // clear the cache for aircrafts
@@ -83,7 +83,6 @@ export const EditDocumentModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrorMsg('')
 
     await trigger(isNewDocument ? 'POST' : 'PATCH')
   }
@@ -109,6 +108,7 @@ export const EditDocumentModal = ({
           <Select
             labelId='type-label'
             id='role'
+            required
             value={formData.documentId ?? ''}
             label={t('aircraft.document.edit.documentId')}
             onChange={({ target }) => handleChange('documentId', target.value)}
@@ -231,28 +231,15 @@ export const EditDocumentModal = ({
       <DialogContent dividers>
         {renderDocumentsForm()}
         {!isNewDocument && auditCard()}
-        {errorMsg.length > 0 && (
-          <Alert severity='error' sx={{ mt: 2 }}>
-            {errorMsg}
-          </Alert>
-        )}
+
+        <SnackAlert problem={problem} />
       </DialogContent>
 
       <DialogActions>
         <Button onClick={onClose} color='inherit'>
-          {t('general.cancel', 'Cancel')}
+          {t('general.cancel')}
         </Button>
-        <Button
-          type='submit'
-          color='primary'
-          variant='contained'
-          disabled={mutation.isMutating}
-          startIcon={
-            mutation.isMutating ? <CircularProgress size={20} /> : null
-          }
-        >
-          {t('general.save', 'Save')}
-        </Button>
+        <SaveButton loading={mutation.isMutating} />
       </DialogActions>
     </Dialog>
   )

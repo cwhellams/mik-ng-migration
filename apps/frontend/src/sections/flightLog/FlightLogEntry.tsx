@@ -11,9 +11,6 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  Alert,
-  Snackbar,
-  Slide,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
@@ -45,6 +42,9 @@ import { StatusDisplay } from './components/StatusDisplay'
 import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
 import { BillableMember } from './components/BillableMember'
+import { SnackAlert } from '../../components/SnackAlert'
+import { Problem } from '@backend/routes/response'
+import { SaveButton } from '../../components/SaveButton'
 
 const flightTypes = [
   { code: 'HAR', labelKey: 'flightLog.flightTypes.practice' },
@@ -98,7 +98,7 @@ const FlightLogEntry = () => {
     control,
     watch,
     formState: { errors, isSubmitting },
-    setError,
+    clearErrors,
     setValue,
     getValues,
     reset,
@@ -159,6 +159,7 @@ const FlightLogEntry = () => {
   useEffect(() => {
     if (data) {
       reset(data)
+      setProblem(undefined)
     }
   }, [data, reset])
 
@@ -176,6 +177,8 @@ const FlightLogEntry = () => {
       | 'onBlockTimeEpoch'
   ) => (getValues(field) ? dayjs.unix(Number(watch(field))) : null)
 
+  const [problem, setProblem] = useState<Problem | undefined>()
+
   const onSubmit = async (data: FlightLogUpsertRequest) => {
     console.log('Form submitted with data:', data) // Debug log
 
@@ -192,50 +195,27 @@ const FlightLogEntry = () => {
       )
 
       if (error) {
-        console.error('Error saving flight data:', error)
-        setSbState(true)
-        return setError('root', {
-          type: error?.detail ?? error?.title ?? 'Error',
-        })
+        return setProblem(error)
       }
 
       navigate(`/flight-logs?${location.state}#${flightId}`)
     } catch (err) {
       console.error('Unexpected error:', err)
-      setSbState(true)
-      setError('root', {
-        type: 'Unexpected error occurred',
-      })
+      setProblem({ status: 500, detail: t('general.savingError') })
     }
   }
 
-  const [sbState, setSbState] = useState<boolean>(false)
-  const handleClose = () => {
-    setSbState(false)
-  }
-
-  const handleCancel = () => {
-    console.log(location)
+  const handleCancel = () =>
     navigate(`/flight-logs?${location.state}#${flightId}`)
-  }
 
-  // Check if form has validation errors (excluding root errors)
-  const hasValidationErrors =
-    Object.keys(errors).filter((key) => key !== 'root').length > 0
+  // Check if form has validation errors
+  const hasValidationErrors = Object.keys(errors).length > 0
 
   const title = isNew ? t('flightLog.newEntry') : t('flightLog.existingEntry')
 
   return (
     <RemoteContent isLoading={isLoading} error={error}>
-      <Snackbar
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        open={sbState}
-        autoHideDuration={3000}
-        onClose={handleClose}
-        slots={{ transition: Slide }}
-      >
-        <Alert severity='error'>{t('general.savingError')}</Alert>
-      </Snackbar>
+      <SnackAlert problem={problem} />
 
       {/* Breadcrumb navigation */}
       <Breadcrumbs sx={{ my: 2 }}>
@@ -270,6 +250,7 @@ const FlightLogEntry = () => {
                   render={({ field }) => (
                     <Select
                       {...field}
+                      required
                       onChange={({ target }) => {
                         const plane = aircraftData?.aircrafts.find(
                           (plane) => plane.registration == target.value
@@ -282,6 +263,7 @@ const FlightLogEntry = () => {
                               'departureAirport',
                               plane.status.lastLandingAirport
                             )
+                            clearErrors('departureAirport')
                           }
                         }
                         if (!getValues('fuelRemainingLitres')) {
@@ -291,6 +273,7 @@ const FlightLogEntry = () => {
                               'fuelRemainingLitres',
                               plane?.usableFuelLitres * 0.1
                             )
+                            clearErrors('fuelRemainingLitres')
                           }
                         }
 
@@ -561,11 +544,7 @@ const FlightLogEntry = () => {
                       }
                     )
                     if (error) {
-                      console.error('Error changing status:', error)
-                      setSbState(true)
-                      return setError('root', {
-                        type: error?.detail ?? error?.title ?? 'Error',
-                      })
+                      return setProblem(error)
                     }
                   }}
                 />
@@ -573,35 +552,19 @@ const FlightLogEntry = () => {
             )}
           </Grid>
 
-          {errors.root && (
-            <Alert severity='error' sx={{ mt: 2 }}>
-              {errors.root.type}
-            </Alert>
-          )}
-
           {/* Action buttons */}
           <Stack direction='row' spacing={2} justifyContent='flex-end' mt={3}>
             <Button
               variant='outlined'
               onClick={handleCancel}
               startIcon={<Icon icon='mdi:close' />}
-              disabled={mutation.isMutating || isSubmitting}
             >
               {t('general.cancel')}
             </Button>
-            <Button
-              type='submit'
-              variant='contained'
-              color='primary'
-              startIcon={<Icon icon='mdi:content-save' />}
-              disabled={
-                mutation.isMutating || isSubmitting || hasValidationErrors
-              }
-            >
-              {mutation.isMutating || isSubmitting
-                ? t('general.saving')
-                : t('general.save')}
-            </Button>
+            <SaveButton
+              loading={mutation.isMutating || isSubmitting}
+              disabled={hasValidationErrors}
+            />
           </Stack>
         </form>
       </Paper>

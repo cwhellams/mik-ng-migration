@@ -89,7 +89,8 @@ export const FlightLogValidation = ({
               variant='contained'
               color='primary'
               startIcon={<Icon icon='mdi:check' color='green' />}
-              disabled={isMutating}
+              loadingPosition='start'
+              loading={isMutating}
               onClick={async () => {
                 for (const [index, log] of unverifiedFlights.entries()) {
                   const isLast = index == unverifiedFlights.length - 1

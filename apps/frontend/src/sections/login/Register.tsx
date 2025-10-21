@@ -4,7 +4,6 @@ import {
   TextField,
   Button,
   InputAdornment,
-  CircularProgress,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -236,7 +235,8 @@ const Register = () => {
           color='primary'
           fullWidth
           size='large'
-          disabled={isMutating}
+          loadingPosition='start'
+          loading={isMutating}
           sx={{
             mt: 3,
             mb: 2,
@@ -255,11 +255,7 @@ const Register = () => {
             },
           }}
         >
-          {isMutating ? (
-            <CircularProgress size={24} color='inherit' />
-          ) : (
-            t('register.submitButton')
-          )}
+          {t('register.submitButton')}
         </Button>
 
         {registerError && (

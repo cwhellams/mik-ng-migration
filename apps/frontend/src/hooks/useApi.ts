@@ -244,7 +244,13 @@ export default function useApi<
       })
       .catch((err: Error | AxiosError) =>
         axios.isAxiosError<Problem>(err)
-          ? { error: err.response?.data }
+          ? {
+              error: err.response?.data ?? {
+                status: err.status ?? 0,
+                title: err.code,
+                detail: err.message,
+              },
+            }
           : // unknown error type
             {
               error: {

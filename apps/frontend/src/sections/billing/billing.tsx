@@ -21,8 +21,6 @@ import {
   Tooltip,
   useMediaQuery,
   useTheme,
-  Snackbar,
-  Alert,
 } from '@mui/material'
 
 import Grid from '@mui/material/Grid'
@@ -39,6 +37,8 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { Icon } from '@iconify/react'
 import InvoiceDatesCell from '../../components/DateCombo'
 import { RemoteContent } from '../../components/RemoteContent'
+import { SnackAlert } from '../../components/SnackAlert'
+import { Problem } from '@backend/routes/response'
 
 const dateFormat = 'YYYY-MM-DD'
 
@@ -58,8 +58,7 @@ const Billing = () => {
     ...(pastDueOnly ? { pastDue: 'true' } : {}),
   }
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [snackbarError, setSnackbarError] = useState<string | null>(null)
+  const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
   const { data, isLoading, error } = useApi<InvoiceListResponse>(
     {
@@ -97,12 +96,10 @@ const Billing = () => {
       link.click()
 
       URL.revokeObjectURL(url)
-      setSnackbarError(null)
-      setSnackbarOpen(true)
+      setProblem({ status: 200, detail: 'PDF download started' })
     } catch (error) {
       console.log('Error downloading PDF:', error)
-      setSnackbarError('Failed to download PDF.')
-      setSnackbarOpen(true)
+      setProblem({ status: 500, detail: 'Failed to download PDF' })
     }
   }
 
@@ -189,7 +186,7 @@ const Billing = () => {
                 <Select
                   label={t('billing.filters.status')}
                   value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
+                  onChange={(e) => setStatus(e.target.value)}
                 >
                   <MenuItem value='all'>{t('billing.filters.all')}</MenuItem>
                   <MenuItem value='paid'>{t('billing.filters.paid')}</MenuItem>
@@ -349,20 +346,7 @@ const Billing = () => {
             </Box>
           )}
         </Box>
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={4000}
-          onClose={() => setSnackbarOpen(false)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        >
-          <Alert
-            onClose={() => setSnackbarOpen(false)}
-            severity={snackbarError ? 'error' : 'success'}
-            sx={{ width: '100%' }}
-          >
-            {snackbarError || 'PDF download started'}
-          </Alert>
-        </Snackbar>
+        <SnackAlert problem={problem} />
       </Box>
     </RemoteContent>
   )

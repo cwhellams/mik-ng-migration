@@ -116,7 +116,7 @@
     "membershipApprovedAt": "Medlemskap godkänt den",
     "membershipPending": "Medlemskap väntar på godkännande",
     "approveMembership": "Godkänn medlemskap",
-    "approvedSnackbarMessage": "Medlemskap godkänt för"
+    "approvedSnackbarMessage": "Medlemskap godkänt för {{firstName}} {{lastName}}"
   },
   "aircraft": {
     "location": "Plats",
@@ -544,9 +544,6 @@
     "confirmDelete": "Är du säker på att du vill ta bort denna hemlighet?",
     "showValue": "Visa värde",
     "hideValue": "Dölj värde",
-    "save": "Spara",
-    "cancel": "Avbryt",
-    "delete": "Ta bort",
     "secretKeyRequired": "Hemlighetens namn är obligatoriskt",
     "secretValueRequired": "Hemlighetens värde är obligatoriskt",
     "noSecrets": "Inga hemligheter tillgängliga"

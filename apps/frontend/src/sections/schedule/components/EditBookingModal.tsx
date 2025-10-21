@@ -1,5 +1,4 @@
 import {
-  CircularProgress,
   Card,
   CardContent,
   Stack,
@@ -11,7 +10,6 @@ import {
   Dialog,
   useMediaQuery,
   useTheme,
-  Alert,
   FormControl,
   InputLabel,
   MenuItem,
@@ -39,6 +37,10 @@ import { FormField } from '../../../components/FormField'
 import { useRoles } from '../../../hooks/useRoles'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
 import { BookingTable } from './BookingTable'
+import { SnackAlert } from '../../../components/SnackAlert'
+import { Problem } from '@backend/routes/response'
+import { SaveButton } from '../../../components/SaveButton'
+import { RemoveButton } from '../../../components/RemoveButton'
 
 export const BookingEditor = ({
   booking,
@@ -88,7 +90,7 @@ export const BookingEditor = ({
   const [startDate, setStartDate] = useState<dayjs.Dayjs | undefined>()
   const [endDate, setEndDate] = useState<dayjs.Dayjs | undefined>()
 
-  const [errorMsg, setErrorMsg] = useState('')
+  const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
   const { data: overlaps } = useApi<BookingListResponse>({
     url: 'v1/bookings',
@@ -104,7 +106,7 @@ export const BookingEditor = ({
 
   useEffect(() => {
     if (booking) {
-      setErrorMsg('')
+      setProblem(undefined)
       setFormData(booking)
       setStartDate(dayjs(booking.startTime))
       setEndDate(dayjs(booking.endTime))
@@ -112,12 +114,12 @@ export const BookingEditor = ({
   }, [booking])
 
   const trigger = async (method: MutateMethods) => {
-    setErrorMsg('')
+    setProblem(undefined)
 
     const { error } = await mutation.trigger(method, formData)
     if (error) {
       console.error('Error saving booking data:', error)
-      return setErrorMsg(error?.detail ?? error?.title ?? 'Error')
+      return setProblem(error)
     }
 
     // clear the cache for booking list
@@ -126,16 +128,10 @@ export const BookingEditor = ({
     onClose()
   }
 
-  const handleRemove = async () => {
-    setErrorMsg('')
-
-    await trigger('DELETE')
-  }
+  const handleRemove = async () => trigger('DELETE')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrorMsg('')
-
     await trigger(isNewBooking ? 'POST' : 'PATCH')
   }
 
@@ -370,7 +366,7 @@ export const BookingEditor = ({
 
           {!isNewBooking && detailsCard()}
 
-          {errorMsg.length > 0 && <Alert severity='error'>{errorMsg}</Alert>}
+          <SnackAlert problem={problem} />
         </Stack>
       </DialogContent>
 
@@ -383,17 +379,10 @@ export const BookingEditor = ({
         >
           <Grid>
             {!isNewBooking && !isCancelledBooking && !isReadonly && (
-              <Button
-                color='secondary'
-                variant='outlined'
+              <RemoveButton
                 onClick={handleRemove}
-                disabled={mutation.isMutating}
-                startIcon={
-                  mutation.isMutating ? <CircularProgress size={20} /> : null
-                }
-              >
-                {t('general.delete', 'Delete')}
-              </Button>
+                loading={mutation.isMutating}
+              />
             )}
           </Grid>
 
@@ -403,20 +392,10 @@ export const BookingEditor = ({
             </Button>
 
             {!isCancelledBooking && !isReadonly && (
-              <Button
-                type='submit'
-                color='primary'
-                variant='contained'
-                disabled={
-                  mutation.isMutating ||
-                  (overlappingBookings.length > 0 && !isBookingAdmin)
-                }
-                startIcon={
-                  mutation.isMutating ? <CircularProgress size={20} /> : null
-                }
-              >
-                {t('general.save', 'Save')}
-              </Button>
+              <SaveButton
+                loading={mutation.isMutating}
+                disabled={overlappingBookings.length > 0 && !isBookingAdmin}
+              />
             )}
           </Grid>
         </Grid>

@@ -9,7 +9,6 @@ import {
   TableBody,
   TableContainer,
   Paper,
-  CircularProgress,
   Button,
   useMediaQuery,
   useTheme,
@@ -79,15 +78,10 @@ export const InvoiceItemsPage: React.FC = () => {
               {/* Needed to avoid Tooltip warning when button is disabled */}
               <Button
                 variant='outlined'
-                startIcon={
-                  refreshMutation.isMutating ? (
-                    <CircularProgress size={16} color='inherit' />
-                  ) : (
-                    <RefreshIcon />
-                  )
-                }
+                loading={refreshMutation.isMutating}
+                loadingPosition='start'
+                startIcon={<RefreshIcon />}
                 onClick={handleRefresh}
-                disabled={refreshMutation.isMutating}
               >
                 {t('invoiceItems.reloadFromSimplbooks')}
               </Button>

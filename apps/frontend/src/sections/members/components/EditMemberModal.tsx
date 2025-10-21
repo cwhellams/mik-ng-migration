@@ -9,7 +9,6 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
-  CircularProgress,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -17,7 +16,6 @@ import {
   RadioGroup,
   Checkbox,
   FormGroup,
-  Alert,
   Box,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
@@ -29,6 +27,9 @@ import { useRoles } from '../../../hooks/useRoles'
 import { APIMutation } from '../../../hooks/useApi'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { RegisterRequest } from '@backend/routes/auth/schema'
+import { SnackAlert } from '../../../components/SnackAlert'
+import { Problem } from '@backend/routes/response'
+import { SaveButton } from '../../../components/SaveButton'
 
 export type MemberEditMode =
   | 'register'
@@ -61,11 +62,11 @@ export const EditMemberModal = ({
   // Define form states based on the mode
   const [formData, setFormData] = useState<Partial<Member>>({})
 
-  const [errorMsg, setErrorMsg] = useState('')
+  const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
   // Initialize form data when modal opens
   useEffect(() => {
-    setErrorMsg('')
+    setProblem(undefined)
 
     if (mode === 'register') {
       // subset required for creating new users
@@ -130,14 +131,13 @@ export const EditMemberModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrorMsg('')
+    setProblem(undefined)
 
     const method = mode == 'register' ? 'POST' : 'PATCH'
 
     const { error } = await api.trigger(method, formData)
     if (error) {
-      console.error('Error saving member data:', error)
-      return setErrorMsg(error?.detail ?? error?.title ?? 'Error')
+      return setProblem(error)
     }
 
     if (mode == 'register') {
@@ -558,26 +558,14 @@ export const EditMemberModal = ({
       <DialogContent dividers>
         {getForm()}
 
-        {errorMsg.length > 0 && (
-          <Alert severity='error' sx={{ mt: 2 }}>
-            {errorMsg}
-          </Alert>
-        )}
+        <SnackAlert problem={problem} />
       </DialogContent>
 
       <DialogActions>
         <Button onClick={onClose} color='inherit'>
           {t('general.cancel', 'Cancel')}
         </Button>
-        <Button
-          type='submit'
-          color='primary'
-          variant='contained'
-          disabled={api.isMutating}
-          startIcon={api.isMutating ? <CircularProgress size={20} /> : null}
-        >
-          {t('general.save', 'Save')}
-        </Button>
+        <SaveButton loading={api.isMutating} />
       </DialogActions>
     </Dialog>
   )
