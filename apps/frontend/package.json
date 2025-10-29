@@ -22,7 +22,7 @@
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
     "@mui/styled-engine": "^7.1.0",
-    "@mui/system": "7.3.2",
+    "@mui/system": "7.3.3",
     "@mui/utils": "^7.1.0",
     "@mui/x-date-pickers": "^7.28.0",
     "@types/react-router-dom": "^5.3.3",
