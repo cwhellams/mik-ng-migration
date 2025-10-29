@@ -1,0 +1,152 @@
+import {
+  Typography,
+  Box,
+  useMediaQuery,
+  useTheme,
+  Stepper,
+  Step,
+  StepLabel,
+  Button,
+  Alert,
+} from '@mui/material'
+import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
+import {
+  InvoicableFlights,
+  InvoicableFlightFilters,
+} from '@backend/routes/flight-log/models'
+import { dayjs } from '../../utils/date'
+import { useState } from 'react'
+import { InvoicingRange } from './components/InvoicingRange'
+import { InvoicingFlights } from './components/InvoicingFlights'
+
+const steps = [
+  { code: undefined, labelKey: 'invoicing.range' },
+  { code: InvoicableFlights.KOE, labelKey: 'invoicing.testFlights' },
+  { code: InvoicableFlights.SII, labelKey: 'invoicing.ferryFlights' },
+  {
+    code: InvoicableFlights.COMMENT,
+    labelKey: 'invoicing.withBillingComments',
+  },
+  { code: InvoicableFlights.OTHER, labelKey: 'invoicing.other' },
+]
+
+export const FlightInvoicing = () => {
+  const { t } = useTranslation()
+
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const [filters, setFilters] = useState<InvoicableFlightFilters>({
+    flights: InvoicableFlights.KOE,
+    aircraftRegistration: searchParams.get('registration') ?? '',
+    endDate:
+      searchParams.get('end') ??
+      dayjs().subtract(1, 'month').endOf('month').format('YYYY-MM-DD') ??
+      '',
+    page: 1,
+  })
+
+  const theme = useTheme()
+  const isXs = useMediaQuery(theme.breakpoints.down('sm'))
+
+  const activeStep = searchParams.get('step')
+    ? Number(searchParams.get('step'))
+    : 0
+
+  const navigate = {
+    next: () =>
+      setSearchParams({
+        step: (activeStep + 1).toString(),
+        registration: filters.aircraftRegistration ?? '',
+        end: filters.endDate ?? '',
+      }),
+
+    previous: () =>
+      setSearchParams((prev) => ({
+        ...prev,
+        step: (activeStep - 1).toString(),
+      })),
+  }
+
+  const handleReset = () => setSearchParams({})
+
+  return (
+    <Box>
+      <Typography variant={isXs ? 'h4' : 'h2'} gutterBottom mb={3}>
+        {t('invoicing.title')}
+      </Typography>
+
+      <Stepper
+        orientation={isXs ? 'vertical' : 'horizontal'}
+        activeStep={activeStep}
+        sx={{ mb: 5 }}
+      >
+        {steps.map((step) => (
+          <Step key={step.code}>
+            <StepLabel>{t(step.labelKey)}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
+
+      {activeStep === 0 && (
+        <InvoicingRange
+          filters={filters}
+          setFilters={setFilters}
+          navigate={navigate}
+        />
+      )}
+
+      {activeStep === 1 && (
+        <InvoicingFlights
+          filters={{ ...filters, flights: InvoicableFlights.KOE }}
+          setFilters={setFilters}
+          navigate={navigate}
+        />
+      )}
+
+      {activeStep === 2 && (
+        <InvoicingFlights
+          filters={{ ...filters, flights: InvoicableFlights.SII }}
+          setFilters={setFilters}
+          navigate={navigate}
+        />
+      )}
+
+      {activeStep === 3 && (
+        <InvoicingFlights
+          filters={{
+            ...filters,
+            flights: InvoicableFlights.COMMENT,
+          }}
+          setFilters={setFilters}
+          navigate={navigate}
+        />
+      )}
+
+      {activeStep === 4 && (
+        <InvoicingFlights
+          filters={{
+            ...filters,
+            flights: InvoicableFlights.OTHER,
+          }}
+          setFilters={setFilters}
+          navigate={navigate}
+        />
+      )}
+
+      {activeStep === steps.length && (
+        <>
+          <Typography sx={{ mt: 2, mb: 1, textAlign: 'center' }}>
+            <Alert severity='success'>{t('invoicing.success')}</Alert>
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+            <Box sx={{ flex: '1 1 auto' }} />
+            <Button color='primary' variant='contained' onClick={handleReset}>
+              {t('invoicing.restart')}
+            </Button>
+          </Box>
+        </>
+      )}
+    </Box>
+  )
+}

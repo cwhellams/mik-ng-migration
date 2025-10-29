@@ -431,12 +431,39 @@
       "pagesInUse": "Sivuja käytössä",
       "flightTimeAtStart": "Aika alussa",
       "unverifiedFlights": "Vahvistamattomat lennot",
-      "unverifiedFlightTime": "Vahvistamaton lentoaika",
-      "validatedFlightTime": "Vahvistettu lentoaika",
+      "unverifiedFlightsTime": "Vahvistamaton lentoaika",
+      "verifiedTotalFlightTime": "Vahvistettu kokonaisaika",
+      "unverifiedTotalFlightTime": "Vahvistamaton kokonaisaika",
       "nextSequence": "Aloita seuraava lokikirja",
       "flightsToMove": "Vahvistamattomat lennot, jotka siirretään uuteen lokikirjaan",
       "oldBookMustBeEnded": "Vanha lokikirja on ensin päätettävä."
     }
+  },
+  "invoicing": {
+    "tabs": {
+      "dashboard": "Kojelauta",
+      "flights": "Lennot",
+      "items": "Tuotteet"
+    },
+    "dashboard": {
+      "title": "Odottaa laskutusta",
+      "secondary": "{{length}} vahvistettua lentoa, {{time}}"
+    },
+    "title": "Lentojen laskutus",
+    "range": "Kausi",
+    "testFlights": "Koelennot",
+    "ferryFlights": "Siirtolennot",
+    "withBillingComments": "Kommentoidut lennot",
+    "other": "Muut lennot",
+    "isFreeFlight": "Ei laskutettava",
+    "start": "Aloita",
+    "completeTestFlights": "Vahvista {{length}} koelentoa",
+    "completeFerryFlights": "Vahvista {{length}} siirtolentoa",
+    "completeCommentedFlights": "Vahvista kommetoidut lennot",
+    "complete": "Käynnistä laskutus",
+    "success": "Laskutusajo käynnistetty onnistuneesti",
+    "back": "Takaisin",
+    "restart": "Aloita uudestaan"
   },
   "registrationVerify": {
     "title": "Vahvistetaan rekisteröitymistä",

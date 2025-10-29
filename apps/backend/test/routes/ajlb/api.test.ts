@@ -148,9 +148,11 @@ describe('CRUD /ajlb', () => {
         newFlightsCount: 1,
         newFlightsPage: 1,
         newFlightsTime: '0:55',
-        totalFlightTime: '10:55',
+        unverifiedTotalFlightTime: '10:55',
         validatedBeforeUTC: null,
-        validatedFlightTime: '10:00',
+        validatedFlightsCount: 0,
+        validatedFlightsTime: '00:00',
+        verifiedTotalFlightTime: '10:00',
       },
     })
   })
@@ -188,9 +190,11 @@ describe('CRUD /ajlb', () => {
         newFlightsCount: 1,
         newFlightsPage: 1,
         newFlightsTime: '0:55',
-        totalFlightTime: '15:55',
+        unverifiedTotalFlightTime: '15:55',
         validatedBeforeUTC: null,
-        validatedFlightTime: '15:00',
+        validatedFlightsCount: 0,
+        validatedFlightsTime: '00:00',
+        verifiedTotalFlightTime: '15:00',
       },
     })
   })

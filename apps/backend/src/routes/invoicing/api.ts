@@ -17,6 +17,13 @@ import { getInvoicePdf, getItems } from '../../services/simplbooks/simplbooksApi
 import { HttpStatusCode } from 'axios'
 import { problem } from '../response.ts'
 import logger from '../../lib/logger.ts'
+import {
+  InvoicableFlightFiltersSchema,
+  InvoiceFlightsSchema,
+  type InvoicableFlight,
+  type InvoicableFlightListResponse,
+} from '../flight-log/models.ts'
+import { getInvoicableFlights, invoiceFlights } from '../../db/flight-log-queries.ts'
 
 const router = Router()
 router.use(
@@ -74,6 +81,46 @@ router.get('/', async (req: Request, res: Response<InvoiceListResponse>) => {
 
   res.status(200).json(response)
 })
+
+router.get(
+  '/flights',
+  validateUser(MIKPermissions.INVOICING_ADMIN),
+  async (req: Request, res: Response<InvoicableFlightListResponse>) => {
+    const data = InvoicableFlightFiltersSchema.parse(req.query)
+
+    const response = await getInvoicableFlights(data)
+    res.status(200).json(response)
+  },
+)
+
+router.post(
+  '/flights',
+  validateUser(MIKPermissions.INVOICING_ADMIN),
+  async (req: Request, res: Response) => {
+    const data = InvoiceFlightsSchema.parse(req.body)
+
+    const response = await getInvoicableFlights({
+      aircraftRegistration: data.aircraftRegistration,
+      endDate: data.endDate,
+      limit: 1000,
+    })
+
+    const groupedByMember = response.logs.reduce(
+      (acc, log) => {
+        const byMember = acc[log.billableMemberId] ?? []
+        acc[log.billableMemberId] = [...byMember, log]
+        return acc
+      },
+      {} as Record<string, InvoicableFlight[]>,
+    )
+
+    for (const memberId of Object.keys(groupedByMember)) {
+      await invoiceFlights(groupedByMember[memberId], req.user!)
+    }
+
+    res.status(200).json({ message: 'Flights sent for invoicing' })
+  },
+)
 
 router.patch('/items/refresh', async (req: Request, res: Response<ItemListResponse>) => {
   const simplbooksItems = await getItems()

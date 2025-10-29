@@ -11,6 +11,7 @@ import {
   Select,
   MenuItem,
   FormHelperText,
+  Checkbox,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
@@ -505,6 +506,22 @@ const FlightLogEntry = () => {
             )}
 
             <Grid size={{ xs: 12 }}>
+              <FormControl required fullWidth error={!!errors.flightType}>
+                <InputLabel>{t('invoicing.isFreeFlight')}</InputLabel>
+                <Controller
+                  name='isBillableFlight'
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      checked={field.value == false}
+                      disabled={isInvoiced}
+                    />
+                  )}
+                />
+              </FormControl>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
               <TxtField
                 name='billingRemarks'
                 control={control}
@@ -536,7 +553,7 @@ const FlightLogEntry = () => {
                     const { error } = await mutation.trigger(
                       'POST',
                       payload,
-                      '/validate',
+                      'validate',
                       {
                         // put returned payload to the cache
                         revalidate: false,

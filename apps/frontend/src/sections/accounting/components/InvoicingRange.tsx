@@ -1,0 +1,100 @@
+import {
+  Box,
+  Button,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+} from '@mui/material'
+import useApi from '../../../hooks/useApi'
+import { InvoicableFlightFilters } from '@backend/routes/flight-log/models'
+import { dayjs } from '../../../utils/date'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker/DatePicker'
+import { AjlbListResponse } from '@backend/routes/ajlb/model'
+import { t } from 'i18next'
+import { RemoteContent } from '../../../components/RemoteContent'
+
+export const InvoicingRange = ({
+  filters,
+  setFilters,
+  navigate,
+}: {
+  filters: InvoicableFlightFilters
+  setFilters: (filters: InvoicableFlightFilters) => void
+  navigate: {
+    next: () => void
+    previous: () => void
+  }
+}) => {
+  const {
+    data: logbooksData,
+    isLoading,
+    error,
+  } = useApi<AjlbListResponse>({
+    url: 'v1/ajlb',
+    params: { current: true },
+  })
+
+  const aircrafts =
+    logbooksData?.books?.map((b) => b.aircraftRegistration) ?? []
+
+  const ajlb = logbooksData?.books?.find(
+    (b) => b.aircraftRegistration === filters.aircraftRegistration
+  )
+
+  return (
+    <RemoteContent isLoading={isLoading} error={error}>
+      <Grid container spacing={2} mb={2}>
+        <Grid size={{ xs: 12, sm: 3 }}>
+          <FormControl fullWidth>
+            <InputLabel shrink>{t('flightLog.aircraft')}</InputLabel>
+
+            <Select
+              label={t('flightLog.aircraft')}
+              value={filters.aircraftRegistration ?? ''}
+              onChange={({ target }) =>
+                setFilters({
+                  ...filters,
+                  aircraftRegistration: target.value ?? '',
+                })
+              }
+            >
+              {aircrafts.map((plane) => (
+                <MenuItem key={plane} value={plane}>
+                  {plane}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <DatePicker
+            disableFuture={true}
+            label={t('billing.filters.endDate')}
+            value={dayjs(filters.endDate)}
+            onChange={(newValue) =>
+              setFilters({
+                ...filters,
+                endDate: newValue ? newValue.format('YYYY-MM-DD') : '',
+              })
+            }
+            format={t('general.dateFormat')}
+            minDate={dayjs(ajlb?.view?.validatedBeforeUTC)}
+          />
+        </Grid>
+      </Grid>
+
+      <Box sx={{ display: 'flex', flexDirection: 'row-reverse', pt: 2 }}>
+        <Button
+          color='primary'
+          variant='contained'
+          onClick={navigate.next}
+          disabled={!filters.aircraftRegistration || !filters.endDate}
+        >
+          {t('invoicing.start')}
+        </Button>
+      </Box>
+    </RemoteContent>
+  )
+}

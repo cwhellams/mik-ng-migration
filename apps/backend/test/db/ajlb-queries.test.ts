@@ -81,9 +81,11 @@ describe('Db ajlb CRUD tests', () => {
         newFlightsCount: 0,
         newFlightsPage: 1,
         newFlightsTime: '00:00',
-        totalFlightTime: '10:00',
+        unverifiedTotalFlightTime: '10:00',
         validatedBeforeUTC: null,
-        validatedFlightTime: '10:00',
+        validatedFlightsCount: 0,
+        validatedFlightsTime: '00:00',
+        verifiedTotalFlightTime: '10:00',
       },
     })
   })
@@ -109,9 +111,11 @@ describe('Db ajlb CRUD tests', () => {
         newFlightsCount: 0,
         newFlightsPage: 2,
         newFlightsTime: '00:00',
-        totalFlightTime: '15:00',
+        unverifiedTotalFlightTime: '15:00',
         validatedBeforeUTC: null,
-        validatedFlightTime: '15:00',
+        validatedFlightsCount: 0,
+        validatedFlightsTime: '00:00',
+        verifiedTotalFlightTime: '15:00',
       },
     })
     expect(await getAjlb('OH-STL', 3)).toEqual(result)

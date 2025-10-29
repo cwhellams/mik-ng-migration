@@ -26,10 +26,12 @@ import NewFlightLogEntry from './sections/flightLog/FlightLogEntry'
 import { useTranslation } from 'react-i18next'
 import Billing from './sections/billing/billing'
 import AccountingLayout from './sections/accounting/Accounting'
+import { FlightInvoicing } from './sections/accounting/FlightInvoicing'
 import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
 import MassBalance from './sections/massBalance/MassBalance'
 import { AccessCodes } from './sections/accessCodes/AccessCodes'
 import 'dayjs/locale/en-gb'
+import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -84,11 +86,8 @@ function App() {
             <Route path='/mass-balance' element={<MassBalance />} />
             <Route path='/access-codes' element={<AccessCodes />} />
             <Route path='/accounting' element={<AccountingLayout />}>
-              <Route
-                path='dashboard'
-                element={<div>Accounting Dashboard</div>}
-              />
-              <Route path='invoicing' element={<div>Invoicing</div>} />
+              <Route path='dashboard' element={<InvoicingAdminDashboard />} />
+              <Route path='invoicing' element={<FlightInvoicing />} />
               <Route path='items' element={<InvoiceItemsPage />} />
             </Route>
           </Route>

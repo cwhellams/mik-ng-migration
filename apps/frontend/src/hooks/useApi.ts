@@ -220,7 +220,11 @@ export default function useApi<
     api.request({
       ...request,
       params: arg.method == 'GET' ? arg.payload : request.params,
-      url: arg.path ? `${request.url}/${arg.path ?? ''}` : request.url,
+      url: arg.path
+        ? arg.path[0] == '/'
+          ? arg.path
+          : `${request.url}/${arg.path}`
+        : request.url,
       // globally allow admin permissions with sudo mode
       headers: {
         ...request.headers,

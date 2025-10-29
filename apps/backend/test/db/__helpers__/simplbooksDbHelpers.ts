@@ -22,11 +22,13 @@ export const deleteCreatedInvoiceItems = async () =>
 //   expect(result[0].event_type).toEqual('addMember')
 // }
 
-export const expectmemberFee1Row = async () => {
+export const expectOutbox1Row = async (eventType: SimplbooksEventType) => {
   const result = await db.selectFrom('accts.outbox_simplbooks').selectAll().execute()
 
   expect(result.length).toEqual(1)
-  expect(result[0].event_type).toEqual('membershipFee')
+  expect(result[0].event_type).toEqual(eventType)
+
+  return result[0]
 }
 
 export const expectBillingIdSet = async (memberId: string) => {

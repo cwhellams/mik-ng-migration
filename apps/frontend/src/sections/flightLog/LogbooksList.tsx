@@ -69,9 +69,12 @@ const Roles = () => {
               </TableCell>
               <TableCell>{t('flightLog.logbooks.flightTimeAtStart')}</TableCell>
               <TableCell>
-                {t('flightLog.logbooks.validatedFlightTime')}
+                {t('flightLog.logbooks.verifiedTotalFlightTime')}
               </TableCell>
               <TableCell>{t('flightLog.logbooks.unverifiedFlights')}</TableCell>
+              <TableCell>
+                {t('flightLog.logbooks.unverifiedTotalFlightTime')}
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -98,17 +101,16 @@ const Roles = () => {
                   <TableCell>
                     {ajlb.view?.lastPage} / {ajlb.noOfPages}
                   </TableCell>
-                  <TableCell>
-                    {ajlb.startFlightTime}
-                  </TableCell>
-                  <TableCell>{ajlb.view?.validatedFlightTime}</TableCell>
+                  <TableCell>{ajlb.startFlightTime}</TableCell>
+                  <TableCell>{ajlb.view?.verifiedTotalFlightTime}</TableCell>
                   <TableCell>
                     <Link
                       to={`/flight-logs?aircraftRegistration=${ajlb.aircraftRegistration}&ajlbSeqNo=${ajlb.seqNo}&page=${ajlb.view?.newFlightsPage}`}
                     >
-                      {ajlb.view?.newFlightsCount}
+                      {ajlb.view?.newFlightsCount} - {ajlb.view?.newFlightsTime}
                     </Link>
                   </TableCell>
+                  <TableCell>{ajlb.view?.unverifiedTotalFlightTime}</TableCell>
                 </TableRow>
               ))}
             </RemoteContent>

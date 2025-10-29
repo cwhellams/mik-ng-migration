@@ -222,18 +222,20 @@ export interface FlightVwFlightLogs {
 }
 
 export interface FlightVwFlightTimeTotals {
-  ac_total_flight_hours: Numeric | null
-  ac_total_flight_time: string | null
   aircraft_registration: string | null
   ajlb_seq_no: number | null
   current: boolean | null
   last_page: number | null
-  new_flights_count: number | null
   new_flights_page: number | null
-  new_flights_time: string | null
+  sum_new_flights: number | null
+  sum_new_time: string | null
+  sum_validated_flights: number | null
+  sum_validated_time: string | null
+  unverified_total_flight_hours: Numeric | null
+  unverified_total_flight_time: string | null
   validated_on_block_time_utc: Timestamp | null
   validated_total_flight_mins: number | null
-  validated_total_flight_time: string | null
+  verified_total_flight_time: string | null
 }
 
 export interface FlywayDataHistory {

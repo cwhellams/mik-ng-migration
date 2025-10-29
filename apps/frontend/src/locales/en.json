@@ -429,14 +429,41 @@
       "noOfPages": "Number of pages",
       "startPage": "Start page",
       "pagesInUse": "Pages in use",
-      "flightTimeAtStart": "Time at start",
-      "unverifiedFlights": "Unverified flights",
-      "unverifiedFlightTime": "Unverified flight time",
-      "validatedFlightTime": "Verified Total Flight Time",
+      "flightTimeAtStart": "Time at Start",
+      "unverifiedFlights": "Unverified Flights",
+      "unverifiedFlightsTime": "Unverified Flight Time",
+      "verifiedTotalFlightTime": "Verified Total Flight Time",
+      "unverifiedTotalFlightTime": "Unverified Total Flight Time",
       "nextSequence": "Start Next Logbook",
       "flightsToMove": "Unconfirmed flights to move to new logbook",
       "oldBookMustBeEnded": "Old logbook must be ended first."
     }
+  },
+  "invoicing": {
+    "tabs": {
+      "dashboard": "Dashboard",
+      "flights": "Flights",
+      "items": "Products"
+    },
+    "dashboard": {
+      "title": "Flights Waiting to be Invoiced",
+      "secondary": "{{length}} validated flights, {{time}}"
+    },
+    "title": "Invoice Flights",
+    "range": "Range",
+    "testFlights": "Test Flights",
+    "ferryFlights": "Ferry Flights",
+    "withBillingComments": "Flights With Comments",
+    "other": "Other Flights",
+    "isFreeFlight": "Non-billable Flight",
+    "start": "Start",
+    "completeTestFlights": "Confirm {{length}} test flights",
+    "completeFerryFlights": "Confirm {{length}} ferry flights",
+    "completeCommentedFlights": "Confirm commented flights",
+    "complete": "Send flights for invoicing",
+    "success": "Invoicing job started successfully",
+    "back": "Back",
+    "restart": "Start Over"
   },
   "registrationVerify": {
     "title": "Verifying Registration",

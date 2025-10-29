@@ -61,7 +61,7 @@ export const menuItems: MenuItem[] = [
   },
   {
     label: 'Accounting',
-    path: '/accounting',
+    path: '/accounting/dashboard',
     translationKey: 'header.accounts',
     requiredRoles: [MIKPermissions.INVOICING_ADMIN],
     adminModeOnly: true,

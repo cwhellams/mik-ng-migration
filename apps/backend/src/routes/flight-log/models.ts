@@ -269,7 +269,6 @@ export const FlightLogListEntrySchema = FlightLogSchema.pick({
   fuelRemainingLitres: true,
   fuelUpliftLitres: true,
   instrumentFlyingMins: true,
-  isBillableFlight: true,
   nightFlyingMins: true,
   numberOfLandings: true,
   numberOfNightLandings: true,
@@ -316,3 +315,64 @@ export const AirfieldListResponseSchema = z.object({
 })
 
 export type AirfieldListResponse = z.infer<typeof AirfieldListResponseSchema>
+
+export enum InvoicableFlights {
+  SII = 'SII',
+  KOE = 'KOE',
+  COMMENT = 'COMMENT',
+  OTHER = 'OTHER',
+}
+
+export const InvoicableFlightFiltersSchema = z
+  .object({
+    aircraftRegistration: z.string(),
+    endDate: z.string().date(),
+    flights: z.nativeEnum(InvoicableFlights).optional(),
+    page: z.coerce.number().int().optional(),
+    limit: z.coerce.number().int().optional(),
+  })
+  .strict()
+
+export type InvoicableFlightFilters = z.infer<typeof InvoicableFlightFiltersSchema>
+
+export const InvoicableFlightSchema = FlightLogSchema.pick({
+  aircraftRegistration: true,
+  arrivalAirport: true,
+  billableMemberId: true,
+  billingRemarks: true,
+  departureAirport: true,
+  flightId: true,
+  flightTime: true,
+  flightType: true,
+  fuelUpliftLitres: true,
+  isBillableFlight: true,
+  numberOfLandings: true,
+  takeoffTimeUtc: true,
+  landingTimeUtc: true,
+  personsOnBoard: true,
+  picLastName: true,
+  status: true,
+}).extend({
+  billableMemberLastName: z.string().nullable().readonly(),
+})
+
+export type InvoicableFlight = z.infer<typeof InvoicableFlightSchema>
+
+export const InvoicableFlightListResponseSchema = z.object({
+  logs: z.array(InvoicableFlightSchema),
+  page: z.number().int().optional(),
+  limit: z.number().int().optional(),
+  pages: z.number().int().optional(),
+  rows: z.number().int().optional(),
+})
+
+export type InvoicableFlightListResponse = z.infer<typeof InvoicableFlightListResponseSchema>
+
+export const InvoiceFlightsSchema = z
+  .object({
+    aircraftRegistration: z.string(),
+    endDate: z.string().date(),
+  })
+  .strict()
+
+export type InvoiceFlights = z.infer<typeof InvoiceFlightsSchema>

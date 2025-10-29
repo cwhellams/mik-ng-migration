@@ -5,16 +5,21 @@ import {
   getFlightLog,
   getFlightLogs,
   getFlightLogTotals,
+  getInvoicableFlights,
   insertFlightLog,
+  invoiceFlights,
   updateFlightLog,
   updateFlightLogStatus,
 } from '../../src/db/flight-log-queries.ts'
 import {
   FlightLogStatus,
+  InvoicableFlights,
   type FlightLog,
   type FlightLogMemberRequest,
 } from '../../src/routes/flight-log/models.ts'
 import { MIKPermissions } from '../../src/routes/members/models.ts'
+import { deleteSimplbooksOutbox, expectOutbox1Row } from './__helpers__/simplbooksDbHelpers.ts'
+import { SimplbooksEventType } from '../../src/services/simplbooks/models.ts'
 
 describe('Db Get FlightLog tests', () => {
   it('getFlightLog return undefined if not found', async () => {
@@ -232,7 +237,13 @@ describe('Db update status tests', () => {
       email: '',
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     }
-    const res = await updateFlightLogStatus(flightId, FlightLogStatus.VALIDATED, {}, user)
+    const res = await updateFlightLogStatus(
+      flightId,
+      FlightLogStatus.NEW,
+      FlightLogStatus.VALIDATED,
+      {},
+      user,
+    )
     expect(res).toEqual(true)
 
     const result = await getFlightLog(flightId)
@@ -241,12 +252,121 @@ describe('Db update status tests', () => {
     expect(result?.ajlbRowNo).toEqual(3)
 
     //cleanup
-    const cleanup = await updateFlightLogStatus(flightId, FlightLogStatus.NEW, {}, user)
+    const cleanup = await updateFlightLogStatus(
+      flightId,
+      FlightLogStatus.VALIDATED,
+      FlightLogStatus.NEW,
+      {},
+      user,
+    )
     expect(cleanup).toEqual(true)
 
     const cleaned = await getFlightLog(flightId)
     expect(cleaned?.acTotalFlightTime).toEqual('4783:20')
     expect(cleaned?.ajlbPageNo).toEqual(10)
     expect(cleaned?.ajlbRowNo).toEqual(3)
+  })
+})
+
+describe('Db invoicable FlightLog tests', () => {
+  it('getInvoicableFlights returns no results for past date', async () => {
+    const result = await getInvoicableFlights({
+      aircraftRegistration: 'OH-STL',
+      endDate: '2000-01-01',
+    })
+    expect(result.rows).toEqual(0)
+    expect(result.logs.length).toEqual(0)
+  })
+
+  it('getInvoicableFlights returns new flights to invoice', async () => {
+    const result = await getInvoicableFlights({
+      aircraftRegistration: 'OH-STL',
+      endDate: '2025-01-01',
+    })
+    expect(result.rows).toEqual(185)
+    expect(result.logs.length).toEqual(35)
+  })
+
+  it('getInvoicableFlights with test flights', async () => {
+    const result = await getInvoicableFlights({
+      aircraftRegistration: 'OH-STL',
+      endDate: '2025-01-01',
+      flights: InvoicableFlights.KOE,
+    })
+    expect(result.rows).toEqual(1)
+  })
+
+  it('getInvoicableFlights with ferry flights', async () => {
+    const result = await getInvoicableFlights({
+      aircraftRegistration: 'OH-STL',
+      endDate: '2025-01-01',
+      flights: InvoicableFlights.SII,
+    })
+    expect(result.rows).toEqual(1)
+  })
+
+  it('getInvoicableFlights for flights with comments', async () => {
+    const result = await getInvoicableFlights({
+      aircraftRegistration: 'OH-P28',
+      endDate: '2030-01-01',
+      flights: InvoicableFlights.COMMENT,
+    })
+    expect(result.rows).toEqual(1)
+  })
+
+  it('getInvoicableFlights for other flights', async () => {
+    const result = await getInvoicableFlights({
+      aircraftRegistration: 'OH-STL',
+      endDate: '2010-01-10',
+      flights: InvoicableFlights.OTHER,
+    })
+    expect(result.rows).toEqual(4)
+  })
+
+  it('invoiceFlights sends flights to outbox', async () => {
+    const user = {
+      memberId: 'Matti1',
+      email: '',
+      permissions: [MIKPermissions.INVOICING_ADMIN],
+    }
+
+    const preInvoiceFlights = await getFlightLogs({
+      aircraftRegistration: 'OH-STL',
+      endDate: '2010-01-10',
+      status: FlightLogStatus.INVOICED,
+    })
+    expect(preInvoiceFlights.rows).toEqual(3)
+
+    await deleteSimplbooksOutbox()
+
+    const flights = await getInvoicableFlights({
+      aircraftRegistration: 'OH-STL',
+      endDate: '2010-01-10',
+    })
+    expect(flights.rows).toEqual(4)
+
+    const result = await invoiceFlights(flights.logs, user)
+    expect(result).toEqual(true)
+
+    const postInvoiceFlights = await getFlightLogs({
+      aircraftRegistration: 'OH-STL',
+      endDate: '2010-01-10',
+      status: FlightLogStatus.INVOICED,
+    })
+    expect(postInvoiceFlights.rows).toEqual(7)
+
+    const outboxRow = await expectOutbox1Row(SimplbooksEventType.FLIGHT_INVOICE)
+    expect(outboxRow.payload).toEqual({ flights: flights.logs })
+
+    //cleanup - revert invoiced flights back to validated
+    for (const flight of flights.logs) {
+      await updateFlightLogStatus(
+        flight.flightId,
+        flight.status,
+        FlightLogStatus.VALIDATED,
+        {},
+        user,
+      )
+    }
   })
 })

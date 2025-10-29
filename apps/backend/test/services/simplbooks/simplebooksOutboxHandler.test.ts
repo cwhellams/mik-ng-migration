@@ -18,7 +18,7 @@ import {
   deleteSimplbooksOutbox,
   expectBillingIdSet,
   expectInvoiceForMemberFee,
-  expectmemberFee1Row,
+  expectOutbox1Row,
   insertStuckRowToOutbox,
   revertBillingIdChanges,
 } from '../../db/__helpers__/simplbooksDbHelpers.ts'
@@ -80,7 +80,7 @@ describe('Simplbooks Outbox Handler tests', () => {
     await dispatchOutboxMsg(obMsgAddMember)
 
     await expectBillingIdSet(newMemberId)
-    await expectmemberFee1Row()
+    await expectOutbox1Row(SimplbooksEventType.MEMBERSHIP_FEE)
 
     await revertBillingIdChanges(newMemberId, 'BILL004')
   })

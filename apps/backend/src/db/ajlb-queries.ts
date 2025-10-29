@@ -12,11 +12,13 @@ const mapResultToAjlb = (
         FlightVwFlightTimeTotals,
         | 'last_page'
         | 'new_flights_page'
-        | 'new_flights_time'
-        | 'new_flights_count'
+        | 'sum_new_time'
+        | 'sum_new_flights'
+        | 'sum_validated_time'
+        | 'sum_validated_flights'
         | 'validated_on_block_time_utc'
-        | 'validated_total_flight_time'
-        | 'ac_total_flight_time'
+        | 'verified_total_flight_time'
+        | 'unverified_total_flight_time'
       >
   >,
 ): AircraftJourneyLogBook => ({
@@ -32,11 +34,13 @@ const mapResultToAjlb = (
   view: {
     lastPage: row.last_page ?? 0,
     newFlightsPage: row.new_flights_page,
-    newFlightsCount: row.new_flights_count ?? 0,
-    newFlightsTime: row.new_flights_time ?? '00:00',
+    newFlightsCount: row.sum_new_flights ?? 0,
+    newFlightsTime: row.sum_new_time ?? '00:00',
     validatedBeforeUTC: row.validated_on_block_time_utc?.toISOString() ?? null,
-    validatedFlightTime: row.validated_total_flight_time ?? '00:00',
-    totalFlightTime: row.ac_total_flight_time ?? '00:00',
+    verifiedTotalFlightTime: row.verified_total_flight_time ?? '00:00',
+    unverifiedTotalFlightTime: row.unverified_total_flight_time ?? '00:00',
+    validatedFlightsCount: row.sum_validated_flights ?? 0,
+    validatedFlightsTime: row.sum_validated_time ?? '00:00',
   },
 
   updatedAt: row.updated_at?.toISOString(),
@@ -57,11 +61,13 @@ export async function getAjlbs(filter: AjlbFilter): Promise<AircraftJourneyLogBo
     .select([
       'totals.last_page',
       'totals.new_flights_page',
-      'totals.new_flights_time',
-      'totals.new_flights_count',
+      'totals.sum_new_time',
+      'totals.sum_new_flights',
+      'totals.sum_validated_time',
+      'totals.sum_validated_flights',
       'totals.validated_on_block_time_utc',
-      'totals.validated_total_flight_time',
-      'totals.ac_total_flight_time',
+      'totals.verified_total_flight_time',
+      'totals.unverified_total_flight_time',
     ])
     .orderBy('aircraft_registration')
     .orderBy('seq_no', 'desc')
@@ -105,11 +111,13 @@ export async function getAjlb(
     .select([
       'totals.last_page',
       'totals.new_flights_page',
-      'totals.new_flights_time',
-      'totals.new_flights_count',
+      'totals.sum_new_time',
+      'totals.sum_new_flights',
+      'totals.sum_validated_time',
+      'totals.sum_validated_flights',
       'totals.validated_on_block_time_utc',
-      'totals.validated_total_flight_time',
-      'totals.ac_total_flight_time',
+      'totals.verified_total_flight_time',
+      'totals.unverified_total_flight_time',
     ])
     .where('ajlb.aircraft_registration', '=', registration)
     .where('ajlb.seq_no', '=', seqNo)

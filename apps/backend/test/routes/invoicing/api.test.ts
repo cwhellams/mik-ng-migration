@@ -101,3 +101,29 @@ describe('Invoice Simplbooks tests', () => {
     expect(res.status).toBe(200)
   })
 })
+
+describe('POST /flights', () => {
+  it('should create a new invoice', async () => {
+    const res = await request(app)
+      .post('/invoices/flights')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        aircraftRegistration: 'OH-STL',
+        endDate: '1999-01-10',
+      })
+    expect(res.status).toBe(200)
+    expect(res.body.message).toBe('Flights sent for invoicing')
+  })
+
+  it('should return 401 for invalid token', async () => {
+    const res = await request(app).post('/invoices/flights').set('Authorization', `Bearer badToken`)
+    expect(res.status).toBe(401)
+  })
+
+  it('should return 403 for non admin user', async () => {
+    const res = await request(app)
+      .post('/invoices/flights')
+      .set('Authorization', `Bearer ${memberToken}`)
+    expect(res.status).toBe(403)
+  })
+})

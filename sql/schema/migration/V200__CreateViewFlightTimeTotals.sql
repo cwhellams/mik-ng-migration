@@ -33,6 +33,17 @@ new_flights as (
     group by
         aircraft_registration,
         ajlb_seq_no
+),
+
+validated_flights as (
+    select aircraft_registration,
+        ajlb_seq_no,
+        coalesce(sum(flight_mins), 0) as sum_verified_mins,
+        count(*) as sum_verified_flights
+    from flight.logs
+    where status = 'VALIDATED'
+    group by aircraft_registration,
+        ajlb_seq_no
 )
 
 select
@@ -41,15 +52,15 @@ select
     end_date is NULL as current,
     validated.on_block_time_utc validated_on_block_time_utc,
     coalesce(validated.ajlb_total_flight_mins, ajlb.start_flight_mins, 0) as validated_total_flight_mins,
-    format_flight_time(coalesce(validated.ajlb_total_flight_mins, ajlb.start_flight_mins, 0)) as validated_total_flight_time,
+    format_flight_time(coalesce(validated.ajlb_total_flight_mins, ajlb.start_flight_mins, 0)) as verified_total_flight_time,
 
     format_flight_time(
         coalesce(validated.ajlb_total_flight_mins, start_flight_mins, 0) 
         + coalesce(nf.sum_unverified_mins, 0)
-    ) as ac_total_flight_time,
+    ) as unverified_total_flight_time,
 
     (coalesce(validated.ajlb_total_flight_mins, start_flight_mins, 0) 
-        + coalesce(nf.sum_unverified_mins, 0))/60.0 as ac_total_flight_hours,
+        + coalesce(nf.sum_unverified_mins, 0))/60.0 as unverified_total_flight_hours,
 
     ajlb.start_page + 2 * floor((
         coalesce(
@@ -71,8 +82,11 @@ select
         )/ajlb.rows_per_page::float
     )::int4 as new_flights_page,
 
-    nf.sum_unverified_flights::int4 as new_flights_count,
-    format_flight_time(nf.sum_unverified_mins) as new_flights_time
+    nf.sum_unverified_flights::int4 as sum_new_flights,
+    format_flight_time(nf.sum_unverified_mins) as sum_new_time,
+
+    vf.sum_verified_flights::int4 as sum_validated_flights,
+    format_flight_time(vf.sum_verified_mins) as sum_validated_time
 
 from flight.aircraft_journey_log_book as ajlb
 left join last_validated as validated
@@ -80,4 +94,7 @@ left join last_validated as validated
     and ajlb.seq_no = validated.ajlb_seq_no
 left join new_flights as nf
     on ajlb.aircraft_registration = nf.aircraft_registration
-    and ajlb.seq_no = nf.ajlb_seq_no;
+    and ajlb.seq_no = nf.ajlb_seq_no
+left join validated_flights as vf
+    on ajlb.aircraft_registration = vf.aircraft_registration
+    and ajlb.seq_no = vf.ajlb_seq_no;

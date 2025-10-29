@@ -248,6 +248,7 @@ router.post(
 
     const updated = await updateFlightLogStatus(
       flightId,
+      flight.status,
       revert ? FlightLogStatus.NEW : FlightLogStatus.VALIDATED,
       {},
       req.user!,

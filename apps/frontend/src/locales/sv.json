@@ -431,12 +431,39 @@
       "pagesInUse": "Sidor i bruk",
       "flightTimeAtStart": "Tid vid start",
       "unverifiedFlights": "Overifierade flyg",
-      "unverifiedFlightTime": "Overifierad flygtid",
-      "validatedFlightTime": "Verifierad total flygtid",
+      "unverifiedFlightsTime": "Overifierad flygtid",
+      "verifiedTotalFlightTime": "Verifierad total flygtid",
+      "unverifiedTotalFlightTime": "Overifierad total flygtid",
       "nextSequence": "Starta nästa loggbok",
       "flightsToMove": "Obekräftade flyg att flytta till ny loggbok",
       "oldBookMustBeEnded": "Den gamla loggboken måste avslutas först."
     }
+  },
+  "invoicing": {
+    "tabs": {
+      "dashboard": "Instrumentpanel",
+      "invoicing": "Fakturering",
+      "items": "Prislista"
+    },
+    "dashboard": {
+      "title": "Väntar på fakturering",
+      "secondary": "{{length}} bekräftade flyg, {{time}}"
+    },
+    "title": "Flygfakturering",
+    "range": "Period",
+    "testFlights": "Testflyg",
+    "ferryFlights": "Färjeflyg",
+    "withBillingComments": "Flyg med kommentarer",
+    "other": "Övriga flyg",
+    "isFreeFlight": "Ofakturerat flyg",
+    "start": "Starta",
+    "completeTestFlights": "Bekräfta {{length}} testflyg",
+    "completeFerryFlights": "Bekräfta {{length}} färjeflyg",
+    "completeCommentedFlights": "Bekräfta kommenterade flyg",
+    "complete": "Skicka flyg till fakturering",
+    "success": "Faktureringskörning startad framgångsrikt",
+    "back": "Tillbaka",
+    "restart": "Starta om"
   },
   "registrationVerify": {
     "title": "Verifierar registrering",

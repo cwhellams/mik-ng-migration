@@ -1,17 +1,18 @@
 import React from 'react'
 import { Tabs, Tab, Box, useTheme } from '@mui/material'
 import { useLocation, useNavigate } from 'react-router-dom'
-
-const navItems = [
-  { label: 'Dashboard', path: 'dashboard' },
-  { label: 'Invoicing', path: 'invoicing' },
-  { label: 'Items', path: 'items' },
-]
+import { t } from 'i18next'
 
 export default function AccountingSubMenu() {
   const location = useLocation()
   const navigate = useNavigate()
   const theme = useTheme()
+
+  const navItems = [
+    { label: t('invoicing.tabs.dashboard'), path: 'dashboard' },
+    { label: t('invoicing.tabs.flights'), path: 'invoicing' },
+    { label: t('invoicing.tabs.items'), path: 'items' },
+  ]
 
   const currentTab = navItems.findIndex((item) =>
     location.pathname.includes(item.path)

@@ -250,10 +250,10 @@ export const AjlbEditor = ({
             {!isNewBook && (
               <Grid size={12}>
                 <FormField
-                  label={t('flightLog.logbooks.validatedFlightTime')}
+                  label={t('flightLog.logbooks.verifiedTotalFlightTime')}
                   width={200}
                 >
-                  {book.view?.validatedFlightTime}
+                  {book.view?.verifiedTotalFlightTime}
                 </FormField>
 
                 <FormField
@@ -264,7 +264,7 @@ export const AjlbEditor = ({
                 </FormField>
 
                 <FormField
-                  label={t('flightLog.logbooks.unverifiedFlightTime')}
+                  label={t('flightLog.logbooks.unverifiedFlightsTime')}
                   width={200}
                 >
                   {book.view?.newFlightsTime}
@@ -291,7 +291,7 @@ export const AjlbEditor = ({
             <Button
               onClick={() => {
                 const { hours, minutes } = splitTime(
-                  book.view?.validatedFlightTime ?? '00:00'
+                  book.view?.validatedFlightsTime ?? '00:00'
                 )
 
                 onClose({

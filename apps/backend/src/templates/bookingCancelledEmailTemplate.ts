@@ -3,12 +3,7 @@ import { marked } from 'marked'
 import type { BookingUpsertRequest } from '../routes/bookings/models.ts'
 import { emailButton, emailTemplate } from './emailTemplate.ts'
 import type { Member } from '../routes/members/models.ts'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc.js'
-import timezone from 'dayjs/plugin/timezone.js'
-
-dayjs.extend(utc)
-dayjs.extend(timezone)
+import { epochToLocal } from '../util/date.ts'
 
 export const bookingCancelledEmailSubject = (lang: string | undefined): string =>
   lang == 'fi' ? 'MIK varauksesi peruttu' : 'Your booking is cancelled'
@@ -38,15 +33,13 @@ export const bookingCancelledEmailPlainText = (
     },
   )
 
-const toLocal = (epoch: string) => dayjs.unix(Number(epoch)).tz('Europe/Helsinki')
-
 const href = (booking: BookingUpsertRequest) =>
-  `${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/schedule?day=${toLocal(
+  `${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/schedule?day=${epochToLocal(
     booking.startTimeEpoch,
   ).format('YYYY-MM-DD')}`
 
 const formatRange = (booking: BookingUpsertRequest) =>
-  `${toLocal(booking.startTimeEpoch).format('DD.MM. HH:mm')} - ${toLocal(
+  `${epochToLocal(booking.startTimeEpoch).format('DD.MM. HH:mm')} - ${epochToLocal(
     booking.endTimeEpoch,
   ).format('DD.MM. HH:mm')}`
 

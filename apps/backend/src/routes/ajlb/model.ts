@@ -17,9 +17,11 @@ export const FlightTimeTotalsViewSchema = z.object({
   newFlightsPage: z.number().int().readonly().nullable(),
   newFlightsCount: z.number().int().readonly(),
   newFlightsTime: z.string().readonly(),
+  validatedFlightsCount: z.number().int().readonly(),
+  validatedFlightsTime: z.string().readonly(),
   validatedBeforeUTC: z.string().datetime().readonly().nullable(),
-  validatedFlightTime: z.string().readonly(),
-  totalFlightTime: z.string().readonly(),
+  verifiedTotalFlightTime: z.string().readonly(),
+  unverifiedTotalFlightTime: z.string().readonly(),
 })
 
 export const AircraftJourneyLogBookSchema = AuditableSchema.extend({
