@@ -91,7 +91,7 @@
     "p-retry": "^6.2.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "passport-magic-login": "^1.2.2",
+    "passport-magic-login": "^1.2.4",
     "pg": "^8.13.3",
     "rate-limiter-flexible": "^5.0.5",
     "tsx": "^4.20.6",

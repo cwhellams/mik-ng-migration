@@ -94,8 +94,8 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1
       passport-magic-login:
-        specifier: ^1.2.2
-        version: 1.2.2
+        specifier: ^1.2.4
+        version: 1.2.4
       pg:
         specifier: ^8.13.3
         version: 8.16.3
@@ -3955,8 +3955,8 @@ packages:
   passport-jwt@4.0.1:
     resolution: {integrity: sha512-UCKMDYhNuGOBE9/9Ycuoyh7vP6jpeTp/+sfMJl7nLff/t6dps+iaeE0hhNkKN8/HZHcJ7lCdOyDxHdDoxoSvdQ==}
 
-  passport-magic-login@1.2.2:
-    resolution: {integrity: sha512-KBzxei/qvt2UDkS1qXz2VR2XajbWB5808W+oDpeMsfGqMgBKicaDX7HOrgAVpvw2q+fWOuh21LWe+kYyZPogDA==}
+  passport-magic-login@1.2.4:
+    resolution: {integrity: sha512-uxsLmUIOBYkCmBDlQtuFA57Wq8UwVHEDNaN1QQn3QiVxp3dsNIt3bD326uiPEn0PwyjqdpK/YQ3GytRXCGwecQ==}
     engines: {node: '>=10'}
 
   passport-strategy@1.0.0:
@@ -9555,7 +9555,7 @@ snapshots:
       jsonwebtoken: 9.0.2
       passport-strategy: 1.0.0
 
-  passport-magic-login@1.2.2:
+  passport-magic-login@1.2.4:
     dependencies:
       '@types/node': 14.18.63
       jsonwebtoken: 9.0.2
