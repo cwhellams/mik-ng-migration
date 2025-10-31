@@ -81,6 +81,14 @@ Once you have the postgres container downloaded you can use the start script to 
 
     ./scripts/start_postgres.sh
 
+Load data required by tests
+
+    ./scripts/baseline_database.sh
+
+Or load minimal data to setup new TEST/PROD environments
+
+    ./scripts/minimal_database.sh
+
 ## sql directory
 
 Database related code should be stored in the ./sql folder

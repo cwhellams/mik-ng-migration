@@ -1,0 +1,51 @@
+import { conn } from './services/db.ts'
+import { login } from './services/api.ts'
+import { migrateBooks } from './books.ts'
+import { migratePlanes } from './planes.ts'
+import { migrateFlights } from './flights.ts'
+
+const main = async () => {
+  try {
+    if (process.argv.length < 3) {
+      console.error(`Usage: 
+        
+        1. login with login token (from login email)
+        pnpm dev login <token>
+        
+        2. migrate planes
+        pnpm dev planes
+
+        3. migrate books
+        pnpm dev books
+
+        3. migrate flights from given date and count
+        pnpm dev flights <2000-01-01> <count>
+        `)
+      return
+    }
+    const op = process.argv[2]
+    if (op == 'login') {
+      await login(process.argv[3])
+    }
+
+    const all = op == 'all'
+
+    if (op == 'planes' || all) {
+      await migratePlanes()
+    }
+    if (op == 'books' || all) {
+      await migrateBooks()
+    }
+
+    if (op == 'flights') {
+      await migrateFlights(
+        process.argv[3] || '2000-01-01',
+        parseInt(process.argv[4]) || 1
+      )
+    }
+  } finally {
+    conn?.end()
+  }
+}
+
+main()

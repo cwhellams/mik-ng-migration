@@ -85,11 +85,11 @@ jobs:
             -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_URL}} \
             flyway/flyway:latest clean migrate
 
-      - name: Run Flyway test data
+      - name: Run Flyway static data
         if: env.sql_changed == 'true'
         run: |
           docker run --network host --rm \
-            -v ${{ github.workspace }}/sql/schema/testdata/:/flyway/sql \
+            -v ${{ github.workspace }}/sql/schema/static_data/:/flyway/sql \
             -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
             -e FLYWAY_USER=${{ vars.DO_POSTGRES_USER }} \
             -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_PASSWORD }} \

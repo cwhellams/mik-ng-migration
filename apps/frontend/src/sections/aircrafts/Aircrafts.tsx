@@ -294,29 +294,37 @@ const Aircrafts = () => {
                       </Typography>
                     </Box>
 
-                    <Typography>
-                      {t('aircraft.maintenanceHours', {
-                        ...aircraft.maintenance,
-                        ...aircraft.status,
-                        tachUntilNextMaintenance: aircraft.status
-                          ? Math.max(
-                              0,
-                              aircraft.status?.tachUntilNextMaintenance
-                            )
-                          : undefined,
-                      })}
+                    {aircraft.active && (
+                      <>
+                        <Typography>
+                          {t('aircraft.maintenanceHours', {
+                            ...aircraft.maintenance,
+                            ...aircraft.status,
+                            tachUntilNextMaintenance: aircraft.status
+                              ? Math.max(
+                                  0,
+                                  aircraft.status?.tachUntilNextMaintenance
+                                )
+                              : undefined,
+                          })}
 
-                      {aircraft.status?.daysUntilNextMaintenance !==
-                        undefined &&
-                        t('aircraft.maintenanceDays', aircraft.status)}
-                    </Typography>
+                          {aircraft.status?.daysUntilNextMaintenance !==
+                            undefined &&
+                            t('aircraft.maintenanceDays', aircraft.status)}
+                        </Typography>
 
-                    <ProgressLine
-                      hardLimit={-aircraft.maintenance.totalPercentageHours}
-                      softLimit={-aircraft.maintenance.usablePercentageHours}
-                      current={aircraft.status?.tachUntilNextMaintenance ?? 0}
-                      max={aircraft.maintenance.maintenanceCycle}
-                    />
+                        <ProgressLine
+                          hardLimit={-aircraft.maintenance.totalPercentageHours}
+                          softLimit={
+                            -aircraft.maintenance.usablePercentageHours
+                          }
+                          current={
+                            aircraft.status?.tachUntilNextMaintenance ?? 0
+                          }
+                          max={aircraft.maintenance.maintenanceCycle}
+                        />
+                      </>
+                    )}
                   </Stack>
                 </CardContent>
               </Card>
