@@ -1,4 +1,4 @@
-import type { FlightLogUpsertRequest } from '../../../src/routes/flight-log/models.ts'
+import { FlightType, type FlightLogUpsertRequest } from '../../../src/routes/flight-log/models.ts'
 
 export const flightPayload: FlightLogUpsertRequest = {
   aircraftRegistration: 'OH-STL',
@@ -13,7 +13,7 @@ export const flightPayload: FlightLogUpsertRequest = {
   crew4MemberId: null,
   crew4Role: null,
   departureAirport: 'EFHK',
-  flightType: 'KOU',
+  flightType: FlightType.SCHOOL,
   fuelUpliftLitres: 40,
   fuelRemainingLitres: 20,
   incidentOrObservations: 'N/A',
@@ -28,7 +28,6 @@ export const flightPayload: FlightLogUpsertRequest = {
   personsOnBoard: 3,
   personalRemarks: 'N/A',
   totalTimeInService: 0.2,
-  privOrComFlight: 'P',
   instrumentFlyingMins: 0,
 
   // admin fields

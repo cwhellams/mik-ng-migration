@@ -26,6 +26,7 @@ import {
   type FlightLogUpsertRequest,
   flightLogDateValidator,
   FlightLogStatus,
+  FlightType,
 } from '@backend/routes/flight-log/models'
 import useApi from '../../hooks/useApi'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
@@ -114,7 +115,7 @@ const FlightLogEntry = () => {
     // defaults for new flights
     defaultValues: {
       aircraftRegistration: '',
-      flightType: '',
+      flightType: FlightType.PRIVATE,
 
       picRole: 'PIC',
       crew2MemberId: null,
@@ -125,7 +126,6 @@ const FlightLogEntry = () => {
       crew4Role: null,
 
       totalTimeInService: 0,
-      privOrComFlight: 'P',
       incidentOrObservations: null,
 
       personsOnBoard: 1,

@@ -553,7 +553,6 @@ describe('PATCH /flight-log/', () => {
       isBillableFlight: flightPayload.isBillableFlight,
       nonBillingReason: flightPayload.nonBillingReason,
       personalRemarks: flightPayload.personalRemarks,
-      privOrComFlight: flightPayload.privOrComFlight,
     }))
 
   it('should lock fields for member after flight is validated', async () =>

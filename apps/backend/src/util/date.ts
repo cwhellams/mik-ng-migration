@@ -6,5 +6,4 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 
 export const epochToLocal = (epoch: string) => toLocal(dayjs.unix(Number(epoch)))
-export const toLocal = (day: dayjs.Dayjs | string) =>
-  (typeof day === 'string' ? dayjs(day) : day).tz('Europe/Helsinki')
+export const toLocal = (day: dayjs.Dayjs | string | Date) => dayjs(day).tz('Europe/Helsinki')

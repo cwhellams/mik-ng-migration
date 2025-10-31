@@ -31,7 +31,7 @@ CREATE TABLE flight.logs (
     invoice_number VARCHAR(50) DEFAULT NULL,
     is_billed BOOLEAN NOT NULL GENERATED ALWAYS AS (invoice_number IS NOT NULL) STORED,
     is_dto_training_flight BOOLEAN NOT NULL,
-    flight_type VARCHAR(5) NOT NULL,
+    flight_type VARCHAR(15) NOT NULL,
     billing_remarks TEXT,
     personal_remarks TEXT,
     incident_or_observations TEXT,
@@ -43,15 +43,13 @@ CREATE TABLE flight.logs (
     ajlb_seq_no SMALLINT NOT NULL,
     --Aircraft Journey Log Book
     ajlb_blank_rows_before SMALLINT NOT NULL,
-
     -- filled after validation
     ajlb_total_flight_mins INT,
-    ajlb_total_flight_time text generated always as (format_flight_time(
-        ajlb_total_flight_mins
-    )) stored,
+    ajlb_total_flight_time text generated always as (
+        format_flight_time(ajlb_total_flight_mins)
+    ) stored,
     ajlb_page_number SMALLINT,
     ajlb_row_number SMALLINT,
-
     total_time_in_service DECIMAL(7, 2),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -94,16 +92,15 @@ CREATE TABLE flight.logs (
             FROM NOW()
         )
     ),
-    CONSTRAINT check_verified_values
-    CHECK (
+    CONSTRAINT check_verified_values CHECK (
         status = 'NEW'
-        AND ajlb_total_flight_mins IS NULL 
-        AND ajlb_page_number IS NULL 
-        AND ajlb_row_number IS NULL 
-        OR status != 'NEW' 
-        AND ajlb_total_flight_mins IS NOT NULL 
-        AND ajlb_page_number IS NOT NULL 
-        AND ajlb_row_number IS NOT NULL 
+        AND ajlb_total_flight_mins IS NULL
+        AND ajlb_page_number IS NULL
+        AND ajlb_row_number IS NULL
+        OR status != 'NEW'
+        AND ajlb_total_flight_mins IS NOT NULL
+        AND ajlb_page_number IS NOT NULL
+        AND ajlb_row_number IS NOT NULL
     ),
     -- Computed columns to convert BIGINT timestamps to TIMESTAMPTZ
     off_block_time_utc TIMESTAMPTZ NOT NULL GENERATED ALWAYS AS (TO_TIMESTAMP(off_block_time_epoch)) STORED,

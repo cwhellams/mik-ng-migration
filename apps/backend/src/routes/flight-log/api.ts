@@ -57,14 +57,13 @@ router.post('/', async (req: Request, res: Response) => {
   if (isAdmin) {
     // admin can create flight logs for other members
     const data = flightLogDateValidator(FlightLogUpsertSchema).parse(req.body)
-    const billableMemberId = data.billableMemberId ?? req.user!.memberId
 
-    const flightId = await insertFlightLog(data, billableMemberId, req.user!)
+    const flightId = await insertFlightLog(data, req.user!)
     res.status(201).json({ flight_id: flightId })
   } else {
     // drop any admin fields the UI might send in the request
     const data = flightLogDateValidator(FlightLogMemberUpsertSchema.strip()).parse(req.body)
-    const flightId = await insertFlightLog(data, req.user!.memberId, req.user!)
+    const flightId = await insertFlightLog(data, req.user!)
     res.status(201).json({ flight_id: flightId })
   }
 })

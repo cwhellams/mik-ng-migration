@@ -130,7 +130,6 @@ describe('CRUD /ajlb', () => {
   it('should create new logbook and move new flights there', async () => {
     await insertFlightLog(
       { ...flightPayload, aircraftRegistration: 'OH-IHQ', picMemberId: jwt.memberId },
-      jwt.memberId,
       jwt,
     )
 

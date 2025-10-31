@@ -12,6 +12,8 @@ import {
   type InvoicableFlight,
   type InvoicableFlightListResponse,
   type InvoicableFlightFilters,
+  FlightType,
+  type PrivOrComFlight,
 } from '../routes/flight-log/models.ts'
 import type { MIKPermissions } from '../routes/members/models.ts'
 import { generateShortId } from '../util/nanoId.ts'
@@ -52,7 +54,7 @@ function mapFullResultToFlightLogs(
     flightId: row.flight_id,
     flightMins: row.flight_mins,
     flightTime: row.flight_time,
-    flightType: row.flight_type,
+    flightType: row.flight_type as FlightType,
     fuelRemainingLitres: row.fuel_remaining_litres,
     fuelUpliftLitres: row.fuel_uplift_litres,
     incidentOrObservations: row.incident_or_observations,
@@ -78,7 +80,7 @@ function mapFullResultToFlightLogs(
     picLastName: row.pic_last_name,
     picMemberId: row.pic_member_id,
     picRole: row.pic_role,
-    privOrComFlight: row.priv_or_com_flight,
+    privOrComFlight: row.priv_or_com_flight as PrivOrComFlight,
     status: row.status as FlightLogStatus,
     takeoffTimeEpoch: row.takeoff_time_epoch,
     takeoffTimeUtc: row.takeoff_time_utc.toISOString(),
@@ -231,7 +233,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         departureAirport: row.departure_airport,
         flightId: row.flight_id,
         flightTime: row.flight_time,
-        flightType: row.flight_type,
+        flightType: row.flight_type as FlightType,
         fuelRemainingLitres: row.fuel_remaining_litres,
         fuelUpliftLitres: row.fuel_uplift_litres,
         instrumentFlyingMins: row.instrument_flying_mins,
@@ -326,7 +328,7 @@ export async function getInvoicableFlights(
         departureAirport: row.departure_airport,
         flightId: row.flight_id,
         flightTime: row.flight_time,
-        flightType: row.flight_type,
+        flightType: row.flight_type as FlightType,
         fuelUpliftLitres: row.fuel_uplift_litres,
         isBillableFlight: row.is_billable_flight,
         numberOfLandings: row.number_of_landings,
@@ -346,8 +348,7 @@ export async function getInvoicableFlights(
 }
 
 export async function insertFlightLog(
-  data: FlightLogMemberRequest,
-  billableMemberId: string,
+  data: FlightLogMemberRequest | FlightLogUpsertRequest,
   user: { memberId: string; permissions: MIKPermissions[] },
 ): Promise<string> {
   const retval = await db
@@ -355,7 +356,7 @@ export async function insertFlightLog(
     .values(eb => ({
       aircraft_registration: data.aircraftRegistration,
       arrival_airport: data.arrivalAirport,
-      billable_member_id: billableMemberId,
+      billable_member_id: 'billableMemberId' in data ? data.billableMemberId : user.memberId,
       billing_remarks: data.billingRemarks,
       pic_last_name: eb
         .selectFrom('member.register')
@@ -397,16 +398,19 @@ export async function insertFlightLog(
       on_block_time_epoch: data.onBlockTimeEpoch,
       personal_remarks: data.personalRemarks,
       persons_on_board: data.personsOnBoard,
-      priv_or_com_flight: data.privOrComFlight,
+      priv_or_com_flight: flightTypeToPrivOrCom(data.flightType),
       total_time_in_service: data.totalTimeInService,
 
       is_billable_flight: true,
-      ajlb_blank_rows_before: 0,
-      ajlb_seq_no: eb
-        .selectFrom('flight.vw_flight_time_totals')
-        .select(eb.fn.coalesce('ajlb_seq_no', eb.lit(0)).as('ajlb_seq_no'))
-        .where('aircraft_registration', '=', data.aircraftRegistration)
-        .where('current', '=', true),
+      ajlb_blank_rows_before: 'ajlbBlankRowsBefore' in data ? data.ajlbBlankRowsBefore : 0,
+      ajlb_seq_no:
+        'ajlbSeqNo' in data && data.ajlbSeqNo
+          ? data.ajlbSeqNo
+          : eb
+              .selectFrom('flight.vw_flight_time_totals')
+              .select(eb.fn.coalesce('ajlb_seq_no', eb.lit(0)).as('ajlb_seq_no'))
+              .where('aircraft_registration', '=', data.aircraftRegistration)
+              .where('current', '=', true),
       flight_id: generateShortId(),
       created_by: user.memberId,
       created_at: new Date().toISOString(),
@@ -433,6 +437,9 @@ export async function deleteFlightLog(flight_id: string): Promise<boolean> {
   const retval = await delQuery.executeTakeFirst()
   return retval.numDeletedRows == 1n
 }
+
+const flightTypeToPrivOrCom = (type: FlightType): PrivOrComFlight =>
+  type == FlightType.SCHOOL || type == FlightType.DTO ? 'C' : 'P'
 
 export const updateFlightLog = async (
   flight_id: string,
@@ -492,7 +499,7 @@ export const updateFlightLog = async (
     on_block_time_epoch: data.onBlockTimeEpoch,
     personal_remarks: data.personalRemarks,
     persons_on_board: data.personsOnBoard,
-    priv_or_com_flight: data.privOrComFlight,
+    priv_or_com_flight: data.flightType ? flightTypeToPrivOrCom(data.flightType) : undefined,
     total_time_in_service: data.totalTimeInService,
 
     // admin fields are editable

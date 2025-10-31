@@ -4,12 +4,52 @@ import { AuditableSchema, BigintAsString, BooleanSchema, UpsertSchema } from '..
 
 export const CrewRoleEnum = z.enum(['FE', 'FI', 'OBS', 'PIC', 'STU'])
 export const PrivOrComFlightEnum = z.enum(['P', 'C'])
+export type PrivOrComFlight = z.infer<typeof PrivOrComFlightEnum>
 
 export enum FlightLogStatus {
   NEW = 'NEW',
   VALIDATED = 'VALIDATED',
   INVOICED = 'INVOICED',
   PAID = 'PAID',
+}
+
+export enum FlightType {
+  // currently valid types
+
+  PRIVATE = 'PRIVATE',
+  // 2: 'Koululento',
+  // 4: Koulumatkalento
+  // 7: Yö Koululento
+  // 8: Yö Koulumatkalento
+  // 11: Kertauskoululento
+  SCHOOL = 'SCHOOL',
+  DTO = 'DTO',
+
+  // 16: SAR tehtävä
+  // 17: SAR koulutus
+  SAR = 'SAR',
+
+  // legacy types
+
+  // 1: Harjoituslento
+  // 5: Yö harjoituslento
+  PRACTICE = 'PRACTICE',
+  // 3: Matkalento
+  // 6: Yö Matkalento
+  XC = 'XC',
+  // 9: Välitarkastuslento
+  // 10: Tarkastuslento
+  CHECKFLIGHT = 'CHECKFLIGHT',
+  // 12: Siirtolento
+  FERRY = 'FERRY',
+  // 13: Taitolento
+  AEROBATICS = 'AEROBATICS',
+  // 14: Muu (tarkenna huomautuksiin)
+  OTHER = 'OTHER',
+  // 15: Korjausrivi
+  CORRECTION = 'CORRECTION',
+  // 18: Koelento
+  TEST_FLIGHT = 'TEST_FLIGHT',
 }
 
 export const FlightLogFiltersSchema = z
@@ -59,7 +99,7 @@ export const FlightLogSchema = AuditableSchema.extend({
   flightId: z.string().readonly(),
   flightMins: z.number().readonly(),
   flightTime: z.string().readonly(),
-  flightType: z.string(),
+  flightType: z.nativeEnum(FlightType),
   fuelRemainingLitres: z.number().positive(),
   fuelUpliftLitres: z.number().min(0).nullable(),
   incidentOrObservations: z.string().nullable(),
@@ -87,7 +127,7 @@ export const FlightLogSchema = AuditableSchema.extend({
   picLastName: z.string().readonly(),
   picMemberId: z.string(),
   picRole: CrewRoleEnum,
-  privOrComFlight: z.string(),
+  privOrComFlight: PrivOrComFlightEnum,
   status: z.nativeEnum(FlightLogStatus),
   totalTimeInService: z.number().nullable(),
 })
@@ -126,7 +166,6 @@ export const FlightLogUpsertSchema = UpsertSchema(FlightLogSchema).pick({
   personsOnBoard: true,
   picMemberId: true,
   picRole: true,
-  privOrComFlight: true,
   totalTimeInService: true,
 })
 
@@ -146,7 +185,6 @@ export const ValidatedFlightLogAdminUpsertSchema = FlightLogUpsertSchema.pick({
   isBillableFlight: true,
   nonBillingReason: true,
   personalRemarks: true,
-  privOrComFlight: true,
 })
 export const ValidatedFlightLogMemberUpsertSchema = FlightLogUpsertSchema.pick({
   billingRemarks: true,
