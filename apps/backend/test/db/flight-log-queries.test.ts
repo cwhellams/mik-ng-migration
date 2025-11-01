@@ -188,6 +188,18 @@ describe('Db insert tests', () => {
     const delRowcount = await deleteFlightLog(flightId)
     expect(delRowcount).toEqual(true)
   })
+
+  it('insertFlightLog prevents adding duplicate flights with identical timestamps', async () => {
+    const result = await getFlightLog('mikify')
+    expect(result).toBeDefined()
+
+    await expect(
+      insertFlightLog(result!, {
+        memberId: 'Matti1',
+        permissions: [MIKPermissions.FLIGHTLOG_USER],
+      }),
+    ).rejects.toThrow('Duplicate flight log')
+  })
 })
 
 describe('Db update tests', () => {
