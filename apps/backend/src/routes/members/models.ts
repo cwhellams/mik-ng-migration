@@ -55,6 +55,7 @@ export enum MIKMemberTypes {
   JUNIOR = 'JUNIOR',
   EXTERNAL = 'EXTERNAL',
   HONORARY = 'HONORARY',
+  REMOVED = 'REMOVED',
 }
 
 export enum MIKLang {

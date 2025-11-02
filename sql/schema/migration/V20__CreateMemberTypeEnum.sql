@@ -3,5 +3,6 @@ CREATE TYPE public.member_type AS ENUM (
     'JUNIOR',
     'FLYING',
     'EXTERNAL',
-    'HONORARY'
+    'HONORARY',
+    'REMOVED'
 );

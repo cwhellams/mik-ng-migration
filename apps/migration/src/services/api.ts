@@ -15,7 +15,7 @@ const api = axios.create({
   withCredentials: true,
 })
 
-export const request = async <Req, Res>(
+export const request = async <Req, Res = Req>(
   method: string,
   url: string,
   data: Req | undefined = undefined
@@ -54,16 +54,24 @@ export const request = async <Req, Res>(
 }
 
 export const login = async (token: string) => {
-  const response = await api.post('auth/login/validate', { token })
-  if (response.status !== 200) {
-    throw new Error(`Login failed with status ${response.status}`)
+  try {
+    const response = await api.post('auth/login/validate', { token })
+    if (response.status !== 200) {
+      throw new Error(`Login failed with status ${response.status}`)
+    }
+
+    console.log('Login successful')
+    writeFileSync(tokenFile, response.data.accessToken, 'utf-8')
+
+    const cookie = response.headers['set-cookie']?.[0] || ''
+    writeFileSync(cookieFile, cookie, 'utf-8')
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error('Login failed:', err.message)
+    } else {
+      console.error('Login failed:', err)
+    }
   }
-
-  console.log('Login successful')
-  writeFileSync(tokenFile, response.data.accessToken, 'utf-8')
-
-  const cookie = response.headers['set-cookie']?.[0]
-  writeFileSync(cookieFile, JSON.stringify(cookie), 'utf-8')
 }
 
 export const refresh = async (): Promise<string> => {

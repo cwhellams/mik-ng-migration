@@ -190,7 +190,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       postcode: member.postcode,
       town_city: member.townCity,
 
-      billing_id: member.lastName.toUpperCase(),
+      billing_id: undefined,
       date_of_birth: member.dateOfBirth,
       member_since: now.toISOString(),
 
@@ -316,35 +316,32 @@ export async function getMembersAwaitingApproval(): Promise<Member[] | undefined
 }
 
 export async function setMembershipApproval(
-  member_id: string,
-  approved_by: string,
+  memberId: string,
+  approvedBy: string,
+  createSimplbooksAccount: boolean,
 ): Promise<MemberApproval> {
   await db.transaction().execute(async txn => {
     const member = await txn
       .updateTable('member.register')
       .set({
         membership_approved_at: new Date(),
-        membership_approved_by: approved_by,
+        membership_approved_by: approvedBy,
       })
-      .where('member_id', '=', member_id)
+      .where('member_id', '=', memberId)
       .where('is_membership_approved', '=', false)
       .returningAll()
       .executeTakeFirstOrThrow()
 
-    await txn
-      .insertInto('accts.outbox_simplbooks')
-      .values({
-        id: randomUUID(),
-        event_type: SimplbooksEventType.ADD_MEMBER,
-        payload: {
-          ...member,
-          created_at: member.created_at.toISOString(),
-          updated_at: member.updated_at.toISOString(),
-          email_verified_at: member.email_verified_at?.toISOString(),
-          membership_approved_at: member.membership_approved_at?.toISOString(),
-        },
-      })
-      .execute()
+    if (createSimplbooksAccount) {
+      await txn
+        .insertInto('accts.outbox_simplbooks')
+        .values({
+          id: randomUUID(),
+          event_type: SimplbooksEventType.ADD_MEMBER,
+          payload: toMember(member, []),
+        })
+        .execute()
+    }
   })
 
   const approval = await db
@@ -357,7 +354,7 @@ export async function setMembershipApproval(
       'first_name',
       'lang_iso639',
     ])
-    .where('member_id', '=', member_id)
+    .where('member_id', '=', memberId)
     .executeTakeFirstOrThrow()
 
   const retval: MemberApproval = {

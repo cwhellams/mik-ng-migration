@@ -11,14 +11,12 @@ import type {
   AjlbListResponse,
 } from '../../backend/src/routes/ajlb/model.ts'
 import type {
-  Member,
   MemberList,
   MemberListFilters,
   MemberListResponse,
 } from '../../backend/src/routes/members/models.ts'
 import type z from 'zod'
-
-type Instructor = { ope_id: number; nimi: string }
+import type { Instructor } from './members.ts'
 
 enum TimeSelection {
   NONE = 1,
@@ -26,7 +24,7 @@ enum TimeSelection {
   PARTIAL = 3,
 }
 
-type Flight = {
+export type Flight = {
   lento_id: number
   ope: number
   henkilot: number

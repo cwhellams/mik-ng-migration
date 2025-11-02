@@ -3,6 +3,7 @@ import { login } from './services/api.ts'
 import { migrateBooks } from './books.ts'
 import { migratePlanes } from './planes.ts'
 import { migrateFlights } from './flights.ts'
+import { migrateMembers } from './members.ts'
 
 const main = async () => {
   try {
@@ -35,6 +36,13 @@ const main = async () => {
     }
     if (op == 'books' || all) {
       await migrateBooks()
+    }
+
+    if (op == 'members' || all) {
+      await migrateMembers(
+        process.argv[3] || '0',
+        parseInt(process.argv[4]) || 10000
+      )
     }
 
     if (op == 'flights') {
