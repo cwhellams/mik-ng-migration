@@ -76,10 +76,17 @@ export const migrateBooks = async () => {
         return
       }
 
+      // '243310' -> 2433.10h
+      const str = book.alkutunnit.toString()
+      const startFlightMins =
+        Number(str.substring(0, str.length - 2)) * 60 +
+        Number(str.substring(str.length - 2))
+
       const ajlb: Upsert<AircraftJourneyLogBook> = {
-        seqNo: book.kirja_id,
+        // fix duplicate sequence
+        seqNo: book.kirja_id == 24 ? 25 : book.kirja_nro,
         aircraftRegistration: registration,
-        startFlightMins: book.alkutunnit,
+        startFlightMins,
         noOfPages: 999,
         rowsPerPage: book.rivimaara,
         startPage: Number(book.avaussivu),

@@ -248,7 +248,7 @@ describe('POST /flight-log', () => {
   test.each([
     ['Sanna1', false, sannaToken],
     ['Matti1', true, mattiToken],
-    ['Pekka1', true, adminToken],
+    ['Pekka1', false, adminToken],
   ])(
     'should create a flight log with valid payload , return flight_id and be deleted using the returned id',
     async (memberId: string, isDtoFlight: boolean, token: string) => {

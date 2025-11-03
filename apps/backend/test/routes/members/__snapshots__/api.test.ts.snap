@@ -83,16 +83,6 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
 {
   "members": [
     {
-      "email": "admin@mik.fi",
-      "first": "MIK",
-      "last": "Admin",
-      "memberId": "k1mnimda",
-      "phoneNumber": null,
-      "roles": [
-        "ADMIN",
-      ],
-    },
-    {
       "email": "pekka.hamalainen@example.com",
       "first": "Pekka",
       "last": "Hämäläinen",
@@ -136,36 +126,6 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       ],
     },
     {
-      "email": "kaisa.laine@example.com",
-      "first": "Kaisa",
-      "last": "Laine",
-      "memberId": "Kaisa1",
-      "phoneNumber": "0456789012",
-      "roles": [
-        "ADMIN",
-      ],
-    },
-    {
-      "email": "anna.makinen@example.com",
-      "first": "Anna",
-      "last": "Mäkinen",
-      "memberId": "Anna1",
-      "phoneNumber": "0434567890",
-      "roles": [
-        "COMMITTEE",
-      ],
-    },
-    {
-      "email": "niko.ikonen@mik.fi",
-      "first": "John",
-      "last": "McDoe",
-      "memberId": "John1",
-      "phoneNumber": "0401234567",
-      "roles": [
-        "ADMIN",
-      ],
-    },
-    {
       "email": "examinerfe@mik.com",
       "first": "Exe",
       "last": "McExaminerface",
@@ -186,34 +146,6 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       ],
     },
     {
-      "email": "nurmikko@gmail.com",
-      "first": "Marja",
-      "last": "Salminen",
-      "memberId": "Marja1",
-      "phoneNumber": "0490123456",
-      "roles": [],
-    },
-    {
-      "email": "juha.seppala@example.com",
-      "first": "Juha",
-      "last": "Seppälä",
-      "memberId": "Juha1",
-      "phoneNumber": "0489012345",
-      "roles": [
-        "MEMBER",
-      ],
-    },
-    {
-      "email": "simplbks@mik.fi",
-      "first": "SimpleBooks",
-      "last": "User",
-      "memberId": "simplbks",
-      "phoneNumber": null,
-      "roles": [
-        "SERVICE",
-      ],
-    },
-    {
       "email": "chris.whellams@gmail.com",
       "first": "Matti",
       "last": "Virtanen",
@@ -229,7 +161,18 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
 }
 `;
 
-exports[`GET /members should search by unapproved roles as an admin 1`] = `[]`;
+exports[`GET /members should search by unapproved roles as an admin 1`] = `
+[
+  {
+    "email": "nurmikko@gmail.com",
+    "first": "Marja",
+    "last": "Salminen",
+    "memberId": "Marja1",
+    "phoneNumber": "0490123456",
+    "roles": [],
+  },
+]
+`;
 
 exports[`GET /members/id Get member details as an admin 1`] = `
 {

@@ -92,7 +92,7 @@ exports[`Db insert tests insertFlightLog inserts a new flight log to the db, que
   "flightId": Any<String>,
   "flightMins": 60,
   "flightTime": "01:00",
-  "flightType": "SCHOOL",
+  "flightType": "DTO",
   "fuelRemainingLitres": 22,
   "fuelUpliftLitres": 100,
   "incidentOrObservations": null,

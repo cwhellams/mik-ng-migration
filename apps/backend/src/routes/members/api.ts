@@ -13,6 +13,7 @@ import {
   MemberRoleSchema,
   type MemberApproval,
   MIKLang,
+  MemberListFiltersSchema,
 } from './models.ts'
 import {
   getMemberById,
@@ -87,7 +88,7 @@ router.get(
   // Only validated members can list other members
   validateUser(MIKPermissions.MEMBER, MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{}, {}, {}, MemberListFilters>, res: Response<MemberListResponse>) => {
-    const { name, role, isMembershipApproved } = req.query
+    const { role, name, showUnapproved, showRemoved } = MemberListFiltersSchema.parse(req.query)
 
     // either no roles filter, or one/multiple roles
     const roles = role ? (Array.isArray(role) ? role : [role]) : []
@@ -96,9 +97,9 @@ router.get(
       isMemberAdmin(req.user),
       name,
 
-      // map query of unapproved members to null
       roles,
-      isMembershipApproved,
+      showUnapproved,
+      showRemoved,
     )
 
     res.status(200).json({

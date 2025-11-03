@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { AuditableSchema } from '../../types/schema.ts'
+import { AuditableSchema, BooleanSchema } from '../../types/schema.ts'
 
 export enum MIKPermissions {
   // can see other club members and their public roles
@@ -103,7 +103,8 @@ export type MemberList = z.infer<typeof MemberListSchema>
 export const MemberListFiltersSchema = z.object({
   name: z.string().optional(),
   role: z.string().or(z.array(z.string())).nullish(),
-  isMembershipApproved: z.boolean().optional(),
+  showUnapproved: BooleanSchema.optional(),
+  showRemoved: BooleanSchema.optional(),
 })
 
 export type MemberListFilters = z.infer<typeof MemberListFiltersSchema>

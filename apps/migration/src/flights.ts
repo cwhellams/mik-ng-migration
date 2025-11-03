@@ -1,12 +1,11 @@
 import { conn } from './services/db.ts'
 import {
-  FlightLogUpsertSchema,
+  type FlightLogMigrationRequest,
   FlightType,
 } from '../../backend/src/routes/flight-log/models.ts'
 import { request } from './services/api.ts'
 import dayjs from 'dayjs'
 import type {
-  AircraftJourneyLogBook,
   AjlbFilter,
   AjlbListResponse,
 } from '../../backend/src/routes/ajlb/model.ts'
@@ -15,7 +14,6 @@ import type {
   MemberListFilters,
   MemberListResponse,
 } from '../../backend/src/routes/members/models.ts'
-import type z from 'zod'
 import type { Instructor } from './members.ts'
 
 enum TimeSelection {
@@ -25,6 +23,8 @@ enum TimeSelection {
 }
 
 export type Flight = {
+  memberId: string | null
+  ajlbSeqNo: number
   lento_id: number
   ope: number
   henkilot: number
@@ -57,15 +57,66 @@ export type Flight = {
   lupakirjaoppilas: number
 }
 
-type FlightLogUpsert = z.infer<typeof FlightLogUpsertSchema>
+// Skip instructors who are not in the members list
+const skippedInstructors = [
+  999, 30, 31, 32, 35, 36, 39, 41, 46, 79, 52, 53, 56, 71, 76,
+]
+
+const skipDuplicateFlights = [10860, 21750, 21241, 21242]
+
+// fix typos in airport codes
+const airportMapping: Record<string, string> = {
+  EFEF: 'EFJO',
+  EHJM: 'EFJM',
+  ETU: 'EFTU',
+  EUTU: 'EFTU',
+  EFH: 'EFHF',
+  EFHT: 'EFHF',
+  EFTC: 'ENTC',
+  EFLR: 'EFLP',
+  EFTN: 'EETN',
+  LDSV: 'LDSB',
+  EFHY: 'EFHV',
+  LHDZ: 'LHDC',
+  JZKZ: 'LZKZ',
+  EFRS: 'EFPR',
+  ERPR: 'EFPR',
+  ENU: 'EFNU',
+  EFP0: 'EFPO',
+  ERKA: 'EYKA',
+  EFSB: 'ESSB',
+  ESU: 'ESSU',
+  EFGT: 'ESGT',
+  ESDN: 'ESSD',
+  EFSD: 'LFSD',
+  LPDM: 'LDPM',
+  // sailplane ports without ICAO codes
+  TUUS: 'ZZZZ',
+  PERN: 'ZZZZ',
+  GäD: 'ZZZZ',
+  KEMI: 'ZZZZ',
+  SöD: 'ZZZZ',
+  LOHJ: 'ZZZZ',
+  MäN: 'MÄN',
+}
 
 export const migrateFlights = async (start: string, limit: number) => {
   const books = await request<AjlbFilter, AjlbListResponse>('GET', `v1/ajlb`)
 
-  const members = await request<MemberListFilters, MemberListResponse>(
+  const currentMembers = await request<MemberListFilters, MemberListResponse>(
     'GET',
     `v1/members`
   )
+
+  const removedMembers = await request<MemberListFilters, MemberListResponse>(
+    'GET',
+    `v1/members?showRemoved=true`
+  )
+
+  const members = [
+    ...(currentMembers?.members ?? []),
+    ...(removedMembers?.members ?? []),
+  ]
 
   const instructors = await conn.query<Instructor[]>(
     `SELECT * from kirja_opettajat`
@@ -86,15 +137,19 @@ const migrateBatch = async (
   start: string,
   limit: number,
   { books }: AjlbListResponse,
-  { members }: MemberListResponse,
+  members: MemberList[],
   instructors: Instructor[]
 ): Promise<Flight | undefined> => {
   const flights = await conn.query<Flight[]>(
     `SELECT 
       p.nimi as registration, 
+      k.kirja_nro as ajlbSeqNo,
+      u.ng_id as memberId,
       f.* 
       from kirja_lennot f
       join kirja_koneet p on p.kone_id = f.kone_id
+      left join kirja_kirjat k on k.kone_id = f.kone_id AND f.deptime >= k.avauspv and  f.deptime <= k.sulkupv
+      left join mik_ng u on u.username = f.username
       WHERE f.deptime >= ? AND f.aktiivinen = 1
       ORDER BY f.deptime ASC
       LIMIT ?`,
@@ -104,12 +159,7 @@ const migrateBatch = async (
   const ajlbBlankRowsBefore: Record<string, number> = {}
 
   for (const flight of flights) {
-    if (
-      [
-        // duplicate
-        21750,
-      ].includes(flight.lento_id)
-    ) {
+    if (skipDuplicateFlights.includes(flight.lento_id)) {
       console.log(`Skipping ${flight.lento_id}`)
       continue
     }
@@ -124,14 +174,14 @@ const migrateBatch = async (
       console.warn(
         `No logbook found for flight ${flight.lento_id} with plane ${flight.registration}, deptime=${flight.deptime}, arrtime=${flight.arrtime}`
       )
-
-      return flight
+      continue
     }
 
     try {
       const success = await migrateFlight(
         flight,
-        book,
+        // newer flights can match ajlbSeqNo from sql query
+        flight.ajlbSeqNo ?? book.seqNo,
         members,
         instructors,
         ajlbBlankRowsBefore
@@ -161,7 +211,7 @@ const migrateBatch = async (
 
 const migrateFlight = async (
   flight: Flight,
-  book: AircraftJourneyLogBook,
+  ajlbSeqNo: number,
   members: MemberList[],
   instructors: Instructor[],
   ajlbBlankRowsBefore: Record<string, number>
@@ -169,53 +219,60 @@ const migrateFlight = async (
   const flightTimeMins =
     (flight.arrtime.getTime() - flight.deptime.getTime()) / 60000
 
+  const flightType = getFlightType(flight.tyyppi)
+
   const instructor =
-    flight.ope !== 999
+    flightType == FlightType.SCHOOL && !skippedInstructors.includes(flight.ope)
       ? getInstructorId(flight.ope, instructors, members)
       : null
+
+  const member = members.find((m) => m.memberId === flight.memberId)!
 
   const times = getTimes(flight)
 
   // add empty rows to the previous flight
-  if (flight.tyyppi == 15) {
+  if (
+    flight.tyyppi == 15 ||
+    (flight.deptime.getTime() == flight.arrtime.getTime() &&
+      flight.offblock.getTime() == flight.onblock.getTime())
+  ) {
     ajlbBlankRowsBefore[flight.registration] =
       (ajlbBlankRowsBefore[flight.registration] ?? 0) + 1
     console.log(
       `Adding empty row to register ${flight.registration}, total before flight is now ${ajlbBlankRowsBefore[flight.registration]}`
     )
     return false
-  } else if (ajlbBlankRowsBefore[flight.registration]) {
-    // console.log(
-    //   `Flight ${flight.lento_id} has ${ajlbBlankRowsBefore[flight.registration]} empty rows before it`
-    // )
   }
 
-  const flightLog: FlightLogUpsert = {
+  // if there is another pilot as crew2
+  const crew2 = instructor && instructor.memberId !== flight.memberId
+
+  const flightLog: FlightLogMigrationRequest = {
     aircraftRegistration: flight.registration,
     ajlbBlankRowsBefore: ajlbBlankRowsBefore[flight.registration] ?? 0,
-    ajlbSeqNo: book.seqNo,
-    arrivalAirport: getAirport(flight.dep),
-    departureAirport: getAirport(flight.arr),
+    ajlbSeqNo,
+    departureAirport: airportMapping?.[flight.dep] || flight.dep,
+    arrivalAirport: airportMapping?.[flight.arr] || flight.arr,
     offBlockTimeEpoch: times.offBlockTimeEpoch.toString(),
     takeoffTimeEpoch: times.takeoffTimeEpoch.toString(),
     landingTimeEpoch: times.landingTimeEpoch.toString(),
     onBlockTimeEpoch: times.onBlockTimeEpoch.toString(),
-    billableMemberId: 'unknown',
-    picMemberId: instructor ?? 'unknown',
+    billableMemberId: flight.memberId!,
+    picMemberId: instructor ? instructor.memberId : member.memberId,
     picRole: instructor ? 'FI' : 'PIC',
-    crew2MemberId: instructor ? 'unknown' : null,
+    crew2MemberId: crew2 ? flight.memberId : null,
     crew2Role: 'STU',
     crew3MemberId: null,
     crew3Role: null,
     crew4MemberId: null,
     crew4Role: null,
 
-    flightType: getFlightType(flight.tyyppi),
+    flightType,
 
-    fuelRemainingLitres:
-      flight.fuel_remaining && flight.fuel_remaining > 0
-        ? flight.fuel_remaining
-        : 1,
+    fuelRemainingLitres: Math.min(
+      40,
+      Math.max(1, Math.round((flight.fuel_remaining ?? 1) * 3.78541))
+    ),
     fuelUpliftLitres: null,
     oilUpliftLitres: null,
 
@@ -236,11 +293,13 @@ const migrateFlight = async (
     billingRemarks: flight.laskutuskentta,
     personalRemarks: flight.vapaakentta,
 
+    invoiceNumber: flight.simplbooks_id ?? flight.lasku_id?.toString() ?? null,
     nonBillingReason: null,
     isBillableFlight: flight.kerhon_piikkiin == 1,
     incidentOrObservations: flight.raportti_id
       ? flight.raportti_id.toString()
       : null,
+    isDtoTrainingFlight: flight.lupakirjaoppilas == 1,
   }
 
   try {
@@ -272,6 +331,13 @@ const getTimes = (flight: Flight) => {
   const takeoffTimeEpoch = dateToEpoch(flight.deptime)
   const landingTimeEpoch = dateToEpoch(flight.arrtime)
   const onBlockTimeEpoch = dateToEpoch(flight.onblock, flight.arrtime)
+
+  // return {
+  //   offBlockTimeEpoch,
+  //   takeoffTimeEpoch,
+  //   landingTimeEpoch,
+  //   onBlockTimeEpoch,
+  // }
 
   // block times are not set, use flight time instead (e.g. lento_id 456)
   if (offBlockTimeEpoch == onBlockTimeEpoch) {
@@ -437,40 +503,29 @@ const getInstructorId = (
   ope_id: number,
   instructors: Instructor[],
   members: MemberList[]
-): string | null => {
+): MemberList => {
   const instructor = instructors.find((i) => i.ope_id === ope_id)
   if (!instructor) {
-    return null
+    throw new Error(`Instructor ${ope_id} not found from instructors list`)
   }
-  const parts = instructor.nimi.split(' ')
+  const instructorMembers = members.filter((m) =>
+    m.roles.includes('INSTRUCTOR')
+  )
 
-  const fullMatch = members.find(
+  const name = instructor.nimi.replaceAll('Käho', 'Kähö') // typo fix
+
+  const fullMatch = instructorMembers.find(
     (m) =>
-      instructor.nimi == `${m.first} ${m.last}` ||
-      instructor.nimi == `${m.last} ${m.first}`
+      m.roles.includes('INSTRUCTOR') &&
+      name.toLowerCase().includes(m.last.toLowerCase())
   )
   if (fullMatch) {
-    return fullMatch.memberId
+    return fullMatch
   }
-  const fuzzyMatch = members.find((m) =>
-    parts.some((part) => m.first.includes(part) || m.last.includes(part))
+
+  throw new Error(
+    `Instructor ${JSON.stringify(instructor, null, 2)} not found from members list`
   )
-  if (fuzzyMatch) {
-    console.log(
-      `Fuzzy matched instructor ${instructor.nimi} to member ${fuzzyMatch.first} ${fuzzyMatch.last}`
-    )
-    return fuzzyMatch.memberId
-  }
-
-  console.log(`Instructor ${instructor.nimi} not found`)
-  return 'k1mnimda'
-}
-
-const getAirport = (code: string): string => {
-  if (code == 'EHJM') {
-    return 'EFJM'
-  }
-  return code
 }
 
 const getFlightType = (type: number): FlightType => {
@@ -495,9 +550,6 @@ const getFlightType = (type: number): FlightType => {
       return FlightType.FERRY
     case 13: // Taitolento
       return FlightType.AEROBATICS
-
-    case 15: // Korjausrivi
-      return FlightType.CORRECTION
 
     case 16: // SAR tehtävä
     case 17: // SAR koulutus

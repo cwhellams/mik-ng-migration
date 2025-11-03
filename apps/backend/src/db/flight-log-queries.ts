@@ -14,6 +14,7 @@ import {
   type InvoicableFlightFilters,
   FlightType,
   type PrivOrComFlight,
+  type FlightLogMigrationRequest,
 } from '../routes/flight-log/models.ts'
 import type { MIKPermissions } from '../routes/members/models.ts'
 import { generateShortId } from '../util/nanoId.ts'
@@ -348,15 +349,34 @@ export async function getInvoicableFlights(
 }
 
 export async function insertFlightLog(
-  data: FlightLogMemberRequest | FlightLogUpsertRequest,
+  data: FlightLogMemberRequest | FlightLogUpsertRequest | FlightLogMigrationRequest,
   user: { memberId: string; permissions: MIKPermissions[] },
 ): Promise<string> {
+  // admins can bill flights to other members
+  const billableMemberId = 'billableMemberId' in data ? data.billableMemberId : user.memberId
+
+  // determine if this is a DTO training flight
+  const isDtoTrainingFlight =
+    'isDtoTrainingFlight' in data
+      ? data.isDtoTrainingFlight
+      : (
+          await db
+            .selectFrom('member.register')
+            .select('is_training_program_pilot')
+            .where('member_id', '=', billableMemberId)
+            .limit(1)
+            .executeTakeFirstOrThrow()
+        ).is_training_program_pilot
+
+  // DTO training flights always have flight type DTO
+  const flightType = isDtoTrainingFlight ? FlightType.DTO : data.flightType
+
   const retval = await db
     .insertInto('flight.logs')
     .values(eb => ({
       aircraft_registration: data.aircraftRegistration,
       arrival_airport: data.arrivalAirport,
-      billable_member_id: 'billableMemberId' in data ? data.billableMemberId : user.memberId,
+      billable_member_id: billableMemberId,
       billing_remarks: data.billingRemarks,
       pic_last_name: eb
         .selectFrom('member.register')
@@ -383,7 +403,7 @@ export async function insertFlightLog(
       crew4_member_id: data.crew4MemberId,
       crew4_role: data.crew4Role,
       departure_airport: data.departureAirport,
-      flight_type: data.flightType,
+      flight_type: flightType,
       fuel_remaining_litres: data.fuelRemainingLitres,
       fuel_uplift_litres: data.fuelUpliftLitres,
       incident_or_observations: data.incidentOrObservations,
@@ -398,7 +418,7 @@ export async function insertFlightLog(
       on_block_time_epoch: data.onBlockTimeEpoch,
       personal_remarks: data.personalRemarks,
       persons_on_board: data.personsOnBoard,
-      priv_or_com_flight: flightTypeToPrivOrCom(data.flightType),
+      priv_or_com_flight: flightTypeToPrivOrCom(flightType),
       total_time_in_service: data.totalTimeInService,
 
       is_billable_flight: true,
@@ -416,11 +436,7 @@ export async function insertFlightLog(
       created_at: new Date().toISOString(),
       updated_by: user.memberId,
       updated_at: new Date().toISOString(),
-      is_dto_training_flight: eb
-        .selectFrom('member.register')
-        .select('is_training_program_pilot')
-        .where('member_id', '=', user.memberId)
-        .limit(1),
+      is_dto_training_flight: isDtoTrainingFlight,
     }))
     .returning('flight_id')
     .executeTakeFirstOrThrow()

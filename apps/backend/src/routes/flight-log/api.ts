@@ -15,6 +15,7 @@ import {
   ValidatedFlightLogMemberUpsertSchema,
   BilledFlightLogUpsertSchema,
   type FlightLogUpsertRequest,
+  FlightLogMigrationSchema,
 } from './models.ts'
 import {
   deleteFlightLog,
@@ -55,8 +56,12 @@ router.get('/airfields', async (req: Request, res: Response) => {
 router.post('/', async (req: Request, res: Response) => {
   const isAdmin = isFlightLogAdmin(req.user)
   if (isAdmin) {
+    const enableFullData = req.headers['x-mik-migration'] === 'true'
+
     // admin can create flight logs for other members
-    const data = flightLogDateValidator(FlightLogUpsertSchema).parse(req.body)
+    const data = flightLogDateValidator(
+      enableFullData ? FlightLogMigrationSchema : FlightLogUpsertSchema,
+    ).parse(req.body)
 
     const flightId = await insertFlightLog(data, req.user!)
     res.status(201).json({ flight_id: flightId })

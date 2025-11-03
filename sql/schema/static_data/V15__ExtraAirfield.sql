@@ -1,0 +1,10 @@
+INSERT INTO static.airfields VALUES ('EFHF', 'Helsinki-Malmi Airport', 'FI', true);
+INSERT INTO static.airfields VALUES ('EDOP', 'Parchim International Airport', 'DE');
+INSERT INTO static.airfields VALUES ('EDWB', 'Bremerhaven Airport', 'DE');
+INSERT INTO static.airfields VALUES ('EERE', 'Rakvere Airfield', 'EE');
+INSERT INTO static.airfields VALUES ('EFTS', 'Teisko Airfield', 'FI', true);
+INSERT INTO static.airfields VALUES ('EFKW', 'Ummeljoki KW kevytlentopaikka', 'FI');
+INSERT INTO static.airfields VALUES ('MÄN', 'Mäntän lentopaikka', 'FI');
+INSERT INTO static.airfields VALUES ('EPKG', 'Kołobrzeg-Bagicz Airfield', 'PL');
+INSERT INTO static.airfields VALUES ('LIKO', 'Flyozzano Airport LIKO', 'IT');
+INSERT INTO static.airfields VALUES ('LIQQ', 'Castiglion Fiorentino', 'IT');

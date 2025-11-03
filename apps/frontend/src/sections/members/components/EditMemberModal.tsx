@@ -183,6 +183,11 @@ export const EditMemberModal = ({
               control={<Radio />}
               label={t('member.types.honorary')}
             />
+            <FormControlLabel
+              value='REMOVED'
+              control={<Radio />}
+              label={t('member.types.removed')}
+            />
           </RadioGroup>
         </FormControl>
       </Grid>

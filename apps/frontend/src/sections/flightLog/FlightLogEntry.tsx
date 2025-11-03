@@ -48,16 +48,7 @@ import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../components/SaveButton'
 
-const flightTypes = [
-  { code: 'HAR', labelKey: 'flightLog.flightTypes.practice' },
-  { code: 'MAT', labelKey: 'flightLog.flightTypes.cross_country' },
-  { code: 'KOU', labelKey: 'flightLog.flightTypes.instruction' },
-  { code: 'TAR', labelKey: 'flightLog.flightTypes.profiniencyCheck' },
-  { code: 'LEN', labelKey: 'flightLog.flightTypes.skillTest' },
-  { code: 'SII', labelKey: 'flightLog.flightTypes.ferry' },
-  { code: 'KOE', labelKey: 'flightLog.flightTypes.test' },
-  // { code: 'TAI', labelKey: 'flightLog.flightTypes.aerobatics' },
-]
+const flightTypes: FlightType[] = [FlightType.PRIVATE, FlightType.SCHOOL]
 
 const FlightLogEntry = () => {
   const { t } = useTranslation()
@@ -312,10 +303,15 @@ const FlightLogEntry = () => {
                       disabled={!isEditable}
                     >
                       {flightTypes.map((type) => (
-                        <MenuItem key={type.code} value={type.code}>
-                          {t(type.labelKey)}
+                        <MenuItem key={type} value={type}>
+                          {t(`flightLog.flightTypes.${type}`)}
                         </MenuItem>
                       ))}
+                      {!flightTypes.includes(field.value) && (
+                        <MenuItem key={field.value} value={field.value}>
+                          {t(`flightLog.flightTypes.${field.value}`)}
+                        </MenuItem>
+                      )}
                     </Select>
                   )}
                 />
@@ -505,21 +501,23 @@ const FlightLogEntry = () => {
               </Grid>
             )}
 
-            <Grid size={{ xs: 12 }}>
-              <FormControl required fullWidth error={!!errors.flightType}>
-                <InputLabel>{t('invoicing.isFreeFlight')}</InputLabel>
-                <Controller
-                  name='isBillableFlight'
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      checked={field.value == false}
-                      disabled={isInvoiced}
-                    />
-                  )}
-                />
-              </FormControl>
-            </Grid>
+            {!isNew && isFlightLogAdmin && (
+              <Grid size={{ xs: 12 }}>
+                <FormControl required fullWidth error={!!errors.flightType}>
+                  <InputLabel>{t('invoicing.isFreeFlight')}</InputLabel>
+                  <Controller
+                    name='isBillableFlight'
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        checked={field.value == false}
+                        disabled={isInvoiced}
+                      />
+                    )}
+                  />
+                </FormControl>
+              </Grid>
+            )}
 
             <Grid size={{ xs: 12 }}>
               <TxtField

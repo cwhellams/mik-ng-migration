@@ -87,10 +87,8 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
 }
 
 // only public roles are visible to non-admins
-const getPublicRolesToQuery = async (publicRoles: string[], roles: (string | null)[]) => {
+const getPublicRolesToQuery = async (publicRoles: string[], roles: string[]) => {
   const allowedRoles = roles
-    // drop unapproved members
-    .filter(role => role != null)
     // drop other than public roles
     .filter(role => publicRoles.includes(role))
 
@@ -105,8 +103,9 @@ const getPublicRolesToQuery = async (publicRoles: string[], roles: (string | nul
 export async function getMembers(
   isAdmin: boolean,
   name: string | undefined,
-  roles: (string | null)[],
-  isMembershipApproved: boolean | undefined,
+  roles: string[],
+  showUnapproved?: boolean,
+  showRemoved?: boolean,
 ): Promise<MemberList[]> {
   // admin can search any roles
   const publicRoles = (await getAllMemberRoles(true)).map(role => role.roleId)
@@ -128,19 +127,13 @@ export async function getMembers(
           .orderBy('role_id'),
       ).as('roles'),
     ])
+    .where('is_membership_approved', '=', !isAdmin || !showUnapproved)
+    .where('member_type', isAdmin && showRemoved ? '=' : '!=', MIKMemberTypes.REMOVED)
 
     // query by name
     .$if(!!name, qb =>
       qb.where(eb => eb('first_name', 'ilike', `${name}%`).or('last_name', 'ilike', `${name}%`)),
     )
-    .$if(isAdmin && !!isMembershipApproved, qb =>
-      qb.where('is_membership_approved', '=', isMembershipApproved ?? true),
-    )
-
-    .$if(!isAdmin, qb => qb.where('is_membership_approved', '=', true))
-
-    // hide external users from non-admins
-    //.$if(!isAdmin, qb => qb.where('member_type', '!=', 'EXTERNAL'))
 
     // query users with roles
     .$if(filterRoles.length > 0, qb =>

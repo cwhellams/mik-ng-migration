@@ -16,7 +16,10 @@ export enum FlightLogStatus {
 export enum FlightType {
   // currently valid types
 
+  // 1: Harjoituslento
+  // 5: Yö harjoituslento
   PRIVATE = 'PRIVATE',
+
   // 2: 'Koululento',
   // 4: Koulumatkalento
   // 7: Yö Koululento
@@ -30,10 +33,6 @@ export enum FlightType {
   SAR = 'SAR',
 
   // legacy types
-
-  // 1: Harjoituslento
-  // 5: Yö harjoituslento
-  PRACTICE = 'PRACTICE',
   // 3: Matkalento
   // 6: Yö Matkalento
   XC = 'XC',
@@ -46,8 +45,6 @@ export enum FlightType {
   AEROBATICS = 'AEROBATICS',
   // 14: Muu (tarkenna huomautuksiin)
   OTHER = 'OTHER',
-  // 15: Korjausrivi
-  CORRECTION = 'CORRECTION',
   // 18: Koelento
   TEST_FLIGHT = 'TEST_FLIGHT',
 }
@@ -168,6 +165,15 @@ export const FlightLogUpsertSchema = UpsertSchema(FlightLogSchema).pick({
   picRole: true,
   totalTimeInService: true,
 })
+
+// extra raw fields needed for migration
+export const FlightLogMigrationSchema = FlightLogSchema.pick({
+  isBillableFlight: true,
+  isDtoTrainingFlight: true,
+  invoiceNumber: true,
+}).merge(FlightLogUpsertSchema)
+
+export type FlightLogMigrationRequest = z.infer<typeof FlightLogMigrationSchema>
 
 // Regular members cannot edit all fields
 export const FlightLogMemberUpsertSchema = FlightLogUpsertSchema.omit({

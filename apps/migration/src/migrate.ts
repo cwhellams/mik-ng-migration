@@ -48,7 +48,7 @@ const main = async () => {
     if (op == 'flights') {
       await migrateFlights(
         process.argv[3] || '2000-01-01',
-        parseInt(process.argv[4]) || 1
+        parseInt(process.argv[4]) || 100000
       )
     }
   } finally {

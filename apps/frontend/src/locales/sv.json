@@ -98,7 +98,8 @@
       "non-flying": "Stödmedlem",
       "junior": "Junior",
       "external": "Extern användare",
-      "honorary": "Hedersmedlem"
+      "honorary": "Hedersmedlem",
+      "removed": "Borttagen"
     },
     "isTrainingProgramPilot": "Utbildningsprogrampilot",
     "membership": "Medlemsdetaljer",
@@ -222,7 +223,8 @@
     "description": "Fritextbeskrivning (endast admin)",
     "details": "Rolldetaljer",
     "all": "-- Alla --",
-    "unApproved": "-- Ej godkända --"
+    "unApproved": "-- Ej godkända --",
+    "showRemoved": "-- Borttagna --"
   },
   "permissions": {
     "member": "MIK-medlem",
@@ -382,14 +384,16 @@
     "calculatedTotal": "Beräknad total",
     "selectFlightTypeCrew": "Vänligen välj en flygtyp för att fortsätta med besättningsinformation",
     "flightTypes": {
-      "practice": "Övningsflyg",
-      "cross_country": "Korsflyg",
-      "aerobatics": "Konstflyg",
-      "instruction": "Instruktionsflyg",
-      "profiniencyCheck": "Färdighetskontroll",
-      "skillTest": "Färdighetstest",
-      "ferry": "Färjeflyg",
-      "test": "Testflyg"
+      "PRIVATE": "Privatflyg",
+      "SCHOOL": "Skoletflyg",
+      "DTO": "DTO Flight",
+      "SAR": "SAR Flight",
+      "XC": "Korsflyg",
+      "CHECKFLIGHT": "Färdighetstest",
+      "FERRY": "Färjeflyg",
+      "AEROBATICS": "Korsflyg",
+      "OTHER": "Övrigt",
+      "TEST_FLIGHT": "Testflyg"
     },
     "status": {
       "title": "Faktureringsstatus",

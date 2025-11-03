@@ -78,14 +78,23 @@ describe('GET /members', () => {
     expect(members).toMatchSnapshot()
   })
 
-  it('should return prefix matches with name filter', async () => {
+  it('should return approved prefix matches with name filter', async () => {
     const membersQry = await query(adminToken, {
       name: 'an',
-      isMembershipApproved: undefined,
     })
 
-    expect(membersQry.members.map(m => m.first)).toEqual(['Antti', 'Anna'])
-    expect(membersQry.members.map(m => m.last)).toEqual(['Heikkinen', 'Mäkinen'])
+    expect(membersQry.members.map(m => m.first)).toEqual(['Antti'])
+    expect(membersQry.members.map(m => m.last)).toEqual(['Heikkinen'])
+  })
+
+  it('should return unapproved prefix matches with name filter', async () => {
+    const membersQry = await query(adminToken, {
+      name: 'an',
+      showUnapproved: true,
+    })
+
+    expect(membersQry.members.map(m => m.first)).toEqual(['Anna'])
+    expect(membersQry.members.map(m => m.last)).toEqual(['Mäkinen'])
   })
 
   it('should return empty list with non-existing name filter', async () => {
@@ -122,7 +131,6 @@ describe('GET /members', () => {
   it('should search by multiple public roles as a member', async () => {
     const membersQry = await query(adminToken, {
       role: ['INSTRUCTOR', 'COMMITTEE'],
-      isMembershipApproved: undefined,
     })
     expect(membersQry.members.map(({ first, last, roles }) => ({ first, last, roles }))).toEqual([
       {
@@ -138,11 +146,6 @@ describe('GET /members', () => {
       {
         first: 'Sanna',
         last: 'Koskinen',
-        roles: ['COMMITTEE'],
-      },
-      {
-        first: 'Anna',
-        last: 'Mäkinen',
         roles: ['COMMITTEE'],
       },
       {
@@ -168,7 +171,6 @@ describe('GET /members', () => {
   it('should skip search by private roles as a member', async () => {
     const membersQry = await query(memberToken, {
       role: 'ADMIN',
-      isMembershipApproved: undefined,
     })
 
     expect(membersQry.members.length).toEqual(7)
@@ -176,8 +178,15 @@ describe('GET /members', () => {
 
   it('should skip search by unapproved roles as a member', async () => {
     const membersQry = await query(memberToken, {
-      role: 'null',
-      isMembershipApproved: true,
+      showUnapproved: true,
+    })
+
+    expect(membersQry.members.length).toEqual(7)
+  })
+
+  it('should skip search by removed roles as a member', async () => {
+    const membersQry = await query(memberToken, {
+      showRemoved: true,
     })
 
     expect(membersQry.members.length).toEqual(7)
@@ -196,17 +205,12 @@ describe('GET /members', () => {
     expect(membersQry.members.length).toEqual(7)
   })
 
-  it('should search by private roles as an admin', async () => {
+  it('should search by private and approved roles as an admin', async () => {
     const membersQry = await query(adminToken, {
       role: 'ADMIN',
     })
 
     expect(membersQry.members.map(({ first, last, roles }) => ({ first, last, roles }))).toEqual([
-      {
-        first: 'MIK',
-        last: 'Admin',
-        roles: ['ADMIN'],
-      },
       {
         first: 'Pekka',
         last: 'Hämäläinen',
@@ -217,22 +221,12 @@ describe('GET /members', () => {
         last: 'Korhonen',
         roles: ['ADMIN', 'COMMITTEE'],
       },
-      {
-        first: 'Kaisa',
-        last: 'Laine',
-        roles: ['ADMIN'],
-      },
-      {
-        first: 'John',
-        last: 'McDoe',
-        roles: ['ADMIN'],
-      },
     ])
   })
 
   it('should search by unapproved roles as an admin', async () => {
     const membersQry = await query(adminToken, {
-      role: 'null',
+      showUnapproved: true,
     })
 
     const member = membersQry.members.filter(m => m.memberId === 'Marja1')
@@ -241,8 +235,8 @@ describe('GET /members', () => {
 
   it('should search by private and unapproved roles as an admin', async () => {
     const membersQry = await query(adminToken, {
-      role: ['ADMIN', 'null'],
-      isMembershipApproved: undefined,
+      role: ['ADMIN'],
+      showUnapproved: true,
     })
 
     expect(membersQry.members.map(({ first, last, roles }) => ({ first, last, roles }))).toEqual([
@@ -250,16 +244,6 @@ describe('GET /members', () => {
         first: 'MIK',
         last: 'Admin',
         roles: ['ADMIN'],
-      },
-      {
-        first: 'Pekka',
-        last: 'Hämäläinen',
-        roles: ['ADMIN', 'MEMBER'],
-      },
-      {
-        first: 'Liisa',
-        last: 'Korhonen',
-        roles: ['ADMIN', 'COMMITTEE'],
       },
       {
         first: 'Kaisa',
