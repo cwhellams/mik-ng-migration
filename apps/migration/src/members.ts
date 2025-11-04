@@ -353,10 +353,11 @@ const getEmail = (member: WPUser, officialData?: Yhdistysavain): string => {
     )
   }
 
-  // TODO no real emails while testing migration
-  return roles?.[member.ID]?.includes('ADMIN')
-    ? email
-    : `valid-${member.ID}@example.com`
+  // no real emails while testing migration
+  // return roles?.[member.ID]?.includes('ADMIN')
+  //   ? email
+  //   : `valid-${member.ID}@example.com`
+  return email
 }
 
 const getBirthDate = (dateString?: string): string | undefined => {

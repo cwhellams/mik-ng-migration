@@ -221,10 +221,9 @@ const migrateFlight = async (
 
   const flightType = getFlightType(flight.tyyppi)
 
-  const instructor =
-    flightType == FlightType.SCHOOL && !skippedInstructors.includes(flight.ope)
-      ? getInstructorId(flight.ope, instructors, members)
-      : null
+  const instructor = !skippedInstructors.includes(flight.ope)
+    ? getInstructorId(flight.ope, instructors, members)
+    : null
 
   const member = members.find((m) => m.memberId === flight.memberId)!
 
@@ -503,7 +502,7 @@ const getInstructorId = (
   ope_id: number,
   instructors: Instructor[],
   members: MemberList[]
-): MemberList => {
+): MemberList | undefined => {
   const instructor = instructors.find((i) => i.ope_id === ope_id)
   if (!instructor) {
     throw new Error(`Instructor ${ope_id} not found from instructors list`)
@@ -523,7 +522,7 @@ const getInstructorId = (
     return fullMatch
   }
 
-  throw new Error(
+  console.log(
     `Instructor ${JSON.stringify(instructor, null, 2)} not found from members list`
   )
 }
