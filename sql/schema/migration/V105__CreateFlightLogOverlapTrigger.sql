@@ -11,6 +11,18 @@ BEGIN
         ) THEN RAISE EXCEPTION 'Protected time period';
         END IF;
 
+        IF EXISTS (
+            SELECT 1
+            FROM flight.logs
+            WHERE aircraft_registration = NEW.aircraft_registration
+                AND off_block_time_epoch = NEW.off_block_time_epoch
+                AND takeoff_time_epoch = NEW.takeoff_time_epoch
+                AND landing_time_epoch = NEW.landing_time_epoch
+                AND on_block_time_epoch = NEW.on_block_time_epoch
+                AND flight_id != NEW.flight_id
+        ) THEN RAISE EXCEPTION 'Duplicate flight log';
+        END IF;
+
     ELSIF TG_OP = 'UPDATE' THEN
         IF NEW.off_block_time_epoch <> OLD.off_block_time_epoch OR
             NEW.takeoff_time_epoch <> OLD.takeoff_time_epoch OR

@@ -21,13 +21,16 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
+import {
+  FlightLogUpsertRequest,
+  FlightType,
+} from '@backend/routes/flight-log/models'
 import { MemberListResponse } from '@backend/routes/members/models'
 import useApi from '../../../hooks/useApi'
 import { useMe } from '../../../hooks/useMe'
 
 interface FlightCrewProps {
-  flightType: string
+  flightType: FlightType
   maximumCrewCount: number
   register: UseFormRegister<FlightLogUpsertRequest>
   control: Control<FlightLogUpsertRequest>
@@ -72,10 +75,15 @@ const FlightCrew = ({
 
   const slots: CrewSlot[] = ['pic', 'crew2', 'crew3', 'crew4']
 
-  // Check if flight type is one that only needs a pilot
-  const singlePilotTypes = ['HAR', 'MAT', 'SII', 'KOE']
-  // Check if flight type is one that needs a crew
-  const multiPilotTypes = ['TAR', 'LEN']
+  // Check if flight type can only have single pilot
+  const singlePilotTypes = [
+    FlightType.PRIVATE,
+    FlightType.XC,
+    FlightType.FERRY,
+    FlightType.TEST_FLIGHT,
+  ]
+  // Check if flight type is one that must have a crew
+  const multiPilotTypes = [FlightType.CHECKFLIGHT]
 
   const isSinglePilotFlight = singlePilotTypes.includes(flightType)
   const minimumCrewCount = multiPilotTypes.includes(flightType) ? 2 : 1

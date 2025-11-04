@@ -99,7 +99,8 @@
       "non-flying": "Kannatusjäsen",
       "junior": "Nuorisojäsen",
       "external": "Ulkoinen käyttäjä",
-      "honorary": "Kunniajäsen"
+      "honorary": "Kunniajäsen",
+      "removed": "Poistettu"
     },
     "membership": "Jäsenyyden lisätiedot",
     "memberId": "Jäsennumero",
@@ -222,7 +223,8 @@
     "description": "Vapaamuotoinen kuvaus (ylläpitäjälle)",
     "details": "Roolin tiedot",
     "all": "-- Kaikki --",
-    "unApproved": "-- Hyväksymättä --"
+    "unApproved": "-- Hyväksymättä --",
+    "showRemoved": "-- Poistetut --"
   },
   "permissions": {
     "member": "MIK jäsen",
@@ -382,14 +384,16 @@
     "calculatedTotal": "Laskettu kokonaisaika",
     "selectFlightTypeCrew": "Valitse lennon tyyppi jatkaaksesi miehistön tietojen syömistä",
     "flightTypes": {
-      "practice": "Harjoituslento",
-      "cross_country": "Matkalento",
-      "aerobatics": "Taitolento",
-      "instruction": "Koululento",
-      "profiniencyCheck": "Tarkastuslento",
-      "skillTest": "Lentokoe",
-      "ferry": "Siirtolento",
-      "test": "Koelento"
+      "PRIVATE": "Yksityislento",
+      "SCHOOL": "Koululento",
+      "DTO": "DTO-koululento",
+      "SAR": "SAR-lento",
+      "XC": "Matkalento",
+      "CHECKFLIGHT": "Tarkastuslento",
+      "FERRY": "Siirtolento",
+      "AEROBATICS": "Taitolento",
+      "OTHER": "Muu",
+      "TEST_FLIGHT": "Koelento"
     },
     "status": {
       "title": "Laskutuksen tila",

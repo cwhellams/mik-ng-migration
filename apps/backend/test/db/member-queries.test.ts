@@ -130,13 +130,13 @@ describe('Db query member tests', () => {
   })
 
   it('getMembers should return only approved members for valid members', async () => {
-    const result = await getMembers(false, '', [], undefined)
+    const result = await getMembers(false, '', [], true)
     // test only first 10 items in the test data
     expect(result.slice(0, 10)).toMatchSnapshot()
   })
 
-  it('getMembers should return everything for admins', async () => {
-    const result = await getMembers(true, '', [], undefined)
+  it('getMembers should return unapproved members for admins', async () => {
+    const result = await getMembers(true, '', [], true)
     // test only first 10 items in the test data
     expect(result.slice(0, 10)).toMatchSnapshot()
   })

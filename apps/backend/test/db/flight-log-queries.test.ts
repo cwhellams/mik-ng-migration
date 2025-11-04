@@ -13,6 +13,7 @@ import {
 } from '../../src/db/flight-log-queries.ts'
 import {
   FlightLogStatus,
+  FlightType,
   InvoicableFlights,
   type FlightLog,
   type FlightLogMemberRequest,
@@ -154,7 +155,7 @@ describe('Db insert tests', () => {
       numberOfNightLandings: 0,
       departureAirport: 'EFHK',
       arrivalAirport: 'EFVA',
-      flightType: 'KOU',
+      flightType: FlightType.SCHOOL,
       billingRemarks: 'Test flight',
       personalRemarks: 'No remarks',
       picRole: 'FE',
@@ -165,13 +166,12 @@ describe('Db insert tests', () => {
       crew4Role: null,
       fuelRemainingLitres: 22,
       incidentOrObservations: null,
-      privOrComFlight: 'P',
       totalTimeInService: 1023.5,
       instrumentFlyingMins: 0,
       nightFlyingMins: 0,
     }
 
-    const flightId = await insertFlightLog(data, 'Matti1', {
+    const flightId = await insertFlightLog(data, {
       memberId: 'Matti1',
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     })
@@ -187,6 +187,18 @@ describe('Db insert tests', () => {
     //cleanup
     const delRowcount = await deleteFlightLog(flightId)
     expect(delRowcount).toEqual(true)
+  })
+
+  it('insertFlightLog prevents adding duplicate flights with identical timestamps', async () => {
+    const result = await getFlightLog('mikify')
+    expect(result).toBeDefined()
+
+    await expect(
+      insertFlightLog(result!, {
+        memberId: 'Matti1',
+        permissions: [MIKPermissions.FLIGHTLOG_USER],
+      }),
+    ).rejects.toThrow('Duplicate flight log')
   })
 })
 

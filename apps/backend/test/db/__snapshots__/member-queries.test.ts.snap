@@ -23,7 +23,7 @@ exports[`Db add member tests Member Role Tests Adds a member role to the databas
 
 exports[`Db add member tests add member and update member 1`] = `
 {
-  "billingId": "MEMBER",
+  "billingId": null,
   "canMakeReservations": false,
   "createdAt": Any<String>,
   "createdBy": 0,
@@ -57,7 +57,7 @@ exports[`Db add member tests add member and update member 1`] = `
 
 exports[`Db add member tests add member and update member 2`] = `
 {
-  "billingId": "MEMBER",
+  "billingId": null,
   "canMakeReservations": false,
   "createdAt": Any<String>,
   "createdBy": 0,
@@ -487,114 +487,6 @@ exports[`Db query member tests getMemberRolesByMemberId should return roles for 
 `;
 
 exports[`Db query member tests getMembers should return everything for admins 1`] = `
-[
-  {
-    "email": "admin@mik.fi",
-    "first": "MIK",
-    "last": "Admin",
-    "memberId": "k1mnimda",
-    "phoneNumber": null,
-    "roles": [
-      "ADMIN",
-    ],
-  },
-  {
-    "email": "pekka.hamalainen@example.com",
-    "first": "Pekka",
-    "last": "Hämäläinen",
-    "memberId": "Pekka1",
-    "phoneNumber": "0445678901",
-    "roles": [
-      "ADMIN",
-      "MEMBER",
-    ],
-  },
-  {
-    "email": "antti.heikkinen@example.com",
-    "first": "Antti",
-    "last": "Heikkinen",
-    "memberId": "Antti1",
-    "phoneNumber": "0467890123",
-    "roles": [
-      "INSTRUCTOR",
-      "MEMBER",
-    ],
-  },
-  {
-    "email": "juho.kolehmainen@iki.fi",
-    "first": "Liisa",
-    "last": "Korhonen",
-    "memberId": "Liisa1",
-    "phoneNumber": "0412345678",
-    "roles": [
-      "ADMIN",
-      "COMMITTEE",
-    ],
-  },
-  {
-    "email": "sanna.koskinen@example.com",
-    "first": "Sanna",
-    "last": "Koskinen",
-    "memberId": "Sanna1",
-    "phoneNumber": "0478901234",
-    "roles": [
-      "COMMITTEE",
-    ],
-  },
-  {
-    "email": "kaisa.laine@example.com",
-    "first": "Kaisa",
-    "last": "Laine",
-    "memberId": "Kaisa1",
-    "phoneNumber": "0456789012",
-    "roles": [
-      "ADMIN",
-    ],
-  },
-  {
-    "email": "anna.makinen@example.com",
-    "first": "Anna",
-    "last": "Mäkinen",
-    "memberId": "Anna1",
-    "phoneNumber": "0434567890",
-    "roles": [
-      "COMMITTEE",
-    ],
-  },
-  {
-    "email": "niko.ikonen@mik.fi",
-    "first": "John",
-    "last": "McDoe",
-    "memberId": "John1",
-    "phoneNumber": "0401234567",
-    "roles": [
-      "ADMIN",
-    ],
-  },
-  {
-    "email": "examinerfe@mik.com",
-    "first": "Exe",
-    "last": "McExaminerface",
-    "memberId": "Examiner1",
-    "phoneNumber": "3584400012345",
-    "roles": [
-      "EXAMINER",
-    ],
-  },
-  {
-    "email": "jukka.nieminen@example.com",
-    "first": "Jukka",
-    "last": "Nieminen",
-    "memberId": "Jukka1",
-    "phoneNumber": "0423456789",
-    "roles": [
-      "INSTRUCTOR",
-    ],
-  },
-]
-`;
-
-exports[`Db query member tests getMembers should return everything for admins 2`] = `
 {
   "createdAt": Any<String>,
   "createdBy": "k1mnimda",
@@ -691,6 +583,79 @@ exports[`Db query member tests getMembers should return only approved members fo
     "roles": [
       "INSTRUCTOR",
       "MEMBER",
+    ],
+  },
+]
+`;
+
+exports[`Db query member tests getMembers should return unapproved members for admins 1`] = `
+[
+  {
+    "email": "admin@mik.fi",
+    "first": "MIK",
+    "last": "Admin",
+    "memberId": "k1mnimda",
+    "phoneNumber": null,
+    "roles": [
+      "ADMIN",
+    ],
+  },
+  {
+    "email": "kaisa.laine@example.com",
+    "first": "Kaisa",
+    "last": "Laine",
+    "memberId": "Kaisa1",
+    "phoneNumber": "0456789012",
+    "roles": [
+      "ADMIN",
+    ],
+  },
+  {
+    "email": "anna.makinen@example.com",
+    "first": "Anna",
+    "last": "Mäkinen",
+    "memberId": "Anna1",
+    "phoneNumber": "0434567890",
+    "roles": [
+      "COMMITTEE",
+    ],
+  },
+  {
+    "email": "niko.ikonen@mik.fi",
+    "first": "John",
+    "last": "McDoe",
+    "memberId": "John1",
+    "phoneNumber": "0401234567",
+    "roles": [
+      "ADMIN",
+    ],
+  },
+  {
+    "email": "nurmikko@gmail.com",
+    "first": "Marja",
+    "last": "Salminen",
+    "memberId": "Marja1",
+    "phoneNumber": "0490123456",
+    "roles": [],
+  },
+  {
+    "email": "juha.seppala@example.com",
+    "first": "Juha",
+    "last": "Seppälä",
+    "memberId": "Juha1",
+    "phoneNumber": "0489012345",
+    "roles": [
+      "MEMBER",
+    ],
+  },
+  {
+    "email": "simplbks@mik.fi",
+    "first": "SimpleBooks",
+    "last": "User",
+    "memberId": "simplbks",
+    "phoneNumber": null,
+    "roles": [
+      "SERVICE",
     ],
   },
 ]

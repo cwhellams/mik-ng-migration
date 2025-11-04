@@ -19,6 +19,10 @@ const transporter = nodemailer.createTransport({
   },
 })
 
+if (process.env.DISABLE_EMAIL_SENDING) {
+  console.log(`Email sending is disabled: ${process.env.DISABLE_EMAIL_SENDING}`)
+}
+
 export const sendEmail = (to: string, subject: string, html: string, text: string): void => {
   const disableEmailSending = process.env.DISABLE_EMAIL_SENDING
     ? // disabled completely or not whitelisted

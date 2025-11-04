@@ -25,7 +25,6 @@ export const BillableMember = ({
   const { me } = useMe()
 
   const filters: MemberListFilters = {
-    isMembershipApproved: true,
     role: 'MEMBER',
   }
 

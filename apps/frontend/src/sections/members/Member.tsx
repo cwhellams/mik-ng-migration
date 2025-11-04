@@ -75,7 +75,7 @@ const MemberProfile = () => {
   }
 
   const handleApprove = async () => {
-    const { error } = await approveMutation.trigger('POST', memberId)
+    const { error } = await approveMutation.trigger('POST', {})
     if (error) {
       return setProblem(error)
     }

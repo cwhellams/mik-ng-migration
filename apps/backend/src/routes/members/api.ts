@@ -13,6 +13,7 @@ import {
   MemberRoleSchema,
   type MemberApproval,
   MIKLang,
+  MemberListFiltersSchema,
 } from './models.ts'
 import {
   getMemberById,
@@ -63,14 +64,20 @@ router.post(
   async (req: Request<{ memberId: string }>, res: Response<MemberApproval>) => {
     const memberId = req.params.memberId
 
-    const approval = await setMembershipApproval(memberId, req.user!.memberId)
+    // skip integrations during migration
+    const createSimplbooks = req.headers['x-mik-migration'] !== 'true'
 
-    sendEmail(
-      approval.email,
-      membershipApprovedEmailSubject(approval.lang),
-      membershipApprovedEmailBodyHtml(approval.lang, { firstName: approval.firstName }),
-      membershipApprovedEmailPlainText(approval.lang, { firstName: approval.firstName }),
-    )
+    const approval = await setMembershipApproval(memberId, req.user!.memberId, createSimplbooks)
+    if (createSimplbooks) {
+      sendEmail(
+        approval.email,
+        membershipApprovedEmailSubject(approval.lang),
+        membershipApprovedEmailBodyHtml(approval.lang, { firstName: approval.firstName }),
+        membershipApprovedEmailPlainText(approval.lang, { firstName: approval.firstName }),
+      )
+    } else {
+      console.log(`Skipping sending approval email to ${approval.email} due to migration flag`)
+    }
 
     res.status(HttpStatusCode.Created).json(approval)
   },
@@ -81,7 +88,7 @@ router.get(
   // Only validated members can list other members
   validateUser(MIKPermissions.MEMBER, MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{}, {}, {}, MemberListFilters>, res: Response<MemberListResponse>) => {
-    const { name, role, isMembershipApproved } = req.query
+    const { role, name, showUnapproved, showRemoved } = MemberListFiltersSchema.parse(req.query)
 
     // either no roles filter, or one/multiple roles
     const roles = role ? (Array.isArray(role) ? role : [role]) : []
@@ -90,9 +97,9 @@ router.get(
       isMemberAdmin(req.user),
       name,
 
-      // map query of unapproved members to null
       roles,
-      isMembershipApproved,
+      showUnapproved,
+      showRemoved,
     )
 
     res.status(200).json({

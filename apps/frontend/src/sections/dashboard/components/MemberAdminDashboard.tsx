@@ -18,7 +18,7 @@ import useApi from '../../../hooks/useApi'
 
 export const MemberAdminDashboard = () => {
   const unapprovedUsersFilter: MemberListFilters = {
-    isMembershipApproved: false,
+    showUnapproved: true,
   }
 
   const { data, isLoading, error } = useApi<MemberListResponse, Member>({

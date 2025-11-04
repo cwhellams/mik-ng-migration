@@ -40,7 +40,7 @@ const Members = () => {
   const [filters, setFilters] = useState<MemberListFilters>({
     name: '',
     role: '',
-    isMembershipApproved: undefined,
+    showUnapproved: undefined,
   })
 
   const { data, isLoading, error, mutate, mutation } = useApi<
@@ -131,19 +131,24 @@ const Members = () => {
             <Select
               labelId='role-label'
               id='role'
-              value={filters.role ?? ''}
+              value={
+                filters.showUnapproved
+                  ? 'unapproved'
+                  : filters.showRemoved
+                    ? 'showRemoved'
+                    : (filters.role ?? '')
+              }
               label={t('member.memberType')}
               onChange={({ target }) => {
+                const showUnapproved = target.value == 'unapproved'
+                const showRemoved = target.value == 'showRemoved'
+
                 const filter: MemberListFilters = {
-                  ...(target.value == 'unapproved'
-                    ? { isMembershipApproved: false }
-                    : {
-                        isMembershipApproved:
-                          target.value == '' ? undefined : true,
-                      }),
-                  ...(target.value != 'unapproved'
+                  showUnapproved,
+                  showRemoved,
+                  ...(!showUnapproved && !showRemoved && target.value !== ''
                     ? { role: target.value }
-                    : { role: null }),
+                    : { role: undefined }),
                 }
 
                 setFilters(filter)
@@ -154,6 +159,11 @@ const Members = () => {
               {isMembersAdmin && (
                 <MenuItem value={'unapproved'}>
                   {t('roles.unApproved')}
+                </MenuItem>
+              )}
+              {isMembersAdmin && (
+                <MenuItem value={'showRemoved'}>
+                  {t('roles.showRemoved')}
                 </MenuItem>
               )}
               {roles.map((role) => (

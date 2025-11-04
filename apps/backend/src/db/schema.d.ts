@@ -34,7 +34,7 @@ export type JsonPrimitive = boolean | number | string | null
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive
 
-export type MemberType = 'EXTERNAL' | 'FLYING' | 'HONORARY' | 'JUNIOR' | 'NON-FLYING'
+export type MemberType = 'EXTERNAL' | 'FLYING' | 'HONORARY' | 'JUNIOR' | 'NON-FLYING' | 'REMOVED'
 
 export type MikLang = 'en' | 'fi' | 'sv'
 
@@ -362,6 +362,7 @@ export interface Secrets {
 }
 
 export interface StaticAirfields {
+  closed: boolean | null
   ident: string
   iso_country: string | null
   name: string | null

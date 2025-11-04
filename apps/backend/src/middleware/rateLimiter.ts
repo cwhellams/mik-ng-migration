@@ -8,6 +8,11 @@ export const rateLimiterMiddleware: RequestHandler = (
   res: Response,
   next: NextFunction,
 ): void => {
+  if (req.headers['x-mik-migration']) {
+    // Allow migration requests to bypass rate limiting
+    return next()
+  }
+
   const unauthenticated = !req.headers.authorization
 
   // Unauthenticated users consume 3x more points,

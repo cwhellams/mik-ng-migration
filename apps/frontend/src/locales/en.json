@@ -98,7 +98,8 @@
       "non-flying": "Supporting Member",
       "junior": "Junior",
       "external": "External user",
-      "honorary": "Honorary"
+      "honorary": "Honorary",
+      "removed": "Removed"
     },
     "isTrainingProgramPilot": "Training Program Pilot",
     "membership": "Membership Details",
@@ -222,7 +223,8 @@
     "description": "Free-text Description (admin only)",
     "details": "Role Details",
     "all": "-- All --",
-    "unApproved": "-- Unapproved --"
+    "unApproved": "-- Unapproved --",
+    "showRemoved": "-- Removed --"
   },
   "permissions": {
     "member": "MIK member",
@@ -382,14 +384,16 @@
     "calculatedTotal": "Calculated total",
     "selectFlightTypeCrew": "Please select a flight type to continue with crew information",
     "flightTypes": {
-      "practice": "Practice Flight",
-      "cross_country": "Cross-Country Flight",
-      "aerobatics": "Aerobatics Flight",
-      "instruction": "Instruction Flight",
-      "profiniencyCheck": "Proficiency Check Flight",
-      "skillTest": "Skill Test Flight",
-      "ferry": "Ferry Flight",
-      "test": "Test flight"
+      "PRIVATE": "Private Flight",
+      "SCHOOL": "School Flight",
+      "DTO": "DTO Flight",
+      "SAR": "SAR Flight",
+      "XC": "Cross-Country Flight",
+      "CHECKFLIGHT": "Checkflight",
+      "FERRY": "Ferry",
+      "AEROBATICS": "Aerobatics",
+      "OTHER": "Other",
+      "TEST_FLIGHT": "Test Flight"
     },
     "status": {
       "title": "Billing Status",
