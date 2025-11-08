@@ -10,7 +10,7 @@ Setup db to migrate from:
     Import Jasentiedot.csv into Jasentiedot table.
 ```
 
-Run migration to empty db.
+Run migration to empty db locally.
 
 ```
     ../../scripts/minimal_database.sh
@@ -18,6 +18,21 @@ Run migration to empty db.
     # delete old user mappings
     delete from mik_ng;
 
+    pnpm dev login login_token_from_login_email
     pnpm dev all
+    pnpm dev flights
+```
 
+Run to test env
+
+```
+    pnpm test login login_token_from_login_email
+    pnpm test all
+```
+
+Run to production
+
+```
+    pnpm production login login_token_from_login_email
+    pnpm production all
 ```
