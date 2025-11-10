@@ -2,14 +2,10 @@ import 'dotenv/config'
 
 import {
   addAircraft,
-  addAircraftDocument,
   getAircraftByRegistration,
   getAllAircraft,
-  getDocuments,
   removeAircraft,
-  removeAircraftDocument,
   updateAircraft,
-  updateAircraftDocument,
 } from '../../src/db/aircraft-queries.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import { FuelType } from '../../src/routes/aircrafts/models.ts'
@@ -162,67 +158,5 @@ describe('Db add aircraft tests', () => {
           jwt,
         ),
     ).rejects.toThrow('aircraft_pkey')
-  })
-})
-
-describe('Db document tests', () => {
-  const expectSnapshottedDocument = async (documentId: string) => {
-    const result = await getDocuments('OH-STL', documentId)
-    expect(result[0]).toMatchSnapshot({
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    })
-  }
-
-  it('add document and update document', async () => {
-    const doc = await addAircraftDocument(
-      'OH-STL',
-      {
-        documentId: 'TST',
-        startDate: '2023-10-01',
-        endDate: '2023-10-01',
-        alertDaysBefore: 30,
-        hardLimit: 0,
-        softLimit: 7,
-      },
-      jwt,
-    )
-    await expectSnapshottedDocument('TST')
-
-    const updated = await updateAircraftDocument(
-      'OH-STL',
-      doc.documentId,
-      {
-        documentId: 'TST2',
-        startDate: '2023-10-02',
-        endDate: '2023-10-02',
-        alertDaysBefore: 15,
-        hardLimit: 1,
-        softLimit: 5,
-      },
-      jwt,
-    )
-    expect(updated).toEqual(true)
-    await expectSnapshottedDocument('TST2')
-
-    const deleted = await removeAircraftDocument('OH-STL', 'TST2')
-    expect(deleted).toEqual(true)
-  })
-
-  it('add document for unknown plane fails', async () => {
-    await expect(async () =>
-      addAircraftDocument(
-        'OH-UFO',
-        {
-          documentId: 'TST',
-          startDate: '2023-10-01',
-          endDate: '2023-10-01',
-          alertDaysBefore: 30,
-          hardLimit: 0,
-          softLimit: 7,
-        },
-        jwt,
-      ),
-    ).rejects.toThrow('aircraft_documents_registration_fkey')
   })
 })

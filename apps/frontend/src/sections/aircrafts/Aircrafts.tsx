@@ -6,12 +6,14 @@ import {
   CardContent,
   Alert,
   CardMedia,
+  Divider,
+  BottomNavigation,
+  BottomNavigationAction,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
 import {
   Aircraft,
   AircraftAlert,
-  AircraftDocument,
   AircraftListResponse,
   Severity,
 } from '@backend/routes/aircrafts/models'
@@ -20,23 +22,23 @@ import { EditButton } from '../../components/EditButton'
 import { FormTitle } from '../../components/FormTitle'
 import { RemoteContent } from '../../components/RemoteContent'
 import { FormField } from '../../components/FormField'
-
-import ProgressLine from './components/Progress'
+import { Icon } from '@iconify/react'
+import { AircraftDocumentSection } from '../../components/AircraftDocumentSection'
 import { useRoles } from '../../hooks/useRoles'
 import { useState } from 'react'
 import {
   AircraftEditMode,
   EditAircraftModal,
 } from './components/EditAircraftModal'
-import { Upsert } from '@backend/types/schema'
-import { EditDocumentModal } from './components/EditDocumentModal'
 import dayjs from 'dayjs'
 import MIKLogo from '../../assets/mik-logo-blue.png'
+import ProgressLine from './components/Progress'
 
 const Aircrafts = () => {
   const { data, isLoading, error } = useApi<AircraftListResponse, Aircraft>({
     url: 'v1/aircrafts',
   })
+
   const { isAircraftAdmin } = useRoles()
 
   const [editMode, setEditMode] = useState<AircraftEditMode | undefined>(
@@ -44,9 +46,15 @@ const Aircrafts = () => {
   )
   const [editData, setEditData] = useState<Aircraft | undefined>(undefined)
 
-  const [editDocument, setEditDocument] = useState<
-    Upsert<AircraftDocument> | undefined
-  >(undefined)
+  // State to track which tab is active for each aircraft card
+  const [activeTab, setActiveTab] = useState<Record<string, number>>({})
+
+  const handleTabChange = (registration: string, newValue: number) => {
+    setActiveTab((prev) => ({
+      ...prev,
+      [registration]: newValue,
+    }))
+  }
 
   const translateAlert = (alert: AircraftAlert): AircraftAlert => {
     return {
@@ -117,11 +125,17 @@ const Aircrafts = () => {
             const warnings = getMsg(aircraft, Severity.warning)
             const cautions = getMsg(aircraft, Severity.caution)
             const notes = getMsg(aircraft, Severity.note)
+            const currentTab = activeTab[aircraft.registration] || 0
 
             return (
               <Card
                 key={aircraft.registration}
-                sx={{ flex: 1, flexBasis: '40%' }}
+                sx={{
+                  flex: 1,
+                  flexBasis: '40%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
               >
                 <CardMedia
                   component='img'
@@ -132,8 +146,15 @@ const Aircrafts = () => {
                     ;(e.target as HTMLImageElement).src = MIKLogo
                   }}
                 />
-                <CardContent>
-                  <Stack spacing={2}>
+                <CardContent
+                  sx={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    pb: 0, // Remove bottom padding to accommodate bottom navigation
+                  }}
+                >
+                  <Stack spacing={2} sx={{ flex: 1 }}>
                     <Box>
                       <FormTitle title={aircraft.registration} sx={{ mb: 0 }} />
                       <Typography variant='body2' color='text.primary'>
@@ -176,126 +197,68 @@ const Aircrafts = () => {
                       )}
                     </Box>
 
-                    {warnings.map((warn, index) => {
-                      return (
-                        <Alert key={index} severity='error' sx={{ mb: 2 }}>
-                          {warn.description}
-                        </Alert>
-                      )
-                    })}
-
-                    {cautions.map((caution, index) => {
-                      return (
-                        <Alert key={index} severity='warning' sx={{ mb: 2 }}>
-                          {caution.description}
-                        </Alert>
-                      )
-                    })}
-                    <FormField
-                      label={t('aircraft.location')}
-                      sx={{ display: 'block' }}
-                    >
-                      {aircraft.location}
-                    </FormField>
-
-                    {notes.length > 0 && (
-                      <FormField
-                        label={t('aircraft.notes.title')}
-                        sx={{ display: 'block' }}
-                      >
-                        {notes.map((note) => {
+                    {/* Info Tab Content */}
+                    {currentTab === 0 && (
+                      <>
+                        {warnings.map((warn, index) => {
                           return (
-                            <span key={note.description}>
-                              {note.description}
-                              <br />
-                            </span>
+                            <Alert key={index} severity='error' sx={{ mb: 2 }}>
+                              {warn.description}
+                            </Alert>
                           )
                         })}
-                      </FormField>
-                    )}
 
-                    <Box sx={{ position: 'relative' }}>
-                      <Typography variant='subtitle1' color='text.primary'>
-                        {t('aircraft.documents', 'Documents')}
-                      </Typography>
-
-                      {isAircraftAdmin && (
-                        <EditButton
-                          title={t('aircraft.document.edit.new')}
-                          icon='mdi:plus'
-                          onClick={() => {
-                            setEditData(aircraft)
-                            setEditDocument({
-                              documentId: '',
-                              startDate: dayjs().format('YYYY-MM-DD'),
-                              endDate: '',
-                              alertDaysBefore: null,
-                              softLimit: null,
-                              hardLimit: null,
-                            })
-                          }}
-                          sx={{
-                            position: 'absolute',
-                            top: 0,
-                            right: 0,
-                          }}
-                        />
-                      )}
-
-                      {aircraft.documents.map((doc) => (
-                        <FormField
-                          key={doc.documentId}
-                          label={t(`aircraft.document.${doc.documentId}`)}
-                          width={200}
-                          sx={{
-                            position: 'relative',
-                            color: warnings.find((alert) =>
-                              alert.documentId?.includes(doc.documentId)
-                            )
-                              ? 'red'
-                              : cautions.find((alert) =>
-                                    alert.documentId?.includes(doc.documentId)
-                                  )
-                                ? 'orange'
-                                : 'black',
-                          }}
-                        >
-                          {doc.endDate}
-
-                          {isAircraftAdmin && (
-                            <EditButton
-                              title={t('aircraft.document.edit.details')}
-                              onClick={() => {
-                                setEditData(aircraft)
-                                setEditDocument(doc)
-                              }}
-                              sx={{
-                                position: 'absolute',
-                                top: 0,
-                                right: 0,
-                              }}
-                            />
-                          )}
-                        </FormField>
-                      ))}
-                    </Box>
-
-                    <Box>
-                      <Typography variant='subtitle1' color='text.primary'>
-                        {t('aircraft.totalTime', {
-                          ...aircraft.status,
-                          remainingFuelGallons: Math.round(
-                            (aircraft.status?.remainingFuelLitres ?? 0) / 3.785
-                          ),
-                          lastLanding: dayjs(
-                            aircraft.status?.lastLandingTimeUtc
-                          ).format('YYYY-MM-DD HH:mm'),
+                        {cautions.map((caution, index) => {
+                          return (
+                            <Alert
+                              key={index}
+                              severity='warning'
+                              sx={{ mb: 2 }}
+                            >
+                              {caution.description}
+                            </Alert>
+                          )
                         })}
-                      </Typography>
-                    </Box>
+                        <FormField
+                          label={t('aircraft.location')}
+                          sx={{ display: 'block' }}
+                        >
+                          {aircraft.location}
+                        </FormField>
 
-                    {aircraft.active && (
-                      <>
+                        {notes.length > 0 && (
+                          <FormField
+                            label={t('aircraft.notes.title')}
+                            sx={{ display: 'block' }}
+                          >
+                            {notes.map((note) => {
+                              return (
+                                <span key={note.description}>
+                                  {note.description}
+                                  <br />
+                                </span>
+                              )
+                            })}
+                          </FormField>
+                        )}
+
+                        <Divider sx={{ my: 3 }} />
+
+                        <Box>
+                          <Typography variant='subtitle1' color='text.primary'>
+                            {t('aircraft.totalTime', {
+                              ...aircraft.status,
+                              remainingFuelGallons: Math.round(
+                                (aircraft.status?.remainingFuelLitres ?? 0) /
+                                  3.785
+                              ),
+                              lastLanding: dayjs(
+                                aircraft.status?.lastLandingTimeUtc
+                              ).format('YYYY-MM-DD HH:mm'),
+                            })}
+                          </Typography>
+                        </Box>
+
                         <Typography>
                           {t('aircraft.maintenanceHours', {
                             ...aircraft.maintenance,
@@ -325,8 +288,43 @@ const Aircrafts = () => {
                         />
                       </>
                     )}
+
+                    {/* Documents Tab Content */}
+                    {currentTab === 1 && (
+                      <Box sx={{ flex: 1 }}>
+                        <AircraftDocumentSection
+                          aircraftRegistration={aircraft.registration}
+                          isAdmin={isAircraftAdmin}
+                        />
+                      </Box>
+                    )}
                   </Stack>
                 </CardContent>
+
+                {/* Bottom Navigation */}
+                <BottomNavigation
+                  value={currentTab}
+                  onChange={(_, newValue) =>
+                    handleTabChange(aircraft.registration, newValue)
+                  }
+                  sx={{
+                    borderTop: 1,
+                    borderColor: 'divider',
+                    '& .MuiBottomNavigationAction-root': {
+                      minWidth: 'auto',
+                      px: 1,
+                    },
+                  }}
+                >
+                  <BottomNavigationAction
+                    label={t('aircraft.tabs.info', 'Info')}
+                    icon={<Icon icon='mdi:information' />}
+                  />
+                  <BottomNavigationAction
+                    label={t('aircraft.tabs.documents', 'Documents')}
+                    icon={<Icon icon='mdi:file-document-multiple' />}
+                  />
+                </BottomNavigation>
               </Card>
             )
           })}
@@ -335,11 +333,6 @@ const Aircrafts = () => {
           mode={editMode}
           onClose={() => setEditMode(undefined)}
           aircraft={editData}
-        />
-        <EditDocumentModal
-          registration={editData?.registration}
-          document={editDocument}
-          onClose={() => setEditDocument(undefined)}
         />
       </RemoteContent>
     </Box>

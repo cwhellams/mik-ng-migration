@@ -7,7 +7,6 @@ import { router } from '../../../src/routes/aircrafts/api.ts'
 import {
   FuelType,
   type Aircraft,
-  type AircraftDocument,
   type AircraftListResponse,
 } from '../../../src/routes/aircrafts/models.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
@@ -245,76 +244,6 @@ describe('Add and update aircrafts', () => {
     })
 
     const removed = await remove(adminToken, res.registration)
-    expect(removed.status).toBe(204)
-  })
-})
-
-describe('Add and update aircraft documents', () => {
-  const doc: Upsert<AircraftDocument> = {
-    documentId: 'TST',
-    startDate: '2023-10-01',
-    endDate: '2023-10-01',
-    alertDaysBefore: 30,
-    hardLimit: 0,
-    softLimit: 7,
-  }
-
-  const post = async (token: string, payload: Upsert<AircraftDocument>) =>
-    request(app)
-      .post('/aircrafts/OH-STL/documents')
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload)
-
-  const patch = async (token: string, payload: Partial<AircraftDocument>) =>
-    request(app)
-      .patch(`/aircrafts/OH-STL/documents/${doc.documentId}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload)
-
-  const remove = async (token: string) =>
-    request(app)
-      .delete(`/aircrafts/OH-STL/documents/${doc.documentId}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send({})
-
-  it('should return 401 for invalid token', async () => {
-    const response = await post('NOUP', doc)
-
-    expect(response.status).toBe(401)
-  })
-
-  it('should return 403 as user without required roles', async () => {
-    const response = await post(userToken, doc)
-
-    expect(response.body).toEqual({
-      status: 403,
-      title: 'Forbidden',
-      detail: 'Protected Content',
-      instance: '/aircrafts/OH-STL/documents',
-      timestamp: expect.any(String),
-    })
-  })
-
-  it('Add and update documents', async () => {
-    const response = await post(adminToken, doc)
-
-    expect(response.status).toBe(200)
-
-    const res = response.body as Aircraft
-    expect(res).toMatchSnapshot({
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    })
-
-    const updated = await patch(adminToken, {
-      startDate: '2023-10-02',
-    })
-    expect(updated.body).toMatchSnapshot({
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-    })
-
-    const removed = await remove(adminToken)
     expect(removed.status).toBe(204)
   })
 })

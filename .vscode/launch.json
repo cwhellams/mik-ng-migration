@@ -4,6 +4,7 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "Vite + Chrome",
       "type": "pwa-chrome",
@@ -49,9 +50,27 @@
       "program": "${workspaceFolder}/apps/backend/node_modules/jest/bin/jest.js",
       "args": [
         "--runInBand",
-        "--detectOpenHandles",
         "--no-cache",
         "test/routes/invoicing/api.test.ts"
+      ],
+      "env": {
+        "NODE_ENV": "test"
+      },
+      "runtimeArgs": ["--experimental-vm-modules"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Current Jest Test",
+      "cwd": "${workspaceFolder}/apps/backend",
+      "program": "${workspaceFolder}/apps/backend/node_modules/jest/bin/jest.js",
+      "args": [
+        "--runInBand",
+        "--no-cache",
+        "${relativeFile}"
       ],
       "env": {
         "NODE_ENV": "test"

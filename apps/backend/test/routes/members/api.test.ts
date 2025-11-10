@@ -387,6 +387,8 @@ describe('GET /members/roles', () => {
       'invoicing.admin',
       'access_codes.user',
       'access_codes.admin',
+      'document.user',
+      'document.admin',
     ])
     expect(roles.map(({ roleId, permissions }) => ({ roleId, permissions }))).toEqual([
       {
@@ -397,23 +399,36 @@ describe('GET /members/roles', () => {
           'aircraft.admin',
           'access_codes.admin',
           'invoicing.admin',
+          'document.admin',
         ],
         roleId: 'ADMIN',
       },
       { permissions: [], roleId: 'COMMITTEE' },
       { permissions: [], roleId: 'EXAMINER' },
       {
-        permissions: ['flightlog.user', 'booking.user', 'aircraft.user', 'access_codes.user'],
+        permissions: [
+          'flightlog.user',
+          'booking.user',
+          'aircraft.user',
+          'access_codes.user',
+          'document.user',
+        ],
         roleId: 'FLYING_MEMBER',
       },
       { permissions: [], roleId: 'INSTRUCTOR' },
-      { permissions: ['flightlog.user', 'aircraft.user'], roleId: 'MAINTENANCE' },
-      { permissions: ['member'], roleId: 'MEMBER' },
+      { permissions: ['flightlog.user', 'aircraft.user', 'document.user'], roleId: 'MAINTENANCE' },
+      { permissions: ['member', 'document.user'], roleId: 'MEMBER' },
       {
-        permissions: ['flightlog.admin', 'booking.admin', 'aircraft.admin', 'access_codes.admin'],
+        permissions: [
+          'flightlog.admin',
+          'booking.admin',
+          'aircraft.admin',
+          'access_codes.admin',
+          'document.admin',
+        ],
         roleId: 'PLANE_CAPTAIN',
       },
-      { permissions: ['member.admin', 'flightlog.admin'], roleId: 'SECRETARY' },
+      { permissions: ['member.admin', 'flightlog.admin', 'document.admin'], roleId: 'SECRETARY' },
       { permissions: null, roleId: 'SERVICE' },
     ])
   })
@@ -463,6 +478,7 @@ describe('GET /members/roles/id', () => {
         'aircraft.admin',
         'access_codes.admin',
         'invoicing.admin',
+        'document.admin',
       ],
       createdAt: expect.any(String),
       createdBy: 'k1mnimda',

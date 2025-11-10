@@ -274,7 +274,18 @@ const MassBalance: React.FC = () => {
     }
 
     loadSpecs()
-  }, [selectedAircraftId])
+  }, [
+    selectedAircraftId,
+    updateBaggage,
+    updateCopilot,
+    updateFlightTime,
+    updateFuel,
+    updateFuelFlow,
+    updatePilot,
+    updateRearLeft,
+    updateRearRight,
+    updateTaxiFuel,
+  ])
 
   // Update fuel weight when litres change
   useEffect(() => {
@@ -283,7 +294,7 @@ const MassBalance: React.FC = () => {
         fuel.litres * selectedAircraft.fuelConversion.litre2Kilo
       updateFuel({ ...fuel, weight: fuelWeight })
     }
-  }, [fuel.litres, selectedAircraft, updateFuel, fuel.arm])
+  }, [fuel.litres, selectedAircraft, updateFuel, fuel.arm, fuel])
 
   // Calculate aggregated front seats
   useEffect(() => {
@@ -444,6 +455,10 @@ const MassBalance: React.FC = () => {
     fuelFlow,
     flightTime,
     t,
+    pilot.weight,
+    copilot.weight,
+    rearLeft.weight,
+    rearRight.weight,
   ])
 
   const handleInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {

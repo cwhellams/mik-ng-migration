@@ -42,7 +42,7 @@ export const FlightLogQuery = ({ filters, setFilters, logbooks }: Props) => {
               : ''
           }
           label={t('flightLog.aircraft')}
-          onChange={({ target }) => 
+          onChange={({ target }) =>
             setFilters({ aircraftRegistration: target.value })
           }
         >

@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Db document tests add document and update document 1`] = `
+{
+  "aircraftRegistration": "OH-STL",
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "description": null,
+  "documentId": 1,
+  "documentType": "Insurance Certificate",
+  "documentUrl": "",
+  "fileName": "test.pdf",
+  "fileSize": null,
+  "isActive": true,
+  "mimeType": null,
+  "storageKey": null,
+  "title": "Test document",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+  "validFrom": "2023-10-01",
+  "validTo": "2023-10-01",
+}
+`;
+
+exports[`Db document tests add document and update document 2`] = `
+{
+  "aircraftRegistration": "OH-STL",
+  "createdAt": Any<String>,
+  "createdBy": "k1mnimda",
+  "description": null,
+  "documentId": 1,
+  "documentType": "ARC",
+  "documentUrl": "",
+  "fileName": "test.pdf",
+  "fileSize": null,
+  "isActive": true,
+  "mimeType": null,
+  "storageKey": null,
+  "title": "Test document 2",
+  "updatedAt": Any<String>,
+  "updatedBy": "k1mnimda",
+  "validFrom": "2023-10-02",
+  "validTo": "2023-10-02",
+}
+`;

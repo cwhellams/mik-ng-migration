@@ -4,6 +4,7 @@
     "schedule": "Schedule",
     "aircrafts": "Aircraft",
     "members": "Members",
+    "documents": "Documents",
     "login": "Login",
     "logout": "Logout",
     "profile": "My profile",
@@ -123,23 +124,77 @@
     "location": "Location",
     "details": "Basic Details",
     "documents": "Documents",
+    "missingDocuments": "Missing Documents",
     "totalTime": "Last landing {{lastLanding}}, hours {{totalTime}}, {{remainingFuelLitres}} litres of fuel remaining ({{remainingFuelGallons}} USG).",
     "maintenanceHours": "Next {{nextMaintenanceType}} maintenance at hours {{nextMaintenanceTach}}, {{tachUntilNextMaintenance}} flight hour(s) remaining, {{usablePercentageHours}}h usable until ferry flight. ",
     "maintenanceDays": "Maintenance in {{daysUntilNextMaintenance}} day(s).",
+    "tabs": {
+      "info": "Info",
+      "documents": "Documents"
+    },
     "document": {
       "arc": "ARC",
       "finavia": "Finavia",
       "insurance": "Insurance",
       "radio": "Radio",
-      "edit": {
-        "new": "Add New Document",
-        "details": "Edit Document",
-        "documentId": "Document",
-        "startDate": "Start Date",
-        "endDate": "Expiration Date",
-        "alertDaysBefore": "Alert Days Before",
-        "softLimit": "Soft Limit",
-        "hardLimit": "Hard Limit"
+      "noiseCertificate": "Noise Certificate",
+      "noDocuments": "No documents uploaded",
+      "noDocumentAvailable": "N/A",
+      "showExpired": "Show Expired",
+      "validity": "Validity",
+      "lastUpdated": "Updated",
+      "download": "Download",
+      "actions": "Actions",
+      "edit": "Edit",
+      "upload": {
+        "title": "Upload Aircraft Documents",
+        "addNew": "Add New Document",
+        "dropZone": {
+          "title": "Upload Documents",
+          "subtitle": "Drag & drop files here or click to browse"
+        },
+        "selectFiles": "Select Files",
+        "selectedFiles": "Selected Files ({{count}}/{{max}})",
+        "metadataRequired": "Metadata Required",
+        "start": "Upload Files",
+        "progress": "Upload Progress",
+        "status": {
+          "pending": "Pending",
+          "uploading": "Uploading {{progress}}%",
+          "completed": "Completed",
+          "error": "Error"
+        },
+        "metadata": {
+          "title": "Document Title",
+          "fileName": "File: {{fileName}}",
+          "documentType": "Document Type",
+          "documentTitle": "Title",
+          "description": "Description",
+          "validFrom": "Valid From",
+          "validTo": "Valid To",
+          "dateRangeError": "Valid from date must be before valid to date"
+        },
+        "error": {
+          "fileSize": "File {{fileName}} exceeds maximum size of {{maxSize}}",
+          "fileType": "File {{fileName}} is not an allowed file type. Allowed: {{allowedTypes}}",
+          "dateOverlap": "{{documentType}} validity period overlaps with existing document '{{existingTitle}}' ({{existingPeriod}})"
+        }
+      },
+      "status": {
+        "valid": "Valid",
+        "expiring": "Expiring Soon",
+        "expired": "Expired",
+        "inactive": "Inactive",
+        "missing": "Missing"
+      },
+      "delete": {
+        "delete": "Delete",
+        "confirm": {
+          "title": "Delete Document",
+          "warning": "This action cannot be undone.",
+          "message": "Are you sure you want to delete this document?",
+          "action": "Delete"
+        }
       }
     },
     "alerts": {
@@ -200,6 +255,79 @@
       "caution": "Caution",
       "warning": "Warning"
     }
+  },
+  "documents": {
+    "title": "Document Archive",
+    "description": "Access non-aircraft related documents including meeting minutes, financial statements, audit reports and other administrative documents.",
+    "add": "Add Document",
+    "search": {
+      "placeholder": "Search documents..."
+    },
+    "category": {
+      "label": "Category",
+      "all": "All Categories",
+      "financial": "Financial",
+      "audit": "Audit",
+      "minutes": "Minutes",
+      "policy": "Policy",
+      "safety": "Safety",
+      "news": "News",
+      "airfields": "Airfields",
+      "other": "Other"
+    },
+    "table": {
+      "title": "Title",
+      "category": "Category",
+      "published": "Published",
+      "description": "Description",
+      "tags": "Tags",
+      "actions": "Actions"
+    },
+    "action": {
+      "open": "Open Document",
+      "edit": "Edit Document",
+      "delete": "Delete Document",
+      "archive": "Archive Document",
+      "unarchive": "Unarchive Document"
+    },
+    "archive": {
+      "show": "Show archived documents",
+      "hide": "Hide archived documents",
+      "archived": "Archived"
+    },
+    "tags": {
+      "label": "Tags",
+      "placeholder": "Add tags (comma separated)...",
+      "search": "Search by tags..."
+    },
+    "upload": {
+      "title": "Upload Document",
+      "edit": "Edit Document",
+      "dragDrop": "Drag and drop files here, or click to select",
+      "fileFormat": "Supported formats: PDF, Word, Excel, PowerPoint, Text, Images (max 50MB)",
+      "uploading": "Uploading...",
+      "success": "Document uploaded successfully",
+      "error": "Upload failed"
+    },
+    "edit": {
+      "title": "Title",
+      "description": "Description",
+      "category": "Category",
+      "tags": "Tags",
+      "archived": "Archived",
+      "save": "Save Changes",
+      "cancel": "Cancel"
+    },
+    "delete": {
+      "confirm": "Are you sure you want to delete this document?",
+      "confirmTitle": "Delete Document",
+      "confirmText": "This action cannot be undone. The document will be permanently removed from the archive.",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    },
+    "noResults": "No documents found matching your criteria.",
+    "empty": "No documents available.",
+    "totalCount": "Showing {{count}} documents"
   },
   "error": {
     "pageNotFound": "Page not found",

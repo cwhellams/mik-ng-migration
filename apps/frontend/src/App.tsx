@@ -30,6 +30,7 @@ import { FlightInvoicing } from './sections/accounting/FlightInvoicing'
 import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
 import MassBalance from './sections/massBalance/MassBalance'
 import { AccessCodes } from './sections/accessCodes/AccessCodes'
+import Documents from './sections/documents/Documents'
 import 'dayjs/locale/en-gb'
 import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
 
@@ -76,6 +77,7 @@ function App() {
             <Route index path='/billing' element={<Billing />} />
             <Route index path='/members' element={<Members />} />
             <Route path='/members/:memberId' element={<Member />} />
+            <Route path='/documents' element={<Documents />} />
             /** Flight Log Routes */
             <Route path='/flight-logs' element={<FlightLogsList />} />
             <Route path='/flight-logs/logbooks' element={<LogbooksList />} />

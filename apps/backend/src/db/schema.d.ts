@@ -11,6 +11,21 @@ export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'TRAININ
 
 export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
 
+export type FlightAircraftDocumentType =
+  | 'ARC'
+  | 'Certificate of Airworthiness'
+  | 'Checklist'
+  | 'Finavia Season card'
+  | 'Insurance Certificate'
+  | 'Maintenance Manual'
+  | 'Noise Certificate'
+  | 'Other'
+  | 'POH / AFM'
+  | 'Radio Licence'
+  | 'Registration'
+  | 'Transponder Mode S certificate'
+  | 'Weight Report'
+
 export type FlightLogStatus = 'INVOICED' | 'NEW' | 'PAID' | 'VALIDATED'
 
 export type Generated<T> =
@@ -110,18 +125,24 @@ export interface FlightAircraft {
   year_of_manufacture: number
 }
 
-export interface FlightAircraftDocuments {
-  alert_days_before: number | null
+export interface FlightAircraftDocumentsFiles {
+  aircraft_registration: string
   created_at: Generated<Timestamp>
   created_by: string
-  document_id: string
-  end_date: string
-  hard_limit: number | null
-  registration: string
-  soft_limit: number | null
-  start_date: string
+  description: string | null
+  document_id: Generated<number>
+  document_type: FlightAircraftDocumentType
+  document_url: string
+  file_name: string
+  file_size: number | null
+  is_active: Generated<boolean>
+  mime_type: string | null
+  storage_key: string | null
+  title: string
   updated_at: Generated<Timestamp>
   updated_by: string
+  valid_from: string | null
+  valid_to: string | null
 }
 
 export interface FlightAircraftJourneyLogBook {
@@ -264,6 +285,38 @@ export interface FlywaySchemaHistory {
   version: string | null
 }
 
+export interface MemberDocuments {
+  category: string
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: string | null
+  document_id: Generated<number>
+  document_url: string | null
+  /**
+   * Original filename of uploaded file
+   */
+  file_name: string | null
+  /**
+   * File size in bytes
+   */
+  file_size: number | null
+  is_archived: Generated<boolean>
+  is_public: Generated<boolean>
+  /**
+   * MIME type of uploaded file
+   */
+  mime_type: string | null
+  published_date: Generated<string>
+  /**
+   * Storage key for Digital Ocean Spaces
+   */
+  storage_key: string | null
+  tags: string[] | null
+  title: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
 export interface MemberMemberToRoles {
   created_at: Generated<Timestamp>
   created_by: string
@@ -373,7 +426,7 @@ export interface DB {
   'accts.items': AcctsItems
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks
   'flight.aircraft': FlightAircraft
-  'flight.aircraft_documents': FlightAircraftDocuments
+  'flight.aircraft_documents_files': FlightAircraftDocumentsFiles
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit
@@ -381,6 +434,7 @@ export interface DB {
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory
+  'member.documents': MemberDocuments
   'member.member_to_roles': MemberMemberToRoles
   'member.register': MemberRegister
   'member.register_audit': MemberRegisterAudit

@@ -16,7 +16,8 @@ VALUES (
         FALSE,
         to_jsonb(
             ARRAY [
-            'member.admin', 'flightlog.admin', 'booking.admin', 'aircraft.admin', 'access_codes.admin', 'invoicing.admin'
+            'member.admin', 'flightlog.admin', 'booking.admin', 'aircraft.admin', 'access_codes.admin', 'invoicing.admin','document.admin'
+
         ]
         ),
         'k1mnimda',
@@ -38,7 +39,9 @@ VALUES (
         'Member',
         'Jäsen',
         TRUE,
-        to_jsonb(ARRAY ['member']),
+        to_jsonb(
+            ARRAY ['member', 'document.user']
+        ),
         'k1mnimda',
         'k1mnimda'
     ),
@@ -49,7 +52,7 @@ VALUES (
         'Lento-oikeus',
         FALSE,
         to_jsonb(
-            ARRAY ['flightlog.user', 'booking.user', 'aircraft.user', 'access_codes.user']
+            ARRAY ['flightlog.user', 'booking.user', 'aircraft.user', 'access_codes.user', 'document.user']
         ),
         'k1mnimda',
         'k1mnimda'
@@ -70,7 +73,9 @@ VALUES (
         'Secretary',
         'Sihteeri',
         TRUE,
-        to_jsonb(ARRAY ['member.admin', 'flightlog.admin']),
+        to_jsonb(
+            ARRAY ['member.admin', 'flightlog.admin', 'document.admin']
+        ),
         'k1mnimda',
         'k1mnimda'
     ),
@@ -81,7 +86,7 @@ VALUES (
         'Kalustovastaava',
         TRUE,
         to_jsonb(
-            ARRAY ['flightlog.admin', 'booking.admin', 'aircraft.admin', 'access_codes.admin']
+            ARRAY ['flightlog.admin', 'booking.admin', 'aircraft.admin', 'access_codes.admin', 'document.admin']
         ),
         'k1mnimda',
         'k1mnimda'
@@ -92,7 +97,9 @@ VALUES (
         'Maintenance',
         'Huolto',
         FALSE,
-        to_jsonb(ARRAY ['flightlog.user', 'aircraft.user']),
+        to_jsonb(
+            ARRAY ['flightlog.user', 'aircraft.user','document.user']
+        ),
         'k1mnimda',
         'k1mnimda'
     ),

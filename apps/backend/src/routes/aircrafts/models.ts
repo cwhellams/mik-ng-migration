@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { AuditableSchema, BooleanSchema } from '../../types/schema.ts'
+import { AircraftDocumentSchema } from '../aircraft-documents/models.ts'
 
 export const AircraftMaintenanceRecordSchema = z.object({
   maintenanceCycle: z.number().int(),
@@ -37,19 +38,8 @@ export const AircraftNoteSchema = z.object({
 
 export type AircraftNote = z.infer<typeof AircraftNoteSchema>
 
-export const AircraftDocumentSchema = AuditableSchema.extend({
-  documentId: z.string(),
-  startDate: z.string().date(),
-  endDate: z.string().date(),
-  alertDaysBefore: z.number().int().nullable(),
-  softLimit: z.number().int().nullable(),
-  hardLimit: z.number().int().nullable(),
-})
-
-export type AircraftDocument = z.infer<typeof AircraftDocumentSchema>
-
 export const AircraftAlertSchema = z.object({
-  documentId: z.string().optional(),
+  documentId: z.number().optional(),
   description: z.string(),
   untilExpiration: z.number().int(),
   hardLimit: z.number().int().nullable(),

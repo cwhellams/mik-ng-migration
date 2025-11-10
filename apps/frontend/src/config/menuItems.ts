@@ -66,4 +66,9 @@ export const menuItems: MenuItem[] = [
     requiredRoles: [MIKPermissions.INVOICING_ADMIN],
     adminModeOnly: true,
   },
+  {
+    label: 'Documents',
+    path: '/documents',
+    translationKey: 'header.documents',
+  },
 ]

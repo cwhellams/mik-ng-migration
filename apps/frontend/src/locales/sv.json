@@ -4,6 +4,7 @@
     "schedule": "Schema",
     "aircrafts": "Flygplan",
     "members": "Medlemmar",
+    "documents": "Dokument",
     "login": "Logga in",
     "logout": "Logga ut",
     "profile": "Min profil",
@@ -123,23 +124,76 @@
     "location": "Plats",
     "details": "Grundläggande detaljer",
     "documents": "Dokument",
+    "missingDocuments": "Saknade dokument",
     "totalTime": "Senaste landning {{lastLanding}}, timmar {{totalTime}}, {{remainingFuelLitres}} liter bränsle kvar ({{remainingFuelGallons}} USG).",
     "maintenanceHours": "Nästa {{nextMaintenanceType}} underhåll vid {{nextMaintenanceTach}} timmar, {{tachUntilNextMaintenance}} flygtimme(r) kvar, {{usablePercentageHours}}h användbart till färjeflyg.",
     "maintenanceDays": "Underhåll om {{daysUntilNextMaintenance}} dag(ar).",
+    "tabs": {
+      "info": "Info",
+      "documents": "Dokument"
+    },
     "document": {
       "arc": "ARC",
       "finavia": "Finavia",
       "insurance": "Försäkring",
       "radio": "Radio",
-      "edit": {
-        "new": "Lägg till nytt dokument",
-        "details": "Redigera dokument",
-        "documentId": "Dokument",
-        "startDate": "Startdatum",
-        "endDate": "Utgångsdatum",
-        "alertDaysBefore": "Varningsdagar före",
-        "softLimit": "Mjuk gräns",
-        "hardLimit": "Hård gräns"
+      "noDocuments": "Inga dokument uppladdade",
+      "noDocumentAvailable": "Ej tillgänglig",
+      "showExpired": "Visa utgångna",
+      "validity": "Giltighet",
+      "lastUpdated": "Uppdaterad",
+      "download": "Ladda ner",
+      "actions": "Åtgärder",
+      "edit": "Redigera",
+      "upload": {
+        "title": "Ladda upp flygplansdokument",
+        "addNew": "Lägg till nytt dokument",
+        "dropZone": {
+          "title": "Ladda upp dokument",
+          "subtitle": "Dra och släpp filer här eller klicka för att bläddra"
+        },
+        "selectFiles": "Välj filer",
+        "selectedFiles": "Valda filer ({{count}}/{{max}})",
+        "metadataRequired": "Metadata krävs",
+        "start": "Ladda upp filer",
+        "progress": "Uppladdningsförlopp",
+        "status": {
+          "pending": "Väntar",
+          "uploading": "Laddar upp {{progress}}%",
+          "completed": "Klar",
+          "error": "Fel",
+          "missing": "Saknas"
+        },
+        "metadata": {
+          "title": "Dokumentinformation",
+          "fileName": "Fil: {{fileName}}",
+          "documentType": "Dokumenttyp",
+          "documentTitle": "Titel",
+          "description": "Beskrivning",
+          "validFrom": "Giltig från",
+          "validTo": "Giltig till",
+          "dateRangeError": "Från-datum måste vara före till-datum"
+        },
+        "error": {
+          "fileSize": "Fil {{fileName}} överskrider maximal storlek på {{maxSize}}",
+          "fileType": "Fil {{fileName}} är inte en tillåten filtyp. Tillåtna: {{allowedTypes}}",
+          "dateOverlap": "{{documentType}} giltighetsperiod överlappar med befintligt dokument '{{existingTitle}}' ({{existingPeriod}})"
+        }
+      },
+      "status": {
+        "valid": "Giltig",
+        "expiring": "Går ut snart",
+        "expired": "Utgången",
+        "inactive": "Inaktiv"
+      },
+      "delete": {
+        "delete": "Ta bort",
+        "confirm": {
+          "title": "Ta bort dokument",
+          "warning": "Denna åtgärd kan inte ångras.",
+          "message": "Är du säker på att du vill ta bort detta dokument?",
+          "action": "Ta bort"
+        }
       }
     },
     "alerts": {
@@ -200,6 +254,79 @@
       "caution": "Försiktighet",
       "warning": "Varning"
     }
+  },
+  "documents": {
+    "title": "Dokumentarkiv",
+    "description": "Åtkomst till icke-flygplansrelaterade dokument inklusive mötesprotokoll, bokslut, revisionsrapporter och andra administrativa dokument.",
+    "add": "Lägg till dokument",
+    "search": {
+      "placeholder": "Sök dokument..."
+    },
+    "category": {
+      "label": "Kategori",
+      "all": "Alla kategorier",
+      "financial": "Ekonomi",
+      "audit": "Revision",
+      "minutes": "Protokoll",
+      "policy": "Policy",
+      "safety": "Säkerhet",
+      "news": "Nyheter",
+      "airfields": "Flygplatser",
+      "other": "Övrigt"
+    },
+    "table": {
+      "title": "Titel",
+      "category": "Kategori",
+      "published": "Publicerad",
+      "description": "Beskrivning",
+      "tags": "Taggar",
+      "actions": "Åtgärder"
+    },
+    "action": {
+      "open": "Öppna dokument",
+      "edit": "Redigera dokument",
+      "delete": "Ta bort dokument",
+      "archive": "Arkivera dokument",
+      "unarchive": "Ta bort från arkiv"
+    },
+    "archive": {
+      "show": "Visa arkiverade dokument",
+      "hide": "Dölj arkiverade dokument",
+      "archived": "Arkiverad"
+    },
+    "tags": {
+      "label": "Taggar",
+      "placeholder": "Lägg till taggar (kommaseparerade)...",
+      "search": "Sök med taggar..."
+    },
+    "upload": {
+      "title": "Ladda upp dokument",
+      "edit": "Redigera dokument",
+      "dragDrop": "Dra och släpp filer här, eller klicka för att välja",
+      "fileFormat": "Stödda format: PDF, Word, Excel, PowerPoint, Text, Bilder (max 50MB)",
+      "uploading": "Laddar upp...",
+      "success": "Dokument uppladdat framgångsrikt",
+      "error": "Uppladdning misslyckades"
+    },
+    "edit": {
+      "title": "Titel",
+      "description": "Beskrivning",
+      "category": "Kategori",
+      "tags": "Taggar",
+      "archived": "Arkiverad",
+      "save": "Spara ändringar",
+      "cancel": "Avbryt"
+    },
+    "delete": {
+      "confirm": "Är du säker på att du vill ta bort detta dokument?",
+      "confirmTitle": "Ta bort dokument",
+      "confirmText": "Denna åtgärd kan inte ångras. Dokumentet kommer att tas bort permanent från arkivet.",
+      "cancel": "Avbryt",
+      "delete": "Ta bort"
+    },
+    "noResults": "Inga dokument hittades som matchar dina kriterier.",
+    "empty": "Inga dokument tillgängliga.",
+    "totalCount": "Visar {{count}} dokument"
   },
   "error": {
     "pageNotFound": "Sidan hittades inte",

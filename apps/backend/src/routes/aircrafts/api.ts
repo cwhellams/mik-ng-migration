@@ -2,12 +2,9 @@ import dayjs from 'dayjs'
 import { Router, type Request, type Response } from 'express'
 
 import {
-  AircraftDocumentSchema,
   AircraftFiltersSchema,
   AircraftSchema,
   type Aircraft,
-  type AircraftAlert,
-  type AircraftDocument,
   type AircraftFilters,
   type AircraftListResponse,
   type AircraftStatus,
@@ -17,10 +14,6 @@ import {
   getAircraftByRegistration,
   updateAircraft,
   addAircraft,
-  getDocuments,
-  updateAircraftDocument,
-  addAircraftDocument,
-  removeAircraftDocument,
   removeAircraft,
 } from '../../db/aircraft-queries.ts'
 import { getFlightLogs, getFlightLogTotals } from '../../db/flight-log-queries.ts'
@@ -30,6 +23,7 @@ import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
 import type { FlightLogListEntry } from '../flight-log/models.ts'
+import { getAircraftRegistrations } from '../../db/aircraft-document-queries.ts'
 
 // all aircarft routes are protected by aircraft permissions
 export const router = Router()
@@ -52,6 +46,12 @@ router.get('/', async (req: Request<AircraftFilters>, res: Response<AircraftList
       })),
     ),
   })
+})
+
+// Get all aircraft registrations
+router.get('/registrations', async (req: Request, res: Response<string[]>) => {
+  const registrations = await getAircraftRegistrations()
+  res.status(200).json(registrations)
 })
 
 // Get aircraft by registration
@@ -113,95 +113,8 @@ router.delete(
   },
 )
 
-router.patch(
-  '/:registration/documents/:documentId',
-  validateUser(MIKPermissions.AIRCRAFT_ADMIN),
-  async (
-    req: Request<{ registration: string; documentId: string }>,
-    res: Response<AircraftDocument>,
-  ) => {
-    const patch = AircraftDocumentSchema.partial().parse(req.body)
-    const success = await updateAircraftDocument(
-      req.params.registration,
-      req.params.documentId,
-      patch,
-      req.user!,
-    )
-    if (!success) {
-      return problem({ status: 404, detail: 'Aircraft document not found' })
-    }
-
-    const document = await getDocuments(req.params.registration, req.params.documentId)
-    res.status(200).json(document?.[0])
-  },
-)
-
-router.post(
-  '/:registration/documents',
-  validateUser(MIKPermissions.AIRCRAFT_ADMIN),
-  async (req: Request<{ registration: string }>, res: Response<AircraftDocument>) => {
-    const document = UpsertSchema(AircraftDocumentSchema).parse(req.body)
-    const created = await addAircraftDocument(req.params.registration, document, req.user!)
-
-    res.status(200).json(created)
-  },
-)
-
-router.delete(
-  '/:registration/documents/:documentId',
-  validateUser(MIKPermissions.AIRCRAFT_ADMIN),
-  async (req: Request<{ registration: string; documentId: string }>, res: Response) => {
-    const removed = await removeAircraftDocument(req.params.registration, req.params.documentId)
-    if (!removed) {
-      return problem({ status: 404, detail: 'Aircraft document not found' })
-    }
-
-    res.status(204).end()
-  },
-)
-
 const daysUntilExpiration = (expirationDate: string): number =>
   dayjs(expirationDate).endOf('day').diff(dayjs().endOf('day'), 'days')
-
-const expiredDocuments = (aircraft: Aircraft) => {
-  const alerts: AircraftAlert[] = aircraft.documents
-    .map(doc => {
-      if (doc.endDate) {
-        return {
-          documentId: doc.documentId,
-          description: '',
-          untilExpiration: daysUntilExpiration(doc.endDate),
-          hardLimit: doc.hardLimit,
-          softLimit: doc.softLimit,
-        }
-      } else {
-        return undefined
-      }
-    })
-    .filter(d => d !== undefined)
-
-  const warnings = alerts.filter(doc => {
-    return doc.hardLimit !== null && doc.untilExpiration !== null
-      ? doc.untilExpiration < doc.hardLimit
-      : false
-  })
-
-  const cautions = alerts.filter(doc => {
-    if (warnings.some(w => w.documentId == doc.documentId)) {
-      // there is already a warning, no need for a caution message
-      return false
-    }
-
-    return doc.softLimit !== null && doc.untilExpiration !== null
-      ? doc.untilExpiration <= doc.softLimit
-      : false
-  })
-
-  return {
-    warnings,
-    cautions,
-  }
-}
 
 const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   const maintenance = aircraft.maintenance
@@ -226,45 +139,6 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
     ? Math.max(0, daysUntilExpiration(maintenance.nextMaintenanceDate))
     : undefined
 
-  const documents = expiredDocuments(aircraft)
-
-  const warnings: AircraftAlert[] = [
-    // add warning if no more usable hours left
-    tachUntilNextMaintenance <= 0 && usablePercentageHours <= 0
-      ? {
-          description: 'aircraft.alerts.noUsableHours',
-          untilExpiration: totalPercentageHours,
-          hardLimit: maintenance.totalPercentageHours,
-          softLimit: maintenance.usablePercentageHours,
-        }
-      : undefined,
-
-    // expired documents
-    ...documents.warnings.map(doc => ({
-      ...doc,
-      untilExpiration: Math.abs(doc.untilExpiration),
-      description: 'aircraft.alerts.expired',
-    })),
-  ].filter(w => w !== undefined)
-
-  const cautions: AircraftAlert[] = [
-    // add caution if only percentage hours left
-    tachUntilNextMaintenance <= 0 && usablePercentageHours > 0
-      ? {
-          description: 'aircraft.alerts.usableHours',
-          untilExpiration: usablePercentageHours,
-          hardLimit: maintenance.totalPercentageHours,
-          softLimit: maintenance.usablePercentageHours,
-        }
-      : undefined,
-
-    // documents expiring soon
-    ...documents.cautions.map(doc => ({
-      ...doc,
-      description: 'aircraft.alerts.expiring',
-    })),
-  ].filter(w => w !== undefined)
-
   return {
     totalTime: totals?.acTotalFlightTime,
 
@@ -278,7 +152,7 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
     usablePercentageHours,
     totalPercentageHours,
 
-    warnings,
-    cautions,
+    warnings: [],
+    cautions: [],
   }
 }

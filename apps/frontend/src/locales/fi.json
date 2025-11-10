@@ -4,6 +4,7 @@
     "schedule": "Aikataulu",
     "aircrafts": "Lentokoneet",
     "members": "Jäsenet",
+    "documents": "Asiakirjat",
     "login": "Kirjaudu",
     "logout": "Kirjaudu ulos",
     "profile": "Omat tiedot",
@@ -123,23 +124,77 @@
     "location": "Sijainti",
     "details": "Perustiedot",
     "documents": "Dokumentit",
+    "missingDocuments": "Puuttuvat asiakirjat",
     "totalTime": "Viimeinen laskeutuminen {{lastLanding}}, tunnit {{totalTime}}, polttoainetta jäljellä {{remainingFuelLitres}} litraa ({{remainingFuelGallons}} USG). ",
     "maintenanceHours": "Seuraava {{nextMaintenanceType}} huolto tunneilla {{nextMaintenanceTach}}, {{tachUntilNextMaintenance}} lentotuntia jäljellä, käytettävissä {{usablePercentageHours}}h ennen siirtolentoa. ",
     "maintenanceDays": "Huoltoon {{daysUntilNextMaintenance}} päivää.",
+    "tabs": {
+      "info": "Tiedot",
+      "documents": "Asiakirjat"
+    },
     "document": {
       "arc": "ARC",
       "finavia": "Finavia",
       "insurance": "Vakuutus",
       "radio": "Radio",
-      "edit": {
-        "new": "Lisää uusi dokumentti",
-        "details": "Muokkaa dokumenttia",
-        "documentId": "Documentti",
-        "startDate": "Alkupäivä",
-        "endDate": "Loppupäivä",
-        "alertDaysBefore": "Hälytys päivää ennen",
-        "softLimit": "Huomioraja",
-        "hardLimit": "Varoitusraja"
+      "noDocuments": "Ei ladattuja dokumentteja",
+      "noDocumentAvailable": "Ei saatavilla",
+      "showExpired": "Näytä vanhentuneet",
+      "validity": "Voimassaolo",
+      "lastUpdated": "Päivitetty",
+      "download": "Lataa",
+      "actions": "Toiminnot",
+      "edit": "Muokkaa",
+
+      "upload": {
+        "title": "Lataa lentokoneen dokumentteja",
+        "addNew": "Lisää uusi dokumentti",
+        "dropZone": {
+          "title": "Lataa dokumentteja",
+          "subtitle": "Vedä ja pudota tiedostoja tähän tai klikkaa selaillaksesi"
+        },
+        "selectFiles": "Valitse tiedostoja",
+        "selectedFiles": "Valitut tiedostot ({{count}}/{{max}})",
+        "metadataRequired": "Metatiedot vaaditaan",
+        "start": "Lataa tiedostoja",
+        "progress": "Latauksen edistyminen",
+        "status": {
+          "pending": "Odottaa",
+          "uploading": "Lataa {{progress}}%",
+          "completed": "Valmis",
+          "error": "Virhe",
+          "missing": "Puuttuu"
+        },
+        "metadata": {
+          "title": "Dokumentin tiedot",
+          "fileName": "Tiedosto: {{fileName}}",
+          "documentType": "Dokumentin tyyppi",
+          "documentTitle": "Otsikko",
+          "description": "Kuvaus",
+          "validFrom": "Voimassa alkaen",
+          "validTo": "Voimassa saakka",
+          "dateRangeError": "Aloituspäivän tulee olla ennen lopetuspäivää"
+        },
+        "error": {
+          "fileSize": "Tiedosto {{fileName}} ylittää maksimikoon {{maxSize}}",
+          "fileType": "Tiedosto {{fileName}} ei ole sallittu tiedostotyyppi. Sallitut: {{allowedTypes}}",
+          "dateOverlap": "{{documentType}} voimassaoloaika menee päällekkäin olemassa olevan dokumentin '{{existingTitle}}' kanssa ({{existingPeriod}})"
+        }
+      },
+      "status": {
+        "valid": "Voimassa",
+        "expiring": "Vanhenee pian",
+        "expired": "Vanhentunut",
+        "inactive": "Ei aktiivinen"
+      },
+      "delete": {
+        "delete": "Poista",
+        "confirm": {
+          "title": "Poista dokumentti",
+          "warning": "Tätä toimintoa ei voi peruuttaa.",
+          "message": "Oletko varma, että haluat poistaa tämän dokumentin?",
+          "action": "Poista"
+        }
       }
     },
     "alerts": {
@@ -200,6 +255,79 @@
       "caution": "Varoitus",
       "warning": "Vaara"
     }
+  },
+  "documents": {
+    "title": "Asiakirja-arkisto",
+    "description": "Pääsy muihin kuin lentokoneisiin liittyviin asiakirjoihin, kuten kokouspöytäkirjoihin, tilinpäätöksiin, tilintarkastusraportteihin ja muihin hallinnollisiin asiakirjoihin.",
+    "add": "Lisää asiakirja",
+    "search": {
+      "placeholder": "Hae asiakirjoja..."
+    },
+    "category": {
+      "label": "Luokka",
+      "all": "Kaikki luokat",
+      "financial": "Talous",
+      "audit": "Tilintarkastus",
+      "minutes": "Pöytäkirjat",
+      "policy": "Käytännöt",
+      "safety": "Turvallisuus",
+      "news": "Uutiset",
+      "airfields": "Lentokentät",
+      "other": "Muu"
+    },
+    "table": {
+      "title": "Otsikko",
+      "category": "Luokka",
+      "published": "Julkaistu",
+      "description": "Kuvaus",
+      "tags": "Tunnisteet",
+      "actions": "Toiminnot"
+    },
+    "action": {
+      "open": "Avaa asiakirja",
+      "edit": "Muokkaa asiakirjaa",
+      "delete": "Poista asiakirja",
+      "archive": "Arkistoi asiakirja",
+      "unarchive": "Poista arkistoinnista"
+    },
+    "archive": {
+      "show": "Näytä arkistoidut asiakirjat",
+      "hide": "Piilota arkistoidut asiakirjat",
+      "archived": "Arkistoitu"
+    },
+    "tags": {
+      "label": "Tunnisteet",
+      "placeholder": "Lisää tunnisteita (pilkulla erotettuina)...",
+      "search": "Hae tunnisteilla..."
+    },
+    "upload": {
+      "title": "Lataa asiakirja",
+      "edit": "Muokkaa asiakirjaa",
+      "dragDrop": "Vedä ja pudota tiedostoja tähän tai klikkaa valitaksesi",
+      "fileFormat": "Tuetut muodot: PDF, Word, Excel, PowerPoint, Teksti, Kuvat (max 50MB)",
+      "uploading": "Ladataan...",
+      "success": "Asiakirja ladattu onnistuneesti",
+      "error": "Lataus epäonnistui"
+    },
+    "edit": {
+      "title": "Otsikko",
+      "description": "Kuvaus",
+      "category": "Luokka",
+      "tags": "Tunnisteet",
+      "archived": "Arkistoitu",
+      "save": "Tallenna muutokset",
+      "cancel": "Peruuta"
+    },
+    "delete": {
+      "confirm": "Oletko varma, että haluat poistaa tämän asiakirjan?",
+      "confirmTitle": "Poista asiakirja",
+      "confirmText": "Tätä toimintoa ei voi peruuttaa. Asiakirja poistetaan pysyvästi arkistosta.",
+      "cancel": "Peruuta",
+      "delete": "Poista"
+    },
+    "noResults": "Ehtojasi vastaavia asiakirjoja ei löytynyt.",
+    "empty": "Ei asiakirjoja saatavilla.",
+    "totalCount": "Näytetään {{count}} asiakirjaa"
   },
   "error": {
     "pageNotFound": "Sivua ei löytynyt",

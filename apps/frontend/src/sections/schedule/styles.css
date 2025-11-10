@@ -1,25 +1,28 @@
 .rbc-time-gutter,
 .rbc-time-header-gutter {
-    width: 3rem;
+  width: 3rem;
 }
 
 .rbc-time-content {
-    border-top: 1px solid #0000006e;
+  border-top: 1px solid #0000006e;
 }
 
-.rbc-time-gutter, .rbc-time-header-gutter, .rbc-header, .rbc-day-slot {
-    border-right: 1px solid #0000006e;
+.rbc-time-gutter,
+.rbc-time-header-gutter,
+.rbc-header,
+.rbc-day-slot {
+  border-right: 1px solid #0000006e;
 }
 
 .rbc-allday-cell {
-    display: none;
+  display: none;
 }
 .rbc-time-view .rbc-header {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .reloading .rbc-time-view,
 .reloading .rbc-month-view {
-    opacity: 0.3;
-    color: grey;
+  opacity: 0.3;
+  color: grey;
 }

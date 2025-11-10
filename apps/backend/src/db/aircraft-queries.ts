@@ -2,15 +2,12 @@ import type { Selectable } from 'kysely'
 
 import * as connection from './connection.ts'
 import type { FlightAircraft } from './schema.js'
-import {
-  FuelType,
-  type Aircraft,
-  type AircraftDocument,
-  type AircraftNote,
-} from '../routes/aircrafts/models.ts'
+import { FuelType, type Aircraft, type AircraftNote } from '../routes/aircrafts/models.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { problem } from '../routes/response.ts'
 import type { Upsert } from '../types/schema.ts'
+import { getAllAircraftDocuments } from './aircraft-document-queries.ts'
+import type { AircraftDocument } from '../routes/aircraft-documents/models.ts'
 
 // Get all aircraft
 export const getAllAircraft = async (onlyActive: boolean): Promise<Aircraft[]> => {
@@ -21,7 +18,14 @@ export const getAllAircraft = async (onlyActive: boolean): Promise<Aircraft[]> =
     .orderBy('display_name')
     .execute()
 
-  return Promise.all(rows.map(async row => toAircraft(row, await getDocuments(row.registration))))
+  return Promise.all(
+    rows.map(async row => {
+      const docs = (await getAllAircraftDocuments({
+        aircraftRegistration: row.registration,
+      })) as unknown as AircraftDocument[]
+      return toAircraft(row, docs)
+    }),
+  )
 }
 
 // Get aircraft by registration
@@ -36,7 +40,12 @@ export const getAircraftByRegistration = async (
     .$if(onlyActive, qb => qb.where('active', '=', true))
     .executeTakeFirst()
   if (row) {
-    return toAircraft(row, await getDocuments(row.registration))
+    return toAircraft(
+      row,
+      (await getAllAircraftDocuments({
+        aircraftRegistration: row.registration,
+      })) as unknown as AircraftDocument[],
+    )
   }
 }
 
@@ -180,109 +189,6 @@ export async function removeAircraft(registration: string): Promise<boolean> {
   const result = await connection.db
     .deleteFrom('flight.aircraft')
     .where('registration', '=', registration)
-    .executeTakeFirstOrThrow()
-  return result.numDeletedRows == BigInt(1)
-}
-
-//
-// Document queries
-//
-
-export const getDocuments = async (
-  registration: string,
-  documentId?: string,
-): Promise<AircraftDocument[]> => {
-  const records = await connection.db
-    .selectFrom('flight.aircraft_documents')
-    .selectAll()
-    .where('registration', '=', registration)
-    .$if(documentId !== undefined, qb => qb.where('document_id', '=', documentId!))
-    .execute()
-  return records.map(record => ({
-    documentId: record.document_id,
-    startDate: record.start_date,
-    endDate: record.end_date,
-    alertDaysBefore: record.alert_days_before,
-    softLimit: record.soft_limit,
-    hardLimit: record.hard_limit,
-    createdAt: record.created_at?.toISOString(),
-    updatedAt: record.updated_at?.toISOString(),
-    createdBy: record.created_by,
-    updatedBy: record.updated_by,
-  }))
-}
-
-export async function addAircraftDocument(
-  registration: string,
-  document: Upsert<AircraftDocument>,
-  jwt: JWTUser,
-): Promise<AircraftDocument> {
-  const now = new Date()
-
-  const result = await connection.db
-    .insertInto('flight.aircraft_documents')
-    .values({
-      registration,
-      document_id: document.documentId,
-      start_date: document.startDate,
-      end_date: document.endDate,
-      alert_days_before: document.alertDaysBefore,
-      hard_limit: document.hardLimit,
-      soft_limit: document.softLimit,
-
-      created_at: now,
-      created_by: jwt.memberId,
-      updated_at: now,
-      updated_by: jwt.memberId,
-    })
-    .executeTakeFirst()
-  if (!result.numInsertedOrUpdatedRows) {
-    return problem({ status: 500, detail: 'Document insert failed' })
-  }
-  return {
-    ...document,
-    createdAt: now.toISOString(),
-    createdBy: jwt.memberId,
-    updatedAt: now.toISOString(),
-    updatedBy: jwt.memberId,
-  }
-}
-
-export async function updateAircraftDocument(
-  registration: string,
-  documentId: string,
-  patch: Partial<AircraftDocument>,
-  jwt: JWTUser,
-): Promise<boolean> {
-  const now = new Date()
-
-  const result = await connection.db
-    .updateTable('flight.aircraft_documents')
-    .set({
-      document_id: patch.documentId,
-      start_date: patch.startDate,
-      end_date: patch.endDate,
-      alert_days_before: patch.alertDaysBefore,
-      hard_limit: patch.hardLimit,
-      soft_limit: patch.softLimit,
-
-      updated_at: now,
-      updated_by: jwt.memberId,
-    })
-    .where('registration', '=', registration)
-    .where('document_id', '=', documentId)
-    .executeTakeFirstOrThrow()
-  return result.numUpdatedRows == BigInt(1)
-}
-
-export async function removeAircraftDocument(
-  registration: string,
-  documentId: string,
-): Promise<boolean> {
-  const result = await connection.db
-    .deleteFrom('flight.aircraft_documents')
-    .where('registration', '=', registration)
-    .where('document_id', '=', documentId)
     .executeTakeFirstOrThrow()
   return result.numDeletedRows == BigInt(1)
 }

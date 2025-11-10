@@ -17,6 +17,7 @@ export function useRoles(): {
   isInvoicingAdmin: boolean
   isAccessCodesAdmin: boolean
   isBookingAdmin: boolean
+  isDocumentAdmin: boolean
   roles: MemberRolesResponse['roles']
   permissions: MemberRolesResponse['permissions']
   sudoers: boolean
@@ -58,6 +59,7 @@ export function useRoles(): {
     isInvoicingAdmin: hasSudoAccess(MIKPermissions.INVOICING_ADMIN),
     isAccessCodesAdmin: hasSudoAccess(MIKPermissions.ACCESS_CODES_ADMIN),
     isBookingAdmin: hasSudoAccess(MIKPermissions.BOOKING_ADMIN),
+    isDocumentAdmin: hasSudoAccess(MIKPermissions.DOCUMENT_ADMIN),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
     // user is in sudoers file if they have any admin permission
