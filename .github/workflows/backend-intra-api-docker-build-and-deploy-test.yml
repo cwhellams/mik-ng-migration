@@ -5,10 +5,10 @@ on:
     branches: [test] # Adjust branch names as needed
 
     paths:
-      - 'apps/**' # Only trigger if changes are in apps/frontend
-      - '.github/workflows/**' # or in the workflows
-      - '.do/**' # or in digital ocean yaml
-      - 'sql/schema/**' # or in sql files
+      - "apps/**" # Only trigger if changes are in apps/frontend
+      - ".github/workflows/**" # or in the workflows
+      - ".do/**" # or in digital ocean yaml
+      - "sql/schema/**" # or in sql files
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -65,6 +65,10 @@ jobs:
           echo "SIMPLBOOKS_COMPANY_ID=${{ vars.SIMPLBOOKS_COMPANY_ID }}" >> $GITHUB_ENV
           echo "SIMPLBOOKS_BASE_URI=${{ vars.SIMPLBOOKS_BASE_URI }}" >> $GITHUB_ENV
           echo "SIMPLBOOKS_API_KEY=${{ secrets.SIMPLBOOKS_API_KEY }}" >> $GITHUB_ENV
+          echo "DIGITAL_OCEAN_SPACES_KEY=${{ secrets.DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "DIGITAL_OCEAN_SPACES_SECRET=${{ secrets.DIGITAL_OCEAN_SPACES_SECRET }}" >> $GITHUB_ENV
+          echo "DIGITAL_OCEAN_SPACES_REGION=fra1" >> $GITHUB_ENV
+          echo "DIGITAL_OCEAN_SPACES_ENDPOINT=https://fra1.digitaloceanspaces.com" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         if: env.backend_changed == 'true'

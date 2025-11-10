@@ -90,6 +90,18 @@ services:
       - key: SIMPLBOOKS_API_KEY
         value: ${SIMPLBOOKS_API_KEY}
         type: SECRET
+      - key: DIGITAL_OCEAN_SPACES_KEY
+        value: ${DIGITAL_OCEAN_SPACES_KEY}
+        type: SECRET
+      - key: DIGITAL_OCEAN_SPACES_SECRET
+        value: ${DIGITAL_OCEAN_SPACES_SECRET}
+        type: SECRET
+      - key: DIGITAL_OCEAN_SPACES_REGION
+        value: ${DIGITAL_OCEAN_SPACES_REGION}
+        type: GENERAL
+      - key: DIGITAL_OCEAN_SPACES_ENDPOINT
+        value: ${DIGITAL_OCEAN_SPACES_ENDPOINT}
+        type: GENERAL
   
         
 
