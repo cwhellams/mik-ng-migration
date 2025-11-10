@@ -200,7 +200,7 @@ const migrateMember = async (
   const roles = await getRoles(officialData, member.ID, res)
 
   await request<Partial<Member>>('PATCH', `v1/members/${res.memberId}`, {
-    billingId: getMeta('wpum_jasennumero'),
+    //billingId: getMeta('wpum_jasennumero'),
     roles: roles.map((roleId) => ({
       roleId,
     })),

@@ -295,9 +295,7 @@ const migrateFlight = async (
     invoiceNumber: flight.simplbooks_id ?? flight.lasku_id?.toString() ?? null,
     nonBillingReason: null,
     isBillableFlight: flight.kerhon_piikkiin == 1,
-    incidentOrObservations: flight.raportti_id
-      ? flight.raportti_id.toString()
-      : null,
+    incidentOrObservations: null,
     isDtoTrainingFlight: flight.lupakirjaoppilas == 1,
   }
 
@@ -388,6 +386,9 @@ const getOffBlockTime = (offblock: number, takeoff: number): number => {
   const diff = offblock - takeoff
 
   const valid = (x: number) => x > -hour && x < 0
+  if (valid(diff)) {
+    return offblock
+  }
 
   if (diff > 0) {
     // off block time is after takeoff
@@ -441,8 +442,11 @@ const getOnBlockTime = (onblock: number, landing: number): number => {
   const diff = onblock - landing
 
   const valid = (x: number) => x > 0 && x < 30 * minute
+  if (valid(diff)) {
+    return onblock
+  }
 
-  if (!valid(diff) && diff > 0) {
+  if (diff > 0) {
     // more than 30 minutes after landing
 
     // block times are offset by +1 year, (e.g. lento_id 505)

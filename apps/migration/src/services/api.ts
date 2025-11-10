@@ -3,15 +3,33 @@ import * as path from 'path'
 import * as os from 'os'
 import { readFile, writeFileSync } from 'fs'
 import { promisify } from 'util'
-const API_BASE = 'http://localhost:3000'
 
-const cookieFile = path.join(os.homedir(), '.mik-cookies')
-const tokenFile = path.join(os.homedir(), '.mik-token')
+const API_BASE = {
+  dev: 'http://localhost:3000/api/',
+  test: 'https://walrus-app-sa62h.ondigitalocean.app/api/',
+  production: 'TBD',
+}
+
+if (
+  process.env.NODE_ENV !== 'dev' &&
+  process.env.NODE_ENV !== 'test' &&
+  process.env.NODE_ENV !== 'production'
+) {
+  throw new Error(
+    `Invalid NODE_ENV ${process.env.NODE_ENV}, must be 'dev' or 'test' or 'production'`
+  )
+}
+
+const cookieFile = path.join(
+  os.homedir(),
+  `.mik-cookies-${process.env.NODE_ENV}`
+)
+const tokenFile = path.join(os.homedir(), `.mik-token-${process.env.NODE_ENV}`)
 
 const readFileAsync = promisify(readFile)
 
 const api = axios.create({
-  baseURL: `${API_BASE}/api/`,
+  baseURL: API_BASE[process.env.NODE_ENV],
   withCredentials: true,
 })
 
