@@ -9,7 +9,9 @@ const datePattern = /^\d{2}-\d{2}-\d{4}$/ // Matches dates in the format dd-mm-y
 
 export enum SimplbooksEventType {
   ADD_MEMBER = 'addMember',
-  MEMBERSHIP_FEE = 'membershipFee',
+  ANNUAL_MEMBERSHIP_FEE = 'membershipFee',
+  NEW_MEMBER_FEES = 'newMemberFees',
+  EQUIPMENT_INVOICE = 'equipmentInvoice',
   FLIGHT_INVOICE = 'flightInvoice',
   REIMBURSEMENT = 'reimbursement',
   SEND_INVOICE_PDF = 'sendInvoicePdf',
@@ -23,6 +25,7 @@ export enum SimplbooksStatus {
 }
 
 export enum MIKInvoiceType {
+  JOINING_FEE = 'JOINING_FEE',
   ANNUAL_FEE = 'ANNUAL_FEE',
   EQUIPMENT_FEE = 'EQUIPMENT_FEE',
   FLIGHT = 'FLIGHT',

@@ -3,14 +3,12 @@
 exports[`Invoice Template Tests creates an invoice template for a member 1`] = `
 {
   "client_id": 123456,
-  "language": "fi",
 }
 `;
 
 exports[`Invoice Template Tests creates an invoice template with zero late fee for a member 1`] = `
 {
   "client_id": 123456,
-  "language": "fi",
   "overdue_charge_percent": 0,
 }
 `;

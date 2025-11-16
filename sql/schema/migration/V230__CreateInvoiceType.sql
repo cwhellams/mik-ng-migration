@@ -1,6 +1,8 @@
 CREATE TYPE public.invoice_type AS ENUM (
 	'ANNUAL_FEE',
+	'JOINING_FEE',
 	'FLIGHT',
 	'INSTRUCTION',
 	'EQUIPMENT_FEE',
-	'MISC');
+	'MISC'
+);

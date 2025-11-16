@@ -64,7 +64,7 @@ router.get('/', async (req: Request, res: Response<InvoiceListResponse>) => {
     currency: row.currency !== null ? String(row.currency) : null,
     description: row.description,
     due_at: row.due_at ? new Date(row.due_at as any).toISOString() : '',
-    invoice_type: row.invoice_type,
+    invoice_type: row.invoice_type as any,
     is_paid: row.is_paid !== null ? Boolean(row.is_paid) : null,
     member_id: row.member_id,
     paid_at: row.paid_at ? new Date(row.paid_at as any).toISOString() : null,

@@ -4,10 +4,21 @@ exports[`Membership Fee Invoice Payload Tests creates an invoice template for a 
 {
   "Invoice": {
     "client_id": 123456,
-    "language": "fi",
     "overdue_charge_percent": 0,
   },
   "Tasks": [
+    {
+      "Projects": [
+        {
+          "code": "Varainhankinta",
+        },
+      ],
+      "Task": {
+        "amount": 1,
+        "article_id": 1,
+        "price_per_unit": 120,
+      },
+    },
     {
       "Projects": [
         {
@@ -28,10 +39,21 @@ exports[`Membership Fee Invoice Payload Tests creates an invoice template for a 
 {
   "Invoice": {
     "client_id": 123456,
-    "language": "fi",
     "overdue_charge_percent": 0,
   },
   "Tasks": [
+    {
+      "Projects": [
+        {
+          "code": "Varainhankinta",
+        },
+      ],
+      "Task": {
+        "amount": 1,
+        "article_id": 2,
+        "price_per_unit": 50,
+      },
+    },
     {
       "Projects": [
         {
@@ -52,10 +74,21 @@ exports[`Membership Fee Invoice Payload Tests creates an invoice template for a 
 {
   "Invoice": {
     "client_id": 123456,
-    "language": "fi",
     "overdue_charge_percent": 0,
   },
   "Tasks": [
+    {
+      "Projects": [
+        {
+          "code": "Varainhankinta",
+        },
+      ],
+      "Task": {
+        "amount": 1,
+        "article_id": 3,
+        "price_per_unit": 80,
+      },
+    },
     {
       "Projects": [
         {

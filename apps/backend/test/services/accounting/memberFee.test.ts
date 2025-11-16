@@ -6,7 +6,7 @@ jest.unstable_mockModule('../../../src/services/simplbooks/simplbooksApiClient.t
 
 const { getItemByCode } = await import('../../../src/services/simplbooks/simplbooksApiClient.ts')
 
-const { createMembershipFeeInvoicePayload } = await import(
+const { createNewMemberFeesInvoicePayload: createMembershipFeeInvoicePayload } = await import(
   '../../../src/services/accounting/membershipFee.ts'
 )
 

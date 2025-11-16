@@ -2,6 +2,7 @@ import { jest } from '@jest/globals'
 
 import { randomUUID } from 'crypto'
 import {
+  MIKInvoiceType,
   SimplbooksEventType,
   type AcctsOutboxSimplbooks,
 } from '../../../src/services/simplbooks/models.ts'
@@ -17,6 +18,7 @@ import {
   deleteCreatedInvoice,
   deleteSimplbooksOutbox,
   expectBillingIdSet,
+  expectInvoiceForJoiningFee,
   expectInvoiceForMemberFee,
   expectOutbox1Row,
   insertStuckRowToOutbox,
@@ -56,9 +58,17 @@ const obMsgAddMember: AcctsOutboxSimplbooks = {
 
 const obMsgMembershipFeeInvoice: AcctsOutboxSimplbooks = {
   created_at_utc: new Date(),
-  event_type: SimplbooksEventType.MEMBERSHIP_FEE,
+  event_type: SimplbooksEventType.ANNUAL_MEMBERSHIP_FEE,
   id: randomUUID(),
   payload: { ...flyingMember, billingId: '8766623' },
+  status: 'PENDING',
+}
+
+const obMsgNewMembershipFeeInvoice: AcctsOutboxSimplbooks = {
+  created_at_utc: new Date(),
+  event_type: SimplbooksEventType.NEW_MEMBER_FEES,
+  id: randomUUID(),
+  payload: { ...flyingMember, billingId: '8766624' },
   status: 'PENDING',
 }
 
@@ -80,17 +90,25 @@ describe('Simplbooks Outbox Handler tests', () => {
     await dispatchOutboxMsg(obMsgAddMember)
 
     await expectBillingIdSet(newMemberId)
-    await expectOutbox1Row(SimplbooksEventType.MEMBERSHIP_FEE)
+    await expectOutbox1Row(SimplbooksEventType.NEW_MEMBER_FEES)
 
     await revertBillingIdChanges(newMemberId, 'BILL004')
   })
 
-  it('dispatches outbox messages for add member', async () => {
+  it('dispatches outbox messages for annual member fee', async () => {
     await dispatchOutboxMsg(obMsgMembershipFeeInvoice)
 
     await expectInvoiceForMemberFee(newMemberId)
     await revertBillingIdChanges(newMemberId, 'BILL004')
-    await deleteCreatedInvoice()
+    await deleteCreatedInvoice(MIKInvoiceType.ANNUAL_FEE)
+  })
+
+  it('dispatches outbox messages for new member fees', async () => {
+    await dispatchOutboxMsg(obMsgNewMembershipFeeInvoice)
+
+    await expectInvoiceForJoiningFee(newMemberId)
+    await revertBillingIdChanges(newMemberId, 'BILL004')
+    await deleteCreatedInvoice(MIKInvoiceType.JOINING_FEE)
   })
 
   it('checks and clears stuck outbox messages ', async () => {

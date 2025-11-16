@@ -2,13 +2,17 @@ import type { AxiosResponse } from 'axios'
 
 const ZERO_DATE = '0000-00-00'
 
+// Counter for generating unique IDs
+let invoiceIdCounter = 3788
+let clientIdCounter = 123456
+
 export function mockSimplbooksPost(url: string, data?: any): Promise<AxiosResponse> {
   if (url === '/invoices/create') {
     return Promise.resolve({
       data: {
         status: 200,
         duration: 0.0531,
-        inserted_id: 3788,
+        inserted_id: ++invoiceIdCounter,
         response: 'New entry saved.',
       },
       status: 200,
@@ -22,7 +26,7 @@ export function mockSimplbooksPost(url: string, data?: any): Promise<AxiosRespon
       data: {
         status: 200,
         duration: 0.0531,
-        inserted_id: 123456,
+        inserted_id: ++clientIdCounter,
         response: 'New entry saved.',
       },
       status: 200,
@@ -82,6 +86,63 @@ export function mockSimplbooksGet(url: string, data?: any): Promise<AxiosRespons
               active: true,
               name: 'IHQ Paketti 2021',
               contents: '5 tunnin ennakkotuntipaketti koneelle OH-IHQ',
+              unit: 'kpl',
+            },
+          },
+          {
+            Article: {
+              id: 54,
+              code: 'JASEN',
+              ean: '',
+              amount: 1,
+              price_per_unit: 0,
+              sum_with_vat: false,
+              sales_vat_type_id: 0,
+              purchase_vat_type_id: 0,
+              markup_value: 85,
+              markup_type: 'fixed',
+              is_inventory: false,
+              active: true,
+              name: 'MIK Jäsenmaksu',
+              contents: '',
+              unit: 'kpl',
+            },
+          },
+          {
+            Article: {
+              id: 55,
+              code: 'LIITTYMINEN',
+              ean: '',
+              amount: 1,
+              price_per_unit: 0,
+              sum_with_vat: false,
+              sales_vat_type_id: 0,
+              purchase_vat_type_id: 0,
+              markup_value: 125,
+              markup_type: 'fixed',
+              is_inventory: false,
+              active: true,
+              name: 'MIK joining fee',
+              contents: '',
+              unit: 'kpl',
+            },
+          },
+          {
+            Article: {
+              id: 56,
+              code: 'OH-IHQ',
+              ean: '',
+              amount: 1,
+              price_per_unit: 0,
+              sum_with_vat: false,
+              sales_vat_type_id: 0,
+              purchase_vat_type_id: 0,
+              markup_value: 3.25,
+              markup_type: 'fixed',
+              is_inventory: false,
+              active: true,
+              name: 'OH-IHQ per min',
+              contents: '',
               unit: 'kpl',
             },
           },

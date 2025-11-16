@@ -16,7 +16,7 @@ const InvoiceDatesCell: React.FC<InvoiceDatesCellProps> = ({
   dateFormatter,
 }) => {
   const dueDate = new Date(dueAt)
-  const sentDate = new Date(sentAt)
+  const sentDate = sentAt ? new Date(sentAt) : new Date()
 
   return (
     <TableCell>

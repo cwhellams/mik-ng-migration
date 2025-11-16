@@ -90,6 +90,7 @@ describe('Invoice Simplbooks tests', () => {
     const simplbooksSpy = jest
       .spyOn(simplbooksApiClient, 'get')
       .mockImplementation(mockSimplbooksGet)
+
     const res = await request(app)
       .patch('/invoices/items/refresh')
       .set('Authorization', `Bearer ${adminToken}`)

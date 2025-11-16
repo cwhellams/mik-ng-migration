@@ -1,12 +1,8 @@
 import { z } from 'zod'
+import { MIKInvoiceType } from '../../services/simplbooks/models.ts'
 
-export const InvoiceTypeEnum = z.enum([
-  'ANNUAL_FEE',
-  'EQUIPMENT_FEE',
-  'FLIGHT',
-  'INSTRUCTION',
-  'MISC',
-])
+// Create a Zod enum from the TypeScript enum
+export const InvoiceTypeEnum = z.nativeEnum(MIKInvoiceType)
 
 export const InvoiceItemQuerySchema = z.object({
   startDate: z.string().date().optional(),

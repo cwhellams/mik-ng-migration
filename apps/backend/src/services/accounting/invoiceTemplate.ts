@@ -10,7 +10,6 @@ export const createInvoicePostPayload = (
   const client_id = parseInt(member.billingId, 10)
   const invoice: InvoicePostPayload = {
     ...(withZeroInterest && { overdue_charge_percent: 0 }),
-    language: member.lang,
     client_id: client_id,
   }
 

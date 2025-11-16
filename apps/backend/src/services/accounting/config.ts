@@ -12,6 +12,9 @@ export const ART_ENTRY_ERROR_CODE = 'VIRHEMERKINTA'
 export const ART_MEMBER_FEE_CODE = 'JASEN'
 export const ART_JUNIOR_MEMBER_FEE_CODE = 'NJASEN'
 export const ART_SUPPORTING_MEMBER_FEE_CODE = 'KJASEN'
+export const ART_JOINING_FEE = 'LIITTYMINEN'
+export const ART_JUNIOR_JOINING_FEE = 'NLIITTYMINEN'
+export const ART_SUPPORTING_MEMBER_JOINING_FEE = 'KLIITTYMINEN'
 export const ART_FOR_AIRCRAFT_CODE = (registration: string) => {
   return registration
 }

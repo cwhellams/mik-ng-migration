@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@jest/globals'
 import { InvoiceItemQuerySchema, InvoiceTypeEnum } from '../../../src/routes/invoicing/models.ts'
+import { MIKInvoiceType } from '../../../src/services/simplbooks/models.ts'
 
 describe('InvoiceItemQuerySchema', () => {
   it('should parse valid full input', () => {
@@ -7,7 +8,7 @@ describe('InvoiceItemQuerySchema', () => {
       startDate: '2025-06-01',
       endDate: '2025-06-30',
       status: 'paid',
-      type: InvoiceTypeEnum.Enum.FLIGHT.toString(),
+      type: MIKInvoiceType.FLIGHT.toString(),
       pastDue: 'true',
       id: 123,
     })

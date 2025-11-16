@@ -5,11 +5,11 @@ import { MIKInvoiceType, SimplbooksEventType } from '../../../src/services/simpl
 export const deleteSimplbooksOutbox = async () =>
   await db.deleteFrom('accts.outbox_simplbooks').execute()
 
-export const deleteCreatedInvoice = async () =>
+export const deleteCreatedInvoice = async (invoiceType: MIKInvoiceType) =>
   await db
     .deleteFrom('accts.invoice')
     .where('member_id', '=', 'Anna1')
-    .where('invoice_type', '=', MIKInvoiceType.ANNUAL_FEE)
+    .where('invoice_type', '=', invoiceType)
     .execute()
 
 export const deleteCreatedInvoiceItems = async () =>
@@ -39,7 +39,7 @@ export const expectBillingIdSet = async (memberId: string) => {
     .execute()
 
   expect(result.length).toEqual(1)
-  expect(result[0].billing_id).toEqual('123456')
+  expect(result[0].billing_id).toEqual('123457')
   expect(result[0].updated_by).toEqual('simplbks')
 }
 
@@ -53,6 +53,19 @@ export const expectInvoiceForMemberFee = async (memberId: string) => {
 
   expect(result.length).toEqual(1)
   expect(result[0].invoice_type).toEqual(MIKInvoiceType.ANNUAL_FEE)
+  expect(result[0].updated_by).toEqual('simplbks')
+}
+
+export const expectInvoiceForJoiningFee = async (memberId: string) => {
+  const result = await db
+    .selectFrom('accts.invoice')
+    .selectAll()
+    .where('member_id', '=', memberId)
+    .where('invoice_type', '=', MIKInvoiceType.JOINING_FEE)
+    .execute()
+
+  expect(result.length).toEqual(1)
+  expect(result[0].invoice_type).toEqual(MIKInvoiceType.JOINING_FEE)
   expect(result[0].updated_by).toEqual('simplbks')
 }
 

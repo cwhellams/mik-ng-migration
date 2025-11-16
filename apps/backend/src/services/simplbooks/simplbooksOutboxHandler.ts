@@ -8,10 +8,19 @@ import {
   SimplbooksStatus,
   type AcctsOutboxSimplbooks,
 } from './models.ts'
-import { createInvoice, createNewClient, getInvoice } from './simplbooksApiClient.ts'
-import { createMembershipFeeInvoicePayload } from '../accounting/membershipFee.ts'
+import {
+  createNewClient,
+  createSimplbooksInvoice,
+  getInvoice,
+  markInvoiceAsSent,
+} from './simplbooksApiClient.ts'
+import {
+  createAnnualMemberFeeInvoicePayload,
+  createNewMemberFeesInvoicePayload,
+} from '../accounting/membershipFee.ts'
 import type { Transaction } from 'kysely'
 import type { DB } from '../../db/schema.js'
+import { sendSimplbooksInvoiceEmail } from './simplBooksEmailer.ts'
 
 export const MIK_SIMPLBOOKS_MEMBER: string = 'simplbks'
 export const MIK_CURRENCY = 'EUR'
@@ -21,21 +30,85 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
     case SimplbooksEventType.ADD_MEMBER:
       await addMember(msg)
       break
-    case SimplbooksEventType.MEMBERSHIP_FEE:
-      await createMembershipFeeInvoice(msg)
+    case SimplbooksEventType.NEW_MEMBER_FEES:
+      await createNewMemberFeesInvoice(msg)
+      break
+    case SimplbooksEventType.ANNUAL_MEMBERSHIP_FEE:
+      await createAnnualMemberFeeInvoice(msg)
+      break
+    case SimplbooksEventType.SEND_INVOICE_PDF:
+      createSimplbooksInvoiceEmail(msg)
       break
     default:
       throw new Error(`Unsupported outbox event type: ${msg.event_type}`)
   }
 }
 
-async function createMembershipFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
+async function createNewMemberFeesInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   const member = MemberSchema.parse(outboxMsg.payload)
+  const feeInvoice = await createNewMemberFeesInvoicePayload(member)
+  await createInvoice(member.memberId, outboxMsg.id, MIKInvoiceType.JOINING_FEE, feeInvoice)
+}
 
-  const feeInvoice = await createMembershipFeeInvoicePayload(member)
+async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
+  const member = MemberSchema.parse(outboxMsg.payload)
+  const feeInvoice = await createAnnualMemberFeeInvoicePayload(member)
+  await createInvoice(member.memberId, outboxMsg.id, MIKInvoiceType.ANNUAL_FEE, feeInvoice)
+}
 
+async function createSimplbooksInvoiceEmail(outboxMsg: AcctsOutboxSimplbooks) {
+  const { memberId, invoiceId } = outboxMsg.payload as any
+  await createInvoiceEmail(memberId, invoiceId, outboxMsg.id)
+}
+
+async function createInvoiceEmail(memberId: string, invoiceId: number, outboxMsgId: string) {
+  // Send the email first - if this fails, we don't update the database
+  await sendSimplbooksInvoiceEmail(invoiceId, memberId)
+
+  // Email sent successfully, now update the database and mark invoice as sent in SimplBooks
+  try {
+    await db.transaction().execute(async txn => {
+      // Mark the outbox message as processed
+      await setOutboxStatus(txn, outboxMsgId, SimplbooksStatus.SYNCED)
+
+      // Update our local invoice record to mark it as sent
+      const result = await txn
+        .updateTable('accts.invoice')
+        .set({
+          sent_at: new Date().toISOString().split('T')[0], // 'YYYY-MM-DD' format
+          updated_at: new Date(),
+          updated_by: MIK_SIMPLBOOKS_MEMBER,
+        })
+        .where('id', '=', invoiceId.toString())
+        .where('member_id', '=', memberId)
+        .execute()
+
+      if (result.length !== 1 || result[0].numUpdatedRows !== BigInt(1)) {
+        throw new Error(
+          `Expected to update exactly 1 invoice, but updated ${result[0]?.numUpdatedRows ?? 0} rows for invoice ${invoiceId}`,
+        )
+      }
+
+      // Mark the invoice as sent in SimplBooks, if this fails the DB transaction will be rolled back
+      await markInvoiceAsSent(invoiceId)
+    })
+  } catch (error) {
+    logger.error(
+      `Failed to update database or mark invoice as sent in SimplBooks for invoice ${invoiceId}`,
+      error,
+    )
+    throw error
+  }
+}
+
+async function createInvoice(
+  memberId: string,
+  outboxMsgId: string,
+  invoiceType: MIKInvoiceType,
+  payload: any,
+) {
   // Create the invoice
-  const retval = await createInvoice(feeInvoice)
+  const retval = await createSimplbooksInvoice(payload)
 
   //Read back the created invoice - we need to do this in order to get e.g. total sum
   const createdInvoice = await getInvoice(retval.inserted_id)
@@ -47,9 +120,9 @@ async function createMembershipFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     txn
       .insertInto('accts.invoice')
       .values({
-        member_id: member.memberId,
+        member_id: memberId,
         id: invoiceData.id!,
-        invoice_type: MIKInvoiceType.ANNUAL_FEE,
+        invoice_type: invoiceType,
         description: invoiceData.additional_info,
         total_sum: invoiceData.total_sum,
         currency: MIK_CURRENCY,
@@ -64,12 +137,11 @@ async function createMembershipFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
 
     //Insert pdf dispatch row to outbox
     await insertOutboxItem(txn, SimplbooksEventType.SEND_INVOICE_PDF, {
-      memberId: member.memberId,
+      memberId: memberId,
       invoiceId: invoiceData.id!,
     })
-
     //Mark as processed
-    await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
+    await setOutboxStatus(txn, outboxMsgId, SimplbooksStatus.SYNCED)
   })
 }
 
@@ -95,9 +167,9 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
 
     // We add the create invoice action to the outbox, this will allow us to handle the situation
     // where the client id is created but invoice creation fails - now its async and decoupled
-    await insertOutboxItem(txn, SimplbooksEventType.MEMBERSHIP_FEE, {
+    await insertOutboxItem(txn, SimplbooksEventType.NEW_MEMBER_FEES, {
       ...member,
-      billing_id: clientId.toString(),
+      billingId: clientId.toString(),
     })
 
     await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)

@@ -35,7 +35,13 @@ export type Generated<T> =
 
 export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>
 
-export type InvoiceType = 'ANNUAL_FEE' | 'EQUIPMENT_FEE' | 'FLIGHT' | 'INSTRUCTION' | 'MISC'
+export type InvoiceType =
+  | 'ANNUAL_FEE'
+  | 'EQUIPMENT_FEE'
+  | 'FLIGHT'
+  | 'INSTRUCTION'
+  | 'JOINING_FEE'
+  | 'MISC'
 
 export type Json = JsonValue
 

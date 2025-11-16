@@ -84,7 +84,9 @@ export async function createNewClient(client: Member): Promise<number> {
     const simplbooksClient = mapMemberToClient(client)
     const response = await simplbooksApiClient.post(`/clients/create`, simplbooksClient)
     if (response.status !== 200) {
-      throw new Error(`Failed to create client: ${response.statusText}`)
+      throw new Error(
+        `Failed to create client ${client.email} in Simplbooks: ${response.statusText}`,
+      )
     }
     return response.data.inserted_id
   } catch (error) {
@@ -108,9 +110,21 @@ export async function getInvoice(id: number): Promise<InvoiceResponse> {
   try {
     const response = await simplbooksApiClient.get(`/invoices/get/${id}`)
     if (response.status !== 200) {
-      throw new Error(`Failed to get invoice: ${response.statusText}`)
+      throw new Error(`Failed to get invoice ${id}: ${response.statusText}`)
     }
     return response.data
+  } catch (error) {
+    handleApiError(error)
+    throw error
+  }
+}
+
+export async function markInvoiceAsSent(id: number) {
+  try {
+    const response = await simplbooksApiClient.post(`/invoices/sent/${id}`)
+    if (response.status !== 200) {
+      throw new Error(`Failed to set invoice ${id} as sent : ${response.statusText}`)
+    }
   } catch (error) {
     handleApiError(error)
     throw error
@@ -123,6 +137,12 @@ export async function getInvoicePdf(id: string): Promise<string> {
     if (response.status !== 200) {
       throw new Error(`Failed to get invoice: ${response.statusText}`)
     }
+    // SimplBooks may return the PDF in different formats
+    // If it's an object with a data property, extract it
+    if (typeof response.data === 'object' && response.data !== null) {
+      return response.data.data || response.data.pdf || response.data.content || ''
+    }
+    // Otherwise return the data directly (should be a base64 string)
     return response.data
   } catch (error) {
     handleApiError(error)
@@ -165,7 +185,9 @@ export async function searchInvoices(filter: InvoiceFilter): Promise<InvoiceList
   }
 }
 
-export async function createInvoice(invoice: InvoicePost): Promise<SimplBooksInsertResponse> {
+export async function createSimplbooksInvoice(
+  invoice: InvoicePost,
+): Promise<SimplBooksInsertResponse> {
   try {
     const response = await simplbooksApiClient.post(`/invoices/create`, invoice)
     if (response.status !== 200) {
@@ -178,9 +200,11 @@ export async function createInvoice(invoice: InvoicePost): Promise<SimplBooksIns
   }
 }
 
-export async function getItemByCode(code: string): Promise<ItemListArticle> {
-  const item = await getItems(code)
-  return item[0] ?? undefined
+export async function getItemByCode(code: string): Promise<ItemListArticle | undefined> {
+  const items = await getItems(code)
+
+  // Find exact match by code
+  return items.find(item => item.code === code)
 }
 
 export async function getItems(code?: string): Promise<ItemListArticle[]> {

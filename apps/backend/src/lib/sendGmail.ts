@@ -23,7 +23,21 @@ if (process.env.DISABLE_EMAIL_SENDING) {
   console.log(`Email sending is disabled: ${process.env.DISABLE_EMAIL_SENDING}`)
 }
 
-export const sendEmail = (to: string, subject: string, html: string, text: string): void => {
+export interface EmailAttachment {
+  filename: string
+  content?: string | Buffer // Content of the attachment
+  path?: string // File path or URL
+  contentType?: string // MIME type
+  encoding?: string // 'base64' | 'hex' | 'binary' etc.
+}
+
+export const sendEmail = (
+  to: string,
+  subject: string,
+  html: string,
+  text: string,
+  attachments?: EmailAttachment[],
+): void => {
   const disableEmailSending = process.env.DISABLE_EMAIL_SENDING
     ? // disabled completely or not whitelisted
       process.env.DISABLE_EMAIL_SENDING.toLocaleLowerCase() === 'true' ||
@@ -42,6 +56,7 @@ export const sendEmail = (to: string, subject: string, html: string, text: strin
     subject,
     html,
     text,
+    attachments, // Add attachments if provided
   }
 
   // Send email
@@ -50,7 +65,7 @@ export const sendEmail = (to: string, subject: string, html: string, text: strin
       logger.error(`Error occurred sending email to : ${to} with error ${error.message}`)
       throw error
     } else {
-      logger.info(`Login Email sent: to ${to} with response ${info.response}`)
+      logger.info(`Email sent: to ${to} with response ${info.response}`)
     }
   })
 }
