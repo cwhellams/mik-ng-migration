@@ -5,16 +5,16 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'apps/**'
-      - '.github/workflows/**'
-      - '.do/**' # or in digital ocean yaml
+      - "apps/**"
+      - ".github/workflows/**"
+      - ".do/**" # or in digital ocean yaml
   push:
     branches: [main]
     paths:
-      - 'apps/backend/**'
-      - '.github/workflows/**'
+      - "apps/backend/**"
+      - ".github/workflows/**"
 env: # Set environment variables for entire workflow
-  NODE_OPTIONS: '--max-old-space-size=8192' # Increase memory limit for Node.js
+  NODE_OPTIONS: "--max-old-space-size=8192" # Increase memory limit for Node.js
   POSTGRES_DB: mik_ng
   POSTGRES_PORT: 5432
   POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
@@ -44,7 +44,7 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ env.POSTGRES_DB }}
           POSTGRES_PORT: ${{ env.POSTGRES_PORT }}
-          POSTGRES_INITDB_ARGS: '--locale-provider=libc --locale=en_US.UTF-8'
+          POSTGRES_INITDB_ARGS: "--locale-provider=libc --locale=en_US.UTF-8"
 
     steps:
       # We must checkout code first as the GH workspace is clean / empty
@@ -78,8 +78,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'pnpm'
+          node-version: "25"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install

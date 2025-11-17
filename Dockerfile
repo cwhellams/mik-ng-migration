@@ -1,5 +1,5 @@
 # Use Node.js 23 as the base image
-FROM node:23-alpine AS builder
+FROM node:25.1.0-alpine AS builder
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -24,7 +24,7 @@ COPY . .
 #RUN pnpm run build || (echo "No build script found in package.json, using tsc directly" && npx tsc)
 
 # Create production image
-FROM node:23-alpine
+FROM node:25.1.0-alpine
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
