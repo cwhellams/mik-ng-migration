@@ -1,8 +1,8 @@
 # Use Node.js 23 as the base image
-FROM node:25.1.0-alpine AS builder
+FROM node:23-alpine AS builder
 
 # Install corepack and enable pnpm
-RUN npm install -g corepack && corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Set working directory in the container
 WORKDIR /usr/src/app
@@ -24,10 +24,10 @@ COPY . .
 #RUN pnpm run build || (echo "No build script found in package.json, using tsc directly" && npx tsc)
 
 # Create production image
-FROM node:25.1.0-alpine
+FROM node:23-alpine 
 
 # Install corepack and enable pnpm
-RUN npm install -g corepack && corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Create app directory and non-root user
 RUN mkdir -p /home/node/app && chown -R node:node /home/node/app
