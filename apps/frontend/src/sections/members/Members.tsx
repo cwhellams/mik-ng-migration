@@ -1,13 +1,5 @@
 import {
-  Typography,
   Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   InputAdornment,
   Stack,
@@ -24,6 +16,8 @@ import {
   Member,
   MemberListFilters,
   MemberListResponse,
+  MemberRole,
+  MIKLang,
 } from '@backend/routes/members/models'
 import { Icon } from '@iconify/react'
 import { useRoles } from '../../hooks/useRoles'
@@ -35,6 +29,8 @@ import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 import { RemoteContent } from '../../components/RemoteContent'
 import UserAvatar from './components/UserAvatar'
 import { formatFinnishPhoneNumber } from '../../utils/format'
+import { Title } from '../../components/Title'
+import { ResponsiveTable } from '../flightLog/components/ResponsiveTable'
 
 const Members = () => {
   const [filters, setFilters] = useState<MemberListFilters>({
@@ -63,30 +59,22 @@ const Members = () => {
   const { i18n } = useTranslation()
 
   return (
-    <Box sx={{ position: 'relative' }}>
-      <Typography variant='h2' gutterBottom>
-        {t('header.members')}
-      </Typography>
+    <Box>
+      <Title label={t('header.members')}>
+        {isMembersAdmin && (
+          <EditButton
+            title={t('member.edit.register')}
+            onClick={() => setEditMode('register')}
+            icon='mdi:plus'
+          />
+        )}
+      </Title>
 
-      {isMembersAdmin && (
-        <EditButton
-          title={t('member.edit.register')}
-          onClick={() => setEditMode('register')}
-          icon='mdi:plus'
-          sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-          }}
-        />
-      )}
-
-      <Grid
-        container
-        spacing={2}
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
         justifyContent='space-between'
-        alignItems='flex-end'
-        sx={{ mb: 3 }}
+        gap={2}
+        mb={3}
       >
         <TextField
           label='Search field'
@@ -96,7 +84,7 @@ const Members = () => {
             input: {
               endAdornment: (
                 <InputAdornment position='end'>
-                  <Icon icon='mdi:search' color='#646cff' />
+                  <Icon icon='mdi:search' color='#646cff' fontSize={20} />
                 </InputAdornment>
               ),
             },
@@ -107,28 +95,20 @@ const Members = () => {
           }}
         />
 
-        <Grid
-          size={5}
-          direction='column'
-          display='flex'
-          justifyContent={'flex-end'}
-        >
+        <Stack direction='row'>
           {isMembersAdmin && (
-            <Grid
-              alignItems='center'
-              display='flex'
-              sx={{ mr: 1, fontSize: 24 }}
-            >
-              <Link to='/members/roles'>
-                <Icon icon='mdi:gear' color='#646cff' />
+            <Box alignItems='center' display='flex' sx={{ mr: 1 }}>
+              <Link to='members/roles'>
+                <Icon icon='mdi:gear' color='#646cff' fontSize={24} />
               </Link>
-            </Grid>
+            </Box>
           )}
 
-          <FormControl sx={{ m: 1, minWidth: 150 }}>
+          <FormControl sx={{ minWidth: 150 }}>
             <InputLabel id='role-label'>{t('member.memberType')}</InputLabel>
 
             <Select
+              fullWidth
               labelId='role-label'
               id='role'
               value={
@@ -168,95 +148,61 @@ const Members = () => {
               )}
               {roles.map((role) => (
                 <MenuItem key={role.roleId} value={role.roleId}>
-                  {
-                    role.name?.[
-                      i18n.language === 'fi'
-                        ? 'fi'
-                        : i18n.language === 'sv'
-                          ? 'sv'
-                          : 'en'
-                    ]
-                  }
+                  {role.name[i18n.language as MIKLang]}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
-        </Grid>
-      </Grid>
+        </Stack>
+      </Stack>
 
-      <TableContainer component={Paper}>
-        <Table aria-label='simple table'>
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('member.avatar')}</TableCell>
-              <TableCell>{t('member.fullname')}</TableCell>
-              <TableCell>{t('member.phone')}</TableCell>
-              <TableCell align='right'>{t('member.roles')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <RemoteContent isLoading={isLoading} error={error} colSpan={3}>
-              {data?.members.map((row) => (
-                <TableRow
-                  key={row.memberId}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell>
-                    <UserAvatar
-                      email={row.email}
-                      size={40}
-                      firstName={row.first}
-                      lastName={row.last}
-                    />
-                  </TableCell>
-                  <TableCell component='th' scope='row'>
-                    {isMembersAdmin ? (
-                      <Link to={`/members/${row.memberId}`}>
-                        {row.first} {row.last}
-                      </Link>
-                    ) : (
-                      `${row.first} ${row.last}`
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {formatFinnishPhoneNumber(row.phoneNumber ?? '')}
-                  </TableCell>
-                  <TableCell align='right'>
-                    <Stack
-                      direction='row'
-                      spacing={1}
-                      display='inline-flex'
-                      sx={{
-                        flexWrap: 'wrap',
-                        justifyContent: 'flex-end',
-                      }}
-                    >
-                      {row.roles.map((role, index) => (
-                        <Chip
-                          key={index}
-                          sx={{ width: 'fit-content' }}
-                          size='small'
-                          variant='outlined'
-                          label={
-                            roles.find((r) => r.roleId === role)?.name[
-                              i18n.language === 'fi'
-                                ? 'fi'
-                                : i18n.language === 'sv'
-                                  ? 'sv'
-                                  : 'en'
-                            ] ?? role
-                          }
-                          color='primary'
-                        />
-                      ))}
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </RemoteContent>
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <RemoteContent isLoading={isLoading} error={error}>
+        <ResponsiveTable
+          header={
+            <>
+              <Grid size={1}></Grid>
+              <Grid container size='grow'>
+                <Grid size={3}>{t('member.fullname')}</Grid>
+                <Grid size={2.5}>{t('member.phone')}</Grid>
+                <Grid>{t('member.roles')}</Grid>
+              </Grid>
+            </>
+          }
+          notFoundMsg={t('member.noMembersFound')}
+          rows={data?.members}
+          row={(row) => (
+            <>
+              <Grid size={{ xs: 2, md: 1 }}>
+                <UserAvatar
+                  email={row.email}
+                  size={40}
+                  firstName={row.first}
+                  lastName={row.last}
+                />
+              </Grid>
+              <Grid container size='grow' spacing={0}>
+                <Grid size={{ xs: 12, md: 3 }}>
+                  {isMembersAdmin ? (
+                    <Link to={`members/${row.memberId}`}>
+                      {row.first} {row.last}
+                    </Link>
+                  ) : (
+                    `${row.first} ${row.last}`
+                  )}
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 2.5 }}>
+                  {formatFinnishPhoneNumber(row.phoneNumber ?? '')}
+                </Grid>
+
+                <Grid size={{ xs: 12, md: 'grow' }}>
+                  {renderRoles(row.roles, roles, i18n.language as MIKLang)}
+                </Grid>
+              </Grid>
+            </>
+          )}
+        />
+      </RemoteContent>
 
       <EditMemberModal
         mode={editMode}
@@ -264,6 +210,34 @@ const Members = () => {
         api={mutation}
       />
     </Box>
+  )
+}
+
+const renderRoles = (
+  memberRoles: string[],
+  roles: MemberRole[],
+  language: MIKLang
+) => {
+  return (
+    <Stack
+      direction='row'
+      spacing={1}
+      display='inline-flex'
+      sx={{
+        flexWrap: 'wrap',
+      }}
+    >
+      {memberRoles.map((role, index) => (
+        <Chip
+          key={index}
+          sx={{ width: 'fit-content' }}
+          size='small'
+          variant='outlined'
+          label={roles.find((r) => r.roleId === role)?.name[language] ?? role}
+          color='primary'
+        />
+      ))}
+    </Stack>
   )
 }
 

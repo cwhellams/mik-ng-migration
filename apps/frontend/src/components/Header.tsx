@@ -30,6 +30,7 @@ import AdminToggle from './AdminToggle'
 import { useRoles } from '../hooks/useRoles'
 import { MIKPermissions } from '@backend/routes/members/models'
 import { useThemeMode } from '../theme/ThemeContext'
+import { HeaderSubMenu } from './HeaderSubMenu'
 
 interface HeaderProps {
   window?: () => Window
@@ -102,6 +103,8 @@ const Header = (props: HeaderProps) => {
           alignItems: 'center',
           justifyContent: 'center',
         }}
+        component={Link}
+        to='/'
       >
         <img
           src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
@@ -131,7 +134,7 @@ const Header = (props: HeaderProps) => {
                 }}
               >
                 {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
-                <ListItemText primary={t(item.translationKey)} />
+                <ListItemText primary={t(item.label)} />
               </ListItemButton>
             </ListItem>
           ))}
@@ -141,7 +144,7 @@ const Header = (props: HeaderProps) => {
 
   return (
     <AppBar
-      position='fixed'
+      position='sticky'
       elevation={isScrolled ? 2 : 0}
       sx={{
         backgroundColor: (theme) =>
@@ -225,7 +228,7 @@ const Header = (props: HeaderProps) => {
                         location.pathname === item.path ? 'bold' : 'normal',
                     }}
                   >
-                    {t(item.translationKey)}
+                    {t(item.label)}
                   </Button>
                 ))}
             </Box>
@@ -257,6 +260,12 @@ const Header = (props: HeaderProps) => {
           </Box>
         </Container>
       </Toolbar>
+
+      {menuItems
+        .filter((item) => item.subItems && item.subItems.length > 0)
+        .map((item) => (
+          <HeaderSubMenu key={item.path} parent={item} />
+        ))}
 
       {/* Mobile Drawer */}
       <Drawer

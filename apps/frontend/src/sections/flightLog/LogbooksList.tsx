@@ -1,14 +1,4 @@
-import {
-  Typography,
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from '@mui/material'
+import { Box, Grid } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
@@ -21,6 +11,8 @@ import {
 } from '@backend/routes/ajlb/model'
 import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
+import { Title } from '../../components/Title'
+import { ResponsiveTable } from './components/ResponsiveTable'
 
 const Roles = () => {
   const { t } = useTranslation()
@@ -52,71 +44,70 @@ const Roles = () => {
 
   return (
     <Box>
-      <Typography variant='h2' gutterBottom>
-        {t('flightLog.logbooks.ajlb')}
-      </Typography>
+      <Title label={t('flightLog.logbooks.title')} />
 
-      <TableContainer component={Paper}>
-        <Table aria-label='simple table'>
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('flightLog.logbooks.seqNo')}</TableCell>
-              <TableCell>{t('flightLog.logbooks.validFrom')}</TableCell>
-              <TableCell>{t('flightLog.logbooks.validTo')}</TableCell>
-              <TableCell>{t('flightLog.logbooks.rowsPerPage')}</TableCell>
-              <TableCell width={100}>
-                {t('flightLog.logbooks.pagesInUse')}
-              </TableCell>
-              <TableCell>{t('flightLog.logbooks.flightTimeAtStart')}</TableCell>
-              <TableCell>
+      <RemoteContent isLoading={isLoading} error={error}>
+        <ResponsiveTable
+          notFoundMsg={t('error.noRows')}
+          header={
+            <>
+              <Grid size={2}>{t('flightLog.logbooks.seqNo')}</Grid>
+              <Grid size={1.5}>{t('flightLog.logbooks.validFrom')}</Grid>
+              <Grid size={1.5}>{t('flightLog.logbooks.validTo')}</Grid>
+              <Grid size={0.5}>{t('flightLog.logbooks.rowsPerPage')}</Grid>
+              <Grid size={1}>{t('flightLog.logbooks.pagesInUse')}</Grid>
+              <Grid size={1.5}>
+                {t('flightLog.logbooks.flightTimeAtStart')}
+              </Grid>
+              <Grid size={1.5}>
                 {t('flightLog.logbooks.verifiedTotalFlightTime')}
-              </TableCell>
-              <TableCell>{t('flightLog.logbooks.unverifiedFlights')}</TableCell>
-              <TableCell>
+              </Grid>
+              <Grid size={1.5}>
+                {t('flightLog.logbooks.unverifiedFlights')}
+              </Grid>
+              <Grid size={1}>
                 {t('flightLog.logbooks.unverifiedTotalFlightTime')}
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <RemoteContent isLoading={isLoading} error={error} colSpan={3}>
-              {logbooks?.books.map((ajlb) => (
-                <TableRow
-                  key={`${ajlb.aircraftRegistration}-${ajlb.seqNo}`}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+              </Grid>
+            </>
+          }
+          rows={logbooks?.books}
+          row={(ajlb) => (
+            <>
+              <Grid size={{ xs: 4, md: 2 }}>
+                {isFlightLogAdmin ? (
+                  <Link to={'#'} onClick={() => handleEditMode(ajlb)}>
+                    {ajlb.aircraftRegistration} / {ajlb.seqNo}
+                  </Link>
+                ) : (
+                  <>
+                    {ajlb.aircraftRegistration} / {ajlb.seqNo}
+                  </>
+                )}
+              </Grid>
+              <Grid size={{ xs: 4, md: 1.5 }}>{ajlb.startDate}</Grid>
+              <Grid size={{ xs: 4, md: 1.5 }}>{ajlb.endDate}</Grid>
+              <Grid size={{ xs: 4, md: 0.5 }}>{ajlb.rowsPerPage}</Grid>
+              <Grid size={{ xs: 4, md: 1 }}>
+                {ajlb.view?.lastPage} / {ajlb.noOfPages}
+              </Grid>
+              <Grid size={{ xs: 4, md: 1.5 }}>{ajlb.startFlightTime}</Grid>
+              <Grid size={{ xs: 4, md: 1.5 }}>
+                {ajlb.view?.verifiedTotalFlightTime}
+              </Grid>
+              <Grid size={{ xs: 4, md: 1.5 }}>
+                <Link
+                  to={`/flight-logs?aircraftRegistration=${ajlb.aircraftRegistration}&ajlbSeqNo=${ajlb.seqNo}&page=${ajlb.view?.newFlightsPage}`}
                 >
-                  <TableCell component='th' scope='row'>
-                    {isFlightLogAdmin ? (
-                      <Link to={'#'} onClick={() => handleEditMode(ajlb)}>
-                        {ajlb.aircraftRegistration} / {ajlb.seqNo}
-                      </Link>
-                    ) : (
-                      <>
-                        {ajlb.aircraftRegistration} / {ajlb.seqNo}
-                      </>
-                    )}
-                  </TableCell>
-                  <TableCell>{ajlb.startDate}</TableCell>
-                  <TableCell>{ajlb.endDate}</TableCell>
-                  <TableCell>{ajlb.rowsPerPage}</TableCell>
-                  <TableCell>
-                    {ajlb.view?.lastPage} / {ajlb.noOfPages}
-                  </TableCell>
-                  <TableCell>{ajlb.startFlightTime}</TableCell>
-                  <TableCell>{ajlb.view?.verifiedTotalFlightTime}</TableCell>
-                  <TableCell>
-                    <Link
-                      to={`/flight-logs?aircraftRegistration=${ajlb.aircraftRegistration}&ajlbSeqNo=${ajlb.seqNo}&page=${ajlb.view?.newFlightsPage}`}
-                    >
-                      {ajlb.view?.newFlightsCount} - {ajlb.view?.newFlightsTime}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{ajlb.view?.unverifiedTotalFlightTime}</TableCell>
-                </TableRow>
-              ))}
-            </RemoteContent>
-          </TableBody>
-        </Table>
-      </TableContainer>
+                  {ajlb.view?.newFlightsCount} - {ajlb.view?.newFlightsTime}
+                </Link>
+              </Grid>
+              <Grid size={{ xs: 4, md: 1 }}>
+                {ajlb.view?.unverifiedTotalFlightTime}
+              </Grid>
+            </>
+          )}
+        />
+      </RemoteContent>
       <AjlbEditor book={editMode} onClose={(newBook) => setEditMode(newBook)} />
     </Box>
   )

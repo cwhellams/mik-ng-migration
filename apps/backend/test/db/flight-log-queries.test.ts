@@ -303,7 +303,7 @@ describe('Db invoicable FlightLog tests', () => {
     const result = await getInvoicableFlights({
       aircraftRegistration: 'OH-STL',
       endDate: '2025-01-01',
-      flights: InvoicableFlights.KOE,
+      flights: InvoicableFlights.TEST_FLIGHT,
     })
     expect(result.rows).toEqual(1)
   })
@@ -312,7 +312,7 @@ describe('Db invoicable FlightLog tests', () => {
     const result = await getInvoicableFlights({
       aircraftRegistration: 'OH-STL',
       endDate: '2025-01-01',
-      flights: InvoicableFlights.SII,
+      flights: InvoicableFlights.FERRY,
     })
     expect(result.rows).toEqual(1)
   })

@@ -361,8 +361,8 @@ export const AirfieldListResponseSchema = z.object({
 export type AirfieldListResponse = z.infer<typeof AirfieldListResponseSchema>
 
 export enum InvoicableFlights {
-  SII = 'SII',
-  KOE = 'KOE',
+  FERRY = 'FERRY',
+  TEST_FLIGHT = 'TEST_FLIGHT',
   COMMENT = 'COMMENT',
   OTHER = 'OTHER',
 }

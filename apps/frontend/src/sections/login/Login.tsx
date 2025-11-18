@@ -22,11 +22,9 @@ const Login = () => {
   const { t, i18n } = useTranslation()
 
   // Initialize language based on current i18n language
-  const [selectedLanguage, setSelectedLanguage] = useState<MIKLang>(() => {
-    if (i18n.language.startsWith('fi')) return MIKLang.FI
-    if (i18n.language.startsWith('sv')) return MIKLang.SV
-    return MIKLang.EN
-  })
+  const [selectedLanguage, setSelectedLanguage] = useState<MIKLang>(
+    i18n.language as MIKLang
+  )
 
   const navigate = useNavigate()
   const location = useLocation()

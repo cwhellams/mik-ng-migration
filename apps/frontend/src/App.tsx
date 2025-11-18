@@ -24,8 +24,7 @@ import FlightLogsList from './sections/flightLog/FlightLogsList'
 import LogbooksList from './sections/flightLog/LogbooksList'
 import NewFlightLogEntry from './sections/flightLog/FlightLogEntry'
 import { useTranslation } from 'react-i18next'
-import Billing from './sections/billing/billing'
-import AccountingLayout from './sections/accounting/Accounting'
+import Billing from './sections/billing/Billing'
 import { FlightInvoicing } from './sections/accounting/FlightInvoicing'
 import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
 import MassBalance from './sections/massBalance/MassBalance'
@@ -72,12 +71,18 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path='/' element={<Dashboard />} />
             <Route path='/schedule' element={<Schedule />} />
-            <Route path='/aircrafts' element={<Aircrafts />} />
-            <Route index path='/members/roles' element={<Roles />} />
-            <Route index path='/billing' element={<Billing />} />
-            <Route index path='/members' element={<Members />} />
-            <Route path='/members/:memberId' element={<Member />} />
-            <Route path='/documents' element={<Documents />} />
+            <Route path='/fly'>
+              <Route index element={<Aircrafts />} />
+              <Route path='mass-balance' element={<MassBalance />} />
+              <Route path='access-codes' element={<AccessCodes />} />
+            </Route>
+            <Route path='/club'>
+              <Route index element={<Members />} />
+              <Route index path='members/roles' element={<Roles />} />
+              <Route path='members/:memberId' element={<Member />} />
+              <Route path='billing' element={<Billing />} />
+              <Route path='documents' element={<Documents />} />
+            </Route>
             /** Flight Log Routes */
             <Route path='/flight-logs' element={<FlightLogsList />} />
             <Route path='/flight-logs/logbooks' element={<LogbooksList />} />
@@ -85,10 +90,8 @@ function App() {
               path='/flight-logs/:flightId'
               element={<NewFlightLogEntry />}
             />
-            <Route path='/mass-balance' element={<MassBalance />} />
-            <Route path='/access-codes' element={<AccessCodes />} />
-            <Route path='/accounting' element={<AccountingLayout />}>
-              <Route path='dashboard' element={<InvoicingAdminDashboard />} />
+            <Route path='/accounting'>
+              <Route index element={<InvoicingAdminDashboard />} />
               <Route path='invoicing' element={<FlightInvoicing />} />
               <Route path='items' element={<InvoiceItemsPage />} />
             </Route>

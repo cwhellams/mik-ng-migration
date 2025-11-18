@@ -35,6 +35,11 @@ export const MinutesField = ({
               field.onChange(time ? time.hour() * 60 + time.minute() : null)
             }}
             label={t(`flightLog.${name}`)}
+            slotProps={{
+              textField: {
+                margin: 'normal',
+              },
+            }}
           />
           {error && (
             <FormHelperText>{error.message?.toString()}</FormHelperText>

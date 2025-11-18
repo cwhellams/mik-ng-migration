@@ -1,13 +1,6 @@
 import {
   Typography,
   Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   InputAdornment,
   Stack,
@@ -22,6 +15,7 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  Grid,
 } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -41,11 +35,13 @@ import type {
   Document,
   DownloadDocument,
 } from '@backend/routes/documents/models'
-import { MIKPermissions } from '@backend/routes/members/models'
+import { Title } from '../../components/Title'
+import { ResponsiveTable } from '../flightLog/components/ResponsiveTable'
 
 const Documents = () => {
   const { t } = useTranslation()
-  const { permissions } = useRoles()
+  const { isDocumentAdmin } = useRoles()
+
   // Use a local array for selected categories, but keep filters.category as a comma-separated string for API compatibility
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [filters, setFilters] = useState<DocumentFilters>({
@@ -63,8 +59,6 @@ const Documents = () => {
   const [deletingDocument, setDeletingDocument] = useState<Document | null>(
     null
   )
-
-  const isDocumentAdmin = permissions.includes(MIKPermissions.DOCUMENT_ADMIN)
 
   const { mutation: downloadMutation } = useApi<DownloadDocument>(
     {
@@ -188,23 +182,15 @@ const Documents = () => {
 
   return (
     <Box>
-      <Stack
-        direction='row'
-        justifyContent='space-between'
-        alignItems='center'
-        mb={3}
-      >
-        <Typography variant='h4' component='h1'>
-          {t('documents.title', 'Document Archive')}
-        </Typography>
+      <Title label={t('documents.title')}>
         {isDocumentAdmin && (
           <EditButton
-            title={t('documents.add', 'Add Document')}
+            title={t('documents.add')}
             icon='mdi:plus'
             onClick={() => setUploadModalOpen(true)}
           />
         )}
-      </Stack>
+      </Title>
 
       <Typography variant='body1' color='text.secondary' mb={4}>
         {t(
@@ -231,12 +217,14 @@ const Documents = () => {
             )}
             value={filters.search}
             onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <Icon icon='mdi:magnify' />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <Icon icon='mdi:magnify' />
+                  </InputAdornment>
+                ),
+              },
             }}
             sx={{ flexGrow: 2, minWidth: 220 }}
           />
@@ -245,12 +233,14 @@ const Documents = () => {
             placeholder={t('documents.tags.search', 'Search by tags...')}
             value={filters.tags}
             onChange={handleTagsChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <Icon icon='mdi:tag-multiple' />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <Icon icon='mdi:tag-multiple' />
+                  </InputAdornment>
+                ),
+              },
             }}
             sx={{ flexGrow: 1, minWidth: 180 }}
           />
@@ -261,10 +251,17 @@ const Documents = () => {
           direction='row'
           spacing={2}
           alignItems='center'
-          justifyContent='center'
+          justifyContent='space-between'
           width='100%'
         >
-          <Stack direction='row' spacing={1} alignItems='center'>
+          <Stack
+            direction='row'
+            spacing={1}
+            display='inline-flex'
+            sx={{
+              flexWrap: 'wrap',
+            }}
+          >
             {[
               'financial',
               'audit',
@@ -302,140 +299,116 @@ const Documents = () => {
       </Stack>
 
       <RemoteContent isLoading={isLoading} error={error}>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('documents.table.title', 'Title')}</TableCell>
-                <TableCell>
-                  {t('documents.table.category', 'Category')}
-                </TableCell>
-                <TableCell>{t('documents.table.tags', 'Tags')}</TableCell>
-                <TableCell>
-                  {t('documents.table.published', 'Published')}
-                </TableCell>
-                <TableCell>
-                  {t('documents.table.description', 'Description')}
-                </TableCell>
-                <TableCell align='center'>
-                  {t('documents.table.actions', 'Actions')}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data?.documents?.map((document) => (
-                <TableRow key={document.documentId} hover>
-                  <TableCell>
-                    <Stack direction='row' spacing={1} alignItems='center'>
-                      <Typography variant='body2' fontWeight='medium'>
-                        {document.title}
-                      </Typography>
-                      {document.isArchived && (
-                        <Chip
-                          label={t('documents.archive.archived', 'Archived')}
-                          color='default'
-                          size='small'
-                          variant='outlined'
-                        />
-                      )}
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
+        <ResponsiveTable
+          header={
+            <>
+              <Grid size={1.5}>{t('documents.table.title')}</Grid>
+              <Grid size={2}>{t('documents.table.category')}</Grid>
+              <Grid size={2}>{t('documents.table.tags')}</Grid>
+              <Grid size={2}>{t('documents.table.published')}</Grid>
+              <Grid size={3.3}>{t('documents.table.description')}</Grid>
+              <Grid size={1}>{t('documents.table.actions')}</Grid>
+            </>
+          }
+          notFoundMsg={
+            filters.search || filters.category || filters.tags
+              ? t(
+                  'documents.noResults',
+                  'No documents found matching your criteria.'
+                )
+              : t('documents.empty', 'No documents available.')
+          }
+          rows={data?.documents}
+          row={(document) => (
+            <>
+              <Grid size={{ xs: 6, sm: 1.5 }}>
+                <Stack direction='row' spacing={1} alignItems='center'>
+                  <Typography variant='body2' fontWeight='medium'>
+                    {document.title}
+                  </Typography>
+                  {document.isArchived && (
                     <Chip
-                      label={getCategoryLabel(document.category)}
-                      color={getCategoryColor(document.category)}
+                      label={t('documents.archive.archived', 'Archived')}
+                      color='default'
                       size='small'
+                      variant='outlined'
                     />
-                  </TableCell>
-                  <TableCell>
-                    <Stack
-                      direction='row'
-                      spacing={0.5}
-                      flexWrap='wrap'
-                      gap={0.5}
-                    >
-                      {document.tags?.map((tag, index) => (
-                        <Chip
-                          key={index}
-                          label={tag}
-                          size='small'
-                          variant='outlined'
-                          color='primary'
-                        />
-                      ))}
-                      {(!document.tags || document.tags.length === 0) && (
-                        <Typography variant='body2' color='text.secondary'>
-                          -
-                        </Typography>
-                      )}
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
+                  )}
+                </Stack>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 2 }}>
+                <Chip
+                  label={getCategoryLabel(document.category)}
+                  color={getCategoryColor(document.category)}
+                  size='small'
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 2 }}>
+                <Stack direction='row' spacing={0.5} flexWrap='wrap' gap={0.5}>
+                  {document.tags?.map((tag, index) => (
+                    <Chip
+                      key={index}
+                      label={tag}
+                      size='small'
+                      variant='outlined'
+                      color='primary'
+                    />
+                  ))}
+                  {(!document.tags || document.tags.length === 0) && (
                     <Typography variant='body2' color='text.secondary'>
-                      {dayjs(document.publishedDate).format('DD.MM.YYYY')}
+                      -
                     </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant='body2' color='text.secondary'>
-                      {document.description || '-'}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align='center'>
-                    <Stack direction='row' spacing={1} justifyContent='center'>
+                  )}
+                </Stack>
+              </Grid>
+
+              <Grid size={{ xs: 6, sm: 2 }}>
+                <Typography variant='body2' color='text.secondary'>
+                  {dayjs(document.publishedDate).format('DD.MM.YYYY')}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 3.3 }}>
+                <Typography variant='body2' color='text.secondary'>
+                  {document.description || '-'}
+                </Typography>
+              </Grid>
+              <Grid textAlign='center'>
+                <Stack direction='row' spacing={1} justifyContent='center'>
+                  <IconButton
+                    size='small'
+                    component={MuiLink}
+                    onClick={() => handleDownloadDocument(document)}
+                    //target='_blank'
+                    rel='noopener noreferrer'
+                    title={t('documents.action.open', 'Open Document')}
+                  >
+                    <Icon icon='mdi:open-in-new' />
+                  </IconButton>
+
+                  {isDocumentAdmin && (
+                    <>
                       <IconButton
                         size='small'
-                        component={MuiLink}
-                        onClick={() => handleDownloadDocument(document)}
-                        //target='_blank'
-                        rel='noopener noreferrer'
-                        title={t('documents.action.open', 'Open Document')}
+                        onClick={() => handleEditDocument(document)}
+                        title={t('documents.action.edit', 'Edit Document')}
                       >
-                        <Icon icon='mdi:open-in-new' />
+                        <Icon icon='mdi:pencil' />
                       </IconButton>
-
-                      {isDocumentAdmin && (
-                        <>
-                          <IconButton
-                            size='small'
-                            onClick={() => handleEditDocument(document)}
-                            title={t('documents.action.edit', 'Edit Document')}
-                          >
-                            <Icon icon='mdi:pencil' />
-                          </IconButton>
-                          <IconButton
-                            size='small'
-                            onClick={() => handleDeleteDocument(document)}
-                            title={t(
-                              'documents.action.delete',
-                              'Delete Document'
-                            )}
-                            color='error'
-                          >
-                            <Icon icon='mdi:delete' />
-                          </IconButton>
-                        </>
-                      )}
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {data?.documents?.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} align='center' sx={{ py: 4 }}>
-                    <Typography variant='body2' color='text.secondary'>
-                      {filters.search || filters.category || filters.tags
-                        ? t(
-                            'documents.noResults',
-                            'No documents found matching your criteria.'
-                          )
-                        : t('documents.empty', 'No documents available.')}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                      <IconButton
+                        size='small'
+                        onClick={() => handleDeleteDocument(document)}
+                        title={t('documents.action.delete', 'Delete Document')}
+                        color='error'
+                      >
+                        <Icon icon='mdi:delete' />
+                      </IconButton>
+                    </>
+                  )}
+                </Stack>
+              </Grid>
+            </>
+          )}
+        />
 
         {data?.total !== undefined && data.total > 0 && (
           <Box mt={2}>

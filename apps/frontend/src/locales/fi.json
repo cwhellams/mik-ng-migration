@@ -2,6 +2,7 @@
   "header": {
     "dashboard": "Kojelauta",
     "schedule": "Aikataulu",
+    "fly": "Lennä",
     "aircrafts": "Lentokoneet",
     "members": "Jäsenet",
     "documents": "Asiakirjat",
@@ -12,11 +13,12 @@
     "toggleTheme": "Vaihda palettia",
     "toggleSudo": "Vaihda admin moodia",
     "flightLogs": "Lentopäiväkirja",
-    "massBalance": "Massa ja tasapaino",
+    "massBalance": "Kuormaus",
     "roles": "Käyttäjäroolit",
     "billing": "Laskutus",
-    "accounts": "Accounts",
-    "accessCodes": "Pääsykoodit"
+    "accounts": "Tilit",
+    "accessCodes": "Koodit",
+    "club": "Kerho"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -83,6 +85,7 @@
     "roles": "Roolit",
     "trainingProgram": "Koulutusohjelma",
     "noRolesAssigned": "Ei rooleja",
+    "noMembersFound": "Ei jäseniä löytynyt",
     "avatar": "Profiilikuva",
     "edit": {
       "register": "Lisää uusi käyttäjä",
@@ -335,7 +338,9 @@
     "backToHome": "Takaisin kotisivulle",
     "logout": "Uloskirjaudu",
     "loadingMemberData": "Virhe jäsentietojen lataamisessa",
-    "noAccess": "Ei oikeuksia tietoihin"
+    "noAccess": "Ei oikeuksia tietoihin",
+    "refreshRequired": "Uusi päivitys saatavilla, päivitä sivu",
+    "noRows": "Ei rivejä"
   },
   "roles": {
     "name": {
@@ -372,6 +377,7 @@
     "savingError": "Virhe tallennuksessa",
     "cancel": "Peruuta",
     "delete": "Poista",
+    "back": "Takaisin",
     "view": "Näytä",
     "dateFormat": "YYYY-MM-DD"
   },
@@ -406,7 +412,8 @@
       "instruction": "Lennonopetus",
       "equipmentFee": "Laitevuokra",
       "misc": "Muu"
-    }
+    },
+    "noInvoicesFound": "Laskuja ei löytynyt"
   },
   "invoiceItems": {
     "title": "Tuotteet",
@@ -436,9 +443,9 @@
     "captain": "Päällikkö",
     "copilot": "Perämies",
     "departure": "Lähtö",
-    "arrival": "Saapuminen",
-    "blockTime": "Block-aika",
-    "airborneTime": "Ilmassaoloaika",
+    "arrival": "Paluu",
+    "duration": "Kesto",
+    "airborneTime": "Ilma-aika",
     "landings": "Laskuja",
     "flightType": "Tyyppi",
     "billed": "Laskutettu",
@@ -478,11 +485,9 @@
     "personsOnBoard": "Henkilöitä kyydissä",
     "numberOfLandings": "Laskujen määrä",
 
-    "nightFlying": "Yölento",
+    "nightInstrumentFlying": "Yö- ja mittarilento",
     "nightFlyingMins": "Yölentotunnit (HH:MM)",
     "numberOfNightLandings": "Laskujen määrä yöllä",
-
-    "instrumentFlying": "Mittarilento",
     "instrumentFlyingMins": "Mittarilentotunnit (HH:MM)",
     "fuelInfo": "Polttoaineen tiedot",
     "fuelUpliftLitres": "Polttoainetäydennys (litraa)",
@@ -594,7 +599,6 @@
     "completeCommentedFlights": "Vahvista kommetoidut lennot",
     "complete": "Käynnistä laskutus",
     "success": "Laskutusajo käynnistetty onnistuneesti",
-    "back": "Takaisin",
     "restart": "Aloita uudestaan"
   },
   "registrationVerify": {

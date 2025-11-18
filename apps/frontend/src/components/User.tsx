@@ -16,7 +16,6 @@ import { useMe } from '../hooks/useMe'
 import UserAvatar from '../sections/members/components/UserAvatar'
 import useApi from '../hooks/useApi'
 import { Member, MIKLang } from '@backend/routes/members/models'
-import { z } from 'zod'
 
 const User = () => {
   const { t, i18n } = useTranslation()
@@ -28,7 +27,7 @@ const User = () => {
 
   const logout = useAuth('logout')
 
-  const { mutation } = useApi<Member>({
+  const { mutation } = useApi<Pick<Member, 'lang'>>({
     url: `v1/members/me/lang`,
     skipFetch: true,
   })
@@ -58,12 +57,9 @@ const User = () => {
     navigate('/logout')
   }
 
-  const changeLanguage = async (language: string) => {
-    i18n.changeLanguage(language)
-    const member: Partial<Member> = {
-      lang: z.nativeEnum(MIKLang).parse(language),
-    }
-    await mutation.trigger('PATCH', member)
+  const changeLanguage = async (lang: MIKLang) => {
+    i18n.changeLanguage(lang)
+    await mutation.trigger('PATCH', { lang })
     handleClose()
   }
 
@@ -87,14 +83,16 @@ const User = () => {
             open={open}
             onClose={handleClose}
             onClick={handleClose}
-            PaperProps={{
-              elevation: 3,
-              sx: {
-                minWidth: 200,
-                mt: 1,
-                '& .MuiMenuItem-root': {
-                  px: 2,
-                  py: 1,
+            slotProps={{
+              paper: {
+                elevation: 3,
+                sx: {
+                  minWidth: 200,
+                  mt: 1,
+                  '& .MuiMenuItem-root': {
+                    px: 2,
+                    py: 1,
+                  },
                 },
               },
             }}
@@ -110,7 +108,7 @@ const User = () => {
               </Typography>
             </Box>
             <Divider />
-            <MenuItem component={Link} to='/members/me'>
+            <MenuItem component={Link} to='/club/members/me'>
               <ListItemIcon>
                 <Icon icon='mdi:account' fontSize={20} />
               </ListItemIcon>
@@ -122,12 +120,12 @@ const User = () => {
                 {t('header.language')}
               </Typography>
             </Box>
-            <MenuItem onClick={() => changeLanguage('en')}>
+            <MenuItem onClick={() => changeLanguage(MIKLang.EN)}>
               <ListItemIcon>
                 <Icon icon='circle-flags:uk' fontSize={20} />
               </ListItemIcon>
               English
-              {i18n.language === 'en' && (
+              {i18n.language === MIKLang.EN && (
                 <Icon
                   icon='mdi:check'
                   fontSize={20}
@@ -135,12 +133,12 @@ const User = () => {
                 />
               )}
             </MenuItem>
-            <MenuItem onClick={() => changeLanguage('fi')}>
+            <MenuItem onClick={() => changeLanguage(MIKLang.FI)}>
               <ListItemIcon>
                 <Icon icon='circle-flags:fi' fontSize={20} />
               </ListItemIcon>
               Suomi
-              {i18n.language === 'fi' && (
+              {i18n.language === MIKLang.FI && (
                 <Icon
                   icon='mdi:check'
                   fontSize={20}
@@ -148,12 +146,12 @@ const User = () => {
                 />
               )}
             </MenuItem>
-            <MenuItem onClick={() => changeLanguage('sv')}>
+            <MenuItem onClick={() => changeLanguage(MIKLang.SV)}>
               <ListItemIcon>
                 <Icon icon='circle-flags:se' fontSize={20} />
               </ListItemIcon>
               Svenska
-              {i18n.language === 'sv' && (
+              {i18n.language === MIKLang.SV && (
                 <Icon
                   icon='mdi:check'
                   fontSize={20}

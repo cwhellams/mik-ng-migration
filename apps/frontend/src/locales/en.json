@@ -2,6 +2,7 @@
   "header": {
     "dashboard": "Dashboard",
     "schedule": "Schedule",
+    "fly": "Fly",
     "aircrafts": "Aircraft",
     "members": "Members",
     "documents": "Documents",
@@ -16,7 +17,8 @@
     "roles": "User Roles",
     "billing": "Billing",
     "accounts": "Accounts",
-    "accessCodes": "Access codes"
+    "accessCodes": "Codes",
+    "club": "Club"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
@@ -83,6 +85,7 @@
     "roles": "Roles",
     "trainingProgram": "Training Program",
     "noRolesAssigned": "No roles assigned",
+    "noMembersFound": "No members found",
     "avatar": "Picture",
     "edit": {
       "register": "Add new user",
@@ -335,7 +338,9 @@
     "backToHome": "Back to homepage",
     "logout": "Log out",
     "loadingMemberData": "Error loading member data",
-    "noAccess": "No access"
+    "noAccess": "No access",
+    "refreshRequired": "New version available, please refresh the page",
+    "noRows": "No rows"
   },
   "roles": {
     "name": {
@@ -372,6 +377,7 @@
     "savingError": "Error Saving",
     "cancel": "Cancel",
     "delete": "Delete",
+    "back": "Back",
     "view": "View",
     "dateFormat": "YYYY-MM-DD"
   },
@@ -406,7 +412,8 @@
       "instruction": "Instruction",
       "equipmentFee": "Equipment Fee",
       "misc": "Other"
-    }
+    },
+    "noInvoicesFound": "No invoices found"
   },
   "invoiceItems": {
     "title": "Invoice Items",
@@ -437,7 +444,7 @@
     "copilot": "Copilot",
     "departure": "Takeoff",
     "arrival": "Landing",
-    "blockTime": "Block Time",
+    "duration": "Duration",
     "airborneTime": "Airborne Time",
     "landings": "Landings",
     "flightType": "Type",
@@ -478,11 +485,9 @@
     "personsOnBoard": "Persons on Board",
     "numberOfLandings": "Number of Landings",
 
-    "nightFlying": "Night Flying",
+    "nightInstrumentFlying": "Night and Instrument Flying",
     "nightFlyingMins": "Night Hours (HH:MM)",
     "numberOfNightLandings": "Number of Night Landings",
-
-    "instrumentFlying": "Instrument Flying",
     "instrumentFlyingMins": "Instrument Hours (HH:MM)",
     "fuelInfo": "Fuel and Oil Information",
     "fuelUpliftLitres": "Fuel Uplift (litres)",
@@ -594,7 +599,6 @@
     "completeCommentedFlights": "Confirm commented flights",
     "complete": "Send flights for invoicing",
     "success": "Invoicing job started successfully",
-    "back": "Back",
     "restart": "Start Over"
   },
   "registrationVerify": {

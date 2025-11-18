@@ -1,13 +1,6 @@
 import {
-  Typography,
   Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  Grid,
   Button,
   Stack,
   useMediaQuery,
@@ -29,19 +22,27 @@ import {
 } from '@backend/routes/flight-log/models'
 import { RemoteContent } from '../../components/RemoteContent'
 import { FlightLogQuery } from './components/FlightLogQuery'
-import { formatDate, formatTime } from '../../utils/date'
+import { formatTime } from '../../utils/date'
 import { useRoles } from '../../hooks/useRoles'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
 import {
   AircraftJourneyLogBook,
   AjlbListResponse,
 } from '@backend/routes/ajlb/model'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { EditButton } from '../../components/EditButton'
 import { Problem } from '@backend/routes/response'
 import { StatusButton } from './components/StatusButton'
 import { FlightLogValidation } from './components/FlightLogValidation'
 import { SnackAlert } from '../../components/SnackAlert'
+import { Title } from '../../components/Title'
+import {
+  ViewMobileFlightTime,
+  ViewFlightDate,
+  ViewMobileFlightDetails,
+  ViewMobileCrew,
+} from './components/FlightListEntry'
+import { ResponsiveTable } from './components/ResponsiveTable'
 
 const FlightLogsList = () => {
   const { t } = useTranslation()
@@ -75,6 +76,7 @@ const FlightLogsList = () => {
       aircraftRegistration,
       ajlbSeqNo,
       page,
+      limit: !ajlbSeqNo ? 10 : undefined,
     })
 
     setAjlb(
@@ -100,36 +102,30 @@ const FlightLogsList = () => {
     }
   )
 
+  const userDefinedPageNumber = useRef(!!searchParams.get('page'))
   useEffect(() => {
     // if not requested otherwise, server returns the last page
-    if (!searchParams.get('page') && data?.page) {
+    if (!userDefinedPageNumber.current && data?.page) {
       setFilters((prev) => ({
         ...prev,
         page: data.page,
       }))
     }
-  }, [data, searchParams, setFilters])
+  }, [data, setFilters])
 
   const theme = useTheme()
-  const isXs = useMediaQuery(theme.breakpoints.down('sm'))
   const isMd = useMediaQuery(theme.breakpoints.up('md'))
 
   const singlePlane = !!filters.aircraftRegistration
   const syncMode = !!ajlb
+  const editableSyncMode = syncMode && isFlightLogAdmin
 
-  const rowHeight = syncMode ? 75 : 100
+  const editableItem =
+    editableSyncMode && ajlb.view?.newFlightsPage === data?.page
+      ? data?.logs.find((l) => l.status === FlightLogStatus.NEW)
+      : undefined
 
-  const crewHeaders = isMd
-    ? [t('flightLog.crews.pic'), t('flightLog.logbooks.student'), 'PoB']
-    : [t('flightLog.crew')]
-
-  const colSpan =
-    8 + crewHeaders.length + (singlePlane ? 1 : 0) + (isXs ? 0 : 2)
-
-  const crewValues = (log: FlightLogListEntry) =>
-    isMd
-      ? [[log.picLastName], [log.crew2LastName], [log.personsOnBoard]]
-      : [[log.picLastName, log.crew2LastName, `(${log.personsOnBoard})`]]
+  const rowHeight = syncMode ? (isMd ? 60 : 140) : 75
 
   const updateEntry = async (
     log: FlightLogListEntry,
@@ -169,60 +165,66 @@ const FlightLogsList = () => {
     return !res.error
   }
 
-  const EmptyRows = ({
-    log,
-    currentRow,
-  }: {
-    log: FlightLogListEntry
-    currentRow: number
-  }) => {
+  const Actions = ({ log }: { log: FlightLogListEntry }) => (
+    <Stack direction='row' spacing={1}>
+      <StatusButton
+        log={log}
+        viewOnly={editableItem !== log}
+        update={() => validateEntry(log)}
+      />
+
+      {editableSyncMode && log.status == FlightLogStatus.NEW && (
+        <>
+          {log.ajlbRowNo == 1 && log.ajlbBlankRowsBefore > 0 && (
+            <EditButton
+              title={t('flightLog.logbooks.deleteBlankRow')}
+              onClick={() =>
+                updateEntry(log, {
+                  ajlbBlankRowsBefore: log.ajlbBlankRowsBefore - 1,
+                })
+              }
+              icon='mdi:table-row-remove'
+            />
+          )}
+
+          <EditButton
+            title={t('flightLog.logbooks.addBlankRow')}
+            onClick={() =>
+              updateEntry(log, {
+                ajlbBlankRowsBefore: log.ajlbBlankRowsBefore + 1,
+              })
+            }
+            icon='mdi:table-row-plus-before'
+          />
+        </>
+      )}
+    </Stack>
+  )
+
+  const logsWithEmptyRows = data?.logs.flatMap((log, index) => {
     if (!syncMode) {
-      return <></>
+      return { log, isEmptyRow: false }
     }
 
-    const rows = Math.min(
+    const emptyRowCount = Math.min(
       log.ajlbBlankRowsBefore,
       // if blank rows are in the previous page, skip them
-      (log.ajlbRowNo ?? 0) - currentRow
+      (log.ajlbRowNo ?? 0) - (index + 1)
     )
 
-    return Array.from({ length: rows }).map((_, index) => (
-      <TableRow key={`${log.flightId}-${index}`}>
-        <TableCell colSpan={colSpan - 2} sx={{ height: rowHeight }}>
-          &nbsp;
-        </TableCell>
-        <TableCell>
-          {log.status === FlightLogStatus.NEW && (
-            <Stack direction='row' spacing={1}>
-              <EditButton
-                title={t('flightLog.logbooks.deleteBlankRow')}
-                onClick={() =>
-                  updateEntry(log, {
-                    ajlbBlankRowsBefore: log.ajlbBlankRowsBefore - 1,
-                  })
-                }
-                icon='mdi:table-row-remove'
-              />
-            </Stack>
-          )}
-        </TableCell>
-      </TableRow>
-    ))
-  }
+    return Array.from({ length: emptyRowCount })
+      .map(() => ({
+        log,
+        isEmptyRow: true,
+      }))
+      .concat({ log, isEmptyRow: false })
+  })
 
   return (
     <Box>
       <SnackAlert problem={problem} />
 
-      <Stack
-        direction={{ xs: 'column', md: 'row' }}
-        justifyContent='space-between'
-        alignItems='center'
-        mb={3}
-      >
-        <Typography variant={isXs ? 'h4' : 'h2'} gutterBottom>
-          {t('flightLog.title', 'Flight Logs')}
-        </Typography>
+      <Title label={t('flightLog.title')}>
         <Button
           variant='contained'
           color='primary'
@@ -232,7 +234,7 @@ const FlightLogsList = () => {
         >
           {t('flightLog.newEntry', 'New Entry')}
         </Button>
-      </Stack>
+      </Title>
 
       <FlightLogQuery
         logbooks={logbooks?.books ?? []}
@@ -246,161 +248,176 @@ const FlightLogsList = () => {
         }}
       />
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ pr: 0, height: rowHeight }}>
-                {t('flightLog.date')}
-              </TableCell>
-              {!singlePlane && <TableCell>{t('flightLog.aircraft')}</TableCell>}
-              {crewHeaders.map((header, index) => (
-                <TableCell key={index}>{header}</TableCell>
-              ))}
+      <RemoteContent isLoading={isLoading} error={error}>
+        <ResponsiveTable
+          header={
+            <>
+              <Grid size={1}>{t('flightLog.date')}</Grid>
+              {!singlePlane && <Grid size={1}>{t('flightLog.aircraft')}</Grid>}
+              <Grid size={1.5}>{t('flightLog.crews.pic')}</Grid>
+              <Grid size={1.5}>{t('flightLog.logbooks.student')}</Grid>
+              <Grid size={0.5}>PoB</Grid>
+              <Grid size={1.2}>{t('flightLog.departure')}</Grid>
+              <Grid size={1.2}>{t('flightLog.arrival')}</Grid>
+              <Grid size={1.1}>
+                {t(syncMode ? 'flightLog.airborneTime' : 'flightLog.duration')}
+              </Grid>
+              {syncMode && <Grid size={1.1}>{t('flightLog.hours')}</Grid>}
+              <Grid size={0.9}>{t('flightLog.landings')}</Grid>
+              <Grid size={1}>{t('flightLog.flightType')}</Grid>
+              <Grid size={1} textAlign='center'>
+                {t('flightLog.logbooks.status')}
+              </Grid>
+            </>
+          }
+          notFoundMsg={t('flightLog.noLogs')}
+          rows={logsWithEmptyRows}
+          rowProps={() => ({
+            minHeight: rowHeight,
+          })}
+          row={({ log, isEmptyRow }) => {
+            if (isEmptyRow) {
+              if (isFlightLogAdmin && log.status === FlightLogStatus.NEW) {
+                return (
+                  <Stack direction='row-reverse' spacing={1} width='100%'>
+                    <EditButton
+                      title={t('flightLog.logbooks.deleteBlankRow')}
+                      onClick={() =>
+                        updateEntry(log, {
+                          ajlbBlankRowsBefore: log.ajlbBlankRowsBefore - 1,
+                        })
+                      }
+                      icon='mdi:table-row-remove'
+                    />
+                  </Stack>
+                )
+              }
+              return <></>
+            }
 
-              <TableCell>{t('flightLog.departure')}</TableCell>
-              <TableCell>{t('flightLog.arrival')}</TableCell>
-              <TableCell>
-                {t(syncMode ? 'flightLog.airborneTime' : 'flightLog.blockTime')}
-              </TableCell>
-              {syncMode && (
-                <TableCell>{t('flightLog.logbooks.totalFlightTime')}</TableCell>
-              )}
-              <TableCell>{t('flightLog.numberOfLandings')}</TableCell>
-              <TableCell>{t('flightLog.flightType')}</TableCell>
-              {syncMode && <TableCell>TTL</TableCell>}
-              {!isXs && <TableCell>{t('flightLog.logbooks.status')}</TableCell>}
-              {syncMode && isFlightLogAdmin && (
-                <TableCell>{t('general.actions')}</TableCell>
-              )}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <RemoteContent
-              isLoading={isLoading}
-              error={error}
-              colSpan={colSpan}
-            >
-              {data?.logs?.map((log, index) => [
-                <EmptyRows
-                  key={`${log.flightId}-empty`}
-                  log={log}
-                  currentRow={index + 1}
-                />,
+            return (
+              <>
+                <Grid size={{ xs: 3, md: 1 }}>
+                  <ViewFlightDate
+                    flightId={log.flightId}
+                    date={log.offBlockTimeUtc}
+                    link={
+                      isFlightLogAdmin || log.billableMemberId == me?.memberId
+                    }
+                    state={searchParams.toString()}
+                    ref={
+                      location.hash == `#${log.flightId}`
+                        ? scrollToRef
+                        : undefined
+                    }
+                  />
+                </Grid>
 
-                <TableRow key={log.flightId}>
-                  <TableCell sx={{ height: rowHeight }}>
-                    {isFlightLogAdmin ||
-                    log.billableMemberId == me?.memberId ? (
-                      <Link
-                        ref={
-                          location.hash == `#${log.flightId}`
-                            ? scrollToRef
-                            : undefined
-                        }
-                        to={`/flight-logs/${log.flightId}`}
-                        state={searchParams.toString()}
-                      >
-                        {formatDate(log.takeoffTimeUtc)}
-                      </Link>
-                    ) : (
-                      formatDate(log.takeoffTimeUtc)
+                {isMd ? (
+                  <>
+                    {!singlePlane && (
+                      <Grid size={1}>{log.aircraftRegistration}</Grid>
                     )}
-                  </TableCell>
-                  {!singlePlane && (
-                    <TableCell>{log.aircraftRegistration}</TableCell>
-                  )}
-                  {crewValues(log).map((value, index) => (
-                    <TableCell key={`crew-${index}`}>
-                      {value.map((value, index) => (
-                        <Box key={index}>{value}</Box>
-                      ))}
-                    </TableCell>
-                  ))}
-                  <TableCell>
-                    {log.departureAirport}
-                    {!syncMode && <Box>{formatTime(log.offBlockTimeUtc)}</Box>}
-                    <Box>{formatTime(log.takeoffTimeUtc)}</Box>
-                  </TableCell>
-                  <TableCell>
-                    {log.arrivalAirport}
-                    <Box>{formatTime(log.landingTimeUtc)}</Box>
-                    {!syncMode && <Box>{formatTime(log.onBlockTimeUtc)}</Box>}
-                  </TableCell>
-                  <TableCell>
-                    {syncMode ? log.flightTime : log.blockTime}
-                  </TableCell>
-                  {syncMode && <TableCell>{log.acTotalFlightTime}</TableCell>}
-                  <TableCell>{log.numberOfLandings}</TableCell>
-                  <TableCell>{log.flightType}</TableCell>
-                  {syncMode && <TableCell>{log.totalTimeInService}</TableCell>}
-                  {!isXs && (
-                    <TableCell sx={{ textAlign: 'center' }}>
-                      <StatusButton
-                        log={log}
-                        viewOnly={
-                          !syncMode ||
-                          !isFlightLogAdmin ||
-                          ajlb?.view?.newFlightsPage !== data?.page ||
-                          data?.logs.find(
-                            (l) => l.status === FlightLogStatus.NEW
-                          ) !== log
-                        }
-                        update={() => validateEntry(log)}
-                      />
-                    </TableCell>
-                  )}
-                  {syncMode &&
-                    isFlightLogAdmin &&
-                    log.status == FlightLogStatus.NEW && (
-                      <TableCell>
-                        <Stack direction='row' spacing={1}>
-                          {
-                            // allow to delete blank rows from the end of previous page
-                            log.ajlbRowNo == 1 &&
-                              log.ajlbBlankRowsBefore > 0 && (
-                                <EditButton
-                                  title={t('flightLog.logbooks.deleteBlankRow')}
-                                  onClick={() =>
-                                    updateEntry(log, {
-                                      ajlbBlankRowsBefore:
-                                        log.ajlbBlankRowsBefore - 1,
-                                    })
-                                  }
-                                  icon='mdi:table-row-remove'
-                                />
-                              )
-                          }
 
-                          <EditButton
-                            title={t('flightLog.logbooks.addBlankRow')}
-                            onClick={() =>
-                              updateEntry(log, {
-                                ajlbBlankRowsBefore:
-                                  log.ajlbBlankRowsBefore + 1,
-                              })
-                            }
-                            width={28}
-                            icon='mdi:table-row-plus-before'
-                          />
-                        </Stack>
-                      </TableCell>
+                    <Grid size={1.5}>
+                      <Box>{log.picLastName}</Box>
+                    </Grid>
+                    <Grid size={1.5}>
+                      <Box>{log.crew2LastName}</Box>
+                    </Grid>
+                    <Grid size={0.5}>
+                      <Box>{log.personsOnBoard}</Box>
+                    </Grid>
+
+                    <Grid size={1.2}>
+                      <Box>{log.departureAirport}</Box>
+                      {!syncMode && (
+                        <Box color='text.secondary'>
+                          {formatTime(log.offBlockTimeUtc)}
+                        </Box>
+                      )}
+                      <Box color='text.secondary'>
+                        {formatTime(log.takeoffTimeUtc)}
+                      </Box>
+                    </Grid>
+
+                    <Grid size={1.2}>
+                      <Box>{log.arrivalAirport}</Box>
+                      <Box color='text.secondary'>
+                        {formatTime(log.landingTimeUtc)}
+                      </Box>
+                      {!syncMode && (
+                        <Box color='text.secondary'>
+                          {formatTime(log.onBlockTimeUtc)}
+                        </Box>
+                      )}
+                    </Grid>
+
+                    <Grid size={1.1}>
+                      {log.flightTime}
+                      {!syncMode && <Box>{log.blockTime}</Box>}
+                    </Grid>
+
+                    {syncMode && (
+                      <Grid size={1.1}>{log.acTotalFlightTime}</Grid>
                     )}
-                </TableRow>,
-              ])}
-              {(!data?.logs || data.logs.length === 0) && (
-                <TableRow>
-                  <TableCell colSpan={colSpan} align='center'>
-                    <Typography variant='body1' py={3}>
-                      {t('flightLog.noLogs')}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </RemoteContent>
-          </TableBody>
-        </Table>
-      </TableContainer>
+
+                    <Grid size={0.9}>{log.numberOfLandings}</Grid>
+
+                    <Grid size={1}>
+                      {t(`flightLog.flightTypes.${log.flightType}`)}
+                    </Grid>
+
+                    <Grid size={1} alignSelf='center' justifyItems='end'>
+                      <Actions log={log} />
+                    </Grid>
+                  </>
+                ) : (
+                  <>
+                    {
+                      // give more room to action buttons by leaving registration out when synching
+                      !editableSyncMode && (
+                        <Grid size={3}>{log.aircraftRegistration}</Grid>
+                      )
+                    }
+
+                    <ViewMobileFlightDetails
+                      size={editableSyncMode ? 9 : 6}
+                      numberOfLandings={log.numberOfLandings}
+                      flightType={log.flightType}
+                    >
+                      <Actions log={log} />
+                    </ViewMobileFlightDetails>
+
+                    <ViewMobileCrew
+                      size={4}
+                      personsOnBoard={log.personsOnBoard}
+                      crew={[log.picLastName, log.crew2LastName]}
+                    />
+                    <ViewMobileFlightTime
+                      size={8}
+                      departureAirport={log.departureAirport}
+                      arrivalAirport={log.arrivalAirport}
+                      offBlockTimeUtc={
+                        !syncMode ? log.offBlockTimeUtc : undefined
+                      }
+                      takeoffTimeUtc={log.takeoffTimeUtc}
+                      landingTimeUtc={log.landingTimeUtc}
+                      onBlockTimeUtc={
+                        !syncMode ? log.onBlockTimeUtc : undefined
+                      }
+                      flightTime={log.flightTime}
+                      secondaryTime={
+                        syncMode ? log.acTotalFlightTime : log.blockTime
+                      }
+                    />
+                  </>
+                )}
+              </>
+            )
+          }}
+        />
+      </RemoteContent>
 
       <Pagination
         count={

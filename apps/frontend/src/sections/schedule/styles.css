@@ -26,3 +26,14 @@
   opacity: 0.3;
   color: grey;
 }
+
+.rbc-header span {
+  text-wrap: auto;
+}
+
+@media (max-width: 400px) {
+  .rbc-btn-group button {
+    padding: 0.4rem;
+  }
+}
+

@@ -28,14 +28,9 @@ const Register = () => {
   const { t, i18n } = useTranslation()
 
   // Initialize selectedLanguage state based on current i18n language
-  const initialLanguage = (() => {
-    if (i18n.language.startsWith('fi')) return MIKLang.FI
-    if (i18n.language.startsWith('sv')) return MIKLang.SV
-    return MIKLang.EN
-  })()
-
-  const [selectedLanguage, setSelectedLanguage] =
-    useState<MIKLang>(initialLanguage)
+  const [selectedLanguage, setSelectedLanguage] = useState<MIKLang>(
+    i18n.language as MIKLang
+  )
 
   const [member, setMember] = useState<RegisterRequest>({
     email: '',
@@ -50,7 +45,7 @@ const Register = () => {
     memberType: MIKMemberTypes.FLYING,
     dateOfBirth: undefined,
 
-    lang: initialLanguage, // Use the initial language
+    lang: selectedLanguage,
   })
   const [dateOfBirth, setDateOfBirth] = useState<Dayjs | null>(dayjs())
 

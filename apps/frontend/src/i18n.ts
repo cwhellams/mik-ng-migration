@@ -24,6 +24,7 @@ i18n
       fi: { translation: fiTranslation },
       sv: { translation: svTranslation },
     },
+    supportedLngs: ['en', 'fi', 'sv'],
     // Common namespace
     defaultNS: 'translation',
     // Caching

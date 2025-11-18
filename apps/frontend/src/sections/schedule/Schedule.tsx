@@ -38,6 +38,8 @@ import {
   Checkbox,
   FormControlLabel,
   CircularProgress,
+  Stack,
+  Button,
 } from '@mui/material'
 import { BookingEditor } from './components/EditBookingModal'
 import { Upsert } from '@backend/types/schema'
@@ -47,6 +49,8 @@ import { useSearchParams } from 'react-router-dom'
 import { RemoteContent } from '../../components/RemoteContent'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
+import { Title } from '../../components/Title'
+import { Icon } from '@iconify/react'
 
 dayjs.locale('fi')
 
@@ -248,7 +252,11 @@ const Schedule = () => {
 
   // add new event if no overlaps
   const handleAddEvent = useCallback(
-    async (data: SlotInfo) =>
+    async (data?: SlotInfo) => {
+      const start =
+        data?.start ?? dayjs().startOf('hour').add(1, 'hour').toDate()
+      const end = data?.end ?? dayjs(start).add(1, 'hour').toDate()
+
       setEditMode({
         bookingId: '',
         memberId: me?.memberId ?? '',
@@ -258,11 +266,12 @@ const Schedule = () => {
             : (aircraftData?.aircrafts?.[0].registration ?? ''),
         type: BookingType.PRACTICE,
         status: BookingStatus.CONFIRMED,
-        startTimeEpoch: Math.floor(data.start.getTime() / 1000).toString(),
-        endTimeEpoch: Math.floor(data.end.getTime() / 1000).toString(),
-        startTime: data.start.toISOString(),
-        endTime: data.end.toISOString(),
-      }),
+        startTimeEpoch: Math.floor(start.getTime() / 1000).toString(),
+        endTimeEpoch: Math.floor(end.getTime() / 1000).toString(),
+        startTime: start.toISOString(),
+        endTime: end.toISOString(),
+      })
+    },
     [setEditMode, aircraftData, filters, me?.memberId]
   )
 
@@ -350,37 +359,52 @@ const Schedule = () => {
     <RemoteContent error={eventError}>
       <SnackAlert problem={problem} />
 
-      <Box display='flex' flexDirection='row' alignItems='center' mb={2}>
-        <Typography variant='body2'>{t('schedule.showPlanes')}</Typography>
-
-        <ToggleButtonGroup
-          value={filters['registration[]']}
-          exclusive
-          onChange={(_, value) =>
-            setFilters((filters) => ({ ...filters, 'registration[]': value }))
-          }
-          aria-label='plane selection'
-          size='small'
-          sx={{ ml: 2 }}
+      <Title label={t('header.schedule')}>
+        <Button
+          variant='contained'
+          color='primary'
+          startIcon={<Icon icon='mdi:plus' />}
+          onClick={() => handleAddEvent()}
         >
-          <ToggleButton
-            value={[]}
-            selected={filters['registration[]']?.length == 0}
+          {t('schedule.newBooking')}
+        </Button>
+      </Title>
+
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent='space-between'
+        mb={3}
+      >
+        <Box display='flex' flexDirection='row' alignItems='center'>
+          <Typography variant='body2'>{t('schedule.showPlanes')}</Typography>
+          <ToggleButtonGroup
+            value={filters['registration[]']}
+            exclusive
+            onChange={(_, value) =>
+              setFilters((filters) => ({ ...filters, 'registration[]': value }))
+            }
+            aria-label='plane selection'
+            size='small'
+            sx={{ ml: 2 }}
           >
-            {t('schedule.ALL')}
-          </ToggleButton>
-          {aircraftData?.aircrafts.map((aircraft) => (
             <ToggleButton
-              key={aircraft.registration}
-              value={aircraft.registration}
+              value={[]}
+              selected={filters['registration[]']?.length == 0}
             >
-              {aircraft.registration}
+              {t('schedule.ALL')}
             </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+            {aircraftData?.aircrafts.map((aircraft) => (
+              <ToggleButton
+                key={aircraft.registration}
+                value={aircraft.registration}
+              >
+                {aircraft.registration}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </Box>
 
         <FormControlLabel
-          sx={{ ml: 4 }}
           control={
             <Checkbox
               checked={filters['showCancelled'] ?? false}
@@ -394,7 +418,7 @@ const Schedule = () => {
           }
           label={t('schedule.showCancelled')}
         ></FormControlLabel>
-      </Box>
+      </Stack>
 
       <Box position='relative'>
         <DnDCalendar

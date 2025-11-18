@@ -1,4 +1,5 @@
 import {
+  MemberRole,
   MemberRolesResponse,
   MIKPermissions,
 } from '@backend/routes/members/models'
@@ -18,8 +19,8 @@ export function useRoles(): {
   isAccessCodesAdmin: boolean
   isBookingAdmin: boolean
   isDocumentAdmin: boolean
-  roles: MemberRolesResponse['roles']
-  permissions: MemberRolesResponse['permissions']
+  roles: MemberRole[]
+  permissions: MIKPermissions[]
   sudoers: boolean
   error: Problem | undefined
 } {

@@ -13,7 +13,7 @@ import {
   Checkbox,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
-import { Member, MemberApproval } from '@backend/routes/members/models'
+import { Member, MemberApproval, MIKLang } from '@backend/routes/members/models'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
@@ -29,10 +29,11 @@ import { RemoteContent } from '../../components/RemoteContent'
 import UserAvatar from './components/UserAvatar'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import PendingActionsIcon from '@mui/icons-material/PendingActions'
-import Watermark from '../../components/watermark'
+import Watermark from './components/watermark'
 import { mutate } from 'swr'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
+import { Title } from '../../components/Title'
 
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
@@ -45,11 +46,6 @@ const MemberProfile = () => {
 
   const { data, isLoading, error, mutation } = useApi<Member>({
     url: `v1/members/${memberId}`,
-  })
-
-  const { mutation: approveMutation } = useApi<string, MemberApproval>({
-    url: `v1/members/${memberId}/approve`,
-    skipFetch: true,
   })
 
   const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
@@ -75,7 +71,11 @@ const MemberProfile = () => {
   }
 
   const handleApprove = async () => {
-    const { error } = await approveMutation.trigger('POST', {})
+    const { error } = await mutation.trigger<undefined, MemberApproval>(
+      'POST',
+      undefined,
+      'approve'
+    )
     if (error) {
       return setProblem(error)
     }
@@ -150,9 +150,7 @@ const MemberProfile = () => {
             />
           </Badge>
 
-          <Typography variant='h2'>
-            {isAdmin ? firstName : t('member.profile')}
-          </Typography>
+          <Title label={firstName || t('member.profile')} />
         </Box>
 
         <Stack
@@ -165,15 +163,7 @@ const MemberProfile = () => {
             data?.roles.map((role, index) => (
               <Chip
                 key={index}
-                label={
-                  role.name?.[
-                    i18n.language === 'fi'
-                      ? 'fi'
-                      : i18n.language === 'sv'
-                        ? 'sv'
-                        : 'en'
-                  ]
-                }
+                label={role.name?.[i18n.language as MIKLang]}
                 color='primary'
                 icon={<Icon icon='mdi:shield-user' />}
               />

@@ -18,6 +18,7 @@ describe('Db document tests', () => {
     expect(result[0]).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
+      documentId: expect.any(Number),
     })
   }
 

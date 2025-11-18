@@ -19,7 +19,7 @@ import {
   Box,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { Member, MIKMemberTypes } from '@backend/routes/members/models'
+import { Member, MIKLang, MIKMemberTypes } from '@backend/routes/members/models'
 import { DateField } from '@mui/x-date-pickers/DateField'
 import dayjs, { Dayjs } from 'dayjs'
 import { mutate } from 'swr'
@@ -506,15 +506,7 @@ export const EditMemberModal = ({
                     onChange={handleChangeRole}
                   />
                 }
-                label={
-                  role.name[
-                    i18n.language === 'fi'
-                      ? 'fi'
-                      : i18n.language === 'sv'
-                        ? 'sv'
-                        : 'en'
-                  ]
-                }
+                label={role.name[i18n.language as MIKLang]}
               />
             ))}
           </FormGroup>

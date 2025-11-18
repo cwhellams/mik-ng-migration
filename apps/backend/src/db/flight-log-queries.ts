@@ -15,6 +15,7 @@ import {
   FlightType,
   type PrivOrComFlight,
   type FlightLogMigrationRequest,
+  InvoicableFlights,
 } from '../routes/flight-log/models.ts'
 import type { MIKPermissions } from '../routes/members/models.ts'
 import { generateShortId } from '../util/nanoId.ts'
@@ -270,17 +271,17 @@ export async function getInvoicableFlights(
     .where('aircraft_registration', '=', filters.aircraftRegistration)
     .where('on_block_time_epoch', '<=', toLocal(filters.endDate).endOf('day').unix().toString())
 
-  if (filters.flights === 'SII') {
-    query = query.where('flight_type', '=', 'SII')
-  } else if (filters.flights === 'KOE') {
-    query = query.where('flight_type', '=', 'KOE')
-  } else if (filters.flights === 'COMMENT') {
+  if (filters.flights === InvoicableFlights.FERRY) {
+    query = query.where('flight_type', '=', FlightType.FERRY)
+  } else if (filters.flights === InvoicableFlights.TEST_FLIGHT) {
+    query = query.where('flight_type', '=', FlightType.TEST_FLIGHT)
+  } else if (filters.flights === InvoicableFlights.COMMENT) {
     query = query.where('billing_remarks', 'is not', null)
-    query = query.where('flight_type', 'not in', ['SII', 'KOE'])
-  } else if (filters.flights === 'OTHER') {
+    query = query.where('flight_type', 'not in', [FlightType.FERRY, FlightType.TEST_FLIGHT])
+  } else if (filters.flights === InvoicableFlights.OTHER) {
     query = query
       .where('billing_remarks', 'is', null)
-      .where('flight_type', 'not in', ['SII', 'KOE'])
+      .where('flight_type', 'not in', [FlightType.FERRY, FlightType.TEST_FLIGHT])
   }
 
   const { rows } = await query

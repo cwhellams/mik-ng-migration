@@ -1,13 +1,5 @@
 import {
-  Typography,
   Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   useMediaQuery,
   useTheme,
   Pagination,
@@ -15,7 +7,6 @@ import {
   Button,
 } from '@mui/material'
 import useApi from '../../../hooks/useApi'
-import { Link } from 'react-router-dom'
 import {
   FlightLogUpsertRequest,
   InvoicableFlight,
@@ -24,12 +15,20 @@ import {
   InvoicableFlights,
 } from '@backend/routes/flight-log/models'
 import { RemoteContent } from '../../../components/RemoteContent'
-import { formatDate, formatTime } from '../../../utils/date'
+import { formatTime } from '../../../utils/date'
 import { useScrollOnRender } from '../../../hooks/useScrollOnRender'
 import { useState } from 'react'
 import { Problem } from '@backend/routes/response'
 import { t } from 'i18next'
 import { SnackAlert } from '../../../components/SnackAlert'
+import { Grid } from '@mui/system'
+import {
+  ViewMobileCrew,
+  ViewMobileFlightDetails,
+  ViewMobileFlightTime,
+} from '../../flightLog/components/FlightListEntry'
+import { ViewFlightDate } from '../../flightLog/components/FlightListEntry'
+import { ResponsiveTable } from '../../flightLog/components/ResponsiveTable'
 
 export const InvoicingFlights = ({
   filters,
@@ -52,7 +51,7 @@ export const InvoicingFlights = ({
   })
 
   const theme = useTheme()
-  const isXs = useMediaQuery(theme.breakpoints.down('sm'))
+  const isMd = useMediaQuery(theme.breakpoints.up('md'))
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
@@ -89,9 +88,9 @@ export const InvoicingFlights = ({
 
   const nextButtonLabel = () => {
     const length = data?.logs.length ?? 0
-    if (filters.flights == InvoicableFlights.KOE) {
+    if (filters.flights == InvoicableFlights.TEST_FLIGHT) {
       return t('invoicing.completeTestFlights', { length })
-    } else if (filters.flights == InvoicableFlights.SII) {
+    } else if (filters.flights == InvoicableFlights.FERRY) {
       return t('invoicing.completeFerryFlights', {
         length,
       })
@@ -105,77 +104,104 @@ export const InvoicingFlights = ({
   return (
     <>
       <SnackAlert problem={problem} />
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ pr: 0 }}>{t('flightLog.date')}</TableCell>
 
-              <TableCell>{t('flightLog.aircraft')}</TableCell>
-              <TableCell>{t('flightLog.departure')}</TableCell>
-              <TableCell>{t('flightLog.arrival')}</TableCell>
-              <TableCell>{t('flightLog.airborneTime')}</TableCell>
-              <TableCell>{t('flightLog.flightType')}</TableCell>
-              <TableCell>{t('flightLog.billingRemarks')}</TableCell>
-              {!isXs && <TableCell>{t('invoicing.isFreeFlight')}</TableCell>}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <RemoteContent isLoading={isLoading} error={error} colSpan={8}>
-              {data?.logs.map((log) => [
-                <TableRow key={log.flightId}>
-                  <TableCell>
-                    <Link
-                      ref={
-                        location.hash == `#${log.flightId}`
-                          ? scrollToRef
-                          : undefined
-                      }
-                      to={`/flight-logs/${log.flightId}`}
-                    >
-                      {formatDate(log.takeoffTimeUtc)}
-                    </Link>
-                    <Box>{log.billableMemberLastName}</Box>
-                  </TableCell>
-                  <TableCell>{log.aircraftRegistration}</TableCell>
-                  <TableCell>
+      <RemoteContent isLoading={isLoading} error={error}>
+        <ResponsiveTable
+          header={
+            <>
+              <Grid size={1.5}>{t('flightLog.date')}</Grid>
+              <Grid size={1.3}>{t('flightLog.aircraft')}</Grid>
+              <Grid size={1.1}>{t('flightLog.departure')}</Grid>
+              <Grid size={1.1}>{t('flightLog.arrival')}</Grid>
+              <Grid size={1}>{t('flightLog.airborneTime')}</Grid>
+              <Grid size={1.5}>{t('flightLog.flightType')}</Grid>
+              <Grid size={3.4}>{t('flightLog.billingRemarks')}</Grid>
+              <Grid size={'grow'}>{t('invoicing.isFreeFlight')}</Grid>
+            </>
+          }
+          notFoundMsg={t('flightLog.noLogs')}
+          rows={data?.logs}
+          row={(log) => (
+            <>
+              <Grid size={{ xs: 3, md: 1.5 }}>
+                <ViewFlightDate
+                  flightId={log.flightId}
+                  date={log.takeoffTimeUtc}
+                  link={true}
+                  ref={scrollToRef}
+                />
+                <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                  {log.billableMemberLastName}
+                </Box>
+              </Grid>
+
+              <Grid size={{ xs: 3, md: 1.3 }}>{log.aircraftRegistration}</Grid>
+
+              {isMd ? (
+                <>
+                  <Grid size={1.1}>
                     {log.departureAirport}
                     <Box>{formatTime(log.takeoffTimeUtc)}</Box>
-                  </TableCell>
-                  <TableCell>
+                  </Grid>
+                  <Grid size={1.1}>
                     {log.arrivalAirport}
                     <Box>{formatTime(log.landingTimeUtc)}</Box>
-                  </TableCell>
-                  <TableCell>{log.flightTime}</TableCell>
-                  <TableCell>{log.flightType}</TableCell>
-                  <TableCell>{log.billingRemarks}</TableCell>
-                  {!isXs && (
-                    <TableCell sx={{ textAlign: 'center' }}>
-                      <Checkbox
-                        checked={log.isBillableFlight == false}
-                        onChange={async ({ target }) => {
-                          await updateEntry(log, {
-                            isBillableFlight: !target.checked,
-                          })
-                        }}
-                      />
-                    </TableCell>
-                  )}
-                </TableRow>,
-              ])}
-              {(!data?.logs || data.logs.length === 0) && (
-                <TableRow>
-                  <TableCell colSpan={8} align='center'>
-                    <Typography variant='body1' py={3}>
-                      {t('flightLog.noLogs')}
-                    </Typography>
-                  </TableCell>
-                </TableRow>
+                  </Grid>
+                  <Grid size={1}>{log.flightTime}</Grid>
+                  <Grid size={1.5}>
+                    {t(`flightLog.flightTypes.${log.flightType}`)}
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 3.4 }}>{log.billingRemarks}</Grid>
+                  <Grid size={'grow'} display={{ xs: 'none', md: 'flex' }}>
+                    <Checkbox
+                      checked={log.isBillableFlight == false}
+                      onChange={async ({ target }) => {
+                        await updateEntry(log, {
+                          isBillableFlight: !target.checked,
+                        })
+                      }}
+                    />
+                  </Grid>
+                </>
+              ) : (
+                <>
+                  <ViewMobileFlightDetails
+                    size={6}
+                    numberOfLandings={log.numberOfLandings}
+                    flightType={log.flightType}
+                  >
+                    <Checkbox
+                      checked={log.isBillableFlight == false}
+                      onChange={async ({ target }) => {
+                        await updateEntry(log, {
+                          isBillableFlight: !target.checked,
+                        })
+                      }}
+                    />
+                  </ViewMobileFlightDetails>
+
+                  <ViewMobileCrew
+                    size={3}
+                    personsOnBoard={log.personsOnBoard}
+                    crew={[log.billableMemberLastName]}
+                  />
+
+                  <ViewMobileFlightTime
+                    size={8}
+                    departureAirport={log.departureAirport}
+                    arrivalAirport={log.arrivalAirport}
+                    takeoffTimeUtc={log.takeoffTimeUtc}
+                    landingTimeUtc={log.landingTimeUtc}
+                    flightTime={log.flightTime}
+                  />
+
+                  <Grid size={12}>{log.billingRemarks}</Grid>
+                </>
               )}
-            </RemoteContent>
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </>
+          )}
+        />
+      </RemoteContent>
 
       <Pagination
         count={data?.pages ?? 1}
@@ -195,7 +221,7 @@ export const InvoicingFlights = ({
           onClick={navigate.previous}
           sx={{ mr: 1 }}
         >
-          {t('invoicing.back')}
+          {t('general.back')}
         </Button>
         <Box sx={{ flex: '1 1 auto' }} />
         <Button color='primary' variant='contained' onClick={handleNext}>

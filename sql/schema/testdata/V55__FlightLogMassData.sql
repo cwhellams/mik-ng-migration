@@ -66,9 +66,9 @@ SELECT 'mass' || i,
     'EFHK',
     'EFHK',
     CASE
-        WHEN i = 100 THEN 'SII'
-        WHEN i = 101 THEN 'KOE'
-        ELSE 'HAR'
+        WHEN i = 100 THEN 'FERRY'
+        WHEN i = 101 THEN 'TEST_FLIGHT'
+        ELSE 'PRIVATE'
     END,
     NULL,
     NULL,

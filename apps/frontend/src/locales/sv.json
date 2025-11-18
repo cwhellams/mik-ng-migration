@@ -2,6 +2,7 @@
   "header": {
     "dashboard": "Instrumentpanel",
     "schedule": "Schema",
+    "fly": "Flyga",
     "aircrafts": "Flygplan",
     "members": "Medlemmar",
     "documents": "Dokument",
@@ -16,7 +17,8 @@
     "roles": "Användarroller",
     "billing": "Fakturering",
     "accounts": "Konton",
-    "accessCodes": "Åtkomstkoder"
+    "accessCodes": "Åtkomstkoder",
+    "club": "Klubb"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -83,6 +85,7 @@
     "roles": "Roller",
     "trainingProgram": "Utbildningsprogram",
     "noRolesAssigned": "Inga roller tilldelade",
+    "noMembersFound": "Inga medlemmar hittades",
     "avatar": "Bild",
     "edit": {
       "register": "Lägg till ny användare",
@@ -334,7 +337,9 @@
     "backToHome": "Tillbaka till startsidan",
     "logout": "Logga ut",
     "loadingMemberData": "Fel vid laddning av medlemsdata",
-    "noAccess": "Ingen åtkomst"
+    "noAccess": "Ingen åtkomst",
+    "refreshRequired": "Ny version tillgänglig, vänligen uppdatera sidan",
+    "noRows": "Inga rader"
   },
   "roles": {
     "name": {
@@ -371,6 +376,7 @@
     "savingError": "Fel vid sparande",
     "cancel": "Avbryt",
     "delete": "Radera",
+    "back": "Tillbaka",
     "view": "Visa",
     "dateFormat": "YYYY-MM-DD"
   },
@@ -405,7 +411,8 @@
       "instruction": "Instruktion",
       "equipmentFee": "Utrustningsavgift",
       "misc": "Övrigt"
-    }
+    },
+    "noInvoicesFound": "Inga fakturor hittades"
   },
   "invoiceItems": {
     "title": "Fakturaposter",
@@ -436,7 +443,7 @@
     "copilot": "Andrepilot",
     "departure": "Start",
     "arrival": "Landning",
-    "blockTime": "Blocktid",
+    "duration": "Varaktighet",
     "airborneTime": "Luftburen tid",
     "landings": "Landningar",
     "flightType": "Typ",
@@ -477,11 +484,9 @@
     "personsOnBoard": "Personer ombord",
     "numberOfLandings": "Antal landningar",
 
-    "nightFlying": "Nattflyg",
+    "nightInstrumentFlying": "Natt- och instrumentflyg",
     "nightFlyingMins": "Natttimmar (TT:MM)",
     "numberOfNightLandings": "Antal nattlandningar",
-
-    "instrumentFlying": "Instrumentflyg",
     "instrumentFlyingMins": "Instrumenttimmar (TT:MM)",
     "fuelInfo": "Bränsle- och oljeinformation",
     "fuelUpliftLitres": "Bränslepåfyllning (liter)",
@@ -593,7 +598,6 @@
     "completeCommentedFlights": "Bekräfta kommenterade flyg",
     "complete": "Skicka flyg till fakturering",
     "success": "Faktureringskörning startad framgångsrikt",
-    "back": "Tillbaka",
     "restart": "Starta om"
   },
   "registrationVerify": {

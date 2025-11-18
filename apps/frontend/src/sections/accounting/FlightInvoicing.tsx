@@ -19,11 +19,12 @@ import { dayjs } from '../../utils/date'
 import { useState } from 'react'
 import { InvoicingRange } from './components/InvoicingRange'
 import { InvoicingFlights } from './components/InvoicingFlights'
+import { Title } from '../../components/Title'
 
 const steps = [
   { code: undefined, labelKey: 'invoicing.range' },
-  { code: InvoicableFlights.KOE, labelKey: 'invoicing.testFlights' },
-  { code: InvoicableFlights.SII, labelKey: 'invoicing.ferryFlights' },
+  { code: InvoicableFlights.TEST_FLIGHT, labelKey: 'invoicing.testFlights' },
+  { code: InvoicableFlights.FERRY, labelKey: 'invoicing.ferryFlights' },
   {
     code: InvoicableFlights.COMMENT,
     labelKey: 'invoicing.withBillingComments',
@@ -37,7 +38,7 @@ export const FlightInvoicing = () => {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [filters, setFilters] = useState<InvoicableFlightFilters>({
-    flights: InvoicableFlights.KOE,
+    flights: InvoicableFlights.TEST_FLIGHT,
     aircraftRegistration: searchParams.get('registration') ?? '',
     endDate:
       searchParams.get('end') ??
@@ -72,9 +73,7 @@ export const FlightInvoicing = () => {
 
   return (
     <Box>
-      <Typography variant={isXs ? 'h4' : 'h2'} gutterBottom mb={3}>
-        {t('invoicing.title')}
-      </Typography>
+      <Title label={t('invoicing.title')} />
 
       <Stepper
         orientation={isXs ? 'vertical' : 'horizontal'}
@@ -98,7 +97,7 @@ export const FlightInvoicing = () => {
 
       {activeStep === 1 && (
         <InvoicingFlights
-          filters={{ ...filters, flights: InvoicableFlights.KOE }}
+          filters={{ ...filters, flights: InvoicableFlights.TEST_FLIGHT }}
           setFilters={setFilters}
           navigate={navigate}
         />
@@ -106,7 +105,7 @@ export const FlightInvoicing = () => {
 
       {activeStep === 2 && (
         <InvoicingFlights
-          filters={{ ...filters, flights: InvoicableFlights.SII }}
+          filters={{ ...filters, flights: InvoicableFlights.FERRY }}
           setFilters={setFilters}
           navigate={navigate}
         />

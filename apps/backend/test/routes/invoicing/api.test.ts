@@ -82,8 +82,8 @@ describe('Invoice Simplbooks tests', () => {
     jest.spyOn(simplbooksApiClient, 'post').mockImplementation(mockSimplbooksPost)
   })
 
-  afterAll(() => {
-    deleteCreatedInvoiceItems()
+  afterAll(async () => {
+    await deleteCreatedInvoiceItems()
   })
 
   it('should refresh items', async () => {

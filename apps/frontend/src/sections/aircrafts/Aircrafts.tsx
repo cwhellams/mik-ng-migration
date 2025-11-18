@@ -33,6 +33,7 @@ import {
 import dayjs from 'dayjs'
 import MIKLogo from '../../assets/mik-logo-blue.png'
 import ProgressLine from './components/Progress'
+import { Title } from '../../components/Title'
 
 const Aircrafts = () => {
   const { data, isLoading, error } = useApi<AircraftListResponse, Aircraft>({
@@ -93,26 +94,19 @@ const Aircrafts = () => {
   }
 
   return (
-    <Box sx={{ position: 'relative' }}>
-      <Typography variant='h2' gutterBottom>
-        {t('header.aircrafts')}
-      </Typography>
-
-      {isAircraftAdmin && (
-        <EditButton
-          title={t('aircraft.edit.new')}
-          onClick={() => {
-            setEditData(undefined)
-            setEditMode('new')
-          }}
-          icon='mdi:plus'
-          sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-          }}
-        />
-      )}
+    <Box>
+      <Title label={t('header.aircrafts')}>
+        {isAircraftAdmin && (
+          <EditButton
+            title={t('aircraft.edit.new')}
+            onClick={() => {
+              setEditData(undefined)
+              setEditMode('new')
+            }}
+            icon='mdi:plus'
+          />
+        )}
+      </Title>
 
       <RemoteContent isLoading={isLoading} error={error}>
         <Stack

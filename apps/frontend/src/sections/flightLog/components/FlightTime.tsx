@@ -102,7 +102,7 @@ export const FlightTime = ({
 
   return (
     <>
-      <Grid size={{ xs: 12, md: 6 }}>
+      <Grid size={{ xs: 12, sm: 6 }}>
         <DatePicker
           label={t('flightLog.flightDate')}
           value={flightDate}
@@ -119,7 +119,7 @@ export const FlightTime = ({
           }}
         />
       </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
+      <Grid size={{ xs: 12, sm: 6 }}>
         <Box>
           <Typography variant='body2' gutterBottom>
             {t('flightLog.timeZone')}
@@ -173,7 +173,7 @@ export const FlightTime = ({
           {t('flightLog.timeInputFormat')}
         </Typography>
       </Grid>
-      <Grid size={{ xs: 12, md: 3 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <TimeStringEditor
           label={t('flightLog.offBlockTime')}
           control={control}
@@ -185,7 +185,7 @@ export const FlightTime = ({
           deps={getValues('takeoffTimeEpoch') ? ['takeoffTimeEpoch'] : []}
         />
       </Grid>
-      <Grid size={{ xs: 12, md: 3 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <TimeStringEditor
           label={t('flightLog.takeoffTime')}
           control={control}
@@ -197,7 +197,7 @@ export const FlightTime = ({
           deps={getValues('landingTimeEpoch') ? ['landingTimeEpoch'] : []}
         />
       </Grid>
-      <Grid size={{ xs: 12, md: 3 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <TimeStringEditor
           label={t('flightLog.landingTime')}
           control={control}
@@ -209,7 +209,7 @@ export const FlightTime = ({
           deps={getValues('onBlockTimeEpoch') ? ['onBlockTimeEpoch'] : []}
         />
       </Grid>
-      <Grid size={{ xs: 12, md: 3 }}>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <TimeStringEditor
           label={t('flightLog.onBlockTime')}
           control={control}

@@ -1,17 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   Box,
+  Grid,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
-  Paper,
   IconButton,
   Button,
   useTheme,
-  Alert,
   Chip,
   useMediaQuery,
   CircularProgress,
@@ -27,6 +21,8 @@ import type {
 } from '@backend/routes/secrets/models'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
+import { Title } from '../../components/Title'
+import { ResponsiveTable } from '../flightLog/components/ResponsiveTable'
 
 // Pie-style countdown timer component
 interface CountdownTimerProps {
@@ -217,215 +213,164 @@ export const AccessCodes: React.FC = () => {
 
   return (
     <RemoteContent isLoading={isLoading} error={error}>
-      <Box sx={{ p: { xs: 2, md: 3 } }}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 3,
-            flexDirection: { xs: 'column', sm: 'row' },
-            gap: 2,
-          }}
-        >
-          <Typography variant='h4' component='h1'>
-            {t('accessCodes.title')}
-          </Typography>
-
-          {isAccessCodesAdmin && (
-            <Button
-              variant='contained'
-              startIcon={<Icon icon='mdi:plus' />}
-              onClick={handleNewSecret}
-              size={isMobile ? 'medium' : 'large'}
-              sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
-            >
-              {t('accessCodes.addSecret')}
-            </Button>
-          )}
-        </Box>
-
-        {data?.secrets.length === 0 ? (
-          <Alert severity='info'>{t('accessCodes.noSecrets')}</Alert>
-        ) : (
-          <TableContainer
-            component={Paper}
-            sx={{
-              boxShadow: theme.shadows[1],
-              '& .MuiTable-root': {
-                minWidth: { xs: 'auto', md: 650 },
-              },
-            }}
+      <Title label={t('accessCodes.title')}>
+        {isAccessCodesAdmin && (
+          <Button
+            variant='contained'
+            startIcon={<Icon icon='mdi:plus' />}
+            onClick={handleNewSecret}
+            size={isMobile ? 'medium' : 'large'}
+            sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
           >
-            <Table>
-              <TableBody>
-                {data?.secrets.map((secret) => {
-                  const isVisible = visibleSecrets.has(secret.id)
-                  return (
-                    <TableRow
-                      key={secret.id}
+            {t('accessCodes.addSecret')}
+          </Button>
+        )}
+      </Title>
+
+      <ResponsiveTable
+        notFoundMsg={t('accessCodes.noSecrets')}
+        rows={data?.secrets}
+        rowProps={() => ({
+          '&:hover': {
+            backgroundColor: theme.palette.action.hover,
+          },
+        })}
+        row={(secret) => {
+          const isVisible = visibleSecrets.has(secret.id)
+          return (
+            <>
+              <Grid size={{ xs: 12, sm: 6 }}>{secret.secretKey}</Grid>
+              <Grid size={{ xs: isAccessCodesAdmin ? 10 : 12, sm: 4 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                  onClick={() => toggleSecretVisibility(secret.id)}
+                >
+                  {isVisible ? (
+                    <>
+                      <Typography
+                        component='span'
+                        sx={{
+                          fontFamily: 'monospace',
+                          fontSize: { xs: '0.875rem', md: '1rem' },
+                          wordBreak: 'break-all',
+                        }}
+                      >
+                        {secret.secretValue}
+                      </Typography>
+                      <CountdownTimer
+                        duration={10}
+                        onComplete={() => {
+                          setVisibleSecrets((prev) => {
+                            const updated = new Set(prev)
+                            updated.delete(secret.id)
+                            return updated
+                          })
+                          setSecretTimers((prev) => {
+                            const updated = new Map(prev)
+                            updated.delete(secret.id)
+                            return updated
+                          })
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <Typography
+                      component='span'
                       sx={{
+                        color: theme.palette.text.secondary,
+                        letterSpacing: '0.1em',
+                        fontSize: { xs: '1rem', md: '1.2rem' },
+                      }}
+                    >
+                      •••••••
+                    </Typography>
+                  )}
+
+                  <Chip
+                    size='small'
+                    label={
+                      isVisible
+                        ? t('accessCodes.hideValue')
+                        : t('accessCodes.showValue')
+                    }
+                    variant='outlined'
+                    sx={{
+                      fontSize: '0.75rem',
+                      height: 24,
+                      display: { xs: 'none', sm: 'flex' },
+                    }}
+                  />
+                </Box>
+              </Grid>
+
+              {isAccessCodesAdmin && (
+                <Grid size={{ xs: 2, md: 2 }} textAlign='right'>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      gap: 1,
+                      justifyContent: 'flex-end',
+                    }}
+                  >
+                    <IconButton
+                      size='small'
+                      onClick={() => handleEditSecret(secret)}
+                      title={t('accessCodes.editSecret')}
+                      sx={{
+                        color: theme.palette.primary.main,
                         '&:hover': {
-                          backgroundColor: theme.palette.action.hover,
+                          backgroundColor: theme.palette.primary.main + '10',
                         },
                       }}
                     >
-                      <TableCell
-                        sx={{
-                          width: { xs: '40%', md: '30%' },
-                          fontWeight: 500,
-                        }}
-                      >
-                        {secret.secretKey}
-                      </TableCell>
+                      <Icon icon='mdi:pencil' />
+                    </IconButton>
 
-                      <TableCell
-                        sx={{
-                          width: { xs: '40%', md: '50%' },
-                          position: 'relative',
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            cursor: 'pointer',
-                            userSelect: 'none',
-                          }}
-                          onClick={() => toggleSecretVisibility(secret.id)}
-                        >
-                          {isVisible ? (
-                            <>
-                              <Typography
-                                component='span'
-                                sx={{
-                                  fontFamily: 'monospace',
-                                  fontSize: { xs: '0.875rem', md: '1rem' },
-                                  wordBreak: 'break-all',
-                                }}
-                              >
-                                {secret.secretValue}
-                              </Typography>
-                              <CountdownTimer
-                                duration={10}
-                                onComplete={() => {
-                                  setVisibleSecrets((prev) => {
-                                    const updated = new Set(prev)
-                                    updated.delete(secret.id)
-                                    return updated
-                                  })
-                                  setSecretTimers((prev) => {
-                                    const updated = new Map(prev)
-                                    updated.delete(secret.id)
-                                    return updated
-                                  })
-                                }}
-                              />
-                            </>
-                          ) : (
-                            <Typography
-                              component='span'
-                              sx={{
-                                color: theme.palette.text.secondary,
-                                letterSpacing: '0.1em',
-                                fontSize: { xs: '1rem', md: '1.2rem' },
-                              }}
-                            >
-                              •••••••
-                            </Typography>
-                          )}
+                    <IconButton
+                      size='small'
+                      onClick={() => handleDeleteSecret(secret)}
+                      title={t('accessCodes.deleteSecret')}
+                      disabled={deleteMutation.isMutating}
+                      sx={{
+                        color: theme.palette.error.main,
+                        '&:hover': {
+                          backgroundColor: theme.palette.error.main + '10',
+                        },
+                      }}
+                    >
+                      <Icon icon='mdi:delete' />
+                    </IconButton>
+                  </Box>
+                </Grid>
+              )}
+            </>
+          )
+        }}
+      />
 
-                          <Chip
-                            size='small'
-                            label={
-                              isVisible
-                                ? t('accessCodes.hideValue')
-                                : t('accessCodes.showValue')
-                            }
-                            variant='outlined'
-                            sx={{
-                              fontSize: '0.75rem',
-                              height: 24,
-                              display: { xs: 'none', sm: 'flex' },
-                            }}
-                          />
-                        </Box>
-                      </TableCell>
+      <SecretDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onSuccess={handleDialogSuccess}
+        secret={editingSecret}
+      />
 
-                      {isAccessCodesAdmin && (
-                        <TableCell
-                          sx={{
-                            width: { xs: '20%', md: '20%' },
-                            textAlign: 'right',
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              gap: 1,
-                              justifyContent: 'flex-end',
-                            }}
-                          >
-                            <IconButton
-                              size='small'
-                              onClick={() => handleEditSecret(secret)}
-                              title={t('accessCodes.editSecret')}
-                              sx={{
-                                color: theme.palette.primary.main,
-                                '&:hover': {
-                                  backgroundColor:
-                                    theme.palette.primary.main + '10',
-                                },
-                              }}
-                            >
-                              <Icon icon='mdi:pencil' />
-                            </IconButton>
-
-                            <IconButton
-                              size='small'
-                              onClick={() => handleDeleteSecret(secret)}
-                              title={t('accessCodes.deleteSecret')}
-                              disabled={deleteMutation.isMutating}
-                              sx={{
-                                color: theme.palette.error.main,
-                                '&:hover': {
-                                  backgroundColor:
-                                    theme.palette.error.main + '10',
-                                },
-                              }}
-                            >
-                              <Icon icon='mdi:delete' />
-                            </IconButton>
-                          </Box>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-
-        <SecretDialog
-          open={dialogOpen}
-          onClose={() => setDialogOpen(false)}
-          onSuccess={handleDialogSuccess}
-          secret={editingSecret}
-        />
-
-        <ConfirmDialog
-          open={deleteConfirmOpen}
-          onClose={() => setDeleteConfirmOpen(false)}
-          onConfirm={confirmDelete}
-          title={t('accessCodes.deleteSecret')}
-          message={t('accessCodes.confirmDelete')}
-          confirmText={t('general.delete')}
-          cancelText={t('general.cancel')}
-          severity='error'
-        />
-      </Box>
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        title={t('accessCodes.deleteSecret')}
+        message={t('accessCodes.confirmDelete')}
+        confirmText={t('general.delete')}
+        cancelText={t('general.cancel')}
+        severity='error'
+      />
     </RemoteContent>
   )
 }

@@ -121,12 +121,15 @@ export type APIMutation<Data> = {
   isMutating: boolean
 
   // trigger the mutation with any payload, and return responses
-  trigger: <T>(
+  trigger: <Payload, ResponseData = Data>(
     method: MutateMethods,
-    payload: T,
+    payload?: Payload,
     id?: string,
-    options?: SWRMutationConfiguration<AxiosResponse<Data>, AxiosError<Problem>>
-  ) => Promise<APIResponse<Data>>
+    options?: SWRMutationConfiguration<
+      AxiosResponse<ResponseData>,
+      AxiosError<Problem>
+    >
+  ) => Promise<APIResponse<ResponseData>>
 }
 
 export type MutateMethods = 'GET' | 'POST' | 'PATCH' | 'DELETE'
@@ -279,8 +282,4 @@ export default function useApi<
 
     ...rest,
   }
-}
-
-export async function getUrl(url: string): Promise<unknown> {
-  return await api.get(url)
 }

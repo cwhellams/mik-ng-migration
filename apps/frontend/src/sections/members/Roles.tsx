@@ -1,15 +1,4 @@
-import {
-  Typography,
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Stack,
-} from '@mui/material'
+import { Typography, Box, Grid, Stack } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { useRoles } from '../../hooks/useRoles'
 import { Icon } from '@iconify/react'
@@ -20,6 +9,8 @@ import { useState } from 'react'
 import { MemberRoleEditor } from './components/EditRoleModal'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Upsert } from '@backend/types/schema'
+import { Title } from '../../components/Title'
+import { ResponsiveTable } from '../flightLog/components/ResponsiveTable'
 
 const Roles = () => {
   const { t } = useTranslation()
@@ -48,62 +39,54 @@ const Roles = () => {
   }
 
   return (
-    <Box sx={{ position: 'relative' }}>
-      <Typography variant='h2' gutterBottom>
-        {t('header.roles')}
-      </Typography>
-      <EditButton
-        title={t('roles.newRole')}
-        onClick={handleNewRole}
-        icon='mdi:plus'
-        sx={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-        }}
-      />
+    <Box>
+      <Title label={t('header.roles')}>
+        <EditButton
+          title={t('roles.newRole')}
+          onClick={handleNewRole}
+          icon='mdi:plus'
+        />
+      </Title>
 
-      <TableContainer component={Paper}>
-        <Table aria-label='simple table'>
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('roles.roleId')}</TableCell>
-              <TableCell width={50}>{t('roles.isPublic')}</TableCell>
-              <TableCell align='right'>{t('roles.permissions')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <RemoteContent error={error} colSpan={3}>
-              {roles.map((row) => (
-                <TableRow
-                  key={row.roleId}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell component='th' scope='row'>
-                    <Stack direction='column' display='flex'>
-                      <Link to={'#'} onClick={() => handleEditMode(row)}>
-                        {row.roleId}
-                      </Link>
-                      <Box>{row.name[MIKLang.EN]}</Box>
-                      <Box>{row.name[MIKLang.FI]}</Box>
-                    </Stack>
-                  </TableCell>
-                  <TableCell sx={{ fontSize: 20 }}>
-                    {row.isPublic && <Icon icon='mdi:check' color='green' />}
-                  </TableCell>
-                  <TableCell align='right'>
-                    {row.permissions?.map((perm) => (
-                      <Typography variant='body2' key={perm}>
-                        {perm}
-                      </Typography>
-                    ))}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </RemoteContent>
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <RemoteContent error={error}>
+        <ResponsiveTable
+          header={
+            <>
+              <Grid>{t('roles.roleId')}</Grid>
+              <Grid width={25}>{t('roles.isPublic')}</Grid>
+              <Grid textAlign='right'>{t('roles.permissions')}</Grid>
+            </>
+          }
+          notFoundMsg={t('error.noRows')}
+          rows={roles}
+          row={(row) => (
+            <>
+              <Grid size={{ xs: 6, md: 5 }}>
+                <Stack direction='column' display='flex'>
+                  <Link to={'#'} onClick={() => handleEditMode(row)}>
+                    {row.roleId}
+                  </Link>
+                  <Box>{row.name[MIKLang.EN]}</Box>
+                  <Box>{row.name[MIKLang.FI]}</Box>
+                </Stack>
+              </Grid>
+              <Grid size={{ xs: 6, md: 2 }}>
+                {row.isPublic && (
+                  <Icon icon='mdi:check' color='green' fontSize={20} />
+                )}
+              </Grid>
+              <Grid size={{ xs: 12, md: 5 }} textAlign='right'>
+                {row.permissions?.map((perm) => (
+                  <Typography variant='body2' key={perm}>
+                    {perm}
+                  </Typography>
+                ))}
+              </Grid>
+            </>
+          )}
+        />
+      </RemoteContent>
+
       <MemberRoleEditor
         role={editMode}
         onClose={() => setEditMode(undefined)}

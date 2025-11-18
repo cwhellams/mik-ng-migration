@@ -47,6 +47,7 @@ import { BillableMember } from './components/BillableMember'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../components/SaveButton'
+import { Title } from '../../components/Title'
 
 const flightTypes: FlightType[] = [FlightType.PRIVATE, FlightType.SCHOOL]
 
@@ -214,22 +215,20 @@ const FlightLogEntry = () => {
         <Link to='/flight-logs'>{t('flightLog.title')}</Link>
         <Typography color='text.primary'>{title}</Typography>
       </Breadcrumbs>
-      {/* Page title */}
-      <Typography variant='h2' gutterBottom>
-        {title}
-      </Typography>
+
+      <Title label={title} />
 
       <Paper sx={{ p: 3, mt: 2 }}>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Grid container spacing={3}>
             {/* Aircraft Information */}
-            <Grid size={{ xs: 12 }}>
-              <Typography variant='h6' gutterBottom>
+            <Grid size={12}>
+              <Typography variant='h6'>
                 {t('flightLog.aircraftInfo')}
               </Typography>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl
                 required
                 fullWidth
@@ -290,7 +289,7 @@ const FlightLogEntry = () => {
               </FormControl>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl required fullWidth error={!!errors.flightType}>
                 <InputLabel>{t('flightLog.flightType')}</InputLabel>
                 <Controller
@@ -324,12 +323,10 @@ const FlightLogEntry = () => {
             </Grid>
 
             {/* Flight Crew */}
-            <Grid size={{ xs: 12 }}>
-              <Typography variant='h6' gutterBottom>
-                {t('flightLog.crew')}
-              </Typography>
+            <Grid size={12}>
+              <Typography variant='h6'>{t('flightLog.crew')}</Typography>
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={12}>
               <FlightCrew
                 flightType={watch('flightType')}
                 maximumCrewCount={aircraft?.seats ?? 0}
@@ -341,10 +338,8 @@ const FlightLogEntry = () => {
             </Grid>
 
             {/* Flight Date and Time Settings */}
-            <Grid size={{ xs: 12 }}>
-              <Typography variant='h6' gutterBottom>
-                {t('flightLog.times')}
-              </Typography>
+            <Grid size={12}>
+              <Typography variant='h6'>{t('flightLog.times')}</Typography>
             </Grid>
 
             <FlightTime
@@ -357,7 +352,7 @@ const FlightLogEntry = () => {
             />
 
             {/* Flight Timeline Visualization */}
-            <Grid size={{ xs: 12 }}>
+            <Grid size={12}>
               <FlightTimeline
                 offBlockTime={epochToDayjs('offBlockTimeEpoch')}
                 takeoffTime={epochToDayjs('takeoffTimeEpoch')}
@@ -371,13 +366,13 @@ const FlightLogEntry = () => {
             </Grid>
 
             {/* Additional flight info */}
-            <Grid size={{ xs: 12 }}>
-              <Typography variant='h6' gutterBottom>
+            <Grid size={12}>
+              <Typography variant='h6'>
                 {t('flightLog.additionalInfo')}
               </Typography>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Airfields
                 name='departureAirport'
                 control={control}
@@ -386,7 +381,7 @@ const FlightLogEntry = () => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Airfields
                 name='arrivalAirport'
                 control={control}
@@ -395,7 +390,7 @@ const FlightLogEntry = () => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <PersonsOnBoard
                 control={control}
                 seats={aircraft?.seats ?? 0}
@@ -408,7 +403,7 @@ const FlightLogEntry = () => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <NumberOfLandings
                 name='numberOfLandings'
                 control={control}
@@ -417,38 +412,36 @@ const FlightLogEntry = () => {
             </Grid>
 
             {/* Night and Instrument Flying    */}
-            <Grid size={{ xs: 12 }}>
-              <Typography variant='h6' gutterBottom>
-                {t('flightLog.nightFlying')}
+            <Grid size={12}>
+              <Typography variant='h6'>
+                {t('flightLog.nightInstrumentFlying')}
               </Typography>
             </Grid>
-            <Stack spacing={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <MinutesField
                 name='nightFlyingMins'
                 control={control}
                 disabled={!isEditable}
               />
-
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <NumberOfLandings
                 name='numberOfNightLandings'
                 control={control}
                 disabled={!isEditable}
                 min={0}
               />
-
-              <Typography variant='h6' gutterBottom>
-                {t('flightLog.instrumentFlying')}
-              </Typography>
-
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <MinutesField
                 name='instrumentFlyingMins'
                 control={control}
                 disabled={!isEditable}
               />
-            </Stack>
+            </Grid>
 
             {/* Fuel and Oil */}
-            <Grid size={{ xs: 12 }}>
+            <Grid size={12}>
               <Typography sx={{ mt: 4 }} variant='h6'>
                 {t('flightLog.fuelInfo')}
               </Typography>
@@ -462,7 +455,7 @@ const FlightLogEntry = () => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TxtField
                 name='fuelUpliftLitres'
                 control={control}
@@ -476,7 +469,7 @@ const FlightLogEntry = () => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TxtField
                 name='oilUpliftLitres'
                 control={control}
@@ -489,10 +482,8 @@ const FlightLogEntry = () => {
             </Grid>
 
             {/* Billing Information */}
-            <Grid size={{ xs: 12 }}>
-              <Typography variant='h6' gutterBottom>
-                {t('flightLog.billingInfo')}
-              </Typography>
+            <Grid size={12}>
+              <Typography variant='h6'>{t('flightLog.billingInfo')}</Typography>
             </Grid>
 
             {isFlightLogAdmin && (
@@ -502,7 +493,7 @@ const FlightLogEntry = () => {
             )}
 
             {!isNew && isFlightLogAdmin && (
-              <Grid size={{ xs: 12 }}>
+              <Grid size={12}>
                 <FormControl required fullWidth error={!!errors.flightType}>
                   <InputLabel>{t('invoicing.isFreeFlight')}</InputLabel>
                   <Controller
@@ -519,7 +510,7 @@ const FlightLogEntry = () => {
               </Grid>
             )}
 
-            <Grid size={{ xs: 12 }}>
+            <Grid size={12}>
               <TxtField
                 name='billingRemarks'
                 control={control}
@@ -531,7 +522,7 @@ const FlightLogEntry = () => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12 }}>
+            <Grid size={12}>
               <TxtField
                 name='personalRemarks'
                 control={control}
@@ -543,7 +534,7 @@ const FlightLogEntry = () => {
             </Grid>
 
             {data && (
-              <Grid size={{ xs: 12 }}>
+              <Grid size={12}>
                 <StatusDisplay
                   log={data}
                   showButton={isFlightLogAdmin && !isInvoiced}

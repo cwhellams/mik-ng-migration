@@ -92,11 +92,12 @@ export const FlightLogQuery = ({ filters, setFilters, logbooks }: Props) => {
                   book.aircraftRegistration == aircraftRegistration &&
                   book.seqNo == Number(seqNo)
               )
+
               setFilters({
                 ...filters,
                 aircraftRegistration: book?.aircraftRegistration,
                 ajlbSeqNo: book?.seqNo,
-                page: book?.view?.lastPage ?? book?.startPage ?? 1,
+                page: book?.view?.lastPage ?? book?.startPage,
               })
             }}
           >

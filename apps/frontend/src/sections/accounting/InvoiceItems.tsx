@@ -1,149 +1,87 @@
 import React from 'react'
-import {
-  Box,
-  Typography,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  TableContainer,
-  Paper,
-  Button,
-  useMediaQuery,
-  useTheme,
-  Tooltip,
-} from '@mui/material'
+import { Box, Typography, Button, useTheme, Tooltip } from '@mui/material'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import { ItemListResponse } from '@backend/routes/invoicing/models'
 import useApi from '../../hooks/useApi'
 import { eurFormatter } from '../../utils/format'
 import { RemoteContent } from '../../components/RemoteContent'
 import { t } from 'i18next'
+import { Title } from '../../components/Title'
+import { ResponsiveTable } from '../flightLog/components/ResponsiveTable'
+import Grid from '@mui/system/Grid'
 
 export const InvoiceItemsPage: React.FC = () => {
   const theme = useTheme()
-  const isXs = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const { data, isLoading, error, mutate } = useApi<ItemListResponse>(
+  const { data, isLoading, error, mutate, mutation } = useApi<ItemListResponse>(
     { url: 'v1/invoices/items' },
     { keepPreviousData: true }
   )
-  const { mutation: refreshMutation } = useApi<ItemListResponse>({
-    url: 'v1/invoices/items/refresh',
-    skipFetch: true,
-  })
 
   const handleRefresh = async () => {
-    const res = await refreshMutation.trigger('PATCH', {})
+    const res = await mutation.trigger('PATCH', {}, 'refresh')
     if (res.data) mutate()
   }
 
   return (
     <RemoteContent isLoading={isLoading} error={error}>
+      {/* Info Box */}
       <Box
         sx={{
-          p: 3,
-          maxWidth: 1000,
-          justifyContent: 'left',
+          mb: 2,
+          p: 2,
+          borderRadius: 2,
+          backgroundColor: theme.palette.info.light,
+          color: theme.palette.info.contrastText,
         }}
       >
-        {/* Info Box */}
-        <Box
-          sx={{
-            mb: 2,
-            p: 2,
-            borderRadius: 2,
-            backgroundColor: theme.palette.info.light,
-            color: theme.palette.info.contrastText,
-          }}
-        >
-          <Typography variant='body1'>{t('invoiceItems.infoText')}</Typography>
-        </Box>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 3,
-          }}
-        >
-          <Typography variant={isXs ? 'h6' : 'h4'} fontWeight='bold'>
-            {t('invoiceItems.title')}
-          </Typography>
-
-          <Tooltip title={t('invoiceItems.reloadFromSimplbooksTooltip')}>
-            <span>
-              {' '}
-              {/* Needed to avoid Tooltip warning when button is disabled */}
-              <Button
-                variant='outlined'
-                loading={refreshMutation.isMutating}
-                loadingPosition='start'
-                startIcon={<RefreshIcon />}
-                onClick={handleRefresh}
-              >
-                {t('invoiceItems.reloadFromSimplbooks')}
-              </Button>
-            </span>
-          </Tooltip>
-        </Box>
-
-        {data && data.items.length === 0 ? (
-          <Typography align='center'>
-            {t('invoiceItems.noItemsFound')}
-          </Typography>
-        ) : (
-          <TableContainer
-            component={Paper}
-            sx={{
-              maxHeight: 500, // or any height that makes sense for your layout
-              overflowY: 'auto',
-            }}
-          >
-            <Table size={isXs ? 'small' : 'medium'}>
-              <TableHead sx={{ backgroundColor: theme.palette.grey[200] }}>
-                <TableRow>
-                  <TableCell>
-                    <strong>{t('invoiceItems.id')}</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>{t('invoiceItems.code')}</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>{t('invoiceItems.name')}</strong>
-                  </TableCell>
-                  <TableCell align='right'>
-                    <strong>{t('invoiceItems.markup')}</strong>
-                  </TableCell>
-                  <TableCell align='center'>
-                    <strong>{t('invoiceItems.type')}</strong>
-                  </TableCell>
-                  <TableCell align='center'>
-                    <strong>{t('invoiceItems.unit')}</strong>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {(data?.items ?? []).map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.id}</TableCell>
-                    <TableCell>{item.code}</TableCell>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell align='right'>
-                      {eurFormatter.format(item.markup_value ?? 0)}
-                    </TableCell>
-                    <TableCell align='center'>
-                      {item.markup_type ?? 'N/A'}
-                    </TableCell>
-                    <TableCell align='center'>{item.unit ?? 'N/A'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
+        <Typography variant='body1'>{t('invoiceItems.infoText')}</Typography>
       </Box>
+
+      <Title label={t('invoiceItems.title')}>
+        <Tooltip title={t('invoiceItems.reloadFromSimplbooksTooltip')}>
+          <span>
+            {' '}
+            {/* Needed to avoid Tooltip warning when button is disabled */}
+            <Button
+              variant='outlined'
+              loading={mutation.isMutating}
+              loadingPosition='start'
+              startIcon={<RefreshIcon />}
+              onClick={handleRefresh}
+            >
+              {t('invoiceItems.reloadFromSimplbooks')}
+            </Button>
+          </span>
+        </Tooltip>
+      </Title>
+
+      <ResponsiveTable
+        notFoundMsg={t('invoiceItems.noItemsFound')}
+        header={
+          <>
+            <Grid size={{ xs: 3, md: 1 }}>{t('invoiceItems.id')}</Grid>
+            <Grid size={{ xs: 9, md: 1 }}>{t('invoiceItems.code')}</Grid>
+            <Grid size={{ xs: 12, md: 6 }}>{t('invoiceItems.name')}</Grid>
+            <Grid size={{ xs: 4, md: 1 }}>{t('invoiceItems.markup')}</Grid>
+            <Grid size={{ xs: 4, md: 2 }}>{t('invoiceItems.type')}</Grid>
+            <Grid size={{ xs: 4, md: 1 }}>{t('invoiceItems.unit')}</Grid>
+          </>
+        }
+        rows={data?.items}
+        row={(item) => (
+          <>
+            <Grid size={{ xs: 3, md: 1 }}>{item.id}</Grid>
+            <Grid size={{ xs: 9, md: 1 }}>{item.code}</Grid>
+            <Grid size={{ xs: 12, md: 6 }}>{item.name}</Grid>
+            <Grid size={{ xs: 4, md: 1 }}>
+              {eurFormatter.format(item.markup_value ?? 0)}
+            </Grid>
+            <Grid size={{ xs: 4, md: 2 }}>{item.markup_type ?? 'N/A'}</Grid>
+            <Grid size={{ xs: 4, md: 1 }}>{item.unit ?? 'N/A'}</Grid>
+          </>
+        )}
+      />
     </RemoteContent>
   )
 }

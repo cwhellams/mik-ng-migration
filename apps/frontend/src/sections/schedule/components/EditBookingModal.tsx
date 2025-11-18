@@ -388,7 +388,7 @@ export const BookingEditor = ({
 
           <Grid display='flex' gap={2}>
             <Button onClick={onClose} color='inherit'>
-              {t('general.cancel', 'Cancel')}
+              {t('general.back')}
             </Button>
 
             {!isCancelledBooking && !isReadonly && (
