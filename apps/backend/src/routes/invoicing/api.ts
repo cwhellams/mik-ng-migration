@@ -3,11 +3,13 @@ import { Router, type Request, type Response } from 'express'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
 import {
+  getAnnualEquipmmentFee,
   getInvoiceItems,
   getInvoices,
   getRecurringFeesProcessing,
   upsertInvoiceItems,
 } from '../../db/invoicing-queries.ts'
+import { hasEquipmentFeeForYear } from '../../db/member-queries.ts'
 import {
   InvoiceItemQuerySchema,
   type InvoiceItemQueryParams,
@@ -18,6 +20,7 @@ import {
   type ItemListResponse,
   type RecurringFeesProcessing,
   type AnnualBillingResponse,
+  type EquipmentFee,
 } from './models.ts'
 
 import { getInvoicePdf, getItems } from '../../services/simplbooks/simplbooksApiClient.ts'
@@ -180,6 +183,10 @@ router.get(
     }
   },
 )
+router.get('/annualEquipmentFee', async (req: Request, res: Response<EquipmentFee | undefined>) => {
+  const kalustomaksu = await getAnnualEquipmmentFee()
+  res.status(HttpStatusCode.Ok).json(kalustomaksu)
+})
 
 router.post(
   '/triggerAnnualMembershipBillingProcess/',
@@ -201,6 +208,16 @@ router.post('/requestOwnEquipmentFeeInvoice', async (req: Request, res: Response
   })
 
   res.status(HttpStatusCode.Ok).json(result)
+})
+
+router.get('/equipmentFeeStatus', async (req: Request, res: Response) => {
+  const currentYear = new Date().getFullYear()
+  const hasPaid = await hasEquipmentFeeForYear(req.user!.memberId, currentYear)
+
+  res.status(HttpStatusCode.Ok).json({
+    year: currentYear,
+    hasPaid,
+  })
 })
 
 router.post('/sendEquipmentFeeInvoiceToMember', async (req: Request, res: Response) => {

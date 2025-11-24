@@ -13,11 +13,13 @@ import logger from '../lib/logger.ts'
 import { db } from './connection.ts'
 
 export async function insertOutboxItem(
-  txn: Transaction<DB>,
   eventType: SimplbooksEventType,
   payload: any,
+  txn?: Transaction<DB>,
 ) {
-  await txn
+  const executor = txn ?? db
+
+  await executor
     .insertInto('accts.outbox_simplbooks')
     .values({
       id: randomUUID(),
@@ -37,13 +39,12 @@ export async function getFeeProcessingItem(feeType: RecurringFeeType, year: numb
 }
 
 export async function insertFeeProcessingItem(
-  txn: Transaction<DB>,
   feeType: RecurringFeeType,
   status: FeeProcessingStatus,
   year: number,
   memberId: string,
 ) {
-  await txn
+  await db
     .insertInto('accts.recurring_fees_processing')
     .values({
       fee_type: feeType,

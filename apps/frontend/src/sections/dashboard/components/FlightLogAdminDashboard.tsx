@@ -1,13 +1,15 @@
 import { AjlbListResponse } from '@backend/routes/ajlb/model'
 import useApi from '../../../hooks/useApi'
 import {
-  Card,
-  CardContent,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Typography,
   List,
   ListItem,
   ListItemText,
 } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Link } from 'react-router-dom'
 import { RemoteContent } from '../../../components/RemoteContent'
 
@@ -34,13 +36,12 @@ export const FlightLogAdminDashboard = () => {
   )
 
   return (
-    <Card sx={{ mt: 4 }}>
-      <CardContent>
+    <Accordion defaultExpanded sx={{ mt: 4 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography variant='h5'>New Flights to Validate</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
         <RemoteContent isLoading={isLoading} error={error}>
-          <Typography variant='h5' gutterBottom>
-            New Flights to Validate
-          </Typography>
-
           <List>
             {logbooksToValidate?.length === 0 && (
               <Typography>No new flights to validate.</Typography>
@@ -61,7 +62,7 @@ export const FlightLogAdminDashboard = () => {
             ))}
           </List>
         </RemoteContent>
-      </CardContent>
-    </Card>
+      </AccordionDetails>
+    </Accordion>
   )
 }

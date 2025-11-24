@@ -230,3 +230,13 @@ export const InvoiceMemberSchema = MemberSchema.pick({
 }).passthrough()
 
 export type InvoiceMember = z.infer<typeof InvoiceMemberSchema>
+
+export const FeeProcessingItemSchema = z.object({
+  member_id: z.string(),
+  fee_type: z.enum(['annual_fee', 'equipment_fee']),
+  year: z.number(),
+  created_at: z.date(),
+  created_by: z.string(),
+})
+
+export type FeeProcessingItem = z.infer<typeof FeeProcessingItemSchema>

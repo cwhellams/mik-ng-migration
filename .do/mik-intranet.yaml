@@ -102,8 +102,10 @@ services:
       - key: DIGITAL_OCEAN_SPACES_ENDPOINT
         value: ${DIGITAL_OCEAN_SPACES_ENDPOINT}
         type: GENERAL
+      - key: EQUIPMENT_FEE_DISCOUNT_PER_HOUR
+        value: ${EQUIPMENT_FEE_DISCOUNT_PER_HOUR}
+        type: GENERAL
   
-        
 
     instance_count: 1
     health_check:

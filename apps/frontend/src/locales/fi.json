@@ -795,8 +795,17 @@
   "dashboard": {
     "schedule": {
       "upcoming": "Tulevat varauksesi",
-      "noBookings": "Ei tulevia varauksia, käypä varaamassa lentokone!",
+      "noBookings": "Ei tulevia varauksia, mene varaamaan kone!",
       "editBooking": "Muokkaa varausta"
+    },
+    "equipmentFeeNotPaid": "Kalustomaksuasi vuodelle {{year}} ei ole maksettu. Jos haluat saada €{{discount}} alennuksen tunnilta lentovarauksista, pyydä kalustomaksu napsauttamalla painiketta. Kun pyydät kalustomaksun laskun, alennus otetaan käyttöön välittömästi.",
+    "requestInvoice": "Pyydä lasku",
+    "requestingInvoice": "Pyydetään...",
+    "confirmEquipmentFee": {
+      "title": "Vahvista kalustomaksupyyntö",
+      "message": "Klikkaamalla Hyväksy sitoudut maksamaan kalustomaksulaskun €{{amount}}, joka lähetetään sinulle pian. Alennus €{{discount}} tunnilta otetaan käyttöön välittömästi kaikille laskuttamattomille lennoille.",
+      "accept": "Hyväksy",
+      "cancel": "Peruuta"
     }
   }
 }

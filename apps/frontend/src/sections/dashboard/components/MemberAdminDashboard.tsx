@@ -4,13 +4,15 @@ import {
   Member,
 } from '@backend/routes/members/models'
 import {
-  Card,
-  CardContent,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Typography,
   List,
   ListItem,
   ListItemText,
 } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Box } from '@mui/system'
 import { Link } from 'react-router-dom'
 import { RemoteContent } from '../../../components/RemoteContent'
@@ -27,13 +29,12 @@ export const MemberAdminDashboard = () => {
   })
 
   return (
-    <Card sx={{ mt: 4 }}>
-      <CardContent>
+    <Accordion defaultExpanded sx={{ mt: 4 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography variant='h5'>Pending Member Approvals</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
         <RemoteContent isLoading={isLoading} error={error}>
-          <Typography variant='h5' gutterBottom>
-            Pending Member Approvals
-          </Typography>
-
           {data?.members.length === 0 && (
             <Typography>No members awaiting approval.</Typography>
           )}
@@ -55,7 +56,7 @@ export const MemberAdminDashboard = () => {
             </List>
           </Box>
         </RemoteContent>
-      </CardContent>
-    </Card>
+      </AccordionDetails>
+    </Accordion>
   )
 }

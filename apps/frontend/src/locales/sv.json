@@ -794,8 +794,17 @@
   "dashboard": {
     "schedule": {
       "upcoming": "Dina kommande bokningar",
-      "noBookings": "Inga kommande bokningar, gå och boka ett flygplan!",
+      "noBookings": "Inga kommande bokningar, gå och boka ett plan!",
       "editBooking": "Redigera bokning"
+    },
+    "equipmentFeeNotPaid": "Din utrustningsavgift för {{year}} har inte betalats. Om du vill få en rabatt på €{{discount}} per timme på flygbokningar, begär utrustningsavgiften genom att klicka på knappen. När du begär fakturan för utrustningsavgiften tillämpas rabatten omedelbart.",
+    "requestInvoice": "Begär faktura",
+    "requestingInvoice": "Begär...",
+    "confirmEquipmentFee": {
+      "title": "Bekräfta utrustningsavgiftsbegäran",
+      "message": "Genom att klicka på Acceptera förbinder du dig att betala fakturan för utrustningsavgiften €{{amount}}, som kommer att skickas till dig inom kort. Rabatten €{{discount}} per timme tillämpas omedelbart på alla icke-fakturerade flygningar.",
+      "accept": "Acceptera",
+      "cancel": "Avbryt"
     }
   }
 }

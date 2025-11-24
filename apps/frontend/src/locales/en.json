@@ -797,6 +797,15 @@
       "upcoming": "Your Upcoming Bookings",
       "noBookings": "No upcoming bookings, go book a plane!",
       "editBooking": "Edit Booking"
+    },
+    "equipmentFeeNotPaid": "Your equipment fee for {{year}} has not been paid. If you wish to receive a discount of €{{discount}} per hour on flight bookings request the equipment fee by clicking the button, if you request the equipment fee invoice the discount is applied immediately",
+    "requestInvoice": "Request Invoice",
+    "requestingInvoice": "Requesting...",
+    "confirmEquipmentFee": {
+      "title": "Confirm Equipment Fee Request",
+      "message": "By clicking Accept you commit to pay the equipment fee invoice of €{{amount}}, which will be sent to you shortly. The discount of €{{discount}} per hour is applied immediately to all un-invoiced flights.",
+      "accept": "Accept",
+      "cancel": "Cancel"
     }
   }
 }

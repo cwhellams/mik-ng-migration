@@ -69,7 +69,7 @@ jobs:
           echo "DIGITAL_OCEAN_SPACES_SECRET=${{ secrets.DIGITAL_OCEAN_SPACES_SECRET }}" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_REGION=fra1" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_ENDPOINT=https://fra1.digitaloceanspaces.com" >> $GITHUB_ENV
-
+          echo "EQUIPMENT_FEE_DISCOUNT_PER_HOUR=${{ vars.EQUIPMENT_FEE_DISCOUNT_PER_HOUR }}" >> $GITHUB_ENV
       - name: Build and push Docker image
         if: env.backend_changed == 'true'
         uses: docker/build-push-action@v2

@@ -4,7 +4,13 @@ import {
   BookingFilters,
 } from '@backend/routes/bookings/models'
 import { Upsert } from '@backend/types/schema'
-import { Typography, Card, CardContent } from '@mui/material'
+import {
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Box } from '@mui/system'
 import { t } from 'i18next'
 import { useEffect, useState } from 'react'
@@ -45,13 +51,12 @@ export const BookingUserDashboard = () => {
   const [editMode, setEditMode] = useState<Upsert<Booking>>()
 
   return (
-    <Card sx={{ mt: 4 }}>
-      <CardContent>
+    <Accordion defaultExpanded sx={{ mt: 4 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography variant='h5'>{t('dashboard.schedule.upcoming')}</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
         <RemoteContent isLoading={isLoadingSchedule} error={scheduleError}>
-          <Typography variant='h5' gutterBottom>
-            {t('dashboard.schedule.upcoming')}
-          </Typography>
-
           {scheduleData?.bookings.length === 0 ? (
             <Typography>{t('dashboard.schedule.noBookings')}</Typography>
           ) : (
@@ -82,7 +87,7 @@ export const BookingUserDashboard = () => {
             onClose={() => setEditMode(undefined)}
           />
         </RemoteContent>
-      </CardContent>
-    </Card>
+      </AccordionDetails>
+    </Accordion>
   )
 }

@@ -95,3 +95,19 @@ export const AnnualBillingResponseSchema = z.object({
 })
 
 export type AnnualBillingResponse = z.infer<typeof AnnualBillingResponseSchema>
+
+export const EquipmentFeeStatusSchema = z.object({
+  year: z.number(),
+  hasPaid: z.boolean(),
+})
+
+export type EquipmentFeeStatus = z.infer<typeof EquipmentFeeStatusSchema>
+
+export const EquipmentFeeSchema = z.object({
+  code: z.string(),
+  unit: z.string(),
+  markup_value: z.number(),
+  discount_amount: z.number(),
+})
+
+export type EquipmentFee = z.infer<typeof EquipmentFeeSchema>

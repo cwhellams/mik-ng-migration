@@ -61,10 +61,10 @@ export const InvoiceItemsPage: React.FC = () => {
         header={
           <>
             <Grid size={{ xs: 3, md: 1 }}>{t('invoiceItems.id')}</Grid>
-            <Grid size={{ xs: 9, md: 1 }}>{t('invoiceItems.code')}</Grid>
-            <Grid size={{ xs: 12, md: 6 }}>{t('invoiceItems.name')}</Grid>
+            <Grid size={{ xs: 9, md: 3 }}>{t('invoiceItems.code')}</Grid>
+            <Grid size={{ xs: 12, md: 4 }}>{t('invoiceItems.name')}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{t('invoiceItems.markup')}</Grid>
-            <Grid size={{ xs: 4, md: 2 }}>{t('invoiceItems.type')}</Grid>
+            <Grid size={{ xs: 4, md: 1 }}>{t('invoiceItems.type')}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{t('invoiceItems.unit')}</Grid>
           </>
         }
@@ -72,12 +72,17 @@ export const InvoiceItemsPage: React.FC = () => {
         row={(item) => (
           <>
             <Grid size={{ xs: 3, md: 1 }}>{item.id}</Grid>
-            <Grid size={{ xs: 9, md: 1 }}>{item.code}</Grid>
-            <Grid size={{ xs: 12, md: 6 }}>{item.name}</Grid>
+            <Grid size={{ xs: 9, md: 3 }}>{item.code}</Grid>
+            <Grid
+              size={{ xs: 12, md: 4 }}
+              sx={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
+            >
+              {item.name}
+            </Grid>
             <Grid size={{ xs: 4, md: 1 }}>
               {eurFormatter.format(item.markup_value ?? 0)}
             </Grid>
-            <Grid size={{ xs: 4, md: 2 }}>{item.markup_type ?? 'N/A'}</Grid>
+            <Grid size={{ xs: 4, md: 1 }}>{item.markup_type ?? 'N/A'}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{item.unit ?? 'N/A'}</Grid>
           </>
         )}

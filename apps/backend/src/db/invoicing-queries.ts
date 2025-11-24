@@ -1,7 +1,10 @@
 import {
   type InvoiceItemQueryParams,
   type RecurringFeesProcessing,
+  EquipmentFeeSchema,
+  type EquipmentFee,
 } from '../routes/invoicing/models.ts'
+import { ART_EQUIP_FEE_CODE } from '../services/accounting/config.ts'
 import type { FeeType, ItemListArticle } from '../services/simplbooks/models.ts'
 import { db } from './connection.ts'
 import type { AcctsInvoice, AcctsItems } from './schema.js'
@@ -59,19 +62,47 @@ export async function getInvoiceItems(): Promise<AcctsItems[]> {
   return await db.selectFrom('accts.items').selectAll().execute()
 }
 
+export async function getAnnualEquipmmentFee(): Promise<EquipmentFee | undefined> {
+  const result = await db
+    .selectFrom('accts.items')
+    .select('item')
+    .where('code', '=', ART_EQUIP_FEE_CODE)
+    .executeTakeFirst()
+
+  if (!result?.item) {
+    return undefined
+  }
+
+  const rawItem = result.item as Record<string, unknown>
+
+  const equipmentFee = {
+    code: rawItem.code,
+    unit: rawItem.unit,
+    markup_value: rawItem.markup_value,
+    discount_amount: Number(process.env.EQUIPMENT_FEE_DISCOUNT_PER_HOUR || 0),
+  }
+
+  return EquipmentFeeSchema.parse(equipmentFee)
+}
+
 export async function upsertInvoiceItems(items: ItemListArticle[]): Promise<void> {
+  const validItems = items
+    .filter(item => item.id !== undefined && item.code !== undefined && item.name !== undefined)
+    .map(item => ({
+      id: item.id as number,
+      code: item.code as string,
+      name: item.name as string,
+      item: item,
+    }))
+
+  // Skip database operation if no valid items after filtering
+  if (validItems.length === 0) {
+    return
+  }
+
   await db
     .insertInto('accts.items')
-    .values(
-      items
-        .filter(item => item.id !== undefined && item.code !== undefined && item.name !== undefined)
-        .map(item => ({
-          id: item.id as number,
-          code: item.code as string,
-          name: item.name as string,
-          item: item,
-        })),
-    )
+    .values(validItems)
     .onConflict(oc =>
       oc.column('id').doUpdateSet({
         code: eb => eb.ref('excluded.code'),

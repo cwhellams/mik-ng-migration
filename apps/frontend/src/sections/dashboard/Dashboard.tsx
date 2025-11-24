@@ -3,6 +3,7 @@ import { useRoles } from '../../hooks/useRoles'
 import { FlightLogAdminDashboard } from './components/FlightLogAdminDashboard'
 import { MemberAdminDashboard } from './components/MemberAdminDashboard'
 import { BookingUserDashboard } from './components/BookingUserDashboard'
+import { EquipmentFeeBanner } from './components/EquipmentFeeBanner'
 import { MIKPermissions } from '@backend/routes/members/models'
 import { Title } from '../../components/Title'
 import { t } from 'i18next'
@@ -13,6 +14,8 @@ const Dashboard = () => {
   return (
     <Box>
       <Title label={t('header.dashboard')} />
+
+      <EquipmentFeeBanner />
 
       {roles.hasAccess(
         MIKPermissions.BOOKING_USER,

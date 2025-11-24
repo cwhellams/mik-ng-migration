@@ -7,6 +7,7 @@ import {
   SimplbooksEventType,
   SimplbooksStatus,
   type AcctsOutboxSimplbooks,
+  type InvoicePost,
 } from './models.ts'
 import {
   createNewClient,
@@ -120,10 +121,9 @@ async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
 async function createAnnualEquipmentFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   const member = MemberSchema.parse(outboxMsg.payload)
   const year = getCurrentYear()
-  const feeInvoicePayload = createAnnualEquipmentFeeInvoicePayload(member)
+  const feeInvoicePayload = await createAnnualEquipmentFeeInvoicePayload(member)
 
   await db.transaction().execute(async txn => {
-    // Create invoice entry to db
     const invoiceId = await createInvoice(
       member.memberId,
       outboxMsg.id,
@@ -199,7 +199,7 @@ async function createInvoice(
   memberId: string,
   outboxMsgId: string,
   invoiceType: MIKInvoiceType,
-  payload: any,
+  payload: InvoicePost,
   txn: Transaction<DB>,
 ): Promise<number> {
   // Create the invoice
@@ -230,10 +230,14 @@ async function createInvoice(
     .execute()
 
   //Insert pdf dispatch row to outbox
-  await insertOutboxItem(txn, SimplbooksEventType.SEND_INVOICE_PDF, {
-    memberId: memberId,
-    invoiceId: invoiceData.id!,
-  })
+  await insertOutboxItem(
+    SimplbooksEventType.SEND_INVOICE_PDF,
+    {
+      memberId: memberId,
+      invoiceId: invoiceData.id!,
+    },
+    txn,
+  )
   //Mark as processed
   await setOutboxStatus(txn, outboxMsgId, SimplbooksStatus.SYNCED)
 
@@ -262,9 +266,10 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
 
     // We add the create invoice action to the outbox, this will allow us to handle the situation
     // where the client id is created but invoice creation fails - now its async and decoupled
-    await insertOutboxItem(txn, SimplbooksEventType.NEW_MEMBER_FEES, {
+    await insertOutboxItem(SimplbooksEventType.NEW_MEMBER_FEES, {
       ...member,
       billingId: clientId.toString(),
+      txn,
     })
 
     await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)

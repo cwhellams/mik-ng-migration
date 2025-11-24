@@ -14,12 +14,14 @@ import {
   type MemberApproval,
   type MemberList,
   type MemberRole,
+  FeeProcessingItemSchema,
+  type FeeProcessingItem,
 } from '../routes/members/models.ts'
 import { problem } from '../routes/response.ts'
 import type { Upsert } from '../types/schema.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import { randomUUID } from 'node:crypto'
-import { SimplbooksEventType } from '../services/simplbooks/models.ts'
+import { RecurringFeeType, SimplbooksEventType } from '../services/simplbooks/models.ts'
 import { z } from 'zod'
 
 export async function getMemberById(memberId: string): Promise<Member | undefined> {
@@ -582,4 +584,36 @@ export async function removeMemberRole(roleId: string): Promise<boolean> {
     .where('role_id', '=', roleId)
     .executeTakeFirstOrThrow()
   return result.numDeletedRows == BigInt(1)
+}
+
+export async function hasEquipmentFeeForYear(memberId: string, year: number): Promise<boolean> {
+  const result = await db
+    .selectFrom('member.annual_fees')
+    .select('member_id')
+    .where('member_id', '=', memberId)
+    .where('year', '=', year)
+    .where('fee_type', '=', 'equipment_fee')
+    .executeTakeFirst()
+
+  return result !== undefined
+}
+
+export async function getFeeProcessingItemForMember(
+  feeType: RecurringFeeType,
+  year: number,
+  memberId: string,
+): Promise<FeeProcessingItem | undefined> {
+  const result = await db
+    .selectFrom('member.annual_fees')
+    .where('fee_type', '=', feeType)
+    .where('year', '=', year)
+    .where('member_id', '=', memberId)
+    .selectAll()
+    .executeTakeFirst()
+
+  if (!result) {
+    return undefined
+  }
+
+  return FeeProcessingItemSchema.parse(result)
 }
