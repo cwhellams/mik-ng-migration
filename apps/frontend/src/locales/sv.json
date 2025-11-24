@@ -75,6 +75,15 @@
     "emergencyContact": "Nödkontakt",
     "iceContact": "ICE-kontakt",
     "icePhone": "ICE-telefon",
+    "instantMessaging": {
+      "title": "Snabbmeddelanden",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "messenger": "Facebook Messenger",
+      "discord": "Discord",
+      "viber": "Viber",
+      "signal": "Signal"
+    },
     "dateOfBirth": "Födelsedatum",
     "licenceInfo": {
       "licenceInfo": "Licensinformation",
@@ -91,6 +100,7 @@
       "register": "Lägg till ny användare",
       "personalInfo": "Redigera din information",
       "emergencyContact": "Redigera nödkontakt",
+      "instantMessaging": "Redigera snabbmeddelandekontakter",
       "training": "Redigera utbildningsprogram",
       "membership": "Redigera medlemsdetaljer",
       "roles": "Redigera medlemsroller",

@@ -23,6 +23,7 @@ import { EditButton } from '../../components/EditButton'
 import { FormField } from '../../components/FormField'
 import { AuditFormField } from '../../components/AuditFormField'
 import { toLocalDate } from '../../utils/date'
+import { formatPhoneNumber } from '../../utils/format'
 import { FormTitle } from '../../components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
 import { RemoteContent } from '../../components/RemoteContent'
@@ -101,6 +102,12 @@ const MemberProfile = () => {
     dateOfBirth,
     iceContactName,
     iceContactPhoneNumber,
+    imWhatsapp,
+    imTelegram,
+    imFacebookMessenger,
+    imDiscord,
+    imViber,
+    imSignal,
     isTrainingProgramPilot,
     licenceId,
     licenceExpiry,
@@ -257,7 +264,7 @@ const MemberProfile = () => {
                   </FormField>
 
                   <FormField label={t('member.phone')} width={100}>
-                    {phoneNumber || 'N/A'}
+                    {phoneNumber ? formatPhoneNumber(phoneNumber) : 'N/A'}
                   </FormField>
 
                   <FormField label={t('member.address')} width={100}>
@@ -295,12 +302,145 @@ const MemberProfile = () => {
                   </FormField>
 
                   <FormField label={t('member.icePhone')}>
-                    {iceContactPhoneNumber || 'N/A'}
+                    {iceContactPhoneNumber
+                      ? formatPhoneNumber(iceContactPhoneNumber)
+                      : 'N/A'}
                   </FormField>
                 </Stack>
               </CardContent>
             </Card>
           </Stack>
+
+          <Card>
+            <EditButton
+              title={t('member.edit.instantMessaging')}
+              onClick={() => handleOpenEditModal('instantMessaging')}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+              }}
+            />
+            <CardContent>
+              <FormTitle
+                title={t('member.instantMessaging.title')}
+                icon='mdi:message-text'
+              />
+
+              <Stack spacing={1.5}>
+                <FormField label={t('member.instantMessaging.whatsapp')}>
+                  {imWhatsapp ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Icon icon='mdi:whatsapp' style={{ color: '#25D366' }} />
+                      <a
+                        href={imWhatsapp}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        {imWhatsapp}
+                      </a>
+                    </Box>
+                  ) : (
+                    'N/A'
+                  )}
+                </FormField>
+
+                <FormField label={t('member.instantMessaging.telegram')}>
+                  {imTelegram ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Icon icon='mdi:telegram' style={{ color: '#0088cc' }} />
+                      <a
+                        href={imTelegram}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        {imTelegram}
+                      </a>
+                    </Box>
+                  ) : (
+                    'N/A'
+                  )}
+                </FormField>
+
+                <FormField label={t('member.instantMessaging.messenger')}>
+                  {imFacebookMessenger ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Icon
+                        icon='mdi:facebook-messenger'
+                        style={{ color: '#0084FF' }}
+                      />
+                      <a
+                        href={imFacebookMessenger}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        {imFacebookMessenger}
+                      </a>
+                    </Box>
+                  ) : (
+                    'N/A'
+                  )}
+                </FormField>
+
+                <FormField label={t('member.instantMessaging.discord')}>
+                  {imDiscord ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Icon icon='mdi:discord' style={{ color: '#5865F2' }} />
+                      <a
+                        href={imDiscord}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        {imDiscord}
+                      </a>
+                    </Box>
+                  ) : (
+                    'N/A'
+                  )}
+                </FormField>
+
+                <FormField label={t('member.instantMessaging.viber')}>
+                  {imViber ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Icon
+                        icon='simple-icons:viber'
+                        style={{ color: '#7360F2' }}
+                      />
+                      <a
+                        href={imViber}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        {imViber}
+                      </a>
+                    </Box>
+                  ) : (
+                    'N/A'
+                  )}
+                </FormField>
+
+                <FormField label={t('member.instantMessaging.signal')}>
+                  {imSignal ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Icon
+                        icon='simple-icons:signal'
+                        style={{ color: '#3A76F0' }}
+                      />
+                      <a
+                        href={imSignal}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        {imSignal}
+                      </a>
+                    </Box>
+                  ) : (
+                    'N/A'
+                  )}
+                </FormField>
+              </Stack>
+            </CardContent>
+          </Card>
 
           <Card>
             {

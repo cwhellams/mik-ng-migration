@@ -28,7 +28,7 @@ import { EditButton } from '../../components/EditButton'
 import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 import { RemoteContent } from '../../components/RemoteContent'
 import UserAvatar from './components/UserAvatar'
-import { formatFinnishPhoneNumber } from '../../utils/format'
+import { formatPhoneNumber } from '../../utils/format'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../flightLog/components/ResponsiveTable'
 
@@ -192,7 +192,7 @@ const Members = () => {
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 2.5 }}>
-                  {formatFinnishPhoneNumber(row.phoneNumber ?? '')}
+                  {formatPhoneNumber(row.phoneNumber ?? '')}
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 'grow' }}>

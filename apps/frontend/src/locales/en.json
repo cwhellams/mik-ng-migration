@@ -75,6 +75,15 @@
     "emergencyContact": "Emergency Contact",
     "iceContact": "ICE Contact",
     "icePhone": "ICE Phone",
+    "instantMessaging": {
+      "title": "Instant Messaging",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "messenger": "Facebook Messenger",
+      "discord": "Discord",
+      "viber": "Viber",
+      "signal": "Signal"
+    },
     "dateOfBirth": "Date of Birth",
     "licenceInfo": {
       "licenceInfo": "Licence Information",
@@ -91,6 +100,7 @@
       "register": "Add new user",
       "personalInfo": "Edit your information",
       "emergencyContact": "Edit Emergency Contact",
+      "instantMessaging": "Edit Instant Messaging Contacts",
       "training": "Edit Training Programs",
       "membership": "Edit Membership Details",
       "roles": "Edit Member Roles",

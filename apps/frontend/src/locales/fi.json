@@ -75,6 +75,15 @@
     "emergencyContact": "Hätäyhteyshenkilö",
     "iceContact": "ICE-yhteyshenkilö",
     "icePhone": "ICE-puhelin",
+    "instantMessaging": {
+      "title": "Pikaviestintä",
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "messenger": "Facebook Messenger",
+      "discord": "Discord",
+      "viber": "Viber",
+      "signal": "Signal"
+    },
     "dateOfBirth": "Syntymäpäivä",
     "licenceInfo": {
       "licenceInfo": "Licence Information",
@@ -91,6 +100,7 @@
       "register": "Lisää uusi käyttäjä",
       "personalInfo": "Muokkaa omia tietojasi",
       "emergencyContact": "Muokkaa hätäyhteyshenkilön tietoja",
+      "instantMessaging": "Muokkaa pikaviestintäyhteystietoja",
       "training": "Muokkaa koulutusohjelmia",
       "membership": "Muokkaa jäsenyyden tietoja",
       "roles": "Muokkaa jäsenen rooleja",

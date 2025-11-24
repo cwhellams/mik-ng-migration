@@ -30,11 +30,13 @@ import { RegisterRequest } from '@backend/routes/auth/schema'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../../components/SaveButton'
+import { PhoneNumberInput } from '../../../components/PhoneNumberInput'
 
 export type MemberEditMode =
   | 'register'
   | 'personalInfo'
   | 'emergencyContact'
+  | 'instantMessaging'
   | 'training'
   | 'membership'
   | 'roles'
@@ -94,6 +96,15 @@ export const EditMemberModal = ({
         setFormData({
           iceContactName: memberData.iceContactName || '',
           iceContactPhoneNumber: memberData.iceContactPhoneNumber || '',
+        })
+      } else if (mode === 'instantMessaging') {
+        setFormData({
+          imWhatsapp: memberData.imWhatsapp || '',
+          imTelegram: memberData.imTelegram || '',
+          imFacebookMessenger: memberData.imFacebookMessenger || '',
+          imDiscord: memberData.imDiscord || '',
+          imViber: memberData.imViber || '',
+          imSignal: memberData.imSignal || '',
         })
       } else if (mode === 'licence') {
         setFormData({
@@ -225,11 +236,12 @@ export const EditMemberModal = ({
         />
       </Grid>
       <Grid size={12}>
-        <TextField
-          fullWidth
+        <PhoneNumberInput
           label={t('member.phone')}
           value={formData.phoneNumber || ''}
-          onChange={handleChange('phoneNumber')}
+          onChange={(value) =>
+            setFormData((prev) => ({ ...prev, phoneNumber: value }))
+          }
         />
       </Grid>
     </Grid>
@@ -262,11 +274,12 @@ export const EditMemberModal = ({
         />
       </Grid>
       <Grid size={12}>
-        <TextField
-          fullWidth
+        <PhoneNumberInput
           label={t('member.phone')}
           value={formData.phoneNumber || ''}
-          onChange={handleChange('phoneNumber')}
+          onChange={(value) =>
+            setFormData((prev) => ({ ...prev, phoneNumber: value }))
+          }
         />
       </Grid>
       <Grid size={12}>
@@ -319,11 +332,71 @@ export const EditMemberModal = ({
         />
       </Grid>
       <Grid size={12}>
-        <TextField
-          fullWidth
+        <PhoneNumberInput
           label={t('member.icePhone')}
           value={formData.iceContactPhoneNumber || ''}
-          onChange={handleChange('iceContactPhoneNumber')}
+          onChange={(value) =>
+            setFormData((prev) => ({ ...prev, iceContactPhoneNumber: value }))
+          }
+        />
+      </Grid>
+    </Grid>
+  )
+
+  const renderInstantMessagingForm = () => (
+    <Grid container spacing={2}>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          label={t('member.instantMessaging.whatsapp')}
+          value={formData.imWhatsapp || ''}
+          onChange={handleChange('imWhatsapp')}
+          placeholder='https://wa.me/1234567890'
+        />
+      </Grid>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          label={t('member.instantMessaging.telegram')}
+          value={formData.imTelegram || ''}
+          onChange={handleChange('imTelegram')}
+          placeholder='https://t.me/username'
+        />
+      </Grid>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          label={t('member.instantMessaging.messenger')}
+          value={formData.imFacebookMessenger || ''}
+          onChange={handleChange('imFacebookMessenger')}
+          placeholder='https://m.me/username'
+        />
+      </Grid>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          label={t('member.instantMessaging.discord')}
+          value={formData.imDiscord || ''}
+          onChange={handleChange('imDiscord')}
+          placeholder='https://discord.gg/invite or username#0000'
+        />
+      </Grid>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          label={t('member.instantMessaging.viber')}
+          value={formData.imViber || ''}
+          onChange={handleChange('imViber')}
+          placeholder='viber://chat?number=1234567890'
+        />
+      </Grid>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          label={t('member.instantMessaging.signal')}
+          value={formData.imSignal || ''}
+          onChange={handleChange('imSignal')}
+          placeholder='https://signal.me/#p/+1234567890'
         />
       </Grid>
     </Grid>
@@ -562,6 +635,8 @@ export const EditMemberModal = ({
         return renderPersonalInfoForm()
       case 'emergencyContact':
         return renderEmergencyContactForm()
+      case 'instantMessaging':
+        return renderInstantMessagingForm()
       case 'training':
         return renderTrainingForm()
       case 'membership':

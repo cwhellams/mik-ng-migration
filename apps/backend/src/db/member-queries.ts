@@ -64,6 +64,13 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     iceContactName: member.ice_contact_name,
     iceContactPhoneNumber: member.ice_contact_phone_number,
 
+    imWhatsapp: member.im_whatsapp,
+    imTelegram: member.im_telegram,
+    imFacebookMessenger: member.im_facebook_messenger,
+    imDiscord: member.im_discord,
+    imViber: member.im_viber,
+    imSignal: member.im_signal,
+
     isTrainingProgramPilot: member.is_training_program_pilot,
     canMakeReservations: member.can_make_reservations,
     billingId: member.billing_id,
@@ -302,6 +309,13 @@ export async function updateMember(
 
       ice_contact_name: patch.iceContactName,
       ice_contact_phone_number: patch.iceContactPhoneNumber,
+
+      im_whatsapp: patch.imWhatsapp,
+      im_telegram: patch.imTelegram,
+      im_facebook_messenger: patch.imFacebookMessenger,
+      im_discord: patch.imDiscord,
+      im_viber: patch.imViber,
+      im_signal: patch.imSignal,
 
       is_training_program_pilot: patch.isTrainingProgramPilot,
       can_make_reservations: patch.canMakeReservations,

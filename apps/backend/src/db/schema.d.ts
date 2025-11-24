@@ -368,6 +368,30 @@ export interface MemberRegister {
   first_name: string
   ice_contact_name: string | null
   ice_contact_phone_number: string | null
+  /**
+   * Discord contact link
+   */
+  im_discord: string | null
+  /**
+   * Facebook Messenger contact link
+   */
+  im_facebook_messenger: string | null
+  /**
+   * Signal contact link
+   */
+  im_signal: string | null
+  /**
+   * Telegram contact link
+   */
+  im_telegram: string | null
+  /**
+   * Viber contact link
+   */
+  im_viber: string | null
+  /**
+   * WhatsApp contact link
+   */
+  im_whatsapp: string | null
   is_membership_approved: Generated<boolean>
   is_membership_expired: Generated<boolean | null>
   is_training_program_pilot: Generated<boolean>

@@ -137,6 +137,13 @@ export const MemberSchema = AuditableSchema.extend({
   iceContactName: z.string().nullish(),
   iceContactPhoneNumber: z.string().nullish(),
 
+  imWhatsapp: z.string().nullish(),
+  imTelegram: z.string().nullish(),
+  imFacebookMessenger: z.string().nullish(),
+  imDiscord: z.string().nullish(),
+  imViber: z.string().nullish(),
+  imSignal: z.string().nullish(),
+
   licenceId: z.string().nullish(),
   licenceExpiry: z.string().date().nullish(),
   medicalExpiry: z.string().date().nullish(),
@@ -183,6 +190,13 @@ export const MemberProfileSchema = MemberSchema.pick({
 
   iceContactName: true,
   iceContactPhoneNumber: true,
+
+  imWhatsapp: true,
+  imTelegram: true,
+  imFacebookMessenger: true,
+  imDiscord: true,
+  imViber: true,
+  imSignal: true,
 
   dateOfBirth: true,
 
