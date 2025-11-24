@@ -1,8 +1,8 @@
-import type { Member } from '../../routes/members/models.ts'
+import type { InvoiceMember } from '../../routes/members/models.ts'
 import type { InvoicePostPayload } from '../simplbooks/models.ts'
 
 export const createInvoicePostPayload = (
-  member: Member,
+  member: InvoiceMember,
   withZeroInterest: boolean = false,
 ): InvoicePostPayload => {
   if (!member.billingId)

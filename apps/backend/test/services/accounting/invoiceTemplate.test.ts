@@ -21,6 +21,9 @@ const invoicingMember: Member = {
   isMembershipApproved: true,
   memberSince: '2021-01-01T00:00:00Z',
   roles: [],
+  autoRenewAnnualMembership: true,
+  autoRenewEquipmentFee: false,
+  isMembershipExpired: false,
 }
 
 describe('Invoice Template Tests', () => {

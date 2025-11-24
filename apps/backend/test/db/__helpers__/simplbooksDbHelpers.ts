@@ -5,12 +5,16 @@ import { MIKInvoiceType, SimplbooksEventType } from '../../../src/services/simpl
 export const deleteSimplbooksOutbox = async () =>
   await db.deleteFrom('accts.outbox_simplbooks').execute()
 
-export const deleteCreatedInvoice = async (invoiceType: MIKInvoiceType) =>
+export const deleteCreatedInvoice = async (invoiceType: MIKInvoiceType) => {
+  // Delete annual_fees records first due to foreign key constraint
+  await db.deleteFrom('member.annual_fees').where('member_id', '=', 'Anna1').execute()
+
   await db
     .deleteFrom('accts.invoice')
     .where('member_id', '=', 'Anna1')
     .where('invoice_type', '=', invoiceType)
     .execute()
+}
 
 export const deleteCreatedInvoiceItems = async () =>
   await db.deleteFrom('accts.items').where('id', '>', 30).execute()

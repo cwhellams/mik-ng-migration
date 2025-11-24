@@ -9,6 +9,7 @@ import {
   MIKLang,
   MIKMemberTypes,
   MIKPermissions,
+  type InvoiceMember,
   type Member,
   type MemberApproval,
   type MemberList,
@@ -80,6 +81,10 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     isMembershipApproved: member.is_membership_approved,
     membershipApprovedAt: member.membership_approved_at?.toISOString(),
     membershipApprovedBy: member.membership_approved_by ?? undefined,
+
+    autoRenewAnnualMembership: member.auto_renew_annual_membership,
+    autoRenewEquipmentFee: member.auto_renew_equipment_fee,
+    isMembershipExpired: member.is_membership_expired,
 
     lang: member.lang_iso639 as MIKLang,
     roles: roles,
@@ -166,6 +171,47 @@ export async function getMembers(
   }))
 }
 
+export async function getMembersForAnnualMembershipFee(year: number): Promise<InvoiceMember[]> {
+  const members = await db
+    .selectFrom('member.register')
+    .leftJoin('member.annual_fees', join =>
+      join
+        .onRef('member.register.member_id', '=', 'member.annual_fees.member_id')
+        .on('member.annual_fees.year', '=', year),
+    )
+    .select([
+      'member.register.member_id',
+      'email',
+      'first_name',
+      'last_name',
+      'billing_id',
+      'lang_iso639',
+      'member_type',
+      'auto_renew_annual_membership',
+      'auto_renew_equipment_fee',
+    ])
+    .where('is_membership_approved', '=', true)
+    .where('is_membership_expired', '=', false)
+    .where('auto_renew_annual_membership', '=', true)
+    .where('member_type', '!=', MIKMemberTypes.REMOVED)
+    .where('member.annual_fees.member_id', 'is', null)
+    .orderBy('last_name')
+    .orderBy('first_name')
+    .execute()
+
+  return members.map(member => ({
+    memberId: member.member_id,
+    firstName: member.first_name,
+    lastName: member.last_name,
+    billingId: member.billing_id ?? undefined,
+    memberType: member.member_type as MIKMemberTypes,
+    email: member.email,
+    lang: member.lang_iso639 as MIKLang,
+    autoRenewAnnualMembership: member.auto_renew_annual_membership,
+    autoRenewEquipmentFee: member.auto_renew_equipment_fee,
+  }))
+}
+
 export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise<string> {
   const now = new Date()
   const new_member_id = generateShortId()
@@ -186,6 +232,8 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       billing_id: undefined,
       date_of_birth: member.dateOfBirth,
       member_since: now.toISOString(),
+      auto_renew_annual_membership: member.autoRenewAnnualMembership,
+      auto_renew_equipment_fee: member.autoRenewEquipmentFee,
 
       licence_id: member.licenceId,
       licence_expiry_date: member.licenceExpiry,
@@ -259,6 +307,10 @@ export async function updateMember(
       date_of_birth: patch.dateOfBirth,
       member_since: patch.memberSince,
 
+      auto_renew_annual_membership: patch.autoRenewAnnualMembership,
+      auto_renew_equipment_fee: patch.autoRenewEquipmentFee,
+      is_membership_expired: patch.isMembershipExpired,
+
       licence_id: patch.licenceId,
       licence_expiry_date: patch.licenceExpiry,
       medical_expiry_date: patch.medicalExpiry,
@@ -282,6 +334,23 @@ export async function updateMember(
   }
 
   return true
+}
+
+export async function setMemberExpired(memberId: string): Promise<boolean> {
+  await db
+    .deleteFrom('member.member_to_roles')
+    .where('member_id', '=', memberId)
+    .executeTakeFirstOrThrow()
+
+  const result = await db
+    .updateTable('member.register')
+    .set({
+      is_membership_expired: true,
+      can_make_reservations: false,
+    })
+    .where('member_id', '=', memberId)
+    .executeTakeFirstOrThrow()
+  return result.numUpdatedRows == BigInt(1)
 }
 
 export async function removeMember(memberId: string): Promise<boolean> {

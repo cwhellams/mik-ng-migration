@@ -39,6 +39,7 @@ export type MemberEditMode =
   | 'membership'
   | 'roles'
   | 'licence'
+  | 'billing'
 
 interface EditMemberModalProps {
   onClose: () => void
@@ -115,6 +116,11 @@ export const EditMemberModal = ({
       } else if (mode == 'roles') {
         setFormData({
           roles: memberData.roles,
+        })
+      } else if (mode == 'billing') {
+        setFormData({
+          autoRenewAnnualMembership: memberData.autoRenewAnnualMembership,
+          autoRenewEquipmentFee: memberData.autoRenewEquipmentFee,
         })
       }
     }
@@ -364,6 +370,39 @@ export const EditMemberModal = ({
     </Grid>
   )
 
+  const renderBillingForm = () => (
+    <Grid container spacing={2}>
+      <Grid size={12} display='flex' alignItems='center'>
+        <Typography variant='body2' color='text.secondary' sx={{ width: 200 }}>
+          {t('member.billingInfo.annualMembershipAutoRenew')}
+        </Typography>
+        <Checkbox
+          checked={formData.autoRenewAnnualMembership ?? false}
+          onChange={({ target }) => {
+            setFormData({
+              ...formData,
+              autoRenewAnnualMembership: target.checked,
+            })
+          }}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }} display='flex' alignItems='center'>
+        <Typography variant='body2' color='text.secondary' sx={{ width: 200 }}>
+          {t('member.billingInfo.equipmentFeeAutoRenew')}
+        </Typography>
+        <Checkbox
+          checked={formData.autoRenewEquipmentFee ?? false}
+          onChange={({ target }) => {
+            setFormData({
+              ...formData,
+              autoRenewEquipmentFee: target.checked,
+            })
+          }}
+        />
+      </Grid>
+    </Grid>
+  )
+
   const renderTrainingForm = () => (
     <Grid container spacing={2}>
       <Grid size={12} display='flex' alignItems='center'>
@@ -531,6 +570,8 @@ export const EditMemberModal = ({
         return renderLicenceForm()
       case 'roles':
         return <RenderRolesForm />
+      case 'billing':
+        return renderBillingForm()
     }
   }
 

@@ -23,6 +23,8 @@ exports[`Db add member tests Member Role Tests Adds a member role to the databas
 
 exports[`Db add member tests add member and update member 1`] = `
 {
+  "autoRenewAnnualMembership": true,
+  "autoRenewEquipmentFee": false,
   "billingId": null,
   "canMakeReservations": false,
   "createdAt": Any<String>,
@@ -34,6 +36,7 @@ exports[`Db add member tests add member and update member 1`] = `
   "iceContactName": null,
   "iceContactPhoneNumber": null,
   "isMembershipApproved": false,
+  "isMembershipExpired": false,
   "isTrainingProgramPilot": false,
   "lang": "fi",
   "lastName": "member",
@@ -57,6 +60,8 @@ exports[`Db add member tests add member and update member 1`] = `
 
 exports[`Db add member tests add member and update member 2`] = `
 {
+  "autoRenewAnnualMembership": true,
+  "autoRenewEquipmentFee": false,
   "billingId": null,
   "canMakeReservations": false,
   "createdAt": Any<String>,
@@ -68,6 +73,7 @@ exports[`Db add member tests add member and update member 2`] = `
   "iceContactName": null,
   "iceContactPhoneNumber": null,
   "isMembershipApproved": false,
+  "isMembershipExpired": false,
   "isTrainingProgramPilot": false,
   "lang": "fi",
   "lastName": "member",
@@ -110,6 +116,8 @@ exports[`Db add member tests add member and update member 2`] = `
 
 exports[`Db query member tests getMemberByEmail should return member data for a valid email address 1`] = `
 {
+  "autoRenewAnnualMembership": true,
+  "autoRenewEquipmentFee": false,
   "billingId": "BILL005",
   "canMakeReservations": false,
   "createdAt": Any<String>,
@@ -121,6 +129,7 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
   "iceContactName": "Kaisa Hämäläinen",
   "iceContactPhoneNumber": "0441098765",
   "isMembershipApproved": true,
+  "isMembershipExpired": false,
   "isTrainingProgramPilot": false,
   "lang": "fi",
   "lastName": "Hämäläinen",
@@ -186,6 +195,8 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
 
 exports[`Db query member tests getMemberByEmail should return member data regardless of the case 1`] = `
 {
+  "autoRenewAnnualMembership": true,
+  "autoRenewEquipmentFee": false,
   "billingId": "BILL005",
   "canMakeReservations": false,
   "createdAt": Any<String>,
@@ -197,6 +208,7 @@ exports[`Db query member tests getMemberByEmail should return member data regard
   "iceContactName": "Kaisa Hämäläinen",
   "iceContactPhoneNumber": "0441098765",
   "isMembershipApproved": true,
+  "isMembershipExpired": false,
   "isTrainingProgramPilot": false,
   "lang": "fi",
   "lastName": "Hämäläinen",
@@ -262,6 +274,8 @@ exports[`Db query member tests getMemberByEmail should return member data regard
 
 exports[`Db query member tests getMemberById should return member data for a valid id 1`] = `
 {
+  "autoRenewAnnualMembership": true,
+  "autoRenewEquipmentFee": false,
   "billingId": "BILL001",
   "canMakeReservations": true,
   "createdAt": Any<String>,
@@ -273,6 +287,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "iceContactName": "Liisa Virtanen",
   "iceContactPhoneNumber": "0407654321",
   "isMembershipApproved": true,
+  "isMembershipExpired": false,
   "isTrainingProgramPilot": true,
   "lang": "fi",
   "lastName": "Virtanen",
@@ -351,6 +366,8 @@ exports[`Db query member tests getMemberById should return member data for a val
 
 exports[`Db query member tests getMemberById should return member data for a valid member id 1`] = `
 {
+  "autoRenewAnnualMembership": true,
+  "autoRenewEquipmentFee": false,
   "billingId": "BILL001",
   "canMakeReservations": true,
   "createdAt": Any<String>,
@@ -362,6 +379,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "iceContactName": "Liisa Virtanen",
   "iceContactPhoneNumber": "0407654321",
   "isMembershipApproved": true,
+  "isMembershipExpired": false,
   "isTrainingProgramPilot": true,
   "lang": "fi",
   "lastName": "Virtanen",

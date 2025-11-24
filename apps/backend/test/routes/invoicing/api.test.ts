@@ -128,3 +128,140 @@ describe('POST /flights', () => {
     expect(res.status).toBe(403)
   })
 })
+
+describe('GET /flights', () => {
+  it('should return invoicable flights for admin', async () => {
+    const res = await request(app)
+      .get('/invoices/flights')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .query({ aircraftRegistration: 'OH-STL', endDate: '2100-01-10' })
+
+    expect(res.status).toBe(200)
+    expect(res.body).toHaveProperty('logs')
+  })
+
+  it('should return 403 for non admin user', async () => {
+    const res = await request(app)
+      .get('/invoices/flights')
+      .set('Authorization', `Bearer ${memberToken}`)
+      .query({ limit: 10 })
+
+    expect(res.status).toBe(403)
+  })
+})
+
+describe('GET /annualMembershipBillingRuns', () => {
+  it('should return billing runs for admin', async () => {
+    const res = await request(app)
+      .get('/invoices/annualMembershipBillingRuns')
+      .set('Authorization', `Bearer ${adminToken}`)
+
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+  })
+
+  it('should return 403 for non admin user', async () => {
+    const res = await request(app)
+      .get('/invoices/annualMembershipBillingRuns')
+      .set('Authorization', `Bearer ${memberToken}`)
+
+    expect(res.status).toBe(403)
+    expect(res.body.detail).toContain('does not have permission')
+  })
+})
+
+describe('POST /triggerAnnualMembershipBillingProcess', () => {
+  it('should trigger annual billing process for admin', async () => {
+    const res = await request(app)
+      .post('/invoices/triggerAnnualMembershipBillingProcess/')
+      .set('Authorization', `Bearer ${adminToken}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body).toHaveProperty('membersProcessed')
+  })
+
+  it('should return 401 for invalid token', async () => {
+    const res = await request(app)
+      .post('/invoices/triggerAnnualMembershipBillingProcess/')
+      .set('Authorization', `Bearer badToken`)
+
+    expect(res.status).toBe(401)
+  })
+})
+
+describe('POST /requestOwnEquipmentFeeInvoice', () => {
+  it('should create equipment fee invoice for member', async () => {
+    const res = await request(app)
+      .post('/invoices/requestOwnEquipmentFeeInvoice')
+      .set('Authorization', `Bearer ${memberToken}`)
+
+    expect(res.status).toBe(200)
+  })
+
+  it('should return 401 for invalid token', async () => {
+    const res = await request(app)
+      .post('/invoices/requestOwnEquipmentFeeInvoice')
+      .set('Authorization', `Bearer badToken`)
+
+    expect(res.status).toBe(401)
+  })
+})
+
+describe('POST /sendEquipmentFeeInvoiceToMember', () => {
+  it('should send equipment fee invoice as admin', async () => {
+    const res = await request(app)
+      .post('/invoices/sendEquipmentFeeInvoiceToMember')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ memberId: 'Matti1' })
+
+    expect(res.status).toBe(200)
+  })
+
+  it('should return 403 for non admin user', async () => {
+    const res = await request(app)
+      .post('/invoices/sendEquipmentFeeInvoiceToMember')
+      .set('Authorization', `Bearer ${memberToken}`)
+      .send({ memberId: 'Antti1' })
+
+    expect(res.status).toBe(403)
+    expect(res.body.detail).toContain('does not have permission')
+  })
+})
+
+describe('GET /:invoiceId/pdf', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    // Mock the getInvoicePdf to return a base64 string
+    jest.spyOn(simplbooksApiClient, 'get').mockImplementation(async (path: string) => {
+      if (path.includes('/invoices/') && path.includes('/pdf')) {
+        return { data: 'base64encodedpdfstring' }
+      }
+      return mockSimplbooksGet(path)
+    })
+  })
+
+  // TODO Get mocking working
+
+  // it.only('should return PDF for valid invoice', async () => {
+  //   const res = await request(app)
+  //     .get('/invoices/2788/pdf')
+  //     .set('Authorization', `Bearer ${memberToken}`)
+
+  //   expect(res.status).toBe(200)
+  // })
+
+  it('should return 400 for invalid invoice ID', async () => {
+    const res = await request(app)
+      .get('/invoices/invalid/pdf')
+      .set('Authorization', `Bearer ${adminToken}`)
+
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toContain('Invalid invoice ID')
+  })
+
+  it('should return 401 for invalid token', async () => {
+    const res = await request(app).get('/invoices/2788/pdf').set('Authorization', `Bearer badToken`)
+
+    expect(res.status).toBe(401)
+  })
+})

@@ -11,6 +11,10 @@ export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'TRAININ
 
 export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
 
+export type Feeprocessstatus = 'inProgress' | 'processed'
+
+export type FeeType = 'annual_fee' | 'equipment_fee'
+
 export type FlightAircraftDocumentType =
   | 'ARC'
   | 'Certificate of Airworthiness'
@@ -99,6 +103,16 @@ export interface AcctsOutboxSimplbooks {
   processed_at: Timestamp | null
   status: Generated<SimplbooksOutboxStatus>
   updated_at_utc: Generated<Timestamp>
+}
+
+export interface AcctsRecurringFeesProcessing {
+  created_at: Generated<Timestamp>
+  created_by: string
+  fee_type: FeeType
+  status: Feeprocessstatus
+  updated_at: Generated<Timestamp>
+  updated_by: string
+  year: number
 }
 
 export interface FlightAircraft {
@@ -291,6 +305,17 @@ export interface FlywaySchemaHistory {
   version: string | null
 }
 
+export interface MemberAnnualFees {
+  created_at: Generated<Timestamp>
+  created_by: string
+  fee_type: FeeType
+  invoice_id: number
+  member_id: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+  year: number
+}
+
 export interface MemberDocuments {
   category: string
   created_at: Generated<Timestamp>
@@ -331,6 +356,8 @@ export interface MemberMemberToRoles {
 }
 
 export interface MemberRegister {
+  auto_renew_annual_membership: Generated<boolean | null>
+  auto_renew_equipment_fee: Generated<boolean | null>
   billing_id: string | null
   can_make_reservations: Generated<boolean>
   created_at: Generated<Timestamp>
@@ -342,6 +369,7 @@ export interface MemberRegister {
   ice_contact_name: string | null
   ice_contact_phone_number: string | null
   is_membership_approved: Generated<boolean>
+  is_membership_expired: Generated<boolean | null>
   is_training_program_pilot: Generated<boolean>
   lang_iso639: Generated<MikLang>
   last_name: string
@@ -431,6 +459,7 @@ export interface DB {
   'accts.invoice': AcctsInvoice
   'accts.items': AcctsItems
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks
+  'accts.recurring_fees_processing': AcctsRecurringFeesProcessing
   'flight.aircraft': FlightAircraft
   'flight.aircraft_documents_files': FlightAircraftDocumentsFiles
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
@@ -440,6 +469,7 @@ export interface DB {
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory
+  'member.annual_fees': MemberAnnualFees
   'member.documents': MemberDocuments
   'member.member_to_roles': MemberMemberToRoles
   'member.register': MemberRegister

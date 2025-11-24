@@ -2,7 +2,12 @@ import { Router, type Request, type Response } from 'express'
 
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
-import { getInvoiceItems, getInvoices, upsertInvoiceItems } from '../../db/invoicing-queries.ts'
+import {
+  getInvoiceItems,
+  getInvoices,
+  getRecurringFeesProcessing,
+  upsertInvoiceItems,
+} from '../../db/invoicing-queries.ts'
 import {
   InvoiceItemQuerySchema,
   type InvoiceItemQueryParams,
@@ -11,6 +16,8 @@ import {
   type Invoice,
   ItemSchema,
   type ItemListResponse,
+  type RecurringFeesProcessing,
+  type AnnualBillingResponse,
 } from './models.ts'
 
 import { getInvoicePdf, getItems } from '../../services/simplbooks/simplbooksApiClient.ts'
@@ -24,6 +31,10 @@ import {
   type InvoicableFlightListResponse,
 } from '../flight-log/models.ts'
 import { getInvoicableFlights, invoiceFlights } from '../../db/flight-log-queries.ts'
+import {
+  createAnnualEquipmentFeeForMember,
+  createAnnualMemberFeesForMembers,
+} from '../../services/accounting/recurringFeesProcessor.ts'
 
 const router = Router()
 router.use(
@@ -145,6 +156,71 @@ router.get('/items', async (req: Request, res: Response<ItemListResponse>) => {
   res.status(HttpStatusCode.Ok).json({ items })
 })
 
+router.get(
+  '/annualMembershipBillingRuns',
+  async (req: Request, res: Response<RecurringFeesProcessing[]>) => {
+    const isAdmin = req!.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
+
+    if (!isAdmin) {
+      return problem({
+        status: HttpStatusCode.Forbidden,
+        detail: 'User does not have permission to view annual membership billing runs.',
+      })
+    }
+
+    try {
+      const records = await getRecurringFeesProcessing('annual_fee')
+      res.status(HttpStatusCode.Ok).json(records)
+    } catch (error) {
+      logger.error('Error fetching annual membership billing runs:', error)
+      return problem({
+        status: HttpStatusCode.InternalServerError,
+        detail: 'Error fetching annual membership billing runs.',
+      })
+    }
+  },
+)
+
+router.post(
+  '/triggerAnnualMembershipBillingProcess/',
+  async (req: Request, res: Response<AnnualBillingResponse>) => {
+    logger.info('Annual membership processing triggered.')
+
+    const result = await createAnnualMemberFeesForMembers(req.user!.memberId).catch(error => {
+      logger.error('Error during annual membership processing:', error)
+      throw error
+    })
+
+    res.status(HttpStatusCode.Ok).json(result)
+  },
+)
+
+router.post('/requestOwnEquipmentFeeInvoice', async (req: Request, res: Response) => {
+  const result = await createAnnualEquipmentFeeForMember(req.user!.memberId).catch(error => {
+    logger.error('Error during equipment fee invoice processing:', error)
+  })
+
+  res.status(HttpStatusCode.Ok).json(result)
+})
+
+router.post('/sendEquipmentFeeInvoiceToMember', async (req: Request, res: Response) => {
+  const isAdmin = req!.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
+  const { memberId } = req.body
+
+  if (isAdmin) {
+    const result = await createAnnualEquipmentFeeForMember(memberId).catch(error => {
+      logger.error('Error during equipment fee invoice processing:', error)
+    })
+
+    res.status(HttpStatusCode.Ok).json(result)
+  } else {
+    return problem({
+      status: HttpStatusCode.Forbidden,
+      detail: 'User does not have permission to request equipment fee invoice for other members.',
+    })
+  }
+})
+
 router.get('/:invoiceId/pdf', async (req: Request, res: Response) => {
   const { invoiceId } = req.params
   const isAdmin = req!.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
@@ -157,7 +233,7 @@ router.get('/:invoiceId/pdf', async (req: Request, res: Response) => {
     })
   }
 
-  const invoiceBelongingToUser = getInvoices(req.user?.memberId!, isAdmin, {
+  const invoiceBelongingToUser = await getInvoices(req.user?.memberId!, isAdmin, {
     id: Number(invoiceId),
   })
 

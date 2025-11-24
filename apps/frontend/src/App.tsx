@@ -32,6 +32,7 @@ import { AccessCodes } from './sections/accessCodes/AccessCodes'
 import Documents from './sections/documents/Documents'
 import 'dayjs/locale/en-gb'
 import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
+import ToolsPage from './sections/accounting/ToolsPage'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -94,6 +95,7 @@ function App() {
               <Route index element={<InvoicingAdminDashboard />} />
               <Route path='invoicing' element={<FlightInvoicing />} />
               <Route path='items' element={<InvoiceItemsPage />} />
+              <Route path='tools' element={<ToolsPage />} />
             </Route>
           </Route>
 

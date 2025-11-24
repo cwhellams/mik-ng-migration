@@ -1,6 +1,6 @@
-import { MIKMemberTypes, type Member } from '../../routes/members/models.ts'
+import { MIKMemberTypes, type InvoiceMember } from '../../routes/members/models.ts'
 import type { InvoicePost } from '../simplbooks/models.ts'
-import * as simplbooksApiClient from '../../../src/services/simplbooks/simplbooksApiClient.ts'
+import * as simplbooksApiClient from '../simplbooks/simplbooksApiClient.ts'
 
 import {
   ART_JOINING_FEE,
@@ -10,6 +10,7 @@ import {
   ART_SUPPORTING_MEMBER_FEE_CODE,
   ART_SUPPORTING_MEMBER_JOINING_FEE,
   CC_MEMBERSHIP_FEE,
+  ART_EQUIP_FEE_CODE,
 } from './config.ts'
 
 import { createInvoicePostPayload } from './invoiceTemplate.ts'
@@ -69,8 +70,9 @@ const createTasksFromArticleCodes = async (
   return tasks
 }
 
-export const createNewMemberFeesInvoicePayload = async (member: Member): Promise<InvoicePost> => {
-  //TODO : Move this to a regular batch job which polls simplbooks and store to our DB
+export const createNewMemberFeesInvoicePayload = async (
+  member: InvoiceMember,
+): Promise<InvoicePost> => {
   const articleAnnualFeeCode = getMemberFeeSimplBooksCodeFromMemberType(member.memberType)
   const articleJoiningFeeCode = getJoiningFeeSimplBooksCodeFromMemberType(member.memberType)
 
@@ -84,11 +86,40 @@ export const createNewMemberFeesInvoicePayload = async (member: Member): Promise
   return invoice
 }
 
-export const createAnnualMemberFeeInvoicePayload = async (member: Member): Promise<InvoicePost> => {
-  //TODO : Move this to a regular batch job which polls simplbooks and store to our DB
+export const createAnnualMemberFeeInvoicePayload = async (
+  member: InvoiceMember,
+): Promise<InvoicePost> => {
   const articleAnnualFeeCode = getMemberFeeSimplBooksCodeFromMemberType(member.memberType)
 
   const tasks = await createTasksFromArticleCodes([articleAnnualFeeCode])
+
+  const invoice: InvoicePost = {
+    Invoice: createInvoicePostPayload(member, true),
+    Tasks: tasks,
+  }
+
+  return invoice
+}
+
+export const createAnnualMemberFeeWithEquipmentFeeInvoicePayload = async (
+  member: InvoiceMember,
+): Promise<InvoicePost> => {
+  const articleAnnualFeeCode = getMemberFeeSimplBooksCodeFromMemberType(member.memberType)
+
+  const tasks = await createTasksFromArticleCodes([articleAnnualFeeCode, ART_EQUIP_FEE_CODE])
+
+  const invoice: InvoicePost = {
+    Invoice: createInvoicePostPayload(member, true),
+    Tasks: tasks,
+  }
+
+  return invoice
+}
+
+export const createAnnualEquipmentFeeInvoicePayload = async (
+  member: InvoiceMember,
+): Promise<InvoicePost> => {
+  const tasks = await createTasksFromArticleCodes([ART_EQUIP_FEE_CODE])
 
   const invoice: InvoicePost = {
     Invoice: createInvoicePostPayload(member, true),

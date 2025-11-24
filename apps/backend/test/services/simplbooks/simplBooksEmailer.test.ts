@@ -16,6 +16,7 @@ const sendEmail =
   >()
 const getInvoice = jest.fn<() => Promise<any>>()
 const getInvoicePdf = jest.fn<() => Promise<string>>()
+const markInvoiceAsSent = jest.fn<() => Promise<void>>()
 
 jest.unstable_mockModule('../../../src/db/member-queries.ts', () => ({
   getMemberById,
@@ -28,6 +29,7 @@ jest.unstable_mockModule('../../../src/lib/sendGmail.ts', () => ({
 jest.unstable_mockModule('../../../src/services/simplbooks/simplbooksApiClient.ts', () => ({
   getInvoice,
   getInvoicePdf,
+  markInvoiceAsSent,
 }))
 
 const { sendSimplbooksInvoiceEmail } = await import(
@@ -54,6 +56,9 @@ describe('SimplBooks Emailer Tests', () => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     roles: [],
+    autoRenewAnnualMembership: true,
+    autoRenewEquipmentFee: false,
+    isMembershipExpired: false,
   }
 
   const mockInvoice = {

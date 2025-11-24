@@ -74,6 +74,7 @@ export const menuItems: MenuItem[] = [
       { label: 'invoicing.tabs.dashboard', path: '' },
       { label: 'invoicing.tabs.flights', path: 'invoicing' },
       { label: 'invoicing.tabs.items', path: 'items' },
+      { label: 'invoicing.tabs.tools', path: 'tools' },
     ],
   },
 ]

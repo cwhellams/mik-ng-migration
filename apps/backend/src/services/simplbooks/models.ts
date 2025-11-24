@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { type MemberProfile } from '../../routes/members/models.ts'
+import { AuditableSchema } from '../../types/schema.ts'
 
 // Regex pattern for dd-mm-yyyy
 const datePattern = /^\d{2}-\d{2}-\d{4}$/ // Matches dates in the format dd-mm-yyyy
@@ -31,6 +32,16 @@ export enum MIKInvoiceType {
   FLIGHT = 'FLIGHT',
   INSTRUCTION = 'INSTRUCTION',
   MISC = 'MISC',
+}
+
+export enum RecurringFeeType {
+  ANNUAL_FEE = 'annual_fee',
+  EQUIPMENT_FEE = 'equipment_fee',
+}
+
+export enum FeeProcessingStatus {
+  IN_PROGRESS = 'inProgress',
+  PROCESSED = 'processed',
 }
 
 export const clientSchema = z.object({
@@ -307,3 +318,14 @@ export const ItemListSchema = z.object({
 
 export type ItemListPayload = z.infer<typeof ItemListSchema>
 export type ItemListArticle = z.infer<typeof ArticleListSchema>
+
+export const FeeTypeEnum = z.enum(['annual_fee', 'equipment_fee'])
+export type FeeType = z.infer<typeof FeeTypeEnum>
+
+export const AnnualFeeInfoSchema = AuditableSchema.extend({
+  memberId: z.string(),
+  feeType: FeeTypeEnum,
+  year: z.number().int().min(2024).max(2100),
+  invoiceId: z.number().int().positive(),
+})
+export type AnnualFeeInfo = z.infer<typeof AnnualFeeInfoSchema>

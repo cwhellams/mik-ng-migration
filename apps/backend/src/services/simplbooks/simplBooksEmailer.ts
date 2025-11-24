@@ -1,10 +1,11 @@
 import { getMemberById } from '../../db/member-queries.ts'
+import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import {
   newInvoiceEmailBodyHtmlEn,
   newInvoiceEmailBodyHtmlFi,
 } from '../../templates/invoiceEmailTemplate.ts'
-import { getInvoice, getInvoicePdf } from './simplbooksApiClient.ts'
+import { getInvoice, getInvoicePdf, markInvoiceAsSent } from './simplbooksApiClient.ts'
 
 export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: string) {
   const member = await getMemberById(memberId)
@@ -50,4 +51,9 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
     },
   ]
   sendEmail(member.email, subject, emailBodyHtml, '', attachments)
+  logger.info(`Sent invoice ${invoiceId} email to member ${memberId}`)
+
+  // Mark the invoice as sent in SimplBooks
+  await markInvoiceAsSent(invoice.data.Invoice.id!)
+  logger.info(`Marked invoice ${invoiceId} as sent in SimplBooks`)
 }

@@ -163,6 +163,9 @@ export const MemberSchema = AuditableSchema.extend({
       updatedBy: true,
     }),
   ),
+  autoRenewAnnualMembership: z.boolean().nullable().optional(),
+  autoRenewEquipmentFee: z.boolean().nullable().optional(),
+  isMembershipExpired: z.boolean().nullable().optional(),
 })
 
 export type Member = z.infer<typeof MemberSchema>
@@ -186,6 +189,9 @@ export const MemberProfileSchema = MemberSchema.pick({
   licenceId: true,
   licenceExpiry: true,
   medicalExpiry: true,
+  autoRenewAnnualMembership: true,
+  autoRenewEquipmentFee: true,
+  lang: true,
 })
 
 export type MemberProfile = z.infer<typeof MemberProfileSchema>
@@ -200,3 +206,27 @@ export const MemberApprovalSchema = MemberSchema.pick({
 })
 
 export type MemberApproval = z.infer<typeof MemberApprovalSchema>
+
+export const AnnualMembershipStatsSchema = z.object({
+  totalAutoRenewMembers: z.number(),
+  totalAutoRenewEquipmentFee: z.number(),
+  year: z.number(),
+})
+
+export type AnnualMembershipStats = z.infer<typeof AnnualMembershipStatsSchema>
+
+// Partial member schema for invoice operations
+// Uses .passthrough() to strip unknown keys when parsing full member objects
+export const InvoiceMemberSchema = MemberSchema.pick({
+  memberId: true,
+  memberType: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  lang: true,
+  autoRenewEquipmentFee: true,
+  autoRenewAnnualMembership: true,
+  billingId: true,
+}).passthrough()
+
+export type InvoiceMember = z.infer<typeof InvoiceMemberSchema>

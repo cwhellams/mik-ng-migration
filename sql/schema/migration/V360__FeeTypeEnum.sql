@@ -1,0 +1,1 @@
+CREATE TYPE public.fee_type AS ENUM ('annual_fee', 'equipment_fee');

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { MIKInvoiceType } from '../../services/simplbooks/models.ts'
+import { AuditableSchema } from '../../types/schema.ts'
 
 // Create a Zod enum from the TypeScript enum
 export const InvoiceTypeEnum = z.nativeEnum(MIKInvoiceType)
@@ -78,3 +79,19 @@ export const InvoiceListResponseSchema = z.object({
 })
 
 export type InvoiceListResponse = z.infer<typeof InvoiceListResponseSchema>
+
+export const RecurringFeesProcessingSchema = AuditableSchema.extend({
+  fee_type: z.enum(['annual_fee', 'equipment_fee']),
+  status: z.enum(['inProgress', 'processed']),
+  year: z.number(),
+})
+
+export type RecurringFeesProcessing = z.infer<typeof RecurringFeesProcessingSchema>
+
+export const AnnualBillingResponseSchema = z.object({
+  year: z.number(),
+  membersProcessed: z.number(),
+  status: z.string(),
+})
+
+export type AnnualBillingResponse = z.infer<typeof AnnualBillingResponseSchema>

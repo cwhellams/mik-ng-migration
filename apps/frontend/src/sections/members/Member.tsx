@@ -111,6 +111,9 @@ const MemberProfile = () => {
     billingId,
     memberSince,
     isMembershipApproved,
+    isMembershipExpired,
+    autoRenewAnnualMembership,
+    autoRenewEquipmentFee,
   } = data || {}
 
   return (
@@ -331,6 +334,48 @@ const MemberProfile = () => {
           </Card>
 
           <Card>
+            {
+              <EditButton
+                title={t('member.edit.billing')}
+                onClick={() => handleOpenEditModal('billing')}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                }}
+              />
+            }
+            <CardContent>
+              <FormTitle
+                title={t('member.billingInfo.billingSettings')}
+                icon='mdi:credit-card-outline'
+              />
+              <Stack spacing={1.5}>
+                <FormField
+                  label={t('member.billingInfo.annualMembershipAutoRenew')}
+                >
+                  <Checkbox
+                    checked={Boolean(autoRenewAnnualMembership)}
+                    disabled
+                    size='large'
+                    sx={{ p: 0, pl: 0 }}
+                  />
+                </FormField>
+                <FormField
+                  label={t('member.billingInfo.equipmentFeeAutoRenew')}
+                >
+                  <Checkbox
+                    checked={Boolean(autoRenewEquipmentFee)}
+                    disabled
+                    size='large'
+                    sx={{ p: 0, pl: 0 }}
+                  />
+                </FormField>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <Card>
             {isAdmin && (
               <EditButton
                 title={t('member.edit.training')}
@@ -352,7 +397,7 @@ const MemberProfile = () => {
                 <Checkbox
                   checked={Boolean(isTrainingProgramPilot)}
                   disabled
-                  size='medium'
+                  size='large'
                   sx={{ p: 0, pl: 0 }}
                 />
               </FormField>
@@ -391,10 +436,20 @@ const MemberProfile = () => {
                   <Checkbox
                     checked={Boolean(canMakeReservations)}
                     disabled
-                    size='medium'
+                    size='large'
                     sx={{ p: 0, pl: 0 }}
                   />
                 </FormField>
+
+                <FormField label={t('member.isMembershipExpired')}>
+                  <Checkbox
+                    checked={Boolean(isMembershipExpired)}
+                    disabled
+                    size='large'
+                    sx={{ p: 0, pl: 0 }}
+                  />
+                </FormField>
+
                 <FormField label={t('member.billingId')}>{billingId}</FormField>
 
                 <FormField label={t('member.memberSince')}>

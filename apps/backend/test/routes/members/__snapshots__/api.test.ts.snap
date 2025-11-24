@@ -176,6 +176,8 @@ exports[`GET /members should search by unapproved roles as an admin 1`] = `
 
 exports[`GET /members/id Get member details as an admin 1`] = `
 {
+  "autoRenewAnnualMembership": true,
+  "autoRenewEquipmentFee": false,
   "billingId": null,
   "canMakeReservations": true,
   "createdAt": Any<String>,
@@ -186,6 +188,7 @@ exports[`GET /members/id Get member details as an admin 1`] = `
   "iceContactName": null,
   "iceContactPhoneNumber": null,
   "isMembershipApproved": false,
+  "isMembershipExpired": false,
   "isTrainingProgramPilot": false,
   "lang": "fi",
   "lastName": "Admin",
@@ -230,6 +233,8 @@ exports[`GET /members/id Get member details as an admin 1`] = `
 
 exports[`GET /members/me should return 200 with valid token for user 1`] = `
 {
+  "autoRenewAnnualMembership": true,
+  "autoRenewEquipmentFee": false,
   "billingId": "BILL001",
   "canMakeReservations": true,
   "createdAt": Any<String>,
@@ -240,6 +245,7 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
   "iceContactName": "Liisa Virtanen",
   "iceContactPhoneNumber": "0407654321",
   "isMembershipApproved": true,
+  "isMembershipExpired": false,
   "isTrainingProgramPilot": true,
   "lang": "fi",
   "lastName": "Virtanen",
@@ -318,6 +324,8 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
 
 exports[`GET /members/me should return 200 with valid token for user 2`] = `
 {
+  "autoRenewAnnualMembership": true,
+  "autoRenewEquipmentFee": false,
   "billingId": null,
   "canMakeReservations": true,
   "createdAt": Any<String>,
@@ -328,6 +336,7 @@ exports[`GET /members/me should return 200 with valid token for user 2`] = `
   "iceContactName": null,
   "iceContactPhoneNumber": null,
   "isMembershipApproved": false,
+  "isMembershipExpired": false,
   "isTrainingProgramPilot": false,
   "lang": "fi",
   "lastName": "Admin",
@@ -372,6 +381,8 @@ exports[`GET /members/me should return 200 with valid token for user 2`] = `
 
 exports[`GET /members/me should return 200 with valid token for user 3`] = `
 {
+  "autoRenewAnnualMembership": true,
+  "autoRenewEquipmentFee": false,
   "billingId": "BILL002",
   "canMakeReservations": false,
   "createdAt": Any<String>,
@@ -382,6 +393,7 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
   "iceContactName": "Matti Korhonen",
   "iceContactPhoneNumber": "0418765432",
   "isMembershipApproved": true,
+  "isMembershipExpired": false,
   "isTrainingProgramPilot": false,
   "lang": "fi",
   "lastName": "Korhonen",
@@ -445,6 +457,8 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
 exports[`Membership approval tests Get awaiting approval member details should return list of members awaiting approval 1`] = `
 [
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
     "billingId": "BILL004",
     "canMakeReservations": true,
     "createdAt": Any<String>,
@@ -455,6 +469,7 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "iceContactName": "Jukka Mäkinen",
     "iceContactPhoneNumber": "0430987654",
     "isMembershipApproved": false,
+    "isMembershipExpired": false,
     "isTrainingProgramPilot": false,
     "lang": "fi",
     "lastName": "Mäkinen",
@@ -473,6 +488,8 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "updatedBy": "k1mnimda",
   },
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
     "billingId": "BILL123",
     "canMakeReservations": true,
     "createdAt": Any<String>,
@@ -483,6 +500,7 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "iceContactName": "Doe johansson",
     "iceContactPhoneNumber": "0407654321",
     "isMembershipApproved": false,
+    "isMembershipExpired": false,
     "isTrainingProgramPilot": false,
     "lang": "fi",
     "lastName": "McDoe",
@@ -501,6 +519,8 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "updatedBy": "k1mnimda",
   },
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
     "billingId": "BILL009",
     "canMakeReservations": false,
     "createdAt": Any<String>,
@@ -511,6 +531,7 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "iceContactName": "Marja Seppälä",
     "iceContactPhoneNumber": "0485432109",
     "isMembershipApproved": false,
+    "isMembershipExpired": false,
     "isTrainingProgramPilot": false,
     "lang": "fi",
     "lastName": "Seppälä",
@@ -529,6 +550,8 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "updatedBy": "k1mnimda",
   },
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
     "billingId": null,
     "canMakeReservations": true,
     "createdAt": Any<String>,
@@ -539,6 +562,7 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "iceContactName": null,
     "iceContactPhoneNumber": null,
     "isMembershipApproved": false,
+    "isMembershipExpired": false,
     "isTrainingProgramPilot": false,
     "lang": "fi",
     "lastName": "Admin",
@@ -556,6 +580,8 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "updatedBy": "k1mnimda",
   },
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
     "billingId": "BILL006",
     "canMakeReservations": false,
     "createdAt": Any<String>,
@@ -566,6 +592,7 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "iceContactName": "Pekka Laine",
     "iceContactPhoneNumber": "0452109876",
     "isMembershipApproved": false,
+    "isMembershipExpired": false,
     "isTrainingProgramPilot": false,
     "lang": "fi",
     "lastName": "Laine",
@@ -584,6 +611,8 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "updatedBy": "k1mnimda",
   },
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
     "billingId": "BILL010",
     "canMakeReservations": true,
     "createdAt": Any<String>,
@@ -594,6 +623,7 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "iceContactName": "Juha Salminen",
     "iceContactPhoneNumber": "0496543210",
     "isMembershipApproved": false,
+    "isMembershipExpired": false,
     "isTrainingProgramPilot": false,
     "lang": "fi",
     "lastName": "Salminen",
@@ -612,6 +642,8 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "updatedBy": "k1mnimda",
   },
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
     "billingId": null,
     "canMakeReservations": false,
     "createdAt": Any<String>,
@@ -622,6 +654,7 @@ exports[`Membership approval tests Get awaiting approval member details should r
     "iceContactName": null,
     "iceContactPhoneNumber": null,
     "isMembershipApproved": false,
+    "isMembershipExpired": false,
     "isTrainingProgramPilot": false,
     "lang": "fi",
     "lastName": "User",

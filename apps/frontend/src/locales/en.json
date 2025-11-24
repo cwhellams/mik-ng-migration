@@ -94,7 +94,14 @@
       "training": "Edit Training Programs",
       "membership": "Edit Membership Details",
       "roles": "Edit Member Roles",
-      "licence": "Edit Licence Information"
+      "licence": "Edit Licence Information",
+      "billing": "Edit Billing Auto-renew Settings"
+    },
+    "isMembershipExpired": "Membership Expired",
+    "billingInfo": {
+      "billingSettings": "Billing Auto-renew Settings",
+      "annualMembershipAutoRenew": "Annual Membership autorenew",
+      "equipmentFeeAutoRenew": "Equipment Fee autorenew"
     },
     "memberType": "Member Type",
     "types": {
@@ -580,7 +587,8 @@
     "tabs": {
       "dashboard": "Dashboard",
       "flights": "Flights",
-      "items": "Products"
+      "items": "Products",
+      "tools": "Tools"
     },
     "dashboard": {
       "title": "Flights Waiting to be Invoiced",
@@ -599,7 +607,28 @@
     "completeCommentedFlights": "Confirm commented flights",
     "complete": "Send flights for invoicing",
     "success": "Invoicing job started successfully",
-    "restart": "Start Over"
+    "restart": "Start Over",
+    "toolsPage": {
+      "title": "Tools",
+      "annualBilling": {
+        "title": "Annual Membership Billing",
+        "description": "Trigger the annual member fee invoicing process for all members.",
+        "eligibleMembers": "Members with auto-renew enabled",
+        "withEquipmentFee": "Members with auto-renew equipment fee enabled",
+        "button": "Trigger {{year}} Annual Billing",
+        "processing": "Processing...",
+        "successMessage": "Annual billing process completed successfully",
+        "processedCount": "Members processed",
+        "errors": "Errors",
+        "alreadyRun": "Annual billing for {{year}} has already been run and cannot be triggered again.",
+        "recentRuns": "Recent Billing Runs",
+        "statusProcessed": "Completed",
+        "statusInProgress": "In Progress",
+        "createdAt": "Created",
+        "completedAt": "Completed",
+        "createdBy": "Created By"
+      }
+    }
   },
   "registrationVerify": {
     "title": "Verifying Registration",

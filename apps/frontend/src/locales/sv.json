@@ -94,7 +94,14 @@
       "training": "Redigera utbildningsprogram",
       "membership": "Redigera medlemsdetaljer",
       "roles": "Redigera medlemsroller",
-      "licence": "Redigera licensinformation"
+      "licence": "Redigera licensinformation",
+      "billing": "Redigera inställningar för automatisk förnyelse av fakturering"
+    },
+    "isMembershipExpired": "Medlemskap har gått ut",
+    "billingInfo": {
+      "billingSettings": "Inställningar för automatisk förnyelse av fakturering",
+      "annualMembershipAutoRenew": "Årlig medlemskap automatisk förnyelse",
+      "equipmentFeeAutoRenew": "Utrustningsavgift automatisk förnyelse"
     },
     "memberType": "Medlemstyp",
     "types": {
@@ -579,7 +586,8 @@
     "tabs": {
       "dashboard": "Instrumentpanel",
       "invoicing": "Fakturering",
-      "items": "Prislista"
+      "items": "Prislista",
+      "tools": "Verktyg"
     },
     "dashboard": {
       "title": "Väntar på fakturering",
@@ -598,7 +606,28 @@
     "completeCommentedFlights": "Bekräfta kommenterade flyg",
     "complete": "Skicka flyg till fakturering",
     "success": "Faktureringskörning startad framgångsrikt",
-    "restart": "Starta om"
+    "restart": "Starta om",
+    "toolsPage": {
+      "title": "Verktyg",
+      "annualBilling": {
+        "title": "Årlig medlemsavgiftsfakturering",
+        "description": "Starta den årliga medlemsavgiftsfaktureringsprocessen för alla medlemmar.",
+        "eligibleMembers": "Medlemmar med automatisk förnyelse",
+        "withEquipmentFee": "Medlemmar med utrustningsavgift",
+        "button": "Starta {{year}} fakturering",
+        "processing": "Bearbetar...",
+        "successMessage": "Årlig fakturering slutförd framgångsrikt",
+        "processedCount": "Medlemmar bearbetade",
+        "errors": "Fel",
+        "alreadyRun": "Fakturering för {{year}} har redan körts och kan inte startas igen.",
+        "recentRuns": "Senaste faktureringskörningar",
+        "statusProcessed": "Slutförd",
+        "statusInProgress": "Pågår",
+        "createdAt": "Skapad",
+        "completedAt": "Slutförd",
+        "createdBy": "Skapad av"
+      }
+    }
   },
   "registrationVerify": {
     "title": "Verifierar registrering",

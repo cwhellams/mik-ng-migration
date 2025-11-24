@@ -5,10 +5,8 @@ import { db } from '../db/connection.ts'
 import { SimplbooksStatus, type AcctsOutboxSimplbooks } from '../services/simplbooks/models.ts'
 
 import logger from '../lib/logger.ts'
-import {
-  checkAndClearStuckMessages,
-  dispatchOutboxMsg,
-} from '../services/simplbooks/simplbooksOutboxHandler.ts'
+import { dispatchOutboxMsg } from '../services/simplbooks/simplbooksOutboxHandler.ts'
+import { checkAndClearStuckMessages } from '../db/outbox-simplbooks-queries.ts'
 
 let intervalId: any = null
 let intervalMs = 1000 // 1 second

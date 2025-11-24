@@ -1,0 +1,1 @@
+CREATE TYPE public.feeProcessStatus AS ENUM ('inProgress', 'processed');

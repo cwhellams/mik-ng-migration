@@ -94,7 +94,14 @@
       "training": "Muokkaa koulutusohjelmia",
       "membership": "Muokkaa jäsenyyden tietoja",
       "roles": "Muokkaa jäsenen rooleja",
-      "licence": "Edit Licence Information"
+      "licence": "Muokkaa lupatietoja",
+      "billing": "Muokkaa laskutuksen automaattisen uusimisen asetuksia"
+    },
+    "isMembershipExpired": "Jäsenyys vanhentunut",
+    "billingInfo": {
+      "billingSettings": "Laskutuksen automaattisen uusimisen asetukset",
+      "annualMembershipAutoRenew": "Vuotuisen jäsenmaksun automaattinen uusiminen",
+      "equipmentFeeAutoRenew": "Kalustomaksun automaattinen uusiminen"
     },
     "isTrainingProgramPilot": "Koulutusohjelmaoppilas",
     "memberType": "Jäsentyyppi",
@@ -580,7 +587,8 @@
     "tabs": {
       "dashboard": "Kojelauta",
       "flights": "Lennot",
-      "items": "Tuotteet"
+      "items": "Tuotteet",
+      "tools": "Työkalut"
     },
     "dashboard": {
       "title": "Odottaa laskutusta",
@@ -599,7 +607,28 @@
     "completeCommentedFlights": "Vahvista kommetoidut lennot",
     "complete": "Käynnistä laskutus",
     "success": "Laskutusajo käynnistetty onnistuneesti",
-    "restart": "Aloita uudestaan"
+    "restart": "Aloita uudestaan",
+    "toolsPage": {
+      "title": "Työkalut",
+      "annualBilling": {
+        "title": "Vuosittainen jäsenmaksulaskutus",
+        "description": "Käynnistä vuosittainen jäsenmaksulaskutus kaikille jäsenille.",
+        "eligibleMembers": "Jäseniä automaattisella uusinnalla",
+        "withEquipmentFee": "Jäseniä kalustomaksulla",
+        "button": "Käynnistä vuoden {{year}} laskutus",
+        "processing": "Käsitellään...",
+        "successMessage": "Vuosittainen laskutus suoritettu onnistuneesti",
+        "processedCount": "Käsitellyt jäsenet",
+        "errors": "Virheet",
+        "alreadyRun": "Vuoden {{year}} laskutus on jo suoritettu eikä sitä voi käynnistää uudelleen.",
+        "recentRuns": "Viimeisimmät laskutukset",
+        "statusProcessed": "Valmis",
+        "statusInProgress": "Käynnissä",
+        "createdAt": "Luotu",
+        "completedAt": "Valmistunut",
+        "createdBy": "Luonut"
+      }
+    }
   },
   "registrationVerify": {
     "title": "Vahvistetaan rekisteröitymistä",

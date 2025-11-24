@@ -1,5 +1,8 @@
-import { type InvoiceItemQueryParams } from '../routes/invoicing/models.ts'
-import type { ItemListArticle } from '../services/simplbooks/models.ts'
+import {
+  type InvoiceItemQueryParams,
+  type RecurringFeesProcessing,
+} from '../routes/invoicing/models.ts'
+import type { FeeType, ItemListArticle } from '../services/simplbooks/models.ts'
 import { db } from './connection.ts'
 import type { AcctsInvoice, AcctsItems } from './schema.js'
 
@@ -85,4 +88,25 @@ export async function deleteInvoiceItem(id: number): Promise<void> {
   if (result.length === 0) {
     throw new Error(`Failed to delete invoice item with id ${id}`)
   }
+}
+
+export async function getRecurringFeesProcessing(
+  feeType: FeeType,
+): Promise<RecurringFeesProcessing[]> {
+  const result = await db
+    .selectFrom('accts.recurring_fees_processing')
+    .selectAll()
+    .where('fee_type', '=', feeType)
+    .orderBy('year', 'desc')
+    .execute()
+
+  return result.map(row => ({
+    fee_type: row.fee_type,
+    status: row.status,
+    year: row.year,
+    createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+    createdBy: row.created_by,
+    updatedAt: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
+    updatedBy: row.updated_by,
+  })) as RecurringFeesProcessing[]
 }

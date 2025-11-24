@@ -14,6 +14,7 @@ import {
   type MemberApproval,
   MIKLang,
   MemberListFiltersSchema,
+  type AnnualMembershipStats,
 } from './models.ts'
 import {
   getMemberById,
@@ -29,6 +30,7 @@ import {
   getMembersAwaitingApproval,
   setMembershipApproval,
   updateMemberLang,
+  getMembersForAnnualMembershipFee,
 } from '../../db/member-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { UpsertSchema } from '../../types/schema.ts'
@@ -55,6 +57,23 @@ router.get(
   async (req: Request, res: Response<Member[]>) => {
     const membersAwaitingApproval = await getMembersAwaitingApproval()
     res.status(HttpStatusCode.Ok).json(membersAwaitingApproval)
+  },
+)
+
+router.get(
+  '/annual-membership-stats',
+  validateUser(MIKPermissions.INVOICING_ADMIN),
+  async (req: Request, res: Response<AnnualMembershipStats>) => {
+    const year = req.query.year ? parseInt(req.query.year as string) : new Date().getFullYear()
+    const members = await getMembersForAnnualMembershipFee(year)
+
+    const stats: AnnualMembershipStats = {
+      totalAutoRenewMembers: members.length,
+      totalAutoRenewEquipmentFee: members.filter(m => m.autoRenewEquipmentFee === true).length,
+      year,
+    }
+
+    res.status(HttpStatusCode.Ok).json(stats)
   },
 )
 

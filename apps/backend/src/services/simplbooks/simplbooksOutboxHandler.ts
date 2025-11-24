@@ -1,8 +1,8 @@
-import { randomUUID } from 'crypto'
 import { db } from '../../db/connection.ts'
 import logger from '../../lib/logger.ts'
-import { MemberSchema } from '../../routes/members/models.ts'
+import { InvoiceMemberSchema, MemberSchema } from '../../routes/members/models.ts'
 import {
+  FeeTypeEnum,
   MIKInvoiceType,
   SimplbooksEventType,
   SimplbooksStatus,
@@ -15,12 +15,20 @@ import {
   markInvoiceAsSent,
 } from './simplbooksApiClient.ts'
 import {
+  createAnnualEquipmentFeeInvoicePayload,
   createAnnualMemberFeeInvoicePayload,
+  createAnnualMemberFeeWithEquipmentFeeInvoicePayload,
   createNewMemberFeesInvoicePayload,
-} from '../accounting/membershipFee.ts'
+} from '../accounting/recurringFeesInvoiceCreator.ts'
+import { sendSimplbooksInvoiceEmail } from './simplBooksEmailer.ts'
+
+import {
+  setOutboxStatus,
+  insertOutboxItem,
+  insertMemberAnnualFees,
+} from '../../db/outbox-simplbooks-queries.ts'
 import type { Transaction } from 'kysely'
 import type { DB } from '../../db/schema.js'
-import { sendSimplbooksInvoiceEmail } from './simplBooksEmailer.ts'
 
 export const MIK_SIMPLBOOKS_MEMBER: string = 'simplbks'
 export const MIK_CURRENCY = 'EUR'
@@ -36,6 +44,9 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
     case SimplbooksEventType.ANNUAL_MEMBERSHIP_FEE:
       await createAnnualMemberFeeInvoice(msg)
       break
+    case SimplbooksEventType.EQUIPMENT_INVOICE:
+      await createAnnualEquipmentFeeInvoice(msg)
+      break
     case SimplbooksEventType.SEND_INVOICE_PDF:
       createSimplbooksInvoiceEmail(msg)
       break
@@ -44,16 +55,99 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
   }
 }
 
+export const getCurrentYear = () => new Date().getFullYear()
+
 async function createNewMemberFeesInvoice(outboxMsg: AcctsOutboxSimplbooks) {
-  const member = MemberSchema.parse(outboxMsg.payload)
+  const member = InvoiceMemberSchema.parse(outboxMsg.payload)
   const feeInvoice = await createNewMemberFeesInvoicePayload(member)
-  await createInvoice(member.memberId, outboxMsg.id, MIKInvoiceType.JOINING_FEE, feeInvoice)
+  await db.transaction().execute(async txn => {
+    await createInvoice(member.memberId, outboxMsg.id, MIKInvoiceType.JOINING_FEE, feeInvoice, txn)
+  })
 }
 
 async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
+  const member = InvoiceMemberSchema.parse(outboxMsg.payload)
+
+  const year = getCurrentYear()
+  // Check if the memeber has opted for equipment fee renewal at the same time
+  const includeEquipmentFee = member.autoRenewEquipmentFee === true
+
+  const feeInvoice = includeEquipmentFee
+    ? await createAnnualMemberFeeWithEquipmentFeeInvoicePayload(member)
+    : await createAnnualMemberFeeInvoicePayload(member)
+
+  await db.transaction().execute(async txn => {
+    // Create invoice entry to db
+    const invoiceId = await createInvoice(
+      member.memberId,
+      outboxMsg.id,
+      MIKInvoiceType.ANNUAL_FEE,
+      feeInvoice,
+      txn,
+    )
+
+    //Insert annual fee record
+    await insertMemberAnnualFees(txn, {
+      memberId: member.memberId,
+      feeType: FeeTypeEnum.Values.annual_fee,
+      year: year,
+      invoiceId: invoiceId,
+      createdAt: new Date().toISOString(),
+      createdBy: MIK_SIMPLBOOKS_MEMBER,
+      updatedAt: new Date().toISOString(),
+      updatedBy: MIK_SIMPLBOOKS_MEMBER,
+    })
+
+    //Insert equipment fee record if applicable
+    includeEquipmentFee &&
+      (await insertMemberAnnualFees(txn, {
+        memberId: member.memberId,
+        feeType: FeeTypeEnum.Values.equipment_fee,
+        year: year,
+        invoiceId: invoiceId,
+        createdAt: new Date().toISOString(),
+        createdBy: MIK_SIMPLBOOKS_MEMBER,
+        updatedAt: new Date().toISOString(),
+        updatedBy: MIK_SIMPLBOOKS_MEMBER,
+      }))
+
+    logger.info(
+      `Created annual membership fee invoice for ${year} with ID: ${invoiceId} for member: ${member.email}, equipment fee included: ${includeEquipmentFee}`,
+    )
+  })
+}
+
+async function createAnnualEquipmentFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   const member = MemberSchema.parse(outboxMsg.payload)
-  const feeInvoice = await createAnnualMemberFeeInvoicePayload(member)
-  await createInvoice(member.memberId, outboxMsg.id, MIKInvoiceType.ANNUAL_FEE, feeInvoice)
+  const year = getCurrentYear()
+  const feeInvoicePayload = createAnnualEquipmentFeeInvoicePayload(member)
+
+  await db.transaction().execute(async txn => {
+    // Create invoice entry to db
+    const invoiceId = await createInvoice(
+      member.memberId,
+      outboxMsg.id,
+      MIKInvoiceType.EQUIPMENT_FEE,
+      feeInvoicePayload,
+      txn,
+    )
+
+    //Insert equipment fee record
+    await insertMemberAnnualFees(txn, {
+      memberId: member.memberId,
+      feeType: FeeTypeEnum.Values.equipment_fee,
+      year: year,
+      invoiceId: invoiceId,
+      createdAt: new Date().toISOString(),
+      createdBy: MIK_SIMPLBOOKS_MEMBER,
+      updatedAt: new Date().toISOString(),
+      updatedBy: MIK_SIMPLBOOKS_MEMBER,
+    })
+
+    logger.info(
+      `Created annual equipment fee invoice for ${year} with ID: ${invoiceId} for member: ${member.email}`,
+    )
+  })
 }
 
 async function createSimplbooksInvoiceEmail(outboxMsg: AcctsOutboxSimplbooks) {
@@ -106,7 +200,8 @@ async function createInvoice(
   outboxMsgId: string,
   invoiceType: MIKInvoiceType,
   payload: any,
-) {
+  txn: Transaction<DB>,
+): Promise<number> {
   // Create the invoice
   const retval = await createSimplbooksInvoice(payload)
 
@@ -116,33 +211,33 @@ async function createInvoice(
 
   const now = new Date()
 
-  await db.transaction().execute(async txn => {
-    txn
-      .insertInto('accts.invoice')
-      .values({
-        member_id: memberId,
-        id: invoiceData.id!,
-        invoice_type: invoiceType,
-        description: invoiceData.additional_info,
-        total_sum: invoiceData.total_sum,
-        currency: MIK_CURRENCY,
-        due_at: invoiceData.due!,
-        created_by: MIK_SIMPLBOOKS_MEMBER,
-        created_at: now,
-        updated_by: MIK_SIMPLBOOKS_MEMBER,
-        updated_at: now,
-        pmt_ref: invoiceData.reference?.toString() ?? '',
-      })
-      .execute()
-
-    //Insert pdf dispatch row to outbox
-    await insertOutboxItem(txn, SimplbooksEventType.SEND_INVOICE_PDF, {
-      memberId: memberId,
-      invoiceId: invoiceData.id!,
+  txn
+    .insertInto('accts.invoice')
+    .values({
+      member_id: memberId,
+      id: invoiceData.id!,
+      invoice_type: invoiceType,
+      description: invoiceData.additional_info,
+      total_sum: invoiceData.total_sum,
+      currency: MIK_CURRENCY,
+      due_at: invoiceData.due!,
+      created_by: MIK_SIMPLBOOKS_MEMBER,
+      created_at: now,
+      updated_by: MIK_SIMPLBOOKS_MEMBER,
+      updated_at: now,
+      pmt_ref: invoiceData.reference?.toString() ?? '',
     })
-    //Mark as processed
-    await setOutboxStatus(txn, outboxMsgId, SimplbooksStatus.SYNCED)
+    .execute()
+
+  //Insert pdf dispatch row to outbox
+  await insertOutboxItem(txn, SimplbooksEventType.SEND_INVOICE_PDF, {
+    memberId: memberId,
+    invoiceId: invoiceData.id!,
   })
+  //Mark as processed
+  await setOutboxStatus(txn, outboxMsgId, SimplbooksStatus.SYNCED)
+
+  return invoiceData.id!
 }
 
 async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
@@ -174,49 +269,4 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
 
     await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
   })
-}
-
-async function insertOutboxItem(
-  txn: Transaction<DB>,
-  eventType: SimplbooksEventType,
-  payload: any,
-) {
-  await txn
-    .insertInto('accts.outbox_simplbooks')
-    .values({
-      id: randomUUID(),
-      event_type: eventType,
-      payload,
-    })
-    .execute()
-}
-
-async function setOutboxStatus(
-  txn: Transaction<DB>,
-  outboxMsgId: string,
-  status: SimplbooksStatus,
-) {
-  // Mark the outbox message as processed
-  await txn
-    .updateTable('accts.outbox_simplbooks')
-    .set({
-      status: status,
-      updated_at_utc: new Date(),
-      processed_at: new Date(),
-    })
-    .where('id', '=', outboxMsgId)
-    .execute()
-}
-
-export async function checkAndClearStuckMessages() {
-  const results = await db
-    .updateTable('accts.outbox_simplbooks')
-    .set({ status: SimplbooksStatus.PENDING })
-    .where('status', '=', SimplbooksStatus.PROCESSING)
-    .execute()
-  if (results.length > 0) {
-    logger.warn(
-      `Cleared ${results.length} stuck messages in the SimplBooks outbox with status PROCESSING`,
-    )
-  }
 }

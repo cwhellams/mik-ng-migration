@@ -54,6 +54,9 @@ describe('Simplebooks API Tests Happy Case', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       roles: [],
+      autoRenewAnnualMembership: true,
+      autoRenewEquipmentFee: false,
+      isMembershipExpired: false,
     }
 
     const clientId = await createNewClient(client)
@@ -183,6 +186,9 @@ describe('Simplebooks API Tests Error Case', () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       roles: [],
+      autoRenewAnnualMembership: true,
+      autoRenewEquipmentFee: false,
+      isMembershipExpired: false,
     }
 
     await expect(createNewClient(badClient)).rejects.toThrow(

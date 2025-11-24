@@ -6,11 +6,14 @@ import {
   SimplbooksEventType,
   type AcctsOutboxSimplbooks,
 } from '../../../src/services/simplbooks/models.ts'
-import { MIKLang, MIKMemberTypes, type Member } from '../../../src/routes/members/models.ts'
 import {
-  checkAndClearStuckMessages,
-  dispatchOutboxMsg,
-} from '../../../src/services/simplbooks/simplbooksOutboxHandler.ts'
+  InvoiceMemberSchema,
+  MIKLang,
+  MIKMemberTypes,
+  type InvoiceMember,
+  type Member,
+} from '../../../src/routes/members/models.ts'
+import { dispatchOutboxMsg } from '../../../src/services/simplbooks/simplbooksOutboxHandler.ts'
 import { simplbooksApiClient } from '../../../src/services/simplbooks/simplbooksApiClient.ts'
 import { mockSimplbooksGet, mockSimplbooksPost } from '../../__mocks__/simplbooksMock.ts'
 import {
@@ -24,6 +27,7 @@ import {
   insertStuckRowToOutbox,
   revertBillingIdChanges,
 } from '../../db/__helpers__/simplbooksDbHelpers.ts'
+import { checkAndClearStuckMessages } from '../../../src/db/outbox-simplbooks-queries.ts'
 
 const newMemberId = 'Anna1'
 
@@ -48,11 +52,18 @@ const flyingMember: Member = {
   roles: [],
 }
 
+const flyingMemberInvoiceMemberPayload: InvoiceMember = InvoiceMemberSchema.parse({
+  ...flyingMember,
+  autoRenewAnnualMembership: false,
+  autoRenewEquipmentFee: false,
+  billingId: 'BILL004',
+})
+
 const obMsgAddMember: AcctsOutboxSimplbooks = {
   created_at_utc: new Date(),
   event_type: SimplbooksEventType.ADD_MEMBER,
   id: randomUUID(),
-  payload: flyingMember,
+  payload: flyingMemberInvoiceMemberPayload,
   status: 'PENDING',
 }
 
