@@ -64,8 +64,7 @@ const MassBalance: React.FC = () => {
     state,
     updatePilot,
     updateCopilot,
-    updateRearLeft,
-    updateRearRight,
+    updateRearSeat,
     updateBaggage,
     updateFuel,
     updateTaxiFuel,
@@ -79,8 +78,7 @@ const MassBalance: React.FC = () => {
     selectedAircraftId,
     pilot,
     copilot,
-    rearLeft,
-    rearRight,
+    rearSeats,
     baggage,
     fuel,
     taxiFuel,
@@ -95,10 +93,6 @@ const MassBalance: React.FC = () => {
 
   // Aggregated values for calculations
   const [frontSeats, setFrontSeats] = useState<WeightPosition>({
-    weight: 0,
-    arm: 0,
-  })
-  const [rearSeats, setRearSeats] = useState<WeightPosition>({
     weight: 0,
     arm: 0,
   })
@@ -196,39 +190,19 @@ const MassBalance: React.FC = () => {
           })
 
           // Handle rear seats
-          if (specs.loadPoints.rearLeft) {
-            updateRearLeft({
-              weight:
-                currentState.rearLeft?.weight ||
-                specs.loadPoints.rearLeft.defaultValue ||
-                0,
-              arm: specs.loadPoints.rearLeft.momentArm,
-            })
-          }
-
-          if (specs.loadPoints.rearRight) {
-            updateRearRight({
-              weight:
-                currentState.rearRight?.weight ||
-                specs.loadPoints.rearRight.defaultValue ||
-                0,
-              arm: specs.loadPoints.rearRight.momentArm,
-            })
-          }
-
-          // Handle single rear seat for OH-STL
           if (specs.loadPoints.rearSeat) {
-            updateRearLeft({
+            updateRearSeat({
               weight:
-                currentState.rearLeft?.weight ||
+                currentState.rearSeats?.weight ||
                 specs.loadPoints.rearSeat.defaultValue ||
                 0,
               arm: specs.loadPoints.rearSeat.momentArm,
             })
-            // For single rear seat, set rearRight to zero
-            updateRearRight({
+          } else {
+            // Reset rear seat weight to 0 if aircraft doesn't have rear seats
+            updateRearSeat({
               weight: 0,
-              arm: specs.loadPoints.rearSeat.momentArm,
+              arm: 0,
             })
           }
 
@@ -270,18 +244,7 @@ const MassBalance: React.FC = () => {
     }
 
     loadSpecs()
-  }, [
-    selectedAircraftId,
-    updateBaggage,
-    updateCopilot,
-    updateFlightTime,
-    updateFuel,
-    updateFuelFlow,
-    updatePilot,
-    updateRearLeft,
-    updateRearRight,
-    updateTaxiFuel,
-  ])
+  }, [selectedAircraftId, updateBaggage, updateCopilot, updateFlightTime, updateFuel, updateFuelFlow, updatePilot, updateRearSeat, updateTaxiFuel])
 
   // Update fuel weight when litres change
   useEffect(() => {
@@ -299,15 +262,6 @@ const MassBalance: React.FC = () => {
     const avgArm = totalWeight > 0 ? totalMoment / totalWeight : pilot.arm
     setFrontSeats({ weight: totalWeight, arm: avgArm })
   }, [pilot, copilot])
-
-  // Calculate aggregated rear seats
-  useEffect(() => {
-    const totalWeight = rearLeft.weight + rearRight.weight
-    const totalMoment =
-      rearLeft.weight * rearLeft.arm + rearRight.weight * rearRight.arm
-    const avgArm = totalWeight > 0 ? totalMoment / totalWeight : rearLeft.arm
-    setRearSeats({ weight: totalWeight, arm: avgArm })
-  }, [rearLeft, rearRight])
 
   // Calculate total fuel burn
   useEffect(() => {
@@ -329,31 +283,20 @@ const MassBalance: React.FC = () => {
         warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
       }
       if (
-        selectedAircraft.loadPoints.rearLeft &&
-        rearLeft.weight > selectedAircraft.loadPoints.rearLeft.maxValue!
-      ) {
-        warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
-      }
-      if (
-        selectedAircraft.loadPoints.rearRight &&
-        rearRight.weight > selectedAircraft.loadPoints.rearRight.maxValue!
-      ) {
-        warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
-      }
-      // Handle single rear seat validation for OH-STL
-      if (
         selectedAircraft.loadPoints.rearSeat &&
-        rearLeft.weight > selectedAircraft.loadPoints.rearSeat.maxValue!
+        rearSeats.weight > selectedAircraft.loadPoints.rearSeat.maxValue!
       ) {
-        warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
-      }
-      if (baggage.weight > selectedAircraft.loadPoints.baggage.maxValue!) {
         warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
       }
       if (
         fuel.weight >
         selectedAircraft.loadPoints.fuel.maxValue! *
           selectedAircraft.fuelConversion.litre2Kilo
+      ) {
+        warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
+      }
+      if (
+        baggage.weight > selectedAircraft.loadPoints.baggage.maxValue!
       ) {
         warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
       }
@@ -453,8 +396,7 @@ const MassBalance: React.FC = () => {
     t,
     pilot.weight,
     copilot.weight,
-    rearLeft.weight,
-    rearRight.weight,
+    rearSeats.weight,
   ])
 
   const handleInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
@@ -909,7 +851,7 @@ const MassBalance: React.FC = () => {
                   <Card sx={{ mb: 2 }}>
                     <CardContent sx={{ pb: '16px !important' }}>
                       <Typography variant='subtitle2' sx={{ mb: 1 }}>
-                        {selectedAircraft.loadPoints.rearSeat.name}
+                        {t('massBalance.rearSeats')}
                       </Typography>
                       <Grid container spacing={2} sx={{ mb: 1 }}>
                         <Grid size={{ xs: 12 }}>
@@ -918,11 +860,11 @@ const MassBalance: React.FC = () => {
                             label={t('massBalance.weight')}
                             type='number'
                             value={
-                              rearLeft.weight === 0 ? '0' : rearLeft.weight
+                              rearSeats.weight === 0 ? '0' : rearSeats.weight                              
                             }
                             onChange={(e) =>
-                              updateRearLeft({
-                                ...rearLeft,
+                              updateRearSeat({
+                                ...rearSeats,
                                 weight: Math.max(
                                   0,
                                   Number(e.target.value) || 0
@@ -933,23 +875,6 @@ const MassBalance: React.FC = () => {
                             InputProps={{ endAdornment: 'kg' }}
                             inputProps={{ min: 0 }}
                             size='small'
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                bgcolor: 'background.paper',
-                                '& fieldset': {
-                                  borderColor: 'rgba(255, 255, 255, 0.3)',
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: 'rgba(255, 255, 255, 0.5)',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: 'primary.main',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                color: 'rgba(255, 255, 255, 0.7)',
-                              },
-                            }}
                           />
                         </Grid>
                       </Grid>
@@ -964,18 +889,18 @@ const MassBalance: React.FC = () => {
                                 sx={{ mb: 1, display: 'block' }}
                               >
                                 {t('massBalance.currentLoad')}:{' '}
-                                {rearLeft.weight} kg /{' '}
+                                {rearSeats.weight} kg /{' '}
                                 {t('massBalance.maxLoad')}: {maxWeight} kg (
                                 {(
-                                  rearLeft.weight * CONVERSIONS.KG_TO_LBS
+                                  rearSeats.weight * CONVERSIONS.KG_TO_LBS
                                 ).toFixed(1)}{' '}
                                 lbs)
                               </Typography>
                               <Slider
-                                value={rearLeft.weight}
+                                value={rearSeats.weight}
                                 onChange={(_, newValue) =>
-                                  updateRearLeft({
-                                    ...rearLeft,
+                                  updateRearSeat({
+                                    ...rearSeats,
                                     weight: newValue as number,
                                   })
                                 }
@@ -990,226 +915,13 @@ const MassBalance: React.FC = () => {
                                 sx={{
                                   '& .MuiSlider-thumb': {
                                     backgroundColor:
-                                      rearLeft.weight > maxWeight
+                                      rearSeats.weight > maxWeight
                                         ? 'error.main'
                                         : 'primary.main',
                                   },
                                   '& .MuiSlider-track': {
                                     backgroundColor:
-                                      rearLeft.weight > maxWeight
-                                        ? 'error.main'
-                                        : 'primary.main',
-                                  },
-                                }}
-                              />
-                            </>
-                          )
-                        })()}
-                      </Box>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Separate rear seats for OH-IHQ */}
-                {selectedAircraft.loadPoints.rearLeft && (
-                  <Card sx={{ mb: 2 }}>
-                    <CardContent sx={{ pb: '16px !important' }}>
-                      <Typography variant='subtitle2' sx={{ mb: 1 }}>
-                        {t('massBalance.rearLeft')}
-                      </Typography>
-                      <Grid container spacing={2} sx={{ mb: 1 }}>
-                        <Grid size={{ xs: 12 }}>
-                          <TextField
-                            fullWidth
-                            label={t('massBalance.weight')}
-                            type='number'
-                            value={
-                              rearLeft.weight === 0 ? '0' : rearLeft.weight
-                            }
-                            onChange={(e) =>
-                              updateRearLeft({
-                                ...rearLeft,
-                                weight: Math.max(
-                                  0,
-                                  Number(e.target.value) || 0
-                                ),
-                              })
-                            }
-                            onFocus={handleInputFocus}
-                            InputProps={{ endAdornment: 'kg' }}
-                            inputProps={{ min: 0 }}
-                            size='small'
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                bgcolor: 'background.paper',
-                                '& fieldset': {
-                                  borderColor: 'rgba(255, 255, 255, 0.3)',
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: 'rgba(255, 255, 255, 0.5)',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: 'primary.main',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                color: 'rgba(255, 255, 255, 0.7)',
-                              },
-                            }}
-                          />
-                        </Grid>
-                      </Grid>
-                      <Box>
-                        {(() => {
-                          const maxWeight =
-                            selectedAircraft.loadPoints.rearLeft.maxValue!
-                          return (
-                            <>
-                              <Typography
-                                variant='caption'
-                                sx={{ mb: 1, display: 'block' }}
-                              >
-                                {t('massBalance.currentLoad')}:{' '}
-                                {rearLeft.weight} kg /{' '}
-                                {t('massBalance.maxLoad')}: {maxWeight} kg (
-                                {(
-                                  rearLeft.weight * CONVERSIONS.KG_TO_LBS
-                                ).toFixed(1)}{' '}
-                                lbs)
-                              </Typography>
-                              <Slider
-                                value={rearLeft.weight}
-                                onChange={(_, newValue) =>
-                                  updateRearLeft({
-                                    ...rearLeft,
-                                    weight: newValue as number,
-                                  })
-                                }
-                                min={
-                                  selectedAircraft.loadPoints.rearLeft.minValue!
-                                }
-                                max={maxWeight}
-                                step={
-                                  selectedAircraft.loadPoints.rearLeft.step || 1
-                                }
-                                valueLabelDisplay='auto'
-                                sx={{
-                                  '& .MuiSlider-thumb': {
-                                    backgroundColor:
-                                      rearLeft.weight > maxWeight
-                                        ? 'error.main'
-                                        : 'primary.main',
-                                  },
-                                  '& .MuiSlider-track': {
-                                    backgroundColor:
-                                      rearLeft.weight > maxWeight
-                                        ? 'error.main'
-                                        : 'primary.main',
-                                  },
-                                }}
-                              />
-                            </>
-                          )
-                        })()}
-                      </Box>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {selectedAircraft.loadPoints.rearRight && (
-                  <Card sx={{ mb: 2 }}>
-                    <CardContent sx={{ pb: '16px !important' }}>
-                      <Typography variant='subtitle2' sx={{ mb: 1 }}>
-                        {t('massBalance.rearRight')}
-                      </Typography>
-                      <Grid container spacing={2} sx={{ mb: 1 }}>
-                        <Grid size={{ xs: 12 }}>
-                          <TextField
-                            fullWidth
-                            label={t('massBalance.weight')}
-                            type='number'
-                            value={
-                              rearRight.weight === 0 ? '0' : rearRight.weight
-                            }
-                            onChange={(e) =>
-                              updateRearRight({
-                                ...rearRight,
-                                weight: Math.max(
-                                  0,
-                                  Number(e.target.value) || 0
-                                ),
-                              })
-                            }
-                            onFocus={handleInputFocus}
-                            InputProps={{ endAdornment: 'kg' }}
-                            inputProps={{ min: 0 }}
-                            size='small'
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                bgcolor: 'background.paper',
-                                '& fieldset': {
-                                  borderColor: 'rgba(255, 255, 255, 0.3)',
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: 'rgba(255, 255, 255, 0.5)',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: 'primary.main',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                color: 'rgba(255, 255, 255, 0.7)',
-                              },
-                            }}
-                          />
-                        </Grid>
-                      </Grid>
-                      <Box>
-                        {(() => {
-                          const maxWeight =
-                            selectedAircraft.loadPoints.rearRight.maxValue!
-                          return (
-                            <>
-                              <Typography
-                                variant='caption'
-                                sx={{ mb: 1, display: 'block' }}
-                              >
-                                {t('massBalance.currentLoad')}:{' '}
-                                {rearRight.weight} kg /{' '}
-                                {t('massBalance.maxLoad')}: {maxWeight} kg (
-                                {(
-                                  rearRight.weight * CONVERSIONS.KG_TO_LBS
-                                ).toFixed(1)}{' '}
-                                lbs)
-                              </Typography>
-                              <Slider
-                                value={rearRight.weight}
-                                onChange={(_, newValue) =>
-                                  updateRearRight({
-                                    ...rearRight,
-                                    weight: newValue as number,
-                                  })
-                                }
-                                min={
-                                  selectedAircraft.loadPoints.rearRight
-                                    .minValue!
-                                }
-                                max={maxWeight}
-                                step={
-                                  selectedAircraft.loadPoints.rearRight.step ||
-                                  1
-                                }
-                                valueLabelDisplay='auto'
-                                sx={{
-                                  '& .MuiSlider-thumb': {
-                                    backgroundColor:
-                                      rearRight.weight > maxWeight
-                                        ? 'error.main'
-                                        : 'primary.main',
-                                  },
-                                  '& .MuiSlider-track': {
-                                    backgroundColor:
-                                      rearRight.weight > maxWeight
+                                      rearSeats.weight > maxWeight
                                         ? 'error.main'
                                         : 'primary.main',
                                   },
@@ -1632,23 +1344,14 @@ const MassBalance: React.FC = () => {
                           {selectedAircraft.loadPoints.pilot.momentArm} cm
                         </Typography>
                       </div>
-                      {(selectedAircraft.loadPoints.rearLeft ||
-                        selectedAircraft.loadPoints.rearSeat) && (
+                      {selectedAircraft.loadPoints.rearSeat && (
                         <div>
-                          <Typography variant='body2'>
-                            {selectedAircraft.loadPoints.rearSeat
-                              ? 'Rear Seat:'
-                              : 'Rear Seats:'}
-                          </Typography>
+                          <Typography variant='body2'>Rear Seat:</Typography>
                           <Typography
                             variant='body2'
                             sx={{ fontWeight: 'bold' }}
                           >
-                            {selectedAircraft.loadPoints.rearSeat
-                              ? selectedAircraft.loadPoints.rearSeat.momentArm
-                              : selectedAircraft.loadPoints.rearLeft
-                                  ?.momentArm}{' '}
-                            cm
+                            {selectedAircraft.loadPoints.rearSeat.momentArm} cm
                           </Typography>
                         </div>
                       )}

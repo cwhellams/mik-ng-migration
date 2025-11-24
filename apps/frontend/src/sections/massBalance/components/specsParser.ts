@@ -53,8 +53,6 @@ export interface AircraftSpecs {
     basicEmptyWeight: LoadPointConfig
     pilot: LoadPointConfig
     copilot: LoadPointConfig
-    rearLeft?: LoadPointConfig
-    rearRight?: LoadPointConfig
     rearSeat?: LoadPointConfig
     baggage: LoadPointConfig
     fuel: LoadPointConfig

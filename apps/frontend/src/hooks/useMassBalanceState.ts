@@ -17,8 +17,7 @@ export interface MassBalanceState {
   selectedAircraftId: string
   pilot: WeightPosition
   copilot: WeightPosition
-  rearLeft: WeightPosition
-  rearRight: WeightPosition
+  rearSeats: WeightPosition
   baggage: WeightPosition
   fuel: FuelState
   taxiFuel: number
@@ -32,8 +31,7 @@ const getDefaultState = (): MassBalanceState => ({
   selectedAircraftId: 'oh-ihq',
   pilot: { weight: 80, arm: 82 },
   copilot: { weight: 0, arm: 82 },
-  rearLeft: { weight: 0, arm: 120 },
-  rearRight: { weight: 0, arm: 120 },
+  rearSeats: { weight: 0, arm: 120 },
   baggage: { weight: 0, arm: 140 },
   fuel: { litres: 0, weight: 0, arm: 105 },
   taxiFuel: 5,
@@ -55,8 +53,7 @@ export const useMassBalanceState = () => {
           // Ensure nested objects are properly merged
           pilot: { ...defaultState.pilot, ...parsed.pilot },
           copilot: { ...defaultState.copilot, ...parsed.copilot },
-          rearLeft: { ...defaultState.rearLeft, ...parsed.rearLeft },
-          rearRight: { ...defaultState.rearRight, ...parsed.rearRight },
+          rearSeats: { ...defaultState.rearSeats, ...parsed.rearSeats },
           baggage: { ...defaultState.baggage, ...parsed.baggage },
           fuel: { ...defaultState.fuel, ...parsed.fuel },
         }
@@ -93,16 +90,9 @@ export const useMassBalanceState = () => {
     [saveState]
   )
 
-  const updateRearLeft = useCallback(
-    (rearLeft: WeightPosition) => {
-      saveState({ rearLeft })
-    },
-    [saveState]
-  )
-
-  const updateRearRight = useCallback(
-    (rearRight: WeightPosition) => {
-      saveState({ rearRight })
+  const updateRearSeat = useCallback(
+    (rearSeats: WeightPosition) => {
+      saveState({ rearSeats })
     },
     [saveState]
   )
@@ -153,8 +143,7 @@ export const useMassBalanceState = () => {
     state,
     updatePilot,
     updateCopilot,
-    updateRearLeft,
-    updateRearRight,
+    updateRearSeat,
     updateBaggage,
     updateFuel,
     updateTaxiFuel,
