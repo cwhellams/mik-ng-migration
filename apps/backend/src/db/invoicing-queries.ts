@@ -121,6 +121,24 @@ export async function deleteInvoiceItem(id: number): Promise<void> {
   }
 }
 
+/**
+ * Get article IDs for multiple codes in a single query
+ * Returns a Map of code -> article ID
+ */
+export async function getArticleIdsByCode(codes: string[]): Promise<Map<string, number>> {
+  if (codes.length === 0) {
+    return new Map()
+  }
+
+  const results = await db
+    .selectFrom('accts.items')
+    .select(['code', 'id'])
+    .where('code', 'in', codes)
+    .execute()
+
+  return new Map(results.map(row => [row.code, row.id]))
+}
+
 export async function getRecurringFeesProcessing(
   feeType: FeeType,
 ): Promise<RecurringFeesProcessing[]> {

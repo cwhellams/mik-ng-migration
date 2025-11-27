@@ -150,7 +150,8 @@
     "maintenanceDays": "Underhåll om {{daysUntilNextMaintenance}} dag(ar).",
     "tabs": {
       "info": "Info",
-      "documents": "Dokument"
+      "documents": "Dokument",
+      "pricing": "Priser"
     },
     "document": {
       "arc": "ARC",
@@ -219,8 +220,27 @@
     "alerts": {
       "expired": "{{documentId}} gick ut för {{untilExpiration}} dagar sedan",
       "expiring": "{{documentId}} går ut om {{untilExpiration}} dagar",
-      "noUsableHours": "Ingen användbar flygtid kvar, {{untilExpiration}} tillgängligt för färjeflyg",
-      "usableHours": "Endast {{untilExpiration}} användbara procenttimmar kvar"
+      "noUsableHours": "Ingen användbar flygtid återstår, {{untilExpiration}} tillgängliga för färdflyg",
+      "usableHours": "Endast {{untilExpiration}} användbara procenttimmar återstår"
+    },
+    "pricing": {
+      "title": "Timpriser",
+      "noHistory": "Ingen prishistorik tillgänglig",
+      "from": "Från",
+      "to": "Till",
+      "rate": "Pris",
+      "current": "Nuvarande",
+      "add": "Lägg till pris",
+      "edit": "Redigera pris",
+      "delete": "Ta bort pris",
+      "deleteConfirm": "Är du säker på att du vill ta bort denna prissättning?",
+      "aircraft": "Flygplan",
+      "fromDisabled": "Från-datum kan inte ändras",
+      "toHelp": "Lämna tomt för öppen prissättning",
+      "hourlyRate": "Timpris",
+      "perMinute": "Per minut",
+      "notes": "Anteckningar",
+      "notesHelp": "Valfria anteckningar om denna prissättningsperiod"
     },
     "edit": {
       "new": "Lägg till nytt flygplan",

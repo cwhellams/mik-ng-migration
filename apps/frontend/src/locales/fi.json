@@ -150,7 +150,8 @@
     "maintenanceDays": "Huoltoon {{daysUntilNextMaintenance}} päivää.",
     "tabs": {
       "info": "Tiedot",
-      "documents": "Asiakirjat"
+      "documents": "Asiakirjat",
+      "pricing": "Hinnoittelu"
     },
     "document": {
       "arc": "ARC",
@@ -222,6 +223,25 @@
       "expiring": "{{documentId}} vanhenee {{untilExpiration}} päivän kuluttua",
       "noUsableHours": "Lentotunnit täynnä, siirtolentoon jäljellä {{untilExpiration}}h",
       "usableHours": "Vain {{untilExpiration}} prosenttituntia ilma-aikaa käytettävissä"
+    },
+    "pricing": {
+      "title": "Tuntihinnoittelu",
+      "noHistory": "Hinnoitteluhistoriaa ei saatavilla",
+      "from": "Alkaen",
+      "to": "Päättyen",
+      "rate": "Hinta",
+      "current": "Nykyinen",
+      "add": "Lisää hinnoittelu",
+      "edit": "Muokkaa hinnoittelua",
+      "delete": "Poista hinnoittelu",
+      "deleteConfirm": "Haluatko varmasti poistaa tämän hinnoittelun?",
+      "aircraft": "Lentokone",
+      "fromDisabled": "Alkamispäivää ei voi muuttaa",
+      "toHelp": "Jätä tyhjäksi jos hinnoittelu jatkuu toistaiseksi",
+      "hourlyRate": "Tuntihinta",
+      "perMinute": "Minuuttihinta",
+      "notes": "Huomiot",
+      "notesHelp": "Vapaaehtoinen huomio hinnoittelujaksosta"
     },
     "edit": {
       "new": "Lisää uusi lentokone",

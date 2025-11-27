@@ -4,13 +4,17 @@ import type { DB } from './schema.d.ts'
 import {
   AnnualFeeInfoSchema,
   FeeProcessingStatus,
+  MIKInvoiceType,
   RecurringFeeType,
   SimplbooksEventType,
   SimplbooksStatus,
   type AnnualFeeInfo,
+  type InvoiceBase,
 } from '../services/simplbooks/models.ts'
 import logger from '../lib/logger.ts'
 import { db } from './connection.ts'
+import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
+import { FlightLogStatus } from '../routes/flight-log/models.ts'
 
 export async function insertOutboxItem(
   eventType: SimplbooksEventType,
@@ -120,5 +124,76 @@ export async function insertMemberAnnualFees(txn: Transaction<DB>, feeInfo: Annu
       created_by: validated.createdBy,
       updated_by: validated.updatedBy,
     })
+    .execute()
+}
+
+export async function updateFlightLogsWithInvoiceNumber(
+  txn: Transaction<DB>,
+  flightIds: string[],
+  invoiceNumber: string,
+) {
+  if (flightIds.length === 0) {
+    return
+  }
+
+  await txn
+    .updateTable('flight.logs')
+    .set({
+      invoice_number: invoiceNumber,
+      status: FlightLogStatus.INVOICED,
+      updated_by: MIK_SIMPLBOOKS_MEMBER,
+      updated_at: new Date().toISOString(),
+    })
+    .where('flight_id', 'in', flightIds)
+    .execute()
+}
+
+/**
+ * Insert a new invoice record into the database
+ */
+export async function insertInvoice(
+  txn: Transaction<DB>,
+  memberId: string,
+  invoiceType: MIKInvoiceType,
+  invoiceData: InvoiceBase,
+  currency: string,
+) {
+  const now = new Date().toISOString()
+
+  await txn
+    .insertInto('accts.invoice')
+    .values({
+      member_id: memberId,
+      id: invoiceData.id!,
+      invoice_type: invoiceType,
+      description: invoiceData.additional_info,
+      total_sum: invoiceData.total_sum,
+      currency: currency,
+      due_at: invoiceData.due!,
+      created_by: MIK_SIMPLBOOKS_MEMBER,
+      created_at: now,
+      updated_by: MIK_SIMPLBOOKS_MEMBER,
+      updated_at: now,
+      pmt_ref: invoiceData.reference?.toString() ?? '',
+    })
+    .execute()
+}
+
+/**
+ * Update member billing ID (SimplBooks client ID)
+ */
+export async function updateMemberBillingId(
+  txn: Transaction<DB>,
+  memberId: string,
+  billingId: string,
+) {
+  await txn
+    .updateTable('member.register')
+    .set({
+      billing_id: billingId,
+      updated_at: new Date().toISOString(),
+      updated_by: MIK_SIMPLBOOKS_MEMBER,
+    })
+    .where('member_id', '=', memberId)
     .execute()
 }

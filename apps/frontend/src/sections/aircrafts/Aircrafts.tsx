@@ -9,6 +9,15 @@ import {
   Divider,
   BottomNavigation,
   BottomNavigationAction,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Tooltip,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
 import {
@@ -17,6 +26,7 @@ import {
   AircraftListResponse,
   Severity,
 } from '@backend/routes/aircrafts/models'
+import { AircraftPricingListResponse } from '@backend/routes/aircraft-pricing/models'
 import { t } from 'i18next'
 import { EditButton } from '../../components/EditButton'
 import { FormTitle } from '../../components/FormTitle'
@@ -30,22 +40,49 @@ import {
   AircraftEditMode,
   EditAircraftModal,
 } from './components/EditAircraftModal'
+import {
+  PricingEditMode,
+  EditPricingModal,
+} from './components/EditPricingModal'
 import dayjs from 'dayjs'
 import MIKLogo from '../../assets/mik-logo-blue.png'
 import ProgressLine from './components/Progress'
 import { Title } from '../../components/Title'
+import { RemoveButton } from '../../components/RemoveButton'
+import { AircraftPricing } from '@backend/routes/aircraft-pricing/models'
+import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { mutate } from 'swr'
+import axios from 'axios'
+
+const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 
 const Aircrafts = () => {
   const { data, isLoading, error } = useApi<AircraftListResponse, Aircraft>({
     url: 'v1/aircrafts',
   })
 
-  const { isAircraftAdmin } = useRoles()
+  const { isAircraftAdmin, isInvoicingAdmin } = useRoles()
+  const canEditPricing = isAircraftAdmin || isInvoicingAdmin
 
   const [editMode, setEditMode] = useState<AircraftEditMode | undefined>(
     undefined
   )
   const [editData, setEditData] = useState<Aircraft | undefined>(undefined)
+
+  // State for pricing edit modal
+  const [pricingEditMode, setPricingEditMode] = useState<
+    PricingEditMode | undefined
+  >(undefined)
+  const [selectedPricing, setSelectedPricing] = useState<
+    AircraftPricing | undefined
+  >(undefined)
+  const [pricingRegistration, setPricingRegistration] = useState<string>('')
+
+  // State for delete confirmation
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [pricingToDelete, setPricingToDelete] = useState<
+    AircraftPricing | undefined
+  >(undefined)
 
   // State to track which tab is active for each aircraft card
   const [activeTab, setActiveTab] = useState<Record<string, number>>({})
@@ -91,6 +128,192 @@ const Aircrafts = () => {
       default:
         return messages
     }
+  }
+
+  // Handle deleting pricing
+  const handleDeletePricing = async () => {
+    if (!pricingToDelete) return
+
+    try {
+      const accessToken = localStorage.getItem('accessToken')
+      await axios.delete(
+        `${API_BASE}/api/v1/aircraft-pricing/${pricingToDelete.registration}/${pricingToDelete.valid_from}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      )
+
+      await mutate(
+        (key: unknown) =>
+          typeof key === 'string' && key.includes('aircraft-pricing')
+      )
+    } catch (error) {
+      console.error('Error deleting pricing:', error)
+    }
+
+    setDeleteConfirmOpen(false)
+    setPricingToDelete(undefined)
+  }
+
+  // Component to display historical pricing for an aircraft
+  const AircraftPricingHistory = ({
+    registration,
+  }: {
+    registration: string
+  }) => {
+    const { data: pricingData, isLoading } =
+      useApi<AircraftPricingListResponse>({
+        url: `v1/aircraft-pricing?registration=${registration}`,
+      })
+
+    if (isLoading) {
+      return <Typography>{t('common.loading', 'Loading...')}</Typography>
+    }
+
+    if (!pricingData?.pricing || pricingData.pricing.length === 0) {
+      return (
+        <Typography color='text.secondary'>
+          {t('aircraft.pricing.noHistory', 'No pricing history available')}
+        </Typography>
+      )
+    }
+
+    // Sort by valid_from descending and limit to 10 rows
+    const sortedPricing = [...pricingData.pricing]
+      .sort(
+        (a, b) =>
+          new Date(b.valid_from).getTime() - new Date(a.valid_from).getTime()
+      )
+      .slice(0, 10)
+
+    return (
+      <Stack spacing={2}>
+        {canEditPricing && (
+          <Box>
+            <EditButton
+              title={t('aircraft.pricing.add', 'Add Pricing')}
+              icon='mdi:plus'
+              onClick={() => {
+                setPricingRegistration(registration)
+                setSelectedPricing(undefined)
+                setPricingEditMode('new')
+              }}
+            />
+          </Box>
+        )}
+        <TableContainer component={Paper} variant='outlined'>
+          <Table size='small'>
+            <TableHead>
+              <TableRow>
+                <TableCell>{t('aircraft.pricing.from', 'From')}</TableCell>
+                <TableCell>{t('aircraft.pricing.to', 'To')}</TableCell>
+                <TableCell align='right'>
+                  {t('aircraft.pricing.rate', 'Rate')}
+                </TableCell>
+                <TableCell align='center' sx={{ width: 48 }}></TableCell>
+                {canEditPricing && (
+                  <TableCell align='center' sx={{ width: 96 }}>
+                    {t('general.actions', 'Actions')}
+                  </TableCell>
+                )}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedPricing.map((price) => (
+                <TableRow key={`${price.registration}-${price.valid_from}`}>
+                  <TableCell>
+                    {dayjs(price.valid_from).format('YYYY-MM-DD')}
+                  </TableCell>
+                  <TableCell>
+                    {price.valid_to
+                      ? dayjs(price.valid_to).format('YYYY-MM-DD')
+                      : t('aircraft.pricing.current', 'Current')}
+                  </TableCell>
+                  <TableCell align='right'>
+                    €{(price.price_per_min * 60).toFixed(2)}/h
+                  </TableCell>
+                  <TableCell align='center'>
+                    {price.notes && (
+                      <Tooltip title={price.notes} arrow>
+                        <IconButton size='small'>
+                          <Icon icon='mdi:information' />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+                  {canEditPricing && (
+                    <TableCell align='center'>
+                      <Stack
+                        direction='row'
+                        spacing={0.5}
+                        justifyContent='center'
+                      >
+                        <EditButton
+                          title={t('aircraft.pricing.edit', 'Edit')}
+                          icon='mdi:pencil'
+                          onClick={() => {
+                            setPricingRegistration(registration)
+                            setSelectedPricing(price)
+                            setPricingEditMode('edit')
+                          }}
+                        />
+                        <RemoveButton
+                          title={t('aircraft.pricing.delete', 'Delete')}
+                          onClick={() => {
+                            setPricingToDelete(price)
+                            setDeleteConfirmOpen(true)
+                          }}
+                        />
+                      </Stack>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Stack>
+    )
+  }
+
+  // Component to display current pricing for an aircraft
+  const AircraftPricing = ({ registration }: { registration: string }) => {
+    const today = dayjs().format('YYYY-MM-DD')
+    const { data: pricingData } = useApi<AircraftPricingListResponse>({
+      url: `v1/aircraft-pricing?registration=${registration}&fromDate=${today}&toDate=${today}`,
+    })
+
+    const currentPricing = pricingData?.pricing?.[0]
+
+    if (!currentPricing) {
+      return null
+    }
+
+    const pricePerHour = (currentPricing.price_per_min * 60).toFixed(2)
+    const pricePerMin = currentPricing.price_per_min.toFixed(2)
+
+    return (
+      <Box sx={{ mt: 2 }}>
+        <Typography variant='subtitle1' color='text.primary' gutterBottom>
+          {t('aircraft.pricing.title')}
+        </Typography>
+        <Typography variant='body1' color='text.secondary'>
+          €{pricePerHour}/h (€{pricePerMin}/min)
+        </Typography>
+        {currentPricing.notes && (
+          <Typography
+            variant='caption'
+            color='text.secondary'
+            display='block'
+            sx={{ mt: 0.5 }}
+          >
+            {currentPricing.notes}
+          </Typography>
+        )}
+      </Box>
+    )
   }
 
   return (
@@ -238,6 +461,10 @@ const Aircrafts = () => {
 
                         <Divider sx={{ my: 3 }} />
 
+                        <AircraftPricing registration={aircraft.registration} />
+
+                        <Divider sx={{ my: 3 }} />
+
                         <Box>
                           <Typography variant='subtitle1' color='text.primary'>
                             {t('aircraft.totalTime', {
@@ -292,6 +519,15 @@ const Aircrafts = () => {
                         />
                       </Box>
                     )}
+
+                    {/* Pricing History Tab Content */}
+                    {currentTab === 2 && (
+                      <Box sx={{ flex: 1 }}>
+                        <AircraftPricingHistory
+                          registration={aircraft.registration}
+                        />
+                      </Box>
+                    )}
                   </Stack>
                 </CardContent>
 
@@ -318,6 +554,10 @@ const Aircrafts = () => {
                     label={t('aircraft.tabs.documents', 'Documents')}
                     icon={<Icon icon='mdi:file-document-multiple' />}
                   />
+                  <BottomNavigationAction
+                    label={t('aircraft.tabs.pricing', 'Pricing')}
+                    icon={<Icon icon='mdi:currency-usd' />}
+                  />
                 </BottomNavigation>
               </Card>
             )
@@ -327,6 +567,32 @@ const Aircrafts = () => {
           mode={editMode}
           onClose={() => setEditMode(undefined)}
           aircraft={editData}
+        />
+        <EditPricingModal
+          mode={pricingEditMode}
+          onClose={() => {
+            setPricingEditMode(undefined)
+            setSelectedPricing(undefined)
+            setPricingRegistration('')
+          }}
+          registration={pricingRegistration}
+          pricing={selectedPricing}
+        />
+        <ConfirmDialog
+          open={deleteConfirmOpen}
+          title={t('aircraft.pricing.delete', 'Delete Pricing')}
+          message={t(
+            'aircraft.pricing.deleteConfirm',
+            'Are you sure you want to delete this pricing entry?'
+          )}
+          confirmText={t('general.delete', 'Delete')}
+          cancelText={t('general.cancel', 'Cancel')}
+          onConfirm={handleDeletePricing}
+          onClose={() => {
+            setDeleteConfirmOpen(false)
+            setPricingToDelete(undefined)
+          }}
+          severity='error'
         />
       </RemoteContent>
     </Box>

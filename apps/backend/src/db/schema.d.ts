@@ -69,6 +69,18 @@ export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SYNC
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>
 
+export interface AcctsAircraftPricing {
+  created_at: Generated<Timestamp>
+  created_by: string | null
+  notes: string | null
+  price_per_min: Numeric
+  registration: string
+  updated_at: Generated<Timestamp | null>
+  updated_by: string | null
+  valid_from: string
+  valid_to: string | null
+}
+
 export interface AcctsInvoice {
   created_at: Generated<Timestamp>
   created_by: string
@@ -368,29 +380,11 @@ export interface MemberRegister {
   first_name: string
   ice_contact_name: string | null
   ice_contact_phone_number: string | null
-  /**
-   * Discord contact link
-   */
   im_discord: string | null
-  /**
-   * Facebook Messenger contact link
-   */
   im_facebook_messenger: string | null
-  /**
-   * Signal contact link
-   */
   im_signal: string | null
-  /**
-   * Telegram contact link
-   */
   im_telegram: string | null
-  /**
-   * Viber contact link
-   */
   im_viber: string | null
-  /**
-   * WhatsApp contact link
-   */
   im_whatsapp: string | null
   is_membership_approved: Generated<boolean>
   is_membership_expired: Generated<boolean | null>
@@ -480,6 +474,7 @@ export interface StaticAirfields {
 }
 
 export interface DB {
+  'accts.aircraft_pricing': AcctsAircraftPricing
   'accts.invoice': AcctsInvoice
   'accts.items': AcctsItems
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks

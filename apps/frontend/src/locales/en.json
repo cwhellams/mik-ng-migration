@@ -150,7 +150,8 @@
     "maintenanceDays": "Maintenance in {{daysUntilNextMaintenance}} day(s).",
     "tabs": {
       "info": "Info",
-      "documents": "Documents"
+      "documents": "Documents",
+      "pricing": "Pricing"
     },
     "document": {
       "arc": "ARC",
@@ -222,6 +223,25 @@
       "expiring": "{{documentId}} expiring in {{untilExpiration}} days",
       "noUsableHours": "No usable flight time remaining, {{untilExpiration}} available for ferry flight",
       "usableHours": "Only {{untilExpiration}} usable percentage hour(s) remaining"
+    },
+    "pricing": {
+      "title": "Hourly Rate",
+      "noHistory": "No pricing history available",
+      "from": "From",
+      "to": "To",
+      "rate": "Rate",
+      "current": "Current",
+      "add": "Add Pricing",
+      "edit": "Edit Pricing",
+      "delete": "Delete Pricing",
+      "deleteConfirm": "Are you sure you want to delete this pricing entry?",
+      "aircraft": "Aircraft",
+      "fromDisabled": "From date cannot be changed",
+      "toHelp": "Leave empty for open-ended pricing",
+      "hourlyRate": "Hourly Rate",
+      "perMinute": "Per minute",
+      "notes": "Notes",
+      "notesHelp": "Optional notes about this pricing period"
     },
     "edit": {
       "new": "Add New Aircraft",

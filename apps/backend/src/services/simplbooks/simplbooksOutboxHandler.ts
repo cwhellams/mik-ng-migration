@@ -27,9 +27,14 @@ import {
   setOutboxStatus,
   insertOutboxItem,
   insertMemberAnnualFees,
+  updateFlightLogsWithInvoiceNumber,
+  insertInvoice,
+  updateMemberBillingId,
 } from '../../db/outbox-simplbooks-queries.ts'
 import type { Transaction } from 'kysely'
 import type { DB } from '../../db/schema.js'
+import { createFlightInvoicePayload } from '../accounting/flightInvoiceCreator.ts'
+import { FlightInvoicePayloadSchema } from '../../routes/flight-log/models.ts'
 
 export const MIK_SIMPLBOOKS_MEMBER: string = 'simplbks'
 export const MIK_CURRENCY = 'EUR'
@@ -51,12 +56,35 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
     case SimplbooksEventType.SEND_INVOICE_PDF:
       createSimplbooksInvoiceEmail(msg)
       break
+    case SimplbooksEventType.FLIGHT_INVOICE:
+      createFlightInvoice(msg)
+      break
     default:
       throw new Error(`Unsupported outbox event type: ${msg.event_type}`)
   }
 }
 
 export const getCurrentYear = () => new Date().getFullYear()
+
+export function validateFlightsBillableMemberId(
+  flights: Array<{ flightId: string; billableMemberId: string }>,
+  expectedMemberId: string,
+): void {
+  const invalidFlights = flights.filter(flight => flight.billableMemberId !== expectedMemberId)
+
+  if (invalidFlights.length > 0) {
+    const flightIds = invalidFlights.map(f => f.flightId).join(', ')
+    const message = `Flight invoice validation failed: Expected all flights to have billable member ID ${expectedMemberId}, but found ${invalidFlights.length} flight(s) with different billable member IDs. Flight IDs: ${flightIds}`
+    logger.error(message, {
+      expectedMemberId,
+      invalidFlights: invalidFlights.map(f => ({
+        flightId: f.flightId,
+        billableMemberId: f.billableMemberId,
+      })),
+    })
+    throw new Error(message)
+  }
+}
 
 async function createNewMemberFeesInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   const member = InvoiceMemberSchema.parse(outboxMsg.payload)
@@ -115,6 +143,38 @@ async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     logger.info(
       `Created annual membership fee invoice for ${year} with ID: ${invoiceId} for member: ${member.email}, equipment fee included: ${includeEquipmentFee}`,
     )
+  })
+}
+
+async function createFlightInvoice(outboxMsg: AcctsOutboxSimplbooks) {
+  const flights = FlightInvoicePayloadSchema.parse(outboxMsg.payload)
+  const billableMemberId = flights.flights[0].billableMemberId
+
+  logger.info(
+    `Create invoice for ${flights.flights.length} flight(s) for member: ${billableMemberId}`,
+  )
+
+  // Validate that all flights have the same billable member ID
+  validateFlightsBillableMemberId(flights.flights, billableMemberId)
+
+  const flightInvoicePayload = await createFlightInvoicePayload(flights)
+
+  // Extract all flight IDs from the payload
+  const flightIds = flights.flights.map(flight => flight.flightId)
+
+  await db.transaction().execute(async txn => {
+    const invoiceId = await createInvoice(
+      billableMemberId,
+      outboxMsg.id,
+      MIKInvoiceType.FLIGHT,
+      flightInvoicePayload,
+      txn,
+    )
+
+    // Update all flight logs with the invoice number, multiple flights can be on one invoice
+    await updateFlightLogsWithInvoiceNumber(txn, flightIds, invoiceId.toString())
+
+    logger.info(`Created flight invoice with ID: ${invoiceId} for member: ${billableMemberId}`)
   })
 }
 
@@ -209,25 +269,7 @@ async function createInvoice(
   const createdInvoice = await getInvoice(retval.inserted_id)
   const invoiceData = createdInvoice.data.Invoice
 
-  const now = new Date()
-
-  txn
-    .insertInto('accts.invoice')
-    .values({
-      member_id: memberId,
-      id: invoiceData.id!,
-      invoice_type: invoiceType,
-      description: invoiceData.additional_info,
-      total_sum: invoiceData.total_sum,
-      currency: MIK_CURRENCY,
-      due_at: invoiceData.due!,
-      created_by: MIK_SIMPLBOOKS_MEMBER,
-      created_at: now,
-      updated_by: MIK_SIMPLBOOKS_MEMBER,
-      updated_at: now,
-      pmt_ref: invoiceData.reference?.toString() ?? '',
-    })
-    .execute()
+  await insertInvoice(txn, memberId, invoiceType, invoiceData, MIK_CURRENCY)
 
   //Insert pdf dispatch row to outbox
   await insertOutboxItem(
@@ -253,16 +295,7 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
 
   await db.transaction().execute(async txn => {
     // Set the billing id in our DB - which is the returned SimplBooks client id
-
-    await txn
-      .updateTable('member.register')
-      .set({
-        billing_id: clientId.toString(),
-        updated_at: new Date(),
-        updated_by: MIK_SIMPLBOOKS_MEMBER,
-      })
-      .where('member_id', '=', member.memberId)
-      .execute()
+    await updateMemberBillingId(txn, member.memberId, clientId.toString())
 
     // We add the create invoice action to the outbox, this will allow us to handle the situation
     // where the client id is created but invoice creation fails - now its async and decoupled

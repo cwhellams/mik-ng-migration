@@ -244,7 +244,17 @@ const MassBalance: React.FC = () => {
     }
 
     loadSpecs()
-  }, [selectedAircraftId, updateBaggage, updateCopilot, updateFlightTime, updateFuel, updateFuelFlow, updatePilot, updateRearSeat, updateTaxiFuel])
+  }, [
+    selectedAircraftId,
+    updateBaggage,
+    updateCopilot,
+    updateFlightTime,
+    updateFuel,
+    updateFuelFlow,
+    updatePilot,
+    updateRearSeat,
+    updateTaxiFuel,
+  ])
 
   // Update fuel weight when litres change
   useEffect(() => {
@@ -295,9 +305,7 @@ const MassBalance: React.FC = () => {
       ) {
         warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
       }
-      if (
-        baggage.weight > selectedAircraft.loadPoints.baggage.maxValue!
-      ) {
+      if (baggage.weight > selectedAircraft.loadPoints.baggage.maxValue!) {
         warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
       }
 
@@ -860,7 +868,7 @@ const MassBalance: React.FC = () => {
                             label={t('massBalance.weight')}
                             type='number'
                             value={
-                              rearSeats.weight === 0 ? '0' : rearSeats.weight                              
+                              rearSeats.weight === 0 ? '0' : rearSeats.weight
                             }
                             onChange={(e) =>
                               updateRearSeat({

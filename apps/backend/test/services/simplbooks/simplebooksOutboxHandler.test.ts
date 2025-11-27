@@ -13,7 +13,10 @@ import {
   type InvoiceMember,
   type Member,
 } from '../../../src/routes/members/models.ts'
-import { dispatchOutboxMsg } from '../../../src/services/simplbooks/simplbooksOutboxHandler.ts'
+import {
+  dispatchOutboxMsg,
+  validateFlightsBillableMemberId,
+} from '../../../src/services/simplbooks/simplbooksOutboxHandler.ts'
 import { simplbooksApiClient } from '../../../src/services/simplbooks/simplbooksApiClient.ts'
 import { mockSimplbooksGet, mockSimplbooksPost } from '../../__mocks__/simplbooksMock.ts'
 import {
@@ -126,5 +129,51 @@ describe('Simplbooks Outbox Handler tests', () => {
     await insertStuckRowToOutbox()
     await checkAndClearStuckMessages()
     await checkForOutboxStuckRows()
+  })
+
+  describe('Flight invoice validation', () => {
+    it('should not throw error when all flights have the same billable member ID', () => {
+      const flights = [
+        { flightId: 'FL001', billableMemberId: 'MEMBER123' },
+        { flightId: 'FL002', billableMemberId: 'MEMBER123' },
+        { flightId: 'FL003', billableMemberId: 'MEMBER123' },
+      ]
+
+      expect(() => validateFlightsBillableMemberId(flights, 'MEMBER123')).not.toThrow()
+    })
+
+    it('should throw error when one flight has a different billable member ID', () => {
+      const flights = [
+        { flightId: 'FL001', billableMemberId: 'MEMBER123' },
+        { flightId: 'FL002', billableMemberId: 'MEMBER456' },
+      ]
+
+      expect(() => validateFlightsBillableMemberId(flights, 'MEMBER123')).toThrow(
+        /Flight invoice validation failed.*MEMBER123.*1 flight\(s\).*FL002/,
+      )
+    })
+
+    it('should throw error with multiple mismatched flights and include all flight IDs', () => {
+      const flights = [
+        { flightId: 'FL001', billableMemberId: 'MEMBER123' },
+        { flightId: 'FL002', billableMemberId: 'MEMBER456' },
+        { flightId: 'FL003', billableMemberId: 'MEMBER789' },
+        { flightId: 'FL004', billableMemberId: 'MEMBER123' },
+      ]
+
+      expect(() => validateFlightsBillableMemberId(flights, 'MEMBER123')).toThrow(/FL002, FL003/)
+    })
+
+    it('should throw error message containing expected member ID and count of invalid flights', () => {
+      const flights = [
+        { flightId: 'FL001', billableMemberId: 'MEMBER123' },
+        { flightId: 'FL002', billableMemberId: 'MEMBER456' },
+        { flightId: 'FL003', billableMemberId: 'MEMBER789' },
+      ]
+
+      expect(() => validateFlightsBillableMemberId(flights, 'MEMBER123')).toThrow(
+        /Expected all flights to have billable member ID MEMBER123.*found 2 flight\(s\)/,
+      )
+    })
   })
 })

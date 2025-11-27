@@ -387,6 +387,9 @@ export const InvoicableFlightSchema = FlightLogSchema.pick({
   departureAirport: true,
   flightId: true,
   flightTime: true,
+  flightMins: true,
+  blockMins: true,
+  blockTime: true,
   flightType: true,
   fuelUpliftLitres: true,
   isBillableFlight: true,
@@ -398,9 +401,17 @@ export const InvoicableFlightSchema = FlightLogSchema.pick({
   status: true,
 }).extend({
   billableMemberLastName: z.string().nullable().readonly(),
+  isTrainingProgramPilot: z.boolean().nullable().readonly(),
+  billingId: z.string().nullable().readonly(),
 })
 
 export type InvoicableFlight = z.infer<typeof InvoicableFlightSchema>
+
+export const FlightInvoicePayloadSchema = z.object({
+  flights: z.array(InvoicableFlightSchema),
+})
+
+export type FlightInvoicePayload = z.infer<typeof FlightInvoicePayloadSchema>
 
 export const InvoicableFlightListResponseSchema = z.object({
   logs: z.array(InvoicableFlightSchema),
