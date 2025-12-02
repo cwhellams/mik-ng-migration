@@ -92,7 +92,7 @@ jobs:
             -e FLYWAY_USER=${{ vars.DO_POSTGRES_USER }} \
             -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_PASSWORD }} \
             -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_URL}} \
-            flyway/flyway:latest clean migrate
+            flyway/flyway:latest migrate
 
       - name: Run Flyway static data
         if: env.sql_changed == 'true'
