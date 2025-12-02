@@ -91,6 +91,7 @@ export interface AcctsInvoice {
   invoice_type: InvoiceType
   is_paid: Generated<boolean>
   member_id: string
+  overdue_email_sent_at: Timestamp | null
   paid_at: string | null
   pmt_ref: string
   sent_at: string | null

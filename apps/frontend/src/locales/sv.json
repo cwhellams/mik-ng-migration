@@ -830,6 +830,10 @@
     "equipmentFeeNotPaid": "Din utrustningsavgift för {{year}} har inte betalats. Om du vill få en rabatt på €{{discount}} per timme på flygbokningar, begär utrustningsavgiften genom att klicka på knappen. När du begär fakturan för utrustningsavgiften tillämpas rabatten omedelbart.",
     "requestInvoice": "Begär faktura",
     "requestingInvoice": "Begär...",
+    "viewInvoices": "Visa fakturor",
+    "overdueInvoicesWarning": "Du har {{count}} förfallna faktura(or) på totalt {{currency}} {{amount}}. Vänligen betala omedelbart för att undvika att din rätt att boka flygplan upphävs.",
+    "reservationsSuspendedTitle": "Flygplansreservationer har upphävts",
+    "reservationsSuspendedMessage": "Din möjlighet att göra flygplansreservationer har upphävts på grund av obetalda flygfakturor. Vänligen betala alla förfallna flygfakturor omedelbart för att återställa dina reservationsrättigheter.",
     "confirmEquipmentFee": {
       "title": "Bekräfta utrustningsavgiftsbegäran",
       "message": "Genom att klicka på Acceptera förbinder du dig att betala fakturan för utrustningsavgiften €{{amount}}, som kommer att skickas till dig inom kort. Rabatten €{{discount}} per timme tillämpas omedelbart på alla icke-fakturerade flygningar.",

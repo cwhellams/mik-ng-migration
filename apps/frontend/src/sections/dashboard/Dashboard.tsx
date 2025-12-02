@@ -4,6 +4,8 @@ import { FlightLogAdminDashboard } from './components/FlightLogAdminDashboard'
 import { MemberAdminDashboard } from './components/MemberAdminDashboard'
 import { BookingUserDashboard } from './components/BookingUserDashboard'
 import { EquipmentFeeBanner } from './components/EquipmentFeeBanner'
+import { OverdueInvoiceBanner } from './components/OverdueInvoiceBanner'
+import { ReservationsSuspendedBanner } from '../../components/ReservationsSuspendedBanner'
 import { MIKPermissions } from '@backend/routes/members/models'
 import { Title } from '../../components/Title'
 import { t } from 'i18next'
@@ -14,6 +16,10 @@ const Dashboard = () => {
   return (
     <Box>
       <Title label={t('header.dashboard')} />
+
+      <ReservationsSuspendedBanner />
+
+      <OverdueInvoiceBanner />
 
       <EquipmentFeeBanner />
 

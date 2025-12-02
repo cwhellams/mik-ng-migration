@@ -831,6 +831,10 @@
     "equipmentFeeNotPaid": "Kalustomaksuasi vuodelle {{year}} ei ole maksettu. Jos haluat saada €{{discount}} alennuksen tunnilta lentovarauksista, pyydä kalustomaksu napsauttamalla painiketta. Kun pyydät kalustomaksun laskun, alennus otetaan käyttöön välittömästi.",
     "requestInvoice": "Pyydä lasku",
     "requestingInvoice": "Pyydetään...",
+    "viewInvoices": "Näytä laskut",
+    "overdueInvoicesWarning": "Sinulla on {{count}} erääntynyt lasku yhteensä {{currency}} {{amount}}. Maksa välittömästi välttääksesi lentokoneen varausoikeuden keskeytyksen.",
+    "reservationsSuspendedTitle": "Lentokoneen varaukset keskeytetty",
+    "reservationsSuspendedMessage": "Kykysi tehdä lentokoneen varauksia on keskeytetty maksamattomien lentolaskujen vuoksi. Maksa kaikki erääntyneet lentolaskut välittömästi palauttaaksesi varausoikeutesi.",
     "confirmEquipmentFee": {
       "title": "Vahvista kalustomaksupyyntö",
       "message": "Klikkaamalla Hyväksy sitoudut maksamaan kalustomaksulaskun €{{amount}}, joka lähetetään sinulle pian. Alennus €{{discount}} tunnilta otetaan käyttöön välittömästi kaikille laskuttamattomille lennoille.",

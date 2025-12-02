@@ -23,6 +23,7 @@ import invoiceRoutes from './routes/invoicing/api.ts'
 import bookingRoutes from './routes/bookings/api.ts'
 import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
 import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoicePaymentWorker.ts'
+import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
 import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
 
 const pool = new pg.Pool({
@@ -81,6 +82,7 @@ app.use('/api/v1/bookings', bookingRoutes)
 
 const poller = startSimpleBooksOutboxProcessor()
 const invoicePaymentWorker = startSimplbooksInvoicePaymentWorker()
+const overdueInvoiceWorker = startOverdueInvoiceWorker()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
@@ -98,6 +100,7 @@ const shutdown = async (): Promise<void> => {
   await pool.end() // Close DB connections
   poller?.stop()
   invoicePaymentWorker?.stop()
+  overdueInvoiceWorker?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)

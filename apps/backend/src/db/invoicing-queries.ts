@@ -195,3 +195,125 @@ export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Prom
     .where('id', '=', invoiceId)
     .execute()
 }
+
+/**
+ * Get all overdue invoices that haven't had a reminder email sent
+ * Returns invoices where:
+ * - is_paid = false
+ * - due_at < current date
+ * - overdue_email_sent_at is null (no reminder sent yet)
+ */
+export async function getOverdueInvoicesWithoutReminder(): Promise<AcctsInvoice[]> {
+  const now = new Date().toISOString()
+
+  const rows = await db
+    .selectFrom('accts.invoice')
+    .selectAll()
+    .where('is_paid', '=', false)
+    .where('due_at', '<', now)
+    .where('overdue_email_sent_at', 'is', null)
+    .orderBy('due_at', 'asc')
+    .execute()
+
+  return rows.map(row => ({
+    ...row,
+    created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+    updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
+  })) as unknown as AcctsInvoice[]
+}
+
+/**
+ * Mark that an overdue reminder email has been sent for an invoice
+ */
+export async function markOverdueEmailSent(invoiceId: string): Promise<void> {
+  await db
+    .updateTable('accts.invoice')
+    .set({
+      overdue_email_sent_at: new Date().toISOString(),
+      updated_by: MIK_SIMPLBOOKS_MEMBER,
+      updated_at: new Date().toISOString(),
+    })
+    .where('id', '=', invoiceId)
+    .execute()
+}
+
+/**
+ * Get overdue flight invoices for a specific member
+ * Returns flight invoices where:
+ * - is_paid = false
+ * - invoice_type = 'FLIGHT'
+ * - due_at is older than the specified number of days
+ */
+export async function getOverdueFlightInvoicesForMember(
+  memberId: string,
+  daysOverdue: number,
+): Promise<AcctsInvoice[]> {
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - daysOverdue)
+
+  const rows = await db
+    .selectFrom('accts.invoice')
+    .selectAll()
+    .where('member_id', '=', memberId)
+    .where('is_paid', '=', false)
+    .where('invoice_type', '=', 'FLIGHT')
+    .where('due_at', '<', cutoffDate.toISOString())
+    .orderBy('due_at', 'asc')
+    .execute()
+
+  return rows.map(row => ({
+    ...row,
+    created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+    updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
+  })) as unknown as AcctsInvoice[]
+}
+
+/**
+ * Get all members with suspended reservations (can_make_reservations = false)
+ */
+export async function getMembersWithSuspendedReservations(): Promise<string[]> {
+  const members = await db
+    .selectFrom('member.register')
+    .select('member_id')
+    .where('can_make_reservations', '=', false)
+    .execute()
+
+  return members.map(m => m.member_id)
+}
+
+/**
+ * Get all overdue FLIGHT invoices older than a given number of days
+ * Returns invoices where:
+ * - is_paid = false
+ * - invoice_type = 'FLIGHT'
+ * - due_at is older than the specified number of days
+ * Used for suspension logic - ignores whether reminder email was sent
+ */
+export async function getOverdueFlightInvoicesPastDays(daysOverdue: number): Promise<
+  Array<{
+    member_id: string
+    id: string
+    total_sum: string | null
+    due_at: string | null
+    currency: string | null
+  }>
+> {
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - daysOverdue)
+
+  const rows = await db
+    .selectFrom('accts.invoice')
+    .select(['member_id', 'id', 'total_sum', 'due_at', 'currency'])
+    .where('is_paid', '=', false)
+    .where('invoice_type', '=', 'FLIGHT')
+    .where('due_at', '<', cutoffDate.toISOString())
+    .execute()
+
+  return rows.map(row => ({
+    member_id: row.member_id,
+    id: String(row.id),
+    total_sum: row.total_sum ? String(row.total_sum) : null,
+    due_at: row.due_at ? String(row.due_at) : null,
+    currency: row.currency ? String(row.currency) : null,
+  }))
+}

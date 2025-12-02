@@ -631,3 +631,33 @@ export async function getFeeProcessingItemForMember(
 
   return FeeProcessingItemSchema.parse(result)
 }
+
+/**
+ * Suspend a member's ability to make reservations
+ */
+export async function suspendMemberReservations(memberId: string): Promise<void> {
+  await db
+    .updateTable('member.register')
+    .set({
+      can_make_reservations: false,
+      updated_at: new Date(),
+      updated_by: 'k1mnimda',
+    })
+    .where('member_id', '=', memberId)
+    .execute()
+}
+
+/**
+ * Restore a member's ability to make reservations
+ */
+export async function restoreMemberReservations(memberId: string): Promise<void> {
+  await db
+    .updateTable('member.register')
+    .set({
+      can_make_reservations: true,
+      updated_at: new Date(),
+      updated_by: 'k1mnimda',
+    })
+    .where('member_id', '=', memberId)
+    .execute()
+}

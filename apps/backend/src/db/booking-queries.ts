@@ -206,3 +206,38 @@ export const cancelBooking = async (
 
   return getBookingById(bookingId)
 }
+
+/**
+ * Cancel all future bookings for a member
+ * Cancels bookings with status TENTATIVE or CONFIRMED where start_time_epoch >= current epoch
+ */
+export const cancelAllFutureBookingsForMember = async (
+  memberId: string,
+  description: string,
+  cancelledBy: string = 'k1mnimda',
+): Promise<number> => {
+  const now = new Date()
+  const currentEpoch = dayjs().unix().toString()
+
+  const result = await connection.db
+    .updateTable('schedule.bookings')
+    .set({
+      booking_status: BookingStatus.CANCELLED,
+      description: description,
+      updated_at: now.toISOString(),
+      updated_by: cancelledBy,
+      cancelled_at: now.toISOString(),
+      cancelled_by: cancelledBy,
+    })
+    .where('member_id', '=', memberId)
+    .where('start_time_epoch', '>=', currentEpoch)
+    .where(eb =>
+      eb.or([
+        eb('booking_status', '=', BookingStatus.TENTATIVE),
+        eb('booking_status', '=', BookingStatus.CONFIRMED),
+      ]),
+    )
+    .executeTakeFirst()
+
+  return Number(result.numUpdatedRows ?? 0)
+}
