@@ -173,6 +173,23 @@ export function mockSimplbooksGet(url: string, data?: any): Promise<AxiosRespons
 
   if (url.startsWith('/invoices/get/')) {
     const invoiceId = url.split('/').pop()
+
+    // Support different invoice states for testing
+    // Invoice IDs ending in specific patterns return specific payment states:
+    // - ends with '1': paid
+    // - ends with '2': unpaid (empty string)
+    // - ends with '3': unpaid (zero date)
+    const lastDigit = invoiceId?.charAt(invoiceId.length - 1)
+
+    let paidValue = ZERO_DATE
+    if (lastDigit === '1') {
+      paidValue = '2024-11-27' // Paid invoice
+    } else if (lastDigit === '2') {
+      paidValue = '' // Unpaid (empty)
+    } else if (lastDigit === '3') {
+      paidValue = ZERO_DATE // Unpaid (zero date)
+    }
+
     return Promise.resolve({
       status: 200,
       statusText: 'OK',
@@ -189,6 +206,7 @@ export function mockSimplbooksGet(url: string, data?: any): Promise<AxiosRespons
             client_name: 'SimplBooks OÜ',
             client_reg_no: '12213296',
             due: '2025-05-01',
+            paid: paidValue,
           },
           Task: [
             {

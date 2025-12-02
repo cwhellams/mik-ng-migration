@@ -6,6 +6,7 @@ import {
 } from '../routes/invoicing/models.ts'
 import { ART_EQUIP_FEE_CODE } from '../services/accounting/config.ts'
 import type { FeeType, ItemListArticle } from '../services/simplbooks/models.ts'
+import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import { db } from './connection.ts'
 import type { AcctsInvoice, AcctsItems } from './schema.js'
 
@@ -158,4 +159,39 @@ export async function getRecurringFeesProcessing(
     updatedAt: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
     updatedBy: row.updated_by,
   })) as RecurringFeesProcessing[]
+}
+
+/**
+ * Get all unpaid invoices that have a pmt_ref (Simplbooks invoice ID)
+ * Returns invoices where is_paid = false and pmt_ref is not empty
+ */
+export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<AcctsInvoice[]> {
+  const rows = await db
+    .selectFrom('accts.invoice')
+    .selectAll()
+    .where('is_paid', '=', false)
+    .where('pmt_ref', '!=', '')
+    .orderBy('due_at', 'asc')
+    .execute()
+
+  return rows.map(row => ({
+    ...row,
+    created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+    updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
+  })) as unknown as AcctsInvoice[]
+}
+
+/**
+ * Mark an invoice as paid in the database
+ */
+export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Promise<void> {
+  await db
+    .updateTable('accts.invoice')
+    .set({
+      paid_at: paidAt,
+      updated_by: MIK_SIMPLBOOKS_MEMBER,
+      updated_at: new Date().toISOString(),
+    })
+    .where('id', '=', invoiceId)
+    .execute()
 }
