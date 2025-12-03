@@ -1,0 +1,26 @@
+{
+  "name": "simplbooks-sync",
+  "version": "1.0.0",
+  "description": "SimplBooks to MIK database sync application",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "sync": "tsx src/index.ts"
+  },
+  "keywords": [],
+  "author": "Malmin Ilmailukerho ry",
+  "dependencies": {
+    "axios": "^1.12.0",
+    "dotenv": "^16.4.5",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.0"
+  }
+}

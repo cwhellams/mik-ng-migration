@@ -79,6 +79,18 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug SimplBooks Sync",
+      "cwd": "${workspaceFolder}/apps/simplbooks_sync",
+      "program": "${workspaceFolder}/apps/simplbooks_sync/src/index.ts",
+      "runtimeArgs": ["--import=tsx"],
+      "outputCapture": "std",
+      "skipFiles": ["<node_internals>/**"],
+      "envFile": "${workspaceFolder}/apps/simplbooks_sync/.env",
+      "console": "integratedTerminal"
     }
   ]
 }
