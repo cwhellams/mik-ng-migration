@@ -284,14 +284,14 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
     }
 
     const response = await request(app)
-      .patch('/aircraft-pricing/OH-STL/2010-01-01')
+      .patch('/aircraft-pricing/OH-STL/2025-12-01')
       .set('Authorization', `Bearer ${adminToken}`)
       .send(update)
 
     expect(response.status).toBe(200)
     expect(response.body).toBeDefined()
     expect(response.body.registration).toBe('OH-STL')
-    expect(response.body.valid_from).toBe('2010-01-01')
+    expect(response.body.valid_from).toBe('2025-12-01')
     expect(response.body.notes).toBe(update.notes)
     expect(response.body.updated_by).toBe('k1mnimda')
 
@@ -315,7 +315,7 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
     }
 
     const response = await request(app)
-      .patch('/aircraft-pricing/OH-STL/2010-01-01')
+      .patch('/aircraft-pricing/OH-STL/2025-12-01')
       .set('Authorization', `Bearer ${adminToken}`)
       .send(update)
 
@@ -324,7 +324,7 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
 
     // Restore original price
     await request(app)
-      .patch('/aircraft-pricing/OH-STL/2010-01-01')
+      .patch('/aircraft-pricing/OH-STL/2025-12-01')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ price_per_min: originalPrice })
   })

@@ -166,7 +166,7 @@ describe('Aircraft Pricing Queries', () => {
       const toUpdate = pricing[0]
 
       const update: UpdateAircraftPricing = {
-        valid_to: '2025-06-30',
+        valid_to: '2026-02-28',
         updated_by: testMemberId,
       }
 

@@ -5,12 +5,12 @@ exports[`GET /aircraft-pricing should match snapshot for OH-STL pricing 1`] = `
   {
     "created_at": Any<String>,
     "created_by": "k1mnimda",
-    "notes": "Initial pricing for OH-STL",
+    "notes": null,
     "price_per_min": 3.6,
     "registration": "OH-STL",
     "updated_at": Any<String>,
-    "updated_by": null,
-    "valid_from": "2010-01-01",
+    "updated_by": "k1mnimda",
+    "valid_from": "2025-12-01",
     "valid_to": null,
   },
 ]
