@@ -60,5 +60,3 @@ or
     pnpm dev
 
 # Deploying
-
-#
