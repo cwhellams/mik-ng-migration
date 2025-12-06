@@ -1,0 +1,55 @@
+name: Postgres DB Backup to Cloudflare R2
+
+on:
+    schedule:
+        - cron: "0 1 * * 0" # At 01:00 on Sunday
+    workflow_dispatch:
+
+jobs:
+    backup:
+        runs-on: ubuntu-latest
+        env:
+            DO_POSTGRES_USER: ${{ vars.DO_POSTGRES_USER }}
+            DO_POSTGRES_PASSWORD: ${{ secrets.DO_POSTGRES_PASSWORD }}
+            DO_POSTGRES_URL: ${{ vars.DO_POSTGRES_URL }}
+            CLOUDFLARE_S3_ACCESSKEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESSKEY_ID }}
+            CLOUDFLARE_S3_SECRET_ACCESSKEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESSKEY }}
+            CLOUDFLARE_S3_EU_ENDPOINT: ${{ vars.CLOUDFLARE_R2_EU_ENDPOINT }}
+            R2_BUCKET_NAME: ${{ vars.CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install PostgreSQL client
+              run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+            - name: Dump PostgreSQL database
+              run: |
+                  export PGPASSWORD="$DO_POSTGRES_PASSWORD"
+                  export PGUSER="$DO_POSTGRES_USER"
+                  export PGHOST=$(echo $DO_POSTGRES_URL | sed -E 's#^([^:/]+)(:[0-9]+)?/.*$#\1#')
+                  export PGPORT=$(echo $DO_POSTGRES_URL | grep -oE ':[0-9]+' | tr -d ':')
+                  export PGDATABASE=$(echo $DO_POSTGRES_URL | sed -E 's#.*/##')
+                  CONNECTION_STRING="postgresql://$PGUSER:$PGPASSWORD@$PGHOST:$PGPORT/$PGDATABASE"
+                  BACKUP_FILE="backup-$(date +'%Y-%m-%d-%H%M%S').dump"
+                  pg_dump --no-owner --no-privileges --format=custom --file="$BACKUP_FILE" "$CONNECTION_STRING"
+
+            - name: Upload to Cloudflare R2
+              uses: jakejarvis/s3-sync-action@master
+              with:
+                  args: --acl private --follow-symlinks
+              env:
+                  AWS_S3_BUCKET: ${{ env.R2_BUCKET_NAME }}
+                  AWS_ACCESS_KEY_ID: ${{ env.CLOUDFLARE_S3_ACCESSKEY_ID }}
+                  AWS_SECRET_ACCESS_KEY: ${{ env.CLOUDFLARE_S3_SECRET_ACCESSKEY }}
+                  AWS_S3_ENDPOINT: ${{ env.CLOUDFLARE_S3_EU_ENDPOINT }}
+                  AWS_REGION: "auto"
+                  SOURCE_DIR: ./
+                  DEST_DIR: /
+
+            - name: Upload backup file
+              run: |
+                  aws s3 cp "$BACKUP_FILE" s3://${{ env.R2_BUCKET_NAME }}/"$BACKUP_FILE" --endpoint-url ${{ env.CLOUDFLARE_S3_EU_ENDPOINT }}
+              env:
+                  AWS_ACCESS_KEY_ID: ${{ env.CLOUDFLARE_S3_ACCESSKEY_ID }}
+                  AWS_SECRET_ACCESS_KEY: ${{ env.CLOUDFLARE_S3_SECRET_ACCESSKEY }}
