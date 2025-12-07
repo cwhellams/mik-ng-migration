@@ -45,17 +45,23 @@ jobs:
               with:
                   args: --acl private --follow-symlinks
               env:
-                  AWS_S3_BUCKET: ${{ env.R2_BUCKET_NAME }}
-                  AWS_ACCESS_KEY_ID: ${{ env.CLOUDFLARE_S3_ACCESSKEY_ID }}
-                  AWS_SECRET_ACCESS_KEY: ${{ env.CLOUDFLARE_S3_SECRET_ACCESSKEY }}
-                  AWS_S3_ENDPOINT: ${{ env.CLOUDFLARE_S3_EU_ENDPOINT }}
+                  AWS_S3_BUCKET: ${{ env.CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP }}
+                  AWS_ACCESS_KEY_ID: ${{ env.CLOUDFLARE_R2_ACCESSKEY_ID }}
+                  AWS_SECRET_ACCESS_KEY: ${{ env.CLOUDFLARE_R2_SECRET_ACCESSKEY }}
+                  AWS_S3_ENDPOINT: ${{ env.CLOUDFLARE_R2_EU_ENDPOINT }}
                   AWS_REGION: "auto"
                   SOURCE_DIR: ./
                   DEST_DIR: /
-
             - name: Upload backup file
               run: |
-                  aws s3 cp "$BACKUP_FILE" s3://${{ env.R2_BUCKET_NAME }}/"$BACKUP_FILE" --endpoint-url ${{ env.CLOUDFLARE_S3_EU_ENDPOINT }}
+                  echo "Backup file: $BACKUP_FILE"
+                  ls -l "$BACKUP_FILE"
+                  if [ -f "$BACKUP_FILE" ]; then
+                    aws s3 cp "$BACKUP_FILE" "s3://${{ env.CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP }}/$BACKUP_FILE" --endpoint-url "${{ env.CLOUDFLARE_R2_EU_ENDPOINT }}"
+                  else
+                    echo "Backup file $BACKUP_FILE does not exist!"
+                    exit 1
+                  fi
               env:
-                  AWS_ACCESS_KEY_ID: ${{ env.CLOUDFLARE_S3_ACCESSKEY_ID }}
-                  AWS_SECRET_ACCESS_KEY: ${{ env.CLOUDFLARE_S3_SECRET_ACCESSKEY }}
+                  AWS_ACCESS_KEY_ID: ${{ env.CLOUDFLARE_R2_ACCESSKEY_ID }}
+                  AWS_SECRET_ACCESS_KEY: ${{ env.CLOUDFLARE_R2_SECRET_ACCESSKEY }}
