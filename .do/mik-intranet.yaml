@@ -1,5 +1,8 @@
 name: mik-intranet
 region: fra1
+domains:
+  - domain: ${DOMAIN}
+    type: PRIMARY
 ingress:
   rules:
   - component:
@@ -120,6 +123,9 @@ services:
       - key: OVERDUE_INVOICE_SUSPENSION_DAYS
         value: ${OVERDUE_INVOICE_SUSPENSION_DAYS}
         type: GENERAL
+      - key: CORS_ALLOWED_ORIGINS
+        value: ${CORS_ALLOWED_ORIGINS}
+        type: SECRET
   
 
     instance_count: 1

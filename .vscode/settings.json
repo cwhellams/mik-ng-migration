@@ -5,7 +5,7 @@
   "jestrunner.runOptions": ["--colors"],
   "jestrunner.debugOptions": {
     "runtimeArgs": ["--experimental-vm-modules"]
-    },
+  },
   "sqltools.connections": [
     {
       "previewLimit": 50,

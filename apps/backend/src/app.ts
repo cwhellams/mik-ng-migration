@@ -45,7 +45,18 @@ app.use(
 
 // Security Middlewares
 app.use(helmet()) // Secure headers
-app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }))
+
+// Parse CORS allowed origins from comma-separated environment variable
+const corsOrigins = process.env.CORS_ALLOWED_ORIGINS
+  ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : ['*']
+
+app.use(
+  cors({
+    origin: corsOrigins.length === 1 && corsOrigins[0] === '*' ? '*' : corsOrigins,
+    credentials: true,
+  }),
+)
 
 // app.use(compression());
 
