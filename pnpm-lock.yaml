@@ -59,8 +59,8 @@ importers:
         specifier: ^2.8.5
         version: 2.8.5
       dayjs:
-        specifier: ^1.11.18
-        version: 1.11.18
+        specifier: ^1.11.19
+        version: 1.11.19
       dotenv:
         specifier: ^16.4.7
         version: 16.6.1
@@ -2887,6 +2887,9 @@ packages:
 
   dayjs@1.11.18:
     resolution: {integrity: sha512-zFBQ7WFRvVRhKcWoUh+ZA1g2HVgUbsZm9sbddh8EC5iv93sui8DVVz1Npvz+r6meo9VKfa8NyLWBsQK1VvIKPA==}
+
+  dayjs@1.11.19:
+    resolution: {integrity: sha512-t5EcLVS6QPBNqM2z8fakk/NKel+Xzshgt8FFKAn+qwlD1pzZWxh0nVCrvFK7ZDb6XucZeF9z8C7CBWTRIVApAw==}
 
   debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
@@ -9077,6 +9080,8 @@ snapshots:
 
   dayjs@1.11.18: {}
 
+  dayjs@1.11.19: {}
+
   debug@2.6.9:
     dependencies:
       ms: 2.0.0
@@ -11124,7 +11129,7 @@ snapshots:
       '@babel/runtime': 7.28.3
       clsx: 1.2.1
       date-arithmetic: 4.1.0
-      dayjs: 1.11.18
+      dayjs: 1.11.19
       dom-helpers: 5.2.1
       globalize: 0.1.1
       invariant: 2.2.4
