@@ -10,7 +10,7 @@ import { MemberRoleEditor } from './components/EditRoleModal'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Upsert } from '@backend/types/schema'
 import { Title } from '../../components/Title'
-import { ResponsiveTable } from '../flightLog/components/ResponsiveTable'
+import { ResponsiveTable } from '../../components/ResponsiveTable'
 
 const Roles = () => {
   const { t } = useTranslation()
@@ -52,9 +52,11 @@ const Roles = () => {
         <ResponsiveTable
           header={
             <>
-              <Grid>{t('roles.roleId')}</Grid>
-              <Grid width={25}>{t('roles.isPublic')}</Grid>
-              <Grid textAlign='right'>{t('roles.permissions')}</Grid>
+              <Grid size={5}>{t('roles.roleId')}</Grid>
+              <Grid size={2}>{t('roles.isPublic')}</Grid>
+              <Grid size={5} textAlign='right'>
+                {t('roles.permissions')}
+              </Grid>
             </>
           }
           notFoundMsg={t('error.noRows')}

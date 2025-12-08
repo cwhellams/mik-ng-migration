@@ -1,0 +1,1 @@
+CREATE TYPE public.occurrenceStatus AS ENUM ('NEW', 'RECEIVED', 'ANONYMIZING', 'ANONYMIZED', 'CLOSED', 'DELETED');

@@ -1,5 +1,8 @@
 import dayjs from 'dayjs'
 
+export const getDurationInMinutes = (start: string, end?: string): number =>
+  dayjs(end).diff(start, 'minute')
+
 export const formatDuration = (minutes: number, hideZeros = false): string => {
   if (minutes <= 0) return '--'
   const hrs = Math.floor(minutes / 60)

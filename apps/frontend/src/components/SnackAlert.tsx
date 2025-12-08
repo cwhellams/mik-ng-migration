@@ -5,11 +5,19 @@ import { useState, useEffect } from 'react'
 export const SnackAlert = ({ problem }: { problem?: Problem }) => {
   const [sbState, setSbState] = useState<boolean>(false)
 
+  // copy the problem so it's not lost when the prop changes
+  const [sbProblem, setSbProblem] = useState<Problem | undefined>(undefined)
+
   useEffect(() => {
     if (problem) {
+      setSbProblem(problem)
       setSbState(true)
     }
   }, [problem])
+
+  if (!sbProblem) {
+    return <></>
+  }
 
   return (
     <Snackbar
@@ -21,13 +29,13 @@ export const SnackAlert = ({ problem }: { problem?: Problem }) => {
         transition: Slide,
       }}
     >
-      {problem?.status == 200 ? (
+      {sbProblem?.status == 200 ? (
         <Alert severity='success'>
-          {problem?.detail || problem?.title || 'Success'}
+          {sbProblem?.detail || sbProblem?.title || 'Success'}
         </Alert>
       ) : (
         <Alert severity={'error'}>
-          {problem?.detail || problem?.title || 'Error'}
+          {sbProblem?.detail || sbProblem?.title || 'Error'}
         </Alert>
       )}
     </Snackbar>

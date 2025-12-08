@@ -28,12 +28,17 @@ export enum MIKPermissions {
   // can access club secrets/access codes
   ACCESS_CODES_USER = 'access_codes.user',
   ACCESS_CODES_ADMIN = 'access_codes.admin',
+
   // can see club documents, admin can create and edit
   DOCUMENT_USER = 'document.user',
   DOCUMENT_ADMIN = 'document.admin',
+
+  // safety management system roles
+  SMS_TEAM = 'sms.team',
+  SMS_ADMIN = 'sms.admin',
 }
 
-export const toUserRole = (permission: MIKPermissions): MIKPermissions => {
+export const toUserRole = (permission: MIKPermissions): MIKPermissions | undefined => {
   switch (permission) {
     case MIKPermissions.MEMBER_ADMIN:
       return MIKPermissions.MEMBER
@@ -49,6 +54,9 @@ export const toUserRole = (permission: MIKPermissions): MIKPermissions => {
       return MIKPermissions.ACCESS_CODES_USER
     case MIKPermissions.DOCUMENT_ADMIN:
       return MIKPermissions.DOCUMENT_USER
+    case MIKPermissions.SMS_ADMIN:
+    case MIKPermissions.SMS_TEAM:
+      return undefined
     default:
       return permission
   }

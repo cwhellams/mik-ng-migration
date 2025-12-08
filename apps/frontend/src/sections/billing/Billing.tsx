@@ -32,7 +32,7 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { Title } from '../../components/Title'
-import { ResponsiveTable } from '../flightLog/components/ResponsiveTable'
+import { ResponsiveTable } from '../../components/ResponsiveTable'
 
 const dateFormat = 'YYYY-MM-DD'
 

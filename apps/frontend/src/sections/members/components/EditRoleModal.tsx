@@ -222,7 +222,7 @@ export const MemberRoleEditor = ({
                     onChange={handleChangeRole}
                   />
                 }
-                label={`${permission} : ${t(`permissions.${permission}`)}`}
+                label={`${t(`permissions.${permission}`)} (${permission})`}
               />
             ))}
           </FormGroup>

@@ -3,7 +3,7 @@ import {
   FlightLogStatus,
   FlightLogValidationRequest,
 } from '@backend/routes/flight-log/models'
-import { Box, Button } from '@mui/material'
+import { Box, Button, Stack } from '@mui/material'
 import { t } from 'i18next'
 import { Link } from 'react-router-dom'
 import { FormField } from '../../../components/FormField'
@@ -22,9 +22,9 @@ export const StatusDisplay = ({
   return (
     <>
       <FormField label={t('flightLog.status.title')} sx={{ mb: 2 }}>
-        <Box component='span' sx={{ display: 'flex', alignItems: 'center' }}>
-          {log.status === FlightLogStatus.NEW && (
-            <>
+        {log.status === FlightLogStatus.NEW && (
+          <Stack direction={{ xs: 'column', sm: 'row' }}>
+            <Box component='span' display='flex' alignItems='center'>
               <Icon
                 icon='mdi:schedule'
                 color='orange'
@@ -32,22 +32,24 @@ export const StatusDisplay = ({
                 style={{ marginRight: theme.spacing(1) }}
               />
               {t('flightLog.status.new')}
+            </Box>
 
-              {showButton && (
-                <Button
-                  onClick={() => update({})}
-                  variant='outlined'
-                  startIcon={<Icon icon='mdi:check' color='green' />}
-                  sx={{ ml: 2 }}
-                >
-                  {t('flightLog.status.validate')}
-                </Button>
-              )}
-            </>
-          )}
+            {showButton && (
+              <Button
+                onClick={() => update({})}
+                variant='outlined'
+                startIcon={<Icon icon='mdi:check' color='green' />}
+                sx={{ ml: 2 }}
+              >
+                {t('flightLog.status.validate')}
+              </Button>
+            )}
+          </Stack>
+        )}
 
-          {log.status === FlightLogStatus.VALIDATED && (
-            <>
+        {log.status === FlightLogStatus.VALIDATED && (
+          <Stack direction={{ xs: 'column', sm: 'row' }}>
+            <Box component='span' display='flex' alignItems='center'>
               <Icon
                 icon='mdi:check'
                 color='green'
@@ -55,49 +57,49 @@ export const StatusDisplay = ({
                 style={{ marginRight: theme.spacing(1) }}
               />
               {t('flightLog.status.validated')}
+            </Box>
 
-              {showButton && (
-                <Button
-                  onClick={() => update({ revert: true })}
-                  variant='outlined'
-                  startIcon={<Icon icon='mdi:schedule' color='orange' />}
-                  sx={{ ml: 2 }}
-                >
-                  {t('flightLog.status.unvalidate')}
-                </Button>
-              )}
-            </>
-          )}
+            {showButton && (
+              <Button
+                onClick={() => update({ revert: true })}
+                variant='outlined'
+                startIcon={<Icon icon='mdi:schedule' color='orange' />}
+                sx={{ ml: 2 }}
+              >
+                {t('flightLog.status.unvalidate')}
+              </Button>
+            )}
+          </Stack>
+        )}
 
-          {log.status === FlightLogStatus.INVOICED && (
-            <>
-              <Icon
-                icon='mdi:invoice-send-outline'
-                color='orange'
-                width={20}
-                style={{ marginRight: theme.spacing(1) }}
-              />
-              {t('flightLog.status.invoiced')}
-            </>
-          )}
+        {log.status === FlightLogStatus.INVOICED && (
+          <Box component='span' display='flex' alignItems='center'>
+            <Icon
+              icon='mdi:invoice-send-outline'
+              color='orange'
+              width={20}
+              style={{ marginRight: theme.spacing(1) }}
+            />
+            {t('flightLog.status.invoiced')}
+          </Box>
+        )}
 
-          {log.status === FlightLogStatus.PAID && (
-            <>
-              <Icon
-                icon='mdi:invoice-check'
-                color='green'
-                width={20}
-                style={{ marginRight: theme.spacing(1) }}
-              />
-              {t('flightLog.status.paid')}
-            </>
-          )}
-        </Box>
+        {log.status === FlightLogStatus.PAID && (
+          <Box component='span' display='flex' alignItems='center'>
+            <Icon
+              icon='mdi:invoice-check'
+              color='green'
+              width={20}
+              style={{ marginRight: theme.spacing(1) }}
+            />
+            {t('flightLog.status.paid')}
+          </Box>
+        )}
       </FormField>
 
       <FormField label={t('flightLog.logbooks.ajlb')}>
         <Link
-          to={`/flight-logs?aircraftRegistration=${log.aircraftRegistration}&ajlbSeqNo=${log.ajlbSeqNo}&page=${log.ajlbPageNo}`}
+          to={`/logs?aircraftRegistration=${log.aircraftRegistration}&ajlbSeqNo=${log.ajlbSeqNo}&page=${log.ajlbPageNo}`}
         >
           {t('flightLog.logbooks.goToFlight', {
             seqNo: log.ajlbSeqNo,

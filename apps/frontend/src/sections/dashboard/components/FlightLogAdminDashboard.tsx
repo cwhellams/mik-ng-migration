@@ -51,7 +51,7 @@ export const FlightLogAdminDashboard = () => {
                 <ListItemText
                   primary={
                     <Link
-                      to={`/flight-logs?aircraftRegistration=${ajlb.aircraftRegistration}&ajlbSeqNo=${ajlb.seqNo}&page=${ajlb.view?.newFlightsPage}`}
+                      to={`/logs?aircraftRegistration=${ajlb.aircraftRegistration}&ajlbSeqNo=${ajlb.seqNo}&page=${ajlb.view?.newFlightsPage}`}
                     >
                       {ajlb.aircraftRegistration} - {ajlb.seqNo}
                     </Link>

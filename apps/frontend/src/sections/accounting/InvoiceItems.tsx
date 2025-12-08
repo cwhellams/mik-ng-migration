@@ -7,7 +7,7 @@ import { eurFormatter } from '../../utils/format'
 import { RemoteContent } from '../../components/RemoteContent'
 import { t } from 'i18next'
 import { Title } from '../../components/Title'
-import { ResponsiveTable } from '../flightLog/components/ResponsiveTable'
+import { ResponsiveTable } from '../../components/ResponsiveTable'
 import Grid from '@mui/system/Grid'
 
 export const InvoiceItemsPage: React.FC = () => {

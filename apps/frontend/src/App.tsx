@@ -33,6 +33,8 @@ import Documents from './sections/documents/Documents'
 import 'dayjs/locale/en-gb'
 import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
 import ToolsPage from './sections/accounting/ToolsPage'
+import { Occurrences } from './sections/occurrences/Occurences'
+import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -77,6 +79,15 @@ function App() {
               <Route path='mass-balance' element={<MassBalance />} />
               <Route path='access-codes' element={<AccessCodes />} />
             </Route>
+            <Route path='/logs'>
+              <Route index element={<FlightLogsList />} />
+              <Route path='logbooks' element={<LogbooksList />} />
+              <Route path='occurrences'>
+                <Route index element={<Occurrences />} />
+                <Route path=':reportId' element={<OccurrenceEntry />} />
+              </Route>
+              <Route path=':flightId' element={<NewFlightLogEntry />} />
+            </Route>
             <Route path='/club'>
               <Route index element={<Members />} />
               <Route index path='members/roles' element={<Roles />} />
@@ -84,13 +95,6 @@ function App() {
               <Route path='billing' element={<Billing />} />
               <Route path='documents' element={<Documents />} />
             </Route>
-            /** Flight Log Routes */
-            <Route path='/flight-logs' element={<FlightLogsList />} />
-            <Route path='/flight-logs/logbooks' element={<LogbooksList />} />
-            <Route
-              path='/flight-logs/:flightId'
-              element={<NewFlightLogEntry />}
-            />
             <Route path='/accounting'>
               <Route index element={<InvoicingAdminDashboard />} />
               <Route path='invoicing' element={<FlightInvoicing />} />

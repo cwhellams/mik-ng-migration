@@ -36,7 +36,7 @@ import type {
   DownloadDocument,
 } from '@backend/routes/documents/models'
 import { Title } from '../../components/Title'
-import { ResponsiveTable } from '../flightLog/components/ResponsiveTable'
+import { ResponsiveTable } from '../../components/ResponsiveTable'
 
 const Documents = () => {
   const { t } = useTranslation()

@@ -12,7 +12,7 @@ import {
 import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
 import { Title } from '../../components/Title'
-import { ResponsiveTable } from './components/ResponsiveTable'
+import { ResponsiveTable } from '../../components/ResponsiveTable'
 
 const Roles = () => {
   const { t } = useTranslation()
@@ -96,7 +96,7 @@ const Roles = () => {
               </Grid>
               <Grid size={{ xs: 4, md: 1.5 }}>
                 <Link
-                  to={`/flight-logs?aircraftRegistration=${ajlb.aircraftRegistration}&ajlbSeqNo=${ajlb.seqNo}&page=${ajlb.view?.newFlightsPage}`}
+                  to={`/logs?aircraftRegistration=${ajlb.aircraftRegistration}&ajlbSeqNo=${ajlb.seqNo}&page=${ajlb.view?.newFlightsPage}`}
                 >
                   {ajlb.view?.newFlightsCount} - {ajlb.view?.newFlightsTime}
                 </Link>

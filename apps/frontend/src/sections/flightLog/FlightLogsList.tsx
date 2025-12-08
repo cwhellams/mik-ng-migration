@@ -42,7 +42,7 @@ import {
   ViewMobileFlightDetails,
   ViewMobileCrew,
 } from './components/FlightListEntry'
-import { ResponsiveTable } from './components/ResponsiveTable'
+import { ResponsiveTable } from '../../components/ResponsiveTable'
 
 const FlightLogsList = () => {
   const { t } = useTranslation()
@@ -230,7 +230,7 @@ const FlightLogsList = () => {
           color='primary'
           startIcon={<Icon icon='mdi:plus' />}
           component={Link}
-          to='/flight-logs/new'
+          to='/logs/new'
         >
           {t('flightLog.newEntry', 'New Entry')}
         </Button>

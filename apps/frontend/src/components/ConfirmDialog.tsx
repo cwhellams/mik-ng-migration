@@ -10,15 +10,61 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 
-interface ConfirmDialogProps {
-  open: boolean
-  onClose: () => void
+interface ConfirmProps {
   onConfirm: () => void
   title: string
   message: string
   confirmText: string
   cancelText: string
   severity?: 'error' | 'warning' | 'info'
+}
+
+interface ConfirmDialogProps extends ConfirmProps {
+  open: boolean
+  onClose: () => void
+}
+
+export const ConfirmButton: React.FC<
+  ConfirmProps & {
+    buttonProps?: React.ComponentProps<typeof Button>
+  }
+> = ({
+  onConfirm,
+  title,
+  message,
+  confirmText,
+  cancelText,
+  severity = 'warning',
+  buttonProps,
+}) => {
+  const [isOpen, setIsOpen] = React.useState(false)
+
+  return (
+    <>
+      <ConfirmDialog
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        onConfirm={() => {
+          setIsOpen(false)
+          onConfirm()
+        }}
+        title={title}
+        message={message}
+        confirmText={confirmText}
+        cancelText={cancelText}
+        severity={severity}
+      />
+
+      <Button
+        onClick={() => setIsOpen(true)}
+        variant='outlined'
+        startIcon={<Icon icon='mdi:check' color='green' />}
+        {...buttonProps}
+      >
+        {title}
+      </Button>
+    </>
+  )
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({

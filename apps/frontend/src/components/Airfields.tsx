@@ -1,34 +1,35 @@
-import {
-  AirfieldListResponse,
-  FlightLogUpsertRequest,
-} from '@backend/routes/flight-log/models'
+import { AirfieldListResponse } from '@backend/routes/flight-log/models'
 import { Autocomplete, TextField } from '@mui/material'
-import { t } from 'i18next'
-import { Control, Controller, GlobalError } from 'react-hook-form'
-import useApi from '../../../hooks/useApi'
+import {
+  Control,
+  Controller,
+  FieldPath,
+  FieldValues,
+  GlobalError,
+} from 'react-hook-form'
+import useApi from '../hooks/useApi'
 
-interface AirfieldsProps {
-  control: Control<FlightLogUpsertRequest>
+interface AirfieldsProps<T extends FieldValues> {
+  control: Control<T>
   disabled?: boolean
-  name: keyof FlightLogUpsertRequest
+  name: FieldPath<T>
+  label: string
   error?: GlobalError
 }
 
-export const Airfields = ({
+export const Airfields = <T extends FieldValues>({
   control,
   disabled,
   name,
+  label,
   error,
-}: AirfieldsProps) => {
+}: AirfieldsProps<T>) => {
   const { data } = useApi<AirfieldListResponse>(
     {
       url: 'v1/flight-logs/airfields',
-      params: {
-        isMembershipApproved: true,
-      },
     },
     {
-      // members do not change while adding a flight
+      // airfields do not change while adding a flight
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
@@ -51,7 +52,7 @@ export const Airfields = ({
             <TextField
               {...params}
               required
-              label={t(`flightLog.${name}`)}
+              label={label}
               placeholder='ICAO'
               margin='normal'
               slotProps={{

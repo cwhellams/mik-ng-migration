@@ -19,6 +19,8 @@ export function useRoles(): {
   isAccessCodesAdmin: boolean
   isBookingAdmin: boolean
   isDocumentAdmin: boolean
+  isSMSAdmin: boolean
+  isSMSTeam: boolean
   roles: MemberRole[]
   permissions: MIKPermissions[]
   sudoers: boolean
@@ -61,6 +63,8 @@ export function useRoles(): {
     isAccessCodesAdmin: hasSudoAccess(MIKPermissions.ACCESS_CODES_ADMIN),
     isBookingAdmin: hasSudoAccess(MIKPermissions.BOOKING_ADMIN),
     isDocumentAdmin: hasSudoAccess(MIKPermissions.DOCUMENT_ADMIN),
+    isSMSAdmin: hasSudoAccess(MIKPermissions.SMS_ADMIN),
+    isSMSTeam: hasSudoAccess(MIKPermissions.SMS_TEAM),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
     // user is in sudoers file if they have any admin permission

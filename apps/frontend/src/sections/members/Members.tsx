@@ -30,7 +30,7 @@ import { RemoteContent } from '../../components/RemoteContent'
 import UserAvatar from './components/UserAvatar'
 import { formatPhoneNumber } from '../../utils/format'
 import { Title } from '../../components/Title'
-import { ResponsiveTable } from '../flightLog/components/ResponsiveTable'
+import { ResponsiveTable } from '../../components/ResponsiveTable'
 
 const Members = () => {
   const [filters, setFilters] = useState<MemberListFilters>({

@@ -38,22 +38,20 @@ export function ResponsiveTable<T>({
       )}
 
       {rows?.map((row, idx) => (
-        <>
-          <Grid
-            key={`row-${idx}`}
-            container
-            alignItems='flex-start'
-            sx={{
-              px: 1,
-              py: 1,
-              borderTop: idx > 0 ? '1px solid' : 'none',
-              borderColor: 'divider',
-              ...rowProps?.(row),
-            }}
-          >
-            {rowMapper(row)}
-          </Grid>
-        </>
+        <Grid
+          key={`row-${idx}`}
+          container
+          alignItems='flex-start'
+          sx={{
+            px: 1,
+            py: 1,
+            borderTop: idx > 0 ? '1px solid' : 'none',
+            borderColor: 'divider',
+            ...rowProps?.(row),
+          }}
+        >
+          {rowMapper(row)}
+        </Grid>
       ))}
 
       {(!rows || rows.length === 0) && (

@@ -389,6 +389,8 @@ describe('GET /members/roles', () => {
       'access_codes.admin',
       'document.user',
       'document.admin',
+      'sms.team',
+      'sms.admin',
     ])
     expect(roles.map(({ roleId, permissions }) => ({ roleId, permissions }))).toEqual([
       {

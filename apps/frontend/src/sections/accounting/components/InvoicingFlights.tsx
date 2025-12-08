@@ -28,7 +28,7 @@ import {
   ViewMobileFlightTime,
 } from '../../flightLog/components/FlightListEntry'
 import { ViewFlightDate } from '../../flightLog/components/FlightListEntry'
-import { ResponsiveTable } from '../../flightLog/components/ResponsiveTable'
+import { ResponsiveTable } from '../../../components/ResponsiveTable'
 
 export const InvoicingFlights = ({
   filters,

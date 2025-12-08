@@ -36,7 +36,7 @@ import { useMe } from '../../hooks/useMe'
 import { FlightTime } from './components/FlightTime'
 import { TxtField } from './components/TxtField'
 import { MinutesField } from './components/MinutesField'
-import { Airfields } from './components/Airfields'
+import { Airfields } from '../../components/Airfields'
 import { PersonsOnBoard } from './components/PersonsOnBoard'
 import { NumberOfLandings } from './components/NumberOfLandings'
 import { Fuel } from './components/Fuel'
@@ -191,15 +191,14 @@ const FlightLogEntry = () => {
         return setProblem(error)
       }
 
-      navigate(`/flight-logs?${location.state}#${flightId}`)
+      navigate(`/logs?${location.state}#${flightId}`)
     } catch (err) {
       console.error('Unexpected error:', err)
       setProblem({ status: 500, detail: t('general.savingError') })
     }
   }
 
-  const handleCancel = () =>
-    navigate(`/flight-logs?${location.state}#${flightId}`)
+  const handleCancel = () => navigate(`/logs?${location.state}#${flightId}`)
 
   // Check if form has validation errors
   const hasValidationErrors = Object.keys(errors).length > 0
@@ -375,6 +374,7 @@ const FlightLogEntry = () => {
             <Grid size={{ xs: 12, sm: 6 }}>
               <Airfields
                 name='departureAirport'
+                label={t('flightLog.departureAirport')}
                 control={control}
                 disabled={!isEditable}
                 error={errors.departureAirport}
@@ -384,6 +384,7 @@ const FlightLogEntry = () => {
             <Grid size={{ xs: 12, sm: 6 }}>
               <Airfields
                 name='arrivalAirport'
+                label={t('flightLog.arrivalAirport')}
                 control={control}
                 disabled={!isEditable}
                 error={errors.arrivalAirport}

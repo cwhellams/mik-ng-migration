@@ -65,6 +65,14 @@ export type MikLang = 'en' | 'fi' | 'sv'
 
 export type Numeric = ColumnType<number, number | string, number | string>
 
+export type Occurrencestatus =
+  | 'ANONYMIZED'
+  | 'ANONYMIZING'
+  | 'CLOSED'
+  | 'DELETED'
+  | 'NEW'
+  | 'RECEIVED'
+
 export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SYNCED'
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>
@@ -265,6 +273,31 @@ export interface FlightLogsAudit {
   flight_id: string
   new_data: Json | null
   operation_type: string
+}
+
+export interface FlightOccurrences {
+  animal_number: string | null
+  animal_size: string | null
+  animal_species: string | null
+  arrival_airport: string
+  categories: Json
+  created_at: Generated<Timestamp>
+  created_by: string
+  dead_line: Timestamp | null
+  departure_airport: string
+  description: string
+  headline: string
+  is_dto_report: boolean
+  is_weather_relevant: boolean | null
+  linked_report_id: string | null
+  location: string
+  occurrence_date: Timestamp
+  registration: string
+  report_date: Timestamp
+  report_id: string
+  status: Generated<Occurrencestatus>
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface FlightVwFlightLogs {
@@ -485,6 +518,7 @@ export interface DB {
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit
+  'flight.occurrences': FlightOccurrences
   'flight.vw_flight_logs': FlightVwFlightLogs
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
   flyway_data_history: FlywayDataHistory

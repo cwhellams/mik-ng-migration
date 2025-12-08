@@ -40,11 +40,21 @@ export const menuItems: MenuItem[] = [
     ],
   },
   {
-    path: '/flight-logs',
-    label: 'header.flightLogs',
+    path: '/logs',
+    label: 'header.logs',
     requiredRoles: [
       MIKPermissions.FLIGHTLOG_USER,
       MIKPermissions.FLIGHTLOG_ADMIN,
+    ],
+    subItems: [
+      {
+        path: '',
+        label: 'header.flightLogs',
+      },
+      {
+        path: 'occurrences',
+        label: 'header.occurrences',
+      },
     ],
   },
   {

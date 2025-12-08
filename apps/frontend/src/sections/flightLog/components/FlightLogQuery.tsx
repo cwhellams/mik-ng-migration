@@ -116,7 +116,7 @@ export const FlightLogQuery = ({ filters, setFilters, logbooks }: Props) => {
         </FormControl>
         {isFlightLogAdmin && (
           <Grid alignItems='center' display='flex' sx={{ mr: 1, fontSize: 24 }}>
-            <Link to='/flight-logs/logbooks'>
+            <Link to='/logs/logbooks'>
               <Icon icon='mdi:gear' color='#646cff' />
             </Link>
           </Grid>
