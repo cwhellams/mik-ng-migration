@@ -12,10 +12,10 @@ jobs:
             DO_POSTGRES_USER: ${{ vars.DO_POSTGRES_USER }}
             DO_POSTGRES_PASSWORD: ${{ secrets.DO_POSTGRES_PASSWORD }}
             DO_POSTGRES_URL: ${{ vars.DO_POSTGRES_URL }}
-            CLOUDFLARE_S3_ACCESSKEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESSKEY_ID }}
-            CLOUDFLARE_S3_SECRET_ACCESSKEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESSKEY }}
-            CLOUDFLARE_S3_EU_ENDPOINT: ${{ vars.CLOUDFLARE_R2_EU_ENDPOINT }}
-            R2_BUCKET_NAME: ${{ vars.CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP }}
+            CLOUDFLARE_R2_ACCESSKEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESSKEY_ID }}
+            CLOUDFLARE_R2_SECRET_ACCESSKEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESSKEY }}
+            CLOUDFLARE_R2_EU_ENDPOINT: ${{ vars.CLOUDFLARE_R2_EU_ENDPOINT }}
+            CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP: ${{ vars.CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -37,9 +37,12 @@ jobs:
                   export PGPORT=$(echo $DO_POSTGRES_URL | grep -oE ':[0-9]+' | tr -d ':')
                   export PGDATABASE=$(echo $DO_POSTGRES_URL | sed -E 's#.*/##')
                   CONNECTION_STRING="postgresql://$PGUSER:$PGPASSWORD@$PGHOST:$PGPORT/$PGDATABASE"
+                  mkdir -p dbbackup
                   BACKUP_FILE="backup-$(date +'%Y-%m-%d-%H%M%S').dump"
-                  pg_dump --no-owner --no-privileges --format=custom --file="$BACKUP_FILE" "$CONNECTION_STRING"
-
+                  pg_dump --no-owner --no-privileges --format=custom --file="dbbackup/$BACKUP_FILE" "$CONNECTION_STRING"
+                  # Encrypt the backup file
+                  openssl enc -aes-256-cbc -salt -pbkdf2 -in dbbackup/$BACKUP_FILE -out dbbackup/${BACKUP_FILE}.enc -pass pass:${{ secrets.BACKUP_ENCRYPTION_PASSWORD }}
+                  rm dbbackup/$BACKUP_FILE
             - name: Upload to Cloudflare R2
               uses: jakejarvis/s3-sync-action@master
               with:
@@ -50,18 +53,27 @@ jobs:
                   AWS_SECRET_ACCESS_KEY: ${{ env.CLOUDFLARE_R2_SECRET_ACCESSKEY }}
                   AWS_S3_ENDPOINT: ${{ env.CLOUDFLARE_R2_EU_ENDPOINT }}
                   AWS_REGION: "auto"
-                  SOURCE_DIR: ./
+                  SOURCE_DIR: dbbackup/
                   DEST_DIR: /
-            - name: Upload backup file
-              run: |
-                  echo "Backup file: $BACKUP_FILE"
-                  ls -l "$BACKUP_FILE"
-                  if [ -f "$BACKUP_FILE" ]; then
-                    aws s3 cp "$BACKUP_FILE" "s3://${{ env.CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP }}/$BACKUP_FILE" --endpoint-url "${{ env.CLOUDFLARE_R2_EU_ENDPOINT }}"
-                  else
-                    echo "Backup file $BACKUP_FILE does not exist!"
-                    exit 1
-                  fi
-              env:
-                  AWS_ACCESS_KEY_ID: ${{ env.CLOUDFLARE_R2_ACCESSKEY_ID }}
-                  AWS_SECRET_ACCESS_KEY: ${{ env.CLOUDFLARE_R2_SECRET_ACCESSKEY }}
+
+            # Optional: Clean up R2 bucket by removing files not in /dbbackup
+            # - name: Remove files not in /dbbackup from R2
+            #   run: |
+            #       echo "AWS_S3_BUCKET is: $AWS_S3_BUCKET"
+            #       printenv | grep AWS
+            #       aws s3api list-objects-v2 \
+            #       --bucket "$AWS_S3_BUCKET" \
+            #       --endpoint-url "$AWS_S3_ENDPOINT" \
+            #       --query 'Contents[?!(starts_with(Key, `dbbackup/`))].Key' \
+            #       --output text | tr '\t' '\n' | while read key; do
+            #       if [ -n "$key" ]; then
+            #         echo "Deleting $key from R2 bucket $AWS_S3_BUCKET"
+            #         aws s3 rm "s3://$AWS_S3_BUCKET/$key" --endpoint-url "$AWS_S3_ENDPOINT"
+            #       fi
+            #       done
+            #   env:
+            #       AWS_ACCESS_KEY_ID: ${{ env.CLOUDFLARE_R2_ACCESSKEY_ID }}
+            #       AWS_SECRET_ACCESS_KEY: ${{ env.CLOUDFLARE_R2_SECRET_ACCESSKEY }}
+            #       AWS_S3_BUCKET: ${{ env.CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP }}
+            #       AWS_S3_ENDPOINT: ${{ env.CLOUDFLARE_R2_EU_ENDPOINT }}
+            #       AWS_REGION: "auto"
