@@ -9,7 +9,6 @@ on:
       - ".github/workflows/**" # or in the workflows
       - ".do/**" # or in digital ocean yaml
       - "sql/schema/**" # or in sql files
-      - "packages/**" # or in packages
       - "Dockerfile" # or in Dockerfile
 jobs:
   deploy:
@@ -28,7 +27,7 @@ jobs:
           sql_changed=false
 
           while IFS= read -r path; do
-            if [[ "$path" =~ ^apps/backend/ ]] || [[ "$path" =~ ^packages/ ]] || [[ "$path" == "Dockerfile" ]]; then
+            if [[ "$path" =~ ^apps/backend/ ]] || [[ "$path" == "Dockerfile" ]]; then
               backend_changed=true
             fi
             if [[ "$path" =~ ^sql/schema/ ]]; then

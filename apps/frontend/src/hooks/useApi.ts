@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { VerifyResponse } from '@backend/routes/auth/schema'
 import useSWRMutation, { SWRMutationConfiguration } from 'swr/mutation'
 import { useThemeMode } from '../theme/ThemeContext'
-import { validateApiPath } from '@mik-ng/shared'
+import { validateApiPath } from '../utils/validators'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 const api = axios.create({

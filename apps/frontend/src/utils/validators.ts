@@ -1,24 +1,4 @@
-/**
- * Escapes HTML special characters to prevent XSS attacks
- * @param text - The text to escape
- * @returns The escaped text safe for HTML insertion
- */
-export const escapeHtml = (text: string | undefined | null): string => {
-  if (!text) {
-    return ''
-  }
-
-  const htmlEscapeMap: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#x27;',
-    '/': '&#x2F;',
-  }
-
-  return text.replace(/[&<>"'/]/g, (char) => htmlEscapeMap[char] || char)
-}
+import validator from 'validator'
 
 /**
  * Sanitizes a URL to prevent XSS attacks by ensuring it uses a safe protocol
@@ -33,23 +13,20 @@ export const sanitizeUrl = (url: string | null | undefined): string => {
   const trimmedUrl = url.trim()
 
   // Allow only safe protocols
-  const safeProtocols = ['http:', 'https:', 'tel:', 'mailto:']
+  const safeProtocols = ['http', 'https', 'tel', 'mailto']
 
-  try {
-    const parsedUrl = new URL(trimmedUrl)
-
-    // Check if protocol is in the safe list
-    if (safeProtocols.includes(parsedUrl.protocol)) {
-      return trimmedUrl
-    }
-
-    // If protocol is not safe, return empty string
-    return ''
-  } catch {
-    // If URL parsing fails, it might be a relative URL or invalid
-    // For safety, return empty string
+  // Use validator.isURL to validate the URL structure
+  if (
+    !validator.isURL(trimmedUrl, {
+      protocols: safeProtocols,
+      require_protocol: true,
+      require_valid_protocol: true,
+    })
+  ) {
     return ''
   }
+
+  return trimmedUrl
 }
 
 /**
@@ -84,7 +61,10 @@ export const validateApiPath = (path: string | undefined): string => {
   }
 
   // Block null bytes
-  if (trimmedPath.includes('\0') || trimmedPath.includes('%00')) {
+  if (
+    validator.contains(trimmedPath, '\0') ||
+    validator.contains(trimmedPath, '%00')
+  ) {
     throw new Error('Null bytes are not allowed in paths')
   }
 

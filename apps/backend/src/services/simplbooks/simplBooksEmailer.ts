@@ -6,7 +6,9 @@ import {
   newInvoiceEmailBodyHtmlFi,
 } from '../../templates/invoiceEmailTemplate.ts'
 import { getInvoice, getInvoicePdf, markInvoiceAsSent } from './simplbooksApiClient.ts'
-import { escapeHtml } from '@mik-ng/shared'
+import validator from 'validator'
+
+const escapeHtml = (text: string): string => validator.escape(text)
 
 export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: string) {
   const member = await getMemberById(memberId)

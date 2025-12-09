@@ -22,29 +22,26 @@ echo -e "${GREEN}Step 1: Building Docker image...${NC}"
 docker build -t $IMAGE_NAME .
 
 echo -e "\n${GREEN}Step 2: Inspecting container structure...${NC}"
-echo "Checking if @mik-ng/shared package is properly installed..."
+echo "Checking backend application structure..."
 
 docker run --rm --entrypoint /bin/sh $IMAGE_NAME -c '
-    echo "=== Package structure ==="
-    ls -la /home/node/app/packages/shared/ 2>/dev/null || echo "shared directory not found"
+    echo "=== Backend application structure ==="
+    ls -la /home/node/app/apps/backend/src/ 2>/dev/null || echo "backend src directory not found"
     echo ""
-    echo "=== Shared package.json ==="
-    cat /home/node/app/packages/shared/package.json 2>/dev/null || echo "package.json not found"
+    echo "=== Installed dependencies (validator.js check) ==="
+    ls -la /home/node/app/node_modules/validator/ 2>/dev/null || echo "validator package not found in node_modules"
     echo ""
-    echo "=== Shared dist contents ==="
-    ls -la /home/node/app/packages/shared/dist/ 2>/dev/null || echo "dist directory not found"
-    echo ""
-    echo "=== Node modules check ==="
-    ls -la /home/node/app/node_modules/@mik-ng/ 2>/dev/null || echo "@mik-ng scope not found in node_modules"
+    echo "=== Backend package.json ==="
+    cat /home/node/app/apps/backend/package.json 2>/dev/null || echo "package.json not found"
 '
 
-echo -e "\n${GREEN}Step 3: Testing if Node can resolve @mik-ng/shared...${NC}"
+echo -e "\n${GREEN}Step 3: Testing if Node can resolve validator module...${NC}"
 docker run --rm --entrypoint node $IMAGE_NAME -e "
 try {
-    const resolved = require.resolve('@mik-ng/shared');
-    console.log('✓ Module resolved at:', resolved);
+    const resolved = require.resolve('validator');
+    console.log('✓ validator module resolved at:', resolved);
 } catch (err) {
-    console.error('✗ Cannot resolve @mik-ng/shared:', err.message);
+    console.error('✗ Cannot resolve validator:', err.message);
     process.exit(1);
 }
 "

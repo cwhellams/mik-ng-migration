@@ -7,13 +7,11 @@ on:
     paths:
       - "apps/frontend/**"
       - ".github/workflows/**"
-      - "packages/**"
   push:
     branches: [main]
     paths:
       - "apps/frontend/**"
       - ".github/workflows/**"
-      - "packages/**"
 env: # Set environment variables for entire workflow
   NODE_OPTIONS: "--max-old-space-size=8192" # Increase memory limit for Node.js
 
@@ -37,9 +35,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-
-      - name: Build shared package
-        run: pnpm --filter @mik-ng/shared build
 
       - name: Run ESLint and check error count
         working-directory: apps/frontend

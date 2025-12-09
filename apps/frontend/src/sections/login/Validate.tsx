@@ -4,7 +4,7 @@ import { LoginLayout } from './LoginLayout'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '../../hooks/useAuth'
 import { VerifyRequest, VerifyResponse } from '@backend/routes/auth/schema'
-import { validateInternalPath } from '@mik-ng/shared'
+import { validateInternalPath } from '../../utils/validators'
 
 const LoginValidate = () => {
   const [searchParams] = useSearchParams()

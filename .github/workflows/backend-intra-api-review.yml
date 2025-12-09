@@ -8,13 +8,11 @@ on:
       - "apps/**"
       - ".github/workflows/**"
       - ".do/**" # or in digital ocean yaml
-      - "packages/**"
   push:
     branches: [main]
     paths:
       - "apps/backend/**"
       - ".github/workflows/**"
-      - "packages/**"
 env: # Set environment variables for entire workflow
   NODE_OPTIONS: "--max-old-space-size=8192" # Increase memory limit for Node.js
   POSTGRES_DB: mik_ng
@@ -80,9 +78,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build shared package
-        run: pnpm --filter @mik-ng/shared build
-
       - name: Run ESLint and check error count
         working-directory: apps/backend
         run: |
@@ -115,11 +110,6 @@ jobs:
       - name: Check for Security Vulnerabilities
         working-directory: apps/backend
         run: pnpm audit --audit-level=high || echo "Security issues found with NPM packages"
-
-      - name: Test shared package
-        working-directory: packages/shared
-        run: pnpm test
-
       - name: Test backend
         working-directory: apps/backend
         env:

@@ -1,7 +1,27 @@
 import 'dotenv/config'
 import { marked } from 'marked'
 import { emailButton, emailTemplate } from './emailTemplate.ts'
-import { escapeHtml, sanitizeUrl } from '@mik-ng/shared'
+import validator from 'validator'
+
+const escapeHtml = (text: string): string => validator.escape(text)
+const sanitizeUrl = (url: string): string => {
+  if (!url) {
+    return ''
+  }
+
+  const trimmedUrl = url.trim()
+  const safeProtocols = ['http:', 'https:', 'tel:', 'mailto:']
+
+  try {
+    const parsedUrl = new URL(trimmedUrl)
+    if (safeProtocols.includes(parsedUrl.protocol)) {
+      return trimmedUrl
+    }
+    return ''
+  } catch {
+    return ''
+  }
+}
 
 export type RegisterVars = {
   firstName: string

@@ -1,5 +1,7 @@
 import { emailTemplate } from './emailTemplate.ts'
-import { escapeHtml } from '@mik-ng/shared'
+import validator from 'validator'
+
+const escapeHtml = (text: string): string => validator.escape(text)
 
 export type InvoiceEmailVars = {
   invoiceId: string

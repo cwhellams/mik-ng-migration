@@ -13,17 +13,8 @@ COPY pnpm-lock.yaml package.json pnpm-workspace.yaml* ./
 # Copy the backend package.json
 COPY apps/backend/package.json ./apps/backend/
 
-# Copy the shared package package.json
-COPY packages/shared/package.json ./packages/shared/
-
 # Install all dependencies from the root using pnpm
 RUN pnpm install --frozen-lockfile
-
-# Copy only necessary source code for building
-COPY packages/shared ./packages/shared
-
-# Build the shared package first
-RUN pnpm --filter @mik-ng/shared build
 
 # Create minimal production image
 FROM node:23-alpine AS production
@@ -42,10 +33,6 @@ COPY --from=builder /usr/src/app/pnpm-lock.yaml ./
 COPY --from=builder /usr/src/app/package.json ./
 COPY --from=builder /usr/src/app/pnpm-workspace.yaml* ./
 COPY --from=builder /usr/src/app/apps/backend/package.json ./apps/backend/
-COPY --from=builder /usr/src/app/packages/shared/package.json ./packages/shared/
-
-# Copy built shared package from the builder stage BEFORE installing dependencies
-COPY --from=builder /usr/src/app/packages/shared/dist ./packages/shared/dist
 
 # Install only production dependencies with aggressive optimization
 RUN pnpm install --frozen-lockfile --prod --shamefully-hoist \
