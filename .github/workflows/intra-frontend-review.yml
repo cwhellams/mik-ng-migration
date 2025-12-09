@@ -7,11 +7,13 @@ on:
     paths:
       - "apps/frontend/**"
       - ".github/workflows/**"
+      - "packages/**"
   push:
     branches: [main]
     paths:
       - "apps/frontend/**"
       - ".github/workflows/**"
+      - "packages/**"
 env: # Set environment variables for entire workflow
   NODE_OPTIONS: "--max-old-space-size=8192" # Increase memory limit for Node.js
 
@@ -19,10 +21,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     environment: DEV
-
-    defaults:
-      run:
-        working-directory: apps/frontend
 
     steps:
       # We must checkout code first as the GH workspace is clean / empty
@@ -37,10 +35,14 @@ jobs:
           node-version: "25"
           cache: "pnpm"
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: pnpm install
 
+      - name: Build shared package
+        run: pnpm --filter @mik-ng/shared build
+
       - name: Run ESLint and check error count
+        working-directory: apps/frontend
         run: |
           # Run ESLint and save output to a file
           npx eslint . --format json > eslint-results.json || true
@@ -61,7 +63,9 @@ jobs:
           fi
 
       - name: Build frontend
+        working-directory: apps/frontend
         run: pnpm run build
 
       - name: Check for Security Vulnerabilities
+        working-directory: apps/frontend
         run: pnpm audit --audit-level=high || echo "Security issues found with NPM packages"

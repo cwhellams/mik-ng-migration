@@ -8,11 +8,13 @@ on:
       - "apps/**"
       - ".github/workflows/**"
       - ".do/**" # or in digital ocean yaml
+      - "packages/**"
   push:
     branches: [main]
     paths:
       - "apps/backend/**"
       - ".github/workflows/**"
+      - "packages/**"
 env: # Set environment variables for entire workflow
   NODE_OPTIONS: "--max-old-space-size=8192" # Increase memory limit for Node.js
   POSTGRES_DB: mik_ng
@@ -24,10 +26,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     environment: DEV
-
-    defaults:
-      run:
-        working-directory: apps/backend
 
     services:
       postgres:
@@ -54,7 +52,6 @@ jobs:
         uses: pnpm/action-setup@v4
 
       - name: Run Flyway migrations
-        working-directory: ${{ github.workspace }}
         run: |
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/migration:/flyway/sql \
@@ -65,7 +62,6 @@ jobs:
             flyway/flyway:latest migrate
 
       - name: Run Flyway test data
-        working-directory: ${{ github.workspace }}
         run: |
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/testdata/:/flyway/sql \
@@ -84,7 +80,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Build shared package
+        run: pnpm --filter @mik-ng/shared build
+
       - name: Run ESLint and check error count
+        working-directory: apps/backend
         run: |
           # Run ESLint and save output to a file
           npx eslint . --format json > eslint-results.json || true
@@ -105,19 +105,23 @@ jobs:
           fi
 
       - name: Run Prettier Check
+        working-directory: apps/backend
         run: pnpm format:check
 
       - name: Build backend
+        working-directory: apps/backend
         run: pnpm build
 
       - name: Check for Security Vulnerabilities
+        working-directory: apps/backend
         run: pnpm audit --audit-level=high || echo "Security issues found with NPM packages"
 
       - name: Test shared package
-        working-directory: ${{ github.workspace }}/packages/shared
+        working-directory: packages/shared
         run: pnpm test
 
       - name: Test backend
+        working-directory: apps/backend
         env:
           SMTP_LOGIN: ${{ vars.SMTP_LOGIN }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
