@@ -14,7 +14,7 @@ import { LoginRequest, LoginResponse } from '@backend/routes/auth/schema'
 import { useTranslation } from 'react-i18next'
 import { MIKLang } from '@backend/routes/members/models'
 import LanguageSelector from '../../components/LanguageSelector'
-import { validateInternalPath } from '../../utils/validators'
+import { validateInternalPath } from '@backend/util/sanitizers'
 
 const Login = () => {
   const [email, setEmail] = useState('')

@@ -24,7 +24,8 @@
 
     "paths": {
       "@backend/types/*": ["../backend/src/types/*"],
-      "@backend/routes/*": ["../backend/src/routes/*"]
+      "@backend/routes/*": ["../backend/src/routes/*"],
+      "@backend/util/*": ["../backend/src/util/*"]
     }
   },
   "include": ["src"]

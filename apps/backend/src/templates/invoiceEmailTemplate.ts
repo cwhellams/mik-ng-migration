@@ -1,7 +1,5 @@
 import { emailTemplate } from './emailTemplate.ts'
-import validator from 'validator'
-
-const escapeHtml = (text: string): string => validator.escape(text)
+import { escapeHtml } from '../util/sanitizers.ts'
 
 export type InvoiceEmailVars = {
   invoiceId: string

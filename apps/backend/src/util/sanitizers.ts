@@ -1,32 +1,76 @@
 import validator from 'validator'
 
 /**
- * Sanitizes a URL to prevent XSS attacks by ensuring it uses a safe protocol
- * @param url - The URL to sanitize
- * @returns The sanitized URL or empty string if invalid
+ * Escapes HTML special characters to prevent XSS attacks
+ * @param text - The text to escape
+ * @returns The escaped text
  */
-export const sanitizeUrl = (url: string | null | undefined): string => {
+export const escapeHtml = (text: string): string => validator.escape(text)
+
+/**
+ * Validates a URL to ensure it uses a safe protocol
+ * Use this for href attributes where escaping is not needed
+ * @param url - The URL to validate
+ * @returns The validated URL or empty string if invalid
+ */
+export const validateUrl = (url: string | null | undefined): string => {
   if (!url) {
     return ''
   }
 
   const trimmedUrl = url.trim()
-
-  // Allow only safe protocols
   const safeProtocols = ['http', 'https', 'tel', 'mailto']
 
-  // Use validator.isURL to validate the URL structure
-  if (
-    !validator.isURL(trimmedUrl, {
-      protocols: safeProtocols,
-      require_protocol: true,
-      require_valid_protocol: true,
-    })
-  ) {
+  try {
+    const parsedUrl = new URL(trimmedUrl)
+
+    // Check if protocol is safe
+    if (!safeProtocols.includes(parsedUrl.protocol.replace(':', ''))) {
+      return ''
+    }
+
+    // For http/https, validate the URL structure with validator
+    // but skip validation for localhost to support development
+    if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+      const isLocalhost =
+        parsedUrl.hostname === 'localhost' ||
+        parsedUrl.hostname === '127.0.0.1' ||
+        parsedUrl.hostname.endsWith('.localhost')
+
+      if (
+        !isLocalhost &&
+        !validator.isURL(trimmedUrl, {
+          protocols: safeProtocols,
+          require_protocol: true,
+          require_valid_protocol: true,
+        })
+      ) {
+        return ''
+      }
+    }
+
+    return trimmedUrl
+  } catch {
+    // Invalid URL
+    return ''
+  }
+}
+
+/**
+ * Sanitizes and validates a URL to prevent XSS attacks by ensuring it uses a safe protocol
+ * and escaping special characters for safe HTML rendering
+ * Use this when displaying URLs as text content
+ * @param url - The URL to sanitize
+ * @returns The sanitized and escaped URL or empty string if invalid
+ */
+export const sanitizeUrl = (url: string | null | undefined): string => {
+  const validatedUrl = validateUrl(url)
+  if (!validatedUrl) {
     return ''
   }
 
-  return trimmedUrl
+  // Escape the URL to prevent XSS through malformed URLs when displayed as text
+  return validator.escape(validatedUrl)
 }
 
 /**
@@ -43,10 +87,7 @@ export const validateApiPath = (path: string | undefined): string => {
   const trimmedPath = path.trim()
 
   // Block absolute URLs (protocol-based)
-  if (
-    trimmedPath.match(/^[a-z][a-z0-9+.-]*:/i) ||
-    trimmedPath.startsWith('//')
-  ) {
+  if (trimmedPath.match(/^[a-z][a-z0-9+.-]*:/i) || trimmedPath.startsWith('//')) {
     throw new Error('Absolute URLs are not allowed in API paths')
   }
 
@@ -61,10 +102,7 @@ export const validateApiPath = (path: string | undefined): string => {
   }
 
   // Block null bytes
-  if (
-    validator.contains(trimmedPath, '\0') ||
-    validator.contains(trimmedPath, '%00')
-  ) {
+  if (validator.contains(trimmedPath, '\0') || validator.contains(trimmedPath, '%00')) {
     throw new Error('Null bytes are not allowed in paths')
   }
 
@@ -77,9 +115,7 @@ export const validateApiPath = (path: string | undefined): string => {
  * @param path - The path to validate (from user input like query params)
  * @returns A safe internal path, defaults to '/' if invalid
  */
-export const validateInternalPath = (
-  path: string | null | undefined
-): string => {
+export const validateInternalPath = (path: string | null | undefined): string => {
   if (!path) {
     return '/'
   }

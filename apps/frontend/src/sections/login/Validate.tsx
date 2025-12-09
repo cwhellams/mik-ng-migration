@@ -4,7 +4,7 @@ import { LoginLayout } from './LoginLayout'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '../../hooks/useAuth'
 import { VerifyRequest, VerifyResponse } from '@backend/routes/auth/schema'
-import { validateInternalPath } from '../../utils/validators'
+import { validateInternalPath } from '@backend/util/sanitizers'
 
 const LoginValidate = () => {
   const [searchParams] = useSearchParams()
