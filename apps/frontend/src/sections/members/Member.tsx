@@ -24,7 +24,6 @@ import { FormField } from '../../components/FormField'
 import { AuditFormField } from '../../components/AuditFormField'
 import { toLocalDate } from '../../utils/date'
 import { formatPhoneNumber } from '../../utils/format'
-import { validateUrl } from '@backend/util/sanitizers'
 import { FormTitle } from '../../components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
 import { RemoteContent } from '../../components/RemoteContent'
@@ -36,6 +35,7 @@ import { mutate } from 'swr'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { Title } from '../../components/Title'
+import { sanitizeUrl } from '@backend/util/sanitizers'
 
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
@@ -334,7 +334,7 @@ const MemberProfile = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon='mdi:whatsapp' style={{ color: '#25D366' }} />
                       <a
-                        href={validateUrl(imWhatsapp)}
+                        href={sanitizeUrl(imWhatsapp)}
                         target='_blank'
                         rel='noopener noreferrer'
                       >
@@ -351,7 +351,7 @@ const MemberProfile = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon='mdi:telegram' style={{ color: '#0088cc' }} />
                       <a
-                        href={validateUrl(imTelegram)}
+                        href={sanitizeUrl(imTelegram)}
                         target='_blank'
                         rel='noopener noreferrer'
                       >
@@ -371,7 +371,7 @@ const MemberProfile = () => {
                         style={{ color: '#0084FF' }}
                       />
                       <a
-                        href={validateUrl(imFacebookMessenger)}
+                        href={sanitizeUrl(imFacebookMessenger)}
                         target='_blank'
                         rel='noopener noreferrer'
                       >
@@ -388,7 +388,7 @@ const MemberProfile = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon='mdi:discord' style={{ color: '#5865F2' }} />
                       <a
-                        href={validateUrl(imDiscord)}
+                        href={sanitizeUrl(imDiscord)}
                         target='_blank'
                         rel='noopener noreferrer'
                       >
@@ -408,7 +408,7 @@ const MemberProfile = () => {
                         style={{ color: '#7360F2' }}
                       />
                       <a
-                        href={validateUrl(imViber)}
+                        href={sanitizeUrl(imViber)}
                         target='_blank'
                         rel='noopener noreferrer'
                       >
@@ -428,7 +428,7 @@ const MemberProfile = () => {
                         style={{ color: '#3A76F0' }}
                       />
                       <a
-                        href={validateUrl(imSignal)}
+                        href={sanitizeUrl(imSignal)}
                         target='_blank'
                         rel='noopener noreferrer'
                       >

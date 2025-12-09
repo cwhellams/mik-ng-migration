@@ -163,8 +163,11 @@ export default function useApi<
   const { onErrorRetry } = useSWRConfig()
   const { sudo } = useThemeMode()
 
+  // Validate the request URL to prevent SSRF attacks
+  const sanitizedUrl = validateApiPath(request.url)
+
   // the url and params acts as a key for caching
-  const cacheKey = [request.url, request.params]
+  const cacheKey = [sanitizedUrl, request.params]
 
   const {
     data: response,
@@ -230,8 +233,8 @@ export default function useApi<
       url: sanitizedPath
         ? sanitizedPath[0] == '/'
           ? sanitizedPath
-          : `${request.url}/${sanitizedPath}`
-        : request.url,
+          : `${sanitizedUrl}/${sanitizedPath}`
+        : sanitizedUrl,
       // globally allow admin permissions with sudo mode
       headers: {
         ...request.headers,

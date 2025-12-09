@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { marked } from 'marked'
 import { emailButton, emailTemplate } from './emailTemplate.ts'
-import { escapeHtml, validateUrl } from '../util/sanitizers.ts'
+import { escapeHtml, sanitizeUrl } from '../util/sanitizers.ts'
 
 export type RegisterVars = {
   firstName: string
@@ -68,7 +68,7 @@ const registerEmailBodyHtmlEn = ({ firstName, href }: RegisterVars): string =>
       <p>
         If the button above doesn't work, please copy and paste the following link into your browser:
       </p>
-      <p style="word-break: break-all; color: #333333;"><a href="${validateUrl(href)}">${escapeHtml(href)}</a></p>`,
+      <p style="word-break: break-all; color: #333333;"><a href="${sanitizeUrl(href)}">${escapeHtml(href)}</a></p>`,
 
     'If you didn’t request this email, you can safely ignore it.',
   )
@@ -91,6 +91,6 @@ const registerEmailBodyHtmlFi = ({ firstName, href }: RegisterVars): string =>
       <p>
         Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:
       </p>
-      <p style="word-break: break-all;"><a href="${validateUrl(href)}">${escapeHtml(href)}</a></p>`,
+      <p style="word-break: break-all;"><a href="${sanitizeUrl(href)}">${escapeHtml(href)}</a></p>`,
     'Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.',
   )

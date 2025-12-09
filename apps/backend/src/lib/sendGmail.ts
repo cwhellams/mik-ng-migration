@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import * as nodemailer from 'nodemailer'
+import validator from 'validator'
 
 import logger from './logger.ts'
 
@@ -38,6 +39,19 @@ export const sendEmail = (
   text: string,
   attachments?: EmailAttachment[],
 ): void => {
+  // Validate email address to prevent injection attacks
+  if (!validator.isEmail(to)) {
+    logger.error(`Invalid email address: ${to}`)
+    throw new Error('Invalid email address')
+  }
+
+  // Sanitize subject to prevent header injection
+  const sanitizedSubject = subject.replace(/[\r\n]/g, '')
+
+  // Note: HTML content should already be sanitized by email template functions
+  // that use escapeHtml() and validateUrl(). This is a defense-in-depth check.
+  // We don't re-escape here as it would double-escape already safe content.
+
   const disableEmailSending = process.env.DISABLE_EMAIL_SENDING
     ? // disabled completely or not whitelisted
       process.env.DISABLE_EMAIL_SENDING.toLocaleLowerCase() === 'true' ||
@@ -53,7 +67,7 @@ export const sendEmail = (
   const mailOptions = {
     from: smtpLogin, // Sender address
     to, // List of receivers
-    subject,
+    subject: sanitizedSubject,
     html,
     text,
     attachments, // Add attachments if provided

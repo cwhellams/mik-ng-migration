@@ -13,7 +13,7 @@ export const escapeHtml = (text: string): string => validator.escape(text)
  * @param url - The URL to validate
  * @returns The validated URL or empty string if invalid
  */
-export const validateUrl = (url: string | null | undefined): string => {
+const validateUrl = (url: string | null | undefined): string => {
   if (!url) {
     return ''
   }
