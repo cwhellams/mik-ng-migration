@@ -16,7 +16,12 @@ Security utilities for sanitizing user input and preventing XSS/SSRF/Open Redire
 ## Usage
 
 ```typescript
-import { escapeHtml, sanitizeUrl, validateApiPath, validateInternalPath } from '@mik-ng/shared'
+import {
+  escapeHtml,
+  sanitizeUrl,
+  validateApiPath,
+  validateInternalPath,
+} from '@mik-ng/shared'
 
 // Escape HTML
 const safe = escapeHtml('<script>alert("xss")</script>')

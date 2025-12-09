@@ -151,9 +151,9 @@ static_sites:
     github:
       repo: MIK-dev-team/mik-ng
       branch: test
-    source_dir: apps/frontend
-    output_dir: /dist
-    build_command: npm install -g pnpm && pnpm install --frozen-lockfile && pnpm --filter @mik-ng/shared build && pnpm build
+    source_dir: /
+    output_dir: /apps/frontend/dist
+    build_command: pnpm --filter @mik-ng/shared build && pnpm --filter frontend build
     environment_slug: node-js
     envs:     
       - key: VITE_API_TARGET

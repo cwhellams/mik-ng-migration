@@ -59,4 +59,8 @@ or
 
     pnpm dev
 
-# Deploying
+# Testing the Docker image
+
+in scrpts/ there is a shell script which can be used to build and start the container
+
+    test_docker_build.sh

@@ -44,6 +44,9 @@ COPY --from=builder /usr/src/app/pnpm-workspace.yaml* ./
 COPY --from=builder /usr/src/app/apps/backend/package.json ./apps/backend/
 COPY --from=builder /usr/src/app/packages/shared/package.json ./packages/shared/
 
+# Copy built shared package from the builder stage BEFORE installing dependencies
+COPY --from=builder /usr/src/app/packages/shared/dist ./packages/shared/dist
+
 # Install only production dependencies with aggressive optimization
 RUN pnpm install --frozen-lockfile --prod --shamefully-hoist \
     && pnpm store prune \
@@ -54,9 +57,6 @@ RUN pnpm install --frozen-lockfile --prod --shamefully-hoist \
 # Copy backend source code (needed for tsx runtime)
 COPY apps/backend/src ./apps/backend/src
 COPY apps/backend/ca-certificate.crt ./apps/backend/
-
-# Copy built shared package from the builder stage (only dist, no source)
-COPY --from=builder /usr/src/app/packages/shared/dist ./packages/shared/dist
 
 # Switch to non-root user
 USER node

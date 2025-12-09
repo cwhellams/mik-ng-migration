@@ -5,11 +5,12 @@ on:
     branches: [test] # Adjust branch names as needed
 
     paths:
-      - "apps/**" # Only trigger if changes are in apps/frontend
+      - "apps/**" # trigger if changes are in apps/frontend or backend
       - ".github/workflows/**" # or in the workflows
       - ".do/**" # or in digital ocean yaml
       - "sql/schema/**" # or in sql files
       - "packages/**" # or in packages
+      - "Dockerfile" # or in Dockerfile
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -27,7 +28,7 @@ jobs:
           sql_changed=false
 
           while IFS= read -r path; do
-            if [[ "$path" =~ ^apps/backend/ ]] || [[ "$path" =~ ^packages/ ]]; then
+            if [[ "$path" =~ ^apps/backend/ ]] || [[ "$path" =~ ^packages/ ]] || [[ "$path" == "Dockerfile" ]]; then
               backend_changed=true
             fi
             if [[ "$path" =~ ^sql/schema/ ]]; then
