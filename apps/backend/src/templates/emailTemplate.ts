@@ -1,3 +1,5 @@
+import { escapeHtml, sanitizeUrl } from '@mik-ng/shared'
+
 const mik_logo_url =
   process.env.MIK_LOGO_URL ?? 'https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png'
 
@@ -8,7 +10,7 @@ export const emailTemplate = (title: string, body: string, footer?: string) => `
         <img src="${mik_logo_url}" alt="MIK Logo" style="max-width: 120px;" />
       </div>
 
-      <h2 style="text-align: center; color: #003366;">${title}</h2>
+      <h2 style="text-align: center; color: #003366;">${escapeHtml(title)}</h2>
 
       <div style="color: #333333">
         ${body}
@@ -29,7 +31,7 @@ export const emailTemplate = (title: string, body: string, footer?: string) => `
   </div>`
 
 export const emailButton = (href: string, title: string) => `
-  <a href="${href}" style="
+  <a href="${sanitizeUrl(href)}" style="
     background-color: #003366;
     color: #ffffff;
     padding: 12px 24px;
@@ -37,4 +39,4 @@ export const emailButton = (href: string, title: string) => `
     border-radius: 6px;
     display: inline-block;
     font-weight: bold;
-  ">${title}</a>`
+  ">${escapeHtml(title)}</a>`

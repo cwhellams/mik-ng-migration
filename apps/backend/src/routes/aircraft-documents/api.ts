@@ -10,6 +10,7 @@ import {
   updateAircraftDocument,
   removeAircraftDocument,
 } from '../../db/aircraft-document-queries.ts'
+import { getAircraftByRegistration } from '../../db/aircraft-queries.ts'
 import { problem } from '../response.ts'
 import { storageService, type UploadResult } from '../../services/storage.ts'
 import {
@@ -25,6 +26,40 @@ import logger from '../../lib/logger.ts'
 //import type { Aircraft, AircraftAlert } from '../aircrafts/models.ts'
 
 export const router = Router()
+
+/**
+ * Validates aircraft registration and returns safe bucket name
+ * Prevents type confusion and injection attacks
+ * @param registration - Aircraft registration from user input
+ * @returns Bucket name if valid, throws error if invalid
+ */
+const getValidatedBucketName = async (registration: unknown): Promise<string> => {
+  // Type check: ensure registration is a string
+  if (typeof registration !== 'string' || !registration.trim()) {
+    throw new Error('Invalid aircraft registration: must be a non-empty string')
+  }
+
+  const trimmedRegistration = registration.trim()
+
+  // Validate registration format (typical format: OH-XXX or similar)
+  if (!/^[A-Z0-9-]{3,10}$/i.test(trimmedRegistration)) {
+    throw new Error('Invalid aircraft registration format')
+  }
+
+  // Verify aircraft exists in database
+  const aircraft = await getAircraftByRegistration(trimmedRegistration, false)
+  if (!aircraft) {
+    throw new Error('Aircraft not found')
+  }
+
+  // Use static method if available, otherwise construct safely
+  if ((storageService as any).constructor.getAircraftBucketName) {
+    return (storageService as any).constructor.getAircraftBucketName(aircraft.registration)
+  }
+
+  // Safe construction: we've validated the registration exists
+  return `mik-ac-${aircraft.registration.slice(-3).toLowerCase()}`
+}
 
 // Configure multer for file uploads (same as general documents)
 const upload = multer({
@@ -80,11 +115,8 @@ router.get('/download', async (req: Request, res: Response<DownloadDocument>) =>
     return problem({ status: 404, detail: 'Document file not found' })
   }
 
-  const bucketName = (storageService as any).constructor.getAircraftBucketName
-    ? (storageService as any).constructor.getAircraftBucketName(document.aircraftRegistration)
-    : `mik-ac-${document.aircraftRegistration.slice(-3).toLowerCase()}`
-
   try {
+    const bucketName = await getValidatedBucketName(document.aircraftRegistration)
     const presignedUrl = await storageService.getPresignedUrl(document.storageKey, 60, bucketName)
     const payload = { documentId: documentId, presignedUrl }
     res.setHeader('Content-Type', 'application/json')
@@ -180,11 +212,7 @@ router.delete(
     // Delete file from storage if it exists
     if (document.storageKey) {
       try {
-        // Get aircraft bucket name using the static method we added
-        const bucketName = (storageService as any).constructor.getAircraftBucketName
-          ? (storageService as any).constructor.getAircraftBucketName(document.aircraftRegistration)
-          : `mik-ac-${document.aircraftRegistration.slice(-3).toLowerCase()}`
-
+        const bucketName = await getValidatedBucketName(document.aircraftRegistration)
         await storageService.deleteFile(document.storageKey, bucketName)
       } catch (error) {
         console.error('Failed to delete file from storage:', error)
@@ -214,35 +242,34 @@ router.post(
       return problem({ status: 400, detail: 'No file uploaded' })
     }
 
-    const aircraftDoc = req.body
+    // Validate and parse request body against schema to ensure type safety
+    const validatedDoc = AircraftDocumentSchema.parse(req.body)
 
     try {
-      // Get aircraft bucket name using the static method we added
-      const bucketName = (storageService as any).constructor.getAircraftBucketName
-        ? (storageService as any).constructor.getAircraftBucketName(
-            aircraftDoc.aircraftRegistration,
-          )
-        : `mik-ac-${aircraftDoc.aircraftRegistration.slice(-3).toLowerCase()}`
+      // Validate aircraft registration and get bucket name
+      const bucketName = await getValidatedBucketName(validatedDoc.aircraftRegistration)
+
+      // Safely convert document type to folder name (documentType is guaranteed to be a string by Zod)
+      const folderName = validatedDoc.documentType.toLowerCase().replace(/\s+/g, '-')
 
       // Upload file to aircraft-specific bucket with document type as folder
       const uploadResult: UploadResult = await storageService.uploadFile(
         req.file.buffer,
         req.file.originalname,
         req.file.mimetype,
-        aircraftDoc.documentType.toLowerCase().replace(/\s+/g, '-'), // Convert "Noise Certificate" to "noise-certificate"
+        folderName,
         bucketName,
       )
 
       // Create aircraft document record
       const documentData = {
-        ...aircraftDoc,
+        ...validatedDoc,
         documentUrl: uploadResult.url,
         fileName: req.file.originalname,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
         storageKey: uploadResult.key,
       }
-
       const created = await addAircraftDocument(documentData, req.user!)
 
       res.status(201).json(created)

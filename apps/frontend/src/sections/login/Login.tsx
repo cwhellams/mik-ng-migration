@@ -14,6 +14,7 @@ import { LoginRequest, LoginResponse } from '@backend/routes/auth/schema'
 import { useTranslation } from 'react-i18next'
 import { MIKLang } from '@backend/routes/members/models'
 import LanguageSelector from '../../components/LanguageSelector'
+import { validateInternalPath } from '@mik-ng/shared'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -51,9 +52,12 @@ const Login = () => {
       return
     }
 
+    // Validate target to prevent open redirect attacks
+    const safeTarget = validateInternalPath(location.state?.target)
+
     const { data, error } = await trigger({
       email: email,
-      target: location.state?.target,
+      target: safeTarget,
     })
 
     if (!data?.code || error) {

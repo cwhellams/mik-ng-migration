@@ -113,6 +113,10 @@ jobs:
       - name: Check for Security Vulnerabilities
         run: pnpm audit --audit-level=high || echo "Security issues found with NPM packages"
 
+      - name: Test shared package
+        working-directory: ${{ github.workspace }}/packages/shared
+        run: pnpm test
+
       - name: Test backend
         env:
           SMTP_LOGIN: ${{ vars.SMTP_LOGIN }}

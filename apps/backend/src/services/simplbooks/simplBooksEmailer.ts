@@ -6,6 +6,7 @@ import {
   newInvoiceEmailBodyHtmlFi,
 } from '../../templates/invoiceEmailTemplate.ts'
 import { getInvoice, getInvoicePdf, markInvoiceAsSent } from './simplbooksApiClient.ts'
+import { escapeHtml } from '@mik-ng/shared'
 
 export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: string) {
   const member = await getMemberById(memberId)
@@ -38,10 +39,12 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
       ? newInvoiceEmailBodyHtmlFi(emailVars)
       : newInvoiceEmailBodyHtmlEn(emailVars)
 
+  // Note: Email subject doesn't need HTML escaping as it's plain text in email headers,
+  // but we sanitize it for consistency and safety
   const subject =
     member.lang === 'fi'
-      ? `Malmin Ilmailukerhon lasku - ${emailVars.invoiceId}`
-      : `MIK New Invoice - ${emailVars.invoiceId}`
+      ? `Malmin Ilmailukerhon lasku - ${escapeHtml(emailVars.invoiceId)}`
+      : `MIK New Invoice - ${escapeHtml(emailVars.invoiceId)}`
 
   const attachments = [
     {

@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import { marked } from 'marked'
 import { emailButton, emailTemplate } from './emailTemplate.ts'
+import { escapeHtml, sanitizeUrl } from '@mik-ng/shared'
 
 export type RegisterVars = {
   firstName: string
@@ -53,7 +54,7 @@ const registerEmailBodyHtmlEn = ({ firstName, href }: RegisterVars): string =>
     'Registration Confirmation',
     `
 
-      <p>Hello ${firstName},</p>
+      <p>Hello ${escapeHtml(firstName)},</p>
 
       <p>
         Thank you for applying to become a member of Malmin Ilmailukerho ry. We will review your application as soon as possible and get back to you.
@@ -67,7 +68,7 @@ const registerEmailBodyHtmlEn = ({ firstName, href }: RegisterVars): string =>
       <p>
         If the button above doesn't work, please copy and paste the following link into your browser:
       </p>
-      <p style="word-break: break-all; color: #333333;"><a href="${href}">${href}</a></p>`,
+      <p style="word-break: break-all; color: #333333;"><a href="${sanitizeUrl(href)}">${escapeHtml(href)}</a></p>`,
 
     'If you didn’t request this email, you can safely ignore it.',
   )
@@ -76,7 +77,7 @@ const registerEmailBodyHtmlFi = ({ firstName, href }: RegisterVars): string =>
   emailTemplate(
     'Hakemuksen vahvistus',
     `
-      <p>Hei ${firstName},</p>
+      <p>Hei ${escapeHtml(firstName)},</p>
 
       <p>
         kiitos hakemuksestasi Malmin Ilmailukerho ry:n jäseneksi. Käsittelemme hakemuksesi pian ja olemme sinuun yhteydessä.
@@ -90,6 +91,6 @@ const registerEmailBodyHtmlFi = ({ firstName, href }: RegisterVars): string =>
       <p>
         Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:
       </p>
-      <p style="word-break: break-all;"><a href="${href}">${href}</a></p>`,
+      <p style="word-break: break-all;"><a href="${sanitizeUrl(href)}">${escapeHtml(href)}</a></p>`,
     'Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.',
   )

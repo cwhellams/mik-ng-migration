@@ -141,7 +141,7 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: en 1`] = `
       <p>
         If the button above doesn't work, please copy and paste the following link into your browser:
       </p>
-      <p style="word-break: break-all;"><a href="https://example.com">https://example.com</a></p>
+      <p style="word-break: break-all;"><a href="https://example.com">https:&#x2F;&#x2F;example.com</a></p>
 
       <p>Your verification code is:</p>
       <p style="font-size: 1.25em; font-weight: bold; color: #003366;">12345</p>
@@ -194,7 +194,7 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: fi 1`] = `
       <p>
         Jos painike ei toimi, kopioi ja liitä seuraava linkki selaimeesi:
       </p>
-      <p style="word-break: break-all"><a href="https://example.com">https://example.com</a></p>
+      <p style="word-break: break-all"><a href="https://example.com">https:&#x2F;&#x2F;example.com</a></p>
 
       <p>Vahvistuskoodisi on:</p>
       <p style="font-size: 1.25em; font-weight: bold; color: #003366;">12345</p>
@@ -281,7 +281,7 @@ exports[`Register Email template tests registerEmailBodyHtml 1`] = `
       <p>
         Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:
       </p>
-      <p style="word-break: break-all;"><a href="https://example.com">https://example.com</a></p>
+      <p style="word-break: break-all;"><a href="https://example.com">https:&#x2F;&#x2F;example.com</a></p>
       </div>
 
       
@@ -331,7 +331,7 @@ exports[`Register Email template tests registerEmailBodyHtml 2`] = `
       <p>
         If the button above doesn't work, please copy and paste the following link into your browser:
       </p>
-      <p style="word-break: break-all; color: #333333;"><a href="https://example.com">https://example.com</a></p>
+      <p style="word-break: break-all; color: #333333;"><a href="https://example.com">https:&#x2F;&#x2F;example.com</a></p>
       </div>
 
       

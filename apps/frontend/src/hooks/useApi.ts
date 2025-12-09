@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { VerifyResponse } from '@backend/routes/auth/schema'
 import useSWRMutation, { SWRMutationConfiguration } from 'swr/mutation'
 import { useThemeMode } from '../theme/ThemeContext'
+import { validateApiPath } from '@mik-ng/shared'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 const api = axios.create({
@@ -219,14 +220,17 @@ export default function useApi<
       payload: unknown
       path: string | undefined
     }
-  >(cacheKey, (_key: object, { arg }) =>
-    api.request({
+  >(cacheKey, (_key: object, { arg }) => {
+    // Validate and sanitize the path to prevent SSRF attacks
+    const sanitizedPath = validateApiPath(arg.path)
+
+    return api.request({
       ...request,
       params: arg.method == 'GET' ? arg.payload : request.params,
-      url: arg.path
-        ? arg.path[0] == '/'
-          ? arg.path
-          : `${request.url}/${arg.path}`
+      url: sanitizedPath
+        ? sanitizedPath[0] == '/'
+          ? sanitizedPath
+          : `${request.url}/${sanitizedPath}`
         : request.url,
       // globally allow admin permissions with sudo mode
       headers: {
@@ -236,7 +240,7 @@ export default function useApi<
       method: arg.method,
       data: arg.payload,
     })
-  )
+  })
 
   const trigger = <P, R>(
     method: MutateMethods,

@@ -1,4 +1,5 @@
 import { emailTemplate } from './emailTemplate.ts'
+import { escapeHtml } from '@mik-ng/shared'
 
 export type InvoiceEmailVars = {
   invoiceId: string
@@ -14,10 +15,10 @@ export const newInvoiceEmailBodyHtmlEn = ({
   dueDate,
 }: InvoiceEmailVars): string =>
   emailTemplate(
-    `MIK New Invoice - ${invoiceId}`,
+    `MIK New Invoice - ${escapeHtml(invoiceId)}`,
     `
       <p>
-        Hi ${firstName} , You have a new invoice with Id ${invoiceId} for € ${amount} due on ${dueDate}.
+        Hi ${escapeHtml(firstName)} , You have a new invoice with Id ${escapeHtml(invoiceId)} for € ${escapeHtml(amount.toString())} due on ${escapeHtml(dueDate)}.
       </p>
 
       <p>
@@ -34,11 +35,11 @@ export const newInvoiceEmailBodyHtmlFi = ({
   dueDate,
 }: InvoiceEmailVars): string =>
   emailTemplate(
-    `Malmin Ilmailukerhon lasku - ${invoiceId}`,
+    `Malmin Ilmailukerhon lasku - ${escapeHtml(invoiceId)}`,
     `
       <p>
-        Hei ${firstName} , Viestin liiteenä on lasku ${invoiceId} , summa € ${amount}.
-        Laskun eräpäivä on ${dueDate}.
+        Hei ${escapeHtml(firstName)} , Viestin liiteenä on lasku ${escapeHtml(invoiceId)} , summa € ${escapeHtml(amount.toString())}.
+        Laskun eräpäivä on ${escapeHtml(dueDate)}.
       </p>
 
 `,

@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import { marked } from 'marked'
+import { escapeHtml, sanitizeUrl } from '@mik-ng/shared'
 import { emailButton, emailTemplate } from './emailTemplate.ts'
 
 export type LoginVars = {
@@ -35,7 +36,7 @@ const loginEmailBodyHtmlFi = ({ href, code }: LoginVars): string =>
       <p>
         Jos painike ei toimi, kopioi ja liitä seuraava linkki selaimeesi:
       </p>
-      <p style="word-break: break-all"><a href="${href}">${href}</a></p>
+      <p style="word-break: break-all"><a href="${sanitizeUrl(href)}">${escapeHtml(href)}</a></p>
 
       <p>Vahvistuskoodisi on:</p>
       <p style="font-size: 1.25em; font-weight: bold; color: #003366;">${code}</p>
@@ -61,7 +62,7 @@ const loginEmailBodyHtmlEn = ({ href, code }: LoginVars): string =>
       <p>
         If the button above doesn't work, please copy and paste the following link into your browser:
       </p>
-      <p style="word-break: break-all;"><a href="${href}">${href}</a></p>
+      <p style="word-break: break-all;"><a href="${sanitizeUrl(href)}">${escapeHtml(href)}</a></p>
 
       <p>Your verification code is:</p>
       <p style="font-size: 1.25em; font-weight: bold; color: #003366;">${code}</p>

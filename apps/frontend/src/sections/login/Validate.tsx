@@ -4,6 +4,7 @@ import { LoginLayout } from './LoginLayout'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '../../hooks/useAuth'
 import { VerifyRequest, VerifyResponse } from '@backend/routes/auth/schema'
+import { validateInternalPath } from '@mik-ng/shared'
 
 const LoginValidate = () => {
   const [searchParams] = useSearchParams()
@@ -22,7 +23,9 @@ const LoginValidate = () => {
       trigger({ token }).then(({ data, error }) => {
         if (data?.accessToken) {
           localStorage.setItem('accessToken', data.accessToken)
-          navigate(target ?? '/')
+          // Validate target to prevent open redirect attacks
+          const safePath = validateInternalPath(target)
+          navigate(safePath)
         } else {
           console.log(error)
           setCodeError('Login failed, try again')

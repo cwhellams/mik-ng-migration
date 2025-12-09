@@ -208,55 +208,67 @@ router.post(
       return problem({ status: 400, detail: 'No file uploaded' })
     }
 
-    const {
-      title,
-      description,
-      category,
-      publishedDate,
-      isPublic = true,
-      tags = '[]',
-      isArchived = false,
-    } = req.body
-
-    if (!title || !category || !publishedDate) {
-      return problem({
-        status: 400,
-        detail: 'Missing required fields: title, category, publishedDate',
-      })
-    }
-
-    // Parse tags from JSON string
+    // Parse tags from JSON string before validation
     let parsedTags: string[] = []
     try {
-      if (typeof tags === 'string' && tags) {
-        parsedTags = JSON.parse(tags)
-      } else if (Array.isArray(tags)) {
-        parsedTags = tags
+      const tagsInput = req.body.tags
+      if (typeof tagsInput === 'string' && tagsInput) {
+        parsedTags = JSON.parse(tagsInput)
+      } else if (Array.isArray(tagsInput)) {
+        parsedTags = tagsInput
       }
     } catch (error) {
       logger.error('Document POST - Invalid tags format:', error)
       parsedTags = []
     }
 
+    // Prepare document data for validation
+    const documentInput = {
+      title: req.body.title,
+      description: req.body.description || null,
+      category: req.body.category,
+      publishedDate: req.body.publishedDate,
+      isPublic: req.body.isPublic === 'true' || req.body.isPublic === true,
+      isArchived: req.body.isArchived === 'true' || req.body.isArchived === true,
+      tags: parsedTags,
+    }
+
+    // Validate input with Zod schema to ensure type safety
+    let validatedInput
     try {
+      validatedInput = DocumentSchema.pick({
+        title: true,
+        description: true,
+        category: true,
+        publishedDate: true,
+        isPublic: true,
+        isArchived: true,
+        tags: true,
+      }).parse(documentInput)
+    } catch (error) {
+      logger.error('Document validation failed:', error)
+      return problem({
+        status: 400,
+        detail: 'Invalid document data',
+      })
+    }
+
+    try {
+      // Safely convert category to folder name (category is guaranteed to be a string by Zod)
+      const folderName = validatedInput.category.toLowerCase()
+
       // Upload file to Digital Ocean Spaces with category as folder
       const uploadResult: UploadResult = await storageService.uploadFile(
         req.file.buffer,
         req.file.originalname,
         req.file.mimetype,
-        category.toLowerCase(), // Use category as folder name
+        folderName,
       )
 
       // Create document record
       const documentData = {
-        title,
-        description: description || null,
-        category,
+        ...validatedInput,
         documentUrl: uploadResult.url,
-        publishedDate,
-        isPublic: isPublic === 'true' || isPublic === true,
-        isArchived: isArchived === 'true' || isArchived === true,
-        tags: parsedTags,
         fileName: req.file.originalname,
         fileSize: req.file.size,
         mimeType: req.file.mimetype,
