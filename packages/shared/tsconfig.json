@@ -4,7 +4,6 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
-    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "strict": true,
     "skipLibCheck": true,
@@ -14,5 +13,6 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/**/*", "__tests__/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["__tests__/**/*", "dist/**/*", "node_modules/**/*"]
 }
