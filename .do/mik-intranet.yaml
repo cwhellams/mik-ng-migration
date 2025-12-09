@@ -153,7 +153,7 @@ static_sites:
       branch: test
     source_dir: /apps/frontend
     output_dir: /dist
-    build_command: pnpm build
+    build_command: npx tsc && npm install -g pnpm && pnpm install --frozen-lockfile && pnpm build
     environment_slug: node-js
     envs:     
       - key: VITE_API_TARGET
