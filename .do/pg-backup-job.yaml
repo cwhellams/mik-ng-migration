@@ -1,0 +1,44 @@
+name: postgres-backup-app
+region: fra1
+
+jobs:
+- name: backup-job
+  kind: SCHEDULED
+  schedule:
+    cron: "0 1 * * 0"
+    time_zone: "Europe/Helsinki"
+  image:
+    registry_type: GHCR
+    registry: ghcr.io
+    repository: mik-dev-team/mik-ng-backup-job
+    tag: latest
+    registry_credentials: ${GHCR_USERNAME}:${GHCR_PASSWORD}
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  envs:
+  - key: DO_POSTGRES_URL    
+    type: GENERAL
+    value: ${DO_POSTGRES_URL}
+  - key: DO_POSTGRES_USER
+    type: GENERAL    
+    value: ${DO_POSTGRES_USER}
+  - key: DO_POSTGRES_PORT
+    type: GENERAL    
+    value: "${DO_POSTGRES_PORT}"  
+  - key: DO_POSTGRES_PASSWORD    
+    type: SECRET
+    value: ${DO_POSTGRES_PASSWORD}
+  - key: CLOUDFLARE_R2_ACCESSKEY_ID    
+    type: SECRET
+    value: ${CLOUDFLARE_R2_ACCESSKEY_ID}
+  - key: CLOUDFLARE_R2_SECRET_ACCESSKEY    
+    type: SECRET
+    value: ${CLOUDFLARE_R2_SECRET_ACCESSKEY}
+  - key: CLOUDFLARE_R2_EU_ENDPOINT    
+    value: ${CLOUDFLARE_R2_EU_ENDPOINT}
+  - key: CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP
+    type: GENERAL
+    value: ${CLOUDFLARE_R2_BUCKET_NAME_DB_BACKUP}
+  - key: BACKUP_ENCRYPTION_PASSWORD    
+    type: SECRET
+    value: ${BACKUP_ENCRYPTION_PASSWORD}
