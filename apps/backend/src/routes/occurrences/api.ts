@@ -18,6 +18,9 @@ import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
 import dayjs from 'dayjs'
 
+import { sendOccurrenceNotification } from '../../templates/occurrenceNotification.ts'
+import { sendEmail } from '../../lib/sendGmail.ts'
+
 export const router = Router()
 
 router.use(
@@ -87,6 +90,9 @@ router.post('/', async (req: Request, res: Response<Occurrence>) => {
     },
     req.user!,
   )
+
+  // send email notifications to SMS admins
+  await sendOccurrenceNotification(sendEmail, created)
 
   res.status(200).json(created)
 })
@@ -175,6 +181,10 @@ router.post(
       },
       req.user!,
     )
+    if (status === OccurrenceStatus.ANONYMIZED) {
+      // send email notifications to SMS team
+      await sendOccurrenceNotification(sendEmail, updated)
+    }
     res.status(200).json(updated)
   },
 )

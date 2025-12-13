@@ -5,41 +5,41 @@ domains:
     type: PRIMARY
 ingress:
   rules:
-  - component:
-      name: mik-intranet-api
-      preserve_path_prefix: true
-    match:
-      path:
-        prefix: /api        
-  - component:
-      name: mik-intranet-api
-      preserve_path_prefix: true
-    match:
-      path:
-        prefix: /auth
-  - component:
-      name: mik-intranet-api
-      preserve_path_prefix: true
-    match:
-      path:
-        prefix: /health    
-  - component:
-      name: mik-intranet-frontend
-    #cors:
-    #  allow_origins:
-    #  - prefix: https://mik-intra-khnt3.ondigitalocean.app/
-    match:
-      path:
-        prefix: /
+    - component:
+        name: mik-intranet-api
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /api
+    - component:
+        name: mik-intranet-api
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /auth
+    - component:
+        name: mik-intranet-api
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /health
+    - component:
+        name: mik-intranet-frontend
+      #cors:
+      #  allow_origins:
+      #  - prefix: https://mik-intra-khnt3.ondigitalocean.app/
+      match:
+        path:
+          prefix: /
 services:
   - name: mik-intranet-api
-    
+
     image:
-      registry_type: DOCR      
-      repository: mik-dev-team/mik-ng      
+      registry_type: DOCR
+      repository: mik-dev-team/mik-ng
 
     http_port: 3000 #Setup port mapping from public internet port 80 or 443, the platform will forward traffic to this port
-    
+
     log_destinations:
       - name: mik-intranet-logtail
         logtail:
@@ -123,10 +123,12 @@ services:
       - key: OVERDUE_INVOICE_SUSPENSION_DAYS
         value: ${OVERDUE_INVOICE_SUSPENSION_DAYS}
         type: GENERAL
+      - key: OCCURRENCE_NOTIFICATION_WORKER_ENABLED
+        value: ${OCCURRENCE_NOTIFICATION_WORKER_ENABLED}
+        type: GENERAL
       - key: CORS_ALLOWED_ORIGINS
         value: ${CORS_ALLOWED_ORIGINS}
         type: SECRET
-  
 
     instance_count: 1
     health_check:
@@ -155,7 +157,7 @@ static_sites:
     output_dir: /dist
     build_command: npx tsc && npm install -g pnpm && pnpm install --frozen-lockfile && pnpm build
     environment_slug: node-js
-    envs:     
+    envs:
       - key: VITE_API_TARGET
         value: ${VITE_API_TARGET}
         type: GENERAL

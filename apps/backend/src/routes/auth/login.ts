@@ -17,17 +17,12 @@ import { generateJWTUser, type JWTUser } from './token.ts'
 import { addMember, getMemberByEmail, getMemberById } from '../../db/member-queries.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
-import {
-  loginEmailTitle,
-  loginEmailBodyHtml,
-  loginEmailPlainText,
-} from '../../templates/loginEmailTemplate.ts'
+import { loginEmailTitle, loginEmailBodyHtml } from '../../templates/loginEmailTemplate.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 import { problem } from '../response.ts'
 import ms from 'ms'
 import dayjs from 'dayjs'
 import {
-  registerEmailBody,
   registerEmailBodyHtml,
   registerEmailTitle,
 } from '../../templates/registrationEmailTemplate.ts'
@@ -64,8 +59,7 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
   sendEmail(
     member.email,
     loginEmailTitle(member.lang),
-    loginEmailBodyHtml(member.lang, link),
-    loginEmailPlainText(member.lang, link),
+    loginEmailBodyHtml(member.lang, { ...link, firstName: member.firstName }),
   )
   logger.info('magic login link sent for validation %j', link)
 
@@ -96,7 +90,6 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
     member.email,
     registerEmailTitle(member.lang),
     registerEmailBodyHtml(member.lang, { ...member, ...link }),
-    registerEmailBody(member.lang, { ...member, ...link }),
   )
   logger.info('registration verification email sent %j', link)
 

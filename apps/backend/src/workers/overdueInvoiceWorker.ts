@@ -19,21 +19,11 @@ import logger from '../lib/logger.ts'
 import type { AcctsInvoice } from '../db/schema.d.ts'
 import {
   overdueInvoiceEmailSubject,
-  overdueInvoiceEmailBodyHtmlEn,
-  overdueInvoiceEmailBodyHtmlFi,
-  overdueInvoiceEmailPlainTextEn,
-  overdueInvoiceEmailPlainTextFi,
-  type OverdueInvoiceEmailVars,
+  overdueInvoiceEmailBodyHtml,
 } from '../templates/overdueInvoiceEmailTemplate.ts'
 import {
   reservationSuspendedEmailSubject,
-  reservationSuspendedEmailBodyHtmlEn,
-  reservationSuspendedEmailBodyHtmlFi,
-  reservationSuspendedEmailBodyHtmlSv,
-  reservationSuspendedEmailPlainTextEn,
-  reservationSuspendedEmailPlainTextFi,
-  reservationSuspendedEmailPlainTextSv,
-  type ReservationSuspendedEmailVars,
+  reservationSuspendedEmailBodyHtml,
 } from '../templates/reservationSuspendedEmailTemplate.ts'
 
 let scheduledTask: cron.ScheduledTask | null = null
@@ -54,14 +44,8 @@ async function sendReservationSuspendedEmail(
 ): Promise<void> {
   try {
     const member = await getMemberById(memberId)
-
     if (!member) {
       logger.warn(`Member not found for suspension email: ${memberId}`)
-      return
-    }
-
-    if (!member.email) {
-      logger.warn(`Member ${memberId} has no email address for suspension notification`)
       return
     }
 
@@ -70,42 +54,20 @@ async function sendReservationSuspendedEmail(
       return sum + Number(inv.total_sum ?? 0)
     }, 0)
 
-    const currency = overdueInvoices[0]?.currency || 'EUR'
-
-    const emailVars: ReservationSuspendedEmailVars = {
-      firstName: member.firstName,
-      invoiceCount: overdueInvoices.length,
-      totalAmount,
-      currency: String(currency),
-      cancelledBookingsCount,
-    }
-
-    const lang = member.lang || 'en'
-    const subject = reservationSuspendedEmailSubject(lang)
-
-    let htmlBody: string
-    let textBody: string
-
-    switch (lang) {
-      case 'fi':
-        htmlBody = reservationSuspendedEmailBodyHtmlFi(emailVars)
-        textBody = reservationSuspendedEmailPlainTextFi(emailVars)
-        break
-      case 'sv':
-        htmlBody = reservationSuspendedEmailBodyHtmlSv(emailVars)
-        textBody = reservationSuspendedEmailPlainTextSv(emailVars)
-        break
-      default:
-        htmlBody = reservationSuspendedEmailBodyHtmlEn(emailVars)
-        textBody = reservationSuspendedEmailPlainTextEn(emailVars)
-        break
-    }
-
     logger.info(
-      `Sending suspension notification email to ${member.email} (${lang}) - ${cancelledBookingsCount} booking(s) cancelled`,
+      `Sending suspension notification email to ${member.email} (${member.lang}) - ${cancelledBookingsCount} booking(s) cancelled`,
     )
 
-    sendEmailFn(member.email, subject, htmlBody, textBody)
+    sendEmailFn(
+      member.email,
+      reservationSuspendedEmailSubject(member.lang),
+      reservationSuspendedEmailBodyHtml(member.lang, {
+        firstName: member.firstName,
+        invoiceCount: overdueInvoices.length,
+        totalAmount,
+        cancelledBookingsCount,
+      }),
+    )
   } catch (error) {
     logger.error(`Error sending suspension email for member ${memberId}:`, error)
     throw error
@@ -216,45 +178,25 @@ async function sendOverdueInvoiceReminder(
   try {
     // Get member details
     const member = await getMemberById(invoice.member_id)
-
     if (!member) {
       logger.warn(`Member not found for invoice ${invoice.id}: ${invoice.member_id}`)
       return
     }
 
-    if (!member.email) {
-      logger.warn(`Member ${invoice.member_id} has no email address`)
-      return
-    }
-
-    // Prepare email variables
-    const emailVars: OverdueInvoiceEmailVars = {
-      firstName: member.firstName,
-      invoiceId: invoice.id.toString(),
-      amount: Number(invoice.total_sum ?? 0),
-      dueDate: formatDate(invoice.due_at),
-      currency: String(invoice.currency),
-    }
-
-    const lang = member.lang || 'en'
-    const subject = overdueInvoiceEmailSubject(lang)
-
-    // Generate email content based on member's language preference
-    const htmlBody =
-      lang === 'fi'
-        ? overdueInvoiceEmailBodyHtmlFi(emailVars)
-        : overdueInvoiceEmailBodyHtmlEn(emailVars)
-
-    const textBody =
-      lang === 'fi'
-        ? overdueInvoiceEmailPlainTextFi(emailVars)
-        : overdueInvoiceEmailPlainTextEn(emailVars)
-
     logger.info(
-      `Sending overdue reminder email for invoice ${invoice.id} to ${member.email} (${lang})`,
+      `Sending overdue reminder email for invoice ${invoice.id} to ${member.email} (${member.lang})`,
     )
 
-    sendEmailFn(member.email, subject, htmlBody, textBody)
+    sendEmailFn(
+      member.email,
+      overdueInvoiceEmailSubject(member.lang),
+      overdueInvoiceEmailBodyHtml(member.lang, {
+        firstName: member.firstName,
+        invoiceId: invoice.id.toString(),
+        amount: Number(invoice.total_sum ?? 0),
+        dueDate: formatDate(invoice.due_at),
+      }),
+    )
   } catch (error) {
     logger.error(`Error sending overdue reminder for invoice ${invoice.id}:`, error)
     throw error

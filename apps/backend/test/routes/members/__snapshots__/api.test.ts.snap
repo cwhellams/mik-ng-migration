@@ -6,6 +6,7 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
     {
       "email": "pekka.hamalainen@example.com",
       "first": "Pekka",
+      "lang": "fi",
       "last": "Hämäläinen",
       "memberId": "Pekka1",
       "phoneNumber": "0445678901",
@@ -16,6 +17,7 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
     {
       "email": "antti.heikkinen@example.com",
       "first": "Antti",
+      "lang": "fi",
       "last": "Heikkinen",
       "memberId": "Antti1",
       "phoneNumber": "0467890123",
@@ -27,6 +29,7 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
     {
       "email": "juho.kolehmainen@iki.fi",
       "first": "Liisa",
+      "lang": "fi",
       "last": "Korhonen",
       "memberId": "Liisa1",
       "phoneNumber": "0412345678",
@@ -37,6 +40,7 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
     {
       "email": "sanna.koskinen@example.com",
       "first": "Sanna",
+      "lang": "fi",
       "last": "Koskinen",
       "memberId": "Sanna1",
       "phoneNumber": "0478901234",
@@ -47,6 +51,7 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
     {
       "email": "examinerfe@mik.com",
       "first": "Exe",
+      "lang": "fi",
       "last": "McExaminerface",
       "memberId": "Examiner1",
       "phoneNumber": "3584400012345",
@@ -57,6 +62,7 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
     {
       "email": "jukka.nieminen@example.com",
       "first": "Jukka",
+      "lang": "fi",
       "last": "Nieminen",
       "memberId": "Jukka1",
       "phoneNumber": "0423456789",
@@ -67,6 +73,7 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
     {
       "email": "chris.whellams@gmail.com",
       "first": "Matti",
+      "lang": "fi",
       "last": "Virtanen",
       "memberId": "Matti1",
       "phoneNumber": "0401234567",
@@ -85,6 +92,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
     {
       "email": "pekka.hamalainen@example.com",
       "first": "Pekka",
+      "lang": "fi",
       "last": "Hämäläinen",
       "memberId": "Pekka1",
       "phoneNumber": "0445678901",
@@ -96,6 +104,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
     {
       "email": "antti.heikkinen@example.com",
       "first": "Antti",
+      "lang": "fi",
       "last": "Heikkinen",
       "memberId": "Antti1",
       "phoneNumber": "0467890123",
@@ -107,27 +116,32 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
     {
       "email": "juho.kolehmainen@iki.fi",
       "first": "Liisa",
+      "lang": "fi",
       "last": "Korhonen",
       "memberId": "Liisa1",
       "phoneNumber": "0412345678",
       "roles": [
         "ADMIN",
         "COMMITTEE",
+        "SMS_REVIEWER",
       ],
     },
     {
       "email": "sanna.koskinen@example.com",
       "first": "Sanna",
+      "lang": "fi",
       "last": "Koskinen",
       "memberId": "Sanna1",
       "phoneNumber": "0478901234",
       "roles": [
         "COMMITTEE",
+        "SMS_REVIEWER",
       ],
     },
     {
       "email": "examinerfe@mik.com",
       "first": "Exe",
+      "lang": "fi",
       "last": "McExaminerface",
       "memberId": "Examiner1",
       "phoneNumber": "3584400012345",
@@ -138,6 +152,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
     {
       "email": "jukka.nieminen@example.com",
       "first": "Jukka",
+      "lang": "fi",
       "last": "Nieminen",
       "memberId": "Jukka1",
       "phoneNumber": "0423456789",
@@ -148,6 +163,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
     {
       "email": "chris.whellams@gmail.com",
       "first": "Matti",
+      "lang": "fi",
       "last": "Virtanen",
       "memberId": "Matti1",
       "phoneNumber": "0401234567",
@@ -166,6 +182,7 @@ exports[`GET /members should search by unapproved roles as an admin 1`] = `
   {
     "email": "nurmikko@gmail.com",
     "first": "Marja",
+    "lang": "fi",
     "last": "Salminen",
     "memberId": "Marja1",
     "phoneNumber": "0490123456",
@@ -467,6 +484,23 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
       },
       "permissions": [],
       "roleId": "COMMITTEE",
+      "updatedAt": Any<String>,
+      "updatedBy": "k1mnimda",
+    },
+    {
+      "createdAt": Any<String>,
+      "createdBy": "k1mnimda",
+      "description": "SMS independent reviewer",
+      "isPublic": false,
+      "name": {
+        "en": "SMS independent reviewer",
+        "fi": "SMS riippumaton tarkastaja",
+        "sv": "SMS oberoende granskare",
+      },
+      "permissions": [
+        "sms.admin",
+      ],
+      "roleId": "SMS_REVIEWER",
       "updatedAt": Any<String>,
       "updatedBy": "k1mnimda",
     },

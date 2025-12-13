@@ -77,7 +77,7 @@ describe('Db get occurrence tests', () => {
 describe('Db query occurrence tests', () => {
   it('should get all occurrences as admin sorted by report date', async () => {
     const fetched = await getOccurrences({})
-    expect(fetched.length).toEqual(4)
+    expect(fetched.length).toEqual(5)
     expect(fetched[0]).toEqual(expectedSMS1)
   })
 
@@ -85,8 +85,9 @@ describe('Db query occurrence tests', () => {
     const fetched = await getOccurrences({
       owner: 'Liisa1',
     })
-    expect(fetched.length).toEqual(1)
-    expect(fetched[0].id).toEqual('SMS100003')
+    expect(fetched.length).toEqual(2)
+    expect(fetched[0].id).toEqual('SMS100005')
+    expect(fetched[1].id).toEqual('SMS100003')
   })
 
   it('should get only anonymized occurrences', async () => {

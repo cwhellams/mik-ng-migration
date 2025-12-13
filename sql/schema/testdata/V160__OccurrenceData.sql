@@ -139,6 +139,29 @@ VALUES
         NOW()::timestamp(0) + MAKE_INTERVAL(HOURS => 1),
         'Liisa1',
         'Liisa1'
+    ),
+    (
+        'SMS100005',
+        'ANONYMIZING',
+        '2025-12-03T13:30:00+00',
+        '2025-12-03T13:30:00+00',
+        'xyz at Nummela',
+        'EFNU Final approach 22',
+        'The same happened again.',
+        '["WILD"]'::jsonb,
+        TRUE,
+        '0',
+        'L',
+        'Unknown',
+        'OH-STL',
+        'EFNU',
+        'EFNU',
+        FALSE,
+        'SMS100002',
+        NOW()::timestamp(0) + MAKE_INTERVAL(HOURS => 1),
+        NOW()::timestamp(0) + MAKE_INTERVAL(HOURS => 1),
+        'Liisa1',
+        'Liisa1'
     );
 
 UPDATE flight.occurrences

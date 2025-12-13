@@ -141,12 +141,12 @@ describe('GET /members', () => {
       {
         first: 'Liisa',
         last: 'Korhonen',
-        roles: ['ADMIN', 'COMMITTEE'],
+        roles: ['ADMIN', 'COMMITTEE', 'SMS_REVIEWER'],
       },
       {
         first: 'Sanna',
         last: 'Koskinen',
-        roles: ['COMMITTEE'],
+        roles: ['COMMITTEE', 'SMS_REVIEWER'],
       },
       {
         first: 'Jukka',
@@ -219,7 +219,7 @@ describe('GET /members', () => {
       {
         first: 'Liisa',
         last: 'Korhonen',
-        roles: ['ADMIN', 'COMMITTEE'],
+        roles: ['ADMIN', 'COMMITTEE', 'SMS_REVIEWER'],
       },
     ])
   })
@@ -432,6 +432,7 @@ describe('GET /members/roles', () => {
       },
       { permissions: ['member.admin', 'flightlog.admin', 'document.admin'], roleId: 'SECRETARY' },
       { permissions: null, roleId: 'SERVICE' },
+      { permissions: ['sms.admin'], roleId: 'SMS_REVIEWER' },
     ])
   })
 })

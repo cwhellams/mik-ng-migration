@@ -582,6 +582,7 @@ exports[`Db query member tests getMembers should return only approved members fo
   {
     "email": "pekka.hamalainen@example.com",
     "first": "Pekka",
+    "lang": "fi",
     "last": "Hämäläinen",
     "memberId": "Pekka1",
     "phoneNumber": "0445678901",
@@ -592,6 +593,7 @@ exports[`Db query member tests getMembers should return only approved members fo
   {
     "email": "antti.heikkinen@example.com",
     "first": "Antti",
+    "lang": "fi",
     "last": "Heikkinen",
     "memberId": "Antti1",
     "phoneNumber": "0467890123",
@@ -603,6 +605,7 @@ exports[`Db query member tests getMembers should return only approved members fo
   {
     "email": "juho.kolehmainen@iki.fi",
     "first": "Liisa",
+    "lang": "fi",
     "last": "Korhonen",
     "memberId": "Liisa1",
     "phoneNumber": "0412345678",
@@ -613,6 +616,7 @@ exports[`Db query member tests getMembers should return only approved members fo
   {
     "email": "sanna.koskinen@example.com",
     "first": "Sanna",
+    "lang": "fi",
     "last": "Koskinen",
     "memberId": "Sanna1",
     "phoneNumber": "0478901234",
@@ -623,6 +627,7 @@ exports[`Db query member tests getMembers should return only approved members fo
   {
     "email": "examinerfe@mik.com",
     "first": "Exe",
+    "lang": "fi",
     "last": "McExaminerface",
     "memberId": "Examiner1",
     "phoneNumber": "3584400012345",
@@ -633,6 +638,7 @@ exports[`Db query member tests getMembers should return only approved members fo
   {
     "email": "jukka.nieminen@example.com",
     "first": "Jukka",
+    "lang": "fi",
     "last": "Nieminen",
     "memberId": "Jukka1",
     "phoneNumber": "0423456789",
@@ -643,6 +649,7 @@ exports[`Db query member tests getMembers should return only approved members fo
   {
     "email": "chris.whellams@gmail.com",
     "first": "Matti",
+    "lang": "fi",
     "last": "Virtanen",
     "memberId": "Matti1",
     "phoneNumber": "0401234567",
@@ -659,6 +666,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
   {
     "email": "admin@mik.fi",
     "first": "MIK",
+    "lang": "fi",
     "last": "Admin",
     "memberId": "k1mnimda",
     "phoneNumber": null,
@@ -669,6 +677,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
   {
     "email": "kaisa.laine@example.com",
     "first": "Kaisa",
+    "lang": "fi",
     "last": "Laine",
     "memberId": "Kaisa1",
     "phoneNumber": "0456789012",
@@ -679,6 +688,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
   {
     "email": "anna.makinen@example.com",
     "first": "Anna",
+    "lang": "fi",
     "last": "Mäkinen",
     "memberId": "Anna1",
     "phoneNumber": "0434567890",
@@ -689,6 +699,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
   {
     "email": "niko.ikonen@mik.fi",
     "first": "John",
+    "lang": "fi",
     "last": "McDoe",
     "memberId": "John1",
     "phoneNumber": "0401234567",
@@ -699,6 +710,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
   {
     "email": "nurmikko@gmail.com",
     "first": "Marja",
+    "lang": "fi",
     "last": "Salminen",
     "memberId": "Marja1",
     "phoneNumber": "0490123456",
@@ -707,6 +719,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
   {
     "email": "juha.seppala@example.com",
     "first": "Juha",
+    "lang": "fi",
     "last": "Seppälä",
     "memberId": "Juha1",
     "phoneNumber": "0489012345",
@@ -717,6 +730,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
   {
     "email": "simplbks@mik.fi",
     "first": "SimpleBooks",
+    "lang": "fi",
     "last": "User",
     "memberId": "simplbks",
     "phoneNumber": null,

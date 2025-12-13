@@ -21,7 +21,7 @@ import {
   getAllMemberRoles,
   getMembers,
   updateMember,
-  getAllMemberRoleById,
+  getMemberRoleById,
   updateMemberRole,
   addMemberRole,
   removeMemberRole,
@@ -41,9 +41,8 @@ import { HttpStatusCode } from 'axios'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import {
   membershipApprovedEmailBodyHtml,
-  membershipApprovedEmailPlainText,
   membershipApprovedEmailSubject,
-} from '../../templates/newMemberApprovedEmailTemplate.ts'
+} from '../../templates/registrationEmailTemplate.ts'
 import { z } from 'zod'
 
 export const router = Router()
@@ -92,7 +91,6 @@ router.post(
         approval.email,
         membershipApprovedEmailSubject(approval.lang),
         membershipApprovedEmailBodyHtml(approval.lang, { firstName: approval.firstName }),
-        membershipApprovedEmailPlainText(approval.lang, { firstName: approval.firstName }),
       )
     } else {
       console.log(`Skipping sending approval email to ${approval.email} due to migration flag`)
@@ -191,7 +189,7 @@ router.get(
   '/roles/:roleId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{ roleId: string }>, res: Response<MemberRole>) => {
-    const role = await getAllMemberRoleById(req.params.roleId)
+    const role = await getMemberRoleById(req.params.roleId)
     if (!role) {
       return problem({ status: 404 })
     }
@@ -209,7 +207,7 @@ router.patch(
       return problem({ status: 404 })
     }
 
-    const role = await getAllMemberRoleById(req.params.roleId)
+    const role = await getMemberRoleById(req.params.roleId)
     res.status(200).json(role)
   },
 )

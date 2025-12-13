@@ -133,6 +133,7 @@ export async function getMembers(
       'last_name',
       'phone_number',
       'email',
+      'lang_iso639',
       jsonArrayFrom(
         eb
           .selectFrom('member.member_to_roles')
@@ -174,6 +175,7 @@ export async function getMembers(
     last: member.last_name,
     phoneNumber: member.phone_number,
     email: member.email,
+    lang: member.lang_iso639 as MIKLang,
     roles: member.roles
       .map(role => role.role_id)
       .filter(role => isAdmin || publicRoles.includes(role)),
@@ -248,7 +250,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       licence_expiry_date: member.licenceExpiry,
       medical_expiry_date: member.medicalExpiry,
 
-      lang_iso639: member.lang as any,
+      lang_iso639: member.lang,
       created_at: now,
       created_by: jwt?.memberId ?? new_member_id,
       updated_at: now,
@@ -274,7 +276,7 @@ export async function updateMemberLang(
   const result = await db
     .updateTable('member.register')
     .set({
-      lang_iso639: lang as any,
+      lang_iso639: lang,
       updated_at: now,
       updated_by: jwt.memberId,
     })
@@ -515,6 +517,18 @@ export async function getMemberRolesByMemberId(memberId: string): Promise<Member
   return roles.map(toMemberRole)
 }
 
+export async function getMemberRolesByPermission(
+  permission: MIKPermissions,
+): Promise<MemberRole[]> {
+  const roles = await db
+    .selectFrom('member.roles')
+    .selectAll()
+    .where(eb => eb('permissions', '@>', JSON.stringify(permission)))
+    .orderBy('role_id')
+    .execute()
+  return roles.map(toMemberRole)
+}
+
 export async function getAllMemberRoles(isPublic?: boolean): Promise<MemberRole[]> {
   const roles = await db
     .selectFrom('member.roles')
@@ -524,8 +538,7 @@ export async function getAllMemberRoles(isPublic?: boolean): Promise<MemberRole[
     .execute()
   return roles.map(toMemberRole)
 }
-
-export async function getAllMemberRoleById(roleId: string): Promise<MemberRole | undefined> {
+export async function getMemberRoleById(roleId: string): Promise<MemberRole | undefined> {
   const role = await db
     .selectFrom('member.roles')
     .selectAll()

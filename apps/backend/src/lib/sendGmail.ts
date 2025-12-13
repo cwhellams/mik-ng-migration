@@ -36,7 +36,6 @@ export const sendEmail = (
   to: string,
   subject: string,
   html: string,
-  text: string,
   attachments?: EmailAttachment[],
 ): void => {
   // Validate email address to prevent injection attacks
@@ -69,7 +68,6 @@ export const sendEmail = (
     to, // List of receivers
     subject: sanitizedSubject,
     html,
-    text,
     attachments, // Add attachments if provided
   }
 

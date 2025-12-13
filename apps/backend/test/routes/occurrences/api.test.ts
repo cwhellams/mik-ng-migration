@@ -45,6 +45,16 @@ const missingUserToken = generateAccessToken({
   permissions: [],
 })
 
+beforeAll(() => {
+  process.env.SMTP_LOGIN = 'no-reply@mik.fi'
+  process.env.SMTP_PASSWORD = 'test'
+  process.env.DISABLE_EMAIL_SENDING = 'true'
+})
+
+afterAll(() => {
+  delete process.env.DISABLE_EMAIL_SENDING
+})
+
 afterEach(async () => {
   // Clean up test data
   await db
@@ -82,6 +92,11 @@ describe('GET /occurrences', () => {
         createdBy: 'Matti1',
       },
       {
+        id: 'SMS100005',
+        status: 'ANONYMIZING',
+        createdBy: 'Liisa1',
+      },
+      {
         id: 'SMS100003',
         status: 'ANONYMIZED',
         createdBy: 'Liisa1',
@@ -98,6 +113,11 @@ describe('GET /occurrences', () => {
     const { occurrences } = await query(adminToken, false)
 
     expect(occurrences.map(({ id, status, createdBy }) => ({ id, status, createdBy }))).toEqual([
+      {
+        id: 'SMS100005',
+        status: 'ANONYMIZING',
+        createdBy: 'Liisa1',
+      },
       {
         id: 'SMS100003',
         status: 'ANONYMIZED',
@@ -138,6 +158,11 @@ describe('GET /occurrences', () => {
   it('should return own occurences as a user', async () => {
     const { occurrences } = await query(userToken)
     expect(occurrences.map(({ id, status, createdBy }) => ({ id, status, createdBy }))).toEqual([
+      {
+        id: 'SMS100005',
+        status: 'ANONYMIZING',
+        createdBy: 'Liisa1',
+      },
       {
         id: 'SMS100003',
         status: 'ANONYMIZED',

@@ -26,7 +26,6 @@ import { sendEmail } from '../../lib/sendGmail.ts'
 import { getMemberById } from '../../db/member-queries.ts'
 import {
   bookingCancelledEmailBodyHtml,
-  bookingCancelledEmailPlainText,
   bookingCancelledEmailSubject,
 } from '../../templates/bookingCancelledEmailTemplate.ts'
 
@@ -150,7 +149,6 @@ const clearOverlappingBookings = async (
         member.email,
         bookingCancelledEmailSubject(member.lang),
         bookingCancelledEmailBodyHtml(member.lang, admin!, overlap, booking),
-        bookingCancelledEmailPlainText(member.lang, admin!, overlap, booking),
       )
     }
   }

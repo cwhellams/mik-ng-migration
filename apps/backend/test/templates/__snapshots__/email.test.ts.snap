@@ -1,23 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Booking cancellation template tests bookingCancellationEmailBody 1`] = `
-"<p>Hei,</p>
-<p>Varauksesi koneelle OH-IHQ 15.11. 00:13 - 15.11. 01:13 on peruttu.</p>
-<p>Korvaava varaus on tehty ajalle 13.09. 15:26 - 15.01. 11:00.
-Syy MAINTENANCE. Varauksen tekijä Admin User.</p>
-<p>Tarkistele varauskalenteria sivustolla <a href="http://localhost:5173/schedule?day=2023-11-15">http://localhost:5173/schedule?day=2023-11-15</a>.</p>
-"
-`;
-
-exports[`Booking cancellation template tests bookingCancellationEmailBody 2`] = `
-"<p>Hello, </p>
-<p>Your booking for plane OH-IHQ 15.11. 00:13 - 15.11. 01:13 has been cancelled.</p>
-<p>A replacement booking has been made for the period 13.09. 15:26 - 15.01. 11:00.
-Reason: MAINTENANCE. Booking created by: Admin User.</p>
-<p>Check the booking calendar at <a href="http://localhost:5173/schedule?day=2023-11-15">http://localhost:5173/schedule?day=2023-11-15</a>.</p>
-"
-`;
-
 exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 1`] = `
 "
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
@@ -26,37 +8,29 @@ exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 1`
         <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
       </div>
 
-      <h2 style="text-align: center; color: #003366;">Varauksesi on peruttu</h2>
-
       <div style="color: #333333">
-        
-      <p>Hei,</p>
+        <h1 style="text-align: center; color: #003366;">Varauksesi on peruttu</h1><p>Hei ,</p>
+<p>Varauksesi koneelle OH-IHQ 15.11. 00:13 - 15.11. 01:13 on peruttu.</p>
+<p>Korvaava varaus on tehty ajalle 13.09. 15:26 - 15.01. 11:00.
+Syy MAINTENANCE. Varauksen tekijä Admin User.</p>
 
-      <p>
-        Varauksesi koneelle OH-IHQ 15.11. 00:13 - 15.11. 01:13 on peruttu.
-      </p>
-
-      <p>
-        Korvaava varaus on tehty ajalle 13.09. 15:26 - 15.01. 11:00.
-        Syy MAINTENANCE. Varauksen tekijä Admin User.
-      </p>
-
-      <div style="text-align: center; margin: 24px 0;">
-        
-  <a href="http:&#x2F;&#x2F;localhost:5173&#x2F;schedule?day=2023-11-15" style="
-    background-color: #003366;
-    color: #ffffff;
-    padding: 12px 24px;
-    text-decoration: none;
-    border-radius: 6px;
-    display: inline-block;
-    font-weight: bold;
-  ">Tarkistele varauskalenteria</a>
-      </div>
-      
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/schedule?day&#x3D;2023-11-15" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Tarkistele varauskalenteria</a>
+    </div>
+    
       </div>
 
-      
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
     </div>
   </div>"
 `;
@@ -69,39 +43,64 @@ exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 2`
         <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
       </div>
 
-      <h2 style="text-align: center; color: #003366;">Your booking is cancelled</h2>
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Your booking is cancelled</h1><p>Hello ,</p>
+<p>Your booking for plane OH-IHQ 15.11. 00:13 - 15.11. 01:13 has been cancelled.</p>
+<p>A replacement booking has been made for the period 13.09. 15:26 - 15.01. 11:00.
+Reason: MAINTENANCE. Booking created by Admin User.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/schedule?day&#x3D;2023-11-15" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Check the booking calendar</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 3`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
 
       <div style="color: #333333">
-        
+        <h1 style="text-align: center; color: #003366;">Din bokning är inställd</h1><p>Hej ,</p>
+<p>Din bokning för flygplan OH-IHQ 15.11. 00:13 - 15.11. 01:13 har blivit inställd.</p>
+<p>En ersättningsbokning har gjorts för perioden 13.09. 15:26 - 15.01. 11:00.
+Orsak: MAINTENANCE. Bokning skapad av Admin User.</p>
 
-      <p>Hello,</p>
-
-      <p>
-        Your booking for plane OH-IHQ 15.11. 00:13 - 15.11. 01:13 has been cancelled.
-      </p>
-
-      <p>
-        A replacement booking has been made for the period
-        13.09. 15:26 - 15.01. 11:00.
-        Reason: MAINTENANCE. Booking created by: Admin User.
-      </p>
-
-      <div style="text-align: center; margin: 24px 0;">
-        
-  <a href="http:&#x2F;&#x2F;localhost:5173&#x2F;schedule?day=2023-11-15" style="
-    background-color: #003366;
-    color: #ffffff;
-    padding: 12px 24px;
-    text-decoration: none;
-    border-radius: 6px;
-    display: inline-block;
-    font-weight: bold;
-  ">Check the booking calendar</a>
-      </div>
-      
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/schedule?day&#x3D;2023-11-15" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Se bokningskalendern</a>
+    </div>
+    
       </div>
 
-      
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
     </div>
   </div>"
 `;
@@ -114,48 +113,38 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: en 1`] = `
         <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
       </div>
 
-      <h2 style="text-align: center; color: #003366;">Login Confirmation</h2>
-
       <div style="color: #333333">
-        
+        <h1 style="text-align: center; color: #003366;">Login Confirmation</h1><p>Hello Tester1,</p>
+<p>You are attempting to log in to the <strong>MIK website</strong>. Please confirm your login by clicking the button below:</p>
 
-      <p>Hello,</p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Confirm Login</a>
+    </div>
+    <p>If the button above doesn&#39;t work, please copy and paste the following link into your browser:</p>
+<a style="word-break: break-all;">
+  <a href="https://example.com">
+  https://example.com
+  </a>
+</p>
 
-      <p>
-        You are attempting to log in to the <strong>MIK website</strong>. Please confirm your login by clicking the button below:
-      </p>
+<p>Your verification code is:</p>
+<p style="font-size: 1.25em; font-weight: bold; color: #003366;">
+  12345
+</p>
 
-      <div style="text-align: center; margin: 24px 0;">
-        
-  <a href="https:&#x2F;&#x2F;example.com" style="
-    background-color: #003366;
-    color: #ffffff;
-    padding: 12px 24px;
-    text-decoration: none;
-    border-radius: 6px;
-    display: inline-block;
-    font-weight: bold;
-  ">Confirm Login</a>
       </div>
 
-      <p>
-        If the button above doesn't work, please copy and paste the following link into your browser:
-      </p>
-      <p style="word-break: break-all;"><a href="https:&#x2F;&#x2F;example.com">https:&#x2F;&#x2F;example.com</a></p>
-
-      <p>Your verification code is:</p>
-      <p style="font-size: 1.25em; font-weight: bold; color: #003366;">12345</p>
-
-      
-      </div>
-
-      
-        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-
-      <p style="font-size: 0.9em; color: #666666;">
-        If you didn’t request this email, you can safely ignore it.
-      </p>
-        
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        <p style="font-size: 0.9em; color: #666666;">If you didn’t request this email, you can safely ignore it.</p>
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
     </div>
   </div>"
 `;
@@ -168,82 +157,377 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: fi 1`] = `
         <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
       </div>
 
-      <h2 style="text-align: center; color: #003366;">Kirjautumisen vahvistus</h2>
-
       <div style="color: #333333">
-        
-      <p>Hei,</p>
+        <h1 style="text-align: center; color: #003366;">Kirjautumisen vahvistus</h1><p>Hei Tester1,</p>
+<p>Olet kirjautumassa <strong>MIK-verkkosivustolle</strong>. Vahvista kirjautumisesi napsauttamalla alla olevaa painiketta:</p>
 
-      <p>
-        Olet kirjautumassa <strong>MIK-verkkosivustolle</strong>. Vahvista kirjautumisesi napsauttamalla alla olevaa painiketta:
-      </p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Vahvista kirjautuminen</a>
+    </div>
+    <p>Jos painike ei toimi, kopioi ja liitä seuraava linkki selaimeesi:</p>
+<p style="word-break: break-all;">
+  <a href="https://example.com">
+    https://example.com
+  </a>
+</p>
 
-      <div style="text-align: center; margin: 24px 0;">
-        
-  <a href="https:&#x2F;&#x2F;example.com" style="
-    background-color: #003366;
-    color: #ffffff;
-    padding: 12px 24px;
-    text-decoration: none;
-    border-radius: 6px;
-    display: inline-block;
-    font-weight: bold;
-  ">Vahvista kirjautuminen</a>
+<p>Vahvistuskoodisi on:</p>
+<p style="font-size: 1.25em; font-weight: bold; color: #003366;">
+  12345
+</p>
+
       </div>
 
-      <p>
-        Jos painike ei toimi, kopioi ja liitä seuraava linkki selaimeesi:
-      </p>
-      <p style="word-break: break-all"><a href="https:&#x2F;&#x2F;example.com">https:&#x2F;&#x2F;example.com</a></p>
-
-      <p>Vahvistuskoodisi on:</p>
-      <p style="font-size: 1.25em; font-weight: bold; color: #003366;">12345</p>
-      
-      </div>
-
-      
-        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-
-      <p style="font-size: 0.9em; color: #666666;">
-        Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.
-      </p>
-        
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        <p style="font-size: 0.9em; color: #666666;">Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.</p>
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
     </div>
   </div>"
 `;
 
-exports[`Login Email template tests loginEmailPlainText 1`] = `
-"<p>MIK Login Confirmation</p>
-<p>You are logging in to the MIK website.</p>
-<p>Please confirm your login by clicking the link below:
-<a href="https://example.com">https://example.com</a></p>
-<p>If the link doesn&#39;t work, copy and paste it into your browser.</p>
-<p>Your verification code is: 12345</p>
-<p>If you didn’t request this login, you can safely ignore this message.</p>
+exports[`Login Email template tests loginEmailBodyHtml for lang: sv 1`] = `
 "
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Inloggningsbekräftelse</h1><p>Hej Tester1,</p>
+<p>Du försöker logga in på <strong>MIK-webbplatsen</strong>. Vänligen bekräfta din inloggning genom att klicka på knappen nedan:</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Bekräfta inloggning</a>
+    </div>
+    <p>Om knappen ovan inte fungerar, vänligen kopiera och klistra in följande länk i din webbläsare:</p>
+<a style="word-break: break-all;">
+  <a href="https://example.com">
+  https://example.com
+  </a>
+</p>
+
+<p>Din verifieringskod är:</p>
+<p style="font-size: 1.25em; font-weight: bold; color: #003366;">
+  12345
+</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        <p style="font-size: 0.9em; color: #666666;">If you didn’t request this email, you can safely ignore it.</p>
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
 `;
 
-exports[`Register Email template tests registerEmailBody 1`] = `
-"<p>  Hei Tester1,</p>
-<p>  kiitos hakemuksestasi Malmin Ilmailukerho ry:n jäseneksi. 
-  Käsittelemme hakemuksesi pian ja olemme sinuun yhteydessä.</p>
-<p>  Sillä välin, voit vahvistaa sähköpostiosoitteesi klikkaamalla alla olevaa linkkiä:</p>
-<p>  <a href="https://example.com">Vahvista sähköpostiosoite</a></p>
-<p>  Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:</p>
-<p>  <a href="https://example.com">https://example.com</a>
-  </p>
+exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml anonymized for lang: en 1`] = `
 "
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
+<p>New occurrence for plane OH-STL has been reported at 01.12.2025 12:31.</p>
+<p>DTO-occurrence has to be processed in 72 hours. Deadline is at 04.12.2025 12:31.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Review the occurrence</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
 `;
 
-exports[`Register Email template tests registerEmailBody 2`] = `
-"<p>  Hello Tester1,</p>
-<p>  thank you for applying as a member of Malmin Ilmailukerho ry. 
-  We will review your application as soon as possible and get back to you.</p>
-<p>  In the meantime, you can confirm your email address by clicking the link below:</p>
-<p>  <a href="https://example.com">Confirm email</a></p>
-<p>  Alternatively you can also copy and paste the link into your browser:</p>
-<p>  <a href="https://example.com">https://example.com</a></p>
+exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml anonymized for lang: fi 1`] = `
 "
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
+<p>Uusi poikkema koneelle OH-STL on ilmoitettu aikaan 01.12.2025 12:31.</p>
+<p>DTO-poikkeman käsittely on tehtävä 72 tunnissa. Määräaika päättyy 04.12.2025 12:31.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Tarkastele poikkeamaa</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for lang: en 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
+<p>New occurrence for plane OH-STL has been reported at 01.12.2025 12:31.</p>
+<p>The occurrence is only visible to SMS admin group members and have to be anonymized before it becomes visible to the rest of the safety team. Please process the occurrence as soon as possible.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Review the occurrence</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for lang: fi 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
+<p>Uusi poikkema koneelle OH-STL on ilmoitettu aikaan 01.12.2025 12:31.</p>
+<p>Poikkema on näkyvissä vain SMS-ylläpitäjäryhmän jäsenille ja se on anonymisoitava ennen kuin se tulee näkyväksi muulle turvallisuustiimille. Ole hyvä ja käsittele poikkema mahdollisimman pian.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Tarkastele poikkeamaa</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml with deadline for lang: en 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
+<p>New occurrence for plane OH-STL has been reported at 01.12.2025 12:31.</p>
+<p>The occurrence is only visible to SMS admin group members and have to be anonymized before it becomes visible to the rest of the safety team. Please process the occurrence as soon as possible.</p>
+<p>DTO-occurrence has to be processed in 72 hours. Deadline is at 04.12.2025 12:31.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Review the occurrence</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml with deadline for lang: fi 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
+<p>Uusi poikkema koneelle OH-STL on ilmoitettu aikaan 01.12.2025 12:31.</p>
+<p>Poikkema on näkyvissä vain SMS-ylläpitäjäryhmän jäsenille ja se on anonymisoitava ennen kuin se tulee näkyväksi muulle turvallisuustiimille. Ole hyvä ja käsittele poikkema mahdollisimman pian.</p>
+<p>DTO-poikkeman käsittely on tehtävä 72 tunnissa. Määräaika päättyy 04.12.2025 12:31.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Tarkastele poikkeamaa</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Overdue invoice template tests overdueInvoiceEmailBodyHtml 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Overdue Invoice Reminder</h1><p>Dear Tester1,</p>
+<p>This is a reminder that invoice <strong>#INV-12345</strong> for <strong>100 €</strong>
+was due on <strong>2024-06-30</strong> and remains unpaid.</p>
+<p>Please arrange payment at your earliest convenience.</p>
+<p style="color: #cc0000; font-weight: bold;">
+⚠️ Warning: If this invoice remains unpaid, your ability to make aircraft reservations may be suspended.
+</p>
+
+<p>If you have already made payment or believe this notice is in error, please contact us immediately at <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
+<p>Thank you for your prompt attention to this matter.</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Overdue invoice template tests overdueInvoiceEmailBodyHtml 2`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Overdue Invoice Reminder</h1><p>Dear Tester1,</p>
+<p>This is a reminder that invoice <strong>#INV-12345</strong> for <strong>100 €</strong>
+was due on <strong>2024-06-30</strong> and remains unpaid.</p>
+<p>Please arrange payment at your earliest convenience.</p>
+<p style="color: #cc0000; font-weight: bold;">
+⚠️ Warning: If this invoice remains unpaid, your ability to make aircraft reservations may be suspended.
+</p>
+
+<p>If you have already made payment or believe this notice is in error, please contact us immediately at <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
+<p>Thank you for your prompt attention to this matter.</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Overdue invoice template tests overdueInvoiceEmailBodyHtml 3`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Overdue Invoice Reminder</h1><p>Dear Tester1,</p>
+<p>This is a reminder that invoice <strong>#INV-12345</strong> for <strong>100 €</strong>
+was due on <strong>2024-06-30</strong> and remains unpaid.</p>
+<p>Please arrange payment at your earliest convenience.</p>
+<p style="color: #cc0000; font-weight: bold;">
+⚠️ Warning: If this invoice remains unpaid, your ability to make aircraft reservations may be suspended.
+</p>
+
+<p>If you have already made payment or believe this notice is in error, please contact us immediately at <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
+<p>Thank you for your prompt attention to this matter.</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
 `;
 
 exports[`Register Email template tests registerEmailBodyHtml 1`] = `
@@ -254,43 +538,30 @@ exports[`Register Email template tests registerEmailBodyHtml 1`] = `
         <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
       </div>
 
-      <h2 style="text-align: center; color: #003366;">Hakemuksen vahvistus</h2>
-
       <div style="color: #333333">
-        
-      <p>Hei Tester1,</p>
+        <h1 style="text-align: center; color: #003366;">Hakemus vastaanotettu</h1><p>Hei Tester1,</p>
+<p>kiitos hakemuksestasi Malmin Ilmailukerho ry:n jäseneksi. Käsittelemme hakemuksesi pian ja olemme sinuun yhteydessä.
+Sillä välin, voit vahvistaa sähköpostiosoitteesi klikkaamalla alla olevaa linkkiä:</p>
 
-      <p>
-        kiitos hakemuksestasi Malmin Ilmailukerho ry:n jäseneksi. Käsittelemme hakemuksesi pian ja olemme sinuun yhteydessä.
-        Sillä välin, voit vahvistaa sähköpostiosoitteesi klikkaamalla alla olevaa linkkiä:
-      </p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Vahvista sähköpostiosoite</a>
+    </div>
+    <p>Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:</p>
+<p style="word-break: break-all;"><a href="https://example.com">https://example.com</a></p>
 
-      <div style="text-align: center; margin: 24px 0;">
-        
-  <a href="https:&#x2F;&#x2F;example.com" style="
-    background-color: #003366;
-    color: #ffffff;
-    padding: 12px 24px;
-    text-decoration: none;
-    border-radius: 6px;
-    display: inline-block;
-    font-weight: bold;
-  ">Vahvista sähköpostiosoite</a>
       </div>
 
-      <p>
-        Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:
-      </p>
-      <p style="word-break: break-all;"><a href="https:&#x2F;&#x2F;example.com">https:&#x2F;&#x2F;example.com</a></p>
-      </div>
-
-      
-        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-
-      <p style="font-size: 0.9em; color: #666666;">
-        Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.
-      </p>
-        
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        <p style="font-size: 0.9em; color: #666666;">Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.</p>
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
     </div>
   </div>"
 `;
@@ -303,44 +574,305 @@ exports[`Register Email template tests registerEmailBodyHtml 2`] = `
         <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
       </div>
 
-      <h2 style="text-align: center; color: #003366;">Registration Confirmation</h2>
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Application Received</h1><p>Hello Tester1,</p>
+<p>Thank you for applying to become a member of Malmin Ilmailukerho ry. We will review your application as soon as possible and get back to you.
+In the meantime, you can confirm your email address by clicking the link below:</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Confirm Email Address</a>
+    </div>
+    <p>If the button above doesn&#39;t work, please copy and paste the following link into your browser:</p>
+<p style="word-break: break-all;"><a href="https://example.com">https://example.com</a></p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        <p style="font-size: 0.9em; color: #666666;">If you didn’t request this email, you can safely ignore it.</p>
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Register Email template tests registerEmailBodyHtml 3`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
 
       <div style="color: #333333">
-        
+        <h1 style="text-align: center; color: #003366;">Ansökan mottagen</h1><p>Hej Tester1,</p>
+<p>Tack för att du har ansökt om att bli medlem i Malmin Ilmailukerho ry. Vi kommer att granska din ansökan så snart som möjligt och återkomma till dig.
+Under tiden kan du bekräfta din e-postadress genom att klicka på länken nedan:</p>
 
-      <p>Hello Tester1,</p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Bekräfta e-postadress</a>
+    </div>
+    <p>Om knappen ovan inte fungerar, vänligen kopiera och klistra in följande länk i din webbläsare:</p>
+<p style="word-break: break-all;"><a href="https://example.com">https://example.com</a></p>
 
-      <p>
-        Thank you for applying to become a member of Malmin Ilmailukerho ry. We will review your application as soon as possible and get back to you.
-        In the meantime, you can confirm your email address by clicking the link below:
-      </p>
-
-      <div style="text-align: center; margin: 24px 0;">
-        
-  <a href="https:&#x2F;&#x2F;example.com" style="
-    background-color: #003366;
-    color: #ffffff;
-    padding: 12px 24px;
-    text-decoration: none;
-    border-radius: 6px;
-    display: inline-block;
-    font-weight: bold;
-  ">Confirm Email Address</a>
       </div>
 
-      <p>
-        If the button above doesn't work, please copy and paste the following link into your browser:
-      </p>
-      <p style="word-break: break-all; color: #333333;"><a href="https:&#x2F;&#x2F;example.com">https:&#x2F;&#x2F;example.com</a></p>
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        <p style="font-size: 0.9em; color: #666666;">If you didn’t request this email, you can safely ignore it.</p>
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Register approved template tests membershipApprovedEmailBodyHtml 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
       </div>
 
-      
-        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Jäsenyytesi on hyväksytty</h1><p>Hei Tester1, tervetuloa MIK:iin, jäsenyytesi on hyväksytty.</p>
+<p>Tutustu klubin <a href="https://www.mik.fi/malmin-ilmailukerho-ry/saannot/">sääntöihin</a>. Jos sinulla on kysyttävää, ota rohkeasti yhteyttä hallituksen jäseneen.</p>
+<p>Seuraavat askeleet:</p>
+<ul>
+<li>Maksa jäsenmaksu (automaattinen lasku lähetetään sinulle)</li>
+<li>Ota yhteyttä lennonopettajiin järjestääksesi kerhotarkkarin jotta saat käyttöoikeuden kerhon lentokoneisiin ja varauskirjaan</li>
+<li>Liity WhatsApp-ryhmiin</li>
+</ul>
 
-      <p style="font-size: 0.9em; color: #666666;">
-        If you didn’t request this email, you can safely ignore it.
-      </p>
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
         
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Register approved template tests membershipApprovedEmailBodyHtml 2`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Membership Approved</h1><p>Hi Tester1,</p>
+<p>Welcome to MIK, your membership has been approved.</p>
+<p>Please familiarize yourself with the club <a href="https://www.mik.fi/malmin-ilmailukerho-ry/saannot/">rules</a>. If you have any questions feel free to contact a member of the committee.</p>
+<p>Next steps:</p>
+<ul>
+<li>Pay the membership fee (an automated invoice will be sent to you)</li>
+<li>Contact an instructor or aircraft captain to arrange a check ride</li>
+<li>Join the WhatsApp groups</li>
+</ul>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Register approved template tests membershipApprovedEmailBodyHtml 3`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Medlemskap godkänt</h1><p>Hej Tester1,</p>
+<p>Välkommen till MIK, ditt medlemskap har godkänts.</p>
+<p>Vänligen bekanta dig med klubbens <a href="https://www.mik.fi/malmin-ilmailukerho-ry/saannot/">regler</a>. Om du har några frågor är du välkommen att kontakta en styrelsemedlem.</p>
+<p>Nästa steg:</p>
+<ul>
+<li>Betala medlemsavgiften (en automatisk faktura skickas till dig)</li>
+<li>Kontakta en instruktör eller flygplanschef för att boka en kontrollflygning</li>
+<li>Gå med i WhatsApp-grupperna</li>
+</ul>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Lentokoneen varausoikeus keskeytetty</h1><p>Hyvä Tester1,</p>
+<p>Oikeutesi tehdä lentovarauksia on <strong>keskeytetty</strong> maksamattomien lentolaskujen vuoksi.</p>
+<div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;">
+
+<p><strong>Maksamattomat lentolaskut:</strong></p>
+<p>Määrä: <strong>2</strong></p>
+<p>Kokonaissumma: <strong>150 €</strong></p>
+</div>
+
+<h2 style="text-align: center; color: #003366;">Mitä tämä tarkoittaa</h2><ul>
+<li>Et voi tehdä uusia lentovarauksia ennen kuin kaikki erääntyneet lentolaskut on maksettu</li>
+<li><strong>3 olemassa oleva(a) varausta on peruutettu</strong></li>
+<li>Tämä keskeytys koskee vain lentokoneen varausoikeuksia</li>
+<li>Varausoikeutesi palautetaan automaattisesti, kun kaikki lentolaskut on maksettu</li>
+</ul>
+<h2 style="text-align: center; color: #003366;">Toimenpiteitä vaaditaan</h2><p>Maksa kaikki erääntyneet lentolaskut välittömästi. Voit tarkastella ja maksaa laskujasi kirjautumalla MIK Intranetiin.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/club/billing" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Näytä laskuni</a>
+    </div>
+    <p>Jos sinulla on kysymyksiä laskuistasi tai tarvitset apua maksamisessa, ota yhteyttä laskutusosastoomme:</p>
+<p><a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
+<p>Kiitos huomiostasi tähän asiaan.</p>
+<p>Ystävällisin terveisin,
+Malmin Ilmailukerho - MIK ry</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 2`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Aircraft Reservation Privileges Suspended</h1><p>Dear Tester1,</p>
+<p>Your ability to make aircraft reservations has been <strong>suspended</strong> due to unpaid flight invoices.</p>
+<div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;">
+  
+<p><strong>Outstanding Flight Invoices:</strong></p>
+<p>Count: <strong>2</strong></p>
+<p>Total Amount: <strong>150 €</strong></p>
+</div>
+
+<h2 style="text-align: center; color: #003366;">What this means</h2><ul>
+<li>You cannot make new aircraft reservations until all overdue flight invoices are paid</li>
+<li><strong>3 existing reservation(s) have been cancelled</strong></li>
+<li>This suspension only affects flight booking privileges</li>
+<li>Your reservation privileges will be automatically restored once all flight invoices are paid</ul></li>
+</ul>
+<h2 style="text-align: center; color: #003366;">Action Required</h2><p>Please pay all overdue flight invoices immediately. You can view and pay your invoices by logging into the MIK Intranet.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/club/billing" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">View My Invoices</a>
+    </div>
+    <p>If you have questions about your invoices or need payment assistance, please contact our billing department:</p>
+<p><a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
+<p>Thank you for your prompt attention to this matter.</p>
+<p>Best regards,
+Malmin Ilmailukerho - MIK ry</p></p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 3`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Flygplansreservationsrättigheter har upphävts</h1><p>Bästa Tester1,</p>
+<p>Din möjlighet att göra flygplansreservationer har <strong>upphävts</strong> på grund av obetalda flygfakturor.</p>
+<div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;">
+  
+<p><strong>Utestående flygfakturor:</strong></p>
+<p>Antal: <strong>2</strong></p>
+<p>Totalt belopp: <strong>150 €</strong></p>
+</div>
+
+<h2 style="text-align: center; color: #003366;">Vad detta betyder</h2><ul>
+<li>Du kan inte göra nya flygplansreservationer förrän alla förfallna flygfakturor är betalda</li>
+<li><strong>3 befintlig(a) reservation(er) har avbokats</strong></li>
+<li>Detta upphävande påverkar endast flygbokningsrättigheter</li>
+<li>Dina reservationsrättigheter kommer automatiskt att återställas när alla flygfakturor är betalda</li>
+</ul>
+<h2 style="text-align: center; color: #003366;">Åtgärd krävs</h2><p>Vänligen betala alla förfallna flygfakturor omedelbart. Du kan visa och betala dina fakturor genom att logga in på MIK Intranet.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/club/billing" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Visa mina fakturor</a>
+    </div>
+    <p>Om du har frågor om dina fakturor eller behöver hjälp med betalning, vänligen kontakta vår faktureringsavdelning:</p>
+<p><a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
+<p>Tack för din snabba uppmärksamhet på detta ärende.</p>
+<p>Med vänliga hälsningar,
+Malmin Ilmailukerho - MIK ry</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
     </div>
   </div>"
 `;

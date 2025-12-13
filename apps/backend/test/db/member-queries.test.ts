@@ -5,11 +5,12 @@ import {
   getMemberById,
   addMember,
   updateMember,
-  getAllMemberRoleById,
+  getMemberRoleById,
   addMemberRole,
   updateMemberRole,
   removeMemberRole,
   removeMember,
+  getMemberRolesByPermission,
 } from '../../src/db/member-queries.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import {
@@ -113,6 +114,11 @@ describe('Db query member tests', () => {
     expect(result).toBeUndefined()
   })
 
+  it('getMemberRolesByPermission should return roles with given permission', async () => {
+    const result = await getMemberRolesByPermission(MIKPermissions.BOOKING_ADMIN)
+    expect(result.map(r => r.roleId)).toEqual(['ADMIN', 'PLANE_CAPTAIN'])
+  })
+
   it('getMemberRolesByMemberId should return roles for given valid member', async () => {
     const result = await getMemberRolesByMemberId('Matti1')
     expect(result).toMatchSnapshot(
@@ -142,7 +148,7 @@ describe('Db query member tests', () => {
   })
 
   it('getMembers should return everything for admins', async () => {
-    const result = await getAllMemberRoleById('ADMIN')
+    const result = await getMemberRoleById('ADMIN')
     // test only first 10 items in the test data
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
@@ -227,11 +233,11 @@ describe('Db add member tests', () => {
       description: new Date().toISOString(),
     }
 
-    const beforeUpdate = await getAllMemberRoleById('MAINTENANCE')
+    const beforeUpdate = await getMemberRoleById('MAINTENANCE')
 
     expect(await updateMemberRole('MAINTENANCE', updRole, jwt)).toEqual(true)
 
-    const afterUpdate = await getAllMemberRoleById('MAINTENANCE')
+    const afterUpdate = await getMemberRoleById('MAINTENANCE')
 
     expect(afterUpdate).toEqual({
       ...beforeUpdate,

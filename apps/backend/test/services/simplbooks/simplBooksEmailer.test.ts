@@ -103,7 +103,6 @@ describe('SimplBooks Emailer Tests', () => {
         'test@example.com',
         'MIK New Invoice - 12345',
         expect.stringContaining('Test'), // Should contain firstName
-        '',
         [
           {
             filename: 'mik_lasku_12345.pdf',
@@ -130,7 +129,6 @@ describe('SimplBooks Emailer Tests', () => {
         'test@example.com',
         'Malmin Ilmailukerhon lasku - 12345',
         expect.stringContaining('Test'), // Should contain firstName
-        '',
         [
           {
             filename: 'mik_lasku_12345.pdf',
@@ -230,7 +228,7 @@ describe('SimplBooks Emailer Tests', () => {
       await sendSimplbooksInvoiceEmail(12345, 'test-member-123')
 
       // Assert
-      const attachments = sendEmail.mock.calls[0][4]
+      const attachments = sendEmail.mock.calls[0][3]
       expect(attachments).toHaveLength(1)
       expect(attachments![0]).toEqual({
         filename: 'mik_lasku_12345.pdf',

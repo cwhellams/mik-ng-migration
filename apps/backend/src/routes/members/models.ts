@@ -109,6 +109,7 @@ const MemberListSchema = z.object({
   phoneNumber: z.string().nullish(),
   email: z.string(),
   roles: z.array(z.string()),
+  lang: z.nativeEnum(MIKLang),
 })
 
 export type MemberList = z.infer<typeof MemberListSchema>

@@ -26,6 +26,7 @@ import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorke
 import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoicePaymentWorker.ts'
 import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
 import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
+import { startOccurrenceNotificationWorker } from './workers/occurrenceNotifyWorker.ts'
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -96,6 +97,7 @@ app.use('/api/v1/occurrences', occurrenceRoutes)
 const poller = startSimpleBooksOutboxProcessor()
 const invoicePaymentWorker = startSimplbooksInvoicePaymentWorker()
 const overdueInvoiceWorker = startOverdueInvoiceWorker()
+const occurrenceNotificationWorker = startOccurrenceNotificationWorker()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
@@ -114,6 +116,7 @@ const shutdown = async (): Promise<void> => {
   poller?.stop()
   invoicePaymentWorker?.stop()
   overdueInvoiceWorker?.stop()
+  occurrenceNotificationWorker?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)

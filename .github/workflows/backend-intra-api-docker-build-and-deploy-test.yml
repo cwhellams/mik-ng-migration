@@ -5,11 +5,11 @@ on:
     branches: [test] # Adjust branch names as needed
 
     paths:
-      - "apps/**" # trigger if changes are in apps/frontend or backend
-      - ".github/workflows/**" # or in the workflows
-      - ".do/**" # or in digital ocean yaml
-      - "sql/schema/**" # or in sql files
-      - "Dockerfile" # or in Dockerfile
+      - 'apps/**' # trigger if changes are in apps/frontend or backend
+      - '.github/workflows/**' # or in the workflows
+      - '.do/**' # or in digital ocean yaml
+      - 'sql/schema/**' # or in sql files
+      - 'Dockerfile' # or in Dockerfile
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -71,6 +71,7 @@ jobs:
           echo "OVERDUE_INVOICE_WORKER_ENABLED=${{ vars.OVERDUE_INVOICE_WORKER_ENABLED }}" >> $GITHUB_ENV
           echo "OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP=${{ vars.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP }}" >> $GITHUB_ENV
           echo "OVERDUE_INVOICE_SUSPENSION_DAYS=${{ vars.OVERDUE_INVOICE_SUSPENSION_DAYS }}" >> $GITHUB_ENV
+          echo "OCCURRENCE_NOTIFICATION_WORKER_ENABLED=${{ vars.OCCURRENCE_NOTIFICATION_WORKER_ENABLED }}" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_KEY=${{ secrets.DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID }}" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_SECRET=${{ secrets.DIGITAL_OCEAN_SPACES_SECRET }}" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_REGION=fra1" >> $GITHUB_ENV

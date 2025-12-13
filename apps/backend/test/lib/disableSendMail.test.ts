@@ -32,7 +32,7 @@ describe('sendEmail with DISABLE_EMAIL_SENDING=true', () => {
         .mockImplementation(() => logger.default as unknown as Logger)
 
       const { sendEmail } = await import('../../src/lib/sendGmail.ts')
-      sendEmail('recipient@example.com', 'Subject', '<p>HTML</p>', 'Text')
+      sendEmail('recipient@example.com', 'Subject', '<p>HTML</p>')
       expect(infoSpy).toHaveBeenCalledWith(
         'Email sending is disabled. Email not sent to recipient@example.com',
       )
@@ -51,7 +51,7 @@ describe('sendEmail with DISABLE_EMAIL_SENDING=true', () => {
       process.env.DISABLE_EMAIL_SENDING = 'recipient@example.com,recipient2@example.com'
 
       const { sendEmail } = await import('../../src/lib/sendGmail.ts')
-      sendEmail('recipient3@example.com', 'Subject', '<p>HTML</p>', 'Text')
+      sendEmail('recipient3@example.com', 'Subject', '<p>HTML</p>')
       expect(infoSpy).toHaveBeenCalledWith(
         'Email sending is disabled. Email not sent to recipient3@example.com',
       )
@@ -70,7 +70,7 @@ describe('sendEmail with DISABLE_EMAIL_SENDING=true', () => {
       process.env.DISABLE_EMAIL_SENDING = 'recipient@example.com,recipient2@example.com'
 
       const { sendEmail } = await import('../../src/lib/sendGmail.ts')
-      sendEmail('recipient2@example.com', 'Subject', '<p>HTML</p>', 'Text')
+      sendEmail('recipient2@example.com', 'Subject', '<p>HTML</p>')
       expect(infoSpy).toHaveBeenCalledTimes(0)
       expect(sendMailMock).toHaveBeenCalled()
     })
