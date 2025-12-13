@@ -127,6 +127,14 @@ describe('Db query FlightLog tests', () => {
     expect(result.logs[2]).toMatchSnapshot()
   })
 
+  it('getFlightLogs with incidents or observations', async () => {
+    const result = await getFlightLogs({
+      incidentsOrObservations: true,
+    })
+    expect(result.rows).toEqual(1)
+    expect(result.logs?.map(f => f.incidentOrObservations)).toEqual(['Engine stopped briefly'])
+  })
+
   it('getFlightLogTotals returns totals for all ac', async () => {
     const result = await getFlightLogTotals()
     expect(result).toMatchSnapshot()

@@ -65,6 +65,7 @@ export const FlightLogFiltersSchema = z
     page: z.coerce.number().int().optional(),
     limit: z.coerce.number().int().optional(),
     orderLatestFirst: BooleanSchema.optional(),
+    incidentsOrObservations: BooleanSchema.optional(),
   })
   .strict()
 
@@ -312,6 +313,7 @@ export const FlightLogListEntrySchema = FlightLogSchema.pick({
   flightType: true,
   fuelRemainingLitres: true,
   fuelUpliftLitres: true,
+  incidentOrObservations: true,
   instrumentFlyingMins: true,
   nightFlyingMins: true,
   numberOfLandings: true,

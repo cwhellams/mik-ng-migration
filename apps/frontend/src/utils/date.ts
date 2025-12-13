@@ -17,12 +17,17 @@ dayJs.updateLocale('fi', {
 
 export const dayjs = dayJs
 
-export const toLocalDate = (date?: string | null, format = 'DD.MM.YYYY') =>
-  date ? dayjs(date).format(format) : null
+export const formatDateTime = (
+  timestamp?: string | Date | null,
+  template = 'DD.MM.YYYY HH:mm'
+) => formatDate(timestamp, template)
 
-// Format date from timestamp to localized format
-export const formatDate = (timestamp: string | Date, template = 'D.M.YY') => {
-  return dayjs(timestamp).format(template)
+// Format date to localized format
+export const formatDate = (
+  timestamp?: string | Date | null,
+  template = 'DD.MM.YYYY'
+) => {
+  return timestamp ? dayjs(timestamp).format(template) : '-'
 }
 
 // Format time from timestamp to display format

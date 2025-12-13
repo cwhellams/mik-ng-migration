@@ -15,7 +15,7 @@ interface ThemeContextType {
   mode: ThemeMode
   sudo?: boolean
   toggleTheme: () => void
-  toggleSudo: () => void
+  toggleSudo: (on?: boolean) => void
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
@@ -41,8 +41,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'))
   }
 
-  const toggleSudo = () => {
-    setSudo((prevSudo) => !prevSudo)
+  const toggleSudo = (on?: boolean) => {
+    setSudo((prevSudo) => !prevSudo || on === true)
     // clear all SWR caches after toggling sudo mode
     setTimeout(() => mutate(() => true, undefined, { revalidate: true }), 0)
   }

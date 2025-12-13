@@ -147,6 +147,9 @@ export default function useApi<
 
     // if true, mutation calls only
     skipFetch?: boolean
+
+    // if true, always use sudo mode for the request
+    alwaysSudo?: boolean
   },
   config: SWRConfiguration<AxiosResponse<Data>, AxiosError<Problem>> = {}
 ): Omit<

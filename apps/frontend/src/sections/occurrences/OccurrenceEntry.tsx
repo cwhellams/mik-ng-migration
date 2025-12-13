@@ -47,6 +47,7 @@ import {
 } from '../flightLog/utils/timeUtils'
 import { OccurrenceStatusChip } from './components/OccurrenceStatusChip'
 import { ConfirmButton } from '../../components/ConfirmDialog'
+import { formatDateTime } from '../../utils/date'
 
 export const OccurrenceEntry = () => {
   const { t } = useTranslation()
@@ -179,11 +180,11 @@ export const OccurrenceEntry = () => {
       {data && (
         <Grid size={{ xs: 12 }}>
           <FormField label={t('occurrences.reportDate')} sx={{ mb: 2 }}>
-            {dayjs(data.reportDate).format('DD.MM.YYYY HH:mm')}
+            {formatDateTime(data.reportDate)}
           </FormField>
           {data.deadLine && (
             <FormField label={t('occurrences.deadLine')} sx={{ mb: 2 }}>
-              {dayjs(data.deadLine).format('DD.MM.YYYY HH:mm')}
+              {formatDateTime(data.deadLine)}
             </FormField>
           )}
 

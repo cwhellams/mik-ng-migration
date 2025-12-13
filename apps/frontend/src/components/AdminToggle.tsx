@@ -17,7 +17,7 @@ const AdminToggle = () => {
   return (
     <Tooltip title={t('header.toggleSudo')}>
       <IconButton
-        onClick={toggleSudo}
+        onClick={() => toggleSudo()}
         color='inherit'
         aria-label={t('header.toggleSudo')}
         sx={{ color: 'text.primary' }}

@@ -28,9 +28,11 @@ const Dashboard = () => {
         MIKPermissions.BOOKING_ADMIN
       ) && <BookingUserDashboard />}
 
-      {roles.isMembersAdmin && <MemberAdminDashboard />}
+      {roles.hasAccess(MIKPermissions.MEMBER_ADMIN) && <MemberAdminDashboard />}
 
-      {roles.isFlightLogAdmin && <FlightLogAdminDashboard />}
+      {roles.hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) && (
+        <FlightLogAdminDashboard />
+      )}
     </Box>
   )
 }

@@ -24,7 +24,6 @@ export function ResponsiveTable<T>({
       {header && (
         <Grid
           container
-          spacing={1}
           sx={{
             px: 1,
             py: 2,

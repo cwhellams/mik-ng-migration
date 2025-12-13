@@ -13,7 +13,7 @@ import {
   OccurrencesListResponse,
   OccurrenceStatus,
 } from '@backend/routes/occurrences/models'
-import { formatDate } from '../../utils/date'
+import { formatDateTime } from '../../utils/date'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
 import { OccurrenceStatusChip } from './components/OccurrenceStatusChip'
 import {
@@ -81,13 +81,11 @@ export const Occurrences = () => {
                       : undefined
                   }
                 >
-                  {formatDate(occurrence.reportDate, 'DD.MM.YYYY HH:mm')}
+                  {formatDateTime(occurrence.reportDate)}
                 </Link>
               </Grid>
               <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-                <Box>
-                  {formatDate(occurrence.occurrenceDate, 'DD.MM.YYYY HH:mm')}
-                </Box>
+                <Box>{formatDateTime(occurrence.occurrenceDate)}</Box>
               </Grid>
               <Grid size={{ xs: 6, sm: 3, md: 1.5 }}>
                 <OccurrenceStatusChip status={occurrence.status} />

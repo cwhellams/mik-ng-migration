@@ -49,7 +49,12 @@ import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../components/SaveButton'
 import { Title } from '../../components/Title'
 
-const flightTypes: FlightType[] = [FlightType.PRIVATE, FlightType.SCHOOL]
+const flightTypes: FlightType[] = [
+  FlightType.PRIVATE,
+  FlightType.SCHOOL,
+  FlightType.FERRY,
+  FlightType.TEST_FLIGHT,
+]
 
 const FlightLogEntry = () => {
   const { t } = useTranslation()
@@ -211,7 +216,7 @@ const FlightLogEntry = () => {
 
       {/* Breadcrumb navigation */}
       <Breadcrumbs sx={{ my: 2 }}>
-        <Link to='/flight-logs'>{t('flightLog.title')}</Link>
+        <Link to='/logs'>{t('flightLog.title')}</Link>
         <Typography color='text.primary'>{title}</Typography>
       </Breadcrumbs>
 
@@ -482,6 +487,34 @@ const FlightLogEntry = () => {
               />
             </Grid>
 
+            {/* Notes */}
+            <Grid size={12}>
+              <Typography variant='h6'>{t('flightLog.notes')}</Typography>
+            </Grid>
+
+            <Grid size={12}>
+              <TxtField
+                name='incidentOrObservations'
+                control={control}
+                props={{
+                  disabled: !isEditable,
+                  multiline: true,
+                  rows: 3,
+                }}
+              />
+            </Grid>
+
+            <Grid size={12}>
+              <TxtField
+                name='personalRemarks'
+                control={control}
+                props={{
+                  multiline: true,
+                  rows: 3,
+                }}
+              />
+            </Grid>
+
             {/* Billing Information */}
             <Grid size={12}>
               <Typography variant='h6'>{t('flightLog.billingInfo')}</Typography>
@@ -519,17 +552,6 @@ const FlightLogEntry = () => {
                   disabled: isInvoiced,
                   multiline: true,
                   rows: 2,
-                }}
-              />
-            </Grid>
-
-            <Grid size={12}>
-              <TxtField
-                name='personalRemarks'
-                control={control}
-                props={{
-                  multiline: true,
-                  rows: 3,
                 }}
               />
             </Grid>

@@ -1,7 +1,7 @@
 import { Tooltip } from '@mui/material'
 import { FormField } from './FormField'
 import { Link } from 'react-router-dom'
-import { toLocalDate } from '../utils/date'
+import { formatDate } from '../utils/date'
 
 const AuditBy = ({ by, memberId }: { by?: string; memberId?: string }) => {
   if (!by) {
@@ -36,7 +36,7 @@ export const AuditFormField = ({
 }) => (
   <FormField label={label} width={width}>
     <Tooltip title={at}>
-      <span>{toLocalDate(at, format)} </span>
+      <span>{formatDate(at, format)} </span>
     </Tooltip>
     {by && <AuditBy by={by} memberId={memberId} />}
   </FormField>

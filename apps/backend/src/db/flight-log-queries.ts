@@ -155,6 +155,10 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     query = query.where('status', '=', filters.status)
   }
 
+  if (filters.incidentsOrObservations) {
+    query = query.where('incident_or_observations', 'is not', null)
+  }
+
   // synch mode fetches physical pages from the ajlb
   const ajlbPaging = filters.ajlbSeqNo && filters.page !== undefined
   if (ajlbPaging) {
@@ -199,6 +203,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'flight.logs.flight_type',
       'flight.logs.fuel_remaining_litres',
       'flight.logs.fuel_uplift_litres',
+      'flight.logs.incident_or_observations',
       'flight.logs.instrument_flying_mins',
       'flight.logs.night_flying_mins',
       'flight.logs.number_of_landings',
@@ -238,6 +243,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         flightType: row.flight_type as FlightType,
         fuelRemainingLitres: row.fuel_remaining_litres,
         fuelUpliftLitres: row.fuel_uplift_litres,
+        incidentOrObservations: row.incident_or_observations,
         instrumentFlyingMins: row.instrument_flying_mins,
         nightFlyingMins: row.night_flying_mins,
         numberOfLandings: row.number_of_landings,

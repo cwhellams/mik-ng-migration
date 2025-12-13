@@ -544,7 +544,9 @@
     "billingInfo": "Laskutustiedot",
     "billableMemberId": "Laskutettavan jäsennumero",
     "billingRemarks": "Laskutushuomautukset",
-    "personalRemarks": "Huomautukset",
+    "notes": "Muistiinpanot",
+    "incidentOrObservations": "Havainnot tai poikkeamat",
+    "personalRemarks": "Omat muistiinpanot",
     "flightTimeline": "Lennon aikajana",
     "taxiOut": "Rullaus lentoonlähtöön",
     "flightTime": "Lento",
@@ -851,7 +853,14 @@
       "message": "Klikkaamalla Hyväksy sitoudut maksamaan kalustomaksulaskun €{{amount}}, joka lähetetään sinulle pian. Alennus €{{discount}} tunnilta otetaan käyttöön välittömästi kaikille laskuttamattomille lennoille.",
       "accept": "Hyväksy",
       "cancel": "Peruuta"
-    }
+    },
+    "latestFlightsWithIncidents": "Viimeisimmät lennot poikkeamien tai havaintojen kanssa",
+    "noFlightsWithIncidents": "Ei lentoja poikkeamien tai havaintojen kanssa.",
+    "newFlightsToValidate": "Uudet lennot vahvistettavaksi",
+    "noNewFlights": "Ei uusia lentoja vahvistettavaksi.",
+    "newFlightsSince": "{{count}} uutta lentoa sitten {{date}}",
+    "pendingMemberApprovals": "Uudet hyväksyntää odottavat jäsenet",
+    "noMembersAwaitingApproval": "Ei hyväksyntää odottavia jäseniä."
   },
   "occurrences": {
     "title": "Poikkamaraportit",

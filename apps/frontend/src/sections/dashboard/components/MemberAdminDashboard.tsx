@@ -17,8 +17,15 @@ import { Box } from '@mui/system'
 import { Link } from 'react-router-dom'
 import { RemoteContent } from '../../../components/RemoteContent'
 import useApi from '../../../hooks/useApi'
+import { useThemeMode } from '../../../theme/ThemeContext'
+import { useTranslation } from 'react-i18next'
 
 export const MemberAdminDashboard = () => {
+  const { t } = useTranslation()
+
+  // enable sudo mode when navigating to member details
+  const { toggleSudo } = useThemeMode()
+
   const unapprovedUsersFilter: MemberListFilters = {
     showUnapproved: true,
   }
@@ -26,17 +33,20 @@ export const MemberAdminDashboard = () => {
   const { data, isLoading, error } = useApi<MemberListResponse, Member>({
     url: 'v1/members',
     params: unapprovedUsersFilter,
+    alwaysSudo: true,
   })
 
   return (
-    <Accordion defaultExpanded sx={{ mt: 4 }}>
+    <Accordion defaultExpanded>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant='h5'>Pending Member Approvals</Typography>
+        <Typography variant='h5'>
+          {t('dashboard.pendingMemberApprovals')}
+        </Typography>
       </AccordionSummary>
       <AccordionDetails>
         <RemoteContent isLoading={isLoading} error={error}>
           {data?.members.length === 0 && (
-            <Typography>No members awaiting approval.</Typography>
+            <Typography>{t('dashboard.noMembersAwaitingApproval')}</Typography>
           )}
 
           <Box sx={{ maxHeight: 200, overflowY: 'auto' }}>
@@ -45,7 +55,10 @@ export const MemberAdminDashboard = () => {
                 <ListItem key={member.memberId}>
                   <ListItemText
                     primary={
-                      <Link to={`/members/${member.memberId}`}>
+                      <Link
+                        to={`/club/members/${member.memberId}`}
+                        onClick={() => toggleSudo(true)}
+                      >
                         {member.first} {member.last}
                       </Link>
                     }

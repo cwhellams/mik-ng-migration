@@ -544,7 +544,9 @@
     "billingInfo": "Billing Information",
     "billableMemberId": "Billable Member ID",
     "billingRemarks": "Billing Remarks",
-    "personalRemarks": "Remarks",
+    "notes": "Notes",
+    "incidentOrObservations": "Incidents or Observations",
+    "personalRemarks": "Personal Remarks",
     "flightTimeline": "Flight Timeline",
     "taxiOut": "Taxi Out",
     "flightTime": "Flight",
@@ -851,7 +853,14 @@
       "message": "By clicking Accept you commit to pay the equipment fee invoice of €{{amount}}, which will be sent to you shortly. The discount of €{{discount}} per hour is applied immediately to all un-invoiced flights.",
       "accept": "Accept",
       "cancel": "Cancel"
-    }
+    },
+    "latestFlightsWithIncidents": "Latest Flights with Incidents or Observations",
+    "noFlightsWithIncidents": "No flights with incidents or observations.",
+    "newFlightsToValidate": "New Flights to Validate",
+    "noNewFlights": "No new flights to validate.",
+    "newFlightsSince": "{{count}} new flights since {{date}}",
+    "pendingMemberApprovals": "Pending Member Approvals",
+    "noMembersAwaitingApproval": "No members awaiting approval."
   },
   "occurrences": {
     "title": "Occurrence Reports",

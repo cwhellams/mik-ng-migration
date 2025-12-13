@@ -112,9 +112,7 @@ export const FlightLogValidation = ({
             <>
               <Typography variant='h6' mb={2}>
                 {t('flightLog.logbooks.newFlightsSince', {
-                  date: view.validatedBeforeUTC
-                    ? formatDate(view.validatedBeforeUTC, 'DD.MM.YYYY')
-                    : '-',
+                  date: formatDate(view.validatedBeforeUTC),
                 })}
               </Typography>
               <FormField

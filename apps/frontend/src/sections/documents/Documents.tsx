@@ -24,7 +24,6 @@ import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { EditButton } from '../../components/EditButton'
 import { useRoles } from '../../hooks/useRoles'
-import dayjs from 'dayjs'
 import UploadDocumentModal from './UploadDocumentModal'
 import EditDocumentModal from './EditDocumentModal'
 
@@ -37,6 +36,7 @@ import type {
 } from '@backend/routes/documents/models'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
+import { formatDate } from '../../utils/date'
 
 const Documents = () => {
   const { t } = useTranslation()
@@ -364,7 +364,7 @@ const Documents = () => {
 
               <Grid size={{ xs: 6, sm: 2 }}>
                 <Typography variant='body2' color='text.secondary'>
-                  {dayjs(document.publishedDate).format('DD.MM.YYYY')}
+                  {formatDate(document.publishedDate)}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 6, sm: 3.3 }}>

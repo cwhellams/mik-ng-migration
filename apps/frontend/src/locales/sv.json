@@ -543,7 +543,9 @@
     "billingInfo": "Faktureringsinformation",
     "billableMemberId": "Fakturerbart medlems-ID",
     "billingRemarks": "Faktureringskommentarer",
-    "personalRemarks": "Kommentarer",
+    "notes": "Anteckningar",
+    "incidentOrObservations": "Incidenter eller observationer",
+    "personalRemarks": "Personliga kommentarer",
     "flightTimeline": "Flygtidslinje",
     "taxiOut": "Taxi ut",
     "flightTime": "Flyg",
@@ -850,7 +852,14 @@
       "message": "Genom att klicka på Acceptera förbinder du dig att betala fakturan för utrustningsavgiften €{{amount}}, som kommer att skickas till dig inom kort. Rabatten €{{discount}} per timme tillämpas omedelbart på alla icke-fakturerade flygningar.",
       "accept": "Acceptera",
       "cancel": "Avbryt"
-    }
+    },
+    "latestFlightsWithIncidents": "Senaste flyg med incidenter eller observationer",
+    "noFlightsWithIncidents": "Inga flyg med incidenter eller observationer.",
+    "newFlightsToValidate": "Nya flyg att validera",
+    "noNewFlights": "Inga nya flyg att validera.",
+    "newFlightsSince": "{{count}} nya flyg sedan {{date}}",
+    "pendingMemberApprovals": "Väntande medlemsgodkännanden",
+    "noMembersAwaitingApproval": "Inga medlemmar väntar på godkännande."
   },
   "occurrences": {
     "title": "Tillbudsrapporter",

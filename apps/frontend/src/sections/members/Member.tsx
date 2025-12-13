@@ -22,7 +22,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { EditButton } from '../../components/EditButton'
 import { FormField } from '../../components/FormField'
 import { AuditFormField } from '../../components/AuditFormField'
-import { toLocalDate } from '../../utils/date'
+import { formatDate } from '../../utils/date'
 import { formatPhoneNumber } from '../../utils/format'
 import { FormTitle } from '../../components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
@@ -275,7 +275,7 @@ const MemberProfile = () => {
                   </FormField>
 
                   <FormField label={t('member.dateOfBirth')} width={100}>
-                    {dateOfBirth && toLocalDate(dateOfBirth)}
+                    {formatDate(dateOfBirth)}
                   </FormField>
                 </Stack>
               </CardContent>
@@ -594,7 +594,7 @@ const MemberProfile = () => {
                 <FormField label={t('member.billingId')}>{billingId}</FormField>
 
                 <FormField label={t('member.memberSince')}>
-                  {toLocalDate(memberSince)}
+                  {formatDate(memberSince)}
                 </FormField>
 
                 {isAdmin && data && (

@@ -252,19 +252,19 @@ const FlightLogsList = () => {
         <ResponsiveTable
           header={
             <>
-              <Grid size={1}>{t('flightLog.date')}</Grid>
+              <Grid size={1.3}>{t('flightLog.date')}</Grid>
               {!singlePlane && <Grid size={1}>{t('flightLog.aircraft')}</Grid>}
               <Grid size={1.5}>{t('flightLog.crews.pic')}</Grid>
               <Grid size={1.5}>{t('flightLog.logbooks.student')}</Grid>
               <Grid size={0.5}>PoB</Grid>
-              <Grid size={1.2}>{t('flightLog.departure')}</Grid>
-              <Grid size={1.2}>{t('flightLog.arrival')}</Grid>
+              <Grid size={1}>{t('flightLog.departure')}</Grid>
+              <Grid size={1}>{t('flightLog.arrival')}</Grid>
               <Grid size={1.1}>
                 {t(syncMode ? 'flightLog.airborneTime' : 'flightLog.duration')}
               </Grid>
               {syncMode && <Grid size={1.1}>{t('flightLog.hours')}</Grid>}
-              <Grid size={0.9}>{t('flightLog.landings')}</Grid>
-              <Grid size={1}>{t('flightLog.flightType')}</Grid>
+              <Grid size={0.8}>{t('flightLog.landings')}</Grid>
+              <Grid size={1.2}>{t('flightLog.flightType')}</Grid>
               <Grid size={1} textAlign='center'>
                 {t('flightLog.logbooks.status')}
               </Grid>
@@ -297,7 +297,7 @@ const FlightLogsList = () => {
 
             return (
               <>
-                <Grid size={{ xs: 3, md: 1 }}>
+                <Grid size={{ xs: 3, md: 1.3 }}>
                   <ViewFlightDate
                     flightId={log.flightId}
                     date={log.offBlockTimeUtc}
@@ -329,7 +329,7 @@ const FlightLogsList = () => {
                       <Box>{log.personsOnBoard}</Box>
                     </Grid>
 
-                    <Grid size={1.2}>
+                    <Grid size={1}>
                       <Box>{log.departureAirport}</Box>
                       {!syncMode && (
                         <Box color='text.secondary'>
@@ -341,7 +341,7 @@ const FlightLogsList = () => {
                       </Box>
                     </Grid>
 
-                    <Grid size={1.2}>
+                    <Grid size={1}>
                       <Box>{log.arrivalAirport}</Box>
                       <Box color='text.secondary'>
                         {formatTime(log.landingTimeUtc)}
@@ -362,9 +362,9 @@ const FlightLogsList = () => {
                       <Grid size={1.1}>{log.acTotalFlightTime}</Grid>
                     )}
 
-                    <Grid size={0.9}>{log.numberOfLandings}</Grid>
+                    <Grid size={0.8}>{log.numberOfLandings}</Grid>
 
-                    <Grid size={1}>
+                    <Grid size={1.2}>
                       {t(`flightLog.flightTypes.${log.flightType}`)}
                     </Grid>
 
