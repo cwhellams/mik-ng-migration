@@ -722,6 +722,10 @@
   "massBalance": {
     "title": "Mass & Balance Calculator",
     "description": "Calculate aircraft weight and balance for flight planning. Select an aircraft and enter loading information to determine if the flight is within safe operating limits.",
+    "disclaimer": {
+      "title": "Disclaimer",
+      "text": "It is the responsibility of the Pilot in Command to ensure the accuracy of the Weight & Balance of the aircraft. Whilst every effort is made to ensure the accuracy of these calculations, MIK ry does not guarantee this calculator is accurate, reference the POH and official aircraft documentation for certified data."
+    },
     "aircraftSelection": "Aircraft Selection",
     "selectAircraft": "Select Aircraft",
     "aircraftData": "Aircraft Data",

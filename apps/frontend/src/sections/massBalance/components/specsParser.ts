@@ -48,6 +48,9 @@ export interface AircraftSpecs {
     forward: number
     aft: number
   }
+  warningThresholds: {
+    nearLimitPercent: number
+  }
   flightEnvelopePoints?: FlightEnvelopePoint[]
   loadPoints: {
     basicEmptyWeight: LoadPointConfig

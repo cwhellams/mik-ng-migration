@@ -16,6 +16,9 @@
     "forward": 25.0,
     "aft": 39.0
   },
+  "warningThresholds": {
+    "nearLimitPercent": 0.98
+  },
   "loadPoints": {
     "basicEmptyWeight": {
       "unit": "kg",

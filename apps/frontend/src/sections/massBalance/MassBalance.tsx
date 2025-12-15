@@ -14,7 +14,9 @@ import {
   Card,
   CardContent,
   Slider,
+  Button,
 } from '@mui/material'
+import WarningIcon from '@mui/icons-material/Warning'
 import { useTranslation } from 'react-i18next'
 import {
   loadAircraftSpecs,
@@ -33,6 +35,7 @@ interface CalculationResults {
   zeroFuelWeight: number
   zeroFuelMoment: number
   zeroFuelCG: number
+  rampWeight: number
   takeoffWeight: number
   takeoffMoment: number
   takeoffCG: number
@@ -97,6 +100,7 @@ const MassBalance: React.FC = () => {
     arm: 0,
   })
   const [totalFuelBurn, setTotalFuelBurn] = useState<number>(0)
+  const [totalFuelBurnWeight, setTotalFuelBurnWeight] = useState<number>(0)
 
   const [results, setResults] = useState<CalculationResults | null>(null)
 
@@ -139,11 +143,12 @@ const MassBalance: React.FC = () => {
       }
     }
 
-    // Check if near limits (≥95% of max weight)
+    // Check if near limits (configurable threshold)
+    const nearLimitThreshold = selectedAircraft.warningThresholds.nearLimitPercent
     if (
       results.takeoffWeight >=
-        selectedAircraft.weightLimits.maxTakeoff * 0.95 ||
-      results.landingWeight >= maxLanding * 0.95
+        selectedAircraft.weightLimits.maxTakeoff * nearLimitThreshold ||
+      results.landingWeight >= maxLanding * nearLimitThreshold
     ) {
       return { status: 'near', message: 'Near Limits', color: 'warning.main' }
     }
@@ -273,11 +278,16 @@ const MassBalance: React.FC = () => {
     setFrontSeats({ weight: totalWeight, arm: avgArm })
   }, [pilot, copilot])
 
-  // Calculate total fuel burn
+  // Calculate total fuel burn and weight
   useEffect(() => {
     const calculatedFuelBurn = taxiFuel + (flightTime / 60) * fuelFlow
     setTotalFuelBurn(calculatedFuelBurn)
-  }, [taxiFuel, flightTime, fuelFlow])
+    
+    if (selectedAircraft) {
+      const fuelWeight = calculatedFuelBurn * selectedAircraft.fuelConversion.litre2Kilo
+      setTotalFuelBurnWeight(fuelWeight)
+    }
+  }, [taxiFuel, flightTime, fuelFlow, selectedAircraft])
 
   useEffect(() => {
     if (!selectedAircraft) return
@@ -328,14 +338,15 @@ const MassBalance: React.FC = () => {
       // Calculate takeoff weight and moment (subtract taxi fuel used on ground)
       const taxiFuelWeight =
         taxiFuel * selectedAircraft.fuelConversion.litre2Kilo
-      const takeoffWeight = zeroFuelWeight + fuel.weight - taxiFuelWeight
+      const rampWeight = zeroFuelWeight + fuel.weight
+      const takeoffWeight = rampWeight - taxiFuelWeight
       const takeoffMoment =
         zeroFuelMoment + fuel.weight * fuel.arm - taxiFuelWeight * fuel.arm
       const takeoffCG = takeoffWeight > 0 ? takeoffMoment / takeoffWeight : 0
 
       // Calculate landing weight and moment
       const landingWeight =
-        takeoffWeight -
+        rampWeight -
         totalFuelBurn * selectedAircraft.fuelConversion.litre2Kilo
       const landingMoment =
         takeoffMoment -
@@ -375,6 +386,7 @@ const MassBalance: React.FC = () => {
       }
 
       setResults({
+        rampWeight,
         zeroFuelWeight,
         zeroFuelMoment,
         zeroFuelCG,
@@ -411,6 +423,14 @@ const MassBalance: React.FC = () => {
     event.target.select()
   }
 
+  const handleResetFuelPlanning = () => {
+    if (selectedAircraft) {
+      updateTaxiFuel(selectedAircraft.loadPoints.taxiFuel.defaultValue || 3)
+      updateFuelFlow(selectedAircraft.loadPoints.fuelFlow.defaultValue || 25)
+      updateFlightTime(selectedAircraft.loadPoints.flightTime.defaultValue || 45)
+    }
+  }
+
   return (
     <Box sx={{ py: 4 }}>
       <Title label={t('massBalance.title')} />
@@ -418,6 +438,20 @@ const MassBalance: React.FC = () => {
       <Typography variant='body1' color='text.secondary' sx={{ mb: 4 }}>
         {t('massBalance.description')}
       </Typography>
+
+      {/* Disclaimer */}
+      <Alert 
+        severity='warning' 
+        icon={<WarningIcon fontSize='large' />}
+        sx={{ mb: 4, fontWeight: 500 }}
+      >
+        <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
+          {t('massBalance.disclaimer.title')}
+        </Typography>
+        <Typography variant='body2'>
+          {t('massBalance.disclaimer.text')}
+        </Typography>
+      </Alert>
 
       {/* Aircraft Selection */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
@@ -464,33 +498,31 @@ const MassBalance: React.FC = () => {
           <Typography variant='h6' gutterBottom>
             Weight Summary
           </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 2.4 }}>
-              <Card
-                sx={{
-                  height: '100%',
-                  bgcolor: 'primary.light',
-                  color: 'primary.contrastText',
-                }}
-              >
-                <CardContent>
-                  <Typography variant='h6' component='div'>
-                    Basic Weight
-                  </Typography>
-                  <Typography variant='h4'>
-                    {selectedAircraft.weightLimits.basicEmptyWeight} kg
-                  </Typography>
-                  <Typography variant='body2'>
-                    (
-                    {(
-                      selectedAircraft.weightLimits.basicEmptyWeight *
-                      CONVERSIONS.KG_TO_LBS
-                    ).toFixed(1)}{' '}
-                    lbs)
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+          
+          {/* Basic Empty Weight - Full Width */}
+          <Box sx={{ mb: 3 }}>
+            <Card
+              sx={{
+                bgcolor: 'grey.100',
+                borderLeft: '4px solid',
+                borderColor: 'grey.700',
+              }}
+            >
+              <CardContent>
+                <Typography variant='subtitle2' component='div' color='text.secondary'>
+                  Basic Empty Weight
+                </Typography>
+                <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 0.5 }}>
+                  {selectedAircraft.weightLimits.basicEmptyWeight} kg
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  ({(selectedAircraft.weightLimits.basicEmptyWeight * CONVERSIONS.KG_TO_LBS).toFixed(1)} lbs)
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
+
+          <Grid container spacing={2}>            
             <Grid size={{ xs: 12, sm: 2.4 }}>
               <Card
                 sx={{
@@ -520,12 +552,38 @@ const MassBalance: React.FC = () => {
               <Card
                 sx={{
                   height: '100%',
+                  bgcolor: 'primary.light',
+                  color: 'primary.contrastText',
+                }}
+              >
+                <CardContent>
+                  <Typography variant='h6' component='div'>
+                    Ramp Weight
+                  </Typography>
+                  <Typography variant='h4'>
+                    {results.rampWeight.toFixed(1)} kg
+                  </Typography>
+                  <Typography variant='body2'>
+                    (
+                    {(
+                      results.rampWeight *
+                      CONVERSIONS.KG_TO_LBS
+                    ).toFixed(1)}{' '}
+                    lbs)
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 2.4 }}>
+              <Card
+                sx={{
+                  height: '100%',
                   bgcolor:
                     results.takeoffWeight >
                     selectedAircraft.weightLimits.maxTakeoff
                       ? 'error.main'
                       : results.takeoffWeight >=
-                          selectedAircraft.weightLimits.maxTakeoff * 0.95
+                          selectedAircraft.weightLimits.maxTakeoff * selectedAircraft.warningThresholds.nearLimitPercent
                         ? 'warning.main'
                         : 'success.light',
                   color:
@@ -533,7 +591,7 @@ const MassBalance: React.FC = () => {
                     selectedAircraft.weightLimits.maxTakeoff
                       ? 'error.contrastText'
                       : results.takeoffWeight >=
-                          selectedAircraft.weightLimits.maxTakeoff * 0.95
+                          selectedAircraft.weightLimits.maxTakeoff * selectedAircraft.warningThresholds.nearLimitPercent
                         ? 'warning.contrastText'
                         : 'success.contrastText',
                 }}
@@ -571,7 +629,7 @@ const MassBalance: React.FC = () => {
                       : results.landingWeight >=
                           (selectedAircraft.weightLimits.maxLanding ||
                             selectedAircraft.weightLimits.maxTakeoff) *
-                            0.95
+                            selectedAircraft.warningThresholds.nearLimitPercent
                         ? 'warning.main'
                         : 'secondary.light',
                   color:
@@ -582,7 +640,7 @@ const MassBalance: React.FC = () => {
                       : results.landingWeight >=
                           (selectedAircraft.weightLimits.maxLanding ||
                             selectedAircraft.weightLimits.maxTakeoff) *
-                            0.95
+                            selectedAircraft.warningThresholds.nearLimitPercent
                         ? 'warning.contrastText'
                         : 'secondary.contrastText',
                 }}
@@ -611,7 +669,7 @@ const MassBalance: React.FC = () => {
                     selectedAircraft.weightLimits.maxTakeoff
                       ? 'error.main'
                       : results.takeoffWeight >=
-                          selectedAircraft.weightLimits.maxTakeoff * 0.95
+                          selectedAircraft.weightLimits.maxTakeoff * selectedAircraft.warningThresholds.nearLimitPercent
                         ? 'warning.main'
                         : 'info.light',
                   color:
@@ -619,7 +677,7 @@ const MassBalance: React.FC = () => {
                     selectedAircraft.weightLimits.maxTakeoff
                       ? 'error.contrastText'
                       : results.takeoffWeight >=
-                          selectedAircraft.weightLimits.maxTakeoff * 0.95
+                          selectedAircraft.weightLimits.maxTakeoff * selectedAircraft.warningThresholds.nearLimitPercent
                         ? 'warning.contrastText'
                         : 'info.contrastText',
                 }}
@@ -663,7 +721,7 @@ const MassBalance: React.FC = () => {
                     {totalFuelBurn.toFixed(1)} L
                   </Typography>
                   <Typography variant='body2'>
-                    ({(totalFuelBurn * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG)
+                    ({(totalFuelBurn * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG) - {totalFuelBurnWeight.toFixed(1)} kg
                   </Typography>
                 </CardContent>
               </Card>
@@ -1122,9 +1180,19 @@ const MassBalance: React.FC = () => {
         {/* Fuel Planning Panel */}
         <Grid size={{ xs: 12, lg: 3 }}>
           <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-            <Typography variant='h6' gutterBottom>
-              {t('massBalance.fuelPlanning')}
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant='h6'>
+                {t('massBalance.fuelPlanning')}
+              </Typography>
+              <Button
+                size='small'
+                variant='outlined'
+                onClick={handleResetFuelPlanning}
+                sx={{ textTransform: 'none' }}
+              >
+                Reset to Defaults
+              </Button>
+            </Box>
 
             {/* Taxi Fuel */}
             <Box sx={{ mb: 2 }}>
@@ -1172,6 +1240,18 @@ const MassBalance: React.FC = () => {
                 step={selectedAircraft?.loadPoints.flightTime.step || 5}
                 valueLabelDisplay='auto'
               />
+            </Box>
+
+            {/* Consumed Fuel */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant='caption' sx={{ mb: 1, display: 'block', fontWeight: 'bold' }}>
+                Consumed Fuel: {totalFuelBurn.toFixed(1)} L (
+                {(totalFuelBurn * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG)
+                - {totalFuelBurnWeight.toFixed(1)} kg
+              </Typography>
+              <Typography variant='caption' sx={{ display: 'block', color: 'text.secondary', fontStyle: 'italic' }}>
+                Taxi: {taxiFuel} L + Flight: {((flightTime / 60) * fuelFlow).toFixed(1)} L
+              </Typography>
             </Box>
           </Paper>
         </Grid>
@@ -1373,6 +1453,124 @@ const MassBalance: React.FC = () => {
                         <Typography variant='body2'>Baggage:</Typography>
                         <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
                           {selectedAircraft.loadPoints.baggage.momentArm} cm
+                        </Typography>
+                      </div>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Paper>
+        )}
+      </Box>
+
+      {/* Conversion Factors */}
+      <Box sx={{ mt: 3 }}>
+        {selectedAircraft && (
+          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+            <Typography variant='h6' gutterBottom>
+              Conversion Factors
+            </Typography>
+            <Typography
+              variant='caption'
+              color='text.secondary'
+              sx={{ mb: 2, display: 'block' }}
+            >
+              Unit conversion factors used in calculations
+            </Typography>
+
+            <Grid container spacing={2}>
+              {/* Standard Conversions */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Card sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Typography
+                      variant='subtitle1'
+                      gutterBottom
+                      sx={{ fontWeight: 'bold' }}
+                    >
+                      Standard Conversions
+                    </Typography>
+                    <Box
+                      sx={{
+                        '& > div': {
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          mb: 1,
+                        },
+                      }}
+                    >
+                      <div>
+                        <Typography variant='body2'>
+                          Weight (kg to lbs):
+                        </Typography>
+                        <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
+                          × {CONVERSIONS.KG_TO_LBS.toFixed(5)}
+                        </Typography>
+                      </div>
+                      <div>
+                        <Typography variant='body2'>
+                          Volume (L to USG):
+                        </Typography>
+                        <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
+                          × {CONVERSIONS.LTR_TO_USG.toFixed(5)}
+                        </Typography>
+                      </div>
+                      <div>
+                        <Typography variant='body2'>
+                          Length (m to inches):
+                        </Typography>
+                        <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
+                          × {CONVERSIONS.M_TO_INCHES.toFixed(5)}
+                        </Typography>
+                      </div>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Aircraft-Specific Conversions */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Card sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Typography
+                      variant='subtitle1'
+                      gutterBottom
+                      sx={{ fontWeight: 'bold' }}
+                    >
+                      Aircraft-Specific Conversions
+                    </Typography>
+                    <Box
+                      sx={{
+                        '& > div': {
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          mb: 1,
+                        },
+                      }}
+                    >
+                      <div>
+                        <Typography variant='body2'>
+                          Fuel Density (L to kg):
+                        </Typography>
+                        <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
+                          × {selectedAircraft.fuelConversion.litre2Kilo.toFixed(2)} kg/L
+                        </Typography>
+                      </div>
+                      <div>
+                        <Typography variant='body2'>
+                          Fuel Type:
+                        </Typography>
+                        <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
+                          {selectedAircraft.fuelConversion.litre2Kilo === 0.72 ? 'AVGAS 100LL / 98E5' : 'JET A-1'} @ 15°C
+                        </Typography>
+                      </div>
+                      <div>
+                        <Typography variant='body2'>
+                          Warning Threshold:
+                        </Typography>
+                        <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
+                          {(selectedAircraft.warningThresholds.nearLimitPercent * 100).toFixed(0)}% of max weight
                         </Typography>
                       </div>
                     </Box>

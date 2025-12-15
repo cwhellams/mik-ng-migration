@@ -721,6 +721,10 @@
   "massBalance": {
     "title": "Mass- och balansberäknare",
     "description": "Beräkna flygplanets vikt och balans för flygplanering. Välj ett flygplan och ange lastinformation för att avgöra om flygningen är inom säkra driftsgränser.",
+    "disclaimer": {
+      "title": "Ansvarsfriskrivning",
+      "text": "Det är flygbefälhavarens ansvar att säkerställa att flygplanets vikt och balans är korrekt. Även om alla ansträngningar görs för att säkerställa noggrannheten i dessa beräkningar, garanterar MIK ry inte att denna kalkylator är korrekt. Hänvisa till POH och officiell flygplansdokumentation för certifierad data."
+    },
     "aircraftSelection": "Flygplansval",
     "selectAircraft": "Välj flygplan",
     "aircraftData": "Flygplansdata",

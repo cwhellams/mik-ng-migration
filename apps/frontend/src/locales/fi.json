@@ -722,6 +722,10 @@
   "massBalance": {
     "title": "Massa ja tasapaino laskin",
     "description": "Laske lentokoneen massa ja tasapaino lennon suunnittelua varten. Valitse lentokone ja syötä kuormitustiedot määrittääksesi, onko lento turvallisten toimintarajojen sisällä.",
+    "disclaimer": {
+      "title": "Vastuuvapauslauseke",
+      "text": "Päällikön vastuulla on varmistaa lentokoneen massan ja tasapainon oikeellisuus. Vaikka pyrimme varmistamaan näiden laskelmien tarkkuuden, MIK ry ei takaa tämän laskurin tarkkuutta. Viittaa POH:hon ja viralliseen lentokoneen dokumentaatioon sertifioidun tiedon saamiseksi."
+    },
     "aircraftSelection": "Lentokoneen valinta",
     "selectAircraft": "Valitse lentokone",
     "aircraftData": "Lentokoneen tiedot",

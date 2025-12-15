@@ -14,6 +14,9 @@
     "forward": 244.0,
     "aft": 255.0
   },
+  "warningThresholds": {
+    "nearLimitPercent": 0.98
+  },
   "flightEnvelopePoints": [
     { "weight": 940, "momentArm": 240.0 },
     { "weight": 1080, "momentArm": 240.0 },
