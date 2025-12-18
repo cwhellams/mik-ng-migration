@@ -1,0 +1,164 @@
+name: mik-intranet-prod
+region: fra1
+network:
+  vpc_uuid: ${DO_MIK_VPC_UUID}
+domains:
+  - domain: ${DOMAIN}
+    type: PRIMARY
+ingress:
+  rules:
+    - component:
+        name: mik-intranet-api-prod
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /api
+    - component:
+        name: mik-intranet-api-prod
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /auth
+    - component:
+        name: mik-intranet-api-prod
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /health
+    - component:
+        name: mik-intranet-frontend-prod
+      match:
+        path:
+          prefix: /
+services:
+  - name: mik-intranet-api-prod
+
+    image:
+      registry_type: DOCR
+      repository: mik-dev-team/mik-ng
+
+    http_port: 3000 #Setup port mapping from public internet port 80 or 443, the platform will forward traffic to this port
+
+    log_destinations:
+      - name: mik-intranet-logtail-prod
+        logtail:
+          token: ${BETTERSTACK_API_TOKEN}
+    envs:
+      - key: DATABASE_URL
+        value: ${DATABASE_URL}
+        type: SECRET
+      - key: SMTP_PASSWORD
+        value: ${SMTP_PASSWORD}
+        type: SECRET
+      - key: ACCESS_TOKEN_SECRET
+        value: ${ACCESS_TOKEN_SECRET}
+        type: SECRET
+      - key: MAGIC_LINK_SECRET
+        value: ${MAGIC_LINK_SECRET}
+        type: SECRET
+      - key: REFRESH_TOKEN_SECRET
+        value: ${REFRESH_TOKEN_SECRET}
+        type: SECRET
+      - key: BETTERSTACK_API_TOKEN
+        value: ${BETTERSTACK_API_TOKEN}
+        type: SECRET
+      - key: ACCESS_TOKEN_EXPIRATION
+        value: ${ACCESS_TOKEN_EXPIRATION}
+        type: GENERAL
+      - key: REFRESH_TOKEN_EXPIRATION
+        value: ${REFRESH_TOKEN_EXPIRATION}
+        type: GENERAL
+      - key: LOG_LEVEL
+        value: ${LOG_LEVEL}
+        type: GENERAL
+      - key: SMTP_LOGIN
+        value: ${SMTP_LOGIN}
+        type: GENERAL
+      - key: PUBLIC_URL
+        value: ${PUBLIC_URL}
+        type: GENERAL
+      - key: DB_SSL
+        value: 'true'
+        type: GENERAL
+      - key: SIMPLBOOKS_OUTBOX_WORKER_ENABLED
+        value: ${SIMPLBOOKS_OUTBOX_WORKER_ENABLED}
+        type: GENERAL
+      - key: SIMPLBOOKS_COMPANY_ID
+        value: ${SIMPLBOOKS_COMPANY_ID}
+        type: GENERAL
+      - key: SIMPLBOOKS_BASE_URI
+        value: ${SIMPLBOOKS_BASE_URI}
+        type: GENERAL
+      - key: SIMPLBOOKS_API_KEY
+        value: ${SIMPLBOOKS_API_KEY}
+        type: SECRET
+      - key: DIGITAL_OCEAN_SPACES_KEY
+        value: ${DIGITAL_OCEAN_SPACES_KEY}
+        type: SECRET
+      - key: DIGITAL_OCEAN_SPACES_SECRET
+        value: ${DIGITAL_OCEAN_SPACES_SECRET}
+        type: SECRET
+      - key: DIGITAL_OCEAN_SPACES_REGION
+        value: ${DIGITAL_OCEAN_SPACES_REGION}
+        type: GENERAL
+      - key: DIGITAL_OCEAN_SPACES_ENDPOINT
+        value: ${DIGITAL_OCEAN_SPACES_ENDPOINT}
+        type: GENERAL
+      - key: EQUIPMENT_FEE_DISCOUNT_PER_HOUR
+        value: ${EQUIPMENT_FEE_DISCOUNT_PER_HOUR}
+        type: GENERAL
+      - key: SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP
+        value: ${SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP}
+        type: GENERAL
+      - key: SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED
+        value: ${SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED}
+        type: GENERAL
+      - key: OVERDUE_INVOICE_WORKER_ENABLED
+        value: ${OVERDUE_INVOICE_WORKER_ENABLED}
+        type: GENERAL
+      - key: OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP
+        value: ${OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP}
+        type: GENERAL
+      - key: OVERDUE_INVOICE_SUSPENSION_DAYS
+        value: ${OVERDUE_INVOICE_SUSPENSION_DAYS}
+        type: GENERAL
+      - key: OCCURRENCE_NOTIFICATION_WORKER_ENABLED
+        value: ${OCCURRENCE_NOTIFICATION_WORKER_ENABLED}
+        type: GENERAL
+      - key: CORS_ALLOWED_ORIGINS
+        value: ${CORS_ALLOWED_ORIGINS}
+        type: SECRET
+
+    instance_count: 1
+    health_check:
+      http_path: /health
+      port: 3000
+      initial_delay_seconds: 10
+      period_seconds: 60
+      failure_threshold: 3
+      success_threshold: 2
+    alerts:
+      - rule: CPU_UTILIZATION
+        disabled: false
+        operator: GREATER_THAN
+        value: 85
+        window: FIVE_MINUTES
+      - operator: GREATER_THAN
+        rule: MEM_UTILIZATION
+        value: 85
+        window: FIVE_MINUTES
+static_sites:
+  - name: mik-intranet-frontend-prod
+    github:
+      repo: MIK-dev-team/mik-ng
+      branch: prod
+    source_dir: /apps/frontend
+    output_dir: /dist
+    build_command: npx tsc && npm install -g pnpm && pnpm install --frozen-lockfile && pnpm build
+    environment_slug: node-js
+    envs:
+      - key: VITE_API_TARGET
+        value: ${VITE_API_TARGET}
+        type: GENERAL
+        scope: RUN_AND_BUILD_TIME
+    catchall_document: index.html

@@ -1,15 +1,9 @@
-name: Intra API Build and Push Docker Image to DO
+name: Production Deployment to DO
 
 on:
   push:
-    branches: [test] # Adjust branch names as needed
+    branches: [prod] # Adjust branch names as needed
 
-    paths:
-      - "apps/**" # trigger if changes are in apps/frontend or backend
-      - ".github/workflows/**" # or in the workflows
-      - ".do/**" # or in digital ocean yaml
-      - "sql/schema/**" # or in sql files
-      - "Dockerfile" # or in Dockerfile
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -58,33 +52,33 @@ jobs:
 
       - name: Set environment variables
         run: |
-          echo "DATABASE_URL=${{ secrets.POSTGRES_DO_TEST_DB_PRIVATE_URL }}" >> $GITHUB_ENV
-          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> $GITHUB_ENV
-          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> $GITHUB_ENV
-          echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET }}" >> $GITHUB_ENV
-          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> $GITHUB_ENV
+          echo "DATABASE_URL=${{ secrets.POSTGRES_DO_URL_PRIVATE_PROD }}" >> $GITHUB_ENV
+          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD_PROD }}" >> $GITHUB_ENV
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET_PROD }}" >> $GITHUB_ENV
+          echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET_PROD }}" >> $GITHUB_ENV
+          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET_PROD }}" >> $GITHUB_ENV
           echo "ACCESS_TOKEN_EXPIRATION=15 mins" >> $GITHUB_ENV
           echo "REFRESH_TOKEN_EXPIRATION=365 days" >> $GITHUB_ENV
-          echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> $GITHUB_ENV
-          echo "PUBLIC_URL=${{ vars.PUBLIC_URL_TEST }}" >> $GITHUB_ENV
-          echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET_TEST }}" >> $GITHUB_ENV
+          echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN_PROD }}" >> $GITHUB_ENV
+          echo "PUBLIC_URL=${{ vars.PUBLIC_URL_PROD }}" >> $GITHUB_ENV
+          echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET }}" >> $GITHUB_ENV
           echo "BETTERSTACK_API_TOKEN=${{ secrets.BETTERSTACK_API_TOKEN }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_COMPANY_ID=${{ vars.SIMPLBOOKS_COMPANY_ID }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_BASE_URI=${{ vars.SIMPLBOOKS_BASE_URI }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_API_KEY=${{ secrets.SIMPLBOOKS_API_KEY }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP }}" >> $GITHUB_ENV
-          echo "OVERDUE_INVOICE_WORKER_ENABLED=${{ vars.OVERDUE_INVOICE_WORKER_ENABLED }}" >> $GITHUB_ENV
-          echo "OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP=${{ vars.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP }}" >> $GITHUB_ENV
-          echo "OVERDUE_INVOICE_SUSPENSION_DAYS=${{ vars.OVERDUE_INVOICE_SUSPENSION_DAYS }}" >> $GITHUB_ENV
-          echo "OCCURRENCE_NOTIFICATION_WORKER_ENABLED=${{ vars.OCCURRENCE_NOTIFICATION_WORKER_ENABLED }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED_PROD }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_COMPANY_ID=${{ vars.SIMPLBOOKS_COMPANY_ID_PROD }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_BASE_URI=${{ vars.SIMPLBOOKS_BASE_URI_PROD }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_API_KEY=${{ secrets.SIMPLBOOKS_API_KEY_PROD }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED_PROD }}" >> $GITHUB_ENV
+          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP_PROD }}" >> $GITHUB_ENV
+          echo "OVERDUE_INVOICE_WORKER_ENABLED=${{ vars.OVERDUE_INVOICE_WORKER_ENABLED_PROD }}" >> $GITHUB_ENV
+          echo "OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP=${{ vars.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP_PROD }}" >> $GITHUB_ENV
+          echo "OVERDUE_INVOICE_SUSPENSION_DAYS=${{ vars.OVERDUE_INVOICE_SUSPENSION_DAYS_PROD }}" >> $GITHUB_ENV
+          echo "OCCURRENCE_NOTIFICATION_WORKER_ENABLED=${{ vars.OCCURRENCE_NOTIFICATION_WORKER_ENABLED_PROD }}" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_KEY=${{ secrets.DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID }}" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_SECRET=${{ secrets.DIGITAL_OCEAN_SPACES_SECRET }}" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_REGION=fra1" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_ENDPOINT=https://fra1.digitaloceanspaces.com" >> $GITHUB_ENV
           echo "EQUIPMENT_FEE_DISCOUNT_PER_HOUR=${{ vars.EQUIPMENT_FEE_DISCOUNT_PER_HOUR }}" >> $GITHUB_ENV
-          echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_TEST }}" >> $GITHUB_ENV
+          echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_PROD }}" >> $GITHUB_ENV
           echo "DO_MIK_VPC_UUID=${{ vars.DO_MIK_VPC_UUID }}" >> $GITHUB_ENV
 
       - name: Build and push Docker image
@@ -116,10 +110,10 @@ jobs:
         run: |
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/migration:/flyway/sql \
-            -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
+            -v ${{ github.workspace }}/sql/migration_prod.conf:/flyway/conf/flyway.conf \
             -e FLYWAY_USER=${{ vars.DO_POSTGRES_ADMIN_USER }} \
-            -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD }} \
-            -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_TEST_URL}} \
+            -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD}} \
+            -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_URL_PROD}} \
             -e FLYWAY_PLACEHOLDER_REPLACEMENT=true \
             flyway/flyway:latest migrate
 
@@ -128,10 +122,10 @@ jobs:
         run: |
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/static_data/:/flyway/sql \
-            -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
+            -v ${{ github.workspace }}/sql/staticdata_prod.conf:/flyway/conf/flyway.conf \
             -e FLYWAY_USER=${{ vars.DO_POSTGRES_ADMIN_USER }} \
             -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD }} \
-            -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_TEST_URL}} \
+            -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_URL_PROD}} \
             flyway/flyway:latest migrate
 
       - name: Remove runner IP from database firewall
@@ -144,10 +138,10 @@ jobs:
             echo "No firewall rule UUID found to remove"
           fi
 
-      - name: Replace placeholders in mik-intranet-test.yaml
+      - name: Replace placeholders in mik-intranet.yaml
         run: |
-          export DOMAIN=$(echo "${{ vars.PUBLIC_URL_TEST }}" | sed 's|https\?://||')
-          envsubst < .do/mik-intranet-test.yaml > .do/mik-intranet-test.yaml.temp && mv .do/mik-intranet-test.yaml.temp .do/mik-intranet-test.yaml
+          export DOMAIN=$(echo "${{ vars.PUBLIC_URL_PROD }}" | sed 's|https\?://||')
+          envsubst < .do/mik-intranet-prod.yaml > .do/mik-intranet-prod.yaml.temp && mv .do/mik-intranet-prod.yaml.temp .do/mik-intranet-prod.yaml
 
       - name: Update app on DigitalOcean
-        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/mik-intranet-test.yaml --wait
+        run: doctl apps update ${{ vars.DO_BACKEND_APP_ID_PROD }} --update-sources --spec .do/mik-intranet-prod.yaml --wait

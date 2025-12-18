@@ -1,38 +1,37 @@
-name: mik-intranet
+name: mik-intranet-test
 region: fra1
+network:
+  vpc_uuid: ${DO_MIK_VPC_UUID}
 domains:
   - domain: ${DOMAIN}
     type: PRIMARY
 ingress:
   rules:
     - component:
-        name: mik-intranet-api
+        name: mik-intranet-api-test
         preserve_path_prefix: true
       match:
         path:
           prefix: /api
     - component:
-        name: mik-intranet-api
+        name: mik-intranet-api-test
         preserve_path_prefix: true
       match:
         path:
           prefix: /auth
     - component:
-        name: mik-intranet-api
+        name: mik-intranet-api-test
         preserve_path_prefix: true
       match:
         path:
           prefix: /health
     - component:
         name: mik-intranet-frontend
-      #cors:
-      #  allow_origins:
-      #  - prefix: https://mik-intra-khnt3.ondigitalocean.app/
       match:
         path:
           prefix: /
 services:
-  - name: mik-intranet-api
+  - name: mik-intranet-api-test
 
     image:
       registry_type: DOCR
