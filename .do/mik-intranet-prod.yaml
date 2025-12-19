@@ -1,7 +1,7 @@
 name: mik-intranet-prod
 region: fra1
-network:
-  vpc_uuid: ${DO_MIK_VPC_UUID}
+vpc:
+  id: ${DO_MIK_VPC_UUID}
 domains:
   - domain: ${DOMAIN}
     type: PRIMARY

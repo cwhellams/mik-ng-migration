@@ -105,9 +105,9 @@ jobs:
       - name: Add runner IP to database firewall
         if: env.sql_changed == 'true'
         run: |
-          doctl databases firewall append ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --rule="ip_addr:${{ env.RUNNER_IP }}"
+          doctl databases firewalls append ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --rule ip_addr:${{ env.RUNNER_IP }}
           # Get the UUID of the rule we just added
-          RULE_UUID=$(doctl databases firewall list ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --format UUID,Value --no-header | grep "${{ env.RUNNER_IP }}" | awk '{print $1}')
+          RULE_UUID=$(doctl databases firewalls list ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --output json | jq -r '.[] | select(.value == "${{ env.RUNNER_IP }}") | .uuid')
           echo "FIREWALL_RULE_UUID=$RULE_UUID" >> $GITHUB_ENV
           echo "Firewall rule UUID: $RULE_UUID"
 
@@ -138,7 +138,7 @@ jobs:
         if: always() && env.sql_changed == 'true'
         run: |
           if [ -n "${{ env.FIREWALL_RULE_UUID }}" ]; then
-            doctl databases firewall remove ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} ${{ env.FIREWALL_RULE_UUID }}
+            doctl databases firewalls remove ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --uuid ${{ env.FIREWALL_RULE_UUID }}
             echo "Removed firewall rule: ${{ env.FIREWALL_RULE_UUID }}"
           else
             echo "No firewall rule UUID found to remove"
