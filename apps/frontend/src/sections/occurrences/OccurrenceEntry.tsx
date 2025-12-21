@@ -14,6 +14,8 @@ import {
   Checkbox,
   TextField,
   FormControlLabel,
+  Card,
+  CardContent,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
@@ -28,10 +30,12 @@ import {
   OccurrenceUpsertSchema,
   OccurrenceStatus,
   OccurrenceUpsert,
+  OccurrenceAccess,
+  OccurrenceProcessedPayload,
+  OccurrenceClosedPayload,
 } from '@backend/routes/occurrences/models'
-import useApi from '../../hooks/useApi'
+import useApi, { MutateMethods } from '../../hooks/useApi'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
-import { useMe } from '../../hooks/useMe'
 import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
 import { SnackAlert } from '../../components/SnackAlert'
@@ -48,9 +52,14 @@ import {
 import { OccurrenceStatusChip } from './components/OccurrenceStatusChip'
 import { ConfirmButton } from '../../components/ConfirmDialog'
 import { formatDateTime } from '../../utils/date'
+import { FormTitle } from '../../components/FormTitle'
+import { SelectMember } from '../../components/SelectMember'
+import { MIKLang } from '@backend/routes/members/models'
+import { EditButton } from '../../components/EditButton'
+import { Box } from '@mui/system'
 
 export const OccurrenceEntry = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const navigate = useNavigate()
   // preserve search filters when navigating back
@@ -58,8 +67,9 @@ export const OccurrenceEntry = () => {
 
   const { reportId } = useParams()
 
-  const { me } = useMe()
-  const { isSMSAdmin } = useRoles()
+  const { isSMSProcessor, isSMSManager, me, roles } = useRoles()
+
+  const isAdmin = isSMSManager || isSMSProcessor
 
   const isNew = reportId == 'new'
 
@@ -68,10 +78,18 @@ export const OccurrenceEntry = () => {
     skipFetch: isNew,
   })
 
-  const { data: aircraftData } = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
-    params: { activeOnly: true },
-  })
+  const { data: aircraftData } = useApi<AircraftListResponse>(
+    {
+      url: 'v1/aircrafts',
+      params: { activeOnly: true },
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      revalidateOnMount: true,
+    }
+  )
   // make sure old aircrafts are shown in the list
   const currentAircrafts =
     aircraftData?.aircrafts.map((a) => a.registration) ?? []
@@ -81,11 +99,26 @@ export const OccurrenceEntry = () => {
       ? [...currentAircrafts, data.aircraftRegistration]
       : currentAircrafts
 
+  const access = data?.access
+    .filter((a) =>
+      isAdmin
+        ? a.roleId && me?.roles.find((r) => r.roleId == a.roleId)
+        : a.memberId === me?.memberId ||
+          (a.roleId && me?.roles.find((r) => r.roleId == a.roleId && !a.manage))
+    )
+    ?.sort((a, b) => {
+      if (a.manage && !b.manage) return -1
+      if (!a.manage && b.manage) return 1
+      if (a.write && !b.write) return -1
+      if (!a.write && b.write) return 1
+      return 0
+    })?.[0]
+
   const isEditable =
     isNew ||
-    data?.status == OccurrenceStatus.NEW ||
-    data?.status == OccurrenceStatus.ANONYMIZING ||
-    data?.status == OccurrenceStatus.ANONYMIZED
+    (access?.write &&
+      (data?.status == OccurrenceStatus.NEW ||
+        data?.status == OccurrenceStatus.ANONYMIZING))
 
   const {
     handleSubmit,
@@ -102,11 +135,12 @@ export const OccurrenceEntry = () => {
     defaultValues: {
       occurrenceDate: '',
       aircraftRegistration: '',
+      aircraftTechnicalFault: null,
       animalNumber: '0',
       animalSize: '',
       animalSpecies: '',
-      departureAirport: '',
-      arrivalAirport: '',
+      departureAirport: null,
+      arrivalAirport: null,
       categories: [],
       location: '',
       headline: '',
@@ -130,7 +164,12 @@ export const OccurrenceEntry = () => {
     try {
       const { data: responseData, error } = await mutation.trigger(
         isNew ? 'POST' : 'PATCH',
-        data,
+        {
+          ...data,
+          aircraftRegistration: data.aircraftRegistration || null,
+          departureAirport: data.departureAirport || null,
+          arrivalAirport: data.arrivalAirport || null,
+        },
         undefined,
         {
           // put returned payload to the cache
@@ -156,8 +195,50 @@ export const OccurrenceEntry = () => {
   const handleCancel = () =>
     navigate(`/logs/occurrences?${location.state}#${reportId}`)
 
-  const handleStateChange = async (status: OccurrenceStatus) => {
-    const { error } = await mutation.trigger('POST', data, status)
+  const handleStateChange = async (
+    status: OccurrenceStatus,
+    payload?: unknown
+  ) => {
+    const { data, error } = await mutation.trigger<unknown, Occurrence>(
+      'POST',
+      payload ?? {},
+      `status/${status}`
+    )
+    if (error) {
+      return setProblem(error)
+    }
+
+    setProblem({ status: 200, detail: t('general.savingSuccess') })
+    if (status == OccurrenceStatus.RECEIVED) {
+      // navigate to anonymized version
+      navigate(`/logs/occurrences/${data?.id}`)
+    } else if (status == OccurrenceStatus.ANONYMIZED) {
+      // independent processor has no more access to the report
+      navigate('/logs/occurrences')
+    }
+  }
+
+  const handleAccessChange = async (
+    method: MutateMethods,
+    access: OccurrenceAccess
+  ) => {
+    const { error } = await mutation.trigger<OccurrenceAccess, Occurrence>(
+      method,
+      access,
+      method == 'POST' ? 'access' : `access/${access.accessId}`
+    )
+    if (error) {
+      return setProblem(error)
+    }
+    setProblem({ status: 200, detail: t('general.savingSuccess') })
+  }
+
+  const handleCommentChange = async (comment: string) => {
+    const { error } = await mutation.trigger<unknown, Occurrence>(
+      'POST',
+      { comment },
+      'comment'
+    )
     if (error) {
       return setProblem(error)
     }
@@ -212,16 +293,18 @@ export const OccurrenceEntry = () => {
               )}
             </FormField>
           )}
-          <FormField label={t('occurrences.reporter')} sx={{ mb: 2 }}>
-            <Link to={`/club/members/${data.createdBy}`}>
-              {data?.createdBy}
-            </Link>
-          </FormField>
+          {data.createdBy !== '-' && (
+            <FormField label={t('occurrences.reporter')} sx={{ mb: 2 }}>
+              <Link to={`/club/members/${data.createdBy}`}>
+                {data?.createdBy}
+              </Link>
+            </FormField>
+          )}
           <FormField label={t('occurrences.status')} sx={{ mb: 2 }}>
             <OccurrenceStatusChip status={data.status} />
           </FormField>
 
-          {data?.linkedReportId && (
+          {data?.linkedReportId && !isSMSManager && (
             <FormField label={t('occurrences.linkedReport')} sx={{ mb: 2 }}>
               <Link to={`/logs/occurrences/${data?.linkedReportId}`}>
                 {data.status == OccurrenceStatus.RECEIVED
@@ -302,6 +385,7 @@ export const OccurrenceEntry = () => {
               <Controller
                 name='isDtoReport'
                 control={control}
+                disabled={!isEditable}
                 render={({ field }) => (
                   <Checkbox
                     checked={field.value}
@@ -366,6 +450,7 @@ export const OccurrenceEntry = () => {
                 <Controller
                   name='isWeatherRelevant'
                   control={control}
+                  disabled={!isEditable}
                   render={({ field }) => (
                     <Checkbox
                       checked={!!field.value}
@@ -487,148 +572,553 @@ export const OccurrenceEntry = () => {
     )
   }
 
-  const DetailsForm = () => (
-    <Grid container spacing={3} mb={3}>
-      <Grid size={12}>
-        <Typography variant='h6'>{t('occurrences.details')}</Typography>
-      </Grid>
+  const DetailsForm = () => {
+    const aircraft = watch('aircraftRegistration')
 
-      <Grid size={{ xs: 12 }}>
-        <FormControl required fullWidth error={!!errors.aircraftRegistration}>
-          <InputLabel>{t('occurrences.aircraft')}</InputLabel>
-          <Controller
-            name='aircraftRegistration'
-            control={control}
-            render={({ field }) => (
-              <Select
-                {...field}
-                label={t('occurrences.aircraft')}
-                disabled={!isEditable || !aircraftData?.aircrafts}
-              >
-                {aircrafts?.map((registration) => (
-                  <MenuItem key={registration} value={registration}>
-                    {registration}
+    return (
+      <Grid container spacing={3} mb={3}>
+        <Grid size={12}>
+          <Typography variant='h6'>{t('occurrences.details')}</Typography>
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: aircraft ? 6 : 12 }}>
+          <FormControl
+            fullWidth
+            error={!!errors.aircraftRegistration}
+            disabled={!isEditable || !aircraftData?.aircrafts}
+          >
+            <InputLabel>{t('occurrences.aircraft')}</InputLabel>
+            <Controller
+              name='aircraftRegistration'
+              control={control}
+              render={({ field }) => (
+                <Select {...field} label={t('occurrences.aircraft')}>
+                  <MenuItem key='empty' value={''}>
+                    --
                   </MenuItem>
-                ))}
-              </Select>
+                  {aircrafts?.map((registration) => (
+                    <MenuItem key={registration} value={registration}>
+                      {registration}
+                    </MenuItem>
+                  ))}
+                </Select>
+              )}
+            />
+            <FormHelperText>{t('occurrences.aircraftNote')}</FormHelperText>
+          </FormControl>
+        </Grid>
+
+        {aircraft && (
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <FormControl required error={!!errors.aircraftTechnicalFault}>
+              <FormControlLabel
+                label={t('occurrences.aircraftTechnicalFault')}
+                labelPlacement='start'
+                control={
+                  <Controller
+                    name='aircraftTechnicalFault'
+                    control={control}
+                    disabled={!isEditable}
+                    render={({ field }) => (
+                      <Checkbox
+                        checked={field.value ?? false}
+                        onChange={({ target }) =>
+                          field.onChange(target.checked)
+                        }
+                        disabled={!isEditable}
+                      />
+                    )}
+                  />
+                }
+              />
+              {isSMSManager && data?.aircraftTechnicalFault && (
+                <FormHelperText>
+                  {t('occurrences.aircraftTechnicalFaultAdminInfoText')}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+        )}
+
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <Airfields
+            name='departureAirport'
+            label={t('occurrences.departureAirport')}
+            control={control}
+            disabled={!isEditable}
+            error={errors.departureAirport}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <Airfields
+            name='arrivalAirport'
+            label={t('occurrences.arrivalAirport')}
+            control={control}
+            disabled={!isEditable}
+            error={errors.arrivalAirport}
+          />
+        </Grid>
+
+        <Grid size={12}>
+          <Controller
+            name={'description'}
+            control={control}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                value={field.value ?? ''}
+                onChange={({ target }) => {
+                  field.onChange(target.value)
+                }}
+                fullWidth
+                disabled={!isEditable}
+                label={t('occurrences.description')}
+                error={!!error}
+                helperText={error?.message?.toString()}
+                multiline={true}
+                minRows={10}
+                maxRows={300}
+              />
             )}
           />
-          {errors.aircraftRegistration && (
-            <FormHelperText>
-              {errors.aircraftRegistration.message?.toString()}
-            </FormHelperText>
-          )}
-        </FormControl>
+        </Grid>
       </Grid>
+    )
+  }
 
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <Airfields
-          name='departureAirport'
-          label={t('occurrences.departureAirport')}
-          control={control}
-          disabled={!isEditable}
-          error={errors.departureAirport}
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <Airfields
-          name='arrivalAirport'
-          label={t('occurrences.arrivalAirport')}
-          control={control}
-          disabled={!isEditable}
-          error={errors.arrivalAirport}
-        />
-      </Grid>
-
-      <Grid size={12}>
-        <Controller
-          name={'description'}
-          control={control}
-          render={({ field, fieldState: { error } }) => (
-            <TextField
-              {...field}
-              value={field.value ?? ''}
-              onChange={({ target }) => {
-                field.onChange(target.value)
+  const SMSFormContent = () => {
+    if (isAdmin && access?.manage) {
+      switch (data?.status) {
+        case OccurrenceStatus.NEW:
+          return (
+            <Button
+              onClick={() => handleStateChange(OccurrenceStatus.RECEIVED)}
+              variant='outlined'
+              startIcon={<Icon icon='mdi:check' color='green' />}
+              sx={{ ml: 5 }}
+            >
+              {t('occurrences.actions.receive')}
+            </Button>
+          )
+        case OccurrenceStatus.ANONYMIZING:
+          return (
+            <ConfirmButton
+              onConfirm={() => handleStateChange(OccurrenceStatus.ANONYMIZED)}
+              title={t('occurrences.actions.anonymize')}
+              message={t('occurrences.actions.confirmAnonymize')}
+              confirmText={t('general.save')}
+              cancelText={t('general.cancel')}
+              severity='error'
+              buttonProps={{
+                startIcon: <Icon icon='mdi:check' color='green' />,
               }}
-              fullWidth
-              disabled={!isEditable}
-              label={t('occurrences.description')}
-              error={!!error}
-              helperText={error?.message?.toString()}
-              multiline={true}
-              minRows={10}
-              maxRows={300}
             />
+          )
+
+        case OccurrenceStatus.ANONYMIZED:
+          return <BeforeForm />
+
+        default:
+          return (
+            <>
+              <BeforeForm />
+              <AfterForm />
+            </>
+          )
+      }
+    } else if (!isNew) {
+      return (
+        <>
+          <BeforeForm />
+          <AfterForm />
+        </>
+      )
+    }
+  }
+
+  const SharingForm = () => {
+    const canAddMembers = (access?.manage && access?.author) || isSMSManager
+    const canAddRoles = access?.manage && !access?.author
+    const canEditPermissions = access?.manage && isSMSManager
+
+    return (
+      <Card sx={{ mt: 4 }}>
+        <CardContent>
+          <FormTitle title={t('occurrences.access.title')} icon='mdi:account' />
+
+          {canAddMembers && (
+            <Grid size={{ xs: 12, md: 6 }}>
+              <SelectMember
+                value={''}
+                onChange={async (member) => {
+                  if (member) {
+                    await handleAccessChange('POST', {
+                      memberId: member.type !== 'role' ? member.id : undefined,
+                      roleId: member.type == 'role' ? member.id : undefined,
+                      author: data?.status == OccurrenceStatus.NEW,
+                      write: false,
+                      manage: false,
+                    })
+                  }
+                }}
+                entries={
+                  canAddRoles
+                    ? roles.map((role) => ({
+                        id: role.roleId,
+                        type: 'role',
+                        label: role.name[i18n.language as MIKLang],
+                        group: 'Role',
+                      }))
+                    : []
+                }
+                exclude={
+                  // exclude all existing members and self
+                  [
+                    ...(data?.access.map((a) => a.memberId ?? a.roleId ?? '') ??
+                      []),
+                    me?.memberId ?? '',
+                  ]
+                }
+                label={t(`occurrences.access.addMember`)}
+                placeholder={t('occurrences.access.memberId')}
+              />
+            </Grid>
           )}
-        />
+
+          <Stack spacing={1.5}>
+            {data?.access.map((access, index) => (
+              <FormField
+                key={index}
+                label={
+                  access.roleId ?? access.lastName ?? access.memberId ?? '-'
+                }
+              >
+                {!canEditPermissions || access.author || access.manage ? (
+                  t(
+                    `occurrences.access.${!access.author && access.manage ? 'manage' : access.write ? 'write' : 'read'}`
+                  )
+                ) : (
+                  <Select
+                    value={
+                      access.write ? 'write' : !access.write ? 'read' : 'none'
+                    }
+                    onChange={async ({ target: { value } }) => {
+                      if (value == 'none') {
+                        await handleAccessChange('DELETE', access)
+                      } else {
+                        await handleAccessChange('PUT', {
+                          ...access,
+                          write: value === 'write',
+                        })
+                      }
+                    }}
+                  >
+                    <MenuItem value='none'>
+                      {t('occurrences.access.none')}
+                    </MenuItem>
+                    <MenuItem value='read'>
+                      {t('occurrences.access.read')}
+                    </MenuItem>
+                    <MenuItem value={'write'}>
+                      {t('occurrences.access.write')}
+                    </MenuItem>
+                  </Select>
+                )}
+              </FormField>
+            ))}
+          </Stack>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const BeforeForm = () => {
+    const [handling, setHandling] = useState<OccurrenceProcessedPayload>(
+      data?.handling.processed ?? {
+        adversity: 0,
+        probability: 0,
+        forwardedToTraficom: false,
+      }
+    )
+
+    const isEditable =
+      access?.manage && data?.status == OccurrenceStatus.ANONYMIZED
+
+    return (
+      <Grid container spacing={3} mb={3}>
+        <Grid size={12}>
+          <Typography variant='h6'>
+            {t('occurrences.handling.before')}
+          </Typography>
+        </Grid>
+
+        <Grid size={6}>
+          <FormControl fullWidth required>
+            <InputLabel>{t('occurrences.handling.adversity')}</InputLabel>
+            <Select
+              value={handling?.adversity || ''}
+              onChange={({ target }) =>
+                setHandling((prev) => ({
+                  ...prev,
+                  adversity: Number(target.value),
+                }))
+              }
+              label={t('occurrences.handling.adversity')}
+              disabled={!isEditable}
+              fullWidth
+            >
+              {[0, 1, 2, 3, 4, 5].map((num) => (
+                <MenuItem key={num} value={num}>
+                  {num > 0 ? num : '--'}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid size={6}>
+          <FormControl fullWidth required>
+            <InputLabel>{t('occurrences.handling.probability')}</InputLabel>
+            <Select
+              value={handling?.probability || ''}
+              onChange={({ target }) =>
+                setHandling((prev) => ({
+                  ...prev,
+                  probability: Number(target.value),
+                }))
+              }
+              label={t('occurrences.handling.probability')}
+              disabled={!isEditable}
+              fullWidth
+            >
+              {[0, 1, 2, 3, 4, 5].map((num) => (
+                <MenuItem key={num} value={num}>
+                  {num > 0 ? num : '--'}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid size={12} display='flex' alignItems='center'>
+          <Typography
+            variant='body2'
+            color='text.secondary'
+            sx={{ width: 200 }}
+          >
+            {t('occurrences.handling.forwardedToTraficom')}
+          </Typography>
+          <Checkbox
+            checked={handling.forwardedToTraficom ?? false}
+            disabled={!isEditable}
+            onChange={({ target }) => {
+              setHandling((prev) => ({
+                ...prev,
+                forwardedToTraficom: target.checked,
+              }))
+            }}
+          />
+        </Grid>
+
+        {isEditable && (
+          <Grid size={12} display='flex' justifyContent='center' mt={2}>
+            <ConfirmButton
+              onConfirm={() =>
+                handleStateChange(OccurrenceStatus.PROCESSED, handling)
+              }
+              title={t('occurrences.actions.processed')}
+              message={t('occurrences.actions.confirmProcessed')}
+              confirmText={t('general.save')}
+              cancelText={t('general.cancel')}
+              severity='error'
+              buttonProps={{
+                startIcon: <Icon icon='mdi:check' color='green' />,
+                disabled: handling.adversity == 0 || handling.probability == 0,
+              }}
+            />
+          </Grid>
+        )}
       </Grid>
-    </Grid>
-  )
+    )
+  }
+
+  const AfterForm = () => {
+    const [handling, setHandling] = useState<OccurrenceClosedPayload>(
+      data?.handling.closed ?? {
+        adversity: 0,
+        probability: 0,
+        mitigatingAction: '',
+      }
+    )
+
+    const isEditable =
+      access?.manage && data?.status == OccurrenceStatus.PROCESSED
+
+    return (
+      <Grid container spacing={3} mb={3}>
+        <Grid size={12}>
+          <Typography variant='h6'>
+            {t('occurrences.handling.after')}
+          </Typography>
+        </Grid>
+
+        <Grid size={12} display='flex' alignItems='center'>
+          <TextField
+            value={handling?.mitigatingAction ?? ''}
+            onChange={({ target }) =>
+              setHandling((prev) => ({
+                ...prev,
+                mitigatingAction: target.value,
+              }))
+            }
+            label={t('occurrences.handling.mitigatingAction')}
+            disabled={!isEditable}
+            fullWidth
+          />
+        </Grid>
+
+        <Grid size={6}>
+          <FormControl fullWidth required>
+            <InputLabel>{t('occurrences.handling.adversity')}</InputLabel>
+            <Select
+              value={handling?.adversity ?? ''}
+              onChange={({ target }) =>
+                setHandling((prev) => ({
+                  ...prev,
+                  adversity: Number(target.value),
+                }))
+              }
+              label={t('occurrences.handling.adversity')}
+              disabled={!isEditable}
+              fullWidth
+            >
+              {[0, 1, 2, 3, 4, 5].map((num) => (
+                <MenuItem key={num} value={num}>
+                  {num > 0 ? num : '--'}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid size={6}>
+          <FormControl fullWidth required>
+            <InputLabel>{t('occurrences.handling.probability')}</InputLabel>
+            <Select
+              value={handling?.probability ?? ''}
+              onChange={({ target }) =>
+                setHandling((prev) => ({
+                  ...prev,
+                  probability: Number(target.value),
+                }))
+              }
+              label={t('occurrences.handling.probability')}
+              disabled={!isEditable}
+              fullWidth
+            >
+              {[0, 1, 2, 3, 4, 5].map((num) => (
+                <MenuItem key={num} value={num}>
+                  {num > 0 ? num : '--'}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        {isEditable && (
+          <Grid size={12} display='flex' justifyContent='center' mt={2}>
+            <ConfirmButton
+              onConfirm={() =>
+                handleStateChange(OccurrenceStatus.CLOSED, handling)
+              }
+              title={t('occurrences.actions.close')}
+              message={t('occurrences.actions.confirmClose')}
+              confirmText={t('general.save')}
+              cancelText={t('general.cancel')}
+              severity='error'
+              buttonProps={{
+                startIcon: <Icon icon='mdi:check' color='green' />,
+                disabled:
+                  handling.adversity == 0 ||
+                  handling.probability == 0 ||
+                  !handling.mitigatingAction,
+              }}
+            />
+          </Grid>
+        )}
+      </Grid>
+    )
+  }
+
+  const CommentsForm = () => {
+    const [newComment, setNewComment] = useState('')
+    return (
+      <Card sx={{ mt: 4 }}>
+        <CardContent>
+          <FormTitle
+            title={t('occurrences.handling.comments')}
+            icon='mdi:information'
+          />
+
+          <Stack spacing={1.5}>
+            {data?.comments.map((audit, index) => (
+              <FormField key={index} label={formatDateTime(audit.at)}>
+                {audit.by} -{' '}
+                {audit.status
+                  ? t(`occurrences.statuses.${audit.status}`)
+                  : audit.comment}
+              </FormField>
+            ))}
+
+            {access?.write && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <TextField
+                  label={t('occurrences.handling.addComment')}
+                  value={newComment}
+                  fullWidth
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyUp={(e) => {
+                    if (e.key === 'Enter' && newComment.trim().length > 0) {
+                      handleCommentChange(newComment.trim())
+                      setNewComment('')
+                    }
+                  }}
+                />
+                <EditButton
+                  title={t('occurrences.handling.addComment')}
+                  icon='mdi:send'
+                  viewOnly={newComment.trim().length === 0}
+                  onClick={async () => {
+                    await handleCommentChange(newComment.trim())
+                    setNewComment('')
+                  }}
+                />
+              </Box>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
-    <RemoteContent isLoading={isLoading} error={error}>
-      <SnackAlert problem={problem} />
+    <>
+      <RemoteContent isLoading={isLoading} error={error}>
+        <SnackAlert problem={problem} />
 
-      {/* Breadcrumb navigation */}
-      <Breadcrumbs sx={{ my: 2 }}>
-        <Link to='/logs/occurrences'>{t('occurrences.title')}</Link>
-        <Typography color='text.primary'>{title}</Typography>
-      </Breadcrumbs>
+        {/* Breadcrumb navigation */}
+        <Breadcrumbs sx={{ my: 2 }}>
+          <Link to='/logs/occurrences'>{t('occurrences.title')}</Link>
+          <Typography color='text.primary'>{title}</Typography>
+        </Breadcrumbs>
 
-      <Title label={title} />
+        <Title label={title} />
 
-      <Paper sx={{ p: 3, mt: 2 }}>
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <SummaryForm />
-          <EventTypeForm />
-          <DetailsForm />
+        <Paper sx={{ p: 3, mt: 2 }}>
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <SummaryForm />
+            <EventTypeForm />
+            <DetailsForm />
 
-          <Stack
-            direction={{ xs: 'column-reverse', sm: 'row' }}
-            spacing={2}
-            justifyContent='space-between'
-            mt={3}
-          >
-            {data?.status === OccurrenceStatus.NEW && isSMSAdmin && (
-              <Button
-                onClick={() => handleStateChange(OccurrenceStatus.RECEIVED)}
-                variant='outlined'
-                startIcon={<Icon icon='mdi:check' color='green' />}
-                sx={{ ml: 5 }}
-              >
-                {t('occurrences.actions.receive')}
-              </Button>
-            )}
-
-            {data?.status === OccurrenceStatus.ANONYMIZING && isSMSAdmin && (
-              <ConfirmButton
-                onConfirm={() => handleStateChange(OccurrenceStatus.ANONYMIZED)}
-                title={t('occurrences.actions.anonymize')}
-                message={t('occurrences.actions.confirmAnonymize')}
-                confirmText={t('general.save')}
-                cancelText={t('general.cancel')}
-                severity='error'
-                buttonProps={{
-                  startIcon: <Icon icon='mdi:check' color='green' />,
-                }}
-              />
-            )}
-
-            {data?.status === OccurrenceStatus.ANONYMIZED && isSMSAdmin && (
-              <ConfirmButton
-                onConfirm={() => handleStateChange(OccurrenceStatus.CLOSED)}
-                title={t('occurrences.actions.close')}
-                message={t('occurrences.actions.confirmClose')}
-                confirmText={t('general.save')}
-                cancelText={t('general.cancel')}
-                severity='error'
-                buttonProps={{
-                  startIcon: <Icon icon='mdi:check' color='green' />,
-                }}
-              />
-            )}
             <Stack
               direction={{ xs: 'column-reverse', sm: 'row' }}
               spacing={2}
@@ -649,9 +1139,27 @@ export const OccurrenceEntry = () => {
                 />
               )}
             </Stack>
-          </Stack>
-        </form>
-      </Paper>
-    </RemoteContent>
+          </form>
+        </Paper>
+
+        {!isNew && (
+          <>
+            <Card sx={{ mt: 4 }}>
+              <CardContent>
+                <FormTitle
+                  title={t('occurrences.handling.title')}
+                  icon='mdi:information'
+                />
+                <SMSFormContent />
+              </CardContent>
+            </Card>
+
+            <SharingForm />
+
+            {data?.status !== OccurrenceStatus.NEW && <CommentsForm />}
+          </>
+        )}
+      </RemoteContent>
+    </>
   )
 }

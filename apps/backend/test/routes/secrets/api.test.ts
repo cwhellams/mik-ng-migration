@@ -16,19 +16,25 @@ app.use(problemErrorHandler)
 
 const adminToken = generateAccessToken({
   memberId: 'k1mnimda',
+  lastName: 'Admin',
   email: 'admin@mik.fi',
+  roles: [],
   permissions: [MIKPermissions.ACCESS_CODES_ADMIN],
 })
 
 const userToken = generateAccessToken({
   memberId: 'Anna1',
+  lastName: 'Korhonen',
   email: 'user@mik.fi',
+  roles: [],
   permissions: [MIKPermissions.ACCESS_CODES_USER],
 })
 
 const noPermissionsToken = generateAccessToken({
   memberId: 'Juha1',
+  lastName: 'Mäkinen',
   email: 'no-permissions@mik.fi',
+  roles: [],
   permissions: [MIKPermissions.MEMBER],
 })
 

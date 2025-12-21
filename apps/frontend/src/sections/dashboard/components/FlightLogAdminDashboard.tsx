@@ -54,6 +54,7 @@ export const FlightLogAdminDashboard = () => {
   } = useApi<FlightLogListResponse>(
     {
       url: 'v1/flight-logs',
+      alwaysSudo: true,
       params: {
         status: FlightLogStatus.NEW,
         incidentsOrObservations: true,

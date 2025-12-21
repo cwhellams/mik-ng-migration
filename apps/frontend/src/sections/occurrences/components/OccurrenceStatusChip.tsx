@@ -1,4 +1,4 @@
-import { Box, Chip } from '@mui/material'
+import { Box, Chip, Stack } from '@mui/material'
 import { OccurrenceStatus } from '@backend/routes/occurrences/models'
 import { t } from 'i18next'
 import { Icon } from '@iconify/react/dist/iconify.js'
@@ -10,6 +10,7 @@ const getColor = (status: OccurrenceStatus) => {
     case OccurrenceStatus.ANONYMIZING:
       return 'secondary'
     case OccurrenceStatus.ANONYMIZED:
+    case OccurrenceStatus.PROCESSED:
       return 'primary'
     case OccurrenceStatus.RECEIVED:
     case OccurrenceStatus.CLOSED:
@@ -41,5 +42,40 @@ export const OccurrenceStatusChip = ({
           />
         )}
     </Box>
+  )
+}
+
+export const OccurrenceStatusFilter = ({
+  selected,
+  onChange,
+}: {
+  selected: OccurrenceStatus
+  onChange: (status: OccurrenceStatus) => void
+}) => {
+  return (
+    <Stack
+      direction='row'
+      spacing={1}
+      display='inline-flex'
+      flexWrap='wrap'
+      mb={2}
+    >
+      {[
+        OccurrenceStatus.NEW,
+        OccurrenceStatus.ANONYMIZING,
+        OccurrenceStatus.ANONYMIZED,
+        OccurrenceStatus.PROCESSED,
+        OccurrenceStatus.CLOSED,
+      ].map((status) => (
+        <Chip
+          key={status}
+          label={t(`occurrences.statuses.${status}`)}
+          color={getColor(status)}
+          variant={status == selected ? 'filled' : 'outlined'}
+          onClick={() => onChange(status)}
+          sx={{ cursor: 'pointer', fontWeight: 500 }}
+        />
+      ))}
+    </Stack>
   )
 }

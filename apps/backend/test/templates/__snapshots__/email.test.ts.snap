@@ -248,7 +248,8 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml ano
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
 <p>New occurrence for plane OH-STL has been reported at 01.12.2025 12:31.</p>
-<p>DTO-occurrence has to be processed in 72 hours. Deadline is at 04.12.2025 12:31.</p>
+<p>The anonymized occurrence is now visible now only to safety managers. Please process the occurrence as soon as possible and share to other relevant people.</p>
+<p>Occurrence has to be processed in 72 hours. Deadline is at 04.12.2025 12:31.</p>
 
     <div style="text-align: center; margin: 24px 0;">
       <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
@@ -282,7 +283,8 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml ano
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
 <p>Uusi poikkema koneelle OH-STL on ilmoitettu aikaan 01.12.2025 12:31.</p>
-<p>DTO-poikkeman käsittely on tehtävä 72 tunnissa. Määräaika päättyy 04.12.2025 12:31.</p>
+<p>Anonymisoitu poikkema on nyt näkyvissä vain turvallisuuspäälliköille. Ole hyvä ja käsittele poikkema mahdollisimman pian ja jaa se muille asiaankuuluville henkilöille.</p>
+<p>Poikkeman käsittely on tehtävä 72 tunnissa. Määräaika päättyy 04.12.2025 12:31.</p>
 
     <div style="text-align: center; margin: 24px 0;">
       <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
@@ -305,6 +307,41 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml ano
   </div>"
 `;
 
+exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml anonymized for lang: sv 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Ny händelse rapporterad</h1><p>Hej ,</p>
+<p>En ny händelse för flygplan OH-STL har rapporterats den 01.12.2025 12:31.</p>
+<p>Den anonymiserade händelsen är nu synlig endast för säkerhetsansvariga. Vänligen behandla händelsen så snart som möjligt och dela med andra relevanta personer.</p>
+<p>Händelsen måste behandlas inom 72 timmar. Deadline är 04.12.2025 12:31.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Granska händelsen</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for lang: en 1`] = `
 "
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
@@ -316,7 +353,7 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
 <p>New occurrence for plane OH-STL has been reported at 01.12.2025 12:31.</p>
-<p>The occurrence is only visible to SMS admin group members and have to be anonymized before it becomes visible to the rest of the safety team. Please process the occurrence as soon as possible.</p>
+<p>The occurrence is only visible to independent reviewers and have to be anonymized before it becomes visible to the safety managers. Please process the occurrence as soon as possible.</p>
 
     <div style="text-align: center; margin: 24px 0;">
       <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
@@ -350,7 +387,7 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
 <p>Uusi poikkema koneelle OH-STL on ilmoitettu aikaan 01.12.2025 12:31.</p>
-<p>Poikkema on näkyvissä vain SMS-ylläpitäjäryhmän jäsenille ja se on anonymisoitava ennen kuin se tulee näkyväksi muulle turvallisuustiimille. Ole hyvä ja käsittele poikkema mahdollisimman pian.</p>
+<p>Poikkema on näkyvissä vain riippumattomille tarkastajille ja se on anonymisoitava ennen kuin se tulee näkyväksi turvallisuuspäälliköille. Ole hyvä ja käsittele poikkema mahdollisimman pian.</p>
 
     <div style="text-align: center; margin: 24px 0;">
       <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
@@ -373,6 +410,40 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for
   </div>"
 `;
 
+exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for lang: sv 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Ny händelse rapporterad</h1><p>Hej ,</p>
+<p>En ny händelse för flygplan OH-STL har rapporterats den 01.12.2025 12:31.</p>
+<p>Händelsen är endast synlig för oberoende granskare och måste anonymiseras innan den blir synlig för säkerhetsansvariga. Vänligen behandla händelsen så snart som möjligt.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Granska händelsen</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml with deadline for lang: en 1`] = `
 "
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
@@ -384,8 +455,8 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml wit
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
 <p>New occurrence for plane OH-STL has been reported at 01.12.2025 12:31.</p>
-<p>The occurrence is only visible to SMS admin group members and have to be anonymized before it becomes visible to the rest of the safety team. Please process the occurrence as soon as possible.</p>
-<p>DTO-occurrence has to be processed in 72 hours. Deadline is at 04.12.2025 12:31.</p>
+<p>The occurrence is only visible to independent reviewers and have to be anonymized before it becomes visible to the safety managers. Please process the occurrence as soon as possible.</p>
+<p>Occurrence has to be processed in 72 hours. Deadline is at 04.12.2025 12:31.</p>
 
     <div style="text-align: center; margin: 24px 0;">
       <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
@@ -419,8 +490,8 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml wit
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
 <p>Uusi poikkema koneelle OH-STL on ilmoitettu aikaan 01.12.2025 12:31.</p>
-<p>Poikkema on näkyvissä vain SMS-ylläpitäjäryhmän jäsenille ja se on anonymisoitava ennen kuin se tulee näkyväksi muulle turvallisuustiimille. Ole hyvä ja käsittele poikkema mahdollisimman pian.</p>
-<p>DTO-poikkeman käsittely on tehtävä 72 tunnissa. Määräaika päättyy 04.12.2025 12:31.</p>
+<p>Poikkema on näkyvissä vain riippumattomille tarkastajille ja se on anonymisoitava ennen kuin se tulee näkyväksi turvallisuuspäälliköille. Ole hyvä ja käsittele poikkema mahdollisimman pian.</p>
+<p>Poikkeman käsittely on tehtävä 72 tunnissa. Määräaika päättyy 04.12.2025 12:31.</p>
 
     <div style="text-align: center; margin: 24px 0;">
       <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
@@ -432,6 +503,41 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml wit
         display: inline-block;
         font-weight: bold;
       ">Tarkastele poikkeamaa</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml with deadline for lang: sv 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Ny händelse rapporterad</h1><p>Hej ,</p>
+<p>En ny händelse för flygplan OH-STL har rapporterats den 01.12.2025 12:31.</p>
+<p>Händelsen är endast synlig för oberoende granskare och måste anonymiseras innan den blir synlig för säkerhetsansvariga. Vänligen behandla händelsen så snart som möjligt.</p>
+<p>Händelsen måste behandlas inom 72 timmar. Deadline är 04.12.2025 12:31.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/logs/occurrences/SMS100001" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Granska händelsen</a>
     </div>
     
       </div>

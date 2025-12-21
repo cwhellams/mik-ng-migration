@@ -24,7 +24,9 @@ import { deleteSimplbooksOutbox } from './__helpers__/simplbooksDbHelpers.ts'
 
 const jwt: JWTUser = {
   memberId: 'k1mnimda',
+  lastName: 'Test',
   email: 'loggedinuser',
+  roles: [],
   permissions: [],
 }
 

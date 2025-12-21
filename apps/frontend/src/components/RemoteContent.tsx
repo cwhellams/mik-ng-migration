@@ -12,10 +12,6 @@ export const RemoteContent = ({
   error?: Problem | undefined
   children: ReactNode
 }) => {
-  if (!isLoading && !error) {
-    return children
-  }
-
   if (error) {
     return (
       <Alert severity='error'>
@@ -27,15 +23,21 @@ export const RemoteContent = ({
   }
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100',
-      }}
-    >
-      <CircularProgress size={24} color='inherit' />
+    <Box sx={{ position: 'relative' }}>
+      {children}
+
+      {isLoading && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          <CircularProgress size={24} color='inherit' />
+        </Box>
+      )}
     </Box>
   )
 }

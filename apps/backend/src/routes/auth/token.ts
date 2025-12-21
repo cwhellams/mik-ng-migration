@@ -8,7 +8,9 @@ import { problem } from '../response.ts'
 // should match User in types/express.d.ts
 export const JWTUserSchema = z.object({
   memberId: z.string(),
+  lastName: z.string(),
   email: z.string(),
+  roles: z.array(z.string()),
   permissions: z.array(z.nativeEnum(MIKPermissions)),
 })
 
@@ -16,7 +18,9 @@ export type JWTUser = z.infer<typeof JWTUserSchema>
 
 export const generateJWTUser = (user: Member): JWTUser => ({
   memberId: user.memberId,
+  lastName: user.lastName,
   email: user.email,
+  roles: user.roles.map(r => r.roleId),
   permissions: user.roles.reduce(
     (all, role) => (role.permissions ? [...all, ...role.permissions] : all),
     [] as MIKPermissions[],

@@ -1,4 +1,4 @@
-import { Box, Grid, Button } from '@mui/material'
+import { Box, Grid, Button, Typography, useTheme } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
 import { Icon } from '@iconify/react'
@@ -15,7 +15,10 @@ import {
 } from '@backend/routes/occurrences/models'
 import { formatDateTime } from '../../utils/date'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
-import { OccurrenceStatusChip } from './components/OccurrenceStatusChip'
+import {
+  OccurrenceStatusChip,
+  OccurrenceStatusFilter,
+} from './components/OccurrenceStatusChip'
 import {
   formatDuration,
   getDurationInMinutes,
@@ -23,8 +26,9 @@ import {
 
 export const Occurrences = () => {
   const { t } = useTranslation()
+  const theme = useTheme()
 
-  const [filters] = useState<OccurrenceFilters>({})
+  const [filters, setFilters] = useState<OccurrenceFilters>({})
 
   const scrollToRef = useScrollOnRender()
 
@@ -55,6 +59,28 @@ export const Occurrences = () => {
           {t('occurrences.newReport')}
         </Button>
       </Title>
+
+      <Box
+        sx={{
+          mb: 2,
+          p: 2,
+          borderRadius: 2,
+          backgroundColor: theme.palette.info.light,
+          color: theme.palette.info.contrastText,
+        }}
+      >
+        <Typography variant='body1'>{t('occurrences.infoText')}</Typography>
+      </Box>
+
+      <OccurrenceStatusFilter
+        selected={filters.status!}
+        onChange={(status) =>
+          setFilters((oldFilters) => ({
+            ...oldFilters,
+            status: oldFilters.status === status ? undefined : status,
+          }))
+        }
+      />
 
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable

@@ -2,42 +2,26 @@ import 'dotenv/config'
 import { markdownEmailTemplate } from './emailTemplate.ts'
 import { toLocal } from '../util/date.ts'
 import { OccurrenceStatus, type Occurrence } from '../routes/occurrences/models.ts'
-import { MIKPermissions, type MIKLang } from '../routes/members/models.ts'
-import { getMemberRolesByPermission, getMembers } from '../db/member-queries.ts'
+import { type MIKLang } from '../routes/members/models.ts'
+import { getMembers } from '../db/member-queries.ts'
 import type { sendEmail } from '../lib/sendGmail.ts'
 
 export const sendOccurrenceNotification = async (
   sendEmailFn: typeof sendEmail,
+  roles: string[],
   occurrence: Occurrence,
 ) => {
-  const targetGroup =
-    occurrence.status === OccurrenceStatus.ANONYMIZED
-      ? MIKPermissions.SMS_TEAM
-      : MIKPermissions.SMS_ADMIN
-
-  const roles = await getMemberRolesByPermission(targetGroup)
-  if (roles.length === 0) {
-    console.warn(
-      `No member roles found with permission ${targetGroup}, skipping occurrence notification for occurrence ${occurrence.id}`,
-    )
-    return
-  }
-
-  const members = await getMembers(
-    true,
-    undefined,
-    roles.map(r => r.roleId),
-  )
+  const members = await getMembers(true, undefined, roles)
   if (members.length === 0) {
     console.warn(
-      `No members found with roles ${roles.map(r => r.roleId).join(', ')}, skipping occurrence notification for occurrence ${occurrence.id}`,
+      `No members found with roles [${roles.join(', ')}], skipping occurrence notification for occurrence ${occurrence.id}`,
     )
     return
   }
 
   for (const member of members) {
     console.log(
-      `Sending occurrence ${occurrence.id} in status ${occurrence.status} a notification to group ${targetGroup} member ${member.email}`,
+      `Sending occurrence ${occurrence.id} in status ${occurrence.status} a notification member ${member.email} in roles [${roles.join(', ')}]`,
     )
     sendEmailFn(
       member.email,
@@ -54,6 +38,7 @@ export const occurrenceNotificationEmailBodyHtml = (lang: MIKLang, occurrence: O
   markdownEmailTemplate(`occurrence-notification-${lang}.md`, {
     ...occurrence,
     new: occurrence.status === OccurrenceStatus.NEW,
+    anonymized: occurrence.status === OccurrenceStatus.ANONYMIZED,
     reportDate: formatDate(occurrence.reportDate),
     deadLine: occurrence.deadLine ? formatDate(occurrence.deadLine) : undefined,
     href: `${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/logs/occurrences/${occurrence.id}`,

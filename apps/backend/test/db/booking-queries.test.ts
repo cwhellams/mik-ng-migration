@@ -10,7 +10,9 @@ import dayjs from 'dayjs'
 
 const jwt: JWTUser = {
   memberId: 'k1mnimda',
+  lastName: 'Test',
   email: 'loggedinuser',
+  roles: [],
   permissions: [],
 }
 

@@ -29,25 +29,33 @@ app.use(problemErrorHandler)
 
 const adminToken = generateAccessToken({
   memberId: 'k1mnimda',
+  lastName: 'Admin',
   email: 'admin@mik.fi',
+  roles: ['ADMIN'],
   permissions: [MIKPermissions.MEMBER_ADMIN],
 })
 
 const memberToken = generateAccessToken({
   memberId: 'Matti1',
+  lastName: 'Virtanen',
   email: 'member@mik.fi',
+  roles: ['MEMBER'],
   permissions: [MIKPermissions.MEMBER],
 })
 
 const noPermissionsToken = generateAccessToken({
   memberId: 'Liisa1',
+  lastName: 'Korhonen',
   email: 'no-permissions@mik.fi',
+  roles: ['MEMBER'],
   permissions: [],
 })
 
 const missingUserToken = generateAccessToken({
   memberId: 'Iceman99',
+  lastName: 'Unknown',
   email: 'no-permissions@mik.fi',
+  roles: ['MEMBER'],
   permissions: [],
 })
 
@@ -141,12 +149,12 @@ describe('GET /members', () => {
       {
         first: 'Liisa',
         last: 'Korhonen',
-        roles: ['ADMIN', 'COMMITTEE', 'SMS_REVIEWER'],
+        roles: ['ADMIN', 'COMMITTEE', 'SMS_PROCESSOR'],
       },
       {
         first: 'Sanna',
         last: 'Koskinen',
-        roles: ['COMMITTEE', 'SMS_REVIEWER'],
+        roles: ['COMMITTEE', 'SMS_PROCESSOR'],
       },
       {
         first: 'Jukka',
@@ -156,7 +164,7 @@ describe('GET /members', () => {
       {
         first: 'Matti',
         last: 'Virtanen',
-        roles: ['FLYING_MEMBER', 'INSTRUCTOR', 'MEMBER'],
+        roles: ['FLYING_MEMBER', 'INSTRUCTOR', 'MEMBER', 'SMS_MANAGER'],
       },
     ])
   })
@@ -219,7 +227,7 @@ describe('GET /members', () => {
       {
         first: 'Liisa',
         last: 'Korhonen',
-        roles: ['ADMIN', 'COMMITTEE', 'SMS_REVIEWER'],
+        roles: ['ADMIN', 'COMMITTEE', 'SMS_PROCESSOR'],
       },
     ])
   })
@@ -389,8 +397,8 @@ describe('GET /members/roles', () => {
       'access_codes.admin',
       'document.user',
       'document.admin',
-      'sms.team',
-      'sms.admin',
+      'sms.processor',
+      'sms.manager',
     ])
     expect(roles.map(({ roleId, permissions }) => ({ roleId, permissions }))).toEqual([
       {
@@ -432,7 +440,8 @@ describe('GET /members/roles', () => {
       },
       { permissions: ['member.admin', 'flightlog.admin', 'document.admin'], roleId: 'SECRETARY' },
       { permissions: null, roleId: 'SERVICE' },
-      { permissions: ['sms.admin'], roleId: 'SMS_REVIEWER' },
+      { permissions: ['sms.manager'], roleId: 'SMS_MANAGER' },
+      { permissions: ['sms.processor'], roleId: 'SMS_PROCESSOR' },
     ])
   })
 })

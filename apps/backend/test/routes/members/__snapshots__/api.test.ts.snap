@@ -123,7 +123,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "roles": [
         "ADMIN",
         "COMMITTEE",
-        "SMS_REVIEWER",
+        "SMS_PROCESSOR",
       ],
     },
     {
@@ -135,7 +135,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "phoneNumber": "0478901234",
       "roles": [
         "COMMITTEE",
-        "SMS_REVIEWER",
+        "SMS_PROCESSOR",
       ],
     },
     {
@@ -171,6 +171,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
         "FLYING_MEMBER",
         "INSTRUCTOR",
         "MEMBER",
+        "SMS_MANAGER",
       ],
     },
   ],
@@ -343,6 +344,23 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
       "updatedAt": Any<String>,
       "updatedBy": "k1mnimda",
     },
+    {
+      "createdAt": Any<String>,
+      "createdBy": "k1mnimda",
+      "description": "Safety Manager takes care of processing anonymized occurrences",
+      "isPublic": false,
+      "name": {
+        "en": "Safety Manager",
+        "fi": "Turvallisuusvastaava",
+        "sv": "Säkerhetsansvarig",
+      },
+      "permissions": [
+        "sms.manager",
+      ],
+      "roleId": "SMS_MANAGER",
+      "updatedAt": Any<String>,
+      "updatedBy": "k1mnimda",
+    },
   ],
   "streetAddress": "Keskuskatu 1",
   "townCity": "Helsinki",
@@ -490,7 +508,7 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
     {
       "createdAt": Any<String>,
       "createdBy": "k1mnimda",
-      "description": "SMS independent reviewer",
+      "description": "SMS independent receives new occurrences and anonymizes them",
       "isPublic": false,
       "name": {
         "en": "SMS independent reviewer",
@@ -498,9 +516,9 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
         "sv": "SMS oberoende granskare",
       },
       "permissions": [
-        "sms.admin",
+        "sms.processor",
       ],
-      "roleId": "SMS_REVIEWER",
+      "roleId": "SMS_PROCESSOR",
       "updatedAt": Any<String>,
       "updatedBy": "k1mnimda",
     },

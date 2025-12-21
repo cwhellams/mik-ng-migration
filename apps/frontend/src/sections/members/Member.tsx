@@ -169,6 +169,16 @@ const MemberProfile = () => {
           spacing={1}
           sx={{ mb: 3, justifyContent: 'flex-end' }}
         >
+          <EditButton
+            title={t('member.edit.refreshToken')}
+            icon='mdi:refresh'
+            onClick={() =>
+              localStorage.setItem(
+                'accessToken',
+                'invalid-token-trigger-refresh'
+              )
+            }
+          />
           {data?.roles &&
             data?.roles.length > 0 &&
             data?.roles.map((role, index) => (

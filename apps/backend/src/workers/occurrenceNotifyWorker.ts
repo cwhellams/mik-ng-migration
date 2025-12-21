@@ -6,6 +6,8 @@ import { getOccurrences } from '../db/occurrence-queries.ts'
 import { OccurrenceStatus } from '../routes/occurrences/models.ts'
 import { sendOccurrenceNotification } from '../templates/occurrenceNotification.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
+import { MIKPermissions } from '../routes/members/models.ts'
+import { getMemberRolesByPermission } from '../db/member-queries.ts'
 
 let scheduledTask: cron.ScheduledTask | null = null
 
@@ -58,15 +60,24 @@ export function startOccurrenceNotificationWorker(deps: NotificationWorkerDeps =
 async function sendOccurrenceNotifications(sendEmailFn: typeof sendEmail): Promise<void> {
   try {
     logger.info('Fetching pending occurrences from database')
-    const pendingOccurrences = await getOccurrences({
-      statuses: [
-        // occurrence not yet marked as received
-        OccurrenceStatus.NEW,
 
-        // occurrence received but still not fully anyonymized
-        OccurrenceStatus.ANONYMIZING,
-      ],
-    })
+    const smsProcessorRoles = await getMemberRolesByPermission(MIKPermissions.SMS_PROCESSOR)
+    const smsManagerRoles = await getMemberRolesByPermission(MIKPermissions.SMS_MANAGER)
+
+    // find NEW, ANONYMIZING and ANONYMIZED occurrences
+    const pendingOccurrences = await getOccurrences(
+      {
+        ignoreStatuses: [
+          OccurrenceStatus.RECEIVED,
+          OccurrenceStatus.PROCESSED,
+          OccurrenceStatus.CLOSED,
+          OccurrenceStatus.DELETED,
+        ],
+      },
+      {
+        roles: [...smsProcessorRoles.map(r => r.roleId), ...smsManagerRoles.map(r => r.roleId)],
+      },
+    )
 
     if (pendingOccurrences.length === 0) {
       logger.info('No pending occurrences found')
@@ -77,7 +88,13 @@ async function sendOccurrenceNotifications(sendEmailFn: typeof sendEmail): Promi
 
     for (const occurrence of pendingOccurrences) {
       try {
-        await sendOccurrenceNotification(sendEmailFn, occurrence)
+        const rolesToNotify =
+          occurrence.status === OccurrenceStatus.NEW ||
+          occurrence.status === OccurrenceStatus.ANONYMIZING
+            ? smsProcessorRoles.map(r => r.roleId)
+            : smsManagerRoles.map(r => r.roleId)
+
+        await sendOccurrenceNotification(sendEmailFn, rolesToNotify, occurrence)
       } catch (error) {
         logger.error(`Error sending notification for occurrence ${occurrence.id}:`, error)
       }

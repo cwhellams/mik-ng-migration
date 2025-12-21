@@ -5,7 +5,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 
 import logger from '../lib/logger.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
-import { MIKPermissions, toUserRole } from '../routes/members/models.ts'
+import { MIKPermissions, downgradePermission } from '../routes/members/models.ts'
 import { problem, type Problem } from '../routes/response.ts'
 
 //
@@ -26,7 +26,8 @@ passport.use(
       const isSudo = req.headers['x-sudo'] !== 'false'
       callback(undefined, {
         ...payload,
-        permissions: isSudo ? payload.permissions : payload.permissions.map(toUserRole),
+        roles: payload.roles,
+        permissions: isSudo ? payload.permissions : payload.permissions.map(downgradePermission),
       })
     },
   ),

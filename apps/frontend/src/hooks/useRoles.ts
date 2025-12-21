@@ -2,6 +2,7 @@ import {
   MemberRole,
   MemberRolesResponse,
   MIKPermissions,
+  downgradePermission,
 } from '@backend/routes/members/models'
 import useApi from './useApi'
 import { Problem } from '@backend/routes/response'
@@ -19,8 +20,8 @@ export function useRoles(): {
   isAccessCodesAdmin: boolean
   isBookingAdmin: boolean
   isDocumentAdmin: boolean
-  isSMSAdmin: boolean
-  isSMSTeam: boolean
+  isSMSProcessor: boolean
+  isSMSManager: boolean
   roles: MemberRole[]
   permissions: MIKPermissions[]
   sudoers: boolean
@@ -63,12 +64,12 @@ export function useRoles(): {
     isAccessCodesAdmin: hasSudoAccess(MIKPermissions.ACCESS_CODES_ADMIN),
     isBookingAdmin: hasSudoAccess(MIKPermissions.BOOKING_ADMIN),
     isDocumentAdmin: hasSudoAccess(MIKPermissions.DOCUMENT_ADMIN),
-    isSMSAdmin: hasSudoAccess(MIKPermissions.SMS_ADMIN),
-    isSMSTeam: hasSudoAccess(MIKPermissions.SMS_TEAM),
+    isSMSProcessor: hasSudoAccess(MIKPermissions.SMS_PROCESSOR),
+    isSMSManager: hasSudoAccess(MIKPermissions.SMS_MANAGER),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
-    // user is in sudoers file if they have any admin permission
-    sudoers: myPermissions.some((p) => p.endsWith('.admin')),
+    // user is in sudoers file if the downgraded permission is different
+    sudoers: myPermissions.some((p) => p !== downgradePermission(p)),
     error,
   }
 }

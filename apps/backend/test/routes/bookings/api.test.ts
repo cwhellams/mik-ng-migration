@@ -25,13 +25,17 @@ app.use(problemErrorHandler)
 
 const userToken = generateAccessToken({
   memberId: userId,
+  lastName: 'Virtanen',
   email: 'jonny.depp@mik.fi',
+  roles: [],
   permissions: [MIKPermissions.BOOKING_USER],
 })
 
 const adminToken = generateAccessToken({
   memberId: adminMemberId,
+  lastName: 'Admin',
   email: 'jonny.depp@mik.fi',
+  roles: [],
   permissions: [MIKPermissions.BOOKING_ADMIN],
 })
 
@@ -119,7 +123,9 @@ describe('GET /bookings/bookingId', () => {
   it('should return 403 for the user without booking privileges', async () => {
     const noAccess = generateAccessToken({
       memberId: adminMemberId,
+      lastName: 'NoAccess',
       email: 'jonny.depp@mik.fi',
+      roles: [],
       permissions: [],
     })
 
@@ -348,7 +354,9 @@ describe('PATCH /bookings/', () => {
 
     const invalidToken = generateAccessToken({
       memberId: 'OtherUser',
+      lastName: 'Test',
       email: 'test@mik.fi',
+      roles: [],
       permissions: [MIKPermissions.BOOKING_USER],
     })
 

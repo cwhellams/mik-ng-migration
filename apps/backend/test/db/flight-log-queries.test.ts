@@ -225,7 +225,9 @@ describe('Db update tests', () => {
 
     const user = {
       memberId: 'Liisa1',
+      lastName: 'Test',
       email: '',
+      roles: [],
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     }
     const res = await updateFlightLog(flightId, data, user)
@@ -254,7 +256,9 @@ describe('Db update status tests', () => {
 
     const user = {
       memberId: 'Liisa1',
+      lastName: 'Test',
       email: '',
+      roles: [],
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     }
     const res = await updateFlightLogStatus(
@@ -346,7 +350,9 @@ describe('Db invoicable FlightLog tests', () => {
   it('invoiceFlights sends flights to outbox', async () => {
     const user = {
       memberId: 'Matti1',
+      lastName: 'Test',
       email: '',
+      roles: [],
       permissions: [MIKPermissions.INVOICING_ADMIN],
     }
 

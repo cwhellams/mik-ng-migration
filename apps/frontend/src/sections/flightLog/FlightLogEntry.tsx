@@ -43,7 +43,7 @@ import { Fuel } from './components/Fuel'
 import { StatusDisplay } from './components/StatusDisplay'
 import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
-import { BillableMember } from './components/BillableMember'
+import { SelectMember } from '../../components/SelectMember'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../components/SaveButton'
@@ -381,6 +381,7 @@ const FlightLogEntry = () => {
                 name='departureAirport'
                 label={t('flightLog.departureAirport')}
                 control={control}
+                required={true}
                 disabled={!isEditable}
                 error={errors.departureAirport}
               />
@@ -391,6 +392,7 @@ const FlightLogEntry = () => {
                 name='arrivalAirport'
                 label={t('flightLog.arrivalAirport')}
                 control={control}
+                required={true}
                 disabled={!isEditable}
                 error={errors.arrivalAirport}
               />
@@ -522,7 +524,28 @@ const FlightLogEntry = () => {
 
             {isFlightLogAdmin && (
               <Grid size={{ xs: 12, md: 6 }}>
-                <BillableMember control={control} disabled={isInvoiced} />
+                <Controller
+                  name={'billableMemberId'}
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { onChange, value } }) => (
+                    <SelectMember
+                      value={value}
+                      onChange={(value) => onChange(value?.id)}
+                      entries={[
+                        // add SELF as top of the list
+                        {
+                          id: me?.memberId ?? '',
+                          label: 'SELF',
+                        },
+                      ]}
+                      exclude={[me?.memberId ?? '']}
+                      label={t(`flightLog.billableMemberId`)}
+                      placeholder={t('flightLog.selectCrew')}
+                      disabled={isInvoiced}
+                    />
+                  )}
+                />
               </Grid>
             )}
 

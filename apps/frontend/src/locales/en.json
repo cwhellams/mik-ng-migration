@@ -105,6 +105,7 @@
       "instantMessaging": "Edit Instant Messaging Contacts",
       "training": "Edit Training Programs",
       "membership": "Edit Membership Details",
+      "refreshToken": "Refresh the latest permission into use immediately",
       "roles": "Edit Member Roles",
       "licence": "Edit Licence Information",
       "billing": "Edit Billing Auto-renew Settings"
@@ -413,8 +414,8 @@
     "access_codes.admin": "Manage access codes",
     "invoicing.user": "View invoices",
     "invoicing.admin": "Manage invoicing",
-    "sms.admin": "Receive and manage SMS occurrences",
-    "sms.team": "See anonymized SMS occurrences"
+    "sms.processor": "Receive and anonymize new SMS occurrences",
+    "sms.manager": "Process anonymized SMS occurrences"
   },
   "general": {
     "actions": "Actions",
@@ -871,8 +872,9 @@
     "newReport": "New Report",
     "existingReport": "Edit Report",
     "noReports": "No occurrence reports",
+    "infoText": "Please report new occurrences for any possible deviation from normal flight operations. Reports are anonymized by an independent reviewer before publishing further to the safety team.",
     "occurrenceDate": "Occurrence Date",
-    "deadLine": "DTO Deadline",
+    "deadLine": "Deadline",
     "reportDate": "Report Date",
     "age": "Age {{duration}}",
     "reportAgePending": "Current Age",
@@ -883,6 +885,9 @@
     "originalReport": "Original Report",
     "anonymizedReport": "Anonymized Report",
     "aircraft": "Aircraft",
+    "aircraftNote": "Write in the description field if the event concerns another aircraft or non-aircraft related event.",
+    "aircraftTechnicalFault": "Is occurrence related to aircraft technical condition?",
+    "aircraftTechnicalFaultAdminInfoText": "Please send this report to CAMO in English camo@example.com and add Camo Account to recipients of this occurence",
     "location": "Location",
     "summary": "Summary",
     "headline": "Headline",
@@ -895,16 +900,31 @@
     "statuses": {
       "NEW": "New",
       "RECEIVED": "Received",
-      "ANONYMIZING": "Anonymizing",
-      "ANONYMIZED": "Anonymized",
+      "ANONYMIZING": "Reviewing",
+      "ANONYMIZED": "Processing",
+      "PROCESSED": "Processed",
       "CLOSED": "Closed"
     },
+    "handling": {
+      "title": "Safety Management System",
+      "comments": "Comments and Tracking",
+      "addComment": "Add Comment",
+      "before": "Risk ratings",
+      "adversity": "Adversity",
+      "probability": "Probability",
+      "forwardedToTraficom": "Forwarded to Traficom",
+      "risk": "Risk Level",
+      "after": "After mitigating actions",
+      "mitigatingAction": "Mitigating Actions Taken"
+    },
     "actions": {
-      "receive": "Mark as Received",
+      "receive": "Mark Received and Create Copy for Anonymization",
       "anonymize": "Publish Anonymized Report",
-      "confirmAnonymize": "Are you sure the report is fully anonomized and can be published to the SMS team members without any identifying information?",
-      "close": "Close Report",
-      "confirmClose": "Are you sure the report is fully processed and can be closed?"
+      "confirmAnonymize": "Are you sure the report is fully anonomized and can be published to the safety team without any identifiable information? Your own access as Independent Reviewer will be revoked after publishing.",
+      "processed": "Save ratings and mark as Processed",
+      "confirmProcessed": "Are you sure the report is fully processed and can be marked as processed?",
+      "close": "Save ratings and close Report",
+      "confirmClose": "Are you sure all mitigating actions have been taken and the report can be closed?"
     },
     "categories": "Categories",
     "categoryEnum": {
@@ -955,6 +975,15 @@
       "small": "Small",
       "medium": "Medium",
       "large": "Large"
+    },
+    "access": {
+      "title": "Sharing",
+      "addMember": "Add Access to Member",
+      "memberId": "Member ID",
+      "none": "-- None --",
+      "read": "Read Access",
+      "write": "Write Access",
+      "manage": "Admin Access"
     }
   }
 }

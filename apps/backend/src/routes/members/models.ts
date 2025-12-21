@@ -34,11 +34,12 @@ export enum MIKPermissions {
   DOCUMENT_ADMIN = 'document.admin',
 
   // safety management system roles
-  SMS_TEAM = 'sms.team',
-  SMS_ADMIN = 'sms.admin',
+  SMS_PROCESSOR = 'sms.processor',
+  SMS_MANAGER = 'sms.manager',
 }
 
-export const toUserRole = (permission: MIKPermissions): MIKPermissions | undefined => {
+// admins can be downgraded to user permissions when not in sudo mode
+export const downgradePermission = (permission: MIKPermissions): MIKPermissions | undefined => {
   switch (permission) {
     case MIKPermissions.MEMBER_ADMIN:
       return MIKPermissions.MEMBER
@@ -54,8 +55,10 @@ export const toUserRole = (permission: MIKPermissions): MIKPermissions | undefin
       return MIKPermissions.ACCESS_CODES_USER
     case MIKPermissions.DOCUMENT_ADMIN:
       return MIKPermissions.DOCUMENT_USER
-    case MIKPermissions.SMS_ADMIN:
-    case MIKPermissions.SMS_TEAM:
+
+    // no separate user roles for SMS permissions
+    case MIKPermissions.SMS_PROCESSOR:
+    case MIKPermissions.SMS_MANAGER:
       return undefined
     default:
       return permission

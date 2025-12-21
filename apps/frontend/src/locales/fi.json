@@ -105,6 +105,7 @@
       "instantMessaging": "Muokkaa pikaviestintäyhteystietoja",
       "training": "Muokkaa koulutusohjelmia",
       "membership": "Muokkaa jäsenyyden tietoja",
+      "refreshToken": "Päivitä uusimmat käyttöoikeudet voimaan välittömästi",
       "roles": "Muokkaa jäsenen rooleja",
       "licence": "Muokkaa lupatietoja",
       "billing": "Muokkaa laskutuksen automaattisen uusimisen asetuksia"
@@ -871,8 +872,9 @@
     "newReport": "Uusi poikkeama",
     "existingReport": "Muokkaa poikkeamaa",
     "noReports": "Ei poikkeamaraportteja",
+    "infoText": "Raportoi kaikki mahdolliset poikkeamat normaalista lentotoiminnasta. Raportit anonymisoidaan riippumattoman tarkastajan toimesta ennen julkaisua turvallisuustiimille.",
     "occurrenceDate": "Poikkeaman päivämäärä",
-    "deadLine": "DTO:n määräaika",
+    "deadLine": "Määräaika",
     "reportDate": "Raportin päivämäärä",
     "age": "Ikä {{duration}}",
     "reportAgePending": "Nykyinen ikä",
@@ -883,6 +885,9 @@
     "originalReport": "Alkuperäinen raportti",
     "anonymizedReport": "Anonymisoitu raportti",
     "aircraft": "Lentokone",
+    "aircraftNote": "Kirjoita kuvauskenttään, jos tapahtuma koskee muuta lentokonetta tai ei-lentokoneeseen liittyvää tapahtumaa.",
+    "aircraftTechnicalFault": "Liittyykö tapaus ilma-aluksen tekniseen tilaan.",
+    "aircraftTechnicalFaultAdminInfoText": "Please send this report to CAMO in English camo@example.com and add Camo Account to recipients of this occurence",
     "location": "Sijainti",
     "summary": "Yhteenveto",
     "headline": "Otsikko",
@@ -895,16 +900,31 @@
     "statuses": {
       "NEW": "Uusi",
       "RECEIVED": "Vastaanotettu",
-      "ANONYMIZING": "Anonymisoidaan",
-      "ANONYMIZED": "Anonymisoitu",
+      "ANONYMIZING": "Tarkastuksessa",
+      "ANONYMIZED": "Käsittelyssä",
+      "PROCESSED": "Käsitelty",
       "CLOSED": "Suljettu"
     },
+    "handling": {
+      "title": "Turvallisuuden hallintajärjestelmä",
+      "comments": "Kommentit ja seuranta",
+      "addComment": "Lisää kommentti",
+      "before": "Riskiluokitukset",
+      "adversity": "Vakavuus",
+      "probability": "Todennäköisyys",
+      "forwardedToTraficom": "Välitetty Traficomille",
+      "risk": "Riskitaso",
+      "after": "Parannustoimien jälkeen",
+      "mitigatingAction": "Toteutetut parannustoimet"
+    },
     "actions": {
-      "receive": "Merkitse vastaanotetuksi",
+      "receive": "Merkitse vastaanotetuksi ja luo kopio anonymisointia varten",
       "anonymize": "Julkaise anonymisoitu raportti",
-      "confirmAnonymize": "Oletko varma, että raportti on täysin anonymisoitu ja voidaan julkaista SMS-tiimin jäsenille ilman tunnistettavia tietoja?",
-      "close": "Sulje raportti",
-      "confirmClose": "Oletko varma, että raportti on täysin käsitelty ja voidaan sulkea?"
+      "confirmAnonymize": "Oletko varma, että raportti on täysin anonymisoitu ja voidaan julkaista turvallisuustiimille ilman tunnistettavia tietoja? Oma pääsysi riippumattomana tarkastajana peruutetaan julkaisun jälkeen.",
+      "processed": "Tallenna luokitukset ja merkitse käsitellyksi",
+      "confirmProcessed": "Oletko varma, että raportti on täysin käsitelty ja voidaan merkitä käsitellyksi?",
+      "close": "Tallenna luokitukset ja sulje raportti",
+      "confirmClose": "Oletko varma, että kaikki korjaavat toimenpiteet on toteutettu ja raportti voidaan sulkea?"
     },
     "categories": "Kategoriat",
     "categoryEnum": {
@@ -955,6 +975,15 @@
       "small": "Pieni",
       "medium": "Keskikokoinen",
       "large": "Suuri"
+    },
+    "access": {
+      "title": "Jakaminen",
+      "addMember": "Lisää käyttöoikeus jäsenelle",
+      "memberId": "Jäsennumero",
+      "none": "-- Ei mitään --",
+      "read": "Lukuoikeus",
+      "write": "Kirjoitusoikeus",
+      "manage": "Ylläpito-oikeus"
     }
   }
 }

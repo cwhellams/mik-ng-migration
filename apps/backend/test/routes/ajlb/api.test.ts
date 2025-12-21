@@ -23,7 +23,9 @@ app.use(problemErrorHandler)
 
 const jwt: JWTUser = {
   memberId: 'Liisa1',
+  lastName: 'Lahtinen',
   email: 'loggedinuser',
+  roles: [],
   permissions: [],
 }
 
@@ -52,7 +54,9 @@ describe('GET /ajlb', () => {
   it('should return 403 for members', async () => {
     const noAccessToken = generateAccessToken({
       memberId: 'Matti1',
+      lastName: 'Test',
       email: 'jonny.depp@mik.fi',
+      roles: [],
       permissions: [],
     })
 

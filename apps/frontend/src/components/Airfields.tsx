@@ -11,6 +11,7 @@ import useApi from '../hooks/useApi'
 
 interface AirfieldsProps<T extends FieldValues> {
   control: Control<T>
+  required?: boolean
   disabled?: boolean
   name: FieldPath<T>
   label: string
@@ -19,6 +20,7 @@ interface AirfieldsProps<T extends FieldValues> {
 
 export const Airfields = <T extends FieldValues>({
   control,
+  required,
   disabled,
   name,
   label,
@@ -51,7 +53,7 @@ export const Airfields = <T extends FieldValues>({
           renderInput={(params) => (
             <TextField
               {...params}
-              required
+              required={required}
               label={label}
               placeholder='ICAO'
               margin='normal'

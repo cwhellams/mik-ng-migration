@@ -55,7 +55,9 @@ describe('Db query ajlb get tests', () => {
 describe('Db ajlb CRUD tests', () => {
   const jwt: JWTUser = {
     memberId: 'k1mnimda',
+    lastName: 'Test',
     email: 'loggedinuser',
+    roles: [],
     permissions: [],
   }
 

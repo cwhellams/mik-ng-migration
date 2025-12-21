@@ -15,6 +15,7 @@ export const TxtField = ({ name, control, props }: Props) => {
     <Controller
       name={name}
       control={control}
+      disabled={props.disabled}
       render={({ field, fieldState: { error } }) => (
         <TextField
           {...field}

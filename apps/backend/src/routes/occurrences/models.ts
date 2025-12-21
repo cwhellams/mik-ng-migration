@@ -2,15 +2,16 @@ import z from 'zod'
 import { AuditableSchema, UpsertSchema } from '../../types/schema.ts'
 
 export enum OccurrenceStatus {
-  // original report statuses
+  // only the independent SMS processor can see the reports with
+  // personal data
   NEW = 'NEW',
   RECEIVED = 'RECEIVED',
-
-  // anonymized version statuses
   ANONYMIZING = 'ANONYMIZING',
-  ANONYMIZED = 'ANONYMIZED',
-  CLOSED = 'CLOSED',
 
+  // safety manager can process these anonymized reports
+  ANONYMIZED = 'ANONYMIZED',
+  PROCESSED = 'PROCESSED',
+  CLOSED = 'CLOSED',
   DELETED = 'DELETED',
 }
 
@@ -87,6 +88,56 @@ export enum OccurrenceCategory {
   UNK = 'UNK',
 }
 
+export const OccurrenceCommentSchema = z.object({
+  at: z.string().datetime(),
+  by: z.string(),
+  status: z.nativeEnum(OccurrenceStatus).nullable(),
+  comment: z.string().nullish(),
+})
+
+export type OccurrenceComment = z.infer<typeof OccurrenceCommentSchema>
+
+export const OccurrenceProcessedPayloadSchema = z.object({
+  adversity: z.number().min(1).max(5),
+  probability: z.number().min(1).max(5),
+  forwardedToTraficom: z.boolean(),
+})
+export type OccurrenceProcessedPayload = z.infer<typeof OccurrenceProcessedPayloadSchema>
+
+export const OccurrenceClosedPayloadSchema = z.object({
+  adversity: z.number().min(1).max(5),
+  probability: z.number().min(1).max(5),
+  mitigatingAction: z.string().nullable(),
+})
+export type OccurrenceClosedPayload = z.infer<typeof OccurrenceClosedPayloadSchema>
+
+export const OccurrenceHandlingSchema = z.object({
+  processed: OccurrenceProcessedPayloadSchema.extend({
+    at: z.string().datetime().readonly().optional(),
+    by: z.string().readonly().optional(),
+  }).optional(),
+  closed: OccurrenceClosedPayloadSchema.extend({
+    at: z.string().datetime().readonly().optional(),
+    by: z.string().readonly().optional(),
+  }).optional(),
+})
+
+export type OccurrenceHandling = z.infer<typeof OccurrenceHandlingSchema>
+
+export const OccurrenceAccessSchema = z.object({
+  accessId: z.number().readonly().optional(),
+  memberId: z.string().nullish(),
+  lastName: z.string().nullish(),
+  roleId: z.string().nullish(),
+  author: z.boolean().default(false),
+  write: z.boolean().default(false),
+  manage: z.boolean().default(false),
+  at: z.string().datetime().optional().readonly(),
+  by: z.string().optional().readonly(),
+})
+
+export type OccurrenceAccess = z.infer<typeof OccurrenceAccessSchema>
+
 export const OccurrenceSchema = AuditableSchema.extend({
   id: z.string().readonly(),
   status: z.nativeEnum(OccurrenceStatus),
@@ -94,6 +145,7 @@ export const OccurrenceSchema = AuditableSchema.extend({
   occurrenceDate: z.string().datetime(),
   reportDate: z.string().datetime(),
   deadLine: z.string().datetime().optional().readonly(),
+  processedDate: z.string().datetime().optional().readonly(),
 
   headline: z.string(),
   location: z.string(),
@@ -111,14 +163,19 @@ export const OccurrenceSchema = AuditableSchema.extend({
   animalSpecies: z.string().nullable(),
 
   // aircraft, if applicable
-  aircraftRegistration: z.string(),
-  arrivalAirport: z.string(),
-  departureAirport: z.string(),
+  aircraftRegistration: z.string().nullable(),
+  aircraftTechnicalFault: z.boolean().nullable(),
+  arrivalAirport: z.string().nullable(),
+  departureAirport: z.string().nullable(),
 
   isDtoReport: z.boolean(),
 
   // either anonymized or original report id
   linkedReportId: z.string().nullable(),
+
+  access: z.array(OccurrenceAccessSchema),
+  comments: z.array(OccurrenceCommentSchema).readonly(),
+  handling: OccurrenceHandlingSchema.readonly(),
 })
 
 export type Occurrence = z.infer<typeof OccurrenceSchema>
@@ -126,14 +183,19 @@ export type Occurrence = z.infer<typeof OccurrenceSchema>
 export const OccurrenceUpsertSchema = UpsertSchema(OccurrenceSchema).omit({
   id: true,
   reportDate: true,
+  deadLine: true,
   status: true,
   linkedReportId: true,
+  access: true,
+  comments: true,
+  handling: true,
 })
 
 export type OccurrenceUpsert = z.infer<typeof OccurrenceUpsertSchema>
 
 export const OccurrenceFiltersSchema = z.object({
   status: z.nativeEnum(OccurrenceStatus).optional(),
+  ignoreStatuses: z.array(z.nativeEnum(OccurrenceStatus)).optional(),
   aircraftRegistration: z.string().optional(),
   fromDate: z.string().datetime().optional(),
   toDate: z.string().datetime().optional(),

@@ -17,13 +17,17 @@ app.use(problemErrorHandler)
 
 const adminToken = generateAccessToken({
   memberId: 'k1mnimda',
+  lastName: 'Admin',
   email: 'admin@mik.fi',
+  roles: [],
   permissions: [MIKPermissions.INVOICING_ADMIN],
 })
 
 const userToken = generateAccessToken({
   memberId: 'Matti1',
+  lastName: 'Virtanen',
   email: 'user@mik.fi',
+  roles: [],
   permissions: [],
 })
 

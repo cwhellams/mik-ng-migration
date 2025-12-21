@@ -24,6 +24,6 @@ export const FormField = ({
       {label}:
     </Typography>
     {icon && <Icon icon={icon} />}
-    <Typography variant='body1'>{children}</Typography>
+    {children}
   </Box>
 )

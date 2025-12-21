@@ -133,7 +133,7 @@ export type APIMutation<Data> = {
   ) => Promise<APIResponse<ResponseData>>
 }
 
-export type MutateMethods = 'GET' | 'POST' | 'PATCH' | 'DELETE'
+export type MutateMethods = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 export default function useApi<
   // returned data type
@@ -184,7 +184,7 @@ export default function useApi<
         // globally allow admin permissions with sudo mode
         headers: {
           ...request.headers,
-          'x-sudo': sudo ? 'true' : 'false',
+          'x-sudo': sudo || request.alwaysSudo ? 'true' : 'false',
         },
       }),
     {

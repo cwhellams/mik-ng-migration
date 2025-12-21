@@ -25,25 +25,33 @@ app.use(problemErrorHandler)
 
 const mattiToken = generateAccessToken({
   memberId: test_member_id,
+  lastName: 'Virtanen',
   email: 'jonny.depp@mik.fi',
+  roles: [],
   permissions: [MIKPermissions.FLIGHTLOG_USER],
 })
 
 const jukkaToken = generateAccessToken({
   memberId: 'Jukka1',
+  lastName: 'Virtanen',
   email: 'jonny.depp@mik.fi',
+  roles: [],
   permissions: [MIKPermissions.FLIGHTLOG_USER],
 })
 
 const sannaToken = generateAccessToken({
   memberId: test_member_id2,
+  lastName: 'Virtanen',
   email: 'jonny.depp@mik.fi',
+  roles: [],
   permissions: [MIKPermissions.FLIGHTLOG_USER],
 })
 
 const adminToken = generateAccessToken({
   memberId: admin_member_id,
+  lastName: 'Virtanen',
   email: 'jonny.depp@mik.fi',
+  roles: [],
   permissions: [MIKPermissions.FLIGHTLOG_ADMIN],
 })
 
@@ -421,7 +429,9 @@ describe('PATCH /flight-log/', () => {
 
     const invalidToken = generateAccessToken({
       memberId: 'Liisa1', // billable_member_id
+      lastName: 'Test',
       email: 'test@mik.fi',
+      roles: [],
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     })
 
@@ -693,7 +703,9 @@ describe('DELETE /flight-log', () => {
   it('should return 403 when user does not have rights to delete a flight log', async () => {
     const delToken = generateAccessToken({
       memberId: 'Iceman99',
+      lastName: 'Test',
       email: 'invalid@mik.fi',
+      roles: [],
       permissions: [MIKPermissions.FLIGHTLOG_USER],
     })
 

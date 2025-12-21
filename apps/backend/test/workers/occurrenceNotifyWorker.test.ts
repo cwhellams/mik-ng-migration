@@ -43,8 +43,8 @@ describe('Occurrence Notifying Worker', () => {
 
       expect(mockCronSchedule).toHaveBeenCalledWith('0 7 * * *', expect.any(Function))
 
-      // 2 members and 2 occurences
-      expect(mockSendEmail).toHaveBeenCalledTimes(4)
+      // 2 processors and 2 occurences + 1 occurrence for managers
+      expect(mockSendEmail).toHaveBeenCalledTimes(5)
 
       worker.stop()
     })

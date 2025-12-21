@@ -8,7 +8,9 @@ import type { JWTUser } from '../../src/routes/auth/token.ts'
 
 const jwt: JWTUser = {
   memberId: 'k1mnimda',
+  lastName: 'Test',
   email: 'loggedinuser',
+  roles: [],
   permissions: [],
 }
 

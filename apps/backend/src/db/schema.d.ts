@@ -71,6 +71,7 @@ export type Occurrencestatus =
   | 'CLOSED'
   | 'DELETED'
   | 'NEW'
+  | 'PROCESSED'
   | 'RECEIVED'
 
 export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SYNCED'
@@ -275,27 +276,43 @@ export interface FlightLogsAudit {
   operation_type: string
 }
 
+export interface FlightOccurrenceAccess {
+  access_id: Generated<number>
+  author: Generated<boolean>
+  manage_access: Generated<boolean>
+  member_id: string | null
+  report_id: string
+  role_id: string | null
+  updated_at: Generated<Timestamp>
+  updated_by: string
+  write_access: Generated<boolean>
+}
+
 export interface FlightOccurrences {
   animal_number: string | null
   animal_size: string | null
   animal_species: string | null
-  arrival_airport: string
+  arrival_airport: string | null
   categories: Json
+  comments: Generated<Json>
   created_at: Generated<Timestamp>
   created_by: string
   dead_line: Timestamp | null
-  departure_airport: string
+  departure_airport: string | null
   description: string
+  handling: Generated<Json>
   headline: string
   is_dto_report: boolean
   is_weather_relevant: boolean | null
   linked_report_id: string | null
   location: string
   occurrence_date: Timestamp
-  registration: string
+  processed_date: Timestamp | null
+  registration: string | null
   report_date: Timestamp
   report_id: string
   status: Generated<Occurrencestatus>
+  technical_faults: boolean | null
   updated_at: Generated<Timestamp>
   updated_by: string
 }
@@ -518,6 +535,7 @@ export interface DB {
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit
+  'flight.occurrence_access': FlightOccurrenceAccess
   'flight.occurrences': FlightOccurrences
   'flight.vw_flight_logs': FlightVwFlightLogs
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals

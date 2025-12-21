@@ -130,12 +130,15 @@ describe('Occurrence Email template tests', () => {
     status: 'NEW',
   } as Occurrence
 
-  it.each([MIKLang.FI, MIKLang.EN])('occurrenceNotificationEmailBodyHtml for lang: %s', lang => {
-    const result = occurrenceNotificationEmailBodyHtml(lang, occurrence)
-    expect(result).toMatchSnapshot()
-  })
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
+    'occurrenceNotificationEmailBodyHtml for lang: %s',
+    lang => {
+      const result = occurrenceNotificationEmailBodyHtml(lang, occurrence)
+      expect(result).toMatchSnapshot()
+    },
+  )
 
-  it.each([MIKLang.FI, MIKLang.EN])(
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'occurrenceNotificationEmailBodyHtml with deadline for lang: %s',
     lang => {
       const result = occurrenceNotificationEmailBodyHtml(lang, {
@@ -146,7 +149,7 @@ describe('Occurrence Email template tests', () => {
     },
   )
 
-  it.each([MIKLang.FI, MIKLang.EN])(
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'occurrenceNotificationEmailBodyHtml anonymized for lang: %s',
     lang => {
       const result = occurrenceNotificationEmailBodyHtml(lang, {

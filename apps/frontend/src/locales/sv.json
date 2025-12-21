@@ -105,6 +105,7 @@
       "instantMessaging": "Redigera snabbmeddelandekontakter",
       "training": "Redigera utbildningsprogram",
       "membership": "Redigera medlemsdetaljer",
+      "refreshToken": "Uppdatera de senaste behörigheterna för omedelbar användning",
       "roles": "Redigera medlemsroller",
       "licence": "Redigera licensinformation",
       "billing": "Redigera inställningar för automatisk förnyelse av fakturering"
@@ -207,7 +208,8 @@
         "valid": "Giltig",
         "expiring": "Går ut snart",
         "expired": "Utgången",
-        "inactive": "Inaktiv"
+        "inactive": "Inaktiv",
+        "missing": "Saknas"
       },
       "delete": {
         "delete": "Ta bort",
@@ -870,8 +872,9 @@
     "newReport": "Ny rapport",
     "existingReport": "Redigera rapport",
     "noReports": "Inga tillbudsrapporter",
+    "infoText": "Vänligen rapportera nya tillbud för eventuella avvikelser från normal flygverksamhet. Rapporter anonymiseras av en oberoende granskare innan de publiceras vidare till säkerhetsteamet.",
     "occurrenceDate": "Tillbudsdatum",
-    "deadLine": "DTO-deadline",
+    "deadLine": "Sista datum",
     "reportDate": "Rapportdatum",
     "age": "Ålder {{duration}}",
     "reportAgePending": "Aktuell ålder",
@@ -882,6 +885,9 @@
     "originalReport": "Ursprunglig rapport",
     "anonymizedReport": "Anonymiserad rapport",
     "aircraft": "Flygplan",
+    "aircraftNote": "Skriv i beskrivningsfältet om händelsen gäller ett annat flygplan eller icke-flygplansrelaterade händelser.",
+    "aircraftTechnicalFault": "Is occurrence related to aircraft technical condition?",
+    "aircraftTechnicalFaultAdminInfoText": "Vänligen skicka denna rapport till CAMO på engelska camo@example.com och lägg till Camo-konto som mottagare av detta tillbud",
     "location": "Plats",
     "summary": "Sammanfattning",
     "headline": "Rubrik",
@@ -894,16 +900,31 @@
     "statuses": {
       "NEW": "Ny",
       "RECEIVED": "Mottagen",
-      "ANONYMIZING": "Anonymiserar",
-      "ANONYMIZED": "Anonymiserad",
+      "ANONYMIZING": "Granskar",
+      "ANONYMIZED": "Bearbetar",
+      "PROCESSED": "Behandlad",
       "CLOSED": "Stängd"
     },
+    "handling": {
+      "title": "Säkerhetsledningssystem",
+      "comments": "Kommentarer och uppföljning",
+      "addComment": "Lägg till kommentar",
+      "before": "Riskbedömningar",
+      "adversity": "Allvarlighetsgrad",
+      "probability": "Sannolikhet",
+      "forwardedToTraficom": "Vidarebefordrad till Traficom",
+      "risk": "Risknivå",
+      "after": "Efter åtgärder",
+      "mitigatingAction": "Vidtagna förebyggande åtgärder"
+    },
     "actions": {
-      "receive": "Markera som mottagen",
+      "receive": "Markera som mottagen och skapa kopia för anonymisering",
       "anonymize": "Publicera anonymiserad rapport",
-      "confirmAnonymize": "Är du säker på att rapporten är helt anonymiserad och kan publiceras till SMS-teamet utan identifierande information?",
-      "close": "Stäng rapport",
-      "confirmClose": "Är du säker på att rapporten är helt behandlad och kan stängas?"
+      "confirmAnonymize": "Är du säker på att rapporten är fullständigt anonymiserad och kan publiceras till säkerhetsteamet utan någon identifierbar information? Din egen åtkomst som oberoende granskare kommer att återkallas efter publicering.",
+      "processed": "Spara bedömningar och markera som behandlad",
+      "confirmProcessed": "Är du säker på att rapporten är fullständigt behandlad och kan markeras som behandlad?",
+      "close": "Spara bedömningar och stäng rapport",
+      "confirmClose": "Är du säker på att alla förebyggande åtgärder har vidtagits och rapporten kan stängas?"
     },
     "categories": "Kategorier",
     "categoryEnum": {
@@ -954,6 +975,15 @@
       "small": "Liten",
       "medium": "Mellan",
       "large": "Stor"
+    },
+    "access": {
+      "title": "Delning",
+      "addMember": "Lägg till åtkomst för medlem",
+      "memberId": "Medlems-ID",
+      "none": "-- Ingen --",
+      "read": "Läsåtkomst",
+      "write": "Skrivåtkomst",
+      "manage": "Administratörsåtkomst"
     }
   }
 }

@@ -5,11 +5,15 @@ Hei {{firstName}},
 Uusi poikkema koneelle {{aircraftRegistration}} on ilmoitettu aikaan {{reportDate}}.
 
 {{#if new}}
-Poikkema on näkyvissä vain SMS-ylläpitäjäryhmän jäsenille ja se on anonymisoitava ennen kuin se tulee näkyväksi muulle turvallisuustiimille. Ole hyvä ja käsittele poikkema mahdollisimman pian.
+Poikkema on näkyvissä vain riippumattomille tarkastajille ja se on anonymisoitava ennen kuin se tulee näkyväksi turvallisuuspäälliköille. Ole hyvä ja käsittele poikkema mahdollisimman pian.
+{{/if}}
+
+{{#if anonymized}}
+Anonymisoitu poikkema on nyt näkyvissä vain turvallisuuspäälliköille. Ole hyvä ja käsittele poikkema mahdollisimman pian ja jaa se muille asiaankuuluville henkilöille.
 {{/if}}
 
 {{#if deadLine}}
-DTO-poikkeman käsittely on tehtävä 72 tunnissa. Määräaika päättyy {{deadLine}}.
+Poikkeman käsittely on tehtävä 72 tunnissa. Määräaika päättyy {{deadLine}}.
 {{/if}}
 
 [button:Tarkastele poikkeamaa]({{href}})

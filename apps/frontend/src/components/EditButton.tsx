@@ -20,13 +20,12 @@ export const EditButton = ({
 }) => {
   return (
     <Tooltip title={title}>
-      {viewOnly ? (
-        <Icon icon={icon} color={color} width={width} />
-      ) : (
+      <span>
         <IconButton
           size='small'
           aria-label={title}
           onClick={onClick}
+          disabled={viewOnly}
           sx={{
             backgroundColor: 'background.paper',
             boxShadow: 0,
@@ -36,7 +35,7 @@ export const EditButton = ({
         >
           <Icon icon={icon} color={color} width={width} />
         </IconButton>
-      )}
+      </span>
     </Tooltip>
   )
 }
