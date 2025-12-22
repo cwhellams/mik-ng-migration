@@ -130,7 +130,7 @@ export const AjlbEditor = ({
             <TextField
               fullWidth
               required
-              label={t('flightLog.aircraftRegistration')}
+              label={t('flightLog.aircraft')}
               value={formData.aircraftRegistration || ''}
             />
           </Grid>

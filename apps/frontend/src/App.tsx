@@ -35,6 +35,7 @@ import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
 import ToolsPage from './sections/accounting/ToolsPage'
 import { Occurrences } from './sections/occurrences/Occurences'
 import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
+import LogbookFlights from './sections/flightLog/LogbookPage'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -81,12 +82,20 @@ function App() {
             </Route>
             <Route path='/logs'>
               <Route index element={<FlightLogsList />} />
-              <Route path='logbooks' element={<LogbooksList />} />
+              <Route path='flights'>
+                <Route path=':flightId' element={<NewFlightLogEntry />} />
+              </Route>
+              <Route path='books'>
+                <Route index element={<LogbooksList />} />
+                <Route
+                  path=':aircraftRegistration/:ajlbSeqNo/:page?'
+                  element={<LogbookFlights />}
+                />
+              </Route>
               <Route path='occurrences'>
                 <Route index element={<Occurrences />} />
                 <Route path=':reportId' element={<OccurrenceEntry />} />
               </Route>
-              <Route path=':flightId' element={<NewFlightLogEntry />} />
             </Route>
             <Route path='/club'>
               <Route index element={<Members />} />

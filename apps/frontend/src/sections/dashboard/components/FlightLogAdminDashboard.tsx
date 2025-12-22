@@ -90,7 +90,7 @@ export const FlightLogAdminDashboard = () => {
                   <ListItemText
                     primary={
                       <Link
-                        to={`/logs/${log.flightId}`}
+                        to={`/logs/flights/${log.flightId}`}
                         onClick={() => toggleSudo(true)}
                       >
                         {log.aircraftRegistration} -{' '}
@@ -123,7 +123,7 @@ export const FlightLogAdminDashboard = () => {
                   <ListItemText
                     primary={
                       <Link
-                        to={`/logs?aircraftRegistration=${ajlb.aircraftRegistration}&ajlbSeqNo=${ajlb.seqNo}&page=${ajlb.view?.newFlightsPage}`}
+                        to={`/logs/books/${ajlb.aircraftRegistration}/${ajlb.seqNo}?page=${ajlb.view?.newFlightsPage}`}
                         onClick={() => toggleSudo(true)}
                       >
                         {ajlb.aircraftRegistration} - {ajlb.seqNo}

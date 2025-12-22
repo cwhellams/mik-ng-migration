@@ -99,7 +99,7 @@ export const StatusDisplay = ({
 
       <FormField label={t('flightLog.logbooks.ajlb')}>
         <Link
-          to={`/logs?aircraftRegistration=${log.aircraftRegistration}&ajlbSeqNo=${log.ajlbSeqNo}&page=${log.ajlbPageNo}`}
+          to={`/logs/books/${log.aircraftRegistration}/${log.ajlbSeqNo}?page=${log.ajlbPageNo}#${log.flightId}`}
         >
           {t('flightLog.logbooks.goToFlight', {
             seqNo: log.ajlbSeqNo,

@@ -14,6 +14,7 @@
     "toggleSudo": "Växla administratörsläge",
     "logs": "Loggar",
     "flightLogs": "Flyg",
+    "logbooks": "Böcker",
     "occurrences": "Förekomster",
     "massBalance": "Massa & Balans",
     "roles": "Användarroller",
@@ -590,6 +591,7 @@
     },
     "logbooks": {
       "title": "Loggböcker",
+      "book": "Bok",
       "ajlb": "Flygplansjournal",
       "newAjlb": "Ny loggbok",
       "editAjlb": "Redigera loggbok",
@@ -611,6 +613,7 @@
       "newFlightsCount": "Flyg",
       "newFlightsTime": "Flygtid",
       "goToFlight": "Öppna loggbok {{seqNo}} på sida {{page}} (rad {{row}})",
+      "validity": "Giltighet",
       "validFrom": "Giltig från",
       "validTo": "Giltig till",
       "rowsPerPage": "Rader per sida",
@@ -624,7 +627,8 @@
       "unverifiedTotalFlightTime": "Overifierad total flygtid",
       "nextSequence": "Starta nästa loggbok",
       "flightsToMove": "Obekräftade flyg att flytta till ny loggbok",
-      "oldBookMustBeEnded": "Den gamla loggboken måste avslutas först."
+      "oldBookMustBeEnded": "Den gamla loggboken måste avslutas först.",
+      "showOldBooks": "Visa gamla loggböcker"
     }
   },
   "invoicing": {

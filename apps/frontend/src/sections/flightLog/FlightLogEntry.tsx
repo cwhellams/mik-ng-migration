@@ -62,6 +62,9 @@ const FlightLogEntry = () => {
   const navigate = useNavigate()
   // preserve search filters when navigating back
   const location = useLocation()
+  const source = `${location.state}`.startsWith('/books')
+    ? t('flightLog.logbooks.ajlb')
+    : t('flightLog.title')
 
   const { flightId } = useParams()
 
@@ -177,6 +180,8 @@ const FlightLogEntry = () => {
 
   const [problem, setProblem] = useState<Problem | undefined>()
 
+  const backLink = `/logs${location.state ?? ''}#${flightId}`
+
   const onSubmit = async (data: FlightLogUpsertRequest) => {
     console.log('Form submitted with data:', data) // Debug log
 
@@ -196,14 +201,12 @@ const FlightLogEntry = () => {
         return setProblem(error)
       }
 
-      navigate(`/logs?${location.state}#${flightId}`)
+      navigate(backLink)
     } catch (err) {
       console.error('Unexpected error:', err)
       setProblem({ status: 500, detail: t('general.savingError') })
     }
   }
-
-  const handleCancel = () => navigate(`/logs?${location.state}#${flightId}`)
 
   // Check if form has validation errors
   const hasValidationErrors = Object.keys(errors).length > 0
@@ -216,7 +219,7 @@ const FlightLogEntry = () => {
 
       {/* Breadcrumb navigation */}
       <Breadcrumbs sx={{ my: 2 }}>
-        <Link to='/logs'>{t('flightLog.title')}</Link>
+        <Link to={backLink}>{source}</Link>
         <Typography color='text.primary'>{title}</Typography>
       </Breadcrumbs>
 
@@ -608,7 +611,7 @@ const FlightLogEntry = () => {
           <Stack direction='row' spacing={2} justifyContent='flex-end' mt={3}>
             <Button
               variant='outlined'
-              onClick={handleCancel}
+              onClick={() => navigate(backLink)}
               startIcon={<Icon icon='mdi:close' />}
             >
               {t('general.cancel')}

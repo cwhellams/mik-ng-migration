@@ -224,8 +224,9 @@ const Header = (props: HeaderProps) => {
                     color='inherit'
                     sx={{
                       color: theme.palette.text.primary,
-                      fontWeight:
-                        location.pathname === item.path ? 'bold' : 'normal',
+                      fontWeight: location.pathname.startsWith(item.path)
+                        ? 'bold'
+                        : 'normal',
                     }}
                   >
                     {t(item.label)}

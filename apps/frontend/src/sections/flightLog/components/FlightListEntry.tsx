@@ -35,7 +35,7 @@ export const ViewFlightDate = ({
 
   if (link) {
     return (
-      <Link to={`/logs/${flightId}`} {...linkProps} ref={ref}>
+      <Link to={`/logs/flights/${flightId}`} {...linkProps} ref={ref}>
         {content}
       </Link>
     )

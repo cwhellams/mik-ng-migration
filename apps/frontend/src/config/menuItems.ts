@@ -52,6 +52,10 @@ export const menuItems: MenuItem[] = [
         label: 'header.flightLogs',
       },
       {
+        path: 'books',
+        label: 'header.logbooks',
+      },
+      {
         path: 'occurrences',
         label: 'header.occurrences',
       },

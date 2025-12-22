@@ -1,7 +1,4 @@
-import {
-  FlightLogListEntry,
-  FlightLogStatus,
-} from '@backend/routes/flight-log/models'
+import { FlightLogListEntry } from '@backend/routes/flight-log/models'
 import { Tooltip, useTheme } from '@mui/material'
 import { t } from 'i18next'
 import { EditButton } from '../../../components/EditButton'
@@ -9,11 +6,10 @@ import { Icon } from '@iconify/react'
 
 type Props = {
   log: FlightLogListEntry
-  viewOnly: boolean
-  update: (status: FlightLogStatus) => void
+  update?: () => void
 }
 
-export const StatusButton = ({ log, viewOnly, update }: Props) => {
+export const StatusButton = ({ log, update }: Props) => {
   const theme = useTheme()
 
   switch (log.status) {
@@ -21,11 +17,11 @@ export const StatusButton = ({ log, viewOnly, update }: Props) => {
       return (
         <EditButton
           title={t('flightLog.status.new')}
-          onClick={() => update(FlightLogStatus.VALIDATED)}
+          onClick={update}
           icon='mdi:schedule'
           color='orange'
           width={28}
-          viewOnly={viewOnly}
+          viewOnly={update === undefined}
           sx={{
             backgroundColor: theme.palette.primary.main,
             borderRadius: 2,

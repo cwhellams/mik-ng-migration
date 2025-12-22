@@ -10,6 +10,7 @@ import { FormTitle } from '../../../components/FormTitle'
 import { formatDate } from '../../../utils/date'
 import { Icon } from '@iconify/react'
 import { AircraftJourneyLogBook } from '@backend/routes/ajlb/model'
+import { useRoles } from '../../../hooks/useRoles'
 
 export const FlightLogValidation = ({
   ajlb,
@@ -33,6 +34,8 @@ export const FlightLogValidation = ({
     totalFlightTime: '00:00',
     validatedBeforeUTC: null,
   }
+
+  const { isFlightLogAdmin } = useRoles()
 
   const hasNewFlights = view.newFlightsCount > 0
 
@@ -84,30 +87,32 @@ export const FlightLogValidation = ({
             </Button>
           )}
 
-          {hasNewFlights && view.newFlightsPage == data.page && (
-            <Button
-              variant='contained'
-              color='primary'
-              startIcon={<Icon icon='mdi:check' color='green' />}
-              loadingPosition='start'
-              loading={isMutating}
-              onClick={async () => {
-                for (const [index, log] of unverifiedFlights.entries()) {
-                  const isLast = index == unverifiedFlights.length - 1
+          {isFlightLogAdmin &&
+            hasNewFlights &&
+            view.newFlightsPage == data.page && (
+              <Button
+                variant='contained'
+                color='primary'
+                startIcon={<Icon icon='mdi:check' color='green' />}
+                loadingPosition='start'
+                loading={isMutating}
+                onClick={async () => {
+                  for (const [index, log] of unverifiedFlights.entries()) {
+                    const isLast = index == unverifiedFlights.length - 1
 
-                  const res = await validateEntry(log, isLast)
-                  if (!res) {
-                    // operation failed, stop processing
-                    return
+                    const res = await validateEntry(log, isLast)
+                    if (!res) {
+                      // operation failed, stop processing
+                      return
+                    }
                   }
-                }
-              }}
-            >
-              {t('flightLog.logbooks.validateAll', {
-                count: unverifiedFlights.length,
-              })}
-            </Button>
-          )}
+                }}
+              >
+                {t('flightLog.logbooks.validateAll', {
+                  count: unverifiedFlights.length,
+                })}
+              </Button>
+            )}
           {hasNewFlights && (
             <>
               <Typography variant='h6' mb={2}>

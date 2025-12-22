@@ -4,6 +4,7 @@ import {
   AircraftJourneyLogBookFilterSchema,
   AircraftJourneyLogBookSchema,
   type AircraftJourneyLogBook,
+  type AjlbFilter,
   type AjlbListResponse,
 } from './model.ts'
 import { getAjlbs, getAjlb, createAjlb, updateAjlb, deleteAjlb } from '../../db/ajlb-queries.ts'
@@ -25,7 +26,7 @@ router.get('/:registration/:seqNo', async (req: Request, res: Response<AircraftJ
   res.status(200).json(book)
 })
 
-router.get('/', async (req: Request, res: Response<AjlbListResponse>) => {
+router.get('/', async (req: Request<AjlbFilter>, res: Response<AjlbListResponse>) => {
   const filters = AircraftJourneyLogBookFilterSchema.parse(req.query)
 
   const books = await getAjlbs(filters)
