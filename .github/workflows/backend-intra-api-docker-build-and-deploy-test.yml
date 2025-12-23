@@ -1,20 +1,51 @@
-name: Intra API Build and Push Docker Image to DO
+name: Deploy to Test Environment
 
 on:
-  push:
-    branches: [test] # Adjust branch names as needed
+  release:
+    types: [published, edited]
 
-    paths:
-      - "apps/**" # trigger if changes are in apps/frontend or backend
-      - ".github/workflows/**" # or in the workflows
-      - ".do/**" # or in digital ocean yaml
-      - "sql/schema/**" # or in sql files
-      - "Dockerfile" # or in Dockerfile
+permissions:
+  contents: read
+
 jobs:
-  deploy:
+  check-release:
     runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+      version_tag: ${{ steps.check.outputs.version_tag }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Check if release is for test environment
+        id: check
+        run: |
+          # Only deploy pre-releases (test releases are created as pre-releases)
+          if [ "${{ github.event.release.prerelease }}" == "true" ]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "version_tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+            echo "✅ This is a test release - will deploy"
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            echo "⏭️  This is a production release - skipping test deployment"
+          fi
+
+  deploy:
+    needs: check-release
+    if: needs.check-release.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: test
+      url: ${{ vars.PUBLIC_URL_TEST }}
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.check-release.outputs.version_tag }}
+          fetch-depth: 0
+
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.check-release.outputs.version_tag }}
+          fetch-depth: 0
 
       - name: Check changed paths
         id: paths
@@ -22,14 +53,16 @@ jobs:
           backend_changed=false
           sql_changed=false
 
-          # Handle first push or force push where event.before doesn't exist
-          if [ -z "${{ github.event.before }}" ] || ! git cat-file -e ${{ github.event.before }} 2>/dev/null; then
-            echo "First push or force push detected - checking all files"
+          # For release deployment, check what changed compared to previous release
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ needs.check-release.outputs.version_tag }}^ 2>/dev/null || echo "")
+
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found - deploying all components"
             backend_changed=true
             sql_changed=true
           else
-            git fetch origin ${{ github.event.before }}
-            CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+            echo "Comparing $PREVIOUS_TAG to ${{ needs.check-release.outputs.version_tag }}"
+            CHANGED=$(git diff --name-only $PREVIOUS_TAG ${{ needs.check-release.outputs.version_tag }})
             echo "CHANGED=$CHANGED"
 
             while IFS= read -r path; do
@@ -93,7 +126,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
+          tags: |
+            registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
+            registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ needs.check-release.outputs.version_tag }}
 
       - name: Get runner public IP
         if: env.sql_changed == 'true'

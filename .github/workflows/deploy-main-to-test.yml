@@ -1,0 +1,87 @@
+name: Deploy Main to Test
+
+on:
+    workflow_dispatch:
+        inputs:
+            version_bump:
+                description: "Version bump type"
+                required: true
+                default: "patch"
+                type: choice
+                options:
+                    - patch
+                    - minor
+                    - major
+
+permissions:
+    contents: write
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        environment:
+            name: test
+            url: ${{ vars.PUBLIC_URL_TEST }}
+
+        steps:
+            - name: Checkout main branch
+              uses: actions/checkout@v4
+              with:
+                  ref: main
+                  fetch-depth: 0
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Configure Git
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+
+            - name: Bump version and create tag
+              id: version
+              run: |
+                  # Bump version in package.json and create git tag
+                  NEW_VERSION=$(npm version ${{ github.event.inputs.version_bump }} -m "chore: bump version to %s")
+                  echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+                  echo "New version: $NEW_VERSION"
+
+            - name: Push version tag to main
+              run: |
+                  git push origin main --follow-tags
+
+            - name: Create GitHub Release for Test
+              uses: softprops/action-gh-release@v2
+              with:
+                  name: Test Release ${{ steps.version.outputs.new_version }}
+                  tag_name: ${{ steps.version.outputs.new_version }}
+                  body: |
+                      ## Test Environment Deployment - ${{ steps.version.outputs.new_version }}
+
+                      This release has been created for deployment to the **test** environment.
+
+                      ### Deployment Details
+                      - **Environment**: Test
+                      - **Version**: ${{ steps.version.outputs.new_version }}
+                      - **Created from**: main branch
+                      - **Commit**: ${{ github.sha }}
+
+                      ### Next Steps
+                      - Deployment to test will be triggered automatically
+                      - After validation, promote to production by running "Promote Test to Production" workflow
+
+                      ### Changes
+                      See commits since the last release.
+                  draft: false
+                  prerelease: true
+                  target_commitish: main
+
+            - name: Summary
+              run: |
+                  echo "✅ Successfully created test release"
+                  echo "📦 New version: ${{ steps.version.outputs.new_version }}"
+                  echo "🔖 Version tag created and pushed"
+                  echo "🚀 GitHub release created - deployment to test will be triggered automatically"

@@ -119,6 +119,25 @@ No secrets should be pushed to the .env file and stored under version control ! 
 
 Oncce a secret is set in GitHub you cannot view the secret value, neither in the web ui or using the gh cli . Secrets are only available to GitHub actions.
 
+# Production Releases
+
+Production deployments are automated through Git tags using semantic versioning. See [RELEASE.md](./RELEASE.md) for detailed instructions on:
+
+- Creating and pushing release tags
+- Manual approval workflow
+- Tag format requirements (vX.Y.Z)
+- Rollback procedures
+- Branch protection recommendations
+
+Quick release commands:
+
+```bash
+pnpm version:patch  # Bug fixes (v1.0.0 -> v1.0.1)
+pnpm version:minor  # New features (v1.0.0 -> v1.1.0)
+pnpm version:major  # Breaking changes (v1.0.0 -> v2.0.0)
+git push --tags
+```
+
 # Running the stack
 
 > Note - make sure you have pre-reqs installed, Postgress running and bootstrapped with schema and data

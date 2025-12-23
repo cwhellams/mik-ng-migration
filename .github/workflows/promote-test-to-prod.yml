@@ -1,0 +1,102 @@
+name: Promote Test to Production
+
+on:
+    workflow_dispatch:
+        inputs:
+            test_version_tag:
+                description: "Test version tag to promote (e.g., v1.2.3)"
+                required: true
+                type: string
+
+permissions:
+    contents: write
+
+jobs:
+    promote:
+        runs-on: ubuntu-latest
+        environment:
+            name: prod
+            url: https://intra.mik.fi
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.inputs.test_version_tag }}
+                  fetch-depth: 0
+
+            - name: Validate test version exists
+              id: validate
+              run: |
+                  TAG_NAME="${{ github.event.inputs.test_version_tag }}"
+
+                  # Validate tag format (vX.Y.Z where X, Y, Z are numbers)
+                  if [[ ! "$TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "❌ Error: Tag must follow semantic versioning format (vX.Y.Z)"
+                    exit 1
+                  fi
+
+                  # Verify tag exists
+                  if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+                    echo "❌ Error: Tag '$TAG_NAME' does not exist"
+                    exit 1
+                  fi
+
+                  # Check if a release exists for this tag
+                  RELEASE_ID=$(gh release view "$TAG_NAME" --json id --jq .id 2>/dev/null || echo "")
+
+                  if [ -z "$RELEASE_ID" ]; then
+                    echo "❌ Error: No GitHub release found for tag '$TAG_NAME'"
+                    echo "Please create a test release first using 'Deploy Main to Test' workflow"
+                    exit 1
+                  fi
+
+                  echo "✅ Tag and release validation passed"
+                  echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Get release notes from test release
+              id: get_notes
+              run: |
+                  # Get the body from the test release
+                  RELEASE_BODY=$(gh release view "${{ steps.validate.outputs.tag_name }}" --json body --jq .body)
+                  echo "release_body<<EOF" >> $GITHUB_OUTPUT
+                  echo "$RELEASE_BODY" >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Create Production Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  name: Production Release ${{ steps.validate.outputs.tag_name }}
+                  tag_name: ${{ steps.validate.outputs.tag_name }}
+                  body: |
+                      ## Production Deployment - ${{ steps.validate.outputs.tag_name }}
+
+                      This release has been promoted from test to production.
+
+                      ### Deployment Details
+                      - **Environment**: Production
+                      - **URL**: https://intra.mik.fi
+                      - **Version**: ${{ steps.validate.outputs.tag_name }}
+                      - **Promoted by**: ${{ github.actor }}
+                      - **Promoted at**: ${{ github.event.repository.updated_at }}
+
+                      ### Original Test Release Notes
+                      ${{ steps.get_notes.outputs.release_body }}
+
+                      ---
+
+                      ✅ This version has been validated in the test environment and is ready for production use.
+                  draft: false
+                  prerelease: false
+                  target_commitish: ${{ steps.validate.outputs.tag_name }}
+                  make_latest: true
+
+            - name: Summary
+              run: |
+                  echo "✅ Successfully promoted ${{ steps.validate.outputs.tag_name }} to production"
+                  echo "🚀 Production deployment will be triggered automatically"
+                  echo "📦 Version: ${{ steps.validate.outputs.tag_name }}"
