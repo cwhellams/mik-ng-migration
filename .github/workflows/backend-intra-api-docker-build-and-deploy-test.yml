@@ -2,7 +2,9 @@ name: Deploy to Test Environment when Test Release Published
 
 on:
   release:
-    types: [published, edited]
+    types:
+      - prereleased
+      - published
 
 permissions:
   contents: read
@@ -13,34 +15,30 @@ jobs:
     outputs:
       should_deploy: ${{ steps.check.outputs.should_deploy }}
       version_tag: ${{ steps.check.outputs.version_tag }}
+
     steps:
       - name: Check if release is for test environment
         id: check
         run: |
-          # Only deploy pre-releases (test releases are created as pre-releases)
-          if [ "${{ github.event.release.prerelease }}" == "true" ]; then
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
-            echo "version_tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-            echo "✅ This is a test release - will deploy"
+          if [ "${{ github.event.release.prerelease }}" = "true" ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "version_tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+            echo "✅ Pre-release detected – deploying to TEST"
           else
-            echo "should_deploy=false" >> $GITHUB_OUTPUT
-            echo "⏭️  This is a production release - skipping test deployment"
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            echo "⏭️  Normal release – skipping TEST deployment"
           fi
 
   deploy:
     needs: check-release
     if: needs.check-release.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
+
     environment:
       name: test
       url: ${{ vars.PUBLIC_URL_TEST }}
-    steps:
-      - name: Checkout release tag
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.check-release.outputs.version_tag }}
-          fetch-depth: 0
 
+    steps:
       - name: Checkout release tag
         uses: actions/checkout@v4
         with:
@@ -53,33 +51,27 @@ jobs:
           backend_changed=false
           sql_changed=false
 
-          # For release deployment, check what changed compared to previous release
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ needs.check-release.outputs.version_tag }}^ 2>/dev/null || echo "")
 
           if [ -z "$PREVIOUS_TAG" ]; then
-            echo "No previous tag found - deploying all components"
+            echo "No previous tag found – deploying everything"
             backend_changed=true
             sql_changed=true
           else
-            echo "Comparing $PREVIOUS_TAG to ${{ needs.check-release.outputs.version_tag }}"
-            CHANGED=$(git diff --name-only $PREVIOUS_TAG ${{ needs.check-release.outputs.version_tag }})
-            echo "CHANGED=$CHANGED"
+            echo "Comparing $PREVIOUS_TAG → ${{ needs.check-release.outputs.version_tag }}"
+            CHANGED=$(git diff --name-only "$PREVIOUS_TAG" "${{ needs.check-release.outputs.version_tag }}")
 
             while IFS= read -r path; do
-              if [[ "$path" =~ ^apps/backend/ ]] || [[ "$path" == "Dockerfile" ]]; then
-                backend_changed=true
-              fi
-              if [[ "$path" =~ ^sql/schema/ ]]; then
-                sql_changed=true
-              fi
+              [[ "$path" =~ ^apps/backend/ ]] || [[ "$path" == "Dockerfile" ]] && backend_changed=true
+              [[ "$path" =~ ^sql/schema/ ]] && sql_changed=true
             done <<< "$CHANGED"
           fi
 
-          echo "backend_changed=$backend_changed" >> $GITHUB_ENV
-          echo "sql_changed=$sql_changed" >> $GITHUB_ENV
+          echo "backend_changed=$backend_changed" >> "$GITHUB_ENV"
+          echo "sql_changed=$sql_changed" >> "$GITHUB_ENV"
 
       - name: Set repo name lowercase
-        run: echo "REPO_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+        run: echo "REPO_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - name: Set up doctl
         uses: digitalocean/action-doctl@v2
@@ -91,34 +83,34 @@ jobs:
 
       - name: Set environment variables
         run: |
-          echo "DATABASE_URL=${{ secrets.POSTGRES_DO_TEST_DB_PRIVATE_URL }}" >> $GITHUB_ENV
-          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> $GITHUB_ENV
-          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> $GITHUB_ENV
-          echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET }}" >> $GITHUB_ENV
-          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> $GITHUB_ENV
-          echo "ACCESS_TOKEN_EXPIRATION=15 mins" >> $GITHUB_ENV
-          echo "REFRESH_TOKEN_EXPIRATION=365 days" >> $GITHUB_ENV
-          echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> $GITHUB_ENV
-          echo "PUBLIC_URL=${{ vars.PUBLIC_URL_TEST }}" >> $GITHUB_ENV
-          echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET_TEST }}" >> $GITHUB_ENV
-          echo "BETTERSTACK_API_TOKEN=${{ secrets.BETTERSTACK_API_TOKEN }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_COMPANY_ID=${{ vars.SIMPLBOOKS_COMPANY_ID }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_BASE_URI=${{ vars.SIMPLBOOKS_BASE_URI }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_API_KEY=${{ secrets.SIMPLBOOKS_API_KEY }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED }}" >> $GITHUB_ENV
-          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP }}" >> $GITHUB_ENV
-          echo "OVERDUE_INVOICE_WORKER_ENABLED=${{ vars.OVERDUE_INVOICE_WORKER_ENABLED }}" >> $GITHUB_ENV
-          echo "OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP=${{ vars.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP }}" >> $GITHUB_ENV
-          echo "OVERDUE_INVOICE_SUSPENSION_DAYS=${{ vars.OVERDUE_INVOICE_SUSPENSION_DAYS }}" >> $GITHUB_ENV
-          echo "OCCURRENCE_NOTIFICATION_WORKER_ENABLED=${{ vars.OCCURRENCE_NOTIFICATION_WORKER_ENABLED }}" >> $GITHUB_ENV
-          echo "DIGITAL_OCEAN_SPACES_KEY=${{ secrets.DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-          echo "DIGITAL_OCEAN_SPACES_SECRET=${{ secrets.DIGITAL_OCEAN_SPACES_SECRET }}" >> $GITHUB_ENV
-          echo "DIGITAL_OCEAN_SPACES_REGION=fra1" >> $GITHUB_ENV
-          echo "DIGITAL_OCEAN_SPACES_ENDPOINT=https://fra1.digitaloceanspaces.com" >> $GITHUB_ENV
-          echo "EQUIPMENT_FEE_DISCOUNT_PER_HOUR=${{ vars.EQUIPMENT_FEE_DISCOUNT_PER_HOUR }}" >> $GITHUB_ENV
-          echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_TEST }}" >> $GITHUB_ENV
-          echo "DO_MIK_VPC_UUID=${{ vars.DO_MIK_VPC_UUID }}" >> $GITHUB_ENV
+          echo "DATABASE_URL=${{ secrets.POSTGRES_DO_TEST_DB_PRIVATE_URL }}" >> "$GITHUB_ENV"
+          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> "$GITHUB_ENV"
+          echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET }}" >> "$GITHUB_ENV"
+          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> "$GITHUB_ENV"
+          echo "ACCESS_TOKEN_EXPIRATION=15 mins" >> "$GITHUB_ENV"
+          echo "REFRESH_TOKEN_EXPIRATION=365 days" >> "$GITHUB_ENV"
+          echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> "$GITHUB_ENV"
+          echo "PUBLIC_URL=${{ vars.PUBLIC_URL_TEST }}" >> "$GITHUB_ENV"
+          echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET_TEST }}" >> "$GITHUB_ENV"
+          echo "BETTERSTACK_API_TOKEN=${{ secrets.BETTERSTACK_API_TOKEN }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_COMPANY_ID=${{ vars.SIMPLBOOKS_COMPANY_ID }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_BASE_URI=${{ vars.SIMPLBOOKS_BASE_URI }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_API_KEY=${{ secrets.SIMPLBOOKS_API_KEY }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
+          echo "OVERDUE_INVOICE_WORKER_ENABLED=${{ vars.OVERDUE_INVOICE_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP=${{ vars.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
+          echo "OVERDUE_INVOICE_SUSPENSION_DAYS=${{ vars.OVERDUE_INVOICE_SUSPENSION_DAYS }}" >> "$GITHUB_ENV"
+          echo "OCCURRENCE_NOTIFICATION_WORKER_ENABLED=${{ vars.OCCURRENCE_NOTIFICATION_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "DIGITAL_OCEAN_SPACES_KEY=${{ secrets.DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID }}" >> "$GITHUB_ENV"
+          echo "DIGITAL_OCEAN_SPACES_SECRET=${{ secrets.DIGITAL_OCEAN_SPACES_SECRET }}" >> "$GITHUB_ENV"
+          echo "DIGITAL_OCEAN_SPACES_REGION=fra1" >> "$GITHUB_ENV"
+          echo "DIGITAL_OCEAN_SPACES_ENDPOINT=https://fra1.digitaloceanspaces.com" >> "$GITHUB_ENV"
+          echo "EQUIPMENT_FEE_DISCOUNT_PER_HOUR=${{ vars.EQUIPMENT_FEE_DISCOUNT_PER_HOUR }}" >> "$GITHUB_ENV"
+          echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_TEST }}" >> "$GITHUB_ENV"
+          echo "DO_MIK_VPC_UUID=${{ vars.DO_MIK_VPC_UUID }}" >> "$GITHUB_ENV"
 
       - name: Build and push Docker image
         if: env.backend_changed == 'true'
@@ -134,17 +126,14 @@ jobs:
         if: env.sql_changed == 'true'
         run: |
           RUNNER_IP=$(curl -s https://api.ipify.org)
-          echo "RUNNER_IP=$RUNNER_IP" >> $GITHUB_ENV
-          echo "Runner IP: $RUNNER_IP"
+          echo "RUNNER_IP=$RUNNER_IP" >> "$GITHUB_ENV"
 
       - name: Add runner IP to database firewall
         if: env.sql_changed == 'true'
         run: |
           doctl databases firewalls append ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --rule ip_addr:${{ env.RUNNER_IP }}
-          # Get the UUID of the rule we just added
-          RULE_UUID=$(doctl databases firewalls list ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --output json | jq -r '.[] | select(.value == "${{ env.RUNNER_IP }}") | .uuid')
-          echo "FIREWALL_RULE_UUID=$RULE_UUID" >> $GITHUB_ENV
-          echo "Firewall rule UUID: $RULE_UUID"
+          RULE_UUID=$(doctl databases firewalls list ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --output json | jq -r '.[] | select(.value=="'${{ env.RUNNER_IP }}'") | .uuid')
+          echo "FIREWALL_RULE_UUID=$RULE_UUID" >> "$GITHUB_ENV"
 
       - name: Run Flyway migrations
         if: env.sql_changed == 'true'
@@ -154,35 +143,35 @@ jobs:
             -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
             -e FLYWAY_USER=${{ vars.DO_POSTGRES_ADMIN_USER }} \
             -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD }} \
-            -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_TEST_URL}} \
-            -e FLYWAY_PLACEHOLDER_REPLACEMENT=true \
+            -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_TEST_URL }} \
             flyway/flyway:latest migrate
 
       - name: Run Flyway static data
         if: env.sql_changed == 'true'
         run: |
           docker run --network host --rm \
-            -v ${{ github.workspace }}/sql/schema/static_data/:/flyway/sql \
+            -v ${{ github.workspace }}/sql/schema/static_data:/flyway/sql \
             -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
             -e FLYWAY_USER=${{ vars.DO_POSTGRES_ADMIN_USER }} \
             -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD }} \
-            -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_TEST_URL}} \
+            -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_TEST_URL }} \
             flyway/flyway:latest migrate
 
       - name: Remove runner IP from database firewall
         if: always() && env.sql_changed == 'true'
         run: |
-          if [ -n "${{ env.FIREWALL_RULE_UUID }}" ]; then
-            doctl databases firewalls remove ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --uuid ${{ env.FIREWALL_RULE_UUID }}
-            echo "Removed firewall rule: ${{ env.FIREWALL_RULE_UUID }}"
-          else
-            echo "No firewall rule UUID found to remove"
-          fi
+          [ -n "${{ env.FIREWALL_RULE_UUID }}" ] && \
+          doctl databases firewalls remove ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --uuid ${{ env.FIREWALL_RULE_UUID }}
 
       - name: Replace placeholders in mik-intranet-test.yaml
         run: |
           export DOMAIN=$(echo "${{ vars.PUBLIC_URL_TEST }}" | sed 's|https\?://||')
-          envsubst < .do/mik-intranet-test.yaml > .do/mik-intranet-test.yaml.temp && mv .do/mik-intranet-test.yaml.temp .do/mik-intranet-test.yaml
+          envsubst < .do/mik-intranet-test.yaml > .do/mik-intranet-test.yaml.tmp
+          mv .do/mik-intranet-test.yaml.tmp .do/mik-intranet-test.yaml
 
       - name: Update app on DigitalOcean
-        run: doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} --update-sources --spec .do/mik-intranet-test.yaml --wait
+        run: |
+          doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} \
+            --update-sources \
+            --spec .do/mik-intranet-test.yaml \
+            --wait
