@@ -1,0 +1,60 @@
+name: Tag on PR Merge to Main
+
+on:
+    pull_request:
+        types: [closed]
+        branches:
+            - main
+
+jobs:
+    tag-version:
+        if: github.event.pull_request.merged == true
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write # Needed to push tags
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # Full history for tags
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22" # Match your project's Node version
+
+            - name: Get version from package.json
+              id: version
+              run: |
+                  VERSION=$(node -p "require('./package.json').version")
+                  TAG="v$VERSION"  # Change to "$VERSION" if you don't want the 'v' prefix
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "tag=$TAG" >> $GITHUB_OUTPUT
+                  echo "Creating tag: $TAG"
+
+            - name: Check if tag already exists
+              id: check_tag
+              run: |
+                  if git ls-remote --tags origin | grep -q "refs/tags/${{ steps.version.outputs.tag }}$"; then
+                    echo "exists=true" >> $GITHUB_OUTPUT
+                    echo "Tag ${{ steps.version.outputs.tag }} already exists – skipping"
+                  else
+                    echo "exists=false" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Create and push tag
+              if: steps.check_tag.outputs.exists == 'false'
+              run: |
+                  git tag ${{ steps.version.outputs.tag }}
+                  git push origin ${{ steps.version.outputs.tag }}
+                  echo "✅ Tagged ${{ steps.version.outputs.tag }} and pushed to origin"
+
+            - name: Summary
+              run: |
+                  echo "Current version: ${{ steps.version.outputs.version }}"
+                  if [ "${{ steps.check_tag.outputs.exists }}" == "true" ]; then
+                    echo "No new tag created (already exists)"
+                  else
+                    echo "New tag created: ${{ steps.version.outputs.tag }}"
+                  fi
