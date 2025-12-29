@@ -1,4 +1,4 @@
-name: Deploy to Test Environment
+name: Deploy to Test Environment when Test Release Published
 
 on:
   release:

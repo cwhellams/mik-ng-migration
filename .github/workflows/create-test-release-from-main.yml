@@ -1,4 +1,4 @@
-name: Deploy Main to Test
+name: Create Test Release from Main
 
 on:
     workflow_dispatch:
