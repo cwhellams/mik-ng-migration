@@ -1,102 +1,90 @@
 name: Promote Test to Production
 
 on:
-    workflow_dispatch:
-        inputs:
-            test_version_tag:
-                description: "Test version tag to promote (e.g., v1.2.3)"
-                required: true
-                type: string
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: "Enter the version tag that has been validated on test (e.g. v1.2.3)"
+        required: true
+        type: string
 
 permissions:
-    contents: write
+  contents: write # Needed to create the production release
 
 jobs:
-    promote:
-        runs-on: ubuntu-latest
-        environment:
-            name: prod
-            url: https://intra.mik.fi
+  promote:
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
+      url: ${{ vars.PUBLIC_URL_PROD }} # Optional: set this repository variable to your prod URL
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
-              with:
-                  ref: ${{ github.event.inputs.test_version_tag }}
-                  fetch-depth: 0
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
-            - name: Validate test version exists
-              id: validate
-              run: |
-                  TAG_NAME="${{ github.event.inputs.test_version_tag }}"
+      - name: Fetch all tags
+        run: git fetch --tags
 
-                  # Validate tag format (vX.Y.Z where X, Y, Z are numbers)
-                  if [[ ! "$TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                    echo "❌ Error: Tag must follow semantic versioning format (vX.Y.Z)"
-                    exit 1
-                  fi
+      - name: Validate tag exists
+        run: |
+          TAG="${{ inputs.version_tag }}"
+          if ! git tag --list | grep -q "^$TAG$"; then
+            echo "❌ Error: Tag '$TAG' does not exist."
+            echo "Recent tags:"
+            git tag --sort=-version:refname | head -n 20
+            exit 1
+          fi
+          echo "✅ Promoting tag: $TAG"
 
-                  # Verify tag exists
-                  if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-                    echo "❌ Error: Tag '$TAG_NAME' does not exist"
-                    exit 1
-                  fi
+      - name: Check if production release already exists
+        id: check_release
+        run: |
+          TAG="${{ inputs.version_tag }}"
+          if gh release view "$TAG" --repo ${{ github.repository }} >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️  A release for $TAG already exists."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
 
-                  # Check if a release exists for this tag
-                  RELEASE_ID=$(gh release view "$TAG_NAME" --json id --jq .id 2>/dev/null || echo "")
+      - name: Create Production GitHub Release
+        if: steps.check_release.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Production Release ${{ inputs.version_tag }}
+          tag_name: ${{ inputs.version_tag }}
+          body: |
+            ## Production Deployment - ${{ inputs.version_tag }}
 
-                  if [ -z "$RELEASE_ID" ]; then
-                    echo "❌ Error: No GitHub release found for tag '$TAG_NAME'"
-                    echo "Please create a test release first using 'Deploy Main to Test' workflow"
-                    exit 1
-                  fi
+            This version has been promoted to **production** after successful testing and validation.
 
-                  echo "✅ Tag and release validation passed"
-                  echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            ### Deployment Details
+            - **Environment**: Production
+            - **Version Tag**: ${{ inputs.version_tag }}
+            - **Promoted from**: Test environment
+            - **Commit**: $(git rev-parse ${{ inputs.version_tag }})
 
-            - name: Get release notes from test release
-              id: get_notes
-              run: |
-                  # Get the body from the test release
-                  RELEASE_BODY=$(gh release view "${{ steps.validate.outputs.tag_name }}" --json body --jq .body)
-                  echo "release_body<<EOF" >> $GITHUB_OUTPUT
-                  echo "$RELEASE_BODY" >> $GITHUB_OUTPUT
-                  echo "EOF" >> $GITHUB_OUTPUT
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            ### Validation
+            - Successfully deployed and validated on test environment
+            - Manually promoted by ${{ github.actor }}
 
-            - name: Create Production Release
-              uses: softprops/action-gh-release@v2
-              with:
-                  name: Production Release ${{ steps.validate.outputs.tag_name }}
-                  tag_name: ${{ steps.validate.outputs.tag_name }}
-                  body: |
-                      ## Production Deployment - ${{ steps.validate.outputs.tag_name }}
+            Thank you for using the promotion process!
+          draft: false
+          prerelease: false # This is the key difference from test
+          make_latest: true # Marks this as the "Latest release" on GitHub
+          target_commitish: main
 
-                      This release has been promoted from test to production.
-
-                      ### Deployment Details
-                      - **Environment**: Production
-                      - **URL**: https://intra.mik.fi
-                      - **Version**: ${{ steps.validate.outputs.tag_name }}
-                      - **Promoted by**: ${{ github.actor }}
-                      - **Promoted at**: ${{ github.event.repository.updated_at }}
-
-                      ### Original Test Release Notes
-                      ${{ steps.get_notes.outputs.release_body }}
-
-                      ---
-
-                      ✅ This version has been validated in the test environment and is ready for production use.
-                  draft: false
-                  prerelease: false
-                  target_commitish: ${{ steps.validate.outputs.tag_name }}
-                  make_latest: true
-
-            - name: Summary
-              run: |
-                  echo "✅ Successfully promoted ${{ steps.validate.outputs.tag_name }} to production"
-                  echo "🚀 Production deployment will be triggered automatically"
-                  echo "📦 Version: ${{ steps.validate.outputs.tag_name }}"
+      - name: Summary
+        run: |
+          echo "✅ Promotion complete!"
+          echo "📦 Version ${{ inputs.version_tag }} is now released to production"
+          if [ "${{ steps.check_release.outputs.exists }}" == "true" ]; then
+            echo "ℹ️  Note: A release for this tag already existed (possibly from a previous promotion)"
+          else
+            echo "🚀 Production deployment should now trigger automatically"
+          fi
