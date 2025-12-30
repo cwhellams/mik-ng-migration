@@ -16,31 +16,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Validate prerelease exists
+      - name: Find prerelease by tag
         env:
           TAG: ${{ github.event.inputs.release_tag }}
           REPO: ${{ github.repository }}
         run: |
           set -e
 
-          echo "🔍 Looking up release for tag: $TAG"
+          echo "🔍 Searching for release with tag: $TAG"
 
-          RELEASE_JSON=$(gh api repos/$REPO/releases/tags/$TAG 2>/dev/null || true)
+          RELEASE_JSON=$(gh api repos/$REPO/releases --paginate)
 
-          if [ -z "$RELEASE_JSON" ]; then
+          MATCH=$(echo "$RELEASE_JSON" | jq -c ".[] | select(.tag_name == \"$TAG\")")
+
+          if [ -z "$MATCH" ]; then
             echo "❌ No release found for tag $TAG"
             exit 1
           fi
 
-          IS_PRERELEASE=$(echo "$RELEASE_JSON" | jq -r '.prerelease')
-          RELEASE_ID=$(echo "$RELEASE_JSON" | jq -r '.id')
+          IS_PRERELEASE=$(echo "$MATCH" | jq -r '.prerelease')
+          RELEASE_ID=$(echo "$MATCH" | jq -r '.id')
 
           if [ "$IS_PRERELEASE" != "true" ]; then
             echo "❌ Release $TAG is not a prerelease"
             exit 1
           fi
 
-          echo "✅ Prerelease confirmed (ID: $RELEASE_ID)"
+          echo "✅ Prerelease found (ID: $RELEASE_ID)"
           echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
 
       - name: Promote prerelease to full release
@@ -60,6 +62,4 @@ jobs:
         run: |
           echo "🎉 Promotion complete"
           echo "Tag: ${{ github.event.inputs.release_tag }}"
-          echo "Environment: Production"
-          echo ""
-          echo "➡️ This automatically triggered the production deployment workflow"
+          echo "➡️ Production deployment triggered automatically"
