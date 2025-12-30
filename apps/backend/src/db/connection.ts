@@ -1,5 +1,3 @@
-import * as fs from 'fs'
-
 import 'dotenv/config'
 import { Kysely, PostgresDialect } from 'kysely'
 import pg from 'pg'
@@ -22,8 +20,6 @@ pg.types.setTypeParser(pg.types.builtins.INT8, val => val)
 // Decimals as numbers
 pg.types.setTypeParser(pg.types.builtins.NUMERIC, val => parseFloat(val))
 
-const ca_cert_filename = 'ca-certificate.crt'
-
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10, // Maximum number of clients in the pool
@@ -33,9 +29,9 @@ const pool = new pg.Pool({
   ssl: useSSL
     ? {
         rejectUnauthorized: true,
-        ca: fs.readFileSync(ca_cert_filename).toString(),
+        ca: process.env.DATABASE_CA_CERT,
       }
-    : undefined,
+    : undefined, // Fallback if not present
 })
 
 const dialect = new PostgresDialect({
