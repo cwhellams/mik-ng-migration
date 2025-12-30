@@ -148,7 +148,7 @@ jobs:
           push: true
           tags: |
             registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
-            registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ github.event.client_payload.tag_name }}
+            registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ inputs.version_tag }}
 
       - name: Get runner public IP
         if: env.sql_changed == 'true'
