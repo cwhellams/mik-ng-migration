@@ -1,0 +1,65 @@
+name: Promote Pre-release to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Pre-release tag to promote (e.g. v1.4.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate prerelease exists
+        env:
+          TAG: ${{ github.event.inputs.release_tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -e
+
+          echo "🔍 Looking up release for tag: $TAG"
+
+          RELEASE_JSON=$(gh api repos/$REPO/releases/tags/$TAG 2>/dev/null || true)
+
+          if [ -z "$RELEASE_JSON" ]; then
+            echo "❌ No release found for tag $TAG"
+            exit 1
+          fi
+
+          IS_PRERELEASE=$(echo "$RELEASE_JSON" | jq -r '.prerelease')
+          RELEASE_ID=$(echo "$RELEASE_JSON" | jq -r '.id')
+
+          if [ "$IS_PRERELEASE" != "true" ]; then
+            echo "❌ Release $TAG is not a prerelease"
+            exit 1
+          fi
+
+          echo "✅ Prerelease confirmed (ID: $RELEASE_ID)"
+          echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
+
+      - name: Promote prerelease to full release
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          echo "🚀 Promoting prerelease to production release"
+
+          gh api \
+            -X PATCH \
+            repos/$REPO/releases/${{ env.RELEASE_ID }} \
+            -f prerelease=false
+
+          echo "✅ Release promoted successfully"
+
+      - name: Summary
+        run: |
+          echo "🎉 Promotion complete"
+          echo "Tag: ${{ github.event.inputs.release_tag }}"
+          echo "Environment: Production"
+          echo ""
+          echo "➡️ This automatically triggered the production deployment workflow"

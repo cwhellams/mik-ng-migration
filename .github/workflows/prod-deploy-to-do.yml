@@ -2,126 +2,17 @@ name: Production Deployment to DO
 
 on:
   release:
-    types: [published, edited]
-  workflow_dispatch:
-    inputs:
-      version_tag:
-        description: "Select version tag to deploy"
-        required: true
-        type: string
-      allow_older_version:
-        description: "Allow deploying an older version than the latest tag"
-        required: false
-        type: boolean
-        default: false
-
+    types: [published]
 permissions:
   contents: read
 
 jobs:
-  check-trigger:
-    runs-on: ubuntu-latest
-    outputs:
-      should_deploy: ${{ steps.check.outputs.should_deploy }}
-      version_tag: ${{ steps.check.outputs.version_tag }}
-      is_manual: ${{ steps.check.outputs.is_manual }}
-    steps:
-      - name: Determine deployment trigger
-        id: check
-        run: |
-          if [ "${{ github.event_name }}" == "release" ]; then
-            # Release trigger - only deploy non-prerelease (production releases)
-            if [ "${{ github.event.release.prerelease }}" == "false" ]; then
-              echo "should_deploy=true" >> $GITHUB_OUTPUT
-              echo "version_tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-              echo "is_manual=false" >> $GITHUB_OUTPUT
-              echo "✅ Production release detected - will deploy"
-            else
-              echo "should_deploy=false" >> $GITHUB_OUTPUT
-              echo "⏭️  Pre-release detected - skipping production deployment"
-            fi
-          else
-            # Manual workflow_dispatch trigger
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
-            echo "version_tag=${{ github.event.inputs.version_tag }}" >> $GITHUB_OUTPUT
-            echo "is_manual=true" >> $GITHUB_OUTPUT
-            echo "✅ Manual deployment trigger"
-          fi
-
-  validate-tag:
-    needs: check-trigger
-    if: needs.check-trigger.outputs.should_deploy == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      tag_name: ${{ steps.extract_tag.outputs.tag_name }}
-    steps:
-      - name: Checkout selected tag
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.check-trigger.outputs.version_tag }}
-          fetch-depth: 0
-
-      - name: Extract and validate semantic version tag
-        id: extract_tag
-        run: |
-          TAG_NAME="${{ needs.check-trigger.outputs.version_tag }}"
-          echo "Tag name: $TAG_NAME"
-
-          # Validate tag format (vX.Y.Z where X, Y, Z are numbers)
-          if [[ ! "$TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Error: Tag must follow semantic versioning format (vX.Y.Z)"
-            echo "Example: v1.0.0, v2.1.3"
-            exit 1
-          fi
-
-          # Verify tag exists
-          if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            echo "Error: Tag '$TAG_NAME' does not exist"
-            exit 1
-          fi
-
-          echo "Tag format is valid and exists"
-          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-
-      - name: Check version is not older than latest
-        if: needs.check-trigger.outputs.is_manual == 'true' && github.event.inputs.allow_older_version != 'true'
-        run: |
-          SELECTED_TAG="${{ needs.check-trigger.outputs.version_tag }}"
-          LATEST_TAG=$(git describe --tags --abbrev=0)
-
-          echo "Selected tag: $SELECTED_TAG"
-          echo "Latest tag: $LATEST_TAG"
-
-          # Extract version numbers (remove 'v' prefix)
-          SELECTED_VERSION=${SELECTED_TAG#v}
-          LATEST_VERSION=${LATEST_TAG#v}
-
-          # Compare versions using sort -V (version sort)
-          HIGHER_VERSION=$(printf "%s\n%s" "$SELECTED_VERSION" "$LATEST_VERSION" | sort -V -r | head -n1)
-
-          if [ "$HIGHER_VERSION" != "$SELECTED_VERSION" ]; then
-            echo "❌ Error: Selected tag $SELECTED_TAG is older than latest tag $LATEST_TAG"
-            echo ""
-            echo "To deploy an older version, you must:"
-            echo "1. Re-run this workflow"
-            echo "2. Check the 'Allow deploying an older version' checkbox"
-            echo ""
-            echo "⚠️  WARNING: Deploying older versions can cause data inconsistencies and rollback issues."
-            exit 1
-          elif [ "$SELECTED_TAG" == "$LATEST_TAG" ]; then
-            echo "✅ Deploying latest version: $SELECTED_TAG"
-          else
-            echo "✅ Selected version $SELECTED_TAG is newer than latest $LATEST_TAG"
-          fi
-
   deploy:
-    needs: [check-trigger, validate-tag]
-    if: needs.check-trigger.outputs.should_deploy == 'true'
+    # Extra safety: never deploy prereleases
+    if: github.event.release.prerelease == false
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required to create GitHub releases
+      contents: write
     environment:
       name: prod
       url: https://intra.mik.fi
@@ -129,7 +20,7 @@ jobs:
       - name: Checkout selected tag
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.check-trigger.outputs.version_tag }}
+          ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
 
       - name: Check changed paths
@@ -271,24 +162,3 @@ jobs:
 
       - name: Update app on DigitalOcean
         run: doctl apps update ${{ vars.DO_BACKEND_APP_ID_PROD }} --update-sources --spec .do/mik-intranet-prod.yaml --wait
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Release ${{ needs.validate-tag.outputs.tag_name }}
-          body: |
-            ## Production Deployment - ${{ needs.validate-tag.outputs.tag_name }}
-
-            This release has been deployed to production.
-
-            ### Deployment Details
-            - **Environment**: Production
-            - **URL**: https://intra.mik.fi
-            - **Tag**: ${{ needs.validate-tag.outputs.tag_name }}
-            - **Deployed by**: ${{ github.actor }}
-            - **Deployed at**: ${{ github.event.head_commit.timestamp }}
-
-            ### Changes
-            See commits and pull requests merged since the last release.
-          draft: false
-          prerelease: false
