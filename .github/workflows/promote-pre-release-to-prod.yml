@@ -47,28 +47,35 @@ jobs:
           echo "✅ Prerelease found (ID: $RELEASE_ID)"
           echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
 
-      - name: Promote prerelease to full release
-        env:
-          REPO: ${{ github.repository }}
-          TAG: ${{ github.event.inputs.release_tag }}
+      - name: Update release for production
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          prerelease: false
+          name: Release ${{ github.event.inputs.release_tag }}
+          body: |
+            ## Production Release - ${{ github.event.inputs.release_tag }}
 
-        run: |
-          set -e
-          echo "🚀 Promoting prerelease to production release"
+            This version has been deployed to production.
 
-          gh api \
-            -X PATCH \
-            repos/$REPO/releases/${{ env.RELEASE_ID }} \
-            -f prerelease=false
+            ### Deployment Details
+            - **Environment**: Prod
+            - **Version Tag**: ${{ inputs.version_tag }}
+            - **Created from**: main branch
+            - **Commit**: $(git rev-parse ${{ inputs.version_tag }})
 
-          echo "✅ Release promoted successfully"
+            ### Next Steps
+            - Deployment to prod will be triggered automatically            
 
-          # Trigger production deploy via repository_dispatch
-          gh api repos/$REPO/dispatches \
-            -f event_type=deploy-prod \
-            -f client_payload="$(jq -n --arg tag "$TAG" '{"tag":$tag}')"
-          echo "✅ Repository dispatch sent to trigger prod deploy"
+            ### Changes
+            See commits included in this tag.
 
+      - name: Trigger production deployment
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ github.token }}
+          event-type: deploy-prod
+          client-payload: '{"tag": "${{ github.event.inputs.release_tag }}"}'
       - name: Summary
         run: |
           echo "🎉 Promotion complete, deployment triggered"
