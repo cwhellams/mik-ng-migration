@@ -21,7 +21,7 @@ jobs:
       - name: Checkout selected tag
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.client_payload.tag_name }}
           fetch-depth: 0
 
       - name: Check changed paths
@@ -31,15 +31,15 @@ jobs:
           sql_changed=false
 
           # For manual deployment, check what changed in this tag compared to previous tag
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ needs.check-trigger.outputs.version_tag }}^ 2>/dev/null || echo "")
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ github.event.client_payload.tag_name }}^ 2>/dev/null || echo "")
 
           if [ -z "$PREVIOUS_TAG" ]; then
             echo "No previous tag found - deploying all components"
             backend_changed=true
             sql_changed=true
           else
-            echo "Comparing $PREVIOUS_TAG to ${{ needs.check-trigger.outputs.version_tag }}"
-            CHANGED=$(git diff --name-only $PREVIOUS_TAG ${{ needs.check-trigger.outputs.version_tag }})
+            echo "Comparing $PREVIOUS_TAG to ${{ github.event.client_payload.tag_name }}"
+            CHANGED=$(git diff --name-only $PREVIOUS_TAG ${{ github.event.client_payload.tag_name }})
             echo "CHANGED=$CHANGED"
 
             while IFS= read -r path; do
@@ -105,7 +105,7 @@ jobs:
           push: true
           tags: |
             registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
-            registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ needs.validate-tag.outputs.tag_name }}
+            registry.digitalocean.com/mik-ng2/$$ {{ env.REPO_NAME }}: $${{ github.event.client_payload.tag_name || 'latest' }}
 
       - name: Get runner public IP
         if: env.sql_changed == 'true'
