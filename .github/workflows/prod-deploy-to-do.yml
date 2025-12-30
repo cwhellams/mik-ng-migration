@@ -162,4 +162,4 @@ jobs:
           envsubst < .do/mik-intranet-prod.yaml > .do/mik-intranet-prod.yaml.temp && mv .do/mik-intranet-prod.yaml.temp .do/mik-intranet-prod.yaml
 
       - name: Update app on DigitalOcean
-        run: doctl apps update ${{ vars.DO_BACKEND_APP_ID_PROD }} --update-sources --spec .do/mik-intranet-prod.yaml --wait
+        run: doctl apps update ${{ vars.DO_BACKEND_APP_ID_PROD }} --spec .do/mik-intranet-prod.yaml --wait
