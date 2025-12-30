@@ -1,10 +1,9 @@
-name: Deploy to Test Environment when Test Release Published
+name: Deploy to Test Environment when Pre-Release created
 
 on:
   release:
     types:
       - prereleased
-      - published
 
 permissions:
   contents: read
