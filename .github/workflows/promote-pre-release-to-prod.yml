@@ -50,7 +50,10 @@ jobs:
       - name: Promote prerelease to full release
         env:
           REPO: ${{ github.repository }}
+          TAG: ${{ github.event.inputs.release_tag }}
+
         run: |
+          set -e
           echo "🚀 Promoting prerelease to production release"
 
           gh api \
@@ -60,8 +63,14 @@ jobs:
 
           echo "✅ Release promoted successfully"
 
+          # Trigger production deploy via repository_dispatch
+          gh api repos/$REPO/dispatches \
+            -f event_type=deploy-prod \
+            -f client_payload="$(jq -n --arg tag "$TAG" '{"tag":$tag}')"
+          echo "✅ Repository dispatch sent to trigger prod deploy"
+
       - name: Summary
         run: |
-          echo "🎉 Promotion complete"
+          echo "🎉 Promotion complete, deployment triggered"
           echo "Tag: ${{ github.event.inputs.release_tag }}"
           echo "➡️ Production deployment triggered automatically"
