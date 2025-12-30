@@ -1,205 +1,205 @@
 name: Create Test Release and Deploy to DO
 
 on:
-    workflow_dispatch:
-        inputs:
-            version_tag:
-                description: "Enter the version tag to deploy to test (e.g. v1.2.3)"
-                required: true
-                type: string
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: "Enter the version tag to deploy to test (e.g. v1.2.3)"
+        required: true
+        type: string
 
 permissions:
-    contents: write # Needed to create the GitHub Release
+  contents: write # Needed to create the GitHub Release
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
-        environment:
-            name: test
-            url: ${{ vars.PUBLIC_URL_TEST }}
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: test
+      url: ${{ vars.PUBLIC_URL_TEST }}
 
-        steps:
-            - name: Checkout main branch
-              uses: actions/checkout@v4
-              with:
-                  ref: main
-                  fetch-depth: 0
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
-            - name: Fetch all tags
-              run: git fetch --tags
+      - name: Fetch all tags
+        run: git fetch --tags
 
-            - name: Validate selected tag exists
-              run: |
-                  TAG="${{ inputs.version_tag }}"
-                  if ! git tag --list | grep -q "^$TAG$"; then
-                    echo "❌ Error: Tag '$TAG' does not exist in this repository."
-                    echo "Available tags:"
-                    git tag --sort=-version:refname | head -n 20
-                    exit 1
-                  fi
-                  echo "✅ Selected tag: $TAG"
+      - name: Validate selected tag exists
+        run: |
+          TAG="${{ inputs.version_tag }}"
+          if ! git tag --list | grep -q "^$TAG$"; then
+            echo "❌ Error: Tag '$TAG' does not exist in this repository."
+            echo "Available tags:"
+            git tag --sort=-version:refname | head -n 20
+            exit 1
+          fi
+          echo "✅ Selected tag: $TAG"
 
-            - name: Create GitHub Release for Test
-              uses: softprops/action-gh-release@v2
-              with:
-                  name: Test Release ${{ inputs.version_tag }}
-                  tag_name: ${{ inputs.version_tag }}
-                  body: |
-                      ## Test Environment Deployment - ${{ inputs.version_tag }}
+      - name: Create GitHub Release for Test
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Test Release ${{ inputs.version_tag }}
+          tag_name: ${{ inputs.version_tag }}
+          body: |
+            ## Test Environment Deployment - ${{ inputs.version_tag }}
 
-                      This release has been created to deploy version **${{ inputs.version_tag }}** to the **test** environment.
+            This release has been created to deploy version **${{ inputs.version_tag }}** to the **test** environment.
 
-                      ### Deployment Details
-                      - **Environment**: Test
-                      - **Version Tag**: ${{ inputs.version_tag }}
-                      - **Created from**: main branch
-                      - **Commit**: $(git rev-parse ${{ inputs.version_tag }})
+            ### Deployment Details
+            - **Environment**: Test
+            - **Version Tag**: ${{ inputs.version_tag }}
+            - **Created from**: main branch
+            - **Commit**: $(git rev-parse ${{ inputs.version_tag }})
 
-                      ### Next Steps
-                      - Deployment to test will be triggered automatically
-                      - After validation, promote to production by running the "Promote Test to Production" workflow
+            ### Next Steps
+            - Deployment to test will be triggered automatically
+            - After validation, promote to production by running the "Promote Test to Production" workflow
 
-                      ### Changes
-                      See commits included in this tag.
-                  draft: false
-                  prerelease: true
-                  target_commitish: main
+            ### Changes
+            See commits included in this tag.
+          draft: false
+          prerelease: true
+          target_commitish: main
 
-            # ------------------------------------------------------------
-            # Checkout the RELEASE TAG for deployment
-            # ------------------------------------------------------------
-            - name: Checkout release tag
-              uses: actions/checkout@v4
-              with:
-                  ref: ${{ inputs.version_tag }}
-                  fetch-depth: 0
+      # ------------------------------------------------------------
+      # Checkout the RELEASE TAG for deployment
+      # ------------------------------------------------------------
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version_tag }}
+          fetch-depth: 0
 
-            - name: Check changed paths
-              id: paths
-              run: |
-                  backend_changed=false
-                  sql_changed=false 
-                  PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ inputs.version_tag }}^ 2>/dev/null || echo "")
+      - name: Check changed paths
+        id: paths
+        run: |
+          backend_changed=false
+          sql_changed=false 
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ inputs.version_tag }}^ 2>/dev/null || echo "")
 
-                    if [ -z "$PREVIOUS_TAG" ]; then
-                        echo "No previous tag found – deploying everything"
-                        backend_changed=true
-                        sql_changed=true
-                    else
-                    echo "Comparing $PREVIOUS_TAG → ${{ inputs.version_tag }}"
-                    CHANGED=$(git diff --name-only "$PREVIOUS_TAG" "${{ inputs.version_tag }}")
+            if [ -z "$PREVIOUS_TAG" ]; then
+                echo "No previous tag found – deploying everything"
+                backend_changed=true
+                sql_changed=true
+            else
+            echo "Comparing $PREVIOUS_TAG → ${{ inputs.version_tag }}"
+            CHANGED=$(git diff --name-only "$PREVIOUS_TAG" "${{ inputs.version_tag }}")
 
-                    while IFS= read -r path; do
-                    [[ "$path" =~ ^apps/backend/ ]] || [[ "$path" == "Dockerfile" ]] && backend_changed=true
-                    [[ "$path" =~ ^sql/schema/ ]] && sql_changed=true
-                    done <<< "$CHANGED"
-                    fi
+            while IFS= read -r path; do
+            [[ "$path" =~ ^apps/backend/ ]] || [[ "$path" == "Dockerfile" ]] && backend_changed=true
+            [[ "$path" =~ ^sql/schema/ ]] && sql_changed=true
+            done <<< "$CHANGED"
+            fi
 
-                    echo "backend_changed=$backend_changed" >> "$GITHUB_ENV"
-                    echo "sql_changed=$sql_changed" >> "$GITHUB_ENV"
+            echo "backend_changed=$backend_changed" >> "$GITHUB_ENV"
+            echo "sql_changed=$sql_changed" >> "$GITHUB_ENV"
 
-            - name: Set repo name lowercase
-              run: echo "REPO_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+      - name: Set repo name lowercase
+        run: echo "REPO_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
-            - name: Set up doctl
-              uses: digitalocean/action-doctl@v2
-              with:
-                  token: ${{ secrets.DIGITAL_OCEAN_TEST_API_KEY }}
+      - name: Set up doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITAL_OCEAN_TEST_API_KEY }}
 
-            - name: Log in to DO Container Registry
-              run: doctl registry login --expiry-seconds 1200
+      - name: Log in to DO Container Registry
+        run: doctl registry login --expiry-seconds 1200
 
-            - name: Set environment variables
-              run: |
-                  echo "DATABASE_URL=${{ secrets.POSTGRES_DO_TEST_DB_PRIVATE_URL }}" >> "$GITHUB_ENV"
-                  echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> "$GITHUB_ENV"
-                  echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> "$GITHUB_ENV"
-                  echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET }}" >> "$GITHUB_ENV"
-                  echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> "$GITHUB_ENV"
-                  echo "ACCESS_TOKEN_EXPIRATION=15 mins" >> "$GITHUB_ENV"
-                  echo "REFRESH_TOKEN_EXPIRATION=365 days" >> "$GITHUB_ENV"
-                  echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> "$GITHUB_ENV"
-                  echo "PUBLIC_URL=${{ vars.PUBLIC_URL_TEST }}" >> "$GITHUB_ENV"
-                  echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET_TEST }}" >> "$GITHUB_ENV"
-                  echo "BETTERSTACK_API_TOKEN=${{ secrets.BETTERSTACK_API_TOKEN }}" >> "$GITHUB_ENV"
-                  echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED }}" >> "$GITHUB_ENV"
-                  echo "SIMPLBOOKS_COMPANY_ID=${{ vars.SIMPLBOOKS_COMPANY_ID }}" >> "$GITHUB_ENV"
-                  echo "SIMPLBOOKS_BASE_URI=${{ vars.SIMPLBOOKS_BASE_URI }}" >> "$GITHUB_ENV"
-                  echo "SIMPLBOOKS_API_KEY=${{ secrets.SIMPLBOOKS_API_KEY }}" >> "$GITHUB_ENV"
-                  echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED }}" >> "$GITHUB_ENV"
-                  echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
-                  echo "OVERDUE_INVOICE_WORKER_ENABLED=${{ vars.OVERDUE_INVOICE_WORKER_ENABLED }}" >> "$GITHUB_ENV"
-                  echo "OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP=${{ vars.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
-                  echo "OVERDUE_INVOICE_SUSPENSION_DAYS=${{ vars.OVERDUE_INVOICE_SUSPENSION_DAYS }}" >> "$GITHUB_ENV"
-                  echo "OCCURRENCE_NOTIFICATION_WORKER_ENABLED=${{ vars.OCCURRENCE_NOTIFICATION_WORKER_ENABLED }}" >> "$GITHUB_ENV"
-                  echo "DIGITAL_OCEAN_SPACES_KEY=${{ secrets.DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID }}" >> "$GITHUB_ENV"
-                  echo "DIGITAL_OCEAN_SPACES_SECRET=${{ secrets.DIGITAL_OCEAN_SPACES_SECRET }}" >> "$GITHUB_ENV"
-                  echo "DIGITAL_OCEAN_SPACES_REGION=fra1" >> "$GITHUB_ENV"
-                  echo "DIGITAL_OCEAN_SPACES_ENDPOINT=https://fra1.digitaloceanspaces.com" >> "$GITHUB_ENV"
-                  echo "EQUIPMENT_FEE_DISCOUNT_PER_HOUR=${{ vars.EQUIPMENT_FEE_DISCOUNT_PER_HOUR }}" >> "$GITHUB_ENV"
-                  echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_TEST }}" >> "$GITHUB_ENV"
-                  echo "DO_MIK_VPC_UUID=${{ vars.DO_MIK_VPC_UUID }}" >> "$GITHUB_ENV"
+      - name: Set environment variables
+        run: |
+          echo "DATABASE_URL=${{ secrets.POSTGRES_DO_TEST_DB_PRIVATE_URL }}" >> "$GITHUB_ENV"
+          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> "$GITHUB_ENV"
+          echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET }}" >> "$GITHUB_ENV"
+          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> "$GITHUB_ENV"
+          echo "ACCESS_TOKEN_EXPIRATION=15 mins" >> "$GITHUB_ENV"
+          echo "REFRESH_TOKEN_EXPIRATION=365 days" >> "$GITHUB_ENV"
+          echo "SMTP_LOGIN=${{ vars.SMTP_LOGIN }}" >> "$GITHUB_ENV"
+          echo "PUBLIC_URL=${{ vars.PUBLIC_URL_TEST }}" >> "$GITHUB_ENV"
+          echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET_TEST }}" >> "$GITHUB_ENV"
+          echo "BETTERSTACK_API_TOKEN=${{ secrets.BETTERSTACK_API_TOKEN }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_COMPANY_ID=${{ vars.SIMPLBOOKS_COMPANY_ID }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_BASE_URI=${{ vars.SIMPLBOOKS_BASE_URI }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_API_KEY=${{ secrets.SIMPLBOOKS_API_KEY }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP=${{ vars.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
+          echo "OVERDUE_INVOICE_WORKER_ENABLED=${{ vars.OVERDUE_INVOICE_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP=${{ vars.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
+          echo "OVERDUE_INVOICE_SUSPENSION_DAYS=${{ vars.OVERDUE_INVOICE_SUSPENSION_DAYS }}" >> "$GITHUB_ENV"
+          echo "OCCURRENCE_NOTIFICATION_WORKER_ENABLED=${{ vars.OCCURRENCE_NOTIFICATION_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "DIGITAL_OCEAN_SPACES_KEY=${{ secrets.DIGITAL_OCEAN_SPACES_ACCESS_KEY_ID }}" >> "$GITHUB_ENV"
+          echo "DIGITAL_OCEAN_SPACES_SECRET=${{ secrets.DIGITAL_OCEAN_SPACES_SECRET }}" >> "$GITHUB_ENV"
+          echo "DIGITAL_OCEAN_SPACES_REGION=fra1" >> "$GITHUB_ENV"
+          echo "DIGITAL_OCEAN_SPACES_ENDPOINT=https://fra1.digitaloceanspaces.com" >> "$GITHUB_ENV"
+          echo "EQUIPMENT_FEE_DISCOUNT_PER_HOUR=${{ vars.EQUIPMENT_FEE_DISCOUNT_PER_HOUR }}" >> "$GITHUB_ENV"
+          echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_TEST }}" >> "$GITHUB_ENV"
+          echo "DO_MIK_VPC_UUID=${{ vars.DO_MIK_VPC_UUID }}" >> "$GITHUB_ENV"
 
-            - name: Build and push Docker image
-              if: env.backend_changed == 'true'
-              uses: docker/build-push-action@v2
-              with:
-                  context: .
-                  push: true
-                  tags: |
-                      registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
-                      registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ needs.check-release.outputs.version_tag }}
+      - name: Build and push Docker image
+        if: env.backend_changed == 'true'
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
+            registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ github.event.client_payload.tag_name }}
 
-            - name: Get runner public IP
-              if: env.sql_changed == 'true'
-              run: |
-                  RUNNER_IP=$(curl -s https://api.ipify.org)
-                  echo "RUNNER_IP=$RUNNER_IP" >> "$GITHUB_ENV"
+      - name: Get runner public IP
+        if: env.sql_changed == 'true'
+        run: |
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          echo "RUNNER_IP=$RUNNER_IP" >> "$GITHUB_ENV"
 
-            - name: Add runner IP to database firewall
-              if: env.sql_changed == 'true'
-              run: |
-                  doctl databases firewalls append ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --rule ip_addr:${{ env.RUNNER_IP }}
-                  RULE_UUID=$(doctl databases firewalls list ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --output json | jq -r '.[] | select(.value=="'${{ env.RUNNER_IP }}'") | .uuid')
-                  echo "FIREWALL_RULE_UUID=$RULE_UUID" >> "$GITHUB_ENV"
+      - name: Add runner IP to database firewall
+        if: env.sql_changed == 'true'
+        run: |
+          doctl databases firewalls append ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --rule ip_addr:${{ env.RUNNER_IP }}
+          RULE_UUID=$(doctl databases firewalls list ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --output json | jq -r '.[] | select(.value=="'${{ env.RUNNER_IP }}'") | .uuid')
+          echo "FIREWALL_RULE_UUID=$RULE_UUID" >> "$GITHUB_ENV"
 
-            - name: Run Flyway migrations
-              if: env.sql_changed == 'true'
-              run: |
-                  docker run --network host --rm \
-                      -v ${{ github.workspace }}/sql/schema/migration:/flyway/sql \
-                      -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
-                      -e FLYWAY_USER=${{ vars.DO_POSTGRES_ADMIN_USER }} \
-                      -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD }} \
-                      -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_TEST_URL }} \
-                      flyway/flyway:latest migrate
+      - name: Run Flyway migrations
+        if: env.sql_changed == 'true'
+        run: |
+          docker run --network host --rm \
+              -v ${{ github.workspace }}/sql/schema/migration:/flyway/sql \
+              -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
+              -e FLYWAY_USER=${{ vars.DO_POSTGRES_ADMIN_USER }} \
+              -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD }} \
+              -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_TEST_URL }} \
+              flyway/flyway:latest migrate
 
-            - name: Run Flyway static data
-              if: env.sql_changed == 'true'
-              run: |
-                  docker run --network host --rm \
-                      -v ${{ github.workspace }}/sql/schema/static_data:/flyway/sql \
-                      -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
-                      -e FLYWAY_USER=${{ vars.DO_POSTGRES_ADMIN_USER }} \
-                      -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD }} \
-                      -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_TEST_URL }} \
-                      flyway/flyway:latest migrate
+      - name: Run Flyway static data
+        if: env.sql_changed == 'true'
+        run: |
+          docker run --network host --rm \
+              -v ${{ github.workspace }}/sql/schema/static_data:/flyway/sql \
+              -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
+              -e FLYWAY_USER=${{ vars.DO_POSTGRES_ADMIN_USER }} \
+              -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD }} \
+              -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_TEST_URL }} \
+              flyway/flyway:latest migrate
 
-            - name: Remove runner IP from database firewall
-              if: always() && env.sql_changed == 'true'
-              run: |
-                  [ -n "${{ env.FIREWALL_RULE_UUID }}" ] && \
-                  doctl databases firewalls remove ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --uuid ${{ env.FIREWALL_RULE_UUID }}
+      - name: Remove runner IP from database firewall
+        if: always() && env.sql_changed == 'true'
+        run: |
+          [ -n "${{ env.FIREWALL_RULE_UUID }}" ] && \
+          doctl databases firewalls remove ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --uuid ${{ env.FIREWALL_RULE_UUID }}
 
-            - name: Replace placeholders in mik-intranet-test.yaml
-              run: |
-                  export DOMAIN=$(echo "${{ vars.PUBLIC_URL_TEST }}" | sed 's|https\?://||')
-                  envsubst < .do/mik-intranet-test.yaml > .do/mik-intranet-test.yaml.tmp
-                  mv .do/mik-intranet-test.yaml.tmp .do/mik-intranet-test.yaml
+      - name: Replace placeholders in mik-intranet-test.yaml
+        run: |
+          export DOMAIN=$(echo "${{ vars.PUBLIC_URL_TEST }}" | sed 's|https\?://||')
+          envsubst < .do/mik-intranet-test.yaml > .do/mik-intranet-test.yaml.tmp
+          mv .do/mik-intranet-test.yaml.tmp .do/mik-intranet-test.yaml
 
-            - name: Update app on DigitalOcean
-              run: |
-                  doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} \
-                      --update-sources \
-                      --spec .do/mik-intranet-test.yaml \
-                      --wait
+      - name: Update app on DigitalOcean
+        run: |
+          doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} \
+              --update-sources \
+              --spec .do/mik-intranet-test.yaml \
+              --wait
