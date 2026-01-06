@@ -130,6 +130,11 @@ services:
         type: GENERAL
       - key: OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP
         value: ${OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP}
+      - key: WEATHER_API_BASE_URL
+        value: ${WEATHER_API_BASE_URL}
+        type: GENERAL
+      - key: WEATHER_AUDIO_BASE_URL
+        value: ${WEATHER_AUDIO_BASE_URL}
         type: GENERAL
       - key: OVERDUE_INVOICE_SUSPENSION_DAYS
         value: ${OVERDUE_INVOICE_SUSPENSION_DAYS}

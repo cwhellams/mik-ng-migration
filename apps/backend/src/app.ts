@@ -22,6 +22,7 @@ import { problemErrorHandler, notFoundProblemHandler } from './routes/response.t
 import invoiceRoutes from './routes/invoicing/api.ts'
 import bookingRoutes from './routes/bookings/api.ts'
 import { router as occurrenceRoutes } from './routes/occurrences/api.ts'
+import { router as weatherRoutes } from './routes/weather/api.ts'
 import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
 import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoicePaymentWorker.ts'
 import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
@@ -94,6 +95,7 @@ app.use('/api/v1/documents', documentRoutes)
 app.use('/api/v1/invoices', invoiceRoutes)
 app.use('/api/v1/bookings', bookingRoutes)
 app.use('/api/v1/occurrences', occurrenceRoutes)
+app.use('/api/v1/weather', weatherRoutes)
 
 const poller = startSimpleBooksOutboxProcessor()
 const invoicePaymentWorker = startSimplbooksInvoicePaymentWorker()

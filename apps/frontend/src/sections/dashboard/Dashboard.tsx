@@ -6,6 +6,7 @@ import { BookingUserDashboard } from './components/BookingUserDashboard'
 import { EquipmentFeeBanner } from './components/EquipmentFeeBanner'
 import { OverdueInvoiceBanner } from './components/OverdueInvoiceBanner'
 import { ReservationsSuspendedBanner } from '../../components/ReservationsSuspendedBanner'
+import { WeatherWidget } from './components/WeatherWidget'
 import { MIKPermissions } from '@backend/routes/members/models'
 import { Title } from '../../components/Title'
 import { t } from 'i18next'
@@ -22,6 +23,8 @@ const Dashboard = () => {
       <OverdueInvoiceBanner />
 
       <EquipmentFeeBanner />
+
+      <WeatherWidget />
 
       {roles.hasAccess(
         MIKPermissions.BOOKING_USER,

@@ -140,6 +140,12 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         value: ${CORS_ALLOWED_ORIGINS}
         type: SECRET
+      - key: WEATHER_API_BASE_URL
+        value: ${WEATHER_API_BASE_URL}
+        type: GENERAL
+      - key: WEATHER_AUDIO_BASE_URL
+        value: ${WEATHER_AUDIO_BASE_URL}
+        type: GENERAL
 
     instance_count: 1
     health_check:

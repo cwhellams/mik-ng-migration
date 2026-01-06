@@ -143,6 +143,8 @@ jobs:
           echo "BREVO_SYNC_WORKER_ENABLED=${{ vars.BREVO_SYNC_WORKER_ENABLED }}" >> "$GITHUB_ENV"
           echo "BREVO_SYNC_WORKER_RUN_ON_STARTUP=${{ vars.BREVO_SYNC_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
           echo "DO_MIK_VPC_UUID=${{ vars.DO_MIK_VPC_UUID }}" >> "$GITHUB_ENV"
+          echo "WEATHER_API_BASE_URL=${{ vars.WEATHER_API_BASE_URL }}" >> "$GITHUB_ENV"
+          echo "WEATHER_AUDIO_BASE_URL=${{ vars.WEATHER_AUDIO_BASE }}" >> "$GITHUB_ENV"
 
       - name: Build and push Docker image
         if: env.backend_changed == 'true'
