@@ -689,10 +689,11 @@
     "welcomeTitle": "Welcome to Malmin Ilmailukerho!",
     "emailVerifiedSuccess": "Email Successfully Verified!",
     "thankYouMessage": "Thank you for joining Malmin Ilmailukerho ry. Your email has been verified and your membership application is now being processed.",
-    "nextStepsTitle": "Next Steps in Your Onboarding Process",
-    "nextStepsDescription": "Here's what happens next as you become a full member of our flying club:",
     "dashboardAccessMessage": "You can now access your member dashboard to track your onboarding progress.",
     "goToDashboard": "Go to Dashboard",
+    "pendingReview": "Membership Application Pending Review",
+    "nextStepsTitle": "Next Steps in Your Onboarding Process",
+    "nextStepsDescription": "Here's what happens next as you become a full member of our flying club:",
     "onboardingSteps": {
       "step1": {
         "title": "Call from member secretary",
@@ -869,7 +870,16 @@
     "noNewFlights": "No new flights to validate.",
     "newFlightsSince": "{{count}} new flights since {{date}}",
     "pendingMemberApprovals": "Pending Member Approvals",
-    "noMembersAwaitingApproval": "No members awaiting approval."
+    "noMembersAwaitingApproval": "No members awaiting approval.",
+    "flightLog": {
+      "recentFlights": "Recent Flights and Currency",
+      "plane": "Plane",
+      "lastFlight": "Last Flight",
+      "currency": "Landings and flight time",
+      "totals": "Totals",
+      "totalLandings": "Total Landings",
+      "totalFlightTime": "Total Flight Time"
+    }
   },
   "occurrences": {
     "title": "Occurrence Reports",

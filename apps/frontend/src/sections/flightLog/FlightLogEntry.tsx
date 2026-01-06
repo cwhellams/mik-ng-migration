@@ -12,6 +12,7 @@ import {
   MenuItem,
   FormHelperText,
   Checkbox,
+  FormControlLabel,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
@@ -555,16 +556,23 @@ const FlightLogEntry = () => {
             {!isNew && isFlightLogAdmin && (
               <Grid size={12}>
                 <FormControl required fullWidth error={!!errors.flightType}>
-                  <InputLabel>{t('invoicing.isFreeFlight')}</InputLabel>
-                  <Controller
-                    name='isBillableFlight'
-                    control={control}
-                    render={({ field }) => (
-                      <Checkbox
-                        checked={field.value == false}
+                  <FormControlLabel
+                    label={t('invoicing.isFreeFlight')}
+                    control={
+                      <Controller
+                        name='isBillableFlight'
+                        control={control}
                         disabled={isInvoiced}
+                        render={({ field }) => (
+                          <Checkbox
+                            checked={!field.value}
+                            onChange={({ target }) =>
+                              field.onChange(!target.checked)
+                            }
+                          />
+                        )}
                       />
-                    )}
+                    }
                   />
                 </FormControl>
               </Grid>

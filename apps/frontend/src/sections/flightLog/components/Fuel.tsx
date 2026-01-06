@@ -64,9 +64,15 @@ export const Fuel = ({ control, usableFuelLitres, disabled }: Props) => {
     <Controller
       name={'fuelRemainingLitres'}
       control={control}
+      disabled={disabled}
       render={({ field }) => (
         <Box>
-          <Typography variant='body2' gutterBottom mb={4}>
+          <Typography
+            variant='body2'
+            color={disabled ? 'text.disabled' : 'text.primary'}
+            gutterBottom
+            mb={4}
+          >
             {t('flightLog.fuelRemainingLitres')}
           </Typography>
 

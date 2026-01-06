@@ -60,6 +60,7 @@ export const InvoicingRange = ({
                 })
               }
             >
+              <MenuItem value={''}>{t('--')}</MenuItem>
               {aircrafts.map((plane) => (
                 <MenuItem key={plane} value={plane}>
                   {plane}
@@ -80,7 +81,9 @@ export const InvoicingRange = ({
               })
             }
             format={t('general.dateFormat')}
-            minDate={dayjs(ajlb?.view?.validatedBeforeUTC)}
+            maxDate={dayjs(ajlb?.view?.validatedBeforeUTC)
+              .startOf('day')
+              .add(1, 'day')}
           />
         </Grid>
       </Grid>
@@ -90,7 +93,7 @@ export const InvoicingRange = ({
           color='primary'
           variant='contained'
           onClick={navigate.next}
-          disabled={!filters.aircraftRegistration || !filters.endDate}
+          disabled={!filters.endDate}
         >
           {t('invoicing.start')}
         </Button>

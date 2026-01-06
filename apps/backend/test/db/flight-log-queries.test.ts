@@ -5,6 +5,7 @@ import {
   getFlightLog,
   getFlightLogs,
   getFlightLogTotals,
+  getFlightStats,
   getInvoicableFlights,
   insertFlightLog,
   invoiceFlights,
@@ -394,5 +395,71 @@ describe('Db invoicable FlightLog tests', () => {
         user,
       )
     }
+  })
+})
+
+describe('Db Flight statistics', () => {
+  it('get flights statistics with no flights', async () => {
+    const result = await getFlightStats('k1mnimda')
+    expect(result).toEqual([])
+  })
+  it('get flights statistics with single plane', async () => {
+    const result = await getFlightStats('Matti1')
+    expect(result).toEqual([
+      {
+        aircraftRegistration: 'OH-STL',
+        landings12month: 2,
+        landings1month: 0,
+        landings3month: 0,
+        landings6month: 0,
+        lastFlightId: 'bLwnAstr0',
+        lastTakeoffTimeUtc: '2025-03-03T10:30:00.000Z',
+        time12month: 195,
+        time1month: 0,
+        time3month: 0,
+        time6month: 0,
+        totalFlightMins: 195,
+        totalFlights: 2,
+        totalLandings: 2,
+      },
+    ])
+  })
+
+  it('get flights statistics with multiple planes', async () => {
+    const result = await getFlightStats('Jukka1')
+    expect(result).toEqual([
+      {
+        aircraftRegistration: 'OH-IHQ',
+        landings12month: 2,
+        landings1month: 0,
+        landings3month: 0,
+        landings6month: 0,
+        lastFlightId: 'efnu4evr',
+        lastTakeoffTimeUtc: '2025-03-02T09:20:00.000Z',
+        time12month: 120,
+        time1month: 0,
+        time3month: 0,
+        time6month: 0,
+        totalFlightMins: 120,
+        totalFlights: 1,
+        totalLandings: 2,
+      },
+      {
+        aircraftRegistration: 'OH-P28',
+        landings12month: 3,
+        landings1month: 0,
+        landings3month: 0,
+        landings6month: 0,
+        lastFlightId: 'da40tndra',
+        lastTakeoffTimeUtc: '2025-03-04T11:30:00.000Z',
+        time12month: 110,
+        time1month: 0,
+        time3month: 0,
+        time6month: 0,
+        totalFlightMins: 110,
+        totalFlights: 1,
+        totalLandings: 3,
+      },
+    ])
   })
 })

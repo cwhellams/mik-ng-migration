@@ -2,6 +2,7 @@ import { Grid, Paper, SxProps, Typography } from '@mui/material'
 
 type ResponsiveTableProps<T> = {
   header?: React.ReactElement
+  headerProps?: SxProps
   notFoundMsg: string
   rows: T[] | undefined
   rowProps?: (row: T) => SxProps
@@ -10,6 +11,7 @@ type ResponsiveTableProps<T> = {
 
 export function ResponsiveTable<T>({
   header,
+  headerProps,
   notFoundMsg,
   rows,
   rowProps,
@@ -30,6 +32,7 @@ export function ResponsiveTable<T>({
             borderBottom: '1px solid',
             display: { xs: 'none', md: 'flex' },
             borderColor: 'divider',
+            ...headerProps,
           }}
         >
           {header}

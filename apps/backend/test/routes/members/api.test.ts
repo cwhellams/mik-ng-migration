@@ -825,7 +825,12 @@ describe('Membership approval tests', () => {
     const response = await request(app)
       .post('/members/Marja1/approve')
       .set('Authorization', `Bearer ${adminToken}`)
+    console.log(response.body)
     expect(response.status).toBe(HttpStatusCode.Created)
+
+    const member = response.body as Member
+    expect(member.membershipApprovedBy).toEqual('k1mnimda')
+    expect(member.roles.map(r => r.roleId)).toEqual(['FLYING_MEMBER', 'MEMBER'])
 
     //revert changes
     await db
@@ -836,6 +841,7 @@ describe('Membership approval tests', () => {
       })
       .where('member_id', '=', 'Marja1')
       .execute()
+    await db.deleteFrom('member.member_to_roles').where('member_id', '=', 'Marja1').execute()
   })
 
   it('POST approval should return not found when member does not exist', async () => {

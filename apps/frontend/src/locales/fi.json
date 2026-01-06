@@ -689,10 +689,11 @@
     "welcomeTitle": "Tervetuloa Malmin Ilmailukerhoon!",
     "emailVerifiedSuccess": "Sähköposti vahvistettu onnistuneesti!",
     "thankYouMessage": "Kiitos liittymisestäsi Malmin Ilmailukerho ry:hyn. Sähköpostiosoitteesi on vahvistettu ja jäsenhakemustasi käsitellään parhaillaan.",
-    "nextStepsTitle": "Seuraavat vaiheet perehdytysprosessissasi",
-    "nextStepsDescription": "Näin etenee täysjäseneksi liittymisesi lentokerhoomme:",
     "dashboardAccessMessage": "Voit nyt kirjautua jäsenten alueelle seuraamaan perehdytysprosessin etenemistä.",
     "goToDashboard": "Siirry kojelautaan",
+    "pendingReview": "Jäsenhakemus odottaa käsittelyä",
+    "nextStepsTitle": "Seuraavat vaiheet perehdytysprosessissasi",
+    "nextStepsDescription": "Näin etenee täysjäseneksi liittymisesi lentokerhoomme:",
     "onboardingSteps": {
       "step1": {
         "title": "Puhelu jäsensihteeriltä",
@@ -869,7 +870,16 @@
     "noNewFlights": "Ei uusia lentoja vahvistettavaksi.",
     "newFlightsSince": "{{count}} uutta lentoa sitten {{date}}",
     "pendingMemberApprovals": "Uudet hyväksyntää odottavat jäsenet",
-    "noMembersAwaitingApproval": "Ei hyväksyntää odottavia jäseniä."
+    "noMembersAwaitingApproval": "Ei hyväksyntää odottavia jäseniä.",
+    "flightLog": {
+      "recentFlights": "Viimeisimmät lennot ja kelpoisuus",
+      "plane": "Lentokone",
+      "lastFlight": "Viimeinen lento",
+      "currency": "Laskeutumiset ja lentoaika",
+      "totals": "Yhteensä",
+      "totalLandings": "Laskeutumiset yhteensä",
+      "totalFlightTime": "Lentoaika yhteensä"
+    }
   },
   "occurrences": {
     "title": "Poikkamaraportit",

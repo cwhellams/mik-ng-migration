@@ -689,10 +689,11 @@
     "welcomeTitle": "Välkommen till Malmi Flygklubb!",
     "emailVerifiedSuccess": "E-post verifierad framgångsrikt!",
     "thankYouMessage": "Tack för att du går med i Malmi Flygklubb ry. Din e-post har verifierats och din medlemsansökan behandlas nu.",
-    "nextStepsTitle": "Nästa steg i din introduktionsprocess",
-    "nextStepsDescription": "Här är vad som händer härnäst när du blir fullständig medlem i vår flygklubb:",
     "dashboardAccessMessage": "Du kan nu komma åt din medlemsdashboard för att följa din introduktionsprocess.",
     "goToDashboard": "Gå till instrumentpanel",
+    "pendingReview": "Medlemsansökan väntar på granskning",
+    "nextStepsTitle": "Nästa steg i din introduktionsprocess",
+    "nextStepsDescription": "Här är vad som händer härnäst när du blir fullständig medlem i vår flygklubb:",
     "onboardingSteps": {
       "step1": {
         "title": "Samtal från medlemssekreterare",
@@ -869,7 +870,16 @@
     "noNewFlights": "Inga nya flyg att validera.",
     "newFlightsSince": "{{count}} nya flyg sedan {{date}}",
     "pendingMemberApprovals": "Väntande medlemsgodkännanden",
-    "noMembersAwaitingApproval": "Inga medlemmar väntar på godkännande."
+    "noMembersAwaitingApproval": "Inga medlemmar väntar på godkännande.",
+    "flightLog": {
+      "recentFlights": "Senaste flyg och behörigheter",
+      "plane": "Flygplan",
+      "lastFlight": "Senaste flyg",
+      "currency": "Landningar och flygtid",
+      "totals": "Totalt",
+      "totalLandings": "Totala landningar",
+      "totalFlightTime": "Total flygtid"
+    }
   },
   "occurrences": {
     "title": "Tillbudsrapporter",

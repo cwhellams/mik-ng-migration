@@ -33,7 +33,7 @@ import { FormTitle } from '../../components/FormTitle'
 import { RemoteContent } from '../../components/RemoteContent'
 import { FormField } from '../../components/FormField'
 import { Icon } from '@iconify/react'
-import { AircraftDocumentSection } from '../../components/AircraftDocumentSection'
+import { AircraftDocumentSection } from './components/AircraftDocumentSection'
 import { useRoles } from '../../hooks/useRoles'
 import { useState } from 'react'
 import {

@@ -32,9 +32,9 @@ import {
   useAircraftDocumentUpload,
   type AircraftDocumentFile,
   type UploadProgress,
-} from '../hooks/useAircraftDocumentUpload'
+} from '../../../hooks/useAircraftDocumentUpload'
 import { AircraftDocumentType } from '@backend/routes/aircraft-documents/models'
-import { getFileIcon, formatFileSize } from '../utils/documentHelpers'
+import { getFileIcon, formatFileSize } from '../../../utils/documentHelpers'
 
 interface DocumentUploadAreaProps {
   aircraftRegistration: string

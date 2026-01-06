@@ -16,11 +16,18 @@ import {
   type PrivOrComFlight,
   type FlightLogMigrationRequest,
   InvoicableFlights,
+  type FlightLogStats,
 } from '../routes/flight-log/models.ts'
 import type { MIKPermissions } from '../routes/members/models.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import type { DB, FlightLogs, FlightVwFlightLogs } from './schema.js'
-import type { ExpressionBuilder, Selectable, UpdateObject } from 'kysely'
+import {
+  sql,
+  type ExpressionBuilder,
+  type Selectable,
+  type StringReference,
+  type UpdateObject,
+} from 'kysely'
 import dayjs from 'dayjs'
 import { randomUUID } from 'crypto'
 import { SimplbooksEventType } from '../services/simplbooks/models.ts'
@@ -267,6 +274,61 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
   }
 }
 
+const sumIfMonths = (
+  eb: ExpressionBuilder<DB, 'flight.logs'>,
+  months: number,
+  ref: StringReference<DB, 'flight.logs'>,
+) =>
+  eb.cast<number>(
+    eb.fn.sum(
+      eb
+        .case()
+        .when(sql`extract (day from now() - flight.logs.takeoff_time_utc)`, '<', months * 30)
+        .then(eb.ref(ref))
+        .else(0)
+        .end(),
+    ),
+    'integer',
+  )
+
+export async function getFlightStats(billableMemberId: string): Promise<FlightLogStats[]> {
+  const res = await db
+    .selectFrom('flight.logs')
+    .select(eb => [
+      'flight.logs.aircraft_registration as aircraftRegistration',
+      eb.fn.max<Date>('flight.logs.takeoff_time_utc').as('lastTakeoffTimeUtc'),
+      eb
+        .selectFrom('flight.logs as last_flight')
+        .select('flight_id')
+        .whereRef('flight.logs.aircraft_registration', '=', 'last_flight.aircraft_registration')
+        .where('last_flight.billable_member_id', '=', billableMemberId)
+        .orderBy('last_flight.takeoff_time_utc', 'desc')
+        .limit(1)
+        .as('lastFlightId'),
+      eb.cast<number>(eb.fn.count<number>('flight.logs.flight_id'), 'integer').as('totalFlights'),
+      eb.cast<number>(eb.fn.sum('flight.logs.flight_mins'), 'integer').as('totalFlightMins'),
+      eb.cast<number>(eb.fn.sum('flight.logs.number_of_landings'), 'integer').as('totalLandings'),
+
+      sumIfMonths(eb, 1, 'flight.logs.flight_mins').as('time1month'),
+      sumIfMonths(eb, 3, 'flight.logs.flight_mins').as('time3month'),
+      sumIfMonths(eb, 6, 'flight.logs.flight_mins').as('time6month'),
+      sumIfMonths(eb, 12, 'flight.logs.flight_mins').as('time12month'),
+
+      sumIfMonths(eb, 1, 'flight.logs.number_of_landings').as('landings1month'),
+      sumIfMonths(eb, 3, 'flight.logs.number_of_landings').as('landings3month'),
+      sumIfMonths(eb, 6, 'flight.logs.number_of_landings').as('landings6month'),
+      sumIfMonths(eb, 12, 'flight.logs.number_of_landings').as('landings12month'),
+    ])
+    .where('billable_member_id', '=', billableMemberId)
+    .groupBy(['flight.logs.aircraft_registration', 'flight.logs.billable_member_id'])
+    .execute()
+
+  return res.map(row => ({
+    ...row,
+    lastTakeoffTimeUtc: row.lastTakeoffTimeUtc.toISOString(),
+  }))
+}
+
 export async function getInvoicableFlights(
   filters: InvoicableFlightFilters,
 ): Promise<InvoicableFlightListResponse> {
@@ -274,7 +336,9 @@ export async function getInvoicableFlights(
     .selectFrom('flight.logs')
     .leftJoin('member.register', 'flight.logs.billable_member_id', 'member.register.member_id')
     .where('status', '=', FlightLogStatus.VALIDATED)
-    .where('aircraft_registration', '=', filters.aircraftRegistration)
+    .$if(!!filters.aircraftRegistration, qb =>
+      qb.where('aircraft_registration', '=', filters.aircraftRegistration),
+    )
     .where('on_block_time_epoch', '<=', toLocal(filters.endDate).endOf('day').unix().toString())
 
   if (filters.flights === InvoicableFlights.FERRY) {

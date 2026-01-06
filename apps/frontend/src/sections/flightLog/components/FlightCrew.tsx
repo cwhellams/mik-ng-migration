@@ -357,7 +357,7 @@ const FlightCrew = ({
               )}
             </Grid>
 
-            {index >= minimumCrewCount && index == length - 1 && (
+            {index >= minimumCrewCount && index == length - 1 && isEditable && (
               // only last crew slot can be removed
               <Grid
                 size={{ xs: 12 }}
@@ -367,7 +367,6 @@ const FlightCrew = ({
                   color='error'
                   onClick={() => handleRemoveCrew(slot)}
                   sx={{ minWidth: 'auto', p: 1 }}
-                  disabled={!isEditable}
                 >
                   <Icon icon='mdi:close' />
                 </Button>
@@ -377,7 +376,7 @@ const FlightCrew = ({
         )
       })}
 
-      {!isSinglePilotFlight && crewCount < maximumCrewCount && (
+      {!isSinglePilotFlight && crewCount < maximumCrewCount && isEditable && (
         <Grid size={{ xs: 12 }}>
           <Box>
             <Button

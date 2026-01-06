@@ -22,7 +22,6 @@ import { useTranslation } from 'react-i18next'
 import { Member, MIKLang, MIKMemberTypes } from '@backend/routes/members/models'
 import { DateField } from '@mui/x-date-pickers/DateField'
 import dayjs, { Dayjs } from 'dayjs'
-import { mutate } from 'swr'
 import { useRoles } from '../../../hooks/useRoles'
 import { APIMutation } from '../../../hooks/useApi'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
@@ -31,6 +30,7 @@ import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../../components/SaveButton'
 import { PhoneNumberInput } from '../../../components/PhoneNumberInput'
+import { useNavigate } from 'react-router-dom'
 
 export type MemberEditMode =
   | 'register'
@@ -61,6 +61,7 @@ export const EditMemberModal = ({
   const { t, i18n } = useTranslation()
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
+  const navigate = useNavigate()
 
   // Define form states based on the mode
   const [formData, setFormData] = useState<Partial<Member>>({})
@@ -79,6 +80,7 @@ export const EditMemberModal = ({
         lastName: '',
         email: '',
         phoneNumber: '',
+        lang: MIKLang.FI,
       } as RegisterRequest)
     } else if (memberData) {
       if (mode === 'personalInfo') {
@@ -152,14 +154,13 @@ export const EditMemberModal = ({
 
     const method = mode == 'register' ? 'POST' : 'PATCH'
 
-    const { error } = await api.trigger(method, formData)
+    const { data, error } = await api.trigger(method, formData)
     if (error) {
       return setProblem(error)
     }
 
     if (mode == 'register') {
-      // clear the members list
-      await mutate((key) => Array.isArray(key) && key[0] == 'v1/members')
+      navigate(`/club/members/${data?.memberId}`)
     }
 
     onClose()

@@ -20,7 +20,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import VolumeUpIcon from '@mui/icons-material/VolumeUp'
 import useApi from '../../../hooks/useApi'
 import type { WeatherResponse } from '../../../types/weather'
-import { WindRose } from '../../../components/WindRose'
+import { WindRose } from './WindRose'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { useState, useEffect, useRef } from 'react'
@@ -80,13 +80,11 @@ export const WeatherWidget = () => {
   )
 
   // API for fetching audio on demand
-  const audioApi = useApi<Blob>(
-    {
-      url: 'v1/weather/audio',
-      skipFetch: true, // Don't fetch on mount
-      responseType: 'blob', // Get audio as blob
-    }
-  )
+  const audioApi = useApi<Blob>({
+    url: 'v1/weather/audio',
+    skipFetch: true, // Don't fetch on mount
+    responseType: 'blob', // Get audio as blob
+  })
 
   useEffect(() => {
     localStorage.setItem(WEATHER_WIDGET_STORAGE_KEY, String(expanded))
@@ -115,9 +113,11 @@ export const WeatherWidget = () => {
 
   if (error) {
     const errorMessage = error.title || 'Weather Data Unavailable'
-    const errorDetail = error.detail || 'Unable to fetch weather information at this time.'
-    const severity = error.status === 503 || error.status === 504 ? 'warning' : 'error'
-    
+    const errorDetail =
+      error.detail || 'Unable to fetch weather information at this time.'
+    const severity =
+      error.status === 503 || error.status === 504 ? 'warning' : 'error'
+
     return (
       <Card sx={{ mb: 3 }}>
         <CardContent>

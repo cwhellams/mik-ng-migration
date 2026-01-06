@@ -11,10 +11,10 @@ import {
   type MemberRolesResponse,
   type MemberRole,
   MemberRoleSchema,
-  type MemberApproval,
   MIKLang,
   MemberListFiltersSchema,
   type AnnualMembershipStats,
+  MIKMemberTypes,
 } from './models.ts'
 import {
   getMemberById,
@@ -31,6 +31,8 @@ import {
   setMembershipApproval,
   updateMemberLang,
   getMembersForAnnualMembershipFee,
+  updateMemberRoles,
+  getMemberRolesByMemberId,
 } from '../../db/member-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { UpsertSchema } from '../../types/schema.ts'
@@ -76,10 +78,20 @@ router.get(
   },
 )
 
+const rolesForNewMember = (memberType: MIKMemberTypes): string[] => {
+  if (memberType === MIKMemberTypes.FLYING || memberType === MIKMemberTypes.JUNIOR) {
+    return ['MEMBER', 'FLYING_MEMBER']
+  } else if (memberType == MIKMemberTypes.NONFLYING) {
+    return ['MEMBER']
+  } else {
+    return []
+  }
+}
+
 router.post(
   '/:memberId/approve',
   validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request<{ memberId: string }>, res: Response<MemberApproval>) => {
+  async (req: Request<{ memberId: string }>, res: Response<Member>) => {
     const memberId = req.params.memberId
 
     // skip integrations during migration
@@ -96,7 +108,12 @@ router.post(
       console.log(`Skipping sending approval email to ${approval.email} due to migration flag`)
     }
 
-    res.status(HttpStatusCode.Created).json(approval)
+    // add default roles for the member
+    await updateMemberRoles(memberId, rolesForNewMember(approval.memberType), req.user!)
+
+    const roles = await getMemberRolesByMemberId(memberId)
+
+    res.status(HttpStatusCode.Created).json({ ...approval, roles })
   },
 )
 

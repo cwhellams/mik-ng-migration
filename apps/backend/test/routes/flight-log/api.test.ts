@@ -764,3 +764,127 @@ describe('GET /flight-log/totals', () => {
     expect(response.status).toBe(404)
   })
 })
+
+describe('GET /flight-log/stats', () => {
+  it('should return 403 with no permissions', async () => {
+    const token = generateAccessToken({
+      memberId: 'simplbks',
+      lastName: 'Depp',
+      email: 'jonny.depp@mik.fi',
+      roles: [],
+      permissions: [],
+    })
+
+    const response = await request(app)
+      .get('/flight-log/stats')
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.status).toBe(403)
+  })
+
+  it('should return 200 with no flights', async () => {
+    const token = generateAccessToken({
+      memberId: 'simplbks',
+      lastName: 'Depp',
+      email: 'jonny.depp@mik.fi',
+      roles: [],
+      permissions: [MIKPermissions.FLIGHTLOG_USER],
+    })
+
+    const response = await request(app)
+      .get('/flight-log/stats')
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({
+      stats: [],
+    })
+  })
+
+  it('should return 200 with single plane', async () => {
+    const response = await request(app)
+      .get('/flight-log/stats')
+      .set('Authorization', `Bearer ${mattiToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({
+      stats: [
+        {
+          aircraftRegistration: 'OH-STL',
+          landings12month: 2,
+          landings1month: 0,
+          landings3month: 0,
+          landings6month: 0,
+          lastFlightId: 'bLwnAstr0',
+          lastTakeoffTimeUtc: '2025-03-03T10:30:00.000Z',
+          time12month: 195,
+          time1month: 0,
+          time3month: 0,
+          time6month: 0,
+          totalFlightMins: 195,
+          totalFlights: 2,
+          totalLandings: 2,
+        },
+      ],
+    })
+  })
+
+  it('should return 200 with multiple planes', async () => {
+    const response = await request(app)
+      .get('/flight-log/stats')
+      .set('Authorization', `Bearer ${jukkaToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({
+      stats: [
+        {
+          aircraftRegistration: 'OH-IHQ',
+          landings12month: 2,
+          landings1month: 0,
+          landings3month: 0,
+          landings6month: 0,
+          lastFlightId: 'efnu4evr',
+          lastTakeoffTimeUtc: '2025-03-02T09:20:00.000Z',
+          time12month: 120,
+          time1month: 0,
+          time3month: 0,
+          time6month: 0,
+          totalFlightMins: 120,
+          totalFlights: 1,
+          totalLandings: 2,
+        },
+        {
+          aircraftRegistration: 'OH-P28',
+          landings12month: 3,
+          landings1month: 0,
+          landings3month: 0,
+          landings6month: 0,
+          lastFlightId: 'da40tndra',
+          lastTakeoffTimeUtc: '2025-03-04T11:30:00.000Z',
+          time12month: 110,
+          time1month: 0,
+          time3month: 0,
+          time6month: 0,
+          totalFlightMins: 110,
+          totalFlights: 1,
+          totalLandings: 3,
+        },
+        {
+          aircraftRegistration: 'total',
+          landings12month: 5,
+          landings1month: 0,
+          landings3month: 0,
+          landings6month: 0,
+          lastFlightId: 'da40tndra',
+          lastTakeoffTimeUtc: '2025-03-04T11:30:00.000Z',
+          time12month: 230,
+          time1month: 0,
+          time3month: 0,
+          time6month: 0,
+          totalFlightMins: 230,
+          totalLandings: 5,
+        },
+      ],
+    })
+  })
+})

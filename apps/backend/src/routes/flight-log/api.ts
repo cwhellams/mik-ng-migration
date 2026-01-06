@@ -16,12 +16,15 @@ import {
   BilledFlightLogUpsertSchema,
   type FlightLogUpsertRequest,
   FlightLogMigrationSchema,
+  type FlightLogStatsResponse,
+  type FlightLogStats,
 } from './models.ts'
 import {
   deleteFlightLog,
   getFlightLog,
   getFlightLogs,
   getFlightLogTotals,
+  getFlightStats,
   insertFlightLog,
   updateFlightLog,
   updateFlightLogStatus,
@@ -88,6 +91,51 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
   const logs = await getFlightLogs(filters)
   res.status(200).json(logs)
 })
+
+router.get(
+  '/stats',
+  async (req: Request<FlightLogFilters>, res: Response<FlightLogStatsResponse>) => {
+    const stats = await getFlightStats(req.user!.memberId)
+    const totals = stats.reduce(
+      (acc, curr) => {
+        if (
+          acc.lastTakeoffTimeUtc == null ||
+          (curr.lastTakeoffTimeUtc ?? '') > acc.lastTakeoffTimeUtc
+        ) {
+          acc.lastTakeoffTimeUtc = curr.lastTakeoffTimeUtc
+          acc.lastFlightId = curr.lastFlightId
+        }
+        acc.totalLandings += Number(curr.totalLandings)
+        acc.totalFlightMins += Number(curr.totalFlightMins)
+        acc.landings1month += Number(curr.landings1month)
+        acc.landings3month += Number(curr.landings3month)
+        acc.landings6month += Number(curr.landings6month)
+        acc.landings12month += Number(curr.landings12month)
+        acc.time1month += Number(curr.time1month)
+        acc.time3month += Number(curr.time3month)
+        acc.time6month += Number(curr.time6month)
+        acc.time12month += Number(curr.time12month)
+        return acc
+      },
+      {
+        aircraftRegistration: 'total',
+        lastFlightId: null,
+        lastTakeoffTimeUtc: null,
+        totalLandings: 0,
+        totalFlightMins: 0,
+        landings1month: 0,
+        landings3month: 0,
+        landings6month: 0,
+        landings12month: 0,
+        time1month: 0,
+        time3month: 0,
+        time6month: 0,
+        time12month: 0,
+      } as FlightLogStats,
+    )
+    res.status(200).json({ stats: stats.length > 1 ? [...stats, totals] : stats })
+  },
+)
 
 // Get flight log total times by registration
 router.get('/totals', async (req: Request, res: Response) => {

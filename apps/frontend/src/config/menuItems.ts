@@ -64,6 +64,7 @@ export const menuItems: MenuItem[] = [
   {
     path: '/club',
     label: 'header.club',
+    requiredRoles: [MIKPermissions.MEMBER],
     subItems: [
       {
         path: '',

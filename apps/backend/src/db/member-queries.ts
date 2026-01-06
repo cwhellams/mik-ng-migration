@@ -11,7 +11,6 @@ import {
   MIKPermissions,
   type InvoiceMember,
   type Member,
-  type MemberApproval,
   type MemberList,
   type MemberRole,
   FeeProcessingItemSchema,
@@ -22,7 +21,6 @@ import type { Upsert } from '../types/schema.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import { randomUUID } from 'node:crypto'
 import { RecurringFeeType, SimplbooksEventType } from '../services/simplbooks/models.ts'
-import { z } from 'zod'
 
 export async function getMemberById(memberId: string): Promise<Member | undefined> {
   const member = await db
@@ -399,16 +397,16 @@ export async function setMembershipApproval(
   memberId: string,
   approvedBy: string,
   createSimplbooksAccount: boolean,
-): Promise<MemberApproval> {
-  await db.transaction().execute(async txn => {
+): Promise<Member> {
+  return await db.transaction().execute(async txn => {
     const member = await txn
       .updateTable('member.register')
       .set({
+        can_make_reservations: true,
         membership_approved_at: new Date(),
         membership_approved_by: approvedBy,
       })
       .where('member_id', '=', memberId)
-      .where('is_membership_approved', '=', false)
       .returningAll()
       .executeTakeFirstOrThrow()
 
@@ -422,30 +420,9 @@ export async function setMembershipApproval(
         })
         .execute()
     }
+
+    return toMember(member, [])
   })
-
-  const approval = await db
-    .selectFrom('member.register')
-    .select([
-      'member_id',
-      'membership_approved_at',
-      'membership_approved_by',
-      'email',
-      'first_name',
-      'lang_iso639',
-    ])
-    .where('member_id', '=', memberId)
-    .executeTakeFirstOrThrow()
-
-  const retval: MemberApproval = {
-    memberId: approval.member_id,
-    membershipApprovedAt: approval.membership_approved_at!.toISOString(),
-    membershipApprovedBy: approval.membership_approved_by!,
-    email: approval.email,
-    firstName: approval.first_name,
-    lang: z.nativeEnum(MIKLang).parse(approval.lang_iso639),
-  }
-  return retval
 }
 
 export async function updateMemberRoles(

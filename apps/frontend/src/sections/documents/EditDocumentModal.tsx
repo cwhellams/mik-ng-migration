@@ -16,7 +16,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Document, DocumentUpdate } from '@backend/routes/documents/models'
 import useApi from '../../hooks/useApi'
-import { DocumentCategorySelect } from '../../components/DocumentCategorySelect'
+import { DocumentCategorySelect } from './components/DocumentCategorySelect'
 
 interface EditDocumentModalProps {
   open: boolean

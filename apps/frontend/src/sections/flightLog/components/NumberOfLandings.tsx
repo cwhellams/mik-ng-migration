@@ -21,9 +21,14 @@ export const NumberOfLandings = ({
     <Controller
       name={name}
       control={control}
+      disabled={disabled}
       render={({ field, fieldState: { error } }) => (
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-          <Typography variant='body2' gutterBottom>
+          <Typography
+            variant='body2'
+            color={disabled ? 'text.disabled' : 'text.primary'}
+            gutterBottom
+          >
             {t('flightLog.' + name)}
           </Typography>
 

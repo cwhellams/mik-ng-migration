@@ -13,7 +13,7 @@ import {
   Checkbox,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
-import { Member, MemberApproval, MIKLang } from '@backend/routes/members/models'
+import { Member, MIKLang } from '@backend/routes/members/models'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
@@ -73,7 +73,7 @@ const MemberProfile = () => {
   }
 
   const handleApprove = async () => {
-    const { error } = await mutation.trigger<undefined, MemberApproval>(
+    const { error } = await mutation.trigger<undefined, Member>(
       'POST',
       undefined,
       'approve'

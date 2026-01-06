@@ -350,6 +350,30 @@ export const FlightTimeTotalsSchema = z.object({
 
 export type FlightTimeTotals = z.infer<typeof FlightTimeTotalsSchema>
 
+export const FlightLogStatsSchema = z.object({
+  aircraftRegistration: z.string(),
+  lastFlightId: z.string().nullable(),
+  lastTakeoffTimeUtc: z.string().datetime().nullable(),
+  totalLandings: z.number().int(),
+  totalFlightMins: z.number().int(),
+  landings1month: z.number().int(),
+  landings3month: z.number().int(),
+  landings6month: z.number().int(),
+  landings12month: z.number().int(),
+  time1month: z.number().int(),
+  time3month: z.number().int(),
+  time6month: z.number().int(),
+  time12month: z.number().int(),
+})
+
+export type FlightLogStats = z.infer<typeof FlightLogStatsSchema>
+
+export const FlightLogStatsResponseSchema = z.object({
+  stats: z.array(FlightLogStatsSchema),
+})
+
+export type FlightLogStatsResponse = z.infer<typeof FlightLogStatsResponseSchema>
+
 export const AirfieldListResponseSchema = z.object({
   airfields: z.array(
     z.object({
@@ -371,7 +395,7 @@ export enum InvoicableFlights {
 
 export const InvoicableFlightFiltersSchema = z
   .object({
-    aircraftRegistration: z.string(),
+    aircraftRegistration: z.string().nullable(),
     endDate: z.string().date(),
     flights: z.nativeEnum(InvoicableFlights).optional(),
     page: z.coerce.number().int().optional(),

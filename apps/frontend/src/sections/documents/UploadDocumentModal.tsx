@@ -23,7 +23,7 @@ import { useDropzone } from 'react-dropzone'
 import { Icon } from '@iconify/react'
 import dayjs from 'dayjs'
 import useApi from '../../hooks/useApi'
-import { DocumentCategorySelect } from '../../components/DocumentCategorySelect'
+import { DocumentCategorySelect } from './components/DocumentCategorySelect'
 
 interface UploadDocumentModalProps {
   open: boolean

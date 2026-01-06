@@ -222,17 +222,6 @@ export const MemberProfileSchema = MemberSchema.pick({
 
 export type MemberProfile = z.infer<typeof MemberProfileSchema>
 
-export const MemberApprovalSchema = MemberSchema.pick({
-  memberId: true,
-  membershipApprovedAt: true,
-  membershipApprovedBy: true,
-  email: true,
-  firstName: true,
-  lang: true,
-})
-
-export type MemberApproval = z.infer<typeof MemberApprovalSchema>
-
 export const AnnualMembershipStatsSchema = z.object({
   totalAutoRenewMembers: z.number(),
   totalAutoRenewEquipmentFee: z.number(),
