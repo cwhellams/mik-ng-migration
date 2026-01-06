@@ -104,6 +104,18 @@ services:
       - key: DIGITAL_OCEAN_SPACES_ENDPOINT
         value: ${DIGITAL_OCEAN_SPACES_ENDPOINT}
         type: GENERAL
+      - key: BREVO_API_URL
+        value: ${BREVO_API_URL}
+        type: GENERAL
+      - key: BREVO_API_KEY
+        value: ${BREVO_API_KEY}
+        type: SECRET
+      - key: BREVO_SYNC_WORKER_ENABLED
+        value: ${BREVO_SYNC_WORKER_ENABLED}
+        type: GENERAL
+      - key: BREVO_SYNC_WORKER_RUN_ON_STARTUP
+        value: ${BREVO_SYNC_WORKER_RUN_ON_STARTUP}
+        type: GENERAL
       - key: EQUIPMENT_FEE_DISCOUNT_PER_HOUR
         value: ${EQUIPMENT_FEE_DISCOUNT_PER_HOUR}
         type: GENERAL

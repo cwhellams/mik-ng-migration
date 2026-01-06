@@ -52,6 +52,7 @@ The deployment process now uses GitHub Releases to manage deployments across tes
 **Trigger**: Manual workflow dispatch
 
 **Steps**:
+
 1. Select version bump type (patch/minor/major)
 2. Bumps version in package.json
 3. Creates and pushes git tag to main branch
@@ -59,6 +60,7 @@ The deployment process now uses GitHub Releases to manage deployments across tes
 5. Triggers test deployment automatically
 
 **Usage**:
+
 ```
 Actions → Deploy Main to Test → Run workflow
   └─ Select: patch/minor/major
@@ -69,6 +71,7 @@ Actions → Deploy Main to Test → Run workflow
 **Trigger**: GitHub release published/edited (pre-releases only)
 
 **Steps**:
+
 1. Checks if release is a pre-release (test)
 2. Checks out the release tag
 3. Determines changed components (backend/SQL)
@@ -77,6 +80,7 @@ Actions → Deploy Main to Test → Run workflow
 6. Updates DigitalOcean app
 
 **Notes**:
+
 - Only deploys pre-releases (test releases)
 - Skips production releases automatically
 - Tags Docker images with version number
@@ -86,6 +90,7 @@ Actions → Deploy Main to Test → Run workflow
 **Trigger**: Manual workflow dispatch
 
 **Steps**:
+
 1. Enter test version tag (e.g., v1.2.3)
 2. Validates tag exists and has a test release
 3. Creates production release from test version
@@ -93,23 +98,27 @@ Actions → Deploy Main to Test → Run workflow
 5. Triggers production deployment automatically
 
 **Usage**:
+
 ```
 Actions → Promote Test to Production → Run workflow
   └─ Enter test version: v1.2.3
 ```
 
 **Validations**:
+
 - Tag must exist
 - Tag must have a GitHub release
 - Tag must follow semantic versioning (vX.Y.Z)
 
 ### 4. Production Deployment (`prod-deploy.yml`)
 
-**Trigger**: 
+**Trigger**:
+
 - Automatic: GitHub production release published/edited (non-prerelease)
 - Manual: workflow_dispatch (fallback option)
 
 **Steps**:
+
 1. Checks if release is production (non-prerelease)
 2. Checks out the release tag
 3. Determines changed components
@@ -118,6 +127,7 @@ Actions → Promote Test to Production → Run workflow
 6. Updates production DigitalOcean app
 
 **Manual Override**:
+
 - Still supports manual deployment with version selection
 - Includes version safety checks (prevent older versions)
 - Requires explicit confirmation for downgrade
@@ -125,21 +135,25 @@ Actions → Promote Test to Production → Run workflow
 ## Benefits
 
 ### 1. Clear Audit Trail
+
 - Every deployment is tracked as a GitHub release
 - Release notes document what's being deployed
 - Easy to see what version is in each environment
 
 ### 2. Safe Promotion Path
+
 - Test → Production promotion is explicit
 - Can't accidentally deploy untested code to production
 - Version validation prevents accidental downgrades
 
 ### 3. Easy Rollback
+
 - All versions are tagged and tracked
 - Can promote any previous test version to production
 - Docker images are tagged with versions
 
 ### 4. Better Visibility
+
 - GitHub Releases page shows deployment history
 - Pre-releases (test) vs releases (production) clearly distinguished
 - Release notes carry context from test to production
@@ -190,16 +204,19 @@ Follow semantic versioning (semver):
 ## Safety Features
 
 ### Automatic Version Validation
+
 - Production deployment validates version is not older than latest
 - Requires explicit override to deploy older versions
 - Prevents accidental rollbacks
 
 ### Environment Separation
+
 - Pre-releases (test) and releases (production) are distinct
 - Workflows automatically filter by release type
 - Can't accidentally deploy test release to production
 
 ### Release Validation
+
 - Promotes only existing test releases to production
 - Validates tag exists and has proper format
 - Checks for release existence before promotion
@@ -207,12 +224,14 @@ Follow semantic versioning (semver):
 ## Migration from Old Flow
 
 ### Old Flow (Branch-Based)
+
 ```
 main branch → push to test branch → test deployment
              → manual prod trigger → production deployment
 ```
 
 ### New Flow (Release-Based)
+
 ```
 main branch → create test release → test deployment
              → promote to prod release → production deployment
@@ -235,17 +254,21 @@ main branch → create test release → test deployment
 ## Troubleshooting
 
 ### Issue: Test deployment didn't trigger after creating release
+
 - **Check**: Release must be marked as pre-release
 - **Fix**: Edit release and check "Set as a pre-release"
 
 ### Issue: Production deployment didn't trigger after promotion
+
 - **Check**: Release must NOT be marked as pre-release
 - **Fix**: Should be automatic from promotion workflow
 
 ### Issue: Can't promote test version to production
+
 - **Check**: Test release exists for that version
 - **Fix**: Deploy to test first using "Deploy Main to Test"
 
 ### Issue: Version validation fails in production
+
 - **Check**: Are you trying to deploy an older version?
 - **Fix**: Check "Allow deploying older version" or deploy a newer version

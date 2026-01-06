@@ -130,6 +130,9 @@ jobs:
           SIMPLBOOKS_BASE_URI: ${{ vars.SIMPLBOOKS_BASE_URI }}
           SIMPLBOOKS_COMPANY_ID: ${{ vars.SIMPLBOOKS_COMPANY_ID }}
           DATABASE_URL: postgres://mik_app_test:test_pwd@localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
+          BREVO_API_URL: https://api.brevo.com/v3
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          BREVO_SYNC_WORKER_ENABLED: false
         run: |
           pnpm test
 

@@ -27,6 +27,7 @@ import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoice
 import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
 import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
 import { startOccurrenceNotificationWorker } from './workers/occurrenceNotifyWorker.ts'
+import { startBrevoSyncWorker } from './workers/brevoSyncWorker.ts'
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -98,6 +99,7 @@ const poller = startSimpleBooksOutboxProcessor()
 const invoicePaymentWorker = startSimplbooksInvoicePaymentWorker()
 const overdueInvoiceWorker = startOverdueInvoiceWorker()
 const occurrenceNotificationWorker = startOccurrenceNotificationWorker()
+const brevoSyncWorker = startBrevoSyncWorker()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
@@ -117,6 +119,7 @@ const shutdown = async (): Promise<void> => {
   invoicePaymentWorker?.stop()
   overdueInvoiceWorker?.stop()
   occurrenceNotificationWorker?.stop()
+  brevoSyncWorker?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)

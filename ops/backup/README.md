@@ -19,15 +19,14 @@ Configuration mostly comes from Github secrets and variables
 We have an R2 bucket to store the backups, this is defaulted to delete files older than 90 days, files less than 90 days old cannot be deleted.
 
 # How to Restore a backup
+
 Restoring a backup is quite straightforward - simply perform the same steps to create the backup in reverse i.e.
 
 1. Download backup from Cloudflare
-2. Un-encrypt the backup file - see ``` encrypt_decrypt.sh ```
-    this is a ready made bash script where you simply need to enter the filenames and encryption key (key is held in GH secrets and by key members of MIK Web team)
-3. use ```pg_restore``` CLI tool to restore the backup to a postgres db server - there is a bash script to help with this
+2. Un-encrypt the backup file - see `encrypt_decrypt.sh`
+   this is a ready made bash script where you simply need to enter the filenames and encryption key (key is held in GH secrets and by key members of MIK Web team)
+3. use `pg_restore` CLI tool to restore the backup to a postgres db server - there is a bash script to help with this
 
-    ``` 
-    restore_db_backup.sh
-    ```
-
-
+   ```
+   restore_db_backup.sh
+   ```

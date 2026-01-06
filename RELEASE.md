@@ -106,7 +106,7 @@ The `main` branch (or your primary development branch) should be protected with 
 
 > **Note**: Branch protection rules must be configured by a repository administrator in GitHub Settings → Branches.
 > See [BRANCH_PROTECTION_SETUP.md](./.github/BRANCH_PROTECTION_SETUP.md) for detailed setup instructions.
-> 
+>
 > **Legacy Note**: If you still use a `prod` branch for deployments, apply the same protection rules to it.
 
 ## Environment Configuration

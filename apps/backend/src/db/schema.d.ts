@@ -59,7 +59,14 @@ export type JsonPrimitive = boolean | number | string | null
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive
 
-export type MemberType = 'EXTERNAL' | 'FLYING' | 'HONORARY' | 'JUNIOR' | 'NON-FLYING' | 'REMOVED'
+export type MemberType =
+  | 'EXTERNAL'
+  | 'FLYING'
+  | 'HONORARY'
+  | 'JUNIOR'
+  | 'NON-FLYING'
+  | 'REMOVED'
+  | 'SYSTEM'
 
 export type MikLang = 'en' | 'fi' | 'sv'
 
@@ -379,6 +386,15 @@ export interface MemberAnnualFees {
   year: number
 }
 
+export interface MemberBrevoSyncState {
+  created_at: Generated<Timestamp>
+  error_message: string | null
+  id: Generated<number>
+  last_synced_at: Generated<Timestamp>
+  members_synced: Generated<number>
+  sync_status: Generated<string>
+}
+
 export interface MemberDocuments {
   category: string
   created_at: Generated<Timestamp>
@@ -422,6 +438,9 @@ export interface MemberRegister {
   auto_renew_annual_membership: Generated<boolean | null>
   auto_renew_equipment_fee: Generated<boolean | null>
   billing_id: string | null
+  brevo_contact_id: Int8 | null
+  brevo_sync_status: Generated<string | null>
+  brevo_synced_at: Timestamp | null
   can_make_reservations: Generated<boolean>
   created_at: Generated<Timestamp>
   created_by: string
@@ -542,6 +561,7 @@ export interface DB {
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory
   'member.annual_fees': MemberAnnualFees
+  'member.brevo_sync_state': MemberBrevoSyncState
   'member.documents': MemberDocuments
   'member.member_to_roles': MemberMemberToRoles
   'member.register': MemberRegister
