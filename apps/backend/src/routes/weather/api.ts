@@ -15,10 +15,11 @@ const WEATHER_API_BASE_URL =
   'https://78sy389733.execute-api.eu-west-1.amazonaws.com/dev/0-atis-state'
 const WEATHER_AUDIO_BASE_URL = process.env.WEATHER_AUDIO_BASE_URL ?? 'https://info.efnu.fi/mp3'
 
+router.use(validateUser(MIKPermissions.MEMBER))
 // Get weather data for a specific site (default: efnu)
 router.get(
   '/',
-  validateUser(MIKPermissions.BOOKING_USER),
+
   async (req: Request, res: Response<WeatherResponse>) => {
     try {
       const site = (req.query.site as string) || 'efnu'
@@ -38,13 +39,34 @@ router.get(
         })
       }
 
-      // Strip 'mp3/' prefix from mp3 field in all states
+      // Strip 'mp3/' prefix from mp3 field in all states and normalize visibility
       const modifiedData = {
         ...response.data,
-        states: response.data.states.map(state => ({
-          ...state,
-          mp3: state.mp3.replace(/^mp3\//, ''),
-        })),
+        states: response.data.states.map(state => {
+          const report = state.report
+
+          // Calculate visibility in km if only vis_m is present
+          let vis_km = report.vis_km
+          let vis_km_full = report.vis_km_full
+
+          if (!vis_km && report.vis_m) {
+            vis_km = report.vis_m / 1000
+          }
+
+          if (!vis_km_full && report.vis_m) {
+            vis_km_full = report.vis_m / 1000
+          }
+
+          return {
+            ...state,
+            mp3: state.mp3.replace(/^mp3\//, ''),
+            report: {
+              ...report,
+              vis_km,
+              vis_km_full,
+            },
+          }
+        }),
       }
 
       res.status(200).json(modifiedData)
@@ -99,7 +121,7 @@ router.get(
 // Proxy audio file requests
 router.get(
   '/audio',
-  validateUser(MIKPermissions.BOOKING_USER),
+
   async (req: Request, res: Response) => {
     try {
       // Extract the filename from query parameter

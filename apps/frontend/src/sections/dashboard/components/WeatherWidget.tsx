@@ -18,12 +18,13 @@ import WaterDropIcon from '@mui/icons-material/WaterDrop'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import VolumeUpIcon from '@mui/icons-material/VolumeUp'
+import CloudIcon from '@mui/icons-material/Cloud'
 import useApi from '../../../hooks/useApi'
-import type { WeatherResponse } from '../../../types/weather'
-import { WindRose } from './WindRose'
+import type { WeatherResponse } from '../../../../../backend/src/routes/weather/models'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { useState, useEffect, useRef } from 'react'
+import { WindRose } from './WindRose'
 
 dayjs.extend(utc)
 
@@ -60,6 +61,21 @@ const PHONETIC_ALPHABET: Record<string, string> = {
 
 const getPhoneticWord = (letter: string): string => {
   return PHONETIC_ALPHABET[letter.toUpperCase()] || letter
+}
+
+const CLOUD_COVERAGE: Record<string, string> = {
+  FEW: 'Few',
+  SCT: 'Scattered',
+  BKN: 'Broken',
+  OVC: 'Overcast',
+  CLR: 'Clear',
+  SKC: 'Sky Clear',
+  NSC: 'No Significant Cloud',
+  VV: 'Vertical Visibility',
+}
+
+const formatCloudCoverage = (type: string): string => {
+  return CLOUD_COVERAGE[type.toUpperCase()] || type
 }
 
 export const WeatherWidget = () => {
@@ -266,6 +282,46 @@ export const WeatherWidget = () => {
 
         <Collapse in={expanded} timeout='auto' unmountOnExit>
           <Grid container spacing={2}>
+            {/* Cloud Layers - Top Row spanning full width of left column */}
+            {report.clouds && report.clouds.length > 0 && (
+              <Grid size={{ xs: 12, md: 8 }}>
+                <Box
+                  sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}
+                >
+                  <CloudIcon
+                    sx={{ fontSize: 32, color: 'text.secondary', mt: 0.5 }}
+                  />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant='caption' color='text.secondary'>
+                      Cloud Layers
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 1,
+                        mt: 0.5,
+                      }}
+                    >
+                      {report.clouds.map((cloud, index) => {
+                        const [coverage, heightHundreds, cloudType] = cloud
+                        const heightFeet = heightHundreds * 100
+                        return (
+                          <Chip
+                            key={index}
+                            label={`${formatCloudCoverage(coverage)} ${heightFeet}ft${cloudType ? ` (${cloudType})` : ''}`}
+                            size='small'
+                            variant='outlined'
+                            sx={{ fontWeight: 'medium' }}
+                          />
+                        )
+                      })}
+                    </Box>
+                  </Box>
+                </Box>
+              </Grid>
+            )}
+
             {/* Weather data */}
             <Grid size={{ xs: 12, md: 8 }}>
               <Grid container spacing={2}>
@@ -314,11 +370,42 @@ export const WeatherWidget = () => {
                         Visibility
                       </Typography>
                       <Typography variant='body1' fontWeight='bold'>
-                        {report.vis_km_full} km
+                        {(report.vis_km_full ?? report.vis_km)?.toFixed(1)} km
                       </Typography>
+                      {report.vis_m && (
+                        <Typography variant='caption' color='text.secondary'>
+                          {report.vis_m} m
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
                 </Grid>
+
+                {/* Vertical Visibility */}
+                {report.vvis_ft !== undefined && (
+                  <Grid size={{ xs: 6, sm: 6 }}>
+                    <Box
+                      sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
+                    >
+                      <VisibilityIcon
+                        sx={{ fontSize: 32, color: 'warning.main' }}
+                      />
+                      <Box>
+                        <Typography variant='caption' color='text.secondary'>
+                          Vertical Visibility
+                        </Typography>
+                        <Typography variant='body1' fontWeight='bold'>
+                          {report.vvis_ft} ft
+                        </Typography>
+                        {report.vvis && (
+                          <Typography variant='caption' color='text.secondary'>
+                            {report.vvis.toFixed(1)} m
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  </Grid>
+                )}
 
                 {/* QNH */}
                 <Grid size={{ xs: 6, sm: 6 }}>
