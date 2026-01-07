@@ -112,7 +112,7 @@ jobs:
       - name: Set environment variables
         run: |
           echo "DATABASE_URL=${{ secrets.POSTGRES_DO_TEST_DB_PRIVATE_URL }}" >> "$GITHUB_ENV"
-          echo "DATABASE_CA_CERT=${{ secrets.DATABASE_CA_CERT }}" >> $GITHUB_ENV
+          echo "DATABASE_CA_CERT=${{ secrets.DATABASE_CA_CERT }}" >> "$GITHUB_ENV"
           echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> "$GITHUB_ENV"
           echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> "$GITHUB_ENV"
           echo "MAGIC_LINK_SECRET=${{ secrets.MAGIC_LINK_SECRET }}" >> "$GITHUB_ENV"
