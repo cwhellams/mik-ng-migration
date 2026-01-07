@@ -6,6 +6,7 @@ import { Icon } from '@iconify/react'
 import { useAuth } from '../../hooks/useAuth'
 import { VerifyRequest, VerifyResponse } from '@backend/routes/auth/schema'
 import { useTranslation } from 'react-i18next'
+import { saveToken } from '../../hooks/useApi'
 
 const RegistrationVerify = () => {
   const [searchParams] = useSearchParams()
@@ -24,7 +25,7 @@ const RegistrationVerify = () => {
     if (token) {
       trigger({ token }).then(({ data, error }) => {
         if (data?.accessToken) {
-          localStorage.setItem('accessToken', data.accessToken)
+          saveToken(data.accessToken)
           setIsVerified(true)
         } else {
           console.log(error)

@@ -7,6 +7,7 @@ import { VerifyResponse } from '@backend/routes/auth/schema'
 import useSWRMutation, { SWRMutationConfiguration } from 'swr/mutation'
 import { useThemeMode } from '../theme/ThemeContext'
 import { validateApiPath } from '@backend/util/sanitizers'
+import { dayjs } from '../utils/date'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 const api = axios.create({
@@ -16,8 +17,6 @@ const api = axios.create({
 const tokenRefresh: {
   // refresh is ongoing
   refreshing?: Promise<string>
-  // time when refresh finished and new token in use
-  refreshed?: Date
 } = {}
 
 // Add a request interceptor to add the access token to the authorization header
@@ -45,19 +44,29 @@ api.interceptors.request.use(
 
 const getTheToken = async () => {
   if (tokenRefresh.refreshing) {
-    if (
-      tokenRefresh.refreshed &&
-      new Date().getTime() > tokenRefresh.refreshed.getTime()
-    ) {
-      // refresh is done, remove the ongoing status
-      tokenRefresh.refreshing = undefined
-    } else {
-      // refresh is still ongoing
-      return await tokenRefresh.refreshing
-    }
+    // wait for the ongoing refresh to complete
+    return await tokenRefresh.refreshing
   }
 
   return localStorage.getItem('accessToken')
+}
+
+export const invalidateTokenOlderThan = (date: string) => {
+  const accessToken = localStorage.getItem('accessToken')
+  const refreshed = localStorage.getItem('accessTokenRefreshed')
+  if (!refreshed || accessToken == 'refresh-me') {
+    return
+  }
+
+  if (refreshed && dayjs(refreshed).isBefore(date)) {
+    console.log("Force refreshing the token, it's older than", date)
+    localStorage.setItem('accessToken', 'refresh-me')
+  }
+}
+
+export const saveToken = (token: string) => {
+  localStorage.setItem('accessToken', token)
+  localStorage.setItem('accessTokenRefreshed', new Date().toISOString())
 }
 
 const refreshTheToken = async () => {
@@ -68,14 +77,15 @@ const refreshTheToken = async () => {
       .then((response) => {
         const accessToken = response.data.accessToken
         if (accessToken) {
-          localStorage.setItem('accessToken', accessToken)
-          tokenRefresh.refreshed = new Date()
-          return accessToken
+          saveToken(accessToken)
         } else {
           localStorage.removeItem('accessToken')
-          tokenRefresh.refreshed = new Date()
-          return Promise.reject('No token')
+          localStorage.removeItem('accessTokenRefreshed')
         }
+
+        tokenRefresh.refreshing = undefined
+
+        return accessToken ? accessToken : Promise.reject('No token')
       })
       .catch((err) => {
         // If there is an error refreshing the token, log out the user
@@ -83,6 +93,8 @@ const refreshTheToken = async () => {
         return Promise.reject(err)
       })
   }
+
+  // others wait for the ongoing refresh to complete
   return tokenRefresh.refreshing
 }
 

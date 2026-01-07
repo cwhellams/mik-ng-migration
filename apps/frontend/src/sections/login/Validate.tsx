@@ -5,6 +5,7 @@ import { Box, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '../../hooks/useAuth'
 import { VerifyRequest, VerifyResponse } from '@backend/routes/auth/schema'
 import { validateInternalPath } from '@backend/util/sanitizers'
+import { saveToken } from '../../hooks/useApi'
 
 const LoginValidate = () => {
   const [searchParams] = useSearchParams()
@@ -22,7 +23,8 @@ const LoginValidate = () => {
     if (token) {
       trigger({ token }).then(({ data, error }) => {
         if (data?.accessToken) {
-          localStorage.setItem('accessToken', data.accessToken)
+          saveToken(data.accessToken)
+
           // Validate target to prevent open redirect attacks
           const safePath = validateInternalPath(target)
           navigate(safePath)
