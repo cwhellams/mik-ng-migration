@@ -1,11 +1,25 @@
 import 'dotenv/config'
 import { Kysely, PostgresDialect } from 'kysely'
 import pg from 'pg'
+import { readFileSync } from 'fs'
+import logger from '../lib/logger.ts'
 
 import type { DB } from './schema.d.ts'
 
 //Digital Ocean requires SSL connection to the database with a CA Certificate also used
 const useSSL = process.env.DB_SSL
+
+// Read CA certificate from file or environment variable
+let caCert: string | undefined
+
+if (useSSL) {
+  try {
+    caCert = readFileSync(process.env.DATABASE_CA_CERT_FILE!, 'utf-8')
+  } catch (error) {
+    logger.error('Failed to read CA certificate file:', error)
+    throw error
+  }
+}
 
 // Parse dates as strings - this is necessary because the PostgreSQL driver
 // returns dates as Date objects by default, which can cause issues
@@ -18,7 +32,7 @@ pg.types.setTypeParser(pg.types.builtins.DATE, val => val)
 pg.types.setTypeParser(pg.types.builtins.INT8, val => val)
 
 // Decimals as numbers
-pg.types.setTypeParser(pg.types.builtins.NUMERIC, val => parseFloat(val))
+pg.types.setTypeParser(pg.types.builtins.NUMERIC, val => Number.parseFloat(val))
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -29,7 +43,7 @@ const pool = new pg.Pool({
   ssl: useSSL
     ? {
         rejectUnauthorized: true,
-        ca: process.env.DATABASE_CA_CERT,
+        ca: caCert,
       }
     : undefined, // Fallback if not present
 })

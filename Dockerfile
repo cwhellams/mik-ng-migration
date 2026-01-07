@@ -44,12 +44,18 @@ RUN pnpm install --frozen-lockfile --prod --shamefully-hoist \
 # Copy backend source code (needed for tsx runtime)
 COPY apps/backend/src ./apps/backend/src
 
+# Copy CA certificate
+COPY apps/backend/ca-certificate.crt /home/node/app/ca-certificate.crt
+
 # Switch to non-root user
 USER node
 
 # Expose the port your app runs on
 WORKDIR /home/node/app/apps/backend
 EXPOSE 3000
+
+# Set DATABASE_CA_CERT as environment variable from file
+ENV DATABASE_CA_CERT_FILE=/home/node/app/ca-certificate.crt
 
 # Run TypeScript files with tsx
 CMD ["node", "--import", "tsx", "src/app.ts"]
