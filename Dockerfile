@@ -43,7 +43,6 @@ RUN pnpm install --frozen-lockfile --prod --shamefully-hoist \
 
 # Copy backend source code (needed for tsx runtime)
 COPY apps/backend/src ./apps/backend/src
-COPY apps/backend/ca-certificate.crt ./apps/backend/
 
 # Switch to non-root user
 USER node
