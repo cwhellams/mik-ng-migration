@@ -24,6 +24,12 @@ jobs:
           ref: ${{ github.event.client_payload.tag_name }}
           fetch-depth: 0
 
+      - name: Update prod branch to point to tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git push origin ${{ github.event.client_payload.tag_name }}:refs/heads/prod --force
+
       - name: Check changed paths
         id: paths
         run: |
