@@ -17,10 +17,8 @@
       "username": "admin",
       "password": "password"
     }
-  ]
-  {
+  ],
   "[sql]": {
     "editor.formatOnSave": false
   }
-}
 }

@@ -30,6 +30,7 @@ import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
 import MassBalance from './sections/massBalance/MassBalance'
 import { AccessCodes } from './sections/accessCodes/AccessCodes'
 import Documents from './sections/documents/Documents'
+import { Stats } from './sections/stats/Stats'
 import 'dayjs/locale/en-gb'
 import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
 import ToolsPage from './sections/accounting/ToolsPage'
@@ -103,6 +104,7 @@ function App() {
               <Route path='members/:memberId' element={<Member />} />
               <Route path='billing' element={<Billing />} />
               <Route path='documents' element={<Documents />} />
+              <Route path='stats' element={<Stats />} />
             </Route>
             <Route path='/accounting'>
               <Route index element={<InvoicingAdminDashboard />} />

@@ -19,7 +19,7 @@
 # =============================================================================
 
 # ---- Configurable variables (edit here or set as env vars) ----
-: "${DATABASE_URL:=postgresql://<user>:<password>@127.0.0.1:5432/mik_ng_restored}"                     # Full connection URL (required)
+: "${DATABASE_URL:=postgresql://admin:password@127.0.0.1:5432/mik_ng_restored}"                     # Full connection URL (required)
 : "${BACKUP_FILENAME:=backup-2025-12-27-230024.dump}"                  # Path to the .dump file (custom format)
 
 # ---- Helper: print usage ----

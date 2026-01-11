@@ -19,7 +19,7 @@
 # ---- Configurable variables (you can also set these as environment variables) ----
 : "${BACKUP_FILENAME:=backup-2025-12-27-230024.dump}"                  # Plain file to encrypt / result after decrypt
 : "${ENCRYPTED_FILENAME:=backup-2025-12-27-230024.dump.enc}"                # Encrypted file
-: "${BACKUP_ENCRYPTION_PASSWORD:=<the encryption key here>}"        # Password (keep it strong and secret!)
+: "${BACKUP_ENCRYPTION_PASSWORD:?BACKUP_ENCRYPTION_PASSWORD must be provided via an environment variable or secure secret store}"        # Password (keep it strong and secret!)
 
 # ---- Helper: print usage ----
 usage() {

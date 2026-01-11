@@ -78,6 +78,11 @@ export const menuItems: MenuItem[] = [
         path: 'billing',
         label: 'header.billing',
       },
+      {
+        path: 'stats',
+        label: 'header.stats',
+        requiredRoles: [MIKPermissions.MEMBER],
+      },
     ],
   },
   {

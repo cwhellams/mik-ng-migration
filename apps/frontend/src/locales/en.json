@@ -21,7 +21,8 @@
     "billing": "Billing",
     "accounts": "Accounts",
     "accessCodes": "Codes",
-    "club": "Club"
+    "club": "Club",
+    "stats": "Statistics"
   },
   "languageSelector": {
     "selectLanguage": "Select language"

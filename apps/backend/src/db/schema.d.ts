@@ -543,6 +543,181 @@ export interface StaticAirfields {
   name: string | null
 }
 
+export interface StatsDtoTotalFlightTimeByAc {
+  aircraft_registration: string
+  date: string
+  flight_type: string
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+}
+
+export interface StatsDtoTotalFlightTimeByAcYr {
+  aircraft_registration: string
+  flight_type: string
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+  yr: number
+}
+
+export interface StatsDtoTotalFlightTimeByAcYrMth {
+  aircraft_registration: string
+  flight_type: string
+  mth: number
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+  yr: number
+}
+
+export interface StatsLongestShortestAvgFlightByAcYr {
+  aircraft_registration: string
+  average_flight: number
+  longest_flight: number
+  median_flight: number
+  shortest_flight: number
+  yr: number
+}
+
+export interface StatsMemberCountByType {
+  member_count: number
+  member_type: string
+}
+
+export interface StatsMemberCountByType2 {
+  member_count: Int8 | null
+  member_type: MemberType | null
+}
+
+export interface StatsNonBillableTotalFlightTimeByAc {
+  aircraft_registration: string
+  date: string
+  flight_type: string
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+}
+
+export interface StatsNonBillableTotalFlightTimeByAcYr {
+  aircraft_registration: string
+  flight_type: string
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+  yr: number
+}
+
+export interface StatsNonBillableTotalFlightTimeByAcYrMth {
+  aircraft_registration: string
+  flight_type: string
+  mth: number
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+  yr: number
+}
+
+export interface StatsTotalFlightTimeByAcDt {
+  aircraft_registration: string
+  date: string
+  total_flight_mins: number
+}
+
+export interface StatsTotalFlightTimeByAcFt {
+  aircraft_registration: string
+  date: string
+  flight_type: string
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+}
+
+export interface StatsTotalFlightTimeByAcYr {
+  aircraft_registration: string | null
+  total_flight_mins: Int8 | null
+  yr: Numeric | null
+}
+
+export interface StatsTotalFlightTimeByAcYrFt {
+  aircraft_registration: string
+  flight_type: string
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+  yr: number
+}
+
+export interface StatsTotalFlightTimeByAcYrMthFt {
+  aircraft_registration: string
+  flight_type: string
+  mth: number
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+  yr: number
+}
+
+export interface StatsTotalFlightTimeByPilot {
+  date: string
+  pilot: string
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+}
+
+export interface StatsTotalFlightTimeByPilotYr {
+  pilot: string
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+  yr: number
+}
+
+export interface StatsTotalFlightTimeByPilotYr2 {
+  pilot: string | null
+  total_flight_mins: Numeric | null
+  total_ifr_mins: Numeric | null
+  total_nf_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsTotalFlightTimeByPilotYrMth {
+  mth: number
+  pilot: string
+  total_flight_mins: number
+  total_ifr_mins: number
+  total_nf_mins: number
+  yr: number
+}
+
+export interface StatsTotalFuelUpliftByAcYrMth {
+  aircraft_registration: string
+  mth: number
+  total_fuel_uplift: number
+  yr: number
+}
+
+export interface StatsTotalLandingsByAcYr {
+  aircraft_registration: string
+  total_landings: number
+  yr: number
+}
+
+export interface StatsTotalOilUpliftByAcYrMth {
+  aircraft_registration: string
+  mth: number
+  total_oil_uplift: number
+  yr: number
+}
+
+export interface StatsVisitedAirfieldsByAc {
+  aircraft_registration: string
+  airfield: string
+  total_visits: number
+  yr: number
+}
+
 export interface DB {
   'accts.aircraft_pricing': AcctsAircraftPricing
   'accts.invoice': AcctsInvoice
@@ -570,4 +745,26 @@ export interface DB {
   'schedule.bookings': ScheduleBookings
   secrets: Secrets
   'static.airfields': StaticAirfields
+  'stats.dto_total_flight_time_by_ac': StatsDtoTotalFlightTimeByAc
+  'stats.dto_total_flight_time_by_ac_yr': StatsDtoTotalFlightTimeByAcYr
+  'stats.dto_total_flight_time_by_ac_yr_mth': StatsDtoTotalFlightTimeByAcYrMth
+  'stats.longest_shortest_avg_flight_by_ac_yr': StatsLongestShortestAvgFlightByAcYr
+  'stats.member_count_by_type': StatsMemberCountByType
+  'stats.member_count_by_type2': StatsMemberCountByType2
+  'stats.non_billable_total_flight_time_by_ac': StatsNonBillableTotalFlightTimeByAc
+  'stats.non_billable_total_flight_time_by_ac_yr': StatsNonBillableTotalFlightTimeByAcYr
+  'stats.non_billable_total_flight_time_by_ac_yr_mth': StatsNonBillableTotalFlightTimeByAcYrMth
+  'stats.total_flight_time_by_ac_dt': StatsTotalFlightTimeByAcDt
+  'stats.total_flight_time_by_ac_ft': StatsTotalFlightTimeByAcFt
+  'stats.total_flight_time_by_ac_yr': StatsTotalFlightTimeByAcYr
+  'stats.total_flight_time_by_ac_yr_ft': StatsTotalFlightTimeByAcYrFt
+  'stats.total_flight_time_by_ac_yr_mth_ft': StatsTotalFlightTimeByAcYrMthFt
+  'stats.total_flight_time_by_pilot': StatsTotalFlightTimeByPilot
+  'stats.total_flight_time_by_pilot_yr': StatsTotalFlightTimeByPilotYr
+  'stats.total_flight_time_by_pilot_yr_mth': StatsTotalFlightTimeByPilotYrMth
+  'stats.total_flight_time_by_pilot_yr2': StatsTotalFlightTimeByPilotYr2
+  'stats.total_fuel_uplift_by_ac_yr_mth': StatsTotalFuelUpliftByAcYrMth
+  'stats.total_landings_by_ac_yr': StatsTotalLandingsByAcYr
+  'stats.total_oil_uplift_by_ac_yr_mth': StatsTotalOilUpliftByAcYrMth
+  'stats.visited_airfields_by_ac': StatsVisitedAirfieldsByAc
 }

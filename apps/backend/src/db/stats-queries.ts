@@ -1,0 +1,404 @@
+import { db } from './connection.ts'
+import type { SelectQueryBuilder } from 'kysely'
+import type {
+  TotalFlightTimeByAc,
+  TotalFlightTimeByAcYr,
+  TotalFlightTimeByAcYrFt,
+  TotalFlightTimeByAcYrMth,
+  DtoFlightTimeByAc,
+  DtoFlightTimeByAcYr,
+  DtoFlightTimeByAcYrMth,
+  NonBillableFlightTimeByAc,
+  NonBillableFlightTimeByAcYr,
+  NonBillableFlightTimeByAcYrMth,
+  VisitedAirfieldsByAc,
+  TotalLandingsByAcYr,
+  TotalOilUpliftByAcYrMth,
+  TotalFuelUpliftByAcYrMth,
+  LongestShortestAvgFlightByAcYr,
+  MemberCountByType,
+  TotalFlightTimeByPilot,
+  TotalFlightTimeByPilotYr,
+  TotalFlightTimeByPilotYrMth,
+  TotalFlightTimeByAcCalendar,
+} from '../routes/stats/models.ts'
+
+// Helper function to apply year filters
+const applyYearFilter = <DB, TB extends keyof DB, O>(
+  query: SelectQueryBuilder<DB, TB, O>,
+  filters?: { yr?: number; yr_from?: number; yr_to?: number },
+): SelectQueryBuilder<DB, TB, O> => {
+  if (!filters) return query
+
+  if (filters.yr) {
+    return query.where('yr' as any, '=', filters.yr)
+  }
+
+  if (filters.yr_from) {
+    query = query.where('yr' as any, '>=', filters.yr_from)
+  }
+  if (filters.yr_to) {
+    query = query.where('yr' as any, '<=', filters.yr_to)
+  }
+
+  return query
+}
+
+export const getTotalFlightTimeByAcDt = async (filters?: {
+  aircraft_registration?: string
+  date_from?: string
+  date_to?: string
+}): Promise<TotalFlightTimeByAcCalendar[]> => {
+  let query = db.selectFrom('stats.total_flight_time_by_ac_dt').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+
+  if (filters?.date_from) {
+    query = query.where('date', '>=', filters.date_from)
+  }
+
+  if (filters?.date_to) {
+    query = query.where('date', '<=', filters.date_to)
+  }
+
+  return await query.execute()
+}
+
+// V540: Total Flight Time Queries
+export const getTotalFlightTimeByAc = async (filters?: {
+  aircraft_registration?: string
+  date?: string
+  date_from?: string
+  date_to?: string
+}): Promise<TotalFlightTimeByAc[]> => {
+  let query = db.selectFrom('stats.total_flight_time_by_ac_ft').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  if (filters?.date) {
+    query = query.where('date', '=', filters.date)
+  }
+
+  if (filters?.date_from) {
+    query = query.where('date', '>=', filters.date_from)
+  }
+
+  if (filters?.date_to) {
+    query = query.where('date', '<=', filters.date_to)
+  }
+
+  return await query.execute()
+}
+
+export const getTotalFlightTimeByAcYrFt = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<TotalFlightTimeByAcYrFt[]> => {
+  let query = db.selectFrom('stats.total_flight_time_by_ac_yr_ft').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+
+  return await query.execute()
+}
+
+export const getTotalFlightTimeByAcYr = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<TotalFlightTimeByAcYr[]> => {
+  let query = db
+    .selectFrom('stats.total_flight_time_by_ac_yr')
+    .select(['aircraft_registration', 'total_flight_mins', 'yr'])
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+
+  const results = await query.execute()
+  return results.map(row => ({
+    ...row,
+    total_flight_mins: row.total_flight_mins ? Number(row.total_flight_mins) : null,
+  }))
+}
+
+export const getTotalFlightTimeByAcYrMth = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<TotalFlightTimeByAcYrMth[]> => {
+  let query = db.selectFrom('stats.total_flight_time_by_ac_yr_mth_ft').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+
+  return await query.execute()
+}
+
+// V550: DTO Flight Time Queries
+export const getDtoFlightTimeByAc = async (filters?: {
+  aircraft_registration?: string
+  date?: string
+}): Promise<DtoFlightTimeByAc[]> => {
+  let query = db.selectFrom('stats.dto_total_flight_time_by_ac').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  if (filters?.date) {
+    query = query.where('date', '=', filters.date)
+  }
+
+  return await query.execute()
+}
+
+export const getDtoFlightTimeByAcYr = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<DtoFlightTimeByAcYr[]> => {
+  let query = db.selectFrom('stats.dto_total_flight_time_by_ac_yr').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+
+  return await query.execute()
+}
+
+export const getDtoFlightTimeByAcYrMth = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<DtoFlightTimeByAcYrMth[]> => {
+  let query = db.selectFrom('stats.dto_total_flight_time_by_ac_yr_mth').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+
+  return await query.execute()
+}
+
+// V560: Non-Billable Flight Time Queries
+export const getNonBillableFlightTimeByAc = async (filters?: {
+  aircraft_registration?: string
+  date?: string
+}): Promise<NonBillableFlightTimeByAc[]> => {
+  let query = db.selectFrom('stats.non_billable_total_flight_time_by_ac').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  if (filters?.date) {
+    query = query.where('date', '=', filters.date)
+  }
+
+  return await query.execute()
+}
+
+export const getNonBillableFlightTimeByAcYr = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<NonBillableFlightTimeByAcYr[]> => {
+  let query = db.selectFrom('stats.non_billable_total_flight_time_by_ac_yr').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+
+  return await query.execute()
+}
+
+export const getNonBillableFlightTimeByAcYrMth = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<NonBillableFlightTimeByAcYrMth[]> => {
+  let query = db.selectFrom('stats.non_billable_total_flight_time_by_ac_yr_mth').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+
+  return await query.execute()
+}
+
+// V570: Various Aircraft Stats Queries
+export const getVisitedAirfieldsByAc = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<VisitedAirfieldsByAc[]> => {
+  let query = db.selectFrom('stats.visited_airfields_by_ac').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+
+  return await query.execute()
+}
+
+export const getTotalLandingsByAcYr = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<TotalLandingsByAcYr[]> => {
+  let query = db.selectFrom('stats.total_landings_by_ac_yr').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+
+  return await query.execute()
+}
+
+export const getTotalOilUpliftByAcYrMth = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<TotalOilUpliftByAcYrMth[]> => {
+  let query = db.selectFrom('stats.total_oil_uplift_by_ac_yr_mth').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+
+  return await query.execute()
+}
+
+export const getTotalFuelUpliftByAcYrMth = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<TotalFuelUpliftByAcYrMth[]> => {
+  let query = db.selectFrom('stats.total_fuel_uplift_by_ac_yr_mth').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+
+  return await query.execute()
+}
+
+export const getLongestShortestAvgFlightByAcYr = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<LongestShortestAvgFlightByAcYr[]> => {
+  let query = db.selectFrom('stats.longest_shortest_avg_flight_by_ac_yr').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+
+  return await query.execute()
+}
+
+export const getMemberCountByType = async (): Promise<MemberCountByType[]> => {
+  return await db.selectFrom('stats.member_count_by_type').selectAll().execute()
+}
+
+// V580: Pilot Flight Time Queries
+export const getTotalFlightTimeByPilot = async (filters?: {
+  pilot?: string
+  date?: string
+}): Promise<TotalFlightTimeByPilot[]> => {
+  let query = db.selectFrom('stats.total_flight_time_by_pilot').selectAll()
+
+  if (filters?.pilot) {
+    query = query.where('pilot', '=', filters.pilot)
+  }
+  if (filters?.date) {
+    query = query.where('date', '=', filters.date)
+  }
+
+  return await query.execute()
+}
+
+export const getTotalFlightTimeByPilotYr = async (filters?: {
+  pilot?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<TotalFlightTimeByPilotYr[]> => {
+  let query = db.selectFrom('stats.total_flight_time_by_pilot_yr').selectAll()
+
+  if (filters?.pilot) {
+    query = query.where('pilot', '=', filters.pilot)
+  }
+  query = applyYearFilter(query, filters)
+
+  return await query.execute()
+}
+
+export const getTotalFlightTimeByPilotYrMth = async (filters?: {
+  pilot?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<TotalFlightTimeByPilotYrMth[]> => {
+  let query = db.selectFrom('stats.total_flight_time_by_pilot_yr_mth').selectAll()
+
+  if (filters?.pilot) {
+    query = query.where('pilot', '=', filters.pilot)
+  }
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+
+  return await query.execute()
+}

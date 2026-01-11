@@ -21,7 +21,8 @@
     "billing": "Fakturering",
     "accounts": "Konton",
     "accessCodes": "Åtkomstkoder",
-    "club": "Klubb"
+    "club": "Klubb",
+    "stats": "Statistik"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"

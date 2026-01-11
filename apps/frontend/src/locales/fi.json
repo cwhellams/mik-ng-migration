@@ -21,7 +21,8 @@
     "billing": "Laskutus",
     "accounts": "Tilit",
     "accessCodes": "Koodit",
-    "club": "Kerho"
+    "club": "Kerho",
+    "stats": "Tilastot"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"

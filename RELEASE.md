@@ -25,7 +25,7 @@ We follow [Semantic Versioning 2.0.0](https://semver.org/):
 
 ### Step 1: Update Version
 
-From the repository root, run one of the following commands depending on the type of release:
+From the repository root, create a new branch and then run one of the following commands depending on the type of release:
 
 ```bash
 # For a patch release (bug fixes)
@@ -44,28 +44,24 @@ This will:
 - Create a git commit with the version change
 - Create a git tag with the format `vX.Y.Z`
 
-### Step 2: Push the Tag
+### Step 2: Push the branch with the new tag to Github
 
-Push the tag to GitHub to trigger the deployment:
-
-```bash
-git push origin vX.Y.Z
-```
-
-Or push all tags:
+Push the bracnh to GitHub , pushing to main directly is not allowed. Once the branch is pushed a PR can be used to merge to main
 
 ```bash
-git push --tags
+git push origin <branch-name>
 ```
 
 ### Step 3: Manual Approval
 
-1. The workflow will start automatically when the tag is pushed
+1. Once merged to main a release can be made to the test env.
 2. Navigate to the **Actions** tab in GitHub
-3. Find the "Production Deployment to DO" workflow run
-4. The deployment will pause at the **production** environment
-5. A reviewer with approval rights must review and approve the deployment
-6. Click **Review deployments** → Select **production** → Click **Approve and deploy**
+3. Find the "create-test-release-and-deploy-to-do" workflow and run it
+4. You will be asked to enter the version number you wish to deploy , enter the version you just created e.g. v1.0.22
+5. The deployment will run automatically and deploy the version to DO test
+6. When you are ready to deploy to Prod a similar process is followed
+7. Run the "prod-deploy-to-do" GH action, you will be asked for the version number again, enter the version number e.g. v1.0.22
+8. The deployment should run automatically
 
 ### Step 4: Deployment
 
@@ -93,21 +89,6 @@ Invalid tags will be rejected:
 - `v1.0` (missing patch version)
 - `v1.0.0-beta` (pre-release suffixes not supported)
 - `release-1.0.0` (wrong format)
-
-## Branch Protection
-
-The `main` branch (or your primary development branch) should be protected with the following rules:
-
-1. **Require pull request reviews**: At least 1 approval required
-2. **Require status checks to pass**: All CI checks must pass
-3. **Require branches to be up to date**: Branch must be current before merging
-4. **No direct pushes**: All changes must go through pull requests
-5. **Require linear history**: No merge commits allowed (optional)
-
-> **Note**: Branch protection rules must be configured by a repository administrator in GitHub Settings → Branches.
-> See [BRANCH_PROTECTION_SETUP.md](./.github/BRANCH_PROTECTION_SETUP.md) for detailed setup instructions.
->
-> **Legacy Note**: If you still use a `prod` branch for deployments, apply the same protection rules to it.
 
 ## Environment Configuration
 
