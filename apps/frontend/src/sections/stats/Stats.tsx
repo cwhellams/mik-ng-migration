@@ -12,13 +12,16 @@ import { ResponsiveBar } from '@nivo/bar'
 import { ResponsiveCalendar } from '@nivo/calendar'
 import { ResponsivePie } from '@nivo/pie'
 import useApi from '../../hooks/useApi'
-import type {
+import { useRoles } from '../../hooks/useRoles'
+import { MIKPermissions } from '@backend/routes/members/models'
+import {
   TotalFlightTimeByAcYrFt,
   TotalFlightTimeByPilotYr,
   TotalFlightTimeByAcCalendar,
   TotalFlightTimeByAcYrMth,
   MemberCountByType,
   VisitedAirfieldsByAc,
+  CommercialFlightTimeByAcYrMth,
 } from '@backend/routes/stats/models'
 import { RemoteContent } from '../../components/RemoteContent'
 
@@ -39,6 +42,14 @@ const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
 
 export const Stats = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('aircraft')
+  const { hasAccess: hasAdminAccess } = useRoles()
+
+  // Check if user has admin permissions for commercial data
+  const hasCommercialAccess = hasAdminAccess(
+    MIKPermissions.FLIGHTLOG_ADMIN,
+    MIKPermissions.AIRCRAFT_ADMIN,
+    MIKPermissions.INVOICING_ADMIN
+  )
 
   // Get year range from env var (default 5 years)
   const statsYearRange = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
@@ -165,6 +176,25 @@ export const Stats = () => {
         yr_from: monthlyYrFrom,
         yr_to: monthlyYrTo,
       },
+    },
+    {
+      refreshInterval: 0,
+    }
+  )
+
+  // Fetch commercial flight time data (admin only)
+  const {
+    data: commercialData,
+    error: commercialError,
+    isLoading: commercialLoading,
+  } = useApi<CommercialFlightTimeByAcYrMth[]>(
+    {
+      url: 'v1/stats/commercial/flight-time/aircraft/year/month',
+      params: {
+        yr_from: monthlyYrFrom,
+        yr_to: monthlyYrTo,
+      },
+      skipFetch: !hasCommercialAccess,
     },
     {
       refreshInterval: 0,
@@ -307,6 +337,48 @@ export const Stats = () => {
     return Array.from(types).sort()
   }, [monthlyData])
 
+  // Transform commercial flight time data for bar chart
+  const commercialBarData = useMemo(() => {
+    if (!commercialData) return []
+
+    const now = new Date()
+    const last12Months: string[] = []
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      last12Months.push(
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      )
+    }
+
+    const aircraftMap = new Map<string, any[]>()
+
+    commercialData.forEach((item) => {
+      const monthKey = `${item.yr}-${String(item.mth).padStart(2, '0')}`
+      if (!last12Months.includes(monthKey)) return
+
+      if (!aircraftMap.has(item.aircraft_registration)) {
+        aircraftMap.set(item.aircraft_registration, [])
+      }
+
+      aircraftMap.get(item.aircraft_registration)!.push({
+        month: monthKey,
+        hours: Math.round(item.total_commercial_flight_mins / 60),
+      })
+    })
+
+    // Fill in missing months with zero values
+    const result: Array<{ aircraft: string; data: any[] }> = []
+    aircraftMap.forEach((data, aircraft) => {
+      const filledData = last12Months.map((month) => {
+        const existing = data.find((d) => d.month === month)
+        return existing || { month, hours: 0 }
+      })
+      result.push({ aircraft, data: filledData })
+    })
+
+    return result
+  }, [commercialData])
+
   // Transform visited airfields data for pie chart (separate for OH-STL and OH-IHQ)
   const visitedAirfieldsPieData = useMemo(() => {
     if (!visitedAirfieldsData || visitedAirfieldsData.length === 0) return []
@@ -388,12 +460,7 @@ export const Stats = () => {
         ytd: number
         ytdNf: number
         ytdIfr: number
-        previousYears: Array<{
-          year: number
-          hours: number
-          nf: number
-          ifr: number
-        }>
+        previousYears: Map<number, { hours: number; nf: number; ifr: number }>
       }
     >()
 
@@ -406,7 +473,7 @@ export const Stats = () => {
           ytd: 0,
           ytdNf: 0,
           ytdIfr: 0,
-          previousYears: [],
+          previousYears: new Map(),
         })
       }
 
@@ -416,23 +483,32 @@ export const Stats = () => {
       const ifr = Math.round((item.total_ifr_mins ?? 0) / 60)
 
       if (item.yr === currentYear) {
-        stats.ytd = hours
-        stats.ytdNf = nf
-        stats.ytdIfr = ifr
+        stats.ytd += hours
+        stats.ytdNf += nf
+        stats.ytdIfr += ifr
       } else if (item.yr === currentYear - 1 || item.yr === currentYear - 2) {
-        stats.previousYears.push({ year: item.yr, hours, nf, ifr })
+        const existing = stats.previousYears.get(item.yr) || {
+          hours: 0,
+          nf: 0,
+          ifr: 0,
+        }
+        stats.previousYears.set(item.yr, {
+          hours: existing.hours + hours,
+          nf: existing.nf + nf,
+          ifr: existing.ifr + ifr,
+        })
       }
-    })
-
-    // Sort previous years in descending order
-    aircraftMap.forEach((stats) => {
-      stats.previousYears.sort((a, b) => b.year - a.year)
     })
 
     return Array.from(aircraftMap.entries())
       .map(([aircraft, stats]) => ({
         aircraft,
-        ...stats,
+        ytd: stats.ytd,
+        ytdNf: stats.ytdNf,
+        ytdIfr: stats.ytdIfr,
+        previousYears: Array.from(stats.previousYears.entries())
+          .map(([year, data]) => ({ year, ...data }))
+          .sort((a, b) => b.year - a.year),
       }))
       .sort((a, b) => a.aircraft.localeCompare(b.aircraft))
   }, [aircraftYearlyData])
@@ -682,6 +758,75 @@ export const Stats = () => {
                             ],
                           },
                         ]}
+                      />
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
+        </RemoteContent>
+      )}
+
+      {/* Commercial Flight Time by Aircraft (Admin Only) */}
+      {viewMode === 'aircraft' && hasCommercialAccess && (
+        <RemoteContent
+          isLoading={commercialLoading}
+          error={commercialError}
+        >
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography variant='h6' gutterBottom>
+                Commercial Flight Time by Aircraft (Last 12 Months)
+              </Typography>
+              <Box>
+                {commercialBarData.map((aircraftData) => (
+                  <Box key={aircraftData.aircraft} sx={{ mb: 4 }}>
+                    <Typography
+                      variant='subtitle1'
+                      gutterBottom
+                      fontWeight='bold'
+                    >
+                      {aircraftData.aircraft}
+                    </Typography>
+                    <Box sx={{ height: 300 }}>
+                      <ResponsiveBar
+                        data={aircraftData.data}
+                        keys={['hours']}
+                        indexBy='month'
+                        margin={{ top: 20, right: 30, bottom: 50, left: 60 }}
+                        padding={0.3}
+                        valueScale={{ type: 'linear' }}
+                        colors={{ scheme: 'set2' }}
+                        borderColor={{
+                          from: 'color',
+                          modifiers: [['darker', 1.6]],
+                        }}
+                        axisTop={null}
+                        axisRight={null}
+                        axisBottom={{
+                          tickSize: 5,
+                          tickPadding: 5,
+                          tickRotation: -45,
+                          legend: 'Month',
+                          legendPosition: 'middle',
+                          legendOffset: 40,
+                        }}
+                        axisLeft={{
+                          tickSize: 5,
+                          tickPadding: 5,
+                          tickRotation: 0,
+                          legend: 'Commercial Hours',
+                          legendPosition: 'middle',
+                          legendOffset: -50,
+                        }}
+                        labelSkipWidth={12}
+                        labelSkipHeight={12}
+                        labelTextColor={{
+                          from: 'color',
+                          modifiers: [['darker', 1.6]],
+                        }}
+                        enableLabel={true}
                       />
                     </Box>
                   </Box>

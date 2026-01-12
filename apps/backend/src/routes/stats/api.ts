@@ -21,6 +21,7 @@ import {
   getTotalFlightTimeByPilotYr,
   getTotalFlightTimeByPilotYrMth,
   getTotalFlightTimeByAcDt,
+  getCommercialFlightTimeByAcYrMth,
 } from '../../db/stats-queries.ts'
 import type {
   TotalFlightTimeByAc,
@@ -42,6 +43,7 @@ import type {
   TotalFlightTimeByPilotYr,
   TotalFlightTimeByPilotYrMth,
   TotalFlightTimeByAcCalendar,
+  CommercialFlightTimeByAcYrMth,
 } from './models.ts'
 
 export const router = Router()
@@ -105,35 +107,6 @@ router.get(
     const data = await getDtoFlightTimeByAc({
       aircraft_registration: aircraft_registration as string | undefined,
       date: date as string | undefined,
-    })
-    res.status(200).json(data)
-  },
-)
-
-router.get(
-  '/dto/flight-time/aircraft/year',
-  async (req: Request, res: Response<DtoFlightTimeByAcYr[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to } = req.query
-    const data = await getDtoFlightTimeByAcYr({
-      aircraft_registration: aircraft_registration as string | undefined,
-      yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
-    })
-    res.status(200).json(data)
-  },
-)
-
-router.get(
-  '/dto/flight-time/aircraft/year/month',
-  async (req: Request, res: Response<DtoFlightTimeByAcYrMth[]>) => {
-    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
-    const data = await getDtoFlightTimeByAcYrMth({
-      aircraft_registration: aircraft_registration as string | undefined,
-      yr: yr ? Number(yr) : undefined,
-      yr_from: yr_from ? Number(yr_from) : undefined,
-      yr_to: yr_to ? Number(yr_to) : undefined,
-      mth: mth ? Number(mth) : undefined,
     })
     res.status(200).json(data)
   },
@@ -280,6 +253,57 @@ router.get(
     const { pilot, yr, yr_from, yr_to, mth } = req.query
     const data = await getTotalFlightTimeByPilotYrMth({
       pilot: pilot as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+      mth: mth ? Number(mth) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.use(
+  validateUser(
+    MIKPermissions.FLIGHTLOG_ADMIN,
+    MIKPermissions.AIRCRAFT_ADMIN,
+    MIKPermissions.INVOICING_ADMIN,
+  ),
+)
+router.get(
+  '/dto/flight-time/aircraft/year',
+  async (req: Request, res: Response<DtoFlightTimeByAcYr[]>) => {
+    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const data = await getDtoFlightTimeByAcYr({
+      aircraft_registration: aircraft_registration as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/dto/flight-time/aircraft/year/month',
+  async (req: Request, res: Response<DtoFlightTimeByAcYrMth[]>) => {
+    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const data = await getDtoFlightTimeByAcYrMth({
+      aircraft_registration: aircraft_registration as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+      mth: mth ? Number(mth) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/commercial/flight-time/aircraft/year/month',
+  async (req: Request, res: Response<CommercialFlightTimeByAcYrMth[]>) => {
+    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const data = await getCommercialFlightTimeByAcYrMth({
+      aircraft_registration: aircraft_registration as string | undefined,
       yr: yr ? Number(yr) : undefined,
       yr_from: yr_from ? Number(yr_from) : undefined,
       yr_to: yr_to ? Number(yr_to) : undefined,

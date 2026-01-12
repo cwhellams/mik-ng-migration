@@ -585,11 +585,6 @@ export interface StatsMemberCountByType {
   member_type: string
 }
 
-export interface StatsMemberCountByType2 {
-  member_count: Int8 | null
-  member_type: MemberType | null
-}
-
 export interface StatsNonBillableTotalFlightTimeByAc {
   aircraft_registration: string
   date: string
@@ -615,6 +610,13 @@ export interface StatsNonBillableTotalFlightTimeByAcYrMth {
   total_flight_mins: number
   total_ifr_mins: number
   total_nf_mins: number
+  yr: number
+}
+
+export interface StatsTotalCommercialFlightTimeByAcYrMth {
+  aircraft_registration: string
+  mth: number
+  total_commercial_flight_mins: number
   yr: number
 }
 
@@ -672,14 +674,6 @@ export interface StatsTotalFlightTimeByPilotYr {
   total_ifr_mins: number
   total_nf_mins: number
   yr: number
-}
-
-export interface StatsTotalFlightTimeByPilotYr2 {
-  pilot: string | null
-  total_flight_mins: Numeric | null
-  total_ifr_mins: Numeric | null
-  total_nf_mins: Numeric | null
-  yr: Numeric | null
 }
 
 export interface StatsTotalFlightTimeByPilotYrMth {
@@ -750,10 +744,10 @@ export interface DB {
   'stats.dto_total_flight_time_by_ac_yr_mth': StatsDtoTotalFlightTimeByAcYrMth
   'stats.longest_shortest_avg_flight_by_ac_yr': StatsLongestShortestAvgFlightByAcYr
   'stats.member_count_by_type': StatsMemberCountByType
-  'stats.member_count_by_type2': StatsMemberCountByType2
   'stats.non_billable_total_flight_time_by_ac': StatsNonBillableTotalFlightTimeByAc
   'stats.non_billable_total_flight_time_by_ac_yr': StatsNonBillableTotalFlightTimeByAcYr
   'stats.non_billable_total_flight_time_by_ac_yr_mth': StatsNonBillableTotalFlightTimeByAcYrMth
+  'stats.total_commercial_flight_time_by_ac_yr_mth': StatsTotalCommercialFlightTimeByAcYrMth
   'stats.total_flight_time_by_ac_dt': StatsTotalFlightTimeByAcDt
   'stats.total_flight_time_by_ac_ft': StatsTotalFlightTimeByAcFt
   'stats.total_flight_time_by_ac_yr': StatsTotalFlightTimeByAcYr
@@ -762,7 +756,6 @@ export interface DB {
   'stats.total_flight_time_by_pilot': StatsTotalFlightTimeByPilot
   'stats.total_flight_time_by_pilot_yr': StatsTotalFlightTimeByPilotYr
   'stats.total_flight_time_by_pilot_yr_mth': StatsTotalFlightTimeByPilotYrMth
-  'stats.total_flight_time_by_pilot_yr2': StatsTotalFlightTimeByPilotYr2
   'stats.total_fuel_uplift_by_ac_yr_mth': StatsTotalFuelUpliftByAcYrMth
   'stats.total_landings_by_ac_yr': StatsTotalLandingsByAcYr
   'stats.total_oil_uplift_by_ac_yr_mth': StatsTotalOilUpliftByAcYrMth

@@ -22,6 +22,7 @@ const mockGetTotalFlightTimeByPilot = jest.fn<() => Promise<any>>()
 const mockGetTotalFlightTimeByPilotYr = jest.fn<() => Promise<any>>()
 const mockGetTotalFlightTimeByPilotYrMth = jest.fn<() => Promise<any>>()
 const mockGetTotalFlightTimeByAcDt = jest.fn<() => Promise<any>>()
+const mockGetCommercialFlightTimeByAcYrMth = jest.fn<() => Promise<any>>()
 
 jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getTotalFlightTimeByAc: mockGetTotalFlightTimeByAc,
@@ -43,6 +44,7 @@ jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getTotalFlightTimeByPilotYr: mockGetTotalFlightTimeByPilotYr,
   getTotalFlightTimeByPilotYrMth: mockGetTotalFlightTimeByPilotYrMth,
   getTotalFlightTimeByAcDt: mockGetTotalFlightTimeByAcDt,
+  getCommercialFlightTimeByAcYrMth: mockGetCommercialFlightTimeByAcYrMth,
 }))
 
 jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
@@ -207,7 +209,7 @@ describe('Stats API', () => {
 
   describe('V550: DTO Flight Time Endpoints', () => {
     describe('GET /api/stats/dto/flight-time/aircraft', () => {
-      it('should return DTO flight time with all columns', async () => {
+      it('should return DTO flight time with all columns (accessible to all members)', async () => {
         const mockData = [
           {
             aircraft_registration: 'G-TEST',
@@ -233,8 +235,8 @@ describe('Stats API', () => {
       })
     })
 
-    describe('GET /api/stats/dto/flight-time/aircraft/year', () => {
-      it('should filter by year', async () => {
+    describe('GET /api/stats/dto/flight-time/aircraft/year (restricted)', () => {
+      it('should filter by year (requires admin permissions)', async () => {
         const mockData = [
           {
             aircraft_registration: 'G-TEST',
@@ -261,8 +263,8 @@ describe('Stats API', () => {
       })
     })
 
-    describe('GET /api/stats/dto/flight-time/aircraft/year/month', () => {
-      it('should support all filter combinations', async () => {
+    describe('GET /api/stats/dto/flight-time/aircraft/year/month (restricted)', () => {
+      it('should support all filter combinations (requires admin permissions)', async () => {
         const mockData = [
           {
             aircraft_registration: 'G-ABCD',
@@ -297,16 +299,77 @@ describe('Stats API', () => {
     })
   })
 
+  describe('V555: Commercial Flight Time Endpoints', () => {
+    describe('GET /api/stats/commercial/flight-time/aircraft/year/month (restricted)', () => {
+      it('should return commercial flight time by aircraft, year, and month (requires admin permissions)', async () => {
+        const mockData = [
+          {
+            aircraft_registration: 'G-TEST',
+            yr: 2024,
+            mth: 8,
+            total_flight_mins: 1200,
+          },
+        ]
+        mockGetCommercialFlightTimeByAcYrMth.mockResolvedValue(mockData)
+
+        const response = await request(app)
+          .get('/api/stats/commercial/flight-time/aircraft/year/month')
+          .query({ yr: '2024', mth: '8' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual(mockData)
+        expect(mockGetCommercialFlightTimeByAcYrMth).toHaveBeenCalledWith({
+          aircraft_registration: undefined,
+          yr: 2024,
+          yr_from: undefined,
+          yr_to: undefined,
+          mth: 8,
+        })
+      })
+
+      it('should support aircraft registration filter', async () => {
+        const mockData = [
+          {
+            aircraft_registration: 'G-COMM',
+            flight_type: 'COMMERCIAL',
+            yr: 2024,
+            mth: 9,
+            total_flight_mins: 1500,
+            total_nf_mins: 0,
+            total_ifr_mins: 750,
+          },
+        ]
+        mockGetCommercialFlightTimeByAcYrMth.mockResolvedValue(mockData)
+
+        const response = await request(app)
+          .get('/api/stats/commercial/flight-time/aircraft/year/month')
+          .query({
+            aircraft_registration: 'G-COMM',
+            yr_from: '2024',
+            yr_to: '2024',
+            mth: '9',
+          })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual(mockData)
+        expect(mockGetCommercialFlightTimeByAcYrMth).toHaveBeenCalledWith({
+          aircraft_registration: 'G-COMM',
+          yr: undefined,
+          yr_from: 2024,
+          yr_to: 2024,
+          mth: 9,
+        })
+      })
+    })
+  })
+
   describe('V560: Non-Billable Flight Time Endpoints', () => {
     it('should include flight_type in response', async () => {
       const mockData = [
         {
           aircraft_registration: 'G-TEST',
-          flight_type: 'FERRY',
           yr: 2024,
           total_flight_mins: 2700,
-          total_nf_mins: 0,
-          total_ifr_mins: 0,
         },
       ]
       mockGetNonBillableFlightTimeByAcYr.mockResolvedValue(mockData)

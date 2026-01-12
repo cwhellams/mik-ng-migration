@@ -166,7 +166,11 @@
         "stats.total_flight_time_by_pilot_yr_mth.mth": "number",
         "stats.total_flight_time_by_pilot_yr_mth.total_flight_mins": "number",
         "stats.total_flight_time_by_pilot_yr_mth.total_nf_mins": "number",
-        "stats.total_flight_time_by_pilot_yr_mth.total_ifr_mins": "number"
+        "stats.total_flight_time_by_pilot_yr_mth.total_ifr_mins": "number",
+        "stats.total_commercial_flight_time_by_ac_yr_mth.aircraft_registration": "string",
+        "stats.total_commercial_flight_time_by_ac_yr_mth.yr": "number",
+        "stats.total_commercial_flight_time_by_ac_yr_mth.mth": "number",
+        "stats.total_commercial_flight_time_by_ac_yr_mth.total_commercial_flight_mins": "number"
       }
     }
   },

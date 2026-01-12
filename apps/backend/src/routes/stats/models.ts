@@ -60,6 +60,13 @@ export const DtoFlightTimeByAcYrSchema = z.object({
   total_ifr_mins: z.number(),
 })
 
+export const CommercialFlightTimeByAcYrMthSchema = z.object({
+  aircraft_registration: z.string(),
+  yr: z.number(),
+  mth: z.number(),
+  total_commercial_flight_mins: z.number(),
+})
+
 export const DtoFlightTimeByAcYrMthSchema = z.object({
   aircraft_registration: z.string(),
   flight_type: z.string(),
@@ -188,3 +195,4 @@ export type MemberCountByType = z.infer<typeof MemberCountByTypeSchema>
 export type TotalFlightTimeByPilot = z.infer<typeof TotalFlightTimeByPilotSchema>
 export type TotalFlightTimeByPilotYr = z.infer<typeof TotalFlightTimeByPilotYrSchema>
 export type TotalFlightTimeByPilotYrMth = z.infer<typeof TotalFlightTimeByPilotYrMthSchema>
+export type CommercialFlightTimeByAcYrMth = z.infer<typeof CommercialFlightTimeByAcYrMthSchema>
