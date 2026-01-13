@@ -312,6 +312,11 @@ router.post(
       })
     }
 
+    // remove after migration
+    if (req.headers['x-mik-migration']) {
+      await updateFlightLogStatus(flightId, flight.status, FlightLogStatus.PAID, {}, req.user!)
+    }
+
     const afterUpdate = await getFlightLog(flightId)
 
     res.status(200).json(afterUpdate)

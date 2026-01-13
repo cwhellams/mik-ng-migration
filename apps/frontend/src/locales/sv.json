@@ -125,6 +125,7 @@
       "junior": "Junior",
       "external": "Extern användare",
       "honorary": "Hedersmedlem",
+      "system": "Systemanvändare",
       "removed": "Borttagen"
     },
     "isTrainingProgramPilot": "Utbildningsprogrampilot",
@@ -869,7 +870,10 @@
       "totals": "Totalt",
       "totalLandings": "Totala landningar",
       "totalFlightTime": "Total flygtid"
-    }
+    },
+    "profileUpdateRequired": "Uppdatera din profilinformation",
+    "profileUpdateMessage": "Verifiera och uppdatera din information i MIK-medlemsregistret.",
+    "navigateToProfile": "Gå till profil"
   },
   "occurrences": {
     "title": "Tillbudsrapporter",

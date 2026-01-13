@@ -4,8 +4,9 @@ Setup db to migrate from:
 
 ```
     ./start_mariadb.sh
+    docker cp mik-3.sql mariadb:/tmp/mik-3.sql
     docker exec -it mariadb "/bin/bash"
-    mariadb --user root --password password < /tmp/mik-2.sql
+    mariadb --user root --password password < /tmp/mik-3.sql
 
     Import Jasentiedot.csv into Jasentiedot table.
 ```
@@ -21,6 +22,7 @@ Run migration to empty db locally.
     pnpm dev login login_token_from_login_email
     pnpm dev all
     pnpm dev flights
+    pnpm dev verify
 ```
 
 Run to test env

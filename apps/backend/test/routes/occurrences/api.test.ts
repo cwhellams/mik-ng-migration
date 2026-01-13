@@ -67,12 +67,12 @@ afterEach(async () => {
   // Clean up test data
   await db
     .deleteFrom('flight.occurrence_access')
-    .where('report_id', 'like', 'MIK_%')
+    .where('report_id', 'not like', 'SMS%')
     .where('updated_at', '>', dayjs().subtract(1, 'minute').toDate())
     .execute()
   await db
     .deleteFrom('flight.occurrences')
-    .where('report_id', 'like', 'MIK_%')
+    .where('report_id', 'not like', 'SMS%')
     .where('created_by', '>', dayjs().subtract(1, 'minute').toISOString())
     .execute()
 })

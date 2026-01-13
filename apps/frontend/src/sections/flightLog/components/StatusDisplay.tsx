@@ -97,6 +97,12 @@ export const StatusDisplay = ({
         )}
       </FormField>
 
+      {log.status === FlightLogStatus.PAID && (
+        <FormField label={t('billing.columns.invoiceId')} sx={{ mb: 2 }}>
+          <Link to={`/club/billing`}>{log.invoiceNumber}</Link>
+        </FormField>
+      )}
+
       <FormField label={t('flightLog.logbooks.ajlb')}>
         <Link
           to={`/logs/books/${log.aircraftRegistration}/${log.ajlbSeqNo}?page=${log.ajlbPageNo}#${log.flightId}`}

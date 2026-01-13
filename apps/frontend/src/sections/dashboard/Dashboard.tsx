@@ -12,6 +12,7 @@ import { Title } from '../../components/Title'
 import { t } from 'i18next'
 import { FlightLogUserDashboard } from './components/FlightLogUserDashboard'
 import { PendingReviewBanner } from './components/PendingReviewBanner'
+import { ProfileUpdateRequiredBanner } from './components/ProfileUpdateRequiredBanner'
 
 const Dashboard = () => {
   const { hasAccess, me } = useRoles()
@@ -30,6 +31,8 @@ const Dashboard = () => {
     <Box>
       <Title label={t('header.dashboard')} />
 
+      <ProfileUpdateRequiredBanner />
+
       {isMember && (
         <>
           <ReservationsSuspendedBanner />
@@ -39,10 +42,9 @@ const Dashboard = () => {
           {flyingUser && <EquipmentFeeBanner />}
         </>
       )}
+      {me?.isMembershipApproved === false && <PendingReviewBanner />}
 
       {bookingUser && <WeatherWidget />}
-
-      {me?.isMembershipApproved === false && <PendingReviewBanner />}
 
       {bookingUser && <BookingUserDashboard />}
 

@@ -126,6 +126,7 @@
       "junior": "Nuorisojäsen",
       "external": "Ulkoinen käyttäjä",
       "honorary": "Kunniajäsen",
+      "system": "Järjestelmäkäyttäjä",
       "removed": "Poistettu"
     },
     "membership": "Jäsenyyden lisätiedot",
@@ -868,7 +869,10 @@
       "totals": "Yhteensä",
       "totalLandings": "Laskeutumiset yhteensä",
       "totalFlightTime": "Lentoaika yhteensä"
-    }
+    },
+    "profileUpdateRequired": "Päivitä profiilisi tiedot",
+    "profileUpdateMessage": "Tarkista ja päivitä MIK:n jäsenrekisterin tietosi.",
+    "navigateToProfile": "Siirry profiiliin"
   },
   "occurrences": {
     "title": "Poikkamaraportit",

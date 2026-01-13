@@ -18,6 +18,7 @@ export const migratePlanes = async () => {
     SELECT p.nimi, p.mik_kone
     FROM kirja_koneet p
     WHERE EXISTS (SELECT 1 FROM kirja_kirjat b WHERE b.kone_id = p.kone_id)
+    AND p.nimi != 'OH-KAT'
   `)
 
   for (const plane of planes) {
@@ -25,7 +26,6 @@ export const migratePlanes = async () => {
       'GET',
       `v1/aircrafts`
     )
-
     if (existingPlanes?.aircrafts.some((a) => a.registration == plane.nimi)) {
       continue
     }

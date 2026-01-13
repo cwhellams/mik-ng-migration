@@ -28,6 +28,7 @@ export const migrateBooks = async () => {
       b.* 
       from kirja_kirjat b
       join kirja_koneet p on b.kone_id = p.kone_id
+      AND p.nimi != 'OH-KAT'
       ORDER BY b.kone_id, b.alkutunnit`)
 
   const existingBooks = await request<AjlbFilter, AjlbListResponse>(
@@ -87,7 +88,7 @@ export const migrateBooks = async () => {
         seqNo: book.kirja_id == 24 ? 25 : book.kirja_nro,
         aircraftRegistration: registration,
         startFlightMins,
-        noOfPages: 999,
+        noOfPages: 100,
         rowsPerPage: book.rivimaara,
         startPage: Number(book.avaussivu),
         startDate,

@@ -53,6 +53,7 @@ import { Title } from '../../components/Title'
 const flightTypes: FlightType[] = [
   FlightType.PRIVATE,
   FlightType.SCHOOL,
+  FlightType.CHECKFLIGHT,
   FlightType.FERRY,
   FlightType.TEST_FLIGHT,
 ]

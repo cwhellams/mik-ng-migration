@@ -64,6 +64,8 @@ const skippedInstructors = [
 
 const skipDuplicateFlights = [10860, 21750, 21241, 21242]
 
+const before = '2025-12-31T21:59:00.000Z'
+
 // fix typos in airport codes
 const airportMapping: Record<string, string> = {
   EFEF: 'EFJO',
@@ -150,14 +152,14 @@ const migrateBatch = async (
       join kirja_koneet p on p.kone_id = f.kone_id
       left join kirja_kirjat k on k.kone_id = f.kone_id AND f.deptime >= k.avauspv and  f.deptime <= k.sulkupv
       left join mik_ng u on u.username = f.username
-      WHERE f.deptime >= ? AND f.aktiivinen = 1
+      WHERE f.deptime >= ? AND f.aktiivinen = 1 AND p.nimi != 'OH-KAT'
+      AND f.deptime <= ?
       ORDER BY f.deptime ASC
       LIMIT ?`,
-    [dayjs(start).toDate(), limit]
+    [dayjs(start).toDate(), dayjs(before).toDate(), limit]
   )
 
   const ajlbBlankRowsBefore: Record<string, number> = {}
-
   for (const flight of flights) {
     if (skipDuplicateFlights.includes(flight.lento_id)) {
       console.log(`Skipping ${flight.lento_id}`)
@@ -294,7 +296,7 @@ const migrateFlight = async (
 
     invoiceNumber: flight.simplbooks_id ?? flight.lasku_id?.toString() ?? null,
     nonBillingReason: null,
-    isBillableFlight: flight.kerhon_piikkiin == 1,
+    isBillableFlight: flight.kerhon_piikkiin !== 1,
     incidentOrObservations: null,
     isDtoTrainingFlight: flight.lupakirjaoppilas == 1,
   }
@@ -432,6 +434,12 @@ const getOffBlockTime = (offblock: number, takeoff: number): number => {
     )
     return takeoff - minute
   } else {
+    console.log(
+      `Not blocktime, setting to takeoff - 1 minute ${new Date(offblock * 1000).toISOString()} -> ${new Date(
+        (takeoff - minute) * 1000
+      ).toISOString()}`
+    )
+
     // no blocktime, set to one minute before takeoff (e.g lento 790)
     return offblock - minute
   }
@@ -497,6 +505,12 @@ const getOnBlockTime = (onblock: number, landing: number): number => {
     )
     return landing + minute
   } else {
+    console.log(
+      `No onblock time, setting to landing + 1 minute ${new Date(onblock * 1000).toISOString()} -> ${new Date(
+        (landing + minute) * 1000
+      ).toISOString()}`
+    )
+
     // no blocktime, add one minutes offset to on-block time (e.g lento 371)
     return onblock + minute
   }

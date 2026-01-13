@@ -197,19 +197,17 @@ const migrateMember = async (
   }
   await storeMapping(member, res.memberId)
 
-  const roles = await getRoles(officialData, member.ID, res)
-
-  await request<Partial<Member>>('PATCH', `v1/members/${res.memberId}`, {
-    //billingId: getMeta('wpum_jasennumero'),
-    roles: roles.map((roleId) => ({
-      roleId,
-    })),
-    memberSince: await getMemberSince(member),
-    isTrainingProgramPilot: !!getMeta('wpum_lupakirjaoppilas'),
-  })
-
   if (officialData?.['Odottaa tunnuksia jäsenalueelle'] != 'X') {
     await request<Partial<Member>>('POST', `v1/members/${res.memberId}/approve`)
+
+    const roles = await getRoles(officialData, member.ID, res)
+    await request<Partial<Member>>('PATCH', `v1/members/${res.memberId}`, {
+      roles: roles.map((roleId) => ({
+        roleId,
+      })),
+      memberSince: await getMemberSince(member),
+      isTrainingProgramPilot: !!getMeta('wpum_lupakirjaoppilas'),
+    })
   } else {
     console.log(
       `Non approved member ${member.ID}/${member.user_login} -> ${res.memberId}`
@@ -247,6 +245,8 @@ export const migrateRemovedMember = async (
   }
   await storeMapping(member, res.memberId)
 
+  await request<Partial<Member>>('POST', `v1/members/${res.memberId}/approve`)
+
   await request<Partial<Member>>('PATCH', `v1/members/${res.memberId}`, {
     roles: (await isInstructor(member.ID, res))
       ? [{ roleId: 'INSTRUCTOR' }]
@@ -254,7 +254,6 @@ export const migrateRemovedMember = async (
     memberSince: await getMemberSince(member),
   })
 
-  await request<Partial<Member>>('POST', `v1/members/${res.memberId}/approve`)
   console.log(
     `Created user ${member.ID}/${member.user_login} -> ${res.memberId}`
   )

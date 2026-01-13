@@ -125,6 +125,7 @@
       "junior": "Junior",
       "external": "External user",
       "honorary": "Honorary",
+      "system": "System User",
       "removed": "Removed"
     },
     "isTrainingProgramPilot": "Training Program Pilot",
@@ -869,7 +870,10 @@
       "totals": "Totals",
       "totalLandings": "Total Landings",
       "totalFlightTime": "Total Flight Time"
-    }
+    },
+    "profileUpdateRequired": "Please update your profile information",
+    "profileUpdateMessage": "Verify and update your information in the MIK member registry.",
+    "navigateToProfile": "Go to Profile"
   },
   "occurrences": {
     "title": "Occurrence Reports",

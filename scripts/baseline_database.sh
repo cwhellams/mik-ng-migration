@@ -7,5 +7,6 @@ cd "$(dirname "$0")/../sql" || exit
 ./flyway_schema_clean.sh
 ./flyway_staticdata_clean.sh
 ./flyway_schema_full.sh
-./flyway_staticdata_full.sh
+#tests do not use static data
+#./flyway_staticdata_full.sh
 ./flyway_testdata_full.sh

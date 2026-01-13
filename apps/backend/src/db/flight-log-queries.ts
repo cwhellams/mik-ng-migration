@@ -502,7 +502,10 @@ export async function insertFlightLog(
       priv_or_com_flight: flightTypeToPrivOrCom(flightType),
       total_time_in_service: data.totalTimeInService,
 
-      is_billable_flight: true,
+      // only for the migration
+      invoice_number: 'invoiceNumber' in data ? data.invoiceNumber : undefined,
+      is_billable_flight: 'isBillableFlight' in data ? data.isBillableFlight : true,
+
       ajlb_blank_rows_before: 'ajlbBlankRowsBefore' in data ? data.ajlbBlankRowsBefore : 0,
       ajlb_seq_no:
         'ajlbSeqNo' in data && data.ajlbSeqNo
@@ -535,8 +538,17 @@ export async function deleteFlightLog(flight_id: string): Promise<boolean> {
   return retval.numDeletedRows == 1n
 }
 
-const flightTypeToPrivOrCom = (type: FlightType): PrivOrComFlight =>
-  type == FlightType.SCHOOL || type == FlightType.DTO ? 'C' : 'P'
+const flightTypeToPrivOrCom = (type: FlightType): PrivOrComFlight => {
+  switch (type) {
+    case FlightType.SCHOOL:
+    case FlightType.DTO:
+    case FlightType.CHECKFLIGHT:
+    case FlightType.SAR:
+      return 'C'
+    default:
+      return 'P'
+  }
+}
 
 export const updateFlightLog = async (
   flight_id: string,

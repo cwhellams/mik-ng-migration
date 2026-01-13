@@ -4,6 +4,8 @@ import { migrateBooks } from './books.ts'
 import { migratePlanes } from './planes.ts'
 import { migrateFlights } from './flights.ts'
 import { migrateMembers } from './members.ts'
+import { verifyFlights } from './verify.ts'
+import { migrateBookings } from './bookings.ts'
 
 const main = async () => {
   try {
@@ -21,6 +23,12 @@ const main = async () => {
 
         3. migrate flights from given date and count
         pnpm dev flights <2000-01-01> <count>
+
+        4. verify migrated flights and mark as billed
+        pnpm dev verify <count>
+
+        5. migrate bookings
+        pnpm dev bookings <2000-01-01> <count>
         `)
       return
     }
@@ -47,6 +55,17 @@ const main = async () => {
 
     if (op == 'flights') {
       await migrateFlights(
+        process.argv[3] || '2000-01-01',
+        parseInt(process.argv[4]) || 100000
+      )
+    }
+
+    if (op == 'verify') {
+      await verifyFlights(parseInt(process.argv[3]) || 100000)
+    }
+
+    if (op == 'bookings') {
+      await migrateBookings(
         process.argv[3] || '2000-01-01',
         parseInt(process.argv[4]) || 100000
       )
