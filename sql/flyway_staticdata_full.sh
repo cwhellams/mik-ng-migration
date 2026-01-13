@@ -6,5 +6,5 @@
 assert_executable_is_on_path "flyway"
 
 # Add option -X to flyway to get debug output
-flyway -configFiles=./testdata.conf -locations=filesystem:"./schema/static_data"  migrate
+flyway -configFiles=./staticdata_prod.conf -locations=filesystem:"./schema/static_data"  migrate
 

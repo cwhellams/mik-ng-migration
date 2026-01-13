@@ -5,5 +5,7 @@ cd "$(dirname "$0")/../sql" || exit
 
 # Run the scripts
 ./flyway_schema_clean.sh
+./flyway_staticdata_clean.sh
 ./flyway_schema_full.sh
+./flyway_staticdata_full.sh
 ./flyway_testdata_full.sh

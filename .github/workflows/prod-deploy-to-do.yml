@@ -118,15 +118,15 @@ jobs:
             -e FLYWAY_PLACEHOLDER_REPLACEMENT=true \
             flyway/flyway:latest migrate
 
-      # - name: Run Flyway static data
-      #   run: |
-      #     docker run --network host --rm \
-      #       -v ${{ github.workspace }}/sql/schema/static_data/:/flyway/sql \
-      #       -v ${{ github.workspace }}/sql/staticdata_prod.conf:/flyway/conf/flyway.conf \
-      #       -e FLYWAY_USER=${{ vars.DO_POSTGRES_ADMIN_USER }} \
-      #       -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD }} \
-      #       -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_URL_PROD}} \
-      #       flyway/flyway:latest migrate
+      - name: Run Flyway static data
+        run: |
+          docker run --network host --rm \
+            -v ${{ github.workspace }}/sql/schema/static_data/:/flyway/sql \
+            -v ${{ github.workspace }}/sql/staticdata_prod.conf:/flyway/conf/flyway.conf \
+            -e FLYWAY_USER=${{ vars.DO_POSTGRES_ADMIN_USER }} \
+            -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD }} \
+            -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_URL_PROD}} \
+            flyway/flyway:latest migrate
 
       - name: Remove runner IP from database firewall
         if: always()

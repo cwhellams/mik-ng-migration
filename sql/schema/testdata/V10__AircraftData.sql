@@ -60,4 +60,4 @@ VALUES (
     'k1mnimda',
     'k1mnimda',
     'https://cdn.jetphotos.com/full/6/927368_1715977239.jpg'
-);
+) ON CONFLICT (registration) DO NOTHING;
