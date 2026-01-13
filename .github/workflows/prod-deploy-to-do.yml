@@ -33,7 +33,6 @@ jobs:
       - name: Check changed paths
         id: paths
         run: |
-          backend_changed=false
           sql_changed=false
 
           # For manual deployment, check what changed in this tag compared to previous tag
@@ -41,7 +40,6 @@ jobs:
 
           if [ -z "$PREVIOUS_TAG" ]; then
             echo "No previous tag found - deploying all components"
-            backend_changed=true
             sql_changed=true
           else
             echo "Comparing $PREVIOUS_TAG to ${{ github.event.client_payload.tag_name }}"
@@ -49,16 +47,12 @@ jobs:
             echo "CHANGED=$CHANGED"
 
             while IFS= read -r path; do
-              if [[ "$path" =~ ^apps/backend/ ]] || [[ "$path" == "Dockerfile" ]]; then
-                backend_changed=true
-              fi
               if [[ "$path" =~ ^sql/schema/ ]]; then
                 sql_changed=true
               fi
             done <<< "$CHANGED"
           fi
 
-          echo "backend_changed=$backend_changed" >> $GITHUB_ENV
           echo "sql_changed=$sql_changed" >> $GITHUB_ENV
 
       - name: Set repo name lowercase
@@ -109,15 +103,20 @@ jobs:
           echo "WEATHER_API_BASE_URL=${{ vars.WEATHER_API_BASE_URL }}" >> $GITHUB_ENV
           echo "WEATHER_AUDIO_BASE_URL=${{ vars.WEATHER_AUDIO_BASE }}" >> $GITHUB_ENV
 
-      - name: Build and push Docker image
-        if: env.backend_changed == 'true'
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          tags: |
-            registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
-            registry.digitalocean.com/mik-ng2/$$ {{ env.REPO_NAME }}: $${{ github.event.client_payload.tag_name || 'latest' }}
+      - name: Verify Docker image exists in registry
+        run: |
+          IMAGE_TAG="${{ github.event.client_payload.tag_name || 'latest' }}"
+          IMAGE_PATH="registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${IMAGE_TAG}"
+
+          echo "Checking for Docker image: ${IMAGE_PATH}"
+
+          if docker manifest inspect "${IMAGE_PATH}" > /dev/null 2>&1; then
+            echo "✓ Docker image found in registry: ${IMAGE_PATH}"
+          else
+            echo "✗ ERROR: Docker image not found in registry: ${IMAGE_PATH}"
+            echo "Please ensure the image is built and pushed before deploying."
+            exit 1
+          fi
 
       - name: Get runner public IP
         if: env.sql_changed == 'true'
@@ -171,6 +170,7 @@ jobs:
       - name: Replace placeholders in mik-intranet.yaml
         run: |
           export DOMAIN=$(echo "${{ vars.PUBLIC_URL_PROD }}" | sed 's|https\?://||')
+          export IMAGE_TAG="${{ github.event.client_payload.tag_name }}"
           envsubst < .do/mik-intranet-prod.yaml > .do/mik-intranet-prod.yaml.temp && mv .do/mik-intranet-prod.yaml.temp .do/mik-intranet-prod.yaml
 
       - name: Update app on DigitalOcean
