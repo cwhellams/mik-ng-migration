@@ -13,6 +13,7 @@ import { ResponsiveCalendar } from '@nivo/calendar'
 import { ResponsivePie } from '@nivo/pie'
 import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
+import { useThemeMode } from '../../theme/ThemeContext'
 import { MIKPermissions } from '@backend/routes/members/models'
 import {
   TotalFlightTimeByAcYrFt,
@@ -43,9 +44,10 @@ const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
 export const Stats = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('aircraft')
   const { hasAccess: hasAdminAccess } = useRoles()
+  const { sudo } = useThemeMode()
 
-  // Check if user has admin permissions for commercial data
-  const hasCommercialAccess = hasAdminAccess(
+  // Check if user has admin permissions for commercial data AND is in admin view mode
+  const hasCommercialAccess = sudo && hasAdminAccess(
     MIKPermissions.FLIGHTLOG_ADMIN,
     MIKPermissions.AIRCRAFT_ADMIN,
     MIKPermissions.INVOICING_ADMIN
