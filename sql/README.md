@@ -68,3 +68,7 @@ Put all schema change scripts into `./sql/schema/migration`
 ## Test data changes
 
 Put all test data scripts into `./sql/testdata`
+
+## Static Data
+
+All static data should go into `./sql/static_data`
