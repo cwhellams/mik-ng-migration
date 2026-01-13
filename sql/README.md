@@ -72,4 +72,3 @@ Put all test data scripts into `./sql/testdata`
 ## Static Data
 
 All static data should go into `./sql/static_data`
-

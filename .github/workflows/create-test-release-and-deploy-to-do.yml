@@ -162,6 +162,23 @@ jobs:
             registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
             registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ inputs.version_tag }}
 
+      - name: Tag existing image with new version
+        if: env.backend_changed == 'false'
+        run: |
+          echo "Backend unchanged - tagging existing 'latest' image with version ${{ inputs.version_tag }}"
+
+          # Pull the latest image
+          docker pull registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
+
+          # Tag it with the new version
+          docker tag registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest \
+                     registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ inputs.version_tag }}
+
+          # Push the newly tagged image
+          docker push registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ inputs.version_tag }}
+
+          echo "✓ Tagged and pushed: registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ inputs.version_tag }}"
+
       - name: Get runner public IP
         if: env.sql_changed == 'true'
         run: |

@@ -30,31 +30,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git push origin ${{ github.event.client_payload.tag_name }}:refs/heads/prod --force
 
-      - name: Check changed paths
-        id: paths
-        run: |
-          sql_changed=false
-
-          # For manual deployment, check what changed in this tag compared to previous tag
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ github.event.client_payload.tag_name }}^ 2>/dev/null || echo "")
-
-          if [ -z "$PREVIOUS_TAG" ]; then
-            echo "No previous tag found - deploying all components"
-            sql_changed=true
-          else
-            echo "Comparing $PREVIOUS_TAG to ${{ github.event.client_payload.tag_name }}"
-            CHANGED=$(git diff --name-only $PREVIOUS_TAG ${{ github.event.client_payload.tag_name }})
-            echo "CHANGED=$CHANGED"
-
-            while IFS= read -r path; do
-              if [[ "$path" =~ ^sql/schema/ ]]; then
-                sql_changed=true
-              fi
-            done <<< "$CHANGED"
-          fi
-
-          echo "sql_changed=$sql_changed" >> $GITHUB_ENV
-
       - name: Set repo name lowercase
         run: echo "REPO_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
 
@@ -119,14 +94,12 @@ jobs:
           fi
 
       - name: Get runner public IP
-        if: env.sql_changed == 'true'
         run: |
           RUNNER_IP=$(curl -s https://api.ipify.org)
           echo "RUNNER_IP=$RUNNER_IP" >> $GITHUB_ENV
           echo "Runner IP: $RUNNER_IP"
 
       - name: Add runner IP to database firewall
-        if: env.sql_changed == 'true'
         run: |
           doctl databases firewalls append ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --rule ip_addr:${{ env.RUNNER_IP }}
           # Get the UUID of the rule we just added
@@ -135,7 +108,6 @@ jobs:
           echo "Firewall rule UUID: $RULE_UUID"
 
       - name: Run Flyway migrations
-        if: env.sql_changed == 'true'
         run: |
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/migration:/flyway/sql \
@@ -147,7 +119,6 @@ jobs:
             flyway/flyway:latest migrate
 
       - name: Run Flyway static data
-        if: env.sql_changed == 'true'
         run: |
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/static_data/:/flyway/sql \
@@ -158,7 +129,7 @@ jobs:
             flyway/flyway:latest migrate
 
       - name: Remove runner IP from database firewall
-        if: always() && env.sql_changed == 'true'
+        if: always()
         run: |
           if [ -n "${{ env.FIREWALL_RULE_UUID }}" ]; then
             doctl databases firewalls remove ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --uuid ${{ env.FIREWALL_RULE_UUID }}

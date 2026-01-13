@@ -770,10 +770,7 @@ export const Stats = () => {
 
       {/* Commercial Flight Time by Aircraft (Admin Only) */}
       {viewMode === 'aircraft' && hasCommercialAccess && (
-        <RemoteContent
-          isLoading={commercialLoading}
-          error={commercialError}
-        >
+        <RemoteContent isLoading={commercialLoading} error={commercialError}>
           <Card sx={{ mb: 3 }}>
             <CardContent>
               <Typography variant='h6' gutterBottom>
