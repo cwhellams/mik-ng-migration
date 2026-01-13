@@ -273,27 +273,20 @@
     "maintenance": {
       "edit": "Redigera underhållsdetaljer",
       "nextCycle": "Underhåll utfört",
-
       "maintenanceCycle": "Underhållscykel",
-
       "lastMaintenance": "Senaste underhåll",
-
       "date": "Datum",
       "type": "Typ av underhåll",
       "tach": "Vid tachtimmar",
-
       "nextMaintenance": "Nästa underhåll",
-
       "totalPercentageHours": "Totala procenttimmar",
       "usablePercentageHours": "Användbara procenttimmar"
     },
     "notes": {
       "new": "Lägg till ny anteckning",
       "delete": "Ta bort anteckning",
-
       "title": "Anteckningar",
       "text": "Text",
-
       "severity": "Allvarlighetsgrad",
       "off": "Stäng av",
       "note": "Anteckning",
@@ -500,7 +493,6 @@
     "landings": "Landningar",
     "flightType": "Typ",
     "billed": "Fakturerad",
-
     "times": "Flygtider",
     "flightDate": "Flygdatum",
     "timeZone": "Tidszon",
@@ -512,12 +504,10 @@
     "currentTime": "Aktuell tid",
     "timeInputFormat": "Ange tider i 24-timmarsformat (TTMM)",
     "local": "Lokal",
-
     "offBlockTime": "Från block",
     "takeoffTime": "Start",
     "landingTime": "Landning",
     "onBlockTime": "Till block",
-
     "self": "Själv",
     "crew": "Flygbesättning",
     "crews": {
@@ -535,7 +525,6 @@
     "arrivalAirport": "Ankomstflygplats",
     "personsOnBoard": "Personer ombord",
     "numberOfLandings": "Antal landningar",
-
     "nightInstrumentFlying": "Natt- och instrumentflyg",
     "nightFlyingMins": "Natttimmar (TT:MM)",
     "numberOfNightLandings": "Antal nattlandningar",
@@ -697,16 +686,16 @@
     "nextStepsDescription": "Här är vad som händer härnäst när du blir fullständig medlem i vår flygklubb:",
     "onboardingSteps": {
       "step1": {
-        "title": "Samtal från medlemssekreterare",
-        "description": "Vår medlemssekreterare kommer att kontakta dig för att diskutera din ansökan och svara på frågor."
+        "title": "Medlemssekreteraren kommer att behandla ansökan",
+        "description": "Vår medlemssekreterare kommer att kontakta dig om det finns några frågor."
       },
       "step2": {
-        "title": "Betalning av anslutningsavgifter",
-        "description": "Slutför ditt medlemskap genom att betala de erforderliga anslutningsavgifterna."
+        "title": "Betalning av medlems- och anmälningsavgifter",
+        "description": "Slutför ditt medlemskap genom att betala de obligatoriska avgifterna. Du kommer att få en faktura till vår e-postadress"
       },
       "step3": {
         "title": "Verifiering av dokument och licens",
-        "description": "Skicka in och verifiera din flyglicens och annan erforderlig dokumentation."
+        "description": "Skicka in och verifiera ditt flygcertifikat om tillämpligt och annan nödvändig dokumentation."
       },
       "step4": {
         "title": "Valfri registrering som studentpilot",
@@ -714,11 +703,11 @@
       },
       "step5": {
         "title": "Introduktion till klubblokalen i Malmi",
-        "description": "Besök våra klubbanläggningar på Malmi flygfält och orientera dig."
+        "description": "Besök våra klubbanläggningar på Malmi flygfält och träffa andra medlemmar."
       },
       "step6": {
-        "title": "Få nycklar till klubben",
-        "description": "Ta emot dina klubbåtkomstnycklar och lär dig om klubbprocedurer."
+        "title": "Hämta nycklar till klubben",
+        "description": "Få dina klubbens åtkomstnycklar och lär dig om klubbens rutiner."
       },
       "step7": {
         "title": "Kontrollflygning med instruktör",
@@ -856,7 +845,7 @@
     "requestInvoice": "Begär faktura",
     "requestingInvoice": "Begär...",
     "viewInvoices": "Visa fakturor",
-    "overdueInvoicesWarning": "Du har {{count}} förfallna faktura(or) på totalt {{currency}} {{amount}}. Vänligen betala omedelbart för att undvika att din rätt att boka flygplan upphävs.",
+    "overdueInvoicesWarning": "Du har {{count}} förfallna faktura(or) på totalt {{currency}} {{amount}}. Vänligen betala omedelbart för att undvika att din rätt att boka flygplan upphävs. Om du betalade räkningen nyligen kan du ignorera detta",
     "reservationsSuspendedTitle": "Flygplansreservationer har upphävts",
     "reservationsSuspendedMessage": "Din möjlighet att göra flygplansreservationer har upphävts på grund av obetalda flygfakturor. Vänligen betala alla förfallna flygfakturor omedelbart för att återställa dina reservationsrättigheter.",
     "confirmEquipmentFee": {
@@ -873,7 +862,7 @@
     "pendingMemberApprovals": "Väntande medlemsgodkännanden",
     "noMembersAwaitingApproval": "Inga medlemmar väntar på godkännande.",
     "flightLog": {
-      "recentFlights": "Senaste flyg och behörigheter",
+      "recentFlights": "Senaste flyg",
       "plane": "Flygplan",
       "lastFlight": "Senaste flyg",
       "currency": "Landningar och flygtid",

@@ -273,27 +273,20 @@
     "maintenance": {
       "edit": "Edit Maintenance Details",
       "nextCycle": "Maintenance Performed",
-
       "maintenanceCycle": "Maintenance Cycle",
-
       "lastMaintenance": "Last Maintenance",
-
       "date": "Date",
       "type": "Type of Maintenance",
       "tach": "At Tach Hours",
-
       "nextMaintenance": "Next Maintenance",
-
       "totalPercentageHours": "Total Percentage Hours",
       "usablePercentageHours": "Usable Percentage Hours"
     },
     "notes": {
       "new": "Add New Note",
       "delete": "Remove Note",
-
       "title": "Notes",
       "text": "Text",
-
       "severity": "Severity",
       "off": "Turn Off",
       "note": "Note",
@@ -500,7 +493,6 @@
     "landings": "Landings",
     "flightType": "Type",
     "billed": "Billed",
-
     "times": "Flight Times",
     "flightDate": "Flight Date",
     "timeZone": "Time Zone",
@@ -512,12 +504,10 @@
     "currentTime": "Current time",
     "timeInputFormat": "Enter times in 24-hour format (HHMM)",
     "local": "Local",
-
     "offBlockTime": "Off Block",
     "takeoffTime": "Takeoff",
     "landingTime": "Landing",
     "onBlockTime": "On Block",
-
     "self": "Self",
     "crew": "Flight Crew",
     "crews": {
@@ -535,7 +525,6 @@
     "arrivalAirport": "Arrival Airport",
     "personsOnBoard": "Persons on Board",
     "numberOfLandings": "Number of Landings",
-
     "nightInstrumentFlying": "Night and Instrument Flying",
     "nightFlyingMins": "Night Hours (HH:MM)",
     "numberOfNightLandings": "Number of Night Landings",
@@ -697,16 +686,16 @@
     "nextStepsDescription": "Here's what happens next as you become a full member of our flying club:",
     "onboardingSteps": {
       "step1": {
-        "title": "Call from member secretary",
-        "description": "Our member secretary will contact you to discuss your application and answer any questions."
+        "title": "Member secretary will process application",
+        "description": "Our member secretary will contact you if there are any questions."
       },
       "step2": {
-        "title": "Payment of joining fees",
-        "description": "Complete your membership by paying the required joining fees."
+        "title": "Payment of member and joining fees",
+        "description": "Complete your membership by paying the required fees. You will receive invoice to our email"
       },
       "step3": {
         "title": "Verification of documents and licence",
-        "description": "Submit and verify your flying licence and other required documentation."
+        "description": "Submit and verify your flying licence if applicable and other required documentation."
       },
       "step4": {
         "title": "Optional registration as a student pilot",
@@ -714,7 +703,7 @@
       },
       "step5": {
         "title": "Introduction to club room at Malmi",
-        "description": "Visit our club facilities at Malmi airfield and get oriented."
+        "description": "Visit our club facilities at Malmi airfield and meet other members."
       },
       "step6": {
         "title": "Getting keys to the club",
@@ -856,7 +845,7 @@
     "requestInvoice": "Request Invoice",
     "requestingInvoice": "Requesting...",
     "viewInvoices": "View Invoices",
-    "overdueInvoicesWarning": "You have {{count}} overdue invoice(s) totaling {{currency}} {{amount}}. Please pay immediately to avoid suspension of aircraft reservation privileges.",
+    "overdueInvoicesWarning": "You have {{count}} overdue invoice(s) totaling {{currency}} {{amount}}. Please pay immediately to avoid suspension of aircraft reservation privileges. If you paid the bill recently, you can ignore this",
     "reservationsSuspendedTitle": "Aircraft Reservations Suspended",
     "reservationsSuspendedMessage": "Your ability to make aircraft reservations has been suspended due to unpaid flight invoices. Please pay all overdue flight invoices immediately to restore your reservation privileges.",
     "confirmEquipmentFee": {
@@ -873,7 +862,7 @@
     "pendingMemberApprovals": "Pending Member Approvals",
     "noMembersAwaitingApproval": "No members awaiting approval.",
     "flightLog": {
-      "recentFlights": "Recent Flights and Currency",
+      "recentFlights": "Recent Flights",
       "plane": "Plane",
       "lastFlight": "Last Flight",
       "currency": "Landings and flight time",

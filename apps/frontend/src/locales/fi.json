@@ -1,6 +1,6 @@
 {
   "header": {
-    "dashboard": "Kojelauta",
+    "dashboard": "Tietopaneeli",
     "schedule": "Aikataulu",
     "fly": "Lennä",
     "aircrafts": "Lentokoneet",
@@ -10,8 +10,8 @@
     "logout": "Kirjaudu ulos",
     "profile": "Omat tiedot",
     "language": "Kieli",
-    "toggleTheme": "Vaihda palettia",
-    "toggleSudo": "Vaihda admin moodia",
+    "toggleTheme": "Vaihda ulkoasua",
+    "toggleSudo": "Vaihda ylläpitotilaa",
     "logs": "Lokit",
     "flightLogs": "Lennot",
     "logbooks": "Kirjat",
@@ -20,7 +20,7 @@
     "roles": "Käyttäjäroolit",
     "billing": "Laskutus",
     "accounts": "Tilit",
-    "accessCodes": "Koodit",
+    "accessCodes": "pääsykoodit",
     "club": "Kerho",
     "stats": "Tilastot"
   },
@@ -37,7 +37,7 @@
     "title": "Kirjaudu sisään sähköpostilinkillä",
     "validEmailRequired": "Anna kelvollinen sähköpostiosoite",
     "submitButton": "Kirjaudu sähköpostilla",
-    "withoutAccount": "Tili puuttuu?",
+    "withoutAccount": "Ei tunnuksia?",
     "join": "Liity jäseneksi",
     "checkYouEmail": "Tarkista sähköpostisi",
     "linkSentTo": "Kirjautumislinkki on lähetetty osoitteeseen {{email}}",
@@ -90,15 +90,15 @@
     },
     "dateOfBirth": "Syntymäpäivä",
     "licenceInfo": {
-      "licenceInfo": "Licence Information",
-      "licenceId": "Licence ID",
-      "licenceExpiry": "Licence Expiry",
-      "medicalExpiry": "Medical Expiry"
+      "licenceInfo": "Lupakirjatiedot",
+      "licenceId": "Lupakirjanumero",
+      "licenceExpiry": "Lupakirjan vanhenemispäivä",
+      "medicalExpiry": "Lääketieteellisen kelpoisuustodistuksen vanhenemispäivä"
     },
     "roles": "Roolit",
     "trainingProgram": "Koulutusohjelma",
     "noRolesAssigned": "Ei rooleja",
-    "noMembersFound": "Ei jäseniä löytynyt",
+    "noMembersFound": "jäseniä ei löytynyt",
     "avatar": "Profiilikuva",
     "edit": {
       "register": "Lisää uusi käyttäjä",
@@ -171,7 +171,6 @@
       "download": "Lataa",
       "actions": "Toiminnot",
       "edit": "Muokkaa",
-
       "upload": {
         "title": "Lataa lentokoneen dokumentteja",
         "addNew": "Lisää uusi dokumentti",
@@ -186,7 +185,7 @@
         "progress": "Latauksen edistyminen",
         "status": {
           "pending": "Odottaa",
-          "uploading": "Lataa {{progress}}%",
+          "uploading": "Ladataan {{progress}}%",
           "completed": "Valmis",
           "error": "Virhe",
           "missing": "Puuttuu"
@@ -273,27 +272,20 @@
     "maintenance": {
       "edit": "Muokkaa huoltotietoja",
       "nextCycle": "Huolto suoritettu",
-
       "maintenanceCycle": "Huoltosykli",
-
       "lastMaintenance": "Viimeinen huolto",
-
       "date": "Päivä",
       "type": "Huollon tyyppi",
       "tach": "Tunnit",
-
       "nextMaintenance": "Seuraava huolto",
-
       "totalPercentageHours": "Sallitut %-tunnit",
       "usablePercentageHours": "Käyttökelpoiset %-tunnit"
     },
     "notes": {
       "new": "Lisää uusi huomio tai varoitus",
       "delete": "Poista huomio tai varoitus",
-
       "title": "Huomiot",
       "text": "Teksti",
-
       "severity": "Vakavuus",
       "off": "Piilotettu",
       "note": "Huomio",
@@ -500,7 +492,6 @@
     "landings": "Laskuja",
     "flightType": "Tyyppi",
     "billed": "Laskutettu",
-
     "times": "Lentoajat",
     "flightDate": "Lentopäivä",
     "timeZone": "Aikavyöhyke",
@@ -512,12 +503,10 @@
     "currentTime": "Nykyinen aika",
     "timeInputFormat": "Syötä ajat 24-tunnin muodossa (HHMM)",
     "local": "Paikallinen",
-
     "offBlockTime": "Lähtöaika",
     "takeoffTime": "Nousuaika",
     "landingTime": "Laskuaika",
     "onBlockTime": "Saapumisaika",
-
     "self": "Self",
     "crew": "Miehistö",
     "crews": {
@@ -535,7 +524,6 @@
     "arrivalAirport": "Saapumiskenttä",
     "personsOnBoard": "Henkilöitä kyydissä",
     "numberOfLandings": "Laskujen määrä",
-
     "nightInstrumentFlying": "Yö- ja mittarilento",
     "nightFlyingMins": "Yölentotunnit (HH:MM)",
     "numberOfNightLandings": "Laskujen määrä yöllä",
@@ -591,19 +579,19 @@
       "validate": "Vahvista"
     },
     "logbooks": {
-      "title": "Lokikirjat",
+      "title": "Matkapäiväkirjat",
       "book": "Kirja",
-      "ajlb": "Lentokoneen lokikirja",
-      "newAjlb": "Uusi lokikirja",
-      "editAjlb": "Muokkaa lokikirjaa",
-      "details": "Lokikirjan tiedot",
-      "seqNo": "Lokikirjan numero",
+      "ajlb": "Lentokoneen matkapäiväkirja",
+      "newAjlb": "Uusi matkapäiväkirja",
+      "editAjlb": "Muokkaa matkapäiväkirja",
+      "details": "matkapäiväkirjan tiedot",
+      "seqNo": "matkapäiväkirjan numero",
       "student": "Oppilas",
       "totalFlightTime": "Lentotunnit",
       "addBlankRow": "Lisää tyhjä rivi yläpuolelle",
       "deleteBlankRow": "Poista tyhjä rivi",
       "status": "Tila",
-      "validateTitle": "Lentopäiväkirjan täsmäytys",
+      "validateTitle": "Matkapäiväkirjan täsmäytys",
       "goToNewFlights": "Siirry ensimmäiselle vahvistamattomalle lennolle sivulle {{page}}",
       "validateAll": "Merkitse {{count}} lentoa valmiiksi laskutukseen",
       "lastAirborneTime": "Kokonaisilmassaoloaika viimeisen lennon jälkeen",
@@ -613,7 +601,7 @@
       "newFlightsSince": "Uudet vahvistamattomat lennot {{date}} jälkeen",
       "newFlightsCount": "Lentojen määrä",
       "newFlightsTime": "Lentojen ilmassaoloaika",
-      "goToFlight": "Avaa lokikirjan {{seqNo}} sivu {{page}} (rivi {{row}})",
+      "goToFlight": "Avaa matkapäiväkirjan {{seqNo}} sivu {{page}} (rivi {{row}})",
       "validity": "Voimassaolo",
       "validFrom": "Alkupäivä",
       "validTo": "Loppupäivä",
@@ -626,15 +614,15 @@
       "unverifiedFlightsTime": "Vahvistamaton lentoaika",
       "verifiedTotalFlightTime": "Vahvistettu kokonaisaika",
       "unverifiedTotalFlightTime": "Vahvistamaton kokonaisaika",
-      "nextSequence": "Aloita seuraava lokikirja",
-      "flightsToMove": "Vahvistamattomat lennot, jotka siirretään uuteen lokikirjaan",
+      "nextSequence": "Aloita seuraava matkapäiväkirja",
+      "flightsToMove": "Vahvistamattomat lennot, jotka siirretään uuteen matkapäiväkirjaan",
       "oldBookMustBeEnded": "Vanha lokikirja on ensin päätettävä.",
       "showOldBooks": "Näytä vanhat lokikirjat"
     }
   },
   "invoicing": {
     "tabs": {
-      "dashboard": "Kojelauta",
+      "dashboard": "Tietopaneeli",
       "flights": "Lennot",
       "items": "Tuotteet",
       "tools": "Työkalut"
@@ -689,40 +677,40 @@
     "login": "Kirjaudu sisään",
     "welcomeTitle": "Tervetuloa Malmin Ilmailukerhoon!",
     "emailVerifiedSuccess": "Sähköposti vahvistettu onnistuneesti!",
-    "thankYouMessage": "Kiitos liittymisestäsi Malmin Ilmailukerho ry:hyn. Sähköpostiosoitteesi on vahvistettu ja jäsenhakemustasi käsitellään parhaillaan.",
+    "thankYouMessage": "Kiitos jäsenhakemuksestasi Malmin Ilmailukerho ry:hyn. Sähköpostiosoitteesi on vahvistettu ja jäsenhakemuksesi on siirretty käsittelyyn.",
     "dashboardAccessMessage": "Voit nyt kirjautua jäsenten alueelle seuraamaan perehdytysprosessin etenemistä.",
-    "goToDashboard": "Siirry kojelautaan",
+    "goToDashboard": "Siirry tietopaneeliin",
     "pendingReview": "Jäsenhakemus odottaa käsittelyä",
     "nextStepsTitle": "Seuraavat vaiheet perehdytysprosessissasi",
     "nextStepsDescription": "Näin etenee täysjäseneksi liittymisesi lentokerhoomme:",
     "onboardingSteps": {
       "step1": {
-        "title": "Puhelu jäsensihteeriltä",
-        "description": "Jäsensihteerimme ottaa sinuun yhteyttä keskustellakseen hakemuksestasi ja vastatakseen kysymyksiisi."
+        "title": "Jäsensihteeri käsittelee hakemuksesi",
+        "description": "Jäsensihteerimme perehtyy hakemukseesi."
       },
       "step2": {
-        "title": "Liittymismaksujen maksaminen",
-        "description": "Viimeistele jäsenyytesi maksamalla vaaditut liittymismaksut."
+        "title": "Liittymis- ja jäsenmaksun maksaminen",
+        "description": "Viimeistele jäsenyytesi maksamalla vaaditut liittymismaksut, joista saat laskun sähköpostiisi."
       },
       "step3": {
-        "title": "Asiakirjojen ja lupakirjan tarkistus",
-        "description": "Toimita ja vahvista lentolupakirjasi ja muut vaaditut asiakirjat."
+        "title": "Mahdollisten asiakirjojen ja lupakirjan tarkistus",
+        "description": "Toimita mahdollinen lentolupakirjasi ja muut vaaditut asiakirjat"
       },
       "step4": {
-        "title": "Valinnainen rekisteröityminen oppilaslentäjäksi",
-        "description": "Mikäli soveltuu, rekisteröidy oppilaslentäjän koulutusohjelmaamme."
+        "title": "Valinnainen ilmoittautuminen lento-oppilaaksi",
+        "description": "Mikäli soveltuu, rekisteröidy lupakirjakoulutusohjelmaamme."
       },
       "step5": {
         "title": "Tutustuminen kerhohuoneeseen Malmilla",
-        "description": "Vieraile kerhotiloillamme Malmin lentokentällä ja tutustu ympäristöön."
+        "description": "Vieraile kerhotiloillamme Malmin lentokentällä ja tutustu muihin jäseniimme"
       },
       "step6": {
         "title": "Kerhon avainten saaminen",
         "description": "Vastaanota kerhon kulkuavaimesi ja opi kerhon toimintatavoista."
       },
       "step7": {
-        "title": "Tarkastuslento ohjaajan kanssa",
-        "description": "Suorita tarkastuslento yhden hyväksytyn lento-ohjaajamme kanssa."
+        "title": "Kerhotarkastuslento opettajan kanssa",
+        "description": "Suorita kerhotarkkari kerhomme opettajan kanssa."
       }
     }
   },
@@ -856,7 +844,7 @@
     "requestInvoice": "Pyydä lasku",
     "requestingInvoice": "Pyydetään...",
     "viewInvoices": "Näytä laskut",
-    "overdueInvoicesWarning": "Sinulla on {{count}} erääntynyt lasku yhteensä {{currency}} {{amount}}. Maksa välittömästi välttääksesi lentokoneen varausoikeuden keskeytyksen.",
+    "overdueInvoicesWarning": "Sinulla on {{count}} erääntynyt lasku yhteensä {{currency}} {{amount}}. Maksa välittömästi välttääksesi lentokoneen varausoikeuden keskeytyksen. Jos maksoit laskun äskettäin, voit jättää tämän huomiotta.",
     "reservationsSuspendedTitle": "Lentokoneen varaukset keskeytetty",
     "reservationsSuspendedMessage": "Kykysi tehdä lentokoneen varauksia on keskeytetty maksamattomien lentolaskujen vuoksi. Maksa kaikki erääntyneet lentolaskut välittömästi palauttaaksesi varausoikeutesi.",
     "confirmEquipmentFee": {
@@ -873,7 +861,7 @@
     "pendingMemberApprovals": "Uudet hyväksyntää odottavat jäsenet",
     "noMembersAwaitingApproval": "Ei hyväksyntää odottavia jäseniä.",
     "flightLog": {
-      "recentFlights": "Viimeisimmät lennot ja kelpoisuus",
+      "recentFlights": "Viimeisimmät lennot",
       "plane": "Lentokone",
       "lastFlight": "Viimeinen lento",
       "currency": "Laskeutumiset ja lentoaika",
