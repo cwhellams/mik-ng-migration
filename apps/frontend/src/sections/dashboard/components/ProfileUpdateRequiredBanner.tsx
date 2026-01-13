@@ -9,7 +9,7 @@ export function ProfileUpdateRequiredBanner() {
   const { me, isLoading } = useMe()
 
   if (isLoading || !me || me.updatedBy !== 'k1mnimda') {
-    return <>MOI</>
+    return <></>
   }
 
   const goToProfile = () => {

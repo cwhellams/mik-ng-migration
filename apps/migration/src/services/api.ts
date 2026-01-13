@@ -7,7 +7,7 @@ import { promisify } from 'util'
 const API_BASE = {
   dev: 'http://localhost:3000/api/',
   test: 'https://walrus-app-sa62h.ondigitalocean.app/api/',
-  production: 'TBD',
+  production: 'https://mik-intra-prod-p4nyo.ondigitalocean.app/api/',
 }
 
 if (
