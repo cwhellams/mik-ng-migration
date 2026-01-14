@@ -8,7 +8,7 @@ export function ProfileUpdateRequiredBanner() {
   const navigate = useNavigate()
   const { me, isLoading } = useMe()
 
-  if (isLoading || !me || me.updatedBy !== 'k1mnimda') {
+  if (isLoading || !me || me.updatedBy !== 'simplbks') {
     return <></>
   }
 
