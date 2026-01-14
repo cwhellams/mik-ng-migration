@@ -6,8 +6,6 @@ import express from 'express'
 import helmet from 'helmet'
 // import compression from "compression";
 import morgan from 'morgan'
-import pg from 'pg'
-
 import logger from './lib/logger.ts'
 import { router as aircraftRoutes } from './routes/aircrafts/api.ts'
 import { router as aircraftDocumentRoutes } from './routes/aircraft-documents/api.ts'
@@ -30,10 +28,7 @@ import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
 import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
 import { startOccurrenceNotificationWorker } from './workers/occurrenceNotifyWorker.ts'
 import { startBrevoSyncWorker } from './workers/brevoSyncWorker.ts'
-
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-})
+import { testConnection, closeDb } from './db/connection.ts'
 
 const app = express()
 const PORT = process.env.BACKEND_PORT ?? 3000
@@ -99,6 +94,9 @@ app.use('/api/v1/occurrences', occurrenceRoutes)
 app.use('/api/v1/weather', weatherRoutes)
 app.use('/api/v1/stats', statsRoutes)
 
+// Test database connection before starting workers
+await testConnection()
+
 const poller = startSimpleBooksOutboxProcessor()
 const invoicePaymentWorker = startSimplbooksInvoicePaymentWorker()
 const overdueInvoiceWorker = startOverdueInvoiceWorker()
@@ -118,7 +116,7 @@ const server = app.listen(PORT, () => {
 // Gracefully handle app termination (Ctrl+C, kill, crashes)
 const shutdown = async (): Promise<void> => {
   console.warn('\nShutting down server...')
-  await pool.end() // Close DB connections
+  await closeDb() // Close DB connections
   poller?.stop()
   invoicePaymentWorker?.stop()
   overdueInvoiceWorker?.stop()

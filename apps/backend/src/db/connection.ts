@@ -14,7 +14,9 @@ let caCert: string | undefined
 
 if (useSSL) {
   try {
-    caCert = readFileSync(process.env.DATABASE_CA_CERT_FILE!, 'utf-8')
+    const certFile = process.env.DATABASE_CA_CERT_FILE || './ca-certificate.crt'
+    caCert = readFileSync(certFile, 'utf-8')
+    logger.info(`Loaded CA certificate from ${certFile}`)
   } catch (error) {
     logger.error('Failed to read CA certificate file:', error)
     throw error
@@ -38,7 +40,7 @@ const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Wait for a connection for 2 seconds
+  connectionTimeoutMillis: Number.parseInt(process.env.DATABASE_CN_TIMEOUT || '10000', 10), // Wait for a connection
   options: '-c timezone=UTC',
   ssl: useSSL
     ? {
@@ -59,4 +61,16 @@ const closeDb = async (): Promise<void> => {
 }
 
 export const db = new Kysely<DB>({ dialect })
+
+// Test database connection
+export const testConnection = async (): Promise<void> => {
+  try {
+    await pool.query('SELECT 1')
+    logger.info('Database connection verified')
+  } catch (error) {
+    logger.error('Database connection test failed:', error)
+    throw error
+  }
+}
+
 export { closeDb } // Export the pool for testing

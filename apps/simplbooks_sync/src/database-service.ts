@@ -26,13 +26,14 @@ interface RemovedMemberRecord {
 }
 
 export class DatabaseService {
-  private pool: pg.Pool
+  private readonly pool: pg.Pool
 
-  constructor(connectionString: string) {
+  constructor(connectionString: string, caCert: string) {
     this.pool = new Pool({
       connectionString,
       ssl: {
-        rejectUnauthorized: false,
+        rejectUnauthorized: true,
+        ca: caCert,
       },
     })
   }

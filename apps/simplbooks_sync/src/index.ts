@@ -1,6 +1,12 @@
 import dotenv from 'dotenv'
 import { SimplBooksApiClient } from './simplbooks-client.js'
 import { DatabaseService } from './database-service.js'
+import { join, dirname } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // Load environment variables
 dotenv.config()
@@ -51,7 +57,12 @@ async function syncClients() {
     config.simplBooksCompanyId
   )
 
-  const db = new DatabaseService(config.databaseUrl)
+  const certPath = join(__dirname, '..', 'ca-certificate.crt')
+  const caCert = readFileSync(certPath, 'utf-8')
+
+  console.log(`ca cert loaded from ${certPath}: ${caCert.substring(0, 30)}...`)
+
+  const db = new DatabaseService(config.databaseUrl, caCert)
 
   try {
     // Connect to database
@@ -118,7 +129,12 @@ async function matchRemovedMembers() {
     config.simplBooksCompanyId
   )
 
-  const db = new DatabaseService(config.databaseUrl)
+  const certPath = join(__dirname, '..', 'ca-certificate.crt')
+  const caCert = readFileSync(certPath, 'utf-8')
+
+  console.log(`ca cert loaded from ${certPath}: ${caCert.substring(0, 30)}...`)
+
+  const db = new DatabaseService(config.databaseUrl, caCert)
 
   try {
     await db.connect()
