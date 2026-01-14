@@ -851,7 +851,7 @@
     "reservationsSuspendedMessage": "Your ability to make aircraft reservations has been suspended due to unpaid flight invoices. Please pay all overdue flight invoices immediately to restore your reservation privileges.",
     "confirmEquipmentFee": {
       "title": "Confirm Equipment Fee Request",
-      "message": "By clicking Accept you commit to pay the equipment fee invoice of €{{amount}}, which will be sent to you shortly. The discount of €{{discount}} per hour is applied immediately to all un-invoiced flights.",
+      "message": "By clicking Accept you commit to pay the equipment fee invoice of €{{amount}}, which will be sent to you shortly. The fee of €{{discount}} per hour won't be applied to upcoming invoices.",
       "accept": "Accept",
       "cancel": "Cancel"
     },
