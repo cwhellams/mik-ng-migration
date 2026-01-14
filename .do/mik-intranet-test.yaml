@@ -145,6 +145,10 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         value: ${CORS_ALLOWED_ORIGINS}
         type: SECRET
+      - key: SIMPLBOOKS_MEMBER_SYNC_ENABLED
+        value: ${SIMPLBOOKS_MEMBER_SYNC_ENABLED}
+        type: GENERAL
+
 
     instance_count: 1
     health_check:

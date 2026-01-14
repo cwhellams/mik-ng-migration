@@ -6,6 +6,7 @@ import {
   invoiceFilterSchema,
   ItemListSchema,
   mapMemberToClient,
+  type ClientData,
   type ClientFilter,
   type InvoiceFilter,
   type InvoiceListItem,
@@ -89,6 +90,21 @@ export async function createNewClient(client: Member): Promise<number> {
       )
     }
     return response.data.inserted_id
+  } catch (error) {
+    handleApiError(error)
+    throw error
+  }
+}
+
+export async function updateClient(billingId: number, client: ClientData): Promise<void> {
+  try {
+    const simplbooksClient = { id: billingId, ...client.Client }
+    const response = await simplbooksApiClient.post(`/clients/update`, simplbooksClient)
+    if (response.status !== 200) {
+      throw new Error(
+        `Failed to update client ${simplbooksClient.e_mail} in Simplbooks: ${response.statusText}`,
+      )
+    }
   } catch (error) {
     handleApiError(error)
     throw error

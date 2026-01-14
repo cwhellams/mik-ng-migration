@@ -147,6 +147,10 @@ services:
       - key: WEATHER_AUDIO_BASE_URL
         value: ${WEATHER_AUDIO_BASE_URL}
         type: GENERAL
+      - key: SIMPLBOOKS_MEMBER_SYNC_ENABLED
+        value: ${SIMPLBOOKS_MEMBER_SYNC_ENABLED}
+        type: GENERAL
+
 
     instance_count: 1
     health_check:

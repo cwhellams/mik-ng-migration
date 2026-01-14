@@ -329,3 +329,9 @@ export const AnnualFeeInfoSchema = AuditableSchema.extend({
   invoiceId: z.number().int().positive(),
 })
 export type AnnualFeeInfo = z.infer<typeof AnnualFeeInfoSchema>
+
+export const SimplbooksSyncStatusSchema = z.enum(['PENDING', 'SYNCED', 'FAILED'])
+export type SimplbooksSyncStatus = z.infer<typeof SimplbooksSyncStatusSchema>
+
+export const SimplbooksSyncStateStatusSchema = z.enum(['SUCCESS', 'FAILED', 'IN_PROGRESS'])
+export type SimplbooksSyncStateStatus = z.infer<typeof SimplbooksSyncStateStatusSchema>

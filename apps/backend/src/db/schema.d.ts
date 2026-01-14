@@ -375,6 +375,19 @@ export interface FlywaySchemaHistory {
   version: string | null
 }
 
+export interface FlywayStaticdataHistory {
+  checksum: number | null
+  description: string
+  execution_time: number
+  installed_by: string
+  installed_on: Generated<Timestamp>
+  installed_rank: number
+  script: string
+  success: boolean
+  type: string
+  version: string | null
+}
+
 export interface MemberAnnualFees {
   created_at: Generated<Timestamp>
   created_by: string
@@ -471,6 +484,8 @@ export interface MemberRegister {
   membership_approved_by: string | null
   phone_number: string | null
   postcode: string | null
+  simplbooks_sync_status: Generated<string | null>
+  simplbooks_synced_at: Timestamp | null
   street_address: string | null
   town_city: string | null
   updated_at: Generated<Timestamp>
@@ -499,6 +514,15 @@ export interface MemberRoles {
   role_id: string
   updated_at: Generated<Timestamp>
   updated_by: string
+}
+
+export interface MemberSimplbooksSyncState {
+  created_at: Generated<Timestamp>
+  error_message: string | null
+  id: Generated<number>
+  last_synced_at: Generated<Timestamp>
+  members_synced: Generated<number>
+  sync_status: Generated<string>
 }
 
 export interface ScheduleBookings {
@@ -729,6 +753,7 @@ export interface DB {
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory
+  flyway_staticdata_history: FlywayStaticdataHistory
   'member.annual_fees': MemberAnnualFees
   'member.brevo_sync_state': MemberBrevoSyncState
   'member.documents': MemberDocuments
@@ -736,6 +761,7 @@ export interface DB {
   'member.register': MemberRegister
   'member.register_audit': MemberRegisterAudit
   'member.roles': MemberRoles
+  'member.simplbooks_sync_state': MemberSimplbooksSyncState
   'schedule.bookings': ScheduleBookings
   secrets: Secrets
   'static.airfields': StaticAirfields
