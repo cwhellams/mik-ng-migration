@@ -2,8 +2,7 @@ import 'dotenv/config'
 import { markdownEmailTemplate } from './emailTemplate.ts'
 import { MIKLang } from '../routes/members/models.ts'
 
-const MIK_RULES_URL =
-  process.env.MIK_RULES_URL ?? 'https://www.mik.fi/malmin-ilmailukerho-ry/saannot/'
+const MIK_RULES_URL = process.env.MIK_RULES_URL ?? 'https://www.mik.fi/about'
 
 export type RegisterVars = {
   firstName: string

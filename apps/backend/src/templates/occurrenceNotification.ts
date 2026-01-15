@@ -41,7 +41,7 @@ export const occurrenceNotificationEmailBodyHtml = (lang: MIKLang, occurrence: O
     anonymized: occurrence.status === OccurrenceStatus.ANONYMIZED,
     reportDate: formatDate(occurrence.reportDate),
     deadLine: occurrence.deadLine ? formatDate(occurrence.deadLine) : undefined,
-    href: `${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/logs/occurrences/${occurrence.id}`,
+    href: `${process.env.PUBLIC_URL ?? 'http://localhost:5173'}/logs/occurrences/${occurrence.id}`,
   })
 
 const formatDate = (date: string) => toLocal(date).format('DD.MM.YYYY HH:mm')

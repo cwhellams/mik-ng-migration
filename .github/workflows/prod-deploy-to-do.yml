@@ -28,7 +28,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git push origin ${{ github.event.client_payload.tag_name }}:refs/heads/prod --force
+          git checkout -B prod ${{ github.event.client_payload.tag_name }}
+          git commit --allow-empty -m "Deploy ${{ github.event.client_payload.tag_name }} to production [skip ci]"
+          git push origin prod --force
 
       - name: Set repo name lowercase
         run: echo "REPO_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV

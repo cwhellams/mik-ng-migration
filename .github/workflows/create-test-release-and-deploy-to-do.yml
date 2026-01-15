@@ -78,7 +78,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git push origin ${{ inputs.version_tag }}:refs/heads/test --force
+          git checkout -B test ${{ inputs.version_tag }}
+          git commit --allow-empty -m "Deploy ${{ inputs.version_tag }} to test [skip ci]"
+          git push origin test --force
 
       - name: Check changed paths
         id: paths

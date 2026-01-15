@@ -24,7 +24,7 @@ export const bookingCancelledEmailBodyHtml = (
   })
 
 const href = (booking: BookingUpsertRequest) =>
-  `${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/schedule?day=${epochToLocal(
+  `${process.env.PUBLIC_URL ?? 'http://localhost:5173'}/schedule?day=${epochToLocal(
     booking.startTimeEpoch,
   ).format('YYYY-MM-DD')}`
 

@@ -2,7 +2,7 @@
 
 Dear {{firstName}},
 
-This is a reminder that invoice **#{{invoiceId}}** for **{{amount}} €**
+This is a reminder that invoice **#{{invoiceId}}** for € **{{amount}}**
 was due on **{{dueDate}}** and remains unpaid.
 
 Please arrange payment at your earliest convenience.

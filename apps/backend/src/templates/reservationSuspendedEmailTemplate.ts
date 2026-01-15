@@ -29,5 +29,5 @@ export const reservationSuspendedEmailBodyHtml = (
   markdownEmailTemplate(`reservation-suspended-${lang}.md`, {
     ...vars,
     BILLING_EMAIL,
-    href: `${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/club/billing`,
+    href: `${process.env.PUBLIC_URL ?? 'http://localhost:5173'}/club/billing`,
   })
