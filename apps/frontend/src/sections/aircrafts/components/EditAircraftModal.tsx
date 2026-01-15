@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,10 @@ import {
   MenuItem,
   Select,
   Divider,
+  Chip,
+  Box,
+  OutlinedInput,
+  SelectChangeEvent,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
@@ -29,6 +33,7 @@ import {
   Aircraft,
   AircraftNote,
   Severity,
+  FuelType,
 } from '@backend/routes/aircrafts/models'
 import { AuditFormField } from '../../../components/AuditFormField'
 import { FormTitle } from '../../../components/FormTitle'
@@ -59,7 +64,7 @@ export const EditAircraftModal = ({
   const isNewAircraft = !aircraft?.registration
 
   const { mutation } = useApi<Aircraft>({
-    url: `v1/aircrafts${isNewAircraft ? '' : `/${aircraft?.registration}`}`,
+    url: isNewAircraft ? 'v1/aircrafts' : `v1/aircrafts/${aircraft?.registration}`,
     skipFetch: true,
   })
 
@@ -81,6 +86,7 @@ export const EditAircraftModal = ({
         yearOfManufacture: aircraft?.yearOfManufacture ?? 2020,
         seats: aircraft?.seats ?? 1,
         usableFuelLitres: aircraft?.usableFuelLitres ?? 1,
+        fuelTypes: aircraft?.fuelTypes ?? [],
         active: aircraft?.active ?? false,
 
         location: aircraft?.location,
@@ -90,8 +96,9 @@ export const EditAircraftModal = ({
 
         documents: [],
         notes: [],
-        maintenance: !aircraft
-          ? {
+        maintenance: aircraft
+          ? undefined
+          : {
               maintenanceCycle: 50,
 
               lastMaintenanceDate: '2020-01-01',
@@ -104,8 +111,7 @@ export const EditAircraftModal = ({
 
               totalPercentageHours: 5,
               usablePercentageHours: 3,
-            }
-          : undefined,
+            },
       })
     } else if (mode === 'maintenance') {
       setFormData({
@@ -123,6 +129,16 @@ export const EditAircraftModal = ({
       ...prev,
       [field]: value,
     }))
+
+  const handleFuelTypesChange = (event: SelectChangeEvent<typeof formData.fuelTypes>) => {
+    const {
+      target: { value },
+    } = event
+    setFormData((prev) => ({
+      ...prev,
+      fuelTypes: typeof value === 'string' ? value.split(',') as FuelType[] : value as FuelType[],
+    }))
+  }
 
   const handleMaintenanceChange = (
     field: keyof Aircraft['maintenance'],
@@ -206,7 +222,7 @@ export const EditAircraftModal = ({
 
   const renderDetailsForm = () => (
     <Grid container spacing={2}>
-      <Grid size={{ xs: 12, sm: 6 }}>
+      <Grid  size={{ xs: 12, sm: 6 } }>
         <TextField
           fullWidth
           required
@@ -224,7 +240,7 @@ export const EditAircraftModal = ({
           onChange={({ target }) => handleChange('displayName', target.value)}
         />
       </Grid>
-      <Grid size={{ xs: 12, sm: 4 }}>
+      <Grid size={{ xs: 12, sm:46 }}>
         <TextField
           fullWidth
           required
@@ -233,7 +249,7 @@ export const EditAircraftModal = ({
           onChange={({ target }) => handleChange('manufacturer', target.value)}
         />
       </Grid>
-      <Grid size={{ xs: 6, sm: 4 }}>
+      <Grid size={{ xs: 6, sm: 4 } }>
         <TextField
           fullWidth
           required
@@ -269,10 +285,10 @@ export const EditAircraftModal = ({
           required
           type='number'
           inputMode='numeric'
-          label={t('aircraft.edit.usableFuelLitres')}
-          value={formData.usableFuelLitres || ''}
+          label={t('aircraft.edit.seats')}
+          value={formData.seats || ''}
           onChange={({ target }) =>
-            handleChange('usableFuelLitres', Number(target.value))
+            handleChange('seats', Number(target.value))
           }
         />
       </Grid>
@@ -288,6 +304,34 @@ export const EditAircraftModal = ({
             handleChange('usableFuelLitres', Number(target.value))
           }
         />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <FormControl fullWidth required>
+          <InputLabel id='fuel-types-label'>
+            {t('aircraft.edit.fuelTypes')}
+          </InputLabel>
+          <Select
+            labelId='fuel-types-label'
+            id='fuel-types'
+            multiple
+            value={formData.fuelTypes || []}
+            onChange={handleFuelTypesChange}
+            input={<OutlinedInput label={t('aircraft.edit.fuelTypes')} />}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value} size='small' />
+                ))}
+              </Box>
+            )}
+          >
+            {Object.values(FuelType).map((fuelType) => (
+              <MenuItem key={fuelType} value={fuelType}>
+                {fuelType}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Grid>
     </Grid>
   )
@@ -435,9 +479,9 @@ export const EditAircraftModal = ({
               disableFuture={!next}
               label={t('aircraft.maintenance.date')}
               value={
-                formData.maintenance?.[dateKey] !== null
-                  ? dayjs(formData.maintenance?.[dateKey])
-                  : null
+                formData.maintenance?.[dateKey] === null
+                  ? null
+                  : dayjs(formData.maintenance?.[dateKey])
               }
               onChange={(value) =>
                 handleMaintenanceChange(
@@ -520,7 +564,7 @@ export const EditAircraftModal = ({
                 </Select>
               </FormControl>
             </Grid>
-            <Grid size={{ xs: 12, sm: 'grow' }}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 required
                 fullWidth
@@ -589,7 +633,7 @@ export const EditAircraftModal = ({
       slotProps={{
         paper: {
           component: 'form',
-          onSubmit: handleSubmit,
+          onSubmit: (e: FormEvent<Element>) => { handleSubmit(e); },
         },
       }}
     >
@@ -600,7 +644,7 @@ export const EditAircraftModal = ({
       <DialogContent dividers>
         <SnackAlert problem={problem} />
         <Stack spacing={3}>
-          {mode == 'maintenance' ? (
+          {mode == 'maintenance' && (
             <>
               {renderMaintenanceForm()}
               {maintenanceCard(
@@ -618,15 +662,20 @@ export const EditAircraftModal = ({
                 'nextMaintenanceTach'
               )}
             </>
-          ) : mode == 'notes' ? (
-            notesCard()
-          ) : (
-            <>
-              {renderDetailsForm()}
-              {operationsCard()}
-              {auditCard()}
-            </>
           )}
+          {(() => {
+            if (mode == 'notes') {
+              return notesCard();
+            } else {
+              return (
+                <>
+                  {renderDetailsForm()}
+                  {operationsCard()}
+                  {auditCard()}
+                </>
+              );
+            }
+          })()}
         </Stack>
       </DialogContent>
 

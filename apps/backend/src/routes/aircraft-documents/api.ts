@@ -16,6 +16,7 @@ import { storageService, type UploadResult } from '../../services/storage.ts'
 import {
   AircraftDocumentFiltersSchema,
   AircraftDocumentSchema,
+  AircraftDocumentUploadSchema,
   type AircraftDocument,
   type AircraftDocumentAuditable,
   type AircraftDocumentFilters,
@@ -23,7 +24,6 @@ import {
 } from './models.ts'
 import type { DownloadDocument } from '../documents/models.ts'
 import logger from '../../lib/logger.ts'
-//import type { Aircraft, AircraftAlert } from '../aircrafts/models.ts'
 
 export const router = Router()
 
@@ -101,18 +101,14 @@ const upload = multer({
 router.use(validateUser(MIKPermissions.MEMBER, MIKPermissions.DOCUMENT_ADMIN))
 
 router.get('/download', async (req: Request, res: Response<DownloadDocument>) => {
-  const documentId = parseInt(req.query.id as string, 10)
-  if (isNaN(documentId)) {
+  const documentId = Number.parseInt(req.query.id as string, 10)
+  if (Number.isNaN(documentId)) {
     return problem({ status: 400, detail: 'Invalid document ID' })
   }
 
   const document = await getAircraftDocumentById(documentId)
-  if (!document) {
-    return problem({ status: 404, detail: 'Document not found' })
-  }
-
-  if (!document.storageKey) {
-    return problem({ status: 404, detail: 'Document file not found' })
+  if (!document || !document.storageKey) {
+    return problem({ status: 404, detail: 'Document not found or not available' })
   }
 
   try {
@@ -153,8 +149,8 @@ router.get(
 router.get(
   '/:documentId',
   async (req: Request<{ documentId: string }>, res: Response<AircraftDocument>) => {
-    const documentId = parseInt(req.params.documentId, 10)
-    if (isNaN(documentId)) {
+    const documentId = Number.parseInt(req.params.documentId, 10)
+    if (Number.isNaN(documentId)) {
       return problem({ status: 400, detail: 'Invalid document ID' })
     }
 
@@ -172,8 +168,8 @@ router.patch(
   '/:documentId',
   validateUser(MIKPermissions.DOCUMENT_ADMIN),
   async (req: Request<{ documentId: string }>, res: Response<AircraftDocument>) => {
-    const documentId = parseInt(req.params.documentId, 10)
-    if (isNaN(documentId)) {
+    const documentId = Number.parseInt(req.params.documentId, 10)
+    if (Number.isNaN(documentId)) {
       return problem({ status: 400, detail: 'Invalid document ID' })
     }
 
@@ -198,8 +194,8 @@ router.delete(
   '/:documentId',
   validateUser(MIKPermissions.DOCUMENT_ADMIN),
   async (req: Request<{ documentId: string }>, res: Response) => {
-    const documentId = parseInt(req.params.documentId, 10)
-    if (isNaN(documentId)) {
+    const documentId = Number.parseInt(req.params.documentId, 10)
+    if (Number.isNaN(documentId)) {
       return problem({ status: 400, detail: 'Invalid document ID' })
     }
 
@@ -215,7 +211,7 @@ router.delete(
         const bucketName = await getValidatedBucketName(document.aircraftRegistration)
         await storageService.deleteFile(document.storageKey, bucketName)
       } catch (error) {
-        console.error('Failed to delete file from storage:', error)
+        logger.error('Failed to delete file from storage:', error)
         // Continue with database deletion even if file deletion fails
       }
     }
@@ -242,8 +238,8 @@ router.post(
       return problem({ status: 400, detail: 'No file uploaded' })
     }
 
-    // Validate and parse request body against schema to ensure type safety
-    const validatedDoc = AircraftDocumentSchema.parse(req.body)
+    // Validate and parse request body against upload schema to ensure type safety
+    const validatedDoc = AircraftDocumentUploadSchema.parse(req.body)
 
     try {
       // Validate aircraft registration and get bucket name
@@ -274,7 +270,7 @@ router.post(
 
       res.status(201).json(created)
     } catch (error) {
-      console.error('Aircraft document upload failed:', error)
+      logger.error('Aircraft document upload failed:', error)
       return problem({
         status: 500,
         detail: 'Failed to upload aircraft document. Please try again.',

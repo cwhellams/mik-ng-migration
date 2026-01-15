@@ -72,7 +72,8 @@ export const AircraftDocumentUploadSchema = z.object({
   description: z.string().optional(),
   validFrom: z.string().nullable().optional(),
   validTo: z.string().nullable().optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.coerce.boolean().default(true),
+  fileName: z.string().min(1),
 })
 
 export type AircraftDocumentUpload = z.infer<typeof AircraftDocumentUploadSchema>

@@ -22,7 +22,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  ListItemSecondaryAction,
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { useTranslation } from 'react-i18next'
@@ -271,7 +270,30 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
 
           <List dense>
             {selectedFiles.map((fileData, index) => (
-              <ListItem key={`${fileData.file.name}-${index}`}>
+              <ListItem
+                key={`${fileData.file.name}-${index}`}
+                secondaryAction={
+                  <>
+                    <IconButton
+                      edge='end'
+                      onClick={() => {
+                        setCurrentFileIndex(index)
+                        setMetadataDialogOpen(true)
+                      }}
+                      disabled={isUploading}
+                    >
+                      <Icon icon='mdi:pencil' />
+                    </IconButton>
+                    <IconButton
+                      edge='end'
+                      onClick={() => removeFile(index)}
+                      disabled={isUploading}
+                    >
+                      <Icon icon='mdi:delete' />
+                    </IconButton>
+                  </>
+                }
+              >
                 <ListItemIcon>
                   <Icon icon={getFileIcon(fileData.file.type)} />
                 </ListItemIcon>
@@ -299,25 +321,6 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
                     </Stack>
                   }
                 />
-                <ListItemSecondaryAction>
-                  <IconButton
-                    edge='end'
-                    onClick={() => {
-                      setCurrentFileIndex(index)
-                      setMetadataDialogOpen(true)
-                    }}
-                    disabled={isUploading}
-                  >
-                    <Icon icon='mdi:pencil' />
-                  </IconButton>
-                  <IconButton
-                    edge='end'
-                    onClick={() => removeFile(index)}
-                    disabled={isUploading}
-                  >
-                    <Icon icon='mdi:delete' />
-                  </IconButton>
-                </ListItemSecondaryAction>
               </ListItem>
             ))}
           </List>

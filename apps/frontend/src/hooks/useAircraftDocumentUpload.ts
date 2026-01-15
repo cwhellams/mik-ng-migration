@@ -211,6 +211,7 @@ export const useAircraftDocumentUpload = ({
         formData.append('aircraftRegistration', aircraftRegistration)
         formData.append('documentType', file.documentType)
         formData.append('title', file.title)
+        formData.append('fileName', file.name)
         if (file.description) formData.append('description', file.description)
         if (file.validFrom) formData.append('validFrom', file.validFrom)
         if (file.validTo) formData.append('validTo', file.validTo)

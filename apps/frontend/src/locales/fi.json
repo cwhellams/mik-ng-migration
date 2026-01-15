@@ -264,6 +264,7 @@
       "yearOfManufacture": "Valmistusvuosi",
       "seats": "Paikkoja",
       "usableFuelLitres": "Käytettävissä oleva polttoaine (litraa)",
+      "fuelTypes": "Polttoainetyypit",
       "active": "Aktiivinen",
       "location": "Sijainti",
       "equipment": "Varustelu",
