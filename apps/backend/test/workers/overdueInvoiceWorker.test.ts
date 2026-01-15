@@ -37,6 +37,8 @@ describe('Overdue Invoice Worker', () => {
     // Set environment variables for testing
     process.env.OVERDUE_INVOICE_WORKER_ENABLED = 'true'
     process.env.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP = 'false'
+    // Ensure grace period is 0 for most tests (explicit tests will override)
+    process.env.OVERDUE_INVOICE_GRACE_PERIOD_DAYS = '0'
   })
 
   beforeEach(async () => {
@@ -184,6 +186,55 @@ describe('Overdue Invoice Worker', () => {
       const testInvoice = overdueInvoices.find(inv => inv.id.toString() === testInvoiceId)
 
       expect(testInvoice).toBeUndefined()
+    })
+
+    it('should respect grace period when set', async () => {
+      // Set grace period to 7 days
+      process.env.OVERDUE_INVOICE_GRACE_PERIOD_DAYS = '7'
+
+      // Update invoice to be 3 days overdue (within grace period)
+      await db
+        .updateTable('accts.invoice')
+        .set({
+          due_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          updated_by: MIK_SIMPLBOOKS_MEMBER,
+        })
+        .where('id', '=', testInvoiceId)
+        .execute()
+
+      const overdueInvoices = await getOverdueInvoicesWithoutReminder()
+
+      // Should NOT include invoice because it's within grace period
+      const testInvoice = overdueInvoices.find(inv => inv.id.toString() === testInvoiceId)
+      expect(testInvoice).toBeUndefined()
+
+      // Restore grace period to 0
+      process.env.OVERDUE_INVOICE_GRACE_PERIOD_DAYS = '0'
+    })
+
+    it('should find invoices past grace period', async () => {
+      // Set grace period to 7 days
+      process.env.OVERDUE_INVOICE_GRACE_PERIOD_DAYS = '7'
+
+      // Update invoice to be 10 days overdue (past grace period)
+      await db
+        .updateTable('accts.invoice')
+        .set({
+          due_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          updated_by: MIK_SIMPLBOOKS_MEMBER,
+        })
+        .where('id', '=', testInvoiceId)
+        .execute()
+
+      const overdueInvoices = await getOverdueInvoicesWithoutReminder()
+
+      // Should include invoice because it's past grace period
+      const testInvoice = overdueInvoices.find(inv => inv.id.toString() === testInvoiceId)
+      expect(testInvoice).toBeDefined()
+      expect(testInvoice?.member_id).toBe(testMemberId)
+
+      // Restore grace period to 0
+      process.env.OVERDUE_INVOICE_GRACE_PERIOD_DAYS = '0'
     })
   })
 

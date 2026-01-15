@@ -154,6 +154,7 @@ jobs:
           echo "WEATHER_API_BASE_URL=${{ vars.WEATHER_API_BASE_URL }}" >> "$GITHUB_ENV"
           echo "WEATHER_AUDIO_BASE_URL=${{ vars.WEATHER_AUDIO_BASE }}" >> "$GITHUB_ENV"
           echo "SIMPLBOOKS_MEMBER_SYNC_ENABLED=${{ vars.SIMPLBOOKS_MEMBER_SYNC_ENABLED }}" >> $GITHUB_ENV
+          echo "OVERDUE_INVOICE_GRACE_PERIOD_DAYS=${{ vars.OVERDUE_INVOICE_GRACE_PERIOD_DAYS }}" >> "$GITHUB_ENV"
 
       - name: Build and push Docker image
         if: env.backend_changed == 'true'

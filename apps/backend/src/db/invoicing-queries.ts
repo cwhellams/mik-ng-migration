@@ -7,6 +7,7 @@ import {
 import { ART_EQUIP_FEE_CODE } from '../services/accounting/config.ts'
 import type { FeeType, ItemListArticle } from '../services/simplbooks/models.ts'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
+import { sql } from 'kysely'
 import { db } from './connection.ts'
 import type { AcctsInvoice, AcctsItems } from './schema.js'
 
@@ -200,17 +201,19 @@ export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Prom
  * Get all overdue invoices that haven't had a reminder email sent
  * Returns invoices where:
  * - is_paid = false
- * - due_at < current date
+ * - due_at + grace period < current date
  * - overdue_email_sent_at is null (no reminder sent yet)
+ *
+ * Grace period can be configured via OVERDUE_INVOICE_GRACE_PERIOD_DAYS env var (defaults to 0)
  */
 export async function getOverdueInvoicesWithoutReminder(): Promise<AcctsInvoice[]> {
-  const now = new Date().toISOString()
+  const gracePeriodDays = Number(process.env.OVERDUE_INVOICE_GRACE_PERIOD_DAYS || 7)
 
   const rows = await db
     .selectFrom('accts.invoice')
     .selectAll()
     .where('is_paid', '=', false)
-    .where('due_at', '<', now)
+    .where(sql`due_at + INTERVAL '${sql.raw(gracePeriodDays.toString())} days'`, '<', sql`NOW()`)
     .where('overdue_email_sent_at', 'is', null)
     .orderBy('due_at', 'asc')
     .execute()

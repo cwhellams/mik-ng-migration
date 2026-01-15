@@ -211,7 +211,7 @@ function formatDate(date: string | Date | null): string {
 
   const d = typeof date === 'string' ? new Date(date) : date
 
-  if (isNaN(d.getTime())) return 'N/A'
+  if (Number.isNaN(d.getTime())) return 'N/A'
 
   return d.toISOString().split('T')[0]
 }
@@ -263,7 +263,7 @@ async function processSuspendedMembers(sendEmailFn: typeof sendEmail): Promise<v
     for (const [memberId, invoices] of memberInvoicesMap) {
       const member = await getMemberById(memberId)
 
-      if (member && member.canMakeReservations) {
+      if (member?.canMakeReservations) {
         // Suspend reservation privileges
         await suspendMemberReservations(memberId)
 

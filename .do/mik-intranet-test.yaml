@@ -148,7 +148,9 @@ services:
       - key: SIMPLBOOKS_MEMBER_SYNC_ENABLED
         value: ${SIMPLBOOKS_MEMBER_SYNC_ENABLED}
         type: GENERAL
-
+      - key: OVERDUE_INVOICE_GRACE_PERIOD_DAYS
+        value: ${OVERDUE_INVOICE_GRACE_PERIOD_DAYS}
+        type: GENERAL
 
     instance_count: 1
     health_check:
