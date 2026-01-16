@@ -18,6 +18,8 @@ import {
   FlightLogMigrationSchema,
   type FlightLogStatsResponse,
   type FlightLogStats,
+  type FlightLogStatsFilter,
+  FlightLogStatsFilterSchema,
 } from './models.ts'
 import {
   deleteFlightLog,
@@ -94,8 +96,9 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
 
 router.get(
   '/stats',
-  async (req: Request<FlightLogFilters>, res: Response<FlightLogStatsResponse>) => {
-    const stats = await getFlightStats(req.user!.memberId)
+  async (req: Request<FlightLogStatsFilter>, res: Response<FlightLogStatsResponse>) => {
+    const { activeOnly } = FlightLogStatsFilterSchema.parse(req.query)
+    const stats = await getFlightStats(req.user!.memberId, !!activeOnly)
     const totals = stats.reduce(
       (acc, curr) => {
         if (

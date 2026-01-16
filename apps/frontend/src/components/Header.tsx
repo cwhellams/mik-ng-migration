@@ -15,6 +15,7 @@ import {
   Divider,
   useMediaQuery,
   ListItemIcon,
+  Typography,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Link, useLocation } from 'react-router-dom'
@@ -94,6 +95,24 @@ const Header = (props: HeaderProps) => {
     return hasAccess(...(requiredRoles ?? []))
   }
 
+  const Logo = () => (
+    <>
+      <img
+        src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
+        alt='MIK Logo'
+        style={{
+          height: 40,
+          width: 'auto',
+        }}
+      />
+      {process.env.NODE_ENV !== 'production' && (
+        <Typography variant='subtitle2' color='error'>
+          {process.env.NODE_ENV}
+        </Typography>
+      )}
+    </>
+  )
+
   const drawerContent = (
     <Box sx={{ width: 250 }} role='presentation' onClick={closeDrawer}>
       <Box
@@ -106,14 +125,7 @@ const Header = (props: HeaderProps) => {
         component={Link}
         to='/'
       >
-        <img
-          src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
-          alt='MIK Logo'
-          style={{
-            height: 40,
-            width: 'auto',
-          }}
-        />
+        <Logo />
       </Box>
       <Divider />
       <List>
@@ -198,14 +210,7 @@ const Header = (props: HeaderProps) => {
               component={Link}
               to='/'
             >
-              <img
-                src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
-                alt='MIK Logo'
-                style={{
-                  height: 40,
-                  width: 'auto',
-                }}
-              />
+              <Logo />
             </Box>
           )}
 
@@ -242,14 +247,7 @@ const Header = (props: HeaderProps) => {
               component={Link}
               to='/'
             >
-              <img
-                src={theme.palette.mode === 'dark' ? MikLogoWhite : MikLogo}
-                alt='MIK Logo'
-                style={{
-                  height: 40,
-                  width: 'auto',
-                }}
-              />
+              <Logo />
             </Box>
           )}
 

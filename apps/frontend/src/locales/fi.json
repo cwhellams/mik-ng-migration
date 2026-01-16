@@ -223,6 +223,7 @@
         }
       }
     },
+    "showActive": "Näytä vanhat lentokoneet",
     "alerts": {
       "expired": "{{documentId}} vanhentui {{untilExpiration}} päivää sitten",
       "expiring": "{{documentId}} vanhenee {{untilExpiration}} päivän kuluttua",

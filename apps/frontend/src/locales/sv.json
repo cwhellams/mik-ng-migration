@@ -224,6 +224,7 @@
         }
       }
     },
+    "showActive": "Visa gamla flygplan",
     "alerts": {
       "expired": "{{documentId}} gick ut för {{untilExpiration}} dagar sedan",
       "expiring": "{{documentId}} går ut om {{untilExpiration}} dagar",

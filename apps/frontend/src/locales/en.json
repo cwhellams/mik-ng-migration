@@ -224,6 +224,7 @@
         }
       }
     },
+    "showActive": "Show old aircrafts",
     "alerts": {
       "expired": "{{documentId}} expired {{untilExpiration}} days ago",
       "expiring": "{{documentId}} expiring in {{untilExpiration}} days",

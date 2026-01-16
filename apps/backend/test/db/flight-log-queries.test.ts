@@ -400,11 +400,11 @@ describe('Db invoicable FlightLog tests', () => {
 
 describe('Db Flight statistics', () => {
   it('get flights statistics with no flights', async () => {
-    const result = await getFlightStats('k1mnimda')
+    const result = await getFlightStats('k1mnimda', true)
     expect(result).toEqual([])
   })
   it('get flights statistics with single plane', async () => {
-    const result = await getFlightStats('Matti1')
+    const result = await getFlightStats('Matti1', true)
     expect(result).toEqual([
       {
         aircraftRegistration: 'OH-STL',
@@ -425,8 +425,8 @@ describe('Db Flight statistics', () => {
     ])
   })
 
-  it('get flights statistics with multiple planes', async () => {
-    const result = await getFlightStats('Jukka1')
+  it('get flights statistics with multiple planes including inactive planes', async () => {
+    const result = await getFlightStats('Jukka1', false)
     expect(result).toEqual([
       {
         aircraftRegistration: 'OH-IHQ',
@@ -459,6 +459,28 @@ describe('Db Flight statistics', () => {
         totalFlightMins: 110,
         totalFlights: 1,
         totalLandings: 3,
+      },
+    ])
+  })
+
+  it('get flights statistics with multiple planes where only one is active', async () => {
+    const result = await getFlightStats('Jukka1', true)
+    expect(result).toEqual([
+      {
+        aircraftRegistration: 'OH-IHQ',
+        landings12month: 2,
+        landings1month: 0,
+        landings3month: 0,
+        landings6month: 0,
+        lastFlightId: 'efnu4evr',
+        lastTakeoffTimeUtc: '2025-03-02T09:20:00.000Z',
+        time12month: 120,
+        time1month: 0,
+        time3month: 0,
+        time6month: 0,
+        totalFlightMins: 120,
+        totalFlights: 1,
+        totalLandings: 2,
       },
     ])
   })

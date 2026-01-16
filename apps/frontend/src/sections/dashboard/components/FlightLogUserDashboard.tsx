@@ -1,37 +1,39 @@
 import useApi from '../../../hooks/useApi'
 import {
-  Card,
-  CardContent,
   Typography,
   useMediaQuery,
   Grid,
   Box,
+  FormControlLabel,
+  Switch,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
 } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Link } from 'react-router-dom'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { useMe } from '../../../hooks/useMe'
 import {
-  FlightLogFilters,
+  FlightLogStatsFilter,
   FlightLogStatsResponse,
 } from '@backend/routes/flight-log/models'
 import { t } from 'i18next'
-import { dayjs, formatDateTime } from '../../../utils/date'
+import { formatDateTime } from '../../../utils/date'
 import { useState } from 'react'
 import theme from '../../../theme/theme'
 import { ResponsiveTable } from '../../../components/ResponsiveTable'
 import { formatHHMM } from '../../flightLog/utils/timeUtils'
 import { FormField } from '../../../components/FormField'
+import { Title } from '../../../components/Title'
 
 export const FlightLogUserDashboard = () => {
   const { me } = useMe()
 
-  const now = dayjs()
-
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const [filters] = useState<FlightLogFilters>({
-    startDate: now.subtract(1, 'year').toISOString(),
-    billableMemberId: me?.memberId,
+  const [filters, setFilters] = useState<FlightLogStatsFilter>({
+    activeOnly: true,
   })
 
   const { data, isLoading, error } = useApi<FlightLogStatsResponse>(
@@ -59,13 +61,25 @@ export const FlightLogUserDashboard = () => {
     )
 
   return (
-    <Card sx={{ mt: 4 }}>
-      <CardContent>
+    <Accordion defaultExpanded sx={{ mt: 4 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Title label={t('dashboard.flightLog.recentFlights')} subtitle={true}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={!filters.activeOnly}
+                onClick={(event) => event.stopPropagation()}
+                onChange={(e) =>
+                  setFilters({ ...filters, activeOnly: !e.target.checked })
+                }
+              />
+            }
+            label={t('aircraft.showActive')}
+          />
+        </Title>
+      </AccordionSummary>
+      <AccordionDetails>
         <RemoteContent isLoading={isLoading} error={error}>
-          <Typography variant='h5' gutterBottom>
-            {t('dashboard.flightLog.recentFlights')}
-          </Typography>
-
           <ResponsiveTable
             header={
               <>
@@ -187,7 +201,7 @@ export const FlightLogUserDashboard = () => {
             }
           />
         </RemoteContent>
-      </CardContent>
-    </Card>
+      </AccordionDetails>
+    </Accordion>
   )
 }

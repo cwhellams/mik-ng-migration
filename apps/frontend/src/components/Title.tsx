@@ -3,9 +3,11 @@ import { Stack } from '@mui/system'
 
 export const Title = ({
   label,
+  subtitle = false,
   children,
 }: {
   label: string
+  subtitle?: boolean
   children?: React.ReactNode
 }) => {
   const theme = useTheme()
@@ -16,9 +18,10 @@ export const Title = ({
       direction={{ xs: 'column', sm: 'row' }}
       justifyContent='space-between'
       alignItems='center'
-      mb={3}
+      mb={!subtitle ? 3 : 0}
+      width='100%'
     >
-      <Typography variant={isXs ? 'h4' : 'h2'} gutterBottom>
+      <Typography variant={subtitle ? 'h5' : isXs ? 'h4' : 'h2'} gutterBottom>
         {label}
       </Typography>
 

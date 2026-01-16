@@ -291,7 +291,10 @@ const sumIfMonths = (
     'integer',
   )
 
-export async function getFlightStats(billableMemberId: string): Promise<FlightLogStats[]> {
+export async function getFlightStats(
+  billableMemberId: string,
+  activeOnly: boolean,
+): Promise<FlightLogStats[]> {
   const res = await db
     .selectFrom('flight.logs')
     .select(eb => [
@@ -320,6 +323,18 @@ export async function getFlightStats(billableMemberId: string): Promise<FlightLo
       sumIfMonths(eb, 12, 'flight.logs.number_of_landings').as('landings12month'),
     ])
     .where('billable_member_id', '=', billableMemberId)
+    .$if(activeOnly == true, qb =>
+      qb.where(eb =>
+        eb(
+          'flight.logs.aircraft_registration',
+          'in',
+          eb
+            .selectFrom('flight.aircraft')
+            .select('flight.aircraft.registration')
+            .where('active', '=', true),
+        ),
+      ),
+    )
     .groupBy(['flight.logs.aircraft_registration', 'flight.logs.billable_member_id'])
     .execute()
 

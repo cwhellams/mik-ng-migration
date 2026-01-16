@@ -350,6 +350,11 @@ export const FlightTimeTotalsSchema = z.object({
 
 export type FlightTimeTotals = z.infer<typeof FlightTimeTotalsSchema>
 
+export const FlightLogStatsFilterSchema = z.object({
+  activeOnly: BooleanSchema.optional(),
+})
+export type FlightLogStatsFilter = z.infer<typeof FlightLogStatsFilterSchema>
+
 export const FlightLogStatsSchema = z.object({
   aircraftRegistration: z.string(),
   lastFlightId: z.string().nullable(),
