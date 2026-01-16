@@ -132,8 +132,8 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   ).logs?.[0]
 
   const tachUntilNextMaintenance = Math.floor(maintenance.nextMaintenanceTach - totalTime)
-  const usablePercentageHours = tachUntilNextMaintenance + maintenance.usablePercentageHours
-  const totalPercentageHours = tachUntilNextMaintenance + maintenance.totalPercentageHours
+  const usableHours =
+    tachUntilNextMaintenance + maintenance.totalPercentageHours - maintenance.reservedHours
 
   const daysUntilNextMaintenance = maintenance.nextMaintenanceDate
     ? Math.max(0, daysUntilExpiration(maintenance.nextMaintenanceDate))
@@ -149,8 +149,7 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
 
     daysUntilNextMaintenance,
     tachUntilNextMaintenance,
-    usablePercentageHours,
-    totalPercentageHours,
+    usableHours,
 
     warnings: [],
     cautions: [],

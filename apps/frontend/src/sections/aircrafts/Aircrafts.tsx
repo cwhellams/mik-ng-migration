@@ -498,10 +498,8 @@ const Aircrafts = () => {
                         </Typography>
 
                         <ProgressLine
-                          hardLimit={-aircraft.maintenance.totalPercentageHours}
-                          softLimit={
-                            -aircraft.maintenance.usablePercentageHours
-                          }
+                          limit={-aircraft.maintenance.totalPercentageHours}
+                          reserved={aircraft.maintenance.reservedHours}
                           current={
                             aircraft.status?.tachUntilNextMaintenance ?? 0
                           }

@@ -24,34 +24,43 @@ const Marker = () => {
 }
 
 const ProgressLine = ({
-  hardLimit,
-  softLimit,
+  limit,
+  reserved,
   current,
   max,
 }: {
-  hardLimit: number
-  softLimit: number
+  limit: number
+  reserved: number
   current: number
   max: number
 }) => {
+  const yellowZone = limit + reserved < 0
+
   const parts = [
-    {
-      color: '#dd5235',
-      border: '#993333',
-      title: undefined,
-      tooltip: '',
-      width: Math.abs(hardLimit - softLimit),
-    },
-    {
-      color: '#f9de55',
-      border: '#cc9933',
-      title: softLimit,
-      width: Math.abs(softLimit),
-    },
+    ...(reserved > 0
+      ? [
+          {
+            color: '#dd5235',
+            border: '#993333',
+            title: limit,
+            width: reserved,
+          },
+        ]
+      : []),
+    ...(yellowZone
+      ? [
+          {
+            color: '#f9de55',
+            border: '#cc9933',
+            title: limit + reserved,
+            width: Math.abs(limit + reserved),
+          },
+        ]
+      : []),
     {
       color: '#66cc66',
       border: '#669933',
-      title: 0,
+      title: Math.max(0, limit + reserved),
       width: 0,
     },
     {
@@ -62,7 +71,7 @@ const ProgressLine = ({
     },
   ]
 
-  const zeroPoint = Math.abs(hardLimit)
+  const zeroPoint = Math.abs(limit)
   const totalWidth = zeroPoint + max
 
   const [animation, setAnimation] = useState(0)
@@ -123,7 +132,7 @@ const ProgressLine = ({
                 justifyContent: !isLast ? 'center' : 'right',
               }}
             >
-              {part.title}
+              {!isFirst && part.title}
             </div>
           </div>
         )

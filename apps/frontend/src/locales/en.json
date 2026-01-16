@@ -152,7 +152,7 @@
     "documents": "Documents",
     "missingDocuments": "Missing Documents",
     "totalTime": "Last landing {{lastLanding}}, hours {{totalTime}}, {{remainingFuelLitres}} litres of fuel remaining ({{remainingFuelGallons}} USG).",
-    "maintenanceHours": "Next {{nextMaintenanceType}} maintenance at hours {{nextMaintenanceTach}}, {{tachUntilNextMaintenance}} flight hour(s) remaining, {{usablePercentageHours}}h usable until ferry flight. ",
+    "maintenanceHours": "Next {{nextMaintenanceType}} maintenance at hours {{nextMaintenanceTach}}, {{tachUntilNextMaintenance}} flight hour(s) remaining, {{usableHours}}h usable until ferry flight. ",
     "maintenanceDays": "Maintenance in {{daysUntilNextMaintenance}} day(s).",
     "tabs": {
       "info": "Info",
@@ -283,7 +283,7 @@
       "tach": "At Tach Hours",
       "nextMaintenance": "Next Maintenance",
       "totalPercentageHours": "Total Percentage Hours",
-      "usablePercentageHours": "Usable Percentage Hours"
+      "reservedHours": "Reserved Hours"
     },
     "notes": {
       "new": "Add New Note",

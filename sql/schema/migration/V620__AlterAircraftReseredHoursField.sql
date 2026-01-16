@@ -1,0 +1,1 @@
+ALTER TABLE flight.aircraft RENAME COLUMN usable_percentage_hours TO reserved_hours;

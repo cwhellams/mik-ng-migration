@@ -188,7 +188,7 @@ describe('Add and update aircrafts', () => {
       nextMaintenanceType: '50h',
       nextMaintenanceTach: 150,
       totalPercentageHours: 5,
-      usablePercentageHours: 3,
+      reservedHours: 2,
     },
     notes: [],
     location: 'test',

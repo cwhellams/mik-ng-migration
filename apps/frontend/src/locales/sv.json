@@ -152,7 +152,7 @@
     "documents": "Dokument",
     "missingDocuments": "Saknade dokument",
     "totalTime": "Senaste landning {{lastLanding}}, timmar {{totalTime}}, {{remainingFuelLitres}} liter bränsle kvar ({{remainingFuelGallons}} USG).",
-    "maintenanceHours": "Nästa {{nextMaintenanceType}} underhåll vid {{nextMaintenanceTach}} timmar, {{tachUntilNextMaintenance}} flygtimme(r) kvar, {{usablePercentageHours}}h användbart till färjeflyg.",
+    "maintenanceHours": "Nästa {{nextMaintenanceType}} underhåll vid {{nextMaintenanceTach}} timmar, {{tachUntilNextMaintenance}} flygtimme(r) kvar, {{usableHours}}h användbart till färjeflyg.",
     "maintenanceDays": "Underhåll om {{daysUntilNextMaintenance}} dag(ar).",
     "tabs": {
       "info": "Info",
@@ -283,7 +283,7 @@
       "tach": "Vid tachtimmar",
       "nextMaintenance": "Nästa underhåll",
       "totalPercentageHours": "Totala procenttimmar",
-      "usablePercentageHours": "Användbara procenttimmar"
+      "reservedHours": "Reserverade timmar"
     },
     "notes": {
       "new": "Lägg till ny anteckning",

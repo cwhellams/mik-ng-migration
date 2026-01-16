@@ -165,12 +165,12 @@ export interface FlightAircraft {
   next_maintenance_type: string
   notes: Json | null
   registration: string
+  reserved_hours: number
   seats: number
   total_percentage_hours: number
   updated_at: Generated<Timestamp>
   updated_by: string
   usable_fuel_litres: number
-  usable_percentage_hours: number
   year_of_manufacture: number
 }
 
@@ -363,19 +363,6 @@ export interface FlywayDataHistory {
 }
 
 export interface FlywaySchemaHistory {
-  checksum: number | null
-  description: string
-  execution_time: number
-  installed_by: string
-  installed_on: Generated<Timestamp>
-  installed_rank: number
-  script: string
-  success: boolean
-  type: string
-  version: string | null
-}
-
-export interface FlywayStaticdataHistory {
   checksum: number | null
   description: string
   execution_time: number
@@ -753,7 +740,6 @@ export interface DB {
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory
-  flyway_staticdata_history: FlywayStaticdataHistory
   'member.annual_fees': MemberAnnualFees
   'member.brevo_sync_state': MemberBrevoSyncState
   'member.documents': MemberDocuments

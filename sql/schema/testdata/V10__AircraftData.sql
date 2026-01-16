@@ -16,7 +16,7 @@ INSERT INTO flight.aircraft (
         next_maintenance_type,
         next_maintenance_tach,
         total_percentage_hours,
-        usable_percentage_hours,
+        reserved_hours,
         location,
         notes,
         equipment,
@@ -45,7 +45,7 @@ VALUES (
         '50h',
         5230,
         5,
-        3,
+        2,
         'EFNU',
         to_jsonb(
             ARRAY [

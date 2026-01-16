@@ -64,7 +64,9 @@ export const EditAircraftModal = ({
   const isNewAircraft = !aircraft?.registration
 
   const { mutation } = useApi<Aircraft>({
-    url: isNewAircraft ? 'v1/aircrafts' : `v1/aircrafts/${aircraft?.registration}`,
+    url: isNewAircraft
+      ? 'v1/aircrafts'
+      : `v1/aircrafts/${aircraft?.registration}`,
     skipFetch: true,
   })
 
@@ -110,7 +112,7 @@ export const EditAircraftModal = ({
               nextMaintenanceTach: 50,
 
               totalPercentageHours: 5,
-              usablePercentageHours: 3,
+              reservedHours: 2,
             },
       })
     } else if (mode === 'maintenance') {
@@ -130,13 +132,18 @@ export const EditAircraftModal = ({
       [field]: value,
     }))
 
-  const handleFuelTypesChange = (event: SelectChangeEvent<typeof formData.fuelTypes>) => {
+  const handleFuelTypesChange = (
+    event: SelectChangeEvent<typeof formData.fuelTypes>
+  ) => {
     const {
       target: { value },
     } = event
     setFormData((prev) => ({
       ...prev,
-      fuelTypes: typeof value === 'string' ? value.split(',') as FuelType[] : value as FuelType[],
+      fuelTypes:
+        typeof value === 'string'
+          ? (value.split(',') as FuelType[])
+          : (value as FuelType[]),
     }))
   }
 
@@ -222,7 +229,7 @@ export const EditAircraftModal = ({
 
   const renderDetailsForm = () => (
     <Grid container spacing={2}>
-      <Grid  size={{ xs: 12, sm: 6 } }>
+      <Grid size={{ xs: 12, sm: 6 }}>
         <TextField
           fullWidth
           required
@@ -240,7 +247,7 @@ export const EditAircraftModal = ({
           onChange={({ target }) => handleChange('displayName', target.value)}
         />
       </Grid>
-      <Grid size={{ xs: 12, sm:46 }}>
+      <Grid size={{ xs: 12, sm: 46 }}>
         <TextField
           fullWidth
           required
@@ -249,7 +256,7 @@ export const EditAircraftModal = ({
           onChange={({ target }) => handleChange('manufacturer', target.value)}
         />
       </Grid>
-      <Grid size={{ xs: 6, sm: 4 } }>
+      <Grid size={{ xs: 6, sm: 4 }}>
         <TextField
           fullWidth
           required
@@ -287,9 +294,7 @@ export const EditAircraftModal = ({
           inputMode='numeric'
           label={t('aircraft.edit.seats')}
           value={formData.seats || ''}
-          onChange={({ target }) =>
-            handleChange('seats', Number(target.value))
-          }
+          onChange={({ target }) => handleChange('seats', Number(target.value))}
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 4 }}>
@@ -433,11 +438,11 @@ export const EditAircraftModal = ({
           type='number'
           inputMode='numeric'
           label={t('aircraft.maintenance.totalPercentageHours')}
-          value={formData.maintenance?.totalPercentageHours || ''}
+          value={formData.maintenance?.totalPercentageHours ?? ''}
           onChange={({ target }) =>
             handleMaintenanceChange(
               'totalPercentageHours',
-              Number(target.value)
+              Math.max(0, Number(target.value))
             )
           }
         />
@@ -448,12 +453,12 @@ export const EditAircraftModal = ({
           required
           type='number'
           inputMode='numeric'
-          label={t('aircraft.maintenance.usablePercentageHours')}
-          value={formData.maintenance?.usablePercentageHours || ''}
+          label={t('aircraft.maintenance.reservedHours')}
+          value={formData.maintenance?.reservedHours ?? ''}
           onChange={({ target }) =>
             handleMaintenanceChange(
-              'usablePercentageHours',
-              Number(target.value)
+              'reservedHours',
+              Math.max(0, Number(target.value))
             )
           }
         />
@@ -633,7 +638,9 @@ export const EditAircraftModal = ({
       slotProps={{
         paper: {
           component: 'form',
-          onSubmit: (e: FormEvent<Element>) => { handleSubmit(e); },
+          onSubmit: (e: FormEvent<Element>) => {
+            handleSubmit(e)
+          },
         },
       }}
     >
@@ -663,19 +670,14 @@ export const EditAircraftModal = ({
               )}
             </>
           )}
-          {(() => {
-            if (mode == 'notes') {
-              return notesCard();
-            } else {
-              return (
-                <>
-                  {renderDetailsForm()}
-                  {operationsCard()}
-                  {auditCard()}
-                </>
-              );
-            }
-          })()}
+          {mode == 'notes' && <>{notesCard()}</>}
+          {(mode == 'new' || mode == 'details') && (
+            <>
+              {renderDetailsForm()}
+              {operationsCard()}
+              {auditCard()}
+            </>
+          )}
         </Stack>
       </DialogContent>
 

@@ -15,7 +15,7 @@ export const AircraftMaintenanceRecordSchema = z.object({
   nextMaintenanceTach: z.number().int(),
 
   totalPercentageHours: z.number().int(),
-  usablePercentageHours: z.number().int(),
+  reservedHours: z.number().int(),
 })
 
 export enum Severity {
@@ -56,8 +56,7 @@ export const AircraftStatusSchema = z.object({
 
   daysUntilNextMaintenance: z.number().int().optional(),
   tachUntilNextMaintenance: z.number().int(),
-  usablePercentageHours: z.number().int(),
-  totalPercentageHours: z.number().int(),
+  usableHours: z.number().int(),
 
   warnings: z.array(AircraftAlertSchema),
   cautions: z.array(AircraftAlertSchema),

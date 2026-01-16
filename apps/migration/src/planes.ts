@@ -56,7 +56,7 @@ export const migratePlanes = async () => {
         nextMaintenanceTach: 50,
 
         totalPercentageHours: 5,
-        usablePercentageHours: 3,
+        reservedHours: 3,
       },
     }
 

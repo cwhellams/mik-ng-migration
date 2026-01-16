@@ -74,7 +74,7 @@ const toAircraft = (
     nextMaintenanceTach: aircraft.next_maintenance_tach,
 
     totalPercentageHours: aircraft.total_percentage_hours,
-    usablePercentageHours: aircraft.usable_percentage_hours,
+    reservedHours: aircraft.reserved_hours,
   },
 
   notes: aircraft.notes as AircraftNote[],
@@ -114,7 +114,7 @@ export async function addAircraft(aircraft: Upsert<Aircraft>, jwt: JWTUser): Pro
       next_maintenance_tach: aircraft.maintenance.nextMaintenanceTach,
 
       total_percentage_hours: aircraft.maintenance.totalPercentageHours,
-      usable_percentage_hours: aircraft.maintenance.usablePercentageHours,
+      reserved_hours: aircraft.maintenance.reservedHours,
 
       notes: JSON.stringify(aircraft.notes),
 
@@ -177,7 +177,7 @@ export async function updateAircraft(
         next_maintenance_type: patch.maintenance!.nextMaintenanceType,
         next_maintenance_tach: patch.maintenance!.nextMaintenanceTach,
         total_percentage_hours: patch.maintenance?.totalPercentageHours,
-        usable_percentage_hours: patch.maintenance?.usablePercentageHours,
+        reserved_hours: patch.maintenance?.reservedHours,
       }),
     )
     .where('registration', '=', registration)
