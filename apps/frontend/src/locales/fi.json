@@ -718,11 +718,11 @@
     }
   },
   "massBalance": {
-    "title": "Massa ja tasapaino laskin",
-    "description": "Laske lentokoneen massa ja tasapaino lennon suunnittelua varten. Valitse lentokone ja syötä kuormitustiedot määrittääksesi, onko lento turvallisten toimintarajojen sisällä.",
+    "title": "Massa- ja painopistelaskin",
+    "description": "Laske lentokoneen massa ja painopiste lennon suunnittelua varten. Valitse lentokone ja syötä kuormitustiedot määrittääksesi, onko lento turvallisten toimintarajojen sisällä.",
     "disclaimer": {
       "title": "Vastuuvapauslauseke",
-      "text": "Päällikön vastuulla on varmistaa lentokoneen massan ja tasapainon oikeellisuus. Vaikka pyrimme varmistamaan näiden laskelmien tarkkuuden, MIK ry ei takaa tämän laskurin tarkkuutta. Viittaa POH:hon ja viralliseen lentokoneen dokumentaatioon sertifioidun tiedon saamiseksi."
+      "text": "Päällikön vastuulla on varmistaa lentokoneen massan ja painopisteen oikeellisuus. Vaikka pyrimme varmistamaan näiden laskelmien tarkkuuden, MIK ry ei takaa tämän laskurin tarkkuutta. Viittaa POH:hon ja viralliseen lentokoneen dokumentaatioon sertifioidun tiedon saamiseksi."
     },
     "aircraftSelection": "Lentokoneen valinta",
     "selectAircraft": "Valitse lentokone",
@@ -757,7 +757,7 @@
     "moment": "Momentti",
     "withinLimits": "RAJOJEN SISÄLLÄ ✓",
     "exceedsLimits": "YLITTÄÄ RAJAT ✗",
-    "weightBalance": "Paino ja tasapaino kuvaaja",
+    "weightBalance": "Paino ja painopiste kuvaaja",
     "cgRange": "Painopisteen alue",
     "maxLoad": "Suurin kuorma",
     "currentLoad": "Nykyinen",
@@ -877,7 +877,7 @@
     "navigateToProfile": "Siirry profiiliin"
   },
   "occurrences": {
-    "title": "Poikkamaraportit",
+    "title": "Poikkeamaraportit",
     "newReport": "Uusi poikkeama",
     "existingReport": "Muokkaa poikkeamaa",
     "noReports": "Ei poikkeamaraportteja",
