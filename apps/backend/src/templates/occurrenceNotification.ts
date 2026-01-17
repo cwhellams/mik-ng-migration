@@ -11,7 +11,7 @@ export const sendOccurrenceNotification = async (
   roles: string[],
   occurrence: Occurrence,
 ) => {
-  const members = await getMembers(true, undefined, roles)
+  const members = await getMembers(true, roles, {})
   if (members.length === 0) {
     console.warn(
       `No members found with roles [${roles.join(', ')}], skipping occurrence notification for occurrence ${occurrence.id}`,

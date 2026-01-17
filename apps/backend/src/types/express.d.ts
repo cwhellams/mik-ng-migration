@@ -5,5 +5,6 @@ declare namespace Express {
     email: string
     roles: string[]
     permissions: MIKPermissions[]
+    canMakeReservations: boolean
   }
 }

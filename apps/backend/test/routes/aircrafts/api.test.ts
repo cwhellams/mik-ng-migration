@@ -26,6 +26,7 @@ const adminToken = generateAccessToken({
   email: 'admin@mik.fi',
   roles: [],
   permissions: [MIKPermissions.AIRCRAFT_ADMIN],
+  canMakeReservations: false,
 })
 
 const userToken = generateAccessToken({
@@ -34,6 +35,7 @@ const userToken = generateAccessToken({
   email: 'user@mik.fi',
   roles: [],
   permissions: [MIKPermissions.AIRCRAFT_USER],
+  canMakeReservations: false,
 })
 
 const noPermissionsToken = generateAccessToken({
@@ -42,6 +44,7 @@ const noPermissionsToken = generateAccessToken({
   email: 'no-permissions@mik.fi',
   roles: [],
   permissions: [],
+  canMakeReservations: false,
 })
 
 const removeTimestamps = (aircraft: Aircraft) => ({

@@ -29,13 +29,18 @@ import { useSwipeable } from 'react-swipeable'
 import ThemeToggle from './ThemeToggle'
 import AdminToggle from './AdminToggle'
 import { useRoles } from '../hooks/useRoles'
-import { MIKPermissions } from '@backend/routes/members/models'
 import { useThemeMode } from '../theme/ThemeContext'
 import { HeaderSubMenu } from './HeaderSubMenu'
 
 interface HeaderProps {
   window?: () => Window
 }
+
+const hostName =
+  import.meta.env.VITE_API_TARGET?.replace('https://', '').replace(
+    '.mik.fi',
+    ''
+  ) ?? 'local'
 
 const Header = (props: HeaderProps) => {
   const { window } = props
@@ -84,16 +89,12 @@ const Header = (props: HeaderProps) => {
     trackMouse: false,
   })
 
-  const hasMenuAccess = (
-    requiredRoles?: MIKPermissions[],
-    adminOnly?: boolean
-  ): boolean => {
-    if (adminOnly === true && !sudo) {
+  const authorizedMenuItems = menuItems.filter((item) => {
+    if (item.adminModeOnly === true && !sudo) {
       return false
     }
-
-    return hasAccess(...(requiredRoles ?? []))
-  }
+    return hasAccess(...(item.requiredRoles ?? []))
+  })
 
   const Logo = () => (
     <>
@@ -103,11 +104,12 @@ const Header = (props: HeaderProps) => {
         style={{
           height: 40,
           width: 'auto',
+          filter: 'invert(24%) sepia(68%) saturate(5000%)',
         }}
       />
-      {process.env.NODE_ENV !== 'production' && (
+      {hostName !== 'intra' && (
         <Typography variant='subtitle2' color='error'>
-          {process.env.NODE_ENV}
+          {hostName}
         </Typography>
       )}
     </>
@@ -129,27 +131,23 @@ const Header = (props: HeaderProps) => {
       </Box>
       <Divider />
       <List>
-        {menuItems
-          .filter((item) =>
-            hasMenuAccess(item.requiredRoles, item.adminModeOnly)
-          )
-          .map((item) => (
-            <ListItem key={item.path} disablePadding>
-              <ListItemButton
-                component={Link}
-                to={item.path}
-                selected={location.pathname === item.path}
-                sx={{
-                  '&.Mui-selected': {
-                    backgroundColor: 'rgba(0, 35, 133, 0.08)',
-                  },
-                }}
-              >
-                {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
-                <ListItemText primary={t(item.label)} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+        {authorizedMenuItems.map((item) => (
+          <ListItem key={item.path} disablePadding>
+            <ListItemButton
+              component={Link}
+              to={item.path}
+              selected={location.pathname === item.path}
+              sx={{
+                '&.Mui-selected': {
+                  backgroundColor: 'rgba(0, 35, 133, 0.08)',
+                },
+              }}
+            >
+              {item.icon && <ListItemIcon>{item.icon}</ListItemIcon>}
+              <ListItemText primary={t(item.label)} />
+            </ListItemButton>
+          </ListItem>
+        ))}
       </List>
     </Box>
   )
@@ -217,26 +215,22 @@ const Header = (props: HeaderProps) => {
           {/* Navigation Links - Only on Desktop */}
           {!isMobile && (
             <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
-              {menuItems
-                .filter((item) =>
-                  hasMenuAccess(item.requiredRoles, item.adminModeOnly)
-                )
-                .map((item) => (
-                  <Button
-                    key={item.path}
-                    component={Link}
-                    to={item.path}
-                    color='inherit'
-                    sx={{
-                      color: theme.palette.text.primary,
-                      fontWeight: location.pathname.startsWith(item.path)
-                        ? 'bold'
-                        : 'normal',
-                    }}
-                  >
-                    {t(item.label)}
-                  </Button>
-                ))}
+              {authorizedMenuItems.map((item) => (
+                <Button
+                  key={item.path}
+                  component={Link}
+                  to={item.path}
+                  color='inherit'
+                  sx={{
+                    color: theme.palette.text.primary,
+                    fontWeight: location.pathname.startsWith(item.path)
+                      ? 'bold'
+                      : 'normal',
+                  }}
+                >
+                  {t(item.label)}
+                </Button>
+              ))}
             </Box>
           )}
 
@@ -260,7 +254,7 @@ const Header = (props: HeaderProps) => {
         </Container>
       </Toolbar>
 
-      {menuItems
+      {authorizedMenuItems
         .filter((item) => item.subItems && item.subItems.length > 0)
         .map((item) => (
           <HeaderSubMenu key={item.path} parent={item} />

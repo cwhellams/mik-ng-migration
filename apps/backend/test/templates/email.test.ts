@@ -3,7 +3,7 @@ import {
   BookingType,
   type BookingUpsertRequest,
 } from '../../src/routes/bookings/models.ts'
-import { MIKLang, type Member } from '../../src/routes/members/models.ts'
+import { MIKLang } from '../../src/routes/members/models.ts'
 import { OccurrenceStatus, type Occurrence } from '../../src/routes/occurrences/models.ts'
 import { bookingCancelledEmailBodyHtml } from '../../src/templates/bookingCancelledEmailTemplate.ts'
 import { loginEmailBodyHtml, type LoginVars } from '../../src/templates/loginEmailTemplate.ts'
@@ -72,15 +72,8 @@ describe('Booking cancellation template tests', () => {
     status: BookingStatus.CONFIRMED,
   }
 
-  const admin: Member = {
-    memberId: '1',
-    firstName: 'Admin',
-    lastName: 'User',
-    email: 'admin@example.com',
-  } as Member
-
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingCancellationEmailBodyHtml', lang => {
-    const result = bookingCancelledEmailBodyHtml(lang, admin, oldBooking, newBooking)
+    const result = bookingCancelledEmailBodyHtml(lang, 'Admin User', oldBooking, newBooking)
     expect(result).toMatchSnapshot()
   })
 })

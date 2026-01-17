@@ -1,7 +1,6 @@
 import 'dotenv/config'
 import type { BookingUpsertRequest } from '../routes/bookings/models.ts'
 import { markdownEmailTemplate } from './emailTemplate.ts'
-import type { Member } from '../routes/members/models.ts'
 import { epochToLocal } from '../util/date.ts'
 import { escapeHtml } from '../util/sanitizers.ts'
 
@@ -10,7 +9,7 @@ export const bookingCancelledEmailSubject = (lang: string | undefined): string =
 
 export const bookingCancelledEmailBodyHtml = (
   lang: string | undefined,
-  admin: Member,
+  by: string,
   oldBooking: BookingUpsertRequest,
   newBooking: BookingUpsertRequest,
 ): string =>
@@ -19,7 +18,7 @@ export const bookingCancelledEmailBodyHtml = (
     oldBookingTime: formatRange(oldBooking),
     newBookingTime: formatRange(newBooking),
     reason: escapeHtml(newBooking.description ?? newBooking.type),
-    by: escapeHtml(`${admin.firstName} ${admin.lastName}`),
+    by: escapeHtml(by),
     href: href(oldBooking),
   })
 

@@ -33,6 +33,7 @@ const adminToken = generateAccessToken({
   email: 'admin@mik.fi',
   roles: ['ADMIN'],
   permissions: [MIKPermissions.MEMBER_ADMIN],
+  canMakeReservations: false,
 })
 
 const memberToken = generateAccessToken({
@@ -41,6 +42,7 @@ const memberToken = generateAccessToken({
   email: 'member@mik.fi',
   roles: ['MEMBER'],
   permissions: [MIKPermissions.MEMBER],
+  canMakeReservations: false,
 })
 
 const noPermissionsToken = generateAccessToken({
@@ -49,6 +51,7 @@ const noPermissionsToken = generateAccessToken({
   email: 'no-permissions@mik.fi',
   roles: ['MEMBER'],
   permissions: [],
+  canMakeReservations: false,
 })
 
 const missingUserToken = generateAccessToken({
@@ -57,6 +60,7 @@ const missingUserToken = generateAccessToken({
   email: 'no-permissions@mik.fi',
   roles: ['MEMBER'],
   permissions: [],
+  canMakeReservations: false,
 })
 
 const post = async (payload: Upsert<MemberRole>, token: string) =>
@@ -248,11 +252,6 @@ describe('GET /members', () => {
     })
 
     expect(membersQry.members.map(({ first, last, roles }) => ({ first, last, roles }))).toEqual([
-      {
-        first: 'MIK',
-        last: 'Admin',
-        roles: ['ADMIN'],
-      },
       {
         first: 'Kaisa',
         last: 'Laine',
@@ -795,37 +794,38 @@ describe('POST /members', () => {
 })
 
 describe('Membership approval tests', () => {
-  it('Get awaiting approval member details should return list of members awaiting approval', async () => {
+  it('Get unapproved members should return list of members awaiting approval', async () => {
     const response = await request(app)
-      .get('/members/awaiting-approval')
+      .get('/members')
       .set('Authorization', `Bearer ${adminToken}`)
+      .query({ showUnapproved: true })
     expect(response.status).toBe(200)
-
-    var payload = response.body
-      .slice()
-      .sort((a: Member, b: Member) => a.memberId.localeCompare(b.memberId))
-      .map((member: Member) => ({
-        ...member,
-        memberSince: expect.any(String),
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-      }))
-
-    expect(payload).toMatchSnapshot()
+    expect(response.body.members).toMatchSnapshot()
   })
 
-  it('Get awaiting approval member details should return error when not a member admin', async () => {
+  it('Get unapproved members by name should return data when member admin', async () => {
     const response = await request(app)
-      .get('/members/awaiting-approval')
+      .get('/members')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .query({ showUnapproved: true, name: 'Kaisa' })
+    expect(response.status).toEqual(200)
+    expect(response.body.members.length).toEqual(1)
+    expect(response.body.members[0].email).toEqual('kaisa.laine@example.com')
+  })
+
+  it('Get unapproved members by name should not return when not a member admin', async () => {
+    const response = await request(app)
+      .get('/members')
       .set('Authorization', `Bearer ${memberToken}`)
-    expect(response.status).toBe(403)
+      .query({ showUnapproved: true, name: 'Kaisa' })
+    expect(response.status).toEqual(200)
+    expect(response.body.members.length).toEqual(0)
   })
 
   it('POST approval should approve a new member by updating the member.register table ', async () => {
     const response = await request(app)
       .post('/members/Marja1/approve')
       .set('Authorization', `Bearer ${adminToken}`)
-    console.log(response.body)
     expect(response.status).toBe(HttpStatusCode.Created)
 
     const member = response.body as Member

@@ -394,7 +394,8 @@
     "details": "Roolin tiedot",
     "all": "-- Kaikki --",
     "unApproved": "-- Hyväksymättä --",
-    "showRemoved": "-- Poistetut --"
+    "showRemoved": "-- Poistetut --",
+    "showExternal": "-- Muut käyttäjät --"
   },
   "permissions": {
     "member": "MIK jäsen",

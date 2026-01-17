@@ -13,7 +13,7 @@ import {
   Checkbox,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
-import { Member, MIKLang } from '@backend/routes/members/models'
+import { Member, MIKLang, MIKMemberTypes } from '@backend/routes/members/models'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
@@ -124,28 +124,33 @@ const MemberProfile = () => {
     autoRenewEquipmentFee,
   } = data || {}
 
+  const isRemoved = memberType == MIKMemberTypes.REMOVED
+  const isExternalUser = memberType == MIKMemberTypes.EXTERNAL
+
   return (
     <RemoteContent isLoading={isLoading} error={error}>
       <Box sx={{ padding: 3 }}>
         <SnackAlert problem={problem} />
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <Badge
             overlap='circular'
-            //variant="dot"
             badgeContent={
-              <Tooltip
-                title={
-                  isMembershipApproved
-                    ? t('member.membershipApproved')
-                    : t('member.membershipPending')
-                }
-              >
-                {isMembershipApproved ? (
-                  <CheckCircleIcon fontSize='large' color='success' />
-                ) : (
-                  <PendingActionsIcon fontSize='large' color='error' />
-                )}
-              </Tooltip>
+              !isExternalUser && (
+                <Tooltip
+                  title={
+                    isMembershipApproved
+                      ? t('member.membershipApproved')
+                      : t('member.membershipPending')
+                  }
+                >
+                  {isMembershipApproved ? (
+                    <CheckCircleIcon fontSize='large' color='success' />
+                  ) : (
+                    <PendingActionsIcon fontSize='large' color='error' />
+                  )}
+                </Tooltip>
+              )
             }
             anchorOrigin={{
               vertical: 'top',
@@ -188,14 +193,17 @@ const MemberProfile = () => {
         </Stack>
 
         <Stack spacing={3}>
-          {isAdmin && !isMembershipApproved && (
-            <Stack spacing={3}>
-              <Card sx={{ flex: 1, mb: 3 }}>
-                <CardContent
-                  sx={{
-                    borderWidth: '8px',
-                    borderStyle: 'solid',
-                    borderImage: `
+          {isAdmin &&
+            !isMembershipApproved &&
+            !isRemoved &&
+            !isExternalUser && (
+              <Stack spacing={3}>
+                <Card sx={{ flex: 1, mb: 3 }}>
+                  <CardContent
+                    sx={{
+                      borderWidth: '8px',
+                      borderStyle: 'solid',
+                      borderImage: `
           repeating-linear-gradient(
             45deg,
             #fdd835 0px,
@@ -204,43 +212,43 @@ const MemberProfile = () => {
             #000 20px
           ) 8
         `,
-                    borderRadius: 2,
-                    boxShadow: 1,
-                  }}
-                >
-                  <FormTitle
-                    title={t('member.membershipPending')}
-                    icon='mdi:account-check'
-                  />
-                  <Stack>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={isPreFlightChecked}
-                          onChange={handlePreFlightCheckboxChange}
-                          size='medium'
-                        />
-                      }
-                      label={t('member.preFlightChkComplete')}
+                      borderRadius: 2,
+                      boxShadow: 1,
+                    }}
+                  >
+                    <FormTitle
+                      title={t('member.membershipPending')}
+                      icon='mdi:account-check'
                     />
+                    <Stack>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={isPreFlightChecked}
+                            onChange={handlePreFlightCheckboxChange}
+                            size='medium'
+                          />
+                        }
+                        label={t('member.preFlightChkComplete')}
+                      />
 
-                    {!isPreFlightChecked && (
-                      <Typography sx={{ mb: 2, color: 'red' }} variant='h6'>
-                        {t('member.approvalDisabledMsg')}
-                      </Typography>
-                    )}
-                    <Button
-                      variant='contained'
-                      disabled={!isPreFlightChecked}
-                      onClick={async () => await handleApprove()}
-                    >
-                      {t('member.approveMembership')}
-                    </Button>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Stack>
-          )}
+                      {!isPreFlightChecked && (
+                        <Typography sx={{ mb: 2, color: 'red' }} variant='h6'>
+                          {t('member.approvalDisabledMsg')}
+                        </Typography>
+                      )}
+                      <Button
+                        variant='contained'
+                        disabled={!isPreFlightChecked}
+                        onClick={async () => await handleApprove()}
+                      >
+                        {t('member.approveMembership')}
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Stack>
+            )}
           <Stack direction={{ sm: 'column', md: 'row' }} spacing={3}>
             <Card sx={{ flex: 1, mb: 3 }}>
               <EditButton
@@ -474,8 +482,8 @@ const MemberProfile = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            {
+          {!isExternalUser && (
+            <Card>
               <EditButton
                 title={t('member.edit.billing')}
                 onClick={() => handleOpenEditModal('billing')}
@@ -485,65 +493,67 @@ const MemberProfile = () => {
                   right: 8,
                 }}
               />
-            }
-            <CardContent>
-              <FormTitle
-                title={t('member.billingInfo.billingSettings')}
-                icon='mdi:credit-card-outline'
-              />
-              <Stack spacing={1.5}>
-                <FormField
-                  label={t('member.billingInfo.annualMembershipAutoRenew')}
-                >
-                  <Checkbox
-                    checked={Boolean(autoRenewAnnualMembership)}
-                    disabled
-                    size='large'
-                    sx={{ p: 0, pl: 0 }}
-                  />
-                </FormField>
-                <FormField
-                  label={t('member.billingInfo.equipmentFeeAutoRenew')}
-                >
-                  <Checkbox
-                    checked={Boolean(autoRenewEquipmentFee)}
-                    disabled
-                    size='large'
-                    sx={{ p: 0, pl: 0 }}
-                  />
-                </FormField>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          <Card>
-            {isAdmin && (
-              <EditButton
-                title={t('member.edit.training')}
-                onClick={() => handleOpenEditModal('training')}
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                }}
-              />
-            )}
-            <CardContent>
-              <FormTitle
-                title={t('member.trainingProgram')}
-                icon='mdi:account-school'
-              />
-
-              <FormField label={t('member.isTrainingProgramPilot')}>
-                <Checkbox
-                  checked={Boolean(isTrainingProgramPilot)}
-                  disabled
-                  size='large'
-                  sx={{ p: 0, pl: 0 }}
+              <CardContent>
+                <FormTitle
+                  title={t('member.billingInfo.billingSettings')}
+                  icon='mdi:credit-card-outline'
                 />
-              </FormField>
-            </CardContent>
-          </Card>
+                <Stack spacing={1.5}>
+                  <FormField
+                    label={t('member.billingInfo.annualMembershipAutoRenew')}
+                  >
+                    <Checkbox
+                      checked={Boolean(autoRenewAnnualMembership)}
+                      disabled
+                      size='large'
+                      sx={{ p: 0, pl: 0 }}
+                    />
+                  </FormField>
+                  <FormField
+                    label={t('member.billingInfo.equipmentFeeAutoRenew')}
+                  >
+                    <Checkbox
+                      checked={Boolean(autoRenewEquipmentFee)}
+                      disabled
+                      size='large'
+                      sx={{ p: 0, pl: 0 }}
+                    />
+                  </FormField>
+                </Stack>
+              </CardContent>
+            </Card>
+          )}
+
+          {!isExternalUser && (
+            <Card>
+              {isAdmin && (
+                <EditButton
+                  title={t('member.edit.training')}
+                  onClick={() => handleOpenEditModal('training')}
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                  }}
+                />
+              )}
+              <CardContent>
+                <FormTitle
+                  title={t('member.trainingProgram')}
+                  icon='mdi:account-school'
+                />
+
+                <FormField label={t('member.isTrainingProgramPilot')}>
+                  <Checkbox
+                    checked={Boolean(isTrainingProgramPilot)}
+                    disabled
+                    size='large'
+                    sx={{ p: 0, pl: 0 }}
+                  />
+                </FormField>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             {isAdmin && (
@@ -582,20 +592,26 @@ const MemberProfile = () => {
                   />
                 </FormField>
 
-                <FormField label={t('member.isMembershipExpired')}>
-                  <Checkbox
-                    checked={Boolean(isMembershipExpired)}
-                    disabled
-                    size='large'
-                    sx={{ p: 0, pl: 0 }}
-                  />
-                </FormField>
+                {!isExternalUser && (
+                  <>
+                    <FormField label={t('member.isMembershipExpired')}>
+                      <Checkbox
+                        checked={Boolean(isMembershipExpired)}
+                        disabled
+                        size='large'
+                        sx={{ p: 0, pl: 0 }}
+                      />
+                    </FormField>
 
-                <FormField label={t('member.billingId')}>{billingId}</FormField>
+                    <FormField label={t('member.billingId')}>
+                      {billingId}
+                    </FormField>
 
-                <FormField label={t('member.memberSince')}>
-                  {formatDate(memberSince)}
-                </FormField>
+                    <FormField label={t('member.memberSince')}>
+                      {formatDate(memberSince)}
+                    </FormField>
+                  </>
+                )}
 
                 {isAdmin && data && (
                   <>
@@ -619,12 +635,14 @@ const MemberProfile = () => {
                       memberId={data.memberId}
                     />
 
-                    <AuditFormField
-                      label={t('member.membershipApproved')}
-                      at={data.membershipApprovedAt}
-                      by={data.membershipApprovedBy}
-                      memberId={data.memberId}
-                    />
+                    {!isExternalUser && (
+                      <AuditFormField
+                        label={t('member.membershipApproved')}
+                        at={data.membershipApprovedAt}
+                        by={data.membershipApprovedBy}
+                        memberId={data.memberId}
+                      />
+                    )}
                   </>
                 )}
               </Stack>

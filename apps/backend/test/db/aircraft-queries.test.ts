@@ -16,6 +16,7 @@ const jwt: JWTUser = {
   email: 'loggedinuser',
   roles: [],
   permissions: [],
+  canMakeReservations: false,
 }
 
 describe('Db query Get aircrafts tests', () => {

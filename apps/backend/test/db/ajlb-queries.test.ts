@@ -59,6 +59,7 @@ describe('Db ajlb CRUD tests', () => {
     email: 'loggedinuser',
     roles: [],
     permissions: [],
+    canMakeReservations: false,
   }
 
   const payload = {

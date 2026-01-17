@@ -22,6 +22,7 @@ const adminToken = generateAccessToken({
   email: 'admin@mik.fi',
   roles: [],
   permissions: [MIKPermissions.INVOICING_ADMIN],
+  canMakeReservations: false,
 })
 
 const memberToken = generateAccessToken({
@@ -30,6 +31,7 @@ const memberToken = generateAccessToken({
   email: 'member@mik.fi',
   roles: [],
   permissions: [MIKPermissions.MEMBER],
+  canMakeReservations: false,
 })
 
 describe('GET /', () => {

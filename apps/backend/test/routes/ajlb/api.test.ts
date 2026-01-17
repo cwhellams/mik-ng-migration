@@ -27,6 +27,7 @@ const jwt: JWTUser = {
   email: 'loggedinuser',
   roles: [],
   permissions: [],
+  canMakeReservations: false,
 }
 
 const memberToken = generateAccessToken({
@@ -58,6 +59,7 @@ describe('GET /ajlb', () => {
       email: 'jonny.depp@mik.fi',
       roles: [],
       permissions: [],
+      canMakeReservations: false,
     })
 
     const response = await request(app).get('/ajlb').set('Authorization', `Bearer ${noAccessToken}`)

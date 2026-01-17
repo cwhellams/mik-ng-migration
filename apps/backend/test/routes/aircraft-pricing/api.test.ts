@@ -21,6 +21,7 @@ const adminToken = generateAccessToken({
   email: 'admin@mik.fi',
   roles: [],
   permissions: [MIKPermissions.INVOICING_ADMIN],
+  canMakeReservations: false,
 })
 
 const userToken = generateAccessToken({
@@ -29,6 +30,7 @@ const userToken = generateAccessToken({
   email: 'user@mik.fi',
   roles: [],
   permissions: [],
+  canMakeReservations: false,
 })
 
 const removeTimestamps = (pricing: AircraftPricing) => ({

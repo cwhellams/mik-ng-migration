@@ -116,22 +116,26 @@ const Members = () => {
                   ? 'unapproved'
                   : filters.showRemoved
                     ? 'showRemoved'
-                    : (filters.role ?? '')
+                    : filters.showExternal
+                      ? 'showExternal'
+                      : (filters.role ?? '')
               }
               label={t('member.memberType')}
               onChange={({ target }) => {
                 const showUnapproved = target.value == 'unapproved'
                 const showRemoved = target.value == 'showRemoved'
-
-                const filter: MemberListFilters = {
+                const showExternal = target.value == 'showExternal'
+                const showRole =
+                  !showUnapproved &&
+                  !showRemoved &&
+                  !showExternal &&
+                  target.value !== ''
+                setFilters({
                   showUnapproved,
                   showRemoved,
-                  ...(!showUnapproved && !showRemoved && target.value !== ''
-                    ? { role: target.value }
-                    : { role: undefined }),
-                }
-
-                setFilters(filter)
+                  showExternal,
+                  ...(showRole ? { role: target.value } : { role: undefined }),
+                })
                 mutate()
               }}
             >
@@ -144,6 +148,11 @@ const Members = () => {
               {isMembersAdmin && (
                 <MenuItem value={'showRemoved'}>
                   {t('roles.showRemoved')}
+                </MenuItem>
+              )}
+              {isMembersAdmin && (
+                <MenuItem value={'showExternal'}>
+                  {t('roles.showExternal')}
                 </MenuItem>
               )}
               {roles.map((role) => (

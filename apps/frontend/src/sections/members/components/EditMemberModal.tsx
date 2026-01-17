@@ -176,36 +176,16 @@ export const EditMemberModal = ({
             value={formData.memberType}
             onChange={handleChange('memberType')}
           >
-            <FormControlLabel
-              value='FLYING'
-              control={<Radio />}
-              label={t('member.types.flying')}
-            />
-            <FormControlLabel
-              value='NON-FLYING'
-              control={<Radio />}
-              label={t('member.types.non-flying')}
-            />
-            <FormControlLabel
-              value='JUNIOR'
-              control={<Radio />}
-              label={t('member.types.junior')}
-            />
-            <FormControlLabel
-              value='EXTERNAL'
-              control={<Radio />}
-              label={t('member.types.external')}
-            />
-            <FormControlLabel
-              value='HONORARY'
-              control={<Radio />}
-              label={t('member.types.honorary')}
-            />
-            <FormControlLabel
-              value='REMOVED'
-              control={<Radio />}
-              label={t('member.types.removed')}
-            />
+            {['FLYING', 'NON-FLYING', 'JUNIOR', 'HONORARY', 'EXTERNAL'].map(
+              (id) => (
+                <FormControlLabel
+                  key={id}
+                  value={id}
+                  control={<Radio />}
+                  label={t(`member.types.${id.toLowerCase()}`)}
+                />
+              )
+            )}
           </RadioGroup>
         </FormControl>
       </Grid>
@@ -506,26 +486,21 @@ export const EditMemberModal = ({
             value={formData.memberType}
             onChange={handleChange('memberType')}
           >
-            <FormControlLabel
-              value='FLYING'
-              control={<Radio />}
-              label={t('member.types.flying')}
-            />
-            <FormControlLabel
-              value='NON-FLYING'
-              control={<Radio />}
-              label={t('member.types.non-flying')}
-            />
-            <FormControlLabel
-              value='JUNIOR'
-              control={<Radio />}
-              label={t('member.types.junior')}
-            />
-            <FormControlLabel
-              value='HONORARY'
-              control={<Radio />}
-              label={t('member.types.honorary')}
-            />
+            {[
+              'FLYING',
+              'NON-FLYING',
+              'JUNIOR',
+              'HONORARY',
+              'EXTERNAL',
+              'REMOVED',
+            ].map((id) => (
+              <FormControlLabel
+                key={id}
+                value={id}
+                control={<Radio />}
+                label={t(`member.types.${id.toLowerCase()}`)}
+              />
+            ))}
           </RadioGroup>
         </FormControl>
       </Grid>

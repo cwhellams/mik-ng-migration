@@ -395,7 +395,8 @@
     "details": "Rolldetaljer",
     "all": "-- Alla --",
     "unApproved": "-- Ej godkända --",
-    "showRemoved": "-- Borttagna --"
+    "showRemoved": "-- Borttagna --",
+    "showExternal": "-- Andra användare --"
   },
   "permissions": {
     "member": "MIK-medlem",

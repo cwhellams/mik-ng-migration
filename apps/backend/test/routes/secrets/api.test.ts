@@ -20,6 +20,7 @@ const adminToken = generateAccessToken({
   email: 'admin@mik.fi',
   roles: [],
   permissions: [MIKPermissions.ACCESS_CODES_ADMIN],
+  canMakeReservations: false,
 })
 
 const userToken = generateAccessToken({
@@ -28,6 +29,7 @@ const userToken = generateAccessToken({
   email: 'user@mik.fi',
   roles: [],
   permissions: [MIKPermissions.ACCESS_CODES_USER],
+  canMakeReservations: false,
 })
 
 const noPermissionsToken = generateAccessToken({
@@ -36,6 +38,7 @@ const noPermissionsToken = generateAccessToken({
   email: 'no-permissions@mik.fi',
   roles: [],
   permissions: [MIKPermissions.MEMBER],
+  canMakeReservations: false,
 })
 
 describe('Secrets API', () => {

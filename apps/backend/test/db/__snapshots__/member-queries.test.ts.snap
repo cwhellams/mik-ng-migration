@@ -715,17 +715,6 @@ exports[`Db query member tests getMembers should return only approved members fo
 exports[`Db query member tests getMembers should return unapproved members for admins 1`] = `
 [
   {
-    "email": "admin@mik.fi",
-    "first": "MIK",
-    "lang": "fi",
-    "last": "Admin",
-    "memberId": "k1mnimda",
-    "phoneNumber": null,
-    "roles": [
-      "ADMIN",
-    ],
-  },
-  {
     "email": "kaisa.laine@example.com",
     "first": "Kaisa",
     "lang": "fi",
@@ -776,17 +765,6 @@ exports[`Db query member tests getMembers should return unapproved members for a
     "phoneNumber": "0489012345",
     "roles": [
       "MEMBER",
-    ],
-  },
-  {
-    "email": "simplbks@mik.fi",
-    "first": "SimpleBooks",
-    "lang": "fi",
-    "last": "User",
-    "memberId": "simplbks",
-    "phoneNumber": null,
-    "roles": [
-      "SERVICE",
     ],
   },
 ]

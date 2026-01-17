@@ -29,6 +29,7 @@ const mattiToken = generateAccessToken({
   email: 'jonny.depp@mik.fi',
   roles: [],
   permissions: [MIKPermissions.FLIGHTLOG_USER],
+  canMakeReservations: false,
 })
 
 const jukkaToken = generateAccessToken({
@@ -37,6 +38,7 @@ const jukkaToken = generateAccessToken({
   email: 'jonny.depp@mik.fi',
   roles: [],
   permissions: [MIKPermissions.FLIGHTLOG_USER],
+  canMakeReservations: false,
 })
 
 const sannaToken = generateAccessToken({
@@ -45,6 +47,7 @@ const sannaToken = generateAccessToken({
   email: 'jonny.depp@mik.fi',
   roles: [],
   permissions: [MIKPermissions.FLIGHTLOG_USER],
+  canMakeReservations: false,
 })
 
 const adminToken = generateAccessToken({
@@ -53,6 +56,7 @@ const adminToken = generateAccessToken({
   email: 'jonny.depp@mik.fi',
   roles: [],
   permissions: [MIKPermissions.FLIGHTLOG_ADMIN],
+  canMakeReservations: false,
 })
 
 describe('GET /flight-log', () => {
@@ -433,6 +437,7 @@ describe('PATCH /flight-log/', () => {
       email: 'test@mik.fi',
       roles: [],
       permissions: [MIKPermissions.FLIGHTLOG_USER],
+      canMakeReservations: false,
     })
 
     const response = await request(app)
@@ -707,6 +712,7 @@ describe('DELETE /flight-log', () => {
       email: 'invalid@mik.fi',
       roles: [],
       permissions: [MIKPermissions.FLIGHTLOG_USER],
+      canMakeReservations: false,
     })
 
     const response = await request(app)
@@ -773,6 +779,7 @@ describe('GET /flight-log/stats', () => {
       email: 'jonny.depp@mik.fi',
       roles: [],
       permissions: [],
+      canMakeReservations: false,
     })
 
     const response = await request(app)
@@ -789,6 +796,7 @@ describe('GET /flight-log/stats', () => {
       email: 'jonny.depp@mik.fi',
       roles: [],
       permissions: [MIKPermissions.FLIGHTLOG_USER],
+      canMakeReservations: false,
     })
 
     const response = await request(app)

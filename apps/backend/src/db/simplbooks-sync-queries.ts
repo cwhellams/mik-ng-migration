@@ -3,6 +3,7 @@ import type { Selectable } from 'kysely'
 import type { MemberRegister, MemberBrevoSyncState } from './schema.js'
 import logger from '../lib/logger.ts'
 import type { SimplbooksSyncStatus } from '../services/simplbooks/models.ts'
+import { MIKMemberTypes } from '../routes/members/models.ts'
 
 /**
  * Get the last successful sync state
@@ -75,7 +76,11 @@ export async function getMembersToSync(lastSyncedAt?: Date): Promise<Selectable<
     .selectAll()
     .where('is_membership_approved', '=', true)
     .where('email_verified_at', 'is not', null)
-    .where('member_type', '!=', 'SYSTEM')
+    .where('member_type', 'not in', [
+      MIKMemberTypes.EXTERNAL,
+      MIKMemberTypes.REMOVED,
+      MIKMemberTypes.SYSTEM,
+    ])
 
   if (lastSyncedAt) {
     // Get members updated since last sync OR never synced OR failed

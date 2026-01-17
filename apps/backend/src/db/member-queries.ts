@@ -15,6 +15,7 @@ import {
   type MemberRole,
   FeeProcessingItemSchema,
   type FeeProcessingItem,
+  type MemberListFilters,
 } from '../routes/members/models.ts'
 import { problem } from '../routes/response.ts'
 import type { Upsert } from '../types/schema.ts'
@@ -99,7 +100,7 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
 }
 
 // only public roles are visible to non-admins
-const getPublicRolesToQuery = async (publicRoles: string[], roles: string[]) => {
+const getPublicRolesToQuery = (publicRoles: string[], roles: string[]) => {
   const allowedRoles = roles
     // drop other than public roles
     .filter(role => publicRoles.includes(role))
@@ -114,14 +115,12 @@ const getPublicRolesToQuery = async (publicRoles: string[], roles: string[]) => 
 
 export async function getMembers(
   isAdmin: boolean,
-  name: string | undefined,
   roles: string[],
-  showUnapproved?: boolean,
-  showRemoved?: boolean,
+  { name, showUnapproved, showRemoved, showExternal }: Omit<MemberListFilters, 'role'>,
 ): Promise<MemberList[]> {
   // admin can search any roles
   const publicRoles = (await getAllMemberRoles(true)).map(role => role.roleId)
-  const filterRoles = isAdmin ? roles : await getPublicRolesToQuery(publicRoles, roles)
+  const filterRoles = isAdmin ? roles : getPublicRolesToQuery(publicRoles, roles)
 
   let list = await db
     .selectFrom('member.register')
@@ -140,8 +139,32 @@ export async function getMembers(
           .orderBy('role_id'),
       ).as('roles'),
     ])
-    .where('is_membership_approved', '=', !isAdmin || !showUnapproved)
+
+    // see only members waiting for approval
+    .$if(isAdmin && showUnapproved == true, qb =>
+      qb
+        .where('is_membership_approved', '=', false)
+        .where('member_type', '!=', MIKMemberTypes.EXTERNAL),
+    )
+    // or everybody else
+    .$if(!isAdmin || !showUnapproved, qb =>
+      qb.where(eb =>
+        eb.or([
+          eb('is_membership_approved', '=', true),
+          eb('member_type', '=', MIKMemberTypes.EXTERNAL),
+        ]),
+      ),
+    )
+
+    // show only external members
+    .$if(isAdmin && showExternal == true, qb =>
+      qb.where('member_type', '=', MIKMemberTypes.EXTERNAL),
+    )
+    // show only removed members or hide otherwise
     .where('member_type', isAdmin && showRemoved ? '=' : '!=', MIKMemberTypes.REMOVED)
+
+    // system users are always hidden
+    .where('member_type', '!=', MIKMemberTypes.SYSTEM)
 
     // query by name
     .$if(!!name, qb =>
@@ -202,7 +225,12 @@ export async function getMembersForAnnualMembershipFee(year: number): Promise<In
     .where('is_membership_approved', '=', true)
     .where('is_membership_expired', '=', false)
     .where('auto_renew_annual_membership', '=', true)
-    .where('member_type', '!=', MIKMemberTypes.REMOVED)
+    .where('member_type', 'not in', [
+      MIKMemberTypes.HONORARY,
+      MIKMemberTypes.EXTERNAL,
+      MIKMemberTypes.REMOVED,
+      MIKMemberTypes.SYSTEM,
+    ])
     .where('member.annual_fees.member_id', 'is', null)
     .orderBy('last_name')
     .orderBy('first_name')
@@ -380,17 +408,6 @@ export async function removeMember(memberId: string): Promise<boolean> {
     .where('member_id', '=', memberId)
     .executeTakeFirstOrThrow()
   return result.numDeletedRows == BigInt(1)
-}
-
-export async function getMembersAwaitingApproval(): Promise<Member[] | undefined> {
-  const members = await db
-    .selectFrom('member.register')
-    .selectAll()
-    .where('is_membership_approved', '=', false)
-    .orderBy('created_at', 'desc')
-    .execute()
-
-  return members.map(member => toMember(member, []))
 }
 
 export async function setMembershipApproval(

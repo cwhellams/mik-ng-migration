@@ -230,6 +230,7 @@ describe('Db update tests', () => {
       email: '',
       roles: [],
       permissions: [MIKPermissions.FLIGHTLOG_USER],
+      canMakeReservations: false,
     }
     const res = await updateFlightLog(flightId, data, user)
     expect(res).toEqual(true)
@@ -261,6 +262,7 @@ describe('Db update status tests', () => {
       email: '',
       roles: [],
       permissions: [MIKPermissions.FLIGHTLOG_USER],
+      canMakeReservations: false,
     }
     const res = await updateFlightLogStatus(
       flightId,
@@ -355,6 +357,7 @@ describe('Db invoicable FlightLog tests', () => {
       email: '',
       roles: [],
       permissions: [MIKPermissions.INVOICING_ADMIN],
+      canMakeReservations: false,
     }
 
     const preInvoiceFlights = await getFlightLogs({

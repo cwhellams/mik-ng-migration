@@ -69,9 +69,12 @@ export enum MIKMemberTypes {
   FLYING = 'FLYING',
   NONFLYING = 'NON-FLYING',
   JUNIOR = 'JUNIOR',
-  EXTERNAL = 'EXTERNAL',
   HONORARY = 'HONORARY',
+
+  // other type of users
+  EXTERNAL = 'EXTERNAL',
   REMOVED = 'REMOVED',
+  SYSTEM = 'SYSTEM',
 }
 
 export enum MIKLang {
@@ -122,6 +125,7 @@ export const MemberListFiltersSchema = z.object({
   role: z.string().or(z.array(z.string())).nullish(),
   showUnapproved: BooleanSchema.optional(),
   showRemoved: BooleanSchema.optional(),
+  showExternal: BooleanSchema.optional(),
 })
 
 export type MemberListFilters = z.infer<typeof MemberListFiltersSchema>

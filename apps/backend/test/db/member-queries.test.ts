@@ -28,6 +28,7 @@ const jwt: JWTUser = {
   email: 'loggedinuser',
   roles: [],
   permissions: [],
+  canMakeReservations: false,
 }
 
 describe('Db query member tests', () => {
@@ -138,13 +139,17 @@ describe('Db query member tests', () => {
   })
 
   it('getMembers should return only approved members for valid members', async () => {
-    const result = await getMembers(false, '', [], true)
+    const result = await getMembers(false, [], {
+      showUnapproved: true,
+    })
     // test only first 10 items in the test data
     expect(result.slice(0, 10)).toMatchSnapshot()
   })
 
   it('getMembers should return unapproved members for admins', async () => {
-    const result = await getMembers(true, '', [], true)
+    const result = await getMembers(true, [], {
+      showUnapproved: true,
+    })
     // test only first 10 items in the test data
     expect(result.slice(0, 10)).toMatchSnapshot()
   })

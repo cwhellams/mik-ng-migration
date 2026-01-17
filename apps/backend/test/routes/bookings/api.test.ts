@@ -29,6 +29,7 @@ const userToken = generateAccessToken({
   email: 'jonny.depp@mik.fi',
   roles: [],
   permissions: [MIKPermissions.BOOKING_USER],
+  canMakeReservations: true,
 })
 
 const adminToken = generateAccessToken({
@@ -37,6 +38,7 @@ const adminToken = generateAccessToken({
   email: 'jonny.depp@mik.fi',
   roles: [],
   permissions: [MIKPermissions.BOOKING_ADMIN],
+  canMakeReservations: true,
 })
 
 describe('GET /bookings', () => {
@@ -127,6 +129,7 @@ describe('GET /bookings/bookingId', () => {
       email: 'jonny.depp@mik.fi',
       roles: [],
       permissions: [],
+      canMakeReservations: false,
     })
 
     const response = await request(app)
@@ -237,6 +240,7 @@ describe('POST /bookings', () => {
       .post('/bookings')
       .set('Authorization', `Bearer ${adminToken}`)
       .send({ ...payload, memberId: adminMemberId })
+      .set('x-sudo', 'true')
     expect(overwrite.status).toBe(201)
     expect(overwrite.body.status).toEqual(BookingStatus.CONFIRMED)
 
@@ -294,7 +298,7 @@ describe('POST /bookings', () => {
 })
 
 describe('PATCH /bookings/', () => {
-  it('should update a flight log when billable member matches token member or user has elevated role', async () => {
+  it('should update booking when billable member matches token member or user has elevated role', async () => {
     const payload: Partial<BookingUpsertRequest> = {
       memberId: 'Antti1',
     }
@@ -333,6 +337,21 @@ describe('PATCH /bookings/', () => {
     expect(checkUndo.status).toBe(200)
     expect(checkUndo.body.memberId).toBe('Matti1')
   })
+
+  it('should not assign booking to another member without admin priviledges', async () => {
+    const payload: Partial<BookingUpsertRequest> = {
+      memberId: 'Antti1',
+    }
+
+    const patchResponse = await request(app)
+      .patch('/bookings/stl3')
+      .set('Authorization', `Bearer ${userToken}`)
+      .send(payload)
+
+    expect(patchResponse.status).toBe(400)
+    expect(patchResponse.body.detail).toEqual('Invalid member id')
+  })
+
   it('should return a 401 if an invalid JWT token is passed', async () => {
     const payload: Partial<Booking> = {
       memberId: 'Liisa1',
@@ -358,6 +377,7 @@ describe('PATCH /bookings/', () => {
       email: 'test@mik.fi',
       roles: [],
       permissions: [MIKPermissions.BOOKING_USER],
+      canMakeReservations: true,
     })
 
     const response = await request(app)

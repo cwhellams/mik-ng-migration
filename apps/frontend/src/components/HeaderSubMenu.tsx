@@ -2,11 +2,13 @@ import { Tabs, Tab, Box, useTheme } from '@mui/material'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { t } from 'i18next'
 import { MenuItem } from '../config/menuItems'
+import { useRoles } from '../hooks/useRoles'
 
 export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
   const location = useLocation()
   const navigate = useNavigate()
   const theme = useTheme()
+  const { hasAccess } = useRoles()
 
   const currentTab = parent.subItems?.findIndex(
     (item) => item.path.length > 0 && location.pathname.includes(item.path)
@@ -16,6 +18,14 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
 
   // Show nothing if not under the parent path
   if (!location.pathname.startsWith(`${parent.path}`)) {
+    return null
+  }
+
+  const subItems = parent.subItems?.filter((i) =>
+    hasAccess(...(i.requiredRoles ?? []))
+  )
+
+  if (!subItems || subItems.length == 0) {
     return null
   }
 
@@ -48,7 +58,7 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
           variant='scrollable'
           sx={{ width: '100%', color: 'black' }}
         >
-          {parent.subItems?.map((item) => (
+          {subItems.map((item) => (
             <Tab
               onClick={() => goTo(item.path)}
               key={item.path}

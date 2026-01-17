@@ -27,6 +27,7 @@ const processorToken = generateAccessToken({
   email: 'admin@mik.fi',
   roles: ['SMS_PROCESSOR'],
   permissions: [MIKPermissions.FLIGHTLOG_USER, MIKPermissions.SMS_PROCESSOR],
+  canMakeReservations: false,
 })
 
 const managerToken = generateAccessToken({
@@ -35,6 +36,7 @@ const managerToken = generateAccessToken({
   email: 'member@mik.fi',
   roles: ['SMS_MANAGER'],
   permissions: [MIKPermissions.FLIGHTLOG_USER, MIKPermissions.SMS_MANAGER],
+  canMakeReservations: false,
 })
 
 const userToken = generateAccessToken({
@@ -43,6 +45,7 @@ const userToken = generateAccessToken({
   email: 'no-permissions@mik.fi',
   roles: ['MEMBER'],
   permissions: [MIKPermissions.FLIGHTLOG_USER],
+  canMakeReservations: false,
 })
 
 const missingUserToken = generateAccessToken({
@@ -51,6 +54,7 @@ const missingUserToken = generateAccessToken({
   email: 'no-permissions@mik.fi',
   roles: [],
   permissions: [],
+  canMakeReservations: false,
 })
 
 beforeAll(() => {

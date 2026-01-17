@@ -27,7 +27,6 @@ import {
   removeMemberRole,
   addMember,
   removeMember,
-  getMembersAwaitingApproval,
   setMembershipApproval,
   updateMemberLang,
   getMembersForAnnualMembershipFee,
@@ -51,15 +50,6 @@ export const router = Router()
 
 const isMemberAdmin = (user?: JWTUser): boolean =>
   user?.permissions?.includes(MIKPermissions.MEMBER_ADMIN) ?? false
-
-router.get(
-  '/awaiting-approval',
-  validateUser(MIKPermissions.MEMBER_ADMIN),
-  async (req: Request, res: Response<Member[]>) => {
-    const membersAwaitingApproval = await getMembersAwaitingApproval()
-    res.status(HttpStatusCode.Ok).json(membersAwaitingApproval)
-  },
-)
 
 router.get(
   '/annual-membership-stats',
@@ -122,19 +112,12 @@ router.get(
   // Only validated members can list other members
   validateUser(MIKPermissions.MEMBER, MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{}, {}, {}, MemberListFilters>, res: Response<MemberListResponse>) => {
-    const { role, name, showUnapproved, showRemoved } = MemberListFiltersSchema.parse(req.query)
+    const { role, ...filters } = MemberListFiltersSchema.parse(req.query)
 
     // either no roles filter, or one/multiple roles
     const roles = role ? (Array.isArray(role) ? role : [role]) : []
 
-    const members = await getMembers(
-      isMemberAdmin(req.user),
-      name,
-
-      roles,
-      showUnapproved,
-      showRemoved,
-    )
+    const members = await getMembers(isMemberAdmin(req.user), roles, filters)
 
     res.status(200).json({
       members: members,

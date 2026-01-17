@@ -83,6 +83,8 @@ const Schedule = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const { t } = useTranslation()
 
+  const canMakeReservations = me?.canMakeReservations == true
+
   const { data: aircraftData } = useApi<AircraftListResponse>(
     {
       url: 'v1/aircrafts',
@@ -365,6 +367,7 @@ const Schedule = () => {
           color='primary'
           startIcon={<Icon icon='mdi:plus' />}
           onClick={() => handleAddEvent()}
+          disabled={!canMakeReservations}
         >
           {t('schedule.newBooking')}
         </Button>
@@ -435,7 +438,7 @@ const Schedule = () => {
           max={calendarOpts.max}
           onEventDrop={onEventDrop}
           onEventResize={onEventResize}
-          onSelectSlot={handleAddEvent}
+          onSelectSlot={canMakeReservations ? handleAddEvent : undefined}
           onSelectEvent={handleEditEvent}
           showMultiDayTimes={true}
           resizable

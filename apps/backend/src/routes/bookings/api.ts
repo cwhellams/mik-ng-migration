@@ -11,7 +11,7 @@ import {
 } from './models.ts'
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
-import type { JWTUser } from '../auth/token.ts'
+import { type JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
 import {
@@ -44,6 +44,10 @@ router.post('/', async (req: Request, res: Response) => {
   const isAdmin = isBookingAdmin(req.user)
   if (!isAdmin && data.memberId !== req.user!.memberId) {
     return problem({ status: 400, detail: 'Invalid member id' })
+  }
+
+  if (!isAdmin && req.user?.canMakeReservations !== true) {
+    return problem({ status: 400, detail: 'Reservations suspended' })
   }
 
   await clearOverlappingBookings(
@@ -137,8 +141,6 @@ const clearOverlappingBookings = async (
     })
   }
 
-  const admin = await getMemberById(jwt.memberId)
-
   for (const overlap of overlaps) {
     console.log('Clearing overlapping booking', overlap)
     await updateBooking(overlap.bookingId, { status: BookingStatus.CANCELLED }, jwt)
@@ -148,7 +150,7 @@ const clearOverlappingBookings = async (
       sendEmail(
         member.email,
         bookingCancelledEmailSubject(member.lang),
-        bookingCancelledEmailBodyHtml(member.lang, admin!, overlap, booking),
+        bookingCancelledEmailBodyHtml(member.lang, jwt.lastName, overlap, booking),
       )
     }
   }
@@ -165,6 +167,14 @@ router.patch('/:id', async (req: Request, res: Response) => {
     return problem({ status: 404, detail: 'Booking not found' })
   }
   validateWriteAccess(booking, req)
+
+  const isAdmin = isBookingAdmin(req.user)
+  if (!isAdmin && patch.memberId !== req.user!.memberId) {
+    return problem({ status: 400, detail: 'Invalid member id' })
+  }
+  if (!isAdmin && req.user?.canMakeReservations !== true) {
+    return problem({ status: 400, detail: 'Reservations suspended' })
+  }
 
   await clearOverlappingBookings(
     {

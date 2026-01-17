@@ -12,6 +12,7 @@ const jwt: JWTUser = {
   email: 'loggedinuser',
   roles: [],
   permissions: [],
+  canMakeReservations: false,
 }
 
 describe('Db document tests', () => {

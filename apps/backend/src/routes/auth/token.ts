@@ -12,6 +12,7 @@ export const JWTUserSchema = z.object({
   email: z.string(),
   roles: z.array(z.string()),
   permissions: z.array(z.nativeEnum(MIKPermissions)),
+  canMakeReservations: z.boolean(),
 })
 
 export type JWTUser = z.infer<typeof JWTUserSchema>
@@ -25,6 +26,7 @@ export const generateJWTUser = (user: Member): JWTUser => ({
     (all, role) => (role.permissions ? [...all, ...role.permissions] : all),
     [] as MIKPermissions[],
   ),
+  canMakeReservations: user.canMakeReservations,
 })
 
 export const generateToken = (

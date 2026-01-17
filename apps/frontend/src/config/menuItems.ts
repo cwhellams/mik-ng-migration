@@ -81,7 +81,6 @@ export const menuItems: MenuItem[] = [
       {
         path: 'stats',
         label: 'header.stats',
-        requiredRoles: [MIKPermissions.MEMBER],
       },
     ],
   },

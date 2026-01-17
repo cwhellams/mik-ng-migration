@@ -395,7 +395,8 @@
     "details": "Role Details",
     "all": "-- All --",
     "unApproved": "-- Unapproved --",
-    "showRemoved": "-- Removed --"
+    "showRemoved": "-- Removed --",
+    "showExternal": "-- Other users --"
   },
   "permissions": {
     "member": "MIK member",
