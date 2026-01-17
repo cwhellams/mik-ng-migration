@@ -104,7 +104,10 @@ const Header = (props: HeaderProps) => {
         style={{
           height: 40,
           width: 'auto',
-          filter: 'invert(24%) sepia(68%) saturate(5000%)',
+          filter:
+            hostName !== 'intra'
+              ? 'invert(24%) sepia(68%) saturate(5000%)'
+              : undefined,
         }}
       />
       {hostName !== 'intra' && (
