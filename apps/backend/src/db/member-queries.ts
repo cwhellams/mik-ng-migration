@@ -209,7 +209,8 @@ export async function getMembersForAnnualMembershipFee(year: number): Promise<In
     .leftJoin('member.annual_fees', join =>
       join
         .onRef('member.register.member_id', '=', 'member.annual_fees.member_id')
-        .on('member.annual_fees.year', '=', year),
+        .on('member.annual_fees.year', '=', year)
+        .on('member.annual_fees.fee_type', '=', 'annual_fee'),
     )
     .select([
       'member.register.member_id',
