@@ -23,6 +23,7 @@ import { MIKLang, MIKMemberTypes } from '@backend/routes/members/models.ts'
 import dayjs, { Dayjs } from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import LanguageSelector from '../../components/LanguageSelector'
+import { TurnstileWidget } from '../../components/TurnstileWidget'
 
 const Register = () => {
   const { t, i18n } = useTranslation()
@@ -50,6 +51,7 @@ const Register = () => {
   const [dateOfBirth, setDateOfBirth] = useState<Dayjs | null>(dayjs())
 
   const [registerError, setRegisterError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const navigate = useNavigate()
 
@@ -78,7 +80,10 @@ const Register = () => {
       return
     }
 
-    const { data, error } = await trigger(member)
+    const { data, error } = await trigger({
+      ...member,
+      turnstileToken: turnstileToken ?? undefined,
+    })
     if (!data?.code || error) {
       console.log('Error:', error)
       return setRegisterError(error?.detail ?? error?.title ?? 'Error')
@@ -223,6 +228,12 @@ const Register = () => {
         <Typography variant='body2' color='text.secondary'>
           {t('register.prices')}
         </Typography>
+
+        <TurnstileWidget
+          onSuccess={(token) => setTurnstileToken(token)}
+          onError={() => setTurnstileToken(null)}
+          disabled={isMutating}
+        />
 
         <Button
           type='submit'

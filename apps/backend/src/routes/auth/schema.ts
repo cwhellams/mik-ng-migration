@@ -10,6 +10,9 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
 
   // language needed for sending emails
   lang: z.nativeEnum(MIKLang),
+
+  // optional turnstile token for bot protection
+  turnstileToken: z.string().optional(),
 })
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 
@@ -21,6 +24,9 @@ export const LoginRequestSchema = z.object({
 
   // where to navigate after login
   target: z.string().optional(),
+
+  // optional turnstile token for bot protection
+  turnstileToken: z.string().optional(),
 })
 export type LoginRequest = z.infer<typeof LoginRequestSchema>
 

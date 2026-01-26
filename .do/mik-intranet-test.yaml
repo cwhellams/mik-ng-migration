@@ -151,6 +151,15 @@ services:
       - key: OVERDUE_INVOICE_GRACE_PERIOD_DAYS
         value: ${OVERDUE_INVOICE_GRACE_PERIOD_DAYS}
         type: GENERAL
+      - key: VITE_TURNSTILE_SITE_KEY
+        value: ${VITE_TURNSTILE_SITE_KEY}
+        type: GENERAL
+      - key: TURNSTILE_SECRET_KEY
+        value: ${TURNSTILE_SECRET_KEY}
+        type: SECRET
+      - key: TURNSTILE_ENABLED
+        value: 'true'
+        type: GENERAL
 
     instance_count: 1
     health_check:
@@ -182,6 +191,10 @@ static_sites:
     envs:
       - key: VITE_API_TARGET
         value: ${VITE_API_TARGET}
+        type: GENERAL
+        scope: RUN_AND_BUILD_TIME
+      - key: VITE_TURNSTILE_SITE_KEY
+        value: ${VITE_TURNSTILE_SITE_KEY}
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
     catchall_document: index.html

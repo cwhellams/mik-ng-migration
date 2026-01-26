@@ -15,10 +15,12 @@ import { useTranslation } from 'react-i18next'
 import { MIKLang } from '@backend/routes/members/models'
 import LanguageSelector from '../../components/LanguageSelector'
 import { validateInternalPath } from '@backend/util/sanitizers'
+import { TurnstileWidget } from '../../components/TurnstileWidget'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const { t, i18n } = useTranslation()
 
@@ -58,6 +60,7 @@ const Login = () => {
     const { data, error } = await trigger({
       email: email,
       target: safeTarget,
+      turnstileToken: turnstileToken ?? undefined,
     })
 
     if (!data?.code || error) {
@@ -109,6 +112,12 @@ const Login = () => {
               },
             },
           }}
+        />
+
+        <TurnstileWidget
+          onSuccess={(token) => setTurnstileToken(token)}
+          onError={() => setTurnstileToken(null)}
+          disabled={isMutating}
         />
 
         <Button

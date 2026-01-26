@@ -26,6 +26,7 @@ import {
   registerEmailBodyHtml,
   registerEmailTitle,
 } from '../../templates/registrationEmailTemplate.ts'
+import { verifyTurnstileToken } from '../../services/turnstile.ts'
 
 const magicLogin = new MIKMagicLoginStrategy()
 const registrationVerification = new MIKRegistrationVerificationStrategy()
@@ -43,7 +44,16 @@ const silentFailure = (message: string, res: Response<LoginResponse>): void => {
 
 // Login existing user
 router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResponse>) => {
-  const { email, target } = LoginRequestSchema.parse(req.body)
+  const { email, target, turnstileToken } = LoginRequestSchema.parse(req.body)
+
+  // Verify Turnstile token if provided
+  if (turnstileToken) {
+    const isValid = await verifyTurnstileToken(turnstileToken, req.ip)
+    if (!isValid) {
+      logger.warn('Login attempt with invalid Turnstile token from %s', email)
+      return res.status(400).json({ error: 'Invalid captcha verification' })
+    }
+  }
 
   // Check that we have a memeber with this email address, to avoid sending magic link to non-existing user.
   // Do not leak information about existing users, if nothing found still return 200 with a random verification code and log a warning.
@@ -71,6 +81,15 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   const member = RegisterRequestSchema.parse(req.body)
 
   logger.info('registration request from %s', member.email)
+
+  // Verify Turnstile token if provided
+  if (member.turnstileToken) {
+    const isValid = await verifyTurnstileToken(member.turnstileToken, req.ip)
+    if (!isValid) {
+      logger.warn('Registration attempt with invalid Turnstile token from %s', member.email)
+      return res.status(400).json({ error: 'Invalid captcha verification' })
+    }
+  }
 
   if (await getMemberByEmail(member.email)) {
     return silentFailure(
