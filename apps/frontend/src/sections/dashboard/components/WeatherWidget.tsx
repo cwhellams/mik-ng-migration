@@ -320,9 +320,7 @@ export const WeatherWidget = () => {
                       <Box
                         sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
                       >
-                        <AirIcon
-                          sx={{ fontSize: 32, color: 'primary.main' }}
-                        />
+                        <AirIcon sx={{ fontSize: 32, color: 'primary.main' }} />
                         <Box>
                           <Typography variant='caption' color='text.secondary'>
                             Wind
@@ -370,9 +368,9 @@ export const WeatherWidget = () => {
                             Visibility
                           </Typography>
                           <Typography variant='body1' fontWeight='bold'>
-                            {(
-                              report?.vis_km_full ?? report?.vis_km
-                            )?.toFixed(1)}{' '}
+                            {(report?.vis_km_full ?? report?.vis_km)?.toFixed(
+                              1
+                            )}{' '}
                             km
                           </Typography>
                           {report?.vis_m && (

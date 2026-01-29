@@ -47,11 +47,13 @@ export const Stats = () => {
   const { sudo } = useThemeMode()
 
   // Check if user has admin permissions for commercial data AND is in admin view mode
-  const hasCommercialAccess = sudo && hasAdminAccess(
-    MIKPermissions.FLIGHTLOG_ADMIN,
-    MIKPermissions.AIRCRAFT_ADMIN,
-    MIKPermissions.INVOICING_ADMIN
-  )
+  const hasCommercialAccess =
+    sudo &&
+    hasAdminAccess(
+      MIKPermissions.FLIGHTLOG_ADMIN,
+      MIKPermissions.AIRCRAFT_ADMIN,
+      MIKPermissions.INVOICING_ADMIN
+    )
 
   // Get year range from env var (default 5 years)
   const statsYearRange = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5

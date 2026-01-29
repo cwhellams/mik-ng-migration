@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto'
 import {
   MIKInvoiceType,
   SimplbooksEventType,
+  SimplbooksStatus,
   type AcctsOutboxSimplbooks,
 } from '../../../src/services/simplbooks/models.ts'
 import {
@@ -67,7 +68,7 @@ const obMsgAddMember: AcctsOutboxSimplbooks = {
   event_type: SimplbooksEventType.ADD_MEMBER,
   id: randomUUID(),
   payload: flyingMemberInvoiceMemberPayload,
-  status: 'PENDING',
+  status: SimplbooksStatus.PENDING,
 }
 
 const obMsgMembershipFeeInvoice: AcctsOutboxSimplbooks = {
@@ -75,7 +76,7 @@ const obMsgMembershipFeeInvoice: AcctsOutboxSimplbooks = {
   event_type: SimplbooksEventType.ANNUAL_MEMBERSHIP_FEE,
   id: randomUUID(),
   payload: { ...flyingMember, billingId: '8766623' },
-  status: 'PENDING',
+  status: SimplbooksStatus.PENDING,
 }
 
 const obMsgNewMembershipFeeInvoice: AcctsOutboxSimplbooks = {
@@ -83,7 +84,7 @@ const obMsgNewMembershipFeeInvoice: AcctsOutboxSimplbooks = {
   event_type: SimplbooksEventType.NEW_MEMBER_FEES,
   id: randomUUID(),
   payload: { ...flyingMember, billingId: '8766624' },
-  status: 'PENDING',
+  status: SimplbooksStatus.PENDING,
 }
 
 describe('Simplbooks Outbox Handler tests', () => {

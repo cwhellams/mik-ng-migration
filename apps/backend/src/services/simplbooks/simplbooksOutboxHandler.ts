@@ -4,6 +4,7 @@ import { InvoiceMemberSchema, MemberSchema } from '../../routes/members/models.t
 import {
   FeeTypeEnum,
   MIKInvoiceType,
+  RecurringFeeType,
   SimplbooksEventType,
   SimplbooksStatus,
   type AcctsOutboxSimplbooks,
@@ -13,7 +14,7 @@ import {
   createNewClient,
   createSimplbooksInvoice,
   getInvoice,
-  markInvoiceAsSent,
+  markInvoiceAsSentInSimplbooks,
 } from './simplbooksApiClient.ts'
 import {
   createAnnualEquipmentFeeInvoicePayload,
@@ -35,6 +36,7 @@ import type { Transaction } from 'kysely'
 import type { DB } from '../../db/schema.js'
 import { createFlightInvoicePayload } from '../accounting/flightInvoiceCreator.ts'
 import { FlightInvoicePayloadSchema } from '../../routes/flight-log/models.ts'
+import { isRecurringFeeAlreadyCreated } from '../accounting/recurringFeesProcessor.ts'
 
 export const MIK_SIMPLBOOKS_MEMBER: string = 'simplbks'
 export const MIK_CURRENCY = 'EUR'
@@ -54,10 +56,10 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
       await createAnnualEquipmentFeeInvoice(msg)
       break
     case SimplbooksEventType.SEND_INVOICE_PDF:
-      createSimplbooksInvoiceEmail(msg)
+      await createSimplbooksInvoiceEmail(msg)
       break
     case SimplbooksEventType.FLIGHT_INVOICE:
-      createFlightInvoice(msg)
+      await createFlightInvoice(msg)
       break
     default:
       throw new Error(`Unsupported outbox event type: ${msg.event_type}`)
@@ -98,8 +100,34 @@ async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   const member = InvoiceMemberSchema.parse(outboxMsg.payload)
 
   const year = getCurrentYear()
+
+  const annualMembershipFeeAlreadyCreated = await isRecurringFeeAlreadyCreated(
+    RecurringFeeType.ANNUAL_FEE,
+    year,
+    member.memberId,
+  )
+  if (annualMembershipFeeAlreadyCreated) {
+    logger.warn(
+      `Annual membership fee invoice for year ${year} has already been created for member ${member.memberId}`,
+    )
+    await db.transaction().execute(async txn => {
+      await setOutboxStatus(
+        txn,
+        outboxMsg.id,
+        SimplbooksStatus.SKIPPED,
+        `Annual membership fee invoice already exists for member ${member.memberId} for year ${year}, skipping creation.`,
+      )
+    })
+    return
+  }
+
+  const equipmentFeealreadyCreated = await isRecurringFeeAlreadyCreated(
+    RecurringFeeType.EQUIPMENT_FEE,
+    year,
+    member.memberId,
+  )
   // Check if the memeber has opted for equipment fee renewal at the same time
-  const includeEquipmentFee = member.autoRenewEquipmentFee === true
+  const includeEquipmentFee = member.autoRenewEquipmentFee === true && !equipmentFeealreadyCreated
 
   const feeInvoice = includeEquipmentFee
     ? await createAnnualMemberFeeWithEquipmentFeeInvoicePayload(member)
@@ -212,14 +240,10 @@ async function createAnnualEquipmentFeeInvoice(outboxMsg: AcctsOutboxSimplbooks)
 
 async function createSimplbooksInvoiceEmail(outboxMsg: AcctsOutboxSimplbooks) {
   const { memberId, invoiceId } = outboxMsg.payload as any
-  await createInvoiceEmail(memberId, invoiceId, outboxMsg.id)
+  await sendInvoiceEmail(memberId, invoiceId, outboxMsg.id)
 }
 
-async function createInvoiceEmail(memberId: string, invoiceId: number, outboxMsgId: string) {
-  // Send the email first - if this fails, we don't update the database
-  await sendSimplbooksInvoiceEmail(invoiceId, memberId)
-
-  // Email sent successfully, now update the database and mark invoice as sent in SimplBooks
+async function sendInvoiceEmail(memberId: string, invoiceId: number, outboxMsgId: string) {
   try {
     await db.transaction().execute(async txn => {
       // Mark the outbox message as processed
@@ -242,9 +266,12 @@ async function createInvoiceEmail(memberId: string, invoiceId: number, outboxMsg
           `Expected to update exactly 1 invoice, but updated ${result[0]?.numUpdatedRows ?? 0} rows for invoice ${invoiceId}`,
         )
       }
+      // Send the email first - if this fails, we don't update the database
+      await sendSimplbooksInvoiceEmail(invoiceId, memberId)
 
       // Mark the invoice as sent in SimplBooks, if this fails the DB transaction will be rolled back
-      await markInvoiceAsSent(invoiceId)
+      await markInvoiceAsSentInSimplbooks(invoiceId)
+      logger.info(`Marked invoice ${invoiceId} as sent in SimplBooks`)
     })
   } catch (error) {
     logger.error(

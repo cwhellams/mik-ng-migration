@@ -67,7 +67,7 @@ router.get('/', async (req: Request, res: Response<InvoiceListResponse>) => {
   }
 
   const filters: InvoiceItemQueryParams = parsed.data
-  const isAdmin = req!.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
+  const isAdmin = req.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
   const rawItems = await getInvoices(req.user?.memberId!, isAdmin, filters)
 
   logger.info(`Fetched ${rawItems.length} invoices with filters: ${JSON.stringify(filters)}`)
@@ -75,16 +75,16 @@ router.get('/', async (req: Request, res: Response<InvoiceListResponse>) => {
     id: String(row.id),
     created_at: row.created_at ? new Date(row.created_at as any).toISOString() : '',
     created_by: row.created_by,
-    currency: row.currency !== null ? String(row.currency) : null,
+    currency: row.currency === null ? null : String(row.currency),
     description: row.description,
     due_at: row.due_at ? new Date(row.due_at as any).toISOString() : '',
     invoice_type: row.invoice_type as any,
-    is_paid: row.is_paid !== null ? Boolean(row.is_paid) : null,
+    is_paid: row.is_paid === null ? null : Boolean(row.is_paid),
     member_id: row.member_id,
     paid_at: row.paid_at ? new Date(row.paid_at as any).toISOString() : null,
     pmt_ref: row.pmt_ref,
     sent_at: row.sent_at ? new Date(row.sent_at as any).toISOString() : '',
-    total_sum: row.total_sum !== null ? String(row.total_sum) : null,
+    total_sum: row.total_sum === null ? null : String(row.total_sum),
     updated_at: row.updated_at ? new Date(row.updated_at as any).toISOString() : '',
     updated_by: row.updated_by,
   }))
@@ -195,7 +195,10 @@ router.post(
 
     const result = await createAnnualMemberFeesForMembers(req.user!.memberId).catch(error => {
       logger.error('Error during annual membership processing:', error)
-      throw error
+      return problem({
+        status: HttpStatusCode.InternalServerError,
+        detail: 'An error occurred triggering the annual membership billing process. ' + error,
+      })
     })
 
     res.status(HttpStatusCode.Ok).json(result)
@@ -205,6 +208,9 @@ router.post(
 router.post('/requestOwnEquipmentFeeInvoice', async (req: Request, res: Response) => {
   const result = await createAnnualEquipmentFeeForMember(req.user!.memberId).catch(error => {
     logger.error('Error during equipment fee invoice processing:', error)
+    res.status(HttpStatusCode.BadRequest).json({
+      detail: error.message,
+    })
   })
 
   res.status(HttpStatusCode.Ok).json(result)
@@ -221,12 +227,15 @@ router.get('/equipmentFeeStatus', async (req: Request, res: Response) => {
 })
 
 router.post('/sendEquipmentFeeInvoiceToMember', async (req: Request, res: Response) => {
-  const isAdmin = req!.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
+  const isAdmin = req.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
   const { memberId } = req.body
 
   if (isAdmin) {
     const result = await createAnnualEquipmentFeeForMember(memberId).catch(error => {
       logger.error('Error during equipment fee invoice processing:', error)
+      res.status(HttpStatusCode.BadRequest).json({
+        detail: error.message,
+      })
     })
 
     res.status(HttpStatusCode.Ok).json(result)

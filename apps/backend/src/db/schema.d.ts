@@ -81,7 +81,7 @@ export type Occurrencestatus =
   | 'PROCESSED'
   | 'RECEIVED'
 
-export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SYNCED'
+export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SKIPPED' | 'SYNCED'
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>
 

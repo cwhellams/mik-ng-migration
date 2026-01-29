@@ -1,7 +1,7 @@
 import { getMemberById } from '../../db/member-queries.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
-import { getInvoice, getInvoicePdf, markInvoiceAsSent } from './simplbooksApiClient.ts'
+import { getInvoice, getInvoicePdf } from './simplbooksApiClient.ts'
 import { escapeHtml } from '../../util/sanitizers.ts'
 import { markdownEmailTemplate } from '../../templates/emailTemplate.ts'
 
@@ -12,17 +12,30 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
     throw new Error(`Member with ID ${memberId} not found`)
   }
 
+  logger.info(`Preparing to send invoice ${invoiceId} email to member ${memberId}`)
   const invoice = await getInvoice(invoiceId)
 
   if (!invoice.data.Invoice) {
     throw new Error(`Invoice with ID ${invoiceId} not found`)
   }
 
-  const invoicePdfBase64 = await getInvoicePdf(invoiceId.toString())
+  let invoicePdfBase64: string
+  try {
+    invoicePdfBase64 = await getInvoicePdf(invoiceId.toString())
 
-  if (!invoicePdfBase64 || typeof invoicePdfBase64 !== 'string') {
-    throw new Error(`Invalid PDF data received for invoice ${invoiceId}`)
+    if (!invoicePdfBase64 || typeof invoicePdfBase64 !== 'string') {
+      throw new Error(`Invalid PDF data received for invoice ${invoiceId}`)
+    }
+  } catch (error: unknown) {
+    logger.error(
+      `Error fetching PDF for invoice ${invoiceId}: ${error instanceof Error ? error.message : String(error)}`,
+    )
+    throw new Error(
+      `Failed to fetch PDF for invoice ${invoiceId}: ${error instanceof Error ? error.message : String(error)}`,
+    )
   }
+
+  logger.info(`Fetched PDF for invoice ${invoiceId} to be sent to member ${memberId}`)
 
   const emailVars = {
     invoiceId: invoice.data.Invoice.id!.toString(),
@@ -52,8 +65,4 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
     attachments,
   )
   logger.info(`Sent invoice ${invoiceId} email to member ${memberId}`)
-
-  // Mark the invoice as sent in SimplBooks
-  await markInvoiceAsSent(invoice.data.Invoice.id!)
-  logger.info(`Marked invoice ${invoiceId} as sent in SimplBooks`)
 }

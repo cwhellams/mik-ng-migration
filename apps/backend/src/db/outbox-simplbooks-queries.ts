@@ -81,6 +81,7 @@ export async function setOutboxStatus(
   txn: Transaction<DB>,
   outboxMsgId: string,
   status: SimplbooksStatus,
+  errorMessage?: string,
 ) {
   // Mark the outbox message as processed
   await txn
@@ -89,6 +90,7 @@ export async function setOutboxStatus(
       status: status,
       updated_at_utc: new Date(),
       processed_at: new Date(),
+      error_message: errorMessage ?? null,
     })
     .where('id', '=', outboxMsgId)
     .execute()

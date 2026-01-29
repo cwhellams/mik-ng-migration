@@ -7,7 +7,7 @@ export const createInvoicePostPayload = (
 ): InvoicePostPayload => {
   if (!member.billingId)
     throw new Error('Error creating membership fee invoice, no billing id for member !')
-  const client_id = parseInt(member.billingId, 10)
+  const client_id = Number.parseInt(member.billingId, 10)
   const invoice: InvoicePostPayload = {
     ...(withZeroInterest && { overdue_charge_percent: 0 }),
     client_id: client_id,

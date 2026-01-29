@@ -1,6 +1,5 @@
 import 'dotenv/config'
 
-import pRetry from 'p-retry'
 import { db } from '../db/connection.ts'
 import { SimplbooksStatus, type AcctsOutboxSimplbooks } from '../services/simplbooks/models.ts'
 
@@ -8,29 +7,24 @@ import logger from '../lib/logger.ts'
 import { dispatchOutboxMsg } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import { checkAndClearStuckMessages } from '../db/outbox-simplbooks-queries.ts'
 
-let intervalId: any = null
-let intervalMs = 1000 // 1 second
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 export function startSimpleBooksOutboxProcessor() {
   let shouldRun = process.env.SIMPLBOOKS_OUTBOX_WORKER_ENABLED === 'true'
 
-  shouldRun && checkAndClearStuckMessages()
-
-  async function loop() {
-    if (!shouldRun) {
-      logger.warn(
-        'Simplbooks Outbox worker is not set to run. Simplebooks outbox worker is disabled',
-      )
-      return
-    }
-    await processOutbox()
-
-    if (!shouldRun) return
-
-    intervalId = setTimeout(loop, intervalMs)
+  if (shouldRun) {
+    checkAndClearStuckMessages()
+    loop()
+  } else {
+    logger.warn('Simplbooks Outbox worker is not set to run. Simplebooks outbox worker is disabled')
   }
 
-  loop()
+  async function loop() {
+    while (shouldRun) {
+      const delayMs = await processOutbox()
+      await sleep(delayMs)
+    }
+  }
 
   return {
     stop: () => {
@@ -39,55 +33,66 @@ export function startSimpleBooksOutboxProcessor() {
   }
 }
 
-async function processOutbox() {
-  // on startup we need to check if there are any stuck tasks and reset them - this is a safety net
-  // in case the worker was not stopped properly but it may result in data loss or duplication , this is a tradeoff
-  // we need to make sure that the worker is not running before we do this
-  // THIS IS NOT SAFE IF THE WORKER IS RUNNING IN MULTIPLE SERVICE INSTANCES !!!!!
+async function processOutbox(): Promise<number> {
+  try {
+    logger.info('Outbox worker iteration started')
 
-  logger.info(`Outbox worker run : ${intervalId ?? 'initial'} started`)
-  intervalMs = 1000 // reset to 1 second
+    const taskRow = await db.transaction().execute(async txn => {
+      const nextRow = (await txn
+        .selectFrom('accts.outbox_simplbooks')
+        .selectAll()
+        .where('status', '=', SimplbooksStatus.PENDING)
+        .forUpdate()
+        .skipLocked()
+        .orderBy('created_at_utc', 'asc')
+        .limit(1)
+        .executeTakeFirst()) as AcctsOutboxSimplbooks | undefined
 
-  const taskRow: AcctsOutboxSimplbooks | undefined = await db.transaction().execute(async txn => {
-    const nextRow = await txn
-      .selectFrom('accts.outbox_simplbooks')
-      .selectAll()
-      .where('status', '=', SimplbooksStatus.PENDING)
-      .forUpdate()
-      .skipLocked()
-      .limit(1)
-      .executeTakeFirst()
+      if (!nextRow) {
+        return undefined
+      }
 
-    if (nextRow === undefined) {
-      logger.info(
-        `No tasks found in the outbox for run : ${intervalId ?? 'initial'}, waiting 30 seconds`,
-      )
-      intervalMs = 30000 // 30 seconds
-      return
+      await txn
+        .updateTable('accts.outbox_simplbooks')
+        .set({ status: SimplbooksStatus.PROCESSING })
+        .where('id', '=', nextRow.id)
+        .execute()
+
+      return nextRow
+    })
+
+    if (!taskRow) {
+      logger.info('No outbox tasks found, sleeping 30s')
+      return 30_000
     }
 
-    await txn
-      .updateTable('accts.outbox_simplbooks')
-      .set({ status: SimplbooksStatus.PROCESSING })
-      .where('id', '=', nextRow.id)
-      .execute()
+    logger.info(`Processing outbox item : ${taskRow.id} of type ${taskRow.event_type}`)
 
-    return nextRow
-  })
+    try {
+      await dispatchOutboxMsg(taskRow) // axios happens here
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
 
-  if (taskRow === undefined) {
-    return
+      logger.error(`Failed to process outbox item : ${taskRow.id}. Error: ${errorMessage}`)
+
+      await db
+        .updateTable('accts.outbox_simplbooks')
+        .set({
+          status: SimplbooksStatus.FAILED,
+          error_message: errorMessage,
+          updated_at_utc: new Date(),
+        })
+        .where('id', '=', taskRow.id)
+        .execute()
+    }
+
+    // ⭐ strict rate limit: 1 per second
+    return 1000
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.error(`Unexpected error in outbox processor: ${msg}`)
+
+    // backoff on unexpected failure
+    return 5000
   }
-  logger.info(`Processing outbox item : ${taskRow.id} of type ${taskRow.event_type}`)
-  pRetry(async () => await dispatchOutboxMsg(taskRow), {
-    retries: 5,
-    minTimeout: 1000,
-    maxTimeout: 10000,
-    factor: 2,
-    onFailedAttempt: error => {
-      logger.error(
-        `Simplbooks attempt ${error.attemptNumber} failed for outbox item : ${taskRow!.id} of type ${taskRow!.event_type}. Error: ${error.message}, there are ${error.retriesLeft} retries left`,
-      )
-    },
-  })
 }

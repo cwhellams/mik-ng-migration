@@ -29,6 +29,7 @@ import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
 import { startOccurrenceNotificationWorker } from './workers/occurrenceNotifyWorker.ts'
 import { startBrevoSyncWorker } from './workers/brevoSyncWorker.ts'
 import { testConnection, closeDb } from './db/connection.ts'
+import { startSimplbooksSyncWorker } from './workers/simplbooksMemberSyncWorker.ts'
 
 const app = express()
 const PORT = process.env.BACKEND_PORT ?? 3000
@@ -102,6 +103,7 @@ const invoicePaymentWorker = startSimplbooksInvoicePaymentWorker()
 const overdueInvoiceWorker = startOverdueInvoiceWorker()
 const occurrenceNotificationWorker = startOccurrenceNotificationWorker()
 const brevoSyncWorker = startBrevoSyncWorker()
+const simplbooksMemberSyncWorker = startSimplbooksSyncWorker()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
@@ -122,6 +124,7 @@ const shutdown = async (): Promise<void> => {
   overdueInvoiceWorker?.stop()
   occurrenceNotificationWorker?.stop()
   brevoSyncWorker?.stop()
+  simplbooksMemberSyncWorker?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)

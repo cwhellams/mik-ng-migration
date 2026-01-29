@@ -15,29 +15,39 @@ import logger from '../../lib/logger.ts'
 import { FeeProcessingError } from '../../exceptions/feeProcessingError.ts'
 import { getCurrentYear } from '../simplbooks/simplbooksOutboxHandler.ts'
 
-const validateEquipmentFeeNotAlreadyCreated = async (
+export const isRecurringFeeAlreadyCreated = async (
   feeType: RecurringFeeType,
   year: number,
   memberId: string,
-): Promise<void> => {
+): Promise<boolean> => {
   const existingProcess = await getFeeProcessingItemForMember(feeType, year, memberId)
 
   if (existingProcess) {
-    throw new FeeProcessingError(
-      `Annual equipment fee invoice for year ${year} has already been created on ${existingProcess.created_at}`,
+    logger.warn(
+      `Annual equipment fee invoice for year ${year} has already been created on ${existingProcess.created_at}}`,
     )
+    return true
   }
+  return false
 }
 
 export const createAnnualEquipmentFeeForMember = async (memberId: string) => {
   const year = getCurrentYear()
-  const feeType = RecurringFeeType.EQUIPMENT_FEE
 
   logger.info(
     `Started annual equipment fee invoice processing for year ${year} for member ${memberId}`,
   )
 
-  await validateEquipmentFeeNotAlreadyCreated(feeType, year, memberId)
+  const alreadyCreated = await isRecurringFeeAlreadyCreated(
+    RecurringFeeType.EQUIPMENT_FEE,
+    year,
+    memberId,
+  )
+  if (alreadyCreated) {
+    throw new FeeProcessingError(
+      `Annual equipment fee invoice for year ${year} has already been created.`,
+    )
+  }
   const member = await getMemberById(memberId)
   await insertOutboxItem(SimplbooksEventType.EQUIPMENT_INVOICE, member)
 

@@ -16,6 +16,8 @@ let intervalId: NodeJS.Timeout | null = null
 const SYNC_INTERVAL_MS = 8 * 60 * 60 * 1000 // 8 hours
 
 const IS_SIMPLBOOKS_MEMBER_SYNC_ENABLED = process.env.SIMPLBOOKS_MEMBER_SYNC_ENABLED === 'true'
+const SIMPLBOOKS_MEMBER_SYNC_RUN_ON_STARTUP =
+  process.env.SIMPLBOOKS_MEMBER_SYNC_RUN_ON_STARTUP === 'true'
 
 export function startSimplbooksSyncWorker() {
   if (!IS_SIMPLBOOKS_MEMBER_SYNC_ENABLED) {
@@ -28,6 +30,14 @@ export function startSimplbooksSyncWorker() {
   }
 
   logger.info('Starting Simplbooks sync worker')
+
+  // Run sync on startup if enabled
+  if (SIMPLBOOKS_MEMBER_SYNC_RUN_ON_STARTUP) {
+    logger.info('Running Simplbooks member sync on startup')
+    syncMembersToSimplbooks().catch(error => {
+      logger.error('Error during startup Simplbooks sync:', error)
+    })
+  }
 
   // Schedule recurring sync
   const startSync = () => {
@@ -53,7 +63,7 @@ export function startSimplbooksSyncWorker() {
   }
 }
 
-async function syncMembersToSimplbooks(): Promise<void> {
+export async function syncMembersToSimplbooks(): Promise<void> {
   logger.info('Starting Simplbooks member sync')
 
   // Record sync start
@@ -115,8 +125,6 @@ async function syncMembersToSimplbooks(): Promise<void> {
       'FAILED',
       error instanceof Error ? error.message : 'Unknown error',
     )
-
-    throw error
   }
 }
 

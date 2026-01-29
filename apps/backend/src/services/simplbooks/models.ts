@@ -23,6 +23,7 @@ export enum SimplbooksStatus {
   PROCESSING = 'PROCESSING',
   SYNCED = 'SYNCED',
   FAILED = 'FAILED',
+  SKIPPED = 'SKIPPED',
 }
 
 export enum MIKInvoiceType {
@@ -203,14 +204,14 @@ export type InvoicePost = z.infer<typeof InvoicePostRootSchema>
 export type InvoicePostPayload = z.infer<typeof InvoiceSchema>
 
 export const AcctsOutboxSimplbooksSchema = z.object({
-  created_at_utc: z.union([z.string().datetime(), z.date()]).optional(), // Generated<Timestamp>
+  created_at_utc: z.union([z.string().datetime(), z.date()]).optional(),
   error_message: z.string().optional().nullable(),
   event_type: z.string(),
   id: z.string(),
   payload: z.unknown(), // Can be improved if Json shape is known
   processed_at: z.union([z.string().datetime(), z.date()]).optional().nullable(),
-  status: z.enum(['FAILED', 'PENDING', 'PROCESSING', 'SYNCED']).optional(), // Generated<SimplbooksOutboxStatus>
-  updated_at_utc: z.union([z.string().datetime(), z.date()]).optional(), // Generated<Timestamp>
+  status: z.nativeEnum(SimplbooksStatus).optional(),
+  updated_at_utc: z.union([z.string().datetime(), z.date()]).optional(),
 })
 
 export type AcctsOutboxSimplbooks = z.infer<typeof AcctsOutboxSimplbooksSchema>

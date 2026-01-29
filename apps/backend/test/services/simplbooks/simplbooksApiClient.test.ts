@@ -9,7 +9,7 @@ import {
   getItemByCode,
   getItems,
   getOverdueInvoices,
-  markInvoiceAsSent,
+  markInvoiceAsSentInSimplbooks,
   searchClient,
   searchInvoices,
   simplbooksApiClient,
@@ -26,12 +26,22 @@ import type {
 } from '../../../src/services/simplbooks/models.ts'
 import logger from '../../../src/lib/logger.ts'
 
+// Clear interceptors before any tests run to prevent rate limiting delays
+beforeAll(() => {
+  simplbooksApiClient.interceptors.request.clear()
+  simplbooksApiClient.interceptors.response.clear()
+})
+
 describe('Simplebooks API Tests Happy Case', () => {
   beforeAll(() => {
     jest.clearAllMocks()
 
     jest.spyOn(simplbooksApiClient, 'post').mockImplementation(mockSimplbooksPost)
     jest.spyOn(simplbooksApiClient, 'get').mockImplementation(mockSimplbooksGet)
+  })
+
+  afterAll(() => {
+    jest.restoreAllMocks()
   })
 
   it('should create a new client', async () => {
@@ -164,6 +174,10 @@ describe('Simplebooks API Tests Error Case', () => {
 
     jest.spyOn(simplbooksApiClient, 'post').mockImplementation(mockSimplbooksFailure)
     jest.spyOn(simplbooksApiClient, 'get').mockImplementation(mockSimplbooksFailure)
+  })
+
+  afterAll(() => {
+    jest.restoreAllMocks()
   })
 
   it('should return 400 creating a new client', async () => {
@@ -308,7 +322,7 @@ describe('markInvoiceAsSent', () => {
       data: { success: true },
     } as any)
 
-    await expect(markInvoiceAsSent(12345)).resolves.not.toThrow()
+    await expect(markInvoiceAsSentInSimplbooks(12345)).resolves.not.toThrow()
   })
 
   it('should throw error when status is not 200', async () => {
@@ -318,7 +332,7 @@ describe('markInvoiceAsSent', () => {
       data: {},
     } as any)
 
-    await expect(markInvoiceAsSent(12345)).rejects.toThrow(
+    await expect(markInvoiceAsSentInSimplbooks(12345)).rejects.toThrow(
       'Failed to set invoice 12345 as sent : Bad Request',
     )
   })
@@ -338,7 +352,7 @@ describe('markInvoiceAsSent', () => {
 
     jest.spyOn(simplbooksApiClient, 'post').mockRejectedValue(mockedError)
 
-    await expect(markInvoiceAsSent(999)).rejects.toEqual(mockedError)
+    await expect(markInvoiceAsSentInSimplbooks(999)).rejects.toEqual(mockedError)
     expect(loggerSpy).toHaveBeenCalledWith('API Error [500]: Server error')
   })
 })
@@ -348,21 +362,12 @@ describe('getInvoicePdf', () => {
     jest.clearAllMocks()
   })
 
-  it('should return PDF data when response is a string', async () => {
-    const base64String = 'JVBERi0xLjQKJeLjz9MK'
-    jest.spyOn(simplbooksApiClient, 'get').mockResolvedValue({
-      status: 200,
-      data: base64String,
-    } as any)
-
-    const result = await getInvoicePdf('12345')
-    expect(result).toBe(base64String)
-  })
-
   it('should extract PDF from response.data.data', async () => {
     jest.spyOn(simplbooksApiClient, 'get').mockResolvedValue({
       status: 200,
       data: {
+        status: 200,
+        duration: 0.0531,
         data: 'JVBERi0xLjQKJeLjz9MK',
       },
     } as any)
@@ -371,40 +376,18 @@ describe('getInvoicePdf', () => {
     expect(result).toBe('JVBERi0xLjQKJeLjz9MK')
   })
 
-  it('should extract PDF from response.data.pdf', async () => {
+  it('should throw error when response.data.data is missing', async () => {
     jest.spyOn(simplbooksApiClient, 'get').mockResolvedValue({
       status: 200,
       data: {
-        pdf: 'JVBERi0xLjQKJeLjz9MK',
-      },
-    } as any)
-
-    const result = await getInvoicePdf('12345')
-    expect(result).toBe('JVBERi0xLjQKJeLjz9MK')
-  })
-
-  it('should extract PDF from response.data.content', async () => {
-    jest.spyOn(simplbooksApiClient, 'get').mockResolvedValue({
-      status: 200,
-      data: {
-        content: 'JVBERi0xLjQKJeLjz9MK',
-      },
-    } as any)
-
-    const result = await getInvoicePdf('12345')
-    expect(result).toBe('JVBERi0xLjQKJeLjz9MK')
-  })
-
-  it('should return empty string if object has no pdf data', async () => {
-    jest.spyOn(simplbooksApiClient, 'get').mockResolvedValue({
-      status: 200,
-      data: {
+        status: 200,
         someOtherField: 'value',
       },
     } as any)
 
-    const result = await getInvoicePdf('12345')
-    expect(result).toBe('')
+    await expect(getInvoicePdf('12345')).rejects.toThrow(
+      'Invalid PDF response format for invoice 12345',
+    )
   })
 
   it('should throw error when status is not 200', async () => {
@@ -636,4 +619,10 @@ describe('Response Interceptors', () => {
       error,
     )
   })
+})
+
+// Global cleanup to prevent hanging tests
+afterAll(() => {
+  jest.restoreAllMocks()
+  jest.clearAllMocks()
 })

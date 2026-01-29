@@ -124,9 +124,9 @@ async function checkAndUpdateInvoicePayment(
   // Use rate limiter to ensure we don't exceed 1 request per second
   return limiter.schedule(async (): Promise<boolean> => {
     try {
-      const simplbooksInvoiceId = parseInt(invoice.pmt_ref, 10)
+      const simplbooksInvoiceId = Number.parseInt(invoice.id.toString(), 10)
 
-      if (isNaN(simplbooksInvoiceId)) {
+      if (Number.isNaN(simplbooksInvoiceId)) {
         logger.warn(`Invalid Simplbooks invoice ID for invoice ${invoice.id}: ${invoice.pmt_ref}`)
         return false
       }

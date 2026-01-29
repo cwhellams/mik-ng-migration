@@ -20,8 +20,8 @@ import {
 import logger from '../../lib/logger.ts'
 import { MemberSchema, type Member } from '../../routes/members/models.ts'
 import dayjs from 'dayjs'
-import http from 'http'
-import https from 'https'
+import http from 'node:http'
+import https from 'node:https'
 
 dotenv.config()
 
@@ -39,14 +39,49 @@ if (!simplbooksBaseUri || !simplbooksCompanyId || !simplbooksApiKey) {
 const url = new URL(simplbooksBaseUri)
 url.pathname = `/${simplbooksCompanyId}/${simplbooksApiVersion}`
 
-const httpAgent = new http.Agent({ keepAlive: false, timeout: 5000 })
-const httpsAgent = new https.Agent({ keepAlive: false, timeout: 5000 })
+const httpAgent = new http.Agent({ keepAlive: false, timeout: 30000 })
+const httpsAgent = new https.Agent({ keepAlive: false, timeout: 30000 })
+//const isTest = process.env.NODE_ENV === 'test'
+
+// SimplBooks rate limit: max 1 call per second
+const RATE_LIMIT_DELAY = 1000 // ms
+
+let rateLimitChain = Promise.resolve()
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+export async function enqueueRateLimitedRequest<T>(fn: () => Promise<T>): Promise<T> {
+  let result!: T
+  let error: unknown
+
+  rateLimitChain = rateLimitChain
+    .then(async () => {
+      try {
+        result = await fn()
+      } catch (err) {
+        error = err
+      }
+      await sleep(RATE_LIMIT_DELAY)
+    })
+    .catch(() => {
+      // Catch errors from previous requests to prevent chain breakage
+      // The actual error will be thrown below
+    })
+
+  await rateLimitChain
+
+  if (error) {
+    throw error
+  }
+
+  return result
+}
 
 export const simplbooksApiClient: AxiosInstance = axios.create({
   baseURL: url.toString(),
   httpAgent,
   httpsAgent,
-  timeout: 5000,
+  timeout: 30000,
   headers: {
     'X-Simplbooks-Token': simplbooksApiKey,
     'Content-Type': 'application/json',
@@ -56,12 +91,28 @@ export const simplbooksApiClient: AxiosInstance = axios.create({
 
 simplbooksApiClient.interceptors.response.use(
   response => {
-    logger.info(`[Response] ${response.status} ${response.config.url}`, response.data)
+    logger.info(
+      `[SimplBooks] ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`,
+    )
     return response
   },
   error => {
-    logger.error(`[Error] ${error.response?.status} ${error.config.url}`, error)
-    return Promise.reject(error)
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status
+      const url = error.config?.url
+
+      if (status === 429) {
+        logger.error(`[SimplBooks] 429 Too Many Requests for ${url} – rate limit exceeded`)
+      } else if (status && status >= 500) {
+        logger.error(`[SimplBooks] ${status} Server error for ${url}`)
+      } else {
+        logger.error(`[SimplBooks] ${status ?? 'NO_STATUS'} Error for ${url}`)
+      }
+    } else {
+      logger.error('[SimplBooks] Unknown error', error)
+    }
+
+    throw error
   },
 )
 
@@ -80,90 +131,111 @@ function handleApiError(error: unknown) {
 }
 
 export async function createNewClient(client: Member): Promise<number> {
-  try {
-    MemberSchema.parse(client)
-    const simplbooksClient = mapMemberToClient(client)
-    const response = await simplbooksApiClient.post(`/clients/create`, simplbooksClient)
-    if (response.status !== 200) {
-      throw new Error(
-        `Failed to create client ${client.email} in Simplbooks: ${response.statusText}`,
-      )
+  return enqueueRateLimitedRequest(async () => {
+    try {
+      MemberSchema.parse(client)
+      const simplbooksClient = mapMemberToClient(client)
+
+      const response = await simplbooksApiClient.post(`/clients/create`, simplbooksClient)
+
+      if (response.status !== 200) {
+        throw new Error(
+          `Failed to create client ${client.email} in Simplbooks: ${response.statusText}`,
+        )
+      }
+
+      return response.data.inserted_id
+    } catch (error) {
+      handleApiError(error)
+      throw error
     }
-    return response.data.inserted_id
-  } catch (error) {
-    handleApiError(error)
-    throw error
-  }
+  })
 }
 
 export async function updateClient(billingId: number, client: ClientData): Promise<void> {
-  try {
-    const simplbooksClient = { id: billingId, ...client.Client }
-    const response = await simplbooksApiClient.post(`/clients/update`, simplbooksClient)
-    if (response.status !== 200) {
-      throw new Error(
-        `Failed to update client ${simplbooksClient.e_mail} in Simplbooks: ${response.statusText}`,
-      )
+  return enqueueRateLimitedRequest(async () => {
+    try {
+      const simplbooksClient = { Client: { id: billingId, ...client.Client } }
+      const response = await simplbooksApiClient.post(`/clients/update`, simplbooksClient)
+      if (response.status !== 200) {
+        throw new Error(
+          `Failed to update client ${client.Client.e_mail} in Simplbooks: ${response.statusText}`,
+        )
+      }
+    } catch (error) {
+      handleApiError(error)
+      throw error
     }
-  } catch (error) {
-    handleApiError(error)
-    throw error
-  }
+  })
 }
 
 export async function searchClient(filter: ClientFilter): Promise<unknown> {
-  try {
-    clientFilterSchema.parse(filter)
-    const response = await simplbooksApiClient.get(`/clients/list`, { data: filter })
-    return response.data
-  } catch (error) {
-    handleApiError(error)
-    throw error
-  }
+  return enqueueRateLimitedRequest(async () => {
+    try {
+      clientFilterSchema.parse(filter)
+      const response = await simplbooksApiClient.get(`/clients/list`, { data: filter })
+      return response.data
+    } catch (error) {
+      handleApiError(error)
+      throw error
+    }
+  })
 }
 
 export async function getInvoice(id: number): Promise<InvoiceResponse> {
-  try {
-    const response = await simplbooksApiClient.get(`/invoices/get/${id}`)
-    if (response.status !== 200) {
-      throw new Error(`Failed to get invoice ${id}: ${response.statusText}`)
+  return enqueueRateLimitedRequest(async () => {
+    try {
+      const response = await simplbooksApiClient.get(`/invoices/get/${id}`)
+      if (response.status !== 200) {
+        throw new Error(`Failed to get invoice ${id}: ${response.statusText}`)
+      }
+      return response.data
+    } catch (error) {
+      handleApiError(error)
+      throw error
     }
-    return response.data
-  } catch (error) {
-    handleApiError(error)
-    throw error
-  }
+  })
 }
 
-export async function markInvoiceAsSent(id: number) {
-  try {
-    const response = await simplbooksApiClient.post(`/invoices/sent/${id}`)
-    if (response.status !== 200) {
-      throw new Error(`Failed to set invoice ${id} as sent : ${response.statusText}`)
+export async function markInvoiceAsSentInSimplbooks(id: number) {
+  return enqueueRateLimitedRequest(async () => {
+    try {
+      const response = await simplbooksApiClient.post(`/invoices/sent/${id}`)
+      if (response.status !== 200) {
+        throw new Error(`Failed to set invoice ${id} as sent : ${response.statusText}`)
+      }
+    } catch (error) {
+      handleApiError(error)
+      throw error
     }
-  } catch (error) {
-    handleApiError(error)
-    throw error
-  }
+  })
 }
 
 export async function getInvoicePdf(id: string): Promise<string> {
-  try {
-    const response = await simplbooksApiClient.get(`/invoices/get_pdf/${id}`)
-    if (response.status !== 200) {
-      throw new Error(`Failed to get invoice: ${response.statusText}`)
+  return enqueueRateLimitedRequest(async () => {
+    try {
+      const response = await simplbooksApiClient.get(`/invoices/get_pdf/${id}`, {
+        timeout: 60000, // Increase timeout for potentially large PDFs
+        headers: {
+          Accept: '*/*', // Override default Accept: application/json
+        },
+      })
+      if (response.status !== 200) {
+        throw new Error(`Failed to get invoice: ${response.statusText}`)
+      }
+
+      // SimplBooks returns JSON with base64 PDF in the "data" field
+      if (response.data && response.data.data) {
+        logger.info(`Successfully fetched PDF for invoice ${id}`)
+        return response.data.data
+      }
+
+      throw new Error(`Invalid PDF response format for invoice ${id}`)
+    } catch (error) {
+      handleApiError(error)
+      throw error
     }
-    // SimplBooks may return the PDF in different formats
-    // If it's an object with a data property, extract it
-    if (typeof response.data === 'object' && response.data !== null) {
-      return response.data.data || response.data.pdf || response.data.content || ''
-    }
-    // Otherwise return the data directly (should be a base64 string)
-    return response.data
-  } catch (error) {
-    handleApiError(error)
-    throw error
-  }
+  })
 }
 
 export async function getOverdueInvoices(
@@ -191,29 +263,33 @@ export async function getOverdueInvoices(
 }
 
 export async function searchInvoices(filter: InvoiceFilter): Promise<InvoiceListResponse> {
-  try {
-    invoiceFilterSchema.parse(filter)
-    const response = await simplbooksApiClient.get(`/invoices/list`, { data: filter })
-    return response.data
-  } catch (error) {
-    handleApiError(error)
-    throw error
-  }
+  return enqueueRateLimitedRequest(async () => {
+    try {
+      invoiceFilterSchema.parse(filter)
+      const response = await simplbooksApiClient.get(`/invoices/list`, { data: filter })
+      return response.data
+    } catch (error) {
+      handleApiError(error)
+      throw error
+    }
+  })
 }
 
 export async function createSimplbooksInvoice(
   invoice: InvoicePost,
 ): Promise<SimplBooksInsertResponse> {
-  try {
-    const response = await simplbooksApiClient.post(`/invoices/create`, invoice)
-    if (response.status !== 200) {
-      throw new Error(`Failed to create invoice: ${response.statusText}`)
+  return enqueueRateLimitedRequest(async () => {
+    try {
+      const response = await simplbooksApiClient.post(`/invoices/create`, invoice)
+      if (response.status !== 200) {
+        throw new Error(`Failed to create invoice: ${response.statusText}`)
+      }
+      return response.data
+    } catch (error) {
+      handleApiError(error)
+      throw error
     }
-    return response.data
-  } catch (error) {
-    handleApiError(error)
-    throw error
-  }
+  })
 }
 
 export async function getItemByCode(code: string): Promise<ItemListArticle | undefined> {
@@ -235,7 +311,9 @@ export async function getItems(code?: string): Promise<ItemListArticle[]> {
   let response: AxiosResponse<any>
   do {
     logger.info(`Fetching items from SimplBooks, page: ${page}`)
-    response = await simplbooksApiClient.get(`/articles/list`, { data: filter(page) })
+    response = await enqueueRateLimitedRequest(() =>
+      simplbooksApiClient.get(`/articles/list`, { data: filter(page) }),
+    )
     if (response.status !== 200) {
       throw new Error(`Failed to get items from SimplBooks response: ${response.statusText}`)
     }
@@ -257,5 +335,5 @@ export async function getItems(code?: string): Promise<ItemListArticle[]> {
     )
   } while (getNextPage)
 
-  return allListItems.map(item => item as ItemListArticle)
+  return allListItems.map(item => item)
 }

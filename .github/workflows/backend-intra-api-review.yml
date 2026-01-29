@@ -133,6 +133,7 @@ jobs:
           BREVO_API_URL: https://api.brevo.com/v3
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           BREVO_SYNC_WORKER_ENABLED: false
+          NODE_ENV: test
         run: |
           pnpm test
 

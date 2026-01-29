@@ -206,12 +206,6 @@ export async function getMembers(
 export async function getMembersForAnnualMembershipFee(year: number): Promise<InvoiceMember[]> {
   const members = await db
     .selectFrom('member.register')
-    .leftJoin('member.annual_fees', join =>
-      join
-        .onRef('member.register.member_id', '=', 'member.annual_fees.member_id')
-        .on('member.annual_fees.year', '=', year)
-        .on('member.annual_fees.fee_type', '=', 'annual_fee'),
-    )
     .select([
       'member.register.member_id',
       'email',
@@ -232,7 +226,6 @@ export async function getMembersForAnnualMembershipFee(year: number): Promise<In
       MIKMemberTypes.REMOVED,
       MIKMemberTypes.SYSTEM,
     ])
-    .where('member.annual_fees.member_id', 'is', null)
     .orderBy('last_name')
     .orderBy('first_name')
     .execute()
