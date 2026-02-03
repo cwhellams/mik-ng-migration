@@ -193,9 +193,9 @@ export async function createOccurrence(
     id: generateShortId(),
     handling: {},
     createdAt: now.toISOString(),
-    createdBy: user.memberId!,
+    createdBy: user.memberId,
     updatedAt: now.toISOString(),
-    updatedBy: user.memberId!,
+    updatedBy: user.memberId,
   }
 
   await connection.db
@@ -250,7 +250,7 @@ export async function updateOccurrence(
   const updated: Occurrence = {
     ...existing,
     ...patch,
-    updatedBy: user.memberId!,
+    updatedBy: user.memberId,
     updatedAt: now,
   }
 
@@ -301,7 +301,7 @@ export const addOccurrenceAccess = async (
         write_access: access.write,
         manage_access: access.manage,
         updated_at: new Date(),
-        updated_by: user.memberId!,
+        updated_by: user.memberId,
       })),
     )
     .returningAll()
@@ -330,7 +330,7 @@ export const updateOccurrenceAccess = async (
       write_access: access.write,
       manage_access: access.manage,
       updated_at: new Date(),
-      updated_by: user.memberId!,
+      updated_by: user.memberId,
     })
     .where('report_id', '=', reportId)
     .where('access_id', '=', access.accessId!)

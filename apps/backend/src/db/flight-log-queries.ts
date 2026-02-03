@@ -29,7 +29,7 @@ import {
   type UpdateObject,
 } from 'kysely'
 import dayjs from 'dayjs'
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 import { SimplbooksEventType } from '../services/simplbooks/models.ts'
 import { toLocal } from '../util/date.ts'
 
@@ -188,7 +188,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
 
   const pageSize = filters.limit ?? 50
   // when using dynamic paging, get the total number of pages
-  const pages = !ajlbPaging ? Math.ceil(rows / pageSize) : undefined
+  const pages = ajlbPaging ? undefined : Math.ceil(rows / pageSize)
   // if page is not defined, use the last page
   const page = filters.page ?? pages ?? 1
 
@@ -323,7 +323,7 @@ export async function getFlightStats(
       sumIfMonths(eb, 12, 'flight.logs.number_of_landings').as('landings12month'),
     ])
     .where('billable_member_id', '=', billableMemberId)
-    .$if(activeOnly == true, qb =>
+    .$if(activeOnly === true, qb =>
       qb.where(eb =>
         eb(
           'flight.logs.aircraft_registration',

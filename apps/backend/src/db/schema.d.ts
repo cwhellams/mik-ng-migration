@@ -444,6 +444,10 @@ export interface MemberRegister {
   can_make_reservations: Generated<boolean>
   created_at: Generated<Timestamp>
   created_by: string
+  /**
+   * User preferences for dashboard component order and visibility. Structure: {"components": [{"id": "weather", "visible": true, "order": 0}, ...]}
+   */
+  dashboard_settings: Json | null
   date_of_birth: string | null
   email: string
   email_verified_at: Timestamp | null

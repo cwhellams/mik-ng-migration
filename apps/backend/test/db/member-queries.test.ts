@@ -11,6 +11,8 @@ import {
   removeMemberRole,
   removeMember,
   getMemberRolesByPermission,
+  getDashboardSettings,
+  setDashboardSettings,
 } from '../../src/db/member-queries.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import {
@@ -264,5 +266,90 @@ describe('Db add member tests', () => {
 
   it('Removing a member role that does not exist will return false', async () => {
     expect(await removeMemberRole('CANT_find_THIS')).toEqual(false)
+  })
+
+  describe('Dashboard Settings Tests', () => {
+    const testMemberId = 'Matti1'
+
+    it('should return null when member has no dashboard settings', async () => {
+      // First ensure the member has no settings
+      await setDashboardSettings(testMemberId, null)
+
+      const result = await getDashboardSettings(testMemberId)
+      expect(result).toBeNull()
+    })
+
+    it('should save and retrieve dashboard settings', async () => {
+      const settings = {
+        components: [
+          { id: 'weather', visible: true, order: 0 },
+          { id: 'bookingUser', visible: false, order: 1 },
+          { id: 'flightLogUser', visible: true, order: 2 },
+        ],
+      }
+
+      await setDashboardSettings(testMemberId, settings)
+
+      const result = await getDashboardSettings(testMemberId)
+      expect(result).toEqual(settings)
+    })
+
+    it('should update existing dashboard settings', async () => {
+      const initialSettings = {
+        components: [
+          { id: 'weather', visible: true, order: 0 },
+          { id: 'bookingUser', visible: true, order: 1 },
+        ],
+      }
+
+      await setDashboardSettings(testMemberId, initialSettings)
+
+      const updatedSettings = {
+        components: [
+          { id: 'weather', visible: false, order: 1 },
+          { id: 'bookingUser', visible: true, order: 0 },
+          { id: 'flightLogUser', visible: true, order: 2 },
+        ],
+      }
+
+      await setDashboardSettings(testMemberId, updatedSettings)
+
+      const result = await getDashboardSettings(testMemberId)
+      expect(result).toEqual(updatedSettings)
+    })
+
+    it('should clear dashboard settings when set to null', async () => {
+      const settings = {
+        components: [{ id: 'weather', visible: true, order: 0 }],
+      }
+
+      await setDashboardSettings(testMemberId, settings)
+      expect(await getDashboardSettings(testMemberId)).toEqual(settings)
+
+      await setDashboardSettings(testMemberId, null)
+      expect(await getDashboardSettings(testMemberId)).toBeNull()
+    })
+
+    it('should handle all default dashboard components', async () => {
+      const allComponentsSettings = {
+        components: [
+          { id: 'profileUpdateRequired', visible: true, order: 0 },
+          { id: 'reservationsSuspended', visible: true, order: 1 },
+          { id: 'overdueInvoice', visible: true, order: 2 },
+          { id: 'equipmentFee', visible: true, order: 3 },
+          { id: 'pendingReview', visible: true, order: 4 },
+          { id: 'weather', visible: true, order: 5 },
+          { id: 'bookingUser', visible: true, order: 6 },
+          { id: 'flightLogUser', visible: true, order: 7 },
+          { id: 'memberAdmin', visible: true, order: 8 },
+          { id: 'flightLogAdmin', visible: true, order: 9 },
+        ],
+      }
+
+      await setDashboardSettings(testMemberId, allComponentsSettings)
+
+      const result = await getDashboardSettings(testMemberId)
+      expect(result).toEqual(allComponentsSettings)
+    })
   })
 })

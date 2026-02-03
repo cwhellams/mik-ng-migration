@@ -22,6 +22,7 @@ import type { Upsert } from '../types/schema.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import { randomUUID } from 'node:crypto'
 import { RecurringFeeType, SimplbooksEventType } from '../services/simplbooks/models.ts'
+import type { DashboardSettings } from '../routes/dashboard/models.ts'
 
 export async function getMemberById(memberId: string): Promise<Member | undefined> {
   const member = await db
@@ -141,7 +142,7 @@ export async function getMembers(
     ])
 
     // see only members waiting for approval
-    .$if(isAdmin && showUnapproved == true, qb =>
+    .$if(isAdmin && showUnapproved === true, qb =>
       qb
         .where('is_membership_approved', '=', false)
         .where('member_type', '!=', MIKMemberTypes.EXTERNAL),
@@ -157,7 +158,7 @@ export async function getMembers(
     )
 
     // show only external members
-    .$if(isAdmin && showExternal == true, qb =>
+    .$if(isAdmin && showExternal === true, qb =>
       qb.where('member_type', '=', MIKMemberTypes.EXTERNAL),
     )
     // show only removed members or hide otherwise
@@ -658,6 +659,33 @@ export async function restoreMemberReservations(memberId: string): Promise<void>
       can_make_reservations: true,
       updated_at: new Date(),
       updated_by: 'k1mnimda',
+    })
+    .where('member_id', '=', memberId)
+    .execute()
+}
+
+export async function getDashboardSettings(memberId: string): Promise<DashboardSettings | null> {
+  const result = await db
+    .selectFrom('member.register')
+    .select('dashboard_settings')
+    .where('member_id', '=', memberId)
+    .executeTakeFirstOrThrow()
+  if (result.dashboard_settings === null) {
+    return null
+  }
+  return result.dashboard_settings as DashboardSettings
+}
+
+export async function setDashboardSettings(
+  memberId: string,
+  settings: DashboardSettings | null,
+): Promise<void> {
+  await db
+    .updateTable('member.register')
+    .set({
+      dashboard_settings: settings,
+      updated_at: new Date(),
+      updated_by: memberId,
     })
     .where('member_id', '=', memberId)
     .execute()
