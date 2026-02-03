@@ -454,9 +454,8 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
             ? docs
             : docs.filter((doc) => getDocumentStatus(doc) !== 'expired'),
         }))
-        .filter(({ documents }) => documents.length > 0)
         .sort((a, b) => a.type.localeCompare(b.type))
-        .map(({ type, documents: docs }) => (
+        .map(({ type, documents }) => (
           <Box key={type} sx={{ mb: 2 }}>
             <Typography
               variant='subtitle2'
@@ -467,42 +466,21 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
             </Typography>
 
             <List dense sx={{ pl: 2 }}>
-              {docs.map((doc) => (
-                <DocumentItem
-                  key={doc.documentId}
-                  document={doc}
-                  onDelete={handleDeleteRequest}
-                  onEdit={handleEdit}
-                  onDownload={handleDownload}
-                  isAdmin={isAdmin}
-                />
-              ))}
+              {documents.length > 0
+                ? documents.map((doc) => (
+                    <DocumentItem
+                      key={doc.documentId}
+                      document={doc}
+                      onDelete={handleDeleteRequest}
+                      onEdit={handleEdit}
+                      onDownload={handleDownload}
+                      isAdmin={isAdmin}
+                    />
+                  ))
+                : t('aircraft.missingDocuments')}
             </List>
           </Box>
         ))}
-
-      <Divider sx={{ my: 3 }} />
-
-      {/* Missing documents section */}
-      <Box>
-        <Typography variant='h5' fontWeight='bold' sx={{ mt: 4, mb: 2 }}>
-          {t('aircraft.missingDocuments')}!
-        </Typography>
-
-        <Stack direction='column' spacing={1} alignItems='left'>
-          {allDocumentTypes
-            .filter(
-              ({ documents, type }) =>
-                documents.length === 0 && type !== 'Other'
-            )
-            .sort((a, b) => a.type.localeCompare(b.type))
-            .map(({ type }) => (
-              <Typography key={type} variant='body1' fontWeight='medium'>
-                {type}
-              </Typography>
-            ))}
-        </Stack>
-      </Box>
 
       {/* Delete confirmation dialog */}
       <Dialog

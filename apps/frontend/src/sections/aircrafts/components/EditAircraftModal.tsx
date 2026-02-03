@@ -79,41 +79,43 @@ export const EditAircraftModal = ({
   useEffect(() => {
     setProblem(undefined)
 
-    if (!aircraft || mode === 'details') {
+    if (!aircraft) {
       setFormData({
-        registration: aircraft?.registration ?? '',
-        displayName: aircraft?.displayName ?? '',
-        model: aircraft?.model ?? '',
-        manufacturer: aircraft?.manufacturer ?? '',
-        yearOfManufacture: aircraft?.yearOfManufacture ?? 2020,
-        seats: aircraft?.seats ?? 1,
-        usableFuelLitres: aircraft?.usableFuelLitres ?? 1,
-        fuelTypes: aircraft?.fuelTypes ?? [],
-        active: aircraft?.active ?? false,
-
-        location: aircraft?.location,
-        equipment: aircraft?.equipment,
-        hourlyRateEur: aircraft?.hourlyRateEur,
-        imageUrl: aircraft?.imageUrl ?? null,
-
+        registration: 'OH-',
+        yearOfManufacture: 2020,
+        seats: 2,
+        usableFuelLitres: 1,
+        active: false,
+        imageUrl: 'http://',
         documents: [],
         notes: [],
-        maintenance: aircraft
-          ? undefined
-          : {
-              maintenanceCycle: 50,
-
-              lastMaintenanceDate: '2020-01-01',
-              lastMaintenanceType: '0h',
-              lastMaintenanceTach: 1,
-
-              nextMaintenanceDate: null,
-              nextMaintenanceType: '50h',
-              nextMaintenanceTach: 50,
-
-              totalPercentageHours: 5,
-              reservedHours: 2,
-            },
+        maintenance: {
+          maintenanceCycle: 50,
+          lastMaintenanceDate: '2020-01-01',
+          lastMaintenanceType: '0h',
+          lastMaintenanceTach: 1,
+          nextMaintenanceDate: null,
+          nextMaintenanceType: '50h',
+          nextMaintenanceTach: 50,
+          totalPercentageHours: 5,
+          reservedHours: 2,
+        },
+      })
+    } else if (mode === 'details') {
+      setFormData({
+        registration: aircraft.registration,
+        displayName: aircraft.displayName,
+        model: aircraft.model,
+        manufacturer: aircraft.manufacturer,
+        yearOfManufacture: aircraft.yearOfManufacture,
+        seats: aircraft.seats,
+        usableFuelLitres: aircraft.usableFuelLitres,
+        fuelTypes: aircraft.fuelTypes,
+        active: aircraft.active,
+        location: aircraft.location,
+        equipment: aircraft.equipment,
+        hourlyRateEur: aircraft.hourlyRateEur,
+        imageUrl: aircraft.imageUrl,
       })
     } else if (mode === 'maintenance') {
       setFormData({
