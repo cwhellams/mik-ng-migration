@@ -234,6 +234,6 @@ jobs:
 
       - name: Update app on DigitalOcean
         run: |
-          doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} \              
+          doctl apps update ${{ vars.DIGITALOCEAN_BACKEND_APP_ID }} \
               --spec .do/mik-intranet-test.yaml \
               --wait
