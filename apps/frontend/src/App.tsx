@@ -34,6 +34,7 @@ import { Stats } from './sections/stats/Stats'
 import 'dayjs/locale/en-gb'
 import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
 import ToolsPage from './sections/accounting/ToolsPage'
+import { TaxReport } from './sections/accounting/TaxReport'
 import { Occurrences } from './sections/occurrences/Occurences'
 import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
 import LogbookFlights from './sections/flightLog/LogbookPage'
@@ -111,6 +112,7 @@ function App() {
               <Route path='invoicing' element={<FlightInvoicing />} />
               <Route path='items' element={<InvoiceItemsPage />} />
               <Route path='tools' element={<ToolsPage />} />
+              <Route path='tax-report' element={<TaxReport />} />
             </Route>
           </Route>
 

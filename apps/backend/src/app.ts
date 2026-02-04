@@ -23,6 +23,7 @@ import { router as occurrenceRoutes } from './routes/occurrences/api.ts'
 import { router as weatherRoutes } from './routes/weather/api.ts'
 import { router as statsRoutes } from './routes/stats/api.ts'
 import { router as dashboardRoutes } from './routes/dashboard/api.ts'
+import taxReportRoutes from './routes/tax-reports/api.ts'
 import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
 import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoicePaymentWorker.ts'
 import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
@@ -96,6 +97,7 @@ app.use('/api/v1/occurrences', occurrenceRoutes)
 app.use('/api/v1/weather', weatherRoutes)
 app.use('/api/v1/stats', statsRoutes)
 app.use('/api/v1/dashboard', dashboardRoutes)
+app.use('/api/v1/tax-reports', taxReportRoutes)
 
 // Test database connection before starting workers
 await testConnection()

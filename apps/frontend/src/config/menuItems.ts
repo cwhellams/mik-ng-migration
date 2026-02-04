@@ -94,6 +94,7 @@ export const menuItems: MenuItem[] = [
       { label: 'invoicing.tabs.flights', path: 'invoicing' },
       { label: 'invoicing.tabs.items', path: 'items' },
       { label: 'invoicing.tabs.tools', path: 'tools' },
+      { label: 'invoicing.tabs.taxReport', path: 'tax-report' },
     ],
   },
 ]
