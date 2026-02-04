@@ -185,7 +185,7 @@ async function createFlightInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   // Validate that all flights have the same billable member ID
   validateFlightsBillableMemberId(flights.flights, billableMemberId)
 
-  const flightInvoicePayload = await createFlightInvoicePayload(flights)
+  const flightInvoicePayload = await createFlightInvoicePayload(flights, billableMemberId)
 
   // Extract all flight IDs from the payload
   const flightIds = flights.flights.map(flight => flight.flightId)

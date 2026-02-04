@@ -2,12 +2,17 @@ import {
   getInvoices,
   getInvoiceItems,
   getAnnualEquipmmentFee,
+  hasRequestedEquipmentFee,
   upsertInvoiceItems,
   deleteInvoiceItem,
   getRecurringFeesProcessing,
 } from '../../src/db/invoicing-queries.ts'
 import type { InvoiceItemQueryParams } from '../../src/routes/invoicing/models.ts'
-import { MIKInvoiceType, type ItemListArticle } from '../../src/services/simplbooks/models.ts'
+import {
+  MIKInvoiceType,
+  RecurringFeeType,
+  type ItemListArticle,
+} from '../../src/services/simplbooks/models.ts'
 import { db } from '../../src/db/connection.ts'
 import { ART_EQUIP_FEE_CODE } from '../../src/services/accounting/config.ts'
 
@@ -182,6 +187,83 @@ describe('Invoicing Queries', () => {
         })
         .onConflict(oc => oc.column('id').doNothing())
         .execute()
+    })
+  })
+
+  describe('hasRequestedEquipmentFee', () => {
+    const feeYear = 2099
+    const feeMemberId = testMemberId
+    let createdInvoiceId: string | null = null
+
+    beforeEach(async () => {
+      await db
+        .deleteFrom('member.annual_fees')
+        .where('member_id', '=', feeMemberId)
+        .where('year', '=', feeYear)
+        .where('fee_type', '=', RecurringFeeType.EQUIPMENT_FEE)
+        .execute()
+    })
+
+    afterEach(async () => {
+      await db
+        .deleteFrom('member.annual_fees')
+        .where('member_id', '=', feeMemberId)
+        .where('year', '=', feeYear)
+        .where('fee_type', '=', RecurringFeeType.EQUIPMENT_FEE)
+        .execute()
+
+      if (createdInvoiceId) {
+        await db.deleteFrom('accts.invoice').where('id', '=', createdInvoiceId).execute()
+        createdInvoiceId = null
+      }
+    })
+
+    it('should return false when no equipment fee request exists', async () => {
+      const hasFee = await hasRequestedEquipmentFee(feeYear, feeMemberId)
+      expect(hasFee).toBe(false)
+    })
+
+    it('should return true when equipment fee request exists', async () => {
+      const maxIdResult = await db
+        .selectFrom('accts.invoice')
+        .select(db.fn.max('id').as('max_id'))
+        .executeTakeFirst()
+
+      const nextId = maxIdResult?.max_id ? Number(maxIdResult.max_id) + 1 : 1
+      createdInvoiceId = nextId.toString()
+
+      await db
+        .insertInto('accts.invoice')
+        .values({
+          id: createdInvoiceId,
+          member_id: feeMemberId,
+          invoice_type: MIKInvoiceType.EQUIPMENT_FEE,
+          description: 'Test equipment fee invoice',
+          pmt_ref: 'TEST-EQUIP-FEE',
+          paid_at: null,
+          due_at: new Date().toISOString(),
+          sent_at: null,
+          currency: 'EUR',
+          total_sum: '0.00',
+          created_by: adminMemberId,
+          updated_by: adminMemberId,
+        })
+        .execute()
+
+      await db
+        .insertInto('member.annual_fees')
+        .values({
+          member_id: feeMemberId,
+          year: feeYear,
+          fee_type: RecurringFeeType.EQUIPMENT_FEE,
+          invoice_id: nextId,
+          created_by: adminMemberId,
+          updated_by: adminMemberId,
+        })
+        .execute()
+
+      const hasFee = await hasRequestedEquipmentFee(feeYear, feeMemberId)
+      expect(hasFee).toBe(true)
     })
   })
 

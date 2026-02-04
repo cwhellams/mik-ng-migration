@@ -7,9 +7,9 @@ import {
   getInvoiceItems,
   getInvoices,
   getRecurringFeesProcessing,
+  hasRequestedEquipmentFee,
   upsertInvoiceItems,
 } from '../../db/invoicing-queries.ts'
-import { hasEquipmentFeeForYear } from '../../db/member-queries.ts'
 import {
   InvoiceItemQuerySchema,
   type InvoiceItemQueryParams,
@@ -218,7 +218,7 @@ router.post('/requestOwnEquipmentFeeInvoice', async (req: Request, res: Response
 
 router.get('/equipmentFeeStatus', async (req: Request, res: Response) => {
   const currentYear = new Date().getFullYear()
-  const hasPaid = await hasEquipmentFeeForYear(req.user!.memberId, currentYear)
+  const hasPaid = await hasRequestedEquipmentFee(currentYear, req.user!.memberId)
 
   res.status(HttpStatusCode.Ok).json({
     year: currentYear,

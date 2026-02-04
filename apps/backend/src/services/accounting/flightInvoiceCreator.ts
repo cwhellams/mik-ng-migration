@@ -2,44 +2,56 @@ import { type FlightInvoicePayload, type InvoicableFlight } from '../../routes/f
 import type { InvoicePost } from '../simplbooks/models.ts'
 
 import { getAircraftPriceForDate } from '../../db/aircraft-pricing-queries.ts'
-import { getArticleIdsByCode } from '../../db/invoicing-queries.ts'
+import {
+  getArticleIdsByCode,
+  getKalustonkayttoFee,
+  hasRequestedEquipmentFee,
+} from '../../db/invoicing-queries.ts'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js'
 import timezone from 'dayjs/plugin/timezone.js'
+import logger from '../../lib/logger.ts'
+import { ART_EQUIP_USAGE_FEE_CODE } from './config.ts'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
 export async function createFlightInvoicePayload(
   payload: FlightInvoicePayload,
+  billableMemberId: string,
 ): Promise<InvoicePost> {
   // Create Simplbooks tasks from the flights array
-  const tasks = await createTasksForFlights(payload.flights)
+
+  const [tasks, kalustonkayttoRemarks] = await createTasksForFlights(payload.flights)
   const billingId = payload.flights[0].billingId
 
   if (!billingId) {
-    throw new Error('Cannot create invoice: billable member has no billing ID')
+    throw new Error(
+      `Cannot create invoice: billable member has no billing ID for member ${billableMemberId}`,
+    )
   }
 
-  const clientId = parseInt(billingId, 10)
+  const simplbooksClientId = Number.parseInt(billingId, 10)
 
-  if (isNaN(clientId)) {
-    throw new Error(`Invalid billing ID: ${billingId}`)
+  if (Number.isNaN(simplbooksClientId)) {
+    throw new TypeError(`Invalid billing ID: ${billingId} for member ${billableMemberId}`)
   }
 
   return {
     Invoice: {
-      client_id: clientId,
-      additional_info: getBillingRemarks(payload.flights),
+      client_id: simplbooksClientId,
+      additional_info: getBillingRemarks(payload.flights, kalustonkayttoRemarks),
     },
     Tasks: tasks,
   }
 }
 
-function getBillingRemarks(flights: InvoicableFlight[]): string {
+function getBillingRemarks(flights: InvoicableFlight[], kalustonkayttoRemarks: string): string {
   const remarks = flights
     .map(flight => flight.billingRemarks)
     .filter(remark => remark && remark.trim() !== '')
+
+  kalustonkayttoRemarks && remarks.push(kalustonkayttoRemarks)
 
   return remarks.join('; ')
 }
@@ -63,16 +75,44 @@ async function getUnitPriceForFlightItem(
 
 const createTasksForFlights = async (
   flights: InvoicableFlight[],
-): Promise<InvoicePost['Tasks']> => {
+): Promise<[InvoicePost['Tasks'], string]> => {
   const tasks: InvoicePost['Tasks'] = []
 
   // Extract unique aircraft registrations
   const uniqueRegistrations = [...new Set(flights.map(f => f.aircraftRegistration))]
+  const articleCodes = [...uniqueRegistrations, ART_EQUIP_USAGE_FEE_CODE]
+  const kalustonkayttoFee = await getKalustonkayttoFee()
+  if (!kalustonkayttoFee) {
+    throw new Error('Kalustonkaytto fee article not found in the database')
+  }
 
   // Fetch article IDs for all unique aircraft in one query
-  const articleIdMap = await getArticleIdsByCode(uniqueRegistrations)
+  const articleIdMap = await getArticleIdsByCode(articleCodes)
+  let applyKalustonkayttoRemarks = false
+
+  // Precompute equipment-fee request status per distinct takeoff year (same billable member for all flights)
+  const equipmentFeeRequestedByYear = new Map<number, boolean>()
+  const billableMemberId = flights[0]?.billableMemberId
+  if (billableMemberId !== undefined && billableMemberId !== null) {
+    const distinctTakeoffYears = new Set<number>()
+    for (const flight of flights) {
+      distinctTakeoffYears.add(new Date(flight.takeoffTimeUtc).getUTCFullYear())
+    }
+    for (const year of distinctTakeoffYears) {
+      const requested = await hasRequestedEquipmentFee(year, billableMemberId)
+      equipmentFeeRequestedByYear.set(year, requested)
+    }
+  }
 
   for (const flight of flights) {
+    const takeoffYearUtc = new Date(flight.takeoffTimeUtc).getUTCFullYear()
+    const equipmentFeeRequested = equipmentFeeRequestedByYear.get(takeoffYearUtc) ?? false
+    const applyKalustonkayttoFee = !equipmentFeeRequested
+
+    if (applyKalustonkayttoFee) {
+      applyKalustonkayttoRemarks = true
+    }
+
     // Get the price per minute for this aircraft on the flight date
     const pricePerMinute = await getUnitPriceForFlightItem(
       flight.aircraftRegistration,
@@ -101,7 +141,29 @@ const createTasksForFlights = async (
         },
       ],
     })
+
+    if (applyKalustonkayttoFee) {
+      logger.info(
+        `Adding equipment usage fee for flight ${flight.flightId} of member ${flight.billableMemberId}`,
+      )
+
+      tasks.push({
+        Task: {
+          article_id: kalustonkayttoFee.id,
+          code: kalustonkayttoFee.code,
+          amount: billableMins,
+          price_per_unit: kalustonkayttoFee.markup_value,
+          contents: `${flight.aircraftRegistration} ${dayjs(flight.takeoffTimeUtc).tz('Europe/Helsinki').format('YYYY-MM-DD')} ${flight.departureAirport} - ${flight.arrivalAirport}`,
+          name: kalustonkayttoFee.name,
+        },
+        Projects: [
+          {
+            code: flight.aircraftRegistration, // Cost centre code - to be determined based on flight type or other criteria
+          },
+        ],
+      })
+    }
   }
 
-  return tasks
+  return [tasks, applyKalustonkayttoRemarks ? `${kalustonkayttoFee.contents}` : '']
 }

@@ -602,18 +602,6 @@ export async function removeMemberRole(roleId: string): Promise<boolean> {
   return result.numDeletedRows == BigInt(1)
 }
 
-export async function hasEquipmentFeeForYear(memberId: string, year: number): Promise<boolean> {
-  const result = await db
-    .selectFrom('member.annual_fees')
-    .select('member_id')
-    .where('member_id', '=', memberId)
-    .where('year', '=', year)
-    .where('fee_type', '=', 'equipment_fee')
-    .executeTakeFirst()
-
-  return result !== undefined
-}
-
 export async function getFeeProcessingItemForMember(
   feeType: RecurringFeeType,
   year: number,

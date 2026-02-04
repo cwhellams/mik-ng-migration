@@ -3,9 +3,15 @@ import {
   type RecurringFeesProcessing,
   EquipmentFeeSchema,
   type EquipmentFee,
+  type KalustonkayttoFee,
+  KalustonkayttoFeeSchema,
 } from '../routes/invoicing/models.ts'
-import { ART_EQUIP_FEE_CODE } from '../services/accounting/config.ts'
-import type { FeeType, ItemListArticle } from '../services/simplbooks/models.ts'
+import { ART_EQUIP_FEE_CODE, ART_EQUIP_USAGE_FEE_CODE } from '../services/accounting/config.ts'
+import {
+  RecurringFeeType,
+  type FeeType,
+  type ItemListArticle,
+} from '../services/simplbooks/models.ts'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import { sql } from 'kysely'
 import { db } from './connection.ts'
@@ -85,6 +91,44 @@ export async function getAnnualEquipmmentFee(): Promise<EquipmentFee | undefined
   }
 
   return EquipmentFeeSchema.parse(equipmentFee)
+}
+
+export async function getKalustonkayttoFee(): Promise<KalustonkayttoFee | undefined> {
+  const result = await db
+    .selectFrom('accts.items')
+    .select(['id', 'item', 'code', 'name'])
+    .where('code', '=', ART_EQUIP_USAGE_FEE_CODE)
+    .executeTakeFirst()
+
+  if (!result?.item) {
+    return undefined
+  }
+
+  const rawItem = result.item as Record<string, unknown>
+
+  const kalustonkayttoFee = {
+    id: result.id,
+    code: result.code,
+    unit: rawItem.unit,
+    markup_value: rawItem.markup_value,
+    name: result.name,
+    contents: rawItem.contents,
+    amount: rawItem.amount,
+  }
+
+  return KalustonkayttoFeeSchema.parse(kalustonkayttoFee)
+}
+
+export async function hasRequestedEquipmentFee(year: number, memberId: string): Promise<boolean> {
+  const result = await db
+    .selectFrom('member.annual_fees')
+    .select('member_id')
+    .where('member_id', '=', memberId)
+    .where('year', '=', year)
+    .where('fee_type', '=', RecurringFeeType.EQUIPMENT_FEE)
+    .executeTakeFirst()
+
+  return result !== undefined
 }
 
 export async function upsertInvoiceItems(items: ItemListArticle[]): Promise<void> {
