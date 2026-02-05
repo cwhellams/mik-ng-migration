@@ -198,7 +198,7 @@ static_sites:
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
       - key: DEPLOY_TIMESTAMP
-        value: ${DEPLOY_TIMESTAMP}
+        value: "${DEPLOY_TIMESTAMP}"
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
     catchall_document: index.html
