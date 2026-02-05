@@ -68,4 +68,3 @@ in scrpts/ there is a shell script which can be used to build and start the cont
 # Database migration
 
 Database migrations are handle by flyway - more details in the readme in `./sql`
-

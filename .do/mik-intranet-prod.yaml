@@ -187,7 +187,7 @@ static_sites:
   - name: mik-intranet-frontend-prod
     github:
       repo: MIK-dev-team/mik-ng
-      branch: prod
+      branch: ${DEPLOY_BRANCH} # dynamic per release
     source_dir: /apps/frontend
     output_dir: /dist
     build_command: npx tsc && npm install -g pnpm && pnpm install --frozen-lockfile && pnpm build
@@ -201,5 +201,8 @@ static_sites:
         value: ${VITE_TURNSTILE_SITE_KEY}
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
-
+      - key: DEPLOY_TIMESTAMP
+        value: ${DEPLOY_TIMESTAMP}
+        type: GENERAL
+        scope: RUN_AND_BUILD_TIME
     catchall_document: index.html

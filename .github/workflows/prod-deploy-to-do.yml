@@ -24,13 +24,24 @@ jobs:
           ref: ${{ github.event.client_payload.tag_name }}
           fetch-depth: 0
 
-      - name: Update prod branch to point to tag
+      - name: Prepare unique production deploy branch
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -B prod ${{ github.event.client_payload.tag_name }}
-          git commit --allow-empty -m "Deploy ${{ github.event.client_payload.tag_name }} to production [skip ci]"
-          git push origin prod --force
+          TAG="${{ github.event.client_payload.tag_name }}"
+          DEPLOY_BRANCH="prod-deploy-${TAG}"
+
+          # Create branch from release tag
+          git checkout -B "$DEPLOY_BRANCH" $TAG
+
+          # Add a timestamp to force static site rebuild
+          echo "DEPLOY_TIMESTAMP=$(date +%s)" >> .deploy_timestamp
+          git add .deploy_timestamp
+          git commit -m "Deploy $TAG - timestamp $(date +%s)"
+
+          # Push branch
+          git push origin "$DEPLOY_BRANCH" --force
+
+          echo "DEPLOY_BRANCH=$DEPLOY_BRANCH" >> "$GITHUB_ENV"
+          echo "DEPLOY_TIMESTAMP=$(date +%s)" >> "$GITHUB_ENV"
 
       - name: Set repo name lowercase
         run: echo "REPO_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
