@@ -31,6 +31,10 @@ jobs:
 
           # Create branch from release tag
           git checkout -B "$DEPLOY_BRANCH" $TAG
+           
+          # Set Git identity for this repo only
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Add a timestamp to force static site rebuild
           echo "DEPLOY_TIMESTAMP=$(date +%s)" >> .deploy_timestamp
