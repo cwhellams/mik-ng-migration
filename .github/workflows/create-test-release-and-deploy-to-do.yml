@@ -137,6 +137,16 @@ jobs:
                      registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ inputs.version_tag }}
           docker push registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
           docker push registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ inputs.version_tag }}
+      - name: Get runner public IP
+        run: |
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          echo "RUNNER_IP=$RUNNER_IP" >> "$GITHUB_ENV"
+
+      - name: Add runner IP to database firewall
+        run: |
+          doctl databases firewalls append ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --rule ip_addr:${{ env.RUNNER_IP }}
+          RULE_UUID=$(doctl databases firewalls list ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --output json | jq -r '.[] | select(.value=="'${{ env.RUNNER_IP }}'") | .uuid')
+          echo "FIREWALL_RULE_UUID=$RULE_UUID" >> "$GITHUB_ENV"
 
       - name: Run Flyway migrations
         run: |
@@ -157,6 +167,11 @@ jobs:
               -e FLYWAY_PASSWORD=${{ secrets.DO_POSTGRES_ADMIN_PASSWORD }} \
               -e FLYWAY_URL=jdbc:postgresql://${{ vars.DO_POSTGRES_PUBLIC_TEST_URL }} \
               flyway/flyway:latest migrate
+
+      - name: Remove runner IP from database firewall
+        run: |
+          [ -n "${{ env.FIREWALL_RULE_UUID }}" ] && \
+          doctl databases firewalls remove ${{ vars.DO_POSTGRES_CLUSTER_ID_FRA1 }} --uuid ${{ env.FIREWALL_RULE_UUID }}
 
       - name: Replace placeholders in mik-intranet-test.yaml
         run: |
