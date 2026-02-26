@@ -179,9 +179,9 @@
   "license": "ISC",
   "packageManager": "pnpm@10.11.0",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.913.0",
-    "@aws-sdk/s3-request-presigner": "^3.913.0",
-    "axios": "^1.13.2",
+    "@aws-sdk/client-s3": "^3.974.0",
+    "@aws-sdk/s3-request-presigner": "^3.980.0",
+    "axios": "^1.13.5",
     "bcryptjs": "^3.0.3",
     "bottleneck": "^2.19.5",
     "compression": "^1.8.0",
