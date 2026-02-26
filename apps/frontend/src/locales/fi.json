@@ -92,7 +92,7 @@
     "licenceInfo": {
       "licenceInfo": "Lupakirjatiedot",
       "licenceId": "Lupakirjanumero",
-      "licenceExpiry": "Lupakirjan vanhenemispäivä",
+      "licenceExpiry": "SEP(land) kelpuutuksen tai lento-oikeuden vanhenemispäivä",
       "medicalExpiry": "Lääketieteellisen kelpoisuustodistuksen vanhenemispäivä"
     },
     "roles": "Roolit",

@@ -92,7 +92,7 @@
     "licenceInfo": {
       "licenceInfo": "Licence Information",
       "licenceId": "Licence ID",
-      "licenceExpiry": "Licence Expiry",
+      "licenceExpiry": "SEP(land) expiry",
       "medicalExpiry": "Medical Expiry"
     },
     "roles": "Roles",

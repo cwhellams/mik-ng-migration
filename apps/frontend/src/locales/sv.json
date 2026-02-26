@@ -92,7 +92,7 @@
     "licenceInfo": {
       "licenceInfo": "Licensinformation",
       "licenceId": "Licens-ID",
-      "licenceExpiry": "Licensens utgång",
+      "licenceExpiry": "Utgångsdatum för SEP(land)-behörighet eller flygprivilegium",
       "medicalExpiry": "Medicinsk utgång"
     },
     "roles": "Roller",
