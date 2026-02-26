@@ -26,6 +26,8 @@ import {
   FormControl,
   InputLabel,
   Select,
+  InputAdornment,
+  Snackbar,
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { useTranslation } from 'react-i18next'
@@ -106,6 +108,8 @@ interface DocumentItemProps {
   onDelete?: (documentId: number) => void
   onEdit?: (document: AircraftDocument) => void
   onDownload?: (document: AircraftDocument) => void
+  onShowTinyUrl?: (document: AircraftDocument) => void
+  onShowQRCode?: (document: AircraftDocument) => void
   isAdmin?: boolean
 }
 
@@ -114,6 +118,8 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
   onDelete,
   onEdit,
   onDownload,
+  onShowTinyUrl,
+  onShowQRCode,
   isAdmin = false,
 }) => {
   const { t } = useTranslation()
@@ -147,62 +153,24 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
     handleMenuClose()
   }
 
+  const handleShowTinyUrl = () => {
+    onShowTinyUrl?.(document)
+    handleMenuClose()
+  }
+
+  const handleShowQRCode = () => {
+    onShowQRCode?.(document)
+    handleMenuClose()
+  }
+
   return (
-    <ListItem
-      secondaryAction={
-        <Stack direction='row' spacing={1}>
-          {document.documentUrl && (
-            <Tooltip title={t('aircraft.document.download')}>
-              <IconButton size='small' onClick={handleDownload}>
-                <Icon icon='mdi:download' />
-              </IconButton>
-            </Tooltip>
-          )}
-          {isAdmin && (
-            <>
-              <Tooltip title={t('aircraft.document.actions')}>
-                <IconButton size='small' onClick={handleMenuOpen}>
-                  <Icon icon='mdi:dots-vertical' />
-                </IconButton>
-              </Tooltip>
-              <Menu
-                anchorEl={menuAnchor}
-                open={Boolean(menuAnchor)}
-                onClose={handleMenuClose}
-              >
-                <MenuItem onClick={handleEdit}>
-                  <ListItemIcon>
-                    <Icon icon='mdi:pencil' />
-                  </ListItemIcon>
-                  <ListItemText primary={t('aircraft.document.edit')} />
-                </MenuItem>
-                <MenuItem onClick={handleDownload}>
-                  <ListItemIcon>
-                    <Icon icon='mdi:download' />
-                  </ListItemIcon>
-                  <ListItemText primary={t('aircraft.document.download')} />
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
-                  <ListItemIcon>
-                    <Icon icon='mdi:delete' color='error' />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={t('aircraft.document.delete.delete')}
-                  />
-                </MenuItem>
-              </Menu>
-            </>
-          )}
-        </Stack>
-      }
-    >
-      <ListItemIcon>
-        <Icon icon={getFileIcon(document.mimeType)} width={24} height={24} />
-      </ListItemIcon>
-      <ListItemText
-        primary={
-          <Stack direction='row' spacing={1} alignItems='center'>
+    <ListItem sx={{ flexDirection: 'column', alignItems: 'stretch' }}>
+      <Stack direction='row' spacing={2} sx={{ width: '100%', mb: 1 }}>
+        <ListItemIcon sx={{ minWidth: 'auto' }}>
+          <Icon icon={getFileIcon(document.mimeType)} width={24} height={24} />
+        </ListItemIcon>
+        <Box sx={{ flex: 1 }}>
+          <Stack direction='row' spacing={1} alignItems='center' sx={{ mb: 0.5 }}>
             <Typography variant='body2' fontWeight='medium'>
               {document.title}
             </Typography>
@@ -212,13 +180,11 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
               color={statusColor}
             />
           </Stack>
-        }
-        secondary={
           <Stack spacing={0.5}>
             <Typography variant='caption' color='text.secondary'>
               {document.description}
             </Typography>
-            <Stack direction='row' spacing={2} alignItems='center'>
+            <Stack direction='row' spacing={2} alignItems='center' flexWrap='wrap'>
               {document.validFrom && document.validTo && (
                 <Typography variant='caption' color='text.secondary'>
                   {t('aircraft.document.validity')}: {document.validFrom} -{' '}
@@ -238,8 +204,67 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
               )}
             </Stack>
           </Stack>
-        }
-      />
+        </Box>
+      </Stack>
+      
+      {/* Action buttons row */}
+      <Stack direction='row' spacing={1} sx={{ pl: 5 }}>
+        {document.documentUrl && (
+          <>
+            <Tooltip title={t('aircraft.document.open', 'Open Document')}>
+              <IconButton size='small' onClick={handleDownload}>
+                <Icon icon='mdi:open-in-new' />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('aircraft.document.tinyUrl', 'Show Tiny URL')}>
+              <IconButton size='small' onClick={handleShowTinyUrl}>
+                <Icon icon='mdi:link-variant' />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('aircraft.document.qrCode', 'Show QR Code')}>
+              <IconButton size='small' onClick={handleShowQRCode}>
+                <Icon icon='mdi:qrcode' />
+              </IconButton>
+            </Tooltip>
+          </>
+        )}
+        {isAdmin && (
+          <>
+            <Tooltip title={t('aircraft.document.actions')}>
+              <IconButton size='small' onClick={handleMenuOpen}>
+                <Icon icon='mdi:dots-vertical' />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              anchorEl={menuAnchor}
+              open={Boolean(menuAnchor)}
+              onClose={handleMenuClose}
+            >
+              <MenuItem onClick={handleEdit}>
+                <ListItemIcon>
+                  <Icon icon='mdi:pencil' />
+                </ListItemIcon>
+                <ListItemText primary={t('aircraft.document.edit')} />
+              </MenuItem>
+              <MenuItem onClick={handleDownload}>
+                <ListItemIcon>
+                  <Icon icon='mdi:download' />
+                </ListItemIcon>
+                <ListItemText primary={t('aircraft.document.download')} />
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
+                <ListItemIcon>
+                  <Icon icon='mdi:delete' color='error' />
+                </ListItemIcon>
+                <ListItemText
+                  primary={t('aircraft.document.delete.delete')}
+                />
+              </MenuItem>
+            </Menu>
+          </>
+        )}
+      </Stack>
     </ListItem>
   )
 }
@@ -257,6 +282,13 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
   const [showUploadArea, setShowUploadArea] = useState(false)
   const [showExpired, setShowExpired] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false)
+  const [downloadData, setDownloadData] = useState<{
+    tinyUrl: string | null
+    qrCode: string | null
+  } | null>(null)
   const [documentToEdit, setDocumentToEdit] = useState<
     AircraftDocumentAuditable | undefined
   >(undefined)
@@ -310,7 +342,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
     }
   }, [mutation, documentToDelete, onDocumentUpdate])
 
-  // Handle document download
+  // Handle document download (open directly)
   const handleDownload = useCallback(
     async (document: AircraftDocument) => {
       if (!document.documentId) {
@@ -323,14 +355,78 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
         { id: document.documentId },
         undefined
       )
-      const url = res.data?.presignedUrl
 
-      if (url) {
-        window.open(url, '_blank')
+      const tinyUrl = res.data?.tinyUrl ?? null
+
+      // Open document directly
+      if (tinyUrl) {
+        window.open(tinyUrl, '_blank')
       }
     },
     [mutation]
   )
+
+  // Handle showing tiny URL dialog
+  const handleShowTinyUrl = useCallback(
+    async (document: AircraftDocument) => {
+      if (!document.documentId) return
+
+      const res = await mutation.trigger(
+        'GET',
+        { id: document.documentId },
+        undefined
+      )
+
+      const tinyUrl = res.data?.tinyUrl ?? null
+      const qrCodeBuffer = res.data?.qrCode
+
+      let qrCode: string | null = null
+      if (qrCodeBuffer) {
+        // When Express sends a Buffer via JSON, it gets serialized as { type: 'Buffer', data: number[] }
+        const bufferData = qrCodeBuffer as any
+        const bytes =
+          bufferData.type === 'Buffer' && Array.isArray(bufferData.data)
+            ? bufferData.data
+            : qrCodeBuffer
+
+        const base64 = btoa(String.fromCharCode(...bytes))
+        qrCode = `data:image/png;base64,${base64}`
+      }
+
+      setDownloadData({ tinyUrl, qrCode })
+      setDownloadDialogOpen(true)
+    },
+    [mutation]
+  )
+
+  // Handle showing QR code dialog
+  const handleShowQRCode = useCallback(
+    async (document: AircraftDocument) => {
+      await handleShowTinyUrl(document)
+    },
+    [handleShowTinyUrl]
+  )
+
+  const handleDirectDownload = useCallback(() => {
+    if (downloadData?.tinyUrl) {
+      window.open(downloadData.tinyUrl, '_blank')
+      setDownloadDialogOpen(false)
+    }
+  }, [downloadData])
+
+  const handleCopyTinyUrl = useCallback(async () => {
+    if (downloadData?.tinyUrl) {
+      try {
+        await navigator.clipboard.writeText(downloadData.tinyUrl)
+        setSnackbarMessage(
+          t('aircraft.document.tinyUrlCopied', 'Tiny URL copied to clipboard!')
+        )
+        setSnackbarOpen(true)
+      } catch (error) {
+        console.error('Failed to copy tiny URL:', error)
+      }
+    }
+  }, [downloadData, t])
 
   // Handle document edit
   const handleEdit = useCallback((document: AircraftDocument) => {
@@ -474,6 +570,8 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
                       onDelete={handleDeleteRequest}
                       onEdit={handleEdit}
                       onDownload={handleDownload}
+                      onShowTinyUrl={handleShowTinyUrl}
+                      onShowQRCode={handleShowQRCode}
                       isAdmin={isAdmin}
                     />
                   ))
@@ -647,6 +745,86 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Download Options Dialog */}
+      <Dialog
+        open={downloadDialogOpen}
+        onClose={() => setDownloadDialogOpen(false)}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>
+          {t('aircraft.document.downloadOptions', 'Download Options')}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={3} sx={{ mt: 1 }}>
+            {downloadData?.tinyUrl && (
+              <Box>
+                <Typography variant='subtitle2' gutterBottom>
+                  {t('aircraft.document.tinyUrl', 'Tiny URL')}
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={downloadData.tinyUrl}
+                  InputProps={{
+                    readOnly: true,
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        <IconButton onClick={handleCopyTinyUrl} edge='end'>
+                          <Icon icon='mdi:content-copy' />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  size='small'
+                />
+              </Box>
+            )}
+
+            {downloadData?.qrCode && (
+              <Box>
+                <Typography variant='subtitle2' gutterBottom>
+                  {t('aircraft.document.qrCode', 'QR Code')}
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <img
+                    src={downloadData.qrCode}
+                    alt='Document QR Code'
+                    style={{ maxWidth: '250px', width: '100%' }}
+                  />
+                </Box>
+              </Box>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDownloadDialogOpen(false)}>
+            {t('common.close', 'Close')}
+          </Button>
+          <Button
+            variant='contained'
+            onClick={handleDirectDownload}
+            startIcon={<Icon icon='mdi:open-in-new' />}
+          >
+            {t('aircraft.document.openDocument', 'Open Document')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Tiny URL copied notification */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        message={snackbarMessage}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
     </Box>
   )
 }

@@ -6,7 +6,6 @@ import {
   Stack,
   Chip,
   IconButton,
-  Link as MuiLink,
   FormControlLabel,
   Switch,
   Dialog,
@@ -16,6 +15,7 @@ import {
   DialogActions,
   Button,
   Grid,
+  Snackbar,
 } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -53,6 +53,13 @@ const Documents = () => {
     offset: 0,
   })
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false)
+  const [downloadData, setDownloadData] = useState<{
+    tinyUrl: string | null
+    qrCode: string | null
+  } | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingDocument, setEditingDocument] = useState<Document | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -113,10 +120,83 @@ const Documents = () => {
     const res = await downloadMutation.trigger('GET', {
       id: document.documentId,
     })
-    const url = res.data?.presignedUrl ?? ''
 
-    if (url) {
-      window.open(url, '_blank') // Opens the URL in a new tab
+    const tinyUrl = res.data?.tinyUrl ?? null
+    const qrCodeBuffer = res.data?.qrCode
+
+    // Convert Buffer to base64 data URL for display
+    let qrCode: string | null = null
+    if (qrCodeBuffer) {
+      // When Express sends a Buffer via JSON, it gets serialized as { type: 'Buffer', data: number[] }
+      const bufferData = qrCodeBuffer as any
+      const bytes =
+        bufferData.type === 'Buffer' && Array.isArray(bufferData.data)
+          ? bufferData.data
+          : qrCodeBuffer
+
+      const base64 = btoa(String.fromCharCode(...bytes))
+      qrCode = `data:image/png;base64,${base64}`
+    }
+
+    // Cache the download data for this document
+    setDownloadData({ tinyUrl, qrCode })
+
+    // Open document directly
+    if (tinyUrl) {
+      window.open(tinyUrl, '_blank')
+    }
+  }
+
+  const handleShowTinyUrl = async (document: Document) => {
+    if (!document.documentId) return
+
+    // Always fetch fresh data for the current document
+    const res = await downloadMutation.trigger('GET', {
+      id: document.documentId,
+    })
+
+    const tinyUrl = res.data?.tinyUrl ?? null
+    const qrCodeBuffer = res.data?.qrCode
+
+    let qrCode: string | null = null
+    if (qrCodeBuffer) {
+      // When Express sends a Buffer via JSON, it gets serialized as { type: 'Buffer', data: number[] }
+      const bufferData = qrCodeBuffer as any
+      const bytes =
+        bufferData.type === 'Buffer' && Array.isArray(bufferData.data)
+          ? bufferData.data
+          : qrCodeBuffer
+
+      const base64 = btoa(String.fromCharCode(...bytes))
+      qrCode = `data:image/png;base64,${base64}`
+    }
+
+    setDownloadData({ tinyUrl, qrCode })
+    setDownloadDialogOpen(true)
+  }
+
+  const handleShowQRCode = async (document: Document) => {
+    await handleShowTinyUrl(document)
+  }
+
+  const handleDirectDownload = () => {
+    if (downloadData?.tinyUrl) {
+      window.open(downloadData.tinyUrl, '_blank')
+      setDownloadDialogOpen(false)
+    }
+  }
+
+  const handleCopyTinyUrl = async () => {
+    if (downloadData?.tinyUrl) {
+      try {
+        await navigator.clipboard.writeText(downloadData.tinyUrl)
+        setSnackbarMessage(
+          t('documents.tinyUrlCopied', 'Tiny URL copied to clipboard!')
+        )
+        setSnackbarOpen(true)
+      } catch (error) {
+        console.error('Failed to copy tiny URL:', error)
+      }
     }
   }
 
@@ -376,13 +456,24 @@ const Documents = () => {
                 <Stack direction='row' spacing={1} justifyContent='center'>
                   <IconButton
                     size='small'
-                    component={MuiLink}
                     onClick={() => handleDownloadDocument(document)}
-                    //target='_blank'
-                    rel='noopener noreferrer'
                     title={t('documents.action.open', 'Open Document')}
                   >
                     <Icon icon='mdi:open-in-new' />
+                  </IconButton>
+                  <IconButton
+                    size='small'
+                    onClick={() => handleShowTinyUrl(document)}
+                    title={t('documents.action.tinyUrl', 'Show Tiny URL')}
+                  >
+                    <Icon icon='mdi:link-variant' />
+                  </IconButton>
+                  <IconButton
+                    size='small'
+                    onClick={() => handleShowQRCode(document)}
+                    title={t('documents.action.qrCode', 'Show QR Code')}
+                  >
+                    <Icon icon='mdi:qrcode' />
                   </IconButton>
 
                   {isDocumentAdmin && (
@@ -421,11 +512,91 @@ const Documents = () => {
         )}
       </RemoteContent>
 
+      {/* Download Options Dialog */}
+      <Dialog
+        open={downloadDialogOpen}
+        onClose={() => setDownloadDialogOpen(false)}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>
+          {t('documents.downloadOptions', 'Download Options')}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={3} sx={{ mt: 1 }}>
+            {downloadData?.tinyUrl && (
+              <Box>
+                <Typography variant='subtitle2' gutterBottom>
+                  {t('documents.tinyUrl', 'Tiny URL')}
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={downloadData.tinyUrl}
+                  InputProps={{
+                    readOnly: true,
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        <IconButton onClick={handleCopyTinyUrl} edge='end'>
+                          <Icon icon='mdi:content-copy' />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  size='small'
+                />
+              </Box>
+            )}
+
+            {downloadData?.qrCode && (
+              <Box>
+                <Typography variant='subtitle2' gutterBottom>
+                  {t('documents.qrCode', 'QR Code')}
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <img
+                    src={downloadData.qrCode}
+                    alt='Document QR Code'
+                    style={{ maxWidth: '250px', width: '100%' }}
+                  />
+                </Box>
+              </Box>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDownloadDialogOpen(false)}>
+            {t('common.close', 'Close')}
+          </Button>
+          <Button
+            variant='contained'
+            onClick={handleDirectDownload}
+            startIcon={<Icon icon='mdi:open-in-new' />}
+          >
+            {t('documents.openDocument', 'Open Document')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Upload Modal */}
       <UploadDocumentModal
         open={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
         onSuccess={() => mutate()}
+      />
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        message={snackbarMessage}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       />
 
       {/* Edit Modal */}

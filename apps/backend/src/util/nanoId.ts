@@ -7,3 +7,8 @@ const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 9)
 export function generateShortId(): string {
   return nanoid()
 }
+
+const tinyUrl = customAlphabet('23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz', 4)
+export function generateTinyUrlId(): string {
+  return tinyUrl()
+}

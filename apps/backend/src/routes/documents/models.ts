@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { AuditableSchema, BooleanSchema } from '../../types/schema.ts'
+import { problem } from '../response.ts'
 
 export const DocumentSchema = AuditableSchema.extend({
   documentId: z.number().int().positive().optional(),
@@ -48,12 +49,26 @@ export const DocumentListResponseSchema = z.object({
 
 export type DocumentListResponse = z.infer<typeof DocumentListResponseSchema>
 
-export const DownloadDocument = z.object({
-  documentId: z.number().int().positive().optional(),
-  presignedUrl: z.string().url().nullable(),
+export const DownloadDocumentSchema = z.object({
+  tinyUrl: z.string().url().nullable(),
+  qrCode: z.instanceof(Buffer),
 })
 
-export type DownloadDocument = z.infer<typeof DownloadDocument>
+export type DownloadDocument = z.infer<typeof DownloadDocumentSchema>
+
+export const TinyUrlSchema = z.object({
+  shortCode: z.string().length(8),
+  documentId: z.number().int().positive().nullable(),
+  aircraftDocumentId: z.number().int().positive().nullable(),
+  documentType: z.enum(['member', 'aircraft']),
+  createdAt: z.string(),
+  expiresAt: z.string(),
+  accessCount: z.number().int().min(0),
+  lastAccessedAt: z.string().nullable(),
+  createdBy: z.string(),
+})
+
+export type TinyUrl = z.infer<typeof TinyUrlSchema>
 
 export const DocumentUpdateSchema = DocumentSchema.pick({
   title: true,
@@ -75,4 +90,32 @@ export enum DocumentCategory {
   NEWS = 'news',
   AIRFIELDS = 'airfields',
   OTHER = 'other',
+}
+
+const DocumentIdSchema = z.string().transform((val, ctx) => {
+  const parsed = Number.parseInt(val, 10)
+  if (Number.isNaN(parsed)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Invalid document ID',
+    })
+    return z.NEVER
+  }
+  return parsed
+})
+
+export function validateDocumentId(
+  idString: string | undefined,
+): number | ReturnType<typeof problem> {
+  if (!idString) {
+    return problem({ status: 400, detail: 'Document ID is required' })
+  }
+
+  const result = DocumentIdSchema.safeParse(idString)
+
+  if (!result.success) {
+    return problem({ status: 400, detail: 'Invalid document ID' })
+  }
+
+  return result.data
 }

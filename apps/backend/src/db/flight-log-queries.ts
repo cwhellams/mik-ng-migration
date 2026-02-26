@@ -283,7 +283,9 @@ const sumIfMonths = (
     eb.fn.sum(
       eb
         .case()
-        .when(sql`extract (day from now() - flight.logs.takeoff_time_utc)`, '<', months * 30)
+        .when(
+          sql<boolean>`flight.logs.takeoff_time_utc >= now() - (${months} * interval '1 month')`,
+        )
         .then(eb.ref(ref))
         .else(0)
         .end(),

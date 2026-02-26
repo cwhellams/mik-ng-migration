@@ -1,5 +1,4 @@
 import { Router, type Request, type Response } from 'express'
-import multer from 'multer'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
 import {
@@ -22,8 +21,9 @@ import {
   type AircraftDocumentFilters,
   type AircraftDocumentListResponse,
 } from './models.ts'
-import type { DownloadDocument } from '../documents/models.ts'
+import { validateDocumentId, type DownloadDocument } from '../documents/models.ts'
 import logger from '../../lib/logger.ts'
+import { documentUpload, getDocument } from '../../util/documentHelper.ts'
 
 export const router = Router()
 
@@ -61,67 +61,25 @@ const getValidatedBucketName = async (registration: unknown): Promise<string> =>
   return `mik-ac-${aircraft.registration.slice(-3).toLowerCase()}`
 }
 
-// Configure multer for file uploads (same as general documents)
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    // Accept common document types
-    const allowedMimeTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-powerpoint',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'text/plain',
-      'text/csv',
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-    ]
-
-    if (allowedMimeTypes.includes(file.mimetype)) {
-      cb(null, true)
-    } else {
-      cb(
-        new Error(
-          'Invalid file type. Only documents, spreadsheets, presentations, text files, and images are allowed.',
-        ),
-      )
-    }
-  },
-})
-
 // All aircraft document routes require at least MEMBER permission or DOCUMENT_ADMIN permission
 router.use(validateUser(MIKPermissions.MEMBER, MIKPermissions.DOCUMENT_ADMIN))
 
 router.get('/download', async (req: Request, res: Response<DownloadDocument>) => {
-  const documentId = Number.parseInt(req.query.id as string, 10)
-  if (Number.isNaN(documentId)) {
-    return problem({ status: 400, detail: 'Invalid document ID' })
-  }
+  const documentId = validateDocumentId(req.query.id as string)
+  if (typeof documentId !== 'number') return documentId
 
   const document = await getAircraftDocumentById(documentId)
-  if (!document || !document.storageKey) {
-    return problem({ status: 404, detail: 'Document not found or not available' })
+
+  if (!document) {
+    return problem({ status: 404, detail: 'Aircraft document not found' })
   }
 
-  try {
-    const bucketName = await getValidatedBucketName(document.aircraftRegistration)
-    const presignedUrl = await storageService.getPresignedUrl(document.storageKey, 60, bucketName)
-    const payload = { documentId: documentId, presignedUrl }
-    res.setHeader('Content-Type', 'application/json')
-    res.setHeader('Cache-Control', 'no-store')
-    res.status(200).json(payload)
-  } catch (error) {
-    logger.error('Failed to generate presigned URL:', error)
-    return problem({ status: 500, detail: 'Failed to generate download link' })
-  }
+  const bucketName = await getValidatedBucketName(document.aircraftRegistration)
+
+  const result = await getDocument(documentId, req.user!, 'aircraft', bucketName)
+  res.setHeader('Content-Type', 'application/json')
+  res.setHeader('Cache-Control', 'no-store')
+  res.status(200).json(result)
 })
 
 // Get all aircraft documents
@@ -229,7 +187,7 @@ router.delete(
 router.post(
   '/',
   validateUser(MIKPermissions.DOCUMENT_ADMIN),
-  upload.single('file'),
+  documentUpload.single('file'),
   async (
     req: Request<never, AircraftDocumentAuditable, AircraftDocument>,
     res: Response<AircraftDocumentAuditable>,
@@ -246,7 +204,7 @@ router.post(
       const bucketName = await getValidatedBucketName(validatedDoc.aircraftRegistration)
 
       // Safely convert document type to folder name (documentType is guaranteed to be a string by Zod)
-      const folderName = validatedDoc.documentType.toLowerCase().replace(/\s+/g, '-')
+      const folderName = validatedDoc.documentType.toLowerCase().replaceAll(/\s+/g, '-')
 
       // Upload file to aircraft-specific bucket with document type as folder
       const uploadResult: UploadResult = await storageService.uploadFile(

@@ -162,7 +162,10 @@ services:
       - key: TURNSTILE_ENABLED
         value: 'true'
         type: GENERAL
-  
+      - key: DOCUMENT_URL_TTL_SECS
+        value: ${DOCUMENT_URL_TTL_SECS}
+        type: GENERAL
+
 
 
     instance_count: 1

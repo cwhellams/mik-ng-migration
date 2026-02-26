@@ -60,5 +60,28 @@ export const formatFileSize = (bytes?: number | null): string => {
   const k = 1024
   const sizes = ['Bytes', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+}
+
+/**
+ * Opens a document URL in a mobile-friendly way
+ * On mobile devices, navigates to the URL directly to avoid popup blockers
+ * On desktop, opens the URL in a new tab for better UX
+ * @param url - The URL to open (should be a presigned URL from trusted source)
+ * @param isMobile - Whether the user is on a mobile device
+ */
+export const openDocumentUrl = (url: string, isMobile: boolean): void => {
+  // Validate URL format (basic check for http/https protocol)
+  if (!url.startsWith('https://') && !url.startsWith('http://')) {
+    console.error('Invalid URL protocol. Only HTTP(S) URLs are allowed.')
+    return
+  }
+
+  if (isMobile) {
+    // On mobile devices, navigate directly to avoid popup blockers
+    globalThis.location.href = url
+  } else {
+    // On desktop, open in a new tab with security features
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
 }

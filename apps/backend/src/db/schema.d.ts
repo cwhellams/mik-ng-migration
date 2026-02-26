@@ -427,6 +427,19 @@ export interface MemberDocuments {
   updated_by: string
 }
 
+export interface MemberDocumentTinyUrls {
+  access_count: Generated<number>
+  aircraft_document_id: number | null
+  created_at: Generated<Timestamp>
+  created_by: string
+  document_id: number | null
+  document_type: string
+  expires_at: Timestamp
+  last_accessed_at: Timestamp | null
+  short_code: string
+  url: string
+}
+
 export interface MemberMemberToRoles {
   created_at: Generated<Timestamp>
   created_by: string
@@ -746,6 +759,7 @@ export interface DB {
   flyway_schema_history: FlywaySchemaHistory
   'member.annual_fees': MemberAnnualFees
   'member.brevo_sync_state': MemberBrevoSyncState
+  'member.document_tiny_urls': MemberDocumentTinyUrls
   'member.documents': MemberDocuments
   'member.member_to_roles': MemberMemberToRoles
   'member.register': MemberRegister

@@ -159,6 +159,8 @@ services:
         type: SECRET
       - key: TURNSTILE_ENABLED
         value: 'true'
+      - key: DOCUMENT_URL_TTL_SECS
+        value: ${DOCUMENT_URL_TTL_SECS}
         type: GENERAL
 
     instance_count: 1

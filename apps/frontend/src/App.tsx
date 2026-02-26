@@ -46,14 +46,12 @@ function App() {
 
   useEffect(() => {
     // Check if document fonts are loaded
-    const checkFontsLoaded = () => {
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(() => {
-          // Add a small delay to ensure smooth transition
-          setTimeout(() => {
-            setLoading(false)
-          }, 500)
-        })
+    const checkFontsLoaded = async () => {
+      if (await document.fonts?.ready) {
+        // Add a small delay to ensure smooth transition
+        setTimeout(() => {
+          setLoading(false)
+        }, 500)
       } else {
         // Fallback for browsers that don't support document.fonts
         setTimeout(() => {

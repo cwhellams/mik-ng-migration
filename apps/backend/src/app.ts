@@ -19,6 +19,7 @@ import { router as secretRoutes } from './routes/secrets/api.ts'
 import { problemErrorHandler, notFoundProblemHandler } from './routes/response.ts'
 import invoiceRoutes from './routes/invoicing/api.ts'
 import bookingRoutes from './routes/bookings/api.ts'
+import { router as tinyUrlRoute } from './routes/tiny-url-redirect.ts'
 import { router as occurrenceRoutes } from './routes/occurrences/api.ts'
 import { router as weatherRoutes } from './routes/weather/api.ts'
 import { router as statsRoutes } from './routes/stats/api.ts'
@@ -81,7 +82,12 @@ app.get('/health', (_req, res) => {
   appStatus.uptime = Math.floor((Date.now() - appStatus.startTime) / 1000)
   res.status(HttpStatusCode.Ok).send(appStatus)
 })
+
 // Routes
+
+// Tiny URL redirect route (before API routes for shorter URLs)
+app.use('/t', tinyUrlRoute)
+
 app.use('/api/auth', passportRoutes)
 app.use('/api/v1/members', memberRoutes)
 app.use('/api/v1/secrets', secretRoutes)
