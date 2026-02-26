@@ -39,6 +39,14 @@ Every time the DB schema is modified you have to rerun code generation to keep o
 
 # Scripts
 
+## Environment variables
+
+For QR code generation with logo overlay, set:
+
+- `MIK_LOGO_PATH=/home/node/app/apps/backend/src/assets/mik-logo-blue.png` (container deployment default)
+
+If not set, the backend will try known fallback paths and return a QR code without logo when no logo file is available.
+
 ## Prettier
 
 To format code using prettier

@@ -99,6 +99,12 @@ The production deployment uses GitHub Environments with the following settings:
 - **Wait timer**: Optional delay before deployment (recommended: 0 minutes)
 - **Deployment branches**: Only tags matching `v*.*.*` pattern
 
+Set the following backend environment variable for production and test deployments:
+
+- `MIK_LOGO_PATH=/home/node/app/apps/backend/src/assets/mik-logo-blue.png`
+
+This ensures QR code logo overlay works in containerized deployments where frontend source assets are not present.
+
 ## Rollback Procedure
 
 If a release needs to be rolled back:

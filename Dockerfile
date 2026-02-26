@@ -56,6 +56,7 @@ EXPOSE 3000
 
 # Set DATABASE_CA_CERT as environment variable from file
 ENV DATABASE_CA_CERT_FILE=/home/node/app/ca-certificate.crt
+ENV MIK_LOGO_PATH=/home/node/app/apps/backend/src/assets/mik-logo-blue.png
 
 # Run TypeScript files with tsx
 CMD ["node", "--import", "tsx", "src/app.ts"]

@@ -6,6 +6,7 @@
  */
 
 import path from 'node:path'
+import { access } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import QRCode from 'qrcode'
 import sharp from 'sharp'
@@ -13,6 +14,32 @@ import logger from '../lib/logger.ts'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+async function findExistingFile(paths: string[]): Promise<string | undefined> {
+  for (const filePath of paths) {
+    try {
+      await access(filePath)
+      return filePath
+    } catch {
+      // Continue checking next candidate
+    }
+  }
+
+  return undefined
+}
+
+async function resolveMikLogoPath(): Promise<string | undefined> {
+  const candidatePaths = [
+    process.env.MIK_LOGO_PATH,
+    path.join(__dirname, '..', 'assets', 'mik-logo-blue.png'),
+    path.join(__dirname, '..', '..', '..', 'frontend', 'src', 'assets', 'mik-logo-blue.png'),
+    path.join(__dirname, '..', '..', '..', 'frontend', 'public', 'mik-logo-blue.png'),
+    path.join(process.cwd(), 'apps', 'frontend', 'public', 'mik-logo-blue.png'),
+    path.join(process.cwd(), 'apps', 'frontend', 'src', 'assets', 'mik-logo-blue.png'),
+  ].filter((p): p is string => Boolean(p))
+
+  return findExistingFile(candidatePaths)
+}
 
 /**
  * Calculate expiration timestamp for a tiny URL
@@ -69,16 +96,11 @@ export async function generateQRCodeWithLogo(url: string, size: number = 400): P
     })
 
     // Step 2: Load and resize the logo
-    const logoPath = path.join(
-      __dirname,
-      '..',
-      '..',
-      '..',
-      'frontend',
-      'src',
-      'assets',
-      'mik-logo-blue.png',
-    )
+    const logoPath = await resolveMikLogoPath()
+    if (!logoPath) {
+      logger.warn('MIK logo not found. Returning QR code without logo overlay.')
+      return qrBuffer
+    }
 
     const logoSize = Math.floor(size * 0.2) // 20% of QR size
     const padding = Math.floor(logoSize * 0.15)

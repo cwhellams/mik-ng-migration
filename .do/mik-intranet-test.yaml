@@ -162,6 +162,9 @@ services:
       - key: DOCUMENT_URL_TTL_SECS
         value: ${DOCUMENT_URL_TTL_SECS}
         type: GENERAL
+      - key: MIK_LOGO_PATH
+        value: ${MIK_LOGO_PATH}
+        type: GENERAL
 
     instance_count: 1
     health_check:
