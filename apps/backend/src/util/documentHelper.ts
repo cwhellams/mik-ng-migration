@@ -44,8 +44,12 @@ export async function getDocument(
       },
       user,
     )
-    const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3000'
-    const tinyUrl = `${backendUrl}/t/${shortCode}`
+    const tinyUrlBaseUrl =
+      process.env.TINY_URL_BASE_URL ??
+      process.env.PUBLIC_URL ??
+      process.env.BACKEND_URL ??
+      'http://localhost:3000'
+    const tinyUrl = `${tinyUrlBaseUrl.replace(/\/+$/, '')}/t/${shortCode}`
     const qrCode = await generateQRCodeWithLogo(tinyUrl)
 
     return { tinyUrl, qrCode }

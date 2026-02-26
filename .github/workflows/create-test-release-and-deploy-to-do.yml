@@ -130,6 +130,7 @@ jobs:
           echo "VITE_TURNSTILE_SITE_KEY=${{ secrets.TURNSTILE_SITE_KEY }}" >> "$GITHUB_ENV"
           echo "TURNSTILE_SECRET_KEY=${{ secrets.TURNSTILE_SECRET_KEY }}" >> "$GITHUB_ENV"
           echo "DOCUMENT_URL_TTL_SECS=${{ vars.DOCUMENT_URL_TTL_SECS }}" >> "$GITHUB_ENV"
+          echo "TINY_URL_BASE_URL=${{ vars.TINY_URL_BASE_URL_TEST }}" >> "$GITHUB_ENV"
           echo "MIK_LOGO_PATH=/home/node/app/apps/backend/src/assets/mik-logo-blue.png" >> "$GITHUB_ENV"
 
       - name: Build and push Docker image

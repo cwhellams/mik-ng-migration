@@ -26,6 +26,12 @@ ingress:
         path:
           prefix: /health
     - component:
+        name: mik-intranet-api-test
+        preserve_path_prefix: true
+      match:
+        path:
+          prefix: /t
+    - component:
         name: mik-intranet-frontend
       match:
         path:
@@ -161,6 +167,9 @@ services:
         value: 'true'
       - key: DOCUMENT_URL_TTL_SECS
         value: ${DOCUMENT_URL_TTL_SECS}
+        type: GENERAL
+      - key: TINY_URL_BASE_URL
+        value: ${TINY_URL_BASE_URL}
         type: GENERAL
       - key: MIK_LOGO_PATH
         value: ${MIK_LOGO_PATH}
