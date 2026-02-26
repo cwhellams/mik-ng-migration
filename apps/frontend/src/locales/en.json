@@ -872,7 +872,7 @@
       "noBookings": "No upcoming bookings, go book a plane!",
       "editBooking": "Edit Booking"
     },
-    "equipmentFeeNotPaid": "Your equipment fee for {{year}} has not been paid. If you wish to receive a discount of €{{discount}} per hour on flight bookings request the equipment fee by clicking the button, if you request the equipment fee invoice the discount is applied immediately",
+    "equipmentFeeNotPaid": "Your equipment fee for {{year}} has not been paid. If you don't want to pay fee of €{{discount}} per hour on flight bookings request the equipment fee by clicking the button. The fee of €{{discount}} won't be applied to upcoming invoices after you have requested the equipment fee.",
     "requestInvoice": "Request Invoice",
     "requestingInvoice": "Requesting...",
     "viewInvoices": "View Invoices",
