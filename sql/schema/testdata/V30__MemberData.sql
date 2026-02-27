@@ -234,7 +234,7 @@ VALUES (
         'Salminen',
         '1989-10-05',
         current_date,
-        'nurmikko@gmail.com',
+        'marja1@gmailgg.com',
         '0490123456',
         'Juha Salminen',
         '0496543210',
