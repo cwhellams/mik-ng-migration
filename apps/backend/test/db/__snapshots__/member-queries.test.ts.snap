@@ -748,7 +748,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
     ],
   },
   {
-    "email": "nurmikko@gmail.com",
+    "email": "marja1@gmailgg.com",
     "first": "Marja",
     "lang": "fi",
     "last": "Salminen",

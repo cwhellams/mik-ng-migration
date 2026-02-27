@@ -181,7 +181,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
 exports[`GET /members should search by unapproved roles as an admin 1`] = `
 [
   {
-    "email": "nurmikko@gmail.com",
+    "email": "marja1@gmailgg.com",
     "first": "Marja",
     "lang": "fi",
     "last": "Salminen",
@@ -566,7 +566,7 @@ exports[`Membership approval tests Get unapproved members should return list of 
     ],
   },
   {
-    "email": "nurmikko@gmail.com",
+    "email": "marja1@gmailgg.com",
     "first": "Marja",
     "lang": "fi",
     "last": "Salminen",
