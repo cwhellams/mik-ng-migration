@@ -71,6 +71,12 @@ export const menuItems: MenuItem[] = [
         label: 'header.members',
       },
       {
+        path: 'members/trash',
+        label: 'header.membersTrash',
+        requiredRoles: [MIKPermissions.MEMBER_ADMIN],
+        adminModeOnly: true,
+      },
+      {
         path: 'documents',
         label: 'header.documents',
       },

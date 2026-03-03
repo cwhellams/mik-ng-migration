@@ -678,3 +678,150 @@ export async function setDashboardSettings(
     .where('member_id', '=', memberId)
     .execute()
 }
+
+/**
+ * Check if a member can be safely deleted from the database
+ * Returns true if member has no flight activity or invoices
+ */
+export async function canMemberBeDeleted(memberId: string): Promise<boolean> {
+  // Check for flight log entries
+  const flightCount = await db
+    .selectFrom('flight.logs')
+    .select(eb => eb.fn.count('flight_id').as('count'))
+    .where(eb =>
+      eb.or([
+        eb('pic_member_id', '=', memberId),
+        eb('crew2_member_id', '=', memberId),
+        eb('crew3_member_id', '=', memberId),
+        eb('crew4_member_id', '=', memberId),
+        eb('billable_member_id', '=', memberId),
+      ]),
+    )
+    .executeTakeFirst()
+
+  if (flightCount && Number(flightCount.count) > 0) {
+    return false
+  }
+
+  // Check for invoices
+  const invoiceCount = await db
+    .selectFrom('accts.invoice')
+    .select(eb => eb.fn.count('id').as('count'))
+    .where('member_id', '=', memberId)
+    .executeTakeFirst()
+
+  if (invoiceCount && Number(invoiceCount.count) > 0) {
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Deactivate a member by setting their status to REMOVED
+ * This removes all permissions, sets status to REMOVED, and records removal info
+ */
+export async function deactivateMember(
+  memberId: string,
+  removedBy: string,
+  reason?: string,
+): Promise<void> {
+  await db.transaction().execute(async txn => {
+    // Remove all roles/permissions
+    await txn.deleteFrom('member.member_to_roles').where('member_id', '=', memberId).execute()
+
+    const now = new Date()
+
+    // Update member status to REMOVED and revoke permissions
+    await txn
+      .updateTable('member.register')
+      .set({
+        member_type: MIKMemberTypes.REMOVED,
+        can_make_reservations: false,
+        is_membership_expired: true,
+        removed_at: now,
+        removed_by: removedBy,
+        removal_reason: reason ?? null,
+        updated_at: now,
+        updated_by: removedBy,
+      })
+      .where('member_id', '=', memberId)
+      .execute()
+  })
+}
+
+/**
+ * Restore a member from REMOVED status
+ * This changes their status back but does not restore roles (must be done separately)
+ */
+export async function restoreMember(memberId: string, restoredBy: string): Promise<Member> {
+  const now = new Date()
+
+  const member = await db
+    .updateTable('member.register')
+    .set({
+      member_type: MIKMemberTypes.FLYING, // Default to FLYING, admin can change later
+      removed_at: null,
+      removed_by: null,
+      removal_reason: null,
+      updated_at: now,
+      updated_by: restoredBy,
+    })
+    .where('member_id', '=', memberId)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+
+  return toMember(member, [])
+}
+
+/**
+ * Get unpaid membership and equipment fee invoices for a member in a given year
+ * Returns invoices that could be eligible for credit notes
+ */
+export async function getUnpaidMembershipFeesForYear(
+  memberId: string,
+  year: number,
+): Promise<Array<{ id: string; invoice_type: string; pmt_ref: string | null }>> {
+  const invoices = await db
+    .selectFrom('member.annual_fees')
+    .innerJoin('accts.invoice', 'member.annual_fees.invoice_id', 'accts.invoice.id')
+    .select(['accts.invoice.id', 'accts.invoice.invoice_type', 'accts.invoice.pmt_ref'])
+    .where('member.annual_fees.member_id', '=', memberId)
+    .where('member.annual_fees.year', '=', year)
+    .where('accts.invoice.is_paid', '=', false)
+    .execute()
+
+  return invoices.map(inv => ({
+    id: String(inv.id),
+    invoice_type: String(inv.invoice_type),
+    pmt_ref: inv.pmt_ref,
+  }))
+}
+
+/**
+ * Check if member has any flights in a given year
+ */
+export async function hasMemberFlownInYear(memberId: string, year: number): Promise<boolean> {
+  const yearStart = new Date(year, 0, 1)
+  const nextYearStart = new Date(year + 1, 0, 1)
+  const yearStartEpoch = Math.floor(yearStart.getTime() / 1000).toString()
+  const nextYearStartEpoch = Math.floor(nextYearStart.getTime() / 1000).toString()
+
+  const flightCount = await db
+    .selectFrom('flight.logs')
+    .select(eb => eb.fn.count('flight_id').as('count'))
+    .where(eb =>
+      eb.or([
+        eb('pic_member_id', '=', memberId),
+        eb('crew2_member_id', '=', memberId),
+        eb('crew3_member_id', '=', memberId),
+        eb('crew4_member_id', '=', memberId),
+        eb('billable_member_id', '=', memberId),
+      ]),
+    )
+    .where('takeoff_time_epoch', '>=', yearStartEpoch)
+    .where('takeoff_time_epoch', '<', nextYearStartEpoch)
+    .executeTakeFirst()
+
+  return flightCount ? Number(flightCount.count) > 0 : false
+}

@@ -144,7 +144,17 @@
     "membershipApprovedAt": "Jäsenyys hyväksytty",
     "membershipPending": "Jäsenyys odottaa hyväksyntää",
     "approveMembership": "Hyväksy jäseneksi",
-    "approvedSnackbarMessage": "Jäsenyys hyväksytty jäsenelle {{firstName}} {{lastName}}"
+    "approvedSnackbarMessage": "Jäsenyys hyväksytty jäsenelle {{firstName}} {{lastName}}",
+    "trash": "Poistetut jäsenet",
+    "search": "Haku",
+    "noRemovedMembers": "Poistettuja jäseniä ei löytynyt",
+    "restore": "Palauta",
+    "restoreConfirmMessage": "Haluatko varmasti palauttaa tämän jäsenen?",
+    "restoredSuccessMessage": "Jäsen on palautettu onnistuneesti",
+    "deactivate": "Poista jäsenyys",
+    "deactivateConfirmMessage": "Haluatko varmasti poistaa jäsenen {{name}}?",
+    "deactivatedSuccessMessage": "Jäsenyys on poistettu onnistuneesti",
+    "noPermission": "Sinulla ei ole oikeutta tarkastella tätä sivua."
   },
   "aircraft": {
     "location": "Sijainti",

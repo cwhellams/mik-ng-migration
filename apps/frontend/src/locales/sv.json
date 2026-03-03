@@ -144,7 +144,17 @@
     "membershipApprovedAt": "Medlemskap godkänt den",
     "membershipPending": "Medlemskap väntar på godkännande",
     "approveMembership": "Godkänn medlemskap",
-    "approvedSnackbarMessage": "Medlemskap godkänt för {{firstName}} {{lastName}}"
+    "approvedSnackbarMessage": "Medlemskap godkänt för {{firstName}} {{lastName}}",
+    "trash": "Borttagna medlemmar",
+    "search": "Sök",
+    "noRemovedMembers": "Inga borttagna medlemmar hittades",
+    "restore": "Återställ",
+    "restoreConfirmMessage": "Är du säker på att du vill återställa denna medlem?",
+    "restoredSuccessMessage": "Medlemmen har återställts framgångsrikt",
+    "deactivate": "Inaktivera medlem",
+    "deactivateConfirmMessage": "Är du säker på att du vill inaktivera {{name}}?",
+    "deactivatedSuccessMessage": "Medlemmen har inaktiverats framgångsrikt",
+    "noPermission": "Du har inte behörighet att visa denna sida."
   },
   "aircraft": {
     "location": "Plats",

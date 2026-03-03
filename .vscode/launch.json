@@ -49,8 +49,8 @@
       "program": "${workspaceFolder}/apps/backend/node_modules/jest/bin/jest.js",
       "args": [
         "--runInBand",
-        "--no-cache",
-        "test/routes/invoicing/api.test.ts"
+        "--no-cache",        
+        "test/routes/members/api.test.ts",
       ],
       "env": {
         "NODE_ENV": "test"

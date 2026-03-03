@@ -43,7 +43,7 @@ export const DashboardSettingsModal = ({
   accessibleComponentIds,
 }: DashboardSettingsModalProps) => {
   // Filter settings to only include accessible components
-  const accessibleSettings = settings.filter((s) =>
+  const accessibleSettings = (settings || []).filter((s) =>
     accessibleComponentIds.includes(s.id)
   )
   const [localSettings, setLocalSettings] =
@@ -92,7 +92,7 @@ export const DashboardSettingsModal = ({
     try {
       // Merge the modified accessible settings back into the full settings list
       // This ensures we send all components to the backend, not just the ones the user can customize
-      const updatedSettings = settings.map((originalComponent) => {
+      const updatedSettings = (settings || []).map((originalComponent) => {
         const modifiedComponent = localSettings.find(
           (c) => c.id === originalComponent.id
         )

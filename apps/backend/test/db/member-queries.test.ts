@@ -13,6 +13,14 @@ import {
   getMemberRolesByPermission,
   getDashboardSettings,
   setDashboardSettings,
+  updateMemberLang,
+  setMemberExpired,
+  suspendMemberReservations,
+  restoreMemberReservations,
+  canMemberBeDeleted,
+  deactivateMember,
+  restoreMember,
+  hasMemberFlownInYear,
 } from '../../src/db/member-queries.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import {
@@ -350,6 +358,196 @@ describe('Db add member tests', () => {
 
       const result = await getDashboardSettings(testMemberId)
       expect(result).toEqual(allComponentsSettings)
+    })
+  })
+
+  describe('updateMemberLang Tests', () => {
+    it('should return false when updating lang for non-existent member', async () => {
+      const result = await updateMemberLang('NonExistentMember', MIKLang.EN, jwt)
+      expect(result).toBe(false)
+    })
+
+    it('should return true when updating lang for existing member', async () => {
+      // Create a test member to avoid modifying shared test data
+      const email = `${new Date().getTime()}@langtesttest.com`
+      const memberId = await addMember({
+        memberType: MIKMemberTypes.FLYING,
+        email,
+        firstName: 'LangTest',
+        lastName: 'Member',
+        lang: MIKLang.FI,
+      })
+
+      const result = await updateMemberLang(memberId, MIKLang.EN, jwt)
+      expect(result).toBe(true)
+
+      const updated = await getMemberById(memberId)
+      expect(updated?.lang).toBe(MIKLang.EN)
+
+      await removeMember(memberId)
+    })
+  })
+
+  describe('setMemberExpired Tests', () => {
+    it('should set member as expired and remove all roles', async () => {
+      // Create a test member with a role
+      const email = `${new Date().getTime()}@expiredtest.com`
+      const memberId = await addMember({
+        memberType: MIKMemberTypes.FLYING,
+        email,
+        firstName: 'Expired',
+        lastName: 'Test',
+        lang: MIKLang.FI,
+      })
+
+      // Verify member is not expired initially
+      const beforeMember = await getMemberById(memberId)
+      expect(beforeMember?.isMembershipExpired).toBe(false)
+      // Note: new members have canMakeReservations = false by default
+
+      const result = await setMemberExpired(memberId)
+      expect(result).toBe(true)
+
+      // Verify member is now expired with reservations suspended
+      const afterMember = await getMemberById(memberId)
+      expect(afterMember?.isMembershipExpired).toBe(true)
+      expect(afterMember?.canMakeReservations).toBe(false)
+      expect(afterMember?.roles.length).toBe(0)
+
+      await removeMember(memberId)
+    })
+  })
+
+  describe('Suspend and Restore Reservation Tests', () => {
+    it('should suspend member reservations', async () => {
+      // Create a test member and enable reservations first
+      const email = `${new Date().getTime()}@suspendtest.com`
+      const memberId = await addMember({
+        memberType: MIKMemberTypes.FLYING,
+        email,
+        firstName: 'Suspend',
+        lastName: 'Test',
+        lang: MIKLang.FI,
+      })
+
+      // Enable reservations first since new members have it disabled by default
+      await restoreMemberReservations(memberId)
+      const memberBefore = await getMemberById(memberId)
+      expect(memberBefore?.canMakeReservations).toBe(true)
+
+      await suspendMemberReservations(memberId)
+
+      const memberAfter = await getMemberById(memberId)
+      expect(memberAfter?.canMakeReservations).toBe(false)
+
+      await removeMember(memberId)
+    })
+
+    it('should restore member reservations', async () => {
+      // Create a test member to avoid modifying shared test data
+      const email = `${new Date().getTime()}@restorerestest.com`
+      const memberId = await addMember({
+        memberType: MIKMemberTypes.FLYING,
+        email,
+        firstName: 'RestoreRes',
+        lastName: 'Test',
+        lang: MIKLang.FI,
+      })
+
+      // New members have reservations disabled by default
+      const memberBefore = await getMemberById(memberId)
+      expect(memberBefore?.canMakeReservations).toBe(false)
+
+      // Restore reservations
+      await restoreMemberReservations(memberId)
+      const memberRestored = await getMemberById(memberId)
+      expect(memberRestored?.canMakeReservations).toBe(true)
+
+      await removeMember(memberId)
+    })
+  })
+
+  describe('canMemberBeDeleted Tests', () => {
+    it('should return true for new member with no flights or invoices', async () => {
+      const email = `${new Date().getTime()}@candelete.com`
+      const memberId = await addMember({
+        memberType: MIKMemberTypes.FLYING,
+        email,
+        firstName: 'CanDelete',
+        lastName: 'Test',
+        lang: MIKLang.FI,
+      })
+
+      const result = await canMemberBeDeleted(memberId)
+      expect(result).toBe(true)
+
+      await removeMember(memberId)
+    })
+
+    it('should return false for member with flight logs', async () => {
+      // Matti1 has flights in test data
+      const result = await canMemberBeDeleted('Matti1')
+      expect(result).toBe(false)
+    })
+  })
+
+  describe('Deactivate and Restore Member Tests', () => {
+    it('should deactivate a member', async () => {
+      const email = `${new Date().getTime()}@deactivate.com`
+      const memberId = await addMember({
+        memberType: MIKMemberTypes.FLYING,
+        email,
+        firstName: 'Deactivate',
+        lastName: 'Test',
+        lang: MIKLang.FI,
+      })
+
+      const beforeMember = await getMemberById(memberId)
+      expect(beforeMember?.memberType).not.toBe(MIKMemberTypes.REMOVED)
+
+      await deactivateMember(memberId, jwt.memberId)
+
+      const afterMember = await getMemberById(memberId)
+      expect(afterMember?.memberType).toBe(MIKMemberTypes.REMOVED)
+      expect(afterMember?.canMakeReservations).toBe(false)
+
+      await removeMember(memberId)
+    })
+
+    it('should restore a deactivated member', async () => {
+      const email = `${new Date().getTime()}@restore.com`
+      const memberId = await addMember({
+        memberType: MIKMemberTypes.FLYING,
+        email,
+        firstName: 'Restore',
+        lastName: 'Test',
+        lang: MIKLang.FI,
+      })
+
+      // Deactivate first
+      await deactivateMember(memberId, jwt.memberId)
+      const deactivatedMember = await getMemberById(memberId)
+      expect(deactivatedMember?.memberType).toBe(MIKMemberTypes.REMOVED)
+
+      // Then restore - note: canMakeReservations is not automatically restored
+      const restored = await restoreMember(memberId, jwt.memberId)
+      expect(restored.memberType).toBe(MIKMemberTypes.FLYING)
+
+      await removeMember(memberId)
+    })
+  })
+
+  describe('hasMemberFlownInYear Tests', () => {
+    it('should return false for member who has not flown in a future year', async () => {
+      const futureYear = new Date().getFullYear() + 10
+      const result = await hasMemberFlownInYear('Matti1', futureYear)
+      expect(result).toBe(false)
+    })
+
+    it('should return false for non-existent member', async () => {
+      const currentYear = new Date().getFullYear()
+      const result = await hasMemberFlownInYear('NonExistent', currentYear)
+      expect(result).toBe(false)
     })
   })
 })

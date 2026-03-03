@@ -69,7 +69,60 @@ const MemberProfile = () => {
     if (error) {
       return setProblem(error)
     }
-    navigate('/members')
+    navigate('/club/')
+  }
+
+  const handleDeactivate = async (reason?: string) => {
+    const confirmMessage = t('member.deactivateConfirmMessage', {
+      name: `${data?.firstName} ${data?.lastName}`,
+    })
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    const { error } = await mutation.trigger('POST', { reason }, 'deactivate')
+    if (error) {
+      return setProblem(error)
+    }
+
+    setProblem({
+      status: 200,
+      detail: t('member.deactivatedSuccessMessage'),
+    })
+
+    navigate('/club/')
+  }
+
+  const handleCancelMembership = async () => {
+    const confirmMessage = t('member.cancelMembershipConfirmMessage')
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    const { error } = await mutation.trigger(
+      'POST',
+      {},
+      '/me/cancel-membership'
+    )
+    if (error) {
+      if (error.status === 400) {
+        setProblem({
+          status: 400,
+          detail: t('member.cannotCancelPaidMembership'),
+        })
+      } else {
+        setProblem(error)
+      }
+      return
+    }
+
+    setProblem({
+      status: 200,
+      detail: t('member.membershipCancelledSuccessMessage'),
+    })
+
+    // Redirect to home or logout
+    navigate('/')
   }
 
   const handleApprove = async () => {
@@ -651,15 +704,40 @@ const MemberProfile = () => {
 
           <Grid>
             {isAdmin && (
+              <>
+                <Button
+                  color='warning'
+                  variant='outlined'
+                  onClick={() => handleDeactivate()}
+                  loadingPosition='start'
+                  loading={mutation.isMutating}
+                  startIcon={<Icon icon='mdi:account-cancel' />}
+                  sx={{ mr: 2 }}
+                >
+                  {t('member.deactivate', 'Deactivate Member')}
+                </Button>
+                <Button
+                  color='secondary'
+                  variant='outlined'
+                  onClick={handleRemove}
+                  loadingPosition='start'
+                  loading={mutation.isMutating}
+                  startIcon={<Icon icon='mdi:delete' />}
+                >
+                  {t('general.delete', 'Delete')}
+                </Button>
+              </>
+            )}
+            {!isAdmin && memberId === 'me' && (
               <Button
-                color='secondary'
+                color='warning'
                 variant='outlined'
-                onClick={handleRemove}
+                onClick={handleCancelMembership}
                 loadingPosition='start'
                 loading={mutation.isMutating}
-                startIcon={<Icon icon='mdi:delete' />}
+                startIcon={<Icon icon='mdi:account-remove' />}
               >
-                {t('general.delete', 'Delete')}
+                {t('member.cancelMembership', 'Cancel Membership')}
               </Button>
             )}
           </Grid>
@@ -674,6 +752,9 @@ const MemberProfile = () => {
       </Box>
       {!isMembershipApproved && (
         <Watermark text={t('member.membershipPending')} />
+      )}
+      {data?.memberType === MIKMemberTypes.REMOVED && (
+        <Watermark text={t('member.types.removed')} color='red' />
       )}
     </RemoteContent>
   )

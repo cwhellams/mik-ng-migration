@@ -15,9 +15,12 @@ import {
   type Member,
 } from '../../../src/routes/members/models.ts'
 import {
+  buildCreditNotePayload,
+  buildReceiptPayload,
   dispatchOutboxMsg,
   validateFlightsBillableMemberId,
 } from '../../../src/services/simplbooks/simplbooksOutboxHandler.ts'
+import type { InvoiceResponse } from '../../../src/services/simplbooks/models.ts'
 import { simplbooksApiClient } from '../../../src/services/simplbooks/simplbooksApiClient.ts'
 import { mockSimplbooksGet, mockSimplbooksPost } from '../../__mocks__/simplbooksMock.ts'
 import {
@@ -174,6 +177,156 @@ describe('Simplbooks Outbox Handler tests', () => {
 
       expect(() => validateFlightsBillableMemberId(flights, 'MEMBER123')).toThrow(
         /Expected all flights to have billable member ID MEMBER123.*found 2 flight\(s\)/,
+      )
+    })
+  })
+
+  describe('buildCreditNotePayload', () => {
+    const baseInvoiceResponse: InvoiceResponse = {
+      status: 200,
+      duration: 0.1,
+      data: {
+        Invoice: {
+          id: 42,
+          client_id: 7,
+          number: '2024-042',
+          total_sum: 150.0,
+          currency_name: 'EUR',
+          currency_rate: 1,
+          created: '2024-03-01',
+        },
+        Task: [
+          {
+            id: 10,
+            name: 'Annual fee',
+            price_per_unit: 75.0,
+            amount: 2,
+            Projects: [{ code: 'PROJ1' }],
+          },
+          {
+            id: 11,
+            name: 'Equipment fee',
+            price_per_unit: 0,
+            amount: 1,
+            Projects: [],
+          },
+        ],
+      },
+    }
+
+    it('strips the id from the invoice', () => {
+      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'Test reason')
+      expect(result.Invoice.id).toBeUndefined()
+    })
+
+    it('sets credit_invoice_for to the original invoice id', () => {
+      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'Test reason')
+      expect(result.Invoice.credit_invoice_for).toBe(42)
+    })
+
+    it('sets additional_info with the invoice id and reason', () => {
+      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'Duplicate charge')
+      expect(result.Invoice.additional_info).toBe(
+        'Credit note for invoice 42. Reason: Duplicate charge',
+      )
+    })
+
+    it('preserves other invoice fields from the original', () => {
+      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
+      expect(result.Invoice.client_id).toBe(7)
+    })
+
+    it('negates price_per_unit on each task', () => {
+      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
+      expect(result.Tasks[0].Task.price_per_unit).toBe(-75.0)
+    })
+
+    it('sets price_per_unit to 0 when original is 0', () => {
+      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
+      expect(result.Tasks[1].Task.price_per_unit).toBe(0)
+    })
+
+    it('strips the id from each task', () => {
+      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
+      result.Tasks.forEach(t => expect(t.Task.id).toBeUndefined())
+    })
+
+    it('includes Projects from the original task', () => {
+      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
+      expect(result.Tasks[0].Projects).toEqual([{ code: 'PROJ1' }])
+    })
+
+    it('defaults to empty Projects array when task has no Projects', () => {
+      const invoiceWithNoProjects: InvoiceResponse = {
+        ...baseInvoiceResponse,
+        data: {
+          ...baseInvoiceResponse.data,
+          Task: [{ id: 20, name: 'Fee', price_per_unit: 50.0 }],
+        },
+      }
+      const result = buildCreditNotePayload(invoiceWithNoProjects, '42', 'reason')
+      expect(result.Tasks[0].Projects).toEqual([])
+    })
+  })
+
+  describe('buildReceiptPayload', () => {
+    const validInvoice = {
+      id: 99,
+      client_id: 7,
+      number: '2024-099',
+      total_sum: 200.0,
+      created: '2024-03-01',
+    }
+
+    it('maps total_sum to income_sum', () => {
+      const result = buildReceiptPayload(validInvoice)
+      expect(result.Incoming.income_sum).toBe(200.0)
+    })
+
+    it('maps created to income_date', () => {
+      const result = buildReceiptPayload(validInvoice)
+      expect(result.Incoming.income_date).toBe('2024-03-01')
+    })
+
+    it('maps client_id correctly', () => {
+      const result = buildReceiptPayload(validInvoice)
+      expect(result.Incoming.client_id).toBe(7)
+    })
+
+    it('sets description using invoice number when present', () => {
+      const result = buildReceiptPayload(validInvoice)
+      expect(result.Incoming.description).toBe('Invoice no. 2024-099')
+    })
+
+    it('falls back to invoice id in description when number is absent', () => {
+      const { number: _n, ...invoiceWithoutNumber } = validInvoice
+      const result = buildReceiptPayload(invoiceWithoutNumber)
+      expect(result.Incoming.description).toBe('Invoice 99')
+    })
+
+    it('sets invoice_id from invoice id', () => {
+      const result = buildReceiptPayload(validInvoice)
+      expect(result.invoice_id).toBe(99)
+    })
+
+    it('throws when total_sum is missing', () => {
+      const { total_sum: _ts, ...invoice } = validInvoice
+      expect(() => buildReceiptPayload(invoice)).toThrow(
+        'Cannot build receipt: invoice is missing total_sum',
+      )
+    })
+
+    it('throws when created is missing', () => {
+      const { created: _c, ...invoice } = validInvoice
+      expect(() => buildReceiptPayload(invoice)).toThrow(
+        'Cannot build receipt: invoice is missing created date',
+      )
+    })
+
+    it('throws when client_id is missing', () => {
+      const { client_id: _cid, ...invoice } = validInvoice
+      expect(() => buildReceiptPayload(invoice)).toThrow(
+        'Cannot build receipt: invoice is missing client_id',
       )
     })
   })

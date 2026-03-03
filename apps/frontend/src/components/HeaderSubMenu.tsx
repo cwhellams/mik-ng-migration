@@ -3,12 +3,14 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { t } from 'i18next'
 import { MenuItem } from '../config/menuItems'
 import { useRoles } from '../hooks/useRoles'
+import { useThemeMode } from '../theme/ThemeContext'
 
 export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
   const location = useLocation()
   const navigate = useNavigate()
   const theme = useTheme()
   const { hasAccess } = useRoles()
+  const { sudo } = useThemeMode()
 
   const currentTab = parent.subItems?.findIndex(
     (item) => item.path.length > 0 && location.pathname.includes(item.path)
@@ -21,9 +23,12 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
     return null
   }
 
-  const subItems = parent.subItems?.filter((i) =>
-    hasAccess(...(i.requiredRoles ?? []))
-  )
+  const subItems = parent.subItems?.filter((i) => {
+    if (i.adminModeOnly === true && !sudo) {
+      return false
+    }
+    return hasAccess(...(i.requiredRoles ?? []))
+  })
 
   if (!subItems || subItems.length == 0) {
     return null

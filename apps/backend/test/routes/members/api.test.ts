@@ -20,6 +20,7 @@ import type { Upsert } from '../../../src/types/schema.ts'
 import { deleteSimplbooksOutbox } from '../../db/__helpers__/simplbooksDbHelpers.ts'
 import { HttpStatusCode } from 'axios'
 import { db } from '../../../src/db/connection.ts'
+import { addMember } from '../../../src/db/member-queries.ts'
 
 // Create an instance of the Express app
 const app = express()
@@ -872,5 +873,189 @@ describe('Set language tests', () => {
       .send({ lang: 'fi' })
 
     expect(undoResponse.status).toBe(200)
+  })
+})
+
+describe('GET /members/trash', () => {
+  it('should return removed members when admin', async () => {
+    const response = await request(app)
+      .get('/members/trash')
+      .set('Authorization', `Bearer ${adminToken}`)
+    expect(response.status).toBe(200)
+    expect(response.body.members).toBeDefined()
+    expect(Array.isArray(response.body.members)).toBe(true)
+  })
+
+  it('should return 403 when non-admin tries to access trash', async () => {
+    const response = await request(app)
+      .get('/members/trash')
+      .set('Authorization', `Bearer ${memberToken}`)
+    expect(response.status).toBe(HttpStatusCode.Forbidden)
+  })
+})
+
+describe('POST /members/:memberId/restore', () => {
+  it('should return 404 when member not found', async () => {
+    const response = await request(app)
+      .post('/members/NonExistent99/restore')
+      .set('Authorization', `Bearer ${adminToken}`)
+    expect(response.status).toBe(404)
+    expect(response.body.detail).toBe('Member not found')
+  })
+
+  it('should return 400 when member is not in removed state', async () => {
+    const response = await request(app)
+      .post('/members/Matti1/restore')
+      .set('Authorization', `Bearer ${adminToken}`)
+    expect(response.status).toBe(400)
+    expect(response.body.detail).toBe('Member is not in removed state')
+  })
+
+  it('should return 403 when non-admin tries to restore', async () => {
+    const response = await request(app)
+      .post('/members/Antti1/restore')
+      .set('Authorization', `Bearer ${memberToken}`)
+    expect(response.status).toBe(HttpStatusCode.Forbidden)
+  })
+})
+
+describe('POST /members/:memberId/deactivate', () => {
+  it('should return 404 when member not found', async () => {
+    const response = await request(app)
+      .post('/members/NonExistent99/deactivate')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ reason: 'Test reason' })
+    expect(response.status).toBe(404)
+    expect(response.body.detail).toBe('Member not found')
+  })
+
+  it('should return 403 when non-admin tries to deactivate', async () => {
+    const response = await request(app)
+      .post('/members/Antti1/deactivate')
+      .set('Authorization', `Bearer ${memberToken}`)
+      .send({ reason: 'Test reason' })
+    expect(response.status).toBe(HttpStatusCode.Forbidden)
+  })
+})
+
+describe('POST /members/me/cancel-membership', () => {
+  let cancelMemberId: string
+  let cancelMemberToken: string
+
+  beforeAll(async () => {
+    cancelMemberId = await addMember({
+      memberType: MIKMemberTypes.FLYING,
+      email: `cancel-test-${Date.now()}@test.com`,
+      firstName: 'Cancel',
+      lastName: 'TestMember',
+      lang: MIKLang.FI,
+    })
+    cancelMemberToken = generateAccessToken({
+      memberId: cancelMemberId,
+      lastName: 'TestMember',
+      email: `cancel-test@test.com`,
+      roles: ['MEMBER'],
+      permissions: [MIKPermissions.MEMBER],
+      canMakeReservations: false,
+    })
+  })
+
+  afterAll(async () => {
+    // The member was deactivated (not hard deleted) by the cancel route, clean up the record
+    await db.deleteFrom('member.register').where('member_id', '=', cancelMemberId).execute()
+  })
+
+  it('should return 404 when authenticated user member not found', async () => {
+    const response = await request(app)
+      .post('/members/me/cancel-membership')
+      .set('Authorization', `Bearer ${missingUserToken}`)
+    expect(response.status).toBe(404)
+    expect(response.body.detail).toBe('Member not found')
+  })
+
+  it('should return 204, even when annual fee has been paid', async () => {
+    const response = await request(app)
+      .post('/members/me/cancel-membership')
+      .set('Authorization', `Bearer ${cancelMemberToken}`)
+    expect(response.status).toBe(204)
+  })
+})
+
+describe('GET /members/annual-membership-stats', () => {
+  it('should return membership stats when invoicing admin', async () => {
+    const invoicingAdminToken = generateAccessToken({
+      memberId: 'k1mnimda',
+      lastName: 'Admin',
+      email: 'admin@mik.fi',
+      roles: ['ADMIN'],
+      permissions: [MIKPermissions.INVOICING_ADMIN],
+      canMakeReservations: false,
+    })
+
+    const response = await request(app)
+      .get('/members/annual-membership-stats')
+      .set('Authorization', `Bearer ${invoicingAdminToken}`)
+    expect(response.status).toBe(HttpStatusCode.Ok)
+    expect(response.body).toHaveProperty('totalAutoRenewMembers')
+    expect(response.body).toHaveProperty('totalAutoRenewEquipmentFee')
+    expect(response.body).toHaveProperty('year')
+  })
+
+  it('should return stats for specific year when year query provided', async () => {
+    const invoicingAdminToken = generateAccessToken({
+      memberId: 'k1mnimda',
+      lastName: 'Admin',
+      email: 'admin@mik.fi',
+      roles: ['ADMIN'],
+      permissions: [MIKPermissions.INVOICING_ADMIN],
+      canMakeReservations: false,
+    })
+
+    const response = await request(app)
+      .get('/members/annual-membership-stats')
+      .query({ year: '2025' })
+      .set('Authorization', `Bearer ${invoicingAdminToken}`)
+    expect(response.status).toBe(HttpStatusCode.Ok)
+    expect(response.body.year).toBe(2025)
+  })
+
+  it('should return 403 when non-invoicing-admin tries to access', async () => {
+    const response = await request(app)
+      .get('/members/annual-membership-stats')
+      .set('Authorization', `Bearer ${memberToken}`)
+    expect(response.status).toBe(HttpStatusCode.Forbidden)
+  })
+})
+
+describe('POST /members/:memberId/approve with migration flag', () => {
+  it('should skip sending email when x-mik-migration header is true', async () => {
+    const response = await request(app)
+      .post('/members/Marja1/approve')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .set('x-mik-migration', 'true')
+
+    expect(response.status).toBe(HttpStatusCode.Created)
+    const member = response.body as Member
+    expect(member.roles.length).toBeGreaterThan(0)
+
+    // Cleanup
+    await db
+      .updateTable('member.register')
+      .set({
+        membership_approved_at: null,
+        membership_approved_by: null,
+      })
+      .where('member_id', '=', 'Marja1')
+      .execute()
+    await db.deleteFrom('member.member_to_roles').where('member_id', '=', 'Marja1').execute()
+  })
+})
+
+describe('DELETE /members/:memberId', () => {
+  it('should return 404 when trying to delete non-existent member', async () => {
+    const response = await request(app)
+      .delete('/members/NonExistent99')
+      .set('Authorization', `Bearer ${adminToken}`)
+    expect(response.status).toBe(404)
   })
 })

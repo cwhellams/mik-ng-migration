@@ -16,6 +16,7 @@ export enum SimplbooksEventType {
   FLIGHT_INVOICE = 'flightInvoice',
   REIMBURSEMENT = 'reimbursement',
   SEND_INVOICE_PDF = 'sendInvoicePdf',
+  CREDIT_NOTE = 'creditNote',
 }
 
 export enum SimplbooksStatus {
@@ -33,6 +34,7 @@ export enum MIKInvoiceType {
   FLIGHT = 'FLIGHT',
   INSTRUCTION = 'INSTRUCTION',
   MISC = 'MISC',
+  CREDIT_NOTE = 'CREDIT_NOTE',
 }
 
 export enum RecurringFeeType {
@@ -127,6 +129,8 @@ const TaskSchema = z
     vat_type_id: z.number(),
     discount: z.number(),
     income_account_id: z.number(),
+    total_sum: z.number().optional(),
+    Projects: z.array(ProjectSchema).optional(),
   })
   .partial()
 
@@ -233,26 +237,6 @@ export const SimplBooksGetResponseSchema = z.object({
 
 export type SimplBooksGetResponse = z.infer<typeof SimplBooksGetResponseSchema>
 
-// export const acctsInvoiceSchema = z.object({
-//   amount: z.union([z.number(), z.string()]).nullable(), // Numeric: input can be number or string
-//   created_at: z.union([z.string(), z.date()]), // Timestamp
-//   created_by: z.string(),
-//   currency: z.string().nullable(),
-//   description: z.string().nullable(),
-//   due_at: z.union([z.string(), z.date()]),
-//   id: z.number().int().nonnegative(),
-//   invoice_type: invoiceTypeSchema,
-//   is_paid: z.boolean().nullable(),
-//   member_id: z.string(),
-//   paid_at: z.union([z.string(), z.date()]).nullable(),
-//   pmt_ref: z.string(),
-//   sent_at: z.union([z.string(), z.date()]),
-//   updated_at: z.union([z.string(), z.date()]),
-//   updated_by: z.string(),
-// })
-
-//export type AcctsInvoice = z.infer<typeof acctsInvoiceSchema>
-
 export const InvoiceListSchema = z.object({
   id: z.number(),
   client_id: z.number(),
@@ -336,3 +320,22 @@ export type SimplbooksSyncStatus = z.infer<typeof SimplbooksSyncStatusSchema>
 
 export const SimplbooksSyncStateStatusSchema = z.enum(['SUCCESS', 'FAILED', 'IN_PROGRESS'])
 export type SimplbooksSyncStateStatus = z.infer<typeof SimplbooksSyncStateStatusSchema>
+
+export const ReceiptIncomingSchema = z.object({
+  income_account_id: z.number().int().optional(),
+  income_sum: z.number(),
+  income_date: z.string().date(),
+  description: z.string(),
+  currency_name: z.string().optional(),
+  currency_rate: z.number().optional(),
+  client_id: z.number().int(),
+})
+
+export const ReceiptPostSchema = z.object({
+  Incoming: ReceiptIncomingSchema,
+  Projects: z.array(ProjectSchema).optional(),
+  invoice_id: z.number().int().optional(),
+})
+
+export type ReceiptIncoming = z.infer<typeof ReceiptIncomingSchema>
+export type ReceiptPost = z.infer<typeof ReceiptPostSchema>

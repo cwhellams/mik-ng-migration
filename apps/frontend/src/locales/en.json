@@ -22,7 +22,8 @@
     "accounts": "Accounts",
     "accessCodes": "Codes",
     "club": "Club",
-    "stats": "Statistics"
+    "stats": "Statistics",
+    "membersTrash": "Trash - Deleted Members"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
@@ -144,7 +145,17 @@
     "membershipApprovedAt": "Membership Approved At",
     "membershipPending": "Membership Pending Approval",
     "approveMembership": "Approve Membership",
-    "approvedSnackbarMessage": "Membership Approved for {{firstName}} {{lastName}}"
+    "approvedSnackbarMessage": "Membership Approved for {{firstName}} {{lastName}}",
+    "trash": "Removed Members",
+    "search": "Search",
+    "noRemovedMembers": "No removed members found",
+    "restore": "Restore",
+    "restoreConfirmMessage": "Are you sure you want to restore this member?",
+    "restoredSuccessMessage": "Member has been successfully restored",
+    "deactivate": "Deactivate Member",
+    "deactivateConfirmMessage": "Are you sure you want to deactivate {{name}}?",
+    "deactivatedSuccessMessage": "Member has been successfully deactivated",
+    "noPermission": "You do not have permission to view this page."
   },
   "aircraft": {
     "location": "Location",

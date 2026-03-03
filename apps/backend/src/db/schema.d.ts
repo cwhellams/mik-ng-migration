@@ -41,6 +41,7 @@ export type Int8 = ColumnType<string, bigint | number | string, bigint | number 
 
 export type InvoiceType =
   | 'ANNUAL_FEE'
+  | 'CREDIT_NOTE'
   | 'EQUIPMENT_FEE'
   | 'FLIGHT'
   | 'INSTRUCTION'
@@ -488,6 +489,9 @@ export interface MemberRegister {
   membership_approved_by: string | null
   phone_number: string | null
   postcode: string | null
+  removal_reason: string | null
+  removed_at: Timestamp | null
+  removed_by: string | null
   simplbooks_sync_status: Generated<string | null>
   simplbooks_synced_at: Timestamp | null
   street_address: string | null

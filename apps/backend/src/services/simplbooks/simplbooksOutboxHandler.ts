@@ -8,13 +8,17 @@ import {
   SimplbooksEventType,
   SimplbooksStatus,
   type AcctsOutboxSimplbooks,
+  type InvoiceBase,
   type InvoicePost,
+  type InvoiceResponse,
+  type ReceiptPost,
 } from './models.ts'
 import {
   createNewClient,
   createSimplbooksInvoice,
   getInvoice,
   markInvoiceAsSentInSimplbooks,
+  createSimplbooksReceipt,
 } from './simplbooksApiClient.ts'
 import {
   createAnnualEquipmentFeeInvoicePayload,
@@ -60,6 +64,9 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
       break
     case SimplbooksEventType.FLIGHT_INVOICE:
       await createFlightInvoice(msg)
+      break
+    case SimplbooksEventType.CREDIT_NOTE:
+      await createCreditNote(msg)
       break
     default:
       throw new Error(`Unsupported outbox event type: ${msg.event_type}`)
@@ -334,4 +341,142 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
 
     await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
   })
+}
+
+export function buildCreditNotePayload(
+  originalInvoice: InvoiceResponse,
+  simplbooksInvoiceId: string,
+  reason: string,
+): InvoicePost {
+  return {
+    Invoice: {
+      client_id: originalInvoice.data.Invoice.client_id,
+      credit_invoice_for: Number(simplbooksInvoiceId), // Link to original invoice
+      sent: new Date().toISOString().split('T')[0], // Mark as sent
+      additional_info: `Credit note for invoice ${simplbooksInvoiceId}. Reason: ${reason}`,
+    },
+    Tasks: originalInvoice.data.Task.map(invoiceTask => {
+      // Extract task data without the embedded Projects array
+      const { Projects, ...taskData } = invoiceTask
+
+      return {
+        Task: {
+          ...taskData,
+          id: undefined, // Remove task ID
+          worker: undefined, // Remove worker assignment
+          price_per_unit: invoiceTask.price_per_unit ? -invoiceTask.price_per_unit : 0, // Negate the amount for credit
+        },
+        // Always include Projects array, default to empty array if not present
+        Projects: Projects || [],
+      }
+    }),
+  }
+}
+
+export function buildReceiptPayload(invoice: InvoiceBase): ReceiptPost {
+  const { id, total_sum, created, client_id, number } = invoice
+
+  if (total_sum === undefined || total_sum === null) {
+    throw new Error(`Cannot build receipt: invoice is missing total_sum`)
+  }
+  if (!created) {
+    throw new Error(`Cannot build receipt: invoice is missing created date`)
+  }
+  if (client_id === undefined || client_id === null) {
+    throw new Error(`Cannot build receipt: invoice is missing client_id`)
+  }
+
+  return {
+    Incoming: {
+      income_sum: total_sum,
+      income_date: created,
+      description: number ? `Invoice no. ${number}` : `Invoice ${id ?? ''}`,
+      income_account_id: Number(process.env.SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID) || 5, // Default to 5 if not set
+      client_id,
+    },
+    invoice_id: id,
+  }
+}
+
+// This function creates a credit note in SimplBooks for a given invoice. It retrieves the original invoice,
+// creates a new invoice with negative amounts, and links it to the original invoice as a credit note.
+// For Simplbooks to handle the credit note correctly we must also generate receipts for both invoices,
+// and bind those to the invoices , the invoices must also be marked as sent in Simplbooks.
+async function createCreditNote(outboxMsg: AcctsOutboxSimplbooks) {
+  const payload = outboxMsg.payload as {
+    memberId: string
+    invoiceId: string
+    simplbooksInvoiceId: string
+    reason: string
+  }
+
+  try {
+    // Get the original invoice from SimplBooks
+    const originalInvoice = await getInvoice(Number(payload.simplbooksInvoiceId))
+
+    // Create a credit note invoice by copying the original but with negative amounts
+    const creditNotePayload = buildCreditNotePayload(
+      originalInvoice,
+      payload.simplbooksInvoiceId,
+      payload.reason,
+    )
+
+    // Create the credit note in SimplBooks
+    const result = await createSimplbooksInvoice(creditNotePayload)
+    logger.info(
+      `Created credit note ${result.inserted_id} for invoice ${payload.simplbooksInvoiceId}`,
+    )
+
+    // We need to load the created credit note invoice so that we can create receipts for it
+    // SimplBooks requires a receipt for the credit note to properly link it to the original invoice
+    // and handle the crediting correctly
+    const creditNoteInvoiceId = result.inserted_id
+    const creditNoteInvoice = await getInvoice(creditNoteInvoiceId)
+
+    logger.info(
+      `Loaded created credit note invoice ${creditNoteInvoiceId} for original invoice ${payload.simplbooksInvoiceId}`,
+    )
+
+    // Create receipt for Original Invoice
+    const originalInvoiceReceiptPayload = buildReceiptPayload(originalInvoice.data.Invoice)
+    const originalInvoiceReceiptResponse = await createSimplbooksReceipt(
+      originalInvoiceReceiptPayload,
+    )
+
+    logger.info(
+      `Created receipt ${originalInvoiceReceiptResponse.inserted_id} for original invoice ${payload.simplbooksInvoiceId}`,
+    )
+
+    // Create receipt for Credit Note
+    const creditNoteReceiptPayload = buildReceiptPayload(creditNoteInvoice.data.Invoice)
+    const creditNoteReceiptResponse = await createSimplbooksReceipt(creditNoteReceiptPayload)
+    logger.info(
+      `Created receipt ${creditNoteReceiptResponse.inserted_id} for credit note invoice ${creditNoteInvoiceId}`,
+    )
+
+    // Mark invoice as credited in our database
+    await db.transaction().execute(async txn => {
+      await txn
+        .updateTable('accts.invoice')
+        .set({
+          updated_at: new Date(),
+          updated_by: MIK_SIMPLBOOKS_MEMBER,
+        })
+        .where('id', '=', payload.invoiceId)
+        .execute()
+
+      await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
+    })
+  } catch (error) {
+    logger.error(`Failed to create credit note for invoice ${payload.simplbooksInvoiceId}`, error)
+    await db.transaction().execute(async txn => {
+      await setOutboxStatus(
+        txn,
+        outboxMsg.id,
+        SimplbooksStatus.FAILED,
+        `Failed to create credit note: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
+    })
+    throw error
+  }
 }

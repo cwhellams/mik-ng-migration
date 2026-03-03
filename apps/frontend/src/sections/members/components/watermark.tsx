@@ -1,7 +1,14 @@
 import React from 'react'
 import { Box, Typography } from '@mui/material'
 
-const Watermark: React.FC<{ text: string }> = ({ text }) => {
+const Watermark: React.FC<{ text: string; color?: string }> = ({
+  text,
+  color = 'black',
+}) => {
+  const isRed = color === 'red'
+  const boxOpacity = isRed ? 0.15 : 0.1
+  const textOpacity = isRed ? 1 : 0.2
+
   return (
     <Box
       sx={{
@@ -12,7 +19,7 @@ const Watermark: React.FC<{ text: string }> = ({ text }) => {
         width: '100vw',
         height: '100vh',
         zIndex: 9999,
-        opacity: 0.1,
+        opacity: boxOpacity,
         backgroundImage: `repeating-linear-gradient(
           45deg,
           transparent,
@@ -32,8 +39,8 @@ const Watermark: React.FC<{ text: string }> = ({ text }) => {
           sx={{
             transform: 'rotate(-30deg)',
             fontSize: 32,
-            color: 'black',
-            opacity: 0.2,
+            color: color,
+            opacity: textOpacity,
             userSelect: 'none',
             m: 4,
             whiteSpace: 'nowrap',

@@ -32,7 +32,13 @@ import {
   getMembersForAnnualMembershipFee,
   updateMemberRoles,
   getMemberRolesByMemberId,
+  deactivateMember,
+  restoreMember,
+  getUnpaidMembershipFeesForYear,
+  hasMemberFlownInYear,
 } from '../../db/member-queries.ts'
+import { cancelAllFutureBookingsForMember } from '../../db/booking-queries.ts'
+import { db } from '../../db/connection.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { UpsertSchema } from '../../types/schema.ts'
 import { RegisterRequestSchema } from '../auth/schema.ts'
@@ -44,6 +50,14 @@ import {
   membershipApprovedEmailBodyHtml,
   membershipApprovedEmailSubject,
 } from '../../templates/registrationEmailTemplate.ts'
+import {
+  memberRemovedEmailSubject,
+  memberRemovedEmailBodyHtml,
+  dtoStudentRemovedEmailSubject,
+  dtoStudentRemovedEmailBodyHtml,
+} from '../../templates/memberRemovedEmailTemplate.ts'
+import { SimplbooksEventType } from '../../services/simplbooks/models.ts'
+import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
 
 export const router = Router()
@@ -55,7 +69,9 @@ router.get(
   '/annual-membership-stats',
   validateUser(MIKPermissions.INVOICING_ADMIN),
   async (req: Request, res: Response<AnnualMembershipStats>) => {
-    const year = req.query.year ? parseInt(req.query.year as string) : new Date().getFullYear()
+    const year = req.query.year
+      ? Number.parseInt(req.query.year as string)
+      : new Date().getFullYear()
     const members = await getMembersForAnnualMembershipFee(year)
 
     const stats: AnnualMembershipStats = {
@@ -251,6 +267,22 @@ router.post(
   },
 )
 
+// Specific routes must come before parametric routes
+router.get(
+  '/trash',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request, res: Response<MemberListResponse>) => {
+    // Get all removed members (same as regular list but with showRemoved=true)
+    const members = await getMembers(true, [], {
+      showRemoved: true,
+      showUnapproved: false,
+      showExternal: false,
+    })
+
+    res.status(200).json({ members })
+  },
+)
+
 router.get(
   '/:memberId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
@@ -296,3 +328,117 @@ router.delete(
     res.status(204).end()
   },
 )
+
+//
+// Member removal/deactivation routes
+//
+
+router.post(
+  '/:memberId/restore',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request<{ memberId: string }>, res: Response<Member>) => {
+    const memberId = req.params.memberId
+
+    const member = await getMemberById(memberId)
+    if (!member) {
+      return problem({ status: 404, detail: 'Member not found' })
+    }
+
+    if (member.memberType !== MIKMemberTypes.REMOVED) {
+      return problem({ status: 400, detail: 'Member is not in removed state' })
+    }
+
+    const restored = await restoreMember(memberId, req.user!.memberId)
+
+    res.status(200).json(restored)
+  },
+)
+
+router.post(
+  '/:memberId/deactivate',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request<{ memberId: string }>, res: Response<void>) => {
+    const reason = req.body.reason as string | undefined
+    const memberId = req.params.memberId
+    return await cancelMembershipHandler(req, res, memberId, reason)
+  },
+)
+
+router.post('/me/cancel-membership', validateUser(), async (req: Request, res: Response<void>) => {
+  const reason = 'Self-service membership cancellation'
+  const memberId = req.user!.memberId
+  return await cancelMembershipHandler(req, res, memberId, reason)
+})
+
+const cancelMembershipHandler = async (
+  req: Request,
+  res: Response,
+  memberId: string,
+  reason?: string,
+) => {
+  const member = await getMemberById(memberId)
+  if (!member) {
+    return problem({ status: 404, detail: 'Member not found' })
+  }
+
+  // Check if they've already paid annual membership for current year
+  const currentYear = new Date().getFullYear()
+  const unpaidFees = await getUnpaidMembershipFeesForYear(memberId, currentYear)
+
+  // Proceed with cancellation
+  // Deactivate
+  await deactivateMember(memberId, memberId, reason)
+
+  // Cancel future bookings
+  await cancelAllFutureBookingsForMember(
+    memberId,
+    'Booking cancelled due to membership cancellation',
+    memberId,
+  )
+
+  // Send notification
+  sendEmail(
+    member.email,
+    memberRemovedEmailSubject(member.lang),
+    memberRemovedEmailBodyHtml(member.lang, { firstName: member.firstName }),
+  )
+
+  // If DTO student, notify koulutus@mik.fi
+  if (member.isTrainingProgramPilot) {
+    const dtoEmail = process.env.DTO_NOTIFICATION_EMAIL ?? 'koulutus@mik.fi'
+    sendEmail(
+      dtoEmail,
+      dtoStudentRemovedEmailSubject(MIKLang.FI),
+      dtoStudentRemovedEmailBodyHtml(MIKLang.FI, {
+        firstName: member.firstName,
+        lastName: member.lastName,
+        memberId: member.memberId,
+      }),
+    )
+  }
+
+  // Create credit notes for unpaid fees
+  const hasFlights = await hasMemberFlownInYear(memberId, currentYear)
+
+  if (!hasFlights) {
+    for (const fee of unpaidFees) {
+      if (fee.pmt_ref) {
+        await db
+          .insertInto('accts.outbox_simplbooks')
+          .values({
+            id: randomUUID(),
+            event_type: SimplbooksEventType.CREDIT_NOTE,
+            payload: {
+              memberId: memberId,
+              invoiceId: fee.id,
+              simplbooksInvoiceId: fee.id,
+              reason: 'Self-service membership cancellation',
+            },
+          })
+          .execute()
+      }
+    }
+  }
+
+  res.status(HttpStatusCode.NoContent).end()
+}

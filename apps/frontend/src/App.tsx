@@ -31,6 +31,7 @@ import MassBalance from './sections/massBalance/MassBalance'
 import { AccessCodes } from './sections/accessCodes/AccessCodes'
 import Documents from './sections/documents/Documents'
 import { Stats } from './sections/stats/Stats'
+import MemberTrash from './sections/members/MemberTrash'
 import 'dayjs/locale/en-gb'
 import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
 import ToolsPage from './sections/accounting/ToolsPage'
@@ -100,6 +101,7 @@ function App() {
             <Route path='/club'>
               <Route index element={<Members />} />
               <Route index path='members/roles' element={<Roles />} />
+              <Route path='members/trash' element={<MemberTrash />} />
               <Route path='members/:memberId' element={<Member />} />
               <Route path='billing' element={<Billing />} />
               <Route path='documents' element={<Documents />} />

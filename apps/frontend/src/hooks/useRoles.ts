@@ -44,7 +44,7 @@ export function useRoles(): {
   )
 
   const myPermissions =
-    me?.roles.flatMap((r) => r.permissions).filter((r) => !!r) ?? []
+    me?.roles?.flatMap((r) => r.permissions).filter((r) => !!r) ?? []
 
   const hasAccess = (...permissions: MIKPermissions[]) =>
     permissions.length === 0 ||

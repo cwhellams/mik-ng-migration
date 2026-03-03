@@ -15,6 +15,7 @@ import {
   type InvoiceResponse,
   type ItemListArticle,
   type ItemListPayload,
+  type ReceiptPost,
   type SimplBooksInsertResponse,
 } from './models.ts'
 import logger from '../../lib/logger.ts'
@@ -283,6 +284,23 @@ export async function createSimplbooksInvoice(
       const response = await simplbooksApiClient.post(`/invoices/create`, invoice)
       if (response.status !== 200) {
         throw new Error(`Failed to create invoice: ${response.statusText}`)
+      }
+      return response.data
+    } catch (error) {
+      handleApiError(error)
+      throw error
+    }
+  })
+}
+
+export async function createSimplbooksReceipt(
+  receipt: ReceiptPost,
+): Promise<SimplBooksInsertResponse> {
+  return enqueueRateLimitedRequest(async () => {
+    try {
+      const response = await simplbooksApiClient.post(`/incomings/create`, receipt)
+      if (response.status !== 200) {
+        throw new Error(`Failed to create receipt: ${response.statusText}`)
       }
       return response.data
     } catch (error) {
