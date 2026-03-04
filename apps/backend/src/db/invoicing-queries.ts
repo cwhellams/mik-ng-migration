@@ -13,9 +13,15 @@ import {
   type ItemListArticle,
 } from '../services/simplbooks/models.ts'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
-import { sql } from 'kysely'
 import { db } from './connection.ts'
 import type { AcctsInvoice, AcctsItems } from './schema.js'
+
+function overdueInvoiceCutoff(): string {
+  const now = new Date()
+  const gracePeriodDays = Number(process.env.OVERDUE_INVOICE_GRACE_PERIOD_DAYS || 10)
+  now.setDate(now.getDate() - gracePeriodDays)
+  return now.toISOString()
+}
 
 export async function getInvoices(
   memberId: string,
@@ -52,9 +58,7 @@ export async function getInvoices(
   }
 
   if (pastDue) {
-    query = query
-      .where('due_at', '<', new Date().toISOString()) // compare to now
-      .where('is_paid', '=', false)
+    query = query.where('due_at', '<', overdueInvoiceCutoff()).where('is_paid', '=', false)
   }
 
   const rows = await query.orderBy('sent_at', 'desc').execute()
@@ -251,13 +255,11 @@ export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Prom
  * Grace period can be configured via OVERDUE_INVOICE_GRACE_PERIOD_DAYS env var (defaults to 0)
  */
 export async function getOverdueInvoicesWithoutReminder(): Promise<AcctsInvoice[]> {
-  const gracePeriodDays = Number(process.env.OVERDUE_INVOICE_GRACE_PERIOD_DAYS || 7)
-
   const rows = await db
     .selectFrom('accts.invoice')
     .selectAll()
     .where('is_paid', '=', false)
-    .where(sql`due_at + INTERVAL '${sql.raw(gracePeriodDays.toString())} days'`, '<', sql`NOW()`)
+    .where('due_at', '<', overdueInvoiceCutoff())
     .where('overdue_email_sent_at', 'is', null)
     .orderBy('due_at', 'asc')
     .execute()

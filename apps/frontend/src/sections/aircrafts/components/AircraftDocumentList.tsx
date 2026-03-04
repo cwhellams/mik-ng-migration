@@ -170,7 +170,12 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
           <Icon icon={getFileIcon(document.mimeType)} width={24} height={24} />
         </ListItemIcon>
         <Box sx={{ flex: 1 }}>
-          <Stack direction='row' spacing={1} alignItems='center' sx={{ mb: 0.5 }}>
+          <Stack
+            direction='row'
+            spacing={1}
+            alignItems='center'
+            sx={{ mb: 0.5 }}
+          >
             <Typography variant='body2' fontWeight='medium'>
               {document.title}
             </Typography>
@@ -184,7 +189,12 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
             <Typography variant='caption' color='text.secondary'>
               {document.description}
             </Typography>
-            <Stack direction='row' spacing={2} alignItems='center' flexWrap='wrap'>
+            <Stack
+              direction='row'
+              spacing={2}
+              alignItems='center'
+              flexWrap='wrap'
+            >
               {document.validFrom && document.validTo && (
                 <Typography variant='caption' color='text.secondary'>
                   {t('aircraft.document.validity')}: {document.validFrom} -{' '}
@@ -206,7 +216,7 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
           </Stack>
         </Box>
       </Stack>
-      
+
       {/* Action buttons row */}
       <Stack direction='row' spacing={1} sx={{ pl: 5 }}>
         {document.documentUrl && (
@@ -257,9 +267,7 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
                 <ListItemIcon>
                   <Icon icon='mdi:delete' color='error' />
                 </ListItemIcon>
-                <ListItemText
-                  primary={t('aircraft.document.delete.delete')}
-                />
+                <ListItemText primary={t('aircraft.document.delete.delete')} />
               </MenuItem>
             </Menu>
           </>
