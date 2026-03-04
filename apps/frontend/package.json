@@ -34,7 +34,7 @@
     "@nivo/pie": "^0.99.0",
     "@types/papaparse": "^5.5.2",
     "@types/react-router-dom": "^5.3.3",
-    "axios": "^1.13.5",
+    "axios": "^1.13.6",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.18",
     "html-parse-stringify": "^3.0.1",
