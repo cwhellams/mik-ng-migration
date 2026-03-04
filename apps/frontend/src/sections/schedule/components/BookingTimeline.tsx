@@ -13,6 +13,13 @@ const showDiff = (previous?: dayjs.Dayjs, next?: dayjs.Dayjs) => {
   if (diff == 0) {
     return '0 min'
   }
+  if (diff < 0) {
+    return (
+      <Typography variant='body1' color='error'>
+        {`-${formatDuration(-diff)}`}
+      </Typography>
+    )
+  }
   return formatDuration(diff)
 }
 

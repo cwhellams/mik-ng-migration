@@ -169,11 +169,13 @@ router.patch('/:id', async (req: Request, res: Response) => {
   validateWriteAccess(booking, req)
 
   const isAdmin = isBookingAdmin(req.user)
-  if (!isAdmin && patch.memberId !== req.user!.memberId) {
-    return problem({ status: 400, detail: 'Invalid member id' })
-  }
-  if (!isAdmin && req.user?.canMakeReservations !== true) {
-    return problem({ status: 400, detail: 'Reservations suspended' })
+  if (!isAdmin) {
+    if (patch.memberId && patch.memberId !== req.user!.memberId) {
+      return problem({ status: 400, detail: 'Invalid member id' })
+    }
+    if (req.user?.canMakeReservations !== true) {
+      return problem({ status: 400, detail: 'Reservations suspended' })
+    }
   }
 
   await clearOverlappingBookings(

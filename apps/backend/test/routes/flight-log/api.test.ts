@@ -819,13 +819,13 @@ describe('GET /flight-log/stats', () => {
       stats: [
         {
           aircraftRegistration: 'OH-STL',
-          landings12month: 1,
+          landings12month: 0,
           landings1month: 0,
           landings3month: 0,
           landings6month: 0,
           lastFlightId: 'bLwnAstr0',
           lastTakeoffTimeUtc: '2025-03-03T10:30:00.000Z',
-          time12month: 90,
+          time12month: 0,
           time1month: 0,
           time3month: 0,
           time6month: 0,

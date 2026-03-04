@@ -41,22 +41,31 @@ import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../../components/SaveButton'
 import { RemoveButton } from '../../../components/RemoveButton'
+import { DateTimeValidationError } from '@mui/x-date-pickers/models'
+
+export type BookingFlags = {
+  isNewBooking: boolean
+  isReadonly: boolean
+  minDate: dayjs.Dayjs
+}
 
 export const BookingEditor = ({
   booking,
   onClose,
 }: {
-  booking: Upsert<Booking> | undefined
+  booking: Upsert<Booking & BookingFlags> | undefined
   onClose: () => void
 }) => {
   const { t } = useTranslation()
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const { me, isBookingAdmin } = useRoles()
-  const isNewBooking = booking?.bookingId === ''
-  const isCancelledBooking = booking?.status === BookingStatus.CANCELLED
-  const isReadonly = booking?.memberId !== me?.memberId && !isBookingAdmin
+  const { isBookingAdmin } = useRoles()
+  const isNewBooking = booking?.isNewBooking
+  const isReadonly = booking?.isReadonly
+  const minDate = booking?.minDate
+
+  const now = dayjs().startOf('minute')
 
   const { mutation } = useApi<Booking>({
     url: `v1/bookings${isNewBooking ? '' : `/${booking?.bookingId}`}`,
@@ -77,29 +86,43 @@ export const BookingEditor = ({
     }
   )
 
-  const [formData, setFormData] = useState<BookingUpsertRequest>({
+  const [formData, setFormData] = useState<
+    Omit<BookingUpsertRequest, 'startTimeEpoch' | 'endTimeEpoch'>
+  >({
     memberId: '',
     registration: '',
     description: '',
-    startTimeEpoch: '',
-    endTimeEpoch: '',
     type: BookingType.PRACTICE,
     status: BookingStatus.CONFIRMED,
   })
 
-  const [startDate, setStartDate] = useState<dayjs.Dayjs | undefined>()
-  const [endDate, setEndDate] = useState<dayjs.Dayjs | undefined>()
+  const [startDate, setStartDate] = useState({
+    date: now,
+    error: '',
+  })
+  const [endDate, setEndDate] = useState({
+    date: now,
+    error: '',
+  })
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
+  const datesAreValid =
+    startDate?.date.isValid() &&
+    endDate?.date.isValid() &&
+    !startDate.error &&
+    !endDate.error
+
   const { data: overlaps } = useApi<BookingListResponse>({
     url: 'v1/bookings',
-    skipFetch: !booking,
+    skipFetch: !booking || !datesAreValid || isReadonly,
     params: {
       'registration[]': [formData.registration],
       exclusiveStartEnd: true,
-      from: startDate?.toISOString(),
-      to: endDate?.toISOString(),
+      from: startDate?.date.isValid()
+        ? startDate.date.toISOString()
+        : undefined,
+      to: endDate?.date.isValid() ? endDate.date.toISOString() : undefined,
       excludeBookingId: booking?.bookingId,
     },
   })
@@ -108,17 +131,58 @@ export const BookingEditor = ({
     if (booking) {
       setProblem(undefined)
       setFormData(booking)
-      setStartDate(dayjs(booking.startTime))
-      setEndDate(dayjs(booking.endTime))
+
+      const start = dayjs(booking.startTime)
+      setStartDate({ date: start, error: '' })
+      setEndDate({ date: dayjs(booking.endTime), error: '' })
     }
   }, [booking])
+
+  const pickerErrorText = (reason: DateTimeValidationError) => {
+    if (!reason) return ''
+
+    switch (reason) {
+      case 'minDate':
+      case 'minTime':
+      case 'disablePast':
+        return t('schedule.validation.disablePast')
+      case 'minutesStep':
+        return t('schedule.validation.minutesStep')
+      case 'invalidDate':
+      default:
+        return t('schedule.validation.invalidDateTime')
+    }
+  }
+
+  const validateDate = (date: dayjs.Dayjs) => {
+    if (minDate && date.isBefore(minDate)) {
+      return pickerErrorText('minDate')
+    }
+    if (date.minute() % 15) {
+      return pickerErrorText('minutesStep')
+    }
+    return ''
+  }
+
+  const validateDateRange = (start: dayjs.Dayjs, end: dayjs.Dayjs) => {
+    const validRange = end?.isAfter(start) === true
+    if (!validRange) {
+      return t(
+        'schedule.validation.endAfterStart',
+        'End time must be after start time'
+      )
+    }
+  }
 
   const trigger = async (method: MutateMethods) => {
     setProblem(undefined)
 
-    const { error } = await mutation.trigger(method, formData)
+    const { error } = await mutation.trigger<BookingUpsertRequest>(method, {
+      ...formData,
+      startTimeEpoch: startDate.date.unix().toString(),
+      endTimeEpoch: endDate.date.unix().toString(),
+    })
     if (error) {
-      console.error('Error saving booking data:', error)
       return setProblem(error)
     }
 
@@ -147,14 +211,6 @@ export const BookingEditor = ({
 
   const overlappingBookings = overlaps?.bookings ?? []
 
-  const minDate = overlaps?.previous
-    ? dayjs(overlaps.previous?.endTime)
-    : undefined
-  const maxDate =
-    overlappingBookings.length > 0 || overlaps?.next
-      ? dayjs(overlappingBookings?.[0]?.startTime ?? overlaps?.next?.startTime)
-      : undefined
-
   const editorCard = () => (
     <Card sx={{ flex: 1, position: 'relative' }}>
       <CardContent>
@@ -163,15 +219,28 @@ export const BookingEditor = ({
             <DateTimePicker
               label={t('schedule.startDate')}
               disabled={isReadonly}
-              value={startDate}
+              value={startDate.date}
               format='DD.MM.YYYY HH:mm'
               minDateTime={minDate}
-              maxDateTime={endDate}
               minutesStep={15}
+              onError={(reason) => {
+                const error = pickerErrorText(reason)
+                if (error) {
+                  setStartDate((prev) => ({ ...prev, error }))
+                }
+              }}
               onChange={(date) => {
                 if (date) {
-                  setStartDate(date)
-                  handleChange('startTimeEpoch', date.unix().toString())
+                  setStartDate({
+                    date,
+                    error: validateDate(date),
+                  })
+                  setEndDate((prev) => ({
+                    ...prev,
+                    error:
+                      validateDateRange(date, endDate.date) ??
+                      validateDate(endDate.date),
+                  }))
                 }
               }}
               slotProps={{
@@ -179,6 +248,8 @@ export const BookingEditor = ({
                   fullWidth: true,
                   required: true,
                   margin: 'normal',
+                  error: !!startDate.error,
+                  helperText: startDate.error,
                 },
               }}
             />
@@ -188,15 +259,24 @@ export const BookingEditor = ({
             <DateTimePicker
               label={t('schedule.endDate')}
               disabled={isReadonly}
-              value={endDate}
+              value={endDate.date}
               format='DD.MM.YYYY HH:mm'
-              minDateTime={startDate}
-              maxDateTime={maxDate}
+              minDateTime={minDate}
               minutesStep={15}
+              onError={(reason) => {
+                const error = pickerErrorText(reason)
+                if (error) {
+                  setEndDate((prev) => ({ ...prev, error }))
+                }
+              }}
               onChange={(date) => {
                 if (date) {
-                  setEndDate(date)
-                  handleChange('endTimeEpoch', date.unix().toString())
+                  setEndDate({
+                    date,
+                    error:
+                      validateDateRange(startDate.date, date) ??
+                      validateDate(date),
+                  })
                 }
               }}
               slotProps={{
@@ -204,6 +284,8 @@ export const BookingEditor = ({
                   fullWidth: true,
                   required: true,
                   margin: 'normal',
+                  error: !!endDate.error,
+                  helperText: endDate.error,
                 },
               }}
             />
@@ -211,34 +293,47 @@ export const BookingEditor = ({
 
           <Grid size={12} display={'flex'} direction={'row'} gap={2}>
             <BookingTimeline
-              previousEndDate={minDate}
-              startDate={startDate}
-              endDate={endDate}
-              nextStartDate={maxDate}
+              previousEndDate={
+                overlaps?.previous
+                  ? dayjs(overlaps.previous?.endTime)
+                  : undefined
+              }
+              startDate={startDate.date}
+              endDate={endDate.date}
+              nextStartDate={
+                overlappingBookings.length > 0 || overlaps?.next
+                  ? dayjs(
+                      overlappingBookings?.[0]?.startTime ??
+                        overlaps?.next?.startTime
+                    )
+                  : undefined
+              }
             />
           </Grid>
 
-          <FormControl fullWidth>
-            <InputLabel id='registration-label'>
-              {t('schedule.registration')}
-            </InputLabel>
+          {aircraftData?.aircrafts && (
+            <FormControl fullWidth>
+              <InputLabel id='registration-label'>
+                {t('schedule.registration')}
+              </InputLabel>
 
-            <Select
-              labelId='registration-label'
-              disabled={isReadonly}
-              value={formData.registration ?? ''}
-              label={t('schedule.registration')}
-              onChange={({ target }) =>
-                handleChange('registration', target.value)
-              }
-            >
-              {aircraftData?.aircrafts.map((plane) => (
-                <MenuItem key={plane.registration} value={plane.registration}>
-                  {plane.registration}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              <Select
+                labelId='registration-label'
+                disabled={isReadonly}
+                value={formData.registration ?? ''}
+                label={t('schedule.registration')}
+                onChange={({ target }) =>
+                  handleChange('registration', target.value)
+                }
+              >
+                {aircraftData?.aircrafts.map((plane) => (
+                  <MenuItem key={plane.registration} value={plane.registration}>
+                    {plane.registration}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
 
           <FormControl fullWidth>
             <InputLabel id='type-label'>{t('schedule.type')}</InputLabel>
@@ -378,7 +473,7 @@ export const BookingEditor = ({
           flexGrow={1}
         >
           <Grid>
-            {!isNewBooking && !isCancelledBooking && !isReadonly && (
+            {!isNewBooking && !isReadonly && (
               <RemoveButton
                 onClick={handleRemove}
                 loading={mutation.isMutating}
@@ -391,10 +486,14 @@ export const BookingEditor = ({
               {t('general.back')}
             </Button>
 
-            {!isCancelledBooking && !isReadonly && (
+            {!isReadonly && (
               <SaveButton
                 loading={mutation.isMutating}
-                disabled={overlappingBookings.length > 0 && !isBookingAdmin}
+                disabled={
+                  (overlappingBookings.length > 0 && !isBookingAdmin) ||
+                  !!startDate.error ||
+                  !!endDate.error
+                }
               />
             )}
           </Grid>

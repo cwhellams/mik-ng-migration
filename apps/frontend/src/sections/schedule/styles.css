@@ -36,3 +36,34 @@
     padding: 0.4rem;
   }
 }
+
+.rbc-current-time-indicator {
+  --yellow: #f4c300;
+  --thick: 2px;
+  --gap: 2px;
+  
+  height: 10px;
+  position: absolute;
+  background:
+        linear-gradient(var(--yellow) 0 0) 50% 50% / 100% var(--thick) no-repeat,
+        linear-gradient(var(--yellow) 0 0) 50% calc(50% + var(--thick) + var(--gap)) / 100% var(--thick) no-repeat;
+  
+}
+
+.rbc-day-slot .rbc-events-container {
+  margin-right: 0;
+}
+
+/* Drag and drop might put title and body to the same row, split them */
+.rbc-day-slot .rbc-event,
+.rbc-day-slot .rbc-background-event {
+  flex-flow: row wrap;
+}
+
+/* Show as much of the event time as possible, not just 0... */
+.rbc-day-slot .rbc-event-label {
+  overflow: visible;
+  white-space: normal;
+  flex-basis: 100%;
+  margin-bottom: 5px;
+}

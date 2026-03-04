@@ -13,6 +13,7 @@ import {
 import withDragAndDrop, {
   withDragAndDropProps,
 } from 'react-big-calendar/lib/addons/dragAndDrop'
+import noOverlap from 'react-big-calendar/lib/utils/layout-algorithms/no-overlap'
 
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
@@ -41,7 +42,7 @@ import {
   Stack,
   Button,
 } from '@mui/material'
-import { BookingEditor } from './components/EditBookingModal'
+import { BookingEditor, BookingFlags } from './components/EditBookingModal'
 import { Upsert } from '@backend/types/schema'
 import { useRoles } from '../../hooks/useRoles'
 import { Dayjs } from 'dayjs'
@@ -51,6 +52,7 @@ import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { Title } from '../../components/Title'
 import { Icon } from '@iconify/react'
+import { bookingFlags, bookingMinDate } from './helpers'
 
 dayjs.locale('fi')
 
@@ -62,7 +64,8 @@ interface BookingEvent extends Event {
   fullTitle: string
   type?: BookingType
   isEditable: boolean
-  isCancelled?: boolean
+  isPastBooking: boolean
+  isCancelled: boolean
 }
 
 const colors: Record<string, string> = {
@@ -106,9 +109,11 @@ const Schedule = () => {
           ? 'self'
           : `${booking.member?.firstName} ${booking.member?.lastName}`
 
+      const flags = bookingFlags(booking, me, isBookingAdmin)
+
       return {
         id: booking.bookingId,
-        title: `${booking.registration} ${who} ${booking.description ?? ''}`,
+        title: `${booking.registration.substring(3)} ${who} ${booking.description ?? ''}`,
         fullTitle: [
           booking.registration,
           who,
@@ -121,8 +126,9 @@ const Schedule = () => {
         end: new Date(booking.endTime),
         registration: booking.registration,
         type: booking.type,
-        isEditable: booking.memberId == me?.memberId || isBookingAdmin,
-        isCancelled: booking.status == BookingStatus.CANCELLED,
+        isEditable: !flags.isReadonly,
+        isPastBooking: flags.isPastBooking,
+        isCancelled: flags.isCancelled,
       }
     },
     [me, isBookingAdmin, t]
@@ -164,7 +170,7 @@ const Schedule = () => {
     [fetch]
   )
 
-  const [editMode, setEditMode] = useState<Upsert<Booking>>()
+  const [editMode, setEditMode] = useState<Upsert<Booking & BookingFlags>>()
 
   const DnDCalendar = withDragAndDrop(Calendar)
 
@@ -247,7 +253,7 @@ const Schedule = () => {
       return
     }
 
-    setEvents(eventData.bookings.map((b) => toEvent(b)))
+    setEvents(eventData.bookings.map(toEvent))
   }, [eventData, toEvent])
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
@@ -255,8 +261,8 @@ const Schedule = () => {
   // add new event if no overlaps
   const handleAddEvent = useCallback(
     async (data?: SlotInfo) => {
-      const start =
-        data?.start ?? dayjs().startOf('hour').add(1, 'hour').toDate()
+      const now = dayjs()
+      const start = data?.start ?? now.startOf('hour').add(1, 'hour').toDate()
       const end = data?.end ?? dayjs(start).add(1, 'hour').toDate()
 
       setEditMode({
@@ -272,6 +278,10 @@ const Schedule = () => {
         endTimeEpoch: Math.floor(end.getTime() / 1000).toString(),
         startTime: start.toISOString(),
         endTime: end.toISOString(),
+
+        isNewBooking: true,
+        isReadonly: false,
+        minDate: bookingMinDate(),
       })
     },
     [setEditMode, aircraftData, filters, me?.memberId]
@@ -280,11 +290,19 @@ const Schedule = () => {
   // open the clicked event in modal
   const handleEditEvent = useCallback(
     async (data: Event) => {
-      const bookingEvent = data as BookingEvent
+      const reservation = data as BookingEvent
 
-      setEditMode(
-        eventData?.bookings.find((b) => b.bookingId == bookingEvent.id)
+      const booking = eventData?.bookings.find(
+        (b) => b.bookingId == reservation.id
       )
+      if (booking) {
+        setEditMode({
+          ...booking,
+          isNewBooking: false,
+          isReadonly: !reservation.isEditable,
+          minDate: bookingMinDate(dayjs(reservation.start)),
+        })
+      }
     },
     [eventData?.bookings, setEditMode]
   )
@@ -295,6 +313,14 @@ const Schedule = () => {
     startDate: Dayjs,
     endDate: Dayjs
   ) => {
+    const min = bookingMinDate(dayjs(reservation.start))
+    if (startDate.isBefore(min)) {
+      return setProblem({
+        status: 400,
+        detail: t('schedule.validation.disablePast'),
+      })
+    }
+
     if (
       await hasOverlap(
         reservation.registration,
@@ -344,8 +370,12 @@ const Schedule = () => {
         colors[`${reservation.registration}-${reservation.type}`]
       return {
         style: {
-          border: reservation.isEditable ? '5px solid #000000' : 'none',
-          opacity: reservation.isCancelled ? 0.5 : 1,
+          border: reservation.isEditable ? '3px solid #00731d' : 'none',
+          opacity: reservation.isPastBooking
+            ? 0.75
+            : reservation.isCancelled
+              ? 0.5
+              : 1,
           color: reservation.registration == 'OH-IHQ' ? '#000000ca' : '#ffffff',
           background: reservation.isCancelled
             ? `repeating-linear-gradient(45deg, grey, ${backgroundColor} 1%, ${backgroundColor} 2%)`
@@ -433,6 +463,35 @@ const Schedule = () => {
           // en-gb has 24h time format
           culture={i18n.language == 'fi' ? 'fi' : 'en-gb'}
           localizer={localizer}
+          formats={{
+            // make time format shorter when it's on the hour,
+            // e.g. 14-15 instead of 14:00-15:00
+            eventTimeRangeFormat: ({ start, end }, culture, localizer) =>
+              localizer?.format(
+                start,
+                start.getMinutes() == 0 ? 'HH' : 'HH:mm',
+                culture
+              ) +
+              '–' +
+              localizer?.format(
+                end,
+                end.getMinutes() == 0 ? 'HH' : 'HH:mm',
+                culture
+              ),
+            eventTimeRangeStartFormat: ({ start }, culture, localizer) =>
+              localizer?.format(
+                start,
+                start.getMinutes() == 0 ? 'HH' : 'HH:mm',
+                culture
+              ) + '–',
+            eventTimeRangeEndFormat: ({ end }, culture, localizer) =>
+              '–' +
+              localizer?.format(
+                end,
+                end.getMinutes() == 0 ? 'HH' : 'HH:mm',
+                culture
+              ),
+          }}
           messages={calendarOpts.messages}
           min={calendarOpts.min}
           max={calendarOpts.max}
@@ -443,7 +502,23 @@ const Schedule = () => {
           showMultiDayTimes={true}
           resizable
           selectable
-          dayLayoutAlgorithm='no-overlap'
+          dayLayoutAlgorithm={(params) => {
+            return noOverlap(params).map((item) => {
+              if (item.size == 100 && filters['registration[]']?.length == 0) {
+                // make a single plane booking more narrow to make it more clear another plane
+                // can also be booked at the same time
+                return {
+                  ...item,
+                  size: 85,
+                  style: {
+                    ...item.style,
+                    width: '85%',
+                  },
+                }
+              }
+              return item
+            })
+          }}
           draggableAccessor={(event) => (event as BookingEvent).isEditable}
           eventPropGetter={eventStyle}
           style={{ height: '80vh' }}

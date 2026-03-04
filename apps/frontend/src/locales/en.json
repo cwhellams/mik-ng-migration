@@ -849,6 +849,12 @@
       "CANCELLED": "Cancelled"
     },
     "details": "Booking Details",
+    "validation": {
+      "disablePast": "Date/time cannot be in the past",
+      "minutesStep": "Please use 15-minute increments",
+      "invalidDateTime": "Invalid date/time",
+      "endAfterStart": "End time must be after start time"
+    },
     "bookingOverlapError": "Booking overlaps with existing booking",
     "owner": "Owner",
     "created": "Created",

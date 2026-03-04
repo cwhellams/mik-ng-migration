@@ -820,6 +820,12 @@
       "CANCELLED": "Peruutettu"
     },
     "details": "Varauksen tiedot",
+    "validation": {
+      "disablePast": "Päivämäärä/aika ei voi olla menneisyydessä",
+      "minutesStep": "Käytä 15 minuutin askelia",
+      "invalidDateTime": "Virheellinen päivämäärä/aika",
+      "endAfterStart": "Loppuaika on oltava aloitusajan jälkeen"
+    },
     "bookingOverlapError": "Päällekkäisyys toiseen varaukseen",
     "owner": "Omistaja",
     "created": "Luotu",

@@ -18,9 +18,13 @@ import { EditButton } from '../../../components/EditButton'
 import { RemoteContent } from '../../../components/RemoteContent'
 import useApi from '../../../hooks/useApi'
 import { BookingTable } from '../../schedule/components/BookingTable'
-import { BookingEditor } from '../../schedule/components/EditBookingModal'
+import {
+  BookingEditor,
+  BookingFlags,
+} from '../../schedule/components/EditBookingModal'
 import dayjs from 'dayjs'
 import { useMe } from '../../../hooks/useMe'
+import { bookingFlags } from '../../schedule/helpers'
 
 export const BookingUserDashboard = () => {
   const { me } = useMe()
@@ -48,7 +52,7 @@ export const BookingUserDashboard = () => {
     params: bookingFilters,
   })
 
-  const [editMode, setEditMode] = useState<Upsert<Booking>>()
+  const [editMode, setEditMode] = useState<Upsert<Booking & BookingFlags>>()
 
   return (
     <Accordion defaultExpanded sx={{ mt: 4 }}>
@@ -73,9 +77,12 @@ export const BookingUserDashboard = () => {
                   <EditButton
                     title={t('dashboard.schedule.editBooking')}
                     icon='mdi:edit'
-                    onClick={() => {
-                      setEditMode(booking)
-                    }}
+                    onClick={() =>
+                      setEditMode({
+                        ...booking,
+                        ...bookingFlags(booking, me, true),
+                      })
+                    }
                   />
                 </Box>
               )}

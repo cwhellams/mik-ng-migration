@@ -821,6 +821,12 @@
       "CANCELLED": "Avbokad"
     },
     "details": "Bokningsdetaljer",
+    "validation": {
+      "disablePast": "Datum/tid kan inte vara i det förflutna",
+      "minutesStep": "Vänligen använd 15-minuters intervall",
+      "invalidDateTime": "Ogiltigt datum/tid",
+      "endAfterStart": "Sluttiden måste vara efter starttiden"
+    },
     "bookingOverlapError": "Bokningen överlappar med befintlig bokning",
     "owner": "Ägare",
     "created": "Skapad",
