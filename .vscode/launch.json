@@ -47,11 +47,7 @@
       "name": "Debug Jest with ts-jest (ESM)",
       "cwd": "${workspaceFolder}/apps/backend",
       "program": "${workspaceFolder}/apps/backend/node_modules/jest/bin/jest.js",
-      "args": [
-        "--runInBand",
-        "--no-cache",        
-        "test/routes/members/api.test.ts",
-      ],
+      "args": ["--runInBand", "--no-cache", "test/routes/members/api.test.ts"],
       "env": {
         "NODE_ENV": "test"
       },
