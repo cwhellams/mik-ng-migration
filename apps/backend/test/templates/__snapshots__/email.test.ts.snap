@@ -761,6 +761,52 @@ exports[`Register approved template tests membershipApprovedEmailBodyHtml 1`] = 
 <li>Ota yhteyttä lennonopettajiin järjestääksesi kerhotarkkarin jotta saat käyttöoikeuden kerhon lentokoneisiin ja varauskirjaan</li>
 <li>Liity WhatsApp-ryhmiin</li>
 </ul>
+<h2 style="text-align: center; color: #003366;">✅Tiivistelmä keskeisistä kerhon toimintatavoista.</h2><ul>
+<li><strong>Verkkosivut &amp; Kirjautuminen:</strong> Kerhon toimintaan tutustuminen aloitetaan osoitteesta <a href="http://www.mik.fi">http://www.mik.fi</a>. Jäsenalueelle kirjautuminen tapahtuu ilman salasanaa: valitse sivun oikeasta ylänurkasta Intra, syötä sähköpostiosoitteesi ja saat kirjautumislinkin sähköpostiisi. Osoitteen tulee olla sama kuin MIKin jäsenrekisterissä. Erillistä rekisteröitymistä ei tarvita.<ul>
+<li>Aikakatkaisu ei tapahdu nopeasti, joten et joudu kirjautumaan usein henkilökohtaisella laitteellasi. Jos käytät yhteiskäyttöistä laitetta, muistathan kirjautua ulos. Jos et saa kirjautumislinkkiä tai haluat antaa muuta palautetta sivuista, ota yhteyttä osoitteeseen <a href="mailto:webmaster@mik.fi">webmaster@mik.fi</a>.</li>
+</ul>
+</li>
+<li><strong>Kalusto &amp; Varaus:</strong> Kerholla on kaksi konetta (DA40NG, DV20) ja simulaattori (DA40). Koneiden käyttö vaatii lentolupakirjan ja kerhotarkkarin. Simulaattoria voi varata vapaasti.</li>
+<li><strong>Viestintä:</strong> Seuraa ajankohtaisia tietoja kerhon sivuilta ja liity konekohtaisiin sähköpostitiedotteisiin sekä WhatsApp-ryhmiin.</li>
+<li><strong>Koulutus:</strong> Käyttöoikeuksiin ja koulutukseen liittyvät asiat hoidetaan koulutusvastaavan kautta.</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">✈️ Lentäminen ja Kaluston Käyttöoikeus</h3><p>Kerhon kalustoon kuuluvat lentokoneet DA40NG (OH-STL) ja DV20 (OH-IHQ) sekä DA40-simulaattori. Kerhon kalustoa saa käyttää vain yksityislentotoimintaan (mukaan lukien kertaus-, koulu- ja tarkastuslennot). Ansiolentotoiminta ja ansiolentotoiminnan kaltainen toiminta on ehdottomasti kielletty.</p>
+<ul>
+<li><strong>Lentäminen:</strong> Kerhon lentokoneiden käyttö edellyttää voimassaolevaa lentolupakirjaa ja hyväksytysti suoritettua kerhotarkkaria jonkun kerhomme opettajan kanssa. Oikeus kerhon lentokaluston käyttöön on kerhon nuoriso- ja täysjäsenellä, joka on hyväksytty konekohtaisesti kaluston käyttäjäksi.</li>
+<li><strong>Simulaattori:</strong> Simulaattoria voi jokainen jäsen varata ja käyttää vapaasti ilman erillistä perehdytystä.</li>
+<li><strong>Kertauslento:</strong> Käyttäjän, jonka moottorikokemus on alle 150 tuntia ja kyseisellä tyypillä alle 20 tuntia, tulee suorittaa lento kerhon opettajan kanssa, jos edellisestä lennosta on kulunut yli puoli vuotta.</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">🗓️ Koneiden Varaus ja Lentopäiväkirja</h3><ul>
+<li><strong>Varauskirja:</strong> Varauskirja löytyy kerhon verkkosivuilta, kun olet kirjautunut sisään. Huolto- ja tankkaustilanteet, koneiden asiakirjat, työkalu painolaskelmiin sekä tarvittavat pääsykoodit ovat Lennä-sivulla. Omat lentolaskusi (alkaen tästä vuodesta) ovat Kerho-sivulla.Tutustu huolellisesti Toimintaohjeisiin ja varauskäytäntöihin dokumentissa <strong>Toimintaohjeet lentokalustolle rev 9.</strong> Löydät Dokumentin intrasta polusta KERHO -&gt; ASIAKIRJAT. Suosittelen haun käyttöä.</li>
+<li><strong>Sähköinen Lentopäiväkirja ja Laskutus:</strong> Kaikki lennot on kirjattava koneen matkapäiväkirjaan ja sähköiseen lentopäiväkirjaan viipymättä lennon jälkeen.<ul>
+<li>Kirjaus tapahtuu sähköiseen lentopäiväkirjaan tapahtuu intrassa.</li>
+<li>Laskutus tapahtuu kuukausittain sähköpostitse. Pidä sähköpostiosoitteesi ajan tasalla!</li>
+</ul>
+</li>
+<li><strong>Lentomaksut</strong> lasketaan ilma-ajan perusteella minuutin tarkkuudella. Minimilaskutus on 20 minuuttia/lento (ei koske matkalentoja toiselle kentälle tai vian/sään vuoksi keskeytyneitä lentoja).
+Puuttuvien tai virheellisten merkintöjen selvittelystä voidaan veloittaa 10 €.</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">💡 Lentotoimintaohjeen tiivistelmä (MIK:n kalustolle)</h3><ul>
+<li><strong>Valmistelut:</strong> Tarkista aina ennen lentoa sähköinen vikataulu koneen tiedoista intrassa. Suorita koneen ulkoinen tarkastus koneen käsikirjan (AFM) mukaisesti.</li>
+<li><strong>Polttoaine:</strong> Koneita ei tule tankata enempää kuin on tarpeen lennon turvalliseen suorittamiseen. Lennon jälkeen olisi hyvä jättää tankkeihin enintään: STL: 20 gal (n. 75 l), IHQ: 15 gal (n. 55 l). Ota polttoainenäytteet ennen päivän ensimmäistä lentoa (pl. pakkaskelit).</li>
+<li><strong>Nummelan toiminta:</strong> Nummelassa (EFNU) operoidessa on noudatettava Nummelan toimintakäsikirjaa, kenttäkoetta ja PN-vaatimusta. Auto on pysäköitävä sallituille asfaltilla päällystetyille pinnoille.</li>
+<li><strong>Lennon jälkeen:</strong> Puhdista hyönteiset koneen pinnoilta välittömästi puhtaalla vedellä ja paineruiskupullolla. Siirrä kone halliin, aseta pyöräpukit ja pitot-suoja paikalleen. Jätä pysäköintijarru pois päältä hallissa ja pidä vetoaisa paikallaan nokkapyörässä.</li>
+<li><strong>Vauriot ja viat:</strong> Vaurioista ja vioista on ilmoitettava välittömästi kalustovastaavalle. Älä ole itse yhteydessä huolto-organisaatioon. Jos turvallisuus on vaarantunut, tee ilmoitus kerhon SMS-järjestelmään (Safety Management System). Vahingon sattuessa päällikkö vastaa kustannuksista niiltä osin, mitä vakuutukset eivät korvaa (omavastuut ym.).</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">📣 Viestintä ja Yhteystiedot</h3><ul>
+<li><strong>Kalustotiimi:</strong> Kiireelliset yhteydenotot puhelimitse kalustovastaavalle. Muut yhteydenotot sähköpostitse osoitteeseen <a href="mailto:kalusto@mik.fi">kalusto@mik.fi</a>.</li>
+<li><strong>Koulutusvastaava:</strong> Koulutukseen ja kaluston käyttöoikeuteen liittyvät asiat tulee hoitaa koulutusvastaavan kautta: <a href="mailto:koulutus@mik.fi">koulutus@mik.fi</a>.</li>
+<li><strong>Konekohtaiset tiedotteet:</strong>
+OH-IHQ: <a href="https://groups.google.com/a/mik.fi/forum/#!forum/ihq-info">https://groups.google.com/a/mik.fi/forum/#!forum/ihq-info</a>
+OH-STL: <a href="https://groups.google.com/a/mik.fi/forum/#!forum/stl-info">https://groups.google.com/a/mik.fi/forum/#!forum/stl-info</a></li>
+<li><strong>WhatsApp-ryhmät:</strong>
+MIK info (tiedotus ja kalustoinfot): <a href="https://chat.whatsapp.com/H7ORSRxQMQjInO4hwjN8ER">https://chat.whatsapp.com/H7ORSRxQMQjInO4hwjN8ER</a>
+MIK pulinajakso (jäsenten keskustelu): <a href="https://chat.whatsapp.com/ICDocWfKA6xCbDWwKOZAmU">https://chat.whatsapp.com/ICDocWfKA6xCbDWwKOZAmU</a>
+Tietoa lentokalustosta välitetään myös MIK-yhteisössä: <a href="https://chat.whatsapp.com/F1OHxJ08RWiKy49TgYUeP8">https://chat.whatsapp.com/F1OHxJ08RWiKy49TgYUeP8</a></li>
+</ul>
+<p>Vielä kerran tervetuloa kerhoon!</p>
+<p>Ystävällisin terveisin,</p>
+<p>Malmin Ilmailukerho</p>
 
       </div>
 
@@ -780,15 +826,60 @@ exports[`Register approved template tests membershipApprovedEmailBodyHtml 2`] = 
       </div>
 
       <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Membership Approved</h1><p>Hi Tester1,</p>
-<p>Welcome to MIK, your membership has been approved.</p>
-<p>Please familiarize yourself with the club <a href="https://www.mik.fi/about">rules</a>. If you have any questions feel free to contact a member of the committee.</p>
+        <h1 style="text-align: center; color: #003366;">Membership Approved</h1><p>Hi Tester1, welcome to MIK, your membership has been approved.</p>
+<p>Please familiarize yourself with the club <a href="https://www.mik.fi/about">rules</a>. If you have any questions, feel free to contact a member of the committee.</p>
 <p>Next steps:</p>
 <ul>
 <li>Pay the membership fee (an automated invoice will be sent to you)</li>
-<li>Contact an instructor or aircraft captain to arrange a check ride</li>
+<li>Contact an instructor to arrange a club check ride so you can get access to the club&#39;s aircraft and booking system</li>
 <li>Join the WhatsApp groups</li>
 </ul>
+<h2 style="text-align: center; color: #003366;">✅Summary of Key Club Practices</h2><ul>
+<li><strong>Website &amp; Login:</strong> Start exploring the club&#39;s activities at <a href="http://www.mik.fi">http://www.mik.fi</a>. Log in to the member area without a password: select Intra from the top right corner of the page, enter your email address, and you will receive a login link in your email. The address must be the same as in MIK&#39;s membership register. No separate registration is needed.<ul>
+<li>Sessions do not time out quickly, so you won&#39;t need to log in frequently on your personal device. If you use a shared device, remember to log out. If you don&#39;t receive a login link or want to give other feedback about the site, contact <a href="mailto:webmaster@mik.fi">webmaster@mik.fi</a>.</li>
+</ul>
+</li>
+<li><strong>Aircraft &amp; Reservation:</strong> The club has two aircraft (DA40NG, DV20) and a simulator (DA40). Using the aircraft requires a pilot&#39;s licence and a club check ride. The simulator can be booked freely.</li>
+<li><strong>Communication:</strong> Follow up-to-date information on the club&#39;s website and join the aircraft-specific email lists and WhatsApp groups.</li>
+<li><strong>Training:</strong> Matters related to access rights and training are handled through the training coordinator.</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">✈️ Flying and Aircraft Access Rights</h3><p>The club&#39;s fleet consists of the aircraft DA40NG (OH-STL) and DV20 (OH-IHQ) as well as a DA40 simulator. Club aircraft may only be used for private aviation (including refresher, training, and check flights). Commercial flying and activities similar to commercial flying are strictly prohibited.</p>
+<ul>
+<li><strong>Flying:</strong> Using the club&#39;s aircraft requires a valid pilot&#39;s licence and a successfully completed club check ride with one of the club&#39;s instructors. The right to use the club&#39;s aircraft is available to junior and full members of the club who have been approved aircraft-specifically as equipment users.</li>
+<li><strong>Simulator:</strong> Any member may book and use the simulator freely without a separate briefing.</li>
+<li><strong>Refresher flight:</strong> A user whose engine experience is less than 150 hours and less than 20 hours on the type must complete a flight with a club instructor if more than six months have passed since the last flight.</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">🗓️ Aircraft Reservation and Logbook</h3><ul>
+<li><strong>Booking system:</strong> The booking system can be found on the club&#39;s website once you are logged in. Maintenance and refuelling information, aircraft documents, a tool for weight and balance calculations, and the necessary access codes are on the Fly page. Your own flight invoices (from this year) are on the Club page. Please carefully review the operating procedures and booking practices in the document <strong>Operating Instructions for Aircraft rev 9.</strong> You can find the document in the intranet under CLUB -&gt; DOCUMENTS. I recommend using the search function.</li>
+<li><strong>Electronic Logbook and Billing:</strong> All flights must be entered in the aircraft&#39;s journey log and the electronic logbook without delay after the flight.<ul>
+<li>Entries in the electronic logbook are made in the intranet.</li>
+<li>Billing takes place monthly by email. Keep your email address up to date!</li>
+</ul>
+</li>
+<li><strong>Flight fees</strong> are calculated based on air time to the nearest minute. The minimum billing is 20 minutes/flight (does not apply to cross-country flights to another airfield or flights interrupted due to a defect or weather).
+A fee of €10 may be charged for resolving missing or incorrect entries.</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">💡 Summary of Flight Operations Guidelines (for MIK aircraft)</h3><ul>
+<li><strong>Preparations:</strong> Always check the electronic fault log in the aircraft information in the intranet before the flight. Carry out the external inspection of the aircraft in accordance with the aircraft flight manual (AFM).</li>
+<li><strong>Fuel:</strong> Aircraft should not be fuelled more than is necessary for the safe completion of the flight. After a flight, it would be good to leave a maximum of: STL: 20 gal (approx. 75 l), IHQ: 15 gal (approx. 55 l) in the tanks. Take fuel samples before the first flight of the day (except in freezing conditions).</li>
+<li><strong>Nummela operations:</strong> When operating at Nummela (EFNU), the Nummela Operations Manual, the field exam, and the PN requirement must be followed. The car must be parked on permitted asphalt-surfaced areas.</li>
+<li><strong>After the flight:</strong> Clean insects from the aircraft&#39;s surfaces immediately with clean water and a pressure spray bottle. Move the aircraft to the hangar, place the wheel chocks and pitot cover in place. Leave the parking brake off in the hangar and keep the tow bar in place on the nose wheel.</li>
+<li><strong>Damage and defects:</strong> Damage and defects must be reported immediately to the equipment manager. Do not contact the maintenance organisation yourself. If safety has been compromised, make a report in the club&#39;s SMS system (Safety Management System). In the event of an accident, the pilot in command is responsible for costs to the extent not covered by insurance (deductibles, etc.).</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">📣 Communication and Contacts</h3><ul>
+<li><strong>Equipment team:</strong> Urgent contacts by phone to the equipment manager. Other contacts by email to <a href="mailto:kalusto@mik.fi">kalusto@mik.fi</a>.</li>
+<li><strong>Training coordinator:</strong> Matters related to training and aircraft access rights must be handled through the training coordinator: <a href="mailto:koulutus@mik.fi">koulutus@mik.fi</a>.</li>
+<li><strong>Aircraft-specific newsletters:</strong>
+OH-IHQ: <a href="https://groups.google.com/a/mik.fi/forum/#!forum/ihq-info">https://groups.google.com/a/mik.fi/forum/#!forum/ihq-info</a>
+OH-STL: <a href="https://groups.google.com/a/mik.fi/forum/#!forum/stl-info">https://groups.google.com/a/mik.fi/forum/#!forum/stl-info</a></li>
+<li><strong>WhatsApp groups:</strong>
+MIK info (announcements and equipment info): <a href="https://chat.whatsapp.com/H7ORSRxQMQjInO4hwjN8ER">https://chat.whatsapp.com/H7ORSRxQMQjInO4hwjN8ER</a>
+MIK chat (member discussions): <a href="https://chat.whatsapp.com/ICDocWfKA6xCbDWwKOZAmU">https://chat.whatsapp.com/ICDocWfKA6xCbDWwKOZAmU</a>
+Information about the aircraft is also shared in the MIK community: <a href="https://chat.whatsapp.com/F1OHxJ08RWiKy49TgYUeP8">https://chat.whatsapp.com/F1OHxJ08RWiKy49TgYUeP8</a></li>
+</ul>
+<p>Welcome again to the club!</p>
+<p>Best regards,</p>
+<p>Malmin Ilmailukerho</p>
 
       </div>
 
@@ -808,15 +899,60 @@ exports[`Register approved template tests membershipApprovedEmailBodyHtml 3`] = 
       </div>
 
       <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Medlemskap godkänt</h1><p>Hej Tester1,</p>
-<p>Välkommen till MIK, ditt medlemskap har godkänts.</p>
+        <h1 style="text-align: center; color: #003366;">Medlemskap godkänt</h1><p>Hej Tester1, välkommen till MIK, ditt medlemskap har godkänts.</p>
 <p>Vänligen bekanta dig med klubbens <a href="https://www.mik.fi/about">regler</a>. Om du har några frågor är du välkommen att kontakta en styrelsemedlem.</p>
 <p>Nästa steg:</p>
 <ul>
 <li>Betala medlemsavgiften (en automatisk faktura skickas till dig)</li>
-<li>Kontakta en instruktör eller flygplanschef för att boka en kontrollflygning</li>
+<li>Kontakta instruktörerna för att boka en klubbkontroll så att du får tillgång till klubbens flygplan och bokningssystem</li>
 <li>Gå med i WhatsApp-grupperna</li>
 </ul>
+<h2 style="text-align: center; color: #003366;">✅Sammanfattning av viktiga klubbrutiner</h2><ul>
+<li><strong>Webbplats &amp; Inloggning:</strong> Börja bekanta dig med klubbens verksamhet på <a href="http://www.mik.fi">http://www.mik.fi</a>. Inloggning på medlemsområdet sker utan lösenord: välj Intra från sidans övre högra hörn, ange din e-postadress och du får en inloggningslänk till din e-post. Adressen måste vara densamma som i MIK:s medlemsregister. Ingen separat registrering krävs.<ul>
+<li>Sessionen löper inte ut snabbt, så du behöver inte logga in ofta på din personliga enhet. Om du använder en delad enhet, kom ihåg att logga ut. Om du inte får inloggningslänken eller vill ge annan feedback om webbplatsen, kontakta <a href="mailto:webmaster@mik.fi">webmaster@mik.fi</a>.</li>
+</ul>
+</li>
+<li><strong>Flygplan &amp; Bokning:</strong> Klubben har två flygplan (DA40NG, DV20) och en simulator (DA40). Att använda flygplanen kräver ett pilotcertifikat och en klubbkontroll. Simulatorn kan bokas fritt.</li>
+<li><strong>Kommunikation:</strong> Följ aktuell information på klubbens webbplats och gå med i de flygplansspecifika e-postlistorna och WhatsApp-grupperna.</li>
+<li><strong>Utbildning:</strong> Frågor om åtkomsträttigheter och utbildning hanteras via utbildningsansvarig.</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">✈️ Flygning och Åtkomsträttigheter till Flygplan</h3><p>Klubbens flotta består av flygplanen DA40NG (OH-STL) och DV20 (OH-IHQ) samt en DA40-simulator. Klubbens flygplan får endast användas för privat luftfart (inklusive repetitions-, utbildnings- och kontrollflygningar). Kommersiellt flyg och verksamhet liknande kommersiellt flyg är strängt förbjudet.</p>
+<ul>
+<li><strong>Flygning:</strong> Att använda klubbens flygplan kräver ett giltigt pilotcertifikat och en godkänd klubbkontroll med en av klubbens instruktörer. Rätten att använda klubbens flygplan har junior- och fullmedlemmar som har godkänts flygplansspecifikt som utrustningsanvändare.</li>
+<li><strong>Simulator:</strong> Varje medlem kan boka och använda simulatorn fritt utan separat introduktion.</li>
+<li><strong>Repetitionsflygning:</strong> En användare vars motorerfarenhet är under 150 timmar och under 20 timmar på typen måste utföra en flygning med en klubbinstruktör om mer än sex månader har gått sedan den senaste flygningen.</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">🗓️ Flygplansbokning och Flygloggbok</h3><ul>
+<li><strong>Bokningssystem:</strong> Bokningssystemet finns på klubbens webbplats när du är inloggad. Underhålls- och tankningsinformation, flygplansdokument, ett verktyg för vikt- och balansberäkningar samt nödvändiga tillträdeskoder finns på Fly-sidan. Dina egna flygfakturor (från detta år) finns på Club-sidan. Vänligen läs noggrant igenom driftsrutinerna och bokningspraxis i dokumentet <strong>Driftsinstruktioner för flygplan rev 9.</strong> Du hittar dokumentet i intranätet under KLUBB -&gt; DOKUMENT. Jag rekommenderar att du använder sökfunktionen.</li>
+<li><strong>Elektronisk Flygloggbok och Fakturering:</strong> Alla flygningar måste registreras i flygplanets färdloggbok och den elektroniska flygloggboken utan dröjsmål efter flygningen.<ul>
+<li>Registrering i den elektroniska flygloggboken sker i intranätet.</li>
+<li>Fakturering sker månadsvis via e-post. Håll din e-postadress uppdaterad!</li>
+</ul>
+</li>
+<li><strong>Flygavgifter</strong> beräknas baserat på flygtid till närmaste minut. Minimiavgiften är 20 minuter/flygning (gäller inte för kryssningsflygningar till ett annat flygfält eller flygningar som avbrutits på grund av ett fel eller väder).
+En avgift på 10 € kan debiteras för att reda ut saknade eller felaktiga registreringar.</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">💡 Sammanfattning av Flygregler (för MIK:s flygplan)</h3><ul>
+<li><strong>Förberedelser:</strong> Kontrollera alltid den elektroniska felloggen i flygplansinformationen i intranätet före flygningen. Utför den yttre inspektionen av flygplanet i enlighet med flygplanets flyghandbok (AFM).</li>
+<li><strong>Bränsle:</strong> Flygplanen ska inte tankas mer än vad som behövs för säkert genomförande av flygningen. Efter en flygning bör det vara max kvar i tankarna: STL: 20 gal (ca 75 l), IHQ: 15 gal (ca 55 l). Ta bränsleprover före dagens första flygning (utom vid frysförhållanden).</li>
+<li><strong>Nummela-verksamhet:</strong> Vid drift vid Nummela (EFNU) ska Nummelaoperationshandboken, fältprovet och PN-kravet följas. Bilen måste parkeras på tillåtna asfalterade ytor.</li>
+<li><strong>Efter flygningen:</strong> Rengör insekter från flygplanets ytor omedelbart med rent vatten och en trycksrykflaska. Flytta flygplanet till hangaren, placera hjulstoppare och pitot-skydd på plats. Lämna parkeringsbromsen av i hangaren och håll dragstången på plats på noshjulet.</li>
+<li><strong>Skador och fel:</strong> Skador och fel måste omedelbart rapporteras till utrustningschefen. Kontakta inte underhållsorganisationen själv. Om säkerheten har äventyrats, gör en anmälan i klubbens SMS-system (Safety Management System). Vid en olycka ansvarar befälhavaren för kostnader i den mån de inte täcks av försäkring (självrisker, etc.).</li>
+</ul>
+<h3 style="text-align: center; color: #003366;">📣 Kommunikation och Kontakter</h3><ul>
+<li><strong>Utrustningsteam:</strong> Brådskande kontakter per telefon till utrustningschefen. Övriga kontakter per e-post till <a href="mailto:kalusto@mik.fi">kalusto@mik.fi</a>.</li>
+<li><strong>Utbildningsansvarig:</strong> Frågor relaterade till utbildning och åtkomsträttigheter till flygplan måste hanteras via utbildningsansvarig: <a href="mailto:koulutus@mik.fi">koulutus@mik.fi</a>.</li>
+<li><strong>Flygplansspecifika nyhetsbrev:</strong>
+OH-IHQ: <a href="https://groups.google.com/a/mik.fi/forum/#!forum/ihq-info">https://groups.google.com/a/mik.fi/forum/#!forum/ihq-info</a>
+OH-STL: <a href="https://groups.google.com/a/mik.fi/forum/#!forum/stl-info">https://groups.google.com/a/mik.fi/forum/#!forum/stl-info</a></li>
+<li><strong>WhatsApp-grupper:</strong>
+MIK info (meddelanden och utrustningsinformation): <a href="https://chat.whatsapp.com/H7ORSRxQMQjInO4hwjN8ER">https://chat.whatsapp.com/H7ORSRxQMQjInO4hwjN8ER</a>
+MIK chat (medlemsdiskussion): <a href="https://chat.whatsapp.com/ICDocWfKA6xCbDWwKOZAmU">https://chat.whatsapp.com/ICDocWfKA6xCbDWwKOZAmU</a>
+Information om flygplanen delas också i MIK-gemenskapen: <a href="https://chat.whatsapp.com/F1OHxJ08RWiKy49TgYUeP8">https://chat.whatsapp.com/F1OHxJ08RWiKy49TgYUeP8</a></li>
+</ul>
+<p>Välkommen åter till klubben!</p>
+<p>Med vänliga hälsningar,</p>
+<p>Malmin Ilmailukerho</p>
 
       </div>
 
