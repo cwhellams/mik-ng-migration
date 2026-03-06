@@ -118,6 +118,13 @@
       "annualMembershipAutoRenew": "Årlig medlemskap automatisk förnyelse",
       "equipmentFeeAutoRenew": "Utrustningsavgift automatisk förnyelse"
     },
+    "mailingLists": {
+      "title": "Flygplanets e-postlistor",
+      "subscribed": "Prenumererad",
+      "notSubscribed": "Inte prenumererad",
+      "noLists": "Inga e-postlistor konfigurerade"
+    },
+    "lang": "Språk",
     "memberType": "Medlemstyp",
     "types": {
       "flying": "Fullständig medlem",

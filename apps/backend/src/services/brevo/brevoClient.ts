@@ -13,6 +13,7 @@ const apiUrl = process.env.BREVO_API_URL || 'https://api.brevo.com/v3'
 
 export const isBrevoSyncEnabled = process.env.BREVO_SYNC_WORKER_ENABLED === 'true'
 export const runBrevoSyncOnStartup = process.env.BREVO_SYNC_WORKER_RUN_ON_STARTUP === 'true'
+export const isBrevoConfigured = Boolean(apiKey)
 
 if (!apiKey && isBrevoSyncEnabled) {
   throw new Error('BREVO_API_KEY is not configured but Brevo sync worker is enabled')
@@ -193,6 +194,52 @@ export async function getContactByExtId(extId: string): Promise<BrevoContact | n
       return null
     }
     throw handleError(error, 'Failed to get Brevo contact by ext_id')
+  }
+}
+
+/**
+ * Add an existing contact to a Brevo mailing list
+ * @param brevoContactId - Numeric Brevo contact ID
+ * @param listId - Numeric Brevo list ID
+ */
+export async function addContactToMailingList(
+  brevoContactId: number,
+  listId: number,
+): Promise<void> {
+  try {
+    logger.info(`Adding Brevo contact ${brevoContactId} to list ${listId}`)
+    await brevoApiClient.post(`/contacts/lists/${listId}/contacts/add`, {
+      ids: [brevoContactId],
+    })
+    logger.info(`Successfully added Brevo contact ${brevoContactId} to list ${listId}`)
+  } catch (error) {
+    throw handleError(error, `Failed to add contact ${brevoContactId} to list ${listId}`)
+  }
+}
+
+/**
+ * Remove an existing contact from a Brevo mailing list
+ * @param brevoContactId - Numeric Brevo contact ID
+ * @param listId - Numeric Brevo list ID
+ */
+export async function removeContactFromMailingList(
+  brevoContactId: number,
+  listId: number,
+): Promise<void> {
+  try {
+    logger.info(`Removing Brevo contact ${brevoContactId} from list ${listId}`)
+    await brevoApiClient.post(`/contacts/lists/${listId}/contacts/remove`, {
+      ids: [brevoContactId],
+    })
+    logger.info(`Successfully removed Brevo contact ${brevoContactId} from list ${listId}`)
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      logger.warn(
+        `Contact ${brevoContactId} not found in list ${listId}, treating as already removed`,
+      )
+      return
+    }
+    throw handleError(error, `Failed to remove contact ${brevoContactId} from list ${listId}`)
   }
 }
 

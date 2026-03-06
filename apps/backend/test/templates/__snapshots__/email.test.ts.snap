@@ -558,16 +558,16 @@ exports[`Overdue invoice template tests overdueInvoiceEmailBodyHtml 1`] = `
       </div>
 
       <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Overdue Invoice Reminder</h1><p>Dear Tester1,</p>
-<p>This is a reminder that invoice <strong>#INV-12345</strong> for € <strong>100</strong>
-was due on <strong>2024-06-30</strong> and remains unpaid.</p>
-<p>Please arrange payment at your earliest convenience.</p>
+        <h1 style="text-align: center; color: #003366;">Muistutus erääntyneestä laskusta</h1><p>Hyvä Tester1,</p>
+<p>Tämä on muistutus siitä, että lasku <strong>#INV-12345</strong> summaltaan <strong>100 €</strong>
+erääntyi <strong>2024-06-30</strong> ja on edelleen maksamatta.</p>
+<p>Pyydämme sinua suorittamaan maksun mahdollisimman pian.</p>
 <p style="color: #cc0000; font-weight: bold;">
-⚠️ Warning: If this invoice remains unpaid, your ability to make aircraft reservations may be suspended.
+  ⚠️ Varoitus: Jos tämä lasku jää maksamatta, mahdollisuutesi varata lentokoneita voidaan jäädyttää.
 </p>
 
-<p>If you have already made payment or believe this notice is in error, please contact us immediately at <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
-<p>Thank you for your prompt attention to this matter.</p>
+<p>Jos olet jo suorittanut maksun tai uskot tämän muistutuksen olevan virhe, ota meihin yhteyttä välittömästi: <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
+<p>Kiitos huomiostasi tähän asiaan.</p>
 
       </div>
 
@@ -616,16 +616,16 @@ exports[`Overdue invoice template tests overdueInvoiceEmailBodyHtml 3`] = `
       </div>
 
       <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Overdue Invoice Reminder</h1><p>Dear Tester1,</p>
-<p>This is a reminder that invoice <strong>#INV-12345</strong> for € <strong>100</strong>
-was due on <strong>2024-06-30</strong> and remains unpaid.</p>
-<p>Please arrange payment at your earliest convenience.</p>
+        <h1 style="text-align: center; color: #003366;">Påminnelse om förfallen faktura</h1><p>Hej Tester1,</p>
+<p>Detta är en påminnelse om att faktura <strong>#INV-12345</strong> på <strong>100 €</strong>
+förföll till betalning den <strong>2024-06-30</strong> och är fortfarande obetald.</p>
+<p>Vänligen ordna betalning vid ditt närmaste tillfälle.</p>
 <p style="color: #cc0000; font-weight: bold;">
-⚠️ Warning: If this invoice remains unpaid, your ability to make aircraft reservations may be suspended.
+⚠️ Varning: Om denna faktura förblir obetald kan din möjlighet att göra flygplansreservationer komma att tillfälligt stängas av.
 </p>
 
-<p>If you have already made payment or believe this notice is in error, please contact us immediately at <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
-<p>Thank you for your prompt attention to this matter.</p>
+<p>Om du redan har betalat eller tror att detta meddelande är felaktigt, vänligen kontakta oss omedelbart på <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
+<p>Tack för din snabba uppmärksamhet i denna fråga.</p>
 
       </div>
 
@@ -702,7 +702,7 @@ In the meantime, you can confirm your email address by clicking the link below:<
       </div>
 
       <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        <p style="font-size: 0.9em; color: #666666;">If you didn’t request this email, you can safely ignore it.</p>
+        <p style="font-size: 0.9em; color: #666666;">If you didn't request this email, you can safely ignore it.</p>
         <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
     </div>
   </div>"
@@ -738,7 +738,7 @@ Under tiden kan du bekräfta din e-postadress genom att klicka på länken nedan
       </div>
 
       <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        <p style="font-size: 0.9em; color: #666666;">If you didn’t request this email, you can safely ignore it.</p>
+        <p style="font-size: 0.9em; color: #666666;">Om du inte begärde detta e-postmeddelande kan du lugnt ignorera det.</p>
         <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
     </div>
   </div>"

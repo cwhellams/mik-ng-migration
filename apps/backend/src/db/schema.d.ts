@@ -481,6 +481,10 @@ export interface MemberRegister {
   last_name: string
   licence_expiry_date: string | null
   licence_id: string | null
+  /**
+   * Aircraft mailing list subscriptions. Structure: ["list-id-1", "list-id-2"]
+   */
+  mailing_lists: Json | null
   medical_expiry_date: string | null
   member_id: string
   member_since: Generated<string>

@@ -119,6 +119,13 @@
       "annualMembershipAutoRenew": "Annual Membership autorenew",
       "equipmentFeeAutoRenew": "Equipment Fee autorenew"
     },
+    "mailingLists": {
+      "title": "Aircraft Mailing Lists",
+      "subscribed": "Subscribed",
+      "notSubscribed": "Not subscribed",
+      "noLists": "No mailing lists configured"
+    },
+    "lang": "Language",
     "memberType": "Member Type",
     "types": {
       "flying": "Full Member",

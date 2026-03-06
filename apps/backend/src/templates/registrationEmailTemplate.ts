@@ -10,24 +10,45 @@ export type RegisterVars = {
   code: number
 }
 
-export const registerEmailTitle = (lang: string | undefined): string =>
-  lang == 'fi' ? 'Tervetuloa Malmin ilmailukerhoon' : 'Welcome to Malmin Ilmailukerho'
+export const registerEmailTitle = (lang: string | undefined): string => {
+  switch (lang) {
+    case 'fi':
+      return 'Tervetuloa Malmin ilmailukerhoon'
+    case 'sv':
+      return 'Välkommen till Malmin Ilmailukerho'
+    default:
+      return 'Welcome to Malmin Ilmailukerho'
+  }
+}
+
+const registerEmailDisclaimer = (lang: MIKLang): string => {
+  switch (lang) {
+    case MIKLang.FI:
+      return 'Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.'
+    case MIKLang.SV:
+      return 'Om du inte begärde detta e-postmeddelande kan du lugnt ignorera det.'
+    default:
+      return "If you didn't request this email, you can safely ignore it."
+  }
+}
 
 export const registerEmailBodyHtml = (lang: MIKLang, vars: RegisterVars): string =>
-  markdownEmailTemplate(
-    `registration-submit-${lang}.md`,
-    vars,
-    lang == MIKLang.FI
-      ? 'Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.'
-      : 'If you didn’t request this email, you can safely ignore it.',
-  )
+  markdownEmailTemplate(`registration-submit-${lang}.md`, vars, registerEmailDisclaimer(lang))
 
 export type WelcomeVars = {
   firstName: string
 }
 
-export const membershipApprovedEmailSubject = (lang: string | undefined): string =>
-  lang == 'fi' ? 'Tervetuloa Malmin ilmailukerhoon' : 'MIK - your membership is approved'
+export const membershipApprovedEmailSubject = (lang: string | undefined): string => {
+  switch (lang) {
+    case 'fi':
+      return 'Tervetuloa Malmin ilmailukerhoon'
+    case 'sv':
+      return 'MIK - ditt medlemskap är godkänt'
+    default:
+      return 'MIK - your membership is approved'
+  }
+}
 
 export const membershipApprovedEmailBodyHtml = (
   lang: string | undefined,

@@ -748,6 +748,9 @@ describe('POST /members', () => {
     firstName: 'first',
     lastName: 'last',
     lang: MIKLang.EN,
+    streetAddress: 'street',
+    postcode: '00100',
+    townCity: 'city',
   }
 
   it('Return 401 if no token in authorization header', async () => {
@@ -949,6 +952,9 @@ describe('POST /members/me/cancel-membership', () => {
       firstName: 'Cancel',
       lastName: 'TestMember',
       lang: MIKLang.FI,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
     })
     cancelMemberToken = generateAccessToken({
       memberId: cancelMemberId,

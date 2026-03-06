@@ -31,8 +31,16 @@ export const sendOccurrenceNotification = async (
   }
 }
 
-export const occurrenceNotificationEmailSubject = (lang: MIKLang): string =>
-  lang == 'fi' ? 'Uusi poikkema ilmoitettu' : 'New occurrence reported'
+export const occurrenceNotificationEmailSubject = (lang: MIKLang): string => {
+  switch (lang) {
+    case 'fi':
+      return 'Uusi poikkeama ilmoitettu'
+    case 'sv':
+      return 'Ny händelse rapporterad'
+    default:
+      return 'New occurrence reported'
+  }
+}
 
 export const occurrenceNotificationEmailBodyHtml = (lang: MIKLang, occurrence: Occurrence) =>
   markdownEmailTemplate(`occurrence-notification-${lang}.md`, {

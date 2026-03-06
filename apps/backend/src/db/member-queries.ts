@@ -74,6 +74,7 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     isTrainingProgramPilot: member.is_training_program_pilot,
     canMakeReservations: member.can_make_reservations,
     billingId: member.billing_id,
+    brevoContactId: member.brevo_contact_id ? Number(member.brevo_contact_id) : undefined,
     dateOfBirth: member.date_of_birth,
     memberSince: member.member_since,
 
@@ -96,6 +97,7 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     isMembershipExpired: member.is_membership_expired,
 
     lang: member.lang_iso639 as MIKLang,
+    mailingLists: (member.mailing_lists as string[] | null) ?? undefined,
     roles: roles,
   }
 }
@@ -349,6 +351,9 @@ export async function updateMember(
       auto_renew_annual_membership: patch.autoRenewAnnualMembership,
       auto_renew_equipment_fee: patch.autoRenewEquipmentFee,
       is_membership_expired: patch.isMembershipExpired,
+
+      mailing_lists:
+        patch.mailingLists === undefined ? undefined : JSON.stringify(patch.mailingLists),
 
       licence_id: patch.licenceId,
       licence_expiry_date: patch.licenceExpiry,

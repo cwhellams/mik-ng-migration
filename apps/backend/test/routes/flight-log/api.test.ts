@@ -190,7 +190,7 @@ describe('GET /flight-log', () => {
     })
   })
 
-  it('Get flight log with Id should return a 404 when now row is present for the given Id', async () => {
+  it('Get flight log with Id should return a 404 when no row is present for the given Id', async () => {
     const response = await request(app)
       .get('/flight-log/100')
       .set('Authorization', `Bearer ${mattiToken}`)

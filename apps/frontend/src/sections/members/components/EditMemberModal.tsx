@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Icon } from '@iconify/react'
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import { useRoles } from '../../../hooks/useRoles'
 import { APIMutation } from '../../../hooks/useApi'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
+import { langFlagIcon } from '../../../utils/lang'
 import { RegisterRequest } from '@backend/routes/auth/schema'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
@@ -80,6 +82,9 @@ export const EditMemberModal = ({
         lastName: '',
         email: '',
         phoneNumber: '',
+        streetAddress: '',
+        postcode: '',
+        townCity: '',
         lang: MIKLang.FI,
       } as RegisterRequest)
     } else if (memberData) {
@@ -93,6 +98,7 @@ export const EditMemberModal = ({
           postcode: memberData.postcode || '',
           townCity: memberData.townCity || '',
           dateOfBirth: memberData.dateOfBirth,
+          lang: memberData.lang,
         })
       } else if (mode === 'emergencyContact') {
         setFormData({
@@ -225,6 +231,33 @@ export const EditMemberModal = ({
           }
         />
       </Grid>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          required
+          label={t('member.streetAddress')}
+          value={formData.streetAddress || ''}
+          onChange={handleChange('streetAddress')}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <TextField
+          fullWidth
+          required
+          label={t('member.postcode')}
+          value={formData.postcode || ''}
+          onChange={handleChange('postcode')}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <TextField
+          fullWidth
+          required
+          label={t('member.town')}
+          value={formData.townCity || ''}
+          onChange={handleChange('townCity')}
+        />
+      </Grid>
     </Grid>
   )
 
@@ -266,6 +299,7 @@ export const EditMemberModal = ({
       <Grid size={12}>
         <TextField
           fullWidth
+          required
           label={t('member.streetAddress')}
           value={formData.streetAddress || ''}
           onChange={handleChange('streetAddress')}
@@ -274,6 +308,7 @@ export const EditMemberModal = ({
       <Grid size={{ xs: 12, sm: 6 }}>
         <TextField
           fullWidth
+          required
           label={t('member.postcode')}
           value={formData.postcode || ''}
           onChange={handleChange('postcode')}
@@ -282,6 +317,7 @@ export const EditMemberModal = ({
       <Grid size={{ xs: 12, sm: 6 }}>
         <TextField
           fullWidth
+          required
           label={t('member.town')}
           value={formData.townCity || ''}
           onChange={handleChange('townCity')}
@@ -298,6 +334,30 @@ export const EditMemberModal = ({
             })
           }}
         />
+      </Grid>
+      <Grid size={12}>
+        <FormControl>
+          <FormLabel>{t('member.lang')}</FormLabel>
+          <RadioGroup
+            row
+            value={formData.lang ?? MIKLang.FI}
+            onChange={handleChange('lang')}
+          >
+            {([MIKLang.FI, MIKLang.SV, MIKLang.EN] as const).map((l) => (
+              <FormControlLabel
+                key={l}
+                value={l}
+                control={<Radio />}
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Icon icon={langFlagIcon(l)} fontSize={18} />
+                    {l.toUpperCase()}
+                  </Box>
+                }
+              />
+            ))}
+          </RadioGroup>
+        </FormControl>
       </Grid>
     </Grid>
   )

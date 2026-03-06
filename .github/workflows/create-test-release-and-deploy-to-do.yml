@@ -120,6 +120,7 @@ jobs:
           echo "CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS_TEST }}" >> "$GITHUB_ENV"
           echo "BREVO_API_URL=https://api.brevo.com/v3" >> "$GITHUB_ENV"
           echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY }}" >> "$GITHUB_ENV"
+          echo "AIRCRAFT_MAILING_LISTS=${{ vars.AIRCRAFT_MAILING_LISTS }}" >> "$GITHUB_ENV"
           echo "BREVO_SYNC_WORKER_ENABLED=${{ vars.BREVO_SYNC_WORKER_ENABLED }}" >> "$GITHUB_ENV"
           echo "BREVO_SYNC_WORKER_RUN_ON_STARTUP=${{ vars.BREVO_SYNC_WORKER_RUN_ON_STARTUP }}" >> "$GITHUB_ENV"
           echo "DO_MIK_VPC_UUID=${{ vars.DO_MIK_VPC_UUID }}" >> "$GITHUB_ENV"

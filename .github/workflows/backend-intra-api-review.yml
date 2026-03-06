@@ -132,6 +132,7 @@ jobs:
           DATABASE_URL: postgres://mik_app_test:test_pwd@localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
           BREVO_API_URL: https://api.brevo.com/v3
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          AIRCRAFT_MAILING_LISTS: ${{ vars.AIRCRAFT_MAILING_LISTS }}
           BREVO_SYNC_WORKER_ENABLED: false
           NODE_ENV: test
         run: |

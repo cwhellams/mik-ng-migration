@@ -117,6 +117,9 @@ services:
       - key: BREVO_API_KEY
         value: ${BREVO_API_KEY}
         type: SECRET
+      - key: AIRCRAFT_MAILING_LISTS
+        value: ${AIRCRAFT_MAILING_LISTS}
+        type: GENERAL
       - key: BREVO_SYNC_WORKER_ENABLED
         value: ${BREVO_SYNC_WORKER_ENABLED}
         type: GENERAL

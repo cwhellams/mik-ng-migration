@@ -29,6 +29,7 @@ import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 import { RemoteContent } from '../../components/RemoteContent'
 import UserAvatar from './components/UserAvatar'
 import { formatPhoneNumber } from '../../utils/format'
+import { langFlagIcon } from '../../utils/lang'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 
@@ -182,12 +183,24 @@ const Members = () => {
           row={(row) => (
             <>
               <Grid size={{ xs: 2, md: 1 }}>
-                <UserAvatar
-                  email={row.email}
-                  size={40}
-                  firstName={row.first}
-                  lastName={row.last}
-                />
+                <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+                  <UserAvatar
+                    email={row.email}
+                    size={40}
+                    firstName={row.first}
+                    lastName={row.last}
+                  />
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: -4,
+                      right: -6,
+                      lineHeight: 0,
+                    }}
+                  >
+                    <Icon icon={langFlagIcon(row.lang)} fontSize={14} />
+                  </Box>
+                </Box>
               </Grid>
               <Grid container size='grow' spacing={0}>
                 <Grid size={{ xs: 12, md: 3 }}>

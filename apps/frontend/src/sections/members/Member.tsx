@@ -11,12 +11,13 @@ import {
   Tooltip,
   FormControlLabel,
   Checkbox,
+  CircularProgress,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
 import { Member, MIKLang, MIKMemberTypes } from '@backend/routes/members/models'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 import { useNavigate, useParams } from 'react-router-dom'
 import { EditButton } from '../../components/EditButton'
@@ -24,6 +25,7 @@ import { FormField } from '../../components/FormField'
 import { AuditFormField } from '../../components/AuditFormField'
 import { formatDate } from '../../utils/date'
 import { formatPhoneNumber } from '../../utils/format'
+import { langFlagIcon } from '../../utils/lang'
 import { FormTitle } from '../../components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
 import { RemoteContent } from '../../components/RemoteContent'
@@ -76,7 +78,7 @@ const MemberProfile = () => {
     const confirmMessage = t('member.deactivateConfirmMessage', {
       name: `${data?.firstName} ${data?.lastName}`,
     })
-    if (!window.confirm(confirmMessage)) {
+    if (!globalThis.confirm(confirmMessage)) {
       return
     }
 
@@ -95,7 +97,7 @@ const MemberProfile = () => {
 
   const handleCancelMembership = async () => {
     const confirmMessage = t('member.cancelMembershipConfirmMessage')
-    if (!window.confirm(confirmMessage)) {
+    if (!globalThis.confirm(confirmMessage)) {
       return
     }
 
@@ -170,11 +172,13 @@ const MemberProfile = () => {
     memberType,
     canMakeReservations,
     billingId,
+    brevoContactId,
     memberSince,
     isMembershipApproved,
     isMembershipExpired,
     autoRenewAnnualMembership,
     autoRenewEquipmentFee,
+    lang,
   } = data || {}
 
   const isRemoved = memberType == MIKMemberTypes.REMOVED
@@ -338,6 +342,13 @@ const MemberProfile = () => {
                   <FormField label={t('member.dateOfBirth')} width={100}>
                     {formatDate(dateOfBirth)}
                   </FormField>
+
+                  <FormField label={t('member.lang')} width={100}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Icon icon={langFlagIcon(lang)} fontSize={18} />
+                      {lang?.toUpperCase() ?? 'N/A'}
+                    </Box>
+                  </FormField>
                 </Stack>
               </CardContent>
             </Card>
@@ -372,6 +383,116 @@ const MemberProfile = () => {
               </CardContent>
             </Card>
           </Stack>
+
+          {!isExternalUser && (
+            <Card>
+              <EditButton
+                title={t('member.edit.billing')}
+                onClick={() => handleOpenEditModal('billing')}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                }}
+              />
+              <CardContent>
+                <FormTitle
+                  title={t('member.billingInfo.billingSettings')}
+                  icon='mdi:credit-card-outline'
+                />
+                <Stack spacing={1.5}>
+                  <FormField
+                    label={t('member.billingInfo.annualMembershipAutoRenew')}
+                  >
+                    <Checkbox
+                      checked={Boolean(autoRenewAnnualMembership)}
+                      disabled
+                      size='large'
+                      sx={{ p: 0, pl: 0 }}
+                    />
+                  </FormField>
+                  <FormField
+                    label={t('member.billingInfo.equipmentFeeAutoRenew')}
+                  >
+                    <Checkbox
+                      checked={Boolean(autoRenewEquipmentFee)}
+                      disabled
+                      size='large'
+                      sx={{ p: 0, pl: 0 }}
+                    />
+                  </FormField>
+                </Stack>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            {
+              <EditButton
+                title={t('member.edit.licence')}
+                onClick={() => handleOpenEditModal('licence')}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                }}
+              />
+            }
+            <CardContent>
+              <FormTitle
+                title={t('member.licenceInfo.licenceInfo')}
+                icon='mdi:certificate'
+              />
+              <Stack spacing={1.5}>
+                <FormField label={t('member.licenceInfo.licenceId')}>
+                  {licenceId || 'N/A'}
+                </FormField>
+                <FormField label={t('member.licenceInfo.licenceExpiry')}>
+                  {licenceExpiry || 'N/A'}
+                </FormField>
+                <FormField label={t('member.licenceInfo.medicalExpiry')}>
+                  {medicalExpiry || 'N/A'}
+                </FormField>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          <MailingListsCard
+            memberId={memberId!}
+            currentLists={data?.mailingLists ?? []}
+            onSaved={() => mutate(() => true)}
+          />
+
+          {!isExternalUser && (
+            <Card>
+              {isAdmin && (
+                <EditButton
+                  title={t('member.edit.training')}
+                  onClick={() => handleOpenEditModal('training')}
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                  }}
+                />
+              )}
+              <CardContent>
+                <FormTitle
+                  title={t('member.trainingProgram')}
+                  icon='mdi:account-school'
+                />
+
+                <FormField label={t('member.isTrainingProgramPilot')}>
+                  <Checkbox
+                    checked={Boolean(isTrainingProgramPilot)}
+                    disabled
+                    size='large'
+                    sx={{ p: 0, pl: 0 }}
+                  />
+                </FormField>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <EditButton
@@ -505,110 +626,6 @@ const MemberProfile = () => {
           </Card>
 
           <Card>
-            {
-              <EditButton
-                title={t('member.edit.licence')}
-                onClick={() => handleOpenEditModal('licence')}
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                }}
-              />
-            }
-            <CardContent>
-              <FormTitle
-                title={t('member.licenceInfo.licenceInfo')}
-                icon='mdi:certificate'
-              />
-              <Stack spacing={1.5}>
-                <FormField label={t('member.licenceInfo.licenceId')}>
-                  {licenceId || 'N/A'}
-                </FormField>
-                <FormField label={t('member.licenceInfo.licenceExpiry')}>
-                  {licenceExpiry || 'N/A'}
-                </FormField>
-                <FormField label={t('member.licenceInfo.medicalExpiry')}>
-                  {medicalExpiry || 'N/A'}
-                </FormField>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          {!isExternalUser && (
-            <Card>
-              <EditButton
-                title={t('member.edit.billing')}
-                onClick={() => handleOpenEditModal('billing')}
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                }}
-              />
-              <CardContent>
-                <FormTitle
-                  title={t('member.billingInfo.billingSettings')}
-                  icon='mdi:credit-card-outline'
-                />
-                <Stack spacing={1.5}>
-                  <FormField
-                    label={t('member.billingInfo.annualMembershipAutoRenew')}
-                  >
-                    <Checkbox
-                      checked={Boolean(autoRenewAnnualMembership)}
-                      disabled
-                      size='large'
-                      sx={{ p: 0, pl: 0 }}
-                    />
-                  </FormField>
-                  <FormField
-                    label={t('member.billingInfo.equipmentFeeAutoRenew')}
-                  >
-                    <Checkbox
-                      checked={Boolean(autoRenewEquipmentFee)}
-                      disabled
-                      size='large'
-                      sx={{ p: 0, pl: 0 }}
-                    />
-                  </FormField>
-                </Stack>
-              </CardContent>
-            </Card>
-          )}
-
-          {!isExternalUser && (
-            <Card>
-              {isAdmin && (
-                <EditButton
-                  title={t('member.edit.training')}
-                  onClick={() => handleOpenEditModal('training')}
-                  sx={{
-                    position: 'absolute',
-                    top: 8,
-                    right: 8,
-                  }}
-                />
-              )}
-              <CardContent>
-                <FormTitle
-                  title={t('member.trainingProgram')}
-                  icon='mdi:account-school'
-                />
-
-                <FormField label={t('member.isTrainingProgramPilot')}>
-                  <Checkbox
-                    checked={Boolean(isTrainingProgramPilot)}
-                    disabled
-                    size='large'
-                    sx={{ p: 0, pl: 0 }}
-                  />
-                </FormField>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
             {isAdmin && (
               <EditButton
                 title={t('member.edit.membership')}
@@ -658,6 +675,10 @@ const MemberProfile = () => {
 
                     <FormField label={t('member.billingId')}>
                       {billingId}
+                    </FormField>
+
+                    <FormField label='Brevo Id'>
+                      {brevoContactId?.toString()}
                     </FormField>
 
                     <FormField label={t('member.memberSince')}>
@@ -761,3 +782,112 @@ const MemberProfile = () => {
 }
 
 export default MemberProfile
+
+type MailingList = { id: string; name: string }
+
+const MailingListsCard = ({
+  memberId,
+  currentLists,
+  onSaved,
+}: {
+  memberId: string
+  currentLists: string[]
+  onSaved: () => void
+}) => {
+  const { t } = useTranslation()
+  const { data: availableLists, isLoading } = useApi<MailingList[]>({
+    url: 'v1/members/mailing-lists',
+  })
+
+  const { mutation } = useApi<{ mailingLists: string[] }>({
+    url: memberId === 'me' ? 'v1/members/me' : `v1/members/${memberId}`,
+  })
+
+  const [selected, setSelected] = useState<string[]>(currentLists)
+  const [saving, setSaving] = useState(false)
+  const [problem, setProblem] = useState<Problem | undefined>()
+
+  // Sync state when member data loads asynchronously
+  useEffect(() => {
+    setSelected(currentLists)
+  }, [currentLists])
+
+  const handleToggle = async (id: string) => {
+    const previous = selected
+    const updated = selected.includes(id)
+      ? selected.filter((l) => l !== id)
+      : [...selected, id]
+    setSelected(updated)
+    setSaving(true)
+    const { error } = await mutation.trigger('PATCH', { mailingLists: updated })
+    setSaving(false)
+    if (error) {
+      setSelected(previous)
+      setProblem(error)
+      return
+    }
+    onSaved()
+  }
+
+  return (
+    <Card>
+      <CardContent>
+        <SnackAlert problem={problem} />
+        <FormTitle
+          title={t('member.mailingLists.title')}
+          icon='mdi:email-newsletter'
+        />
+        <MailingListsContent
+          isLoading={isLoading}
+          availableLists={availableLists}
+          selected={selected}
+          saving={saving}
+          onToggle={handleToggle}
+        />
+      </CardContent>
+    </Card>
+  )
+}
+
+const MailingListsContent = ({
+  isLoading,
+  availableLists,
+  selected,
+  saving,
+  onToggle,
+}: {
+  isLoading: boolean
+  availableLists: MailingList[] | undefined
+  selected: string[]
+  saving: boolean
+  onToggle: (id: string) => void
+}) => {
+  const { t } = useTranslation()
+  if (isLoading) return <CircularProgress size={20} />
+  if (!availableLists?.length) {
+    return (
+      <Typography variant='body2' color='text.secondary'>
+        {t('member.mailingLists.noLists')}
+      </Typography>
+    )
+  }
+  return (
+    <Stack spacing={1}>
+      {availableLists.map((list) => (
+        <FormControlLabel
+          key={list.id}
+          control={
+            <Checkbox
+              checked={selected.includes(list.id)}
+              onChange={() => onToggle(list.id)}
+              disabled={saving}
+              size='small'
+            />
+          }
+          label={list.name}
+        />
+      ))}
+    </Stack>
+  )
+}
+

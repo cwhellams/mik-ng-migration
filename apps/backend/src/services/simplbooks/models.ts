@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { type MemberProfile } from '../../routes/members/models.ts'
+import { type Member, type MemberProfile } from '../../routes/members/models.ts'
 import { AuditableSchema } from '../../types/schema.ts'
 
 // Regex pattern for dd-mm-yyyy
@@ -95,7 +95,7 @@ export const invoiceFilterSchema = z
 
 export type InvoiceFilter = z.infer<typeof invoiceFilterSchema>
 
-export function mapMemberToClient(member: MemberProfile): ClientData {
+export function mapMemberToClient(member: Member | MemberProfile): ClientData {
   return {
     Client: {
       name: `${member.firstName} ${member.lastName}`,

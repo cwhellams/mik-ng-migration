@@ -168,6 +168,7 @@ export const MemberSchema = AuditableSchema.extend({
   isMembershipApproved: z.boolean(),
   canMakeReservations: z.boolean(),
   billingId: z.string().nullish(),
+  brevoContactId: z.number().nullish(),
   dateOfBirth: z.string().date().nullish(),
   memberSince: z.string().date(),
   membershipApprovedAt: z.string().datetime().optional(),
@@ -189,6 +190,7 @@ export const MemberSchema = AuditableSchema.extend({
   autoRenewAnnualMembership: z.boolean().nullable().optional(),
   autoRenewEquipmentFee: z.boolean().nullable().optional(),
   isMembershipExpired: z.boolean().nullable().optional(),
+  mailingLists: z.array(z.string()).nullish(),
 })
 
 export type Member = z.infer<typeof MemberSchema>
@@ -222,6 +224,11 @@ export const MemberProfileSchema = MemberSchema.pick({
   autoRenewAnnualMembership: true,
   autoRenewEquipmentFee: true,
   lang: true,
+  mailingLists: true,
+}).extend({
+  streetAddress: z.string().min(1),
+  postcode: z.string().min(1),
+  townCity: z.string().min(1),
 })
 
 export type MemberProfile = z.infer<typeof MemberProfileSchema>

@@ -59,11 +59,72 @@ import {
 import { SimplbooksEventType } from '../../services/simplbooks/models.ts'
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
+import {
+  addContactToMailingList,
+  removeContactFromMailingList,
+  isBrevoConfigured,
+} from '../../services/brevo/brevoClient.ts'
+import { getMemberForBrevoSync } from '../../db/brevo-sync-queries.ts'
+import logger from '../../lib/logger.ts'
 
 export const router = Router()
 
 const isMemberAdmin = (user?: JWTUser): boolean =>
   user?.permissions?.includes(MIKPermissions.MEMBER_ADMIN) ?? false
+
+type MailingListSyncData = {
+  brevoContactId: number
+  oldLists: string[]
+  newLists: string[]
+} | null
+
+/** Capture the data needed to sync mailing list changes to Brevo (call BEFORE DB update) */
+async function captureMailingListSyncData(
+  memberId: string,
+  newLists: string[] | null | undefined,
+): Promise<MailingListSyncData> {
+  if (newLists === undefined || !isBrevoConfigured) return null
+  const current = await getMemberForBrevoSync(memberId)
+  if (!current?.brevo_contact_id) return null
+  return {
+    brevoContactId: Number(current.brevo_contact_id),
+    oldLists: (current.mailing_lists as string[] | null) ?? [],
+    newLists: newLists ?? [],
+  }
+}
+
+/** Apply mailing list diff to Brevo (call AFTER DB update) */
+async function applyMailingListSync(syncData: MailingListSyncData): Promise<void> {
+  if (!syncData) return
+  const { brevoContactId, oldLists, newLists } = syncData
+  const added = newLists.filter(id => !oldLists.includes(id))
+  const removed = oldLists.filter(id => !newLists.includes(id))
+
+  const toNumericListIds = (ids: string[]): number[] => {
+    const numericIds: number[] = []
+    for (const id of ids) {
+      const parsed = Number.parseInt(id, 10)
+      if (Number.isNaN(parsed)) {
+        logger.warn('Ignoring invalid mailing list ID during Brevo sync', { id })
+        continue
+      }
+      numericIds.push(parsed)
+    }
+    return numericIds
+  }
+
+  const addedNumeric = toNumericListIds(added)
+  const removedNumeric = toNumericListIds(removed)
+
+  try {
+    await Promise.all([
+      ...addedNumeric.map(id => addContactToMailingList(brevoContactId, id)),
+      ...removedNumeric.map(id => removeContactFromMailingList(brevoContactId, id)),
+    ])
+  } catch (err) {
+    logger.error('Failed to sync mailing list changes to Brevo', err)
+  }
+}
 
 router.get(
   '/annual-membership-stats',
@@ -162,7 +223,11 @@ router.patch(
     // only subset of member fields are editable here, the rest are skipped
     const patch = MemberProfileSchema.partial().parse(req.body)
 
+    const mailingListSync = await captureMailingListSyncData(req.user!.memberId, patch.mailingLists)
+
     await updateMember(req.user?.memberId!, patch, req.user!)
+
+    await applyMailingListSync(mailingListSync)
 
     const member = await getMemberById(req.user!.memberId)
     res.status(200).json(member)
@@ -174,6 +239,24 @@ router.patch('/me/lang', validateUser(), async (req: Request, res: Response): Pr
   await updateMemberLang(req.user?.memberId!, validatedLang, req.user!)
   res.sendStatus(200)
 })
+
+// returns the available mailing lists configured via AIRCRAFT_MAILING_LISTS env var
+router.get(
+  '/mailing-lists',
+  validateUser(),
+  (req: Request, res: Response<{ id: string; name: string }[]>): void => {
+    const raw = process.env.AIRCRAFT_MAILING_LISTS ?? ''
+    const lists = raw
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(entry => {
+        const [id, ...rest] = entry.split(':')
+        return { id: id.trim(), name: rest.length ? rest.join(':').trim() : id.trim() }
+      })
+    res.status(200).json(lists)
+  },
+)
 
 // list roles and permissions
 router.get(
@@ -304,10 +387,15 @@ router.patch(
     const memberId = req.params.memberId
 
     const patch = MemberSchema.partial().parse(req.body)
+
+    const mailingListSync = await captureMailingListSyncData(memberId, patch.mailingLists)
+
     const updated = await updateMember(memberId, patch, req.user!)
     if (!updated) {
       return problem({ status: 404 })
     }
+
+    await applyMailingListSync(mailingListSync)
 
     const member = await getMemberById(memberId)
     res.status(200).json(member)

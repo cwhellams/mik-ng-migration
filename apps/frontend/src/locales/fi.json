@@ -118,7 +118,14 @@
       "annualMembershipAutoRenew": "Vuotuisen jäsenmaksun automaattinen uusiminen",
       "equipmentFeeAutoRenew": "Kalustomaksun automaattinen uusiminen"
     },
+    "mailingLists": {
+      "title": "Ilma-alusten sähköpostilistat",
+      "subscribed": "Tilattu",
+      "notSubscribed": "Ei tilattu",
+      "noLists": "Sähköpostilistoja ei ole määritetty"
+    },
     "isTrainingProgramPilot": "Koulutusohjelmaoppilas",
+    "lang": "Kieli",
     "memberType": "Jäsentyyppi",
     "types": {
       "flying": "Täysijäsen",

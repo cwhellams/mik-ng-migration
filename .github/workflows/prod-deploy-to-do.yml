@@ -89,6 +89,7 @@ jobs:
           echo "DIGITAL_OCEAN_SPACES_ENDPOINT=https://fra1.digitaloceanspaces.com" >> $GITHUB_ENV
           echo "BREVO_API_URL=https://api.brevo.com/v3" >> $GITHUB_ENV
           echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY_PROD }}" >> $GITHUB_ENV
+          echo "AIRCRAFT_MAILING_LISTS=${{ vars.AIRCRAFT_MAILING_LISTS_PROD }}" >> $GITHUB_ENV
           echo "BREVO_SYNC_WORKER_ENABLED=${{ vars.BREVO_SYNC_WORKER_ENABLED_PROD }}" >> $GITHUB_ENV
           echo "BREVO_SYNC_WORKER_RUN_ON_STARTUP=${{ vars.BREVO_SYNC_WORKER_RUN_ON_STARTUP_PROD }}" >> $GITHUB_ENV
           echo "EQUIPMENT_FEE_DISCOUNT_PER_HOUR=${{ vars.EQUIPMENT_FEE_DISCOUNT_PER_HOUR }}" >> $GITHUB_ENV
