@@ -754,7 +754,7 @@ exports[`Register approved template tests membershipApprovedEmailBodyHtml 1`] = 
 
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">Jäsenyytesi on hyväksytty</h1><p>Hei Tester1, tervetuloa MIK:iin, jäsenyytesi on hyväksytty.</p>
-<p>Tutustu klubin <a href="https://www.mik.fi/about">sääntöihin</a>. Jos sinulla on kysyttävää, ota rohkeasti yhteyttä hallituksen jäseneen.</p>
+<p>Tutustu klubin <a href="https://mik.fi/rules">sääntöihin</a>. Jos sinulla on kysyttävää, ota rohkeasti yhteyttä hallituksen jäseneen.</p>
 <p>Seuraavat askeleet:</p>
 <ul>
 <li>Maksa jäsenmaksu (automaattinen lasku lähetetään sinulle)</li>
@@ -827,7 +827,7 @@ exports[`Register approved template tests membershipApprovedEmailBodyHtml 2`] = 
 
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">Membership Approved</h1><p>Hi Tester1, welcome to MIK, your membership has been approved.</p>
-<p>Please familiarize yourself with the club <a href="https://www.mik.fi/about">rules</a>. If you have any questions, feel free to contact a member of the committee.</p>
+<p>Please familiarize yourself with the club <a href="https://mik.fi/rules">rules</a>. If you have any questions, feel free to contact a member of the committee.</p>
 <p>Next steps:</p>
 <ul>
 <li>Pay the membership fee (an automated invoice will be sent to you)</li>
@@ -900,7 +900,7 @@ exports[`Register approved template tests membershipApprovedEmailBodyHtml 3`] = 
 
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">Medlemskap godkänt</h1><p>Hej Tester1, välkommen till MIK, ditt medlemskap har godkänts.</p>
-<p>Vänligen bekanta dig med klubbens <a href="https://www.mik.fi/about">regler</a>. Om du har några frågor är du välkommen att kontakta en styrelsemedlem.</p>
+<p>Vänligen bekanta dig med klubbens <a href="https://mik.fi/rules">regler</a>. Om du har några frågor är du välkommen att kontakta en styrelsemedlem.</p>
 <p>Nästa steg:</p>
 <ul>
 <li>Betala medlemsavgiften (en automatisk faktura skickas till dig)</li>
