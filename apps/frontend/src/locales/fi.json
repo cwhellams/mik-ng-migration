@@ -920,7 +920,7 @@
     "aircraft": "Lentokone",
     "aircraftNote": "Kirjoita kuvauskenttään, jos tapahtuma koskee muuta lentokonetta tai ei-lentokoneeseen liittyvää tapahtumaa.",
     "aircraftTechnicalFault": "Liittyykö tapaus ilma-aluksen tekniseen tilaan.",
-    "aircraftTechnicalFaultAdminInfoText": "Please send this report to CAMO in English camo@example.com and add Camo Account to recipients of this occurence",
+    "aircraftTechnicalFaultAdminInfoText": "Lähetä tämä raportti CAMOlle englanniksi osoitteeseen camo@diamond-sky.aero ja lisää CAMOn käyttäjät tähän tapahtumaan vastaanottajiksi",
     "location": "Sijainti",
     "summary": "Yhteenveto",
     "headline": "Otsikko",

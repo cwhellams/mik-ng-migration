@@ -921,7 +921,7 @@
     "aircraft": "Flygplan",
     "aircraftNote": "Skriv i beskrivningsfältet om händelsen gäller ett annat flygplan eller icke-flygplansrelaterade händelser.",
     "aircraftTechnicalFault": "Is occurrence related to aircraft technical condition?",
-    "aircraftTechnicalFaultAdminInfoText": "Vänligen skicka denna rapport till CAMO på engelska camo@example.com och lägg till Camo-konto som mottagare av detta tillbud",
+    "aircraftTechnicalFaultAdminInfoText": "Vänligen skicka denna rapport till CAMO på engelska camo@diamond-sky.aero och lägg till Camo-konto som mottagare av detta tillbud",
     "location": "Plats",
     "summary": "Sammanfattning",
     "headline": "Rubrik",

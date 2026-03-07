@@ -949,7 +949,7 @@
     "aircraft": "Aircraft",
     "aircraftNote": "Write in the description field if the event concerns another aircraft or non-aircraft related event.",
     "aircraftTechnicalFault": "Is occurrence related to aircraft technical condition?",
-    "aircraftTechnicalFaultAdminInfoText": "Please send this report to CAMO in English camo@example.com and add Camo Account to recipients of this occurence",
+    "aircraftTechnicalFaultAdminInfoText": "Please send this report to CAMO in English camo@diamond-sky.aero and add Camo Accounts to recipients of this occurence",
     "location": "Location",
     "summary": "Summary",
     "headline": "Headline",
