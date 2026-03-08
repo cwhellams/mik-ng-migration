@@ -52,7 +52,6 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
         sx={{
           width: '100%',
           maxWidth: '1400px',
-          overflowX: 'auto',
         }}
       >
         <Tabs
@@ -61,6 +60,7 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
           textColor='primary'
           indicatorColor='primary'
           variant='scrollable'
+          scrollButtons='auto'
           sx={{
             width: '100%',
             color: 'black',
