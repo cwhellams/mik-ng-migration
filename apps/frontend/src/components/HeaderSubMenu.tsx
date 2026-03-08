@@ -12,10 +12,6 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
   const { hasAccess } = useRoles()
   const { sudo } = useThemeMode()
 
-  const currentTab = parent.subItems?.findIndex(
-    (item) => item.path.length > 0 && location.pathname.includes(item.path)
-  )
-
   const goTo = (path: string) => navigate(`${parent.path}/${path}`)
 
   // Show nothing if not under the parent path
@@ -34,6 +30,10 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
     return null
   }
 
+  const currentTab = subItems.findIndex(
+    (item) => item.path.length > 0 && location.pathname.includes(item.path)
+  )
+
   return (
     <Box
       sx={{
@@ -50,8 +50,8 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
     >
       <Box
         sx={{
-          width: '90vw',
-          maxWidth: 'clamp(320px, 80vw, 500px)',
+          width: '100%',
+          maxWidth: '1400px',
           overflowX: 'auto',
         }}
       >
@@ -61,7 +61,13 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
           textColor='primary'
           indicatorColor='primary'
           variant='scrollable'
-          sx={{ width: '100%', color: 'black' }}
+          sx={{
+            width: '100%',
+            color: 'black',
+            '& .MuiTabs-scrollButtons': {
+              color: theme.palette.text.primary,
+            },
+          }}
         >
           {subItems.map((item) => (
             <Tab
