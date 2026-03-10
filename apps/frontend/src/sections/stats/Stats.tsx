@@ -30,12 +30,13 @@ type ViewMode = 'aircraft' | 'pilot'
 
 const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
   <Box
-    sx={{
-      background: 'white',
+    sx={(theme) => ({
+      background: theme.palette.background.paper,
+      color: theme.palette.text.primary,
       padding: '9px 12px',
-      border: '1px solid #ccc',
+      border: `1px solid ${theme.palette.divider}`,
       borderRadius: 1,
-    }}
+    })}
   >
     <strong>{day}</strong>: {value ? Number(value).toFixed(1) : 0} hours
   </Box>
@@ -44,7 +45,41 @@ const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
 export const Stats = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('aircraft')
   const { hasAccess: hasAdminAccess } = useRoles()
-  const { sudo } = useThemeMode()
+  const { sudo, mode } = useThemeMode()
+
+  const nivoTheme = useMemo(
+    () => ({
+      axis: {
+        ticks: {
+          text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
+          line: { stroke: mode === 'dark' ? '#888888' : '#777777' },
+        },
+        legend: {
+          text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
+        },
+        domain: {
+          line: { stroke: mode === 'dark' ? '#555555' : '#777777' },
+        },
+      },
+      legends: {
+        text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
+      },
+      tooltip: {
+        container: {
+          background: mode === 'dark' ? '#2a2a2a' : '#ffffff',
+          color: mode === 'dark' ? '#ffffff' : '#333333',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
+        },
+      },
+      grid: {
+        line: { stroke: mode === 'dark' ? '#444444' : '#dddddd' },
+      },
+    }),
+    [mode]
+  )
+
+  const arcLinkLabelsTextColor = mode === 'dark' ? '#cccccc' : '#333333'
+  const legendHoverTextColor = mode === 'dark' ? '#ffffff' : '#000000'
 
   // Check if user has admin permissions for commercial data AND is in admin view mode
   const hasCommercialAccess =
@@ -598,7 +633,7 @@ export const Stats = () => {
                   borderWidth={1}
                   borderColor={{ from: 'color', modifiers: [['darker', 0.2]] }}
                   arcLinkLabelsSkipAngle={10}
-                  arcLinkLabelsTextColor='#333333'
+                  arcLinkLabelsTextColor={arcLinkLabelsTextColor}
                   arcLinkLabelsThickness={2}
                   arcLinkLabelsColor={{ from: 'color' }}
                   arcLabelsSkipAngle={10}
@@ -606,6 +641,7 @@ export const Stats = () => {
                     from: 'color',
                     modifiers: [['darker', 2]],
                   }}
+                  theme={nivoTheme}
                   legends={[
                     {
                       anchor: 'bottom',
@@ -616,7 +652,7 @@ export const Stats = () => {
                       itemsSpacing: 0,
                       itemWidth: 100,
                       itemHeight: 18,
-                      itemTextColor: '#999',
+                      itemTextColor: arcLinkLabelsTextColor,
                       itemDirection: 'left-to-right',
                       itemOpacity: 1,
                       symbolSize: 18,
@@ -625,7 +661,7 @@ export const Stats = () => {
                         {
                           on: 'hover',
                           style: {
-                            itemTextColor: '#000',
+                            itemTextColor: legendHoverTextColor,
                           },
                         },
                       ],
@@ -654,14 +690,15 @@ export const Stats = () => {
                       data={aircraftCalendar.data}
                       from={dateFrom}
                       to={dateTo}
-                      emptyColor='#eeeeee'
+                      emptyColor={mode === 'dark' ? '#333333' : '#eeeeee'}
                       colors={['#61cdbb', '#97e3d5', '#e8c1a0', '#f47560']}
                       margin={{ top: 40, right: 40, bottom: 40, left: 40 }}
                       yearSpacing={40}
-                      monthBorderColor='#ffffff'
+                      monthBorderColor={mode === 'dark' ? '#555555' : '#ffffff'}
                       dayBorderWidth={2}
-                      dayBorderColor='#ffffff'
+                      dayBorderColor={mode === 'dark' ? '#555555' : '#ffffff'}
                       tooltip={CalendarTooltip}
+                      theme={nivoTheme}
                       legends={[
                         {
                           anchor: 'bottom-right',
@@ -738,6 +775,7 @@ export const Stats = () => {
                           from: 'color',
                           modifiers: [['darker', 1.6]],
                         }}
+                        theme={nivoTheme}
                         legends={[
                           {
                             dataFrom: 'keys',
@@ -827,6 +865,7 @@ export const Stats = () => {
                           from: 'color',
                           modifiers: [['darker', 1.6]],
                         }}
+                        theme={nivoTheme}
                         enableLabel={true}
                       />
                     </Box>
@@ -878,6 +917,7 @@ export const Stats = () => {
                 labelSkipWidth={12}
                 labelSkipHeight={12}
                 labelTextColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
+                theme={nivoTheme}
               />
             </Box>
           </CardContent>
@@ -911,7 +951,7 @@ export const Stats = () => {
                         modifiers: [['darker', 0.2]],
                       }}
                       arcLinkLabelsSkipAngle={10}
-                      arcLinkLabelsTextColor='#333333'
+                      arcLinkLabelsTextColor={arcLinkLabelsTextColor}
                       arcLinkLabelsThickness={2}
                       arcLinkLabelsColor={{ from: 'color' }}
                       arcLabelsSkipAngle={10}
@@ -919,6 +959,7 @@ export const Stats = () => {
                         from: 'color',
                         modifiers: [['darker', 2]],
                       }}
+                      theme={nivoTheme}
                       legends={[
                         {
                           anchor: 'bottom',
@@ -929,7 +970,7 @@ export const Stats = () => {
                           itemsSpacing: 0,
                           itemWidth: 100,
                           itemHeight: 18,
-                          itemTextColor: '#999',
+                          itemTextColor: arcLinkLabelsTextColor,
                           itemDirection: 'left-to-right',
                           itemOpacity: 1,
                           symbolSize: 18,
@@ -938,7 +979,7 @@ export const Stats = () => {
                             {
                               on: 'hover',
                               style: {
-                                itemTextColor: '#000',
+                                itemTextColor: legendHoverTextColor,
                               },
                             },
                           ],
