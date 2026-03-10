@@ -1,4 +1,4 @@
-import { Tabs, Tab, Box, useTheme } from '@mui/material'
+import { Tabs, Tab, Box, useTheme, useMediaQuery } from '@mui/material'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { t } from 'i18next'
 import { MenuItem } from '../config/menuItems'
@@ -11,6 +11,7 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
   const theme = useTheme()
   const { hasAccess } = useRoles()
   const { sudo } = useThemeMode()
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
 
   const goTo = (path: string) => navigate(`${parent.path}/${path}`)
 
@@ -59,7 +60,8 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
           aria-label='Submenu'
           textColor='primary'
           indicatorColor='primary'
-          variant='scrollable'
+          variant={isDesktop ? 'standard' : 'scrollable'}
+          centered={isDesktop}
           scrollButtons='auto'
           sx={{
             width: '100%',
