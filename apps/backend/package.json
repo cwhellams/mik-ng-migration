@@ -33,6 +33,9 @@
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     "coverageDirectory": "coverage",
+    "coveragePathIgnorePatterns": [
+      "/test/"
+    ],
     "testEnvironment": "node",
     "extensionsToTreatAsEsm": [
       ".ts"

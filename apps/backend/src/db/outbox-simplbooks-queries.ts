@@ -199,3 +199,17 @@ export async function updateMemberBillingId(
     .where('member_id', '=', memberId)
     .execute()
 }
+
+export async function getNextCreditNoteSequenceNumber(txn?: Transaction<DB>): Promise<string> {
+  const executor = txn ?? db
+
+  const result = await executor
+    .selectNoFrom(eb =>
+      eb
+        .fn<bigint | number>('nextval', [eb.val('accts.credit_note_number_seq')])
+        .as('next_sequence_number'),
+    )
+    .executeTakeFirstOrThrow()
+
+  return String(result.next_sequence_number)
+}

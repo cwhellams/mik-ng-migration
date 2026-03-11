@@ -310,6 +310,40 @@ describe('GET /members/me', () => {
   })
 })
 
+describe('GET /members/mailing-lists', () => {
+  const originalMailingListsEnv = process.env.AIRCRAFT_MAILING_LISTS
+
+  afterEach(() => {
+    if (originalMailingListsEnv === undefined) {
+      delete process.env.AIRCRAFT_MAILING_LISTS
+      return
+    }
+
+    process.env.AIRCRAFT_MAILING_LISTS = originalMailingListsEnv
+  })
+
+  it('should return parsed mailing lists for authenticated user', async () => {
+    process.env.AIRCRAFT_MAILING_LISTS = '10:General list,20:Ops:Team,30'
+
+    const response = await request(app)
+      .get('/members/mailing-lists')
+      .set('Authorization', `Bearer ${memberToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual([
+      { id: '10', name: 'General list' },
+      { id: '20', name: 'Ops:Team' },
+      { id: '30', name: '30' },
+    ])
+  })
+
+  it('should return 401 when authorization header is missing', async () => {
+    const response = await request(app).get('/members/mailing-lists')
+
+    expect(response.status).toBe(401)
+  })
+})
+
 describe('PATCH /members/me', () => {
   const patch = async (token: string, payload: Partial<Member>) =>
     request(app).patch('/members/me').set('Authorization', `Bearer ${token}`).send(payload)

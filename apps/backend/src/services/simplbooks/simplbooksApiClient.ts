@@ -23,6 +23,7 @@ import { MemberSchema, type Member } from '../../routes/members/models.ts'
 import dayjs from 'dayjs'
 import http from 'node:http'
 import https from 'node:https'
+import { logAndThrowSimplbooksError } from './simplbooksErrorHandler.ts'
 
 dotenv.config()
 
@@ -90,46 +91,12 @@ export const simplbooksApiClient: AxiosInstance = axios.create({
   },
 })
 
-simplbooksApiClient.interceptors.response.use(
-  response => {
-    logger.info(
-      `[SimplBooks] ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`,
-    )
-    return response
-  },
-  error => {
-    if (axios.isAxiosError(error)) {
-      const status = error.response?.status
-      const url = error.config?.url
-
-      if (status === 429) {
-        logger.error(`[SimplBooks] 429 Too Many Requests for ${url} – rate limit exceeded`)
-      } else if (status && status >= 500) {
-        logger.error(`[SimplBooks] ${status} Server error for ${url}`)
-      } else {
-        logger.error(`[SimplBooks] ${status ?? 'NO_STATUS'} Error for ${url}`)
-      }
-    } else {
-      logger.error('[SimplBooks] Unknown error', error)
-    }
-
-    throw error
-  },
-)
-
-function handleApiError(error: unknown) {
-  if (axios.isAxiosError(error) && error.response) {
-    const { status, errors } = error.response.data
-
-    if (Array.isArray(errors)) {
-      logger.error(`API Error [${status}]: ${errors.join('; ')}`)
-    } else {
-      logger.error('Unexpected error response format:', error.response.data)
-    }
-  } else {
-    logger.error('Unexpected error:', error)
-  }
-}
+simplbooksApiClient.interceptors.response.use(response => {
+  logger.info(
+    `[SimplBooks] ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`,
+  )
+  return response
+})
 
 export async function createNewClient(client: Member): Promise<number> {
   return enqueueRateLimitedRequest(async () => {
@@ -147,8 +114,12 @@ export async function createNewClient(client: Member): Promise<number> {
 
       return response.data.inserted_id
     } catch (error) {
-      handleApiError(error)
-      throw error
+      logAndThrowSimplbooksError(error, {
+        operation: 'createNewClient',
+        endpoint: '/clients/create',
+        method: 'POST',
+        payload: client,
+      })
     }
   })
 }
@@ -164,8 +135,12 @@ export async function updateClient(billingId: number, client: ClientData): Promi
         )
       }
     } catch (error) {
-      handleApiError(error)
-      throw error
+      logAndThrowSimplbooksError(error, {
+        operation: 'updateClient',
+        endpoint: '/clients/update',
+        method: 'POST',
+        payload: { billingId, client },
+      })
     }
   })
 }
@@ -177,8 +152,12 @@ export async function searchClient(filter: ClientFilter): Promise<unknown> {
       const response = await simplbooksApiClient.get(`/clients/list`, { data: filter })
       return response.data
     } catch (error) {
-      handleApiError(error)
-      throw error
+      logAndThrowSimplbooksError(error, {
+        operation: 'searchClient',
+        endpoint: '/clients/list',
+        method: 'GET',
+        payload: filter,
+      })
     }
   })
 }
@@ -192,8 +171,11 @@ export async function getInvoice(id: number): Promise<InvoiceResponse> {
       }
       return response.data
     } catch (error) {
-      handleApiError(error)
-      throw error
+      logAndThrowSimplbooksError(error, {
+        operation: 'getInvoice',
+        endpoint: `/invoices/get/${id}`,
+        method: 'GET',
+      })
     }
   })
 }
@@ -206,8 +188,11 @@ export async function markInvoiceAsSentInSimplbooks(id: number) {
         throw new Error(`Failed to set invoice ${id} as sent : ${response.statusText}`)
       }
     } catch (error) {
-      handleApiError(error)
-      throw error
+      logAndThrowSimplbooksError(error, {
+        operation: 'markInvoiceAsSentInSimplbooks',
+        endpoint: `/invoices/sent/${id}`,
+        method: 'POST',
+      })
     }
   })
 }
@@ -226,15 +211,18 @@ export async function getInvoicePdf(id: string): Promise<string> {
       }
 
       // SimplBooks returns JSON with base64 PDF in the "data" field
-      if (response.data && response.data.data) {
+      if (response.data?.data) {
         logger.info(`Successfully fetched PDF for invoice ${id}`)
         return response.data.data
       }
 
       throw new Error(`Invalid PDF response format for invoice ${id}`)
     } catch (error) {
-      handleApiError(error)
-      throw error
+      logAndThrowSimplbooksError(error, {
+        operation: 'getInvoicePdf',
+        endpoint: `/invoices/get_pdf/${id}`,
+        method: 'GET',
+      })
     }
   })
 }
@@ -270,8 +258,12 @@ export async function searchInvoices(filter: InvoiceFilter): Promise<InvoiceList
       const response = await simplbooksApiClient.get(`/invoices/list`, { data: filter })
       return response.data
     } catch (error) {
-      handleApiError(error)
-      throw error
+      logAndThrowSimplbooksError(error, {
+        operation: 'searchInvoices',
+        endpoint: '/invoices/list',
+        method: 'GET',
+        payload: filter,
+      })
     }
   })
 }
@@ -287,8 +279,12 @@ export async function createSimplbooksInvoice(
       }
       return response.data
     } catch (error) {
-      handleApiError(error)
-      throw error
+      logAndThrowSimplbooksError(error, {
+        operation: 'createSimplbooksInvoice',
+        endpoint: '/invoices/create',
+        method: 'POST',
+        payload: invoice,
+      })
     }
   })
 }
@@ -304,8 +300,12 @@ export async function createSimplbooksReceipt(
       }
       return response.data
     } catch (error) {
-      handleApiError(error)
-      throw error
+      logAndThrowSimplbooksError(error, {
+        operation: 'createSimplbooksReceipt',
+        endpoint: '/incomings/create',
+        method: 'POST',
+        payload: receipt,
+      })
     }
   })
 }
@@ -327,31 +327,42 @@ export async function getItems(code?: string): Promise<ItemListArticle[]> {
   let getNextPage: boolean = true
   const allListItems: ItemListArticle[] = []
   let response: AxiosResponse<any>
-  do {
-    logger.info(`Fetching items from SimplBooks, page: ${page}`)
-    response = await enqueueRateLimitedRequest(() =>
-      simplbooksApiClient.get(`/articles/list`, { data: filter(page) }),
-    )
-    if (response.status !== 200) {
-      throw new Error(`Failed to get items from SimplBooks response: ${response.statusText}`)
-    }
-    const parsed = ItemListSchema.safeParse(response.data)
+  try {
+    do {
+      logger.info(`Fetching items from SimplBooks, page: ${page}`)
+      response = await enqueueRateLimitedRequest(() =>
+        simplbooksApiClient.get(`/articles/list`, { data: filter(page) }),
+      )
+      if (response.status !== 200) {
+        throw new Error(`Failed to get items from SimplBooks response: ${response.statusText}`)
+      }
+      const parsed = ItemListSchema.safeParse(response.data)
 
-    if (!parsed.success) {
-      logger.error(`Failed to parse SimplBooks response: ${JSON.stringify(parsed.error, null, 2)}`)
-      throw new Error(`Failed to parse SimplBooks response: ${parsed.error.message}`)
-    }
+      if (!parsed.success) {
+        logger.error(
+          `Failed to parse SimplBooks response: ${JSON.stringify(parsed.error, null, 2)}`,
+        )
+        throw new Error(`Failed to parse SimplBooks response: ${parsed.error.message}`)
+      }
 
-    const listItems: ItemListPayload = parsed.data
-    allListItems.push(
-      ...listItems.data.map(item => item.Article).filter(item => item.active === true),
-    )
-    page++
-    getNextPage = listItems.data.length > 0 && listItems.data.length === 50
-    logger.info(
-      `Received ${listItems.data.length} items from SimplBooks, next page: ${page}. Continue loading: ${getNextPage}`,
-    )
-  } while (getNextPage)
+      const listItems: ItemListPayload = parsed.data
+      allListItems.push(
+        ...listItems.data.map(item => item.Article).filter(item => item.active === true),
+      )
+      page++
+      getNextPage = listItems.data.length > 0 && listItems.data.length === 50
+      logger.info(
+        `Received ${listItems.data.length} items from SimplBooks, next page: ${page}. Continue loading: ${getNextPage}`,
+      )
+    } while (getNextPage)
+  } catch (error) {
+    logAndThrowSimplbooksError(error, {
+      operation: 'getItems',
+      endpoint: '/articles/list',
+      method: 'GET',
+      payload: { code, lastAttemptedPage: page, perPage: 50 },
+    })
+  }
 
   return allListItems.map(item => item)
 }

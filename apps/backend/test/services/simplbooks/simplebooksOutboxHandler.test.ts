@@ -214,49 +214,49 @@ describe('Simplbooks Outbox Handler tests', () => {
       },
     }
 
-    it('strips the id from the invoice', () => {
-      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'Test reason')
+    it('strips the id from the invoice', async () => {
+      const result = await buildCreditNotePayload(baseInvoiceResponse, '42', 'Test reason')
       expect(result.Invoice.id).toBeUndefined()
     })
 
-    it('sets credit_invoice_for to the original invoice id', () => {
-      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'Test reason')
+    it('sets credit_invoice_for to the original invoice id', async () => {
+      const result = await buildCreditNotePayload(baseInvoiceResponse, '42', 'Test reason')
       expect(result.Invoice.credit_invoice_for).toBe(42)
     })
 
-    it('sets additional_info with the invoice id and reason', () => {
-      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'Duplicate charge')
+    it('sets additional_info with the invoice id and reason', async () => {
+      const result = await buildCreditNotePayload(baseInvoiceResponse, '42', 'Duplicate charge')
       expect(result.Invoice.additional_info).toBe(
         'Credit note for invoice 42. Reason: Duplicate charge',
       )
     })
 
-    it('preserves other invoice fields from the original', () => {
-      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
+    it('preserves other invoice fields from the original', async () => {
+      const result = await buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
       expect(result.Invoice.client_id).toBe(7)
     })
 
-    it('negates price_per_unit on each task', () => {
-      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
+    it('negates price_per_unit on each task', async () => {
+      const result = await buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
       expect(result.Tasks[0].Task.price_per_unit).toBe(-75.0)
     })
 
-    it('sets price_per_unit to 0 when original is 0', () => {
-      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
+    it('sets price_per_unit to 0 when original is 0', async () => {
+      const result = await buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
       expect(result.Tasks[1].Task.price_per_unit).toBe(0)
     })
 
-    it('strips the id from each task', () => {
-      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
+    it('strips the id from each task', async () => {
+      const result = await buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
       result.Tasks.forEach(t => expect(t.Task.id).toBeUndefined())
     })
 
-    it('includes Projects from the original task', () => {
-      const result = buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
+    it('includes Projects from the original task', async () => {
+      const result = await buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
       expect(result.Tasks[0].Projects).toEqual([{ code: 'PROJ1' }])
     })
 
-    it('defaults to empty Projects array when task has no Projects', () => {
+    it('defaults to empty Projects array when task has no Projects', async () => {
       const invoiceWithNoProjects: InvoiceResponse = {
         ...baseInvoiceResponse,
         data: {
@@ -264,7 +264,7 @@ describe('Simplbooks Outbox Handler tests', () => {
           Task: [{ id: 20, name: 'Fee', price_per_unit: 50.0 }],
         },
       }
-      const result = buildCreditNotePayload(invoiceWithNoProjects, '42', 'reason')
+      const result = await buildCreditNotePayload(invoiceWithNoProjects, '42', 'reason')
       expect(result.Tasks[0].Projects).toEqual([])
     })
   })

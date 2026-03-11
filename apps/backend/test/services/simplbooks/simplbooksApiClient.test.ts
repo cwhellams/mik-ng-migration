@@ -25,6 +25,7 @@ import type {
   InvoicePost,
 } from '../../../src/services/simplbooks/models.ts'
 import logger from '../../../src/lib/logger.ts'
+import { SimplbooksApiError } from '../../../src/services/simplbooks/simplbooksErrorHandler.ts'
 
 // Clear interceptors before any tests run to prevent rate limiting delays
 beforeAll(() => {
@@ -269,10 +270,29 @@ describe('Test error handler', () => {
     jest.spyOn(simplbooksApiClient, 'get').mockRejectedValue(mockedError)
 
     // Act & Assert
-    await expect(getInvoice(123)).rejects.toEqual(mockedError)
+    const request = getInvoice(123)
+
+    await expect(request).rejects.toMatchObject({
+      name: 'SimplbooksApiError',
+      statusCode: 400,
+      endpoint: '/invoices/get/123',
+      method: 'GET',
+      errors: ['Invalid ID', 'Something else went wrong'],
+    })
+    await expect(request).rejects.toBeInstanceOf(SimplbooksApiError)
 
     // Assert logger was called with expected error message
-    expect(loggerSpy).toHaveBeenCalledWith('API Error [400]: Invalid ID; Something else went wrong')
+    expect(loggerSpy).toHaveBeenCalledWith(
+      '[SimplBooks] GET /invoices/get/123 failed (400): Invalid ID; Something else went wrong',
+      {
+        operation: 'getInvoice',
+        endpoint: '/invoices/get/123',
+        method: 'GET',
+        statusCode: 400,
+        errors: ['Invalid ID', 'Something else went wrong'],
+        payloadPreview: undefined,
+      },
+    )
   })
 
   it('should log unexpected response format if errors is not an array', async () => {
@@ -291,11 +311,27 @@ describe('Test error handler', () => {
 
     jest.spyOn(simplbooksApiClient, 'get').mockRejectedValue(mockedError)
 
-    await expect(getInvoice(456)).rejects.toEqual(mockedError)
+    const request = getInvoice(456)
+
+    await expect(request).rejects.toMatchObject({
+      name: 'SimplbooksApiError',
+      statusCode: 500,
+      endpoint: '/invoices/get/456',
+      method: 'GET',
+      errors: ['SimplBooks request failed'],
+    })
+    await expect(request).rejects.toBeInstanceOf(SimplbooksApiError)
 
     expect(loggerSpy).toHaveBeenCalledWith(
-      'Unexpected error response format:',
-      mockedError.response.data,
+      '[SimplBooks] GET /invoices/get/456 failed (500): SimplBooks request failed',
+      {
+        operation: 'getInvoice',
+        endpoint: '/invoices/get/456',
+        method: 'GET',
+        statusCode: 500,
+        errors: ['SimplBooks request failed'],
+        payloadPreview: undefined,
+      },
     )
   })
 
@@ -307,7 +343,17 @@ describe('Test error handler', () => {
 
     await expect(getInvoice(789)).rejects.toThrow('Some non-axios error')
 
-    expect(loggerSpy).toHaveBeenCalledWith('Unexpected error:', randomError)
+    expect(loggerSpy).toHaveBeenCalledWith(
+      '[SimplBooks] GET /invoices/get/789 failed (NO_STATUS): Some non-axios error',
+      {
+        operation: 'getInvoice',
+        endpoint: '/invoices/get/789',
+        method: 'GET',
+        statusCode: undefined,
+        errors: ['Some non-axios error'],
+        payloadPreview: undefined,
+      },
+    )
   })
 })
 
@@ -352,8 +398,28 @@ describe('markInvoiceAsSent', () => {
 
     jest.spyOn(simplbooksApiClient, 'post').mockRejectedValue(mockedError)
 
-    await expect(markInvoiceAsSentInSimplbooks(999)).rejects.toEqual(mockedError)
-    expect(loggerSpy).toHaveBeenCalledWith('API Error [500]: Server error')
+    const request = markInvoiceAsSentInSimplbooks(999)
+
+    await expect(request).rejects.toMatchObject({
+      name: 'SimplbooksApiError',
+      statusCode: 500,
+      endpoint: '/invoices/sent/999',
+      method: 'POST',
+      errors: ['Server error'],
+    })
+    await expect(request).rejects.toBeInstanceOf(SimplbooksApiError)
+
+    expect(loggerSpy).toHaveBeenCalledWith(
+      '[SimplBooks] POST /invoices/sent/999 failed (500): Server error',
+      {
+        operation: 'markInvoiceAsSentInSimplbooks',
+        endpoint: '/invoices/sent/999',
+        method: 'POST',
+        statusCode: 500,
+        errors: ['Server error'],
+        payloadPreview: undefined,
+      },
+    )
   })
 })
 
