@@ -35,41 +35,53 @@ import {
   updateFlightLogsWithInvoiceNumber,
   insertInvoice,
   updateMemberBillingId,
+  getNextCreditNoteSequenceNumber,
 } from '../../db/outbox-simplbooks-queries.ts'
 import type { Transaction } from 'kysely'
 import type { DB } from '../../db/schema.js'
 import { createFlightInvoicePayload } from '../accounting/flightInvoiceCreator.ts'
 import { FlightInvoicePayloadSchema } from '../../routes/flight-log/models.ts'
 import { isRecurringFeeAlreadyCreated } from '../accounting/recurringFeesProcessor.ts'
+import { SimplbooksApiError } from './simplbooksErrorHandler.ts'
 
 export const MIK_SIMPLBOOKS_MEMBER: string = 'simplbks'
 export const MIK_CURRENCY = 'EUR'
 
 export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
-  switch (msg.event_type) {
-    case SimplbooksEventType.ADD_MEMBER:
-      await addMember(msg)
-      break
-    case SimplbooksEventType.NEW_MEMBER_FEES:
-      await createNewMemberFeesInvoice(msg)
-      break
-    case SimplbooksEventType.ANNUAL_MEMBERSHIP_FEE:
-      await createAnnualMemberFeeInvoice(msg)
-      break
-    case SimplbooksEventType.EQUIPMENT_INVOICE:
-      await createAnnualEquipmentFeeInvoice(msg)
-      break
-    case SimplbooksEventType.SEND_INVOICE_PDF:
-      await createSimplbooksInvoiceEmail(msg)
-      break
-    case SimplbooksEventType.FLIGHT_INVOICE:
-      await createFlightInvoice(msg)
-      break
-    case SimplbooksEventType.CREDIT_NOTE:
-      await createCreditNote(msg)
-      break
-    default:
-      throw new Error(`Unsupported outbox event type: ${msg.event_type}`)
+  try {
+    switch (msg.event_type) {
+      case SimplbooksEventType.ADD_MEMBER:
+        await addMember(msg)
+        break
+      case SimplbooksEventType.NEW_MEMBER_FEES:
+        await createNewMemberFeesInvoice(msg)
+        break
+      case SimplbooksEventType.ANNUAL_MEMBERSHIP_FEE:
+        await createAnnualMemberFeeInvoice(msg)
+        break
+      case SimplbooksEventType.EQUIPMENT_INVOICE:
+        await createAnnualEquipmentFeeInvoice(msg)
+        break
+      case SimplbooksEventType.SEND_INVOICE_PDF:
+        await createSimplbooksInvoiceEmail(msg)
+        break
+      case SimplbooksEventType.FLIGHT_INVOICE:
+        await createFlightInvoice(msg)
+        break
+      case SimplbooksEventType.CREDIT_NOTE:
+        await createCreditNote(msg)
+        break
+      default:
+        throw new Error(`Unsupported outbox event type: ${msg.event_type}`)
+    }
+  } catch (error) {
+    if (error instanceof SimplbooksApiError) {
+      logger.error(
+        `SimplBooks dispatch failed for outbox event ${msg.event_type} (${msg.id}) at ${error.method} ${error.endpoint}`,
+      )
+    }
+
+    throw error
   }
 }
 
@@ -343,17 +355,19 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
   })
 }
 
-export function buildCreditNotePayload(
+export async function buildCreditNotePayload(
   originalInvoice: InvoiceResponse,
   simplbooksInvoiceId: string,
   reason: string,
-): InvoicePost {
+): Promise<InvoicePost> {
   return {
     Invoice: {
+      number: await getNextCreditNoteSequenceNumber(), // Get next credit note number from sequence
       client_id: originalInvoice.data.Invoice.client_id,
       credit_invoice_for: Number(simplbooksInvoiceId), // Link to original invoice
       sent: new Date().toISOString().split('T')[0], // Mark as sent
       additional_info: `Credit note for invoice ${simplbooksInvoiceId}. Reason: ${reason}`,
+      due: new Date().toISOString().split('T')[0], // Due immediately
     },
     Tasks: originalInvoice.data.Task.map(invoiceTask => {
       // Extract task data without the embedded Projects array
@@ -415,7 +429,7 @@ async function createCreditNote(outboxMsg: AcctsOutboxSimplbooks) {
     const originalInvoice = await getInvoice(Number(payload.simplbooksInvoiceId))
 
     // Create a credit note invoice by copying the original but with negative amounts
-    const creditNotePayload = buildCreditNotePayload(
+    const creditNotePayload = await buildCreditNotePayload(
       originalInvoice,
       payload.simplbooksInvoiceId,
       payload.reason,
@@ -437,15 +451,17 @@ async function createCreditNote(outboxMsg: AcctsOutboxSimplbooks) {
       `Loaded created credit note invoice ${creditNoteInvoiceId} for original invoice ${payload.simplbooksInvoiceId}`,
     )
 
-    // Create receipt for Original Invoice
-    const originalInvoiceReceiptPayload = buildReceiptPayload(originalInvoice.data.Invoice)
-    const originalInvoiceReceiptResponse = await createSimplbooksReceipt(
-      originalInvoiceReceiptPayload,
-    )
-
-    logger.info(
-      `Created receipt ${originalInvoiceReceiptResponse.inserted_id} for original invoice ${payload.simplbooksInvoiceId}`,
-    )
+    // Create receipt for Original Invoice if its not marked paid
+    if (!originalInvoice.data.Invoice.paid || originalInvoice.data.Invoice.paid === '0000-00-00') {
+      await markInvoiceAsSentInSimplbooks(Number(payload.simplbooksInvoiceId))
+      const originalInvoiceReceiptPayload = buildReceiptPayload(originalInvoice.data.Invoice)
+      const originalInvoiceReceiptResponse = await createSimplbooksReceipt(
+        originalInvoiceReceiptPayload,
+      )
+      logger.info(
+        `Created receipt ${originalInvoiceReceiptResponse.inserted_id} for original invoice ${payload.simplbooksInvoiceId}`,
+      )
+    }
 
     // Create receipt for Credit Note
     const creditNoteReceiptPayload = buildReceiptPayload(creditNoteInvoice.data.Invoice)

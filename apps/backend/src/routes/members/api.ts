@@ -66,6 +66,7 @@ import {
 } from '../../services/brevo/brevoClient.ts'
 import { getMemberForBrevoSync } from '../../db/brevo-sync-queries.ts'
 import logger from '../../lib/logger.ts'
+import { removeMemberFromBrevo } from '../../workers/brevoSyncWorker.ts'
 
 export const router = Router()
 
@@ -473,8 +474,10 @@ const cancelMembershipHandler = async (
   const currentYear = new Date().getFullYear()
   const unpaidFees = await getUnpaidMembershipFeesForYear(memberId, currentYear)
 
-  // Proceed with cancellation
-  // Deactivate
+  // Remove from Brevo if applicable - do this before DB update to ensure we have the Brevo Id
+  await removeMemberFromBrevo(member)
+
+  // Deactivate in db
   await deactivateMember(memberId, memberId, reason)
 
   // Cancel future bookings

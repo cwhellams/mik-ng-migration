@@ -22,6 +22,7 @@ import {
   restoreMember,
   hasMemberFlownInYear,
 } from '../../src/db/member-queries.ts'
+import { db } from '../../src/db/connection.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import {
   MIKLang,
@@ -480,6 +481,44 @@ describe('Db add member tests', () => {
     expect(memberRestored?.canMakeReservations).toBe(true)
 
     await removeMember(memberId)
+  })
+
+  it('removeMember should throw if member has brevo contact id', async () => {
+    const email = `${new Date().getTime()}@brevoremove.com`
+    const memberId = await addMember({
+      memberType: MIKMemberTypes.FLYING,
+      email,
+      firstName: 'Brevo',
+      lastName: 'Linked',
+      lang: MIKLang.FI,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+    })
+
+    try {
+      await db
+        .updateTable('member.register')
+        .set({
+          brevo_contact_id: 12345,
+        })
+        .where('member_id', '=', memberId)
+        .execute()
+
+      await expect(removeMember(memberId)).rejects.toThrow(
+        'Cannot delete member that is still synced to Brevo. Please remove from Brevo first.',
+      )
+    } finally {
+      await db
+        .updateTable('member.register')
+        .set({
+          brevo_contact_id: null,
+        })
+        .where('member_id', '=', memberId)
+        .execute()
+
+      await removeMember(memberId)
+    }
   })
 })
 

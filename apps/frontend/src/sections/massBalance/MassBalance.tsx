@@ -13,7 +13,6 @@ import {
   Chip,
   Card,
   CardContent,
-  Slider,
   Button,
 } from '@mui/material'
 import WarningIcon from '@mui/icons-material/Warning'
@@ -25,6 +24,7 @@ import {
   isPointInFlightEnvelope,
 } from './components/specsParser'
 import WeightBalanceEnvelope from './components/WeightBalanceEnvelope'
+import WeightSlider from './components/WeightSlider'
 import {
   useMassBalanceState,
   type WeightPosition,
@@ -808,32 +808,18 @@ const MassBalance: React.FC = () => {
                             {(pilot.weight * CONVERSIONS.KG_TO_LBS).toFixed(1)}{' '}
                             lbs)
                           </Typography>
-                          <Slider
+                          <WeightSlider
                             value={pilot.weight}
-                            onChange={(_, newValue) =>
+                            onChange={(newValue) =>
                               updatePilot({
                                 ...pilot,
-                                weight: newValue as number,
+                                weight: newValue,
                               })
                             }
                             min={selectedAircraft.loadPoints.pilot.minValue!}
                             max={maxWeight}
                             step={selectedAircraft.loadPoints.pilot.step || 1}
-                            valueLabelDisplay='auto'
-                            sx={{
-                              '& .MuiSlider-thumb': {
-                                backgroundColor:
-                                  pilot.weight > maxWeight
-                                    ? 'error.main'
-                                    : 'primary.main',
-                              },
-                              '& .MuiSlider-track': {
-                                backgroundColor:
-                                  pilot.weight > maxWeight
-                                    ? 'error.main'
-                                    : 'primary.main',
-                              },
-                            }}
+                            isOverLimit={pilot.weight > maxWeight}
                           />
                         </>
                       )
@@ -887,32 +873,18 @@ const MassBalance: React.FC = () => {
                             )}{' '}
                             lbs)
                           </Typography>
-                          <Slider
+                          <WeightSlider
                             value={copilot.weight}
-                            onChange={(_, newValue) =>
+                            onChange={(newValue) =>
                               updateCopilot({
                                 ...copilot,
-                                weight: newValue as number,
+                                weight: newValue,
                               })
                             }
                             min={selectedAircraft.loadPoints.copilot.minValue!}
                             max={maxWeight}
                             step={selectedAircraft.loadPoints.copilot.step || 1}
-                            valueLabelDisplay='auto'
-                            sx={{
-                              '& .MuiSlider-thumb': {
-                                backgroundColor:
-                                  copilot.weight > maxWeight
-                                    ? 'error.main'
-                                    : 'primary.main',
-                              },
-                              '& .MuiSlider-track': {
-                                backgroundColor:
-                                  copilot.weight > maxWeight
-                                    ? 'error.main'
-                                    : 'primary.main',
-                              },
-                            }}
+                            isOverLimit={copilot.weight > maxWeight}
                           />
                         </>
                       )
@@ -975,12 +947,12 @@ const MassBalance: React.FC = () => {
                                 ).toFixed(1)}{' '}
                                 lbs)
                               </Typography>
-                              <Slider
+                              <WeightSlider
                                 value={rearSeats.weight}
-                                onChange={(_, newValue) =>
+                                onChange={(newValue) =>
                                   updateRearSeat({
                                     ...rearSeats,
-                                    weight: newValue as number,
+                                    weight: newValue,
                                   })
                                 }
                                 min={
@@ -990,21 +962,7 @@ const MassBalance: React.FC = () => {
                                 step={
                                   selectedAircraft.loadPoints.rearSeat.step || 1
                                 }
-                                valueLabelDisplay='auto'
-                                sx={{
-                                  '& .MuiSlider-thumb': {
-                                    backgroundColor:
-                                      rearSeats.weight > maxWeight
-                                        ? 'error.main'
-                                        : 'primary.main',
-                                  },
-                                  '& .MuiSlider-track': {
-                                    backgroundColor:
-                                      rearSeats.weight > maxWeight
-                                        ? 'error.main'
-                                        : 'primary.main',
-                                  },
-                                }}
+                                isOverLimit={rearSeats.weight > maxWeight}
                               />
                             </>
                           )
@@ -1060,32 +1018,18 @@ const MassBalance: React.FC = () => {
                             )}{' '}
                             lbs)
                           </Typography>
-                          <Slider
+                          <WeightSlider
                             value={baggage.weight}
-                            onChange={(_, newValue) =>
+                            onChange={(newValue) =>
                               updateBaggage({
                                 ...baggage,
-                                weight: newValue as number,
+                                weight: newValue,
                               })
                             }
                             min={selectedAircraft.loadPoints.baggage.minValue!}
                             max={maxWeight}
                             step={selectedAircraft.loadPoints.baggage.step || 1}
-                            valueLabelDisplay='auto'
-                            sx={{
-                              '& .MuiSlider-thumb': {
-                                backgroundColor:
-                                  baggage.weight > maxWeight
-                                    ? 'error.main'
-                                    : 'primary.main',
-                              },
-                              '& .MuiSlider-track': {
-                                backgroundColor:
-                                  baggage.weight > maxWeight
-                                    ? 'error.main'
-                                    : 'primary.main',
-                              },
-                            }}
+                            isOverLimit={baggage.weight > maxWeight}
                           />
                         </>
                       )
@@ -1153,32 +1097,18 @@ const MassBalance: React.FC = () => {
                             {(fuel.litres * CONVERSIONS.LTR_TO_USG).toFixed(1)}{' '}
                             USG)
                           </Typography>
-                          <Slider
+                          <WeightSlider
                             value={fuel.litres}
-                            onChange={(_, newValue) =>
+                            onChange={(newValue) =>
                               updateFuel({
                                 ...fuel,
-                                litres: newValue as number,
+                                litres: newValue,
                               })
                             }
                             min={selectedAircraft.loadPoints.fuel.minValue!}
                             max={maxLitres}
                             step={selectedAircraft.loadPoints.fuel.step || 1}
-                            valueLabelDisplay='auto'
-                            sx={{
-                              '& .MuiSlider-thumb': {
-                                backgroundColor:
-                                  fuel.litres > maxLitres
-                                    ? 'error.main'
-                                    : 'primary.main',
-                              },
-                              '& .MuiSlider-track': {
-                                backgroundColor:
-                                  fuel.litres > maxLitres
-                                    ? 'error.main'
-                                    : 'primary.main',
-                              },
-                            }}
+                            isOverLimit={fuel.litres > maxLitres}
                           />
                         </>
                       )
@@ -1220,13 +1150,12 @@ const MassBalance: React.FC = () => {
                 Taxi Fuel: {taxiFuel} L (
                 {(taxiFuel * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG)
               </Typography>
-              <Slider
+              <WeightSlider
                 value={taxiFuel}
-                onChange={(_, newValue) => updateTaxiFuel(newValue as number)}
+                onChange={(newValue) => updateTaxiFuel(newValue)}
                 min={selectedAircraft?.loadPoints.taxiFuel.minValue || 0}
                 max={selectedAircraft?.loadPoints.taxiFuel.maxValue || 20}
                 step={selectedAircraft?.loadPoints.taxiFuel.step || 0.5}
-                valueLabelDisplay='auto'
               />
             </Box>
 
@@ -1236,13 +1165,12 @@ const MassBalance: React.FC = () => {
                 Fuel Flow: {fuelFlow} L/h (
                 {(fuelFlow * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG/h)
               </Typography>
-              <Slider
+              <WeightSlider
                 value={fuelFlow}
-                onChange={(_, newValue) => updateFuelFlow(newValue as number)}
+                onChange={(newValue) => updateFuelFlow(newValue)}
                 min={selectedAircraft?.loadPoints.fuelFlow.minValue || 15}
                 max={selectedAircraft?.loadPoints.fuelFlow.maxValue || 50}
                 step={selectedAircraft?.loadPoints.fuelFlow.step || 1}
-                valueLabelDisplay='auto'
               />
             </Box>
 
@@ -1252,13 +1180,12 @@ const MassBalance: React.FC = () => {
                 Planned Flight Time: {(flightTime / 60).toFixed(1)} hours (
                 {flightTime} mins)
               </Typography>
-              <Slider
+              <WeightSlider
                 value={flightTime}
-                onChange={(_, newValue) => updateFlightTime(newValue as number)}
+                onChange={(newValue) => updateFlightTime(newValue)}
                 min={selectedAircraft?.loadPoints.flightTime.minValue || 0}
                 max={selectedAircraft?.loadPoints.flightTime.maxValue || 480}
                 step={selectedAircraft?.loadPoints.flightTime.step || 5}
-                valueLabelDisplay='auto'
               />
             </Box>
 

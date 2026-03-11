@@ -398,6 +398,18 @@ export async function setMemberExpired(memberId: string): Promise<boolean> {
 }
 
 export async function removeMember(memberId: string): Promise<boolean> {
+  const member = await db
+    .selectFrom('member.register')
+    .where('member_id', '=', memberId)
+    .selectAll()
+    .executeTakeFirst()
+
+  if (member?.brevo_contact_id) {
+    throw new Error(
+      'Cannot delete member that is still synced to Brevo. Please remove from Brevo first.',
+    )
+  }
+
   await db
     .deleteFrom('member.member_to_roles')
     .where('member_id', '=', memberId)
@@ -406,6 +418,7 @@ export async function removeMember(memberId: string): Promise<boolean> {
   const result = await db
     .deleteFrom('member.register')
     .where('member_id', '=', memberId)
+    .where('brevo_contact_id', 'is', null) // only delete if member is not sync'd to Brevo
     .executeTakeFirstOrThrow()
   return result.numDeletedRows == BigInt(1)
 }
@@ -744,6 +757,11 @@ export async function deactivateMember(
         member_type: MIKMemberTypes.REMOVED,
         can_make_reservations: false,
         is_membership_expired: true,
+        auto_renew_annual_membership: false,
+        auto_renew_equipment_fee: false,
+        brevo_contact_id: null, // remove Brevo contact link
+        brevo_sync_status: null,
+        brevo_synced_at: null,
         removed_at: now,
         removed_by: removedBy,
         removal_reason: reason ?? null,

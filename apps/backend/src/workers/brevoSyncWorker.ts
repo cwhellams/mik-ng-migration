@@ -8,10 +8,11 @@ import {
   getMembersToSync,
   updateMemberBrevoSyncStatus,
   getBrevoSyncStatusCounts,
+  getMemberForBrevoSync,
 } from '../db/brevo-sync-queries.ts'
 import type { BrevoContactAttributes, BrevoCreateContactRequest } from '../services/brevo/models.ts'
 import { MemberTypeToBrevoListId, BrevoListId } from '../services/brevo/models.ts'
-import type { MIKLang, MIKMemberTypes } from '../routes/members/models.ts'
+import type { Member, MIKLang, MIKMemberTypes } from '../routes/members/models.ts'
 import { MIKMemberTypes as MemberTypes } from '../routes/members/models.ts'
 
 let intervalId: NodeJS.Timeout | null = null
@@ -130,6 +131,29 @@ async function syncMembersToBrevo(): Promise<void> {
 
 type MemberToSync = Awaited<ReturnType<typeof getMembersToSync>>[number]
 
+export async function removeMemberFromBrevo(member: Member): Promise<void> {
+  logger.info(`Removing member ${member.memberId} from Brevo`)
+
+  if (!member.brevoContactId || Number.isNaN(Number(member.brevoContactId))) {
+    logger.warn(
+      `Member ${member.memberId} does not have a valid Brevo contact ID, skipping removal from Brevo`,
+    )
+    return
+  }
+
+  await brevoClient.deleteContact(Number(member.brevoContactId)).catch(error => {
+    logger.error(`Failed to remove member ${member.memberId} from Brevo:`, error)
+    // Mark as failed but do not throw since we want to continue processing other members
+    updateMemberBrevoSyncStatus(member.memberId, 'FAILED').catch(updateError => {
+      logger.error(
+        `Failed to update sync status for member ${member.memberId} after failed removal from Brevo:`,
+        updateError,
+      )
+    })
+  })
+  await updateMemberBrevoSyncStatus(member.memberId, 'SYNCED')
+}
+
 async function syncMemberToBrevo(member: MemberToSync): Promise<void> {
   logger.info(`Syncing member ${member.member_id} (${member.email}) to Brevo`)
 
@@ -202,9 +226,19 @@ async function syncMemberToBrevo(member: MemberToSync): Promise<void> {
 export async function syncSingleMemberToBrevo(memberId: string): Promise<void> {
   logger.info(`Manually syncing member ${memberId} to Brevo`)
 
-  const member = await getMembersToSync().then(members =>
-    members.find(m => m.member_id === memberId),
-  )
+  const member = await getMemberForBrevoSync(memberId)
+
+  if (!member) {
+    throw new Error(`Member ${memberId} not found or not eligible for sync`)
+  }
+
+  await syncMemberToBrevo(member)
+}
+
+export async function removeSingleMemberFromBrevo(memberId: string): Promise<void> {
+  logger.info(`Manually removing member ${memberId} from Brevo`)
+
+  const member = await getMemberForBrevoSync(memberId)
 
   if (!member) {
     throw new Error(`Member ${memberId} not found or not eligible for sync`)

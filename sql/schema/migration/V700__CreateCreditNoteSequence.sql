@@ -1,0 +1,3 @@
+CREATE SEQUENCE accts.credit_note_number_seq
+START WITH 30000005
+INCREMENT BY 1;
