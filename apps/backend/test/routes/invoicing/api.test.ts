@@ -72,7 +72,7 @@ describe('GET /items', () => {
       .get('/invoices/items')
       .set('Authorization', `Bearer ${adminToken}`)
     expect(res.status).toBe(200)
-    expect(res.body.items).toHaveLength(3)
+    expect(res.body.items).toHaveLength(4)
   })
 
   it('should return 401 for invalid token', async () => {

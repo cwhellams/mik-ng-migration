@@ -134,7 +134,7 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
 {
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
-  "billingId": "BILL005",
+  "billingId": "481",
   "brevoContactId": undefined,
   "canMakeReservations": false,
   "createdAt": Any<String>,
@@ -221,7 +221,7 @@ exports[`Db query member tests getMemberByEmail should return member data regard
 {
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
-  "billingId": "BILL005",
+  "billingId": "481",
   "brevoContactId": undefined,
   "canMakeReservations": false,
   "createdAt": Any<String>,
@@ -308,7 +308,7 @@ exports[`Db query member tests getMemberById should return member data for a val
 {
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
-  "billingId": "BILL001",
+  "billingId": "123",
   "brevoContactId": undefined,
   "canMakeReservations": true,
   "createdAt": Any<String>,
@@ -425,7 +425,7 @@ exports[`Db query member tests getMemberById should return member data for a val
 {
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
-  "billingId": "BILL001",
+  "billingId": "123",
   "brevoContactId": undefined,
   "canMakeReservations": true,
   "createdAt": Any<String>,

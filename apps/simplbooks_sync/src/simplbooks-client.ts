@@ -16,8 +16,10 @@ export class SimplBooksApiClient {
     const httpAgent = new http.Agent({ keepAlive: false, timeout: 5000 })
     const httpsAgent = new https.Agent({ keepAlive: false, timeout: 5000 })
 
+    const apiBaseUrl = this.buildApiBaseUrl(baseUrl, companyId)
+
     this.client = axios.create({
-      baseURL: `${baseUrl}/${companyId}/api`,
+      baseURL: apiBaseUrl,
       httpAgent,
       httpsAgent,
       timeout: 5000,
@@ -27,6 +29,18 @@ export class SimplBooksApiClient {
         'X-Input-Format': 'json',
       },
     })
+  }
+
+  private buildApiBaseUrl(baseUrl: string, companyId: string): string {
+    const url = new URL(baseUrl)
+    const normalizedBasePath = url.pathname.replace(/^\/+|\/+$/g, '')
+    const pathParts = [
+      normalizedBasePath,
+      encodeURIComponent(companyId),
+      'api',
+    ].filter(Boolean)
+    url.pathname = `/${pathParts.join('/')}`
+    return url.toString()
   }
 
   private async rateLimit(): Promise<void> {

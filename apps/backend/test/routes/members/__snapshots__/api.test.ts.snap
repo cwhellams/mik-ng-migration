@@ -259,7 +259,7 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
 {
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
-  "billingId": "BILL001",
+  "billingId": "123",
   "canMakeReservations": true,
   "createdAt": Any<String>,
   "createdBy": "k1mnimda",
@@ -436,7 +436,7 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
 {
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
-  "billingId": "BILL002",
+  "billingId": "124",
   "canMakeReservations": false,
   "createdAt": Any<String>,
   "createdBy": "k1mnimda",

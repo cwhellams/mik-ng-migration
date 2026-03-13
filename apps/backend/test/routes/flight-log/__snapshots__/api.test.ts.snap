@@ -25,6 +25,8 @@ exports[`GET /flight-log Get flight log with Id should return a single row when 
   "crew4MemberId": null,
   "crew4Role": null,
   "departureAirport": "EFHK",
+  "entryErrorFee": false,
+  "entryErrorFeeAppliedByMemberId": null,
   "flightId": "mikify",
   "flightMins": 105,
   "flightTime": "01:45",
@@ -49,6 +51,7 @@ exports[`GET /flight-log Get flight log with Id should return a single row when 
   "oilUpliftLitres": 1.5,
   "onBlockTimeEpoch": "1740824100",
   "onBlockTimeUtc": "2025-03-01T10:15:00.000Z",
+  "partiallyBillableFlight": false,
   "personalRemarks": "Smooth flight",
   "personsOnBoard": 4,
   "picLastName": "Korhonen",
@@ -61,6 +64,7 @@ exports[`GET /flight-log Get flight log with Id should return a single row when 
   "totalTimeInService": 2,
   "updatedAt": Any<String>,
   "updatedBy": "Matti1",
+  "validationRemarks": null,
 }
 `;
 
@@ -323,6 +327,8 @@ exports[`GET /flight-log/flightid should return flight for admin with sudo right
   "crew4MemberId": null,
   "crew4Role": null,
   "departureAirport": "EFHK",
+  "entryErrorFee": false,
+  "entryErrorFeeAppliedByMemberId": null,
   "flightId": "efnu4evr",
   "flightMins": 120,
   "flightTime": "02:00",
@@ -347,6 +353,7 @@ exports[`GET /flight-log/flightid should return flight for admin with sudo right
   "oilUpliftLitres": 2,
   "onBlockTimeEpoch": "1740915000",
   "onBlockTimeUtc": "2025-03-02T11:30:00.000Z",
+  "partiallyBillableFlight": false,
   "personalRemarks": "Training flight",
   "personsOnBoard": 2,
   "picLastName": "Nieminen",
@@ -359,6 +366,7 @@ exports[`GET /flight-log/flightid should return flight for admin with sudo right
   "totalTimeInService": 2,
   "updatedAt": Any<String>,
   "updatedBy": Any<String>,
+  "validationRemarks": null,
 }
 `;
 
@@ -387,6 +395,8 @@ exports[`GET /flight-log/flightid should return flights for the logged in user w
   "crew4MemberId": null,
   "crew4Role": null,
   "departureAirport": "EFHK",
+  "entryErrorFee": false,
+  "entryErrorFeeAppliedByMemberId": null,
   "flightId": "mikify",
   "flightMins": 105,
   "flightTime": "01:45",
@@ -411,6 +421,7 @@ exports[`GET /flight-log/flightid should return flights for the logged in user w
   "oilUpliftLitres": 1.5,
   "onBlockTimeEpoch": "1740824100",
   "onBlockTimeUtc": "2025-03-01T10:15:00.000Z",
+  "partiallyBillableFlight": false,
   "personalRemarks": "Smooth flight",
   "personsOnBoard": 4,
   "picLastName": "Korhonen",
@@ -423,6 +434,7 @@ exports[`GET /flight-log/flightid should return flights for the logged in user w
   "totalTimeInService": 2,
   "updatedAt": Any<String>,
   "updatedBy": "Matti1",
+  "validationRemarks": null,
 }
 `;
 
@@ -469,6 +481,8 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "crew4MemberId": null,
   "crew4Role": null,
   "departureAirport": "EFHK",
+  "entryErrorFee": false,
+  "entryErrorFeeAppliedByMemberId": null,
   "flightId": "bLwnAstr0",
   "flightMins": 90,
   "flightTime": "01:30",
@@ -493,6 +507,7 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "oilUpliftLitres": 1,
   "onBlockTimeEpoch": "1741003920",
   "onBlockTimeUtc": "2025-03-03T12:12:00.000Z",
+  "partiallyBillableFlight": false,
   "personalRemarks": "Routine check",
   "personsOnBoard": 3,
   "picLastName": "Hämäläinen",
@@ -505,6 +520,7 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "totalTimeInService": 1.5,
   "updatedAt": Any<String>,
   "updatedBy": "Matti1",
+  "validationRemarks": null,
 }
 `;
 
@@ -533,6 +549,8 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "crew4MemberId": null,
   "crew4Role": null,
   "departureAirport": "EFHK",
+  "entryErrorFee": false,
+  "entryErrorFeeAppliedByMemberId": null,
   "flightId": "bLwnAstr0",
   "flightMins": 90,
   "flightTime": "01:30",
@@ -557,6 +575,7 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "oilUpliftLitres": 1,
   "onBlockTimeEpoch": "1741003920",
   "onBlockTimeUtc": "2025-03-03T12:12:00.000Z",
+  "partiallyBillableFlight": false,
   "personalRemarks": "Routine check",
   "personsOnBoard": 3,
   "picLastName": "Hämäläinen",
@@ -569,6 +588,7 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "totalTimeInService": 1.5,
   "updatedAt": Any<String>,
   "updatedBy": "Matti1",
+  "validationRemarks": null,
 }
 `;
 
@@ -597,6 +617,8 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "crew4MemberId": null,
   "crew4Role": null,
   "departureAirport": "EFHK",
+  "entryErrorFee": false,
+  "entryErrorFeeAppliedByMemberId": null,
   "flightId": "bLwnAstr0",
   "flightMins": 90,
   "flightTime": "01:30",
@@ -621,6 +643,7 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "oilUpliftLitres": 1,
   "onBlockTimeEpoch": "1741003920",
   "onBlockTimeUtc": "2025-03-03T12:12:00.000Z",
+  "partiallyBillableFlight": false,
   "personalRemarks": "Routine check",
   "personsOnBoard": 3,
   "picLastName": "Hämäläinen",
@@ -633,6 +656,7 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "totalTimeInService": 1.5,
   "updatedAt": Any<String>,
   "updatedBy": "Matti1",
+  "validationRemarks": null,
 }
 `;
 
@@ -661,6 +685,8 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "crew4MemberId": null,
   "crew4Role": null,
   "departureAirport": "EFHK",
+  "entryErrorFee": false,
+  "entryErrorFeeAppliedByMemberId": null,
   "flightId": "bLwnAstr0",
   "flightMins": 90,
   "flightTime": "01:30",
@@ -685,6 +711,7 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "oilUpliftLitres": 1,
   "onBlockTimeEpoch": "1741003920",
   "onBlockTimeUtc": "2025-03-03T12:12:00.000Z",
+  "partiallyBillableFlight": false,
   "personalRemarks": "Routine check",
   "personsOnBoard": 3,
   "picLastName": "Hämäläinen",
@@ -697,5 +724,6 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
   "totalTimeInService": 1.5,
   "updatedAt": Any<String>,
   "updatedBy": "Matti1",
+  "validationRemarks": null,
 }
 `;

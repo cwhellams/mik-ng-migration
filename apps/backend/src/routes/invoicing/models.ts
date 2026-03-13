@@ -112,14 +112,15 @@ export const EquipmentFeeSchema = z.object({
 
 export type EquipmentFee = z.infer<typeof EquipmentFeeSchema>
 
-export const KalustonkayttoFeeSchema = z.object({
+export const ArticleFeeSchema = z.object({
   id: z.number(),
   code: z.string(),
   unit: z.string().optional(),
   name: z.string(),
-  contents: z.string(),
-  markup_value: z.number(),
-  amount: z.number().optional(),
+  contents: z.string().optional().nullable(),
+  markup_value: z.number().optional(),
+  price_per_unit: z.number().optional(),
+  amount: z.number().optional().nullable(),
 })
 
-export type KalustonkayttoFee = z.infer<typeof KalustonkayttoFeeSchema>
+export type ArticleFee = z.infer<typeof ArticleFeeSchema>

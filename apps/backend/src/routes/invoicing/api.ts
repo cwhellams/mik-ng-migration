@@ -32,8 +32,15 @@ import {
   InvoiceFlightsSchema,
   type InvoicableFlight,
   type InvoicableFlightListResponse,
+  FlightCreditSchema,
 } from '../flight-log/models.ts'
-import { getInvoicableFlights, invoiceFlights } from '../../db/flight-log-queries.ts'
+import {
+  getInvoicableFlights,
+  invoiceFlights,
+  getFlightCredit,
+  upsertFlightCredit,
+  getFlightLog,
+} from '../../db/flight-log-queries.ts'
 import {
   createAnnualEquipmentFeeForMember,
   createAnnualMemberFeesForMembers,
@@ -129,10 +136,63 @@ router.post(
     )
 
     for (const memberId of Object.keys(groupedByMember)) {
-      await invoiceFlights(groupedByMember[memberId], req.user!)
+      await invoiceFlights(groupedByMember[memberId])
     }
 
     res.status(200).json({ message: 'Flights sent for invoicing' })
+  },
+)
+
+router.get(
+  '/flights/:flightId/credit',
+  validateUser(MIKPermissions.INVOICING_ADMIN),
+  async (req: Request, res: Response) => {
+    const { flightId } = req.params
+    const credit = await getFlightCredit(flightId)
+    res.status(200).json(credit ?? null)
+  },
+)
+
+router.put(
+  '/flights/:flightId/credit',
+  validateUser(MIKPermissions.INVOICING_ADMIN),
+  async (req: Request, res: Response) => {
+    const { flightId } = req.params
+    const parsed = FlightCreditSchema.safeParse({ flightId, ...req.body })
+    if (!parsed.success) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Invalid credit data.',
+        extensions: { errors: parsed.error.issues },
+      })
+    }
+
+    //Check that creditedMins is not greater than billable flight time to avoid over-crediting.
+    const flight = await getFlightLog(flightId)
+
+    // Prefer the same training-program flag that invoicing uses (isTrainingProgramPilot),
+    // and fall back to the legacy DTO-based flag if it is not available.
+    const isTrainingProgramPilot =
+      (flight as any)?.isTrainingProgramPilot ?? flight?.isDtoTrainingFlight ?? false
+
+    const billableFlightTimeMins = isTrainingProgramPilot
+      ? (flight?.blockMins ?? 0)
+      : (flight?.flightMins ?? 0)
+
+    if (parsed.data.creditedMins > billableFlightTimeMins) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: `Credited minutes ${parsed.data.creditedMins} cannot exceed billable flight time ${billableFlightTimeMins}.`,
+      })
+    }
+
+    const credit = await upsertFlightCredit(
+      flightId,
+      parsed.data.creditedMins,
+      parsed.data.note ?? null,
+      req.user!.memberId,
+    )
+    res.status(200).json(credit)
   },
 )
 

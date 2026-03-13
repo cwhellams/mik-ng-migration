@@ -9,6 +9,7 @@ export type PrivOrComFlight = z.infer<typeof PrivOrComFlightEnum>
 export enum FlightLogStatus {
   NEW = 'NEW',
   VALIDATED = 'VALIDATED',
+  QUEUED_FOR_INVOICING = 'QUEUED_FOR_INVOICING',
   INVOICED = 'INVOICED',
   PAID = 'PAID',
 }
@@ -106,9 +107,13 @@ export const FlightLogSchema = AuditableSchema.extend({
   isBillableFlight: z.boolean(),
   isDtoTrainingFlight: z.boolean(),
   isBilled: z.boolean().readonly(),
+  partiallyBillableFlight: z.boolean().nullable().default(false),
+  entryErrorFee: z.boolean().nullable().default(false),
+  entryErrorFeeAppliedByMemberId: z.string().nullable(),
   nightFlyingMins: z.number().int().min(0),
   nonBillingApprovedByMemberId: z.string().nullable(),
   nonBillingReason: z.string().nullable(),
+  validationRemarks: z.string().nullable(),
   numberOfLandings: z.number().int().min(0),
   numberOfNightLandings: z.number().int().min(0),
   oilUpliftLitres: z.number().min(0).nullable(),
@@ -153,6 +158,11 @@ export const FlightLogUpsertSchema = UpsertSchema(FlightLogSchema).pick({
   isBillableFlight: true,
   nightFlyingMins: true,
   nonBillingReason: true,
+  nonBillingApprovedByMemberId: true,
+  partiallyBillableFlight: true,
+  entryErrorFee: true,
+  entryErrorFeeAppliedByMemberId: true,
+  validationRemarks: true,
   numberOfLandings: true,
   numberOfNightLandings: true,
   oilUpliftLitres: true,
@@ -183,6 +193,10 @@ export const FlightLogMemberUpsertSchema = FlightLogUpsertSchema.omit({
   billableMemberId: true,
   isBillableFlight: true,
   nonBillingReason: true,
+  nonBillingApprovedByMemberId: true,
+  entryErrorFee: true,
+  entryErrorFeeAppliedByMemberId: true,
+  validationRemarks: true,
 })
 
 // Editable fields after validation
@@ -191,6 +205,11 @@ export const ValidatedFlightLogAdminUpsertSchema = FlightLogUpsertSchema.pick({
   billingRemarks: true,
   isBillableFlight: true,
   nonBillingReason: true,
+  nonBillingApprovedByMemberId: true,
+  partiallyBillableFlight: true,
+  entryErrorFee: true,
+  entryErrorFeeAppliedByMemberId: true,
+  validationRemarks: true,
   personalRemarks: true,
 })
 export const ValidatedFlightLogMemberUpsertSchema = FlightLogUpsertSchema.pick({
@@ -260,6 +279,58 @@ export const validateFlightLogTimes = (
 
   // taxi in is limited to 30 minutes
   validate('landingTimeEpoch', 'onBlockTimeEpoch', 30)
+}
+
+export const validateFlightLogBusinessRules = (
+  data: Partial<{
+    entryErrorFee: boolean | null
+    validationRemarks: string | null
+    isBillableFlight: boolean
+    nonBillingReason: string | null
+    partiallyBillableFlight: boolean | null
+    billingRemarks: string | null
+  }>,
+  addIssue: (i: z.IssueData) => void,
+) => {
+  if (data.entryErrorFee && !data.validationRemarks?.trim()) {
+    addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Validation remarks are required when entry error fee is applied',
+      path: ['validationRemarks'],
+    })
+  }
+
+  if (data.isBillableFlight === false && !data.nonBillingReason?.trim()) {
+    addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Non-billing reason is required when flight is marked as non-billable',
+      path: ['nonBillingReason'],
+    })
+  }
+
+  if (data.partiallyBillableFlight && !data.billingRemarks?.trim()) {
+    addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Billing remarks are required for partially billable flights',
+      path: ['billingRemarks'],
+    })
+  }
+
+  if (data.partiallyBillableFlight && data.isBillableFlight === false) {
+    addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'A flight cannot be both partially billable and non-billable',
+      path: ['partiallyBillableFlight'],
+    })
+  }
+
+  if (data.isBillableFlight === false && data.entryErrorFee) {
+    addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'A non-billable flight cannot have an entry error fee',
+      path: ['entryErrorFee'],
+    })
+  }
 }
 
 export const flightLogDateValidator = <T extends ZodObject<typeof FlightLogTimesSchema.shape>>(
@@ -395,6 +466,9 @@ export enum InvoicableFlights {
   FERRY = 'FERRY',
   TEST_FLIGHT = 'TEST_FLIGHT',
   COMMENT = 'COMMENT',
+  ENTRY_ERROR = 'ENTRY_ERROR',
+  PARTIALLY_BILLABLE = 'PARTIALLY_BILLABLE',
+  MIN_BILLABLE = 'MIN_BILLABLE',
   OTHER = 'OTHER',
 }
 
@@ -424,19 +498,33 @@ export const InvoicableFlightSchema = FlightLogSchema.pick({
   flightType: true,
   fuelUpliftLitres: true,
   isBillableFlight: true,
+  nonBillingReason: true,
   numberOfLandings: true,
   takeoffTimeUtc: true,
   landingTimeUtc: true,
   personsOnBoard: true,
   picLastName: true,
   status: true,
+  validationRemarks: true,
 }).extend({
   billableMemberLastName: z.string().nullable().readonly(),
   isTrainingProgramPilot: z.boolean().nullable().readonly(),
   billingId: z.string().nullable().readonly(),
+  partiallyBillableFlight: z.boolean().nullable(),
+  entryErrorFee: z.boolean().nullable(),
+  creditedMins: z.number().int().nullable(),
+  creditedNote: z.string().nullable(),
 })
 
 export type InvoicableFlight = z.infer<typeof InvoicableFlightSchema>
+
+export const FlightCreditSchema = z.object({
+  flightId: z.string(),
+  creditedMins: z.number().int().min(1),
+  note: z.string().nullable().optional(),
+})
+
+export type FlightCredit = z.infer<typeof FlightCreditSchema>
 
 export const FlightInvoicePayloadSchema = z.object({
   flights: z.array(InvoicableFlightSchema),

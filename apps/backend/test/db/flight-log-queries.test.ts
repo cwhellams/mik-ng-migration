@@ -178,6 +178,7 @@ describe('Db insert tests', () => {
       totalTimeInService: 1023.5,
       instrumentFlyingMins: 0,
       nightFlyingMins: 0,
+      partiallyBillableFlight: false,
     }
 
     const flightId = await insertFlightLog(data, {
@@ -342,12 +343,98 @@ describe('Db invoicable FlightLog tests', () => {
   })
 
   it('getInvoicableFlights for other flights', async () => {
-    const result = await getInvoicableFlights({
+    // The OTHER filter excludes flights below MIN_BILLABLE_FLIGHT_MINS (20 min).
+    // Generate 4 VALIDATED flights with 25-min flight time and clean up after.
+    // off_block starts at 1276716901 — 1 second after the last mass-data non-NEW
+    // on_block (1276716900) so the protected-time-period trigger allows insertion.
+    const insertUser = { memberId: 'Pekka1', permissions: [MIKPermissions.FLIGHTLOG_USER] }
+    const statusUser = {
+      memberId: 'Pekka1',
+      lastName: 'Test',
+      email: '',
+      roles: [],
+      permissions: [MIKPermissions.FLIGHTLOG_USER],
+      canMakeReservations: false,
+    }
+
+    const beforeResult = await getInvoicableFlights({
       aircraftRegistration: 'OH-STL',
-      endDate: '2010-01-10',
+      endDate: '2030-01-01',
       flights: InvoicableFlights.OTHER,
     })
-    expect(result.rows).toEqual(4)
+
+    // block duration (off→on) = 35 min; 1-second gap keeps each off_block > prior on_block
+    const baseEpoch = 1276716960 // 1276716900 (mass-data last on_block) + 60 s, minute-aligned
+    const blockSeconds = 2100 // 35 min
+    const flightIds: string[] = []
+
+    for (let i = 0; i < 4; i++) {
+      const off = baseEpoch + i * (blockSeconds + 60) // 60-second gap between flights, stays minute-aligned
+      const id = await insertFlightLog(
+        {
+          aircraftRegistration: 'OH-STL',
+          picMemberId: 'Pekka1',
+          crew2MemberId: null,
+          offBlockTimeEpoch: String(off),
+          takeoffTimeEpoch: String(off + 300), // 5 min taxi
+          landingTimeEpoch: String(off + 1800), // 25 min flight
+          onBlockTimeEpoch: String(off + blockSeconds), // 5 min taxi back
+          oilUpliftLitres: 0,
+          fuelUpliftLitres: 0,
+          fuelRemainingLitres: 0,
+          personsOnBoard: 1,
+          numberOfLandings: 1,
+          numberOfNightLandings: 0,
+          departureAirport: 'EFHK',
+          arrivalAirport: 'EFHK',
+          flightType: FlightType.PRIVATE,
+          billingRemarks: null,
+          personalRemarks: null,
+          picRole: 'PIC',
+          crew2Role: null,
+          crew3MemberId: null,
+          crew3Role: null,
+          crew4MemberId: null,
+          crew4Role: null,
+          incidentOrObservations: null,
+          totalTimeInService: 1000,
+          instrumentFlyingMins: 0,
+          nightFlyingMins: 0,
+          partiallyBillableFlight: false,
+        },
+        insertUser,
+      )
+      await updateFlightLogStatus(
+        id,
+        FlightLogStatus.NEW,
+        FlightLogStatus.VALIDATED,
+        {},
+        statusUser,
+      )
+      flightIds.push(id)
+    }
+
+    try {
+      const afterResult = await getInvoicableFlights({
+        aircraftRegistration: 'OH-STL',
+        endDate: '2030-01-01',
+        flights: InvoicableFlights.OTHER,
+      })
+      expect(afterResult.rows).toEqual((beforeResult.rows ?? 0) + 4)
+    } finally {
+      // Revert in reverse insertion order: the protected-time-period trigger blocks
+      // reverting flight N to NEW while any later non-NEW flight still exists.
+      for (const id of [...flightIds].reverse()) {
+        await updateFlightLogStatus(
+          id,
+          FlightLogStatus.VALIDATED,
+          FlightLogStatus.NEW,
+          {},
+          statusUser,
+        )
+        await deleteFlightLog(id)
+      }
+    }
   })
 
   it('invoiceFlights sends flights to outbox', async () => {
@@ -375,15 +462,7 @@ describe('Db invoicable FlightLog tests', () => {
     })
     expect(flights.rows).toEqual(4)
 
-    const result = await invoiceFlights(flights.logs, user)
-    expect(result).toEqual(true)
-
-    const postInvoiceFlights = await getFlightLogs({
-      aircraftRegistration: 'OH-STL',
-      endDate: '2010-01-10',
-      status: FlightLogStatus.INVOICED,
-    })
-    expect(postInvoiceFlights.rows).toEqual(7)
+    await invoiceFlights(flights.logs)
 
     const outboxRow = await expectOutbox1Row(SimplbooksEventType.FLIGHT_INVOICE)
     expect(outboxRow.payload).toEqual({ flights: flights.logs })

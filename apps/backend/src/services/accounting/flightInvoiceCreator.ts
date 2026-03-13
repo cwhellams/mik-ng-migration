@@ -1,17 +1,14 @@
 import { type FlightInvoicePayload, type InvoicableFlight } from '../../routes/flight-log/models.ts'
 import type { InvoicePost } from '../simplbooks/models.ts'
+import type { ArticleFee } from '../../routes/invoicing/models.ts'
 
 import { getAircraftPriceForDate } from '../../db/aircraft-pricing-queries.ts'
-import {
-  getArticleIdsByCode,
-  getKalustonkayttoFee,
-  hasRequestedEquipmentFee,
-} from '../../db/invoicing-queries.ts'
+import { getArticleFees, hasRequestedEquipmentFee } from '../../db/invoicing-queries.ts'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js'
 import timezone from 'dayjs/plugin/timezone.js'
 import logger from '../../lib/logger.ts'
-import { ART_EQUIP_USAGE_FEE_CODE } from './config.ts'
+import { ART_ENTRY_ERROR_CODE, ART_EQUIP_USAGE_FEE_CODE } from './config.ts'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -21,7 +18,6 @@ export async function createFlightInvoicePayload(
   billableMemberId: string,
 ): Promise<InvoicePost> {
   // Create Simplbooks tasks from the flights array
-
   const [tasks, kalustonkayttoRemarks] = await createTasksForFlights(payload.flights)
   const billingId = payload.flights[0].billingId
 
@@ -73,96 +69,234 @@ async function getUnitPriceForFlightItem(
   return pricePerMin
 }
 
-const createTasksForFlights = async (
-  flights: InvoicableFlight[],
-): Promise<[InvoicePost['Tasks'], string]> => {
-  const tasks: InvoicePost['Tasks'] = []
+function createFlightTaskContents(flight: InvoicableFlight, additionalText?: string): string {
+  const localDate = dayjs(flight.takeoffTimeUtc).tz('Europe/Helsinki').format('YYYY-MM-DD')
+  const baseContents = `${localDate} ${flight.departureAirport} -> ${flight.arrivalAirport}`
+  const timeBasis = flight.isTrainingProgramPilot
+    ? '(Training Program Flight - Block time)'
+    : '(flight time)'
+  const nonBillableNote = flight.isBillableFlight ? '' : ' [Non-billable flight - 100% discount]'
+  const additionalNote = additionalText ? ` (${additionalText})` : ''
+  const virhemerkintaNote = flight.entryErrorFee ? (flight.validationRemarks ?? '') : ''
 
-  // Extract unique aircraft registrations
-  const uniqueRegistrations = [...new Set(flights.map(f => f.aircraftRegistration))]
-  const articleCodes = [...uniqueRegistrations, ART_EQUIP_USAGE_FEE_CODE]
-  const kalustonkayttoFee = await getKalustonkayttoFee()
+  return `${baseContents} ${timeBasis} ${nonBillableNote} ${additionalNote} ${virhemerkintaNote}`.trim()
+}
+
+interface FlightArticleFees {
+  kalustonkayttoFee: ArticleFee
+  virhemerkintaFee: ArticleFee
+  articleIdMap: Map<string, number>
+}
+
+async function fetchFlightFees(registrations: string[]): Promise<FlightArticleFees> {
+  const fees = await getArticleFees([
+    ART_EQUIP_USAGE_FEE_CODE,
+    ART_ENTRY_ERROR_CODE,
+    ...registrations,
+  ])
+
+  const kalustonkayttoFee = fees.find(f => f.code === ART_EQUIP_USAGE_FEE_CODE)
   if (!kalustonkayttoFee) {
     throw new Error('Kalustonkaytto fee article not found in the database')
   }
 
-  // Fetch article IDs for all unique aircraft in one query
-  const articleIdMap = await getArticleIdsByCode(articleCodes)
-  let applyKalustonkayttoRemarks = false
+  const virhemerkintaFee = fees.find(f => f.code === ART_ENTRY_ERROR_CODE)
+  if (!virhemerkintaFee) {
+    throw new Error('VIRHEMERKINTA fee article not found in the database')
+  }
 
-  // Precompute equipment-fee request status per distinct takeoff year (same billable member for all flights)
-  const equipmentFeeRequestedByYear = new Map<number, boolean>()
-  const billableMemberId = flights[0]?.billableMemberId
-  if (billableMemberId !== undefined && billableMemberId !== null) {
-    const distinctTakeoffYears = new Set<number>()
-    for (const flight of flights) {
-      distinctTakeoffYears.add(new Date(flight.takeoffTimeUtc).getUTCFullYear())
-    }
-    for (const year of distinctTakeoffYears) {
-      const requested = await hasRequestedEquipmentFee(year, billableMemberId)
-      equipmentFeeRequestedByYear.set(year, requested)
+  const articleIdMap = new Map(
+    registrations.flatMap(reg => {
+      const fee = fees.find(f => f.code === reg)
+      return fee ? [[reg, fee.id] as [string, number]] : []
+    }),
+  )
+
+  for (const reg of registrations) {
+    if (!articleIdMap.has(reg)) {
+      throw new Error(`No article found for aircraft registration ${reg}`)
     }
   }
 
+  return { kalustonkayttoFee, virhemerkintaFee, articleIdMap }
+}
+
+async function buildEquipmentFeeRequestedByYear(
+  flights: InvoicableFlight[],
+): Promise<Map<number, boolean>> {
+  const billableMemberId = flights[0]?.billableMemberId
+  if (billableMemberId === undefined || billableMemberId === null) {
+    return new Map()
+  }
+
+  const distinctTakeoffYears = new Set(
+    flights.map(f => new Date(f.takeoffTimeUtc).getUTCFullYear()),
+  )
+
+  const entries = await Promise.all(
+    [...distinctTakeoffYears].map(
+      async year =>
+        [year, await hasRequestedEquipmentFee(year, billableMemberId)] as [number, boolean],
+    ),
+  )
+
+  return new Map(entries)
+}
+
+function isEquipmentFeeApplicable(
+  flight: InvoicableFlight,
+  equipmentFeeRequestedByYear: Map<number, boolean>,
+): boolean {
+  const year = new Date(flight.takeoffTimeUtc).getUTCFullYear()
+  return flight.isBillableFlight && !(equipmentFeeRequestedByYear.get(year) ?? false)
+}
+
+interface FlightTaskContext {
+  articleId: number
+  pricePerMinute: number
+  minBillableMins: number
+  applyKalustonkayttoFee: boolean
+  kalustonkayttoFee: ArticleFee
+  virhemerkintaFee: ArticleFee
+}
+
+function createTasksForFlight(
+  flight: InvoicableFlight,
+  ctx: FlightTaskContext,
+): InvoicePost['Tasks'] {
+  const billableMins = flight.isTrainingProgramPilot ? flight.blockMins : flight.flightMins
+  const topUpMins = billableMins < ctx.minBillableMins ? ctx.minBillableMins - billableMins : 0
+  const discountPct = flight.isBillableFlight ? 0 : 100
+  const applyErrorFee = flight.entryErrorFee && flight.isBillableFlight
+  const tasks: InvoicePost['Tasks'] = []
+
+  tasks.push({
+    Task: {
+      article_id: ctx.articleId,
+      code: flight.aircraftRegistration,
+      discount: discountPct,
+      amount: billableMins,
+      price_per_unit: ctx.pricePerMinute,
+      contents: createFlightTaskContents(flight),
+    },
+    Projects: [{ code: flight.aircraftRegistration }],
+  })
+
+  if (topUpMins > 0 && flight.isBillableFlight) {
+    logger.info(
+      `Applying minimum billable minutes (Top up ${topUpMins} mins) for flight ${flight.flightId}`,
+    )
+    tasks.push({
+      Task: {
+        article_id: ctx.articleId,
+        code: flight.aircraftRegistration,
+        amount: topUpMins,
+        price_per_unit: ctx.pricePerMinute,
+        contents: createFlightTaskContents(
+          flight,
+          `minimum billable time ${ctx.minBillableMins} min`,
+        ),
+      },
+      Projects: [{ code: flight.aircraftRegistration }],
+    })
+  }
+
+  if (flight.isBillableFlight && (flight.creditedMins ?? 0) > 0) {
+    logger.info(`Applying credited minutes (${flight.creditedMins}) for flight ${flight.flightId}`)
+    tasks.push({
+      Task: {
+        article_id: ctx.articleId,
+        code: flight.aircraftRegistration,
+        amount: flight.creditedMins!,
+        price_per_unit: -ctx.pricePerMinute,
+        contents: createFlightTaskContents(flight, `credit for ${flight.creditedMins} min`),
+      },
+      Projects: [{ code: flight.aircraftRegistration }],
+    })
+  }
+
+  if (ctx.applyKalustonkayttoFee) {
+    logger.info(
+      `Adding equipment usage fee for flight ${flight.flightId} of member ${flight.billableMemberId}`,
+    )
+    tasks.push({
+      Task: {
+        article_id: ctx.kalustonkayttoFee.id,
+        code: ctx.kalustonkayttoFee.code,
+        amount: billableMins - (flight.creditedMins ?? 0),
+        price_per_unit: ctx.kalustonkayttoFee.markup_value,
+        contents: createFlightTaskContents(flight),
+        name: ctx.kalustonkayttoFee.name,
+      },
+      Projects: [{ code: flight.aircraftRegistration }],
+    })
+  }
+
+  if (applyErrorFee) {
+    logger.info(
+      `Adding entry error fee (VIRHEMERKINTA) for flight ${flight.flightId} of member ${flight.billableMemberId}`,
+    )
+    const virhemerkintaAdditionalText =
+      ctx.virhemerkintaFee.contents && ctx.virhemerkintaFee.contents.trim() !== ''
+        ? ctx.virhemerkintaFee.contents
+        : undefined
+
+    tasks.push({
+      Task: {
+        article_id: ctx.virhemerkintaFee.id,
+        code: ART_ENTRY_ERROR_CODE,
+        amount: ctx.virhemerkintaFee.amount ?? 1,
+        price_per_unit: ctx.virhemerkintaFee.price_per_unit,
+        contents: createFlightTaskContents(flight, virhemerkintaAdditionalText),
+        name: ctx.virhemerkintaFee.name,
+      },
+      Projects: [{ code: flight.aircraftRegistration }],
+    })
+  }
+
+  return tasks
+}
+
+const createTasksForFlights = async (
+  flights: InvoicableFlight[],
+): Promise<[InvoicePost['Tasks'], string]> => {
+  const uniqueRegistrations = [...new Set(flights.map(f => f.aircraftRegistration))]
+  const { kalustonkayttoFee, virhemerkintaFee, articleIdMap } =
+    await fetchFlightFees(uniqueRegistrations)
+  const equipmentFeeRequestedByYear = await buildEquipmentFeeRequestedByYear(flights)
+  const applyKalustonkayttoRemarks = flights.some(f =>
+    isEquipmentFeeApplicable(f, equipmentFeeRequestedByYear),
+  )
+  const minBillableMins = Number(process.env.MIN_BILLABLE_FLIGHT_MINS) || 20
+
+  const tasks: InvoicePost['Tasks'] = []
+
   for (const flight of flights) {
-    const takeoffYearUtc = new Date(flight.takeoffTimeUtc).getUTCFullYear()
-    const equipmentFeeRequested = equipmentFeeRequestedByYear.get(takeoffYearUtc) ?? false
-    const applyKalustonkayttoFee = !equipmentFeeRequested
-
-    if (applyKalustonkayttoFee) {
-      applyKalustonkayttoRemarks = true
-    }
-
-    // Get the price per minute for this aircraft on the flight date
     const pricePerMinute = await getUnitPriceForFlightItem(
       flight.aircraftRegistration,
       new Date(flight.takeoffTimeUtc),
     )
 
-    // Get article ID from the pre-fetched map
-    const articleId = articleIdMap.get(flight.aircraftRegistration)
-    if (!articleId) {
-      throw new Error(`No article found for aircraft registration ${flight.aircraftRegistration}`)
-    }
-
     const billableMins = flight.isTrainingProgramPilot ? flight.blockMins : flight.flightMins
-
-    tasks.push({
-      Task: {
-        article_id: articleId,
-        code: flight.aircraftRegistration,
-        amount: billableMins,
-        price_per_unit: pricePerMinute,
-        contents: `${dayjs(flight.takeoffTimeUtc).tz('Europe/Helsinki').format('YYYY-MM-DD')} ${flight.departureAirport} -> ${flight.arrivalAirport} ${flight.isTrainingProgramPilot ? '(Training Program Flight - Block time)' : '(flight time)'}`,
-      },
-      Projects: [
-        {
-          code: flight.aircraftRegistration, // Cost centre code - to be determined based on flight type or other criteria
-        },
-      ],
-    })
-
-    if (applyKalustonkayttoFee) {
-      logger.info(
-        `Adding equipment usage fee for flight ${flight.flightId} of member ${flight.billableMemberId}`,
+    if (flight.creditedMins && flight.creditedMins > billableMins) {
+      logger.warn(
+        `Flight ${flight.flightId} has credited minutes (${flight.creditedMins}) greater than billable minutes (${billableMins}). This may result in negative billing. Please verify the flight log data.`,
       )
-
-      tasks.push({
-        Task: {
-          article_id: kalustonkayttoFee.id,
-          code: kalustonkayttoFee.code,
-          amount: billableMins,
-          price_per_unit: kalustonkayttoFee.markup_value,
-          contents: `${flight.aircraftRegistration} ${dayjs(flight.takeoffTimeUtc).tz('Europe/Helsinki').format('YYYY-MM-DD')} ${flight.departureAirport} - ${flight.arrivalAirport}`,
-          name: kalustonkayttoFee.name,
-        },
-        Projects: [
-          {
-            code: flight.aircraftRegistration, // Cost centre code - to be determined based on flight type or other criteria
-          },
-        ],
-      })
+      throw new Error(
+        `Credited minutes (${flight.creditedMins}) cannot exceed billable minutes (${billableMins}) for flight ${flight.flightId}`,
+      ) // Prevent creating invoice tasks with negative amounts due to data issues
     }
+
+    tasks.push(
+      ...createTasksForFlight(flight, {
+        articleId: articleIdMap.get(flight.aircraftRegistration)!,
+        pricePerMinute,
+        minBillableMins,
+        applyKalustonkayttoFee: isEquipmentFeeApplicable(flight, equipmentFeeRequestedByYear),
+        kalustonkayttoFee,
+        virhemerkintaFee,
+      }),
+    )
   }
 
   return [tasks, applyKalustonkayttoRemarks ? `${kalustonkayttoFee.contents}` : '']

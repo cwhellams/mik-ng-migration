@@ -33,7 +33,12 @@ export const flightPayload: FlightLogUpsertRequest = {
   // admin fields
   ajlbBlankRowsBefore: 0,
   ajlbSeqNo: 1,
-  billableMemberId: 'Sanna1',
+  billableMemberId: 'Jukka1',
   isBillableFlight: false,
   nonBillingReason: 'N/A',
+  nonBillingApprovedByMemberId: 'Matti1',
+  partiallyBillableFlight: false,
+  entryErrorFee: false,
+  entryErrorFeeAppliedByMemberId: 'Matti1',
+  validationRemarks: null,
 }

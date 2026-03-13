@@ -19,6 +19,7 @@ import { dayjs } from '../../utils/date'
 import { useState } from 'react'
 import { InvoicingRange } from './components/InvoicingRange'
 import { InvoicingFlights } from './components/InvoicingFlights'
+import { PartiallyBillableFlights } from './components/PartiallyBillableFlights'
 import { Title } from '../../components/Title'
 
 const steps = [
@@ -29,6 +30,15 @@ const steps = [
     code: InvoicableFlights.COMMENT,
     labelKey: 'invoicing.withBillingComments',
   },
+  {
+    code: InvoicableFlights.ENTRY_ERROR,
+    labelKey: 'invoicing.entryErrorFlights',
+  },
+  {
+    code: InvoicableFlights.PARTIALLY_BILLABLE,
+    labelKey: 'invoicing.partiallyBillable',
+  },
+  { code: InvoicableFlights.MIN_BILLABLE, labelKey: 'invoicing.minBillable' },
   { code: InvoicableFlights.OTHER, labelKey: 'invoicing.other' },
 ]
 
@@ -123,6 +133,36 @@ export const FlightInvoicing = () => {
       )}
 
       {activeStep === 4 && (
+        <InvoicingFlights
+          filters={{
+            ...filters,
+            flights: InvoicableFlights.ENTRY_ERROR,
+          }}
+          setFilters={setFilters}
+          navigate={navigate}
+        />
+      )}
+
+      {activeStep === 5 && (
+        <PartiallyBillableFlights
+          filters={filters}
+          setFilters={setFilters}
+          navigate={navigate}
+        />
+      )}
+
+      {activeStep === 6 && (
+        <InvoicingFlights
+          filters={{
+            ...filters,
+            flights: InvoicableFlights.MIN_BILLABLE,
+          }}
+          setFilters={setFilters}
+          navigate={navigate}
+        />
+      )}
+
+      {activeStep === 7 && (
         <InvoicingFlights
           filters={{
             ...filters,

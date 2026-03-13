@@ -3,10 +3,10 @@ import {
   type RecurringFeesProcessing,
   EquipmentFeeSchema,
   type EquipmentFee,
-  type KalustonkayttoFee,
-  KalustonkayttoFeeSchema,
+  ArticleFeeSchema,
+  type ArticleFee,
 } from '../routes/invoicing/models.ts'
-import { ART_EQUIP_FEE_CODE, ART_EQUIP_USAGE_FEE_CODE } from '../services/accounting/config.ts'
+import { ART_EQUIP_FEE_CODE } from '../services/accounting/config.ts'
 import {
   RecurringFeeType,
   type FeeType,
@@ -97,30 +97,28 @@ export async function getAnnualEquipmmentFee(): Promise<EquipmentFee | undefined
   return EquipmentFeeSchema.parse(equipmentFee)
 }
 
-export async function getKalustonkayttoFee(): Promise<KalustonkayttoFee | undefined> {
-  const result = await db
+export async function getArticleFees(codes: string[]): Promise<ArticleFee[]> {
+  const results = await db
     .selectFrom('accts.items')
     .select(['id', 'item', 'code', 'name'])
-    .where('code', '=', ART_EQUIP_USAGE_FEE_CODE)
-    .executeTakeFirst()
+    .where('code', 'in', codes)
+    .execute()
 
-  if (!result?.item) {
-    return undefined
-  }
-
-  const rawItem = result.item as Record<string, unknown>
-
-  const kalustonkayttoFee = {
-    id: result.id,
-    code: result.code,
-    unit: rawItem.unit,
-    markup_value: rawItem.markup_value,
-    name: result.name,
-    contents: rawItem.contents,
-    amount: rawItem.amount,
-  }
-
-  return KalustonkayttoFeeSchema.parse(kalustonkayttoFee)
+  return results
+    .filter(result => result.item)
+    .map(result => {
+      const rawItem = result.item as Record<string, unknown>
+      return ArticleFeeSchema.parse({
+        id: result.id,
+        code: result.code,
+        name: result.name,
+        unit: rawItem.unit,
+        markup_value: rawItem.markup_value,
+        price_per_unit: rawItem.price_per_unit,
+        contents: rawItem.contents,
+        amount: rawItem.amount,
+      })
+    })
 }
 
 export async function hasRequestedEquipmentFee(year: number, memberId: string): Promise<boolean> {

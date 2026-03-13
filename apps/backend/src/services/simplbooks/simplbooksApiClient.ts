@@ -38,8 +38,23 @@ if (!simplbooksBaseUri || !simplbooksCompanyId || !simplbooksApiKey) {
   throw new Error('Missing required SimplBooks environment variables to form Base URI')
 }
 
-const url = new URL(simplbooksBaseUri)
-url.pathname = `/${simplbooksCompanyId}/${simplbooksApiVersion}`
+function buildSimplbooksBaseUrl(baseUri: string, companyId: string, apiVersion: string): string {
+  const url = new URL(baseUri)
+  const normalizedBasePath = url.pathname.replaceAll(/^\/+|\/+$/g, '')
+  const normalizedApiVersion = apiVersion.replaceAll(/^\/+|\/+$/g, '')
+
+  // Preserve optional base path and append tenant-specific SimplBooks segments.
+  const pathParts = [
+    normalizedBasePath,
+    encodeURIComponent(companyId),
+    normalizedApiVersion,
+  ].filter(Boolean)
+
+  url.pathname = `/${pathParts.join('/')}`
+  return url.toString()
+}
+
+const baseUrl = buildSimplbooksBaseUrl(simplbooksBaseUri, simplbooksCompanyId, simplbooksApiVersion)
 
 const httpAgent = new http.Agent({ keepAlive: false, timeout: 30000 })
 const httpsAgent = new https.Agent({ keepAlive: false, timeout: 30000 })
@@ -80,7 +95,7 @@ export async function enqueueRateLimitedRequest<T>(fn: () => Promise<T>): Promis
 }
 
 export const simplbooksApiClient: AxiosInstance = axios.create({
-  baseURL: url.toString(),
+  baseURL: baseUrl,
   httpAgent,
   httpsAgent,
   timeout: 30000,

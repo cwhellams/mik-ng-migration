@@ -17,6 +17,7 @@ import {
   type FlightLogMigrationRequest,
   InvoicableFlights,
   type FlightLogStats,
+  type FlightCredit,
 } from '../routes/flight-log/models.ts'
 import type { MIKPermissions } from '../routes/members/models.ts'
 import { generateShortId } from '../util/nanoId.ts'
@@ -32,6 +33,7 @@ import dayjs from 'dayjs'
 import { randomUUID } from 'node:crypto'
 import { SimplbooksEventType } from '../services/simplbooks/models.ts'
 import { toLocal } from '../util/date.ts'
+import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 
 function mapFullResultToFlightLogs(
   row: Selectable<
@@ -72,11 +74,15 @@ function mapFullResultToFlightLogs(
     isBillableFlight: row.is_billable_flight,
     isBilled: row.is_billed,
     isDtoTrainingFlight: row.is_dto_training_flight,
+    partiallyBillableFlight: row.partially_billable_flight ?? false,
+    entryErrorFee: row.entry_error_fee ?? false,
+    entryErrorFeeAppliedByMemberId: row.entry_error_fee_applied_by_member_id,
     landingTimeEpoch: row.landing_time_epoch,
     landingTimeUtc: row.landing_time_utc.toISOString(),
     nightFlyingMins: row.night_flying_mins,
     nonBillingApprovedByMemberId: row.non_billing_approved_by_member_id,
     nonBillingReason: row.non_billing_reason,
+    validationRemarks: row.validation_remarks,
     numberOfLandings: row.number_of_landings,
     numberOfNightLandings: row.number_of_night_landings,
     offBlockTimeEpoch: row.off_block_time_epoch,
@@ -118,66 +124,43 @@ export async function getFlightLog(flightId: string): Promise<FlightLog | undefi
 }
 
 export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLogListResponse> {
-  let query = db
+  const ajlbPaging = !!filters.ajlbSeqNo && filters.page !== undefined
+
+  const query = db
     .selectFrom('flight.logs')
     .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
-
-  if (filters.flightId) {
-    query = query.where('flight.logs.flight_id', '=', filters.flightId)
-  }
-
-  if (filters.billableMemberId) {
-    query = query.where('billable_member_id', '=', filters.billableMemberId)
-  }
-
-  if (filters.pic) {
-    query = query.where('pic_member_id', '=', filters.pic)
-  }
-  if (filters.crew2) {
-    query = query.where('crew2_member_id', '=', filters.crew2)
-  }
-  if (filters.crew3) {
-    query = query.where('crew3_member_id', '=', filters.crew3)
-  }
-  if (filters.crew4) {
-    query = query.where('crew3_member_id', '=', filters.crew4)
-  }
-
-  if (filters.aircraftRegistration) {
-    query = query.where('aircraft_registration', '=', filters.aircraftRegistration)
-  }
-
-  if (filters.startDate) {
-    query = query.where('off_block_time_epoch', '>=', toLocal(filters.startDate).unix().toString())
-  }
-  if (filters.endDate) {
-    query = query.where(
-      'on_block_time_epoch',
-      '<=',
-      dayjs(filters.endDate).endOf('day').unix().toString(),
+    .$if(!!filters.flightId, qb => qb.where('flight.logs.flight_id', '=', filters.flightId!))
+    .$if(!!filters.billableMemberId, qb =>
+      qb.where('billable_member_id', '=', filters.billableMemberId!),
     )
-  }
-
-  if (filters.status) {
-    query = query.where('status', '=', filters.status)
-  }
-
-  if (filters.incidentsOrObservations) {
-    query = query.where('incident_or_observations', 'is not', null)
-  }
-
-  // synch mode fetches physical pages from the ajlb
-  const ajlbPaging = filters.ajlbSeqNo && filters.page !== undefined
-  if (ajlbPaging) {
-    query = query.where('ajlb_seq_no', '=', filters.ajlbSeqNo!).where(eb =>
-      // search from both locked pages and pages waiting for validation
-      eb('flight.logs.ajlb_page_number', '=', filters.page!).or(
-        'totals.page_number',
-        '=',
-        filters.page!,
-      ),
+    .$if(!!filters.pic, qb => qb.where('pic_member_id', '=', filters.pic!))
+    .$if(!!filters.crew2, qb => qb.where('crew2_member_id', '=', filters.crew2!))
+    .$if(!!filters.crew3, qb => qb.where('crew3_member_id', '=', filters.crew3!))
+    .$if(!!filters.crew4, qb => qb.where('crew4_member_id', '=', filters.crew4!))
+    .$if(!!filters.aircraftRegistration, qb =>
+      qb.where('aircraft_registration', '=', filters.aircraftRegistration!),
     )
-  }
+    .$if(!!filters.startDate, qb =>
+      qb.where('off_block_time_epoch', '>=', toLocal(filters.startDate!).unix().toString()),
+    )
+    .$if(!!filters.endDate, qb =>
+      qb.where('on_block_time_epoch', '<=', dayjs(filters.endDate).endOf('day').unix().toString()),
+    )
+    .$if(!!filters.status, qb => qb.where('status', '=', filters.status!))
+    .$if(!!filters.incidentsOrObservations, qb =>
+      qb.where('incident_or_observations', 'is not', null),
+    )
+    .$if(ajlbPaging, qb =>
+      qb
+        .where('ajlb_seq_no', '=', filters.ajlbSeqNo!)
+        .where(eb =>
+          eb('flight.logs.ajlb_page_number', '=', filters.page!).or(
+            'totals.page_number',
+            '=',
+            filters.page!,
+          ),
+        ),
+    )
 
   // Calculate the total number of rows in the result set.
   // This have to be separate query so that we can do
@@ -352,6 +335,7 @@ export async function getInvoicableFlights(
   let query = db
     .selectFrom('flight.logs')
     .leftJoin('member.register', 'flight.logs.billable_member_id', 'member.register.member_id')
+    .leftJoin('flight.flight_credits', 'flight.logs.flight_id', 'flight.flight_credits.flight_id')
     .where('status', '=', FlightLogStatus.VALIDATED)
     .$if(!!filters.aircraftRegistration, qb =>
       qb.where('aircraft_registration', '=', filters.aircraftRegistration),
@@ -364,11 +348,45 @@ export async function getInvoicableFlights(
     query = query.where('flight_type', '=', FlightType.TEST_FLIGHT)
   } else if (filters.flights === InvoicableFlights.COMMENT) {
     query = query.where('billing_remarks', 'is not', null)
+    query = query.where('flight.logs.entry_error_fee', '=', false)
     query = query.where('flight_type', 'not in', [FlightType.FERRY, FlightType.TEST_FLIGHT])
+  } else if (filters.flights === InvoicableFlights.ENTRY_ERROR) {
+    query = query.where('flight.logs.entry_error_fee', '=', true)
+  } else if (filters.flights === InvoicableFlights.PARTIALLY_BILLABLE) {
+    query = query.where('flight.logs.partially_billable_flight', '=', true)
+  } else if (filters.flights === InvoicableFlights.MIN_BILLABLE) {
+    const minMins = Number(process.env.MIN_BILLABLE_FLIGHT_MINS) || 20
+    query = query.where(eb =>
+      eb(
+        eb
+          .case()
+          .when('member.register.is_training_program_pilot', '=', true)
+          .then(eb.ref('flight.logs.block_mins'))
+          .else(eb.ref('flight.logs.flight_mins'))
+          .end(),
+        '<',
+        minMins,
+      ),
+    )
   } else if (filters.flights === InvoicableFlights.OTHER) {
+    const minMins = Number(process.env.MIN_BILLABLE_FLIGHT_MINS) || 20
     query = query
       .where('billing_remarks', 'is', null)
+      .where('flight.logs.partially_billable_flight', 'is not', true)
+      .where('flight.logs.entry_error_fee', '=', false)
       .where('flight_type', 'not in', [FlightType.FERRY, FlightType.TEST_FLIGHT])
+      .where(eb =>
+        eb(
+          eb
+            .case()
+            .when('member.register.is_training_program_pilot', '=', true)
+            .then(eb.ref('flight.logs.block_mins'))
+            .else(eb.ref('flight.logs.flight_mins'))
+            .end(),
+          '>=',
+          minMins,
+        ),
+      )
   }
 
   const { rows } = await query
@@ -393,6 +411,7 @@ export async function getInvoicableFlights(
       'flight.logs.flight_type',
       'flight.logs.fuel_uplift_litres',
       'flight.logs.is_billable_flight',
+      'flight.logs.non_billing_reason',
       'flight.logs.flight_mins',
       'flight.logs.block_mins',
       'flight.logs.block_time',
@@ -402,9 +421,14 @@ export async function getInvoicableFlights(
       'flight.logs.persons_on_board',
       'flight.logs.pic_last_name',
       'flight.logs.status',
+      'flight.logs.partially_billable_flight',
+      'flight.logs.entry_error_fee',
       'member.register.last_name as billable_member_last_name',
       'member.register.is_training_program_pilot',
       'member.register.billing_id',
+      'flight.flight_credits.credited_mins',
+      'flight.flight_credits.note',
+      'flight.logs.validation_remarks',
     ])
     .orderBy('off_block_time_epoch', 'asc')
     .offset(pageSize * (page - 1))
@@ -430,12 +454,18 @@ export async function getInvoicableFlights(
         flightType: row.flight_type as FlightType,
         fuelUpliftLitres: row.fuel_uplift_litres,
         isBillableFlight: row.is_billable_flight,
+        nonBillingReason: row.non_billing_reason,
         numberOfLandings: row.number_of_landings,
         takeoffTimeUtc: row.takeoff_time_utc.toISOString(),
         landingTimeUtc: row.landing_time_utc.toISOString(),
         personsOnBoard: row.persons_on_board,
         picLastName: row.pic_last_name,
         status: row.status as FlightLogStatus,
+        partiallyBillableFlight: row.partially_billable_flight ?? false,
+        entryErrorFee: row.entry_error_fee ?? false,
+        creditedMins: row.credited_mins ?? null,
+        creditedNote: row.note ?? null,
+        validationRemarks: row.validation_remarks ?? null,
       }
       return res
     }),
@@ -522,10 +552,32 @@ export async function insertFlightLog(
       // only for the migration
       invoice_number: 'invoiceNumber' in data ? data.invoiceNumber : undefined,
       is_billable_flight: 'isBillableFlight' in data ? data.isBillableFlight : true,
+      partially_billable_flight: data.partiallyBillableFlight ?? false,
+      entry_error_fee: 'entryErrorFee' in data ? (data.entryErrorFee ?? false) : false,
+      entry_error_fee_applied_by_member_id:
+        // For migration imports, honor the supplied member ID; for all regular inserts,
+        // derive it from the current user when an entry error fee is applied.
+        'entryErrorFeeAppliedByMemberId' in data
+          ? data.entryErrorFeeAppliedByMemberId
+          : 'entryErrorFee' in data && data.entryErrorFee
+            ? user.memberId
+            : null,
+      non_billing_approved_by_member_id:
+        // For migration imports, honor the supplied member ID; for all regular inserts,
+        // derive it from the current user when the flight is marked non-billable.
+        'nonBillingApprovedByMemberId' in data
+          ? data.nonBillingApprovedByMemberId
+          : 'isBillableFlight' in data && data.isBillableFlight === false
+            ? user.memberId
+            : null,
+      validation_remarks: 'validationRemarks' in data ? data.validationRemarks : null,
 
       ajlb_blank_rows_before: 'ajlbBlankRowsBefore' in data ? data.ajlbBlankRowsBefore : 0,
       ajlb_seq_no:
-        'ajlbSeqNo' in data && data.ajlbSeqNo
+        // For migration imports, use the supplied ajlbSeqNo; for all regular inserts
+        // (admin or member), always auto-detect from the current open AJLB so that a
+        // hardcoded frontend default can never land the flight in the wrong book.
+        'isDtoTrainingFlight' in data && data.ajlbSeqNo
           ? data.ajlbSeqNo
           : eb
               .selectFrom('flight.vw_flight_time_totals')
@@ -632,8 +684,18 @@ export const updateFlightLog = async (
     ajlb_blank_rows_before: data.ajlbBlankRowsBefore,
     ajlb_seq_no: data.ajlbSeqNo,
     is_billable_flight: data.isBillableFlight,
-    //non_billing_approved_by_member_id: data.nonBillingApprovedByMemberId,
+    partially_billable_flight: data.partiallyBillableFlight,
+    entry_error_fee: data.entryErrorFee ?? undefined,
+    entry_error_fee_applied_by_member_id:
+      data.entryErrorFee === undefined ? undefined : data.entryErrorFee ? user.memberId : null,
+    non_billing_approved_by_member_id:
+      data.isBillableFlight === undefined
+        ? undefined
+        : data.isBillableFlight === false
+          ? user.memberId
+          : null,
     non_billing_reason: data.nonBillingReason,
+    validation_remarks: data.validationRemarks,
 
     is_dto_training_flight: data.billableMemberId
       ? eb
@@ -689,40 +751,34 @@ export const updateFlightLogStatus = async (
   }
 }
 
-export const invoiceFlights = async (
-  flights: InvoicableFlight[],
-  user: JWTUser,
-): Promise<boolean> => {
-  await db.transaction().execute(async txn => {
+export const invoiceFlights = async (flights: InvoicableFlight[]): Promise<void> => {
+  // send all billable flights to simplbooks invoicing through outbox
+  // and mark the corresponding flight logs as QUEUED_FOR_INVOICING in the same transaction
+  await db.transaction().execute(async trx => {
     const now = new Date()
-
+    // Mark flights as invoiced so they are not selected again by getInvoicableFlights
     for (const flight of flights) {
-      await txn
+      // Assuming InvoicableFlight contains the flight's identifier as `flightId`
+      await trx
         .updateTable('flight.logs')
         .set({
-          status: flight.isBillableFlight ? FlightLogStatus.INVOICED : FlightLogStatus.PAID,
-          updated_by: user.memberId,
+          status: FlightLogStatus.QUEUED_FOR_INVOICING,
           updated_at: now,
+          updated_by: MIK_SIMPLBOOKS_MEMBER,
         })
         .where('flight_id', '=', flight.flightId)
-        .returningAll()
-        .executeTakeFirstOrThrow()
+        .execute()
     }
-
-    // send all billable flights to simplbooks invoicing through outbox
-    await txn
+    // Enqueue the outbox message with the original flights payload
+    await trx
       .insertInto('accts.outbox_simplbooks')
       .values({
         id: randomUUID(),
         event_type: SimplbooksEventType.FLIGHT_INVOICE,
-        payload: {
-          flights: flights.filter(f => f.isBillableFlight),
-        },
+        payload: structuredClone({ flights }),
       })
       .execute()
   })
-
-  return true
 }
 
 const updateFlightLogWithAudit = async (
@@ -761,4 +817,50 @@ export async function getFlightLogTotals(registration?: string): Promise<FlightT
     aircraftRegistration: row.aircraft_registration!,
     ajlbSeqNo: row.ajlb_seq_no!,
   }))
+}
+
+export async function getFlightCredit(flightId: string): Promise<FlightCredit | null> {
+  const row = await db
+    .selectFrom('flight.flight_credits')
+    .select(['flight_id', 'credited_mins', 'note'])
+    .where('flight_id', '=', flightId)
+    .executeTakeFirst()
+
+  if (!row) return null
+
+  return {
+    flightId: row.flight_id,
+    creditedMins: row.credited_mins,
+    note: row.note,
+  }
+}
+
+export async function upsertFlightCredit(
+  flightId: string,
+  creditedMins: number,
+  note: string | null,
+  allocatedByMemberId: string,
+): Promise<FlightCredit> {
+  const now = new Date()
+  await db
+    .insertInto('flight.flight_credits')
+    .values({
+      flight_id: flightId,
+      credited_mins: creditedMins,
+      note,
+      allocated_by_member_id: allocatedByMemberId,
+      created_at: now,
+      updated_at: now,
+    })
+    .onConflict(oc =>
+      oc.column('flight_id').doUpdateSet({
+        credited_mins: creditedMins,
+        note,
+        allocated_by_member_id: allocatedByMemberId,
+        updated_at: now,
+      }),
+    )
+    .execute()
+
+  return { flightId, creditedMins, note }
 }

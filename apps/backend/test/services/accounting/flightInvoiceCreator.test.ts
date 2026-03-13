@@ -6,7 +6,10 @@ import {
 } from '../../../src/routes/flight-log/models.ts'
 import { db } from '../../../src/db/connection.ts'
 import { RecurringFeeType, MIKInvoiceType } from '../../../src/services/simplbooks/models.ts'
-import { ART_EQUIP_USAGE_FEE_CODE } from '../../../src/services/accounting/config.ts'
+import {
+  ART_ENTRY_ERROR_CODE,
+  ART_EQUIP_USAGE_FEE_CODE,
+} from '../../../src/services/accounting/config.ts'
 
 // Mock dependencies
 jest.unstable_mockModule('../../../src/db/aircraft-pricing-queries.ts', () => ({
@@ -25,9 +28,15 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
   const year2026 = 2026
   let createdInvoiceIds: string[] = []
   let equipmentFeeArticleId: number
-  const testArticleIds = [9999, 9998] // IDs for test articles
+  const testArticleIds = [9999, 9998, 9997] // IDs for test articles
 
   beforeAll(async () => {
+    // Remove any pre-existing articles with these codes so our test IDs are authoritative
+    await db
+      .deleteFrom('accts.items')
+      .where('code', 'in', [ART_EQUIP_USAGE_FEE_CODE, ART_ENTRY_ERROR_CODE, 'OH-ABC'])
+      .execute()
+
     // Insert equipment usage fee article
     await db
       .insertInto('accts.items')
@@ -85,6 +94,33 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       .onConflict(oc => oc.column('id').doNothing())
       .execute()
 
+    // Insert VIRHEMERKINTA (entry error fee) article
+    await db
+      .insertInto('accts.items')
+      .values({
+        id: testArticleIds[2],
+        code: ART_ENTRY_ERROR_CODE,
+        name: 'Virhemerkintämaksu',
+        item: {
+          id: testArticleIds[2],
+          code: ART_ENTRY_ERROR_CODE,
+          name: 'Virhemerkintämaksu',
+          unit: 'kpl',
+          markup_value: 0,
+          active: true,
+          amount: 1,
+          ean: '',
+          contents: 'Virhemerkintämaksu',
+          price_per_unit: 50,
+          markup_type: 'fixed',
+          is_inventory: false,
+          sales_vat_type_id: 0,
+          purchase_vat_type_id: 0,
+        },
+      })
+      .onConflict(oc => oc.column('id').doNothing())
+      .execute()
+
     // Mock aircraft pricing
     const mockedGetAircraftPriceForDate = jest.mocked(getAircraftPriceForDate)
     mockedGetAircraftPriceForDate.mockResolvedValue(2.5) // €2.50 per minute
@@ -93,6 +129,17 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
   afterAll(async () => {
     // Clean up test articles
     await db.deleteFrom('accts.items').where('id', 'in', testArticleIds).execute()
+    // Restore the original VIRHEMERKINTA row that was deleted in beforeAll
+    await db
+      .insertInto('accts.items')
+      .values({
+        id: 22,
+        code: ART_ENTRY_ERROR_CODE,
+        name: 'Flight log entry error fee',
+        item: { amount: 1, price_per_unit: 10, sum_with_vat: 10, markup_value: 10 },
+      })
+      .onConflict(oc => oc.column('id').doNothing())
+      .execute()
   })
 
   beforeEach(() => {
@@ -111,31 +158,37 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
     }
   })
 
-  const createTestFlight = (overrides?: Partial<InvoicableFlight>): InvoicableFlight => ({
-    flightId: '1',
-    aircraftRegistration: 'OH-ABC',
-    departureAirport: 'EFHK',
-    arrivalAirport: 'EFTU',
-    takeoffTimeUtc: new Date(`${year2025}-06-15T08:00:00Z`).toUTCString(),
-    landingTimeUtc: new Date(`${year2025}-06-15T09:30:00Z`).toUTCString(),
-    flightTime: '01:30',
-    flightMins: 90,
-    blockMins: 95,
-    blockTime: '01:35',
-    flightType: FlightType.DTO,
-    isBillableFlight: true,
-    billableMemberId: testMemberId,
-    billableMemberLastName: 'Pilot',
-    billingId: testBillingId,
-    isTrainingProgramPilot: false,
-    picLastName: 'Instructor',
-    status: FlightLogStatus.VALIDATED,
-    fuelUpliftLitres: null,
-    numberOfLandings: 1,
-    personsOnBoard: 2,
-    billingRemarks: null,
-    ...overrides,
-  })
+  const createTestFlight = (overrides?: Partial<InvoicableFlight>): InvoicableFlight =>
+    ({
+      flightId: '1',
+      aircraftRegistration: 'OH-ABC',
+      departureAirport: 'EFHK',
+      arrivalAirport: 'EFTU',
+      takeoffTimeUtc: new Date(`${year2025}-06-15T08:00:00Z`).toUTCString(),
+      landingTimeUtc: new Date(`${year2025}-06-15T09:30:00Z`).toUTCString(),
+      flightTime: '01:30',
+      flightMins: 90,
+      blockMins: 95,
+      blockTime: '01:35',
+      flightType: FlightType.DTO,
+      isBillableFlight: true,
+      billableMemberId: testMemberId,
+      billableMemberLastName: 'Pilot',
+      billingId: testBillingId,
+      isTrainingProgramPilot: false,
+      picLastName: 'Instructor',
+      status: FlightLogStatus.VALIDATED,
+      fuelUpliftLitres: null,
+      numberOfLandings: 1,
+      personsOnBoard: 2,
+      billingRemarks: null,
+      nonBillingReason: null,
+      partiallyBillableFlight: false,
+      entryErrorFee: false,
+      creditedMins: null,
+      creditedNote: null,
+      ...overrides,
+    }) as InvoicableFlight
 
   const createEquipmentFeeRequest = async (year: number, memberId: string): Promise<string> => {
     // Use test invoice IDs in the 999900-999999 range (bigint stored as string)
@@ -320,6 +373,197 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       // Should not have kalustonkaytto fee description
       expect(invoice.Invoice.additional_info).toBe('')
+    })
+  })
+
+  describe('Non-billable flights', () => {
+    it('should apply 100% discount and skip equipment fee for non-billable flight', async () => {
+      const flight = createTestFlight({ isBillableFlight: false })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      expect(invoice.Tasks).toHaveLength(1)
+      expect(invoice.Tasks[0].Task.discount).toBe(100)
+      expect(invoice.Tasks[0].Task.code).toBe('OH-ABC')
+    })
+
+    it('should not include kalustonkaytto remarks for non-billable flight', async () => {
+      const flight = createTestFlight({ isBillableFlight: false })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      expect(invoice.Invoice.additional_info).toBe('')
+    })
+
+    it('should not apply top-up task for non-billable short flight', async () => {
+      const flight = createTestFlight({ isBillableFlight: false, flightMins: 10, blockMins: 12 })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      // Only the flight task — no top-up (billable guard) and no equipment fee
+      expect(invoice.Tasks).toHaveLength(1)
+      expect(invoice.Tasks[0].Task.discount).toBe(100)
+    })
+  })
+
+  describe('Minimum billable time top-up', () => {
+    it('should add a top-up task when flight is below minimum billable minutes', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId) // suppress equipment fee for clarity
+      const flight = createTestFlight({ flightMins: 15, blockMins: 18 })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      expect(invoice.Tasks).toHaveLength(2)
+      // Primary flight task
+      expect(invoice.Tasks[0].Task.amount).toBe(15)
+      expect(invoice.Tasks[0].Task.price_per_unit).toBe(2.5)
+      // Top-up task for remaining 5 mins (20 - 15)
+      expect(invoice.Tasks[1].Task.amount).toBe(5)
+      expect(invoice.Tasks[1].Task.price_per_unit).toBe(2.5)
+      expect(invoice.Tasks[1].Task.contents).toContain('minimum billable time 20 min')
+    })
+
+    it('should not add a top-up task when flight meets minimum billable minutes', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      const flight = createTestFlight({ flightMins: 20, blockMins: 22 })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      expect(invoice.Tasks).toHaveLength(1)
+    })
+  })
+
+  describe('Credited minutes', () => {
+    it('should throw when credited minutes exceed flight mins (non-training pilot)', async () => {
+      const flight = createTestFlight({ flightMins: 90, blockMins: 95, creditedMins: 91 })
+      const payload = { flights: [flight] }
+
+      await expect(createFlightInvoicePayload(payload, testMemberId)).rejects.toThrow(
+        `Credited minutes (91) cannot exceed billable minutes (90) for flight ${flight.flightId}`,
+      )
+    })
+
+    it('should throw when credited minutes exceed block mins (training program pilot)', async () => {
+      const flight = createTestFlight({
+        isTrainingProgramPilot: true,
+        flightMins: 90,
+        blockMins: 95,
+        creditedMins: 96,
+      })
+      const payload = { flights: [flight] }
+
+      await expect(createFlightInvoicePayload(payload, testMemberId)).rejects.toThrow(
+        `Credited minutes (96) cannot exceed billable minutes (95) for flight ${flight.flightId}`,
+      )
+    })
+
+    it('should not throw when credited minutes equal billable minutes', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      const flight = createTestFlight({ flightMins: 90, blockMins: 95, creditedMins: 90 })
+      const payload = { flights: [flight] }
+
+      await expect(createFlightInvoicePayload(payload, testMemberId)).resolves.toBeDefined()
+    })
+
+    it('should add a credit task when flight has credited minutes', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      const flight = createTestFlight({ flightMins: 90, blockMins: 95, creditedMins: 10 })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      expect(invoice.Tasks).toHaveLength(2)
+      // Primary flight task
+      expect(invoice.Tasks[0].Task.amount).toBe(90)
+      expect(invoice.Tasks[0].Task.price_per_unit).toBe(2.5)
+      // Credit task — negative price, amount = creditedMins
+      expect(invoice.Tasks[1].Task.amount).toBe(10)
+      expect(invoice.Tasks[1].Task.price_per_unit).toBe(-2.5)
+      expect(invoice.Tasks[1].Task.contents).toContain('credit for 10 min')
+    })
+
+    it('should reduce equipment fee amount by credited minutes', async () => {
+      const flight = createTestFlight({ flightMins: 90, blockMins: 95, creditedMins: 10 })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      // flight task + credit task + equipment fee (reduced)
+      expect(invoice.Tasks).toHaveLength(3)
+      const equipmentFeeTask = invoice.Tasks.find(t => t.Task.code === ART_EQUIP_USAGE_FEE_CODE)
+      expect(equipmentFeeTask?.Task.amount).toBe(80) // 90 - 10
+    })
+  })
+
+  describe('Entry error fee (VIRHEMERKINTA)', () => {
+    it('should add entry error fee task when entryErrorFee is true on a billable flight', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      const flight = createTestFlight({ entryErrorFee: true })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      expect(invoice.Tasks).toHaveLength(2)
+      const errorFeeTask = invoice.Tasks.find(t => t.Task.code === ART_ENTRY_ERROR_CODE)
+      expect(errorFeeTask).toBeDefined()
+      expect(errorFeeTask?.Task.article_id).toBe(testArticleIds[2])
+      expect(errorFeeTask?.Task.price_per_unit).toBe(50)
+      expect(errorFeeTask?.Task.amount).toBe(1)
+    })
+
+    it('should NOT add entry error fee task for a non-billable flight', async () => {
+      const flight = createTestFlight({ entryErrorFee: true, isBillableFlight: false })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      expect(invoice.Tasks).toHaveLength(1)
+      expect(invoice.Tasks[0].Task.discount).toBe(100)
+      const errorFeeTask = invoice.Tasks.find(t => t.Task.code === ART_ENTRY_ERROR_CODE)
+      expect(errorFeeTask).toBeUndefined()
+    })
+  })
+
+  describe('Invoice metadata', () => {
+    it('should include flight billing remarks in additional_info', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      const flight = createTestFlight({ billingRemarks: 'Special handling required' })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      expect(invoice.Invoice.additional_info).toContain('Special handling required')
+    })
+
+    it('should throw when billing ID is missing', async () => {
+      const flight = createTestFlight({ billingId: null })
+      const payload = { flights: [flight] }
+
+      await expect(createFlightInvoicePayload(payload, testMemberId)).rejects.toThrow(
+        `Cannot create invoice: billable member has no billing ID for member ${testMemberId}`,
+      )
+    })
+
+    it('should throw TypeError when billing ID is not a valid number', async () => {
+      const flight = createTestFlight({ billingId: 'not-a-number' })
+      const payload = { flights: [flight] }
+
+      await expect(createFlightInvoicePayload(payload, testMemberId)).rejects.toThrow(TypeError)
+    })
+
+    it('should set client_id from billing ID', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      const flight = createTestFlight({ billingId: '42' })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      expect(invoice.Invoice.client_id).toBe(42)
     })
   })
 })

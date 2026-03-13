@@ -308,7 +308,7 @@ async function createInvoice(
   payload: InvoicePost,
   txn: Transaction<DB>,
 ): Promise<number> {
-  // Create the invoice
+  // Create the invoice in Simplbooks
   const retval = await createSimplbooksInvoice(payload)
 
   //Read back the created invoice - we need to do this in order to get e.g. total sum

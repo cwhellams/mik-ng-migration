@@ -16,6 +16,268 @@ get:
         application/json:
           schema:
             $ref: '../schemas/ArticleListResponse.yaml'
+          examples:
+            default:
+              value:
+                status: 200
+                duration: 0.0057
+                data:
+                  - Article:
+                      id: 2
+                      code: "HELPOSTI"
+                      ean: ""
+                      amount: 0
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 0
+                      markup_type: "none"
+                      is_inventory: false
+                      active: false
+                      name: "Helpostilaskun selvitystuote"
+                      contents: "Tuote jota käytetään Helpostilaskusta tuotavissa laskuissa ennen oikeiden tuotteiden kohdennusta."
+                      unit: "kpl"
+                  - Article:
+                      id: 12
+                      code: "OH-STL"
+                      ean: ""
+                      amount: 0
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 3.6
+                      markup_type: "fixed"
+                      is_inventory: false
+                      active: true
+                      name: "OH-STL lento"
+                      contents: "Lento koneella OH-STL"
+                      unit: "min"
+                  - Article:
+                      id: 15
+                      code: "OH-IHQ"
+                      ean: ""
+                      amount: 0
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 2.45
+                      markup_type: "fixed"
+                      is_inventory: false
+                      active: true
+                      name: "OH-IHQ lento"
+                      contents: "Lento koneella OH-IHQ"
+                      unit: "min"
+                  - Article:
+                      id: 16
+                      code: "OH-SRH"
+                      ean: ""
+                      amount: 0
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 3.3
+                      markup_type: "fixed"
+                      is_inventory: false
+                      active: true
+                      name: "OH-SRH lento"
+                      contents: "Lento koneella OH-SRH"
+                      unit: "min"
+                  - Article:
+                      id: 20
+                      code: "KALUSTO"
+                      ean: ""
+                      amount: 1
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 135
+                      markup_type: "fixed"
+                      is_inventory: false
+                      active: true
+                      name: "Kalustomaksu"
+                      contents: ""
+                      unit: "kpl"
+                  - Article:
+                      id: 22
+                      code: "VIRHEMERKINTA"
+                      ean: ""
+                      amount: 0
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 10
+                      markup_type: "fixed"
+                      is_inventory: false
+                      active: true
+                      name: "Puuttuva tai virheellinen merkintä lentopäiväkirjassa"
+                      contents: ""
+                      unit: "kpl"
+                  - Article:
+                      id: 27
+                      code: "LIIKENNÖINTI"
+                      ean: ""
+                      amount: 0
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 0
+                      markup_type: "none"
+                      is_inventory: false
+                      active: true
+                      name: "Liikennöintimaksut (läpilaskutus)"
+                      contents: "Finavian ja muiden toimijoiden liikennöintimaksut jotka edelleenlaskutetaan lentäjältä."
+                      unit: "kpl"
+                  - Article:
+                      id: 28
+                      code: "TANKKAUS"
+                      ean: ""
+                      amount: 0
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 0
+                      markup_type: "none"
+                      is_inventory: false
+                      active: true
+                      name: "Tankkauslisämaksut"
+                      contents: "Lentäjältä laskutettavat tankkaukseen liittyvät lisämaksut"
+                      unit: "kpl"
+                  - Article:
+                      id: 32
+                      code: "TOIMITUS"
+                      ean: ""
+                      amount: 1
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 3
+                      markup_type: "fixed"
+                      is_inventory: false
+                      active: true
+                      name: "Toimitus- ja käsittelymaksu"
+                      contents: ""
+                      unit: "kpl"
+                  - Article:
+                      id: 38
+                      code: "TANKKAUS-STL"
+                      ean: ""
+                      amount: 0
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 0
+                      markup_type: "none"
+                      is_inventory: false
+                      active: true
+                      name: "Tankkauslisämaksut OH-STL"
+                      contents: "Lentäjältä laskutettavat tankkaukseen liittyvät lisämaksut"
+                      unit: "kpl"
+                  - Article:
+                      id: 39
+                      code: "TANKKAUS-SRH"
+                      ean: ""
+                      amount: 0
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 0
+                      markup_type: "none"
+                      is_inventory: false
+                      active: true
+                      name: "Tankkauslisämaksut OH-SRH"
+                      contents: "Lentäjältä laskutettavat tankkaukseen liittyvät lisämaksut"
+                      unit: "kpl"
+                  - Article:
+                      id: 40
+                      code: "TANKKAUS-IHQ"
+                      ean: ""
+                      amount: 0
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 0
+                      markup_type: "none"
+                      is_inventory: false
+                      active: true
+                      name: "Tankkauslisämaksut OH-IHQ"
+                      contents: "Lentäjältä laskutettavat tankkaukseen liittyvät lisämaksut"
+                      unit: "kpl"
+                  - Article:
+                      id: 44
+                      code: "VAHINKO_SELVITTELY"
+                      ean: ""
+                      amount: 1
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 100
+                      markup_type: "fixed"
+                      is_inventory: false
+                      active: true
+                      name: "Vahingot ja vauriot - selvittelykulu"
+                      contents: "Kerho perii päälliköltä 100 eur selvittelykulun jokaista vauriotapahtumaa kohden."
+                      unit: "kpl"
+                  - Article:
+                      id: 45
+                      code: "UUSJASEN"
+                      ean: ""
+                      amount: 1
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 210
+                      markup_type: "fixed"
+                      is_inventory: false
+                      active: true
+                      name: "Tervetuloa Malmin ilmailukerhoon! Liittymis- ja jäsenmaksu"
+                      contents: "Uuden jäsenen liittymis- ja jäsenmaksu"
+                      unit: "kpl"
+                  - Article:
+                      id: 48
+                      code: "JASEN"
+                      ean: ""
+                      amount: 1
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 85
+                      markup_type: "fixed"
+                      is_inventory: false
+                      active: true
+                      name: "Jäsenmaksu"
+                      contents: ""
+                      unit: "kalenterivuosi"
+                  - Article:
+                      id: 71
+                      code: "KALUSTONKAYTTO"
+                      ean: ""
+                      amount: 1
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 0.66
+                      markup_type: "fixed"
+                      is_inventory: false
+                      active: true
+                      name: "Maksamattoman kalustomaksun lisäveloitus"
+                      contents: "Tuntihinnan lisä 40 eur/h  kun kalustomaksua ei ole maksettu"
+                      unit: "min"
     400:
       $ref: '../schemas/error400.yaml'
     401:

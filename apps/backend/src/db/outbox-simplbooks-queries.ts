@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 import { Transaction } from 'kysely' // Adjust the import path/module if needed
 import type { DB } from './schema.d.ts'
 import {

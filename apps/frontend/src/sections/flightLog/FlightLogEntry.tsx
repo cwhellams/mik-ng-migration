@@ -13,6 +13,7 @@ import {
   FormHelperText,
   Checkbox,
   FormControlLabel,
+  Tooltip,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
@@ -95,6 +96,7 @@ const FlightLogEntry = () => {
   const isEditable = isNew || data?.status == FlightLogStatus.NEW
   const isValidated = data?.status == FlightLogStatus.VALIDATED
   const isInvoiced = !isEditable && !isValidated
+  const adminFieldsEditable = isFlightLogAdmin && !isInvoiced
 
   const {
     register,
@@ -103,6 +105,7 @@ const FlightLogEntry = () => {
     watch,
     formState: { errors, isSubmitting },
     clearErrors,
+    setError,
     setValue,
     getValues,
     reset,
@@ -142,10 +145,15 @@ const FlightLogEntry = () => {
 
       personalRemarks: null,
       billingRemarks: null,
+      partiallyBillableFlight: false,
+      entryErrorFee: false,
+      entryErrorFeeAppliedByMemberId: null,
+      nonBillingApprovedByMemberId: null,
+      validationRemarks: null,
 
       // admin defaults, will be overwritten by the server
+      ajlbSeqNo: 1, // ignored by backend on INSERT; required by schema validation
       ajlbBlankRowsBefore: 0,
-      ajlbSeqNo: 1,
       billableMemberId: me?.memberId ?? '',
       isBillableFlight: true,
       nonBillingReason: null,
@@ -172,6 +180,96 @@ const FlightLogEntry = () => {
     [registration, aircraftData]
   )
 
+  const partiallyBillableFlight = watch('partiallyBillableFlight')
+  const isBillableFlight = watch('isBillableFlight')
+  const entryErrorFee = watch('entryErrorFee')
+  const entryErrorFeeAppliedByMemberId = watch('entryErrorFeeAppliedByMemberId')
+  const nonBillingApprovedByMemberId = watch('nonBillingApprovedByMemberId')
+  const billingRemarks = watch('billingRemarks')
+  const nonBillingReason = watch('nonBillingReason')
+  const validationRemarks = watch('validationRemarks')
+
+  useEffect(() => {
+    if (partiallyBillableFlight && !billingRemarks?.trim()) {
+      setError('billingRemarks', {
+        type: 'manual',
+        message: t('flightLog.billingRemarksRequired'),
+      })
+    } else if (errors.billingRemarks?.type === 'manual') {
+      clearErrors('billingRemarks')
+    }
+  }, [
+    partiallyBillableFlight,
+    billingRemarks,
+    setError,
+    clearErrors,
+    errors.billingRemarks,
+    t,
+  ])
+
+  useEffect(() => {
+    if (entryErrorFee && !validationRemarks?.trim()) {
+      setError('validationRemarks', {
+        type: 'manual',
+        message: t('flightLog.entryErrorFeeRemarksRequired'),
+      })
+    } else if (errors.validationRemarks?.type === 'manual') {
+      clearErrors('validationRemarks')
+    }
+  }, [
+    entryErrorFee,
+    validationRemarks,
+    setError,
+    clearErrors,
+    errors.validationRemarks,
+    t,
+  ])
+
+  useEffect(() => {
+    if (isBillableFlight === false && !nonBillingReason?.trim()) {
+      setError('nonBillingReason', {
+        type: 'manual',
+        message: t('flightLog.nonBillingReasonRequired'),
+      })
+    } else if (errors.nonBillingReason?.type === 'manual') {
+      clearErrors('nonBillingReason')
+    }
+  }, [
+    isBillableFlight,
+    nonBillingReason,
+    setError,
+    clearErrors,
+    errors.nonBillingReason,
+    t,
+  ])
+
+  useEffect(() => {
+    if (isBillableFlight === false && entryErrorFee) {
+      setValue('entryErrorFee', false)
+      setValue('entryErrorFeeAppliedByMemberId', null)
+      setValue('validationRemarks', null)
+      clearErrors('validationRemarks')
+    }
+  }, [isBillableFlight, entryErrorFee, setValue, clearErrors])
+
+  useEffect(() => {
+    if (partiallyBillableFlight && isBillableFlight === false) {
+      setError('partiallyBillableFlight', {
+        type: 'manual',
+        message: t('flightLog.partiallyBillableConflict'),
+      })
+    } else if (errors.partiallyBillableFlight?.type === 'manual') {
+      clearErrors('partiallyBillableFlight')
+    }
+  }, [
+    partiallyBillableFlight,
+    isBillableFlight,
+    setError,
+    clearErrors,
+    errors.partiallyBillableFlight,
+    t,
+  ])
+
   const epochToDayjs = (
     field:
       | 'offBlockTimeEpoch'
@@ -185,8 +283,6 @@ const FlightLogEntry = () => {
   const backLink = `/logs${location.state ?? ''}#${flightId}`
 
   const onSubmit = async (data: FlightLogUpsertRequest) => {
-    console.log('Form submitted with data:', data) // Debug log
-
     try {
       const { error } = await mutation.trigger(
         isNew ? 'POST' : 'PATCH',
@@ -208,6 +304,26 @@ const FlightLogEntry = () => {
       console.error('Unexpected error:', err)
       setProblem({ status: 500, detail: t('general.savingError') })
     }
+  }
+
+  // Save current form state without navigating away; used before validate
+  const saveChanges = async (): Promise<boolean> => {
+    const isValid = await trigger()
+    if (!isValid) {
+      return false
+    }
+    // Strip read-only server fields (flightId, status, etc.) that are not
+    // part of the upsert schema but may be in form state from the server response
+    const formData = FlightLogUpsertSchema.strip().parse(getValues())
+    const { error } = await mutation.trigger('PATCH', formData, undefined, {
+      revalidate: false,
+      populateCache: (result) => result,
+    })
+    if (error) {
+      setProblem(error)
+      return false
+    }
+    return true
   }
 
   // Check if form has validation errors
@@ -516,6 +632,7 @@ const FlightLogEntry = () => {
                 name='personalRemarks'
                 control={control}
                 props={{
+                  disabled: isFlightLogAdmin && isInvoiced,
                   multiline: true,
                   rows: 3,
                 }}
@@ -554,30 +671,45 @@ const FlightLogEntry = () => {
               </Grid>
             )}
 
-            {!isNew && isFlightLogAdmin && (
-              <Grid size={12}>
-                <FormControl required fullWidth error={!!errors.flightType}>
-                  <FormControlLabel
-                    label={t('invoicing.isFreeFlight')}
-                    control={
-                      <Controller
-                        name='isBillableFlight'
-                        control={control}
-                        disabled={isInvoiced}
-                        render={({ field }) => (
-                          <Checkbox
-                            checked={!field.value}
-                            onChange={({ target }) =>
-                              field.onChange(!target.checked)
+            <Grid size={12}>
+              <FormControl fullWidth>
+                <FormControlLabel
+                  label={
+                    <Stack direction='row' spacing={0.5} alignItems='center'>
+                      <span>{t('flightLog.partiallyBillableFlight')}</span>
+                      <Tooltip
+                        title={t('flightLog.partiallyBillableFlightTooltip')}
+                      >
+                        <span>
+                          <Icon icon='mdi:information-outline' width={16} />
+                        </span>
+                      </Tooltip>
+                    </Stack>
+                  }
+                  control={
+                    <Controller
+                      name='partiallyBillableFlight'
+                      control={control}
+                      disabled={isInvoiced}
+                      render={({ field }) => (
+                        <Checkbox
+                          checked={field.value ?? false}
+                          onChange={({ target }) => {
+                            const checked = target.checked
+                            field.onChange(checked)
+
+                            if (checked) {
+                              setValue('isBillableFlight', true)
                             }
-                          />
-                        )}
-                      />
-                    }
-                  />
-                </FormControl>
-              </Grid>
-            )}
+                          }}
+                          disabled={isInvoiced || !isBillableFlight}
+                        />
+                      )}
+                    />
+                  }
+                />
+              </FormControl>
+            </Grid>
 
             <Grid size={12}>
               <TxtField
@@ -591,29 +723,224 @@ const FlightLogEntry = () => {
               />
             </Grid>
 
-            {data && (
-              <Grid size={12}>
-                <StatusDisplay
-                  log={data}
-                  showButton={isFlightLogAdmin && !isInvoiced}
-                  update={async (payload) => {
-                    const { error } = await mutation.trigger(
-                      'POST',
-                      payload,
-                      'validate',
-                      {
-                        // put returned payload to the cache
-                        revalidate: false,
-                        populateCache: (result) => result,
-                      }
-                    )
-                    if (error) {
-                      return setProblem(error)
-                    }
-                  }}
-                />
-              </Grid>
-            )}
+            {/* Admin Use */}
+            <Grid size={12}>
+              <Paper variant='outlined' sx={{ p: 2, borderColor: 'divider' }}>
+                <Grid container spacing={2}>
+                  <Grid size={12}>
+                    <Typography variant='h6'>
+                      {t('flightLog.adminUse')}
+                    </Typography>
+                  </Grid>
+
+                  <Grid size={12}>
+                    {!isNew && (
+                      <>
+                        <FormControl
+                          required
+                          fullWidth
+                          error={!!errors.flightType}
+                        >
+                          <FormControlLabel
+                            label={
+                              <Stack
+                                direction='row'
+                                spacing={0.5}
+                                alignItems='center'
+                              >
+                                <span>{t('invoicing.isFreeFlight')}</span>
+                                <Tooltip
+                                  title={t(
+                                    'flightLog.nonBillableFlightTooltip'
+                                  )}
+                                >
+                                  <span>
+                                    <Icon
+                                      icon='mdi:information-outline'
+                                      width={16}
+                                    />
+                                  </span>
+                                </Tooltip>
+                              </Stack>
+                            }
+                            control={
+                              <Controller
+                                name='isBillableFlight'
+                                control={control}
+                                disabled={!adminFieldsEditable}
+                                render={({ field }) => (
+                                  <Checkbox
+                                    checked={!field.value}
+                                    disabled={!adminFieldsEditable}
+                                    onChange={({ target }) => {
+                                      const isNonBillable = target.checked
+                                      field.onChange(!isNonBillable)
+
+                                      if (isNonBillable) {
+                                        setValue(
+                                          'partiallyBillableFlight',
+                                          false
+                                        )
+                                        if (
+                                          !watch('nonBillingApprovedByMemberId')
+                                        ) {
+                                          setValue(
+                                            'nonBillingApprovedByMemberId',
+                                            me?.memberId ?? null
+                                          )
+                                        }
+                                      } else {
+                                        setValue(
+                                          'nonBillingApprovedByMemberId',
+                                          null
+                                        )
+                                      }
+                                    }}
+                                  />
+                                )}
+                              />
+                            }
+                          />
+                        </FormControl>
+
+                        <Typography
+                          variant='body2'
+                          color='text.secondary'
+                          sx={{ ml: 4, mt: -0.5 }}
+                        >
+                          {`${t('flightLog.nonBillingApprovedByMemberId')}: ${nonBillingApprovedByMemberId ?? '-'}`}
+                        </Typography>
+
+                        <Grid size={12} sx={{ mt: 1 }}>
+                          <TxtField
+                            name='nonBillingReason'
+                            control={control}
+                            props={{
+                              disabled: !adminFieldsEditable,
+                              multiline: true,
+                              rows: 2,
+                            }}
+                          />
+                        </Grid>
+                      </>
+                    )}
+                  </Grid>
+
+                  <Grid size={12}>
+                    <FormControl fullWidth>
+                      <FormControlLabel
+                        label={
+                          <Stack
+                            direction='row'
+                            spacing={0.5}
+                            alignItems='center'
+                          >
+                            <span>{t('flightLog.entryErrorFee')}</span>
+                            <Tooltip
+                              title={t('flightLog.entryErrorFeeTooltip')}
+                            >
+                              <span>
+                                <Icon
+                                  icon='mdi:information-outline'
+                                  width={16}
+                                />
+                              </span>
+                            </Tooltip>
+                          </Stack>
+                        }
+                        control={
+                          <Controller
+                            name='entryErrorFee'
+                            control={control}
+                            disabled={
+                              !adminFieldsEditable || isBillableFlight === false
+                            }
+                            render={({ field }) => (
+                              <Checkbox
+                                checked={field.value ?? false}
+                                disabled={
+                                  !adminFieldsEditable ||
+                                  isBillableFlight === false
+                                }
+                                onChange={({ target }) => {
+                                  const checked = target.checked
+                                  field.onChange(checked)
+
+                                  if (
+                                    checked &&
+                                    !watch('entryErrorFeeAppliedByMemberId')
+                                  ) {
+                                    setValue(
+                                      'entryErrorFeeAppliedByMemberId',
+                                      me?.memberId ?? null
+                                    )
+                                  }
+                                  if (!checked) {
+                                    setValue(
+                                      'entryErrorFeeAppliedByMemberId',
+                                      null
+                                    )
+                                  }
+                                }}
+                              />
+                            )}
+                          />
+                        }
+                      />
+                    </FormControl>
+
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                      sx={{ ml: 4, mt: -0.5 }}
+                    >
+                      {`${t('flightLog.entryErrorFeeAppliedByMemberId')}: ${entryErrorFeeAppliedByMemberId ?? '-'}`}
+                    </Typography>
+                  </Grid>
+
+                  <Grid size={12}>
+                    <TxtField
+                      name='validationRemarks'
+                      control={control}
+                      props={{
+                        disabled: !adminFieldsEditable,
+                        multiline: true,
+                        rows: 2,
+                      }}
+                    />
+                  </Grid>
+
+                  {data && (
+                    <Grid size={12}>
+                      <StatusDisplay
+                        log={data}
+                        showButton={isFlightLogAdmin && !isInvoiced}
+                        update={async (payload) => {
+                          // When validating (not reverting), save form changes first
+                          if (!payload.revert) {
+                            const saved = await saveChanges()
+                            if (!saved) return
+                          }
+                          const { error } = await mutation.trigger(
+                            'POST',
+                            payload,
+                            'validate',
+                            {
+                              // put returned payload to the cache
+                              revalidate: false,
+                              populateCache: (result) => result,
+                            }
+                          )
+                          if (error) {
+                            return setProblem(error)
+                          }
+                        }}
+                      />
+                    </Grid>
+                  )}
+                </Grid>
+              </Paper>
+            </Grid>
           </Grid>
 
           {/* Action buttons */}
@@ -627,7 +954,7 @@ const FlightLogEntry = () => {
             </Button>
             <SaveButton
               loading={mutation.isMutating || isSubmitting}
-              disabled={hasValidationErrors}
+              disabled={hasValidationErrors || (isFlightLogAdmin && isInvoiced)}
             />
           </Stack>
         </form>

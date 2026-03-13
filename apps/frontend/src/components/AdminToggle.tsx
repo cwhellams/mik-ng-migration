@@ -3,14 +3,25 @@ import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { useRoles } from '../hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
+import { MIKPermissions } from '@backend/routes/members/models'
 
 const AdminToggle = () => {
-  const { sudoers } = useRoles()
+  const { hasAccess } = useRoles()
   const { sudo, toggleSudo } = useThemeMode()
 
   const { t } = useTranslation()
 
-  if (!sudoers) {
+  const canUseAdminMode = hasAccess(
+    MIKPermissions.MEMBER_ADMIN,
+    MIKPermissions.FLIGHTLOG_ADMIN,
+    MIKPermissions.BOOKING_ADMIN,
+    MIKPermissions.AIRCRAFT_ADMIN,
+    MIKPermissions.INVOICING_ADMIN,
+    MIKPermissions.ACCESS_CODES_ADMIN,
+    MIKPermissions.DOCUMENT_ADMIN
+  )
+
+  if (!canUseAdminMode) {
     return <></>
   }
 

@@ -154,3 +154,31 @@ This will start the front end and backend, you will see output to the console wh
 2. Click login with Email
 3. In the console you will see a URL logged with the verification login link, you can use this to login (once email is working you can add your own details to test data and use those)
 4. Clicking the link should auto login and you will see the Members list
+
+## Mocking Simplbooks with Prism
+
+Run the Simplbooks OpenAPI mock server with Stoplight Prism:
+
+```bash
+pnpm mock:simplbooks
+```
+
+This command serves the Simplbooks API mock from:
+
+- OpenAPI source URL: `https://app.simplbooks.com/api-documentation/oas/api.yaml`
+- Local spec file: `simplbooks/simplbooks-api/api.yaml`
+- Host: `127.0.0.1`
+- Port: `4010`
+
+The mock includes a local path-rewrite proxy, so tenant routes like:
+
+- `/{SIMPLBOOKS_COMPANY_ID}/api/articles/list`
+
+are forwarded to Prism as:
+
+- `/articles/list`
+
+The proxy also enforces a Simplbooks-like global rate limit of `1 request/second`.
+If exceeded, it returns HTTP `429` with a `Retry-After` header.
+
+The backend default `.env` already points `SIMPLBOOKS_BASE_URI` to `http://127.0.0.1:4010`.

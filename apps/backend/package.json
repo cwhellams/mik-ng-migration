@@ -48,8 +48,7 @@
         "ts-jest",
         {
           "tsconfig": "tsconfig.json",
-          "useESM": true,
-          "isolatedModules": true
+          "useESM": true
         }
       ]
     },

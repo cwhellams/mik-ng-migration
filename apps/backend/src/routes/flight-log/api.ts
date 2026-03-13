@@ -11,6 +11,7 @@ import {
   FlightLogStatus,
   FlightLogValidationRequestSchema,
   validateFlightLogTimes,
+  validateFlightLogBusinessRules,
   ValidatedFlightLogAdminUpsertSchema,
   ValidatedFlightLogMemberUpsertSchema,
   BilledFlightLogUpsertSchema,
@@ -68,11 +69,24 @@ router.post('/', async (req: Request, res: Response) => {
       enableFullData ? FlightLogMigrationSchema : FlightLogUpsertSchema,
     ).parse(req.body)
 
+    const businessErrors: z.IssueData[] = []
+    validateFlightLogBusinessRules(data, issue => businessErrors.push(issue))
+    if (businessErrors.length > 0) {
+      return problem({ status: 400, extensions: { errors: businessErrors } })
+    }
+
     const flightId = await insertFlightLog(data, req.user!)
     res.status(201).json({ flight_id: flightId })
   } else {
     // drop any admin fields the UI might send in the request
     const data = flightLogDateValidator(FlightLogMemberUpsertSchema.strip()).parse(req.body)
+
+    const businessErrors: z.IssueData[] = []
+    validateFlightLogBusinessRules(data, issue => businessErrors.push(issue))
+    if (businessErrors.length > 0) {
+      return problem({ status: 400, extensions: { errors: businessErrors } })
+    }
+
     const flightId = await insertFlightLog(data, req.user!)
     res.status(201).json({ flight_id: flightId })
   }
@@ -230,6 +244,12 @@ const getValidPatchForUpdate = async (
       : ValidatedFlightLogMemberUpsertSchema.strip()
     return validatedSchema.partial().parse(req.body)
   } else {
+    if (admin) {
+      return problem({
+        status: 400,
+        detail: 'Flight log in status QUEUED, INVOICED or PAID cannot be modified by admin',
+      })
+    }
     return BilledFlightLogUpsertSchema.strip().partial().parse(req.body)
   }
 }
@@ -240,6 +260,13 @@ router.patch('/:id', async (req: Request, res: Response) => {
 
   const flight = await getReadableFlight(flightId, req)
   const patch = await getValidPatchForUpdate(flight, req)
+
+  const mergedState = { ...flight, ...patch }
+  const patchBusinessErrors: z.IssueData[] = []
+  validateFlightLogBusinessRules(mergedState, issue => patchBusinessErrors.push(issue))
+  if (patchBusinessErrors.length > 0) {
+    return problem({ status: 400, extensions: { errors: patchBusinessErrors } })
+  }
 
   const updated = await updateFlightLog(flightId, patch, req.user!)
   if (!updated) {

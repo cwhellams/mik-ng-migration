@@ -25,6 +25,8 @@ exports[`Db Get FlightLog tests getFlightLog return existing flight 1`] = `
   "crew4MemberId": null,
   "crew4Role": null,
   "departureAirport": "EFHK",
+  "entryErrorFee": false,
+  "entryErrorFeeAppliedByMemberId": null,
   "flightId": "da40tndra",
   "flightMins": 110,
   "flightTime": "01:50",
@@ -49,6 +51,7 @@ exports[`Db Get FlightLog tests getFlightLog return existing flight 1`] = `
   "oilUpliftLitres": 1.2,
   "onBlockTimeEpoch": "1741095300",
   "onBlockTimeUtc": "2025-03-04T13:35:00.000Z",
+  "partiallyBillableFlight": false,
   "personalRemarks": "Cargo delivery",
   "personsOnBoard": 4,
   "picLastName": "Nieminen",
@@ -61,6 +64,7 @@ exports[`Db Get FlightLog tests getFlightLog return existing flight 1`] = `
   "totalTimeInService": 1.74,
   "updatedAt": Any<String>,
   "updatedBy": "Jukka1",
+  "validationRemarks": null,
 }
 `;
 
@@ -89,6 +93,8 @@ exports[`Db insert tests insertFlightLog inserts a new flight log to the db, que
   "crew4MemberId": null,
   "crew4Role": null,
   "departureAirport": "EFHK",
+  "entryErrorFee": false,
+  "entryErrorFeeAppliedByMemberId": null,
   "flightId": Any<String>,
   "flightMins": 60,
   "flightTime": "01:00",
@@ -113,6 +119,7 @@ exports[`Db insert tests insertFlightLog inserts a new flight log to the db, que
   "oilUpliftLitres": 5,
   "onBlockTimeEpoch": "1741584000",
   "onBlockTimeUtc": "2025-03-10T05:20:00.000Z",
+  "partiallyBillableFlight": false,
   "personalRemarks": "No remarks",
   "personsOnBoard": 4,
   "picLastName": "Korhonen",
@@ -125,6 +132,7 @@ exports[`Db insert tests insertFlightLog inserts a new flight log to the db, que
   "totalTimeInService": 1023.5,
   "updatedAt": Any<String>,
   "updatedBy": "Matti1",
+  "validationRemarks": null,
 }
 `;
 

@@ -5,6 +5,7 @@ import {
   Pagination,
   Checkbox,
   Button,
+  TextField,
 } from '@mui/material'
 import useApi from '../../../hooks/useApi'
 import {
@@ -55,6 +56,33 @@ export const InvoicingFlights = ({
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
+  // tracks locally-edited non-billing reasons before they are saved to the server
+  const [editingReasons, setEditingReasons] = useState<Record<string, string>>(
+    {}
+  )
+
+  const showReasonField = (log: InvoicableFlight) =>
+    log.isBillableFlight !== true || log.flightId in editingReasons
+
+  const getReasonValue = (log: InvoicableFlight) =>
+    editingReasons[log.flightId] ?? log.nonBillingReason ?? ''
+
+  const handleReasonBlur = async (log: InvoicableFlight) => {
+    const reason = getReasonValue(log)
+    if (!reason.trim()) return
+    const res = await updateEntry(log, {
+      isBillableFlight: false,
+      nonBillingReason: reason,
+    })
+    if (!res.error) {
+      setEditingReasons((prev) => {
+        const next = { ...prev }
+        delete next[log.flightId]
+        return next
+      })
+    }
+  }
+
   const scrollToRef = useScrollOnRender()
 
   const updateEntry = async (
@@ -96,6 +124,10 @@ export const InvoicingFlights = ({
       })
     } else if (filters.flights == InvoicableFlights.COMMENT) {
       return t('invoicing.completeCommentedFlights')
+    } else if (filters.flights == InvoicableFlights.ENTRY_ERROR) {
+      return t('invoicing.completeEntryErrorFlights')
+    } else if (filters.flights == InvoicableFlights.MIN_BILLABLE) {
+      return t('invoicing.completeMinBillable')
     } else if (filters.flights == InvoicableFlights.OTHER) {
       return t('invoicing.complete')
     }
@@ -154,14 +186,48 @@ export const InvoicingFlights = ({
                   <Grid size={{ xs: 12, md: 3.4 }}>{log.billingRemarks}</Grid>
                   <Grid size={'grow'} display={{ xs: 'none', md: 'flex' }}>
                     <Checkbox
-                      checked={log.isBillableFlight == false}
+                      checked={
+                        log.isBillableFlight !== true ||
+                        log.flightId in editingReasons
+                      }
                       onChange={async ({ target }) => {
-                        await updateEntry(log, {
-                          isBillableFlight: !target.checked,
-                        })
+                        if (target.checked) {
+                          // show the reason field locally; don't call API until reason is entered
+                          setEditingReasons((prev) => ({
+                            ...prev,
+                            [log.flightId]: '',
+                          }))
+                        } else {
+                          setEditingReasons((prev) => {
+                            const next = { ...prev }
+                            delete next[log.flightId]
+                            return next
+                          })
+                          await updateEntry(log, {
+                            isBillableFlight: true,
+                            nonBillingReason: null,
+                          })
+                        }
                       }}
                     />
                   </Grid>
+                  {showReasonField(log) && (
+                    <Grid size={12} display={{ xs: 'none', md: 'block' }}>
+                      <TextField
+                        size='small'
+                        placeholder={t('flightLog.nonBillingReason')}
+                        value={getReasonValue(log)}
+                        onChange={({ target }) =>
+                          setEditingReasons((prev) => ({
+                            ...prev,
+                            [log.flightId]: target.value,
+                          }))
+                        }
+                        onBlur={() => handleReasonBlur(log)}
+                        fullWidth
+                      />
+                    </Grid>
+                  )}
                 </>
               ) : (
                 <>
@@ -171,11 +237,27 @@ export const InvoicingFlights = ({
                     flightType={log.flightType}
                   >
                     <Checkbox
-                      checked={log.isBillableFlight == false}
+                      checked={
+                        log.isBillableFlight !== true ||
+                        log.flightId in editingReasons
+                      }
                       onChange={async ({ target }) => {
-                        await updateEntry(log, {
-                          isBillableFlight: !target.checked,
-                        })
+                        if (target.checked) {
+                          setEditingReasons((prev) => ({
+                            ...prev,
+                            [log.flightId]: '',
+                          }))
+                        } else {
+                          setEditingReasons((prev) => {
+                            const next = { ...prev }
+                            delete next[log.flightId]
+                            return next
+                          })
+                          await updateEntry(log, {
+                            isBillableFlight: true,
+                            nonBillingReason: null,
+                          })
+                        }
                       }}
                     />
                   </ViewMobileFlightDetails>
@@ -196,6 +278,23 @@ export const InvoicingFlights = ({
                   />
 
                   <Grid size={12}>{log.billingRemarks}</Grid>
+                  {showReasonField(log) && (
+                    <Grid size={12}>
+                      <TextField
+                        size='small'
+                        placeholder={t('flightLog.nonBillingReason')}
+                        value={getReasonValue(log)}
+                        onChange={({ target }) =>
+                          setEditingReasons((prev) => ({
+                            ...prev,
+                            [log.flightId]: target.value,
+                          }))
+                        }
+                        onBlur={() => handleReasonBlur(log)}
+                        fullWidth
+                      />
+                    </Grid>
+                  )}
                 </>
               )}
             </>

@@ -30,7 +30,7 @@ export type FlightAircraftDocumentType =
   | 'Transponder Mode S certificate'
   | 'Weight Report'
 
-export type FlightLogStatus = 'INVOICED' | 'NEW' | 'PAID' | 'VALIDATED'
+export type FlightLogStatus = 'INVOICED' | 'NEW' | 'PAID' | 'QUEUED_FOR_INVOICING' | 'VALIDATED'
 
 export type Generated<T> =
   T extends ColumnType<infer S, infer I, infer U>
@@ -211,6 +211,15 @@ export interface FlightAircraftJourneyLogBook {
   updated_by: string
 }
 
+export interface FlightFlightCredits {
+  allocated_by_member_id: string
+  created_at: Generated<Timestamp>
+  credited_mins: number
+  flight_id: string
+  note: string | null
+  updated_at: Generated<Timestamp>
+}
+
 export interface FlightLogs {
   aircraft_registration: string
   ajlb_blank_rows_before: number
@@ -236,6 +245,8 @@ export interface FlightLogs {
   crew4_member_id: Generated<string | null>
   crew4_role: CrewRole | null
   departure_airport: string
+  entry_error_fee: Generated<boolean>
+  entry_error_fee_applied_by_member_id: string | null
   flight_id: string
   flight_mins: Generated<number>
   flight_time: Generated<string>
@@ -260,6 +271,7 @@ export interface FlightLogs {
   oil_uplift_litres: Numeric | null
   on_block_time_epoch: Int8
   on_block_time_utc: Generated<Timestamp>
+  partially_billable_flight: Generated<boolean | null>
   personal_remarks: string | null
   persons_on_board: number
   pic_last_name: string
@@ -272,6 +284,7 @@ export interface FlightLogs {
   total_time_in_service: Numeric | null
   updated_at: Generated<Timestamp>
   updated_by: string
+  validation_remarks: string | null
 }
 
 export interface FlightLogsAudit {
@@ -757,6 +770,7 @@ export interface DB {
   'flight.aircraft': FlightAircraft
   'flight.aircraft_documents_files': FlightAircraftDocumentsFiles
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
+  'flight.flight_credits': FlightFlightCredits
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit
   'flight.occurrence_access': FlightOccurrenceAccess
