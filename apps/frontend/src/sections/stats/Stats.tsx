@@ -74,6 +74,9 @@ export const Stats = () => {
       grid: {
         line: { stroke: mode === 'dark' ? '#444444' : '#dddddd' },
       },
+      labels: {
+        text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
+      },
     }),
     [mode]
   )

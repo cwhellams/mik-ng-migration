@@ -506,9 +506,11 @@ const MassBalance: React.FC = () => {
           <Box sx={{ mb: 3 }}>
             <Card
               sx={{
-                bgcolor: 'grey.100',
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
                 borderLeft: '4px solid',
-                borderColor: 'grey.700',
+                borderColor: (theme) =>
+                  theme.palette.mode === 'dark' ? 'grey.500' : 'grey.700',
               }}
             >
               <CardContent>
@@ -1138,7 +1140,7 @@ const MassBalance: React.FC = () => {
                 size='small'
                 variant='outlined'
                 onClick={handleResetFuelPlanning}
-                sx={{ textTransform: 'none' }}
+                sx={{ textTransform: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}
               >
                 Reset to Defaults
               </Button>
