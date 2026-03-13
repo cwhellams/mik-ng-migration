@@ -42,6 +42,9 @@
     "checkYouEmail": "Tarkista sähköpostisi",
     "linkSentTo": "Kirjautumislinkki on lähetetty osoitteeseen {{email}}",
     "verificationCode": "Kirjautumisen tunniste",
+    "enterCodePrompt": "Syötä sähköpostin koodi kirjautuaksesi suoraan tällä laitteella.",
+    "submitCode": "Vahvista koodi",
+    "invalidCode": "Virheellinen tai vanhentunut koodi. Yritä uudelleen.",
     "emailNotReceived": "Sähköpostia ei kuulu?",
     "tryAgain": "Yritä uudestaan"
   },

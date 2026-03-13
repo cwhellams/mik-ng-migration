@@ -73,7 +73,8 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
   )
   logger.info('magic login link sent for validation %j', link)
 
-  return res.json({ code: link.code })
+  // Return both code and token so PWA can validate without email redirect
+  return res.json({ code: link.code, token: link.token })
 })
 
 // Register a new user

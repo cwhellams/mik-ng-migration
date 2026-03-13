@@ -9,6 +9,7 @@
     "serve": "tsc -b && vite build --mode production && serve -s dist",
     "lint": "eslint .",
     "preview": "vite preview",
+    "preview:local": "tsc -b && vite build --mode development && vite preview --mode development",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

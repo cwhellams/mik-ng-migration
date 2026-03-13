@@ -31,8 +31,11 @@ export const LoginRequestSchema = z.object({
 export type LoginRequest = z.infer<typeof LoginRequestSchema>
 
 export const LoginResponseSchema = z.object({
-  // verification code
+  // verification code shown in the email and on-screen for PWA code entry
   code: z.number().optional(),
+
+  // JWT token — returned so the PWA can call /login/validate without a page redirect
+  token: z.string().optional(),
 
   error: z.string().optional(),
 })

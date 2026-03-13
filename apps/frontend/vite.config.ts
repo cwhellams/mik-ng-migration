@@ -85,6 +85,15 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    preview: {
+      proxy: {
+        '/api': {
+          target,
+          changeOrigin: true,
+          secure: isSecure,
+        },
+      },
+    },
     resolve: {
       alias: {
         '@backend': path.resolve(__dirname, '../backend/src'),

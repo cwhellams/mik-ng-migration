@@ -42,6 +42,9 @@
     "checkYouEmail": "Kontrollera din e-post",
     "linkSentTo": "En inloggningslänk har skickats till {{email}}.",
     "verificationCode": "Verifieringskod",
+    "enterCodePrompt": "Ange koden från e-postmeddelandet för att logga in direkt på den här enheten.",
+    "submitCode": "Bekräfta koden",
+    "invalidCode": "Ogiltig eller utgången kod. Försök igen.",
     "emailNotReceived": "Får du ingen e-post?",
     "tryAgain": "Försök igen"
   },

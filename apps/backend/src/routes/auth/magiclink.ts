@@ -53,10 +53,10 @@ export class MIKMagicLoginStrategy extends MagicLoginStrategy.default {
     })
   }
 
-  generateLink(email: string, target?: string): { href: string; code: number } {
+  generateLink(email: string, target?: string): { href: string; code: number; token: string } {
     const code = getRandomInt(10000, 99999)
 
-    const jwt = generateToken(
+    const token = generateToken(
       {
         email,
         code: code.toString(),
@@ -67,8 +67,9 @@ export class MIKMagicLoginStrategy extends MagicLoginStrategy.default {
       },
     )
     return {
-      href: `${callbackUrl}?token=${jwt}${target ? `&target=${target}` : ''}`,
+      href: `${callbackUrl}?token=${token}${target ? `&target=${target}` : ''}`,
       code,
+      token,
     }
   }
 }

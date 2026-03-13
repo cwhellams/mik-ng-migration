@@ -43,6 +43,9 @@
     "checkYouEmail": "Check your email",
     "linkSentTo": "A Login link has been sent to {{email}}.",
     "verificationCode": "Verification code",
+    "enterCodePrompt": "Enter the code from the email to log in directly on this device.",
+    "submitCode": "Confirm code",
+    "invalidCode": "Invalid or expired code. Please try again.",
     "emailNotReceived": "Not receiving email?",
     "tryAgain": "Try again"
   },
