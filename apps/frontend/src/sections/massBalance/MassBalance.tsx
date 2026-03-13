@@ -177,68 +177,68 @@ const MassBalance: React.FC = () => {
           }
         })()
 
-        if (currentState) {
-          // Update only the moment arms based on new aircraft specs, preserve weights
-          updatePilot({
-            weight:
-              currentState.pilot?.weight ||
-              specs.loadPoints.pilot.defaultValue ||
-              80,
-            arm: specs.loadPoints.pilot.momentArm,
-          })
+        // Always update moment arms from aircraft specs, preserving user weights
+        // from saved state when available. This ensures correct CG on first page
+        // load even when there is no saved state in localStorage.
+        updatePilot({
+          weight:
+            currentState?.pilot?.weight ||
+            specs.loadPoints.pilot.defaultValue ||
+            80,
+          arm: specs.loadPoints.pilot.momentArm,
+        })
 
-          updateCopilot({
+        updateCopilot({
+          weight:
+            currentState?.copilot?.weight ||
+            specs.loadPoints.copilot.defaultValue ||
+            0,
+          arm: specs.loadPoints.copilot.momentArm,
+        })
+
+        // Handle rear seats
+        if (specs.loadPoints.rearSeat) {
+          updateRearSeat({
             weight:
-              currentState.copilot?.weight ||
-              specs.loadPoints.copilot.defaultValue ||
+              currentState?.rearSeats?.weight ||
+              specs.loadPoints.rearSeat.defaultValue ||
               0,
-            arm: specs.loadPoints.copilot.momentArm,
+            arm: specs.loadPoints.rearSeat.momentArm,
           })
-
-          // Handle rear seats
-          if (specs.loadPoints.rearSeat) {
-            updateRearSeat({
-              weight:
-                currentState.rearSeats?.weight ||
-                specs.loadPoints.rearSeat.defaultValue ||
-                0,
-              arm: specs.loadPoints.rearSeat.momentArm,
-            })
-          } else {
-            // Reset rear seat weight to 0 if aircraft doesn't have rear seats
-            updateRearSeat({
-              weight: 0,
-              arm: 0,
-            })
-          }
-
-          updateBaggage({
-            weight:
-              currentState.baggage?.weight ||
-              specs.loadPoints.baggage.defaultValue ||
-              10,
-            arm: specs.loadPoints.baggage.momentArm,
+        } else {
+          // Reset rear seat weight to 0 if aircraft doesn't have rear seats
+          updateRearSeat({
+            weight: 0,
+            arm: 0,
           })
+        }
 
-          updateFuel({
-            litres:
-              currentState.fuel?.litres ||
-              specs.loadPoints.fuel.defaultValue ||
-              30,
-            weight: currentState.fuel?.weight || 0,
-            arm: specs.loadPoints.fuel.momentArm,
-          })
+        updateBaggage({
+          weight:
+            currentState?.baggage?.weight ||
+            specs.loadPoints.baggage.defaultValue ||
+            10,
+          arm: specs.loadPoints.baggage.momentArm,
+        })
 
-          // Update fuel parameters only if they haven't been changed from defaults
-          if (!currentState.taxiFuel || currentState.taxiFuel === 5) {
-            updateTaxiFuel(specs.loadPoints.taxiFuel.defaultValue || 3)
-          }
-          if (!currentState.fuelFlow || currentState.fuelFlow === 25) {
-            updateFuelFlow(specs.loadPoints.fuelFlow.defaultValue || 25)
-          }
-          if (!currentState.flightTime || currentState.flightTime === 60) {
-            updateFlightTime(specs.loadPoints.flightTime.defaultValue || 45)
-          }
+        updateFuel({
+          litres:
+            currentState?.fuel?.litres ||
+            specs.loadPoints.fuel.defaultValue ||
+            30,
+          weight: currentState?.fuel?.weight || 0,
+          arm: specs.loadPoints.fuel.momentArm,
+        })
+
+        // Update fuel parameters only if they haven't been changed from defaults
+        if (!currentState?.taxiFuel || currentState.taxiFuel === 5) {
+          updateTaxiFuel(specs.loadPoints.taxiFuel.defaultValue || 3)
+        }
+        if (!currentState?.fuelFlow || currentState.fuelFlow === 25) {
+          updateFuelFlow(specs.loadPoints.fuelFlow.defaultValue || 25)
+        }
+        if (!currentState?.flightTime || currentState.flightTime === 60) {
+          updateFlightTime(specs.loadPoints.flightTime.defaultValue || 45)
         }
       } catch (error) {
         const errorMessage =
