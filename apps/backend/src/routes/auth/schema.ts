@@ -32,10 +32,9 @@ export type LoginRequest = z.infer<typeof LoginRequestSchema>
 
 export const LoginResponseSchema = z.object({
   // verification code shown in the email and on-screen for PWA code entry
+  // NOTE: the JWT token is NO LONGER returned here. The client must call
+  // POST /login/verify-code with {email, code} to obtain access tokens.
   code: z.number().optional(),
-
-  // JWT token — returned so the PWA can call /login/validate without a page redirect
-  token: z.string().optional(),
 
   error: z.string().optional(),
 })
@@ -47,6 +46,14 @@ export const VerifyRequestSchema = z.object({
   token: z.string(),
 })
 export type VerifyRequest = z.infer<typeof VerifyRequestSchema>
+
+// verify-code (PWA numeric code entry)
+
+export const VerifyCodeRequestSchema = z.object({
+  email: z.string().email(),
+  code: z.string().regex(/^\d{5}$/, 'Code must be exactly 5 digits'),
+})
+export type VerifyCodeRequest = z.infer<typeof VerifyCodeRequestSchema>
 
 export const VerifyResponseSchema = z.object({
   // pass token and user information back after verified login

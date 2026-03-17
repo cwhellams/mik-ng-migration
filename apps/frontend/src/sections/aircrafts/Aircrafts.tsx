@@ -52,9 +52,6 @@ import { RemoveButton } from '../../components/RemoveButton'
 import { AircraftPricing } from '@backend/routes/aircraft-pricing/models'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { mutate } from 'swr'
-import axios from 'axios'
-
-const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 
 const Aircrafts = () => {
   const { data, isLoading, error } = useApi<AircraftListResponse, Aircraft>({
@@ -63,6 +60,8 @@ const Aircrafts = () => {
 
   const { isAircraftAdmin, isInvoicingAdmin } = useRoles()
   const canEditPricing = isAircraftAdmin || isInvoicingAdmin
+
+  const pricingDelete = useApi({ url: 'v1/aircraft-pricing', skipFetch: true })
 
   const [editMode, setEditMode] = useState<AircraftEditMode | undefined>(
     undefined
@@ -135,19 +134,17 @@ const Aircrafts = () => {
     if (!pricingToDelete) return
 
     try {
-      const accessToken = localStorage.getItem('accessToken')
-      await axios.delete(
-        `${API_BASE}/api/v1/aircraft-pricing/${pricingToDelete.registration}/${pricingToDelete.valid_from}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
+      await pricingDelete.mutation.trigger(
+        'DELETE',
+        undefined,
+        `${pricingToDelete.registration}/${pricingToDelete.valid_from}`
       )
 
       await mutate(
         (key: unknown) =>
-          typeof key === 'string' && key.includes('aircraft-pricing')
+          Array.isArray(key) &&
+          typeof key[0] === 'string' &&
+          key[0].includes('aircraft-pricing')
       )
     } catch (error) {
       console.error('Error deleting pricing:', error)

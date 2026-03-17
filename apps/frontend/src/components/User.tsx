@@ -48,7 +48,7 @@ const User = () => {
       return
     }
 
-    localStorage.removeItem('accessToken')
+    sessionStorage.removeItem('accessToken')
 
     // invalidate cache
     mutate(undefined)

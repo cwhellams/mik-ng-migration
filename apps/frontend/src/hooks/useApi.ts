@@ -48,25 +48,25 @@ const getTheToken = async () => {
     return await tokenRefresh.refreshing
   }
 
-  return localStorage.getItem('accessToken')
+  return sessionStorage.getItem('accessToken')
 }
 
 export const invalidateTokenOlderThan = (date: string) => {
-  const accessToken = localStorage.getItem('accessToken')
-  const refreshed = localStorage.getItem('accessTokenRefreshed')
+  const accessToken = sessionStorage.getItem('accessToken')
+  const refreshed = sessionStorage.getItem('accessTokenRefreshed')
   if (!refreshed || accessToken == 'refresh-me') {
     return
   }
 
   if (refreshed && dayjs(refreshed).isBefore(date)) {
     console.log("Force refreshing the token, it's older than", date)
-    localStorage.setItem('accessToken', 'refresh-me')
+    sessionStorage.setItem('accessToken', 'refresh-me')
   }
 }
 
 export const saveToken = (token: string) => {
-  localStorage.setItem('accessToken', token)
-  localStorage.setItem('accessTokenRefreshed', new Date().toISOString())
+  sessionStorage.setItem('accessToken', token)
+  sessionStorage.setItem('accessTokenRefreshed', new Date().toISOString())
 }
 
 const refreshTheToken = async () => {
@@ -79,8 +79,8 @@ const refreshTheToken = async () => {
         if (accessToken) {
           saveToken(accessToken)
         } else {
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('accessTokenRefreshed')
+          sessionStorage.removeItem('accessToken')
+          sessionStorage.removeItem('accessTokenRefreshed')
         }
 
         tokenRefresh.refreshing = undefined
@@ -89,7 +89,7 @@ const refreshTheToken = async () => {
       })
       .catch((err) => {
         // If there is an error refreshing the token, log out the user
-        localStorage.removeItem('accessToken')
+        sessionStorage.removeItem('accessToken')
         return Promise.reject(err)
       })
   }
@@ -108,7 +108,7 @@ api.interceptors.response.use(
     if (
       originalRequest &&
       error.response?.status === 401 &&
-      localStorage.getItem('accessToken')
+      sessionStorage.getItem('accessToken')
     ) {
       const accessToken = await refreshTheToken()
 

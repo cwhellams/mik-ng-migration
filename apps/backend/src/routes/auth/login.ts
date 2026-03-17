@@ -1,12 +1,17 @@
 import { Router, type Request, type Response, type NextFunction } from 'express'
-import passport from 'passport'
+import { createHash } from 'node:crypto'
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcryptjs'
+import { RateLimiterMemory } from 'rate-limiter-flexible'
+import dayjs from 'dayjs'
+import ms from 'ms'
 
-import { MIKMagicLoginStrategy } from './magiclink.ts'
+import { buildMagicLinkHref, generateMagicLinkToken, generateLoginCode } from './magiclink.ts'
 import { MIKRegistrationVerificationStrategy } from './registration-verification.ts'
 import {
   LoginRequestSchema,
   RegisterRequestSchema,
+  VerifyCodeRequestSchema,
   type LoginRequest,
   type LoginResponse,
   type RegisterRequest,
@@ -14,23 +19,38 @@ import {
 } from './schema.ts'
 import { decodeRefreshToken, generateAccessToken, generateRefreshToken } from './token.ts'
 import { generateJWTUser, type JWTUser } from './token.ts'
-import { addMember, getMemberByEmail, getMemberById } from '../../db/member-queries.ts'
+import {
+  addMember,
+  getMemberByEmail,
+  getMemberById,
+  updateMember,
+} from '../../db/member-queries.ts'
+import {
+  claimLoginAttemptByTokenHash,
+  createLoginAttempt,
+  createLoginEvent,
+  getActiveLoginAttempt,
+  incrementLoginAttemptFailures,
+  invalidatePreviousLoginAttempts,
+  markLoginAttemptUsed,
+} from '../../db/auth-queries.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { loginEmailTitle, loginEmailBodyHtml } from '../../templates/loginEmailTemplate.ts'
 import { getRandomInt } from '../../util/math-utils.ts'
 import { problem } from '../response.ts'
-import ms from 'ms'
-import dayjs from 'dayjs'
 import {
   registerEmailBodyHtml,
   registerEmailTitle,
 } from '../../templates/registrationEmailTemplate.ts'
 import { verifyTurnstileToken } from '../../services/turnstile.ts'
 
-const magicLogin = new MIKMagicLoginStrategy()
 const registrationVerification = new MIKRegistrationVerificationStrategy()
-passport.use(magicLogin)
+
+// Per-email rate limiter: max 5 code-verify attempts per email per 15 minutes.
+// Keyed on email so a single attacker IP cannot cycle through many accounts,
+// and a single account cannot be brute-forced from many IPs.
+const verifyCodeLimiter = new RateLimiterMemory({ points: 5, duration: 15 * 60 })
 
 //
 // Routing methods from UI
@@ -42,7 +62,8 @@ const silentFailure = (message: string, res: Response<LoginResponse>): void => {
   res.status(200).json({ code: getRandomInt(10000, 99999) })
 }
 
-// Login existing user
+// Login existing user — sends magic-link email and stores a hashed code server-side.
+// The JWT for the magic link is NEVER returned to the client.
 router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResponse>) => {
   const { email, target, turnstileToken } = LoginRequestSchema.parse(req.body)
 
@@ -55,8 +76,8 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
     }
   }
 
-  // Check that we have a memeber with this email address, to avoid sending magic link to non-existing user.
-  // Do not leak information about existing users, if nothing found still return 200 with a random verification code and log a warning.
+  // Check that we have a member with this email address, to avoid sending magic link to non-existing user.
+  // Do not leak information about existing users; if nothing found still return 200 with a random code and log a warning.
   const member = await getMemberByEmail(email)
   if (!member) {
     return silentFailure(
@@ -65,16 +86,90 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
     )
   }
 
-  const link = magicLogin.generateLink(member.email, target)
+  // Generate an opaque random token for the email link. Only its SHA-256 hash is
+  // stored in the database — the raw token is placed in the email URL only.
+  const { token: linkToken, tokenHash: linkTokenHash } = generateMagicLinkToken()
+  const code = generateLoginCode()
+  const displayCode = getRandomInt(10000, 99999)
+  const href = buildMagicLinkHref(linkToken, target)
+
+  // Invalidate any previous pending attempts and store the new hashed code in the DB.
+  // The raw code is never persisted; only a bcrypt hash is stored.
+  await invalidatePreviousLoginAttempts(member.email)
+  const codeHash = await bcrypt.hash(code.toString(), 10)
+  const expiresAt = dayjs().add(15, 'minutes').toDate()
+  await createLoginAttempt(member.email, codeHash, linkTokenHash, expiresAt, req.ip)
+
   sendEmail(
     member.email,
     loginEmailTitle(member.lang),
-    loginEmailBodyHtml(member.lang, { ...link, firstName: member.firstName }),
+    loginEmailBodyHtml(member.lang, { href, code, firstName: member.firstName }),
   )
-  logger.info('magic login link sent for validation %j', link)
+  logger.info('magic login link sent for %s', member.email)
 
-  // Return both code and token so PWA can validate without email redirect
-  return res.json({ code: link.code, token: link.token })
+  // Only a non-authentic display code is returned to the client (for PWA numeric-entry UX).
+  // The real verification code is sent via email and is never exposed in this response.
+  return res.json({ code: displayCode })
+})
+
+// PWA numeric-code verification endpoint.
+// The client posts {email, code}; we verify the code server-side against the stored hash.
+// This replaces the insecure client-side code-check that previously relied on the JWT
+// being returned in the login response.
+router.post('/login/verify-code', async (req: Request, res: Response<VerifyResponse>) => {
+  const parseResult = VerifyCodeRequestSchema.safeParse(req.body)
+  if (!parseResult.success) {
+    return res.status(400).json({ error: 'Invalid request' })
+  }
+  const { email, code } = parseResult.data
+
+  // Per-email rate limit to prevent brute force
+  try {
+    await verifyCodeLimiter.consume(email.toLowerCase())
+  } catch {
+    logger.warn('Rate limit exceeded for verify-code from email %s', email)
+    await createLoginEvent(null, 'login_code_max_attempts', req.ip, req.headers['user-agent'])
+    return res.status(429).json({ error: 'Too many attempts. Please request a new code.' })
+  }
+
+  const member = await getMemberByEmail(email)
+  if (!member) {
+    logger.warn('verify-code attempt for unknown email %s', email)
+    await createLoginEvent(null, 'login_failed', req.ip, req.headers['user-agent'])
+    return res.status(401).json({ error: 'Invalid or expired code' })
+  }
+
+  const attempt = await getActiveLoginAttempt(email)
+  if (!attempt) {
+    logger.warn('verify-code: no active attempt found for %s', email)
+    await createLoginEvent(member.memberId, 'login_code_expired', req.ip, req.headers['user-agent'])
+    return res.status(401).json({ error: 'Invalid or expired code' })
+  }
+
+  const codeMatches = bcrypt.compareSync(code, attempt.code_hash)
+  if (!codeMatches) {
+    const failures = await incrementLoginAttemptFailures(attempt.id)
+    logger.warn('verify-code: incorrect code for %s (attempt %d)', email, failures)
+    await createLoginEvent(member.memberId, 'login_code_invalid', req.ip, req.headers['user-agent'])
+    return res.status(401).json({ error: 'Invalid or expired code' })
+  }
+
+  // Mark the attempt as used so it cannot be replayed
+  await markLoginAttemptUsed(attempt.id)
+  await verifyCodeLimiter.delete(email.toLowerCase())
+
+  // Mark email as verified on first successful login via code, for consistency with magic-link flow
+  let verifiedMember = member
+  if (!member.emailVerifiedAt) {
+    const emailVerifiedAt = new Date().toISOString()
+    // generateJWTUser(member) here satisfies the required updated_by audit param in updateMember
+    await updateMember(member.memberId, { emailVerifiedAt }, generateJWTUser(member))
+    verifiedMember = { ...member, emailVerifiedAt }
+  }
+
+  const jwtUser = generateJWTUser(verifiedMember)
+  await createLoginEvent(member.memberId, 'login_success', req.ip, req.headers['user-agent'])
+  respondWithAccessAndRefreshToken(jwtUser, res)
 })
 
 // Register a new user
@@ -117,7 +212,7 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
 })
 
 const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response<VerifyResponse>): void => {
-  // Refresh token is stored in a secure cookie not accessible by frontend
+  // Refresh token is stored in a secure httpOnly cookie not accessible by frontend JS
   res.cookie('refreshToken', generateRefreshToken(user), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -126,26 +221,49 @@ const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response<VerifyRes
       .add(ms(process.env.REFRESH_TOKEN_EXPIRATION as ms.StringValue), 'milliseconds')
       .toDate(),
 
-    // cookie is only sent to refresh endpoint
+    // cookie is only sent to the refresh endpoint
     path: '/api/auth/refresh',
   })
 
-  // Access token is used to verify requests and is valid only for a short time.
-  // It's stored in the local storage.
+  // Access token is short-lived and stored in sessionStorage (not localStorage) on the client
   res.status(200).json({ accessToken: generateAccessToken(user) })
 }
 
-router.post(
-  '/login/validate',
+// Magic-link email click-through verification.
+// The frontend POSTs the raw token from the URL query parameter.
+// We hash it server-side and do an atomic DB lookup — the raw token is never stored.
+router.post('/login/validate', async (req: Request, res: Response<VerifyResponse>) => {
+  const raw: unknown = req.body.token
+  if (typeof raw !== 'string' || !raw) {
+    return res.status(400).json({ error: 'Token is required' })
+  }
 
-  // Login with magic link
-  passport.authenticate('magiclogin', { session: false }),
+  const tokenHash = createHash('sha256').update(raw).digest('hex')
 
-  (req: Request, res: Response<VerifyResponse>) => {
-    // validation was successful, return access token back to the UI
-    respondWithAccessAndRefreshToken(req.user!, res)
-  },
-)
+  // Atomic claim: marks the row as used only if it exists, is unused, and has not expired.
+  // Returns undefined on any failure, preventing replay attacks under concurrency.
+  const attempt = await claimLoginAttemptByTokenHash(tokenHash)
+  if (!attempt) {
+    logger.warn('login/validate: invalid, already-used, or expired token from %s', req.ip)
+    return res.status(401).json({ error: 'Invalid or expired link' })
+  }
+
+  const member = await getMemberByEmail(attempt.email)
+  if (!member) {
+    logger.warn('login/validate: no member found for email in attempt %s', attempt.id)
+    return res.status(401).json({ error: 'Invalid or expired link' })
+  }
+
+  // Mark the email as verified on first magic-link login
+  if (!member.emailVerifiedAt) {
+    const jwtForUpdate = generateJWTUser(member)
+    await updateMember(member.memberId, { emailVerifiedAt: new Date().toISOString() }, jwtForUpdate)
+  }
+
+  const jwtUser = generateJWTUser(member)
+  await createLoginEvent(member.memberId, 'login_success', req.ip, req.headers['user-agent'])
+  respondWithAccessAndRefreshToken(jwtUser, res)
+})
 
 // Registration verification endpoint
 router.post('/register/verify', async (req: Request, res: Response<VerifyResponse>) => {
@@ -163,6 +281,12 @@ router.post('/register/verify', async (req: Request, res: Response<VerifyRespons
     const user = await registrationVerification.verifyRegistration(payload)
 
     if (user) {
+      await createLoginEvent(
+        user.memberId,
+        'registration_verified',
+        req.ip,
+        req.headers['user-agent'],
+      )
       respondWithAccessAndRefreshToken(user, res)
     } else {
       res.status(401).json({ error: 'Registration verification failed' })
@@ -182,8 +306,9 @@ router.post('/refresh', async (req: Request, res: Response<VerifyResponse>, next
   const payload = decodeRefreshToken(refreshToken)
   const user = await getMemberById(payload.memberId)
   if (user) {
-    const jwt = generateJWTUser(user)
-    respondWithAccessAndRefreshToken(jwt, res)
+    const jwtUser = generateJWTUser(user)
+    await createLoginEvent(user.memberId, 'token_refresh', req.ip, req.headers['user-agent'])
+    respondWithAccessAndRefreshToken(jwtUser, res)
   } else {
     next(new Error('User not found'))
   }

@@ -69,7 +69,7 @@ const Login = () => {
     }
 
     navigate('/login/sent', {
-      state: { email, code: data.code, token: data.token, target: safeTarget },
+      state: { email, target: safeTarget },
     })
   }
 

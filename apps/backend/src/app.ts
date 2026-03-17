@@ -11,7 +11,7 @@ import { router as aircraftRoutes } from './routes/aircrafts/api.ts'
 import { router as aircraftDocumentRoutes } from './routes/aircraft-documents/api.ts'
 import { router as aircraftPricingRoutes } from './routes/aircraft-pricing/api.ts'
 import ajlbRoutes from './routes/ajlb/api.ts'
-import { router as passportRoutes } from './routes/auth/login.ts'
+import { router as authRoutes } from './routes/auth/login.ts'
 import { router as documentRoutes } from './routes/documents/api.ts'
 import flightLogRoutes from './routes/flight-log/api.ts'
 import { router as memberRoutes } from './routes/members/api.ts'
@@ -88,7 +88,7 @@ app.get('/health', (_req, res) => {
 // Tiny URL redirect route (before API routes for shorter URLs)
 app.use('/t', tinyUrlRoute)
 
-app.use('/api/auth', passportRoutes)
+app.use('/api/auth', authRoutes)
 app.use('/api/v1/members', memberRoutes)
 app.use('/api/v1/secrets', secretRoutes)
 app.use('/api/v1/flight-logs', flightLogRoutes)

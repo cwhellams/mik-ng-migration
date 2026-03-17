@@ -1,6 +1,7 @@
 import jwt, { type SignOptions } from 'jsonwebtoken'
 import type ms from 'ms'
 import { z } from 'zod'
+import { randomUUID } from 'node:crypto'
 
 import { MIKPermissions, type Member } from '../members/models.ts'
 import { problem } from '../response.ts'
@@ -39,6 +40,7 @@ export const generateToken = (
 
 export const generateAccessToken = (user: JWTUser): string => {
   return generateToken(user, process.env.ACCESS_TOKEN_SECRET, {
+    jwtid: randomUUID(),
     expiresIn: process.env.ACCESS_TOKEN_EXPIRATION as ms.StringValue,
     issuer: 'mik',
     audience: 'api',

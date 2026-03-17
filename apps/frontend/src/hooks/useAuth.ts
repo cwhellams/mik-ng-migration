@@ -6,6 +6,7 @@ export const useAuth = <Input, Output>(
   endpoint:
     | 'login'
     | 'login/validate'
+    | 'login/verify-code'
     | 'register'
     | 'register/verify'
     | 'logout'

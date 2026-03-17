@@ -684,7 +684,7 @@ export const updateFlightLog = async (
     ajlb_blank_rows_before: data.ajlbBlankRowsBefore,
     ajlb_seq_no: data.ajlbSeqNo,
     is_billable_flight: data.isBillableFlight,
-    partially_billable_flight: data.partiallyBillableFlight,
+    partially_billable_flight: data.partiallyBillableFlight ?? false,
     entry_error_fee: data.entryErrorFee ?? undefined,
     entry_error_fee_applied_by_member_id:
       data.entryErrorFee === undefined ? undefined : data.entryErrorFee ? user.memberId : null,

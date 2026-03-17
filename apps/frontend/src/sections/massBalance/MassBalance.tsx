@@ -1140,7 +1140,11 @@ const MassBalance: React.FC = () => {
                 size='small'
                 variant='outlined'
                 onClick={handleResetFuelPlanning}
-                sx={{ textTransform: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}
+                sx={{
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
               >
                 Reset to Defaults
               </Button>

@@ -5,6 +5,16 @@
 
 import type { ColumnType } from 'kysely'
 
+export type AuthEventType =
+  | 'login_code_expired'
+  | 'login_code_invalid'
+  | 'login_code_max_attempts'
+  | 'login_failed'
+  | 'login_success'
+  | 'logout'
+  | 'registration_verified'
+  | 'token_refresh'
+
 export type BookingStatus = 'CANCELLED' | 'CONFIRMED' | 'TENTATIVE'
 
 export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'TRAINING'
@@ -271,7 +281,7 @@ export interface FlightLogs {
   oil_uplift_litres: Numeric | null
   on_block_time_epoch: Int8
   on_block_time_utc: Generated<Timestamp>
-  partially_billable_flight: Generated<boolean | null>
+  partially_billable_flight: Generated<boolean>
   personal_remarks: string | null
   persons_on_board: number
   pic_last_name: string
@@ -452,6 +462,27 @@ export interface MemberDocumentTinyUrls {
   last_accessed_at: Timestamp | null
   short_code: string
   url: string
+}
+
+export interface MemberLoginAttempts {
+  code_hash: string
+  created_at: Generated<Timestamp>
+  email: string
+  expires_at: Timestamp
+  failed_attempts: Generated<number>
+  id: Generated<string>
+  ip_address: string | null
+  link_token_hash: string | null
+  used_at: Timestamp | null
+}
+
+export interface MemberLoginEvents {
+  created_at: Generated<Timestamp>
+  event_type: AuthEventType
+  id: Generated<string>
+  ip_address: string | null
+  member_id: string | null
+  user_agent: string | null
 }
 
 export interface MemberMemberToRoles {
@@ -783,6 +814,8 @@ export interface DB {
   'member.brevo_sync_state': MemberBrevoSyncState
   'member.document_tiny_urls': MemberDocumentTinyUrls
   'member.documents': MemberDocuments
+  'member.login_attempts': MemberLoginAttempts
+  'member.login_events': MemberLoginEvents
   'member.member_to_roles': MemberMemberToRoles
   'member.register': MemberRegister
   'member.register_audit': MemberRegisterAudit

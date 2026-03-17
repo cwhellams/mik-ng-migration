@@ -1,75 +1,36 @@
-import MagicLoginStrategy from 'passport-magic-login'
-
-import { generateJWTUser, generateToken } from './token.ts'
-import { getMemberByEmail, updateMember } from '../../db/member-queries.ts'
-import logger from '../../lib/logger.ts'
+import { createHash, randomBytes } from 'node:crypto'
 import { getRandomInt } from '../../util/math-utils.ts'
 
-if (!process.env.MAGIC_LINK_SECRET) {
-  throw new Error('MAGIC_LINK_SECRET is not defined in environment variables')
+if (!process.env.PUBLIC_URL) {
+  throw new Error('PUBLIC_URL is not defined in environment variables')
 }
 
-// The authentication callback URL
+// The authentication callback URL — where the frontend handles magic-link clicks
 const callbackUrl = `${process.env.PUBLIC_URL}/login/validate`
 
-// Extend the Magic Login Strategy so that we can use
-// the generated link in both login and registration flows
-// and send different email
-export class MIKMagicLoginStrategy extends MagicLoginStrategy.default {
-  constructor() {
-    super({
-      // Used to encrypt the temporary token
-      secret: process.env.MAGIC_LINK_SECRET!,
+/**
+ * Generate a cryptographically random opaque magic-link token.
+ * Returns both the raw token (for embedding in the email URL) and its
+ * SHA-256 hex hash (for storing in the database). Only the hash is persisted,
+ * so a database breach does not expose usable tokens.
+ */
+export function generateMagicLinkToken(): { token: string; tokenHash: string } {
+  const token = randomBytes(64).toString('base64url')
+  const tokenHash = createHash('sha256').update(token).digest('hex')
+  return { token, tokenHash }
+}
 
-      callbackUrl,
+/**
+ * Build the magic-link href that is embedded in the login email.
+ * The raw token is placed in the URL query parameter; the frontend
+ * POSTs it to /api/auth/login/validate for server-side verification.
+ */
+export function buildMagicLinkHref(token: string, target?: string): string {
+  const targetParam = target ? `&target=${encodeURIComponent(target)}` : ''
+  return `${callbackUrl}?token=${token}${targetParam}`
+}
 
-      // Once the user clicks on the magic link and verifies their login attempt,
-      // you have to match their email to a user record in the database.
-      verify: async (payload: { email: string }, callback): Promise<void> => {
-        // Get or create a user with the provided email from the database
-        logger.info('magic login verify %j', payload)
-
-        try {
-          const user = await getMemberByEmail(payload.email)
-          if (user) {
-            const jwt = generateJWTUser(user)
-
-            if (!user.emailVerifiedAt) {
-              // store the date when the email was first verified
-              await updateMember(user.memberId, { emailVerifiedAt: new Date().toISOString() }, jwt)
-            }
-
-            callback(null, jwt)
-          } else {
-            callback(new Error('User not found'))
-          }
-        } catch (err) {
-          callback(err as Error)
-        }
-      },
-
-      // use generateLink extension instead
-      sendMagicLink: async () => {},
-    })
-  }
-
-  generateLink(email: string, target?: string): { href: string; code: number; token: string } {
-    const code = getRandomInt(10000, 99999)
-
-    const token = generateToken(
-      {
-        email,
-        code: code.toString(),
-      },
-      process.env.MAGIC_LINK_SECRET,
-      {
-        expiresIn: '15 minutes',
-      },
-    )
-    return {
-      href: `${callbackUrl}?token=${token}${target ? `&target=${target}` : ''}`,
-      code,
-      token,
-    }
-  }
+/** Generate a 5-digit numeric login code for PWA entry. */
+export function generateLoginCode(): number {
+  return getRandomInt(10000, 99999)
 }

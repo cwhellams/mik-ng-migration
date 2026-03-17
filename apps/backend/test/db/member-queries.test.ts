@@ -52,6 +52,7 @@ describe('Db query member tests', () => {
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
       dateOfBirth: expect.any(String),
+      emailVerifiedAt: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
       updatedBy: expect.any(String),
@@ -76,6 +77,7 @@ describe('Db query member tests', () => {
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
       dateOfBirth: expect.any(String),
+      emailVerifiedAt: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
       membershipApprovedAt: expect.any(String),
@@ -94,6 +96,7 @@ describe('Db query member tests', () => {
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
       dateOfBirth: expect.any(String),
+      emailVerifiedAt: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
       membershipApprovedAt: expect.any(String),
@@ -109,6 +112,7 @@ describe('Db query member tests', () => {
     const result = await getMemberById('Matti1')
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
+      emailVerifiedAt: expect.any(String),
       updatedAt: expect.any(String),
       updatedBy: expect.any(String),
       memberSince: expect.any(String),
