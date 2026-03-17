@@ -221,7 +221,13 @@ export default function useApi<
     }
   )
 
-  const isLoggedOut = error?.name == 'CanceledError'
+  // Only redirect to login when SWR has definitively confirmed there is no
+  // valid session (isValidating = false). Ignoring a stale CanceledError while
+  // SWR is re-validating prevents an infinite redirect loop in PWA mode: after
+  // a successful login, SWR immediately returns the cached CanceledError from
+  // the pre-login render and would redirect back to /login before the
+  // re-validation request (now carrying a valid token) can complete.
+  const isLoggedOut = error?.name == 'CanceledError' && !rest.isValidating
   if (isLoggedOut && !request.allowUnauthenticated) {
     // authentication is required
     navigate('/login', {
