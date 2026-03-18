@@ -40,22 +40,18 @@ export class MIKRegistrationVerificationStrategy {
       throw new Error('Invalid token type for registration verification')
     }
 
-    try {
-      const user = await getMemberByEmail(payload.email)
-      if (user) {
-        const jwt = generateJWTUser(user)
+    const user = await getMemberByEmail(payload.email)
+    if (user) {
+      const jwt = generateJWTUser(user)
 
-        if (!user.emailVerifiedAt) {
-          // Store the date when the email was first verified
-          await updateMember(user.memberId, { emailVerifiedAt: new Date().toISOString() }, jwt)
-        }
-
-        return jwt
-      } else {
-        throw new Error('User not found')
+      if (!user.emailVerifiedAt) {
+        // Store the date when the email was first verified
+        await updateMember(user.memberId, { emailVerifiedAt: new Date().toISOString() }, jwt)
       }
-    } catch (err) {
-      throw err
+
+      return jwt
+    } else {
+      throw new Error('User not found')
     }
   }
 }

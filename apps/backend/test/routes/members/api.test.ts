@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import request from 'supertest'
 
 import type { RegisterRequest } from '../../../src/routes/auth/schema.ts'
@@ -25,6 +26,7 @@ import { addMember } from '../../../src/db/member-queries.ts'
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 app.use('/members', router)
 app.use(problemErrorHandler)
 
@@ -65,16 +67,16 @@ const missingUserToken = generateAccessToken({
 })
 
 const post = async (payload: Upsert<MemberRole>, token: string) =>
-  request(app).post(`/members/roles`).set('Authorization', `Bearer ${token}`).send(payload)
+  request(app).post(`/members/roles`).set('Cookie', `accessToken=${token}`).send(payload)
 
 const remove = async (id: string, token: string) =>
-  request(app).delete(`/members/roles/${id}`).set('Authorization', `Bearer ${token}`).send({})
+  request(app).delete(`/members/roles/${id}`).set('Cookie', `accessToken=${token}`).send({})
 
 describe('GET /members', () => {
   const query = async (token: string, query?: MemberListFilters) => {
     const response = await request(app)
       .get('/members')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
       .query(query ?? {})
 
     expect(response.status).toBe(200)
@@ -208,7 +210,7 @@ describe('GET /members', () => {
   it('should skip search by private roles as a admin without sudo mode', async () => {
     const res = await request(app)
       .get('/members')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .set('X-Sudo', 'false')
       .query(query ?? {})
 
@@ -269,7 +271,7 @@ describe('GET /members', () => {
 
 describe('GET /members/me', () => {
   const query = async (token: string) =>
-    request(app).get('/members/me').set('Authorization', `Bearer ${token}`).query({})
+    request(app).get('/members/me').set('Cookie', `accessToken=${token}`).query({})
 
   test.each([[memberToken], [adminToken], [noPermissionsToken]])(
     'should return 200 with valid token for user',
@@ -328,7 +330,7 @@ describe('GET /members/mailing-lists', () => {
 
     const response = await request(app)
       .get('/members/mailing-lists')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body).toEqual([
@@ -347,7 +349,7 @@ describe('GET /members/mailing-lists', () => {
 
 describe('PATCH /members/me', () => {
   const patch = async (token: string, payload: Partial<Member>) =>
-    request(app).patch('/members/me').set('Authorization', `Bearer ${token}`).send(payload)
+    request(app).patch('/members/me').set('Cookie', `accessToken=${token}`).send(payload)
 
   it('should update valid fields', async () => {
     const response = await patch(memberToken, { firstName: 'Teppo' })
@@ -384,7 +386,7 @@ describe('PATCH /members/me', () => {
 
 describe('GET /members/roles', () => {
   const query = async (token: string) =>
-    request(app).get('/members/roles').set('Authorization', `Bearer ${token}`).query({})
+    request(app).get('/members/roles').set('Cookie', `accessToken=${token}`).query({})
 
   it('Get return 401 if no token in authorization header', async () => {
     const response = await request(app).get('/members/roles').query({})
@@ -483,7 +485,7 @@ describe('GET /members/roles', () => {
 
 describe('GET /members/roles/id', () => {
   const query = async (id: string, token: string) =>
-    request(app).get(`/members/roles/${id}`).set('Authorization', `Bearer ${token}`).query({})
+    request(app).get(`/members/roles/${id}`).set('Cookie', `accessToken=${token}`).query({})
 
   it('Get return 401 if no token in authorization header', async () => {
     const response = await request(app).get('/members/roles/ADMIN').query({})
@@ -537,7 +539,7 @@ describe('GET /members/roles/id', () => {
 
 describe('PATCH /members/roles/id', () => {
   const patch = async (id: string, payload: Partial<Upsert<MemberRole>>, token: string) =>
-    request(app).patch(`/members/roles/${id}`).set('Authorization', `Bearer ${token}`).send(payload)
+    request(app).patch(`/members/roles/${id}`).set('Cookie', `accessToken=${token}`).send(payload)
 
   it('Get return 401 if no token in authorization header', async () => {
     const response = await request(app).patch('/members/roles/ADMIN').send({})
@@ -677,7 +679,7 @@ describe('DELETE /members/roles/id', () => {
 
 describe('PATCH /members/id', () => {
   const patch = async (id: string, payload: Partial<Member>, token: string) =>
-    request(app).patch(`/members/${id}`).set('Authorization', `Bearer ${token}`).send(payload)
+    request(app).patch(`/members/${id}`).set('Cookie', `accessToken=${token}`).send(payload)
 
   it('Get return 401 if no token in authorization header', async () => {
     const response = await request(app).patch('/members/1').send({})
@@ -725,7 +727,7 @@ describe('PATCH /members/id', () => {
 
 describe('GET /members/id', () => {
   const get = async (id: string, token: string) =>
-    request(app).get(`/members/${id}`).set('Authorization', `Bearer ${token}`).query({})
+    request(app).get(`/members/${id}`).set('Cookie', `accessToken=${token}`).query({})
 
   it('Return 401 if no token in authorization header', async () => {
     const response = await request(app).get('/members/0').query({})
@@ -771,10 +773,10 @@ describe('POST /members', () => {
   })
 
   const post = async (payload: RegisterRequest, token: string) =>
-    request(app).post(`/members`).set('Authorization', `Bearer ${token}`).send(payload)
+    request(app).post(`/members`).set('Cookie', `accessToken=${token}`).send(payload)
 
   const remove = async (id: string, token: string) =>
-    request(app).delete(`/members/${id}`).set('Authorization', `Bearer ${token}`).send({})
+    request(app).delete(`/members/${id}`).set('Cookie', `accessToken=${token}`).send({})
 
   const email = `${new Date().getTime()}@testdata.com`
   const req: RegisterRequest = {
@@ -836,7 +838,7 @@ describe('Membership approval tests', () => {
   it('Get unapproved members should return list of members awaiting approval', async () => {
     const response = await request(app)
       .get('/members')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query({ showUnapproved: true })
     expect(response.status).toBe(200)
     expect(response.body.members).toMatchSnapshot()
@@ -845,7 +847,7 @@ describe('Membership approval tests', () => {
   it('Get unapproved members by name should return data when member admin', async () => {
     const response = await request(app)
       .get('/members')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query({ showUnapproved: true, name: 'Kaisa' })
     expect(response.status).toEqual(200)
     expect(response.body.members.length).toEqual(1)
@@ -855,7 +857,7 @@ describe('Membership approval tests', () => {
   it('Get unapproved members by name should not return when not a member admin', async () => {
     const response = await request(app)
       .get('/members')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
       .query({ showUnapproved: true, name: 'Kaisa' })
     expect(response.status).toEqual(200)
     expect(response.body.members.length).toEqual(0)
@@ -864,7 +866,7 @@ describe('Membership approval tests', () => {
   it('POST approval should approve a new member by updating the member.register table ', async () => {
     const response = await request(app)
       .post('/members/Marja1/approve')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
     expect(response.status).toBe(HttpStatusCode.Created)
 
     const member = response.body as Member
@@ -886,14 +888,14 @@ describe('Membership approval tests', () => {
   it('POST approval should return not found when member does not exist', async () => {
     const response = await request(app)
       .post('/members/Brewster/approve')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
     expect(response.status).toBe(HttpStatusCode.InternalServerError)
   })
 
   it('POST approval should not be allowed for non admin users', async () => {
     const response = await request(app)
       .post('/members/Marja1/approve')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
     expect(response.status).toBe(HttpStatusCode.Forbidden)
   })
 })
@@ -901,13 +903,13 @@ describe('Set language tests', () => {
   it('Updates the language', async () => {
     const response = await request(app)
       .patch('/members/me/lang')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
       .send({ lang: 'en' })
     expect(response.status).toBe(200)
 
     const undoResponse = await request(app)
       .patch('/members/me/lang')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
       .send({ lang: 'fi' })
 
     expect(undoResponse.status).toBe(200)
@@ -918,7 +920,7 @@ describe('GET /members/trash', () => {
   it('should return removed members when admin', async () => {
     const response = await request(app)
       .get('/members/trash')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
     expect(response.status).toBe(200)
     expect(response.body.members).toBeDefined()
     expect(Array.isArray(response.body.members)).toBe(true)
@@ -927,7 +929,7 @@ describe('GET /members/trash', () => {
   it('should return 403 when non-admin tries to access trash', async () => {
     const response = await request(app)
       .get('/members/trash')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
     expect(response.status).toBe(HttpStatusCode.Forbidden)
   })
 })
@@ -936,7 +938,7 @@ describe('POST /members/:memberId/restore', () => {
   it('should return 404 when member not found', async () => {
     const response = await request(app)
       .post('/members/NonExistent99/restore')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
     expect(response.status).toBe(404)
     expect(response.body.detail).toBe('Member not found')
   })
@@ -944,7 +946,7 @@ describe('POST /members/:memberId/restore', () => {
   it('should return 400 when member is not in removed state', async () => {
     const response = await request(app)
       .post('/members/Matti1/restore')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
     expect(response.status).toBe(400)
     expect(response.body.detail).toBe('Member is not in removed state')
   })
@@ -952,7 +954,7 @@ describe('POST /members/:memberId/restore', () => {
   it('should return 403 when non-admin tries to restore', async () => {
     const response = await request(app)
       .post('/members/Antti1/restore')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
     expect(response.status).toBe(HttpStatusCode.Forbidden)
   })
 })
@@ -961,7 +963,7 @@ describe('POST /members/:memberId/deactivate', () => {
   it('should return 404 when member not found', async () => {
     const response = await request(app)
       .post('/members/NonExistent99/deactivate')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({ reason: 'Test reason' })
     expect(response.status).toBe(404)
     expect(response.body.detail).toBe('Member not found')
@@ -970,7 +972,7 @@ describe('POST /members/:memberId/deactivate', () => {
   it('should return 403 when non-admin tries to deactivate', async () => {
     const response = await request(app)
       .post('/members/Antti1/deactivate')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
       .send({ reason: 'Test reason' })
     expect(response.status).toBe(HttpStatusCode.Forbidden)
   })
@@ -1009,7 +1011,7 @@ describe('POST /members/me/cancel-membership', () => {
   it('should return 404 when authenticated user member not found', async () => {
     const response = await request(app)
       .post('/members/me/cancel-membership')
-      .set('Authorization', `Bearer ${missingUserToken}`)
+      .set('Cookie', `accessToken=${missingUserToken}`)
     expect(response.status).toBe(404)
     expect(response.body.detail).toBe('Member not found')
   })
@@ -1017,7 +1019,7 @@ describe('POST /members/me/cancel-membership', () => {
   it('should return 204, even when annual fee has been paid', async () => {
     const response = await request(app)
       .post('/members/me/cancel-membership')
-      .set('Authorization', `Bearer ${cancelMemberToken}`)
+      .set('Cookie', `accessToken=${cancelMemberToken}`)
     expect(response.status).toBe(204)
   })
 })
@@ -1035,7 +1037,7 @@ describe('GET /members/annual-membership-stats', () => {
 
     const response = await request(app)
       .get('/members/annual-membership-stats')
-      .set('Authorization', `Bearer ${invoicingAdminToken}`)
+      .set('Cookie', `accessToken=${invoicingAdminToken}`)
     expect(response.status).toBe(HttpStatusCode.Ok)
     expect(response.body).toHaveProperty('totalAutoRenewMembers')
     expect(response.body).toHaveProperty('totalAutoRenewEquipmentFee')
@@ -1055,7 +1057,7 @@ describe('GET /members/annual-membership-stats', () => {
     const response = await request(app)
       .get('/members/annual-membership-stats')
       .query({ year: '2025' })
-      .set('Authorization', `Bearer ${invoicingAdminToken}`)
+      .set('Cookie', `accessToken=${invoicingAdminToken}`)
     expect(response.status).toBe(HttpStatusCode.Ok)
     expect(response.body.year).toBe(2025)
   })
@@ -1063,7 +1065,7 @@ describe('GET /members/annual-membership-stats', () => {
   it('should return 403 when non-invoicing-admin tries to access', async () => {
     const response = await request(app)
       .get('/members/annual-membership-stats')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
     expect(response.status).toBe(HttpStatusCode.Forbidden)
   })
 })
@@ -1072,7 +1074,7 @@ describe('POST /members/:memberId/approve with migration flag', () => {
   it('should skip sending email when x-mik-migration header is true', async () => {
     const response = await request(app)
       .post('/members/Marja1/approve')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .set('x-mik-migration', 'true')
 
     expect(response.status).toBe(HttpStatusCode.Created)
@@ -1096,7 +1098,7 @@ describe('DELETE /members/:memberId', () => {
   it('should return 404 when trying to delete non-existent member', async () => {
     const response = await request(app)
       .delete('/members/NonExistent99')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
     expect(response.status).toBe(404)
   })
 })

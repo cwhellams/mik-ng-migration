@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import request from 'supertest'
 
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
@@ -20,6 +21,7 @@ const adminMemberId = 'Pekka1'
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 app.use('/bookings', bookingsRouter)
 app.use(problemErrorHandler)
 
@@ -45,7 +47,7 @@ describe('GET /bookings', () => {
   it('should return all bookings for the logged in user', async () => {
     const response = await request(app)
       .get('/bookings')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .query(<BookingFilters>{})
 
     expect(response.status).toBe(200)
@@ -55,7 +57,7 @@ describe('GET /bookings', () => {
   it('should return 200 with valid query params', async () => {
     const response = await request(app)
       .get('/bookings')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .query(<BookingFilters>{
         from: dayjs().startOf('day').add(1, 'day').toISOString(),
         to: dayjs().startOf('day').add(2, 'day').toISOString(),
@@ -69,7 +71,7 @@ describe('GET /bookings', () => {
   it('should return 400 for invalid date format', async () => {
     const response = await request(app)
       .get('/bookings')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .query({
         from: '2025',
       })
@@ -95,7 +97,7 @@ describe('GET /bookings/bookingId', () => {
   it('should return booking for the logged in user', async () => {
     const response = await request(app)
       .get('/bookings/stl1')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .query({})
 
     expect(response.status).toBe(200)
@@ -134,7 +136,7 @@ describe('GET /bookings/bookingId', () => {
 
     const response = await request(app)
       .get('/bookings/efnu4evr')
-      .set('Authorization', `Bearer ${noAccess}`)
+      .set('Cookie', `accessToken=${noAccess}`)
       .query({})
 
     expect(response.status).toBe(403)
@@ -143,7 +145,7 @@ describe('GET /bookings/bookingId', () => {
   it('should return 404 for unknown flight', async () => {
     const response = await request(app)
       .get('/bookings/noup')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .query({})
 
     expect(response.status).toBe(404)
@@ -165,7 +167,7 @@ describe('POST /bookings', () => {
   it('should create a booking with valid payload, return booking_id and be deleted using the returned id', async () => {
     const response = await request(app)
       .post('/bookings')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .send(payload)
 
     expect(response.body.bookingId).toBeDefined()
@@ -175,7 +177,7 @@ describe('POST /bookings', () => {
 
     const checkPost = await request(app)
       .get(`/bookings/${id}`)
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
     expect(checkPost.status).toBe(200)
 
     const checkPostBody = checkPost.body as Booking
@@ -186,7 +188,7 @@ describe('POST /bookings', () => {
     // Cleanup
     const delResponse = await request(app)
       .delete(`/bookings/${id}`)
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .set('Accept', 'application/json')
     expect(delResponse.status).toBe(204)
     expect(delResponse.body).toEqual({})
@@ -195,7 +197,7 @@ describe('POST /bookings', () => {
   it('should create a new booking over cancelled booking with the same times', async () => {
     const response = await request(app)
       .post('/bookings')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .send(payload)
 
     expect(response.body.bookingId).toBeDefined()
@@ -205,7 +207,7 @@ describe('POST /bookings', () => {
 
     const duplicate = await request(app)
       .post('/bookings')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .send(payload)
 
     expect(duplicate.body).toEqual({
@@ -219,7 +221,7 @@ describe('POST /bookings', () => {
     // Cleanup
     const delResponse = await request(app)
       .delete(`/bookings/${id}`)
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .set('Accept', 'application/json')
     expect(delResponse.status).toBe(204)
     expect(delResponse.body).toEqual({})
@@ -228,7 +230,7 @@ describe('POST /bookings', () => {
   it('should allow admins to overwrite existing bookings', async () => {
     const response = await request(app)
       .post('/bookings')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .send(payload)
 
     expect(response.body.bookingId).toBeDefined()
@@ -238,7 +240,7 @@ describe('POST /bookings', () => {
 
     const overwrite = await request(app)
       .post('/bookings')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({ ...payload, memberId: adminMemberId })
       .set('x-sudo', 'true')
     expect(overwrite.status).toBe(201)
@@ -246,14 +248,14 @@ describe('POST /bookings', () => {
 
     const checkOriginal = await request(app)
       .get(`/bookings/${id}`)
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
     expect(checkOriginal.status).toBe(200)
     expect(checkOriginal.body.status).toEqual(BookingStatus.CANCELLED)
 
     // Cleanup
     const delAgainResponse = await request(app)
       .delete(`/bookings/${id}`)
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .set('Accept', 'application/json')
     expect(delAgainResponse.status).toBe(409)
     expect(delAgainResponse.body).toEqual({
@@ -266,7 +268,7 @@ describe('POST /bookings', () => {
 
     const delWrongUserResponse = await request(app)
       .delete(`/bookings/${overwrite.body.bookingId}`)
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .set('Accept', 'application/json')
     expect(delWrongUserResponse.status).toBe(403)
     expect(delWrongUserResponse.body).toEqual({
@@ -279,7 +281,7 @@ describe('POST /bookings', () => {
 
     const delAdminResponse = await request(app)
       .delete(`/bookings/${overwrite.body.bookingId}`)
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .set('Accept', 'application/json')
     expect(delAdminResponse.status).toBe(204)
     expect(delAdminResponse.body).toEqual({})
@@ -288,7 +290,7 @@ describe('POST /bookings', () => {
   it('should return 400 for invalid payload', async () => {
     const response = await request(app)
       .post('/bookings')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .send({ ...payload, registration: undefined })
 
     expect(response.status).toBe(400)
@@ -305,12 +307,12 @@ describe('PATCH /bookings/', () => {
 
     const patchResponse = await request(app)
       .patch('/bookings/stl3')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(payload)
 
     const checkPatch = await request(app)
       .get('/bookings/stl3')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
 
     // patch returns the same as another get
     expect(patchResponse.status).toBe(200)
@@ -324,12 +326,12 @@ describe('PATCH /bookings/', () => {
     }
     const undoResponse = await request(app)
       .patch('/bookings/stl3')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(undoPayload)
 
     const checkUndo = await request(app)
       .get('/bookings/stl3')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
 
     expect(undoResponse.status).toBe(200)
     expect(undoResponse.body).toEqual(checkUndo.body)
@@ -345,7 +347,7 @@ describe('PATCH /bookings/', () => {
 
     const patchResponse = await request(app)
       .patch('/bookings/stl3')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .send(payload)
 
     expect(patchResponse.status).toBe(400)
@@ -361,7 +363,7 @@ describe('PATCH /bookings/', () => {
 
     const response = await request(app)
       .patch('/bookings/efnu4evr')
-      .set('Authorization', `Bearer ${invalidToken}`)
+      .set('Cookie', `accessToken=${invalidToken}`)
       .send(payload)
 
     expect(response.status).toBe(401)
@@ -382,7 +384,7 @@ describe('PATCH /bookings/', () => {
 
     const response = await request(app)
       .patch('/bookings/stl2')
-      .set('Authorization', `Bearer ${invalidToken}`)
+      .set('Cookie', `accessToken=${invalidToken}`)
       .send(payload)
 
     expect(response.body).toEqual({
@@ -400,7 +402,7 @@ describe('PATCH /bookings/', () => {
 
     const response = await request(app)
       .patch('/bookings/stl1')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(payload)
 
     expect(response.body).toEqual({

@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import { jest } from '@jest/globals'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import request from 'supertest'
 
 import { router } from '../../../src/routes/aircrafts/api.ts'
@@ -17,6 +18,7 @@ import type { Upsert } from '../../../src/types/schema.ts'
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 app.use('/aircrafts', router)
 app.use(problemErrorHandler)
 
@@ -71,14 +73,14 @@ describe('GET /aircrafts', () => {
   const query = async (token: string, sudo = true) =>
     request(app)
       .get('/aircrafts')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
       .set('X-Sudo', sudo ? 'true' : 'false')
       .query(query ?? {})
 
   it('should return 401 for invalid token', async () => {
     const response = await request(app)
       .get('/aircrafts')
-      .set('Authorization', `Bearer NOUP`)
+      .set('Cookie', `accessToken=NOUP`)
       .query({})
 
     expect(response.status).toBe(401)
@@ -124,13 +126,13 @@ describe('GET /aircrafts/id', () => {
   const query = async (token: string, id: string) =>
     request(app)
       .get(`/aircrafts/${id}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
       .query(query ?? {})
 
   it('should return 401 for invalid token', async () => {
     const response = await request(app)
       .get('/aircrafts/OH-STL')
-      .set('Authorization', `Bearer NOUP`)
+      .set('Cookie', `accessToken=NOUP`)
       .query({})
 
     expect(response.status).toBe(401)
@@ -201,19 +203,16 @@ describe('Add and update aircrafts', () => {
   }
 
   const post = async (token: string, payload: Upsert<Aircraft>) =>
-    request(app).post('/aircrafts').set('Authorization', `Bearer ${token}`).send(payload)
+    request(app).post('/aircrafts').set('Cookie', `accessToken=${token}`).send(payload)
 
   const patch = async (token: string, registration: string, payload: Partial<Aircraft>) =>
     request(app)
       .patch(`/aircrafts/${registration}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
       .send(payload)
 
   const remove = async (token: string, registration: string) =>
-    request(app)
-      .delete(`/aircrafts/${registration}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send({})
+    request(app).delete(`/aircrafts/${registration}`).set('Cookie', `accessToken=${token}`).send({})
 
   it('should return 401 for invalid token', async () => {
     const response = await post('NOUP', aircraft)

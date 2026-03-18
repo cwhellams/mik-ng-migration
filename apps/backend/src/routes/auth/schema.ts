@@ -47,6 +47,12 @@ export const VerifyRequestSchema = z.object({
 })
 export type VerifyRequest = z.infer<typeof VerifyRequestSchema>
 
+export const VerifyResponseSchema = z.object({
+  // Auth tokens are delivered via httpOnly cookies; this body just signals success.
+  ok: z.boolean(),
+})
+export type VerifyResponse = z.infer<typeof VerifyResponseSchema>
+
 // verify-code (PWA numeric code entry)
 
 export const VerifyCodeRequestSchema = z.object({
@@ -54,11 +60,3 @@ export const VerifyCodeRequestSchema = z.object({
   code: z.string().regex(/^\d{5}$/, 'Code must be exactly 5 digits'),
 })
 export type VerifyCodeRequest = z.infer<typeof VerifyCodeRequestSchema>
-
-export const VerifyResponseSchema = z.object({
-  // pass token and user information back after verified login
-  accessToken: z.string().optional(),
-
-  error: z.string().optional(),
-})
-export type VerifyResponse = z.infer<typeof VerifyResponseSchema>

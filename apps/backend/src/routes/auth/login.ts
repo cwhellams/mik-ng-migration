@@ -15,7 +15,6 @@ import {
   type LoginRequest,
   type LoginResponse,
   type RegisterRequest,
-  type VerifyResponse,
 } from './schema.ts'
 import { decodeRefreshToken, generateAccessToken, generateRefreshToken } from './token.ts'
 import { generateJWTUser, type JWTUser } from './token.ts'
@@ -106,6 +105,9 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
     loginEmailBodyHtml(member.lang, { href, code, firstName: member.firstName }),
   )
   logger.info('magic login link sent for %s', member.email)
+  if (process.env.NODE_ENV !== 'production') {
+    logger.info('DEV magic link for %s: %s | code: %s', member.email, href, code)
+  }
 
   // Only a non-authentic display code is returned to the client (for PWA numeric-entry UX).
   // The real verification code is sent via email and is never exposed in this response.
@@ -116,7 +118,7 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
 // The client posts {email, code}; we verify the code server-side against the stored hash.
 // This replaces the insecure client-side code-check that previously relied on the JWT
 // being returned in the login response.
-router.post('/login/verify-code', async (req: Request, res: Response<VerifyResponse>) => {
+router.post('/login/verify-code', async (req: Request, res: Response) => {
   const parseResult = VerifyCodeRequestSchema.safeParse(req.body)
   if (!parseResult.success) {
     return res.status(400).json({ error: 'Invalid request' })
@@ -211,7 +213,7 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   return res.json({ code: link.code })
 })
 
-const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response<VerifyResponse>): void => {
+const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response): void => {
   // Refresh token is stored in a secure httpOnly cookie not accessible by frontend JS
   res.cookie('refreshToken', generateRefreshToken(user), {
     httpOnly: true,
@@ -225,14 +227,27 @@ const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response<VerifyRes
     path: '/api/auth/refresh',
   })
 
-  // Access token is short-lived and stored in sessionStorage (not localStorage) on the client
-  res.status(200).json({ accessToken: generateAccessToken(user) })
+  //Access token also stored to httpOnly cookie
+  res.cookie('accessToken', generateAccessToken(user), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    expires: dayjs()
+      .add(ms(process.env.ACCESS_TOKEN_EXPIRATION as ms.StringValue), 'milliseconds')
+      .toDate(),
+    // Make access token available to all API endpoints and allow logout to clear it reliably
+    path: '/',
+  })
+
+  // Send a minimal body so the client knows the request succeeded.
+  // Auth is carried entirely by the cookies above.
+  res.json({ ok: true })
 }
 
 // Magic-link email click-through verification.
 // The frontend POSTs the raw token from the URL query parameter.
 // We hash it server-side and do an atomic DB lookup — the raw token is never stored.
-router.post('/login/validate', async (req: Request, res: Response<VerifyResponse>) => {
+router.post('/login/validate', async (req: Request, res: Response) => {
   const raw: unknown = req.body.token
   if (typeof raw !== 'string' || !raw) {
     return res.status(400).json({ error: 'Token is required' })
@@ -266,7 +281,7 @@ router.post('/login/validate', async (req: Request, res: Response<VerifyResponse
 })
 
 // Registration verification endpoint
-router.post('/register/verify', async (req: Request, res: Response<VerifyResponse>) => {
+router.post('/register/verify', async (req: Request, res: Response) => {
   const token = req.body.token || req.query.token
 
   if (!token) {
@@ -297,7 +312,7 @@ router.post('/register/verify', async (req: Request, res: Response<VerifyRespons
   }
 })
 
-router.post('/refresh', async (req: Request, res: Response<VerifyResponse>, next: NextFunction) => {
+router.post('/refresh', async (req: Request, res: Response, next: NextFunction) => {
   const refreshToken = req.cookies?.refreshToken
   if (!refreshToken) {
     return problem({ status: 401, detail: 'Refresh token not found' })
@@ -314,7 +329,19 @@ router.post('/refresh', async (req: Request, res: Response<VerifyResponse>, next
   }
 })
 
-router.post('/logout', async (req: Request, res: Response<VerifyResponse>) => {
-  res.clearCookie('refreshToken')
+router.post('/logout', async (req: Request, res: Response) => {
+  const secure = process.env.NODE_ENV === 'production'
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure,
+    sameSite: 'strict',
+    path: '/api/auth/refresh',
+  })
+  res.clearCookie('accessToken', {
+    httpOnly: true,
+    secure,
+    sameSite: 'strict',
+    path: '/',
+  })
   res.status(200).json({})
 })

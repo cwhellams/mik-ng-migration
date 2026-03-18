@@ -1,51 +1,49 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
-import ms from 'ms'
-import passport from 'passport'
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
+import jwt from 'jsonwebtoken'
 
 import logger from '../lib/logger.ts'
-import type { JWTUser } from '../routes/auth/token.ts'
+import { API_AUD, MIK_ISS, type JWTUser } from '../routes/auth/token.ts'
 import { MIKPermissions, downgradePermission } from '../routes/members/models.ts'
 import { problem, type Problem } from '../routes/response.ts'
 
-//
-// Passport strategy to authenticate the user with JWT tokens
-// generated during the login process and passed in the Authorization header.
-//
-passport.use(
-  new JwtStrategy(
-    {
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.ACCESS_TOKEN_SECRET as ms.StringValue,
-      issuer: 'mik',
-      audience: 'api',
-      passReqToCallback: true,
-    },
-    async (req: Request, payload: JWTUser, callback) => {
+// Middleware to authenticate and authorize user
+export const validateUser = (...permissions: MIKPermissions[]): RequestHandler[] => [
+  // first middleware validates the JWT from the httpOnly cookie
+  (req: Request, res: Response<Problem>, next: NextFunction): void => {
+    const token = req.cookies?.accessToken
+    if (!token) {
+      return problem({ status: 401, detail: 'Unauthorized' })
+    }
+    try {
+      const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!, {
+        issuer: MIK_ISS,
+        audience: API_AUD,
+      }) as JWTUser
+
       // allow UI to toggle admin permissions
       const isSudo = req.headers['x-sudo'] !== 'false'
-      callback(undefined, {
+      req.user = {
         ...payload,
-        roles: payload.roles,
-        permissions: isSudo ? payload.permissions : payload.permissions.map(downgradePermission),
-      })
-    },
-  ),
-)
+        permissions: isSudo
+          ? payload.permissions
+          : payload.permissions
+              .map(downgradePermission)
+              .filter((p): p is MIKPermissions => p !== undefined),
+      }
+      next()
+    } catch {
+      return problem({ status: 401, detail: 'Unauthorized' })
+    }
+  },
 
-// Middlewares to authenticate and authorize users
-export const validateUser = (...permissions: MIKPermissions[]): RequestHandler[] => [
-  // first middleware validates the user
-  passport.authenticate('jwt', { session: false }),
-
-  // the second middleware validates the existence of roles
+  // second middleware validates the required permissions
   (req: Request, res: Response<Problem>, next: NextFunction): void => {
-    // If no roles are required, any valid user is fine
+    // If no permissions are required, any valid user is fine
     if (!permissions.length) {
       return next()
     }
 
-    // Check if user has any of the required roles
+    // Check if user has any of the required permissions
     if (permissions.some(p => req.user?.permissions?.includes(p))) {
       return next()
     }

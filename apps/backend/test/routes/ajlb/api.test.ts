@@ -1,4 +1,5 @@
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import request from 'supertest'
 
 import ajlbRouter from '../../../src/routes/ajlb/api.ts'
@@ -18,6 +19,7 @@ import { flightPayload } from '../flight-log/fixtures.ts'
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 app.use('/ajlb', ajlbRouter)
 app.use(problemErrorHandler)
 
@@ -42,13 +44,13 @@ const adminToken = generateAccessToken({
 
 describe('GET /ajlb', () => {
   it('should get all ajlbs for an admin user', async () => {
-    const response = await request(app).get('/ajlb').set('Authorization', `Bearer ${adminToken}`)
+    const response = await request(app).get('/ajlb').set('Cookie', `accessToken=${adminToken}`)
     expect(response.status).toBe(200)
     expect(response.body.books.map(maskAudit)).toMatchSnapshot()
   })
 
   it('should return 200 for members', async () => {
-    const response = await request(app).get('/ajlb').set('Authorization', `Bearer ${memberToken}`)
+    const response = await request(app).get('/ajlb').set('Cookie', `accessToken=${memberToken}`)
     expect(response.status).toBe(200)
   })
 
@@ -62,7 +64,7 @@ describe('GET /ajlb', () => {
       canMakeReservations: false,
     })
 
-    const response = await request(app).get('/ajlb').set('Authorization', `Bearer ${noAccessToken}`)
+    const response = await request(app).get('/ajlb').set('Cookie', `accessToken=${noAccessToken}`)
     expect(response.body).toEqual({
       status: 403,
       title: 'Forbidden',
@@ -78,7 +80,7 @@ describe('GET /ajlb', () => {
     }
     const response = await request(app)
       .get('/ajlb')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query(badFilter)
     expect(response.body).toEqual({
       status: 400,
@@ -103,7 +105,7 @@ describe('GET /ajlb', () => {
 
     const response = await request(app)
       .get('/ajlb')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query(filter)
     expect(response.status).toBe(200)
     expect(response.body.books.map(maskAudit)).toMatchSnapshot()
@@ -123,7 +125,7 @@ describe('CRUD /ajlb', () => {
   }
 
   it('should return 403 for members', async () => {
-    const response = await request(app).post('/ajlb').set('Authorization', `Bearer ${memberToken}`)
+    const response = await request(app).post('/ajlb').set('Cookie', `accessToken=${memberToken}`)
     expect(response.body).toEqual({
       status: 403,
       title: 'Forbidden',
@@ -141,7 +143,7 @@ describe('CRUD /ajlb', () => {
 
     const response = await request(app)
       .post('/ajlb')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(payload)
 
     expect(response.body).toEqual({
@@ -165,7 +167,7 @@ describe('CRUD /ajlb', () => {
   it('should return 500 for duplicate logbook', async () => {
     const response = await request(app)
       .post('/ajlb')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(payload)
 
     expect(response.body).toEqual({
@@ -180,7 +182,7 @@ describe('CRUD /ajlb', () => {
   it('should update logbook', async () => {
     const response = await request(app)
       .patch('/ajlb/OH-IHQ/3')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({
         startFlightMins: 900,
       })
@@ -207,7 +209,7 @@ describe('CRUD /ajlb', () => {
   it('should return 500 for deleting logbook with flights', async () => {
     const response = await request(app)
       .delete('/ajlb/OH-IHQ/3')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(payload)
 
     expect(response.body).toEqual({
@@ -228,7 +230,7 @@ describe('CRUD /ajlb', () => {
 
     const response = await request(app)
       .delete('/ajlb/OH-IHQ/3')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(payload)
 
     expect(response.body).toEqual({})

@@ -12,7 +12,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import { VerifyCodeRequest, VerifyResponse } from '@backend/routes/auth/schema'
-import { saveToken } from '../../hooks/useApi'
+
 import { validateInternalPath } from '@backend/util/sanitizers'
 
 const LoginSent = () => {
@@ -40,13 +40,12 @@ const LoginSent = () => {
       return
     }
 
-    const { data, error } = await trigger({ email, code })
+    const { error } = await trigger({ email, code })
 
-    if (data?.accessToken) {
-      saveToken(data.accessToken)
-      navigate(validateInternalPath(target ?? null))
-    } else {
+    if (error) {
       setCodeError(error?.detail ?? error?.title ?? t('login.invalidCode'))
+    } else {
+      navigate(validateInternalPath(target ?? null))
     }
   }
 

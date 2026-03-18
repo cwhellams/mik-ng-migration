@@ -6,7 +6,6 @@ import { Icon } from '@iconify/react'
 import { useAuth } from '../../hooks/useAuth'
 import { VerifyRequest, VerifyResponse } from '@backend/routes/auth/schema'
 import { useTranslation } from 'react-i18next'
-import { saveToken } from '../../hooks/useApi'
 
 const RegistrationVerify = () => {
   const [searchParams] = useSearchParams()
@@ -23,15 +22,14 @@ const RegistrationVerify = () => {
   useEffect(() => {
     const token = searchParams.get('token')
     if (token) {
-      trigger({ token }).then(({ data, error }) => {
-        if (data?.accessToken) {
-          saveToken(data.accessToken)
-          setIsVerified(true)
-        } else {
+      trigger({ token }).then(({ error }) => {
+        if (error) {
           console.log(error)
           setVerificationError(
             t('registrationVerify.verificationFailedMessage')
           )
+        } else {
+          setIsVerified(true)
         }
       })
     } else {

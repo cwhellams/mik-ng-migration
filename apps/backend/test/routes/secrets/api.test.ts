@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import request from 'supertest'
 
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
@@ -11,6 +12,7 @@ import { db } from '../../../src/db/connection.ts'
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 app.use('/secrets', router)
 app.use(problemErrorHandler)
 
@@ -57,15 +59,13 @@ describe('Secrets API', () => {
     it('should require ACCESS_CODES_USER permission', async () => {
       const response = await request(app)
         .get('/secrets')
-        .set('Authorization', `Bearer ${noPermissionsToken}`)
+        .set('Cookie', `accessToken=${noPermissionsToken}`)
 
       expect(response.status).toBe(403)
     })
 
     it('should return secrets for authorized user', async () => {
-      const response = await request(app)
-        .get('/secrets')
-        .set('Authorization', `Bearer ${userToken}`)
+      const response = await request(app).get('/secrets').set('Cookie', `accessToken=${userToken}`)
 
       expect(response.status).toBe(200)
       expect(response.body).toHaveProperty('secrets')
@@ -76,17 +76,15 @@ describe('Secrets API', () => {
       // Create test secrets
       await request(app)
         .post('/secrets')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({ secretKey: 'Z Last Key', secretValue: 'Last Value' })
 
       await request(app)
         .post('/secrets')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({ secretKey: 'A First Key', secretValue: 'First Value' })
 
-      const response = await request(app)
-        .get('/secrets')
-        .set('Authorization', `Bearer ${userToken}`)
+      const response = await request(app).get('/secrets').set('Cookie', `accessToken=${userToken}`)
 
       expect(response.status).toBe(200)
       expect(response.body.secrets).toHaveLength(2)
@@ -99,7 +97,7 @@ describe('Secrets API', () => {
     it('should require ACCESS_CODES_ADMIN permission', async () => {
       const response = await request(app)
         .post('/secrets')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', `accessToken=${userToken}`)
         .send({
           secretKey: 'Test Key',
           secretValue: 'Test Value',
@@ -116,7 +114,7 @@ describe('Secrets API', () => {
 
       const response = await request(app)
         .post('/secrets')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send(secretData)
 
       expect(response.status).toBe(201)
@@ -134,7 +132,7 @@ describe('Secrets API', () => {
     it('should validate required fields', async () => {
       const response = await request(app)
         .post('/secrets')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({})
 
       expect(response.status).toBe(400)
@@ -146,7 +144,7 @@ describe('Secrets API', () => {
       // Create a secret first
       const createResponse = await request(app)
         .post('/secrets')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({
           secretKey: 'Original Key',
           secretValue: 'Original Value',
@@ -162,7 +160,7 @@ describe('Secrets API', () => {
 
       const response = await request(app)
         .patch(`/secrets/${secretId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send(updateData)
 
       expect(response.status).toBe(200)
@@ -177,7 +175,7 @@ describe('Secrets API', () => {
     it('should return 404 for non-existent secret', async () => {
       const response = await request(app)
         .patch('/secrets/999999')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({
           secretKey: 'Updated Key',
         })
@@ -192,7 +190,7 @@ describe('Secrets API', () => {
 
       var createResponse = await request(app)
         .post('/secrets')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .send({
           secretKey: 'Delete Me',
           secretValue: 'Delete Me',
@@ -202,14 +200,14 @@ describe('Secrets API', () => {
       // Delete the secret
       const response = await request(app)
         .delete(`/secrets/${secretId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
 
       expect(response.status).toBe(204)
 
       // Verify it's deleted
       const getResponse = await request(app)
         .get(`/secrets/${secretId}`)
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
 
       expect(getResponse.status).toBe(404)
     })
@@ -217,7 +215,7 @@ describe('Secrets API', () => {
     it('should return 404 for non-existent secret', async () => {
       const response = await request(app)
         .delete('/secrets/999999')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
 
       expect(response.status).toBe(404)
     })

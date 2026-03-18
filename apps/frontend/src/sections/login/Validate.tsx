@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { LoginLayout } from './LoginLayout'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '../../hooks/useAuth'
 import { VerifyRequest, VerifyResponse } from '@backend/routes/auth/schema'
 import { validateInternalPath } from '@backend/util/sanitizers'
-import { saveToken } from '../../hooks/useApi'
 
 const LoginValidate = () => {
   const [searchParams] = useSearchParams()
   const [codeError, setCodeError] = useState('')
+  // Prevent React StrictMode's double-invoke from consuming the one-time-use token twice
+  const triggered = useRef(false)
 
   const navigate = useNavigate()
 
@@ -18,19 +19,19 @@ const LoginValidate = () => {
   )
 
   useEffect(() => {
+    if (triggered.current) return
     const token = searchParams.get('token')
     const target = searchParams.get('target')
     if (token) {
-      trigger({ token }).then(({ data, error }) => {
-        if (data?.accessToken) {
-          saveToken(data.accessToken)
-
+      triggered.current = true
+      trigger({ token }).then(({ error }) => {
+        if (error) {
+          console.log(error)
+          setCodeError('Login failed, try again')
+        } else {
           // Validate target to prevent open redirect attacks
           const safePath = validateInternalPath(target)
           navigate(safePath)
-        } else {
-          console.log(error)
-          setCodeError('Login failed, try again')
         }
       })
     } else {

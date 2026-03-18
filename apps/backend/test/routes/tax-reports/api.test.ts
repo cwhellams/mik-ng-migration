@@ -2,6 +2,7 @@ import 'dotenv/config'
 
 import request from 'supertest'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import router from '../../../src/routes/tax-reports/api.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
@@ -10,6 +11,7 @@ import dayjs from 'dayjs'
 
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 app.use('/tax-reports', router)
 app.use(problemErrorHandler)
 
@@ -45,7 +47,7 @@ describe('GET /tax-reports', () => {
     it('should return 401 for invalid token', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', 'Bearer badToken')
+        .set('Cookie', 'accessToken=badToken')
         .query({ startDate: '2025-01-01', endDate: '2025-01-31' })
 
       expect(res.status).toBe(401)
@@ -54,7 +56,7 @@ describe('GET /tax-reports', () => {
     it('should return 403 for user without INVOICING_ADMIN permission', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Cookie', `accessToken=${userToken}`)
         .query({ startDate: '2025-01-01', endDate: '2025-01-31' })
 
       expect(res.status).toBe(403)
@@ -63,7 +65,7 @@ describe('GET /tax-reports', () => {
     it('should return 403 for member without INVOICING_ADMIN permission', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${memberToken}`)
+        .set('Cookie', `accessToken=${memberToken}`)
         .query({ startDate: '2025-01-01', endDate: '2025-01-31' })
 
       expect(res.status).toBe(403)
@@ -72,7 +74,7 @@ describe('GET /tax-reports', () => {
     it('should allow access for INVOICING_ADMIN', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .query({ startDate: '2025-01-01', endDate: '2025-01-31' })
 
       expect(res.status).toBe(200)
@@ -83,7 +85,7 @@ describe('GET /tax-reports', () => {
     it('should return 400 for missing startDate', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .query({ endDate: '2025-01-31' })
 
       expect(res.status).toBe(400)
@@ -93,7 +95,7 @@ describe('GET /tax-reports', () => {
     it('should return 400 for missing endDate', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .query({ startDate: '2025-01-01' })
 
       expect(res.status).toBe(400)
@@ -103,7 +105,7 @@ describe('GET /tax-reports', () => {
     it('should return 400 for invalid date format', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .query({ startDate: '01-01-2025', endDate: '2025-01-31' })
 
       expect(res.status).toBe(400)
@@ -113,7 +115,7 @@ describe('GET /tax-reports', () => {
     it('should return 400 for startDate after endDate', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .query({ startDate: '2025-02-01', endDate: '2025-01-31' })
 
       expect(res.status).toBe(400)
@@ -124,7 +126,7 @@ describe('GET /tax-reports', () => {
       const futureDate = dayjs().add(1, 'day').format('YYYY-MM-DD')
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .query({ startDate: '2025-01-01', endDate: futureDate })
 
       expect(res.status).toBe(400)
@@ -136,7 +138,7 @@ describe('GET /tax-reports', () => {
     it('should return tax report data with valid parameters', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .query({ startDate: '2025-01-01', endDate: '2025-01-31' })
 
       expect(res.status).toBe(200)
@@ -152,7 +154,7 @@ describe('GET /tax-reports', () => {
     it('should return data grouped by month and aircraft', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .query({ startDate: '2025-01-01', endDate: '2025-12-31' })
 
       expect(res.status).toBe(200)
@@ -188,7 +190,7 @@ describe('GET /tax-reports', () => {
     it('should return empty array for date range with no flights', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .query({ startDate: '2020-01-01', endDate: '2020-01-31' })
 
       expect(res.status).toBe(200)
@@ -198,7 +200,7 @@ describe('GET /tax-reports', () => {
     it('should handle single day date range', async () => {
       const res = await request(app)
         .get('/tax-reports')
-        .set('Authorization', `Bearer ${adminToken}`)
+        .set('Cookie', `accessToken=${adminToken}`)
         .query({ startDate: '2025-01-15', endDate: '2025-01-15' })
 
       expect(res.status).toBe(200)

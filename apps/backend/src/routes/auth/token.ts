@@ -6,6 +6,10 @@ import { randomUUID } from 'node:crypto'
 import { MIKPermissions, type Member } from '../members/models.ts'
 import { problem } from '../response.ts'
 
+export const MIK_ISS = 'mik'
+export const API_AUD = 'api'
+export const REFRESH_AUD = 'refresh'
+
 // should match User in types/express.d.ts
 export const JWTUserSchema = z.object({
   memberId: z.string(),
@@ -42,20 +46,20 @@ export const generateAccessToken = (user: JWTUser): string => {
   return generateToken(user, process.env.ACCESS_TOKEN_SECRET, {
     jwtid: randomUUID(),
     expiresIn: process.env.ACCESS_TOKEN_EXPIRATION as ms.StringValue,
-    issuer: 'mik',
-    audience: 'api',
+    issuer: MIK_ISS,
+    audience: API_AUD,
   })
 }
 
 export const generateRefreshToken = (user: JWTUser): string =>
   generateToken(user, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: process.env.REFRESH_TOKEN_EXPIRATION as ms.StringValue,
-    issuer: 'mik',
-    audience: 'refresh',
+    issuer: MIK_ISS,
+    audience: REFRESH_AUD,
   })
 
 export const decodeRefreshToken = (refreshToken: string): JWTUser =>
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!, {
-    issuer: 'mik',
-    audience: 'refresh',
+    issuer: MIK_ISS,
+    audience: REFRESH_AUD,
   }) as JWTUser

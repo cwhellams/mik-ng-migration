@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import request from 'supertest'
 
 import { db } from '../../../src/db/connection.ts'
@@ -22,6 +23,7 @@ const admin_member_id = 'Matti1'
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 app.use('/flight-log', flightLogRouter)
 app.use(problemErrorHandler)
 
@@ -65,7 +67,7 @@ describe('GET /flight-log', () => {
   it('should only return data for the logged in user when not admin', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .query({ aircraftRegistration: 'OH-STL' })
 
     expect(response.status).toBe(200)
@@ -77,7 +79,7 @@ describe('GET /flight-log', () => {
   it('should only return data for the logged in user when admin without sudo', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .set('x-sudo', 'false')
       .query({ aircraftRegistration: 'OH-STL' })
 
@@ -88,7 +90,7 @@ describe('GET /flight-log', () => {
   it('should return all data for ac when user is admin', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query({ aircraftRegistration: 'OH-STL' })
 
     expect(response.status).toBe(200)
@@ -99,7 +101,7 @@ describe('GET /flight-log', () => {
   it('should return 200 with valid query params', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .query({
         billableMemberId: test_member_id,
       })
@@ -112,7 +114,7 @@ describe('GET /flight-log', () => {
   it('should return 400 for invalid member_id', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .query({
         billable_member_id2: null,
       })
@@ -136,7 +138,7 @@ describe('GET /flight-log', () => {
   it('should return 200 for Start Date with time offset', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .query({
         startDate: '2025-03-01T00:00:00Z',
       })
@@ -149,7 +151,7 @@ describe('GET /flight-log', () => {
   it('should return 400 for invalid startDate timezone', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .query({
         startDate: '2025-02-29',
       })
@@ -162,7 +164,7 @@ describe('GET /flight-log', () => {
   it('should return 400 for invalid startDate format', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .query({
         endDate: 'not-a-date',
       })
@@ -175,7 +177,7 @@ describe('GET /flight-log', () => {
   it('should allow query parameters to be optional', async () => {
     const response = await request(app)
       .get('/flight-log')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body.logs[0]).toMatchSnapshot()
@@ -183,7 +185,7 @@ describe('GET /flight-log', () => {
   it('Get flight log with Id should return a single row when data is present for the given Id', async () => {
     const response = await request(app)
       .get('/flight-log/mikify')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body).toMatchSnapshot({
@@ -195,7 +197,7 @@ describe('GET /flight-log', () => {
   it('Get flight log with Id should return a 404 when no row is present for the given Id', async () => {
     const response = await request(app)
       .get('/flight-log/100')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
     expect(response.status).toBe(404)
     expect(response.body.detail).toMatch(/Flight log not found/)
   })
@@ -205,7 +207,7 @@ describe('GET /flight-log/flightid', () => {
   it('should return flights for the logged in user when not admin', async () => {
     const response = await request(app)
       .get('/flight-log/mikify')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .query({})
 
     expect(response.status).toBe(200)
@@ -218,7 +220,7 @@ describe('GET /flight-log/flightid', () => {
   it('should return 403 for the logged in user for other flights', async () => {
     const response = await request(app)
       .get('/flight-log/efnu4evr')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .query({})
 
     expect(response.status).toBe(403)
@@ -227,7 +229,7 @@ describe('GET /flight-log/flightid', () => {
   it('should return 403 for admin without sudo rights', async () => {
     const response = await request(app)
       .get('/flight-log/efnu4evr')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .set('x-sudo', 'false')
       .query({})
 
@@ -237,7 +239,7 @@ describe('GET /flight-log/flightid', () => {
   it('should return flight for admin with sudo rights', async () => {
     const response = await request(app)
       .get('/flight-log/efnu4evr')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query({})
 
     expect(response.status).toBe(200)
@@ -251,7 +253,7 @@ describe('GET /flight-log/flightid', () => {
   it('should return 404 for unknown flight', async () => {
     const response = await request(app)
       .get('/flight-log/noup')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .query({})
 
     expect(response.status).toBe(404)
@@ -268,7 +270,7 @@ describe('POST /flight-log', () => {
     async (memberId: string, isDtoFlight: boolean, token: string) => {
       const response = await request(app)
         .post('/flight-log')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Cookie', `accessToken=${token}`)
         .send({
           ...flightPayload,
           picMemberId: memberId,
@@ -281,7 +283,7 @@ describe('POST /flight-log', () => {
 
       const checkPost = await request(app)
         .get(`/flight-log/${id}`)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Cookie', `accessToken=${token}`)
       expect(checkPost.status).toBe(200)
 
       const checkPostBody = checkPost.body as FlightLog
@@ -298,7 +300,7 @@ describe('POST /flight-log', () => {
       // Cleanup
       const delResponse = await request(app)
         .delete(`/flight-log/${id}`)
-        .set('Authorization', `Bearer ${token}`)
+        .set('Cookie', `accessToken=${token}`)
         .set('Accept', 'application/json')
       expect(delResponse.status).toBe(204)
       expect(delResponse.body).toEqual({})
@@ -314,7 +316,7 @@ describe('POST /flight-log', () => {
 
     const response = await request(app)
       .post('/flight-log')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .send(payload)
 
     expect(response.status).toBe(400)
@@ -329,7 +331,7 @@ describe('POST /flight-log', () => {
 
     const response = await request(app)
       .post('/flight-log')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .send(payload)
 
     expect(response.status).toBe(400)
@@ -340,7 +342,7 @@ describe('POST /flight-log', () => {
   it('should return 400 for invalid flight times', async () => {
     const response = await request(app)
       .post('/flight-log')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .send({ ...flightPayload, offBlockTimeEpoch: '0' })
 
     expect(response.status).toBe(400)
@@ -387,12 +389,12 @@ describe('PATCH /flight-log/', () => {
 
       const patchResponse = await request(app)
         .patch('/flight-log/bLwnAstr0')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Cookie', `accessToken=${token}`)
         .send(payload)
 
       const checkPatch = await request(app)
         .get('/flight-log/bLwnAstr0')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Cookie', `accessToken=${token}`)
 
       // patch returns the same as another get
       expect(patchResponse.status).toBe(200)
@@ -410,12 +412,12 @@ describe('PATCH /flight-log/', () => {
       }
       const undoResponse = await request(app)
         .patch('/flight-log/bLwnAstr0')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Cookie', `accessToken=${token}`)
         .send(undoPayload)
 
       const checkUndo = await request(app)
         .get('/flight-log/bLwnAstr0')
-        .set('Authorization', `Bearer ${token}`)
+        .set('Cookie', `accessToken=${token}`)
 
       expect(undoResponse.status).toBe(200)
       expect(undoResponse.body).toEqual(checkUndo.body)
@@ -436,7 +438,7 @@ describe('PATCH /flight-log/', () => {
 
     const response = await request(app)
       .patch('/flight-log/efnu4evr')
-      .set('Authorization', `Bearer ${invalidToken}`)
+      .set('Cookie', `accessToken=${invalidToken}`)
       .send(payload)
 
     expect(response.status).toBe(401)
@@ -457,7 +459,7 @@ describe('PATCH /flight-log/', () => {
 
     const response = await request(app)
       .patch('/flight-log/efnu4evr')
-      .set('Authorization', `Bearer ${invalidToken}`)
+      .set('Cookie', `accessToken=${invalidToken}`)
       .send(payload)
 
     expect(response.body).toEqual({
@@ -475,7 +477,7 @@ describe('PATCH /flight-log/', () => {
 
     const response = await request(app)
       .patch('/flight-log/bLwnAstr0')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(payload)
 
     expect(response.body).toEqual({
@@ -498,12 +500,12 @@ describe('PATCH /flight-log/', () => {
 
   it('should prevent member updating admin only fields', async () => {
     const original = (
-      await request(app).get('/flight-log/bLwnAstr0').set('Authorization', `Bearer ${mattiToken}`)
+      await request(app).get('/flight-log/bLwnAstr0').set('Cookie', `accessToken=${mattiToken}`)
     ).body
 
     const patchResponse = await request(app)
       .patch('/flight-log/bLwnAstr0')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .send({
         ajlbBlankRowsBefore: 999,
         ajlbSeqNo: 999,
@@ -520,7 +522,7 @@ describe('PATCH /flight-log/', () => {
 
     const checkPatch = await request(app)
       .get('/flight-log/bLwnAstr0')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
 
     // patch returns the same as another get
     expect(checkPatch.status).toBe(200)
@@ -535,14 +537,14 @@ describe('PATCH /flight-log/', () => {
     validPatch: Partial<FlightLogUpsertRequest>,
   ) => {
     const original = (
-      await request(app).get(`/flight-log/${flightId}`).set('Authorization', `Bearer ${token}`)
+      await request(app).get(`/flight-log/${flightId}`).set('Cookie', `accessToken=${token}`)
     ).body
 
     assert(original.nonBillingApprovedByMemberId == null)
 
     const patchResponse = await request(app)
       .patch(`/flight-log/${flightId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
       .send(flightPayload)
 
     expect(patchResponse.status).toBe(200)
@@ -560,7 +562,7 @@ describe('PATCH /flight-log/', () => {
 
     const checkPatch = await request(app)
       .get(`/flight-log/${flightId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
 
     // patch returns the same as another get
     expect(checkPatch.status).toBe(200)
@@ -568,14 +570,14 @@ describe('PATCH /flight-log/', () => {
 
     const undoResponse = await request(app)
       .patch(`/flight-log/${flightId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
       .send(original)
 
     expect(undoResponse.status).toBe(200)
 
     const checkUndo = await request(app)
       .get(`/flight-log/${flightId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
 
     expect(undoResponse.status).toBe(200)
     expect(undoResponse.body).toEqual(checkUndo.body)
@@ -608,7 +610,7 @@ describe('PATCH /flight-log/', () => {
   it('should lock fields for admin after flight is billed', async () => {
     const patchResponse = await request(app)
       .patch(`/flight-log/efnu4evr`)
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(flightPayload)
 
     expect(patchResponse.status).toBe(400)
@@ -640,7 +642,7 @@ describe('POST /flight-log/validate', () => {
 
     const response = await request(app)
       .post('/flight-log/efnu4evr/validate')
-      .set('Authorization', `Bearer ${invalidToken}`)
+      .set('Cookie', `accessToken=${invalidToken}`)
       .send()
 
     expect(response.status).toBe(401)
@@ -648,7 +650,7 @@ describe('POST /flight-log/validate', () => {
   it('should return a 403 if billable members tries to validate his own flight', async () => {
     const response = await request(app)
       .post('/flight-log/mikify/validate')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
       .send()
 
     expect(response.body).toEqual({
@@ -662,7 +664,7 @@ describe('POST /flight-log/validate', () => {
   it('should return a 404 if flight is not found', async () => {
     const response = await request(app)
       .post('/flight-log/noup/validate')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send()
 
     expect(response.body).toEqual({
@@ -677,7 +679,7 @@ describe('POST /flight-log/validate', () => {
   it('should return a 400 if flight is already billed', async () => {
     const response = await request(app)
       .post('/flight-log/da40tndra/validate')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send()
 
     expect(response.body).toEqual({
@@ -692,7 +694,7 @@ describe('POST /flight-log/validate', () => {
   it('should return a 400 if there are earlier unvalidated flights', async () => {
     const response = await request(app)
       .post('/flight-log/mass194/validate')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send()
 
     expect(response.body).toEqual({
@@ -707,7 +709,7 @@ describe('POST /flight-log/validate', () => {
   it('should return a 400 if there are later validated flights', async () => {
     const response = await request(app)
       .post('/flight-log/mass100/validate')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({ revert: true })
 
     expect(response.body).toEqual({
@@ -722,7 +724,7 @@ describe('POST /flight-log/validate', () => {
   it('should validate and revert the first new flight', async () => {
     const response = await request(app)
       .post('/flight-log/mass193/validate')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send()
 
     expect(response.status).toEqual(200)
@@ -733,7 +735,7 @@ describe('POST /flight-log/validate', () => {
 
     const revert = await request(app)
       .post('/flight-log/mass193/validate')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({ revert: true })
     expect(revert.status).toEqual(200)
     expect(revert.body.acTotalFlightTime).toEqual('338:16')
@@ -747,7 +749,7 @@ describe('DELETE /flight-log', () => {
   it('should return 404 when flight does not exist', async () => {
     const response = await request(app)
       .delete('/flight-log/100')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(404)
   })
@@ -764,7 +766,7 @@ describe('DELETE /flight-log', () => {
 
     const response = await request(app)
       .delete('/flight-log/da40tndra')
-      .set('Authorization', `Bearer ${delToken}`)
+      .set('Cookie', `accessToken=${delToken}`)
 
     expect(response.body).toEqual({
       status: 403,
@@ -778,7 +780,7 @@ describe('DELETE /flight-log', () => {
   it('should return 400 when flight has been validated', async () => {
     const response = await request(app)
       .delete('/flight-log/da40tndra')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
 
     expect(response.body).toEqual({
       status: 400,
@@ -794,7 +796,7 @@ describe('GET /flight-log/totals', () => {
   it('should return 200 with all ac totals', async () => {
     const response = await request(app)
       .get('/flight-log/totals')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body[1]).toMatchSnapshot()
@@ -803,7 +805,7 @@ describe('GET /flight-log/totals', () => {
   it('should return 200 with valid registration', async () => {
     const response = await request(app)
       .get('/flight-log/OH-STL/totals')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body[0]).toMatchSnapshot()
@@ -812,7 +814,7 @@ describe('GET /flight-log/totals', () => {
   it('should return 404 with invalid registration', async () => {
     const response = await request(app)
       .get('/flight-log/OH-ABC/totals')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(404)
   })
@@ -831,7 +833,7 @@ describe('GET /flight-log/stats', () => {
 
     const response = await request(app)
       .get('/flight-log/stats')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
 
     expect(response.status).toBe(403)
   })
@@ -848,7 +850,7 @@ describe('GET /flight-log/stats', () => {
 
     const response = await request(app)
       .get('/flight-log/stats')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
 
     expect(response.status).toBe(200)
     expect(response.body).toEqual({
@@ -859,7 +861,7 @@ describe('GET /flight-log/stats', () => {
   it('should return 200 with single plane', async () => {
     const response = await request(app)
       .get('/flight-log/stats')
-      .set('Authorization', `Bearer ${mattiToken}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body).toEqual({
@@ -888,7 +890,7 @@ describe('GET /flight-log/stats', () => {
   it.skip('should return 200 with multiple planes', async () => {
     const response = await request(app)
       .get('/flight-log/stats')
-      .set('Authorization', `Bearer ${jukkaToken}`)
+      .set('Cookie', `accessToken=${jukkaToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body).toEqual({

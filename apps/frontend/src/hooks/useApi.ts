@@ -3,122 +3,64 @@ import { PublicConfiguration, useSWRConfig } from 'swr/_internal'
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { Problem } from '@backend/routes/response'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { VerifyResponse } from '@backend/routes/auth/schema'
 import useSWRMutation, { SWRMutationConfiguration } from 'swr/mutation'
 import { useThemeMode } from '../theme/ThemeContext'
 import { validateApiPath } from '@backend/util/sanitizers'
-import { dayjs } from '../utils/date'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
+
+// withCredentials ensures the browser sends httpOnly cookies on every request.
 const api = axios.create({
   baseURL: `${API_BASE}/api/`,
+  withCredentials: true,
 })
 
+// Tracks an in-flight token refresh so concurrent 401s only trigger one refresh.
 const tokenRefresh: {
-  // refresh is ongoing
-  refreshing?: Promise<string>
+  refreshing?: Promise<void>
 } = {}
 
-// Add a request interceptor to add the access token to the authorization header
-api.interceptors.request.use(
-  async (config) => {
-    const token = await getTheToken()
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-      return config
-    } else {
-      if ('allowUnauthenticated' in config && config.allowUnauthenticated) {
-        // can be used without auth
-        return config
-      }
-
-      // no token, cancel the request
-      return {
-        ...config,
-        signal: AbortSignal.abort(),
-      }
-    }
-  },
-  (error) => Promise.reject(error)
-)
-
-const getTheToken = async () => {
-  if (tokenRefresh.refreshing) {
-    // wait for the ongoing refresh to complete
-    return await tokenRefresh.refreshing
-  }
-
-  return sessionStorage.getItem('accessToken')
-}
-
-export const invalidateTokenOlderThan = (date: string) => {
-  const accessToken = sessionStorage.getItem('accessToken')
-  const refreshed = sessionStorage.getItem('accessTokenRefreshed')
-  if (!refreshed || accessToken == 'refresh-me') {
-    return
-  }
-
-  if (refreshed && dayjs(refreshed).isBefore(date)) {
-    console.log("Force refreshing the token, it's older than", date)
-    sessionStorage.setItem('accessToken', 'refresh-me')
-  }
-}
-
-export const saveToken = (token: string) => {
-  sessionStorage.setItem('accessToken', token)
-  sessionStorage.setItem('accessTokenRefreshed', new Date().toISOString())
-}
-
-const refreshTheToken = async () => {
-  if (!tokenRefresh.refreshing) {
-    // only single refresh needed
-    tokenRefresh.refreshing = axios
-      .post<VerifyResponse>(`${API_BASE}/api/auth/refresh`)
-      .then((response) => {
-        const accessToken = response.data.accessToken
-        if (accessToken) {
-          saveToken(accessToken)
-        } else {
-          sessionStorage.removeItem('accessToken')
-          sessionStorage.removeItem('accessTokenRefreshed')
-        }
-
-        tokenRefresh.refreshing = undefined
-
-        return accessToken ? accessToken : Promise.reject('No token')
-      })
-      .catch((err) => {
-        // If there is an error refreshing the token, log out the user
-        sessionStorage.removeItem('accessToken')
-        return Promise.reject(err)
-      })
-  }
-
-  // others wait for the ongoing refresh to complete
+// Refresh by posting to the refresh endpoint — the browser sends the httpOnly
+// refreshToken cookie automatically, and the server sets a new accessToken cookie.
+const refreshTheToken = (): Promise<void> => {
+  tokenRefresh.refreshing ??= axios
+    .post(`${API_BASE}/api/auth/refresh`, {}, { withCredentials: true })
+    .then(() => {
+      tokenRefresh.refreshing = undefined
+    })
+    .catch((err) => {
+      tokenRefresh.refreshing = undefined
+      throw err
+    })
   return tokenRefresh.refreshing
 }
 
-// Add a response interceptor to refresh the access token if it's expired
+// On a 401, attempt a silent token refresh (via the refreshToken cookie) and
+// retry the original request once. If refresh also fails, propagate the 401.
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config
-
-    // If the error is a 401 and we have a access token, try refresh it with refresh token
+  async (error: AxiosError) => {
+    const originalRequest = error.config as
+      | (AxiosRequestConfig & {
+          _retried?: boolean
+          allowUnauthenticated?: boolean
+        })
+      | undefined
     if (
       originalRequest &&
       error.response?.status === 401 &&
-      sessionStorage.getItem('accessToken')
+      !originalRequest._retried &&
+      !originalRequest.allowUnauthenticated
     ) {
-      const accessToken = await refreshTheToken()
-
-      // Re-run the original request that was intercepted
-      originalRequest.headers.Authorization = `Bearer ${accessToken}`
-      return api(originalRequest)
+      originalRequest._retried = true
+      try {
+        await refreshTheToken()
+        return api(originalRequest)
+      } catch {
+        // Refresh failed — session is gone; fall through and propagate the 401
+      }
     }
-
-    // Return the original error if we can't handle it
-    return Promise.reject(error)
+    throw error
   }
 )
 
@@ -221,13 +163,10 @@ export default function useApi<
     }
   )
 
-  // Only redirect to login when SWR has definitively confirmed there is no
-  // valid session (isValidating = false). Ignoring a stale CanceledError while
-  // SWR is re-validating prevents an infinite redirect loop in PWA mode: after
-  // a successful login, SWR immediately returns the cached CanceledError from
-  // the pre-login render and would redirect back to /login before the
-  // re-validation request (now carrying a valid token) can complete.
-  const isLoggedOut = error?.name == 'CanceledError' && !rest.isValidating
+  // A 401 that survived the refresh-retry cycle means the session is gone.
+  // Only redirect when SWR has settled (isValidating = false) to avoid
+  // redirecting during a transient re-validation.
+  const isLoggedOut = error?.response?.status === 401 && !rest.isValidating
   if (isLoggedOut && !request.allowUnauthenticated) {
     // authentication is required
     navigate('/login', {

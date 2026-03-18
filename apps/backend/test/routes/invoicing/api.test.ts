@@ -3,6 +3,7 @@ import { jest } from '@jest/globals'
 import 'dotenv/config'
 import request from 'supertest'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import router from '../../../src/routes/invoicing/api.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
@@ -13,6 +14,7 @@ import { deleteCreatedInvoiceItems } from '../../db/__helpers__/simplbooksDbHelp
 
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 app.use('/invoices', router)
 app.use(problemErrorHandler)
 
@@ -38,7 +40,7 @@ describe('GET /', () => {
   it('should return invoices for admin', async () => {
     const res = await request(app)
       .get('/invoices')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query({})
     expect(res.status).toBe(200)
     expect(res.body.invoices).toHaveLength(12)
@@ -47,36 +49,34 @@ describe('GET /', () => {
   it('should return 400 for invalid query params', async () => {
     const res = await request(app)
       .get('/invoices?id=not-a-number')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
 
     expect(res.status).toBe(400)
     expect(res.body.detail).toContain('search criteria are invalid')
   })
 
   it('should return 1 for member', async () => {
-    const res = await request(app).get('/invoices').set('Authorization', `Bearer ${memberToken}`)
+    const res = await request(app).get('/invoices').set('Cookie', `accessToken=${memberToken}`)
 
     expect(res.status).toBe(200)
     expect(res.body.invoices).toHaveLength(1)
   })
 
   it('should return 401 for invalid token', async () => {
-    const res = await request(app).get('/invoices').set('Authorization', `Bearer badToken`)
+    const res = await request(app).get('/invoices').set('Cookie', `accessToken=badToken`)
     expect(res.status).toBe(401)
   })
 })
 
 describe('GET /items', () => {
   it('should return invoice items', async () => {
-    const res = await request(app)
-      .get('/invoices/items')
-      .set('Authorization', `Bearer ${adminToken}`)
+    const res = await request(app).get('/invoices/items').set('Cookie', `accessToken=${adminToken}`)
     expect(res.status).toBe(200)
     expect(res.body.items).toHaveLength(4)
   })
 
   it('should return 401 for invalid token', async () => {
-    const res = await request(app).get('/invoices/items').set('Authorization', `Bearer badToken`)
+    const res = await request(app).get('/invoices/items').set('Cookie', `accessToken=badToken`)
     expect(res.status).toBe(401)
   })
 })
@@ -99,7 +99,7 @@ describe('Invoice Simplbooks tests', () => {
 
     const res = await request(app)
       .patch('/invoices/items/refresh')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
 
     expect(simplbooksSpy).toHaveBeenCalledWith('/articles/list', {
       data: { page: 1, per_page: 50 },
@@ -113,7 +113,7 @@ describe('POST /flights', () => {
   it('should create a new invoice', async () => {
     const res = await request(app)
       .post('/invoices/flights')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({
         aircraftRegistration: 'OH-STL',
         endDate: '1999-01-10',
@@ -123,14 +123,14 @@ describe('POST /flights', () => {
   })
 
   it('should return 401 for invalid token', async () => {
-    const res = await request(app).post('/invoices/flights').set('Authorization', `Bearer badToken`)
+    const res = await request(app).post('/invoices/flights').set('Cookie', `accessToken=badToken`)
     expect(res.status).toBe(401)
   })
 
   it('should return 403 for non admin user', async () => {
     const res = await request(app)
       .post('/invoices/flights')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
     expect(res.status).toBe(403)
   })
 })
@@ -139,7 +139,7 @@ describe('GET /flights', () => {
   it('should return invoicable flights for admin', async () => {
     const res = await request(app)
       .get('/invoices/flights')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query({ aircraftRegistration: 'OH-STL', endDate: '2100-01-10' })
 
     expect(res.status).toBe(200)
@@ -149,7 +149,7 @@ describe('GET /flights', () => {
   it('should return 403 for non admin user', async () => {
     const res = await request(app)
       .get('/invoices/flights')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
       .query({ limit: 10 })
 
     expect(res.status).toBe(403)
@@ -160,7 +160,7 @@ describe('GET /annualMembershipBillingRuns', () => {
   it('should return billing runs for admin', async () => {
     const res = await request(app)
       .get('/invoices/annualMembershipBillingRuns')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
@@ -169,7 +169,7 @@ describe('GET /annualMembershipBillingRuns', () => {
   it('should return 403 for non admin user', async () => {
     const res = await request(app)
       .get('/invoices/annualMembershipBillingRuns')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
 
     expect(res.status).toBe(403)
     expect(res.body.detail).toContain('does not have permission')
@@ -180,7 +180,7 @@ describe('POST /triggerAnnualMembershipBillingProcess', () => {
   it('should trigger annual billing process for admin', async () => {
     const res = await request(app)
       .post('/invoices/triggerAnnualMembershipBillingProcess/')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('membersProcessed')
@@ -189,7 +189,7 @@ describe('POST /triggerAnnualMembershipBillingProcess', () => {
   it('should return 401 for invalid token', async () => {
     const res = await request(app)
       .post('/invoices/triggerAnnualMembershipBillingProcess/')
-      .set('Authorization', `Bearer badToken`)
+      .set('Cookie', `accessToken=badToken`)
 
     expect(res.status).toBe(401)
   })
@@ -199,7 +199,7 @@ describe('POST /requestOwnEquipmentFeeInvoice', () => {
   it('should create equipment fee invoice for member', async () => {
     const res = await request(app)
       .post('/invoices/requestOwnEquipmentFeeInvoice')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
 
     expect(res.status).toBe(200)
   })
@@ -207,7 +207,7 @@ describe('POST /requestOwnEquipmentFeeInvoice', () => {
   it('should return 401 for invalid token', async () => {
     const res = await request(app)
       .post('/invoices/requestOwnEquipmentFeeInvoice')
-      .set('Authorization', `Bearer badToken`)
+      .set('Cookie', `accessToken=badToken`)
 
     expect(res.status).toBe(401)
   })
@@ -217,7 +217,7 @@ describe('POST /sendEquipmentFeeInvoiceToMember', () => {
   it('should send equipment fee invoice as admin', async () => {
     const res = await request(app)
       .post('/invoices/sendEquipmentFeeInvoiceToMember')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({ memberId: 'Matti1' })
 
     expect(res.status).toBe(200)
@@ -226,7 +226,7 @@ describe('POST /sendEquipmentFeeInvoiceToMember', () => {
   it('should return 403 for non admin user', async () => {
     const res = await request(app)
       .post('/invoices/sendEquipmentFeeInvoiceToMember')
-      .set('Authorization', `Bearer ${memberToken}`)
+      .set('Cookie', `accessToken=${memberToken}`)
       .send({ memberId: 'Antti1' })
 
     expect(res.status).toBe(403)
@@ -251,7 +251,7 @@ describe('GET /:invoiceId/pdf', () => {
   // it.only('should return PDF for valid invoice', async () => {
   //   const res = await request(app)
   //     .get('/invoices/2788/pdf')
-  //     .set('Authorization', `Bearer ${memberToken}`)
+  //     .set('Cookie', `accessToken=${memberToken}`)
 
   //   expect(res.status).toBe(200)
   // })
@@ -259,14 +259,14 @@ describe('GET /:invoiceId/pdf', () => {
   it('should return 400 for invalid invoice ID', async () => {
     const res = await request(app)
       .get('/invoices/invalid/pdf')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
 
     expect(res.status).toBe(400)
     expect(res.body.detail).toContain('Invalid invoice ID')
   })
 
   it('should return 401 for invalid token', async () => {
-    const res = await request(app).get('/invoices/2788/pdf').set('Authorization', `Bearer badToken`)
+    const res = await request(app).get('/invoices/2788/pdf').set('Cookie', `accessToken=badToken`)
 
     expect(res.status).toBe(401)
   })

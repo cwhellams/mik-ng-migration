@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import request from 'supertest'
 
 import { db } from '../../../src/db/connection.ts'
@@ -12,6 +13,7 @@ import { problemErrorHandler } from '../../../src/routes/response.ts'
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 app.use('/aircraft-pricing', router)
 app.use(problemErrorHandler)
 
@@ -43,13 +45,13 @@ describe('GET /aircraft-pricing', () => {
   const query = async (token: string, params?: Record<string, string>) =>
     request(app)
       .get('/aircraft-pricing')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
       .query(params ?? {})
 
   it('should return 401 for invalid token', async () => {
     const response = await request(app)
       .get('/aircraft-pricing')
-      .set('Authorization', `Bearer INVALID`)
+      .set('Cookie', `accessToken=INVALID`)
       .query({})
 
     expect(response.status).toBe(401)
@@ -153,7 +155,7 @@ describe('POST /aircraft-pricing', () => {
   it('should return 401 for invalid token', async () => {
     const response = await request(app)
       .post('/aircraft-pricing')
-      .set('Authorization', `Bearer INVALID`)
+      .set('Cookie', `accessToken=INVALID`)
       .send(newPricing)
 
     expect(response.status).toBe(401)
@@ -162,7 +164,7 @@ describe('POST /aircraft-pricing', () => {
   it('should return 403 when not admin', async () => {
     const response = await request(app)
       .post('/aircraft-pricing')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .send(newPricing)
 
     expect(response.status).toBe(403)
@@ -171,7 +173,7 @@ describe('POST /aircraft-pricing', () => {
   it('should create new pricing when authenticated as admin', async () => {
     const response = await request(app)
       .post('/aircraft-pricing')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(newPricing)
 
     expect(response.status).toBe(201)
@@ -190,7 +192,7 @@ describe('POST /aircraft-pricing', () => {
 
     const response = await request(app)
       .post('/aircraft-pricing')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(invalidPricing)
 
     expect(response.status).toBe(400)
@@ -204,7 +206,7 @@ describe('POST /aircraft-pricing', () => {
 
     const response = await request(app)
       .post('/aircraft-pricing')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(incompletePricing)
 
     expect(response.status).toBe(400)
@@ -218,7 +220,7 @@ describe('POST /aircraft-pricing', () => {
 
     const response = await request(app)
       .post('/aircraft-pricing')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(negativePricing)
 
     expect(response.status).toBe(400)
@@ -233,7 +235,7 @@ describe('POST /aircraft-pricing', () => {
 
     const response = await request(app)
       .post('/aircraft-pricing')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(invalidDateRange)
 
     // Could be 400 from validation or 500 if database constraint catches it
@@ -250,7 +252,7 @@ describe('POST /aircraft-pricing', () => {
 
     const response = await request(app)
       .post('/aircraft-pricing')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(openPricing)
 
     expect(response.status).toBe(201)
@@ -269,7 +271,7 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
   it('should return 401 for invalid token', async () => {
     const response = await request(app)
       .patch('/aircraft-pricing/OH-STL/2025-01-01')
-      .set('Authorization', `Bearer INVALID`)
+      .set('Cookie', `accessToken=INVALID`)
       .send({ notes: 'Test' })
 
     expect(response.status).toBe(401)
@@ -278,7 +280,7 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
   it('should return 403 when not admin', async () => {
     const response = await request(app)
       .patch('/aircraft-pricing/OH-STL/2025-01-01')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
       .send({ notes: 'Test' })
 
     expect(response.status).toBe(403)
@@ -291,7 +293,7 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
 
     const response = await request(app)
       .patch('/aircraft-pricing/OH-STL/2025-12-01')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(update)
 
     expect(response.status).toBe(200)
@@ -304,7 +306,7 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
     // Restore original state
     await request(app)
       .patch('/aircraft-pricing/OH-STL/2025-01-01')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({ notes: null })
   })
 
@@ -312,7 +314,7 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
     // Get current price
     const current = await request(app)
       .get('/aircraft-pricing')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query({ registration: 'OH-STL' })
 
     const originalPrice = current.body.pricing[0].price_per_min
@@ -322,7 +324,7 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
 
     const response = await request(app)
       .patch('/aircraft-pricing/OH-STL/2025-12-01')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(update)
 
     expect(response.status).toBe(200)
@@ -331,14 +333,14 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
     // Restore original price
     await request(app)
       .patch('/aircraft-pricing/OH-STL/2025-12-01')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({ price_per_min: originalPrice })
   })
 
   it('should return 404 for non-existent pricing', async () => {
     const response = await request(app)
       .patch('/aircraft-pricing/OH-STL/1999-01-01')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({ notes: 'Test' })
 
     expect(response.status).toBe(404)
@@ -351,7 +353,7 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
 
     const response = await request(app)
       .patch('/aircraft-pricing/OH-STL/2025-01-01')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(invalidUpdate)
 
     expect(response.status).toBe(400)
@@ -362,7 +364,7 @@ describe('DELETE /aircraft-pricing/:registration/:validFrom', () => {
   it('should return 401 for invalid token', async () => {
     const response = await request(app)
       .delete('/aircraft-pricing/OH-STL/2025-01-01')
-      .set('Authorization', `Bearer INVALID`)
+      .set('Cookie', `accessToken=INVALID`)
 
     expect(response.status).toBe(401)
   })
@@ -370,7 +372,7 @@ describe('DELETE /aircraft-pricing/:registration/:validFrom', () => {
   it('should return 403 when not admin', async () => {
     const response = await request(app)
       .delete('/aircraft-pricing/OH-STL/2025-01-01')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', `accessToken=${userToken}`)
 
     expect(response.status).toBe(403)
   })
@@ -387,7 +389,7 @@ describe('DELETE /aircraft-pricing/:registration/:validFrom', () => {
 
     const createResponse = await request(app)
       .post('/aircraft-pricing')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send(testPricing)
 
     expect(createResponse.status).toBe(201)
@@ -395,14 +397,14 @@ describe('DELETE /aircraft-pricing/:registration/:validFrom', () => {
     // Delete it
     const response = await request(app)
       .delete(`/aircraft-pricing/${testPricing.registration}/${testPricing.valid_from}`)
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
 
     expect(response.status).toBe(204)
 
     // Verify it's gone
     const getResponse = await request(app)
       .get('/aircraft-pricing')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query({
         registration: testPricing.registration,
         fromDate: testPricing.valid_from,
@@ -418,7 +420,7 @@ describe('DELETE /aircraft-pricing/:registration/:validFrom', () => {
   it('should return 404 for non-existent pricing', async () => {
     const response = await request(app)
       .delete('/aircraft-pricing/OH-STL/1999-01-01')
-      .set('Authorization', `Bearer ${adminToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
 
     expect(response.status).toBe(404)
   })

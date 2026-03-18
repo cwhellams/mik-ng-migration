@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
+import cookieParser from 'cookie-parser'
 import request from 'supertest'
 
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
@@ -18,6 +19,7 @@ import dayjs from 'dayjs'
 // Create an instance of the Express app
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 app.use('/occurrences', router)
 app.use(problemErrorHandler)
 
@@ -85,7 +87,7 @@ describe('GET /occurrences', () => {
   const query = async (token: string, sudo = true) => {
     const response = await request(app)
       .get('/occurrences')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
       .set('X-Sudo', sudo ? 'true' : 'false')
       .query({})
 
@@ -172,7 +174,7 @@ describe('GET /occurrences', () => {
   it('should fail without flight log user permissions', async () => {
     const response = await request(app)
       .get('/occurrences')
-      .set('Authorization', `Bearer ${missingUserToken}`)
+      .set('Cookie', `accessToken=${missingUserToken}`)
       .query({})
     expect(response.status).toBe(403)
   })
@@ -181,7 +183,7 @@ describe('GET /occurrences', () => {
 const query = async (id: string, token: string, sudo = true) =>
   request(app)
     .get(`/occurrences/${id}`)
-    .set('Authorization', `Bearer ${token}`)
+    .set('Cookie', `accessToken=${token}`)
     .set('X-Sudo', sudo ? 'true' : 'false')
     .query({})
 
@@ -244,7 +246,7 @@ describe('PATCH /occurrences/id', () => {
   ) =>
     request(app)
       .patch(`/occurrences/${id}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', `accessToken=${token}`)
       .set('X-Sudo', sudo ? 'true' : 'false')
       .send(payload)
 
@@ -308,10 +310,10 @@ describe('PATCH /occurrences/id', () => {
 })
 
 const post = async (path: string, data: object, token: string) =>
-  request(app).post(`/occurrences${path}`).set('Authorization', `Bearer ${token}`).send(data)
+  request(app).post(`/occurrences${path}`).set('Cookie', `accessToken=${token}`).send(data)
 
 const patch = async (id: string, data: object, token: string) =>
-  request(app).patch(`/occurrences/${id}`).set('Authorization', `Bearer ${token}`).send(data)
+  request(app).patch(`/occurrences/${id}`).set('Cookie', `accessToken=${token}`).send(data)
 
 const data = {
   occurrenceDate: new Date().toISOString(),
