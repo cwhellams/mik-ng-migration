@@ -410,9 +410,14 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
   })
 
   describe('Minimum billable time top-up', () => {
-    it('should add a top-up task when flight is below minimum billable minutes', async () => {
+    it('should add a top-up task for a local flight below minimum billable minutes', async () => {
       await createEquipmentFeeRequest(year2025, testMemberId) // suppress equipment fee for clarity
-      const flight = createTestFlight({ flightMins: 15, blockMins: 18 })
+      const flight = createTestFlight({
+        flightMins: 15,
+        blockMins: 18,
+        departureAirport: 'EFHK',
+        arrivalAirport: 'EFHK',
+      })
       const payload = { flights: [flight] }
 
       const invoice = await createFlightInvoicePayload(payload, testMemberId)
@@ -427,14 +432,36 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       expect(invoice.Tasks[1].Task.contents).toContain('minimum billable time 20 min')
     })
 
-    it('should not add a top-up task when flight meets minimum billable minutes', async () => {
+    it('should not add a top-up task for a local flight that meets minimum billable minutes', async () => {
       await createEquipmentFeeRequest(year2025, testMemberId)
-      const flight = createTestFlight({ flightMins: 20, blockMins: 22 })
+      const flight = createTestFlight({
+        flightMins: 20,
+        blockMins: 22,
+        departureAirport: 'EFHK',
+        arrivalAirport: 'EFHK',
+      })
       const payload = { flights: [flight] }
 
       const invoice = await createFlightInvoicePayload(payload, testMemberId)
 
       expect(invoice.Tasks).toHaveLength(1)
+    })
+
+    it('should NOT add a top-up task for a cross-country flight below minimum billable minutes', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId) // suppress equipment fee for clarity
+      const flight = createTestFlight({
+        flightMins: 15,
+        blockMins: 18,
+        departureAirport: 'EFHK',
+        arrivalAirport: 'EFTU',
+      })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      // Only the primary flight task — no top-up for cross-country flights
+      expect(invoice.Tasks).toHaveLength(1)
+      expect(invoice.Tasks[0].Task.amount).toBe(15)
     })
   })
 

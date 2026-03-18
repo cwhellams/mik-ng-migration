@@ -165,7 +165,9 @@ function createTasksForFlight(
   ctx: FlightTaskContext,
 ): InvoicePost['Tasks'] {
   const billableMins = flight.isTrainingProgramPilot ? flight.blockMins : flight.flightMins
-  const topUpMins = billableMins < ctx.minBillableMins ? ctx.minBillableMins - billableMins : 0
+  const isLocalFlight = flight.departureAirport === flight.arrivalAirport
+  const topUpMins =
+    isLocalFlight && billableMins < ctx.minBillableMins ? ctx.minBillableMins - billableMins : 0
   const discountPct = flight.isBillableFlight ? 0 : 100
   const applyErrorFee = flight.entryErrorFee && flight.isBillableFlight
   const tasks: InvoicePost['Tasks'] = []
