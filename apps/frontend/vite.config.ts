@@ -58,15 +58,11 @@ export default defineConfig(({ mode }) => {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
           // Prevent the SPA navigation fallback from intercepting /t/:code redirect URLs.
           // Must match the full URL (e.g. https://intra.mik.fi/t/2cQ3), not just the path.
+          // Deny the SPA navigation fallback (index.html) for /t/:code routes so the
+          // browser navigation falls through to the network and reaches the backend.
+          // The regex is tested against the full URL, so we match the path segment anywhere.
           navigateFallbackDenylist: [/\/t\/[^/?#]+/],
           runtimeCaching: [
-            {
-              // Tiny URL redirects must always hit the backend, never be served from cache.
-              // Use a function so we match on pathname rather than the full URL string.
-              urlPattern: ({ url }: { url: URL }) =>
-                url.pathname.startsWith('/t/'),
-              handler: 'NetworkOnly',
-            },
             {
               urlPattern: /^\/api\/.*/i,
               handler: 'NetworkFirst',
