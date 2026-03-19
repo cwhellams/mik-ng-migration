@@ -437,6 +437,173 @@ describe('Db invoicable FlightLog tests', () => {
     }
   })
 
+  describe('MIN_BILLABLE filter', () => {
+    // Use an epoch safely after the mass-data barrier (last non-NEW on_block = 1276716900).
+    // 1278000000 = 21300000 * 60, so it is minute-aligned (the DB enforces % 60 = 0).
+    // Each test slot is one hour (3600 s) apart to eliminate any temporal overlap.
+    const BASE_EPOCH = 1278000000
+
+    /** Build insertUser compatible with insertFlightLog */
+    const makeInsertUser = (memberId: string) => ({
+      memberId,
+      permissions: [MIKPermissions.FLIGHTLOG_USER],
+    })
+
+    /** Build JWTUser-shaped object for updateFlightLogStatus */
+    const makeStatusUser = (memberId: string) => ({
+      memberId,
+      lastName: 'Test',
+      email: '',
+      roles: [] as string[],
+      permissions: [MIKPermissions.FLIGHTLOG_USER],
+      canMakeReservations: false,
+    })
+
+    /**
+     * Insert a single flight and immediately validate it.
+     * off_block   = off
+     * takeoff     = off + taxiOutSecs
+     * landing     = off + taxiOutSecs + flightSecs   (flight_mins = flightSecs / 60)
+     * on_block    = off + blockSecs                  (block_mins  = blockSecs  / 60)
+     */
+    async function insertAndValidate(
+      memberId: string,
+      off: number,
+      blockSecs: number,
+      taxiOutSecs: number,
+      flightSecs: number,
+      departure: string,
+      arrival: string,
+    ): Promise<string> {
+      const id = await insertFlightLog(
+        {
+          aircraftRegistration: 'OH-STL',
+          picMemberId: memberId,
+          crew2MemberId: null,
+          offBlockTimeEpoch: String(off),
+          takeoffTimeEpoch: String(off + taxiOutSecs),
+          landingTimeEpoch: String(off + taxiOutSecs + flightSecs),
+          onBlockTimeEpoch: String(off + blockSecs),
+          oilUpliftLitres: 0,
+          fuelUpliftLitres: 0,
+          fuelRemainingLitres: 0,
+          personsOnBoard: 1,
+          numberOfLandings: 1,
+          numberOfNightLandings: 0,
+          departureAirport: departure,
+          arrivalAirport: arrival,
+          flightType: FlightType.PRIVATE,
+          billingRemarks: null,
+          personalRemarks: null,
+          picRole: 'PIC',
+          crew2Role: null,
+          crew3MemberId: null,
+          crew3Role: null,
+          crew4MemberId: null,
+          crew4Role: null,
+          incidentOrObservations: null,
+          totalTimeInService: 1000,
+          instrumentFlyingMins: 0,
+          nightFlyingMins: 0,
+          partiallyBillableFlight: false,
+        },
+        makeInsertUser(memberId),
+      )
+      await updateFlightLogStatus(
+        id,
+        FlightLogStatus.NEW,
+        FlightLogStatus.VALIDATED,
+        {},
+        makeStatusUser(memberId),
+      )
+      return id
+    }
+
+    /** Revert to NEW (clears the AJLB lock) then delete, in reverse insertion order. */
+    async function revertAndDelete(ids: string[], memberId: string): Promise<void> {
+      for (const id of [...ids].reverse()) {
+        await updateFlightLogStatus(
+          id,
+          FlightLogStatus.VALIDATED,
+          FlightLogStatus.NEW,
+          {},
+          makeStatusUser(memberId),
+        )
+        await deleteFlightLog(id)
+      }
+    }
+
+    it('includes regular pilot local flight when flight_mins is below threshold', async () => {
+      // Pekka1: is_training_program_pilot = false → MIN_BILLABLE uses flight_mins.
+      // block = 25 min, flight = 15 min (< default 20 min threshold), local EFHK→EFHK.
+      const off = BASE_EPOCH
+      const id = await insertAndValidate('Pekka1', off, 1500, 300, 900, 'EFHK', 'EFHK')
+      try {
+        const result = await getInvoicableFlights({
+          aircraftRegistration: 'OH-STL',
+          endDate: '2030-01-01',
+          flights: InvoicableFlights.MIN_BILLABLE,
+        })
+        expect(result.logs.some(l => l.flightId === id)).toBe(true)
+      } finally {
+        await revertAndDelete([id], 'Pekka1')
+      }
+    })
+
+    it('includes training pilot local flight when block_mins is below threshold', async () => {
+      // Matti1: is_training_program_pilot = true → MIN_BILLABLE uses block_mins.
+      // block = 18 min (< 20 threshold), flight = 14 min, local EFHK→EFHK.
+      // Ensures the CASE expression selects block_mins for training pilots.
+      const off = BASE_EPOCH + 3600
+      const id = await insertAndValidate('Matti1', off, 1080, 60, 840, 'EFHK', 'EFHK')
+      try {
+        const result = await getInvoicableFlights({
+          aircraftRegistration: 'OH-STL',
+          endDate: '2030-01-01',
+          flights: InvoicableFlights.MIN_BILLABLE,
+        })
+        expect(result.logs.some(l => l.flightId === id)).toBe(true)
+      } finally {
+        await revertAndDelete([id], 'Matti1')
+      }
+    })
+
+    it('excludes training pilot local flight when block_mins meets threshold despite short flight_mins', async () => {
+      // Matti1: is_training_program_pilot = true → MIN_BILLABLE uses block_mins.
+      // block = 25 min (>= 20 threshold), flight = 15 min (< 20).
+      // A naive flight_mins check would flag this flight; block_mins check correctly excludes it.
+      const off = BASE_EPOCH + 7200
+      const id = await insertAndValidate('Matti1', off, 1500, 300, 900, 'EFHK', 'EFHK')
+      try {
+        const result = await getInvoicableFlights({
+          aircraftRegistration: 'OH-STL',
+          endDate: '2030-01-01',
+          flights: InvoicableFlights.MIN_BILLABLE,
+        })
+        expect(result.logs.some(l => l.flightId === id)).toBe(false)
+      } finally {
+        await revertAndDelete([id], 'Matti1')
+      }
+    })
+
+    it('excludes regular pilot cross-country flight even when flight_mins is below threshold', async () => {
+      // Pekka1: departure EFHK ≠ arrival EFTU → cross-country, excluded from MIN_BILLABLE.
+      // flight = 15 min (< 20 threshold), but the local-flight restriction applies.
+      const off = BASE_EPOCH + 10800
+      const id = await insertAndValidate('Pekka1', off, 1500, 300, 900, 'EFHK', 'EFTU')
+      try {
+        const result = await getInvoicableFlights({
+          aircraftRegistration: 'OH-STL',
+          endDate: '2030-01-01',
+          flights: InvoicableFlights.MIN_BILLABLE,
+        })
+        expect(result.logs.some(l => l.flightId === id)).toBe(false)
+      } finally {
+        await revertAndDelete([id], 'Pekka1')
+      }
+    })
+  })
+
   it('invoiceFlights sends flights to outbox', async () => {
     const user = {
       memberId: 'Matti1',

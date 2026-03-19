@@ -42,6 +42,7 @@ services:
     image:
       registry_type: DOCR
       repository: mik-dev-team/mik-ng
+      tag: ${IMAGE_TAG}
 
     http_port: 3000 #Setup port mapping from public internet port 80 or 443, the platform will forward traffic to this port
 

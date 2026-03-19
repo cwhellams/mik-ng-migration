@@ -368,6 +368,8 @@ export async function getInvoicableFlights(
         minMins,
       ),
     )
+    // min billable rule applied to local flights only (departure and arrival airports the same)
+    query = query.whereRef('flight.logs.departure_airport', '=', 'flight.logs.arrival_airport')
   } else if (filters.flights === InvoicableFlights.OTHER) {
     const minMins = Number(process.env.MIN_BILLABLE_FLIGHT_MINS) || 20
     query = query

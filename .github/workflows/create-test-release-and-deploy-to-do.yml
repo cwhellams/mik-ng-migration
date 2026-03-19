@@ -134,14 +134,18 @@ jobs:
           echo "TINY_URL_BASE_URL=${{ vars.TINY_URL_BASE_URL_TEST }}" >> "$GITHUB_ENV"
           echo "MIK_LOGO_PATH=/home/node/app/apps/backend/src/assets/mik-logo-blue.png" >> "$GITHUB_ENV"
           echo "SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID=${{ vars.SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID }}" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=${{ inputs.version_tag }}" >> "$GITHUB_ENV"
 
       - name: Build and push Docker image
         run: |
-          docker build -t registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest .
-          docker tag registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest \
-                     registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ inputs.version_tag }}
-          docker push registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
-          docker push registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ inputs.version_tag }}
+          IMAGE="registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}"
+          TAG="${{ inputs.version_tag }}"
+          docker build -t "${IMAGE}:${TAG}" .
+          docker tag "${IMAGE}:${TAG}" "${IMAGE}:latest"
+          docker tag "${IMAGE}:${TAG}" "${IMAGE}:beta"
+          docker push "${IMAGE}:${TAG}"
+          docker push "${IMAGE}:latest"
+          docker push "${IMAGE}:beta"
       - name: Get runner public IP
         run: |
           RUNNER_IP=$(curl -s https://api.ipify.org)

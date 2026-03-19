@@ -106,13 +106,15 @@ jobs:
           echo "MIK_LOGO_PATH=/home/node/app/apps/backend/src/assets/mik-logo-blue.png" >> "$GITHUB_ENV"
           echo "SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID=${{ vars.SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID }}" >> "$GITHUB_ENV"
 
-      - name: Build and push Docker image
+      - name: Promote image to production
         run: |
-          docker build -t registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest .
-          docker tag registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest \
-                     registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ github.event.client_payload.tag_name }}
-          docker push registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:latest
-          docker push registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}:${{ github.event.client_payload.tag_name }}
+          IMAGE="registry.digitalocean.com/mik-ng2/${{ env.REPO_NAME }}"
+          TAG="${{ github.event.client_payload.tag_name }}"
+          # Pull the exact versioned image built and validated during the test deployment.
+          # No rebuild — the same binary that was tested is promoted to prod.
+          docker pull "${IMAGE}:${TAG}"
+          docker tag "${IMAGE}:${TAG}" "${IMAGE}:prod"
+          docker push "${IMAGE}:prod"
 
       - name: Get runner public IP
         run: |
