@@ -56,12 +56,15 @@ export default defineConfig(({ mode }) => {
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
-          // Prevent the SPA navigation fallback from intercepting /t/ redirect URLs — they must reach the backend.
-          navigateFallbackDenylist: [/^\/t\//],
+          // Prevent the SPA navigation fallback from intercepting /t/:code redirect URLs.
+          // Must match the full URL (e.g. https://intra.mik.fi/t/2cQ3), not just the path.
+          navigateFallbackDenylist: [/\/t\/[^/?#]+/],
           runtimeCaching: [
             {
               // Tiny URL redirects must always hit the backend, never be served from cache.
-              urlPattern: /^\/t\/.*/i,
+              // Use a function so we match on pathname rather than the full URL string.
+              urlPattern: ({ url }: { url: URL }) =>
+                url.pathname.startsWith('/t/'),
               handler: 'NetworkOnly',
             },
             {
