@@ -41,16 +41,13 @@ const User = () => {
   }
 
   const handleLogout = async () => {
-    // clear refresh and access tokens
     const { error } = await logout.trigger()
     if (error) {
       console.log(error)
       return
     }
 
-    sessionStorage.removeItem('accessToken')
-
-    // invalidate cache
+    // Invalidate the cached user so the header immediately shows the Login button
     mutate(undefined)
 
     handleClose()

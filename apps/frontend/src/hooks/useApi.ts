@@ -55,10 +55,12 @@ api.interceptors.response.use(
       originalRequest._retried = true
       try {
         await refreshTheToken()
-        return api(originalRequest)
       } catch {
-        // Refresh failed — session is gone; fall through and propagate the 401
+        // If refresh fails (network/5xx/etc.), fall back to the original 401
+        // so that auth/logout handling remains deterministic.
+        throw error
       }
+      return api(originalRequest)
     }
     throw error
   }
@@ -96,8 +98,14 @@ export default function useApi<
   MutateData = Data,
 >(
   request: AxiosRequestConfig & {
-    // if true don't navigate to login page
+    // if true: skip both the refresh-token attempt AND the redirect to /login on 401.
+    // Use this only for unauthenticated endpoints (e.g. login/register flows).
     allowUnauthenticated?: boolean
+
+    // if true: skip the redirect to /login on 401, but still attempt a silent token
+    // refresh via the interceptor. Use this for optional-auth endpoints (e.g. useMe)
+    // so the user is silently re-authenticated without being bounced to the login page.
+    skipRedirectOnUnauthorized?: boolean
 
     // if true, mutation calls only
     skipFetch?: boolean
@@ -167,7 +175,11 @@ export default function useApi<
   // Only redirect when SWR has settled (isValidating = false) to avoid
   // redirecting during a transient re-validation.
   const isLoggedOut = error?.response?.status === 401 && !rest.isValidating
-  if (isLoggedOut && !request.allowUnauthenticated) {
+  if (
+    isLoggedOut &&
+    !request.allowUnauthenticated &&
+    !request.skipRedirectOnUnauthorized
+  ) {
     // authentication is required
     navigate('/login', {
       state: { target: location.pathname },
@@ -191,7 +203,7 @@ export default function useApi<
       ...request,
       params: arg.method == 'GET' ? arg.payload : request.params,
       url: sanitizedPath
-        ? sanitizedPath[0] == '/'
+        ? sanitizedPath.startsWith('/')
           ? sanitizedPath
           : `${sanitizedUrl}/${sanitizedPath}`
         : sanitizedUrl,

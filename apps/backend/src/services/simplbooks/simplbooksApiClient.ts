@@ -58,7 +58,6 @@ const baseUrl = buildSimplbooksBaseUrl(simplbooksBaseUri, simplbooksCompanyId, s
 
 const httpAgent = new http.Agent({ keepAlive: false, timeout: 30000 })
 const httpsAgent = new https.Agent({ keepAlive: false, timeout: 30000 })
-//const isTest = process.env.NODE_ENV === 'test'
 
 // SimplBooks rate limit: max 1 call per second
 const RATE_LIMIT_DELAY = 1000 // ms

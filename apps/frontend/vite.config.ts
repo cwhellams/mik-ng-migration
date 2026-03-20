@@ -1,7 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import path from 'path'
+import path from 'node:path'
 
 // Get target from env or fallback to localhost
 //const target = import.meta.env.VITE_API_TARGET || 'http://localhost:3000'
@@ -61,8 +61,12 @@ export default defineConfig(({ mode }) => {
           // Deny the SPA navigation fallback (index.html) for /t/:code routes so the
           // browser navigation falls through to the network and reaches the backend.
           // The regex is tested against the full URL, so we match the path segment anywhere.
-          navigateFallbackDenylist: [/\/t\/[^/?#]+/],
+          navigateFallbackDenylist: [/^\/t\/.*$/, /^https?:\/\/.*\/t\/.*$/],
           runtimeCaching: [
+            {
+              urlPattern: /\/t\/.*/,
+              handler: 'NetworkOnly',
+            },
             {
               urlPattern: /^\/api\/.*/i,
               handler: 'NetworkFirst',
