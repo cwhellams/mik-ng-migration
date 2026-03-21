@@ -3,11 +3,13 @@ import dotenv from 'dotenv'
 
 import {
   clientFilterSchema,
+  clientListResponseSchema,
   invoiceFilterSchema,
   ItemListSchema,
   mapMemberToClient,
   type ClientData,
   type ClientFilter,
+  type ClientListResponse,
   type InvoiceFilter,
   type InvoiceListItem,
   type InvoiceListResponse,
@@ -159,12 +161,12 @@ export async function updateClient(billingId: number, client: ClientData): Promi
   })
 }
 
-export async function searchClient(filter: ClientFilter): Promise<unknown> {
+export async function searchClient(filter: ClientFilter): Promise<ClientListResponse> {
   return enqueueRateLimitedRequest(async () => {
     try {
       clientFilterSchema.parse(filter)
       const response = await simplbooksApiClient.get(`/clients/list`, { data: filter })
-      return response.data
+      return clientListResponseSchema.parse(response.data)
     } catch (error) {
       logAndThrowSimplbooksError(error, {
         operation: 'searchClient',
@@ -174,6 +176,18 @@ export async function searchClient(filter: ClientFilter): Promise<unknown> {
       })
     }
   })
+}
+
+/**
+ * Search SimplBooks for a client by email address.
+ * Returns the client id if found, or null if no match.
+ */
+export async function findClientByEmail(email: string): Promise<number | null> {
+  const result = await searchClient({ e_mail: email })
+  if (!result.data || result.data.length === 0) {
+    return null
+  }
+  return result.data[0].Client.id
 }
 
 export async function getInvoice(id: number): Promise<InvoiceResponse> {

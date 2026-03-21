@@ -79,6 +79,28 @@ export const clientFilterSchema = z
 
 export type ClientFilter = z.infer<typeof clientFilterSchema>
 
+export const clientListItemSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  e_mail: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  address_street: z.string().nullable().optional(),
+  address_city: z.string().nullable().optional(),
+  address_postal_code: z.string().nullable().optional(),
+  address_country: z.string().nullable().optional(),
+})
+
+export const clientListDataItemSchema = z.object({
+  Client: clientListItemSchema,
+})
+
+export const clientListResponseSchema = z.object({
+  data: z.array(clientListDataItemSchema).optional().default([]),
+})
+
+export type ClientListItem = z.infer<typeof clientListItemSchema>
+export type ClientListResponse = z.infer<typeof clientListResponseSchema>
+
 export const invoiceFilterSchema = z
   .object({
     id: z.number().int(),

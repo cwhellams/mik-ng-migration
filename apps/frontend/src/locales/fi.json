@@ -22,7 +22,9 @@
     "accounts": "Tilit",
     "accessCodes": "pääsykoodit",
     "club": "Kerho",
-    "stats": "Tilastot"
+    "stats": "Tilastot",
+    "admin": "Ylläpito",
+    "outbox": "Lähtevät"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -433,7 +435,8 @@
     "invoicing.user": "Näkee laskut",
     "invoicing.admin": "Hallitsee laskutusta",
     "sms.admin": "Vastaanottaa ja hallitsee SMS-tapahtumia",
-    "sms.team": "Näkee anonymisoidut SMS-tapahtumat"
+    "sms.team": "Näkee anonymisoidut SMS-tapahtumat",
+    "outbox.admin": "Hallitsee SimplBooks-lähtevät"
   },
   "general": {
     "actions": "Toiminnot",
@@ -1045,6 +1048,40 @@
       "read": "Lukuoikeus",
       "write": "Kirjoitusoikeus",
       "manage": "Ylläpito-oikeus"
+    }
+  },
+  "outbox": {
+    "title": "SimplBooks lähtevät",
+    "showing": "Näytetään {{count}} viestiä",
+    "noResults": "Ei lähteviä viestejä nykyisillä suodattimilla",
+    "retry": "Lähetä uudelleen käsittelyyn",
+    "retrySuccess": "Viesti jonossa uudelleenkäsittelyä varten",
+    "retryError": "Viestin jonottaminen epäonnistui",
+    "filter": {
+      "status": "Tila",
+      "eventType": "Tapahtumatyyppi",
+      "allStatuses": "Kaikki tilat",
+      "allEventTypes": "Kaikki tapahtumatyypit",
+      "createdFrom": "Luotu alkaen",
+      "createdTo": "Luotu päättyen",
+      "processedFrom": "Käsitelty alkaen",
+      "processedTo": "Käsitelty päättyen",
+      "presets": "Pikafiltteri luontipäivämäärälle",
+      "last5min": "Viimeiset 5 min",
+      "last15min": "Viimeiset 15 min",
+      "last1hr": "Viimeiset 1 h",
+      "last1day": "Viimeiset 24 h",
+      "last1week": "Viimeiset 7 päivää",
+      "clearFilters": "Tyhjennä suodattimet"
+    },
+    "columns": {
+      "id": "Tunnus",
+      "status": "Tila",
+      "eventType": "Tapahtumatyyppi",
+      "createdAt": "Luotu",
+      "processedAt": "Käsitelty",
+      "errorMessage": "Virhe",
+      "actions": "Toiminnot"
     }
   }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import SplashScreen from './components/SplashScreen'
 import MainLayout from './layouts/MainLayout'
 import AuthLayout from './layouts/AuthLayout'
@@ -39,6 +39,7 @@ import { TaxReport } from './sections/accounting/TaxReport'
 import { Occurrences } from './sections/occurrences/Occurences'
 import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
 import LogbookFlights from './sections/flightLog/LogbookPage'
+import Outbox from './sections/admin/Outbox'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -113,6 +114,10 @@ function App() {
               <Route path='items' element={<InvoiceItemsPage />} />
               <Route path='tools' element={<ToolsPage />} />
               <Route path='tax-report' element={<TaxReport />} />
+            </Route>
+            <Route path='/admin'>
+              <Route index element={<Navigate to='outbox' replace />} />
+              <Route path='outbox' element={<Outbox />} />
             </Route>
           </Route>
 

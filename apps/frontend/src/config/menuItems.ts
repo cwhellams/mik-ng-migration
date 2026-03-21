@@ -103,4 +103,11 @@ export const menuItems: MenuItem[] = [
       { label: 'invoicing.tabs.taxReport', path: 'tax-report' },
     ],
   },
+  {
+    path: '/admin',
+    label: 'header.admin',
+    requiredRoles: [MIKPermissions.OUTBOX_ADMIN],
+    adminModeOnly: true,
+    subItems: [{ label: 'header.outbox', path: 'outbox' }],
+  },
 ]

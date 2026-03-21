@@ -84,7 +84,7 @@ describe('Simplebooks API Tests Happy Case', () => {
     const data = (await searchClient(filter)) as any
 
     expect(data).toBeDefined()
-    expect(data[0].Client.id).toEqual(1)
+    expect(data.data[0].Client.id).toEqual(1)
   })
 
   it('should throw for an invalid client search Filter', async () => {

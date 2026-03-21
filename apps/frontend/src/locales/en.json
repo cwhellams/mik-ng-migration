@@ -23,7 +23,9 @@
     "accessCodes": "Codes",
     "club": "Club",
     "stats": "Statistics",
-    "membersTrash": "Trash - Deleted Members"
+    "membersTrash": "Trash - Deleted Members",
+    "admin": "Admin",
+    "outbox": "Outbox"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
@@ -435,7 +437,8 @@
     "invoicing.user": "View invoices",
     "invoicing.admin": "Manage invoicing",
     "sms.processor": "Receive and anonymize new SMS occurrences",
-    "sms.manager": "Process anonymized SMS occurrences"
+    "sms.manager": "Process anonymized SMS occurrences",
+    "outbox.admin": "Manage SimplBooks outbox"
   },
   "general": {
     "actions": "Actions",
@@ -1074,6 +1077,40 @@
       "read": "Read Access",
       "write": "Write Access",
       "manage": "Admin Access"
+    }
+  },
+  "outbox": {
+    "title": "SimplBooks Outbox",
+    "showing": "Showing {{count}} messages",
+    "noResults": "No outbox messages match the current filters",
+    "retry": "Re-Send for Processing",
+    "retrySuccess": "Message queued for reprocessing",
+    "retryError": "Failed to queue message for reprocessing",
+    "filter": {
+      "status": "Status",
+      "eventType": "Event Type",
+      "allStatuses": "All Statuses",
+      "allEventTypes": "All Event Types",
+      "createdFrom": "Created From",
+      "createdTo": "Created To",
+      "processedFrom": "Processed From",
+      "processedTo": "Processed To",
+      "presets": "Quick filter by created date",
+      "last5min": "Last 5 min",
+      "last15min": "Last 15 min",
+      "last1hr": "Last 1 hr",
+      "last1day": "Last 24 hrs",
+      "last1week": "Last 7 days",
+      "clearFilters": "Clear Filters"
+    },
+    "columns": {
+      "id": "ID",
+      "status": "Status",
+      "eventType": "Event Type",
+      "createdAt": "Created",
+      "processedAt": "Processed",
+      "errorMessage": "Error",
+      "actions": "Actions"
     }
   }
 }

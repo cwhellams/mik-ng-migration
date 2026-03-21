@@ -96,6 +96,53 @@ export async function setOutboxStatus(
     .execute()
 }
 
+export type OutboxFilters = {
+  status?: string
+  event_type?: string
+  created_from?: string
+  created_to?: string
+  processed_from?: string
+  processed_to?: string
+}
+
+export async function getOutboxItems(filters: OutboxFilters) {
+  let query = db.selectFrom('accts.outbox_simplbooks').selectAll()
+
+  if (filters.status) {
+    query = query.where('status', '=', filters.status as SimplbooksStatus)
+  }
+  if (filters.event_type) {
+    query = query.where('event_type', '=', filters.event_type)
+  }
+  if (filters.created_from) {
+    query = query.where('created_at_utc', '>=', new Date(filters.created_from))
+  }
+  if (filters.created_to) {
+    query = query.where('created_at_utc', '<=', new Date(filters.created_to))
+  }
+  if (filters.processed_from) {
+    query = query.where('processed_at', '>=', new Date(filters.processed_from) as any)
+  }
+  if (filters.processed_to) {
+    query = query.where('processed_at', '<=', new Date(filters.processed_to) as any)
+  }
+
+  return query.orderBy('created_at_utc', 'desc').limit(200).execute()
+}
+
+export async function resetOutboxItemToPending(id: string): Promise<void> {
+  await db
+    .updateTable('accts.outbox_simplbooks')
+    .set({
+      status: SimplbooksStatus.PENDING,
+      updated_at_utc: new Date(),
+      error_message: null,
+    })
+    .where('id', '=', id)
+    .where('status', '=', SimplbooksStatus.FAILED)
+    .execute()
+}
+
 export async function checkAndClearStuckMessages(): Promise<void> {
   const results = await db
     .updateTable('accts.outbox_simplbooks')

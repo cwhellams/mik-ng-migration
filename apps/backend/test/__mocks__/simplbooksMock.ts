@@ -35,6 +35,19 @@ export function mockSimplbooksPost(url: string, data?: any): Promise<AxiosRespon
       config: {} as any,
     })
   }
+  if (url === '/clients/update') {
+    return Promise.resolve({
+      data: {
+        status: 200,
+        duration: 0.0531,
+        response: 'Entry updated.',
+      },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as any,
+    })
+  }
   return Promise.reject(new Error(`Unhandled URL: ${url}`))
 }
 
@@ -152,18 +165,15 @@ export function mockSimplbooksGet(url: string, data?: any): Promise<AxiosRespons
   }
 
   if (url === '/clients/list') {
+    // Return the known test client only when searching by the known test email.
+    // All other email lookups simulate a new/unknown member (no existing client).
+    // Note: axios config is passed as second arg, so filter is nested as data.data
+    const hasKnownEmail = data?.data?.e_mail === 'mickey@mik.fi'
     return Promise.resolve({
-      data: [
-        {
-          Client: {
-            id: 1,
-            name: 'David Beckham',
-          },
-          status: 200,
-          statusText: 'OK',
-          headers: {},
-        },
-      ],
+      data: {
+        status: 200,
+        data: hasKnownEmail ? [{ Client: { id: 1, name: 'David Beckham' } }] : [],
+      },
       status: 200,
       statusText: 'OK',
       headers: {},

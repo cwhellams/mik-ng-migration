@@ -36,6 +36,9 @@ export enum MIKPermissions {
   // safety management system roles
   SMS_PROCESSOR = 'sms.processor',
   SMS_MANAGER = 'sms.manager',
+
+  // can view and manage the SimplBooks outbox (admin only, no user downgrade)
+  OUTBOX_ADMIN = 'outbox.admin',
 }
 
 // admins can be downgraded to user permissions when not in sudo mode
@@ -56,9 +59,10 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
     case MIKPermissions.DOCUMENT_ADMIN:
       return MIKPermissions.DOCUMENT_USER
 
-    // no separate user roles for SMS permissions
+    // no separate user roles for SMS or outbox permissions
     case MIKPermissions.SMS_PROCESSOR:
     case MIKPermissions.SMS_MANAGER:
+    case MIKPermissions.OUTBOX_ADMIN:
       return undefined
     default:
       return permission

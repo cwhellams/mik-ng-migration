@@ -1,0 +1,133 @@
+INSERT INTO accts.outbox_simplbooks (
+    id, event_type, payload, created_at_utc, updated_at_utc, processed_at, status, error_message
+)
+VALUES
+-- PENDING: waiting to be processed
+(
+    'a1b2c3d4-0001-0000-0000-000000000001',
+    'INVOICE_CREATED',
+    '{"invoice_id": 1001, "member_id": "k1mnimda", "amount": 120.00, "currency": "EUR"}',
+    NOW() - INTERVAL '2 minutes',
+    NOW() - INTERVAL '2 minutes',
+    NULL,
+    'PENDING',
+    NULL
+),
+(
+    'a1b2c3d4-0002-0000-0000-000000000002',
+    'MEMBER_CREATED',
+    '{"member_id": "Anna1", "email": "anna@example.com", "first_name": "Anna", "last_name": "Korhonen"}',
+    NOW() - INTERVAL '8 minutes',
+    NOW() - INTERVAL '8 minutes',
+    NULL,
+    'PENDING',
+    NULL
+),
+
+-- PROCESSING: currently in flight
+(
+    'a1b2c3d4-0003-0000-0000-000000000003',
+    'INVOICE_PAID',
+    '{"invoice_id": 1003, "member_id": "Anna1", "paid_at": "2026-03-20T10:00:00Z"}',
+    NOW() - INTERVAL '30 seconds',
+    NOW() - INTERVAL '10 seconds',
+    NULL,
+    'PROCESSING',
+    NULL
+),
+
+-- SYNCED: successfully processed
+(
+    'a1b2c3d4-0004-0000-0000-000000000004',
+    'INVOICE_CREATED',
+    '{"invoice_id": 1002, "member_id": "simplbks", "amount": 75.00, "currency": "EUR"}',
+    NOW() - INTERVAL '2 hours',
+    NOW() - INTERVAL '1 hour 55 minutes',
+    NOW() - INTERVAL '1 hour 55 minutes',
+    'SYNCED',
+    NULL
+),
+(
+    'a1b2c3d4-0005-0000-0000-000000000005',
+    'MEMBER_UPDATED',
+    '{"member_id": "Kaisa1", "email": "kaisa@example.com", "phone": "+358401234567"}',
+    NOW() - INTERVAL '1 day',
+    NOW() - INTERVAL '23 hours 58 minutes',
+    NOW() - INTERVAL '23 hours 58 minutes',
+    'SYNCED',
+    NULL
+),
+(
+    'a1b2c3d4-0006-0000-0000-000000000006',
+    'INVOICE_PAID',
+    '{"invoice_id": 1004, "member_id": "Kaisa1", "paid_at": "2026-03-19T08:30:00Z"}',
+    NOW() - INTERVAL '3 days',
+    NOW() - INTERVAL '2 days 23 hours',
+    NOW() - INTERVAL '2 days 23 hours',
+    'SYNCED',
+    NULL
+),
+(
+    'a1b2c3d4-0007-0000-0000-000000000007',
+    'MEMBER_CREATED',
+    '{"member_id": "Pekka1", "email": "pekka@example.com", "first_name": "Pekka", "last_name": "Mäkinen"}',
+    NOW() - INTERVAL '7 days',
+    NOW() - INTERVAL '6 days 23 hours',
+    NOW() - INTERVAL '6 days 23 hours',
+    'SYNCED',
+    NULL
+),
+
+-- FAILED: encountered an error
+(
+    'a1b2c3d4-0008-0000-0000-000000000008',
+    'INVOICE_CREATED',
+    '{"invoice_id": 1005, "member_id": "k1mnimda", "amount": 200.00, "currency": "EUR"}',
+    NOW() - INTERVAL '45 minutes',
+    NOW() - INTERVAL '40 minutes',
+    NULL,
+    'FAILED',
+    'SimplBooks API error: 422 Unprocessable Entity - client not found for member k1mnimda'
+),
+(
+    'a1b2c3d4-0009-0000-0000-000000000009',
+    'MEMBER_UPDATED',
+    '{"member_id": "Anna1", "email": "anna.new@example.com"}',
+    NOW() - INTERVAL '6 hours',
+    NOW() - INTERVAL '5 hours 55 minutes',
+    NULL,
+    'FAILED',
+    'SimplBooks API error: 500 Internal Server Error - upstream timeout after 30s'
+),
+(
+    'a1b2c3d4-0010-0000-0000-000000000010',
+    'INVOICE_PAID',
+    '{"invoice_id": 1006, "member_id": "Pekka1", "paid_at": "2026-03-18T14:00:00Z"}',
+    NOW() - INTERVAL '2 days',
+    NOW() - INTERVAL '1 day 23 hours',
+    NULL,
+    'FAILED',
+    'Network error: ECONNREFUSED - SimplBooks host unreachable'
+),
+
+-- SKIPPED: intentionally not synced
+(
+    'a1b2c3d4-0011-0000-0000-000000000011',
+    'INVOICE_CREATED',
+    '{"invoice_id": 1007, "member_id": "simplbks", "amount": 0.00, "currency": "EUR", "reason": "zero_amount"}',
+    NOW() - INTERVAL '4 hours',
+    NOW() - INTERVAL '4 hours',
+    NOW() - INTERVAL '4 hours',
+    'SKIPPED',
+    NULL
+),
+(
+    'a1b2c3d4-0012-0000-0000-000000000012',
+    'MEMBER_UPDATED',
+    '{"member_id": "k1mnimda", "internal_only": true}',
+    NOW() - INTERVAL '5 days',
+    NOW() - INTERVAL '5 days',
+    NOW() - INTERVAL '5 days',
+    'SKIPPED',
+    NULL
+);

@@ -436,6 +436,7 @@ describe('GET /members/roles', () => {
       'document.admin',
       'sms.processor',
       'sms.manager',
+      'outbox.admin',
     ])
     expect(roles.map(({ roleId, permissions }) => ({ roleId, permissions }))).toEqual([
       {
@@ -447,6 +448,7 @@ describe('GET /members/roles', () => {
           'access_codes.admin',
           'invoicing.admin',
           'document.admin',
+          'outbox.admin',
         ],
         roleId: 'ADMIN',
       },
@@ -528,6 +530,7 @@ describe('GET /members/roles/id', () => {
         'access_codes.admin',
         'invoicing.admin',
         'document.admin',
+        'outbox.admin',
       ],
       createdAt: expect.any(String),
       createdBy: 'k1mnimda',

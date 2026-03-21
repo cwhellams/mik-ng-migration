@@ -3,6 +3,7 @@ import logger from '../../lib/logger.ts'
 import { InvoiceMemberSchema, MemberSchema } from '../../routes/members/models.ts'
 import {
   FeeTypeEnum,
+  mapMemberToClient,
   MIKInvoiceType,
   RecurringFeeType,
   SimplbooksEventType,
@@ -15,6 +16,8 @@ import {
 } from './models.ts'
 import {
   createNewClient,
+  updateClient,
+  findClientByEmail,
   createSimplbooksInvoice,
   getInvoice,
   markInvoiceAsSentInSimplbooks,
@@ -336,8 +339,23 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
   // Extract the member data from the outbox message, validate it, and create a new client in SimplBooks
   const member = MemberSchema.parse(outboxMsg.payload)
 
-  const clientId = await createNewClient(member)
-  logger.info(`Created new SimplBooks client with ID: ${clientId} for member: ${member.email}`)
+  // Check whether a client with this email already exists in SimplBooks.
+  // This can happen if the member was previously registered or if a duplicate
+  // outbox message is processed. If found, update the existing record instead
+  // of creating a new one (which would fail with a duplicate-email error).
+  let clientId: number
+  const existingClientId = await findClientByEmail(member.email)
+  if (existingClientId === null) {
+    clientId = await createNewClient(member)
+    logger.info(`Created new SimplBooks client with ID: ${clientId} for member: ${member.email}`)
+  } else {
+    logger.warn(
+      `SimplBooks client already exists for email ${member.email} (id: ${existingClientId}). Updating existing client instead of creating a new one.`,
+    )
+    const clientData = mapMemberToClient(member)
+    await updateClient(existingClientId, clientData)
+    clientId = existingClientId
+  }
 
   await db.transaction().execute(async txn => {
     // Set the billing id in our DB - which is the returned SimplBooks client id
