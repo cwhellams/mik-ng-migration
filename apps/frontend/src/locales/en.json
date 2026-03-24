@@ -34,7 +34,8 @@
     "quickLinks": "Quick Links",
     "website": "Website",
     "contact": "Contact",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "version": "Version"
   },
   "login": {
     "title": "Enter your email to receive login link",

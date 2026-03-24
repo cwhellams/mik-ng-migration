@@ -33,7 +33,8 @@
     "quickLinks": "Pikalinkit",
     "website": "Kotisivut",
     "contact": "Yhteystiedot",
-    "privacy": "Tietosuoja"
+    "privacy": "Tietosuoja",
+    "version": "Versio"
   },
   "login": {
     "title": "Kirjaudu sisään sähköpostilinkillä",

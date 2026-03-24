@@ -3,11 +3,16 @@ import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import MikLogo from '../assets/mik-blue.svg'
 import MikLogoWhite from '../assets/mik-white.svg'
+import useApi from '../hooks/useApi'
 
 const Footer = () => {
   const { t } = useTranslation()
   const theme = useTheme()
   const currentYear = new Date().getFullYear()
+  const { data: versionData } = useApi<{ version: string }>({
+    url: '/v1/version',
+    allowUnauthenticated: true,
+  })
 
   return (
     <Box
@@ -86,6 +91,11 @@ const Footer = () => {
           <Typography variant='body2' color='text.secondary'>
             © {currentYear} Malmin Ilmailukerho ry.
           </Typography>
+          {versionData?.version && (
+            <Typography variant='caption' color='text.disabled'>
+              {t('footer.version')} {versionData.version}
+            </Typography>
+          )}
         </Box>
       </Container>
     </Box>

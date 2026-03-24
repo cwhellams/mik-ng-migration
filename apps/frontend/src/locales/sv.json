@@ -31,7 +31,8 @@
     "quickLinks": "Snabblänkar",
     "website": "Webbplats",
     "contact": "Kontakt",
-    "privacy": "Integritet"
+    "privacy": "Integritet",
+    "version": "Version"
   },
   "login": {
     "title": "Ange din e-post för att få inloggningslänk",
