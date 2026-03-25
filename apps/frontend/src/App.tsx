@@ -40,6 +40,7 @@ import { Occurrences } from './sections/occurrences/Occurences'
 import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
 import LogbookFlights from './sections/flightLog/LogbookPage'
 import Outbox from './sections/admin/Outbox'
+import { ServerClockProvider } from './hooks/useServerClock'
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -70,71 +71,73 @@ function App() {
       dateAdapter={AdapterDayjs}
       adapterLocale={i18n.language === 'en' ? 'en-gb' : i18n.language}
     >
-      <SplashScreen loading={loading} />
-      <BrowserRouter>
-        <Routes>
-          {/* Main Layout with header */}
-          <Route element={<MainLayout />}>
-            <Route path='/' element={<Dashboard />} />
-            <Route path='/schedule' element={<Schedule />} />
-            <Route path='/fly'>
-              <Route index element={<Aircrafts />} />
-              <Route path='mass-balance' element={<MassBalance />} />
-              <Route path='access-codes' element={<AccessCodes />} />
-            </Route>
-            <Route path='/logs'>
-              <Route index element={<FlightLogsList />} />
-              <Route path='flights'>
-                <Route path=':flightId' element={<NewFlightLogEntry />} />
+      <ServerClockProvider>
+        <SplashScreen loading={loading} />
+        <BrowserRouter>
+          <Routes>
+            {/* Main Layout with header */}
+            <Route element={<MainLayout />}>
+              <Route path='/' element={<Dashboard />} />
+              <Route path='/schedule' element={<Schedule />} />
+              <Route path='/fly'>
+                <Route index element={<Aircrafts />} />
+                <Route path='mass-balance' element={<MassBalance />} />
+                <Route path='access-codes' element={<AccessCodes />} />
               </Route>
-              <Route path='books'>
-                <Route index element={<LogbooksList />} />
-                <Route
-                  path=':aircraftRegistration/:ajlbSeqNo/:page?'
-                  element={<LogbookFlights />}
-                />
+              <Route path='/logs'>
+                <Route index element={<FlightLogsList />} />
+                <Route path='flights'>
+                  <Route path=':flightId' element={<NewFlightLogEntry />} />
+                </Route>
+                <Route path='books'>
+                  <Route index element={<LogbooksList />} />
+                  <Route
+                    path=':aircraftRegistration/:ajlbSeqNo/:page?'
+                    element={<LogbookFlights />}
+                  />
+                </Route>
+                <Route path='occurrences'>
+                  <Route index element={<Occurrences />} />
+                  <Route path=':reportId' element={<OccurrenceEntry />} />
+                </Route>
               </Route>
-              <Route path='occurrences'>
-                <Route index element={<Occurrences />} />
-                <Route path=':reportId' element={<OccurrenceEntry />} />
+              <Route path='/club'>
+                <Route index element={<Members />} />
+                <Route index path='members/roles' element={<Roles />} />
+                <Route path='members/trash' element={<MemberTrash />} />
+                <Route path='members/:memberId' element={<Member />} />
+                <Route path='billing' element={<Billing />} />
+                <Route path='documents' element={<Documents />} />
+                <Route path='stats' element={<Stats />} />
+              </Route>
+              <Route path='/accounting'>
+                <Route index element={<InvoicingAdminDashboard />} />
+                <Route path='invoicing' element={<FlightInvoicing />} />
+                <Route path='items' element={<InvoiceItemsPage />} />
+                <Route path='tools' element={<ToolsPage />} />
+                <Route path='tax-report' element={<TaxReport />} />
+              </Route>
+              <Route path='/admin'>
+                <Route index element={<Navigate to='outbox' replace />} />
+                <Route path='outbox' element={<Outbox />} />
               </Route>
             </Route>
-            <Route path='/club'>
-              <Route index element={<Members />} />
-              <Route index path='members/roles' element={<Roles />} />
-              <Route path='members/trash' element={<MemberTrash />} />
-              <Route path='members/:memberId' element={<Member />} />
-              <Route path='billing' element={<Billing />} />
-              <Route path='documents' element={<Documents />} />
-              <Route path='stats' element={<Stats />} />
-            </Route>
-            <Route path='/accounting'>
-              <Route index element={<InvoicingAdminDashboard />} />
-              <Route path='invoicing' element={<FlightInvoicing />} />
-              <Route path='items' element={<InvoiceItemsPage />} />
-              <Route path='tools' element={<ToolsPage />} />
-              <Route path='tax-report' element={<TaxReport />} />
-            </Route>
-            <Route path='/admin'>
-              <Route index element={<Navigate to='outbox' replace />} />
-              <Route path='outbox' element={<Outbox />} />
-            </Route>
-          </Route>
 
-          {/* Auth Layout without header */}
-          <Route element={<AuthLayout />}>
-            <Route path='/login' element={<Login />} />
-            <Route path='/login/sent' element={<LoginSent />} />
-            <Route path='/login/validate' element={<LoginValidate />} />
-            <Route path='/register' element={<Register />} />
-            <Route path='/register/verify' element={<RegistrationVerify />} />
-            <Route path='/logout' element={<LogoutSuccess />} />
-          </Route>
+            {/* Auth Layout without header */}
+            <Route element={<AuthLayout />}>
+              <Route path='/login' element={<Login />} />
+              <Route path='/login/sent' element={<LoginSent />} />
+              <Route path='/login/validate' element={<LoginValidate />} />
+              <Route path='/register' element={<Register />} />
+              <Route path='/register/verify' element={<RegistrationVerify />} />
+              <Route path='/logout' element={<LogoutSuccess />} />
+            </Route>
 
-          {/* Fallback route - 404 page */}
-          <Route path='*' element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Fallback route - 404 page */}
+            <Route path='*' element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </ServerClockProvider>
     </LocalizationProvider>
   )
 }

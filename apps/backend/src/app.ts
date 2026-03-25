@@ -27,6 +27,7 @@ import { router as dashboardRoutes } from './routes/dashboard/api.ts'
 import taxReportRoutes from './routes/tax-reports/api.ts'
 import { router as outboxRoutes } from './routes/outbox/api.ts'
 import { router as versionRoute } from './routes/version/api.ts'
+import { router as timeRoute } from './routes/time/api.ts'
 import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
 import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoicePaymentWorker.ts'
 import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
@@ -108,6 +109,7 @@ app.use('/api/v1/dashboard', dashboardRoutes)
 app.use('/api/v1/tax-reports', taxReportRoutes)
 app.use('/api/v1/outbox', outboxRoutes)
 app.use('/api/v1/version', versionRoute)
+app.use('/api/v1/time', timeRoute)
 
 // Test database connection before starting workers
 await testConnection()

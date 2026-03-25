@@ -17,14 +17,19 @@ import {
   UseFormWatch,
 } from 'react-hook-form'
 import { Icon } from '@iconify/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  formatClockTime,
+  getHelsinkiOffsetLabel,
+  useServerClock,
+} from '../../../hooks/useServerClock'
 import {
   FlightLog,
   FlightLogUpsertRequest,
 } from '@backend/routes/flight-log/models'
 import dayjs from 'dayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import { getTimezoneDisplay, getTimeExample } from '../utils/timezoneUtils'
+import { getTimezoneDisplay } from '../utils/timezoneUtils'
 import { useTranslation } from 'react-i18next'
 import { TimeField } from '@mui/x-date-pickers/TimeField'
 import { calculateNext } from '../utils/timeUtils'
@@ -100,6 +105,24 @@ export const FlightTime = ({
 
   const isEditable = !!setValue
 
+  const { utcMs, synced } = useServerClock()
+
+  // How long ago was takeoff relative to server time (shown under the takeoff field)
+  const takeoffEpoch = watch('takeoffTimeEpoch')
+  const takeoffDeltaText = useMemo(() => {
+    if (!takeoffEpoch || !utcMs) return null
+    const diffMs = utcMs - Number(takeoffEpoch) * 1000
+    if (diffMs < 0) return null // takeoff is in the future
+    const diffMins = Math.floor(diffMs / 60000)
+    if (diffMins < 1) return 'Just took off'
+    if (diffMins < 60) return `Takeoff ${diffMins}min ago`
+    const hours = Math.floor(diffMins / 60)
+    const mins = diffMins % 60
+    return mins === 0
+      ? `Takeoff ${hours}h ago`
+      : `Takeoff ${hours}h ${mins}min ago`
+  }, [utcMs, takeoffEpoch])
+
   return (
     <>
       <Grid size={{ xs: 12, sm: 6 }}>
@@ -124,30 +147,117 @@ export const FlightTime = ({
           <Typography variant='body2' gutterBottom>
             {t('flightLog.timeZone')}
           </Typography>
-          <ToggleButtonGroup
-            value={useUtcTime ? 'utc' : 'local'}
-            exclusive
-            onChange={(_, newValue) => {
-              if (newValue !== null) {
-                setUseUtcTime(newValue === 'utc')
-              }
-            }}
-            aria-label='time format'
-            size='small'
-            sx={{ mb: 1 }}
-          >
-            <ToggleButton value='utc' aria-label='UTC time'>
-              <Icon icon='mdi:earth' style={{ marginRight: '8px' }} />
-              {t('flightLog.utcTime')}
-            </ToggleButton>
-            <ToggleButton value='local' aria-label='Local time'>
-              <Icon icon='mdi:map-marker' style={{ marginRight: '8px' }} />
-              {t('flightLog.localTime')}
-            </ToggleButton>
-          </ToggleButtonGroup>
 
-          {/* Time zone information on its own row */}
-          <Box sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
+          {/* Toggle + live clock side by side */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              flexWrap: 'wrap',
+              mb: 1,
+            }}
+          >
+            <ToggleButtonGroup
+              value={useUtcTime ? 'utc' : 'local'}
+              exclusive
+              onChange={(_, newValue) => {
+                if (newValue !== null) {
+                  setUseUtcTime(newValue === 'utc')
+                }
+              }}
+              aria-label='time format'
+              size='small'
+            >
+              <ToggleButton value='utc' aria-label='UTC time'>
+                <Icon icon='mdi:earth' style={{ marginRight: '8px' }} />
+                {t('flightLog.utcTime')}
+              </ToggleButton>
+              <ToggleButton value='local' aria-label='Local time'>
+                <Icon icon='mdi:map-marker' style={{ marginRight: '8px' }} />
+                {t('flightLog.localTime')}
+              </ToggleButton>
+            </ToggleButtonGroup>
+
+            {synced && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignSelf: 'stretch',
+                  alignItems: 'center',
+                  gap: 2,
+                  px: 1.5,
+                  borderRadius: 1,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  bgcolor: 'action.hover',
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    sx={{
+                      fontWeight: 600,
+                      letterSpacing: '0.05em',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    UTC
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {formatClockTime(utcMs, 'UTC', true)}
+                  </Typography>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    sx={{
+                      fontWeight: 600,
+                      letterSpacing: '0.05em',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    HEL&nbsp;{getHelsinkiOffsetLabel(utcMs)}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {formatClockTime(utcMs, 'Europe/Helsinki', true)}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </Box>
+
+          {/* Time zone helper text */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Icon
               icon={
                 useUtcTime
@@ -161,9 +271,6 @@ export const FlightTime = ({
                 ? t('flightLog.usingUtcTime')
                 : t('flightLog.usingLocalTime')}{' '}
               {!useUtcTime && `(${getTimezoneDisplay(useUtcTime, flightDate)})`}
-              {' - '}
-              {t('flightLog.currentTime')}:{' '}
-              {getTimeExample(useUtcTime, flightDate)}
             </Typography>
           </Box>
         </Box>
@@ -196,6 +303,15 @@ export const FlightTime = ({
           trigger={trigger}
           deps={getValues('landingTimeEpoch') ? ['landingTimeEpoch'] : []}
         />
+        {takeoffDeltaText && (
+          <Typography
+            variant='caption'
+            color='text.secondary'
+            sx={{ mt: 0.5, display: 'block', pl: 0.5 }}
+          >
+            {takeoffDeltaText}
+          </Typography>
+        )}
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 3 }}>
         <TimeStringEditor

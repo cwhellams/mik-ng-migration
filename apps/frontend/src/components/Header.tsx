@@ -31,6 +31,7 @@ import AdminToggle from './AdminToggle'
 import { useRoles } from '../hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
 import { HeaderSubMenu } from './HeaderSubMenu'
+import ClockDisplay from './ClockDisplay'
 
 interface HeaderProps {
   window?: () => Window
@@ -250,6 +251,7 @@ const Header = (props: HeaderProps) => {
 
           {/* User Avatar and Theme Toggle - Always Visible */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ClockDisplay />
             <AdminToggle />
             <ThemeToggle />
             <User />
