@@ -15,6 +15,8 @@ import {
   MemberListFiltersSchema,
   type AnnualMembershipStats,
   MIKMemberTypes,
+  type NonRenewalListResponse,
+  NonRenewalActionType,
 } from './models.ts'
 import {
   getMemberById,
@@ -36,6 +38,8 @@ import {
   restoreMember,
   getUnpaidMembershipFeesForYear,
   hasMemberFlownInYear,
+  getMembersWithNoOrUnpaidAnnualFee,
+  insertNonRenewalAction,
 } from '../../db/member-queries.ts'
 import { cancelAllFutureBookingsForMember } from '../../db/booking-queries.ts'
 import { db } from '../../db/connection.ts'
@@ -56,6 +60,10 @@ import {
   dtoStudentRemovedEmailSubject,
   dtoStudentRemovedEmailBodyHtml,
 } from '../../templates/memberRemovedEmailTemplate.ts'
+import {
+  nonRenewalReminderEmailSubject,
+  nonRenewalReminderEmailBodyHtml,
+} from '../../templates/nonRenewalReminderEmailTemplate.ts'
 import { SimplbooksEventType } from '../../services/simplbooks/models.ts'
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
@@ -368,6 +376,48 @@ router.get(
 )
 
 router.get(
+  '/non-renewals',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request, res: Response<NonRenewalListResponse>) => {
+    const year = req.query.year
+      ? Number.parseInt(req.query.year as string)
+      : new Date().getFullYear()
+
+    const members = await getMembersWithNoOrUnpaidAnnualFee(year)
+    res.status(HttpStatusCode.Ok).json({ members, year })
+  },
+)
+
+router.post(
+  '/:memberId/send-renewal-reminder',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request<{ memberId: string }>, res: Response<void>) => {
+    const { memberId } = req.params
+    const year = new Date().getFullYear()
+
+    const member = await getMemberById(memberId)
+    if (!member) {
+      return problem({ status: 404, detail: 'Member not found' })
+    }
+
+    sendEmail(
+      member.email,
+      nonRenewalReminderEmailSubject(member.lang),
+      nonRenewalReminderEmailBodyHtml(member.lang, { firstName: member.firstName, year }),
+    )
+
+    await insertNonRenewalAction(
+      memberId,
+      NonRenewalActionType.REMINDER_SENT,
+      req.user!.memberId,
+      `Final renewal reminder email sent for year ${year}`,
+    )
+
+    res.status(HttpStatusCode.NoContent).end()
+  },
+)
+
+router.get(
   '/:memberId',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{ memberId: string }>, res: Response<Member>) => {
@@ -449,7 +499,19 @@ router.post(
   async (req: Request<{ memberId: string }>, res: Response<void>) => {
     const reason = req.body.reason as string | undefined
     const memberId = req.params.memberId
-    return await cancelMembershipHandler(req, res, memberId, reason)
+    await cancelMembershipHandler(req, res, memberId, reason)
+
+    // Log to non-renewal tracking table after the response has been sent (best-effort, non-fatal)
+    if (res.statusCode === HttpStatusCode.NoContent) {
+      insertNonRenewalAction(
+        memberId,
+        NonRenewalActionType.MEMBERSHIP_CANCELLED,
+        req.user!.memberId,
+        reason,
+      ).catch(() => {
+        // Do not propagate tracking errors
+      })
+    }
   },
 )
 

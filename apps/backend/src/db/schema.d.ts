@@ -81,6 +81,8 @@ export type MemberType =
 
 export type MikLang = 'en' | 'fi' | 'sv'
 
+export type NonRenewalActionType = 'MEMBERSHIP_CANCELLED' | 'REMINDER_SENT'
+
 export type Numeric = ColumnType<number, number | string, number | string>
 
 export type Occurrencestatus =
@@ -492,6 +494,18 @@ export interface MemberMemberToRoles {
   role_id: string
 }
 
+export interface MemberNonRenewalActions {
+  /**
+   * REMINDER_SENT = final reminder email sent; MEMBERSHIP_CANCELLED = membership deactivated
+   */
+  action_type: NonRenewalActionType
+  id: Generated<number>
+  member_id: string
+  notes: string | null
+  performed_at: Generated<Timestamp>
+  performed_by: string
+}
+
 export interface MemberRegister {
   auto_renew_annual_membership: Generated<boolean | null>
   auto_renew_equipment_fee: Generated<boolean | null>
@@ -817,6 +831,7 @@ export interface DB {
   'member.login_attempts': MemberLoginAttempts
   'member.login_events': MemberLoginEvents
   'member.member_to_roles': MemberMemberToRoles
+  'member.non_renewal_actions': MemberNonRenewalActions
   'member.register': MemberRegister
   'member.register_audit': MemberRegisterAudit
   'member.roles': MemberRoles

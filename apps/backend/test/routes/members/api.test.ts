@@ -1105,3 +1105,106 @@ describe('DELETE /members/:memberId', () => {
     expect(response.status).toBe(404)
   })
 })
+
+describe('GET /members/non-renewals', () => {
+  const query = async (token: string, year?: number) =>
+    request(app)
+      .get('/members/non-renewals')
+      .set('Cookie', `accessToken=${token}`)
+      .query(year ? { year } : {})
+
+  it('should return 401 without auth', async () => {
+    const response = await request(app).get('/members/non-renewals')
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 403 for a regular member', async () => {
+    const response = await query(memberToken)
+    expect(response.status).toBe(403)
+  })
+
+  it('should return 200 with the current year for an admin', async () => {
+    const response = await query(adminToken)
+    expect(response.status).toBe(200)
+
+    const body = response.body
+    expect(body).toHaveProperty('members')
+    expect(body).toHaveProperty('year')
+    expect(Array.isArray(body.members)).toBe(true)
+    expect(typeof body.year).toBe('number')
+  })
+
+  it('should return 200 when a specific year is provided', async () => {
+    const response = await query(adminToken, 2025)
+    expect(response.status).toBe(200)
+    expect(response.body.year).toBe(2025)
+  })
+
+  it('should not include REMOVED members', async () => {
+    const response = await query(adminToken)
+    expect(response.status).toBe(200)
+    const members = response.body.members as Array<{ memberType: string }>
+    expect(members.every(m => m.memberType !== 'REMOVED')).toBe(true)
+  })
+
+  it('each member should have the expected fields', async () => {
+    const response = await query(adminToken)
+    expect(response.status).toBe(200)
+
+    const members = response.body.members as Array<Record<string, unknown>>
+    if (members.length > 0) {
+      const first = members[0]
+      expect(first).toHaveProperty('memberId')
+      expect(first).toHaveProperty('firstName')
+      expect(first).toHaveProperty('lastName')
+      expect(first).toHaveProperty('email')
+      expect(first).toHaveProperty('memberType')
+      expect(first).toHaveProperty('lang')
+      expect(first).toHaveProperty('feeStatus')
+    }
+  })
+})
+
+describe('POST /members/:memberId/send-renewal-reminder', () => {
+  const sendReminder = async (memberId: string, token: string) =>
+    request(app)
+      .post(`/members/${memberId}/send-renewal-reminder`)
+      .set('Cookie', `accessToken=${token}`)
+
+  it('should return 401 without auth', async () => {
+    const response = await request(app).post('/members/Matti1/send-renewal-reminder')
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 403 for a regular member', async () => {
+    const response = await sendReminder('Matti1', memberToken)
+    expect(response.status).toBe(403)
+  })
+
+  it('should return 404 for a non-existent member', async () => {
+    const response = await sendReminder('NonExist9', adminToken)
+    expect(response.status).toBe(404)
+  })
+
+  it('should return 204 and record a REMINDER_SENT action for an admin', async () => {
+    const response = await sendReminder('Matti1', adminToken)
+    expect(response.status).toBe(204)
+
+    // Verify the action was recorded
+    const action = await db
+      .selectFrom('member.non_renewal_actions')
+      .selectAll()
+      .where('member_id', '=', 'Matti1')
+      .where('action_type', '=', 'REMINDER_SENT')
+      .orderBy('performed_at', 'desc')
+      .executeTakeFirst()
+
+    expect(action).toBeDefined()
+    expect(action?.performed_by).toBe('k1mnimda')
+
+    // cleanup
+    if (action) {
+      await db.deleteFrom('member.non_renewal_actions').where('id', '=', action.id).execute()
+    }
+  })
+})

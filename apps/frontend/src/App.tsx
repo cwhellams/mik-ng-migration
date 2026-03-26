@@ -40,6 +40,7 @@ import { Occurrences } from './sections/occurrences/Occurences'
 import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
 import LogbookFlights from './sections/flightLog/LogbookPage'
 import Outbox from './sections/admin/Outbox'
+import NonRenewals from './sections/admin/NonRenewals'
 import { ServerClockProvider } from './hooks/useServerClock'
 
 function App() {
@@ -120,6 +121,7 @@ function App() {
               <Route path='/admin'>
                 <Route index element={<Navigate to='outbox' replace />} />
                 <Route path='outbox' element={<Outbox />} />
+                <Route path='non-renewals' element={<NonRenewals />} />
               </Route>
             </Route>
 

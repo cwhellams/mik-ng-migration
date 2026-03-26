@@ -11,6 +11,8 @@ import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { simplbooksApiClient } from '../../../src/services/simplbooks/simplbooksApiClient.ts'
 import { mockSimplbooksGet, mockSimplbooksPost } from '../../__mocks__/simplbooksMock.ts'
 import { deleteCreatedInvoiceItems } from '../../db/__helpers__/simplbooksDbHelpers.ts'
+import { db } from '../../../src/db/connection.ts'
+import { FeeProcessingStatus, RecurringFeeType } from '../../../src/services/simplbooks/models.ts'
 
 const app = express()
 app.use(express.json())
@@ -43,7 +45,7 @@ describe('GET /', () => {
       .set('Cookie', `accessToken=${adminToken}`)
       .query({})
     expect(res.status).toBe(200)
-    expect(res.body.invoices).toHaveLength(12)
+    expect(res.body.invoices).toHaveLength(15)
   })
 
   it('should return 400 for invalid query params', async () => {
@@ -59,7 +61,7 @@ describe('GET /', () => {
     const res = await request(app).get('/invoices').set('Cookie', `accessToken=${memberToken}`)
 
     expect(res.status).toBe(200)
-    expect(res.body.invoices).toHaveLength(1)
+    expect(res.body.invoices).toHaveLength(2)
   })
 
   it('should return 401 for invalid token', async () => {
@@ -177,6 +179,33 @@ describe('GET /annualMembershipBillingRuns', () => {
 })
 
 describe('POST /triggerAnnualMembershipBillingProcess', () => {
+  const currentYear = new Date().getFullYear()
+
+  beforeAll(async () => {
+    // Remove any existing fee processing record for the current year so the test
+    // does not fail if test data already marks it as processed (e.g. V180__NonRenewalsData.sql)
+    await db
+      .deleteFrom('accts.recurring_fees_processing')
+      .where('fee_type', '=', RecurringFeeType.ANNUAL_FEE)
+      .where('year', '=', currentYear)
+      .execute()
+  })
+
+  afterAll(async () => {
+    // Restore the processed record so other tests that rely on this data still pass
+    await db
+      .insertInto('accts.recurring_fees_processing')
+      .values({
+        fee_type: RecurringFeeType.ANNUAL_FEE,
+        year: currentYear,
+        status: FeeProcessingStatus.PROCESSED,
+        created_by: 'k1mnimda',
+        updated_by: 'k1mnimda',
+      })
+      .onConflict(oc => oc.columns(['fee_type', 'year']).doNothing())
+      .execute()
+  })
+
   it('should trigger annual billing process for admin', async () => {
     const res = await request(app)
       .post('/invoices/triggerAnnualMembershipBillingProcess/')

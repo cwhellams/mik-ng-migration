@@ -270,3 +270,52 @@ export const FeeProcessingItemSchema = z.object({
 })
 
 export type FeeProcessingItem = z.infer<typeof FeeProcessingItemSchema>
+
+// Non-renewal tracking
+
+export enum NonRenewalActionType {
+  REMINDER_SENT = 'REMINDER_SENT',
+  MEMBERSHIP_CANCELLED = 'MEMBERSHIP_CANCELLED',
+}
+
+export const NonRenewalMemberSchema = z.object({
+  memberId: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string(),
+  phoneNumber: z.string().nullish(),
+  memberType: z.nativeEnum(MIKMemberTypes),
+  lang: z.nativeEnum(MIKLang),
+  autoRenewAnnualMembership: z.boolean().nullable().optional(),
+  /**
+   * 'no_record' — no entry in annual_fees for this year
+   * 'unpaid'    — fee record exists but the linked invoice has not been paid
+   */
+  feeStatus: z.enum(['no_record', 'unpaid']),
+  /** Date the invoice was sent (date string), or null if no invoice */
+  invoiceSentAt: z.string().nullable(),
+  /** Invoice due date (date string), or null if no invoice */
+  invoiceDueAt: z.string().nullable(),
+  /** ISO timestamp of the last REMINDER_SENT action, or null if none */
+  lastReminderSentAt: z.string().datetime().nullable(),
+})
+
+export type NonRenewalMember = z.infer<typeof NonRenewalMemberSchema>
+
+export const NonRenewalListResponseSchema = z.object({
+  members: z.array(NonRenewalMemberSchema),
+  year: z.number(),
+})
+
+export type NonRenewalListResponse = z.infer<typeof NonRenewalListResponseSchema>
+
+export const NonRenewalActionSchema = z.object({
+  id: z.number(),
+  memberId: z.string(),
+  actionType: z.nativeEnum(NonRenewalActionType),
+  performedAt: z.string().datetime(),
+  performedBy: z.string(),
+  notes: z.string().nullable(),
+})
+
+export type NonRenewalAction = z.infer<typeof NonRenewalActionSchema>

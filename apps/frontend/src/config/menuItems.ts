@@ -106,8 +106,21 @@ export const menuItems: MenuItem[] = [
   {
     path: '/admin',
     label: 'header.admin',
-    requiredRoles: [MIKPermissions.OUTBOX_ADMIN],
+    requiredRoles: [MIKPermissions.OUTBOX_ADMIN, MIKPermissions.MEMBER_ADMIN],
     adminModeOnly: true,
-    subItems: [{ label: 'header.outbox', path: 'outbox' }],
+    subItems: [
+      {
+        label: 'header.outbox',
+        path: 'outbox',
+        requiredRoles: [MIKPermissions.OUTBOX_ADMIN],
+        adminModeOnly: true,
+      },
+      {
+        label: 'header.nonRenewals',
+        path: 'non-renewals',
+        requiredRoles: [MIKPermissions.MEMBER_ADMIN],
+        adminModeOnly: true,
+      },
+    ],
   },
 ]

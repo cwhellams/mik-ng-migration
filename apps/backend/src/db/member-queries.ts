@@ -16,6 +16,9 @@ import {
   FeeProcessingItemSchema,
   type FeeProcessingItem,
   type MemberListFilters,
+  type NonRenewalMember,
+  type NonRenewalAction,
+  NonRenewalActionType,
 } from '../routes/members/models.ts'
 import { problem } from '../routes/response.ts'
 import type { Upsert } from '../types/schema.ts'
@@ -847,4 +850,102 @@ export async function hasMemberFlownInYear(memberId: string, year: number): Prom
     .executeTakeFirst()
 
   return flightCount ? Number(flightCount.count) > 0 : false
+}
+
+/**
+ * Return all active members who have NOT paid their annual fee for the given year.
+ * This includes members with no fee record at all, and members whose fee invoice exists
+ * but has not been paid.
+ */
+export async function getMembersWithNoOrUnpaidAnnualFee(year: number): Promise<NonRenewalMember[]> {
+  const results = await db
+    .selectFrom('member.register as r')
+    .leftJoin(
+      eb =>
+        eb
+          .selectFrom('member.annual_fees')
+          .select(['member_id', 'invoice_id'])
+          .where('fee_type', '=', 'annual_fee')
+          .where('year', '=', year)
+          .as('af'),
+      join => join.onRef('af.member_id', '=', 'r.member_id'),
+    )
+    .leftJoin('accts.invoice as inv', 'inv.id', 'af.invoice_id')
+    .leftJoin(
+      eb =>
+        eb
+          .selectFrom('member.non_renewal_actions')
+          .select(eb2 => ['member_id', eb2.fn.max('performed_at').as('last_reminder_at')])
+          .where('action_type', '=', 'REMINDER_SENT')
+          .groupBy('member_id')
+          .as('lr'),
+      join => join.onRef('lr.member_id', '=', 'r.member_id'),
+    )
+    .select([
+      'r.member_id',
+      'r.first_name',
+      'r.last_name',
+      'r.email',
+      'r.phone_number',
+      'r.member_type',
+      'r.lang_iso639',
+      'r.auto_renew_annual_membership',
+      'af.member_id as fee_member_id',
+      'inv.is_paid as invoice_is_paid',
+      'inv.sent_at as invoice_sent_at',
+      'inv.due_at as invoice_due_at',
+      'lr.last_reminder_at',
+    ])
+    .where('r.member_type', '!=', MIKMemberTypes.REMOVED)
+    .where('r.member_type', '!=', MIKMemberTypes.SYSTEM)
+    .where('r.is_membership_approved', '=', true)
+    .where(eb => eb.or([eb('af.member_id', 'is', null), eb('inv.is_paid', '=', false)]))
+    .orderBy('r.last_name')
+    .orderBy('r.first_name')
+    .execute()
+
+  return results.map(r => ({
+    memberId: r.member_id,
+    firstName: r.first_name,
+    lastName: r.last_name,
+    email: r.email,
+    phoneNumber: r.phone_number ?? null,
+    memberType: r.member_type as MIKMemberTypes,
+    lang: r.lang_iso639 as MIKLang,
+    autoRenewAnnualMembership: r.auto_renew_annual_membership,
+    feeStatus: r.fee_member_id === null ? 'no_record' : 'unpaid',
+    invoiceSentAt: r.invoice_sent_at ?? null,
+    invoiceDueAt: r.invoice_due_at ?? null,
+    lastReminderSentAt: r.last_reminder_at ? r.last_reminder_at.toISOString() : null,
+  }))
+}
+
+/**
+ * Record an action taken on a non-renewing member (e.g. reminder email sent).
+ */
+export async function insertNonRenewalAction(
+  memberId: string,
+  actionType: NonRenewalActionType,
+  performedBy: string,
+  notes?: string,
+): Promise<NonRenewalAction> {
+  const result = await db
+    .insertInto('member.non_renewal_actions')
+    .values({
+      member_id: memberId,
+      action_type: actionType,
+      performed_by: performedBy,
+      notes: notes ?? null,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow()
+
+  return {
+    id: result.id,
+    memberId: result.member_id,
+    actionType: result.action_type as NonRenewalActionType,
+    performedAt: result.performed_at.toISOString(),
+    performedBy: result.performed_by,
+    notes: result.notes,
+  }
 }
