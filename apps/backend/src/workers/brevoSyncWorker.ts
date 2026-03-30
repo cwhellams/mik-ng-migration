@@ -141,16 +141,7 @@ export async function removeMemberFromBrevo(member: Member): Promise<void> {
     return
   }
 
-  await brevoClient.deleteContact(Number(member.brevoContactId)).catch(error => {
-    logger.error(`Failed to remove member ${member.memberId} from Brevo:`, error)
-    // Mark as failed but do not throw since we want to continue processing other members
-    updateMemberBrevoSyncStatus(member.memberId, 'FAILED').catch(updateError => {
-      logger.error(
-        `Failed to update sync status for member ${member.memberId} after failed removal from Brevo:`,
-        updateError,
-      )
-    })
-  })
+  await brevoClient.deleteContact(Number(member.brevoContactId))
   await updateMemberBrevoSyncStatus(member.memberId, 'SYNCED')
 }
 

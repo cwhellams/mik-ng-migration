@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from 'react'
 import {
   Calendar,
   dayjsLocalizer,
   Event,
+  EventProps,
   EventPropGetter,
   Messages,
   SlotInfo,
@@ -80,6 +87,19 @@ const colors: Record<string, string> = {
 }
 
 const localizer = dayjsLocalizer(dayjs)
+
+const DnDCalendar = withDragAndDrop<BookingEvent>(Calendar)
+
+const CalendarEvent = ({ event }: EventProps<BookingEvent>) => {
+  const reg = event.registration.substring(3)
+  const rest = (event.title as string).substring(reg.length)
+  return (
+    <span>
+      <strong>{reg}</strong>
+      {rest}
+    </span>
+  )
+}
 
 const Schedule = () => {
   const { me, isBookingAdmin } = useRoles()
@@ -171,8 +191,6 @@ const Schedule = () => {
   )
 
   const [editMode, setEditMode] = useState<Upsert<Booking & BookingFlags>>()
-
-  const DnDCalendar = withDragAndDrop(Calendar)
 
   const { i18n } = useTranslation()
 
@@ -517,8 +535,9 @@ const Schedule = () => {
                 }
               }
               return item
-            })
+            }) as { event: BookingEvent; style: CSSProperties }[]
           }}
+          components={{ event: CalendarEvent }}
           draggableAccessor={(event) => (event as BookingEvent).isEditable}
           eventPropGetter={eventStyle}
           style={{ height: '80vh' }}

@@ -14,13 +14,12 @@ import {
   getDashboardSettings,
   setDashboardSettings,
   updateMemberLang,
-  setMemberExpired,
   suspendMemberReservations,
   restoreMemberReservations,
   canMemberBeDeleted,
   deactivateMember,
   restoreMember,
-  hasMemberFlownInYear,
+  hasMemberFlownBillableFlightInYear,
 } from '../../src/db/member-queries.ts'
 import { db } from '../../src/db/connection.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
@@ -399,39 +398,6 @@ describe('Db add member tests', () => {
     })
   })
 
-  describe('setMemberExpired Tests', () => {
-    it('should set member as expired and remove all roles', async () => {
-      // Create a test member with a role
-      const email = `${new Date().getTime()}@expiredtest.com`
-      const memberId = await addMember({
-        memberType: MIKMemberTypes.FLYING,
-        email,
-        firstName: 'Expired',
-        lastName: 'Test',
-        lang: MIKLang.FI,
-        streetAddress: 'Test Street',
-        postcode: '00100',
-        townCity: 'Test City',
-      })
-
-      // Verify member is not expired initially
-      const beforeMember = await getMemberById(memberId)
-      expect(beforeMember?.isMembershipExpired).toBe(false)
-      // Note: new members have canMakeReservations = false by default
-
-      const result = await setMemberExpired(memberId)
-      expect(result).toBe(true)
-
-      // Verify member is now expired with reservations suspended
-      const afterMember = await getMemberById(memberId)
-      expect(afterMember?.isMembershipExpired).toBe(true)
-      expect(afterMember?.canMakeReservations).toBe(false)
-      expect(afterMember?.roles.length).toBe(0)
-
-      await removeMember(memberId)
-    })
-  })
-
   describe('Suspend and Restore Reservation Tests', () => {
     it('should suspend member reservations', async () => {
       // Create a test member and enable reservations first
@@ -509,9 +475,7 @@ describe('Db add member tests', () => {
         .where('member_id', '=', memberId)
         .execute()
 
-      await expect(removeMember(memberId)).rejects.toThrow(
-        'Cannot delete member that is still synced to Brevo. Please remove from Brevo first.',
-      )
+      await expect(removeMember(memberId)).resolves.toBe(false)
     } finally {
       await db
         .updateTable('member.register')
@@ -541,7 +505,10 @@ describe('canMemberBeDeleted Tests', () => {
     })
 
     const result = await canMemberBeDeleted(memberId)
-    expect(result).toBe(true)
+    expect(result.canDelete).toBe(true)
+    expect(result.hasInvoices).toBe(false)
+    expect(result.hasFlights).toBe(false)
+    expect(result.hasBookings).toBe(false)
 
     await removeMember(memberId)
   })
@@ -549,7 +516,8 @@ describe('canMemberBeDeleted Tests', () => {
   it('should return false for member with flight logs', async () => {
     // Matti1 has flights in test data
     const result = await canMemberBeDeleted('Matti1')
-    expect(result).toBe(false)
+    expect(result.canDelete).toBe(false)
+    expect(result.hasFlights).toBe(true)
   })
 })
 
@@ -608,13 +576,13 @@ describe('Deactivate and Restore Member Tests', () => {
 describe('hasMemberFlownInYear Tests', () => {
   it('should return false for member who has not flown in a future year', async () => {
     const futureYear = new Date().getFullYear() + 10
-    const result = await hasMemberFlownInYear('Matti1', futureYear)
+    const result = await hasMemberFlownBillableFlightInYear('Matti1', futureYear)
     expect(result).toBe(false)
   })
 
   it('should return false for non-existent member', async () => {
     const currentYear = new Date().getFullYear()
-    const result = await hasMemberFlownInYear('NonExistent', currentYear)
+    const result = await hasMemberFlownBillableFlightInYear('NonExistent', currentYear)
     expect(result).toBe(false)
   })
 })

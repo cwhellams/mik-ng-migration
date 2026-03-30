@@ -13,6 +13,7 @@ import {
   type Member,
   type MemberList,
   type MemberRole,
+  type MemberDeletability,
   FeeProcessingItemSchema,
   type FeeProcessingItem,
   type MemberListFilters,
@@ -383,36 +384,7 @@ export async function updateMember(
   return true
 }
 
-export async function setMemberExpired(memberId: string): Promise<boolean> {
-  await db
-    .deleteFrom('member.member_to_roles')
-    .where('member_id', '=', memberId)
-    .executeTakeFirstOrThrow()
-
-  const result = await db
-    .updateTable('member.register')
-    .set({
-      is_membership_expired: true,
-      can_make_reservations: false,
-    })
-    .where('member_id', '=', memberId)
-    .executeTakeFirstOrThrow()
-  return result.numUpdatedRows == BigInt(1)
-}
-
 export async function removeMember(memberId: string): Promise<boolean> {
-  const member = await db
-    .selectFrom('member.register')
-    .where('member_id', '=', memberId)
-    .selectAll()
-    .executeTakeFirst()
-
-  if (member?.brevo_contact_id) {
-    throw new Error(
-      'Cannot delete member that is still synced to Brevo. Please remove from Brevo first.',
-    )
-  }
-
   await db
     .deleteFrom('member.member_to_roles')
     .where('member_id', '=', memberId)
@@ -701,41 +673,54 @@ export async function setDashboardSettings(
 }
 
 /**
- * Check if a member can be safely deleted from the database
- * Returns true if member has no flight activity or invoices
+ * Check if a member can be safely deleted from the database.
+ * Returns a breakdown of which dependent records exist.
  */
-export async function canMemberBeDeleted(memberId: string): Promise<boolean> {
-  // Check for flight log entries
-  const flightCount = await db
-    .selectFrom('flight.logs')
-    .select(eb => eb.fn.count('flight_id').as('count'))
-    .where(eb =>
-      eb.or([
-        eb('pic_member_id', '=', memberId),
-        eb('crew2_member_id', '=', memberId),
-        eb('crew3_member_id', '=', memberId),
-        eb('crew4_member_id', '=', memberId),
-        eb('billable_member_id', '=', memberId),
-      ]),
-    )
-    .executeTakeFirst()
+export async function canMemberBeDeleted(memberId: string): Promise<MemberDeletability> {
+  const result = await db
+    .selectFrom('member.register')
+    .select(eb => [
+      eb
+        .exists(eb.selectFrom('accts.invoice').select('id').where('member_id', '=', memberId))
+        .as('has_invoices'),
+      eb
+        .exists(
+          eb
+            .selectFrom('flight.logs')
+            .select('flight_id')
+            .where(eb2 =>
+              eb2.or([
+                eb2('pic_member_id', '=', memberId),
+                eb2('crew2_member_id', '=', memberId),
+                eb2('crew3_member_id', '=', memberId),
+                eb2('crew4_member_id', '=', memberId),
+                eb2('billable_member_id', '=', memberId),
+              ]),
+            ),
+        )
+        .as('has_flights'),
+      eb
+        .exists(
+          eb.selectFrom('schedule.bookings').select('booking_id').where('member_id', '=', memberId),
+        )
+        .as('has_bookings'),
+      'brevo_contact_id',
+    ])
+    .where('member.register.member_id', '=', memberId)
+    .executeTakeFirstOrThrow()
 
-  if (flightCount && Number(flightCount.count) > 0) {
-    return false
+  const hasInvoices = Boolean(result.has_invoices)
+  const hasFlights = Boolean(result.has_flights)
+  const hasBookings = Boolean(result.has_bookings)
+  const hasBrevoId = result.brevo_contact_id !== null
+
+  return {
+    canDelete: !hasInvoices && !hasFlights && !hasBookings && !hasBrevoId,
+    hasInvoices,
+    hasFlights,
+    hasBookings,
+    hasBrevoId,
   }
-
-  // Check for invoices
-  const invoiceCount = await db
-    .selectFrom('accts.invoice')
-    .select(eb => eb.fn.count('id').as('count'))
-    .where('member_id', '=', memberId)
-    .executeTakeFirst()
-
-  if (invoiceCount && Number(invoiceCount.count) > 0) {
-    return false
-  }
-
-  return true
 }
 
 /**
@@ -825,9 +810,12 @@ export async function getUnpaidMembershipFeesForYear(
 }
 
 /**
- * Check if member has any flights in a given year
+ * Check if member has any billable flights in a given year
  */
-export async function hasMemberFlownInYear(memberId: string, year: number): Promise<boolean> {
+export async function hasMemberFlownBillableFlightInYear(
+  memberId: string,
+  year: number,
+): Promise<boolean> {
   const yearStart = new Date(year, 0, 1)
   const nextYearStart = new Date(year + 1, 0, 1)
   const yearStartEpoch = Math.floor(yearStart.getTime() / 1000).toString()
@@ -836,15 +824,7 @@ export async function hasMemberFlownInYear(memberId: string, year: number): Prom
   const flightCount = await db
     .selectFrom('flight.logs')
     .select(eb => eb.fn.count('flight_id').as('count'))
-    .where(eb =>
-      eb.or([
-        eb('pic_member_id', '=', memberId),
-        eb('crew2_member_id', '=', memberId),
-        eb('crew3_member_id', '=', memberId),
-        eb('crew4_member_id', '=', memberId),
-        eb('billable_member_id', '=', memberId),
-      ]),
-    )
+    .where('billable_member_id', '=', memberId)
     .where('takeoff_time_epoch', '>=', yearStartEpoch)
     .where('takeoff_time_epoch', '<', nextYearStartEpoch)
     .executeTakeFirst()
@@ -881,7 +861,23 @@ export async function getMembersWithNoOrUnpaidAnnualFee(year: number): Promise<N
           .as('lr'),
       join => join.onRef('lr.member_id', '=', 'r.member_id'),
     )
-    .select([
+    .leftJoin(
+      eb => {
+        const yearStart = new Date(year, 0, 1)
+        const nextYearStart = new Date(year + 1, 0, 1)
+        const yearStartEpoch = Math.floor(yearStart.getTime() / 1000).toString()
+        const nextYearStartEpoch = Math.floor(nextYearStart.getTime() / 1000).toString()
+        return eb
+          .selectFrom('flight.logs')
+          .select(eb2 => ['billable_member_id', eb2.fn.count('flight_id').as('flight_count')])
+          .where('takeoff_time_epoch', '>=', yearStartEpoch)
+          .where('takeoff_time_epoch', '<', nextYearStartEpoch)
+          .groupBy('billable_member_id')
+          .as('fc')
+      },
+      join => join.onRef('fc.billable_member_id', '=', 'r.member_id'),
+    )
+    .select(eb => [
       'r.member_id',
       'r.first_name',
       'r.last_name',
@@ -895,9 +891,12 @@ export async function getMembersWithNoOrUnpaidAnnualFee(year: number): Promise<N
       'inv.sent_at as invoice_sent_at',
       'inv.due_at as invoice_due_at',
       'lr.last_reminder_at',
+      eb.fn.coalesce('fc.flight_count', eb.val(0)).as('billable_flight_count'),
     ])
     .where('r.member_type', '!=', MIKMemberTypes.REMOVED)
     .where('r.member_type', '!=', MIKMemberTypes.SYSTEM)
+    .where('r.member_type', '!=', MIKMemberTypes.EXTERNAL)
+    .where('r.member_type', '!=', MIKMemberTypes.HONORARY)
     .where('r.is_membership_approved', '=', true)
     .where(eb => eb.or([eb('af.member_id', 'is', null), eb('inv.is_paid', '=', false)]))
     .orderBy('r.last_name')
@@ -917,6 +916,7 @@ export async function getMembersWithNoOrUnpaidAnnualFee(year: number): Promise<N
     invoiceSentAt: r.invoice_sent_at ?? null,
     invoiceDueAt: r.invoice_due_at ?? null,
     lastReminderSentAt: r.last_reminder_at ? r.last_reminder_at.toISOString() : null,
+    billableFlightCount: Number(r.billable_flight_count),
   }))
 }
 

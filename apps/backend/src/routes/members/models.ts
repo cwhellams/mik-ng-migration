@@ -298,6 +298,8 @@ export const NonRenewalMemberSchema = z.object({
   invoiceDueAt: z.string().nullable(),
   /** ISO timestamp of the last REMINDER_SENT action, or null if none */
   lastReminderSentAt: z.string().datetime().nullable(),
+  /** Number of flights in the current year where this member is recorded as the billable member */
+  billableFlightCount: z.number(),
 })
 
 export type NonRenewalMember = z.infer<typeof NonRenewalMemberSchema>
@@ -319,3 +321,13 @@ export const NonRenewalActionSchema = z.object({
 })
 
 export type NonRenewalAction = z.infer<typeof NonRenewalActionSchema>
+
+export const MemberDeletabilitySchema = z.object({
+  canDelete: z.boolean(),
+  hasInvoices: z.boolean(),
+  hasFlights: z.boolean(),
+  hasBookings: z.boolean(),
+  hasBrevoId: z.boolean(),
+})
+
+export type MemberDeletability = z.infer<typeof MemberDeletabilitySchema>

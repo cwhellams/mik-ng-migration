@@ -37,9 +37,10 @@ import {
   deactivateMember,
   restoreMember,
   getUnpaidMembershipFeesForYear,
-  hasMemberFlownInYear,
+  hasMemberFlownBillableFlightInYear,
   getMembersWithNoOrUnpaidAnnualFee,
   insertNonRenewalAction,
+  canMemberBeDeleted,
 } from '../../db/member-queries.ts'
 import { cancelAllFutureBookingsForMember } from '../../db/booking-queries.ts'
 import { db } from '../../db/connection.ts'
@@ -75,6 +76,7 @@ import {
 import { getMemberForBrevoSync } from '../../db/brevo-sync-queries.ts'
 import logger from '../../lib/logger.ts'
 import { removeMemberFromBrevo } from '../../workers/brevoSyncWorker.ts'
+import { getCurrentYear } from '../../services/simplbooks/simplbooksOutboxHandler.ts'
 
 export const router = Router()
 
@@ -459,6 +461,25 @@ router.delete(
   async (req: Request<{ memberId: string }>, res: Response) => {
     const memberId = req.params.memberId
 
+    const checkedMember = await getMemberById(memberId)
+    if (!checkedMember) {
+      return problem({ status: 404 })
+    }
+
+    const deletability = await canMemberBeDeleted(memberId)
+    if (!deletability.canDelete) {
+      return problem({
+        status: 400,
+        detail: 'Member cannot be deleted due to existing related records',
+        extensions: {
+          hasInvoices: deletability.hasInvoices,
+          hasFlights: deletability.hasFlights,
+          hasBookings: deletability.hasBookings,
+          hasBrevoId: deletability.hasBrevoId,
+        },
+      })
+    }
+
     const updated = await removeMember(memberId)
     if (!updated) {
       return problem({ status: 404 })
@@ -497,7 +518,7 @@ router.post(
   '/:memberId/deactivate',
   validateUser(MIKPermissions.MEMBER_ADMIN),
   async (req: Request<{ memberId: string }>, res: Response<void>) => {
-    const reason = req.body.reason as string | undefined
+    const reason = req.body.reason || ('Cancelled by admin' as string)
     const memberId = req.params.memberId
     await cancelMembershipHandler(req, res, memberId, reason)
 
@@ -532,9 +553,16 @@ const cancelMembershipHandler = async (
     return problem({ status: 404, detail: 'Member not found' })
   }
 
-  // Check if they've already paid annual membership for current year
-  const currentYear = new Date().getFullYear()
-  const unpaidFees = await getUnpaidMembershipFeesForYear(memberId, currentYear)
+  // Check if member has any billable flights in the current year; if yes, prevent cancellation
+  const currentYear = getCurrentYear()
+  const hasBillableFlights = await hasMemberFlownBillableFlightInYear(memberId, currentYear)
+
+  if (hasBillableFlights) {
+    return problem({
+      status: 400,
+      detail: 'Membership cannot be cancelled due to existing billable flights in the current year',
+    })
+  }
 
   // Remove from Brevo if applicable - do this before DB update to ensure we have the Brevo Id
   await removeMemberFromBrevo(member)
@@ -570,10 +598,10 @@ const cancelMembershipHandler = async (
     )
   }
 
-  // Create credit notes for unpaid fees
-  const hasFlights = await hasMemberFlownInYear(memberId, currentYear)
+  const unpaidFees = await getUnpaidMembershipFeesForYear(memberId, currentYear)
 
-  if (!hasFlights) {
+  // Create credit notes for unpaid fees
+  if (!hasBillableFlights && unpaidFees.length > 0) {
     for (const fee of unpaidFees) {
       if (fee.pmt_ref) {
         await db

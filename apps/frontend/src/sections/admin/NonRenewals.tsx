@@ -50,20 +50,23 @@ export default function NonRenewals() {
   const members = data?.members ?? []
 
   // ── selection helpers ──────────────────────────────────────────────────────
-  const allIds = members.map((m) => m.memberId)
+  const selectableIds = members
+    .filter((m) => m.billableFlightCount === 0)
+    .map((m) => m.memberId)
   const isAllSelected =
-    allIds.length > 0 && allIds.every((id) => selected.has(id))
+    selectableIds.length > 0 && selectableIds.every((id) => selected.has(id))
   const isIndeterminate = selected.size > 0 && !isAllSelected
 
   const toggleSelectAll = () => {
     if (isAllSelected) {
       setSelected(new Set())
     } else {
-      setSelected(new Set(allIds))
+      setSelected(new Set(selectableIds))
     }
   }
 
-  const toggleSelect = (memberId: string) => {
+  const toggleSelect = (memberId: string, hasFlights: boolean) => {
+    if (hasFlights) return
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(memberId)) next.delete(memberId)
@@ -184,7 +187,13 @@ export default function NonRenewals() {
   }
 
   const handleBulkRemove = async () => {
-    const count = selected.size
+    // Safety net: never deactivate members who have flights this year
+    const ids = [...selected].filter((id) => {
+      const member = members.find((m) => m.memberId === id)
+      return member && member.billableFlightCount === 0
+    })
+    const count = ids.length
+    if (count === 0) return
     if (
       !globalThis.confirm(t('member.nonRenewalsBulkRemoveConfirm', { count }))
     ) {
@@ -192,7 +201,6 @@ export default function NonRenewals() {
     }
 
     setBulkLoading(true)
-    const ids = [...selected]
     let successCount = 0
     let firstError: Problem | undefined
 
@@ -326,13 +334,17 @@ export default function NonRenewals() {
                       />
                     </TableCell>
                     <TableCell>{t('member.name', 'Name')}</TableCell>
-                    <TableCell>{t('member.email', 'Email')}</TableCell>
-                    <TableCell>{t('member.phoneNumber', 'Phone')}</TableCell>
                     <TableCell>
-                      {t('member.nonRenewalsAutoRenew', 'Auto-Renew')}
+                      {t('member.emailPhone', 'Email / Phone')}
+                    </TableCell>
+                    <TableCell>
+                      {t('member.nonRenewalsAutoRenew', 'Opted In')}
                     </TableCell>
                     <TableCell>
                       {t('member.nonRenewalsFeeStatus', 'Fee Status')}
+                    </TableCell>
+                    <TableCell align='center'>
+                      {t('member.nonRenewalsFlights', 'Flights')}
                     </TableCell>
                     <TableCell align='right'>
                       {t('member.nonRenewalsActions', 'Actions')}
@@ -347,6 +359,7 @@ export default function NonRenewals() {
                     const isRemoveLoading =
                       actionLoadingId === `remove-${member.memberId}`
                     const isChecked = selected.has(member.memberId)
+                    const hasFlightsThisYear = member.billableFlightCount > 0
                     const lastReminderDate = member.lastReminderSentAt
                       ? new Intl.DateTimeFormat('fi-FI', {
                           dateStyle: 'short',
@@ -359,8 +372,16 @@ export default function NonRenewals() {
                         key={member.memberId}
                         hover
                         selected={isChecked}
-                        onClick={() => !isBusy && toggleSelect(member.memberId)}
-                        sx={{ cursor: 'pointer' }}
+                        onClick={() =>
+                          !isBusy &&
+                          toggleSelect(member.memberId, hasFlightsThisYear)
+                        }
+                        sx={{
+                          cursor:
+                            isBusy || hasFlightsThisYear
+                              ? 'default'
+                              : 'pointer',
+                        }}
                       >
                         <TableCell
                           padding='checkbox'
@@ -369,8 +390,10 @@ export default function NonRenewals() {
                           <Checkbox
                             size='small'
                             checked={isChecked}
-                            onChange={() => toggleSelect(member.memberId)}
-                            disabled={isBusy}
+                            onChange={() =>
+                              toggleSelect(member.memberId, hasFlightsThisYear)
+                            }
+                            disabled={isBusy || hasFlightsThisYear}
                             slotProps={{
                               input: { 'aria-label': `select ${fullName}` },
                             }}
@@ -410,10 +433,7 @@ export default function NonRenewals() {
                               </IconButton>
                             </Tooltip>
                           </Stack>
-                        </TableCell>
-
-                        <TableCell>
-                          <Typography variant='body2'>
+                          <Typography variant='body2' color='text.secondary'>
                             {member.phoneNumber
                               ? formatPhoneNumber(member.phoneNumber)
                               : '—'}
@@ -432,22 +452,15 @@ export default function NonRenewals() {
                               variant='outlined'
                             />
                           ) : (
-                            <Tooltip
-                              title={t(
+                            <Chip
+                              label={t(
                                 'member.nonRenewalsAutoRenewOn',
-                                'Auto-renew enabled'
+                                'Opted In'
                               )}
-                            >
-                              <Box
-                                sx={{
-                                  color: 'success.main',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                }}
-                              >
-                                <Icon icon='mdi:check-circle' width={22} />
-                              </Box>
-                            </Tooltip>
+                              size='small'
+                              color='success'
+                              variant='outlined'
+                            />
                           )}
                         </TableCell>
 
@@ -514,6 +527,24 @@ export default function NonRenewals() {
                         </TableCell>
 
                         <TableCell
+                          align='center'
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {hasFlightsThisYear ? (
+                            <Chip
+                              label={member.billableFlightCount}
+                              size='small'
+                              color='error'
+                              variant='filled'
+                            />
+                          ) : (
+                            <Typography variant='body2' color='text.secondary'>
+                              0
+                            </Typography>
+                          )}
+                        </TableCell>
+
+                        <TableCell
                           align='right'
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -562,22 +593,40 @@ export default function NonRenewals() {
                               )}
                             </Stack>
 
-                            <Button
-                              size='small'
-                              variant='outlined'
-                              color='error'
-                              disabled={isBusy}
-                              startIcon={
-                                isRemoveLoading ? (
-                                  <Icon icon='mdi:loading' className='spin' />
-                                ) : (
-                                  <Icon icon='mdi:account-remove-outline' />
-                                )
-                              }
-                              onClick={() => handleRemoveMember(member)}
+                            <Tooltip
+                              title={t(
+                                'member.nonRenewalsRemoveDisabledFlights',
+                                'Members with flights in the current year cannot be removed or have their membership cancelled'
+                              )}
+                              disableHoverListener={!hasFlightsThisYear}
+                              disableFocusListener={!hasFlightsThisYear}
+                              disableTouchListener={!hasFlightsThisYear}
                             >
-                              {t('member.nonRenewalsRemoveMember', 'Remove')}
-                            </Button>
+                              <span>
+                                <Button
+                                  size='small'
+                                  variant='outlined'
+                                  color='error'
+                                  disabled={isBusy || hasFlightsThisYear}
+                                  startIcon={
+                                    isRemoveLoading ? (
+                                      <Icon
+                                        icon='mdi:loading'
+                                        className='spin'
+                                      />
+                                    ) : (
+                                      <Icon icon='mdi:account-remove-outline' />
+                                    )
+                                  }
+                                  onClick={() => handleRemoveMember(member)}
+                                >
+                                  {t(
+                                    'member.nonRenewalsRemoveMember',
+                                    'Remove'
+                                  )}
+                                </Button>
+                              </span>
+                            </Tooltip>
                           </Stack>
                         </TableCell>
                       </TableRow>

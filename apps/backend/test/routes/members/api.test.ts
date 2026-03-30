@@ -1161,7 +1161,36 @@ describe('GET /members/non-renewals', () => {
       expect(first).toHaveProperty('memberType')
       expect(first).toHaveProperty('lang')
       expect(first).toHaveProperty('feeStatus')
+      expect(first).toHaveProperty('billableFlightCount')
+      expect(typeof first.billableFlightCount).toBe('number')
     }
+  })
+
+  it('should return billableFlightCount as 0 for all members in 2026 (no 2026 flights in test data)', async () => {
+    const response = await query(adminToken, 2026)
+    expect(response.status).toBe(200)
+
+    const members = response.body.members as Array<{ billableFlightCount: number }>
+    expect(members.length).toBeGreaterThan(0)
+    expect(members.every(m => m.billableFlightCount === 0)).toBe(true)
+  })
+
+  it('should return non-zero billableFlightCount for members with 2025 billable flights', async () => {
+    const response = await query(adminToken, 2025)
+    expect(response.status).toBe(200)
+
+    const members = response.body.members as Array<{
+      memberId: string
+      billableFlightCount: number
+    }>
+    // Matti1 has 2 billable flights in V50 test data (takeoff epochs 1740816000, 1740996000 → Mar 2025)
+    const matti = members.find(m => m.memberId === 'Matti1')
+    expect(matti).toBeDefined()
+    expect(matti!.billableFlightCount).toBe(2)
+    // All counts must be non-negative integers
+    expect(
+      members.every(m => Number.isInteger(m.billableFlightCount) && m.billableFlightCount >= 0),
+    ).toBe(true)
   })
 })
 
