@@ -815,7 +815,7 @@ export async function getFlightLogTotals(registration?: string): Promise<FlightT
   return results.map(row => ({
     // there are no nullable values in the view, it is safe to use ! operator
     acTotalFlightTime: row.unverified_total_flight_time!,
-    acTotalFlightHours: row.unverified_total_flight_hours!,
+    acTotalFlightMins: row.unverified_total_flight_mins!,
     aircraftRegistration: row.aircraft_registration!,
     ajlbSeqNo: row.ajlb_seq_no!,
   }))

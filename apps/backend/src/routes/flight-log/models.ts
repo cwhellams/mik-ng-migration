@@ -416,7 +416,7 @@ export const FlightTimeTotalsSchema = z.object({
   aircraftRegistration: z.string(),
   ajlbSeqNo: z.number().int(),
   acTotalFlightTime: z.string(),
-  acTotalFlightHours: z.number(),
+  acTotalFlightMins: z.number(),
 })
 
 export type FlightTimeTotals = z.infer<typeof FlightTimeTotalsSchema>

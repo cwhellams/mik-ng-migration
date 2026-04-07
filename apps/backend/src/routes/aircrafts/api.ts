@@ -120,7 +120,7 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
   const maintenance = aircraft.maintenance
 
   const totals = (await getFlightLogTotals(aircraft.registration))?.[0]
-  const totalTime = totals?.acTotalFlightHours ?? 0
+  const totalMins = totals?.acTotalFlightMins ?? 0
 
   const lastFlight: FlightLogListEntry | undefined = (
     await getFlightLogs({
@@ -131,9 +131,9 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
     })
   ).logs?.[0]
 
-  const tachUntilNextMaintenance = Math.floor(maintenance.nextMaintenanceTach - totalTime)
-  const usableHours =
-    tachUntilNextMaintenance + maintenance.totalPercentageHours - maintenance.reservedHours
+  const minsUntilNextMaintenance = Math.floor(maintenance.nextMaintenanceMins - totalMins)
+  const usableMins =
+    minsUntilNextMaintenance + (maintenance.totalPercentageHours - maintenance.reservedHours) * 60
 
   const daysUntilNextMaintenance = maintenance.nextMaintenanceDate
     ? Math.max(0, daysUntilExpiration(maintenance.nextMaintenanceDate))
@@ -148,8 +148,8 @@ const aircraftStatus = async (aircraft: Aircraft): Promise<AircraftStatus> => {
     remainingFuelLitres: lastFlight ? Math.round(lastFlight?.fuelRemainingLitres) : undefined,
 
     daysUntilNextMaintenance,
-    tachUntilNextMaintenance,
-    usableHours,
+    minsUntilNextMaintenance,
+    usableMins,
 
     warnings: [],
     cautions: [],

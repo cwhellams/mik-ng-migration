@@ -175,6 +175,11 @@ describe('Aircraft Pricing Queries', () => {
       expect(result.valid_to).toBe(update.valid_to)
       expect(result.updated_by).toBe(testMemberId)
       expect(result.updated_at).toBeDefined()
+
+      // Restore original value
+      await updateAircraftPricing(toUpdate.registration, toUpdate.valid_from, {
+        valid_to: null,
+      })
     })
 
     it('should update pricing amount', async () => {
@@ -213,7 +218,7 @@ describe('Aircraft Pricing Queries', () => {
 
       // Restore original notes
       await updateAircraftPricing(toUpdate.registration, toUpdate.valid_from, {
-        notes: originalNotes ?? undefined,
+        notes: originalNotes,
       })
     })
 

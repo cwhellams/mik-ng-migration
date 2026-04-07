@@ -23,7 +23,7 @@ import { formatDateTime } from '../../../utils/date'
 import { useState } from 'react'
 import theme from '../../../theme/theme'
 import { ResponsiveTable } from '../../../components/ResponsiveTable'
-import { formatHHMM } from '../../flightLog/utils/timeUtils'
+import { formatHHMM } from '../../../utils/format'
 import { FormField } from '../../../components/FormField'
 import { Title } from '../../../components/Title'
 

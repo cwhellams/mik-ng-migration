@@ -11,16 +11,15 @@ INSERT INTO flight.aircraft (
         maintenance_cycle,
         last_maintenance_date,
         last_maintenance_type,
-        last_maintenance_tach,
+        last_maintenance_mins,
         next_maintenance_date,
         next_maintenance_type,
-        next_maintenance_tach,
+        next_maintenance_mins,
         total_percentage_hours,
         reserved_hours,
         location,
         notes,
         equipment,
-        hourly_rate_eur,
         created_at,
         updated_at,
         created_by,
@@ -40,10 +39,10 @@ VALUES (
         50,
         '2024-04-15',
         '50h',
-        5180.00,
+        5180*60,
         '2025-05-05',
         '50h',
-        5230,
+        5230*60,
         5,
         2,
         'EFNU',
@@ -54,10 +53,14 @@ VALUES (
         ) ]
     ),
     'SFD',
-    228.00,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP,
     'k1mnimda',
     'k1mnimda',
     'https://cdn.jetphotos.com/full/6/927368_1715977239.jpg'
 ) ON CONFLICT (registration) DO NOTHING;
+
+-- Fix test data after V620__AlterAircraftReseredHoursField.sql
+UPDATE flight.aircraft
+SET reserved_hours = total_percentage_hours - reserved_hours
+WHERE registration = 'OH-STL' OR registration = 'OH-IHQ';

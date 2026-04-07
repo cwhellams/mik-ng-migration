@@ -49,11 +49,11 @@ export const migratePlanes = async () => {
 
         lastMaintenanceDate: '2000-01-01',
         lastMaintenanceType: '0h',
-        lastMaintenanceTach: 1,
+        lastMaintenanceMins: 1,
 
         nextMaintenanceDate: null,
         nextMaintenanceType: '50h',
-        nextMaintenanceTach: 50,
+        nextMaintenanceMins: 50,
 
         totalPercentageHours: 5,
         reservedHours: 3,

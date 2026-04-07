@@ -30,7 +30,7 @@ else
         -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
         -e POSTGRES_DB=$POSTGRES_DB \
         -p $HOST_PORT:$CONTAINER_PORT \
-        -v $VOLUME_NAME:/var/lib/postgresql/data \
+        -v $VOLUME_NAME:/var/lib/postgresql \
         --restart unless-stopped \
         $IMAGE_NAME
 fi

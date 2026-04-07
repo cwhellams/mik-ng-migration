@@ -52,6 +52,7 @@ import { RemoveButton } from '../../components/RemoveButton'
 import { AircraftPricing } from '@backend/routes/aircraft-pricing/models'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { mutate } from 'swr'
+import { formatHHMM } from '../../utils/format'
 
 const Aircrafts = () => {
   const { data, isLoading, error } = useApi<AircraftListResponse, Aircraft>({
@@ -481,11 +482,11 @@ const Aircrafts = () => {
                           {t('aircraft.maintenanceHours', {
                             ...aircraft.maintenance,
                             ...aircraft.status,
-                            tachUntilNextMaintenance: aircraft.status
-                              ? Math.max(
-                                  0,
-                                  aircraft.status?.tachUntilNextMaintenance
-                                )
+                            nextMaintenanceTime: formatHHMM(
+                              aircraft.maintenance.nextMaintenanceMins
+                            ),
+                            usableTime: aircraft.status
+                              ? formatHHMM(aircraft.status?.usableMins)
                               : undefined,
                           })}
 
@@ -498,7 +499,8 @@ const Aircrafts = () => {
                           limit={-aircraft.maintenance.totalPercentageHours}
                           reserved={aircraft.maintenance.reservedHours}
                           current={
-                            aircraft.status?.tachUntilNextMaintenance ?? 0
+                            (aircraft.status?.minsUntilNextMaintenance ?? 0) /
+                            60
                           }
                           max={aircraft.maintenance.maintenanceCycle}
                         />

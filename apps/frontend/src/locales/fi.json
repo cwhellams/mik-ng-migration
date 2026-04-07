@@ -207,7 +207,7 @@
     "documents": "Dokumentit",
     "missingDocuments": "Puuttuvat asiakirjat",
     "totalTime": "Viimeinen laskeutuminen {{lastLanding}}, tunnit {{totalTime}}, polttoainetta jäljellä {{remainingFuelLitres}} litraa ({{remainingFuelGallons}} USG). ",
-    "maintenanceHours": "Seuraava {{nextMaintenanceType}} huolto tunneilla {{nextMaintenanceTach}}, {{tachUntilNextMaintenance}} lentotuntia jäljellä, käytettävissä {{usableHours}}h ennen siirtolentoa. ",
+    "maintenanceHours": "Seuraava {{nextMaintenanceType}} huolto tunneilla {{nextMaintenanceTime}}, Käytettävissä {{usableTime}} lentotuntia ennen siirtolentoa. ",
     "maintenanceDays": "Huoltoon {{daysUntilNextMaintenance}} päivää.",
     "tabs": {
       "info": "Tiedot",
@@ -334,7 +334,6 @@
       "lastMaintenance": "Viimeinen huolto",
       "date": "Päivä",
       "type": "Huollon tyyppi",
-      "tach": "Tunnit",
       "nextMaintenance": "Seuraava huolto",
       "totalPercentageHours": "Sallitut %-tunnit",
       "reservedHours": "Varatut tunnit"

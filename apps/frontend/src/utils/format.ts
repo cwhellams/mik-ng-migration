@@ -73,3 +73,11 @@ export const eurFormatter = new Intl.NumberFormat('fi-FI', {
   currency: 'EUR',
   minimumFractionDigits: 2,
 })
+
+export const formatHHMM = (minutes: number): string => {
+  const sign = minutes < 0 ? '-' : ''
+  const absMinutes = Math.abs(minutes)
+  const hrs = Math.trunc(absMinutes / 60)
+  const mins = absMinutes % 60
+  return `${sign}${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
+}

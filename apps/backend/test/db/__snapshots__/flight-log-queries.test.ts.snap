@@ -139,19 +139,19 @@ exports[`Db insert tests insertFlightLog inserts a new flight log to the db, que
 exports[`Db query FlightLog tests getFlightLogTotals returns totals for all ac 1`] = `
 [
   {
-    "acTotalFlightHours": 6118.666666666667,
+    "acTotalFlightMins": 367120,
     "acTotalFlightTime": "6118:40",
     "aircraftRegistration": "OH-IHQ",
     "ajlbSeqNo": 2,
   },
   {
-    "acTotalFlightHours": 5230.166666666667,
+    "acTotalFlightMins": 313810,
     "acTotalFlightTime": "5230:10",
     "aircraftRegistration": "OH-P28",
     "ajlbSeqNo": 4,
   },
   {
-    "acTotalFlightHours": 4783.333333333333,
+    "acTotalFlightMins": 287000,
     "acTotalFlightTime": "4783:20",
     "aircraftRegistration": "OH-STL",
     "ajlbSeqNo": 2,
@@ -162,7 +162,7 @@ exports[`Db query FlightLog tests getFlightLogTotals returns totals for all ac 1
 exports[`Db query FlightLog tests getFlightLogTotals returns totals for single ac 1`] = `
 [
   {
-    "acTotalFlightHours": 4783.333333333333,
+    "acTotalFlightMins": 287000,
     "acTotalFlightTime": "4783:20",
     "aircraftRegistration": "OH-STL",
     "ajlbSeqNo": 2,

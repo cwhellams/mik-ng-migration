@@ -30,7 +30,7 @@ export const UpdateAircraftPricingSchema = z.object({
   valid_to: z.string().date().nullable().optional(),
   price_per_min: z.number().positive().optional(),
   updated_by: z.string().max(9).optional(),
-  notes: z.string().optional(),
+  notes: z.string().nullish(),
 })
 
 export type UpdateAircraftPricing = z.infer<typeof UpdateAircraftPricingSchema>

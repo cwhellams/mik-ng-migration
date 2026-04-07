@@ -14,7 +14,6 @@ import { problemErrorHandler } from '../../../src/routes/response.ts'
 import type { Upsert } from '../../../src/types/schema.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { db } from '../../../src/db/connection.ts'
-import dayjs from 'dayjs'
 
 // Create an instance of the Express app
 const app = express()
@@ -71,16 +70,8 @@ afterAll(() => {
 
 afterEach(async () => {
   // Clean up test data
-  await db
-    .deleteFrom('flight.occurrence_access')
-    .where('report_id', 'not like', 'SMS%')
-    .where('updated_at', '>', dayjs().subtract(1, 'minute').toDate())
-    .execute()
-  await db
-    .deleteFrom('flight.occurrences')
-    .where('report_id', 'not like', 'SMS%')
-    .where('created_by', '>', dayjs().subtract(1, 'minute').toISOString())
-    .execute()
+  await db.deleteFrom('flight.occurrence_access').where('report_id', 'not like', 'SMS%').execute()
+  await db.deleteFrom('flight.occurrences').where('report_id', 'not like', 'SMS%').execute()
 })
 
 describe('GET /occurrences', () => {

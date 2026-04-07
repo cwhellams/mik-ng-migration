@@ -5,6 +5,7 @@ import {
   updateMemberBrevoSyncStatus,
   getBrevoSyncStatusCounts,
 } from '../../src/db/brevo-sync-queries.ts'
+import { db } from '../../src/db/connection.ts'
 
 describe('Brevo sync queries', () => {
   describe('getLastBrevoSyncState', () => {
@@ -99,6 +100,8 @@ describe('Brevo sync queries', () => {
         expect(updatedMember.brevo_contact_id).toBe(contactId)
         expect(updatedMember.brevo_synced_at).not.toBeNull()
       }
+
+      await db.updateTable('member.register').set({ brevo_contact_id: null }).execute()
     })
 
     it('should update member sync status to failed', async () => {

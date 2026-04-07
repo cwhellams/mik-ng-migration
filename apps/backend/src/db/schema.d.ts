@@ -164,17 +164,16 @@ export interface FlightAircraft {
   display_name: string
   equipment: string | null
   fuel_types: string[]
-  hourly_rate_eur: Numeric
   image_url: string | null
   last_maintenance_date: string
-  last_maintenance_tach: number
+  last_maintenance_mins: number
   last_maintenance_type: string
   location: string | null
   maintenance_cycle: number
   manufacturer: string
   model: string
   next_maintenance_date: string | null
-  next_maintenance_tach: number
+  next_maintenance_mins: number
   next_maintenance_type: string
   notes: Json | null
   registration: string
@@ -368,7 +367,7 @@ export interface FlightVwFlightTimeTotals {
   sum_new_time: string | null
   sum_validated_flights: number | null
   sum_validated_time: string | null
-  unverified_total_flight_hours: Numeric | null
+  unverified_total_flight_mins: number | null
   unverified_total_flight_time: string | null
   validated_on_block_time_utc: Timestamp | null
   validated_total_flight_mins: number | null

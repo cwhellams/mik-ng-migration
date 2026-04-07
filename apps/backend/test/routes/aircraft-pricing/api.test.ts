@@ -150,6 +150,7 @@ describe('POST /aircraft-pricing', () => {
       .where('registration', '=', newPricing.registration)
       .where('valid_from', '=', newPricing.valid_from)
       .execute()
+    await db.updateTable('accts.aircraft_pricing').set({ valid_to: null }).execute()
   })
 
   it('should return 401 for invalid token', async () => {
@@ -304,10 +305,11 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
     expect(response.body.updated_by).toBe('k1mnimda')
 
     // Restore original state
-    await request(app)
-      .patch('/aircraft-pricing/OH-STL/2025-01-01')
+    const cleared = await request(app)
+      .patch('/aircraft-pricing/OH-STL/2025-12-01')
       .set('Cookie', `accessToken=${adminToken}`)
       .send({ notes: null })
+    expect(cleared.status).toBe(200)
   })
 
   it('should update price_per_min', async () => {
@@ -361,6 +363,11 @@ describe('PATCH /aircraft-pricing/:registration/:validFrom', () => {
 })
 
 describe('DELETE /aircraft-pricing/:registration/:validFrom', () => {
+  afterEach(async () => {
+    // Clean up test data
+    await db.updateTable('accts.aircraft_pricing').set({ valid_to: null }).execute()
+  })
+
   it('should return 401 for invalid token', async () => {
     const response = await request(app)
       .delete('/aircraft-pricing/OH-STL/2025-01-01')

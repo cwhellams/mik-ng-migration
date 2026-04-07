@@ -8,11 +8,11 @@ export const AircraftMaintenanceRecordSchema = z.object({
 
   lastMaintenanceDate: z.string().date(),
   lastMaintenanceType: z.string(),
-  lastMaintenanceTach: z.number().int(),
+  lastMaintenanceMins: z.number().int(),
 
   nextMaintenanceDate: z.string().date().nullable(),
   nextMaintenanceType: z.string(),
-  nextMaintenanceTach: z.number().int(),
+  nextMaintenanceMins: z.number().int(),
 
   totalPercentageHours: z.number().int(),
   reservedHours: z.number().int(),
@@ -55,8 +55,8 @@ export const AircraftStatusSchema = z.object({
   remainingFuelLitres: z.number().optional(),
 
   daysUntilNextMaintenance: z.number().int().optional(),
-  tachUntilNextMaintenance: z.number().int(),
-  usableHours: z.number().int(),
+  minsUntilNextMaintenance: z.number().int(),
+  usableMins: z.number().int(),
 
   warnings: z.array(AircraftAlertSchema),
   cautions: z.array(AircraftAlertSchema),
@@ -85,7 +85,7 @@ export const AircraftSchema = AuditableSchema.extend({
   location: z.string().nullable(),
   equipment: z.string().nullable(),
 
-  hourlyRateEur: z.coerce.number(),
+  hourlyRateEur: z.number().readonly().optional(),
   imageUrl: z.string().url().optional().nullable(),
 })
 

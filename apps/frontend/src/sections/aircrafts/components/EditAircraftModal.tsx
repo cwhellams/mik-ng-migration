@@ -43,6 +43,7 @@ import { EditButton } from '../../../components/EditButton'
 import { SaveButton } from '../../../components/SaveButton'
 import { Problem } from '@backend/routes/response'
 import { SnackAlert } from '../../../components/SnackAlert'
+import { HoursAndMinutes } from '../../flightLog/components/HoursAndMinutes'
 
 export type AircraftEditMode = 'new' | 'details' | 'maintenance' | 'notes'
 
@@ -93,10 +94,10 @@ export const EditAircraftModal = ({
           maintenanceCycle: 50,
           lastMaintenanceDate: '2020-01-01',
           lastMaintenanceType: '0h',
-          lastMaintenanceTach: 1,
+          lastMaintenanceMins: 60,
           nextMaintenanceDate: null,
           nextMaintenanceType: '50h',
-          nextMaintenanceTach: 50,
+          nextMaintenanceMins: 300,
           totalPercentageHours: 5,
           reservedHours: 2,
         },
@@ -197,10 +198,10 @@ export const EditAircraftModal = ({
           lastMaintenanceDate:
             m.nextMaintenanceDate ?? dayjs().format('YYYY-MM-DD'),
           lastMaintenanceType: m.nextMaintenanceType,
-          lastMaintenanceTach: m.nextMaintenanceTach,
+          lastMaintenanceMins: m.nextMaintenanceMins,
           nextMaintenanceDate: null,
           nextMaintenanceType: m.maintenanceCycle.toString(),
-          nextMaintenanceTach: m.nextMaintenanceTach + m.maintenanceCycle,
+          nextMaintenanceMins: m.nextMaintenanceMins + m.maintenanceCycle * 60,
         },
       }
     })
@@ -468,14 +469,24 @@ export const EditAircraftModal = ({
     </Grid>
   )
 
-  const maintenanceCard = (
-    titleKey: string,
-    icon: string,
-    dateKey: keyof Aircraft['maintenance'],
-    typeKey: keyof Aircraft['maintenance'],
-    tachKey: keyof Aircraft['maintenance']
-  ) => {
+  const MaintenanceCard = ({
+    titleKey,
+    icon,
+    dateKey,
+    typeKey,
+    minutesKey,
+  }: {
+    titleKey: string
+    icon: string
+    dateKey: keyof Aircraft['maintenance']
+    typeKey: keyof Aircraft['maintenance']
+    minutesKey: keyof Aircraft['maintenance']
+  }) => {
     const next = dateKey.includes('next')
+
+    const mins = Number(formData.maintenance?.[minutesKey] ?? 0)
+    const [currentHours, setCurrentHours] = useState(Math.floor(mins / 60))
+    const [currentMinutes, setCurrentMinutes] = useState(mins % 60)
     return (
       <Card>
         <CardContent>
@@ -512,16 +523,27 @@ export const EditAircraftModal = ({
                 handleMaintenanceChange(typeKey, target.value)
               }
             />
-            <TextField
-              fullWidth
-              required
-              type='number'
-              inputMode='numeric'
-              label={t('aircraft.maintenance.tach')}
-              value={formData.maintenance?.[tachKey] ?? ''}
-              onChange={({ target }) =>
-                handleMaintenanceChange(tachKey, Number(target.value))
-              }
+            <HoursAndMinutes
+              currentHours={currentHours}
+              currentMinutes={currentMinutes}
+              setCurrentHours={(hours) => {
+                if (hours !== null) {
+                  setCurrentHours(hours)
+                  handleMaintenanceChange(
+                    minutesKey,
+                    hours * 60 + currentMinutes
+                  )
+                }
+              }}
+              setCurrentMinutes={(minutes) => {
+                if (minutes !== null) {
+                  setCurrentMinutes(minutes)
+                  handleMaintenanceChange(
+                    minutesKey,
+                    Number(currentHours * 60 + minutes)
+                  )
+                }
+              }}
             />
           </Stack>
         </CardContent>
@@ -656,20 +678,20 @@ export const EditAircraftModal = ({
           {mode == 'maintenance' && (
             <>
               {renderMaintenanceForm()}
-              {maintenanceCard(
-                'aircraft.maintenance.lastMaintenance',
-                'mdi:wrench-check',
-                'lastMaintenanceDate',
-                'lastMaintenanceType',
-                'lastMaintenanceTach'
-              )}
-              {maintenanceCard(
-                'aircraft.maintenance.nextMaintenance',
-                'mdi:wrench-clock',
-                'nextMaintenanceDate',
-                'nextMaintenanceType',
-                'nextMaintenanceTach'
-              )}
+              <MaintenanceCard
+                titleKey='aircraft.maintenance.lastMaintenance'
+                icon='mdi:wrench-check'
+                dateKey='lastMaintenanceDate'
+                typeKey='lastMaintenanceType'
+                minutesKey='lastMaintenanceMins'
+              />
+              <MaintenanceCard
+                titleKey='aircraft.maintenance.nextMaintenance'
+                icon='mdi:wrench-clock'
+                dateKey='nextMaintenanceDate'
+                typeKey='nextMaintenanceType'
+                minutesKey='nextMaintenanceMins'
+              />
             </>
           )}
           {mode == 'notes' && <>{notesCard()}</>}

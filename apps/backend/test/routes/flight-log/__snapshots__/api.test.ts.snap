@@ -440,7 +440,7 @@ exports[`GET /flight-log/flightid should return flights for the logged in user w
 
 exports[`GET /flight-log/totals should return 200 with all ac totals 1`] = `
 {
-  "acTotalFlightHours": 5230.166666666667,
+  "acTotalFlightMins": 313810,
   "acTotalFlightTime": "5230:10",
   "aircraftRegistration": "OH-P28",
   "ajlbSeqNo": 4,
@@ -449,7 +449,7 @@ exports[`GET /flight-log/totals should return 200 with all ac totals 1`] = `
 
 exports[`GET /flight-log/totals should return 200 with valid registration 1`] = `
 {
-  "acTotalFlightHours": 4783.333333333333,
+  "acTotalFlightMins": 287000,
   "acTotalFlightTime": "4783:20",
   "aircraftRegistration": "OH-STL",
   "ajlbSeqNo": 2,
