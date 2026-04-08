@@ -55,6 +55,7 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          globIgnores: ['**/index.html'], // Exclude index.html from precaching
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
           // Prevent the SPA navigation fallback from intercepting /t/:code redirect URLs.
           // Must match the full URL (e.g. https://intra.mik.fi/t/2cQ3), not just the path.
