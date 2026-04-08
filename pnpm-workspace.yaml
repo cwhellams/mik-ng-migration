@@ -1,3 +1,7 @@
+strictDepBuilds: true
+trustPolicy: off
+ignoreScripts: true
+ignoreDepScripts: true
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'packages/*'
