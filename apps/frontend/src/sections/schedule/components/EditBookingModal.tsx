@@ -42,6 +42,7 @@ import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../../components/SaveButton'
 import { RemoveButton } from '../../../components/RemoveButton'
 import { DateTimeValidationError } from '@mui/x-date-pickers/models'
+import { getHelsinkiOffsetLabel, HELSINKI_TIMEZONE } from '../../../utils/date'
 
 export type BookingFlags = {
   isNewBooking: boolean
@@ -217,10 +218,13 @@ export const BookingEditor = ({
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>
             <DateTimePicker
-              label={t('schedule.startDate')}
+              label={t('schedule.startDate', {
+                tz: getHelsinkiOffsetLabel(startDate.date.unix() * 1000),
+              })}
               disabled={isReadonly}
               value={startDate.date}
               format='DD.MM.YYYY HH:mm'
+              timezone={HELSINKI_TIMEZONE}
               minDateTime={minDate}
               minutesStep={15}
               onError={(reason) => {
@@ -257,10 +261,13 @@ export const BookingEditor = ({
 
           <Grid size={{ xs: 12, sm: 6 }}>
             <DateTimePicker
-              label={t('schedule.endDate')}
+              label={t('schedule.endDate', {
+                tz: getHelsinkiOffsetLabel(endDate.date.unix() * 1000),
+              })}
               disabled={isReadonly}
               value={endDate.date}
               format='DD.MM.YYYY HH:mm'
+              timezone={HELSINKI_TIMEZONE}
               minDateTime={minDate}
               minutesStep={15}
               onError={(reason) => {

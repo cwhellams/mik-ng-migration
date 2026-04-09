@@ -18,11 +18,8 @@ import {
 } from 'react-hook-form'
 import { Icon } from '@iconify/react'
 import { useEffect, useMemo, useState } from 'react'
-import {
-  formatClockTime,
-  getHelsinkiOffsetLabel,
-  useServerClock,
-} from '../../../hooks/useServerClock'
+import { useServerClock } from '../../../hooks/useServerClock'
+import { formatClockTime, getHelsinkiOffsetLabel } from '../../../utils/date'
 import {
   FlightLog,
   FlightLogUpsertRequest,

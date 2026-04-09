@@ -4,6 +4,7 @@ import dayjs from 'dayjs'
 import theme from '../../../theme/theme'
 import { formatDuration } from '../../flightLog/utils/timeUtils'
 import { useTranslation } from 'react-i18next'
+import { toHelsinki } from '../../../utils/date'
 
 const showDiff = (previous?: dayjs.Dayjs, next?: dayjs.Dayjs) => {
   if (!previous || !next) {
@@ -55,7 +56,9 @@ export const BookingTimeline = ({
         </Typography>
         <Typography variant='caption' color='text.secondary'>
           {previousEndDate
-            ? t('schedule.ends', { at: previousEndDate.format('D.M. HH:mm') })
+            ? t('schedule.ends', {
+                at: toHelsinki(previousEndDate).format('D.M. HH:mm'),
+              })
             : t('schedule.noPreviousBooking')}
         </Typography>
       </Box>
@@ -94,7 +97,9 @@ export const BookingTimeline = ({
         </Typography>
         <Typography variant='caption' color='text.secondary'>
           {nextStartDate
-            ? t('schedule.starts', { at: nextStartDate.format('D.M. HH:mm') })
+            ? t('schedule.starts', {
+                at: toHelsinki(nextStartDate).format('D.M. HH:mm'),
+              })
             : t('schedule.noNextBooking')}
         </Typography>
       </Box>

@@ -8,13 +8,13 @@ import {
   TableBody,
   useMediaQuery,
 } from '@mui/material'
-import dayjs from 'dayjs'
 import { t } from 'i18next'
 import theme from '../../../theme/theme'
 import { Booking } from '@backend/routes/bookings/models'
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { formatDuration } from '../../flightLog/utils/timeUtils'
+import { toHelsinki } from '../../../utils/date'
 
 export const BookingTable = ({
   bookings,
@@ -38,8 +38,8 @@ export const BookingTable = ({
         </TableHead>
         <TableBody>
           {bookings.map((booking) => {
-            const start = dayjs(booking.startTime)
-            const end = dayjs(booking.endTime)
+            const start = toHelsinki(booking.startTime)
+            const end = toHelsinki(booking.endTime)
 
             return (
               <TableRow key={booking.bookingId}>
