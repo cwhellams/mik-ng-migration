@@ -11,9 +11,9 @@ import {
 import dayjs from 'dayjs'
 import { t } from 'i18next'
 import theme from '../../../theme/theme'
-import { Link } from 'react-router-dom'
 import { formatDuration } from '../../flightLog/utils/timeUtils'
 import { FlightLogListEntry } from '@backend/routes/flight-log/models'
+import { formatDate } from '../../../utils/date'
 
 export const FlightTable = ({ flights }: { flights: FlightLogListEntry[] }) => {
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
@@ -23,10 +23,10 @@ export const FlightTable = ({ flights }: { flights: FlightLogListEntry[] }) => {
       <Table size={isXs ? 'small' : 'medium'}>
         <TableHead sx={{ backgroundColor: theme.palette.grey[200] }}>
           <TableRow>
-            <TableCell>{t('schedule.calendarMessages.date')}</TableCell>
-            <TableCell>{t('schedule.calendarMessages.time')}</TableCell>
-            <TableCell>{t('schedule.duration')}</TableCell>
-            <TableCell>{t('schedule.calendarMessages.event')}</TableCell>
+            <TableCell>{t('flightLog.date')}</TableCell>
+            <TableCell>{t('flightLog.times')}</TableCell>
+            <TableCell>{t('flightLog.duration')}</TableCell>
+            <TableCell>{t('flightLog.event')}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -36,11 +36,7 @@ export const FlightTable = ({ flights }: { flights: FlightLogListEntry[] }) => {
 
             return (
               <TableRow key={flight.flightId}>
-                <TableCell>
-                  <Link to={`/schedule/?day=${start.format('YYYY-MM-DD')}`}>
-                    {start.format('DD.MM.')}
-                  </Link>
-                </TableCell>
+                <TableCell>{formatDate(start)}</TableCell>
                 <TableCell>
                   {start.format('HH:mm')} -{' '}
                   {start.diff(end, 'day') == 0

@@ -227,14 +227,13 @@ const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response): void =>
     path: '/api/auth/refresh',
   })
 
-  //Access token also stored to httpOnly cookie
+  // Access token also stored to httpOnly cookie.
+  // The cookie has no expiration date so that browsers will send the cookie
+  // and the requests do not get rate-limited.
   res.cookie('accessToken', generateAccessToken(user), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    expires: dayjs()
-      .add(ms(process.env.ACCESS_TOKEN_EXPIRATION as ms.StringValue), 'milliseconds')
-      .toDate(),
     // Make access token available to all API endpoints and allow logout to clear it reliably
     path: '/',
   })

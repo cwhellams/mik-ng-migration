@@ -7,7 +7,6 @@ import {
 } from 'react'
 import {
   Calendar,
-  dayjsLocalizer,
   Event,
   EventProps,
   EventPropGetter,
@@ -16,6 +15,7 @@ import {
   View,
   Views,
 } from 'react-big-calendar'
+import { dayjsLocalizerTz } from './dayjsLocalizerTz'
 
 import withDragAndDrop, {
   withDragAndDropProps,
@@ -27,7 +27,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 // https://github.com/jquense/react-big-calendar/issues/2739
 import './styles.css'
 
-import { dayjs } from '../../utils/date'
+import { dayjs, HELSINKI_TIMEZONE } from '../../utils/date'
 import { useTranslation } from 'react-i18next'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
 import {
@@ -86,8 +86,7 @@ const colors: Record<string, string> = {
   'OH-IHQ-TRAINING': '#dcbcd59c',
 }
 
-const localizer = dayjsLocalizer(dayjs)
-
+const localizer = dayjsLocalizerTz()
 const DnDCalendar = withDragAndDrop<BookingEvent>(Calendar)
 
 const CalendarEvent = ({ event }: EventProps<BookingEvent>) => {
@@ -228,6 +227,14 @@ const Schedule = () => {
     }),
     [t]
   )
+
+  // show calendar events always in Helsinki timezone
+  useEffect(() => {
+    dayjs.tz.setDefault(HELSINKI_TIMEZONE)
+    return () => {
+      dayjs.tz.setDefault() // reset to browser TZ on unmount
+    }
+  }, [])
 
   useEffect(() => {
     const date = dayjs(currentDate)

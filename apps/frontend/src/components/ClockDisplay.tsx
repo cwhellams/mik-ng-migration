@@ -1,10 +1,7 @@
 import { Box, Tooltip, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
-import {
-  formatClockTime,
-  getHelsinkiOffsetLabel,
-  useServerClock,
-} from '../hooks/useServerClock'
+import { useServerClock } from '../hooks/useServerClock'
+import { formatClockTime, getHelsinkiOffsetLabel } from '../utils/date'
 
 interface ClockDisplayProps {
   /** When true, show HH:MM:SS; when false, show HH:MM only */

@@ -100,33 +100,3 @@ export const ServerClockProvider = ({
 /** Returns the server-authoritative clock state. Must be within <ServerClockProvider>. */
 export const useServerClock = (): ServerClockState =>
   useContext(ServerClockContext)
-
-// ── Formatting helpers so consumers don't have to re-implement ────────────────
-
-/** Format a UTC epoch (ms) into HH:MM:SS for the given IANA timezone. */
-export const formatClockTime = (
-  utcMs: number,
-  timeZone: string,
-  includeSeconds = true
-): string => {
-  return new Intl.DateTimeFormat('en-GB', {
-    timeZone,
-    hour: '2-digit',
-    minute: '2-digit',
-    ...(includeSeconds ? { second: '2-digit' } : {}),
-    hour12: false,
-  }).format(new Date(utcMs))
-}
-
-/** Returns the UTC offset label for Helsinki, e.g. "UTC+3" or "UTC+2". */
-export const getHelsinkiOffsetLabel = (utcMs: number): string => {
-  // 'shortOffset' gives "GMT+3" — replace with UTC for aviation convention.
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Europe/Helsinki',
-    timeZoneName: 'shortOffset',
-  })
-    .formatToParts(new Date(utcMs))
-    .find((p) => p.type === 'timeZoneName')
-
-  return parts?.value.replace('GMT', 'UTC') ?? 'HEL'
-}
