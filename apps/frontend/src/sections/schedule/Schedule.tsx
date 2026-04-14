@@ -222,8 +222,8 @@ const Schedule = () => {
       messages: t('schedule.calendarMessages', {
         returnObjects: true,
       }) as Messages,
-      min: new Date(2000, 1, 1, 7, 0, 0),
-      max: new Date(2000, 1, 1, 22, 0, 0),
+      min: dayjs.tz('2000-01-01T07:00:00', HELSINKI_TIMEZONE).toDate(),
+      max: dayjs.tz('2000-01-01T22:00:00', HELSINKI_TIMEZONE).toDate(),
     }),
     [t]
   )
