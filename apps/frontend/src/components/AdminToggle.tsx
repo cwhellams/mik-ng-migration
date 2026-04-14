@@ -18,7 +18,9 @@ const AdminToggle = () => {
     MIKPermissions.AIRCRAFT_ADMIN,
     MIKPermissions.INVOICING_ADMIN,
     MIKPermissions.ACCESS_CODES_ADMIN,
-    MIKPermissions.DOCUMENT_ADMIN
+    MIKPermissions.DOCUMENT_ADMIN,
+    MIKPermissions.SMS_PROCESSOR,
+    MIKPermissions.SMS_MANAGER
   )
 
   if (!canUseAdminMode) {
