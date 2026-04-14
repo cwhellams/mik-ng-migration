@@ -14,6 +14,7 @@ export enum SimplbooksEventType {
   NEW_MEMBER_FEES = 'newMemberFees',
   EQUIPMENT_INVOICE = 'equipmentInvoice',
   FLIGHT_INVOICE = 'flightInvoice',
+  SHOP_ORDER_INVOICE = 'shopOrderInvoice',
   REIMBURSEMENT = 'reimbursement',
   SEND_INVOICE_PDF = 'sendInvoicePdf',
   CREDIT_NOTE = 'creditNote',
@@ -35,6 +36,7 @@ export enum MIKInvoiceType {
   INSTRUCTION = 'INSTRUCTION',
   MISC = 'MISC',
   CREDIT_NOTE = 'CREDIT_NOTE',
+  SHOP_ORDER = 'SHOP_ORDER',
 }
 
 export enum RecurringFeeType {
@@ -295,6 +297,14 @@ export const InvoiceListResponseSchema = z.object({
 
 export type InvoiceListResponse = z.infer<typeof InvoiceListResponseSchema>
 export type InvoiceListItem = z.infer<typeof InvoiceListSchema>
+
+export const ShopOrderInvoicePayloadSchema = z
+  .object({
+    orderId: z.string().min(1),
+  })
+  .strict()
+
+export type ShopOrderInvoicePayload = z.infer<typeof ShopOrderInvoicePayloadSchema>
 
 export const ArticleListSchema = z
   .object({

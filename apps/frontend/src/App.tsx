@@ -41,6 +41,18 @@ import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
 import LogbookFlights from './sections/flightLog/LogbookPage'
 import Outbox from './sections/admin/Outbox'
 import NonRenewals from './sections/admin/NonRenewals'
+import ShopPage from './sections/shop/ShopPage'
+import ProductPage from './sections/shop/ProductPage'
+import CartPage from './sections/shop/CartPage'
+import OrdersPage from './sections/shop/OrdersPage'
+import OrderDetailPage from './sections/shop/OrderDetailPage'
+import MyFlightPackagesPage from './sections/shop/MyFlightPackagesPage'
+import ShopAdminDashboard from './sections/admin/shop/ShopAdminDashboard'
+import ProductsAdmin from './sections/admin/shop/ProductsAdmin'
+import CategoriesAdmin from './sections/admin/shop/CategoriesAdmin'
+import OrdersAdmin from './sections/admin/shop/OrdersAdmin'
+import DiscountCodesAdmin from './sections/admin/shop/DiscountCodesAdmin'
+import FlightPackagesAdmin from './sections/admin/shop/FlightPackagesAdmin'
 import { ServerClockProvider } from './hooks/useServerClock'
 
 function App() {
@@ -118,10 +130,33 @@ function App() {
                 <Route path='tools' element={<ToolsPage />} />
                 <Route path='tax-report' element={<TaxReport />} />
               </Route>
+              <Route path='/shop'>
+                <Route index element={<ShopPage />} />
+                <Route path='products/:id' element={<ProductPage />} />
+                <Route path='cart' element={<CartPage />} />
+                <Route path='orders' element={<OrdersPage />} />
+                <Route
+                  path='flight-packages'
+                  element={<MyFlightPackagesPage />}
+                />
+                <Route path='orders/:orderId' element={<OrderDetailPage />} />
+              </Route>
               <Route path='/admin'>
                 <Route index element={<Navigate to='outbox' replace />} />
                 <Route path='outbox' element={<Outbox />} />
                 <Route path='non-renewals' element={<NonRenewals />} />
+                <Route path='shop' element={<ShopAdminDashboard />} />
+                <Route path='shop/products' element={<ProductsAdmin />} />
+                <Route path='shop/categories' element={<CategoriesAdmin />} />
+                <Route path='shop/orders' element={<OrdersAdmin />} />
+                <Route
+                  path='shop/discount-codes'
+                  element={<DiscountCodesAdmin />}
+                />
+                <Route
+                  path='shop/flight-packages'
+                  element={<FlightPackagesAdmin />}
+                />
               </Route>
             </Route>
 

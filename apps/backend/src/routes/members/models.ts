@@ -39,6 +39,12 @@ export enum MIKPermissions {
 
   // can view and manage the SimplBooks outbox (admin only, no user downgrade)
   OUTBOX_ADMIN = 'outbox.admin',
+
+  // can browse and purchase from the shop
+  STORE_USER = 'store.user',
+
+  // can manage products, categories, orders and flight hour packages
+  STORE_ADMIN = 'store.admin',
 }
 
 // admins can be downgraded to user permissions when not in sudo mode
@@ -58,6 +64,8 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
       return MIKPermissions.ACCESS_CODES_USER
     case MIKPermissions.DOCUMENT_ADMIN:
       return MIKPermissions.DOCUMENT_USER
+    case MIKPermissions.STORE_ADMIN:
+      return MIKPermissions.STORE_USER
 
     // no separate user roles for SMS or outbox permissions
     case MIKPermissions.SMS_PROCESSOR:

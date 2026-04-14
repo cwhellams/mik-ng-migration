@@ -6,6 +6,7 @@ import {
   mapMemberToClient,
   MIKInvoiceType,
   RecurringFeeType,
+  ShopOrderInvoicePayloadSchema,
   SimplbooksEventType,
   SimplbooksStatus,
   type AcctsOutboxSimplbooks,
@@ -18,6 +19,7 @@ import {
   createNewClient,
   updateClient,
   findClientByEmail,
+  getItemByCode,
   createSimplbooksInvoice,
   getInvoice,
   markInvoiceAsSentInSimplbooks,
@@ -42,10 +44,12 @@ import {
 } from '../../db/outbox-simplbooks-queries.ts'
 import type { Transaction } from 'kysely'
 import type { DB } from '../../db/schema.js'
-import { createFlightInvoicePayload } from '../accounting/flightInvoiceCreator.ts'
+import { createPlannedFlightInvoicePayload } from '../accounting/flightInvoiceCreator.ts'
 import { FlightInvoicePayloadSchema } from '../../routes/flight-log/models.ts'
 import { isRecurringFeeAlreadyCreated } from '../accounting/recurringFeesProcessor.ts'
 import { SimplbooksApiError } from './simplbooksErrorHandler.ts'
+import { z } from 'zod'
+import { applyPrepaidFlightUsagePlan } from '../accounting/flightPrepaidAllocator.ts'
 
 export const MIK_SIMPLBOOKS_MEMBER: string = 'simplbks'
 export const MIK_CURRENCY = 'EUR'
@@ -70,6 +74,9 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
         break
       case SimplbooksEventType.FLIGHT_INVOICE:
         await createFlightInvoice(msg)
+        break
+      case SimplbooksEventType.SHOP_ORDER_INVOICE:
+        await createShopOrderInvoice(msg)
         break
       case SimplbooksEventType.CREDIT_NOTE:
         await createCreditNote(msg)
@@ -207,12 +214,16 @@ async function createFlightInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   // Validate that all flights have the same billable member ID
   validateFlightsBillableMemberId(flights.flights, billableMemberId)
 
-  const flightInvoicePayload = await createFlightInvoicePayload(flights, billableMemberId)
-
   // Extract all flight IDs from the payload
   const flightIds = flights.flights.map(flight => flight.flightId)
 
   await db.transaction().execute(async txn => {
+    const { invoice: flightInvoicePayload, prepaidUsagePlan } =
+      await createPlannedFlightInvoicePayload(flights, billableMemberId, {
+        executor: txn,
+        lockPrepaidRows: true,
+      })
+
     const invoiceId = await createInvoice(
       billableMemberId,
       outboxMsg.id,
@@ -220,6 +231,8 @@ async function createFlightInvoice(outboxMsg: AcctsOutboxSimplbooks) {
       flightInvoicePayload,
       txn,
     )
+
+    await applyPrepaidFlightUsagePlan(prepaidUsagePlan, invoiceId, txn)
 
     // Update all flight logs with the invoice number, multiple flights can be on one invoice
     await updateFlightLogsWithInvoiceNumber(txn, flightIds, invoiceId.toString())
@@ -256,6 +269,184 @@ async function createAnnualEquipmentFeeInvoice(outboxMsg: AcctsOutboxSimplbooks)
 
     logger.info(
       `Created annual equipment fee invoice for ${year} with ID: ${invoiceId} for member: ${member.email}`,
+    )
+  })
+}
+
+const ShopOrderRowSchema = z
+  .object({
+    order_id: z.string(),
+    member_id: z.string(),
+    invoice_id: z.string().nullable(),
+    billing_id: z.string().nullable(),
+  })
+  .strict()
+
+type ShopOrderRow = z.infer<typeof ShopOrderRowSchema>
+
+const ShopOrderItemRowSchema = z
+  .object({
+    quantity: z.number().int().positive(),
+    unit_price: z.union([z.string(), z.number()]),
+    product_snapshot: z.unknown(),
+    simplbooks_item_id: z.string().nullable(),
+  })
+  .strict()
+
+type ShopOrderItemRow = z.infer<typeof ShopOrderItemRowSchema>
+
+function extractLocalizedName(nameValue: unknown): string | undefined {
+  if (!nameValue || typeof nameValue !== 'object') {
+    return undefined
+  }
+
+  const localized = nameValue as Record<string, unknown>
+  const preferred = [localized.fi, localized.en, ...Object.values(localized)].find(
+    value => typeof value === 'string' && value.trim() !== '',
+  )
+
+  return typeof preferred === 'string' ? preferred : undefined
+}
+
+function parseProductSnapshot(value: unknown): { simplbooksItemId?: string; name?: string } {
+  if (!value || typeof value !== 'object') {
+    return {}
+  }
+
+  const snapshot = value as Record<string, unknown>
+  const simplbooksItemId =
+    typeof snapshot.simplbooksItemId === 'string' ? snapshot.simplbooksItemId : undefined
+  const name = extractLocalizedName(snapshot.name)
+
+  return { simplbooksItemId, name }
+}
+
+async function resolveArticleId(item: ShopOrderItemRow): Promise<number> {
+  const snapshot = parseProductSnapshot(item.product_snapshot)
+  const simplbooksRef = (item.simplbooks_item_id ?? snapshot.simplbooksItemId ?? '').trim()
+
+  if (!simplbooksRef) {
+    throw new Error('Order item has no SimplBooks item reference')
+  }
+
+  const numericId = Number.parseInt(simplbooksRef, 10)
+  if (!Number.isNaN(numericId)) {
+    return numericId
+  }
+
+  const article = await getItemByCode(simplbooksRef)
+  if (!article?.id) {
+    throw new Error(`Could not resolve SimplBooks article for code '${simplbooksRef}'`)
+  }
+
+  return article.id
+}
+
+async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
+  const payload = ShopOrderInvoicePayloadSchema.parse(outboxMsg.payload)
+
+  const orderRow = await db
+    .selectFrom('shop.orders as o')
+    .leftJoin('member.register as m', 'm.member_id', 'o.member_id')
+    .select(['o.order_id', 'o.member_id', 'o.invoice_id', 'm.billing_id'])
+    .where('o.order_id', '=', payload.orderId)
+    .executeTakeFirst()
+
+  const order: ShopOrderRow | undefined = orderRow ? ShopOrderRowSchema.parse(orderRow) : undefined
+
+  if (!order) {
+    throw new Error(`Shop order ${payload.orderId} not found`)
+  }
+
+  if (order.invoice_id) {
+    await db.transaction().execute(async txn => {
+      await setOutboxStatus(
+        txn,
+        outboxMsg.id,
+        SimplbooksStatus.SKIPPED,
+        `Order ${payload.orderId} already has invoice ${order.invoice_id}`,
+      )
+    })
+    return
+  }
+
+  if (!order.billing_id) {
+    throw new Error(`Cannot invoice order ${payload.orderId}: member has no billing ID`)
+  }
+
+  const clientId = Number.parseInt(order.billing_id, 10)
+  if (Number.isNaN(clientId)) {
+    throw new TypeError(
+      `Invalid member billing ID '${order.billing_id}' for order ${payload.orderId}`,
+    )
+  }
+
+  const itemRows = await db
+    .selectFrom('shop.order_items as oi')
+    .leftJoin('shop.products as p', 'p.product_id', 'oi.product_id')
+    .select(['oi.quantity', 'oi.unit_price', 'oi.product_snapshot', 'p.simplbooks_item_id'])
+    .where('oi.order_id', '=', payload.orderId)
+    .execute()
+
+  const items = z.array(ShopOrderItemRowSchema).parse(itemRows)
+
+  if (items.length === 0) {
+    throw new Error(`Cannot invoice order ${payload.orderId}: no order items found`)
+  }
+
+  const tasks = await Promise.all(
+    items.map(async item => {
+      const snapshot = parseProductSnapshot(item.product_snapshot)
+      const contents = snapshot.name ?? `Shop order ${payload.orderId}`
+
+      return {
+        Task: {
+          article_id: await resolveArticleId(item),
+          amount: item.quantity,
+          price_per_unit: Number(item.unit_price),
+          contents,
+        },
+        Projects: [],
+      }
+    }),
+  )
+
+  const invoicePayload: InvoicePost = {
+    Invoice: {
+      client_id: clientId,
+      additional_info: `Shop order ${payload.orderId}`,
+    },
+    Tasks: tasks,
+  }
+
+  await db
+    .updateTable('shop.orders')
+    .set({ status: 'PROCESSING', updated_at: new Date(), updated_by: MIK_SIMPLBOOKS_MEMBER })
+    .where('order_id', '=', payload.orderId)
+    .execute()
+
+  await db.transaction().execute(async txn => {
+    const invoiceId = await createInvoice(
+      order.member_id,
+      outboxMsg.id,
+      MIKInvoiceType.SHOP_ORDER,
+      invoicePayload,
+      txn,
+    )
+
+    await txn
+      .updateTable('shop.orders')
+      .set({
+        invoice_id: invoiceId.toString(),
+        status: 'INVOICED',
+        updated_at: new Date(),
+        updated_by: MIK_SIMPLBOOKS_MEMBER,
+      })
+      .where('order_id', '=', payload.orderId)
+      .execute()
+
+    logger.info(
+      `Created SimplBooks invoice ${invoiceId} for shop order ${payload.orderId} and member ${order.member_id}`,
     )
   })
 }

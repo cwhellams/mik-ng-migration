@@ -1,0 +1,332 @@
+import type { Kysely, Transaction } from 'kysely'
+
+import { db } from '../../db/connection.ts'
+import type { DB } from '../../db/schema.js'
+import type {
+  InvoicableFlight,
+  PrepaidFlightGroup,
+  PrepaidInvoicableFlight,
+  PrepaidFlightUsage,
+} from '../../routes/flight-log/models.ts'
+
+type QueryExecutor = Kysely<DB> | Transaction<DB>
+
+type ActiveMemberPackage = {
+  memberPackageId: number
+  aircraftRegistration: string
+  totalMinutes: number
+  usedMinutes: number
+  remainingMinutes: number
+  perMinRate: number
+  expiresAt: string
+  simplbooksItemId: string | null
+}
+
+export type PlannedPrepaidFlight = PrepaidInvoicableFlight
+export type PlannedPrepaidGroup = PrepaidFlightGroup
+
+export type PlannedPrepaidUsage = {
+  groups: PlannedPrepaidGroup[]
+}
+
+function getExecutor(executor?: QueryExecutor): QueryExecutor {
+  return executor ?? db
+}
+
+export function getBillableMinutes(flight: InvoicableFlight): number {
+  return flight.isTrainingProgramPilot ? flight.blockMins : flight.flightMins
+}
+
+function getCreditedMinutes(flight: InvoicableFlight): number {
+  return Math.max(0, flight.creditedMins ?? 0)
+}
+
+export function computeTopUpMins(flight: InvoicableFlight, minBillableMins: number): number {
+  if (!flight.isBillableFlight) return 0
+  const billableMins = getBillableMinutes(flight)
+  const isLocalFlight = flight.departureAirport === flight.arrivalAirport
+  return isLocalFlight && billableMins < minBillableMins ? minBillableMins - billableMins : 0
+}
+
+export function getPackageEligibleMinutes(flight: InvoicableFlight, topUpMins = 0): number {
+  if (!flight.isBillableFlight) {
+    return 0
+  }
+
+  return Math.max(0, getBillableMinutes(flight) + topUpMins - getCreditedMinutes(flight))
+}
+
+async function loadActivePackagesForMember(
+  memberId: string,
+  options?: {
+    executor?: QueryExecutor
+    lockRows?: boolean
+  },
+): Promise<ActiveMemberPackage[]> {
+  const executor = getExecutor(options?.executor)
+  const today = new Date().toISOString().slice(0, 10)
+
+  let query = executor
+    .selectFrom('prepaid.member_packages as mp')
+    .innerJoin('prepaid.packages as p', 'p.product_id', 'mp.product_id')
+    .select([
+      'mp.member_package_id',
+      'mp.product_id',
+      'mp.total_minutes',
+      'mp.used_minutes',
+      'mp.expires_at',
+      'p.aircraft_registration',
+      'p.per_min_rate',
+    ])
+    .where('mp.member_id', '=', memberId)
+    .where('mp.is_expired', '=', false)
+    .where('mp.expires_at', '>=', today)
+    .where('p.is_active', '=', true)
+    .where(eb => eb('mp.total_minutes', '>', eb.ref('mp.used_minutes')))
+    .orderBy('p.aircraft_registration', 'asc')
+    .orderBy('mp.expires_at', 'asc')
+    .orderBy('mp.member_package_id', 'asc')
+
+  if (options?.lockRows) {
+    query = query.forUpdate()
+  }
+
+  const rows = await query.execute()
+
+  // Fetch simplbooks_item_id separately to avoid FOR UPDATE on the nullable side of an outer join
+  const productIds = [...new Set(rows.map(r => r.product_id))]
+  const simplbooksItemIdByProductId = new Map<string, string | null>()
+  if (productIds.length > 0) {
+    const productRows = await getExecutor(options?.executor)
+      .selectFrom('shop.products')
+      .select(['product_id', 'simplbooks_item_id'])
+      .where('product_id', 'in', productIds)
+      .execute()
+    for (const pr of productRows) {
+      simplbooksItemIdByProductId.set(pr.product_id, pr.simplbooks_item_id ?? null)
+    }
+  }
+
+  return rows.map(row => ({
+    memberPackageId: row.member_package_id,
+    aircraftRegistration: row.aircraft_registration,
+    totalMinutes: row.total_minutes,
+    usedMinutes: row.used_minutes,
+    remainingMinutes: row.total_minutes - row.used_minutes,
+    perMinRate: Number(row.per_min_rate),
+    expiresAt: row.expires_at,
+    simplbooksItemId: simplbooksItemIdByProductId.get(row.product_id) ?? null,
+  }))
+}
+
+function clonePackagesByAircraft(
+  packages: ActiveMemberPackage[],
+): Map<string, ActiveMemberPackage[]> {
+  const byAircraft = new Map<string, ActiveMemberPackage[]>()
+
+  for (const pkg of packages) {
+    const current = byAircraft.get(pkg.aircraftRegistration) ?? []
+    current.push({ ...pkg })
+    byAircraft.set(pkg.aircraftRegistration, current)
+  }
+
+  return byAircraft
+}
+
+function sumRemainingMinutes(packages: ActiveMemberPackage[]): number {
+  return packages.reduce((total, pkg) => total + pkg.remainingMinutes, 0)
+}
+
+function sortFlightsChronologically(flights: InvoicableFlight[]): InvoicableFlight[] {
+  return [...flights].sort(
+    (left, right) =>
+      new Date(left.takeoffTimeUtc).getTime() - new Date(right.takeoffTimeUtc).getTime(),
+  )
+}
+
+export async function planPrepaidFlightUsage(
+  flights: InvoicableFlight[],
+  options?: {
+    executor?: QueryExecutor
+    lockRows?: boolean
+    minBillableMins?: number
+  },
+): Promise<PlannedPrepaidUsage> {
+  if (flights.length === 0) {
+    return { groups: [] }
+  }
+
+  const minBillableMins =
+    options?.minBillableMins ?? (Number(process.env.MIN_BILLABLE_FLIGHT_MINS) || 20)
+
+  const flightsByMember = flights.reduce((acc, flight) => {
+    const memberFlights = acc.get(flight.billableMemberId) ?? []
+    memberFlights.push(flight)
+    acc.set(flight.billableMemberId, memberFlights)
+    return acc
+  }, new Map<string, InvoicableFlight[]>())
+
+  const groups: PlannedPrepaidGroup[] = []
+
+  for (const [memberId, memberFlights] of flightsByMember.entries()) {
+    const packages = await loadActivePackagesForMember(memberId, options)
+    const packagesByAircraft = clonePackagesByAircraft(packages)
+
+    const memberFlightsByAircraft = memberFlights.reduce((acc, flight) => {
+      const groupFlights = acc.get(flight.aircraftRegistration) ?? []
+      groupFlights.push(flight)
+      acc.set(flight.aircraftRegistration, groupFlights)
+      return acc
+    }, new Map<string, InvoicableFlight[]>())
+
+    for (const [aircraftRegistration, groupedFlights] of memberFlightsByAircraft.entries()) {
+      const aircraftPackages = packagesByAircraft.get(aircraftRegistration) ?? []
+      const availableAtStart = sumRemainingMinutes(aircraftPackages)
+      const plannedFlights: PlannedPrepaidFlight[] = []
+
+      for (const flight of sortFlightsChronologically(groupedFlights)) {
+        const availableBeforeFlight = sumRemainingMinutes(aircraftPackages)
+        const topUpMins = computeTopUpMins(flight, minBillableMins)
+        let remainingEligibleMinutes = getPackageEligibleMinutes(flight, topUpMins)
+        const packageUsages: PrepaidFlightUsage[] = []
+
+        for (const pkg of aircraftPackages) {
+          if (remainingEligibleMinutes <= 0) {
+            break
+          }
+
+          if (pkg.remainingMinutes <= 0) {
+            continue
+          }
+
+          const minutesUsed = Math.min(pkg.remainingMinutes, remainingEligibleMinutes)
+          if (minutesUsed <= 0) {
+            continue
+          }
+
+          packageUsages.push({
+            memberPackageId: pkg.memberPackageId,
+            minutesUsed,
+            perMinRate: pkg.perMinRate,
+            expiresAt: pkg.expiresAt,
+            simplbooksItemId: pkg.simplbooksItemId,
+          })
+
+          pkg.remainingMinutes -= minutesUsed
+          remainingEligibleMinutes -= minutesUsed
+        }
+
+        const prepaidMinutesUsed = packageUsages.reduce(
+          (total, usage) => total + usage.minutesUsed,
+          0,
+        )
+
+        plannedFlights.push({
+          ...flight,
+          billableMinutes: getBillableMinutes(flight),
+          packageEligibleMinutes: getPackageEligibleMinutes(flight, topUpMins),
+          availablePrepaidMinutes: availableBeforeFlight,
+          prepaidMinutesUsed,
+          standardMinutes: remainingEligibleMinutes,
+          remainingPrepaidMinutes: sumRemainingMinutes(aircraftPackages),
+          topUpMins,
+          packageUsages,
+        })
+      }
+
+      groups.push({
+        billableMemberId: memberId,
+        billableMemberLastName: plannedFlights[0]?.billableMemberLastName ?? null,
+        aircraftRegistration,
+        availablePrepaidMinutes: availableAtStart,
+        prepaidMinutesUsed: plannedFlights.reduce(
+          (total, flight) => total + flight.prepaidMinutesUsed,
+          0,
+        ),
+        remainingPrepaidMinutes: sumRemainingMinutes(aircraftPackages),
+        flights: plannedFlights,
+      })
+    }
+  }
+
+  return { groups }
+}
+
+export async function applyPrepaidFlightUsagePlan(
+  plan: PlannedPrepaidUsage,
+  invoiceId: string | number,
+  txn: Transaction<DB>,
+): Promise<void> {
+  const usages = plan.groups.flatMap(group =>
+    group.flights.flatMap(flight =>
+      flight.packageUsages.map(usage => ({
+        ...usage,
+        flightId: flight.flightId,
+      })),
+    ),
+  )
+
+  if (usages.length === 0) {
+    return
+  }
+
+  const packageIds = [...new Set(usages.map(usage => usage.memberPackageId))]
+  const rows = await txn
+    .selectFrom('prepaid.member_packages')
+    .select(['member_package_id', 'total_minutes', 'used_minutes'])
+    .where('member_package_id', 'in', packageIds)
+    .forUpdate()
+    .execute()
+
+  const packageState = new Map(
+    rows.map(row => [
+      row.member_package_id,
+      {
+        totalMinutes: row.total_minutes,
+        usedMinutes: row.used_minutes,
+      },
+    ]),
+  )
+
+  const totalsByPackage = usages.reduce((acc, usage) => {
+    acc.set(usage.memberPackageId, (acc.get(usage.memberPackageId) ?? 0) + usage.minutesUsed)
+    return acc
+  }, new Map<number, number>())
+
+  for (const [memberPackageId, minutesUsed] of totalsByPackage.entries()) {
+    const current = packageState.get(memberPackageId)
+    if (!current) {
+      throw new Error(`Prepaid member package ${memberPackageId} was not found during invoicing`)
+    }
+
+    const remainingMinutes = current.totalMinutes - current.usedMinutes
+    if (minutesUsed > remainingMinutes) {
+      throw new Error(
+        `Prepaid member package ${memberPackageId} has insufficient remaining minutes for invoicing`,
+      )
+    }
+
+    const nextUsedMinutes = current.usedMinutes + minutesUsed
+    await txn
+      .updateTable('prepaid.member_packages')
+      .set({
+        used_minutes: nextUsedMinutes,
+        is_expired: nextUsedMinutes >= current.totalMinutes,
+        updated_at: new Date(),
+      })
+      .where('member_package_id', '=', memberPackageId)
+      .execute()
+  }
+
+  for (const usage of usages) {
+    await txn
+      .insertInto('prepaid.usage_log')
+      .values({
+        member_package_id: usage.memberPackageId,
+        flight_id: usage.flightId,
+        minutes_used: usage.minutesUsed,
+        note: `Flight ${usage.flightId}, invoice ${invoiceId}`,
+      })
+      .execute()
+  }
+}

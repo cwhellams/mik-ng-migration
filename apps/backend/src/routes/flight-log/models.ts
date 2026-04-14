@@ -532,6 +532,47 @@ export const FlightInvoicePayloadSchema = z.object({
 
 export type FlightInvoicePayload = z.infer<typeof FlightInvoicePayloadSchema>
 
+export const PrepaidFlightUsageSchema = z.object({
+  memberPackageId: z.number().int(),
+  minutesUsed: z.number().int().nonnegative(),
+  perMinRate: z.number().nonnegative(),
+  expiresAt: z.string().date(),
+  simplbooksItemId: z.string().nullable(),
+})
+
+export type PrepaidFlightUsage = z.infer<typeof PrepaidFlightUsageSchema>
+
+export const PrepaidInvoicableFlightSchema = InvoicableFlightSchema.extend({
+  billableMinutes: z.number().int().nonnegative(),
+  packageEligibleMinutes: z.number().int().nonnegative(),
+  availablePrepaidMinutes: z.number().int().nonnegative(),
+  prepaidMinutesUsed: z.number().int().nonnegative(),
+  standardMinutes: z.number().int().nonnegative(),
+  remainingPrepaidMinutes: z.number().int().nonnegative(),
+  topUpMins: z.number().int().nonnegative(),
+  packageUsages: z.array(PrepaidFlightUsageSchema),
+})
+
+export type PrepaidInvoicableFlight = z.infer<typeof PrepaidInvoicableFlightSchema>
+
+export const PrepaidFlightGroupSchema = z.object({
+  billableMemberId: z.string(),
+  billableMemberLastName: z.string().nullable(),
+  aircraftRegistration: z.string(),
+  availablePrepaidMinutes: z.number().int().nonnegative(),
+  prepaidMinutesUsed: z.number().int().nonnegative(),
+  remainingPrepaidMinutes: z.number().int().nonnegative(),
+  flights: z.array(PrepaidInvoicableFlightSchema),
+})
+
+export type PrepaidFlightGroup = z.infer<typeof PrepaidFlightGroupSchema>
+
+export const PrepaidFlightSummaryResponseSchema = z.object({
+  groups: z.array(PrepaidFlightGroupSchema),
+})
+
+export type PrepaidFlightSummaryResponse = z.infer<typeof PrepaidFlightSummaryResponseSchema>
+
 export const InvoicableFlightListResponseSchema = z.object({
   logs: z.array(InvoicableFlightSchema),
   page: z.number().int().optional(),

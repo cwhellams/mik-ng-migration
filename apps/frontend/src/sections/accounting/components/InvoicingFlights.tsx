@@ -101,16 +101,6 @@ export const InvoicingFlights = ({
   }
 
   const handleNext = async () => {
-    if (filters.flights == InvoicableFlights.OTHER) {
-      const res = await mutation.trigger<InvoicableFlightFilters>('POST', {
-        aircraftRegistration: filters.aircraftRegistration,
-        endDate: filters.endDate,
-      })
-      if (res.error) {
-        return setProblem(res.error)
-      }
-    }
-
     navigate.next()
   }
 
@@ -129,7 +119,7 @@ export const InvoicingFlights = ({
     } else if (filters.flights == InvoicableFlights.MIN_BILLABLE) {
       return t('invoicing.completeMinBillable')
     } else if (filters.flights == InvoicableFlights.OTHER) {
-      return t('invoicing.complete')
+      return t('invoicing.reviewPrepaidFlights')
     }
   }
 

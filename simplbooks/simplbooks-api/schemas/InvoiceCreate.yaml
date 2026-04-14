@@ -4,6 +4,7 @@ properties:
     type: string
     description: Unique number of the invoice, automatic generation can be set up in the settings
     example: 1565452
+    x-faker: datatype.number
   currency_name:
     type: string
     description: ISO 4217 currency code

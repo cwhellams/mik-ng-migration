@@ -81,9 +81,13 @@ export const InvoicingRange = ({
               })
             }
             format={t('general.dateFormat')}
-            maxDate={dayjs(ajlb?.view?.validatedBeforeUTC)
-              .startOf('day')
-              .add(1, 'day')}
+            maxDate={
+              ajlb?.view?.validatedBeforeUTC
+                ? dayjs(ajlb.view.validatedBeforeUTC)
+                    .startOf('day')
+                    .add(1, 'day')
+                : undefined
+            }
           />
         </Grid>
       </Grid>

@@ -81,7 +81,6 @@ const toAircraft = (
 
   location: aircraft.location,
   equipment: aircraft.equipment,
-  //hourlyRateEur: aircraft.hourly_rate_eur,
   imageUrl: aircraft.image_url,
   createdAt: aircraft.created_at?.toISOString(),
   updatedAt: aircraft.updated_at?.toISOString(),

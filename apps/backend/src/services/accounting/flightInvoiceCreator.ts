@@ -9,16 +9,42 @@ import utc from 'dayjs/plugin/utc.js'
 import timezone from 'dayjs/plugin/timezone.js'
 import logger from '../../lib/logger.ts'
 import { ART_ENTRY_ERROR_CODE, ART_EQUIP_USAGE_FEE_CODE } from './config.ts'
+import {
+  planPrepaidFlightUsage,
+  computeTopUpMins,
+  type PlannedPrepaidFlight,
+  type PlannedPrepaidUsage,
+} from './flightPrepaidAllocator.ts'
+import type { Kysely, Transaction } from 'kysely'
+import type { DB } from '../../db/schema.js'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-export async function createFlightInvoicePayload(
+type QueryExecutor = Kysely<DB> | Transaction<DB>
+
+export async function createPlannedFlightInvoicePayload(
   payload: FlightInvoicePayload,
   billableMemberId: string,
-): Promise<InvoicePost> {
-  // Create Simplbooks tasks from the flights array
-  const [tasks, kalustonkayttoRemarks] = await createTasksForFlights(payload.flights)
+  options?: {
+    executor?: QueryExecutor
+    lockPrepaidRows?: boolean
+  },
+): Promise<{
+  invoice: InvoicePost
+  prepaidUsagePlan: PlannedPrepaidUsage
+}> {
+  const minBillableMins = Number(process.env.MIN_BILLABLE_FLIGHT_MINS) || 20
+  const prepaidUsagePlan = await planPrepaidFlightUsage(payload.flights, {
+    executor: options?.executor,
+    lockRows: options?.lockPrepaidRows,
+    minBillableMins,
+  })
+
+  const [tasks, kalustonkayttoRemarks] = await createTasksForFlights(
+    payload.flights,
+    prepaidUsagePlan,
+  )
   const billingId = payload.flights[0].billingId
 
   if (!billingId) {
@@ -34,12 +60,23 @@ export async function createFlightInvoicePayload(
   }
 
   return {
-    Invoice: {
-      client_id: simplbooksClientId,
-      additional_info: getBillingRemarks(payload.flights, kalustonkayttoRemarks),
+    invoice: {
+      Invoice: {
+        client_id: simplbooksClientId,
+        additional_info: getBillingRemarks(payload.flights, kalustonkayttoRemarks),
+      },
+      Tasks: tasks,
     },
-    Tasks: tasks,
+    prepaidUsagePlan,
   }
+}
+
+export async function createFlightInvoicePayload(
+  payload: FlightInvoicePayload,
+  billableMemberId: string,
+): Promise<InvoicePost> {
+  const { invoice } = await createPlannedFlightInvoicePayload(payload, billableMemberId)
+  return invoice
 }
 
 function getBillingRemarks(flights: InvoicableFlight[], kalustonkayttoRemarks: string): string {
@@ -86,13 +123,18 @@ interface FlightArticleFees {
   kalustonkayttoFee: ArticleFee
   virhemerkintaFee: ArticleFee
   articleIdMap: Map<string, number>
+  packageArticleIdMap: Map<string, number>
 }
 
-async function fetchFlightFees(registrations: string[]): Promise<FlightArticleFees> {
+async function fetchFlightFees(
+  registrations: string[],
+  packageItemCodes: string[] = [],
+): Promise<FlightArticleFees> {
   const fees = await getArticleFees([
     ART_EQUIP_USAGE_FEE_CODE,
     ART_ENTRY_ERROR_CODE,
     ...registrations,
+    ...packageItemCodes,
   ])
 
   const kalustonkayttoFee = fees.find(f => f.code === ART_EQUIP_USAGE_FEE_CODE)
@@ -118,7 +160,19 @@ async function fetchFlightFees(registrations: string[]): Promise<FlightArticleFe
     }
   }
 
-  return { kalustonkayttoFee, virhemerkintaFee, articleIdMap }
+  const packageArticleIdMap = new Map<string, number>()
+  for (const code of packageItemCodes) {
+    const fee = fees.find(f => f.code === code)
+    if (fee) {
+      packageArticleIdMap.set(code, fee.id)
+    } else {
+      logger.warn(
+        `No article found for prepaid package SimplBooks item code '${code}' - credit will use aircraft article instead`,
+      )
+    }
+  }
+
+  return { kalustonkayttoFee, virhemerkintaFee, articleIdMap, packageArticleIdMap }
 }
 
 async function buildEquipmentFeeRequestedByYear(
@@ -158,63 +212,145 @@ interface FlightTaskContext {
   applyKalustonkayttoFee: boolean
   kalustonkayttoFee: ArticleFee
   virhemerkintaFee: ArticleFee
+  packageArticleIdMap: Map<string, number>
+}
+
+function addFlightTask(
+  tasks: InvoicePost['Tasks'],
+  flight: InvoicableFlight,
+  articleId: number,
+  amount: number,
+  pricePerUnit: number,
+  contents: string,
+  discount = 0,
+) {
+  if (amount <= 0) {
+    return
+  }
+
+  tasks.push({
+    Task: {
+      article_id: articleId,
+      code: flight.aircraftRegistration,
+      discount,
+      amount,
+      price_per_unit: pricePerUnit,
+      contents,
+    },
+    Projects: [{ code: flight.aircraftRegistration }],
+  })
 }
 
 function createTasksForFlight(
   flight: InvoicableFlight,
   ctx: FlightTaskContext,
+  prepaidFlight?: PlannedPrepaidFlight,
 ): InvoicePost['Tasks'] {
   const billableMins = flight.isTrainingProgramPilot ? flight.blockMins : flight.flightMins
-  const isLocalFlight = flight.departureAirport === flight.arrivalAirport
-  const topUpMins =
-    isLocalFlight && billableMins < ctx.minBillableMins ? ctx.minBillableMins - billableMins : 0
+  const creditedMins = Math.max(0, flight.creditedMins ?? 0)
   const discountPct = flight.isBillableFlight ? 0 : 100
   const applyErrorFee = flight.entryErrorFee && flight.isBillableFlight
   const tasks: InvoicePost['Tasks'] = []
 
-  tasks.push({
-    Task: {
-      article_id: ctx.articleId,
-      code: flight.aircraftRegistration,
-      discount: discountPct,
-      amount: billableMins,
-      price_per_unit: ctx.pricePerMinute,
-      contents: createFlightTaskContents(flight),
-    },
-    Projects: [{ code: flight.aircraftRegistration }],
-  })
+  if (flight.isBillableFlight) {
+    const packageUsages = prepaidFlight?.packageUsages ?? []
+    const standardMinutes =
+      prepaidFlight?.standardMinutes ?? Math.max(0, billableMins - creditedMins)
+    const standardPricedMinutes = standardMinutes + creditedMins
 
-  if (topUpMins > 0 && flight.isBillableFlight) {
+    // Group usages by (perMinRate, simplbooksItemId) so each unique package gets its own lines
+    type PackageGroup = { perMinRate: number; minutesUsed: number; simplbooksItemId: string | null }
+    const usageGroups = new Map<string, PackageGroup>()
+    for (const usage of packageUsages) {
+      const key = `${usage.perMinRate}::${usage.simplbooksItemId ?? ''}`
+      const existing = usageGroups.get(key)
+      if (existing) {
+        existing.minutesUsed += usage.minutesUsed
+      } else {
+        usageGroups.set(key, {
+          perMinRate: usage.perMinRate,
+          minutesUsed: usage.minutesUsed,
+          simplbooksItemId: usage.simplbooksItemId,
+        })
+      }
+    }
+
+    for (const {
+      perMinRate: packageRate,
+      minutesUsed: packageMinutes,
+      simplbooksItemId,
+    } of usageGroups.values()) {
+      // Credit line uses the package's own SimplBooks article ID if available
+      const creditArticleId = simplbooksItemId
+        ? (ctx.packageArticleIdMap.get(simplbooksItemId) ?? ctx.articleId)
+        : ctx.articleId
+
+      addFlightTask(
+        tasks,
+        flight,
+        ctx.articleId,
+        packageMinutes,
+        packageRate,
+        createFlightTaskContents(flight, 'prepaid package rate'),
+      )
+      addFlightTask(
+        tasks,
+        flight,
+        creditArticleId,
+        packageMinutes,
+        -packageRate,
+        createFlightTaskContents(flight, 'prepaid package credit'),
+      )
+    }
+
+    addFlightTask(
+      tasks,
+      flight,
+      ctx.articleId,
+      standardPricedMinutes,
+      ctx.pricePerMinute,
+      createFlightTaskContents(flight),
+    )
+  } else {
+    addFlightTask(
+      tasks,
+      flight,
+      ctx.articleId,
+      billableMins,
+      ctx.pricePerMinute,
+      createFlightTaskContents(flight),
+      discountPct,
+    )
+  }
+
+  // topUpMins is folded into standardPricedMinutes via the prepaid plan.
+  // Only add a separate top-up task in the fallback path where no plan is available.
+  const topUpMins = prepaidFlight?.topUpMins ?? computeTopUpMins(flight, ctx.minBillableMins)
+  const hasPrepaidPlan = prepaidFlight !== undefined
+  if (topUpMins > 0 && flight.isBillableFlight && !hasPrepaidPlan) {
     logger.info(
       `Applying minimum billable minutes (Top up ${topUpMins} mins) for flight ${flight.flightId}`,
     )
-    tasks.push({
-      Task: {
-        article_id: ctx.articleId,
-        code: flight.aircraftRegistration,
-        amount: topUpMins,
-        price_per_unit: ctx.pricePerMinute,
-        contents: createFlightTaskContents(
-          flight,
-          `minimum billable time ${ctx.minBillableMins} min`,
-        ),
-      },
-      Projects: [{ code: flight.aircraftRegistration }],
-    })
+    addFlightTask(
+      tasks,
+      flight,
+      ctx.articleId,
+      topUpMins,
+      ctx.pricePerMinute,
+      createFlightTaskContents(flight, `minimum billable time ${ctx.minBillableMins} min`),
+    )
   }
 
-  if (flight.isBillableFlight && (flight.creditedMins ?? 0) > 0) {
-    logger.info(`Applying credited minutes (${flight.creditedMins}) for flight ${flight.flightId}`)
-    tasks.push({
-      Task: {
-        article_id: ctx.articleId,
-        code: flight.aircraftRegistration,
-        amount: flight.creditedMins!,
-        price_per_unit: -ctx.pricePerMinute,
-        contents: createFlightTaskContents(flight, `credit for ${flight.creditedMins} min`),
-      },
-      Projects: [{ code: flight.aircraftRegistration }],
-    })
+  if (flight.isBillableFlight && creditedMins > 0) {
+    logger.info(`Applying credited minutes (${creditedMins}) for flight ${flight.flightId}`)
+    addFlightTask(
+      tasks,
+      flight,
+      ctx.articleId,
+      creditedMins,
+      -ctx.pricePerMinute,
+      createFlightTaskContents(flight, `credit for ${creditedMins} min`),
+    )
   }
 
   if (ctx.applyKalustonkayttoFee) {
@@ -225,7 +361,7 @@ function createTasksForFlight(
       Task: {
         article_id: ctx.kalustonkayttoFee.id,
         code: ctx.kalustonkayttoFee.code,
-        amount: billableMins - (flight.creditedMins ?? 0),
+        amount: billableMins - creditedMins,
         price_per_unit: ctx.kalustonkayttoFee.markup_value,
         contents: createFlightTaskContents(flight),
         name: ctx.kalustonkayttoFee.name,
@@ -261,10 +397,23 @@ function createTasksForFlight(
 
 const createTasksForFlights = async (
   flights: InvoicableFlight[],
+  prepaidUsagePlan: PlannedPrepaidUsage,
 ): Promise<[InvoicePost['Tasks'], string]> => {
   const uniqueRegistrations = [...new Set(flights.map(f => f.aircraftRegistration))]
-  const { kalustonkayttoFee, virhemerkintaFee, articleIdMap } =
-    await fetchFlightFees(uniqueRegistrations)
+
+  // Collect unique non-null SimplBooks item codes from packages used in this plan
+  const packageItemCodes = [
+    ...new Set(
+      prepaidUsagePlan.groups.flatMap(g =>
+        g.flights.flatMap(f =>
+          f.packageUsages.map(u => u.simplbooksItemId).filter((c): c is string => c !== null),
+        ),
+      ),
+    ),
+  ]
+
+  const { kalustonkayttoFee, virhemerkintaFee, articleIdMap, packageArticleIdMap } =
+    await fetchFlightFees(uniqueRegistrations, packageItemCodes)
   const equipmentFeeRequestedByYear = await buildEquipmentFeeRequestedByYear(flights)
   const applyKalustonkayttoRemarks = flights.some(f =>
     isEquipmentFeeApplicable(f, equipmentFeeRequestedByYear),
@@ -272,6 +421,11 @@ const createTasksForFlights = async (
   const minBillableMins = Number(process.env.MIN_BILLABLE_FLIGHT_MINS) || 20
 
   const tasks: InvoicePost['Tasks'] = []
+  const plannedFlightsById = new Map(
+    prepaidUsagePlan.groups.flatMap(group =>
+      group.flights.map(flight => [flight.flightId, flight]),
+    ),
+  )
 
   for (const flight of flights) {
     const pricePerMinute = await getUnitPriceForFlightItem(
@@ -290,14 +444,19 @@ const createTasksForFlights = async (
     }
 
     tasks.push(
-      ...createTasksForFlight(flight, {
-        articleId: articleIdMap.get(flight.aircraftRegistration)!,
-        pricePerMinute,
-        minBillableMins,
-        applyKalustonkayttoFee: isEquipmentFeeApplicable(flight, equipmentFeeRequestedByYear),
-        kalustonkayttoFee,
-        virhemerkintaFee,
-      }),
+      ...createTasksForFlight(
+        flight,
+        {
+          articleId: articleIdMap.get(flight.aircraftRegistration)!,
+          pricePerMinute,
+          minBillableMins,
+          applyKalustonkayttoFee: isEquipmentFeeApplicable(flight, equipmentFeeRequestedByYear),
+          kalustonkayttoFee,
+          virhemerkintaFee,
+          packageArticleIdMap,
+        },
+        plannedFlightsById.get(flight.flightId),
+      ),
     )
   }
 

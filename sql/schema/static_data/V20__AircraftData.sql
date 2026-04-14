@@ -20,7 +20,6 @@ INSERT INTO flight.aircraft (
         location,
         notes,
         equipment,
-        hourly_rate_eur,
         created_at,
         updated_at,
         created_by,
@@ -54,7 +53,6 @@ VALUES (
         ) ]
     ),
     'SDFGY/S',
-    216.00,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP,
     'k1mnimda',

@@ -91,6 +91,16 @@ export const menuItems: MenuItem[] = [
     ],
   },
   {
+    path: '/shop',
+    label: 'header.shop',
+    requiredRoles: [MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN],
+    subItems: [
+      { path: '', label: 'header.shopBrowse' },
+      { path: 'cart', label: 'header.cart' },
+      { path: 'orders', label: 'header.myOrders' },
+    ],
+  },
+  {
     path: '/accounting',
     label: 'header.accounts',
     requiredRoles: [MIKPermissions.INVOICING_ADMIN],
@@ -119,6 +129,12 @@ export const menuItems: MenuItem[] = [
         label: 'header.nonRenewals',
         path: 'non-renewals',
         requiredRoles: [MIKPermissions.MEMBER_ADMIN],
+        adminModeOnly: true,
+      },
+      {
+        label: 'header.shopAdmin',
+        path: 'shop',
+        requiredRoles: [MIKPermissions.STORE_ADMIN],
         adminModeOnly: true,
       },
     ],

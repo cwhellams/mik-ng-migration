@@ -3,6 +3,8 @@ properties:
   id:
     type: integer
     description: Unique identifier for the invoice
+    example: 2056
+    x-faker: datatype.number
   client_id:
     type: integer
     description: Unique identifier for the client
@@ -84,7 +86,7 @@ properties:
   total_sum:
     type: number
     description: Total amount of the invoice, including VAT
-    example: 16.48
+    example: 352.25
   row_sum_with_vat:
     type: boolean
     description: Indicates whether the invoice line amounts include VAT

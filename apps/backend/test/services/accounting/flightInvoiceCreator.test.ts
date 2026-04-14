@@ -26,15 +26,34 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
   const testBillingId = '123456'
   const year2025 = 2025
   const year2026 = 2026
+  let testAircraftRegistration = 'OH-IHQ'
   let createdInvoiceIds: string[] = []
+  let createdPrepaidProductIds: string[] = []
+  let createdMemberPackageIds: number[] = []
   let equipmentFeeArticleId: number
   const testArticleIds = [9999, 9998, 9997] // IDs for test articles
 
   beforeAll(async () => {
     // Remove any pre-existing articles with these codes so our test IDs are authoritative
     await db
+      .selectFrom('flight.aircraft as a')
+      .leftJoin('prepaid.packages as p', 'p.aircraft_registration', 'a.registration')
+      .select('a.registration as registration')
+      .groupBy('a.registration')
+      .having(eb => eb.fn.count('p.product_id'), '=', 0)
+      .orderBy('a.registration', 'asc')
+      .executeTakeFirstOrThrow()
+      .then(row => {
+        testAircraftRegistration = row.registration
+      })
+
+    await db
       .deleteFrom('accts.items')
-      .where('code', 'in', [ART_EQUIP_USAGE_FEE_CODE, ART_ENTRY_ERROR_CODE, 'OH-ABC'])
+      .where('code', 'in', [
+        ART_EQUIP_USAGE_FEE_CODE,
+        ART_ENTRY_ERROR_CODE,
+        testAircraftRegistration,
+      ])
       .execute()
 
     // Insert equipment usage fee article
@@ -67,17 +86,17 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
     equipmentFeeArticleId = testArticleIds[0]
 
-    // Insert aircraft article for OH-ABC
+    // Insert aircraft article for the test aircraft
     await db
       .insertInto('accts.items')
       .values({
         id: testArticleIds[1],
-        code: 'OH-ABC',
-        name: 'Test Aircraft OH-ABC',
+        code: testAircraftRegistration,
+        name: `Test Aircraft ${testAircraftRegistration}`,
         item: {
           id: testArticleIds[1],
-          code: 'OH-ABC',
-          name: 'Test Aircraft OH-ABC',
+          code: testAircraftRegistration,
+          name: `Test Aircraft ${testAircraftRegistration}`,
           unit: 'min',
           markup_value: 2.5,
           active: true,
@@ -124,6 +143,18 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
     // Mock aircraft pricing
     const mockedGetAircraftPriceForDate = jest.mocked(getAircraftPriceForDate)
     mockedGetAircraftPriceForDate.mockResolvedValue(2.5) // €2.50 per minute
+
+    await db
+      .insertInto('shop.categories')
+      .values({
+        category_id: 'FLT_PKG',
+        name: { en: 'Flight packages', fi: 'Lentopaketit', sv: 'Flygpaket' },
+        description: null,
+        created_by: 'Matti1',
+        updated_by: 'Matti1',
+      })
+      .onConflict(oc => oc.column('category_id').doNothing())
+      .execute()
   })
 
   afterAll(async () => {
@@ -156,12 +187,37 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
         .execute()
       await db.deleteFrom('accts.invoice').where('id', '=', invoiceId).execute()
     }
+
+    if (createdMemberPackageIds.length > 0) {
+      await db
+        .deleteFrom('prepaid.usage_log')
+        .where('member_package_id', 'in', createdMemberPackageIds)
+        .execute()
+      await db
+        .deleteFrom('prepaid.member_packages')
+        .where('member_package_id', 'in', createdMemberPackageIds)
+        .execute()
+    }
+
+    if (createdPrepaidProductIds.length > 0) {
+      await db
+        .deleteFrom('prepaid.packages')
+        .where('product_id', 'in', createdPrepaidProductIds)
+        .execute()
+      await db
+        .deleteFrom('shop.products')
+        .where('product_id', 'in', createdPrepaidProductIds)
+        .execute()
+    }
+
+    createdMemberPackageIds = []
+    createdPrepaidProductIds = []
   })
 
   const createTestFlight = (overrides?: Partial<InvoicableFlight>): InvoicableFlight =>
     ({
       flightId: '1',
-      aircraftRegistration: 'OH-ABC',
+      aircraftRegistration: testAircraftRegistration,
       departureAirport: 'EFHK',
       arrivalAirport: 'EFTU',
       takeoffTimeUtc: new Date(`${year2025}-06-15T08:00:00Z`).toUTCString(),
@@ -228,6 +284,67 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
     return invoiceId.toString()
   }
 
+  const createMemberPackage = async ({
+    productId,
+    minutes,
+    perMinRate,
+    usedMinutes = 0,
+    aircraftRegistration = testAircraftRegistration,
+  }: {
+    productId: string
+    minutes: number
+    perMinRate: number
+    usedMinutes?: number
+    aircraftRegistration?: string
+  }) => {
+    const actualProductId = `${productId}${Date.now().toString().slice(-2)}`.slice(0, 9)
+
+    await db
+      .insertInto('shop.products')
+      .values({
+        product_id: actualProductId,
+        category_id: 'FLT_PKG',
+        name: { en: actualProductId, fi: actualProductId, sv: actualProductId },
+        description: null,
+        price: Number((minutes * perMinRate).toFixed(2)),
+        stock_quantity: 1,
+        created_by: 'Matti1',
+        updated_by: 'Matti1',
+      })
+      .execute()
+
+    await db
+      .insertInto('prepaid.packages')
+      .values({
+        product_id: actualProductId,
+        aircraft_registration: aircraftRegistration,
+        minutes_per_package: minutes,
+        per_min_rate: perMinRate,
+        total_packages_available: 1,
+        max_per_member: 1,
+        expires_at: '2099-12-31',
+        created_by: 'Matti1',
+        updated_by: 'Matti1',
+      })
+      .execute()
+
+    const row = await db
+      .insertInto('prepaid.member_packages')
+      .values({
+        member_id: testMemberId,
+        product_id: actualProductId,
+        order_id: null,
+        total_minutes: minutes,
+        used_minutes: usedMinutes,
+        expires_at: '2099-12-31',
+      })
+      .returning('member_package_id')
+      .executeTakeFirstOrThrow()
+
+    createdPrepaidProductIds.push(actualProductId)
+    createdMemberPackageIds.push(row.member_package_id)
+  }
+
   describe('Equipment usage fee application logic', () => {
     it('should add equipment usage fee when member has NOT requested equipment fee for the year', async () => {
       const flight = createTestFlight()
@@ -238,7 +355,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       expect(invoice.Tasks).toHaveLength(2)
 
       // First task is the flight
-      expect(invoice.Tasks[0].Task.code).toBe('OH-ABC')
+      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
       expect(invoice.Tasks[0].Task.amount).toBe(90)
       expect(invoice.Tasks[0].Task.price_per_unit).toBe(2.5)
 
@@ -259,7 +376,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       expect(invoice.Tasks).toHaveLength(1)
 
       // Only the flight task, no equipment usage fee
-      expect(invoice.Tasks[0].Task.code).toBe('OH-ABC')
+      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
       expect(invoice.Tasks[0].Task.amount).toBe(90)
     })
 
@@ -274,9 +391,9 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       // Only 2 flight tasks, no equipment usage fees
       expect(invoice.Tasks).toHaveLength(2)
-      expect(invoice.Tasks[0].Task.code).toBe('OH-ABC')
+      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
       expect(invoice.Tasks[0].Task.amount).toBe(60)
-      expect(invoice.Tasks[1].Task.code).toBe('OH-ABC')
+      expect(invoice.Tasks[1].Task.code).toBe(testAircraftRegistration)
       expect(invoice.Tasks[1].Task.amount).toBe(45)
     })
 
@@ -289,11 +406,11 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       // 2 flight tasks + 2 equipment usage fee tasks
       expect(invoice.Tasks).toHaveLength(4)
-      expect(invoice.Tasks[0].Task.code).toBe('OH-ABC')
+      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
       expect(invoice.Tasks[0].Task.amount).toBe(60)
       expect(invoice.Tasks[1].Task.code).toBe(ART_EQUIP_USAGE_FEE_CODE)
       expect(invoice.Tasks[1].Task.amount).toBe(60)
-      expect(invoice.Tasks[2].Task.code).toBe('OH-ABC')
+      expect(invoice.Tasks[2].Task.code).toBe(testAircraftRegistration)
       expect(invoice.Tasks[2].Task.amount).toBe(45)
       expect(invoice.Tasks[3].Task.code).toBe(ART_EQUIP_USAGE_FEE_CODE)
       expect(invoice.Tasks[3].Task.amount).toBe(45)
@@ -325,11 +442,11 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       expect(invoice.Tasks).toHaveLength(3)
 
       // 2025 flight - no equipment fee
-      expect(invoice.Tasks[0].Task.code).toBe('OH-ABC')
+      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
       expect(invoice.Tasks[0].Task.amount).toBe(60)
 
       // 2026 flight - with equipment fee
-      expect(invoice.Tasks[1].Task.code).toBe('OH-ABC')
+      expect(invoice.Tasks[1].Task.code).toBe(testAircraftRegistration)
       expect(invoice.Tasks[1].Task.amount).toBe(75)
       expect(invoice.Tasks[2].Task.code).toBe(ART_EQUIP_USAGE_FEE_CODE)
       expect(invoice.Tasks[2].Task.amount).toBe(75)
@@ -385,7 +502,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       expect(invoice.Tasks).toHaveLength(1)
       expect(invoice.Tasks[0].Task.discount).toBe(100)
-      expect(invoice.Tasks[0].Task.code).toBe('OH-ABC')
+      expect(invoice.Tasks[0].Task.code).toBe(testAircraftRegistration)
     })
 
     it('should not include kalustonkaytto remarks for non-billable flight', async () => {
@@ -410,7 +527,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
   })
 
   describe('Minimum billable time top-up', () => {
-    it('should add a top-up task for a local flight below minimum billable minutes', async () => {
+    it('should bill a local flight below minimum billable minutes at the minimum billable time', async () => {
       await createEquipmentFeeRequest(year2025, testMemberId) // suppress equipment fee for clarity
       const flight = createTestFlight({
         flightMins: 15,
@@ -422,14 +539,10 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       const invoice = await createFlightInvoicePayload(payload, testMemberId)
 
-      expect(invoice.Tasks).toHaveLength(2)
-      // Primary flight task
-      expect(invoice.Tasks[0].Task.amount).toBe(15)
+      // topUpMins (5) is folded into the standard billing line — one combined task for 20 mins
+      expect(invoice.Tasks).toHaveLength(1)
+      expect(invoice.Tasks[0].Task.amount).toBe(20)
       expect(invoice.Tasks[0].Task.price_per_unit).toBe(2.5)
-      // Top-up task for remaining 5 mins (20 - 15)
-      expect(invoice.Tasks[1].Task.amount).toBe(5)
-      expect(invoice.Tasks[1].Task.price_per_unit).toBe(2.5)
-      expect(invoice.Tasks[1].Task.contents).toContain('minimum billable time 20 min')
     })
 
     it('should not add a top-up task for a local flight that meets minimum billable minutes', async () => {
@@ -524,6 +637,71 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       expect(invoice.Tasks).toHaveLength(3)
       const equipmentFeeTask = invoice.Tasks.find(t => t.Task.code === ART_EQUIP_USAGE_FEE_CODE)
       expect(equipmentFeeTask?.Task.amount).toBe(80) // 90 - 10
+    })
+  })
+
+  describe('Prepaid package allocation', () => {
+    it('should invoice package-covered minutes at package rate and add an offsetting credit row', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      await createMemberPackage({
+        productId: 'TPKG001',
+        minutes: 90,
+        perMinRate: 1.5,
+      })
+
+      const flight = createTestFlight({ flightMins: 90, blockMins: 95 })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      expect(invoice.Tasks).toHaveLength(2)
+      expect(invoice.Tasks[0].Task.amount).toBe(90)
+      expect(invoice.Tasks[0].Task.price_per_unit).toBe(1.5)
+      expect(invoice.Tasks[0].Task.contents).toContain('prepaid package rate')
+      expect(invoice.Tasks[1].Task.amount).toBe(90)
+      expect(invoice.Tasks[1].Task.price_per_unit).toBe(-1.5)
+      expect(invoice.Tasks[1].Task.contents).toContain('prepaid package credit')
+    })
+
+    it('should allocate limited prepaid minutes from oldest to newest flights and split the remainder to standard pricing', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      await createMemberPackage({
+        productId: 'TPKG002',
+        minutes: 60,
+        perMinRate: 1.5,
+      })
+
+      const firstFlight = createTestFlight({
+        flightId: 'F1',
+        takeoffTimeUtc: new Date(`${year2025}-06-15T08:00:00Z`).toUTCString(),
+        landingTimeUtc: new Date(`${year2025}-06-15T08:40:00Z`).toUTCString(),
+        flightMins: 40,
+        blockMins: 45,
+      })
+      const secondFlight = createTestFlight({
+        flightId: 'F2',
+        takeoffTimeUtc: new Date(`${year2025}-06-15T09:00:00Z`).toUTCString(),
+        landingTimeUtc: new Date(`${year2025}-06-15T09:40:00Z`).toUTCString(),
+        flightMins: 40,
+        blockMins: 45,
+      })
+
+      const invoice = await createFlightInvoicePayload(
+        { flights: [firstFlight, secondFlight] },
+        testMemberId,
+      )
+
+      expect(invoice.Tasks).toHaveLength(5)
+      expect(invoice.Tasks[0].Task.amount).toBe(40)
+      expect(invoice.Tasks[0].Task.price_per_unit).toBe(1.5)
+      expect(invoice.Tasks[1].Task.amount).toBe(40)
+      expect(invoice.Tasks[1].Task.price_per_unit).toBe(-1.5)
+      expect(invoice.Tasks[2].Task.amount).toBe(20)
+      expect(invoice.Tasks[2].Task.price_per_unit).toBe(1.5)
+      expect(invoice.Tasks[3].Task.amount).toBe(20)
+      expect(invoice.Tasks[3].Task.price_per_unit).toBe(-1.5)
+      expect(invoice.Tasks[4].Task.amount).toBe(20)
+      expect(invoice.Tasks[4].Task.price_per_unit).toBe(2.5)
     })
   })
 

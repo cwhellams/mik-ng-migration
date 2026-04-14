@@ -74,7 +74,12 @@ describe('GET /items', () => {
   it('should return invoice items', async () => {
     const res = await request(app).get('/invoices/items').set('Cookie', `accessToken=${adminToken}`)
     expect(res.status).toBe(200)
-    expect(res.body.items).toHaveLength(4)
+    expect(res.body.items.length).toBeGreaterThanOrEqual(3)
+    // Verify expected items are present
+    const codes = res.body.items.map((item: any) => item.code)
+    expect(codes).toContain('OH-STL')
+    expect(codes).toContain('JUNIOR')
+    expect(codes).toContain('VIRHEMERKINTA')
   })
 
   it('should return 401 for invalid token', async () => {

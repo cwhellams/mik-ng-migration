@@ -21,6 +21,7 @@ import { InvoicingRange } from './components/InvoicingRange'
 import { InvoicingFlights } from './components/InvoicingFlights'
 import { PartiallyBillableFlights } from './components/PartiallyBillableFlights'
 import { Title } from '../../components/Title'
+import { PrepaidBalanceFlights } from './components/PrepaidBalanceFlights'
 
 const steps = [
   { code: undefined, labelKey: 'invoicing.range' },
@@ -40,6 +41,7 @@ const steps = [
   },
   { code: InvoicableFlights.MIN_BILLABLE, labelKey: 'invoicing.minBillable' },
   { code: InvoicableFlights.OTHER, labelKey: 'invoicing.other' },
+  { code: 'PREPAID_BALANCE', labelKey: 'invoicing.prepaidBalance' },
 ]
 
 export const FlightInvoicing = () => {
@@ -91,7 +93,7 @@ export const FlightInvoicing = () => {
         sx={{ mb: 5 }}
       >
         {steps.map((step) => (
-          <Step key={step.code}>
+          <Step key={step.labelKey}>
             <StepLabel>{t(step.labelKey)}</StepLabel>
           </Step>
         ))}
@@ -171,6 +173,10 @@ export const FlightInvoicing = () => {
           setFilters={setFilters}
           navigate={navigate}
         />
+      )}
+
+      {activeStep === 8 && (
+        <PrepaidBalanceFlights filters={filters} navigate={navigate} />
       )}
 
       {activeStep === steps.length && (

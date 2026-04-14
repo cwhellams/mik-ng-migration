@@ -23,6 +23,8 @@ export function useRoles(): {
   isSMSProcessor: boolean
   isSMSManager: boolean
   isOutboxAdmin: boolean
+  isStoreAdmin: boolean
+  isStoreUser: boolean
   roles: MemberRole[]
   permissions: MIKPermissions[]
   sudoers: boolean
@@ -68,6 +70,11 @@ export function useRoles(): {
     isSMSProcessor: hasSudoAccess(MIKPermissions.SMS_PROCESSOR),
     isSMSManager: hasSudoAccess(MIKPermissions.SMS_MANAGER),
     isOutboxAdmin: hasSudoAccess(MIKPermissions.OUTBOX_ADMIN),
+    isStoreAdmin: hasSudoAccess(MIKPermissions.STORE_ADMIN),
+    isStoreUser: hasAccess(
+      MIKPermissions.STORE_USER,
+      MIKPermissions.STORE_ADMIN
+    ),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
     // user is in sudoers file if the downgraded permission is different

@@ -28,6 +28,8 @@ import taxReportRoutes from './routes/tax-reports/api.ts'
 import { router as outboxRoutes } from './routes/outbox/api.ts'
 import { router as versionRoute } from './routes/version/api.ts'
 import { router as timeRoute } from './routes/time/api.ts'
+import { router as shopRoutes } from './routes/shop/api.ts'
+import { router as prepaidHoursRoutes } from './routes/prepaid-hours/api.ts'
 import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
 import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoicePaymentWorker.ts'
 import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
@@ -110,6 +112,8 @@ app.use('/api/v1/tax-reports', taxReportRoutes)
 app.use('/api/v1/outbox', outboxRoutes)
 app.use('/api/v1/version', versionRoute)
 app.use('/api/v1/time', timeRoute)
+app.use('/api/v1/shop', shopRoutes)
+app.use('/api/v1/prepaid-hours', prepaidHoursRoutes)
 
 // Test database connection before starting workers
 await testConnection()

@@ -33,6 +33,7 @@ import {
   type InvoicableFlight,
   type InvoicableFlightListResponse,
   FlightCreditSchema,
+  type PrepaidFlightSummaryResponse,
 } from '../flight-log/models.ts'
 import {
   getInvoicableFlights,
@@ -45,6 +46,7 @@ import {
   createAnnualEquipmentFeeForMember,
   createAnnualMemberFeesForMembers,
 } from '../../services/accounting/recurringFeesProcessor.ts'
+import { planPrepaidFlightUsage } from '../../services/accounting/flightPrepaidAllocator.ts'
 
 const router = Router()
 router.use(
@@ -111,6 +113,26 @@ router.get(
 
     const response = await getInvoicableFlights(data)
     res.status(200).json(response)
+  },
+)
+
+router.get(
+  '/flights/prepaid-summary',
+  validateUser(MIKPermissions.INVOICING_ADMIN),
+  async (req: Request, res: Response<PrepaidFlightSummaryResponse>) => {
+    const data = InvoiceFlightsSchema.parse(req.query)
+
+    const response = await getInvoicableFlights({
+      aircraftRegistration: data.aircraftRegistration,
+      endDate: data.endDate,
+      limit: 1000,
+    })
+
+    const planned = await planPrepaidFlightUsage(response.logs)
+
+    res.status(200).json({
+      groups: planned.groups.filter(group => group.availablePrepaidMinutes > 0),
+    })
   },
 )
 

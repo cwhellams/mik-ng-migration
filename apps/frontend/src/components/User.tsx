@@ -111,6 +111,12 @@ const User = () => {
               </ListItemIcon>
               {t('header.profile')}
             </MenuItem>
+            <MenuItem component={Link} to='/shop/flight-packages'>
+              <ListItemIcon>
+                <Icon icon='mdi:clock-time-four' fontSize={20} />
+              </ListItemIcon>
+              {t('header.myFlightPackages')}
+            </MenuItem>
             <Divider />
             <Box sx={{ px: 2, py: 1 }}>
               <Typography variant='body2' color='text.secondary'>

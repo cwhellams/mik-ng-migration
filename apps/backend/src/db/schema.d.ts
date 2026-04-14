@@ -57,6 +57,7 @@ export type InvoiceType =
   | 'INSTRUCTION'
   | 'JOINING_FEE'
   | 'MISC'
+  | 'SHOP_ORDER'
 
 export type Json = JsonValue
 
@@ -93,6 +94,10 @@ export type Occurrencestatus =
   | 'NEW'
   | 'PROCESSED'
   | 'RECEIVED'
+
+export type ShopOrderStatus = 'CANCELLED' | 'INVOICED' | 'PENDING' | 'PROCESSING' | 'REFUNDED'
+
+export type ShopProductType = 'FLIGHT_HOURS_PACKAGE' | 'STANDARD'
 
 export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SKIPPED' | 'SYNCED'
 
@@ -594,6 +599,47 @@ export interface MemberSimplbooksSyncState {
   sync_status: Generated<string>
 }
 
+export interface PrepaidMemberPackages {
+  created_at: Generated<Timestamp>
+  expires_at: string
+  is_expired: Generated<boolean>
+  member_id: string
+  member_package_id: Generated<number>
+  order_id: string | null
+  product_id: string
+  remaining_minutes: Generated<number | null>
+  total_minutes: number
+  updated_at: Generated<Timestamp>
+  used_minutes: Generated<number>
+}
+
+export interface PrepaidPackages {
+  aircraft_registration: string
+  created_at: Generated<Timestamp>
+  created_by: string
+  expires_at: string
+  is_active: Generated<boolean>
+  max_per_member: number | null
+  minutes_per_package: number
+  per_min_rate: Numeric
+  product_id: string
+  simplbooks_item_id: string | null
+  sold_count: Generated<number>
+  total_packages_available: number
+  total_price: Generated<Numeric | null>
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface PrepaidUsageLog {
+  applied_at: Generated<Timestamp>
+  flight_id: string | null
+  member_package_id: number
+  minutes_used: number
+  note: string | null
+  usage_id: Generated<number>
+}
+
 export interface ScheduleBookings {
   booking_id: string
   booking_status: BookingStatus
@@ -627,6 +673,126 @@ export interface Secrets {
   secret_value: string
   updated_at: Generated<Timestamp>
   updated_by: string
+}
+
+export interface ShopCartItems {
+  cart_id: string
+  cart_item_id: Generated<number>
+  created_at: Generated<Timestamp>
+  product_id: string
+  quantity: Generated<number>
+  selected_options: Json | null
+  updated_at: Generated<Timestamp>
+}
+
+export interface ShopCarts {
+  cart_id: string
+  created_at: Generated<Timestamp>
+  discount_code_id: number | null
+  member_id: string
+  updated_at: Generated<Timestamp>
+}
+
+export interface ShopCategories {
+  category_id: string
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: Json | null
+  is_active: Generated<boolean>
+  name: Json
+  sort_order: Generated<number>
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface ShopDiscountCodeCategories {
+  category_id: string
+  code_id: number
+  created_at: Generated<Timestamp>
+}
+
+export interface ShopDiscountCodes {
+  code: string
+  code_id: Generated<number>
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: string | null
+  discount_type: string
+  discount_value: Numeric
+  is_active: Generated<boolean>
+  max_uses: number | null
+  min_order_amount: Numeric | null
+  updated_at: Generated<Timestamp>
+  updated_by: string
+  uses_count: Generated<number>
+  valid_from: Generated<Timestamp>
+  valid_until: Timestamp | null
+}
+
+export interface ShopOrderItems {
+  order_id: string
+  order_item_id: Generated<number>
+  product_id: string
+  product_snapshot: Json
+  quantity: number
+  selected_options: Json | null
+  total_price: Numeric
+  unit_price: Numeric
+}
+
+export interface ShopOrders {
+  created_at: Generated<Timestamp>
+  created_by: string
+  discount_amount: Numeric | null
+  discount_code_id: number | null
+  invoice_id: Int8 | null
+  member_id: string
+  notes: string | null
+  order_id: string
+  status: Generated<ShopOrderStatus>
+  total_amount: Numeric
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface ShopProductProperties {
+  is_required: Generated<boolean>
+  name: Json
+  product_id: string
+  property_id: Generated<number>
+  sort_order: Generated<number>
+}
+
+export interface ShopProductPropertyOptions {
+  is_active: Generated<boolean>
+  option_id: Generated<number>
+  property_id: number
+  sort_order: Generated<number>
+  stock_quantity: number | null
+  value: Json
+}
+
+export interface ShopProducts {
+  category_id: string
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: Json | null
+  image_url: string | null
+  is_active: Generated<boolean>
+  is_published: Generated<boolean>
+  low_stock_threshold: number | null
+  max_order_quantity: number | null
+  metadata: Json | null
+  name: Json
+  price: Numeric
+  product_id: string
+  product_type: Generated<ShopProductType>
+  simplbooks_item_id: string | null
+  stock_quantity: Generated<number>
+  tags: Generated<string[]>
+  updated_at: Generated<Timestamp>
+  updated_by: string
+  vat_percent: Generated<Numeric>
 }
 
 export interface StaticAirfields {
@@ -835,8 +1001,21 @@ export interface DB {
   'member.register_audit': MemberRegisterAudit
   'member.roles': MemberRoles
   'member.simplbooks_sync_state': MemberSimplbooksSyncState
+  'prepaid.member_packages': PrepaidMemberPackages
+  'prepaid.packages': PrepaidPackages
+  'prepaid.usage_log': PrepaidUsageLog
   'schedule.bookings': ScheduleBookings
   secrets: Secrets
+  'shop.cart_items': ShopCartItems
+  'shop.carts': ShopCarts
+  'shop.categories': ShopCategories
+  'shop.discount_code_categories': ShopDiscountCodeCategories
+  'shop.discount_codes': ShopDiscountCodes
+  'shop.order_items': ShopOrderItems
+  'shop.orders': ShopOrders
+  'shop.product_properties': ShopProductProperties
+  'shop.product_property_options': ShopProductPropertyOptions
+  'shop.products': ShopProducts
   'static.airfields': StaticAirfields
   'stats.dto_total_flight_time_by_ac': StatsDtoTotalFlightTimeByAc
   'stats.dto_total_flight_time_by_ac_yr': StatsDtoTotalFlightTimeByAcYr
