@@ -46,7 +46,13 @@ import {
 } from '../../db/shop-queries.ts'
 
 export const router = Router()
-router.use(validateUser(MIKPermissions.STORE_USER))
+router.use(
+  validateUser(
+    MIKPermissions.STORE_USER,
+    MIKPermissions.STORE_ADMIN,
+    MIKPermissions.INVOICING_ADMIN,
+  ),
+)
 
 const isStoreAdmin = (req: Request) =>
   req.user?.permissions?.includes(MIKPermissions.STORE_ADMIN) ?? false

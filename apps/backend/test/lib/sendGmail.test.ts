@@ -32,6 +32,10 @@ const originalEnv = process.env
 describe('sendEmail', () => {
   let sendEmail: (to: string, subject: string, html: string) => void
   beforeAll(async () => {
+    // Set credentials before module import so the module-level smtpLogin const
+    // captures the test value (it is evaluated once at module load time).
+    process.env.SMTP_LOGIN = 'test@example.com'
+    process.env.SMTP_PASSWORD = 'password123'
     const module = await import('../../src/lib/sendGmail.ts')
     sendEmail = module.sendEmail
   })
@@ -71,10 +75,11 @@ describe('sendEmail', () => {
     // Verify correct parameters are passed to sendMail
     expect(sendMailMock).toHaveBeenCalledWith(
       {
-        from: 'no-reply@mik.fi',
+        from: 'test@example.com',
         to: 'recipient@example.com',
         subject: 'Test Subject',
         html: '<p>Test HTML content</p>',
+        attachments: undefined,
       },
       expect.any(Function),
     )

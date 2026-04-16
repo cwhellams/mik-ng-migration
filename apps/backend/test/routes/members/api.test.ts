@@ -89,6 +89,7 @@ describe('GET /members', () => {
     [2, adminToken],
   ])('should return 200 without search filters for user id %d', async (_memberId, token) => {
     const members = await query(token)
+    members.members = members.members.sort((a, b) => a.memberId.localeCompare(b.memberId))
 
     expect(members).toMatchSnapshot()
   })
@@ -849,6 +850,9 @@ describe('Membership approval tests', () => {
       .set('Cookie', `accessToken=${adminToken}`)
       .query({ showUnapproved: true })
     expect(response.status).toBe(200)
+    response.body.members = response.body.members.sort(
+      (a: { memberId: string }, b: { memberId: string }) => a.memberId.localeCompare(b.memberId),
+    )
     expect(response.body.members).toMatchSnapshot()
   })
 

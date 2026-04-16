@@ -16,7 +16,13 @@ import {
 } from '../../db/prepaid-hours-queries.ts'
 
 export const router = Router()
-router.use(validateUser(MIKPermissions.STORE_USER))
+router.use(
+  validateUser(
+    MIKPermissions.STORE_USER,
+    MIKPermissions.STORE_ADMIN,
+    MIKPermissions.INVOICING_ADMIN,
+  ),
+)
 
 const isTreasurer = (req: Request) =>
   req.user?.permissions?.includes(MIKPermissions.INVOICING_ADMIN) ||

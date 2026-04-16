@@ -4,17 +4,6 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
 {
   "members": [
     {
-      "email": "pekka.hamalainen@example.com",
-      "first": "Pekka",
-      "lang": "fi",
-      "last": "Hämäläinen",
-      "memberId": "Pekka1",
-      "phoneNumber": "0445678901",
-      "roles": [
-        "MEMBER",
-      ],
-    },
-    {
       "email": "antti.heikkinen@example.com",
       "first": "Antti",
       "lang": "fi",
@@ -24,28 +13,6 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
       "roles": [
         "INSTRUCTOR",
         "MEMBER",
-      ],
-    },
-    {
-      "email": "juho.kolehmainen@iki.fi",
-      "first": "Liisa",
-      "lang": "fi",
-      "last": "Korhonen",
-      "memberId": "Liisa1",
-      "phoneNumber": "0412345678",
-      "roles": [
-        "COMMITTEE",
-      ],
-    },
-    {
-      "email": "sanna.koskinen@example.com",
-      "first": "Sanna",
-      "lang": "fi",
-      "last": "Koskinen",
-      "memberId": "Sanna1",
-      "phoneNumber": "0478901234",
-      "roles": [
-        "COMMITTEE",
       ],
     },
     {
@@ -68,6 +35,17 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
       "phoneNumber": "0423456789",
       "roles": [
         "INSTRUCTOR",
+      ],
+    },
+    {
+      "email": "juho.kolehmainen@iki.fi",
+      "first": "Liisa",
+      "lang": "fi",
+      "last": "Korhonen",
+      "memberId": "Liisa1",
+      "phoneNumber": "0412345678",
+      "roles": [
+        "COMMITTEE",
       ],
     },
     {
@@ -82,13 +60,6 @@ exports[`GET /members should return 200 without search filters for user id 1 1`]
         "MEMBER",
       ],
     },
-  ],
-}
-`;
-
-exports[`GET /members should return 200 without search filters for user id 2 1`] = `
-{
-  "members": [
     {
       "email": "pekka.hamalainen@example.com",
       "first": "Pekka",
@@ -97,33 +68,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "memberId": "Pekka1",
       "phoneNumber": "0445678901",
       "roles": [
-        "ADMIN",
         "MEMBER",
-      ],
-    },
-    {
-      "email": "antti.heikkinen@example.com",
-      "first": "Antti",
-      "lang": "fi",
-      "last": "Heikkinen",
-      "memberId": "Antti1",
-      "phoneNumber": "0467890123",
-      "roles": [
-        "INSTRUCTOR",
-        "MEMBER",
-      ],
-    },
-    {
-      "email": "juho.kolehmainen@iki.fi",
-      "first": "Liisa",
-      "lang": "fi",
-      "last": "Korhonen",
-      "memberId": "Liisa1",
-      "phoneNumber": "0412345678",
-      "roles": [
-        "ADMIN",
-        "COMMITTEE",
-        "SMS_PROCESSOR",
       ],
     },
     {
@@ -135,7 +80,25 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "phoneNumber": "0478901234",
       "roles": [
         "COMMITTEE",
-        "SMS_PROCESSOR",
+      ],
+    },
+  ],
+}
+`;
+
+exports[`GET /members should return 200 without search filters for user id 2 1`] = `
+{
+  "members": [
+    {
+      "email": "antti.heikkinen@example.com",
+      "first": "Antti",
+      "lang": "fi",
+      "last": "Heikkinen",
+      "memberId": "Antti1",
+      "phoneNumber": "0467890123",
+      "roles": [
+        "INSTRUCTOR",
+        "MEMBER",
       ],
     },
     {
@@ -158,6 +121,19 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "phoneNumber": "0423456789",
       "roles": [
         "INSTRUCTOR",
+      ],
+    },
+    {
+      "email": "juho.kolehmainen@iki.fi",
+      "first": "Liisa",
+      "lang": "fi",
+      "last": "Korhonen",
+      "memberId": "Liisa1",
+      "phoneNumber": "0412345678",
+      "roles": [
+        "ADMIN",
+        "COMMITTEE",
+        "SMS_PROCESSOR",
       ],
     },
     {
@@ -172,6 +148,30 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
         "INSTRUCTOR",
         "MEMBER",
         "SMS_MANAGER",
+      ],
+    },
+    {
+      "email": "pekka.hamalainen@example.com",
+      "first": "Pekka",
+      "lang": "fi",
+      "last": "Hämäläinen",
+      "memberId": "Pekka1",
+      "phoneNumber": "0445678901",
+      "roles": [
+        "ADMIN",
+        "MEMBER",
+      ],
+    },
+    {
+      "email": "sanna.koskinen@example.com",
+      "first": "Sanna",
+      "lang": "fi",
+      "last": "Koskinen",
+      "memberId": "Sanna1",
+      "phoneNumber": "0478901234",
+      "roles": [
+        "COMMITTEE",
+        "SMS_PROCESSOR",
       ],
     },
   ],
@@ -543,17 +543,6 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
 exports[`Membership approval tests Get unapproved members should return list of members awaiting approval 1`] = `
 [
   {
-    "email": "kaisa.laine@example.com",
-    "first": "Kaisa",
-    "lang": "fi",
-    "last": "Laine",
-    "memberId": "Kaisa1",
-    "phoneNumber": "0456789012",
-    "roles": [
-      "ADMIN",
-    ],
-  },
-  {
     "email": "anna.makinen@example.com",
     "first": "Anna",
     "lang": "fi",
@@ -576,15 +565,6 @@ exports[`Membership approval tests Get unapproved members should return list of 
     ],
   },
   {
-    "email": "marja1@gmailgg.com",
-    "first": "Marja",
-    "lang": "fi",
-    "last": "Salminen",
-    "memberId": "Marja1",
-    "phoneNumber": "0490123456",
-    "roles": [],
-  },
-  {
     "email": "juha.seppala@example.com",
     "first": "Juha",
     "lang": "fi",
@@ -594,6 +574,26 @@ exports[`Membership approval tests Get unapproved members should return list of 
     "roles": [
       "MEMBER",
     ],
+  },
+  {
+    "email": "kaisa.laine@example.com",
+    "first": "Kaisa",
+    "lang": "fi",
+    "last": "Laine",
+    "memberId": "Kaisa1",
+    "phoneNumber": "0456789012",
+    "roles": [
+      "ADMIN",
+    ],
+  },
+  {
+    "email": "marja1@gmailgg.com",
+    "first": "Marja",
+    "lang": "fi",
+    "last": "Salminen",
+    "memberId": "Marja1",
+    "phoneNumber": "0490123456",
+    "roles": [],
   },
 ]
 `;

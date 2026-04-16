@@ -157,7 +157,9 @@ describe('Db query member tests', () => {
       showUnapproved: true,
     })
     // test only first 10 items in the test data
-    expect(result.slice(0, 10)).toMatchSnapshot()
+    expect(
+      result.slice(0, 10).sort((a, b) => a.memberId.localeCompare(b.memberId)),
+    ).toMatchSnapshot()
   })
 
   it('getMembers should return unapproved members for admins', async () => {
@@ -165,7 +167,9 @@ describe('Db query member tests', () => {
       showUnapproved: true,
     })
     // test only first 10 items in the test data
-    expect(result.slice(0, 10)).toMatchSnapshot()
+    expect(
+      result.slice(0, 10).sort((a, b) => a.memberId.localeCompare(b.memberId)),
+    ).toMatchSnapshot()
   })
 
   it('getMembers should return everything for admins', async () => {

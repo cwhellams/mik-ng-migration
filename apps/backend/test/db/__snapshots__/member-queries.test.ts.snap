@@ -658,17 +658,6 @@ exports[`Db query member tests getMembers should return everything for admins 1`
 exports[`Db query member tests getMembers should return only approved members for valid members 1`] = `
 [
   {
-    "email": "pekka.hamalainen@example.com",
-    "first": "Pekka",
-    "lang": "fi",
-    "last": "Hämäläinen",
-    "memberId": "Pekka1",
-    "phoneNumber": "0445678901",
-    "roles": [
-      "MEMBER",
-    ],
-  },
-  {
     "email": "antti.heikkinen@example.com",
     "first": "Antti",
     "lang": "fi",
@@ -678,28 +667,6 @@ exports[`Db query member tests getMembers should return only approved members fo
     "roles": [
       "INSTRUCTOR",
       "MEMBER",
-    ],
-  },
-  {
-    "email": "juho.kolehmainen@iki.fi",
-    "first": "Liisa",
-    "lang": "fi",
-    "last": "Korhonen",
-    "memberId": "Liisa1",
-    "phoneNumber": "0412345678",
-    "roles": [
-      "COMMITTEE",
-    ],
-  },
-  {
-    "email": "sanna.koskinen@example.com",
-    "first": "Sanna",
-    "lang": "fi",
-    "last": "Koskinen",
-    "memberId": "Sanna1",
-    "phoneNumber": "0478901234",
-    "roles": [
-      "COMMITTEE",
     ],
   },
   {
@@ -725,6 +692,17 @@ exports[`Db query member tests getMembers should return only approved members fo
     ],
   },
   {
+    "email": "juho.kolehmainen@iki.fi",
+    "first": "Liisa",
+    "lang": "fi",
+    "last": "Korhonen",
+    "memberId": "Liisa1",
+    "phoneNumber": "0412345678",
+    "roles": [
+      "COMMITTEE",
+    ],
+  },
+  {
     "email": "chris.whellams@gmail.com",
     "first": "Matti",
     "lang": "fi",
@@ -736,22 +714,33 @@ exports[`Db query member tests getMembers should return only approved members fo
       "MEMBER",
     ],
   },
+  {
+    "email": "pekka.hamalainen@example.com",
+    "first": "Pekka",
+    "lang": "fi",
+    "last": "Hämäläinen",
+    "memberId": "Pekka1",
+    "phoneNumber": "0445678901",
+    "roles": [
+      "MEMBER",
+    ],
+  },
+  {
+    "email": "sanna.koskinen@example.com",
+    "first": "Sanna",
+    "lang": "fi",
+    "last": "Koskinen",
+    "memberId": "Sanna1",
+    "phoneNumber": "0478901234",
+    "roles": [
+      "COMMITTEE",
+    ],
+  },
 ]
 `;
 
 exports[`Db query member tests getMembers should return unapproved members for admins 1`] = `
 [
-  {
-    "email": "kaisa.laine@example.com",
-    "first": "Kaisa",
-    "lang": "fi",
-    "last": "Laine",
-    "memberId": "Kaisa1",
-    "phoneNumber": "0456789012",
-    "roles": [
-      "ADMIN",
-    ],
-  },
   {
     "email": "anna.makinen@example.com",
     "first": "Anna",
@@ -775,15 +764,6 @@ exports[`Db query member tests getMembers should return unapproved members for a
     ],
   },
   {
-    "email": "marja1@gmailgg.com",
-    "first": "Marja",
-    "lang": "fi",
-    "last": "Salminen",
-    "memberId": "Marja1",
-    "phoneNumber": "0490123456",
-    "roles": [],
-  },
-  {
     "email": "juha.seppala@example.com",
     "first": "Juha",
     "lang": "fi",
@@ -793,6 +773,26 @@ exports[`Db query member tests getMembers should return unapproved members for a
     "roles": [
       "MEMBER",
     ],
+  },
+  {
+    "email": "kaisa.laine@example.com",
+    "first": "Kaisa",
+    "lang": "fi",
+    "last": "Laine",
+    "memberId": "Kaisa1",
+    "phoneNumber": "0456789012",
+    "roles": [
+      "ADMIN",
+    ],
+  },
+  {
+    "email": "marja1@gmailgg.com",
+    "first": "Marja",
+    "lang": "fi",
+    "last": "Salminen",
+    "memberId": "Marja1",
+    "phoneNumber": "0490123456",
+    "roles": [],
   },
 ]
 `;
