@@ -20,5 +20,8 @@
   ],
   "[sql]": {
     "editor.formatOnSave": false
+  },
+  "chat.tools.terminal.autoApprove": {
+    "Set-Location": true
   }
 }

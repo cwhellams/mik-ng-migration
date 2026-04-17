@@ -7,6 +7,8 @@ import {
 } from 'react'
 import {
   Calendar,
+  type DateRangeFormatFunction,
+  type DayLayoutFunction,
   Event,
   EventProps,
   EventPropGetter,
@@ -17,9 +19,8 @@ import {
 } from 'react-big-calendar'
 import { dayjsLocalizerTz } from './dayjsLocalizerTz'
 
-import withDragAndDrop, {
-  withDragAndDropProps,
-} from 'react-big-calendar/lib/addons/dragAndDrop'
+import withDragAndDropImport from 'react-big-calendar/lib/addons/dragAndDrop'
+import type { withDragAndDropProps } from 'react-big-calendar/lib/addons/dragAndDrop'
 import noOverlap from 'react-big-calendar/lib/utils/layout-algorithms/no-overlap'
 
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
@@ -62,6 +63,11 @@ import { Icon } from '@iconify/react'
 import { bookingFlags, bookingMinDate } from './helpers'
 
 dayjs.locale('fi')
+
+const withDragAndDrop = (
+  (withDragAndDropImport as unknown as { default?: typeof withDragAndDropImport }).default ??
+  withDragAndDropImport
+) as typeof withDragAndDropImport
 
 interface BookingEvent extends Event {
   id: string
@@ -412,6 +418,36 @@ const Schedule = () => {
     [currentView]
   )
 
+  const eventTimeRangeFormat: DateRangeFormatFunction = ({ start, end }, culture, localizer) =>
+    localizer?.format(start, start.getMinutes() == 0 ? 'HH' : 'HH:mm', culture) +
+    '–' +
+    localizer?.format(end, end.getMinutes() == 0 ? 'HH' : 'HH:mm', culture)
+
+  const eventTimeRangeStartFormat: DateRangeFormatFunction = ({ start }, culture, localizer) =>
+    localizer?.format(start, start.getMinutes() == 0 ? 'HH' : 'HH:mm', culture) + '–'
+
+  const eventTimeRangeEndFormat: DateRangeFormatFunction = ({ end }, culture, localizer) =>
+    '–' + localizer?.format(end, end.getMinutes() == 0 ? 'HH' : 'HH:mm', culture)
+
+  const dayLayoutAlgorithm: DayLayoutFunction<BookingEvent> = (params) => {
+    return noOverlap(params).map((item) => {
+      if (item.size == 100 && filters['registration[]']?.length == 0) {
+        // make a single plane booking more narrow to make it more clear another plane
+        // can also be booked at the same time
+        return {
+          ...item,
+          size: 85,
+          style: {
+            ...item.style,
+            width: '85%',
+          },
+        }
+      }
+
+      return item
+    }) as { event: BookingEvent; style: CSSProperties }[]
+  }
+
   return (
     <RemoteContent error={eventError}>
       <SnackAlert problem={problem} />
@@ -491,31 +527,9 @@ const Schedule = () => {
           formats={{
             // make time format shorter when it's on the hour,
             // e.g. 14-15 instead of 14:00-15:00
-            eventTimeRangeFormat: ({ start, end }, culture, localizer) =>
-              localizer?.format(
-                start,
-                start.getMinutes() == 0 ? 'HH' : 'HH:mm',
-                culture
-              ) +
-              '–' +
-              localizer?.format(
-                end,
-                end.getMinutes() == 0 ? 'HH' : 'HH:mm',
-                culture
-              ),
-            eventTimeRangeStartFormat: ({ start }, culture, localizer) =>
-              localizer?.format(
-                start,
-                start.getMinutes() == 0 ? 'HH' : 'HH:mm',
-                culture
-              ) + '–',
-            eventTimeRangeEndFormat: ({ end }, culture, localizer) =>
-              '–' +
-              localizer?.format(
-                end,
-                end.getMinutes() == 0 ? 'HH' : 'HH:mm',
-                culture
-              ),
+            eventTimeRangeFormat,
+            eventTimeRangeStartFormat,
+            eventTimeRangeEndFormat,
           }}
           messages={calendarOpts.messages}
           min={calendarOpts.min}
@@ -527,28 +541,12 @@ const Schedule = () => {
           showMultiDayTimes={true}
           resizable
           selectable
-          dayLayoutAlgorithm={(params) => {
-            return noOverlap(params).map((item) => {
-              if (item.size == 100 && filters['registration[]']?.length == 0) {
-                // make a single plane booking more narrow to make it more clear another plane
-                // can also be booked at the same time
-                return {
-                  ...item,
-                  size: 85,
-                  style: {
-                    ...item.style,
-                    width: '85%',
-                  },
-                }
-              }
-              return item
-            }) as { event: BookingEvent; style: CSSProperties }[]
-          }}
+          dayLayoutAlgorithm={dayLayoutAlgorithm}
           components={{ event: CalendarEvent }}
-          draggableAccessor={(event) => (event as BookingEvent).isEditable}
+          draggableAccessor={(event: BookingEvent) => event.isEditable}
           eventPropGetter={eventStyle}
           style={{ height: '80vh' }}
-          tooltipAccessor={(event) => (event as BookingEvent).fullTitle}
+          tooltipAccessor={(event: BookingEvent) => event.fullTitle}
           className={eventLoading ? 'reloading' : undefined}
         />
 
