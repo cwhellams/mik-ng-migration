@@ -106,7 +106,7 @@ get:
                       id: 22
                       code: "VIRHEMERKINTA"
                       ean: ""
-                      amount: 0
+                      amount: 1
                       price_per_unit: 0
                       sum_with_vat: false
                       sales_vat_type_id: 0
@@ -262,6 +262,22 @@ get:
                       name: "Jäsenmaksu"
                       contents: ""
                       unit: "kalenterivuosi"
+                  - Article:
+                      id: 72
+                      code: "STLPAKETTI"
+                      ean: ""
+                      amount: 0
+                      price_per_unit: 0
+                      sum_with_vat: false
+                      sales_vat_type_id: 0
+                      purchase_vat_type_id: 0
+                      markup_value: 0
+                      markup_type: "none"
+                      is_inventory: false
+                      active: true
+                      name: "STL-tuntipaketti"
+                      contents: ""
+                      unit: "kpl"
                   - Article:
                       id: 71
                       code: "KALUSTONKAYTTO"

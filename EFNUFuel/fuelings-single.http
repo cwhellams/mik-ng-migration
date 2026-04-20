@@ -1,0 +1,11 @@
+# EFNU Fuel API — Single Fueling
+# GET /api/v1/fuelings/{id}
+#
+# Returns one fueling record by its unique ID.
+
+@baseUrl = https://efnu.fi/fueldev/club/api/v1
+@apiKey = YOUR_API_KEY_HERE
+
+### Get a single fueling by ID
+GET {{baseUrl}}/fuelings/1842
+Authorization: Bearer {{apiKey}}

@@ -21,6 +21,7 @@ import { sql } from 'kysely'
 import type { Json } from './schema.d.ts'
 import { insertOutboxItem } from './outbox-simplbooks-queries.ts'
 import { SimplbooksEventType } from '../services/simplbooks/models.ts'
+import { problem } from '../routes/response.ts'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -129,6 +130,7 @@ export async function getProducts(filters?: ProductFilters): Promise<Product[]> 
   const rows = await q.orderBy('name').execute()
   const products = rows.map(mapProduct)
   await fillAircraftImages(products)
+  await fillFlightPackageStock(products)
   await fillProductOrderFlags(products)
   return products
 }
@@ -143,6 +145,7 @@ export async function getProductById(id: string): Promise<Product | undefined> {
   const product = mapProduct(r)
   product.properties = await getProductProperties(id)
   await fillAircraftImages([product])
+  await fillFlightPackageStock([product])
   await fillProductOrderFlags([product])
   return product
 }
@@ -161,6 +164,25 @@ async function fillProductOrderFlags(products: Product[]): Promise<void> {
   const orderedProductIds = new Set(rows.map(row => row.product_id))
   for (const product of products) {
     product.hasOrders = orderedProductIds.has(product.productId)
+  }
+}
+
+/** Recompute stockQuantity for flight packages from prepaid.packages (source of truth). */
+async function fillFlightPackageStock(products: Product[]): Promise<void> {
+  const pkgProducts = products.filter(p => p.productType === 'FLIGHT_HOURS_PACKAGE')
+  if (pkgProducts.length === 0) return
+  const ids = pkgProducts.map(p => p.productId)
+  const pkgs = await db
+    .selectFrom('prepaid.packages')
+    .select(['product_id', 'total_packages_available', 'sold_count'])
+    .where('product_id', 'in', ids)
+    .execute()
+  const stockByProductId = new Map(
+    pkgs.map(p => [p.product_id, Math.max(0, p.total_packages_available - p.sold_count)]),
+  )
+  for (const product of pkgProducts) {
+    const remaining = stockByProductId.get(product.productId)
+    if (remaining !== undefined) product.stockQuantity = remaining
   }
 }
 
@@ -756,8 +778,23 @@ export async function addCartItem(memberId: string, data: CartItemUpsert): Promi
 
   // Enforce limits for this product
   const product = await getProductById(data.productId)
+  if (!product) {
+    return problem({ status: 404, detail: 'Product not found' })
+  }
+  if (product.stockQuantity <= 0) {
+    return problem({ status: 409, detail: 'Product is out of stock' })
+  }
+  if (newCartQty > product.stockQuantity) {
+    return problem({
+      status: 409,
+      detail: `Only ${product.stockQuantity} item(s) available in stock`,
+    })
+  }
   if (product?.maxOrderQuantity != null && newCartQty > product.maxOrderQuantity) {
-    throw new Error(`Maximum quantity per order is ${product.maxOrderQuantity}`)
+    return problem({
+      status: 409,
+      detail: `Maximum quantity per order is ${product.maxOrderQuantity}`,
+    })
   }
 
   // For flight hour packages, also enforce overall per-member limit
@@ -831,8 +868,23 @@ export async function updateCartItem(
       )
 
       const product = await getProductById(item.product_id)
+      if (!product) {
+        return problem({ status: 404, detail: 'Product not found' })
+      }
+      if (product.stockQuantity <= 0) {
+        return problem({ status: 409, detail: 'Product is out of stock' })
+      }
+      if (quantity > product.stockQuantity) {
+        return problem({
+          status: 409,
+          detail: `Only ${product.stockQuantity} item(s) available in stock`,
+        })
+      }
       if (product?.maxOrderQuantity != null && quantity > product.maxOrderQuantity) {
-        throw new Error(`Maximum quantity per order is ${product.maxOrderQuantity}`)
+        return problem({
+          status: 409,
+          detail: `Maximum quantity per order is ${product.maxOrderQuantity}`,
+        })
       }
       if (product?.productType === 'FLIGHT_HOURS_PACKAGE' && product.maxOrderQuantity != null) {
         const row = await db
@@ -1188,6 +1240,7 @@ export async function createOrderFromCart(
       selected_options: (item.selectedOptions as unknown as Json) ?? null,
       product_snapshot: {
         name: item.product?.name,
+        description: item.product?.description,
         price: unitPrice,
         simplbooksItemId: item.product?.simplbooksItemId,
       } as unknown as Json,

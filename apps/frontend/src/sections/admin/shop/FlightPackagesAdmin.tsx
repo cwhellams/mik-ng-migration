@@ -371,6 +371,7 @@ export default function FlightPackagesAdmin() {
             <TableHead>
               <TableRow>
                 <TableCell>{t('shop.admin.aircraft')}</TableCell>
+                <TableCell>{t('common.name')} / {t('common.description')}</TableCell>
                 <TableCell>{t('shop.admin.hoursPerPkg')}</TableCell>
                 <TableCell>{t('shop.admin.perMinRate')}</TableCell>
                 <TableCell>{t('shop.admin.sold')}</TableCell>
@@ -382,10 +383,44 @@ export default function FlightPackagesAdmin() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredPackages.map((p) => (
-                <TableRow key={p.productId} hover>
+              {filteredPackages.map((p) => {
+                const isSoldOut = p.soldCount >= p.totalPackagesAvailable
+                return (
+                <TableRow
+                  key={p.productId}
+                  hover={!isSoldOut}
+                  sx={isSoldOut ? { bgcolor: 'rgba(211, 47, 47, 0.08)', position: 'relative' } : {}}
+                >
                   <TableCell>
                     <strong>{p.aircraftRegistration}</strong>
+                  </TableCell>
+                  <TableCell sx={{ position: 'relative' }}>
+                    <span>{p.nameFi ?? p.nameEn ?? '–'}</span>
+                    <br />
+                    <Typography variant='caption' color='text.secondary'>
+                      {p.descriptionFi ?? p.descriptionEn ?? ''}
+                    </Typography>
+                    {isSoldOut && (
+                      <Typography
+                        component='span'
+                        sx={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%) rotate(-15deg)',
+                          color: 'rgba(211, 47, 47, 0.35)',
+                          fontWeight: 900,
+                          fontSize: '1.1rem',
+                          letterSpacing: 2,
+                          textTransform: 'uppercase',
+                          whiteSpace: 'nowrap',
+                          pointerEvents: 'none',
+                          userSelect: 'none',
+                        }}
+                      >
+                        {t('shop.soldOut')}
+                      </Typography>
+                    )}
                   </TableCell>
                   <TableCell>{formatMinutes(p.minutesPerPackage)}</TableCell>
                   <TableCell>€{p.perMinRate}/min</TableCell>
@@ -412,7 +447,8 @@ export default function FlightPackagesAdmin() {
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              ))}
+                )
+              })}
             </TableBody>
           </Table>
         </TableContainer>

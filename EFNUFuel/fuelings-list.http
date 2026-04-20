@@ -1,0 +1,32 @@
+# EFNU Fuel API — Fuelings List
+# GET /api/v1/fuelings
+#
+# Optional parameters:
+#   start      Start date (YYYY-MM-DD)
+#   end        End date (YYYY-MM-DD)
+#   plane_id   Filter by aircraft ID
+#   limit      Max rows (max 1000)
+#   offset     Pagination offset
+
+@baseUrl = https://efnu.fi/fueldev/club/api/v1
+@apiKey = YOUR_API_KEY_HERE
+
+### Get current month's fuelings (no date filter)
+GET {{baseUrl}}/fuelings
+Authorization: Bearer {{apiKey}}
+
+### Get fuelings for a specific date range
+GET {{baseUrl}}/fuelings?start=2025-08-01&end=2025-08-31
+Authorization: Bearer {{apiKey}}
+
+### Get fuelings for a specific aircraft
+GET {{baseUrl}}/fuelings?start=2025-01-01&end=2025-12-31&plane_id=53
+Authorization: Bearer {{apiKey}}
+
+### Get fuelings with limit and offset (pagination - page 1)
+GET {{baseUrl}}/fuelings?start=2025-01-01&end=2025-12-31&limit=100&offset=0
+Authorization: Bearer {{apiKey}}
+
+### Get fuelings with limit and offset (pagination - page 2)
+GET {{baseUrl}}/fuelings?start=2025-01-01&end=2025-12-31&limit=100&offset=100
+Authorization: Bearer {{apiKey}}

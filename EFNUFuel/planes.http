@@ -1,0 +1,11 @@
+# EFNU Fuel API — Club Planes
+# GET /api/v1/planes
+#
+# Returns all aircraft registered to the club.
+
+@baseUrl = https://efnu.fi/fueldev/club/api/v1
+@apiKey = YOUR_API_KEY_HERE
+
+### Get all club planes
+GET {{baseUrl}}/planes
+Authorization: Bearer {{apiKey}}

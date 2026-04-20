@@ -72,7 +72,7 @@ function mapPackage(r: Record<string, unknown>, product?: ProductData): PrepaidP
     minutesPerPackage: Number(r.minutes_per_package),
     perMinRate: Number(r.per_min_rate),
     totalPrice: Number(r.total_price),
-    totalPackagesAvailable: product?.stockQuantity ?? 0,
+    totalPackagesAvailable: Number(r.total_packages_available),
     maxPerMember: r.max_per_member == null ? null : Number(r.max_per_member),
     soldCount: Number(r.sold_count),
     simplbooksItemId: product?.simplbooksItemId ?? null,
@@ -193,7 +193,8 @@ export async function updatePrepaidPackage(
     data.maxPerMember !== undefined ||
     data.minutesPerPackage !== undefined ||
     data.perMinRate !== undefined ||
-    data.lowStockThreshold !== undefined
+    data.lowStockThreshold !== undefined ||
+    data.isActive !== undefined
   if (hasProductUpdate) {
     const current = await getPrepaidPackageById(id)
     const productUpdate: Record<string, unknown> = {
@@ -222,7 +223,10 @@ export async function updatePrepaidPackage(
     if (data.simplbooksItemId !== undefined)
       productUpdate.simplbooks_item_id = data.simplbooksItemId
     if (data.totalPackagesAvailable !== undefined)
-      productUpdate.stock_quantity = data.totalPackagesAvailable
+      productUpdate.stock_quantity = Math.max(
+        0,
+        data.totalPackagesAvailable - (current?.soldCount ?? 0),
+      )
     if (data.maxPerMember !== undefined) productUpdate.max_order_quantity = data.maxPerMember
     if (data.minutesPerPackage !== undefined || data.perMinRate !== undefined) {
       const mins = data.minutesPerPackage ?? current?.minutesPerPackage ?? 0
@@ -231,6 +235,7 @@ export async function updatePrepaidPackage(
     }
     if (data.lowStockThreshold !== undefined)
       productUpdate.low_stock_threshold = data.lowStockThreshold
+    if (data.isActive !== undefined) productUpdate.is_active = data.isActive
     await db.updateTable('shop.products').set(productUpdate).where('product_id', '=', id).execute()
   }
   return getPrepaidPackageById(id) as Promise<PrepaidPackage>

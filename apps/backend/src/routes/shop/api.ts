@@ -106,13 +106,13 @@ router.delete(
 // Products
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Product listing — any authenticated user; admins see all, members see published only
+// Product listing — any authenticated user; admins see all, members see published+active only
 router.get('/products', ...validateUser(), async (req: Request, res: Response) => {
   const admin = isStoreAdmin(req)
   const filters = ProductFiltersSchema.parse({
     ...req.query,
-    // non-admin users may only see published products
-    ...(admin ? {} : { published: 'true' }),
+    // non-admin users may only see published and active products
+    ...(admin ? {} : { published: 'true', active: 'true' }),
   })
   const products = await getProducts(filters)
   res.json(products)
@@ -123,7 +123,7 @@ router.get('/products/:id', async (req: Request, res: Response) => {
   if (!product) return problem({ status: 404, detail: 'Product not found' })
 
   const admin = isStoreAdmin(req)
-  if (!product.isPublished && !admin) {
+  if (!admin && (!product.isPublished || !product.isActive)) {
     return problem({ status: 404, detail: 'Product not found' })
   }
   res.json(product)

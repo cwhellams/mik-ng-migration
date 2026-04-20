@@ -1,5 +1,6 @@
 import {
   Alert,
+  Badge,
   Box,
   Button,
   Card,
@@ -70,6 +71,9 @@ export default function ShopPage() {
     }
   }
 
+  const cartItemCount =
+    cart?.items.reduce((sum, i) => sum + i.quantity, 0) ?? 0
+
   const isMaxedOut = (product: Product): boolean => {
     if (product.maxOrderQuantity == null) return false
     const inCart =
@@ -84,8 +88,17 @@ export default function ShopPage() {
     <Box>
       <Title label={t('shop.title')} />
 
-      {/* Filters */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+      {/* Filters + Cart Actions */}
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 2,
+          mb: 3,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <FormControl size='small' sx={{ minWidth: 180 }}>
           <InputLabel>{t('shop.category')}</InputLabel>
           <Select
@@ -101,6 +114,29 @@ export default function ShopPage() {
             ))}
           </Select>
         </FormControl>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Badge badgeContent={cartItemCount} color='primary' showZero={false}>
+            <Button
+              component={Link}
+              to='/shop/cart'
+              variant='outlined'
+              startIcon={<Icon icon='mdi:cart-outline' />}
+            >
+              {t('shop.viewCart')}
+            </Button>
+          </Badge>
+          {cartItemCount > 0 && (
+            <Button
+              component={Link}
+              to='/shop/cart'
+              variant='contained'
+              color='primary'
+              startIcon={<Icon icon='mdi:credit-card-check-outline' />}
+            >
+              {t('shop.checkout')}
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {/* Product grid */}
@@ -147,7 +183,7 @@ export default function ShopPage() {
                       </Box>
                     )}
 
-                    {product.stockQuantity === 0 && (
+                    {product.stockQuantity <= 0 && (
                       <Box
                         sx={{
                           position: 'absolute',
@@ -210,7 +246,7 @@ export default function ShopPage() {
                       {formatPrice(product.price, product.vatPercent)}
                     </Typography>
 
-                    {product.stockQuantity === 0 && (
+                    {product.stockQuantity <= 0 && (
                       <Chip
                         label={t('shop.outOfStock')}
                         size='small'
@@ -274,7 +310,7 @@ export default function ShopPage() {
                       size='small'
                       variant='contained'
                       disabled={
-                        product.stockQuantity === 0 ||
+                        product.stockQuantity <= 0 ||
                         cartMutation.isMutating ||
                         isMaxedOut(product)
                       }

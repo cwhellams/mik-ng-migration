@@ -1,0 +1,18 @@
+# EFNU Fuel API — Monthly Statistics
+# GET /api/v1/stats/monthly
+#
+# Returns fueling totals per month and fuel type for a given year.
+#
+# Optional parameters:
+#   year   Year (defaults to current year)
+
+@baseUrl = https://efnu.fi/fueldev/club/api/v1
+@apiKey = YOUR_API_KEY_HERE
+
+### Get monthly stats for the current year
+GET {{baseUrl}}/stats/monthly
+Authorization: Bearer {{apiKey}}
+
+### Get monthly stats for a specific year
+GET {{baseUrl}}/stats/monthly?year=2025
+Authorization: Bearer {{apiKey}}

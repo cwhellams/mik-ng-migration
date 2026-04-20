@@ -383,8 +383,9 @@ function createTasksForFlight(
       Task: {
         article_id: ctx.virhemerkintaFee.id,
         code: ART_ENTRY_ERROR_CODE,
-        amount: ctx.virhemerkintaFee.amount ?? 1,
-        price_per_unit: ctx.virhemerkintaFee.price_per_unit,
+        amount: ctx.virhemerkintaFee.amount || 1,
+        price_per_unit:
+          ctx.virhemerkintaFee.price_per_unit ?? ctx.virhemerkintaFee.markup_value ?? 0,
         contents: createFlightTaskContents(flight, virhemerkintaAdditionalText),
         name: ctx.virhemerkintaFee.name,
       },

@@ -308,7 +308,11 @@ function extractLocalizedName(nameValue: unknown): string | undefined {
   return typeof preferred === 'string' ? preferred : undefined
 }
 
-function parseProductSnapshot(value: unknown): { simplbooksItemId?: string; name?: string } {
+function parseProductSnapshot(value: unknown): {
+  simplbooksItemId?: string
+  name?: string
+  description?: string
+} {
   if (!value || typeof value !== 'object') {
     return {}
   }
@@ -317,8 +321,9 @@ function parseProductSnapshot(value: unknown): { simplbooksItemId?: string; name
   const simplbooksItemId =
     typeof snapshot.simplbooksItemId === 'string' ? snapshot.simplbooksItemId : undefined
   const name = extractLocalizedName(snapshot.name)
+  const description = extractLocalizedName(snapshot.description)
 
-  return { simplbooksItemId, name }
+  return { simplbooksItemId, name, description }
 }
 
 async function resolveArticleId(item: ShopOrderItemRow): Promise<number> {
@@ -397,7 +402,8 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   const tasks = await Promise.all(
     items.map(async item => {
       const snapshot = parseProductSnapshot(item.product_snapshot)
-      const contents = snapshot.name ?? `Shop order ${payload.orderId}`
+      const namePart = snapshot.name ?? `Shop order ${payload.orderId}`
+      const contents = snapshot.description ? `${namePart}\n${snapshot.description}` : namePart
 
       return {
         Task: {

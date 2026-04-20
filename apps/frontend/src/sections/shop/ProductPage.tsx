@@ -158,33 +158,60 @@ export default function ProductPage() {
           <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {/* Product image */}
             <Box sx={{ width: { xs: '100%', md: 350 }, flexShrink: 0 }}>
-              {product.imageUrl ? (
-                <img
-                  src={product.imageUrl}
-                  alt={localName(product.name as Record<string, string>)}
-                  style={{ width: '100%', borderRadius: 8 }}
-                />
-              ) : (
-                <Paper
-                  variant='outlined'
-                  sx={{
-                    width: '100%',
-                    height: 300,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Icon
-                    icon={
-                      product.productType === 'FLIGHT_HOURS_PACKAGE'
-                        ? 'mdi:clock-time-four'
-                        : 'mdi:shopping'
-                    }
-                    width={80}
+              <Box sx={{ position: 'relative' }}>
+                {product.imageUrl ? (
+                  <img
+                    src={product.imageUrl}
+                    alt={localName(product.name as Record<string, string>)}
+                    style={{ width: '100%', borderRadius: 8 }}
                   />
-                </Paper>
-              )}
+                ) : (
+                  <Paper
+                    variant='outlined'
+                    sx={{
+                      width: '100%',
+                      height: 300,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icon
+                      icon={
+                        product.productType === 'FLIGHT_HOURS_PACKAGE'
+                          ? 'mdi:clock-time-four'
+                          : 'mdi:shopping'
+                      }
+                      width={80}
+                    />
+                  </Paper>
+                )}
+                {product.stockQuantity <= 0 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      bgcolor: 'rgba(0, 0, 0, 0.35)',
+                      borderRadius: product.imageUrl ? 2 : 1,
+                    }}
+                  >
+                    <Typography
+                      variant='h4'
+                      sx={{
+                        color: 'common.white',
+                        fontWeight: 700,
+                        letterSpacing: 1,
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {t('shop.soldOut')}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
             </Box>
 
             {/* Product details */}
@@ -245,7 +272,7 @@ export default function ProductPage() {
                   </Typography>
                 )}
 
-              {product.stockQuantity === 0 ? (
+              {product.stockQuantity <= 0 ? (
                 <Chip
                   label={t('shop.outOfStock')}
                   color='error'
