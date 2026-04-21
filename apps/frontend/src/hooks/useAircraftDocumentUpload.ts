@@ -119,6 +119,12 @@ export const useAircraftDocumentUpload = ({
         )
 
         for (const doc of existingDocs) {
+          const isOtherType =
+            documentType === 'Other' || doc.documentType === 'Other'
+          const isSameType = doc.documentType === documentType
+
+          if (isOtherType || !isSameType) continue
+
           if (doc.validFrom && doc.validTo) {
             const newStart = new Date(validFrom)
             const newEnd = new Date(validTo)
