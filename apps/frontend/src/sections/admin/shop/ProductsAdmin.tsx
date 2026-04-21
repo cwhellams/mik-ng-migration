@@ -515,7 +515,7 @@ interface ProductForm {
   vatPercent: string
   stockQuantity: string
   lowStockThreshold: string
-  maxOrderQuantity: string
+  maxPerMemberQty: string
   imageUrl: string
   tags: string
   isActive: boolean
@@ -535,7 +535,7 @@ const emptyForm: ProductForm = {
   vatPercent: '24',
   stockQuantity: '0',
   lowStockThreshold: '',
-  maxOrderQuantity: '',
+  maxPerMemberQty: '',
   imageUrl: '',
   tags: '',
   isActive: true,
@@ -559,7 +559,7 @@ function productToForm(p: Product): ProductForm {
     stockQuantity: String(p.stockQuantity),
     lowStockThreshold:
       p.lowStockThreshold == null ? '' : String(p.lowStockThreshold),
-    maxOrderQuantity:
+    maxPerMemberQty:
       p.maxOrderQuantity == null ? '' : String(p.maxOrderQuantity),
     imageUrl: p.imageUrl ?? '',
     tags: p.tags?.join(', ') ?? '',
@@ -580,8 +580,8 @@ function formToPayload(f: ProductForm) {
     lowStockThreshold: f.lowStockThreshold
       ? Number.parseInt(f.lowStockThreshold)
       : null,
-    maxOrderQuantity: f.maxOrderQuantity
-      ? Number.parseInt(f.maxOrderQuantity)
+    maxOrderQuantity: f.maxPerMemberQty
+      ? Number.parseInt(f.maxPerMemberQty)
       : null,
     imageUrl: f.imageUrl || null,
     tags: f.tags
@@ -937,12 +937,12 @@ export default function ProductsAdmin() {
                   onChange={set('lowStockThreshold')}
                 />
                 <TextField
-                  label={t('shop.maxOrderQtyLabel')}
+                  label={t('shop.maxPerMemberQtyLabel')}
                   size='small'
                   fullWidth
                   type='number'
-                  value={form.maxOrderQuantity}
-                  onChange={set('maxOrderQuantity')}
+                  value={form.maxPerMemberQty}
+                  onChange={set('maxPerMemberQty')}
                 />
                 <TextField
                   label={t('shop.simplbooksItemId')}

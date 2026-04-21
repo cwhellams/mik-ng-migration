@@ -270,7 +270,7 @@ export default function ShopPage() {
                         display='block'
                         sx={{ mt: 0.5 }}
                       >
-                        {t('shop.maxOrderQty', {
+                        {t('shop.maxPerMemberQty', {
                           max: product.maxOrderQuantity,
                         })}
                       </Typography>

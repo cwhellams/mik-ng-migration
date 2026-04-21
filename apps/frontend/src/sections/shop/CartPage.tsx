@@ -168,7 +168,7 @@ export default function CartPage() {
                               variant='caption'
                               color='text.secondary'
                             >
-                              {t('shop.maxOrderQty', {
+                              {t('shop.maxPerMemberQty', {
                                 max: item.product.maxOrderQuantity,
                               })}
                             </Typography>

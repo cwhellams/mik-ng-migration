@@ -79,8 +79,7 @@ export default function ProductPage() {
   const alreadyOwned = isFlightPackage
     ? (memberPackages?.filter((mp) => mp.productId === id).length ?? 0)
     : 0
-  // For flight packages: subtract both cart qty and owned packages from the member limit.
-  // For standard products: subtract only the cart qty from the per-order limit.
+  // Subtract both cart qty and already owned packages from the member limit.
   const maxAllowed =
     product?.maxOrderQuantity == null
       ? null
@@ -383,7 +382,7 @@ export default function ProductPage() {
                   <Typography variant='caption' color='text.secondary'>
                     {isFlightPackage && alreadyOwned > 0
                       ? t('shop.maxRemainingQty', { max: effectiveMax })
-                      : t('shop.maxOrderQty', { max: effectiveMax })}
+                      : t('shop.maxPerMemberQty', { max: effectiveMax })}
                   </Typography>
                 )}
               </Box>
