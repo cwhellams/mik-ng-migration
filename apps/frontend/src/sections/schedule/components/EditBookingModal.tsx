@@ -43,6 +43,7 @@ import { SaveButton } from '../../../components/SaveButton'
 import { RemoveButton } from '../../../components/RemoveButton'
 import { DateTimeValidationError } from '@mui/x-date-pickers/models'
 import { getHelsinkiOffsetLabel, HELSINKI_TIMEZONE } from '../../../utils/date'
+import { generateGoogleCalendarLink, downloadIcs } from '../../../utils/calendarEvent'
 
 export type BookingFlags = {
   isNewBooking: boolean
@@ -435,6 +436,30 @@ export const BookingEditor = ({
                 at={booking.cancelledAt ?? undefined}
                 format='DD.MM.YYYY HH:mm'
               />
+            )}
+
+            {booking.status !== BookingStatus.CANCELLED && (
+              <Stack direction='row' spacing={1} flexWrap='wrap'>
+                <Button
+                  variant='outlined'
+                  size='small'
+                  href={generateGoogleCalendarLink(booking as Booking)}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                >
+                  {t('schedule.addToGoogleCalendar')}
+                </Button>
+                <Button
+                  variant='outlined'
+                  size='small'
+                  onClick={async () => {
+                    const { data: fresh } = await mutation.trigger<undefined, Booking>('GET')
+                    downloadIcs((fresh ?? booking) as Booking)
+                  }}
+                >
+                  {t('schedule.downloadIcs')}
+                </Button>
+              </Stack>
             )}
           </Stack>
         </CardContent>

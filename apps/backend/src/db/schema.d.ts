@@ -644,6 +644,7 @@ export interface ScheduleBookings {
   booking_id: string
   booking_status: BookingStatus
   booking_type: BookingType
+  calendar_sequence: Generated<number>
   cancelled_at: Timestamp | null
   cancelled_by: string | null
   created_at: Generated<Timestamp>

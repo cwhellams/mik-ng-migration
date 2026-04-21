@@ -33,6 +33,7 @@ export const BookingSchema = AuditableSchema.extend({
   endTimeEpoch: BigintAsString,
   endTime: z.string().datetime(),
   description: z.string().optional(),
+  calendarSequence: z.number().int().default(0),
   cancelledBy: z.string().nullable().nullish(),
   cancelledAt: z.string().datetime().nullish(),
 })

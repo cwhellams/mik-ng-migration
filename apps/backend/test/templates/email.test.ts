@@ -1,11 +1,11 @@
-import {
-  BookingStatus,
-  BookingType,
-  type BookingUpsertRequest,
-} from '../../src/routes/bookings/models.ts'
+import { BookingStatus, BookingType, type Booking } from '../../src/routes/bookings/models.ts'
 import { MIKLang } from '../../src/routes/members/models.ts'
 import { OccurrenceStatus, type Occurrence } from '../../src/routes/occurrences/models.ts'
 import { bookingCancelledEmailBodyHtml } from '../../src/templates/bookingCancelledEmailTemplate.ts'
+import {
+  bookingConfirmedEmailBodyHtml,
+  bookingUpdatedEmailBodyHtml,
+} from '../../src/templates/bookingConfirmedEmailTemplate.ts'
 import { loginEmailBodyHtml, type LoginVars } from '../../src/templates/loginEmailTemplate.ts'
 import { occurrenceNotificationEmailBodyHtml } from '../../src/templates/occurrenceNotification.ts'
 import { overdueInvoiceEmailBodyHtml } from '../../src/templates/overdueInvoiceEmailTemplate.ts'
@@ -55,29 +55,60 @@ describe('Register approved template tests', () => {
 })
 
 describe('Booking cancellation template tests', () => {
-  const oldBooking: BookingUpsertRequest = {
+  const cancelledBooking: Booking = {
+    bookingId: 'test-booking-id',
     memberId: '2',
+    member: { firstName: 'Tester', lastName: 'User', phoneNumber: null },
     registration: 'OH-IHQ',
     startTimeEpoch: '1700000000',
     endTimeEpoch: '1700003600',
+    startTime: '2023-11-14T22:13:20.000Z',
+    endTime: '2023-11-14T23:13:20.000Z',
     type: BookingType.PRACTICE,
-    status: BookingStatus.CONFIRMED,
-  }
-  const newBooking: BookingUpsertRequest = {
-    memberId: '2',
-    registration: 'OH-IHQ',
-    startTimeEpoch: '1600000000',
-    endTimeEpoch: '1800003600',
-    type: BookingType.MAINTENANCE,
-    status: BookingStatus.CONFIRMED,
+    status: BookingStatus.CANCELLED,
+    createdAt: '2023-11-14T20:00:00.000Z',
+    createdBy: '1',
+    updatedAt: '2023-11-14T20:00:00.000Z',
+    updatedBy: '1',
+    cancelledBy: null,
+    calendarSequence: 0,
   }
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingCancellationEmailBodyHtml', lang => {
-    const result = bookingCancelledEmailBodyHtml(lang, oldBooking, newBooking, 'Tester1')
+    const result = bookingCancelledEmailBodyHtml(lang, 'Tester', cancelledBooking)
     expect(result).toMatchSnapshot()
   })
 })
+describe('Booking confirmation template tests', () => {
+  const confirmedBooking: Booking = {
+    bookingId: 'test-booking-id',
+    memberId: '2',
+    member: { firstName: 'Tester', lastName: 'User', phoneNumber: null },
+    registration: 'OH-IHQ',
+    startTimeEpoch: '1700000000',
+    endTimeEpoch: '1700003600',
+    startTime: '2023-11-14T22:13:20.000Z',
+    endTime: '2023-11-14T23:13:20.000Z',
+    type: BookingType.PRACTICE,
+    status: BookingStatus.CONFIRMED,
+    createdAt: '2023-11-14T20:00:00.000Z',
+    createdBy: '1',
+    updatedAt: '2023-11-14T20:00:00.000Z',
+    updatedBy: '1',
+    cancelledBy: null,
+    calendarSequence: 0,
+  }
 
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingConfirmedEmailBodyHtml', lang => {
+    const result = bookingConfirmedEmailBodyHtml(lang, 'Tester', confirmedBooking)
+    expect(result).toMatchSnapshot()
+  })
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingUpdatedEmailBodyHtml', lang => {
+    const result = bookingUpdatedEmailBodyHtml(lang, 'Tester', confirmedBooking)
+    expect(result).toMatchSnapshot()
+  })
+})
 describe('Overdue invoice template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('overdueInvoiceEmailBodyHtml', lang => {
     const result = overdueInvoiceEmailBodyHtml(lang, {

@@ -2,8 +2,8 @@
 
 Hello {{firstName}},
 
-Your booking for plane {{registration}} {{oldBookingTime}} has been cancelled.
+Your booking for plane {{registration}} {{bookingTime}} has been cancelled.
 
-Reason: {{reason}}.
+Your calendar invite will be removed automatically if your calendar application supports it.
 
 [button:Check the booking calendar]({{href}})

@@ -103,6 +103,7 @@ describe('GET /bookings/bookingId', () => {
     expect(response.status).toBe(200)
     expect(response.body).toEqual({
       bookingId: 'stl1',
+      calendarSequence: expect.any(Number),
       cancelledBy: null,
       createdAt: expect.any(String),
       createdBy: 'Liisa1',

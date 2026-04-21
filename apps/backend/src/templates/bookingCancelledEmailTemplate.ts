@@ -1,32 +1,36 @@
 import 'dotenv/config'
-import type { BookingUpsertRequest } from '../routes/bookings/models.ts'
+import type { Booking } from '../routes/bookings/models.ts'
 import { markdownEmailTemplate } from './emailTemplate.ts'
 import { epochToLocal } from '../util/date.ts'
-import { escapeHtml } from '../util/sanitizers.ts'
 
 export const bookingCancelledEmailSubject = (lang: string | undefined): string =>
-  lang == 'fi' ? 'MIK varauksesi peruttu' : 'Your booking is cancelled'
+  lang === 'fi'
+    ? 'MIK varauksesi on peruttu'
+    : lang === 'sv'
+      ? 'Din MIK-bokning har blivit inställd'
+      : 'Your MIK booking is cancelled'
 
 export const bookingCancelledEmailBodyHtml = (
   lang: string | undefined,
-  oldBooking: BookingUpsertRequest,
-  newBooking: BookingUpsertRequest,
-  firstName?: string,
+  firstName: string,
+  booking: Booking,
 ): string =>
-  markdownEmailTemplate(`booking-cancelled-${lang}.md`, {
-    ...oldBooking,
+  markdownEmailTemplate(`booking-cancelled-${bookingTemplateLang(lang)}.md`, {
     firstName,
-    oldBookingTime: formatRange(oldBooking),
-    reason: escapeHtml(newBooking.description ?? newBooking.type),
-    href: href(oldBooking),
+    registration: booking.registration,
+    bookingTime: formatRange(booking),
+    href: href(booking),
   })
 
-const href = (booking: BookingUpsertRequest) =>
+const bookingTemplateLang = (lang: string | undefined): 'en' | 'fi' | 'sv' =>
+  lang === 'fi' || lang === 'sv' ? lang : 'en'
+
+const href = (booking: Booking) =>
   `${process.env.PUBLIC_URL ?? 'http://localhost:5173'}/schedule?day=${epochToLocal(
     booking.startTimeEpoch,
   ).format('YYYY-MM-DD')}`
 
-const formatRange = (booking: BookingUpsertRequest) =>
+const formatRange = (booking: Booking) =>
   `${epochToLocal(booking.startTimeEpoch).format('DD.MM. HH:mm')} - ${epochToLocal(
     booking.endTimeEpoch,
   ).format('DD.MM. HH:mm')}`

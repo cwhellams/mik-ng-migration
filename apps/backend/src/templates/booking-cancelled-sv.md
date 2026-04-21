@@ -2,8 +2,8 @@
 
 Hej {{firstName}},
 
-Din bokning för flygplan {{registration}} {{oldBookingTime}} har blivit inställd.
+Din bokning för flygplan {{registration}} {{bookingTime}} har blivit inställd.
 
-Orsak: {{reason}}.
+Din kalenderinbjudan tas bort automatiskt om ditt kalenderprogram stöder det.
 
 [button:Se bokningskalendern]({{href}})

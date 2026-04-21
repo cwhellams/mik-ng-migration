@@ -969,7 +969,9 @@
     "noPreviousBooking": "No previous booking",
     "noNextBooking": "No next booking",
     "ends": "Ends {{at}}",
-    "starts": "Starts {{at}}"
+    "starts": "Starts {{at}}",
+    "addToGoogleCalendar": "Add to Google Calendar",
+    "downloadIcs": "Download calendar invite (.ics)"
   },
   "dashboard": {
     "schedule": {

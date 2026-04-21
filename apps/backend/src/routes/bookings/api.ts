@@ -28,6 +28,13 @@ import {
   bookingCancelledEmailBodyHtml,
   bookingCancelledEmailSubject,
 } from '../../templates/bookingCancelledEmailTemplate.ts'
+import {
+  bookingConfirmedEmailBodyHtml,
+  bookingConfirmedEmailSubject,
+  bookingUpdatedEmailBodyHtml,
+  bookingUpdatedEmailSubject,
+} from '../../templates/bookingConfirmedEmailTemplate.ts'
+import { generateIcsContent, generateCancelIcsContent } from '../../lib/calendarEvent.ts'
 
 // all scheduling routes are protected by booking permissions
 const router = Router()
@@ -59,6 +66,23 @@ router.post('/', async (req: Request, res: Response) => {
   )
 
   const booking = await insertBooking(data, req.user!)
+
+  const member = await getMemberById(booking.memberId)
+  if (member?.email) {
+    sendEmail(
+      member.email,
+      bookingConfirmedEmailSubject(member.lang),
+      bookingConfirmedEmailBodyHtml(member.lang, member.firstName, booking),
+      [
+        {
+          filename: 'booking.ics',
+          content: generateIcsContent(booking, member.email),
+          contentType: 'text/calendar',
+        },
+      ],
+    )
+  }
+
   res.status(201).json(booking)
 })
 
@@ -143,14 +167,28 @@ const clearOverlappingBookings = async (
 
   for (const overlap of overlaps) {
     console.log('Clearing overlapping booking', overlap)
-    await updateBooking(overlap.bookingId, { status: BookingStatus.CANCELLED }, jwt)
+    const cancelledOverlap = await updateBooking(
+      overlap.bookingId,
+      { status: BookingStatus.CANCELLED },
+      jwt,
+    )
+    if (!cancelledOverlap) {
+      continue
+    }
 
-    const member = await getMemberById(overlap.memberId)
+    const member = await getMemberById(cancelledOverlap.memberId)
     if (member?.email) {
       sendEmail(
         member.email,
         bookingCancelledEmailSubject(member.lang),
-        bookingCancelledEmailBodyHtml(member.lang, overlap, booking, member.firstName),
+        bookingCancelledEmailBodyHtml(member.lang, member.firstName, cancelledOverlap),
+        [
+          {
+            filename: 'booking.ics',
+            content: generateCancelIcsContent(cancelledOverlap),
+            contentType: 'text/calendar',
+          },
+        ],
       )
     }
   }
@@ -195,6 +233,22 @@ router.patch('/:id', async (req: Request, res: Response) => {
     })
   }
 
+  const member = await getMemberById(updated.memberId)
+  if (member?.email) {
+    sendEmail(
+      member.email,
+      bookingUpdatedEmailSubject(member.lang),
+      bookingUpdatedEmailBodyHtml(member.lang, member.firstName, updated),
+      [
+        {
+          filename: 'booking.ics',
+          content: generateIcsContent(updated, member.email),
+          contentType: 'text/calendar',
+        },
+      ],
+    )
+  }
+
   res.status(200).json(updated)
 })
 
@@ -221,6 +275,22 @@ router.delete('/:id', async (req: Request, res: Response) => {
       status: 500,
       detail: 'Booking deletion failed',
     })
+  }
+
+  const member = await getMemberById(cancelled.memberId)
+  if (member?.email) {
+    sendEmail(
+      member.email,
+      bookingCancelledEmailSubject(member.lang),
+      bookingCancelledEmailBodyHtml(member.lang, member.firstName, cancelled),
+      [
+        {
+          filename: 'booking.ics',
+          content: generateCancelIcsContent(cancelled),
+          contentType: 'text/calendar',
+        },
+      ],
+    )
   }
 
   res.status(204).json(cancelled)

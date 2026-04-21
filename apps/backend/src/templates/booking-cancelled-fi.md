@@ -2,8 +2,8 @@
 
 Hei {{firstName}},
 
-Varauksesi koneelle {{registration}} {{oldBookingTime}} on peruttu.
+Varauksesi koneelle {{registration}} {{bookingTime}} on peruttu.
 
-Syy {{reason}}.
+Kalenterimerkintäsi poistetaan automaattisesti, jos kalenterisovelluksesi tukee sitä.
 
 [button:Tarkistele varauskalenteria]({{href}})

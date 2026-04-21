@@ -8,6 +8,7 @@ import {
 } from '../routes/bookings/models.ts'
 import type { MemberRegister, ScheduleBookings } from './schema.js'
 import type { Selectable } from 'kysely'
+import { sql } from 'kysely'
 import dayjs from 'dayjs'
 import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
@@ -28,6 +29,7 @@ const mapResultToBooking = (
   status: row.booking_status as BookingStatus,
   type: row.booking_type as BookingType,
   description: row.description ?? undefined,
+  calendarSequence: Number(row.calendar_sequence ?? 0),
   startTimeEpoch: row.start_time_epoch,
   startTime: row.start_time_utc.toISOString(),
   endTimeEpoch: row.end_time_epoch,
@@ -146,6 +148,7 @@ export const insertBooking = async (
       phoneNumber: null,
     },
     bookingId: newBooking.booking_id,
+    calendarSequence: 0,
     startTime: newBooking.start_time_utc.toISOString(),
     endTime: newBooking.end_time_utc.toISOString(),
     createdAt: now,
@@ -175,6 +178,7 @@ export const updateBooking = async (
       updated_by: jwt.memberId,
       cancelled_at: patch.status === BookingStatus.CANCELLED ? now : undefined,
       cancelled_by: patch.status === BookingStatus.CANCELLED ? jwt.memberId : undefined,
+      calendar_sequence: sql`calendar_sequence + 1`,
     })
     .where('booking_id', '=', bookingId)
     .executeTakeFirst()
@@ -196,6 +200,7 @@ export const cancelBooking = async (
       booking_status: BookingStatus.CANCELLED,
       cancelled_at: new Date().toISOString(),
       cancelled_by: jwt.memberId,
+      calendar_sequence: sql`calendar_sequence + 1`,
     })
     .where('booking_id', '=', bookingId)
     .executeTakeFirst()

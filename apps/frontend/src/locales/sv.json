@@ -941,7 +941,9 @@
     "noPreviousBooking": "Ingen tidigare bokning",
     "noNextBooking": "Ingen nästa bokning",
     "ends": "Slutar {{at}}",
-    "starts": "Startar {{at}}"
+    "starts": "Startar {{at}}",
+    "addToGoogleCalendar": "Lägg till i Google Kalender",
+    "downloadIcs": "Ladda ner kalenderinbjudan (.ics)"
   },
   "dashboard": {
     "schedule": {

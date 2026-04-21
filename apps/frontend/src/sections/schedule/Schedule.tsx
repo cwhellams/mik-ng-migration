@@ -309,6 +309,7 @@ const Schedule = () => {
         endTimeEpoch: Math.floor(end.getTime() / 1000).toString(),
         startTime: start.toISOString(),
         endTime: end.toISOString(),
+        calendarSequence: 0,
 
         isNewBooking: true,
         isReadonly: false,

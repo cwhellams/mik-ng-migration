@@ -940,7 +940,9 @@
     "noPreviousBooking": "Ei edellistä varausta",
     "noNextBooking": "Ei seuraavaa varausta",
     "ends": "Loppuu {{at}}",
-    "starts": "Alkaa {{at}}"
+    "starts": "Alkaa {{at}}",
+    "addToGoogleCalendar": "Lisää Google-kalenteriin",
+    "downloadIcs": "Lataa kalenterikutsu (.ics)"
   },
   "dashboard": {
     "schedule": {
