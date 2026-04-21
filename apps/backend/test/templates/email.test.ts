@@ -73,7 +73,7 @@ describe('Booking cancellation template tests', () => {
   }
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingCancellationEmailBodyHtml', lang => {
-    const result = bookingCancelledEmailBodyHtml(lang, 'Admin User', oldBooking, newBooking)
+    const result = bookingCancelledEmailBodyHtml(lang, oldBooking, newBooking, 'Tester1')
     expect(result).toMatchSnapshot()
   })
 })

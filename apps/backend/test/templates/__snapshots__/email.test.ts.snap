@@ -9,10 +9,9 @@ exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 1`
       </div>
 
       <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Varauksesi on peruttu</h1><p>Hei ,</p>
+        <h1 style="text-align: center; color: #003366;">Varauksesi on peruttu</h1><p>Hei Tester1,</p>
 <p>Varauksesi koneelle OH-IHQ 15.11. 00:13 - 15.11. 01:13 on peruttu.</p>
-<p>Korvaava varaus on tehty ajalle 13.09. 15:26 - 15.01. 11:00.
-Syy MAINTENANCE. Varauksen tekijä Admin User.</p>
+<p>Syy MAINTENANCE.</p>
 
     <div style="text-align: center; margin: 24px 0;">
       <a href="http://localhost:5173/schedule?day&#x3D;2023-11-15" style="
@@ -44,10 +43,9 @@ exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 2`
       </div>
 
       <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Your booking is cancelled</h1><p>Hello ,</p>
+        <h1 style="text-align: center; color: #003366;">Your booking is cancelled</h1><p>Hello Tester1,</p>
 <p>Your booking for plane OH-IHQ 15.11. 00:13 - 15.11. 01:13 has been cancelled.</p>
-<p>A replacement booking has been made for the period 13.09. 15:26 - 15.01. 11:00.
-Reason: MAINTENANCE. Booking created by Admin User.</p>
+<p>Reason: MAINTENANCE.</p>
 
     <div style="text-align: center; margin: 24px 0;">
       <a href="http://localhost:5173/schedule?day&#x3D;2023-11-15" style="
@@ -79,10 +77,9 @@ exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 3`
       </div>
 
       <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Din bokning är inställd</h1><p>Hej ,</p>
+        <h1 style="text-align: center; color: #003366;">Din bokning är inställd</h1><p>Hej Tester1,</p>
 <p>Din bokning för flygplan OH-IHQ 15.11. 00:13 - 15.11. 01:13 har blivit inställd.</p>
-<p>En ersättningsbokning har gjorts för perioden 13.09. 15:26 - 15.01. 11:00.
-Orsak: MAINTENANCE. Bokning skapad av Admin User.</p>
+<p>Orsak: MAINTENANCE.</p>
 
     <div style="text-align: center; margin: 24px 0;">
       <a href="http://localhost:5173/schedule?day&#x3D;2023-11-15" style="

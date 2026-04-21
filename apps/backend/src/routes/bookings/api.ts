@@ -150,7 +150,7 @@ const clearOverlappingBookings = async (
       sendEmail(
         member.email,
         bookingCancelledEmailSubject(member.lang),
-        bookingCancelledEmailBodyHtml(member.lang, jwt.lastName, overlap, booking),
+        bookingCancelledEmailBodyHtml(member.lang, overlap, booking, member.firstName),
       )
     }
   }

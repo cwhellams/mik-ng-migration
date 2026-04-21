@@ -4,7 +4,6 @@ Hei {{firstName}},
 
 Varauksesi koneelle {{registration}} {{oldBookingTime}} on peruttu.
 
-Korvaava varaus on tehty ajalle {{newBookingTime}}.
-Syy {{reason}}. Varauksen tekijä {{by}}.
+Syy {{reason}}.
 
 [button:Tarkistele varauskalenteria]({{href}})

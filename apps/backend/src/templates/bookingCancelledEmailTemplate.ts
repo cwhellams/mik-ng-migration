@@ -9,16 +9,15 @@ export const bookingCancelledEmailSubject = (lang: string | undefined): string =
 
 export const bookingCancelledEmailBodyHtml = (
   lang: string | undefined,
-  by: string,
   oldBooking: BookingUpsertRequest,
   newBooking: BookingUpsertRequest,
+  firstName?: string,
 ): string =>
   markdownEmailTemplate(`booking-cancelled-${lang}.md`, {
     ...oldBooking,
+    firstName,
     oldBookingTime: formatRange(oldBooking),
-    newBookingTime: formatRange(newBooking),
     reason: escapeHtml(newBooking.description ?? newBooking.type),
-    by: escapeHtml(by),
     href: href(oldBooking),
   })
 
