@@ -607,6 +607,7 @@ export default function ProductsAdmin() {
   const [filterPublished, setFilterPublished] = useState<FilterState>('')
 
   const filterParams = {
+    adminView: true,
     ...(filterCategory ? { categoryId: filterCategory } : {}),
     ...(filterActive === '' ? {} : { active: filterActive === 'true' }),
     ...(filterPublished === ''

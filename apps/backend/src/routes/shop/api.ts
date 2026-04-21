@@ -44,6 +44,7 @@ import {
   createOrderFromCart,
   updateOrderStatus,
 } from '../../db/shop-queries.ts'
+import { isAdminShopView, isPurchasableProduct } from './shop-visibility.ts'
 
 export const router = Router()
 router.use(
@@ -108,11 +109,11 @@ router.delete(
 
 // Product listing — any authenticated user; admins see all, members see published+active only
 router.get('/products', ...validateUser(), async (req: Request, res: Response) => {
-  const admin = isStoreAdmin(req)
+  const adminShopView = isAdminShopView(isStoreAdmin(req), req.query.adminView)
   const filters = ProductFiltersSchema.parse({
     ...req.query,
     // non-admin users may only see published and active products
-    ...(admin ? {} : { published: 'true', active: 'true' }),
+    ...(adminShopView ? {} : { published: 'true', active: 'true' }),
   })
   const products = await getProducts(filters)
   res.json(products)
@@ -122,8 +123,8 @@ router.get('/products/:id', async (req: Request, res: Response) => {
   const product = await getProductById(req.params.id)
   if (!product) return problem({ status: 404, detail: 'Product not found' })
 
-  const admin = isStoreAdmin(req)
-  if (!admin && (!product.isPublished || !product.isActive)) {
+  const adminShopView = isAdminShopView(isStoreAdmin(req), req.query.adminView)
+  if (!adminShopView && !isPurchasableProduct(product)) {
     return problem({ status: 404, detail: 'Product not found' })
   }
   res.json(product)
@@ -260,6 +261,10 @@ router.get('/cart', async (req: Request, res: Response) => {
 
 router.post('/cart/items', async (req: Request, res: Response) => {
   const data = CartItemUpsertSchema.parse(req.body)
+  const product = await getProductById(data.productId)
+  if (!product || !isPurchasableProduct(product)) {
+    return problem({ status: 404, detail: 'Product not found' })
+  }
   const cart = await addCartItem(req.user!.memberId, data)
   res.status(HttpStatusCode.Created).json(cart)
 })
@@ -303,6 +308,16 @@ router.post(
   validateUser(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN),
   async (req: Request, res: Response) => {
     const data = OrderCreateSchema.parse(req.body)
+    const cart = await getCart(req.user!.memberId)
+    const hasUnavailableItem = (cart.items ?? []).some(
+      item => !item.product || !isPurchasableProduct(item.product),
+    )
+    if (hasUnavailableItem) {
+      return problem({
+        status: 409,
+        detail: 'Cart contains product(s) that are no longer available',
+      })
+    }
     const order = await createOrderFromCart(req.user!.memberId, data, req.user!)
     res.status(HttpStatusCode.Created).json(order)
   },
