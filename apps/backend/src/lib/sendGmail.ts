@@ -4,22 +4,6 @@ import validator from 'validator'
 
 import logger from './logger.ts'
 
-const smtpLogin = process.env.SMTP_LOGIN
-const smtpPwd = process.env.SMTP_PASSWORD
-
-// Check if SMTP_LOGIN and SMTP_PWD are present
-if (!smtpLogin || !smtpPwd) {
-  throw new Error('SMTP_LOGIN or SMTP_PASSWORD is not defined in environment variables')
-}
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: smtpLogin,
-    pass: smtpPwd,
-  },
-})
-
 if (process.env.DISABLE_EMAIL_SENDING) {
   console.log(`Email sending is disabled: ${process.env.DISABLE_EMAIL_SENDING}`)
 }
@@ -61,6 +45,20 @@ export const sendEmail = (
     logger.info(`Email sending is disabled. Email not sent to ${to}`)
     return
   }
+
+  const smtpLogin = process.env.SMTP_LOGIN
+  const smtpPwd = process.env.SMTP_PASSWORD
+  if (!smtpLogin || !smtpPwd) {
+    throw new Error('SMTP_LOGIN or SMTP_PASSWORD is not defined in environment variables')
+  }
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: smtpLogin,
+      pass: smtpPwd,
+    },
+  })
 
   // Set up email data
   const mailOptions = {

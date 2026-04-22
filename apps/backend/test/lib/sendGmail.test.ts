@@ -111,25 +111,11 @@ describe('sendEmail', () => {
   })
 
   test('should throw error when environment variables are missing', async () => {
-    // First completely reset modules to ensure no cached modules
-    jest.resetModules()
+    delete process.env.SMTP_LOGIN
+    delete process.env.SMTP_PASSWORD
 
-    // Mock dotenv to avoid reading .env file
-    jest.mock('dotenv/config', () => ({}))
-
-    // Remove required environment variables
-    const modifiedEnv = { ...process.env }
-    delete modifiedEnv.SMTP_LOGIN
-    delete modifiedEnv.SMTP_PASSWORD
-
-    // Set the modified environment
-    process.env = modifiedEnv
-
-    // Try to import the module and expect it to throw
-    await expect(async () => {
-      await jest.isolateModulesAsync(async () => {
-        await import('../../src/lib/sendGmail.ts')
-      })
-    }).rejects.toThrow('SMTP_LOGIN or SMTP_PASSWORD is not defined')
+    expect(() => {
+      sendEmail('recipient@example.com', 'Test Subject', '<p>Test HTML content</p>')
+    }).toThrow('SMTP_LOGIN or SMTP_PASSWORD is not defined')
   })
 })

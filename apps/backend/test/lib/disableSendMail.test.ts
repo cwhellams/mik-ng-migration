@@ -40,6 +40,26 @@ describe('sendEmail with DISABLE_EMAIL_SENDING=true', () => {
     })
   })
 
+  it('should skip sending when disabled even without SMTP credentials', async () => {
+    await jest.isolateModulesAsync(async () => {
+      const logger = await import('../../src/lib/logger.ts')
+      const infoSpy = jest
+        .spyOn(logger.default, 'info')
+        .mockImplementation(() => logger.default as unknown as Logger)
+
+      delete process.env.SMTP_LOGIN
+      delete process.env.SMTP_PASSWORD
+      process.env.DISABLE_EMAIL_SENDING = 'true'
+
+      const { sendEmail } = await import('../../src/lib/sendGmail.ts')
+      expect(() => sendEmail('recipient@example.com', 'Subject', '<p>HTML</p>')).not.toThrow()
+      expect(infoSpy).toHaveBeenCalledWith(
+        'Email sending is disabled. Email not sent to recipient@example.com',
+      )
+      expect(sendMailMock).not.toHaveBeenCalled()
+    })
+  })
+
   it('should skip sending emails outside whitelist and log that email is disabled', async () => {
     // Spy on logger.info
     await jest.isolateModulesAsync(async () => {
