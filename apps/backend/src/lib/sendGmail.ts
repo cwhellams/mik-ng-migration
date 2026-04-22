@@ -4,6 +4,14 @@ import validator from 'validator'
 
 import logger from './logger.ts'
 
+let transporter: nodemailer.Transporter | undefined
+let transporterAuth:
+  | {
+      user: string
+      pass: string
+    }
+  | undefined
+
 if (process.env.DISABLE_EMAIL_SENDING) {
   console.log(`Email sending is disabled: ${process.env.DISABLE_EMAIL_SENDING}`)
 }
@@ -14,6 +22,28 @@ export interface EmailAttachment {
   path?: string // File path or URL
   contentType?: string // MIME type
   encoding?: string // 'base64' | 'hex' | 'binary' etc.
+}
+
+const getTransporter = (smtpLogin: string, smtpPwd: string): nodemailer.Transporter => {
+  if (
+    !transporter ||
+    transporterAuth?.user !== smtpLogin ||
+    transporterAuth?.pass !== smtpPwd
+  ) {
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: smtpLogin,
+        pass: smtpPwd,
+      },
+    })
+    transporterAuth = {
+      user: smtpLogin,
+      pass: smtpPwd,
+    }
+  }
+
+  return transporter
 }
 
 export const sendEmail = (
@@ -52,13 +82,7 @@ export const sendEmail = (
     throw new Error('SMTP_LOGIN or SMTP_PASSWORD is not defined in environment variables')
   }
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: smtpLogin,
-      pass: smtpPwd,
-    },
-  })
+  const transporter = getTransporter(smtpLogin, smtpPwd)
 
   // Set up email data
   const mailOptions = {

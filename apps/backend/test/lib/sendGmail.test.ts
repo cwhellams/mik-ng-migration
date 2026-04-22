@@ -116,6 +116,6 @@ describe('sendEmail', () => {
 
     expect(() => {
       sendEmail('recipient@example.com', 'Test Subject', '<p>Test HTML content</p>')
-    }).toThrow('SMTP_LOGIN or SMTP_PASSWORD is not defined')
+    }).toThrow('SMTP_LOGIN or SMTP_PASSWORD is not defined in environment variables')
   })
 })
