@@ -10,4 +10,4 @@ where member_id in (
         'Antti1',
         'Sanna1',
         'John1'
-    )
+    );
