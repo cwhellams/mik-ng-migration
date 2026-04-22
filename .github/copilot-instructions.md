@@ -35,6 +35,9 @@ Start PostgreSQL and set up the database:
 # Wait for PostgreSQL to be ready, then create mik_ng database
 PGPASSWORD=password psql -h localhost -U admin -d mydatabase -c "CREATE DATABASE mik_ng WITH OWNER = admin ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' LOCALE_PROVIDER = 'libc' TEMPLATE = template0;"
 
+# Create Required role to database
+PGPASSWORD=password psql -h localhost -U admin -d mydatabase -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='mik_app_test') THEN CREATE ROLE mik_app_test LOGIN PASSWORD 'password'; END IF; END \$\$;"
+
 # Set up full database baseline - takes ~8 seconds total. NEVER CANCEL.
 ./scripts/baseline_database.sh
 ```
