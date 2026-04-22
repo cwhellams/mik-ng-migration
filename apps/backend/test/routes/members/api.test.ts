@@ -275,11 +275,10 @@ describe('GET /members', () => {
         roles: ['ADMIN', 'COMMITTEE', 'SMS_PROCESSOR'],
       },
       {
-        first: "John",
-        last: "McDoe",
+        first: 'John',
+        last: 'McDoe',
         roles: ['ADMIN'],
       },
-
     ])
   })
 
