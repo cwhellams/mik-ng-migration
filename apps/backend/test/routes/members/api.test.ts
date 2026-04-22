@@ -274,6 +274,12 @@ describe('GET /members', () => {
         last: 'Korhonen',
         roles: ['ADMIN', 'COMMITTEE', 'SMS_PROCESSOR'],
       },
+      {
+        first: "John",
+        last: "McDoe",
+        roles: ['ADMIN'],
+      },
+
     ])
   })
 
@@ -296,11 +302,6 @@ describe('GET /members', () => {
       {
         first: 'Kaisa',
         last: 'Laine',
-        roles: ['ADMIN'],
-      },
-      {
-        first: 'John',
-        last: 'McDoe',
         roles: ['ADMIN'],
       },
     ])
