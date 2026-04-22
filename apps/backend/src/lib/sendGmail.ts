@@ -25,11 +25,7 @@ export interface EmailAttachment {
 }
 
 const getTransporter = (smtpLogin: string, smtpPwd: string): nodemailer.Transporter => {
-  if (
-    !transporter ||
-    transporterAuth?.user !== smtpLogin ||
-    transporterAuth?.pass !== smtpPwd
-  ) {
+  if (!transporter || transporterAuth?.user !== smtpLogin || transporterAuth?.pass !== smtpPwd) {
     transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
