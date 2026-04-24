@@ -379,6 +379,15 @@ export interface FlightVwFlightTimeTotals {
   verified_total_flight_time: string | null
 }
 
+export interface FuelPricesContent {
+  created_at: Generated<Timestamp>
+  created_by: string
+  id: number
+  markdown: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
 export interface FlywayDataHistory {
   checksum: number | null
   description: string
@@ -988,6 +997,7 @@ export interface DB {
   'flight.occurrences': FlightOccurrences
   'flight.vw_flight_logs': FlightVwFlightLogs
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
+  fuel_prices_content: FuelPricesContent
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory
   'member.annual_fees': MemberAnnualFees

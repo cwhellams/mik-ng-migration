@@ -22,6 +22,7 @@
     "billing": "Billing",
     "accounts": "Accounts",
     "accessCodes": "Codes",
+    "fuelPrices": "Fuel prices",
     "club": "Club",
     "stats": "Statistics",
     "membersTrash": "Trash - Deleted Members",
@@ -483,6 +484,8 @@
     "document.admin": "Manage documents",
     "access_codes.user": "View access codes",
     "access_codes.admin": "Manage access codes",
+    "fuelPrices.user": "View fuel prices",
+    "fuelPrices.admin": "Manage fuel prices",
     "invoicing.user": "View invoices",
     "invoicing.admin": "Manage invoicing",
     "sms.processor": "Receive and anonymize new SMS occurrences",
@@ -983,6 +986,12 @@
     "starts": "Starts {{at}}",
     "addToGoogleCalendar": "Add to Google Calendar",
     "downloadIcs": "Download calendar invite (.ics)"
+  },
+  "fuelPrices": {
+    "title": "Fuel prices",
+    "empty": "Fuel prices have not been added yet.",
+    "enterEditMode": "Edit fuel prices",
+    "exitEditMode": "Exit edit mode"
   },
   "dashboard": {
     "schedule": {

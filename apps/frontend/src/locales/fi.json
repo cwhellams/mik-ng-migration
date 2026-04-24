@@ -22,6 +22,7 @@
     "billing": "Laskutus",
     "accounts": "Tilit",
     "accessCodes": "pääsykoodit",
+    "fuelPrices": "Polttoainehinnat",
     "club": "Kerho",
     "stats": "Tilastot",
     "admin": "Ylläpito",
@@ -481,6 +482,8 @@
     "document.admin": "Hallitsee asiakirjoja",
     "access_codes.user": "Näkee pääsykoodit",
     "access_codes.admin": "Hallitsee pääsykoodeja",
+    "fuelPrices.user": "Näkee polttoainehinnat",
+    "fuelPrices.admin": "Hallitsee polttoainehintoja",
     "invoicing.user": "Näkee laskut",
     "invoicing.admin": "Hallitsee laskutusta",
     "sms.admin": "Vastaanottaa ja hallitsee SMS-tapahtumia",
@@ -954,6 +957,12 @@
     "starts": "Alkaa {{at}}",
     "addToGoogleCalendar": "Lisää Google-kalenteriin",
     "downloadIcs": "Lataa kalenterikutsu (.ics)"
+  },
+  "fuelPrices": {
+    "title": "Polttoainehinnat",
+    "empty": "Polttoainehintoja ei ole vielä lisätty.",
+    "enterEditMode": "Muokkaa polttoainehintoja",
+    "exitEditMode": "Poistu muokkaustilasta"
   },
   "dashboard": {
     "schedule": {

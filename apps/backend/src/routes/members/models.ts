@@ -29,6 +29,10 @@ export enum MIKPermissions {
   ACCESS_CODES_USER = 'access_codes.user',
   ACCESS_CODES_ADMIN = 'access_codes.admin',
 
+  // can see and manage fuel prices page content
+  FUEL_PRICES_USER = 'fuelPrices.user',
+  FUEL_PRICES_ADMIN = 'fuelPrices.admin',
+
   // can see club documents, admin can create and edit
   DOCUMENT_USER = 'document.user',
   DOCUMENT_ADMIN = 'document.admin',
@@ -62,6 +66,8 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
       return MIKPermissions.INVOICING_USER
     case MIKPermissions.ACCESS_CODES_ADMIN:
       return MIKPermissions.ACCESS_CODES_USER
+    case MIKPermissions.FUEL_PRICES_ADMIN:
+      return MIKPermissions.FUEL_PRICES_USER
     case MIKPermissions.DOCUMENT_ADMIN:
       return MIKPermissions.DOCUMENT_USER
     case MIKPermissions.STORE_ADMIN:

@@ -22,6 +22,8 @@ export const menuItems: MenuItem[] = [
     requiredRoles: [
       MIKPermissions.AIRCRAFT_USER,
       MIKPermissions.AIRCRAFT_ADMIN,
+      MIKPermissions.FUEL_PRICES_USER,
+      MIKPermissions.FUEL_PRICES_ADMIN,
     ],
     subItems: [
       { label: 'header.aircrafts', path: '' },
@@ -35,6 +37,14 @@ export const menuItems: MenuItem[] = [
         requiredRoles: [
           MIKPermissions.ACCESS_CODES_USER,
           MIKPermissions.ACCESS_CODES_ADMIN,
+        ],
+      },
+      {
+        path: 'fuel-prices',
+        label: 'header.fuelPrices',
+        requiredRoles: [
+          MIKPermissions.FUEL_PRICES_USER,
+          MIKPermissions.FUEL_PRICES_ADMIN,
         ],
       },
     ],

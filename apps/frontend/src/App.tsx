@@ -29,6 +29,7 @@ import { FlightInvoicing } from './sections/accounting/FlightInvoicing'
 import { InvoiceItemsPage } from './sections/accounting/InvoiceItems'
 import MassBalance from './sections/massBalance/MassBalance'
 import { AccessCodes } from './sections/accessCodes/AccessCodes'
+import FuelPrices from './sections/fuelPrices/FuelPrices'
 import Documents from './sections/documents/Documents'
 import { Stats } from './sections/stats/Stats'
 import MemberTrash from './sections/members/MemberTrash'
@@ -96,6 +97,7 @@ function App() {
                 <Route index element={<Aircrafts />} />
                 <Route path='mass-balance' element={<MassBalance />} />
                 <Route path='access-codes' element={<AccessCodes />} />
+                <Route path='fuel-prices' element={<FuelPrices />} />
               </Route>
               <Route path='/logs'>
                 <Route index element={<FlightLogsList />} />

@@ -22,6 +22,7 @@
     "billing": "Fakturering",
     "accounts": "Konton",
     "accessCodes": "Åtkomstkoder",
+    "fuelPrices": "Bränslepriser",
     "club": "Klubb",
     "stats": "Statistik",
     "membersTrash": "Papperskorg - Raderade Medlemmar",
@@ -483,6 +484,8 @@
     "document.admin": "Hantera dokument",
     "access_codes.user": "Visa åtkomstkoder",
     "access_codes.admin": "Hantera åtkomstkoder",
+    "fuelPrices.user": "Visa bränslepriser",
+    "fuelPrices.admin": "Hantera bränslepriser",
     "invoicing.user": "Visa fakturor",
     "invoicing.admin": "Hantera fakturering",
     "sms.admin": "Ta emot och hantera SMS-händelser",
@@ -955,6 +958,12 @@
     "starts": "Startar {{at}}",
     "addToGoogleCalendar": "Lägg till i Google Kalender",
     "downloadIcs": "Ladda ner kalenderinbjudan (.ics)"
+  },
+  "fuelPrices": {
+    "title": "Bränslepriser",
+    "empty": "Bränslepriser har inte lagts till ännu.",
+    "enterEditMode": "Redigera bränslepriser",
+    "exitEditMode": "Avsluta redigeringsläge"
   },
   "dashboard": {
     "schedule": {
