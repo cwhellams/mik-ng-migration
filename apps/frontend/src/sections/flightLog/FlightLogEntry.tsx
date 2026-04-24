@@ -181,6 +181,7 @@ const FlightLogEntry = () => {
   )
 
   const partiallyBillableFlight = watch('partiallyBillableFlight')
+  const flightType = watch('flightType')
   const isBillableFlight = watch('isBillableFlight')
   const entryErrorFee = watch('entryErrorFee')
   const entryErrorFeeAppliedByMemberId = watch('entryErrorFeeAppliedByMemberId')
@@ -188,18 +189,26 @@ const FlightLogEntry = () => {
   const billingRemarks = watch('billingRemarks')
   const nonBillingReason = watch('nonBillingReason')
   const validationRemarks = watch('validationRemarks')
+  const hasMandatoryBillingRemarksByFlightType =
+    flightType === FlightType.TEST_FLIGHT || flightType === FlightType.FERRY
 
   useEffect(() => {
-    if (partiallyBillableFlight && !billingRemarks?.trim()) {
+    if (
+      (partiallyBillableFlight || hasMandatoryBillingRemarksByFlightType) &&
+      !billingRemarks?.trim()
+    ) {
       setError('billingRemarks', {
         type: 'manual',
-        message: t('flightLog.billingRemarksRequired'),
+        message: hasMandatoryBillingRemarksByFlightType
+          ? t('flightLog.billingRemarksRequiredForTestOrFerry')
+          : t('flightLog.billingRemarksRequired'),
       })
     } else if (errors.billingRemarks?.type === 'manual') {
       clearErrors('billingRemarks')
     }
   }, [
     partiallyBillableFlight,
+    hasMandatoryBillingRemarksByFlightType,
     billingRemarks,
     setError,
     clearErrors,
@@ -721,6 +730,15 @@ const FlightLogEntry = () => {
                   rows: 2,
                 }}
               />
+              {hasMandatoryBillingRemarksByFlightType && (
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                  sx={{ mt: 1 }}
+                >
+                  {t('flightLog.billingRemarksTestOrFerryInstruction')}
+                </Typography>
+              )}
             </Grid>
 
             {/* Admin Use */}

@@ -8,6 +8,7 @@ import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import flightLogRouter from '../../../src/routes/flight-log/api.ts'
 import {
   type FlightLog,
+  FlightType,
   type FlightLogUpsertRequest,
 } from '../../../src/routes/flight-log/models.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
@@ -363,6 +364,27 @@ describe('POST /flight-log', () => {
       ],
     })
   })
+
+  it('should return 400 when test flight is missing billing remarks', async () => {
+    const response = await request(app)
+      .post('/flight-log')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        ...flightPayload,
+        flightType: FlightType.TEST_FLIGHT,
+        billingRemarks: '   ',
+      })
+
+    expect(response.status).toBe(400)
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: ['billingRemarks'],
+          message: 'Billing remarks are required for test and ferry flights',
+        }),
+      ]),
+    )
+  })
 })
 
 describe('PATCH /flight-log/', () => {
@@ -527,6 +549,26 @@ describe('PATCH /flight-log/', () => {
     // patch returns the same as another get
     expect(checkPatch.status).toBe(200)
     expect(checkPatch.body).toEqual(patchResponse.body)
+  })
+
+  it('should return 400 when patch sets ferry flight without billing remarks', async () => {
+    const response = await request(app)
+      .patch('/flight-log/bLwnAstr0')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        flightType: FlightType.FERRY,
+        billingRemarks: ' ',
+      })
+
+    expect(response.status).toBe(400)
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: ['billingRemarks'],
+          message: 'Billing remarks are required for test and ferry flights',
+        }),
+      ]),
+    )
   })
 
   //TODO: This test is brittle and should be replaced with more targeted tests for field locking based on flight status

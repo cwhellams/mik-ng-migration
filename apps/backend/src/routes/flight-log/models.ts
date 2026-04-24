@@ -283,6 +283,7 @@ export const validateFlightLogTimes = (
 
 export const validateFlightLogBusinessRules = (
   data: Partial<{
+    flightType: FlightType
     entryErrorFee: boolean | null
     validationRemarks: string | null
     isBillableFlight: boolean
@@ -308,10 +309,18 @@ export const validateFlightLogBusinessRules = (
     })
   }
 
-  if (data.partiallyBillableFlight && !data.billingRemarks?.trim()) {
+  const requiresBillingRemarksByFlightType =
+    data.flightType === FlightType.TEST_FLIGHT || data.flightType === FlightType.FERRY
+
+  if (
+    (data.partiallyBillableFlight || requiresBillingRemarksByFlightType) &&
+    !data.billingRemarks?.trim()
+  ) {
     addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'Billing remarks are required for partially billable flights',
+      message: requiresBillingRemarksByFlightType
+        ? 'Billing remarks are required for test and ferry flights'
+        : 'Billing remarks are required for partially billable flights',
       path: ['billingRemarks'],
     })
   }

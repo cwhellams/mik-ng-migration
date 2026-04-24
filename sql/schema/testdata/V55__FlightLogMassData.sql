@@ -70,7 +70,10 @@ SELECT 'mass' || i,
         WHEN i = 101 THEN 'TEST_FLIGHT'
         ELSE 'PRIVATE'
     END,
-    NULL,
+    CASE
+        WHEN i IN (100, 101) THEN 'Lorem Ipsum'
+        ELSE NULL
+    END,
     NULL,
     'Antti1',
     'Antti1',
