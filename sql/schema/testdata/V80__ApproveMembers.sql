@@ -8,5 +8,6 @@ where member_id in (
         'Matti1',
         'Pekka1',
         'Antti1',
-        'Sanna1'
-    )
+        'Sanna1',
+        'John1'
+    );

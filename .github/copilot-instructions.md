@@ -35,6 +35,9 @@ Start PostgreSQL and set up the database:
 # Wait for PostgreSQL to be ready, then create mik_ng database
 PGPASSWORD=password psql -h localhost -U admin -d mydatabase -c "CREATE DATABASE mik_ng WITH OWNER = admin ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' LOCALE_PROVIDER = 'libc' TEMPLATE = template0;"
 
+# Create required test role with the canonical Flyway/CI password
+PGPASSWORD=password psql -h localhost -U admin -d mydatabase -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='mik_app_test') THEN CREATE ROLE mik_app_test LOGIN PASSWORD 'test_pwd'; END IF; END \$\$;"
+
 # Set up full database baseline - takes ~8 seconds total. NEVER CANCEL.
 ./scripts/baseline_database.sh
 ```
@@ -116,6 +119,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 - API Port: 3000
 - Frontend URL: http://localhost:5173
 - **Important**: Add `SIMPLBOOKS_COMPANY_ID=123` to the .env file if missing to avoid startup errors
+- **Important**: Add `DISABLE_EMAIL_SENDING=true` to the .env file to prevent actual emails being sent in development
 
 ## Known Issues and Workarounds
 
@@ -146,6 +150,22 @@ Always check these locations when working on the codebase:
 - `sql/schema/testdata/` - Test data scripts
 - Package files: `package.json`, `apps/*/package.json`
 
+## Browser Login Flow
+
+When a browser opens and shows the login screen, test both users:
+
+### Normal User Login
+1. Enter `chris.whellams@gmail.com` in the email field and submit
+2. Find the magic link/code in the backend stdout — look in the terminal running `pnpm dev` for a line containing `DEV magic link`
+3. Paste the login URL into the browser or enter the verification code shown in the browser
+4. Verify the app loads correctly at http://localhost:5173/
+
+### Admin User Login
+1. Enter `juho.kolehmainen@iki.fi` in the email field and submit
+2. Find the magic link/code in the backend stdout — look in the terminal running `pnpm dev` for a line containing `DEV magic link`
+3. Paste the login URL into the browser or enter the verification code shown in the browser
+4. After login, use the admin/sudo toggle in the header (the admin/user icon; check its tooltip text if needed) to activate admin privileges
+5. Verify admin features are accessible at http://localhost:5173/
 ## CI/CD Requirements
 
 The GitHub Actions workflows require:
