@@ -175,6 +175,17 @@
     "deactivate": "Deactivate Member",
     "deactivateConfirmMessage": "Are you sure you want to deactivate {{name}}?",
     "deactivatedSuccessMessage": "Member has been successfully deactivated",
+    "count": "{{count}} member(s)",
+    "sortBy": "Sort by",
+    "sortDirection": "Sort direction",
+    "sortAscending": "Ascending",
+    "sortDescending": "Descending",
+    "abbr": {
+      "isTrainingProgramPilot": "DTO",
+      "canMakeReservations": "Res.",
+      "autoRenewAnnualMembership": "Ann.",
+      "autoRenewEquipmentFee": "Equip."
+    },
     "noPermission": "You do not have permission to view this page.",
     "nonRenewals": "Non-Renewals",
     "nonRenewalsTitle": "Non-renewing Members {{year}}",

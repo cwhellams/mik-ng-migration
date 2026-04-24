@@ -136,8 +136,15 @@ export async function getMembers(
       'first_name',
       'last_name',
       'phone_number',
+      'town_city',
       'email',
       'lang_iso639',
+      'member_since',
+      'is_training_program_pilot',
+      'can_make_reservations',
+      'billing_id',
+      'auto_renew_annual_membership',
+      'auto_renew_equipment_fee',
       jsonArrayFrom(
         eb
           .selectFrom('member.member_to_roles')
@@ -202,11 +209,22 @@ export async function getMembers(
     first: member.first_name,
     last: member.last_name,
     phoneNumber: member.phone_number,
+    townCity: member.town_city,
     email: member.email,
     lang: member.lang_iso639 as MIKLang,
     roles: member.roles
       .map(role => role.role_id)
       .filter(role => isAdmin || publicRoles.includes(role)),
+    ...(isAdmin
+      ? {
+          memberSince: member.member_since,
+          isTrainingProgramPilot: member.is_training_program_pilot,
+          canMakeReservations: member.can_make_reservations,
+          automaticBillingStatus: member.billing_id !== null,
+          autoRenewAnnualMembership: member.auto_renew_annual_membership ?? true,
+          autoRenewEquipmentFee: member.auto_renew_equipment_fee ?? false,
+        }
+      : {}),
   }))
 }
 

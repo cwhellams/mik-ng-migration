@@ -668,6 +668,7 @@ exports[`Db query member tests getMembers should return only approved members fo
       "INSTRUCTOR",
       "MEMBER",
     ],
+    "townCity": "Jyväskylä",
   },
   {
     "email": "examinerfe@mik.com",
@@ -679,6 +680,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     "roles": [
       "EXAMINER",
     ],
+    "townCity": "Tampere",
   },
   {
     "email": "jukka.nieminen@example.com",
@@ -690,6 +692,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     "roles": [
       "INSTRUCTOR",
     ],
+    "townCity": "Tampere",
   },
   {
     "email": "juho.kolehmainen@iki.fi",
@@ -701,6 +704,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     "roles": [
       "COMMITTEE",
     ],
+    "townCity": "Espoo",
   },
   {
     "email": "chris.whellams@gmail.com",
@@ -713,6 +717,7 @@ exports[`Db query member tests getMembers should return only approved members fo
       "INSTRUCTOR",
       "MEMBER",
     ],
+    "townCity": "Helsinki",
   },
   {
     "email": "pekka.hamalainen@example.com",
@@ -724,6 +729,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     "roles": [
       "MEMBER",
     ],
+    "townCity": "Turku",
   },
   {
     "email": "sanna.koskinen@example.com",
@@ -735,6 +741,7 @@ exports[`Db query member tests getMembers should return only approved members fo
     "roles": [
       "COMMITTEE",
     ],
+    "townCity": "Lahti",
   },
 ]
 `;
@@ -742,57 +749,92 @@ exports[`Db query member tests getMembers should return only approved members fo
 exports[`Db query member tests getMembers should return unapproved members for admins 1`] = `
 [
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
+    "automaticBillingStatus": true,
+    "canMakeReservations": true,
     "email": "anna.makinen@example.com",
     "first": "Anna",
+    "isTrainingProgramPilot": false,
     "lang": "fi",
     "last": "Mäkinen",
     "memberId": "Anna1",
+    "memberSince": Any<String>,
     "phoneNumber": "0434567890",
     "roles": [
       "COMMITTEE",
     ],
+    "townCity": "Vantaa",
   },
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
+    "automaticBillingStatus": true,
+    "canMakeReservations": true,
     "email": "niko.ikonen@mik.fi",
     "first": "John",
+    "isTrainingProgramPilot": false,
     "lang": "fi",
     "last": "McDoe",
     "memberId": "John1",
+    "memberSince": Any<String>,
     "phoneNumber": "0401234567",
     "roles": [
       "ADMIN",
     ],
+    "townCity": "Helsinki",
   },
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
+    "automaticBillingStatus": true,
+    "canMakeReservations": false,
     "email": "juha.seppala@example.com",
     "first": "Juha",
+    "isTrainingProgramPilot": false,
     "lang": "fi",
     "last": "Seppälä",
     "memberId": "Juha1",
+    "memberSince": Any<String>,
     "phoneNumber": "0489012345",
     "roles": [
       "MEMBER",
     ],
+    "townCity": "Kuopio",
   },
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
+    "automaticBillingStatus": true,
+    "canMakeReservations": false,
     "email": "kaisa.laine@example.com",
     "first": "Kaisa",
+    "isTrainingProgramPilot": false,
     "lang": "fi",
     "last": "Laine",
     "memberId": "Kaisa1",
+    "memberSince": Any<String>,
     "phoneNumber": "0456789012",
     "roles": [
       "ADMIN",
     ],
+    "townCity": "Oulu",
   },
   {
+    "autoRenewAnnualMembership": true,
+    "autoRenewEquipmentFee": false,
+    "automaticBillingStatus": true,
+    "canMakeReservations": true,
     "email": "marja1@gmailgg.com",
     "first": "Marja",
+    "isTrainingProgramPilot": false,
     "lang": "fi",
     "last": "Salminen",
     "memberId": "Marja1",
+    "memberSince": Any<String>,
     "phoneNumber": "0490123456",
     "roles": [],
+    "townCity": "Pori",
   },
 ]
 `;

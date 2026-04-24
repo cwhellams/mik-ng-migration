@@ -91,7 +91,12 @@ describe('GET /members', () => {
     const members = await query(token)
     members.members = members.members.sort((a, b) => a.memberId.localeCompare(b.memberId))
 
-    expect(members).toMatchSnapshot()
+    expect(members).toMatchSnapshot({
+      members: members.members.map(member => ({
+        ...member,
+        ...(member.memberSince !== undefined ? { memberSince: expect.any(String) } : {}),
+      })),
+    })
   })
 
   it('should return approved prefix matches with name filter', async () => {
@@ -119,6 +124,38 @@ describe('GET /members', () => {
     })
 
     expect(membersQry.members).toEqual([])
+  })
+
+  it('should include city or town information in member list', async () => {
+    const membersQry = await query(memberToken)
+
+    expect(membersQry.members.every(member => 'townCity' in member)).toBe(true)
+  })
+
+  it('should include admin-only attributes for member admins', async () => {
+    const membersQry = await query(adminToken)
+    const member = membersQry.members.find(m => m.memberId === 'Matti1')
+
+    expect(member).toMatchObject({
+      memberSince: expect.any(String),
+      isTrainingProgramPilot: expect.any(Boolean),
+      canMakeReservations: expect.any(Boolean),
+      automaticBillingStatus: expect.any(Boolean),
+      autoRenewAnnualMembership: expect.any(Boolean),
+      autoRenewEquipmentFee: expect.any(Boolean),
+    })
+  })
+
+  it('should not include admin-only attributes for regular members', async () => {
+    const membersQry = await query(memberToken)
+    const member = membersQry.members[0]
+
+    expect(member).not.toHaveProperty('memberSince')
+    expect(member).not.toHaveProperty('isTrainingProgramPilot')
+    expect(member).not.toHaveProperty('canMakeReservations')
+    expect(member).not.toHaveProperty('automaticBillingStatus')
+    expect(member).not.toHaveProperty('autoRenewAnnualMembership')
+    expect(member).not.toHaveProperty('autoRenewEquipmentFee')
   })
 
   it('should search by public role as a member', async () => {

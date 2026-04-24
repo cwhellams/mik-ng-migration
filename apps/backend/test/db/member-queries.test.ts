@@ -156,20 +156,28 @@ describe('Db query member tests', () => {
     const result = await getMembers(false, [], {
       showUnapproved: true,
     })
+    const sortedMembers = result.slice(0, 10).sort((a, b) => a.memberId.localeCompare(b.memberId))
     // test only first 10 items in the test data
-    expect(
-      result.slice(0, 10).sort((a, b) => a.memberId.localeCompare(b.memberId)),
-    ).toMatchSnapshot()
+    expect(sortedMembers).toMatchSnapshot(
+      sortedMembers.map(member => ({
+        ...member,
+        ...(member.memberSince !== undefined ? { memberSince: expect.any(String) } : {}),
+      })),
+    )
   })
 
   it('getMembers should return unapproved members for admins', async () => {
     const result = await getMembers(true, [], {
       showUnapproved: true,
     })
+    const sortedMembers = result.slice(0, 10).sort((a, b) => a.memberId.localeCompare(b.memberId))
     // test only first 10 items in the test data
-    expect(
-      result.slice(0, 10).sort((a, b) => a.memberId.localeCompare(b.memberId)),
-    ).toMatchSnapshot()
+    expect(sortedMembers).toMatchSnapshot(
+      sortedMembers.map(member => ({
+        ...member,
+        ...(member.memberSince !== undefined ? { memberSince: expect.any(String) } : {}),
+      })),
+    )
   })
 
   it('getMembers should return everything for admins', async () => {

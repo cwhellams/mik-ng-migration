@@ -175,6 +175,17 @@
     "deactivate": "Inaktivera medlem",
     "deactivateConfirmMessage": "Är du säker på att du vill inaktivera {{name}}?",
     "deactivatedSuccessMessage": "Medlemmen har inaktiverats framgångsrikt",
+    "count": "{{count}} medlem(mar)",
+    "sortBy": "Sortera efter",
+    "sortDirection": "Sorteringsordning",
+    "sortAscending": "Stigande",
+    "sortDescending": "Fallande",
+    "abbr": {
+      "isTrainingProgramPilot": "DTO",
+      "canMakeReservations": "Res.",
+      "autoRenewAnnualMembership": "Å.förn.",
+      "autoRenewEquipmentFee": "U.förn."
+    },
     "noPermission": "Du har inte behörighet att visa denna sida.",
     "nonRenewals": "Icke-förnyelser",
     "nonRenewalsTitle": "Medlemmar utan årsavgift {{year}}",

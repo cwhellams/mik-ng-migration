@@ -125,9 +125,16 @@ const MemberListSchema = z.object({
   last: z.string(),
   memberId: z.string(),
   phoneNumber: z.string().nullish(),
+  townCity: z.string().nullish(),
   email: z.string(),
   roles: z.array(z.string()),
   lang: z.nativeEnum(MIKLang),
+  memberSince: z.string().date().optional(),
+  isTrainingProgramPilot: z.boolean().optional(),
+  canMakeReservations: z.boolean().optional(),
+  automaticBillingStatus: z.boolean().optional(),
+  autoRenewAnnualMembership: z.boolean().nullable().optional(),
+  autoRenewEquipmentFee: z.boolean().nullable().optional(),
 })
 
 export type MemberList = z.infer<typeof MemberListSchema>
