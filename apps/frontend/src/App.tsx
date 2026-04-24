@@ -54,6 +54,14 @@ import CategoriesAdmin from './sections/admin/shop/CategoriesAdmin'
 import OrdersAdmin from './sections/admin/shop/OrdersAdmin'
 import DiscountCodesAdmin from './sections/admin/shop/DiscountCodesAdmin'
 import FlightPackagesAdmin from './sections/admin/shop/FlightPackagesAdmin'
+import ExamsPage from './sections/exams/ExamsPage'
+import ExamDetailPage from './sections/exams/ExamDetailPage'
+import ExamAttemptPage from './sections/exams/ExamAttemptPage'
+import ExamReviewPage from './sections/exams/ExamReviewPage'
+import MyExamHistoryPage from './sections/exams/MyExamHistoryPage'
+import ExamsAdminPage from './sections/admin/exams/ExamsAdminPage'
+import ExamVersionEditorPage from './sections/admin/exams/ExamVersionEditorPage'
+import AttemptsAdminPage from './sections/admin/exams/AttemptsAdminPage'
 import { ServerClockProvider } from './hooks/useServerClock'
 
 function App() {
@@ -143,6 +151,16 @@ function App() {
                 />
                 <Route path='orders/:orderId' element={<OrderDetailPage />} />
               </Route>
+              <Route path='/exams'>
+                <Route index element={<ExamsPage />} />
+                <Route path=':examId' element={<ExamDetailPage />} />
+                <Route
+                  path='attempt/:attemptId'
+                  element={<ExamAttemptPage />}
+                />
+                <Route path='review/:attemptId' element={<ExamReviewPage />} />
+                <Route path='history' element={<MyExamHistoryPage />} />
+              </Route>
               <Route path='/admin'>
                 <Route index element={<Navigate to='outbox' replace />} />
                 <Route path='outbox' element={<Outbox />} />
@@ -159,6 +177,12 @@ function App() {
                   path='shop/flight-packages'
                   element={<FlightPackagesAdmin />}
                 />
+                <Route path='exams' element={<ExamsAdminPage />} />
+                <Route
+                  path='exams/versions/:versionId'
+                  element={<ExamVersionEditorPage />}
+                />
+                <Route path='exams/attempts' element={<AttemptsAdminPage />} />
               </Route>
             </Route>
 

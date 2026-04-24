@@ -479,6 +479,8 @@ describe('GET /members/roles', () => {
       'outbox.admin',
       'store.user',
       'store.admin',
+      'exam.user',
+      'exam.admin',
     ])
     expect(roles.map(({ roleId, permissions }) => ({ roleId, permissions }))).toEqual([
       {
@@ -493,6 +495,7 @@ describe('GET /members/roles', () => {
           'outbox.admin',
           'store.admin',
           'fuelPrices.admin',
+          'exam.admin',
         ],
         roleId: 'ADMIN',
       },
@@ -512,7 +515,7 @@ describe('GET /members/roles', () => {
       },
       { permissions: [], roleId: 'INSTRUCTOR' },
       { permissions: ['flightlog.user', 'aircraft.user', 'document.user'], roleId: 'MAINTENANCE' },
-      { permissions: ['member', 'document.user', 'store.user'], roleId: 'MEMBER' },
+      { permissions: ['member', 'document.user', 'store.user', 'exam.user'], roleId: 'MEMBER' },
       {
         permissions: [
           'flightlog.admin',
@@ -580,6 +583,7 @@ describe('GET /members/roles/id', () => {
         'outbox.admin',
         'store.admin',
         'fuelPrices.admin',
+        'exam.admin',
       ],
       createdAt: expect.any(String),
       createdBy: 'k1mnimda',

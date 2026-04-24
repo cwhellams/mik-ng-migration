@@ -31,6 +31,10 @@ describe('getBasicUserRole', () => {
     expect(getBasicUserRole(MIKPermissions.DOCUMENT_ADMIN)).toBe(MIKPermissions.DOCUMENT_USER)
   })
 
+  it('should return EXAM_USER for EXAM_ADMIN', () => {
+    expect(getBasicUserRole(MIKPermissions.EXAM_ADMIN)).toBe(MIKPermissions.EXAM_USER)
+  })
+
   it('should return SMS_PROCESSOR for SMS_PROCESSOR (no separate user role)', () => {
     expect(getBasicUserRole(MIKPermissions.SMS_PROCESSOR)).toBe(MIKPermissions.SMS_PROCESSOR)
   })
@@ -50,6 +54,7 @@ function getBasicUserRole(permission: MIKPermissions): MIKPermissions {
     [MIKPermissions.INVOICING_ADMIN]: MIKPermissions.INVOICING_USER,
     [MIKPermissions.ACCESS_CODES_ADMIN]: MIKPermissions.ACCESS_CODES_USER,
     [MIKPermissions.DOCUMENT_ADMIN]: MIKPermissions.DOCUMENT_USER,
+    [MIKPermissions.EXAM_ADMIN]: MIKPermissions.EXAM_USER,
   }
 
   return adminToUserMap[permission] ?? permission

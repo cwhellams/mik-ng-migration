@@ -42,7 +42,9 @@ const FlipTile = ({ finalChar, delay, running }: FlipTileProps) => {
     const startTimer = setTimeout(() => {
       setSettled(false)
       interval = setInterval(() => {
-        setDisplayChar(FLIP_CHARS[Math.floor(Math.random() * FLIP_CHARS.length)])
+        setDisplayChar(
+          FLIP_CHARS[Math.floor(Math.random() * FLIP_CHARS.length)]
+        )
       }, 55)
 
       const settleTimer = setTimeout(() => {
@@ -121,13 +123,24 @@ const FlipRow = ({ text, baseDelay = 0, running, label }: FlipRowProps) => (
     </Typography>
     <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
       {text.split('').map((char, i) => (
-        <FlipTile key={i} finalChar={char} delay={baseDelay + i * 75} running={running} />
+        <FlipTile
+          key={i}
+          finalChar={char}
+          delay={baseDelay + i * 75}
+          running={running}
+        />
       ))}
     </Box>
   </Box>
 )
 
-const PrivacyModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+const PrivacyModal = ({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) => {
   const [animating, setAnimating] = useState(false)
 
   useEffect(() => {
@@ -194,8 +207,18 @@ const PrivacyModal = ({ open, onClose }: { open: boolean; onClose: () => void })
 
         {/* Flip board content */}
         <Box sx={{ px: 3, pt: 3, pb: 2 }}>
-          <FlipRow label='SUBJECT' text='PRIVACY POLICY' baseDelay={0} running={animating} />
-          <FlipRow label='STATUS' text='DELAYED' baseDelay={600} running={animating} />
+          <FlipRow
+            label='SUBJECT'
+            text='PRIVACY POLICY'
+            baseDelay={0}
+            running={animating}
+          />
+          <FlipRow
+            label='STATUS'
+            text='DELAYED'
+            baseDelay={600}
+            running={animating}
+          />
         </Box>
 
         {/* Footer caption */}
@@ -326,7 +349,14 @@ const Footer = () => {
               onClick={() => setPrivacyOpen(true)}
               color='inherit'
               underline='hover'
-              sx={{ background: 'none', border: 'none', p: 0, cursor: 'pointer', font: 'inherit', textAlign: 'inherit' }}
+              sx={{
+                background: 'none',
+                border: 'none',
+                p: 0,
+                cursor: 'pointer',
+                font: 'inherit',
+                textAlign: 'inherit',
+              }}
             >
               {t('footer.privacy')}
             </Link>

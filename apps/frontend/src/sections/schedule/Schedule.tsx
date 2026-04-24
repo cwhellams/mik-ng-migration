@@ -64,10 +64,9 @@ import { bookingFlags, bookingMinDate } from './helpers'
 
 dayjs.locale('fi')
 
-const withDragAndDrop = (
-  (withDragAndDropImport as unknown as { default?: typeof withDragAndDropImport }).default ??
-  withDragAndDropImport
-) as typeof withDragAndDropImport
+const withDragAndDrop = ((
+  withDragAndDropImport as unknown as { default?: typeof withDragAndDropImport }
+).default ?? withDragAndDropImport) as typeof withDragAndDropImport
 
 interface BookingEvent extends Event {
   id: string
@@ -419,16 +418,37 @@ const Schedule = () => {
     [currentView]
   )
 
-  const eventTimeRangeFormat: DateRangeFormatFunction = ({ start, end }, culture, localizer) =>
-    localizer?.format(start, start.getMinutes() == 0 ? 'HH' : 'HH:mm', culture) +
+  const eventTimeRangeFormat: DateRangeFormatFunction = (
+    { start, end },
+    culture,
+    localizer
+  ) =>
+    localizer?.format(
+      start,
+      start.getMinutes() == 0 ? 'HH' : 'HH:mm',
+      culture
+    ) +
     '–' +
     localizer?.format(end, end.getMinutes() == 0 ? 'HH' : 'HH:mm', culture)
 
-  const eventTimeRangeStartFormat: DateRangeFormatFunction = ({ start }, culture, localizer) =>
-    localizer?.format(start, start.getMinutes() == 0 ? 'HH' : 'HH:mm', culture) + '–'
+  const eventTimeRangeStartFormat: DateRangeFormatFunction = (
+    { start },
+    culture,
+    localizer
+  ) =>
+    localizer?.format(
+      start,
+      start.getMinutes() == 0 ? 'HH' : 'HH:mm',
+      culture
+    ) + '–'
 
-  const eventTimeRangeEndFormat: DateRangeFormatFunction = ({ end }, culture, localizer) =>
-    '–' + localizer?.format(end, end.getMinutes() == 0 ? 'HH' : 'HH:mm', culture)
+  const eventTimeRangeEndFormat: DateRangeFormatFunction = (
+    { end },
+    culture,
+    localizer
+  ) =>
+    '–' +
+    localizer?.format(end, end.getMinutes() == 0 ? 'HH' : 'HH:mm', culture)
 
   const dayLayoutAlgorithm: DayLayoutFunction<BookingEvent> = (params) => {
     return noOverlap(params).map((item) => {

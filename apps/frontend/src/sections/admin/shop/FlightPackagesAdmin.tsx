@@ -371,7 +371,9 @@ export default function FlightPackagesAdmin() {
             <TableHead>
               <TableRow>
                 <TableCell>{t('shop.admin.aircraft')}</TableCell>
-                <TableCell>{t('common.name')} / {t('common.description')}</TableCell>
+                <TableCell>
+                  {t('common.name')} / {t('common.description')}
+                </TableCell>
                 <TableCell>{t('shop.admin.hoursPerPkg')}</TableCell>
                 <TableCell>{t('shop.admin.perMinRate')}</TableCell>
                 <TableCell>{t('shop.admin.sold')}</TableCell>
@@ -386,67 +388,74 @@ export default function FlightPackagesAdmin() {
               {filteredPackages.map((p) => {
                 const isSoldOut = p.soldCount >= p.totalPackagesAvailable
                 return (
-                <TableRow
-                  key={p.productId}
-                  hover={!isSoldOut}
-                  sx={isSoldOut ? { bgcolor: 'rgba(211, 47, 47, 0.08)', position: 'relative' } : {}}
-                >
-                  <TableCell>
-                    <strong>{p.aircraftRegistration}</strong>
-                  </TableCell>
-                  <TableCell sx={{ position: 'relative' }}>
-                    <span>{p.nameFi ?? p.nameEn ?? '–'}</span>
-                    <br />
-                    <Typography variant='caption' color='text.secondary'>
-                      {p.descriptionFi ?? p.descriptionEn ?? ''}
-                    </Typography>
-                    {isSoldOut && (
-                      <Typography
-                        component='span'
-                        sx={{
-                          position: 'absolute',
-                          top: '50%',
-                          left: '50%',
-                          transform: 'translate(-50%, -50%) rotate(-15deg)',
-                          color: 'rgba(211, 47, 47, 0.35)',
-                          fontWeight: 900,
-                          fontSize: '1.1rem',
-                          letterSpacing: 2,
-                          textTransform: 'uppercase',
-                          whiteSpace: 'nowrap',
-                          pointerEvents: 'none',
-                          userSelect: 'none',
-                        }}
-                      >
-                        {t('shop.soldOut')}
+                  <TableRow
+                    key={p.productId}
+                    hover={!isSoldOut}
+                    sx={
+                      isSoldOut
+                        ? {
+                            bgcolor: 'rgba(211, 47, 47, 0.08)',
+                            position: 'relative',
+                          }
+                        : {}
+                    }
+                  >
+                    <TableCell>
+                      <strong>{p.aircraftRegistration}</strong>
+                    </TableCell>
+                    <TableCell sx={{ position: 'relative' }}>
+                      <span>{p.nameFi ?? p.nameEn ?? '–'}</span>
+                      <br />
+                      <Typography variant='caption' color='text.secondary'>
+                        {p.descriptionFi ?? p.descriptionEn ?? ''}
                       </Typography>
-                    )}
-                  </TableCell>
-                  <TableCell>{formatMinutes(p.minutesPerPackage)}</TableCell>
-                  <TableCell>€{p.perMinRate}/min</TableCell>
-                  <TableCell>
-                    {p.soldCount} / {p.totalPackagesAvailable}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(p.expiresAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    {p.simplbooksItemId ?? t('shop.admin.noSimplbooksItem')}
-                  </TableCell>
-                  <TableCell>{p.lowStockThreshold ?? '–'}</TableCell>
-                  <TableCell>
-                    <Chip
-                      size='small'
-                      label={p.isActive ? t('common.yes') : t('common.no')}
-                      color={p.isActive ? 'success' : 'default'}
-                    />
-                  </TableCell>
-                  <TableCell align='right'>
-                    <IconButton size='small' onClick={() => openEdit(p)}>
-                      <Icon icon='mdi:pencil' />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
+                      {isSoldOut && (
+                        <Typography
+                          component='span'
+                          sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%) rotate(-15deg)',
+                            color: 'rgba(211, 47, 47, 0.35)',
+                            fontWeight: 900,
+                            fontSize: '1.1rem',
+                            letterSpacing: 2,
+                            textTransform: 'uppercase',
+                            whiteSpace: 'nowrap',
+                            pointerEvents: 'none',
+                            userSelect: 'none',
+                          }}
+                        >
+                          {t('shop.soldOut')}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>{formatMinutes(p.minutesPerPackage)}</TableCell>
+                    <TableCell>€{p.perMinRate}/min</TableCell>
+                    <TableCell>
+                      {p.soldCount} / {p.totalPackagesAvailable}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(p.expiresAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {p.simplbooksItemId ?? t('shop.admin.noSimplbooksItem')}
+                    </TableCell>
+                    <TableCell>{p.lowStockThreshold ?? '–'}</TableCell>
+                    <TableCell>
+                      <Chip
+                        size='small'
+                        label={p.isActive ? t('common.yes') : t('common.no')}
+                        color={p.isActive ? 'success' : 'default'}
+                      />
+                    </TableCell>
+                    <TableCell align='right'>
+                      <IconButton size='small' onClick={() => openEdit(p)}>
+                        <Icon icon='mdi:pencil' />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
                 )
               })}
             </TableBody>

@@ -71,8 +71,7 @@ export default function ShopPage() {
     }
   }
 
-  const cartItemCount =
-    cart?.items.reduce((sum, i) => sum + i.quantity, 0) ?? 0
+  const cartItemCount = cart?.items.reduce((sum, i) => sum + i.quantity, 0) ?? 0
 
   const isMaxedOut = (product: Product): boolean => {
     if (product.maxOrderQuantity == null) return false

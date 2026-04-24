@@ -109,17 +109,26 @@ const invoices = new Map<number, Invoice>()
 function loadArticles(): Article[] {
   const yamlPath = path.join(
     REPO_ROOT,
-    'simplbooks/simplbooks-api/paths/articles_list.yaml',
+    'simplbooks/simplbooks-api/paths/articles_list.yaml'
   )
   const raw = readFileSync(yamlPath, 'utf-8')
   const parsed = YAML.parse(raw) as Record<string, unknown>
 
-  const exampleData = (
-    parsed?.get as Record<string, unknown>
-  )?.responses as Record<string, unknown>
+  const exampleData = (parsed?.get as Record<string, unknown>)
+    ?.responses as Record<string, unknown>
 
-  const listData = ((exampleData?.[200] as Record<string, unknown>)?.content as Record<string, unknown>)?.['application/json'] as Record<string, unknown>
-  const example = ((listData?.examples as Record<string, unknown>)?.default as Record<string, unknown>)?.value as Record<string, unknown>
+  const listData = (
+    (exampleData?.[200] as Record<string, unknown>)?.content as Record<
+      string,
+      unknown
+    >
+  )?.['application/json'] as Record<string, unknown>
+  const example = (
+    (listData?.examples as Record<string, unknown>)?.default as Record<
+      string,
+      unknown
+    >
+  )?.value as Record<string, unknown>
   const data = (example?.data as Array<{ Article: Article }>) ?? []
 
   return data.map((d) => d.Article)
@@ -128,7 +137,7 @@ function loadArticles(): Article[] {
 const allArticles = loadArticles()
 
 console.log(
-  `[SimplBooks Mock] Loaded ${allArticles.length} articles from fixture`,
+  `[SimplBooks Mock] Loaded ${allArticles.length} articles from fixture`
 )
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -153,10 +162,14 @@ function notFound(res: http.ServerResponse, detail: string) {
   ok(res, { status: 404, errors: [detail] }, 404)
 }
 
-async function readBody(req: http.IncomingMessage): Promise<Record<string, unknown>> {
+async function readBody(
+  req: http.IncomingMessage
+): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
     let raw = ''
-    req.on('data', (chunk) => { raw += chunk })
+    req.on('data', (chunk) => {
+      raw += chunk
+    })
     req.on('end', () => {
       try {
         resolve(raw ? (JSON.parse(raw) as Record<string, unknown>) : {})
@@ -198,7 +211,10 @@ async function generatePdf(invoice: Invoice): Promise<Buffer> {
       .text('Malmin lentoasema, Helsinki · mik.fi', { align: 'center' })
       .moveDown(1.5)
 
-    doc.fontSize(18).fillColor('#003366').text('LASKU / INVOICE', { align: 'center' })
+    doc
+      .fontSize(18)
+      .fillColor('#003366')
+      .text('LASKU / INVOICE', { align: 'center' })
     doc.fillColor('#000000').moveDown(1)
 
     // ── Invoice metadata ──
@@ -237,9 +253,18 @@ async function generatePdf(invoice: Invoice): Promise<Buffer> {
       .fillColor('#003366')
       .fontSize(10)
       .text('Description', colDesc, headerY, { width: colQty - colDesc - 5 })
-      .text('Qty', colQty, headerY, { width: colPrice - colQty - 5, align: 'right' })
-      .text('Unit price', colPrice, headerY, { width: colTotal - colPrice - 5, align: 'right' })
-      .text('Total', colTotal, headerY, { width: tableRight - colTotal, align: 'right' })
+      .text('Qty', colQty, headerY, {
+        width: colPrice - colQty - 5,
+        align: 'right',
+      })
+      .text('Unit price', colPrice, headerY, {
+        width: colTotal - colPrice - 5,
+        align: 'right',
+      })
+      .text('Total', colTotal, headerY, {
+        width: tableRight - colTotal,
+        align: 'right',
+      })
       .fillColor('#000000')
 
     doc.moveDown(0.3)
@@ -260,8 +285,12 @@ async function generatePdf(invoice: Invoice): Promise<Buffer> {
       const rowY = doc.y
 
       // Name on first line (bold), contents on second line — matches real SimplBooks layout
-      doc.fontSize(9).font('Helvetica-Bold').text(name, colDesc, rowY, { width: colQty - colDesc - 5 })
-      doc.font('Helvetica')
+      doc
+        .fontSize(9)
+        .font('Helvetica-Bold')
+        .text(name, colDesc, rowY, { width: colQty - colDesc - 5 })
+      doc
+        .font('Helvetica')
         .text(String(task.amount ?? 1), colQty, rowY, {
           width: colPrice - colQty - 5,
           align: 'right',
@@ -276,7 +305,9 @@ async function generatePdf(invoice: Invoice): Promise<Buffer> {
         })
 
       if (contents) {
-        doc.fontSize(8).fillColor('#555555')
+        doc
+          .fontSize(8)
+          .fillColor('#555555')
           .text(contents, colDesc, doc.y, { width: colQty - colDesc - 5 })
           .fillColor('#000000')
       }
@@ -303,7 +334,10 @@ async function generatePdf(invoice: Invoice): Promise<Buffer> {
 
     if (invoice.additional_info) {
       doc.moveDown(1)
-      doc.fontSize(9).fillColor('#555555').text(`Note: ${invoice.additional_info}`)
+      doc
+        .fontSize(9)
+        .fillColor('#555555')
+        .text(`Note: ${invoice.additional_info}`)
     }
 
     // ── Footer ──
@@ -313,7 +347,7 @@ async function generatePdf(invoice: Invoice): Promise<Buffer> {
       .fillColor('#888888')
       .text(
         '[DEV] Generated by SimplBooks Smart Mock — not a real SimplBooks invoice',
-        { align: 'center' },
+        { align: 'center' }
       )
 
     doc.end()
@@ -354,7 +388,7 @@ function getMockEmailSendDecision(recipient: string): {
 
   const whitelist = disableEmailSending
     .split(',')
-    .map(email => email.trim().toLowerCase())
+    .map((email) => email.trim().toLowerCase())
     .filter(Boolean)
 
   if (whitelist.includes(normalizedRecipient)) {
@@ -379,11 +413,14 @@ function escapeHtml(value: unknown): string {
     .replaceAll("'", '&#39;')
 }
 
-async function maybeSendEmail(invoice: Invoice, pdfBase64: string): Promise<void> {
+async function maybeSendEmail(
+  invoice: Invoice,
+  pdfBase64: string
+): Promise<void> {
   const emailDecision = getMockEmailSendDecision(invoice.client_e_mail)
   if (!emailDecision.shouldSend) {
     console.log(
-      `[SimplBooks Mock] Email sending disabled (${emailDecision.reason}) — invoice ${invoice.id} PDF ready but not sent to ${invoice.client_e_mail}`,
+      `[SimplBooks Mock] Email sending disabled (${emailDecision.reason}) — invoice ${invoice.id} PDF ready but not sent to ${invoice.client_e_mail}`
     )
     return
   }
@@ -392,7 +429,7 @@ async function maybeSendEmail(invoice: Invoice, pdfBase64: string): Promise<void
   const smtpPwd = process.env.SMTP_PASSWORD
   if (!smtpLogin || !smtpPwd) {
     console.warn(
-      `[SimplBooks Mock] SMTP not configured — skipping email for invoice ${invoice.id}`,
+      `[SimplBooks Mock] SMTP not configured — skipping email for invoice ${invoice.id}`
     )
     return
   }
@@ -429,13 +466,16 @@ async function maybeSendEmail(invoice: Invoice, pdfBase64: string): Promise<void
   })
 
   console.log(
-    `[SimplBooks Mock] Emailed invoice ${invoice.id} PDF to ${invoice.client_e_mail}`,
+    `[SimplBooks Mock] Emailed invoice ${invoice.id} PDF to ${invoice.client_e_mail}`
   )
 }
 
 // ─── Request handler ──────────────────────────────────────────────────────────
 
-async function handle(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+async function handle(
+  req: http.IncomingMessage,
+  res: http.ServerResponse
+): Promise<void> {
   const path_ = apiPath(req.url ?? '/')
   const method = req.method?.toUpperCase() ?? 'GET'
   const body = await readBody(req)
@@ -449,10 +489,16 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
     const page = Number(body.page ?? 1)
     const perPage = Number(body.per_page ?? 50)
     const filtered = code
-      ? allArticles.filter((a) => a.code.toLowerCase().includes(code.toLowerCase()))
+      ? allArticles.filter((a) =>
+          a.code.toLowerCase().includes(code.toLowerCase())
+        )
       : allArticles
     const paged = filtered.slice((page - 1) * perPage, page * perPage)
-    return ok(res, { status: 200, duration: 0.001, data: paged.map((a) => ({ Article: a })) })
+    return ok(res, {
+      status: 200,
+      duration: 0.001,
+      data: paged.map((a) => ({ Article: a })),
+    })
   }
 
   // ── Clients ───────────────────────────────────────────────────────────────
@@ -461,9 +507,14 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
     const email = (body.e_mail as string | undefined)?.toLowerCase()
     const name = (body.name as string | undefined)?.toLowerCase()
     let list = [...clients.values()]
-    if (email) list = list.filter((c) => c.e_mail?.toLowerCase().includes(email))
+    if (email)
+      list = list.filter((c) => c.e_mail?.toLowerCase().includes(email))
     if (name) list = list.filter((c) => c.name?.toLowerCase().includes(name))
-    return ok(res, { status: 200, duration: 0.001, data: list.map((c) => ({ Client: c })) })
+    return ok(res, {
+      status: 200,
+      duration: 0.001,
+      data: list.map((c) => ({ Client: c })),
+    })
   }
 
   if (path_ === '/clients/create' && method === 'POST') {
@@ -476,8 +527,15 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
       ...data,
     }
     clients.set(id, client)
-    console.log(`[SimplBooks Mock] Created client ${id}: ${client.name} <${client.e_mail}>`)
-    return ok(res, { status: 200, duration: 0.001, inserted_id: id, response: 'New entry saved.' })
+    console.log(
+      `[SimplBooks Mock] Created client ${id}: ${client.name} <${client.e_mail}>`
+    )
+    return ok(res, {
+      status: 200,
+      duration: 0.001,
+      inserted_id: id,
+      response: 'New entry saved.',
+    })
   }
 
   if (path_ === '/clients/update' && method === 'POST') {
@@ -501,20 +559,22 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
 
   if (path_ === '/invoices/create' && method === 'POST') {
     const inv = (body.Invoice ?? {}) as Record<string, unknown>
-    const tasks = ((body.Tasks ?? []) as Array<{ Task: InvoiceTask }>).map((t) => {
-      const task = t.Task
-      // Resolve name from articles fixture if not explicitly provided by the caller
-      if (!task.name && task.article_id) {
-        const article = allArticles.find((a) => a.id === task.article_id)
-        if (article) task.name = article.name
+    const tasks = ((body.Tasks ?? []) as Array<{ Task: InvoiceTask }>).map(
+      (t) => {
+        const task = t.Task
+        // Resolve name from articles fixture if not explicitly provided by the caller
+        if (!task.name && task.article_id) {
+          const article = allArticles.find((a) => a.id === task.article_id)
+          if (article) task.name = article.name
+        }
+        return task
       }
-      return task
-    })
+    )
     const clientId = Number(inv.client_id)
     const client = clients.get(clientId)
     const totalSum = tasks.reduce(
       (sum, t) => sum + (t.amount ?? 0) * (t.price_per_unit ?? 0),
-      0,
+      0
     )
     const id = ++nextInvoiceId
     const invoice: Invoice = {
@@ -532,9 +592,14 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
     }
     invoices.set(id, invoice)
     console.log(
-      `[SimplBooks Mock] Created invoice ${id} for client ${clientId} (${invoice.client_name}) total €${totalSum.toFixed(2)}`,
+      `[SimplBooks Mock] Created invoice ${id} for client ${clientId} (${invoice.client_name}) total €${totalSum.toFixed(2)}`
     )
-    return ok(res, { status: 200, duration: 0.001, inserted_id: id, response: 'New entry saved.' })
+    return ok(res, {
+      status: 200,
+      duration: 0.001,
+      inserted_id: id,
+      response: 'New entry saved.',
+    })
   }
 
   const invoiceGetMatch = path_.match(/^\/invoices\/get\/(\d+)$/)
@@ -569,7 +634,7 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
     const pdfBuffer = await generatePdf(inv)
     const pdfBase64 = pdfBuffer.toString('base64')
     console.log(
-      `[SimplBooks Mock] Generated PDF for invoice ${id} (${pdfBuffer.length} bytes)`,
+      `[SimplBooks Mock] Generated PDF for invoice ${id} (${pdfBuffer.length} bytes)`
     )
     return ok(res, { status: 200, duration: 0.001, data: pdfBase64 })
   }
@@ -584,7 +649,9 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
     const pdfBuffer = await generatePdf(inv)
     const pdfBase64 = pdfBuffer.toString('base64')
     await maybeSendEmail(inv, pdfBase64).catch((err: Error) =>
-      console.error(`[SimplBooks Mock] Email error for invoice ${id}: ${err.message}`),
+      console.error(
+        `[SimplBooks Mock] Email error for invoice ${id}: ${err.message}`
+      )
     )
     return ok(res, { status: 200, duration: 0.001, response: 'OK' })
   }
@@ -613,12 +680,19 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
   if (path_ === '/incomings/create' && method === 'POST') {
     const id = ++nextInvoiceId
     console.log(`[SimplBooks Mock] Created incoming (receipt) ${id}`)
-    return ok(res, { status: 200, duration: 0.001, inserted_id: id, response: 'New entry saved.' })
+    return ok(res, {
+      status: 200,
+      duration: 0.001,
+      inserted_id: id,
+      response: 'New entry saved.',
+    })
   }
 
   // ── Fallback ───────────────────────────────────────────────────────────────
 
-  console.warn(`[SimplBooks Mock] Unhandled: ${method} ${path_} (raw: ${req.url})`)
+  console.warn(
+    `[SimplBooks Mock] Unhandled: ${method} ${path_} (raw: ${req.url})`
+  )
   return notFound(res, `${method} ${path_} is not handled by the smart mock`)
 }
 
@@ -638,9 +712,9 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`[SimplBooks Mock] Listening on http://127.0.0.1:${PORT}`)
   console.log(
-    `[SimplBooks Mock] DISABLE_EMAIL_SENDING=${process.env.DISABLE_EMAIL_SENDING ?? '(not set)'}`,
+    `[SimplBooks Mock] DISABLE_EMAIL_SENDING=${process.env.DISABLE_EMAIL_SENDING ?? '(not set)'}`
   )
   console.log(
-    `[SimplBooks Mock] Set SIMPLBOOKS_BASE_URI=http://127.0.0.1:${PORT} in apps/backend/.env`,
+    `[SimplBooks Mock] Set SIMPLBOOKS_BASE_URI=http://127.0.0.1:${PORT} in apps/backend/.env`
   )
 })

@@ -13,12 +13,8 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
   const { sudo } = useThemeMode()
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
 
-  const goTo = (path: string) => navigate(`${parent.path}/${path}`)
-
-  // Show nothing if not under the parent path
-  if (!location.pathname.startsWith(`${parent.path}`)) {
-    return null
-  }
+  const resolvePath = (path: string) =>
+    path.startsWith('/') ? path : `${parent.path}/${path}`
 
   const subItems = parent.subItems?.filter((i) => {
     if (i.adminModeOnly === true && !sudo) {
@@ -31,9 +27,31 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
     return null
   }
 
-  const currentTab = subItems.findIndex(
-    (item) => item.path.length > 0 && location.pathname.includes(item.path)
+  const isUnderParent = location.pathname.startsWith(parent.path)
+  const isUnderAbsoluteSubItem = subItems.some(
+    (item) =>
+      item.path.startsWith('/') && location.pathname.startsWith(item.path)
   )
+
+  // Show nothing if not under the parent path or one of its absolute sub-items
+  if (!isUnderParent && !isUnderAbsoluteSubItem) {
+    return null
+  }
+
+  const currentTab = subItems.findIndex((item) => {
+    if (item.path === '') {
+      // Index tab: exact match on parent path to avoid matching every nested route
+      const normalizedParent = parent.path.endsWith('/')
+        ? parent.path
+        : parent.path + '/'
+      return (
+        location.pathname === parent.path ||
+        location.pathname === normalizedParent
+      )
+    }
+    const resolved = resolvePath(item.path)
+    return resolved.length > 0 && location.pathname.startsWith(resolved)
+  })
 
   return (
     <Box
@@ -73,7 +91,7 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
         >
           {subItems.map((item) => (
             <Tab
-              onClick={() => goTo(item.path)}
+              onClick={() => navigate(resolvePath(item.path))}
               key={item.path}
               label={t(item.label)}
             />

@@ -91,6 +91,8 @@ export type APIMutation<Data> = {
 
 export type MutateMethods = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
+export { api as sharedApi }
+
 export default function useApi<
   // returned data type
   Data = unknown,

@@ -91,6 +91,11 @@ export const menuItems: MenuItem[] = [
         label: 'header.documents',
       },
       {
+        path: '/exams',
+        label: 'header.exams',
+        requiredRoles: [MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN],
+      },
+      {
         path: 'billing',
         label: 'header.billing',
       },
@@ -126,7 +131,11 @@ export const menuItems: MenuItem[] = [
   {
     path: '/admin',
     label: 'header.admin',
-    requiredRoles: [MIKPermissions.OUTBOX_ADMIN, MIKPermissions.MEMBER_ADMIN],
+    requiredRoles: [
+      MIKPermissions.OUTBOX_ADMIN,
+      MIKPermissions.MEMBER_ADMIN,
+      MIKPermissions.EXAM_ADMIN,
+    ],
     adminModeOnly: true,
     subItems: [
       {
@@ -145,6 +154,12 @@ export const menuItems: MenuItem[] = [
         label: 'header.shopAdmin',
         path: 'shop',
         requiredRoles: [MIKPermissions.STORE_ADMIN],
+        adminModeOnly: true,
+      },
+      {
+        label: 'header.examsAdmin',
+        path: 'exams',
+        requiredRoles: [MIKPermissions.EXAM_ADMIN],
         adminModeOnly: true,
       },
     ],

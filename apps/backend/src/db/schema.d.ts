@@ -981,6 +981,93 @@ export interface StatsVisitedAirfieldsByAc {
   yr: number
 }
 
+export type ExamAttemptStatus = 'IN_PROGRESS' | 'SUBMITTED' | 'GRADED' | 'ABANDONED'
+export type ExamVersionStatusType = 'DRAFT' | 'PUBLISHED' | 'RETIRED'
+export type ExamTypeType = 'AFM' | 'SELF_STUDY' | 'DTO' | 'OTHER'
+
+export interface ExamExams {
+  exam_id: string
+  exam_type: Generated<ExamTypeType>
+  name: string
+  created_at: Generated<Timestamp>
+  created_by: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface ExamExamVersions {
+  version_id: string
+  exam_id: string
+  version_number: Generated<number>
+  status: Generated<ExamVersionStatusType>
+  default_language: Generated<string>
+  supported_languages: Generated<string[]>
+  pass_percent: Generated<Numeric>
+  created_at: Generated<Timestamp>
+  created_by: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface ExamExamVersionTranslations {
+  version_id: string
+  language: string
+  title: string
+  description: string | null
+}
+
+export interface ExamQuestions {
+  question_id: string
+  version_id: string
+  sort_order: Generated<number>
+}
+
+export interface ExamQuestionTranslations {
+  question_id: string
+  language: string
+  prompt: string
+  reasoning: string | null
+}
+
+export interface ExamChoices {
+  choice_id: string
+  question_id: string
+  is_correct: Generated<boolean>
+  sort_order: Generated<number>
+}
+
+export interface ExamChoiceTranslations {
+  choice_id: string
+  language: string
+  text: string
+}
+
+export interface ExamAttempts {
+  attempt_id: string
+  version_id: string
+  member_id: string
+  language: Generated<string>
+  status: Generated<ExamAttemptStatus>
+  score_percent: Numeric | null
+  correct_count: number | null
+  total_count: number | null
+  passed: boolean | null
+  submitted_at: Timestamp | null
+  graded_at: Timestamp | null
+  abandoned_at: Timestamp | null
+  abandon_reason: string | null
+  created_at: Generated<Timestamp>
+  updated_at: Generated<Timestamp>
+}
+
+export interface ExamAttemptAnswers {
+  attempt_id: string
+  question_id: string
+  choice_id: string | null
+  created_at: Generated<Timestamp>
+  updated_at: Generated<Timestamp>
+}
+
 export interface DB {
   'accts.aircraft_pricing': AcctsAircraftPricing
   'accts.invoice': AcctsInvoice
@@ -1049,4 +1136,13 @@ export interface DB {
   'stats.total_landings_by_ac_yr': StatsTotalLandingsByAcYr
   'stats.total_oil_uplift_by_ac_yr_mth': StatsTotalOilUpliftByAcYrMth
   'stats.visited_airfields_by_ac': StatsVisitedAirfieldsByAc
+  'exam.exams': ExamExams
+  'exam.exam_versions': ExamExamVersions
+  'exam.exam_version_translations': ExamExamVersionTranslations
+  'exam.questions': ExamQuestions
+  'exam.question_translations': ExamQuestionTranslations
+  'exam.choices': ExamChoices
+  'exam.choice_translations': ExamChoiceTranslations
+  'exam.attempts': ExamAttempts
+  'exam.attempt_answers': ExamAttemptAnswers
 }

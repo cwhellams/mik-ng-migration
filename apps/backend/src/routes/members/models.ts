@@ -49,6 +49,12 @@ export enum MIKPermissions {
 
   // can manage products, categories, orders and flight hour packages
   STORE_ADMIN = 'store.admin',
+
+  // can browse and take exams
+  EXAM_USER = 'exam.user',
+
+  // can create/edit/publish exams and view all exam attempts
+  EXAM_ADMIN = 'exam.admin',
 }
 
 // admins can be downgraded to user permissions when not in sudo mode
@@ -72,6 +78,8 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
       return MIKPermissions.DOCUMENT_USER
     case MIKPermissions.STORE_ADMIN:
       return MIKPermissions.STORE_USER
+    case MIKPermissions.EXAM_ADMIN:
+      return MIKPermissions.EXAM_USER
 
     // no separate user roles for SMS or outbox permissions
     case MIKPermissions.SMS_PROCESSOR:

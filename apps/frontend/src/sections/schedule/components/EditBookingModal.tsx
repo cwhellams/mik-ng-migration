@@ -43,7 +43,10 @@ import { SaveButton } from '../../../components/SaveButton'
 import { RemoveButton } from '../../../components/RemoveButton'
 import { DateTimeValidationError } from '@mui/x-date-pickers/models'
 import { getHelsinkiOffsetLabel, HELSINKI_TIMEZONE } from '../../../utils/date'
-import { generateGoogleCalendarLink, downloadIcs } from '../../../utils/calendarEvent'
+import {
+  generateGoogleCalendarLink,
+  downloadIcs,
+} from '../../../utils/calendarEvent'
 
 export type BookingFlags = {
   isNewBooking: boolean
@@ -453,7 +456,10 @@ export const BookingEditor = ({
                   variant='outlined'
                   size='small'
                   onClick={async () => {
-                    const { data: fresh } = await mutation.trigger<undefined, Booking>('GET')
+                    const { data: fresh } = await mutation.trigger<
+                      undefined,
+                      Booking
+                    >('GET')
                     downloadIcs((fresh ?? booking) as Booking)
                   }}
                 >
