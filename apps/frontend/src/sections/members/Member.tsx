@@ -66,14 +66,6 @@ const MemberProfile = () => {
     setEditMode(mode)
   }
 
-  const handleRemove = async () => {
-    const { error } = await mutation.trigger('DELETE', {})
-    if (error) {
-      return setProblem(error)
-    }
-    navigate('/club/')
-  }
-
   const handleDeactivate = async (reason?: string) => {
     const confirmMessage = t('member.deactivateConfirmMessage', {
       name: `${data?.firstName} ${data?.lastName}`,
@@ -736,16 +728,6 @@ const MemberProfile = () => {
                   sx={{ mr: 2 }}
                 >
                   {t('member.deactivate', 'Deactivate Member')}
-                </Button>
-                <Button
-                  color='secondary'
-                  variant='outlined'
-                  onClick={handleRemove}
-                  loadingPosition='start'
-                  loading={mutation.isMutating}
-                  startIcon={<Icon icon='mdi:delete' />}
-                >
-                  {t('general.delete', 'Delete')}
                 </Button>
               </>
             )}
