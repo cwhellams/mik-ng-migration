@@ -65,6 +65,10 @@ import {
   nonRenewalReminderEmailSubject,
   nonRenewalReminderEmailBodyHtml,
 } from '../../templates/nonRenewalReminderEmailTemplate.ts'
+import {
+  newMemberEmailSubject,
+  newMemberEmailBodyHtml,
+} from '../../templates/newMemberEmailTemplate.ts'
 import { SimplbooksEventType } from '../../services/simplbooks/models.ts'
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
@@ -358,6 +362,25 @@ router.post(
     const memberId = await addMember(member, req.user)
     const created = await getMemberById(memberId)
     res.status(200).json(created)
+
+    void (async () => {
+      try {
+        const secretaries = await getMembers(true, ['SECRETARY'], {})
+        const href = `${process.env.PUBLIC_URL ?? 'http://localhost:5173'}/club/members`
+        for (const secretary of secretaries) {
+          await sendEmail(
+            secretary.email,
+            newMemberEmailSubject(secretary.lang),
+            newMemberEmailBodyHtml(secretary.lang, {
+              firstName: secretary.first,
+              href,
+            }),
+          )
+        }
+      } catch (error) {
+        logger.error('Failed to send new member notification emails', { error, memberId })
+      }
+    })()
   },
 )
 

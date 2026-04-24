@@ -438,6 +438,111 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: sv 1`] = `
   </div>"
 `;
 
+exports[`New member notification template tests newMemberEmailBodyHtml for lang: en 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">New member registered</h1><p>Hello Tester1,</p>
+<p>A new member has registered and is awaiting approval.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/club/members" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">View members</a>
+    </div>
+    <p>Best regards,
+Malmin Ilmailukerho</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`New member notification template tests newMemberEmailBodyHtml for lang: fi 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Uusi jäsen rekisteröitynyt</h1><p>Hei Tester1,</p>
+<p>Uusi jäsen on rekisteröitynyt ja odottaa hyväksyntää.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/club/members" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Näytä jäsenet</a>
+    </div>
+    <p>Ystävällisin terveisin,
+Malmin Ilmailukerho</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`New member notification template tests newMemberEmailBodyHtml for lang: sv 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Ny medlem registrerad</h1><p>Hej Tester1,</p>
+<p>En ny medlem har registrerat sig och väntar på godkännande.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/club/members" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Visa medlemmar</a>
+    </div>
+    <p>Med vänliga hälsningar,
+Malmin Ilmailukerho</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml anonymized for lang: en 1`] = `
 "
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">

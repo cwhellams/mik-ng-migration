@@ -16,6 +16,7 @@ import {
   type WelcomeVars,
 } from '../../src/templates/registrationEmailTemplate.ts'
 import { reservationSuspendedEmailBodyHtml } from '../../src/templates/reservationSuspendedEmailTemplate.ts'
+import { newMemberEmailBodyHtml } from '../../src/templates/newMemberEmailTemplate.ts'
 
 describe('Login Email template tests', () => {
   const loginVars: LoginVars = {
@@ -184,4 +185,14 @@ describe('Occurrence Email template tests', () => {
       expect(result).toMatchSnapshot()
     },
   )
+})
+
+describe('New member notification template tests', () => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('newMemberEmailBodyHtml for lang: %s', lang => {
+    const result = newMemberEmailBodyHtml(lang, {
+      firstName: 'Tester1',
+      href: 'http://localhost:5173/club/members',
+    })
+    expect(result).toMatchSnapshot()
+  })
 })
