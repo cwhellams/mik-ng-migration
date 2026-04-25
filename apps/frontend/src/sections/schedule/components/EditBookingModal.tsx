@@ -42,7 +42,7 @@ import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../../components/SaveButton'
 import { RemoveButton } from '../../../components/RemoveButton'
 import { DateTimeValidationError } from '@mui/x-date-pickers/models'
-import { getHelsinkiOffsetLabel, HELSINKI_TIMEZONE } from '../../../utils/date'
+import { getOffsetLabelInTz, HELSINKI_TIMEZONE } from '../../../utils/date'
 import {
   generateGoogleCalendarLink,
   downloadIcs,
@@ -223,7 +223,7 @@ export const BookingEditor = ({
           <Grid size={{ xs: 12, sm: 6 }}>
             <DateTimePicker
               label={t('schedule.startDate', {
-                tz: getHelsinkiOffsetLabel(startDate.date.unix() * 1000),
+                tz: getOffsetLabelInTz(startDate.date.toDate(), 'helsinki'),
               })}
               disabled={isReadonly}
               value={startDate.date}
@@ -266,7 +266,7 @@ export const BookingEditor = ({
           <Grid size={{ xs: 12, sm: 6 }}>
             <DateTimePicker
               label={t('schedule.endDate', {
-                tz: getHelsinkiOffsetLabel(endDate.date.unix() * 1000),
+                tz: getOffsetLabelInTz(endDate.date.toDate(), 'helsinki'),
               })}
               disabled={isReadonly}
               value={endDate.date}
@@ -422,14 +422,14 @@ export const BookingEditor = ({
               label={t('schedule.created')}
               by={booking.createdBy}
               at={booking.createdAt}
-              format='DD.MM.YYYY HH:mm'
+              includeTime={true}
             />
 
             <AuditFormField
               label={t('schedule.updated')}
               by={booking.updatedBy}
               at={booking.updatedAt}
-              format='DD.MM.YYYY HH:mm'
+              includeTime={true}
             />
 
             {booking.status == BookingStatus.CANCELLED && (
@@ -437,7 +437,7 @@ export const BookingEditor = ({
                 label={t('schedule.cancelled')}
                 by={booking.cancelledBy ?? undefined}
                 at={booking.cancelledAt ?? undefined}
-                format='DD.MM.YYYY HH:mm'
+                includeTime={true}
               />
             )}
 

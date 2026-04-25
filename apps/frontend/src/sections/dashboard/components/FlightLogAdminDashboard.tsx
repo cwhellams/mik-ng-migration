@@ -16,14 +16,15 @@ import {
   FlightLogListResponse,
   FlightLogStatus,
 } from '@backend/routes/flight-log/models'
-import { formatDate } from '../../../utils/date'
 import { useThemeMode } from '../../../theme/ThemeContext'
 import { useTranslation } from 'react-i18next'
+import { useTimezone } from '../../../hooks/useTimezone'
 
 export const FlightLogAdminDashboard = () => {
   const { t } = useTranslation()
   // enable sudo mode when navigating to flight details
   const { toggleSudo } = useThemeMode()
+  const { formatDate } = useTimezone()
 
   // fetch list of aircraft journey log books
   const {
@@ -131,9 +132,7 @@ export const FlightLogAdminDashboard = () => {
                     }
                     secondary={t('dashboard.newFlightsSince', {
                       count: ajlb.view?.newFlightsCount,
-                      date: formatDate(
-                        ajlb.view?.validatedBeforeUTC || undefined
-                      ),
+                      date: formatDate(ajlb.view?.validatedBeforeUTC),
                     })}
                   />
                 </ListItem>

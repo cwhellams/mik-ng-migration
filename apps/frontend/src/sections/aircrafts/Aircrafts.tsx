@@ -53,6 +53,7 @@ import { AircraftPricing } from '@backend/routes/aircraft-pricing/models'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { mutate } from 'swr'
 import { formatHHMM } from '../../utils/format'
+import { useTimezone } from '../../hooks/useTimezone'
 
 const Aircrafts = () => {
   const { data, isLoading, error } = useApi<AircraftListResponse, Aircraft>({
@@ -83,6 +84,8 @@ const Aircrafts = () => {
   const [pricingToDelete, setPricingToDelete] = useState<
     AircraftPricing | undefined
   >(undefined)
+
+  const { formatISODateTime } = useTimezone()
 
   // State to track which tab is active for each aircraft card
   const [activeTab, setActiveTab] = useState<Record<string, number>>({})
@@ -471,9 +474,9 @@ const Aircrafts = () => {
                                 (aircraft.status?.remainingFuelLitres ?? 0) /
                                   3.785
                               ),
-                              lastLanding: dayjs(
+                              lastLanding: formatISODateTime(
                                 aircraft.status?.lastLandingTimeUtc
-                              ).format('YYYY-MM-DD HH:mm'),
+                              ),
                             })}
                           </Typography>
                         </Box>

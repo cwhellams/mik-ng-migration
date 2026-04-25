@@ -19,7 +19,7 @@ import {
   FlightLogStatsResponse,
 } from '@backend/routes/flight-log/models'
 import { t } from 'i18next'
-import { formatDateTime } from '../../../utils/date'
+import { useTimezone } from '../../../hooks/useTimezone'
 import { useState } from 'react'
 import theme from '../../../theme/theme'
 import { ResponsiveTable } from '../../../components/ResponsiveTable'
@@ -29,6 +29,8 @@ import { Title } from '../../../components/Title'
 
 export const FlightLogUserDashboard = () => {
   const { me } = useMe()
+
+  const { formatDateTime } = useTimezone()
 
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
 

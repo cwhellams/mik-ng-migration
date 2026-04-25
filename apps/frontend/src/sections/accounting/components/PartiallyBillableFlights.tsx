@@ -17,7 +17,7 @@ import {
   FlightCredit,
 } from '@backend/routes/flight-log/models'
 import { RemoteContent } from '../../../components/RemoteContent'
-import { formatTime } from '../../../utils/date'
+import { useTimezone } from '../../../hooks/useTimezone'
 import { useScrollOnRender } from '../../../hooks/useScrollOnRender'
 import { useState } from 'react'
 import { Problem } from '@backend/routes/response'
@@ -54,6 +54,7 @@ export const PartiallyBillableFlights = ({
 
   const theme = useTheme()
   const isMd = useMediaQuery(theme.breakpoints.up('md'))
+  const { formatTime } = useTimezone()
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
   const [creditedMinsMap, setCreditedMinsMap] = useState<

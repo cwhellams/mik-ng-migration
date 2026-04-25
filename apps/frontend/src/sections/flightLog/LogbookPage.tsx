@@ -20,7 +20,6 @@ import {
   FlightLogStatus,
 } from '@backend/routes/flight-log/models'
 import { RemoteContent } from '../../components/RemoteContent'
-import { formatTime } from '../../utils/date'
 import { useRoles } from '../../hooks/useRoles'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
 import { AircraftJourneyLogBook } from '@backend/routes/ajlb/model'
@@ -38,6 +37,7 @@ import {
   ViewMobileCrew,
 } from './components/FlightListEntry'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
+import { useTimezone } from '../../hooks/useTimezone'
 
 const FlightLogsList = () => {
   const { t } = useTranslation()
@@ -53,6 +53,8 @@ const FlightLogsList = () => {
       skipFetch: !aircraftRegistration || !ajlbSeqNo,
     }
   )
+
+  const { formatTime } = useTimezone()
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
 

@@ -12,9 +12,9 @@ import { ResponsiveTable } from '../../../components/ResponsiveTable'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { SnackAlert } from '../../../components/SnackAlert'
 import useApi from '../../../hooks/useApi'
-import { dayjs } from '../../../utils/date'
 
 import { t } from 'i18next'
+import { useTimezone } from '../../../hooks/useTimezone'
 
 function formatMinutes(minutes: number): string {
   return t('invoicing.minuteAmount', { count: minutes })
@@ -40,6 +40,8 @@ export const PrepaidBalanceFlights = ({
     })
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
+
+  const { formatISODate } = useTimezone()
 
   const handleNext = async () => {
     const res = await mutation.trigger(
@@ -109,9 +111,7 @@ export const PrepaidBalanceFlights = ({
               row={(flight) => (
                 <>
                   <Grid size={{ xs: 12, md: 1.8 }}>
-                    <Box>
-                      {dayjs(flight.takeoffTimeUtc).format('YYYY-MM-DD')}
-                    </Box>
+                    <Box>{formatISODate(flight.takeoffTimeUtc)}</Box>
                     <Typography variant='caption' color='text.secondary'>
                       {flight.billableMemberLastName}
                     </Typography>

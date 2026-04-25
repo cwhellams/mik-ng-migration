@@ -18,7 +18,6 @@ import {
 } from '@backend/routes/flight-log/models'
 import { RemoteContent } from '../../components/RemoteContent'
 import { FlightLogQuery } from './components/FlightLogQuery'
-import { formatTime } from '../../utils/date'
 import { useRoles } from '../../hooks/useRoles'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
 import { useEffect, useState } from 'react'
@@ -31,11 +30,14 @@ import {
   ViewMobileCrew,
 } from './components/FlightListEntry'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
+import { useTimezone } from '../../hooks/useTimezone'
 
 const FlightLogsList = () => {
   const { t } = useTranslation()
 
   const { me, isFlightLogAdmin } = useRoles()
+
+  const { formatTime } = useTimezone()
 
   const [searchParams, setSearchParams] = useSearchParams()
   const scrollToRef = useScrollOnRender()

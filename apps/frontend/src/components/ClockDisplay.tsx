@@ -1,7 +1,8 @@
 import { Box, Tooltip, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useServerClock } from '../hooks/useServerClock'
-import { formatClockTime, getHelsinkiOffsetLabel } from '../utils/date'
+import { formatTimeInTz, getOffsetLabelInTz } from '../utils/date'
+import { useTimezone } from '../hooks/useTimezone'
 
 interface ClockDisplayProps {
   /** When true, show HH:MM:SS; when false, show HH:MM only */
@@ -16,13 +17,50 @@ interface ClockDisplayProps {
 const ClockDisplay = ({ showSeconds = false }: ClockDisplayProps) => {
   const { utcMs, synced, skewed, skewMs } = useServerClock()
 
-  const utcTime = formatClockTime(utcMs, 'UTC', showSeconds)
-  const helTime = formatClockTime(utcMs, 'Europe/Helsinki', showSeconds)
-  const helOffset = getHelsinkiOffsetLabel(utcMs)
+  const utcTime = formatTimeInTz(utcMs, 'utc', { showSeconds })
+  const helTime = formatTimeInTz(utcMs, 'helsinki', { showSeconds })
+  const localTime = formatTimeInTz(utcMs, 'local', { showSeconds })
+
+  const helOffset = getOffsetLabelInTz(utcMs, 'helsinki')
+  const localOffset = getOffsetLabelInTz(utcMs, 'local')
+
+  const localIsHelsinki = localOffset === helOffset
+
+  const { timezone } = useTimezone()
 
   const skewMinutes = Math.round(Math.abs(skewMs) / 60000)
   const skewDirection = skewMs > 0 ? 'behind' : 'ahead of'
   const warningText = `Device clock is ${skewMinutes} min ${skewDirection} server time`
+
+  const renderTime = (label: string, selected: boolean, time: string) => (
+    <Typography
+      variant='caption'
+      sx={{
+        fontFamily: 'monospace',
+        fontSize: '0.68rem',
+        color: 'text.primary',
+        opacity: synced ? 0.7 : 0.35,
+        letterSpacing: 0,
+        lineHeight: 1.4,
+      }}
+    >
+      {selected && <Icon icon='mdi:check' style={{ marginRight: '8px' }} />}
+      <span
+        style={
+          selected
+            ? {
+                fontWeight: 'bolder',
+                opacity: synced ? 1 : 0.6,
+              }
+            : {}
+        }
+      >
+        {label}
+      </span>
+      &nbsp;
+      {synced ? time : '--:--'}
+    </Typography>
+  )
 
   return (
     <Box
@@ -58,48 +96,40 @@ const ClockDisplay = ({ showSeconds = false }: ClockDisplayProps) => {
         }}
       >
         {/* UTC time — shown on all screen sizes */}
-        <Typography
-          variant='caption'
-          sx={{
-            fontFamily: 'monospace',
-            fontSize: '0.68rem',
-            color: 'text.primary',
-            opacity: synced ? 0.7 : 0.35,
-            letterSpacing: 0,
-            lineHeight: 1.4,
-          }}
-        >
-          UTC&nbsp;{synced ? utcTime : '--:--'}
-        </Typography>
-        {/* Helsinki offset + time — shown on all screen sizes */}
-        <Typography
-          variant='caption'
-          sx={{
-            fontFamily: 'monospace',
-            fontSize: '0.68rem',
-            color: 'text.primary',
-            opacity: synced ? 0.7 : 0.35,
-            letterSpacing: 0,
-            lineHeight: 1.4,
-          }}
-        >
-          {synced ? `${helOffset} ${helTime}` : '--:--'}
-        </Typography>
-        {/* "Helsinki" label — desktop only */}
-        <Typography
-          variant='caption'
-          sx={{
-            fontFamily: 'monospace',
-            fontSize: '0.55rem',
-            color: 'text.primary',
-            opacity: synced ? 0.5 : 0.25,
-            letterSpacing: 0,
-            lineHeight: 1.2,
-            display: { xs: 'none', sm: 'block' },
-          }}
-        >
-          Helsinki
-        </Typography>
+        {renderTime('UTC', timezone === 'utc', utcTime)}
+
+        {/* Local time — shown only when not in Helsinki timezone */}
+        {helOffset != localOffset &&
+          renderTime(
+            localOffset,
+            timezone === 'local' && !localIsHelsinki,
+            localTime
+          )}
+
+        {renderTime(
+          helOffset,
+          timezone === 'local' && localIsHelsinki,
+          helTime
+        )}
+
+        {/* "Helsinki" label — desktop only when at helsinki zone */}
+
+        {helOffset == localOffset && (
+          <Typography
+            variant='caption'
+            sx={{
+              fontFamily: 'monospace',
+              fontSize: '0.55rem',
+              color: 'text.primary',
+              opacity: synced ? 0.5 : 0.25,
+              letterSpacing: 0,
+              lineHeight: 1.2,
+              display: { xs: 'none', sm: 'block' },
+            }}
+          >
+            Helsinki
+          </Typography>
+        )}
       </Box>
     </Box>
   )

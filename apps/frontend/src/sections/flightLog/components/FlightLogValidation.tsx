@@ -7,10 +7,10 @@ import { Card, CardContent, Stack, Button, Typography } from '@mui/material'
 import { t } from 'i18next'
 import { FormField } from '../../../components/FormField'
 import { FormTitle } from '../../../components/FormTitle'
-import { formatDate } from '../../../utils/date'
 import { Icon } from '@iconify/react'
 import { AircraftJourneyLogBook } from '@backend/routes/ajlb/model'
 import { useRoles } from '../../../hooks/useRoles'
+import { useTimezone } from '../../../hooks/useTimezone'
 
 export const FlightLogValidation = ({
   ajlb,
@@ -45,6 +45,8 @@ export const FlightLogValidation = ({
 
   const unverifiedFlights =
     data?.logs.filter((log) => log.status === FlightLogStatus.NEW) ?? []
+
+  const { formatDate } = useTimezone()
 
   return (
     <Card sx={{ flex: 1, mt: 10 }}>

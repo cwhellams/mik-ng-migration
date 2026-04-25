@@ -13,7 +13,7 @@ import {
   OccurrencesListResponse,
   OccurrenceStatus,
 } from '@backend/routes/occurrences/models'
-import { formatDateTime } from '../../utils/date'
+import { useTimezone } from '../../hooks/useTimezone'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
 import {
   OccurrenceStatusChip,
@@ -29,6 +29,8 @@ export const Occurrences = () => {
   const theme = useTheme()
 
   const [filters, setFilters] = useState<OccurrenceFilters>({})
+
+  const { formatDateTime } = useTimezone()
 
   const scrollToRef = useScrollOnRender()
 

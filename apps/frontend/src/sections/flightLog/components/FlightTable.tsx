@@ -13,10 +13,11 @@ import { t } from 'i18next'
 import theme from '../../../theme/theme'
 import { formatDuration } from '../../flightLog/utils/timeUtils'
 import { FlightLogListEntry } from '@backend/routes/flight-log/models'
-import { formatDate } from '../../../utils/date'
+import { useTimezone } from '../../../hooks/useTimezone'
 
 export const FlightTable = ({ flights }: { flights: FlightLogListEntry[] }) => {
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
+  const { formatDate, formatTime } = useTimezone()
 
   return (
     <TableContainer component={Paper}>
@@ -26,7 +27,7 @@ export const FlightTable = ({ flights }: { flights: FlightLogListEntry[] }) => {
             <TableCell>{t('flightLog.date')}</TableCell>
             <TableCell>{t('flightLog.times')}</TableCell>
             <TableCell>{t('flightLog.duration')}</TableCell>
-            <TableCell>{t('flightLog.event')}</TableCell>
+            <TableCell>{t('flightLog.crews.pic')}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -38,10 +39,7 @@ export const FlightTable = ({ flights }: { flights: FlightLogListEntry[] }) => {
               <TableRow key={flight.flightId}>
                 <TableCell>{formatDate(start)}</TableCell>
                 <TableCell>
-                  {start.format('HH:mm')} -{' '}
-                  {start.diff(end, 'day') == 0
-                    ? end.format('HH:mm')
-                    : end.format('DD.MM. HH:mm')}
+                  {formatTime(start.toDate())} - {formatTime(end.toDate())}
                 </TableCell>
                 <TableCell>
                   {formatDuration(end.diff(start, 'minutes'), true)}

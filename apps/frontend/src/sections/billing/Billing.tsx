@@ -33,8 +33,7 @@ import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
-
-const dateFormat = 'YYYY-MM-DD'
+import { useTimezone } from '../../hooks/useTimezone'
 
 const Billing = () => {
   const theme = useTheme()
@@ -46,10 +45,12 @@ const Billing = () => {
   const [invoiceType, setInvoiceType] = useState<string>('all')
   const [pastDueOnly, setPastDueOnly] = useState<boolean>(false)
 
+  const { formatISODate } = useTimezone()
+
   // Construct query params dynamically
   const queryParams = {
-    ...(startDate ? { startDate: startDate.format(dateFormat) } : {}),
-    ...(endDate ? { endDate: endDate.format(dateFormat) } : {}),
+    ...(startDate ? { startDate: formatISODate(startDate) } : {}),
+    ...(endDate ? { endDate: formatISODate(endDate) } : {}),
     ...(status !== 'all' ? { status } : {}),
     ...(invoiceType !== 'all' ? { type: invoiceType } : {}),
     ...(pastDueOnly ? { pastDue: 'true' } : {}),

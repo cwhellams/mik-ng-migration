@@ -16,6 +16,8 @@ import { useMe } from '../hooks/useMe'
 import UserAvatar from '../sections/members/components/UserAvatar'
 import useApi from '../hooks/useApi'
 import { Member, MIKLang } from '@backend/routes/members/models'
+import { useTimezone } from '../hooks/useTimezone'
+import { getOffsetLabelInTz } from '../utils/date'
 
 const User = () => {
   const { t, i18n } = useTranslation()
@@ -24,6 +26,8 @@ const User = () => {
   const open = Boolean(anchorEl)
 
   const { me, isLoading, mutate } = useMe()
+
+  const { timezone, setTimezone } = useTimezone()
 
   const logout = useAuth('logout')
 
@@ -163,6 +167,48 @@ const User = () => {
               )}
             </MenuItem>
             <Divider />
+
+            <Box sx={{ px: 2, py: 1 }}>
+              <Typography variant='body2' color='text.secondary'>
+                {t('flightLog.timeZone')}
+              </Typography>
+            </Box>
+            <MenuItem onClick={() => setTimezone('utc')}>
+              <ListItemIcon>
+                <Icon icon='mdi:earth' fontSize={25} />
+              </ListItemIcon>
+              {t('flightLog.utcTime')}
+              {timezone === 'utc' && (
+                <Icon
+                  icon='mdi:check'
+                  fontSize={20}
+                  style={{ marginLeft: 'auto' }}
+                />
+              )}
+            </MenuItem>
+            <MenuItem onClick={() => setTimezone('local')}>
+              <ListItemIcon>
+                <Icon icon='mdi:map-marker' fontSize={25} />
+              </ListItemIcon>
+              {t('flightLog.localTime')}{' '}
+              {getOffsetLabelInTz(undefined, 'local')}
+              {timezone === 'local' && (
+                <Icon
+                  icon='mdi:check'
+                  fontSize={20}
+                  style={{ marginLeft: 'auto' }}
+                />
+              )}
+            </MenuItem>
+
+            <Box sx={{ px: 2, py: 1 }}>
+              <Typography variant='caption' color='text.secondary'>
+                {t('header.timezoneInfo')}
+              </Typography>
+            </Box>
+
+            <Divider />
+
             <MenuItem onClick={handleLogout}>
               <ListItemIcon>
                 <Icon icon='mdi:logout' fontSize={20} color='#f44336' />
