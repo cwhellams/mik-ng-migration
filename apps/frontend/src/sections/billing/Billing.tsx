@@ -45,7 +45,7 @@ const Billing = () => {
   const [invoiceType, setInvoiceType] = useState<string>('all')
   const [pastDueOnly, setPastDueOnly] = useState<boolean>(false)
 
-  const { formatISODate } = useTimezone()
+  const { formatISODate, timezoneName } = useTimezone()
 
   // Construct query params dynamically
   const queryParams = {
@@ -105,9 +105,6 @@ const Billing = () => {
     setStartDate(now.subtract(months, 'month'))
   }
 
-  const dateFormatter = new Intl.DateTimeFormat('fi-FI', {
-    dateStyle: 'medium',
-  })
   const currencyFormatter = new Intl.NumberFormat('fi-FI', {
     style: 'currency',
     currency: 'EUR',
@@ -151,6 +148,7 @@ const Billing = () => {
               value={startDate}
               onChange={(newValue) => setStartDate(newValue)}
               format={t('general.dateFormat')}
+              timezone={timezoneName}
               maxDate={endDate || dayjs()}
             />
           </Grid>
@@ -160,6 +158,7 @@ const Billing = () => {
               value={endDate}
               onChange={(newValue) => setEndDate(newValue)}
               format={t('general.dateFormat')}
+              timezone={timezoneName}
               maxDate={dayjs()}
             />
           </Grid>
@@ -266,7 +265,6 @@ const Billing = () => {
                       sentAt={invoice.sent_at}
                       dueAt={invoice.due_at}
                       isPastDue={isPastDue}
-                      dateFormatter={dateFormatter}
                     />
                   </Grid>
 

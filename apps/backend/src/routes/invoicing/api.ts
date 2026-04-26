@@ -15,7 +15,6 @@ import {
   type InvoiceItemQueryParams,
   type InvoiceListResponse,
   type Item,
-  type Invoice,
   ItemSchema,
   type ItemListResponse,
   type RecurringFeesProcessing,
@@ -77,26 +76,9 @@ router.get('/', async (req: Request, res: Response<InvoiceListResponse>) => {
 
   const filters: InvoiceItemQueryParams = parsed.data
   const isAdmin = req.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
-  const rawItems = await getInvoices(req.user?.memberId!, isAdmin, filters)
+  const invoices = await getInvoices(req.user?.memberId!, isAdmin, filters)
 
-  logger.info(`Fetched ${rawItems.length} invoices with filters: ${JSON.stringify(filters)}`)
-  const invoices: Invoice[] = rawItems.map(row => ({
-    id: String(row.id),
-    created_at: row.created_at ? new Date(row.created_at as any).toISOString() : '',
-    created_by: row.created_by,
-    currency: row.currency === null ? null : String(row.currency),
-    description: row.description,
-    due_at: row.due_at ? new Date(row.due_at as any).toISOString() : '',
-    invoice_type: row.invoice_type as any,
-    is_paid: row.is_paid === null ? null : Boolean(row.is_paid),
-    member_id: row.member_id,
-    paid_at: row.paid_at ? new Date(row.paid_at as any).toISOString() : null,
-    pmt_ref: row.pmt_ref,
-    sent_at: row.sent_at ? new Date(row.sent_at as any).toISOString() : '',
-    total_sum: row.total_sum === null ? null : String(row.total_sum),
-    updated_at: row.updated_at ? new Date(row.updated_at as any).toISOString() : '',
-    updated_by: row.updated_by,
-  }))
+  logger.info(`Fetched ${invoices.length} invoices with filters: ${JSON.stringify(filters)}`)
 
   const response: InvoiceListResponse = {
     invoices,
@@ -331,7 +313,7 @@ router.post('/sendEquipmentFeeInvoiceToMember', async (req: Request, res: Respon
 
 router.get('/:invoiceId/pdf', async (req: Request, res: Response) => {
   const { invoiceId } = req.params
-  const isAdmin = req!.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
+  const isAdmin = req.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
 
   //  Must validate that the requested invoiceId belongs to the user, or user is admin
   if (!invoiceId || isNaN(Number(invoiceId))) {

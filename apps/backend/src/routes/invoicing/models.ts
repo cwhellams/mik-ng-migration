@@ -66,7 +66,7 @@ export const InvoiceSchema = z.object({
   member_id: z.string(),
   paid_at: z.string().datetime().nullable(),
   pmt_ref: z.string(),
-  sent_at: z.string().date(),
+  sent_at: z.string().date().nullable(),
   total_sum: z.string().nullable(), // PG numeric (returned as string)
   updated_at: z.string().datetime(),
   updated_by: z.string(),

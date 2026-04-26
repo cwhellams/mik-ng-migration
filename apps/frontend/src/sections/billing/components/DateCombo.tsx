@@ -1,22 +1,20 @@
 import React from 'react'
 import { Typography, Box } from '@mui/material'
 import { t } from 'i18next'
+import { useTimezone } from '../../../hooks/useTimezone'
 
 interface InvoiceDatesCellProps {
-  sentAt: string | Date
-  dueAt: string | Date
+  sentAt: string | null
+  dueAt: string
   isPastDue: boolean
-  dateFormatter: Intl.DateTimeFormat
 }
 
 export const InvoiceDatesCell: React.FC<InvoiceDatesCellProps> = ({
   sentAt,
   dueAt,
   isPastDue,
-  dateFormatter,
 }) => {
-  const dueDate = new Date(dueAt)
-  const sentDate = sentAt ? new Date(sentAt) : new Date()
+  const { formatDate } = useTimezone()
 
   return (
     <Box display='flex' flexDirection='column' gap={0.5}>
@@ -25,10 +23,10 @@ export const InvoiceDatesCell: React.FC<InvoiceDatesCellProps> = ({
         fontWeight='bold'
         color={isPastDue ? 'error.main' : 'text.primary'}
       >
-        {t('invoiceItems.dates.due')} {dateFormatter.format(dueDate)}
+        {t('invoiceItems.dates.due')} {formatDate(dueAt)}
       </Typography>
       <Typography variant='body2' color='text.secondary'>
-        {t('invoiceItems.dates.sent')} {dateFormatter.format(sentDate)}
+        {t('invoiceItems.dates.sent')} {formatDate(sentAt)}
       </Typography>
     </Box>
   )
