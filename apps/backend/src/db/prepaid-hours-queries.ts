@@ -9,6 +9,7 @@ import type {
   UsageLog,
   UnbilledTimeByAircraft,
 } from '../routes/prepaid-hours/models.ts'
+import { FlightLogStatus } from '../routes/flight-log/models.ts'
 import { ProductTypeEnum } from '../routes/shop/models.ts'
 import { insertProduct } from './shop-queries.ts'
 
@@ -373,6 +374,7 @@ async function attachUnbilledMinutes(packages: MemberPackage[]): Promise<MemberP
     ])
     .where('is_billable_flight' as any, '=', true)
     .where('is_billed' as any, '=', false)
+    .where('status' as any, '!=', FlightLogStatus.PAID)
     .where('billable_member_id' as any, 'in', memberIds)
     .where('aircraft_registration' as any, 'in', aircraftRegs)
     .groupBy(['billable_member_id', 'aircraft_registration'] as any)
@@ -607,6 +609,7 @@ export async function getUnbilledTimeByAircraft(
     ])
     .where('is_billable_flight' as any, '=', true)
     .where('is_billed' as any, '=', false)
+    .where('status' as any, '!=', FlightLogStatus.PAID)
     .where('billable_member_id' as any, '=', memberId)
     .groupBy(['aircraft_registration'] as any)
     .orderBy('aircraft_registration' as any)

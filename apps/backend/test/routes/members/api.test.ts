@@ -288,7 +288,7 @@ describe('GET /members', () => {
     })
 
     const member = membersQry.members.filter(m => m.memberId === 'Marja1')
-    expect(member).toMatchSnapshot()
+    expect(member).toMatchSnapshot(member.map(m => ({ ...m, memberSince: expect.any(String) })))
   })
 
   it('should search by private and unapproved roles as an admin', async () => {
@@ -900,7 +900,12 @@ describe('Membership approval tests', () => {
     response.body.members = response.body.members.sort(
       (a: { memberId: string }, b: { memberId: string }) => a.memberId.localeCompare(b.memberId),
     )
-    expect(response.body.members).toMatchSnapshot()
+    expect(response.body.members).toMatchSnapshot(
+      response.body.members.map((m: { memberSince?: unknown }) => ({
+        ...m,
+        memberSince: expect.any(String),
+      })),
+    )
   })
 
   it('Get unapproved members by name should return data when member admin', async () => {
