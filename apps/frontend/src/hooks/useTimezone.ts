@@ -19,9 +19,9 @@ export function useTimezone() {
 
     // Format date part in format "DD.MM.YYYY"
     formatDate: (timestamp: string | Date | Dayjs | null | undefined) =>
-      // convert YYYY-MM-DD format into Date object to avoid timezone issues when formatting,
-      typeof timestamp === 'string'
-        ? formatDateInTz(new Date(timestamp), timezone, 'DD.MM.YYYY')
+      // convert YYYY-MM-DD in local format to avoid timezone shifts
+      typeof timestamp === 'string' && timestamp.match(/^\d{4}-\d{2}-\d{2}$/)
+        ? formatDateInTz(timestamp, 'local', 'DD.MM.YYYY')
         : formatDateInTz(timestamp, timezone, 'DD.MM.YYYY'),
 
     // Format date and time in format "DD.MM.YYYY HH:mm"
@@ -41,9 +41,9 @@ export function useTimezone() {
 
     // Format date part only in ISO format "YYYY-MM-DD".
     formatISODate: (timestamp: string | Date | Dayjs | null | undefined) =>
-      typeof timestamp === 'string'
-        ? // convert YYYY-MM-DD format into Date object to avoid timezone issues when formatting
-          formatDateInTz(new Date(timestamp), timezone, 'YYYY-MM-DD')
+      typeof timestamp === 'string' && timestamp.match(/^\d{4}-\d{2}-\d{2}$/)
+        ? // keep YYYY-MM-DD in local format to avoid timezone shifts
+          formatDateInTz(timestamp, 'local', 'YYYY-MM-DD')
         : formatDateInTz(timestamp, timezone, 'YYYY-MM-DD'),
 
     // Support any date or ISO timestamp string.
