@@ -15,6 +15,7 @@ import {
   type FeeType,
   type ItemListArticle,
 } from '../services/simplbooks/models.ts'
+import { FlightLogStatus } from '../routes/flight-log/models.ts'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import { db } from './connection.ts'
 import type { AcctsInvoice, AcctsItems } from './schema.js'
@@ -242,18 +243,31 @@ export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<Invoice[]> {
 }
 
 /**
- * Mark an invoice as paid in the database
+ * Mark an invoice as paid in the database and update all related flight logs to PAID status
  */
 export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Promise<void> {
-  await db
-    .updateTable('accts.invoice')
-    .set({
-      paid_at: paidAt,
-      updated_by: MIK_SIMPLBOOKS_MEMBER,
-      updated_at: new Date().toISOString(),
-    })
-    .where('id', '=', invoiceId)
-    .execute()
+  await db.transaction().execute(async trx => {
+    await trx
+      .updateTable('accts.invoice')
+      .set({
+        paid_at: paidAt,
+        updated_by: MIK_SIMPLBOOKS_MEMBER,
+        updated_at: new Date().toISOString(),
+      })
+      .where('id', '=', invoiceId)
+      .execute()
+
+    await trx
+      .updateTable('flight.logs')
+      .set({
+        status: FlightLogStatus.PAID,
+        updated_by: MIK_SIMPLBOOKS_MEMBER,
+        updated_at: new Date().toISOString(),
+      })
+      .where('invoice_number', '=', invoiceId)
+      .where('status', '=', FlightLogStatus.INVOICED)
+      .execute()
+  })
 }
 
 /**
