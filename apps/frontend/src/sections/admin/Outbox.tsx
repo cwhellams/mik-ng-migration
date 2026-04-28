@@ -33,6 +33,7 @@ import type {
 } from '@backend/routes/outbox/models'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
+import { useTimezone } from '../../hooks/useTimezone'
 
 const STATUS_OPTIONS: OutboxStatus[] = [
   'PENDING',
@@ -83,6 +84,7 @@ const DATE_PRESETS = [
 
 export default function Outbox() {
   const { t } = useTranslation()
+  const { formatDateTime, timezoneName } = useTimezone()
 
   const [filters, setFilters] = useState<Filters>({
     status: '',
@@ -107,13 +109,13 @@ export default function Outbox() {
   const apiParams: Record<string, string> = {}
   if (filters.status) apiParams.status = filters.status
   if (filters.event_type) apiParams.event_type = filters.event_type
-  if (filters.created_from)
+  if (filters.created_from?.isValid())
     apiParams.created_from = filters.created_from.toISOString()
-  if (filters.created_to)
+  if (filters.created_to?.isValid())
     apiParams.created_to = filters.created_to.toISOString()
-  if (filters.processed_from)
+  if (filters.processed_from?.isValid())
     apiParams.processed_from = filters.processed_from.toISOString()
-  if (filters.processed_to)
+  if (filters.processed_to?.isValid())
     apiParams.processed_to = filters.processed_to.toISOString()
 
   const { data, isLoading, error, mutate } = useApi<OutboxListResponse>({
@@ -147,7 +149,7 @@ export default function Outbox() {
   const applyPreset = (minutes: number) => {
     setFilters((f) => ({
       ...f,
-      created_from: dayjs().subtract(minutes, 'minute'),
+      created_from: dayjs().startOf('minute').subtract(minutes, 'minute'),
       created_to: null,
     }))
   }
@@ -220,6 +222,7 @@ export default function Outbox() {
               label={t('outbox.filter.createdFrom')}
               value={filters.created_from}
               onChange={(v) => setFilters((f) => ({ ...f, created_from: v }))}
+              timezone={timezoneName}
               slotProps={{ textField: { size: 'small', fullWidth: true } }}
             />
           </Grid>
@@ -228,6 +231,7 @@ export default function Outbox() {
               label={t('outbox.filter.createdTo')}
               value={filters.created_to}
               onChange={(v) => setFilters((f) => ({ ...f, created_to: v }))}
+              timezone={timezoneName}
               slotProps={{ textField: { size: 'small', fullWidth: true } }}
             />
           </Grid>
@@ -238,6 +242,7 @@ export default function Outbox() {
               label={t('outbox.filter.processedFrom')}
               value={filters.processed_from}
               onChange={(v) => setFilters((f) => ({ ...f, processed_from: v }))}
+              timezone={timezoneName}
               slotProps={{ textField: { size: 'small', fullWidth: true } }}
             />
           </Grid>
@@ -246,6 +251,7 @@ export default function Outbox() {
               label={t('outbox.filter.processedTo')}
               value={filters.processed_to}
               onChange={(v) => setFilters((f) => ({ ...f, processed_to: v }))}
+              timezone={timezoneName}
               slotProps={{ textField: { size: 'small', fullWidth: true } }}
             />
           </Grid>
@@ -353,20 +359,16 @@ export default function Outbox() {
                     </TableCell>
                     <TableCell>
                       <Typography variant='body2' noWrap>
-                        {item.created_at_utc
-                          ? dayjs(item.created_at_utc).format(
-                              'DD.MM.YYYY HH:mm:ss'
-                            )
-                          : '—'}
+                        {formatDateTime(item.created_at_utc, {
+                          showSeconds: true,
+                        })}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant='body2' noWrap>
-                        {item.processed_at
-                          ? dayjs(item.processed_at).format(
-                              'DD.MM.YYYY HH:mm:ss'
-                            )
-                          : '—'}
+                        {formatDateTime(item.processed_at, {
+                          showSeconds: true,
+                        })}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ maxWidth: 300 }}>

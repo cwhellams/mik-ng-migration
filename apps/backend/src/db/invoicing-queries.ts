@@ -1,3 +1,4 @@
+import type { Selectable } from 'kysely'
 import {
   type InvoiceItemQueryParams,
   type RecurringFeesProcessing,
@@ -5,9 +6,11 @@ import {
   type EquipmentFee,
   ArticleFeeSchema,
   type ArticleFee,
+  type Invoice,
 } from '../routes/invoicing/models.ts'
 import { ART_EQUIP_FEE_CODE } from '../services/accounting/config.ts'
 import {
+  MIKInvoiceType,
   RecurringFeeType,
   type FeeType,
   type ItemListArticle,
@@ -27,7 +30,7 @@ export async function getInvoices(
   memberId: string,
   isAdmin: boolean,
   filters?: InvoiceItemQueryParams,
-): Promise<AcctsInvoice[]> {
+): Promise<Invoice[]> {
   const { startDate, endDate, status, type, pastDue, id } = filters || {}
 
   let query = db.selectFrom('accts.invoice').selectAll()
@@ -42,11 +45,11 @@ export async function getInvoices(
   }
 
   if (startDate) {
-    query = query.where('sent_at', '>=', new Date(startDate).toISOString())
+    query = query.where('sent_at', '>=', startDate)
   }
 
   if (endDate) {
-    query = query.where('sent_at', '<=', new Date(endDate).toISOString())
+    query = query.where('sent_at', '<=', endDate)
   }
 
   if (status) {
@@ -62,13 +65,26 @@ export async function getInvoices(
   }
 
   const rows = await query.orderBy('sent_at', 'desc').execute()
-  // Map raw rows to AcctsInvoice type if necessary
-  return rows.map(row => ({
-    ...row,
-    created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
-    updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
-  })) as unknown as AcctsInvoice[]
+  return rows.map(toInvoice)
 }
+
+const toInvoice = (row: Selectable<AcctsInvoice>): Invoice => ({
+  id: String(row.id),
+  created_at: row.created_at.toISOString(),
+  created_by: row.created_by,
+  currency: row.currency,
+  description: row.description,
+  due_at: row.due_at,
+  invoice_type: row.invoice_type as MIKInvoiceType,
+  is_paid: row.is_paid,
+  member_id: row.member_id,
+  paid_at: row.paid_at,
+  pmt_ref: row.pmt_ref,
+  sent_at: row.sent_at,
+  total_sum: row.total_sum === null ? null : String(row.total_sum),
+  updated_at: row.updated_at.toISOString(),
+  updated_by: row.updated_by,
+})
 
 export async function getInvoiceItems(): Promise<AcctsItems[]> {
   return await db.selectFrom('accts.items').selectAll().execute()
@@ -137,9 +153,9 @@ export async function upsertInvoiceItems(items: ItemListArticle[]): Promise<void
   const validItems = items
     .filter(item => item.id !== undefined && item.code !== undefined && item.name !== undefined)
     .map(item => ({
-      id: item.id as number,
-      code: item.code as string,
-      name: item.name as string,
+      id: item.id!,
+      code: item.code!,
+      name: item.name!,
       item: item,
     }))
 
@@ -201,18 +217,19 @@ export async function getRecurringFeesProcessing(
     fee_type: row.fee_type,
     status: row.status,
     year: row.year,
-    createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+    createdAt: row.created_at.toISOString(),
     createdBy: row.created_by,
-    updatedAt: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
+    updatedAt: row.updated_at.toISOString(),
     updatedBy: row.updated_by,
-  })) as RecurringFeesProcessing[]
+  }))
 }
 
 /**
- * Get all unpaid invoices that have a pmt_ref (Simplbooks invoice ID)
- * Returns invoices where is_paid = false and pmt_ref is not empty
+ * Get all unpaid invoices that have a Simplbooks payment reference in `pmt_ref`
+ * Returns invoices where is_paid = false and pmt_ref is not empty.
+ * Note: `pmt_ref` stores the Simplbooks invoice reference, while `id` stores the Simplbooks invoice ID.
  */
-export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<AcctsInvoice[]> {
+export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<Invoice[]> {
   const rows = await db
     .selectFrom('accts.invoice')
     .selectAll()
@@ -221,11 +238,7 @@ export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<AcctsInvoice
     .orderBy('due_at', 'asc')
     .execute()
 
-  return rows.map(row => ({
-    ...row,
-    created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
-    updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
-  })) as unknown as AcctsInvoice[]
+  return rows.map(toInvoice)
 }
 
 /**
@@ -252,7 +265,7 @@ export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Prom
  *
  * Grace period can be configured via OVERDUE_INVOICE_GRACE_PERIOD_DAYS env var (defaults to 0)
  */
-export async function getOverdueInvoicesWithoutReminder(): Promise<AcctsInvoice[]> {
+export async function getOverdueInvoicesWithoutReminder(): Promise<Invoice[]> {
   const rows = await db
     .selectFrom('accts.invoice')
     .selectAll()
@@ -262,11 +275,7 @@ export async function getOverdueInvoicesWithoutReminder(): Promise<AcctsInvoice[
     .orderBy('due_at', 'asc')
     .execute()
 
-  return rows.map(row => ({
-    ...row,
-    created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
-    updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
-  })) as unknown as AcctsInvoice[]
+  return rows.map(toInvoice)
 }
 
 /**
@@ -294,7 +303,7 @@ export async function markOverdueEmailSent(invoiceId: string): Promise<void> {
 export async function getOverdueFlightInvoicesForMember(
   memberId: string,
   daysOverdue: number,
-): Promise<AcctsInvoice[]> {
+): Promise<Invoice[]> {
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysOverdue)
 
@@ -308,11 +317,7 @@ export async function getOverdueFlightInvoicesForMember(
     .orderBy('due_at', 'asc')
     .execute()
 
-  return rows.map(row => ({
-    ...row,
-    created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
-    updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
-  })) as unknown as AcctsInvoice[]
+  return rows.map(toInvoice)
 }
 
 /**

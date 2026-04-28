@@ -23,6 +23,7 @@ import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import Papa from 'papaparse'
 import { Download } from '@mui/icons-material'
+import { formatHHMM } from '../../utils/format'
 
 interface TaxReportEntry {
   month: string
@@ -41,12 +42,6 @@ interface TaxReportResponse {
     startDate: string
     endDate: string
   }
-}
-
-const formatMinutes = (minutes: number): string => {
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  return `${hours}:${mins.toString().padStart(2, '0')}`
 }
 
 export const TaxReport = () => {
@@ -97,12 +92,12 @@ export const TaxReport = () => {
     const csvData = reportData.data.map((entry) => ({
       Month: entry.month,
       Aircraft: entry.aircraftRegistration,
-      'Commercial Block Time': formatMinutes(entry.commercialBlockMins),
-      'Commercial Flight Time': formatMinutes(entry.commercialFlightMins),
-      'Private Block Time': formatMinutes(entry.privateBlockMins),
-      'Private Flight Time': formatMinutes(entry.privateFlightMins),
-      'Total Block Time': formatMinutes(entry.totalBlockMins),
-      'Total Flight Time': formatMinutes(entry.totalFlightMins),
+      'Commercial Block Time': formatHHMM(entry.commercialBlockMins),
+      'Commercial Flight Time': formatHHMM(entry.commercialFlightMins),
+      'Private Block Time': formatHHMM(entry.privateBlockMins),
+      'Private Flight Time': formatHHMM(entry.privateFlightMins),
+      'Total Block Time': formatHHMM(entry.totalBlockMins),
+      'Total Flight Time': formatHHMM(entry.totalFlightMins),
     }))
 
     const csv = Papa.unparse(csvData)
@@ -257,22 +252,22 @@ export const TaxReport = () => {
                       <TableCell>{row.month}</TableCell>
                       <TableCell>{row.aircraftRegistration}</TableCell>
                       <TableCell align='right'>
-                        {formatMinutes(row.commercialBlockMins)}
+                        {formatHHMM(row.commercialBlockMins)}
                       </TableCell>
                       <TableCell align='right'>
-                        {formatMinutes(row.commercialFlightMins)}
+                        {formatHHMM(row.commercialFlightMins)}
                       </TableCell>
                       <TableCell align='right'>
-                        {formatMinutes(row.privateBlockMins)}
+                        {formatHHMM(row.privateBlockMins)}
                       </TableCell>
                       <TableCell align='right'>
-                        {formatMinutes(row.privateFlightMins)}
+                        {formatHHMM(row.privateFlightMins)}
                       </TableCell>
                       <TableCell align='right'>
-                        {formatMinutes(row.totalBlockMins)}
+                        {formatHHMM(row.totalBlockMins)}
                       </TableCell>
                       <TableCell align='right'>
-                        {formatMinutes(row.totalFlightMins)}
+                        {formatHHMM(row.totalFlightMins)}
                       </TableCell>
                     </TableRow>
                   ))}

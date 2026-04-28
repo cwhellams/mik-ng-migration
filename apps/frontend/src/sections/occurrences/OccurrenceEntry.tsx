@@ -51,15 +51,16 @@ import {
 } from '../flightLog/utils/timeUtils'
 import { OccurrenceStatusChip } from './components/OccurrenceStatusChip'
 import { ConfirmButton } from '../../components/ConfirmDialog'
-import { formatDateTime } from '../../utils/date'
 import { FormTitle } from '../../components/FormTitle'
 import { SelectMember } from '../../components/SelectMember'
 import { MIKLang } from '@backend/routes/members/models'
 import { EditButton } from '../../components/EditButton'
 import { Box } from '@mui/system'
+import { useTimezone } from '../../hooks/useTimezone'
 
 export const OccurrenceEntry = () => {
   const { t, i18n } = useTranslation()
+  const { formatDateTime, timezoneName, timezoneOffset } = useTimezone()
 
   const navigate = useNavigate()
   // preserve search filters when navigating back
@@ -322,11 +323,14 @@ export const OccurrenceEntry = () => {
           control={control}
           render={({ field: { onChange, value } }) => (
             <DateTimePicker
-              label={t('occurrences.occurrenceDate')}
+              label={t('occurrences.occurrenceDateTz', {
+                tz: timezoneOffset(value),
+              })}
               value={value ? dayjs(value) : null}
               disabled={!isEditable}
               disableFuture={true}
               format='DD.MM.YYYY HH:mm'
+              timezone={timezoneName}
               onChange={(date) => onChange(date?.toISOString())}
               slotProps={{
                 textField: {

@@ -26,6 +26,7 @@ import utc from 'dayjs/plugin/utc'
 import { useState, useEffect, useRef } from 'react'
 import { WindRose } from './WindRose'
 import { RemoteContent } from '../../../components/RemoteContent'
+import { useTimezone } from '../../../hooks/useTimezone'
 
 dayjs.extend(utc)
 
@@ -88,6 +89,8 @@ export const WeatherWidget = () => {
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
+  const { formatISODateTime, timezoneOffset } = useTimezone()
+
   const { data, error, isLoading } = useApi<WeatherResponse>(
     {
       url: 'v1/weather?site=efnu',
@@ -115,10 +118,7 @@ export const WeatherWidget = () => {
   const state = data?.states?.[0]
   const report = state?.report
 
-  // Format the datetime
-  const weatherTime = report
-    ? dayjs.unix(report.datetime_unix).utc().format('YYYY-MM-DD HH:mm')
-    : ''
+  const weatherTime = report ? dayjs.unix(report.datetime_unix) : null
 
   const reportIdPhonetic = report ? getPhoneticWord(report.repid) : ''
 
@@ -250,7 +250,8 @@ export const WeatherWidget = () => {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography variant='caption' color='text.secondary'>
-                  {weatherTime} UTC
+                  {formatISODateTime(weatherTime)}{' '}
+                  {weatherTime ? timezoneOffset(weatherTime.toDate()) : ''}
                 </Typography>
                 <IconButton
                   size='small'
@@ -326,11 +327,22 @@ export const WeatherWidget = () => {
                             Wind
                           </Typography>
                           <Typography variant='body1' fontWeight='bold'>
-                            {report?.wind_dir}° {report?.wind_kt.toFixed(1)} kt
+                            {report?.wind_dir}° {report?.wind_kt.toFixed(0)} kt
+                            {report?.wind_gust_kt && (
+                              <span>
+                                , gust {report.wind_gust_kt.toFixed(0)} kt
+                              </span>
+                            )}
                           </Typography>
-                          <Typography variant='caption' color='text.secondary'>
-                            {report?.wind_ms.toFixed(1)} m/s
-                          </Typography>
+                          {report?.wind_dir_min && (
+                            <Typography
+                              variant='caption'
+                              color='text.secondary'
+                            >
+                              Variable between {report.wind_dir_min}-
+                              {report.wind_dir_max}°
+                            </Typography>
+                          )}
                         </Box>
                       </Box>
                     </Grid>

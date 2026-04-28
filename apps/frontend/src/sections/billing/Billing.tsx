@@ -33,8 +33,7 @@ import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
-
-const dateFormat = 'YYYY-MM-DD'
+import { useTimezone } from '../../hooks/useTimezone'
 
 const Billing = () => {
   const theme = useTheme()
@@ -46,10 +45,12 @@ const Billing = () => {
   const [invoiceType, setInvoiceType] = useState<string>('all')
   const [pastDueOnly, setPastDueOnly] = useState<boolean>(false)
 
+  const { formatISODate, timezoneName } = useTimezone()
+
   // Construct query params dynamically
   const queryParams = {
-    ...(startDate ? { startDate: startDate.format(dateFormat) } : {}),
-    ...(endDate ? { endDate: endDate.format(dateFormat) } : {}),
+    ...(startDate ? { startDate: formatISODate(startDate) } : {}),
+    ...(endDate ? { endDate: formatISODate(endDate) } : {}),
     ...(status !== 'all' ? { status } : {}),
     ...(invoiceType !== 'all' ? { type: invoiceType } : {}),
     ...(pastDueOnly ? { pastDue: 'true' } : {}),
@@ -104,9 +105,6 @@ const Billing = () => {
     setStartDate(now.subtract(months, 'month'))
   }
 
-  const dateFormatter = new Intl.DateTimeFormat('fi-FI', {
-    dateStyle: 'medium',
-  })
   const currencyFormatter = new Intl.NumberFormat('fi-FI', {
     style: 'currency',
     currency: 'EUR',
@@ -150,6 +148,7 @@ const Billing = () => {
               value={startDate}
               onChange={(newValue) => setStartDate(newValue)}
               format={t('general.dateFormat')}
+              timezone={timezoneName}
               maxDate={endDate || dayjs()}
             />
           </Grid>
@@ -159,6 +158,7 @@ const Billing = () => {
               value={endDate}
               onChange={(newValue) => setEndDate(newValue)}
               format={t('general.dateFormat')}
+              timezone={timezoneName}
               maxDate={dayjs()}
             />
           </Grid>
@@ -265,7 +265,6 @@ const Billing = () => {
                       sentAt={invoice.sent_at}
                       dueAt={invoice.due_at}
                       isPastDue={isPastDue}
-                      dateFormatter={dateFormatter}
                     />
                   </Grid>
 

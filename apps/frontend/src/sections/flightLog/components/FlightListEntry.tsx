@@ -2,10 +2,10 @@ export const FlightLogListEntry = () => {}
 import { Box, Typography } from '@mui/material'
 import { Grid, useMediaQuery, useTheme } from '@mui/system'
 import { Link, LinkProps } from 'react-router-dom'
-import { formatDate, formatTime } from '../../../utils/date'
 import { ReactNode } from 'react'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
+import { useTimezone } from '../../../hooks/useTimezone'
 
 export const ViewFlightDate = ({
   flightId,
@@ -22,14 +22,16 @@ export const ViewFlightDate = ({
   const theme = useTheme()
   const isMd = useMediaQuery(theme.breakpoints.up('md'))
 
+  const { formatDate, formatDateCustom } = useTimezone()
+
   const content = isMd ? (
     formatDate(date)
   ) : (
     <>
       <Typography fontSize={25} lineHeight={0.75}>
-        {formatDate(date, 'D.M.')}
+        {formatDateCustom(date, 'D.M.')}
       </Typography>
-      <Typography fontSize={16}>{formatDate(date, 'YYYY')}</Typography>
+      <Typography fontSize={16}>{formatDateCustom(date, 'YYYY')}</Typography>
     </>
   )
 
@@ -65,6 +67,8 @@ export const ViewMobileFlightTime = ({
   flightTime: string
   secondaryTime?: string | null
 }) => {
+  const { formatTime } = useTimezone()
+
   return (
     <Grid size={size} container alignItems='center'>
       <Grid size={12} sx={{ display: 'flex', justifyContent: 'space-between' }}>

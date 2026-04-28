@@ -35,7 +35,7 @@ import { formatPhoneNumber } from '../../utils/format'
 import { langFlagIcon } from '../../utils/lang'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
-import { formatDate } from '../../utils/date'
+import { useTimezone } from '../../hooks/useTimezone'
 
 type SortDirection = 'asc' | 'desc'
 type SortField =
@@ -76,6 +76,7 @@ const Members = () => {
 
   const { isMembersAdmin, roles } = useRoles()
   const { i18n } = useTranslation()
+  const { formatDate } = useTimezone()
 
   const handleSort = (field: SortField) => {
     if (field === sortField) {

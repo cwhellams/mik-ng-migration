@@ -19,7 +19,7 @@ import {
 import { Icon } from '@iconify/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useServerClock } from '../../../hooks/useServerClock'
-import { formatClockTime, getHelsinkiOffsetLabel } from '../../../utils/date'
+import { formatTimeInTz, getOffsetLabelInTz } from '../../../utils/date'
 import {
   FlightLog,
   FlightLogUpsertRequest,
@@ -30,6 +30,7 @@ import { getTimezoneDisplay } from '../utils/timezoneUtils'
 import { useTranslation } from 'react-i18next'
 import { TimeField } from '@mui/x-date-pickers/TimeField'
 import { calculateNext } from '../utils/timeUtils'
+import { useTimezone } from '../../../hooks/useTimezone'
 
 interface FlightTimeProps {
   data?: FlightLog
@@ -55,7 +56,7 @@ export const FlightTime = ({
     dayjs().utc().startOf('day')
   )
 
-  const [useUtcTime, setUseUtcTime] = useState<boolean>(true)
+  const { timezone, setTimezone } = useTimezone()
 
   // load the existing day
   useEffect(() => {
@@ -104,12 +105,16 @@ export const FlightTime = ({
 
   const { utcMs, synced } = useServerClock()
 
+  const helOffset = getOffsetLabelInTz(utcMs, 'helsinki')
+  const localOffset = getOffsetLabelInTz(utcMs, 'local')
+
   // How long ago was takeoff relative to server time (shown under the takeoff field)
   const takeoffEpoch = watch('takeoffTimeEpoch')
   const takeoffDeltaText = useMemo(() => {
     if (!takeoffEpoch || !utcMs) return null
     const diffMs = utcMs - Number(takeoffEpoch) * 1000
     if (diffMs < 0) return null // takeoff is in the future
+    if (diffMs > 2 * 24 * 3600 * 1000) return null // only relevant for recent flights
     const diffMins = Math.floor(diffMs / 60000)
     if (diffMins < 1) return 'Just took off'
     if (diffMins < 60) return `Takeoff ${diffMins}min ago`
@@ -156,11 +161,11 @@ export const FlightTime = ({
             }}
           >
             <ToggleButtonGroup
-              value={useUtcTime ? 'utc' : 'local'}
+              value={timezone}
               exclusive
               onChange={(_, newValue) => {
                 if (newValue !== null) {
-                  setUseUtcTime(newValue === 'utc')
+                  setTimezone(newValue)
                 }
               }}
               aria-label='time format'
@@ -208,6 +213,7 @@ export const FlightTime = ({
                   >
                     UTC
                   </Typography>
+
                   <Typography
                     sx={{
                       fontFamily: 'monospace',
@@ -216,7 +222,7 @@ export const FlightTime = ({
                       lineHeight: 1.3,
                     }}
                   >
-                    {formatClockTime(utcMs, 'UTC', true)}
+                    {formatTimeInTz(utcMs, 'utc', { showSeconds: true })}
                   </Typography>
                 </Box>
 
@@ -236,7 +242,8 @@ export const FlightTime = ({
                       lineHeight: 1.3,
                     }}
                   >
-                    HEL&nbsp;{getHelsinkiOffsetLabel(utcMs)}
+                    {localOffset === helOffset ? 'HEL ' : null}
+                    {localOffset}
                   </Typography>
                   <Typography
                     sx={{
@@ -246,7 +253,7 @@ export const FlightTime = ({
                       lineHeight: 1.3,
                     }}
                   >
-                    {formatClockTime(utcMs, 'Europe/Helsinki', true)}
+                    {formatTimeInTz(utcMs, 'local', { showSeconds: true })}
                   </Typography>
                 </Box>
               </Box>
@@ -257,17 +264,18 @@ export const FlightTime = ({
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Icon
               icon={
-                useUtcTime
+                timezone === 'utc'
                   ? 'mdi:clock-outline'
                   : 'mdi:clock-time-eight-outline'
               }
               style={{ marginRight: '8px' }}
             />
             <Typography variant='caption' color='text.secondary'>
-              {useUtcTime
+              {timezone === 'utc'
                 ? t('flightLog.usingUtcTime')
                 : t('flightLog.usingLocalTime')}{' '}
-              {!useUtcTime && `(${getTimezoneDisplay(useUtcTime, flightDate)})`}
+              {timezone !== 'utc' &&
+                `(${getTimezoneDisplay(false, flightDate)})`}
             </Typography>
           </Box>
         </Box>
@@ -284,7 +292,7 @@ export const FlightTime = ({
           disabled={!isEditable}
           name='offBlockTimeEpoch'
           min={flightDate.unix().toString()}
-          useUtcTime={useUtcTime}
+          useUtcTime={timezone === 'utc'}
           trigger={trigger}
           deps={getValues('takeoffTimeEpoch') ? ['takeoffTimeEpoch'] : []}
         />
@@ -296,7 +304,7 @@ export const FlightTime = ({
           disabled={!isEditable}
           name='takeoffTimeEpoch'
           min={watch('offBlockTimeEpoch')}
-          useUtcTime={useUtcTime}
+          useUtcTime={timezone === 'utc'}
           trigger={trigger}
           deps={getValues('landingTimeEpoch') ? ['landingTimeEpoch'] : []}
         />
@@ -317,7 +325,7 @@ export const FlightTime = ({
           disabled={!isEditable}
           name='landingTimeEpoch'
           min={watch('takeoffTimeEpoch')}
-          useUtcTime={useUtcTime}
+          useUtcTime={timezone === 'utc'}
           trigger={trigger}
           deps={getValues('onBlockTimeEpoch') ? ['onBlockTimeEpoch'] : []}
         />
@@ -329,7 +337,7 @@ export const FlightTime = ({
           disabled={!isEditable}
           name='onBlockTimeEpoch'
           min={watch('landingTimeEpoch')}
-          useUtcTime={useUtcTime}
+          useUtcTime={timezone === 'utc'}
           trigger={trigger}
           deps={[]}
         />

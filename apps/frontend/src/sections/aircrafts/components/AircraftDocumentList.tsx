@@ -46,6 +46,7 @@ import {
   getFileIcon,
   formatFileSize,
 } from '../../../utils/documentHelpers'
+import { useTimezone } from '../../../hooks/useTimezone'
 
 const EXPIRING_DAYS_THRESHOLD = DOCUMENT_CONSTANTS.EXPIRING_DAYS_THRESHOLD
 
@@ -124,6 +125,7 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
 }) => {
   const { t } = useTranslation()
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
+  const { formatISODate } = useTimezone()
 
   const status = getDocumentStatus(document)
   const statusColor = getStatusColor(status)
@@ -209,7 +211,7 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
               {document.updatedAt && (
                 <Typography variant='caption' color='text.secondary'>
                   {t('aircraft.document.lastUpdated')}:{' '}
-                  {dayjs(document.updatedAt).format('YYYY-MM-DD')}
+                  {formatISODate(document.updatedAt)}
                 </Typography>
               )}
             </Stack>

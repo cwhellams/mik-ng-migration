@@ -23,7 +23,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { EditButton } from '../../components/EditButton'
 import { FormField } from '../../components/FormField'
 import { AuditFormField } from '../../components/AuditFormField'
-import { formatDate } from '../../utils/date'
 import { formatPhoneNumber } from '../../utils/format'
 import { langFlagIcon } from '../../utils/lang'
 import { FormTitle } from '../../components/FormTitle'
@@ -38,12 +37,14 @@ import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { Title } from '../../components/Title'
 import { sanitizeUrl } from '@backend/util/sanitizers'
+import { useTimezone } from '../../hooks/useTimezone'
 
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
   const { memberId } = useParams()
   const navigate = useNavigate()
   const roles = useRoles()
+  const { formatDate } = useTimezone()
 
   // no admin work can be done in own profile
   const isAdmin = roles.isMembersAdmin && memberId !== 'me'

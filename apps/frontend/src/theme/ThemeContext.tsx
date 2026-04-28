@@ -16,6 +16,8 @@ interface ThemeContextType {
   sudo?: boolean
   toggleTheme: () => void
   toggleSudo: (on?: boolean) => void
+  timezone: 'utc' | 'local'
+  setTimezone: (tz: 'utc' | 'local') => void
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
@@ -30,12 +32,20 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   // Sudo mode is always off by default
   const [sudo, setSudo] = useState<boolean>(false)
 
+  // User's preferred timezone
+  const [timezone, setTimezone] = useState<'utc' | 'local'>(() => {
+    const savedTimezone = localStorage.getItem('timezone')
+    return (savedTimezone as 'utc' | 'local') || 'utc'
+  })
+
   // Update localStorage when theme changes
   useEffect(() => {
     localStorage.setItem('themeMode', mode)
     // Also update the color-scheme on the html element for native elements
     document.documentElement.setAttribute('data-color-scheme', mode)
   }, [mode])
+
+  useEffect(() => localStorage.setItem('timezone', timezone), [timezone])
 
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'))
@@ -51,7 +61,9 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const theme = mode === 'light' ? lightTheme : darkTheme
 
   return (
-    <ThemeContext.Provider value={{ mode, sudo, toggleTheme, toggleSudo }}>
+    <ThemeContext.Provider
+      value={{ mode, sudo, toggleTheme, toggleSudo, timezone, setTimezone }}
+    >
       <MuiThemeProvider theme={theme}>{children}</MuiThemeProvider>
     </ThemeContext.Provider>
   )

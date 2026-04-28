@@ -5,7 +5,7 @@ import Bottleneck from 'bottleneck'
 import { getUnpaidInvoicesWithSimplbooksRef, markInvoiceAsPaid } from '../db/invoicing-queries.ts'
 import { getInvoice } from '../services/simplbooks/simplbooksApiClient.ts'
 import logger from '../lib/logger.ts'
-import type { AcctsInvoice } from '../db/schema.d.ts'
+import type { Invoice } from '../routes/invoicing/models.ts'
 import type { InvoiceResponse } from '../services/simplbooks/models.ts'
 
 // Rate limiter to ensure max 1 request per second to Simplbooks API
@@ -118,13 +118,13 @@ async function syncInvoicePayments(
  * @returns true if invoice was marked as paid, false otherwise
  */
 async function checkAndUpdateInvoicePayment(
-  invoice: AcctsInvoice,
+  invoice: Invoice,
   getInvoiceFn: (id: number) => Promise<InvoiceResponse>,
 ): Promise<boolean> {
   // Use rate limiter to ensure we don't exceed 1 request per second
   return limiter.schedule(async (): Promise<boolean> => {
     try {
-      const simplbooksInvoiceId = Number.parseInt(invoice.id.toString(), 10)
+      const simplbooksInvoiceId = Number.parseInt(invoice.id, 10)
 
       if (Number.isNaN(simplbooksInvoiceId)) {
         logger.warn(`Invalid Simplbooks invoice ID for invoice ${invoice.id}: ${invoice.pmt_ref}`)
@@ -150,7 +150,7 @@ async function checkAndUpdateInvoicePayment(
           `Invoice ${invoice.id} is marked as paid in Simplbooks (paid date: ${paidDate})`,
         )
 
-        await markInvoiceAsPaid(invoice.id.toString(), paidDate)
+        await markInvoiceAsPaid(invoice.id, paidDate)
 
         logger.info(`Successfully marked invoice ${invoice.id} as paid in database`)
         return true

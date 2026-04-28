@@ -16,7 +16,7 @@ import {
 import { cancelAllFutureBookingsForMember } from '../db/booking-queries.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
 import logger from '../lib/logger.ts'
-import type { AcctsInvoice } from '../db/schema.d.ts'
+import type { Invoice } from '../routes/invoicing/models.ts'
 import {
   overdueInvoiceEmailSubject,
   overdueInvoiceEmailBodyHtml,
@@ -172,7 +172,7 @@ async function processOverdueInvoices(sendEmailFn: typeof sendEmail): Promise<vo
  * Send an overdue invoice reminder email to a member
  */
 async function sendOverdueInvoiceReminder(
-  invoice: AcctsInvoice,
+  invoice: Invoice,
   sendEmailFn: typeof sendEmail,
 ): Promise<void> {
   try {
@@ -192,28 +192,15 @@ async function sendOverdueInvoiceReminder(
       overdueInvoiceEmailSubject(member.lang),
       overdueInvoiceEmailBodyHtml(member.lang, {
         firstName: member.firstName,
-        invoiceId: invoice.id.toString(),
+        invoiceId: invoice.id,
         amount: Number(invoice.total_sum ?? 0),
-        dueDate: formatDate(invoice.due_at),
+        dueDate: invoice.due_at,
       }),
     )
   } catch (error) {
     logger.error(`Error sending overdue reminder for invoice ${invoice.id}:`, error)
     throw error
   }
-}
-
-/**
- * Format a date string or Date object to YYYY-MM-DD format
- */
-function formatDate(date: string | Date | null): string {
-  if (!date) return 'N/A'
-
-  const d = typeof date === 'string' ? new Date(date) : date
-
-  if (Number.isNaN(d.getTime())) return 'N/A'
-
-  return d.toISOString().split('T')[0]
 }
 
 /**

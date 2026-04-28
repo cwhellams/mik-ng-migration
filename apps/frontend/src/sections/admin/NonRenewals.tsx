@@ -30,10 +30,12 @@ import type {
   NonRenewalListResponse,
   NonRenewalMember,
 } from '@backend/routes/members/models'
+import { useTimezone } from '../../hooks/useTimezone'
 
 export default function NonRenewals() {
   const { t } = useTranslation()
   const { isMembersAdmin } = useRoles()
+  const { formatDate, formatDateTime } = useTimezone()
 
   const [problem, setProblem] = useState<Problem | undefined>()
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
@@ -360,12 +362,9 @@ export default function NonRenewals() {
                       actionLoadingId === `remove-${member.memberId}`
                     const isChecked = selected.has(member.memberId)
                     const hasFlightsThisYear = member.billableFlightCount > 0
-                    const lastReminderDate = member.lastReminderSentAt
-                      ? new Intl.DateTimeFormat('fi-FI', {
-                          dateStyle: 'short',
-                          timeStyle: 'short',
-                        }).format(new Date(member.lastReminderSentAt))
-                      : null
+                    const lastReminderDate = formatDateTime(
+                      member.lastReminderSentAt
+                    )
 
                     return (
                       <TableRow
@@ -485,9 +484,7 @@ export default function NonRenewals() {
                                     'member.nonRenewalsInvoicedOn',
                                     'Invoiced: {{date}}',
                                     {
-                                      date: new Intl.DateTimeFormat('fi-FI', {
-                                        dateStyle: 'short',
-                                      }).format(new Date(member.invoiceSentAt)),
+                                      date: formatDate(member.invoiceSentAt),
                                     }
                                   )}
                                 </Typography>
@@ -505,9 +502,7 @@ export default function NonRenewals() {
                                     'member.nonRenewalsInvoiceDueOn',
                                     'Due: {{date}}',
                                     {
-                                      date: new Intl.DateTimeFormat('fi-FI', {
-                                        dateStyle: 'short',
-                                      }).format(new Date(member.invoiceDueAt)),
+                                      date: formatDate(member.invoiceDueAt),
                                     }
                                   )}
                                 </Typography>

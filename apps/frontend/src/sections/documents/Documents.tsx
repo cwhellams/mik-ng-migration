@@ -36,11 +36,12 @@ import type {
 } from '@backend/routes/documents/models'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
-import { formatDate } from '../../utils/date'
+import { useTimezone } from '../../hooks/useTimezone'
 
 const Documents = () => {
   const { t } = useTranslation()
   const { isDocumentAdmin } = useRoles()
+  const { formatDate } = useTimezone()
 
   // Use a local array for selected categories, but keep filters.category as a comma-separated string for API compatibility
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])

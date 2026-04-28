@@ -19,24 +19,36 @@ dayJs.updateLocale('fi', {
 
 export const dayjs = dayJs
 
-export const formatDateTime = (
-  timestamp?: string | Date | Dayjs | null,
-  template = 'DD.MM.YYYY HH:mm'
-) => formatDate(timestamp, template)
-
 // Format date to localized format
-export const formatDate = (
-  timestamp?: string | Date | Dayjs | null,
-  template = 'DD.MM.YYYY'
+export const formatDateInTz = (
+  timestamp: string | Date | Dayjs | null | undefined,
+  tz: 'local' | 'utc',
+  template: string
 ) => {
-  return timestamp ? dayjs(timestamp).format(template) : '-'
+  return timestamp
+    ? tz === 'local'
+      ? // render local date without timezone conversions to avoid issues with the default timezone
+        dayjs(timestamp).format(template)
+      : dayjs(timestamp).tz(timezoneName(tz)).format(template)
+    : '-'
 }
 
 // Format time from timestamp to display format
-export const formatTime = (timestamp: string | Date) => {
+export const formatTimeInTz = (
+  timestamp: string | number | Date,
+  tz: 'local' | 'utc' | 'helsinki',
+  {
+    showSeconds = false,
+  }: {
+    showSeconds?: boolean
+  } = {}
+) => {
   return new Date(timestamp).toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: timezoneName(tz),
+    ...(showSeconds ? { second: '2-digit' } : {}),
+    hour12: false,
   })
 }
 
@@ -51,29 +63,20 @@ export const toHelsinki = (value: string | Date | Dayjs) => {
   return dayjs(value).tz(HELSINKI_TIMEZONE)
 }
 
-/** Format a UTC epoch (ms) into HH:MM:SS for the given IANA timezone. */
-export const formatClockTime = (
-  utcMs: number,
-  timeZone: string,
-  includeSeconds = true
-): string => {
-  return new Intl.DateTimeFormat('en-GB', {
-    timeZone,
-    hour: '2-digit',
-    minute: '2-digit',
-    ...(includeSeconds ? { second: '2-digit' } : {}),
-    hour12: false,
-  }).format(new Date(utcMs))
-}
+export const timezoneName = (tz: 'utc' | 'local' | 'helsinki') =>
+  tz === 'utc' ? 'UTC' : tz === 'helsinki' ? HELSINKI_TIMEZONE : undefined
 
-/** Returns the UTC offset label for Helsinki, e.g. "UTC+3" or "UTC+2". */
-export const getHelsinkiOffsetLabel = (utcMs?: number): string => {
+/** Returns the UTC offset label e.g. UTC, "UTC+2" or "UTC+3". */
+export const getOffsetLabelInTz = (
+  timestamp?: string | Date | number,
+  tz: 'utc' | 'local' | 'helsinki' = 'local'
+): string => {
   // 'shortOffset' gives "GMT+3" — replace with UTC for aviation convention.
   const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone: HELSINKI_TIMEZONE,
+    timeZone: timezoneName(tz),
     timeZoneName: 'shortOffset',
   })
-    .formatToParts(utcMs ? new Date(utcMs) : new Date())
+    .formatToParts(timestamp ? new Date(timestamp) : new Date())
     .find((p) => p.type === 'timeZoneName')
 
   return parts?.value.replace('GMT', 'UTC') ?? 'HEL'
