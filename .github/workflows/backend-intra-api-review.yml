@@ -17,6 +17,7 @@ on:
       - ".github/workflows/**"
 env: # Set environment variables for entire workflow
   NODE_OPTIONS: "--max-old-space-size=8192" # Increase memory limit for Node.js
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   POSTGRES_DB: mik_ng
   POSTGRES_PORT: 5432
   POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
