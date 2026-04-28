@@ -10,11 +10,15 @@ import { getAllAircraftDocuments } from './aircraft-document-queries.ts'
 import type { AircraftDocument } from '../routes/aircraft-documents/models.ts'
 
 // Get all aircraft
-export const getAllAircraft = async (onlyActive: boolean): Promise<Aircraft[]> => {
+export const getAllAircraft = async (
+  onlyActive: boolean,
+  visibleOnly: boolean,
+): Promise<Aircraft[]> => {
   const rows = await connection.db
     .selectFrom('flight.aircraft')
     .selectAll()
     .$if(onlyActive, qb => qb.where('active', '=', true))
+    .$if(visibleOnly, qb => qb.where('hidden', '=', false))
     .orderBy('display_name')
     .execute()
 
@@ -32,12 +36,14 @@ export const getAllAircraft = async (onlyActive: boolean): Promise<Aircraft[]> =
 export const getAircraftByRegistration = async (
   registration: string,
   onlyActive: boolean,
+  visibleOnly: boolean = false,
 ): Promise<Aircraft | undefined> => {
   const row = await connection.db
     .selectFrom('flight.aircraft')
     .selectAll()
     .where('registration', '=', registration)
     .$if(onlyActive, qb => qb.where('active', '=', true))
+    .$if(visibleOnly, qb => qb.where('hidden', '=', false))
     .executeTakeFirst()
   if (row) {
     return toAircraft(
@@ -62,6 +68,7 @@ const toAircraft = (
   usableFuelLitres: aircraft.usable_fuel_litres,
   fuelTypes: aircraft.fuel_types ? (aircraft.fuel_types as FuelType[]) : [],
   active: aircraft.active,
+  hidden: aircraft.hidden,
 
   documents: documents,
   maintenance: {
@@ -103,6 +110,7 @@ export async function addAircraft(aircraft: Upsert<Aircraft>, jwt: JWTUser): Pro
       usable_fuel_litres: aircraft.usableFuelLitres,
       fuel_types: aircraft.fuelTypes,
       active: aircraft.active,
+      hidden: aircraft.hidden,
 
       maintenance_cycle: aircraft.maintenance.maintenanceCycle,
       last_maintenance_date: aircraft.maintenance.lastMaintenanceDate,
@@ -156,6 +164,7 @@ export async function updateAircraft(
       year_of_manufacture: patch.yearOfManufacture,
       seats: patch.seats,
       active: patch.active,
+      hidden: patch.hidden,
 
       notes: patch.notes ? JSON.stringify(patch.notes) : undefined,
       location: patch.location,

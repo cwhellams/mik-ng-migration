@@ -74,6 +74,7 @@ export const AircraftSchema = AuditableSchema.extend({
   usableFuelLitres: z.number().int().positive(),
   fuelTypes: z.array(z.nativeEnum(FuelType)),
   active: z.boolean(),
+  hidden: z.boolean(),
 
   status: AircraftStatusSchema.optional(),
 
@@ -100,6 +101,7 @@ export type AircraftListResponse = z.infer<typeof AircraftListResponseSchema>
 export const AircraftFiltersSchema = z
   .object({
     activeOnly: BooleanSchema.optional(),
+    visibleOnly: BooleanSchema.optional(),
   })
   .strict()
 

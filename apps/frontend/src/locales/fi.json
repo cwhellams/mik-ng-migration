@@ -348,7 +348,8 @@
       "location": "Sijainti",
       "equipment": "Varustelu",
       "hourlyRateEur": "Tuntihinta",
-      "imageUrl": "Kuvan URL-osoite"
+      "imageUrl": "Kuvan URL-osoite",
+      "hidden": "Piilotettu (ei näy lentokonellistauksessa)"
     },
     "maintenance": {
       "edit": "Muokkaa huoltotietoja",
@@ -371,7 +372,8 @@
       "note": "Huomio",
       "caution": "Varoitus",
       "warning": "Vaara"
-    }
+    },
+    "hiddenBadge": "Piilotettu"
   },
   "documents": {
     "title": "Asiakirja-arkisto",

@@ -21,7 +21,7 @@ const jwt: JWTUser = {
 
 describe('Db query Get aircrafts tests', () => {
   it('getAllAircraft returns all aircraft in the db', async () => {
-    const result = await getAllAircraft(false)
+    const result = await getAllAircraft(false, false)
     expect(result.length).toEqual(3)
     expect(result).toMatchSnapshot(
       result.map(res => ({
@@ -37,7 +37,7 @@ describe('Db query Get aircrafts tests', () => {
   })
 
   it('getAllAircraft returns all active aircraft in the db', async () => {
-    const result = await getAllAircraft(true)
+    const result = await getAllAircraft(true, false)
     expect(result.length).toEqual(2)
     expect(result).toMatchSnapshot(
       result.map(res => ({
@@ -92,6 +92,7 @@ describe('Db add aircraft tests', () => {
         usableFuelLitres: 100,
         fuelTypes: [FuelType.AVGAS],
         active: true,
+        hidden: false,
         maintenance: {
           maintenanceCycle: 100,
           lastMaintenanceDate: '2023-10-01',
@@ -141,6 +142,7 @@ describe('Db add aircraft tests', () => {
             usableFuelLitres: 100,
             fuelTypes: [FuelType.AVGAS],
             active: true,
+            hidden: false,
             maintenance: {
               maintenanceCycle: 100,
               lastMaintenanceDate: '2023-10-01',

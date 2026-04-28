@@ -350,7 +350,8 @@
       "location": "Location",
       "equipment": "Equipment",
       "hourlyRateEur": "Hourly Rate",
-      "imageUrl": "Image URL"
+      "imageUrl": "Image URL",
+      "hidden": "Is Hidden (not visible in aircraft list)"
     },
     "maintenance": {
       "edit": "Edit Maintenance Details",
@@ -373,7 +374,8 @@
       "note": "Note",
       "caution": "Caution",
       "warning": "Warning"
-    }
+    },
+    "hiddenBadge": "Hidden"
   },
   "documents": {
     "title": "Document Archive",

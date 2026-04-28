@@ -11,6 +11,7 @@ exports[`Add and update aircrafts Get aircraft with valid registration should re
   "fuelTypes": [
     "AVGAS",
   ],
+  "hidden": false,
   "hourlyRateEur": 100,
   "location": "test",
   "maintenance": {
@@ -47,6 +48,7 @@ exports[`Add and update aircrafts Get aircraft with valid registration should re
   "fuelTypes": [
     "AVGAS",
   ],
+  "hidden": false,
   "imageUrl": null,
   "location": "test",
   "maintenance": {
@@ -84,6 +86,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
     "fuelTypes": [
       "JETA-1",
     ],
+    "hidden": false,
     "imageUrl": "https://www.flyfinland.fi/photos/original/29416.jpg",
     "location": "EFNU BF-hangar 21",
     "maintenance": {
@@ -133,6 +136,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
       "AVGAS",
       "MOGAS",
     ],
+    "hidden": false,
     "imageUrl": "https://cdn.jetphotos.com/full/5/69415_1600241420.jpg",
     "location": "EFNU Cumulus Hangar",
     "maintenance": {
@@ -181,6 +185,7 @@ exports[`GET /aircrafts should return all aircrafts as an admin 1`] = `
     "fuelTypes": [
       "AVGAS",
     ],
+    "hidden": false,
     "imageUrl": "https://cdn.jetphotos.com/full/6/927368_1715977239.jpg",
     "location": "EFNU",
     "maintenance": {
@@ -235,6 +240,7 @@ exports[`GET /aircrafts should return only active aircrafts as a admin without s
     "fuelTypes": [
       "JETA-1",
     ],
+    "hidden": false,
     "imageUrl": "https://www.flyfinland.fi/photos/original/29416.jpg",
     "location": "EFNU BF-hangar 21",
     "maintenance": {
@@ -284,6 +290,7 @@ exports[`GET /aircrafts should return only active aircrafts as a admin without s
       "AVGAS",
       "MOGAS",
     ],
+    "hidden": false,
     "imageUrl": "https://cdn.jetphotos.com/full/5/69415_1600241420.jpg",
     "location": "EFNU Cumulus Hangar",
     "maintenance": {
@@ -337,6 +344,7 @@ exports[`GET /aircrafts should return only active aircrafts as a user 1`] = `
     "fuelTypes": [
       "JETA-1",
     ],
+    "hidden": false,
     "imageUrl": "https://www.flyfinland.fi/photos/original/29416.jpg",
     "location": "EFNU BF-hangar 21",
     "maintenance": {
@@ -386,6 +394,7 @@ exports[`GET /aircrafts should return only active aircrafts as a user 1`] = `
       "AVGAS",
       "MOGAS",
     ],
+    "hidden": false,
     "imageUrl": "https://cdn.jetphotos.com/full/5/69415_1600241420.jpg",
     "location": "EFNU Cumulus Hangar",
     "maintenance": {
@@ -438,6 +447,7 @@ exports[`GET /aircrafts/id Get aircraft with valid registration should return th
   "fuelTypes": [
     "JETA-1",
   ],
+  "hidden": false,
   "imageUrl": "https://www.flyfinland.fi/photos/original/29416.jpg",
   "location": "EFNU BF-hangar 21",
   "maintenance": {

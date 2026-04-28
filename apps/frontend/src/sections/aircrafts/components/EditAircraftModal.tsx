@@ -87,6 +87,7 @@ export const EditAircraftModal = ({
         seats: 2,
         usableFuelLitres: 1,
         active: false,
+        hidden: false,
         imageUrl: 'http://',
         documents: [],
         notes: [],
@@ -113,6 +114,7 @@ export const EditAircraftModal = ({
         usableFuelLitres: aircraft.usableFuelLitres,
         fuelTypes: aircraft.fuelTypes,
         active: aircraft.active,
+        hidden: aircraft.hidden,
         location: aircraft.location,
         equipment: aircraft.equipment,
         hourlyRateEur: aircraft.hourlyRateEur,
@@ -368,6 +370,24 @@ export const EditAircraftModal = ({
                   setFormData({
                     ...formData,
                     active: target.checked,
+                  })
+                }}
+              />
+            </Grid>
+            <Grid size={12} display='flex' alignItems='center'>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+                sx={{ width: 150 }}
+              >
+                {t('aircraft.edit.hidden')}
+              </Typography>
+              <Checkbox
+                checked={formData.hidden}
+                onChange={({ target }) => {
+                  setFormData({
+                    ...formData,
+                    hidden: target.checked,
                   })
                 }}
               />

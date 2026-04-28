@@ -184,6 +184,7 @@ describe('Add and update aircrafts', () => {
     usableFuelLitres: 100,
     fuelTypes: [FuelType.AVGAS],
     active: true,
+    hidden: false,
     maintenance: {
       maintenanceCycle: 100,
       lastMaintenanceDate: '2023-10-01',

@@ -350,7 +350,8 @@
       "location": "Plats",
       "equipment": "Utrustning",
       "hourlyRateEur": "Timkostnad",
-      "imageUrl": "Bild-URL"
+      "imageUrl": "Bild-URL",
+      "hidden": "Dold (visas inte i flygplanslistan)"
     },
     "maintenance": {
       "edit": "Redigera underhållsdetaljer",
@@ -373,7 +374,8 @@
       "note": "Anteckning",
       "caution": "Försiktighet",
       "warning": "Varning"
-    }
+    },
+    "hiddenBadge": "Dold"
   },
   "documents": {
     "title": "Dokumentarkiv",

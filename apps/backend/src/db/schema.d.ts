@@ -21,6 +21,12 @@ export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'TRAININ
 
 export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
 
+export type ExamAttemptStatus = 'ABANDONED' | 'GRADED' | 'IN_PROGRESS' | 'SUBMITTED'
+
+export type ExamExamType = 'AFM' | 'DTO' | 'OTHER' | 'SELF_STUDY'
+
+export type ExamExamVersionStatus = 'DRAFT' | 'PUBLISHED' | 'RETIRED'
+
 export type Feeprocessstatus = 'inProgress' | 'processed'
 
 export type FeeType = 'annual_fee' | 'equipment_fee'
@@ -162,6 +168,89 @@ export interface AcctsRecurringFeesProcessing {
   year: number
 }
 
+export interface ExamAttemptAnswers {
+  attempt_id: string
+  choice_id: string | null
+  created_at: Generated<Timestamp>
+  question_id: string
+  updated_at: Generated<Timestamp>
+}
+
+export interface ExamAttempts {
+  abandon_reason: string | null
+  abandoned_at: Timestamp | null
+  attempt_id: string
+  correct_count: number | null
+  created_at: Generated<Timestamp>
+  graded_at: Timestamp | null
+  language: Generated<string>
+  member_id: string
+  passed: boolean | null
+  score_percent: Numeric | null
+  status: Generated<ExamAttemptStatus>
+  submitted_at: Timestamp | null
+  total_count: number | null
+  updated_at: Generated<Timestamp>
+  version_id: string
+}
+
+export interface ExamChoices {
+  choice_id: string
+  is_correct: Generated<boolean>
+  question_id: string
+  sort_order: Generated<number>
+}
+
+export interface ExamChoiceTranslations {
+  choice_id: string
+  language: string
+  text: string
+}
+
+export interface ExamExams {
+  created_at: Generated<Timestamp>
+  created_by: string
+  exam_id: string
+  exam_type: Generated<ExamExamType>
+  name: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface ExamExamVersions {
+  created_at: Generated<Timestamp>
+  created_by: string
+  default_language: Generated<string>
+  exam_id: string
+  pass_percent: Generated<Numeric>
+  status: Generated<ExamExamVersionStatus>
+  supported_languages: Generated<string[]>
+  updated_at: Generated<Timestamp>
+  updated_by: string
+  version_id: string
+  version_number: Generated<number>
+}
+
+export interface ExamExamVersionTranslations {
+  description: string | null
+  language: string
+  title: string
+  version_id: string
+}
+
+export interface ExamQuestions {
+  question_id: string
+  sort_order: Generated<number>
+  version_id: string
+}
+
+export interface ExamQuestionTranslations {
+  language: string
+  prompt: string
+  question_id: string
+  reasoning: string | null
+}
+
 export interface FlightAircraft {
   active: Generated<boolean>
   created_at: Generated<Timestamp>
@@ -169,6 +258,7 @@ export interface FlightAircraft {
   display_name: string
   equipment: string | null
   fuel_types: string[]
+  hidden: Generated<boolean>
   image_url: string | null
   last_maintenance_date: string
   last_maintenance_mins: number
@@ -379,15 +469,6 @@ export interface FlightVwFlightTimeTotals {
   verified_total_flight_time: string | null
 }
 
-export interface FuelPricesContent {
-  created_at: Generated<Timestamp>
-  created_by: string
-  id: number
-  markdown: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
-}
-
 export interface FlywayDataHistory {
   checksum: number | null
   description: string
@@ -412,6 +493,15 @@ export interface FlywaySchemaHistory {
   success: boolean
   type: string
   version: string | null
+}
+
+export interface FuelPricesContent {
+  created_at: Generated<Timestamp>
+  created_by: string
+  id: number
+  markdown: Generated<string>
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface MemberAnnualFees {
@@ -981,99 +1071,21 @@ export interface StatsVisitedAirfieldsByAc {
   yr: number
 }
 
-export type ExamAttemptStatus = 'IN_PROGRESS' | 'SUBMITTED' | 'GRADED' | 'ABANDONED'
-export type ExamVersionStatusType = 'DRAFT' | 'PUBLISHED' | 'RETIRED'
-export type ExamTypeType = 'AFM' | 'SELF_STUDY' | 'DTO' | 'OTHER'
-
-export interface ExamExams {
-  exam_id: string
-  exam_type: Generated<ExamTypeType>
-  name: string
-  created_at: Generated<Timestamp>
-  created_by: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
-}
-
-export interface ExamExamVersions {
-  version_id: string
-  exam_id: string
-  version_number: Generated<number>
-  status: Generated<ExamVersionStatusType>
-  default_language: Generated<string>
-  supported_languages: Generated<string[]>
-  pass_percent: Generated<Numeric>
-  created_at: Generated<Timestamp>
-  created_by: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
-}
-
-export interface ExamExamVersionTranslations {
-  version_id: string
-  language: string
-  title: string
-  description: string | null
-}
-
-export interface ExamQuestions {
-  question_id: string
-  version_id: string
-  sort_order: Generated<number>
-}
-
-export interface ExamQuestionTranslations {
-  question_id: string
-  language: string
-  prompt: string
-  reasoning: string | null
-}
-
-export interface ExamChoices {
-  choice_id: string
-  question_id: string
-  is_correct: Generated<boolean>
-  sort_order: Generated<number>
-}
-
-export interface ExamChoiceTranslations {
-  choice_id: string
-  language: string
-  text: string
-}
-
-export interface ExamAttempts {
-  attempt_id: string
-  version_id: string
-  member_id: string
-  language: Generated<string>
-  status: Generated<ExamAttemptStatus>
-  score_percent: Numeric | null
-  correct_count: number | null
-  total_count: number | null
-  passed: boolean | null
-  submitted_at: Timestamp | null
-  graded_at: Timestamp | null
-  abandoned_at: Timestamp | null
-  abandon_reason: string | null
-  created_at: Generated<Timestamp>
-  updated_at: Generated<Timestamp>
-}
-
-export interface ExamAttemptAnswers {
-  attempt_id: string
-  question_id: string
-  choice_id: string | null
-  created_at: Generated<Timestamp>
-  updated_at: Generated<Timestamp>
-}
-
 export interface DB {
   'accts.aircraft_pricing': AcctsAircraftPricing
   'accts.invoice': AcctsInvoice
   'accts.items': AcctsItems
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks
   'accts.recurring_fees_processing': AcctsRecurringFeesProcessing
+  'exam.attempt_answers': ExamAttemptAnswers
+  'exam.attempts': ExamAttempts
+  'exam.choice_translations': ExamChoiceTranslations
+  'exam.choices': ExamChoices
+  'exam.exam_version_translations': ExamExamVersionTranslations
+  'exam.exam_versions': ExamExamVersions
+  'exam.exams': ExamExams
+  'exam.question_translations': ExamQuestionTranslations
+  'exam.questions': ExamQuestions
   'flight.aircraft': FlightAircraft
   'flight.aircraft_documents_files': FlightAircraftDocumentsFiles
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
@@ -1084,9 +1096,9 @@ export interface DB {
   'flight.occurrences': FlightOccurrences
   'flight.vw_flight_logs': FlightVwFlightLogs
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
-  fuel_prices_content: FuelPricesContent
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory
+  fuel_prices_content: FuelPricesContent
   'member.annual_fees': MemberAnnualFees
   'member.brevo_sync_state': MemberBrevoSyncState
   'member.document_tiny_urls': MemberDocumentTinyUrls
@@ -1136,13 +1148,4 @@ export interface DB {
   'stats.total_landings_by_ac_yr': StatsTotalLandingsByAcYr
   'stats.total_oil_uplift_by_ac_yr_mth': StatsTotalOilUpliftByAcYrMth
   'stats.visited_airfields_by_ac': StatsVisitedAirfieldsByAc
-  'exam.exams': ExamExams
-  'exam.exam_versions': ExamExamVersions
-  'exam.exam_version_translations': ExamExamVersionTranslations
-  'exam.questions': ExamQuestions
-  'exam.question_translations': ExamQuestionTranslations
-  'exam.choices': ExamChoices
-  'exam.choice_translations': ExamChoiceTranslations
-  'exam.attempts': ExamAttempts
-  'exam.attempt_answers': ExamAttemptAnswers
 }

@@ -6,6 +6,7 @@ import {
   CardContent,
   Alert,
   CardMedia,
+  Chip,
   Divider,
   BottomNavigation,
   BottomNavigationAction,
@@ -378,6 +379,17 @@ const Aircrafts = () => {
                       <Typography variant='body2' color='text.primary'>
                         {aircraft.displayName}
                       </Typography>
+
+                      {isAircraftAdmin && aircraft.hidden && (
+                        <Chip
+                          label={t('aircraft.hiddenBadge', 'Hidden')}
+                          size='small'
+                          color='default'
+                          variant='outlined'
+                          icon={<Icon icon='mdi:eye-off' />}
+                          sx={{ mt: 0.5 }}
+                        />
+                      )}
 
                       {isAircraftAdmin && (
                         <Stack

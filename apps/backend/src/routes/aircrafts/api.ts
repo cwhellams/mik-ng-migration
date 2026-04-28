@@ -36,7 +36,8 @@ const isAircraftAdmin = (user?: JWTUser): boolean =>
 router.get('/', async (req: Request<AircraftFilters>, res: Response<AircraftListResponse>) => {
   const data = AircraftFiltersSchema.parse(req.query)
   const activeOnly = isAircraftAdmin(req.user) ? (data.activeOnly ?? false) : true
-  const aircrafts = await getAllAircraft(activeOnly)
+  const visibleOnly = isAircraftAdmin(req.user) ? (data.visibleOnly ?? false) : true
+  const aircrafts = await getAllAircraft(activeOnly, visibleOnly)
 
   res.status(200).json({
     aircrafts: await Promise.all(
@@ -60,6 +61,7 @@ router.get(
   async (req: Request<{ registration: string }>, res: Response<Aircraft>) => {
     const aircraft = await getAircraftByRegistration(
       req.params.registration,
+      !isAircraftAdmin(req.user),
       !isAircraftAdmin(req.user),
     )
 
