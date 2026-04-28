@@ -225,8 +225,9 @@ export async function getRecurringFeesProcessing(
 }
 
 /**
- * Get all unpaid invoices that have a pmt_ref (Simplbooks invoice ID)
- * Returns invoices where is_paid = false and pmt_ref is not empty
+ * Get all unpaid invoices that have a Simplbooks payment reference in `pmt_ref`
+ * Returns invoices where is_paid = false and pmt_ref is not empty.
+ * Note: `pmt_ref` stores the Simplbooks invoice reference, while `id` stores the Simplbooks invoice ID.
  */
 export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<Invoice[]> {
   const rows = await db
