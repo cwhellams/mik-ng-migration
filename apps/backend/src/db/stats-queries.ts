@@ -427,6 +427,9 @@ export const getCommercialFlightTimeByAcYrMth = async (filters?: {
   return await query.execute()
 }
 
+// Builds a histogram of fixed-size bins [binFrom, binTo) for the given values.
+// The last bin uses an inclusive upper bound to capture the maximum value.
+// Returns an empty array for empty input.
 const buildHistogram = (values: number[], binSize: number): PilotStatisticsHistogramBin[] => {
   if (values.length === 0) return []
   const maxVal = Math.max(...values)
@@ -435,7 +438,10 @@ const buildHistogram = (values: number[], binSize: number): PilotStatisticsHisto
   for (let i = 0; i < numBins; i++) {
     const binFrom = i * binSize
     const binTo = (i + 1) * binSize
-    const pilotCount = values.filter(v => v >= binFrom && v < binTo).length
+    const isLastBin = i === numBins - 1
+    const pilotCount = values.filter(
+      (v) => v >= binFrom && (isLastBin ? v <= binTo : v < binTo),
+    ).length
     bins.push({ binFrom, binTo, pilotCount })
   }
   return bins
