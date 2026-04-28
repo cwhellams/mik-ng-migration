@@ -1369,5 +1369,27 @@
       "attempts": "Försök",
       "memberId": "Medlems-ID"
     }
+  },
+  "stats": {
+    "pilots": {
+      "dateRange": "Tidsperiod",
+      "from": "Från",
+      "to": "Till",
+      "presets": {
+        "currentYear": "Innevarande år",
+        "previousYear": "Föregående år",
+        "last12months": "Senaste 12 månader",
+        "custom": "Anpassat"
+      },
+      "uniquePics": "Unika PIC:ar under perioden",
+      "hoursHistogram": "Timmar per pilot",
+      "airportsHistogram": "Besökta flygplatser per pilot",
+      "hoursAxis": "Totala timmar",
+      "airportsAxis": "Besökta flygplatser",
+      "pilotCountAxis": "Antal piloter",
+      "hours": "tim",
+      "airports": "flygplatser",
+      "noData": "Ingen data för vald period"
+    }
   }
 }

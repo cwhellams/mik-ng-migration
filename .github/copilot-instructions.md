@@ -155,17 +155,20 @@ Always check these locations when working on the codebase:
 When a browser opens and shows the login screen, test both users:
 
 ### Normal User Login
+
 1. Enter `chris.whellams@gmail.com` in the email field and submit
 2. Find the magic link/code in the backend stdout — look in the terminal running `pnpm dev` for a line containing `DEV magic link`
 3. Paste the login URL into the browser or enter the verification code shown in the browser
 4. Verify the app loads correctly at http://localhost:5173/
 
 ### Admin User Login
+
 1. Enter `juho.kolehmainen@iki.fi` in the email field and submit
 2. Find the magic link/code in the backend stdout — look in the terminal running `pnpm dev` for a line containing `DEV magic link`
 3. Paste the login URL into the browser or enter the verification code shown in the browser
 4. After login, use the admin/sudo toggle in the header (the admin/user icon; check its tooltip text if needed) to activate admin privileges
 5. Verify admin features are accessible at http://localhost:5173/
+
 ## CI/CD Requirements
 
 The GitHub Actions workflows require:

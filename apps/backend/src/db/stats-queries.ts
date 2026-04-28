@@ -1,4 +1,5 @@
 import { db } from './connection.ts'
+import { sql } from 'kysely'
 import type { SelectQueryBuilder } from 'kysely'
 import type {
   TotalFlightTimeByAc,
@@ -22,6 +23,8 @@ import type {
   TotalFlightTimeByPilotYrMth,
   TotalFlightTimeByAcCalendar,
   CommercialFlightTimeByAcYrMth,
+  PilotStatistics,
+  PilotStatisticsHistogramBin,
 } from '../routes/stats/models.ts'
 
 // Helper function to apply year filters
@@ -422,4 +425,81 @@ export const getCommercialFlightTimeByAcYrMth = async (filters?: {
   }
 
   return await query.execute()
+}
+
+const buildHistogram = (values: number[], binSize: number): PilotStatisticsHistogramBin[] => {
+  if (values.length === 0) return []
+  const maxVal = Math.max(...values)
+  const numBins = Math.max(1, Math.ceil(maxVal / binSize))
+  const bins: PilotStatisticsHistogramBin[] = []
+  for (let i = 0; i < numBins; i++) {
+    const binFrom = i * binSize
+    const binTo = (i + 1) * binSize
+    const pilotCount = values.filter(v => v >= binFrom && v < binTo).length
+    bins.push({ binFrom, binTo, pilotCount })
+  }
+  return bins
+}
+
+export const getPilotStatistics = async (filters: {
+  from: string
+  to: string
+}): Promise<PilotStatistics> => {
+  const rows = await sql<{
+    pic_member_id: string
+    total_flight_mins: number
+    unique_airports: number
+  }>`
+    WITH flight_data AS (
+      SELECT
+        pic_member_id,
+        flight_mins,
+        departure_airport,
+        arrival_airport
+      FROM flight.logs
+      WHERE TO_TIMESTAMP(takeoff_time_epoch)::date >= ${filters.from}::date
+        AND TO_TIMESTAMP(takeoff_time_epoch)::date <= ${filters.to}::date
+    ),
+    pic_times AS (
+      SELECT pic_member_id, SUM(flight_mins) AS total_flight_mins
+      FROM flight_data
+      GROUP BY pic_member_id
+    ),
+    pic_airports AS (
+      SELECT pic_member_id, COUNT(DISTINCT airport) AS unique_airports
+      FROM (
+        SELECT pic_member_id, departure_airport AS airport FROM flight_data
+        WHERE departure_airport IS NOT NULL
+          AND LENGTH(TRIM(departure_airport)) >= 2
+          AND departure_airport ~ '^[A-Z]'
+        UNION
+        SELECT pic_member_id, arrival_airport AS airport FROM flight_data
+        WHERE arrival_airport IS NOT NULL
+          AND LENGTH(TRIM(arrival_airport)) >= 2
+          AND arrival_airport ~ '^[A-Z]'
+      ) a
+      GROUP BY pic_member_id
+    )
+    SELECT
+      t.pic_member_id,
+      t.total_flight_mins::float AS total_flight_mins,
+      COALESCE(a.unique_airports, 0)::int AS unique_airports
+    FROM pic_times t
+    LEFT JOIN pic_airports a ON t.pic_member_id = a.pic_member_id
+  `.execute(db)
+
+  const picData = rows.rows.map(r => ({
+    totalHours: Number(r.total_flight_mins) / 60,
+    uniqueAirports: Number(r.unique_airports),
+  }))
+
+  const uniquePicCount = picData.length
+  const hoursValues = picData.map(r => r.totalHours)
+  const airportValues = picData.map(r => r.uniqueAirports)
+
+  return {
+    uniquePicCount,
+    hoursHistogram: buildHistogram(hoursValues, 10),
+    airportsHistogram: buildHistogram(airportValues, 5),
+  }
 }

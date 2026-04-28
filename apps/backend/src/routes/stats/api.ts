@@ -22,6 +22,7 @@ import {
   getTotalFlightTimeByPilotYrMth,
   getTotalFlightTimeByAcDt,
   getCommercialFlightTimeByAcYrMth,
+  getPilotStatistics,
 } from '../../db/stats-queries.ts'
 import type {
   TotalFlightTimeByAc,
@@ -44,6 +45,7 @@ import type {
   TotalFlightTimeByPilotYrMth,
   TotalFlightTimeByAcCalendar,
   CommercialFlightTimeByAcYrMth,
+  PilotStatistics,
 } from './models.ts'
 
 export const router = Router()
@@ -312,3 +314,15 @@ router.get(
     res.status(200).json(data)
   },
 )
+
+router.get('/pilots', async (req: Request, res: Response<PilotStatistics>) => {
+  const currentYear = new Date().getFullYear()
+  const defaultFrom = `${currentYear}-01-01`
+  const defaultTo = `${currentYear}-12-31`
+
+  const from = (req.query.from as string | undefined) ?? defaultFrom
+  const to = (req.query.to as string | undefined) ?? defaultTo
+
+  const data = await getPilotStatistics({ from, to })
+  res.status(200).json(data)
+})

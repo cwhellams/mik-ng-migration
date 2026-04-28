@@ -37,7 +37,9 @@ const FuelPrices = () => {
 
   const save = async () => {
     setSaveError(undefined)
-    const { error: updateError } = await updateMutation.trigger('PATCH', { markdown })
+    const { error: updateError } = await updateMutation.trigger('PATCH', {
+      markdown,
+    })
     if (updateError) {
       setSaveError(updateError.detail || t('general.savingError'))
       return

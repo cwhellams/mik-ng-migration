@@ -1402,5 +1402,27 @@
       "attempts": "Suoritukset",
       "memberId": "Jäsennumero"
     }
+  },
+  "stats": {
+    "pilots": {
+      "dateRange": "Aikajakso",
+      "from": "Alkaen",
+      "to": "Päättyen",
+      "presets": {
+        "currentYear": "Kuluva vuosi",
+        "previousYear": "Edellinen vuosi",
+        "last12months": "Viimeiset 12 kk",
+        "custom": "Mukautettu"
+      },
+      "uniquePics": "Lentäjät (PIC) jaksolla",
+      "hoursHistogram": "Tunnit per lentäjä",
+      "airportsHistogram": "Vieraillut lentoasemat per lentäjä",
+      "hoursAxis": "Tunnit yhteensä",
+      "airportsAxis": "Vieraillut lentoasemat",
+      "pilotCountAxis": "Lentäjien määrä",
+      "hours": "h",
+      "airports": "lentokenttää",
+      "noData": "Ei tietoja valitulle jaksolle"
+    }
   }
 }
