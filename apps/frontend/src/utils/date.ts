@@ -26,7 +26,10 @@ export const formatDateInTz = (
   template: string
 ) => {
   return timestamp
-    ? dayjs(timestamp).tz(timezoneName(tz)).format(template)
+    ? tz === 'local'
+      ? // render local date without timezone conversions to avoid issues with the default timezone
+        dayjs(timestamp).format(template)
+      : dayjs(timestamp).tz(timezoneName(tz)).format(template)
     : '-'
 }
 
