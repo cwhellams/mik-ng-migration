@@ -82,6 +82,8 @@ function mapFullResultToFlightLogs(
     nightFlyingMins: row.night_flying_mins,
     nonBillingApprovedByMemberId: row.non_billing_approved_by_member_id,
     nonBillingReason: row.non_billing_reason,
+    minBillableExceptionReason: row.min_billable_exception_reason,
+    minBillableExceptionApprovedByMemberId: row.min_billable_exception_approved_by_member_id,
     validationRemarks: row.validation_remarks,
     numberOfLandings: row.number_of_landings,
     numberOfNightLandings: row.number_of_night_landings,
@@ -378,16 +380,24 @@ export async function getInvoicableFlights(
       .where('flight.logs.entry_error_fee', '=', false)
       .where('flight_type', 'not in', [FlightType.FERRY, FlightType.TEST_FLIGHT])
       .where(eb =>
-        eb(
-          eb
-            .case()
-            .when('member.register.is_training_program_pilot', '=', true)
-            .then(eb.ref('flight.logs.block_mins'))
-            .else(eb.ref('flight.logs.flight_mins'))
-            .end(),
-          '>=',
-          minMins,
-        ),
+        eb.or([
+          // Cross-country flights (any duration) - departure != arrival
+          eb('flight.logs.departure_airport', '!=', eb.ref('flight.logs.arrival_airport')),
+          // Local flights >= min billable time - departure == arrival AND >= minMins
+          eb.and([
+            eb('flight.logs.departure_airport', '=', eb.ref('flight.logs.arrival_airport')),
+            eb(
+              eb
+                .case()
+                .when('member.register.is_training_program_pilot', '=', true)
+                .then(eb.ref('flight.logs.block_mins'))
+                .else(eb.ref('flight.logs.flight_mins'))
+                .end(),
+              '>=',
+              minMins,
+            ),
+          ]),
+        ]),
       )
   }
 
@@ -431,6 +441,7 @@ export async function getInvoicableFlights(
       'flight.flight_credits.credited_mins',
       'flight.flight_credits.note',
       'flight.logs.validation_remarks',
+      'flight.logs.min_billable_exception_reason',
     ])
     .orderBy('off_block_time_epoch', 'asc')
     .offset(pageSize * (page - 1))
@@ -468,6 +479,7 @@ export async function getInvoicableFlights(
         creditedMins: row.credited_mins ?? null,
         creditedNote: row.note ?? null,
         validationRemarks: row.validation_remarks ?? null,
+        minBillableExceptionReason: row.min_billable_exception_reason ?? null,
       }
       return res
     }),
@@ -697,6 +709,13 @@ export const updateFlightLog = async (
           ? user.memberId
           : null,
     non_billing_reason: data.nonBillingReason,
+    min_billable_exception_reason: data.minBillableExceptionReason,
+    min_billable_exception_approved_by_member_id:
+      data.minBillableExceptionReason === undefined
+        ? undefined
+        : data.minBillableExceptionReason
+          ? user.memberId
+          : null,
     validation_remarks: data.validationRemarks,
 
     is_dto_training_flight: data.billableMemberId

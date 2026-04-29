@@ -370,6 +370,8 @@ export interface FlightLogs {
   night_flying_mins: number
   non_billing_approved_by_member_id: string | null
   non_billing_reason: string | null
+  min_billable_exception_reason: string | null
+  min_billable_exception_approved_by_member_id: string | null
   number_of_landings: number
   number_of_night_landings: Generated<number>
   off_block_time_epoch: Int8

@@ -63,6 +63,14 @@ export const InvoicingFlights = ({
     {}
   )
 
+  // tracks locally-edited min-billable exception reasons before they are saved to the server
+  const [editingExceptionReasons, setEditingExceptionReasons] = useState<
+    Record<string, string>
+  >({})
+
+  const isMinBillableStep =
+    filters.flights === InvoicableFlights.MIN_BILLABLE
+
   const showReasonField = (log: InvoicableFlight) =>
     log.isBillableFlight !== true || log.flightId in editingReasons
 
@@ -78,6 +86,38 @@ export const InvoicingFlights = ({
     })
     if (!res.error) {
       setEditingReasons((prev) => {
+        const next = { ...prev }
+        delete next[log.flightId]
+        return next
+      })
+    }
+  }
+
+  const showExceptionField = (log: InvoicableFlight) =>
+    !!log.minBillableExceptionReason || log.flightId in editingExceptionReasons
+
+  const getExceptionReasonValue = (log: InvoicableFlight) =>
+    editingExceptionReasons[log.flightId] ?? log.minBillableExceptionReason ?? ''
+
+  const handleExceptionReasonBlur = async (log: InvoicableFlight) => {
+    const reason = getExceptionReasonValue(log)
+    if (!reason.trim()) {
+      // If the reason was cleared and there was a previously saved reason, clear it on the server
+      if (log.minBillableExceptionReason) {
+        await updateEntry(log, { minBillableExceptionReason: null })
+        setEditingExceptionReasons((prev) => {
+          const next = { ...prev }
+          delete next[log.flightId]
+          return next
+        })
+      }
+      return
+    }
+    const res = await updateEntry(log, {
+      minBillableExceptionReason: reason,
+    })
+    if (!res.error) {
+      setEditingExceptionReasons((prev) => {
         const next = { ...prev }
         delete next[log.flightId]
         return next
@@ -140,7 +180,11 @@ export const InvoicingFlights = ({
               <Grid size={1}>{t('flightLog.airborneTime')}</Grid>
               <Grid size={1.5}>{t('flightLog.flightType')}</Grid>
               <Grid size={3.4}>{t('flightLog.billingRemarks')}</Grid>
-              <Grid size={'grow'}>{t('invoicing.isFreeFlight')}</Grid>
+              <Grid size={'grow'}>
+                {isMinBillableStep
+                  ? t('invoicing.isMinBillableException')
+                  : t('invoicing.isFreeFlight')}
+              </Grid>
             </>
           }
           notFoundMsg={t('flightLog.noLogs')}
@@ -179,31 +223,68 @@ export const InvoicingFlights = ({
                   <Grid size={'grow'} display={{ xs: 'none', md: 'flex' }}>
                     <Checkbox
                       checked={
-                        log.isBillableFlight !== true ||
-                        log.flightId in editingReasons
+                        isMinBillableStep
+                          ? showExceptionField(log)
+                          : log.isBillableFlight !== true ||
+                            log.flightId in editingReasons
                       }
                       onChange={async ({ target }) => {
-                        if (target.checked) {
-                          // show the reason field locally; don't call API until reason is entered
-                          setEditingReasons((prev) => ({
-                            ...prev,
-                            [log.flightId]: '',
-                          }))
+                        if (isMinBillableStep) {
+                          if (target.checked) {
+                            setEditingExceptionReasons((prev) => ({
+                              ...prev,
+                              [log.flightId]: '',
+                            }))
+                          } else {
+                            setEditingExceptionReasons((prev) => {
+                              const next = { ...prev }
+                              delete next[log.flightId]
+                              return next
+                            })
+                            await updateEntry(log, {
+                              minBillableExceptionReason: null,
+                            })
+                          }
                         } else {
-                          setEditingReasons((prev) => {
-                            const next = { ...prev }
-                            delete next[log.flightId]
-                            return next
-                          })
-                          await updateEntry(log, {
-                            isBillableFlight: true,
-                            nonBillingReason: null,
-                          })
+                          if (target.checked) {
+                            // show the reason field locally; don't call API until reason is entered
+                            setEditingReasons((prev) => ({
+                              ...prev,
+                              [log.flightId]: '',
+                            }))
+                          } else {
+                            setEditingReasons((prev) => {
+                              const next = { ...prev }
+                              delete next[log.flightId]
+                              return next
+                            })
+                            await updateEntry(log, {
+                              isBillableFlight: true,
+                              nonBillingReason: null,
+                            })
+                          }
                         }
                       }}
                     />
                   </Grid>
-                  {showReasonField(log) && (
+                  {isMinBillableStep && showExceptionField(log) && (
+                    <Grid size={12} display={{ xs: 'none', md: 'block' }}>
+                      <TextField
+                        size='small'
+                        placeholder={t('flightLog.minBillableExceptionReason')}
+                        value={getExceptionReasonValue(log)}
+                        onChange={({ target }) =>
+                          setEditingExceptionReasons((prev) => ({
+                            ...prev,
+                            [log.flightId]: target.value,
+                          }))
+                        }
+                        onBlur={() => handleExceptionReasonBlur(log)}
+                        fullWidth
+                      />
+                    </Grid>
+                  )}
+                  {!isMinBillableStep && showReasonField(log) && (
                     <Grid size={12} display={{ xs: 'none', md: 'block' }}>
                       <TextField
                         size='small'
@@ -230,25 +311,45 @@ export const InvoicingFlights = ({
                   >
                     <Checkbox
                       checked={
-                        log.isBillableFlight !== true ||
-                        log.flightId in editingReasons
+                        isMinBillableStep
+                          ? showExceptionField(log)
+                          : log.isBillableFlight !== true ||
+                            log.flightId in editingReasons
                       }
                       onChange={async ({ target }) => {
-                        if (target.checked) {
-                          setEditingReasons((prev) => ({
-                            ...prev,
-                            [log.flightId]: '',
-                          }))
+                        if (isMinBillableStep) {
+                          if (target.checked) {
+                            setEditingExceptionReasons((prev) => ({
+                              ...prev,
+                              [log.flightId]: '',
+                            }))
+                          } else {
+                            setEditingExceptionReasons((prev) => {
+                              const next = { ...prev }
+                              delete next[log.flightId]
+                              return next
+                            })
+                            await updateEntry(log, {
+                              minBillableExceptionReason: null,
+                            })
+                          }
                         } else {
-                          setEditingReasons((prev) => {
-                            const next = { ...prev }
-                            delete next[log.flightId]
-                            return next
-                          })
-                          await updateEntry(log, {
-                            isBillableFlight: true,
-                            nonBillingReason: null,
-                          })
+                          if (target.checked) {
+                            setEditingReasons((prev) => ({
+                              ...prev,
+                              [log.flightId]: '',
+                            }))
+                          } else {
+                            setEditingReasons((prev) => {
+                              const next = { ...prev }
+                              delete next[log.flightId]
+                              return next
+                            })
+                            await updateEntry(log, {
+                              isBillableFlight: true,
+                              nonBillingReason: null,
+                            })
+                          }
                         }
                       }}
                     />
@@ -270,7 +371,24 @@ export const InvoicingFlights = ({
                   />
 
                   <Grid size={12}>{log.billingRemarks}</Grid>
-                  {showReasonField(log) && (
+                  {isMinBillableStep && showExceptionField(log) && (
+                    <Grid size={12}>
+                      <TextField
+                        size='small'
+                        placeholder={t('flightLog.minBillableExceptionReason')}
+                        value={getExceptionReasonValue(log)}
+                        onChange={({ target }) =>
+                          setEditingExceptionReasons((prev) => ({
+                            ...prev,
+                            [log.flightId]: target.value,
+                          }))
+                        }
+                        onBlur={() => handleExceptionReasonBlur(log)}
+                        fullWidth
+                      />
+                    </Grid>
+                  )}
+                  {!isMinBillableStep && showReasonField(log) && (
                     <Grid size={12}>
                       <TextField
                         size='small'

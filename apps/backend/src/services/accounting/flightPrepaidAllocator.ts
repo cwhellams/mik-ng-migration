@@ -43,6 +43,7 @@ function getCreditedMinutes(flight: InvoicableFlight): number {
 
 export function computeTopUpMins(flight: InvoicableFlight, minBillableMins: number): number {
   if (!flight.isBillableFlight) return 0
+  if (flight.minBillableExceptionReason) return 0
   const billableMins = getBillableMinutes(flight)
   const isLocalFlight = flight.departureAirport === flight.arrivalAirport
   return isLocalFlight && billableMins < minBillableMins ? minBillableMins - billableMins : 0

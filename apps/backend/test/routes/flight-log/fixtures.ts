@@ -37,6 +37,8 @@ export const flightPayload: FlightLogUpsertRequest = {
   isBillableFlight: false,
   nonBillingReason: 'N/A',
   nonBillingApprovedByMemberId: 'Matti1',
+  minBillableExceptionReason: null,
+  minBillableExceptionApprovedByMemberId: null,
   partiallyBillableFlight: false,
   entryErrorFee: false,
   entryErrorFeeAppliedByMemberId: 'Matti1',
