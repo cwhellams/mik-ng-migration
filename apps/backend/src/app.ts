@@ -10,7 +10,6 @@ import logger from './lib/logger.ts'
 import { router as aircraftRoutes } from './routes/aircrafts/api.ts'
 import { router as aircraftDocumentRoutes } from './routes/aircraft-documents/api.ts'
 import { router as aircraftPricingRoutes } from './routes/aircraft-pricing/api.ts'
-import { router as aircraftCardRoutes } from './routes/aircraft-cards/api.ts'
 import ajlbRoutes from './routes/ajlb/api.ts'
 import { router as authRoutes } from './routes/auth/login.ts'
 import { router as documentRoutes } from './routes/documents/api.ts'
@@ -103,7 +102,6 @@ app.use('/api/v1/flight-logs', flightLogRoutes)
 app.use('/api/v1/aircrafts', aircraftRoutes)
 app.use('/api/v1/aircraft-documents', aircraftDocumentRoutes)
 app.use('/api/v1/aircraft-pricing', aircraftPricingRoutes)
-app.use('/api/v1/aircraft-cards', aircraftCardRoutes)
 app.use('/api/v1/ajlb', ajlbRoutes)
 app.use('/api/v1/documents', documentRoutes)
 app.use('/api/v1/invoices', invoiceRoutes)

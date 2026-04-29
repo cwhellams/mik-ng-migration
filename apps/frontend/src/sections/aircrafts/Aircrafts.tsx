@@ -35,7 +35,6 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { FormField } from '../../components/FormField'
 import { Icon } from '@iconify/react'
 import { AircraftDocumentSection } from './components/AircraftDocumentSection'
-import { AircraftCardSection } from './components/AircraftCardSection'
 import { useRoles } from '../../hooks/useRoles'
 import { useState } from 'react'
 import {
@@ -541,16 +540,6 @@ const Aircrafts = () => {
                         />
                       </Box>
                     )}
-
-                    {/* Cards Tab Content */}
-                    {currentTab === 3 && (
-                      <Box sx={{ flex: 1 }}>
-                        <AircraftCardSection
-                          aircraftRegistration={aircraft.registration}
-                          isAdmin={isAircraftAdmin}
-                        />
-                      </Box>
-                    )}
                   </Stack>
                 </CardContent>
 
@@ -580,10 +569,6 @@ const Aircrafts = () => {
                   <BottomNavigationAction
                     label={t('aircraft.tabs.pricing', 'Pricing')}
                     icon={<Icon icon='mdi:currency-usd' />}
-                  />
-                  <BottomNavigationAction
-                    label={t('aircraft.tabs.cards', 'Cards')}
-                    icon={<Icon icon='mdi:card-account-details' />}
                   />
                 </BottomNavigation>
               </Card>

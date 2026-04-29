@@ -281,19 +281,6 @@ export interface FlightAircraft {
   year_of_manufacture: number
 }
 
-export interface FlightAircraftCards {
-  aircraft_registration: string
-  card_id: Generated<number>
-  created_at: Generated<Timestamp>
-  created_by: string
-  description: string | null
-  name: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
-  valid_from: string | null
-  valid_to: string | null
-}
-
 export interface FlightAircraftDocumentsFiles {
   aircraft_registration: string
   created_at: Generated<Timestamp>
@@ -1100,7 +1087,6 @@ export interface DB {
   'exam.question_translations': ExamQuestionTranslations
   'exam.questions': ExamQuestions
   'flight.aircraft': FlightAircraft
-  'flight.aircraft_cards': FlightAircraftCards
   'flight.aircraft_documents_files': FlightAircraftDocumentsFiles
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
   'flight.flight_credits': FlightFlightCredits
