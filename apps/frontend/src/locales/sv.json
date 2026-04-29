@@ -236,7 +236,8 @@
     "tabs": {
       "info": "Info",
       "documents": "Dokument",
-      "pricing": "Priser"
+      "pricing": "Priser",
+      "cards": "Kort"
     },
     "document": {
       "arc": "ARC",
@@ -328,6 +329,32 @@
       "perMinute": "Per minut",
       "notes": "Anteckningar",
       "notesHelp": "Valfria anteckningar om denna prissättningsperiod"
+    },
+    "cards": {
+      "title": "Kort & Säsongskort",
+      "add": "Lägg till kort",
+      "edit": "Redigera kort",
+      "noCards": "Inga kort eller säsongskort registrerade",
+      "name": "Namn",
+      "nameHelp": "T.ex. Air BP bränslekort, Finavia säsongskort",
+      "nameRequired": "Kortets namn är obligatoriskt",
+      "description": "Beskrivning",
+      "validFrom": "Giltigt från",
+      "validTo": "Giltigt till",
+      "validToHelp": "Lämna tomt om inget utgångsdatum",
+      "dateRangeError": "Startdatumet måste vara före slutdatumet",
+      "actions": "Åtgärder",
+      "status": {
+        "label": "Status",
+        "valid": "Giltigt",
+        "expiring": "Går snart ut",
+        "expired": "Utgånget",
+        "future": "Inte aktiv än"
+      },
+      "delete": {
+        "title": "Ta bort kort",
+        "confirm": "Är du säker på att du vill ta bort detta kort?"
+      }
     },
     "edit": {
       "new": "Lägg till nytt flygplan",
