@@ -115,7 +115,7 @@ const Schedule = () => {
   const { data: aircraftData } = useApi<AircraftListResponse>(
     {
       url: 'v1/aircrafts',
-      params: { activeOnly: true },
+      params: { activeOnly: true, visibleOnly: false },
     },
     {
       revalidateOnFocus: false,
