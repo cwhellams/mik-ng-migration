@@ -236,7 +236,8 @@
     "tabs": {
       "info": "Info",
       "documents": "Documents",
-      "pricing": "Pricing"
+      "pricing": "Pricing",
+      "cards": "Cards"
     },
     "document": {
       "arc": "ARC",
@@ -328,6 +329,32 @@
       "perMinute": "Per minute",
       "notes": "Notes",
       "notesHelp": "Optional notes about this pricing period"
+    },
+    "cards": {
+      "title": "Cards & Passes",
+      "add": "Add Card",
+      "edit": "Edit Card",
+      "noCards": "No cards or passes registered",
+      "name": "Name",
+      "nameHelp": "E.g. Air BP Fuel Card, Finavia Season Pass",
+      "nameRequired": "Card name is required",
+      "description": "Description",
+      "validFrom": "Valid From",
+      "validTo": "Valid To",
+      "validToHelp": "Leave empty if no expiry date",
+      "dateRangeError": "Valid from date must be before valid to date",
+      "actions": "Actions",
+      "status": {
+        "label": "Status",
+        "valid": "Valid",
+        "expiring": "Expiring Soon",
+        "expired": "Expired",
+        "future": "Not Yet Active"
+      },
+      "delete": {
+        "title": "Delete Card",
+        "confirm": "Are you sure you want to delete this card?"
+      }
     },
     "edit": {
       "new": "Add New Aircraft",

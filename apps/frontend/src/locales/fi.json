@@ -235,7 +235,8 @@
     "tabs": {
       "info": "Tiedot",
       "documents": "Asiakirjat",
-      "pricing": "Hinnoittelu"
+      "pricing": "Hinnoittelu",
+      "cards": "Kortit"
     },
     "document": {
       "arc": "ARC",
@@ -326,6 +327,32 @@
       "perMinute": "Minuuttihinta",
       "notes": "Huomiot",
       "notesHelp": "Vapaaehtoinen huomio hinnoittelujaksosta"
+    },
+    "cards": {
+      "title": "Kortit ja kausipassit",
+      "add": "Lisää kortti",
+      "edit": "Muokkaa korttia",
+      "noCards": "Ei rekisteröityjä kortteja tai kausipasseja",
+      "name": "Nimi",
+      "nameHelp": "Esim. Air BP -polttoainekortti, Finavia-kausikortti",
+      "nameRequired": "Kortin nimi on pakollinen",
+      "description": "Kuvaus",
+      "validFrom": "Voimassa alkaen",
+      "validTo": "Voimassa asti",
+      "validToHelp": "Jätä tyhjäksi jos ei vanhenemispäivää",
+      "dateRangeError": "Alkamispäivän on oltava ennen päättymispäivää",
+      "actions": "Toiminnot",
+      "status": {
+        "label": "Tila",
+        "valid": "Voimassa",
+        "expiring": "Vanhenee pian",
+        "expired": "Vanhentunut",
+        "future": "Ei vielä voimassa"
+      },
+      "delete": {
+        "title": "Poista kortti",
+        "confirm": "Haluatko varmasti poistaa tämän kortin?"
+      }
     },
     "edit": {
       "new": "Lisää uusi lentokone",
