@@ -53,7 +53,7 @@ export async function loginWithPasskey(
     const r = await sharedApi.post<{
       options: PublicKeyCredentialRequestOptionsJSON
       hasPasskeys: boolean
-    }>('/auth/passkey/authentication/options', { email })
+    }>('auth/passkey/authentication/options', { email })
     optionsResp = r.data
   } catch {
     return { ok: false, reason: 'options-failed' }
@@ -74,7 +74,7 @@ export async function loginWithPasskey(
   }
 
   try {
-    await sharedApi.post('/auth/passkey/authentication/verify', {
+    await sharedApi.post('auth/passkey/authentication/verify', {
       email,
       response: assertion,
     })
@@ -98,7 +98,7 @@ export async function registerPasskey(
   let options: PublicKeyCredentialCreationOptionsJSON
   try {
     const r = await sharedApi.post<PublicKeyCredentialCreationOptionsJSON>(
-      '/auth/passkey/registration/options'
+      'auth/passkey/registration/options'
     )
     options = r.data
   } catch {
@@ -114,7 +114,7 @@ export async function registerPasskey(
   }
 
   try {
-    await sharedApi.post('/auth/passkey/registration/verify', {
+    await sharedApi.post('auth/passkey/registration/verify', {
       response: attResp,
       name,
     })
