@@ -429,9 +429,7 @@ const Members = () => {
                   {row.townCity}
                 </Grid>
 
-                <Grid
-                  size={{ xs: 12, md: isMembersAdmin ? 2.3 : 'grow' }}
-                >
+                <Grid size={{ xs: 12, md: isMembersAdmin ? 2.3 : 'grow' }}>
                   {renderRoles(row.roles, roles, i18n.language as MIKLang)}
                 </Grid>
 

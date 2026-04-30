@@ -150,7 +150,7 @@ const FlightLogEntry = () => {
       entryErrorFeeAppliedByMemberId: null,
       nonBillingApprovedByMemberId: null,
       validationRemarks: null,
-      
+
       // Billing admin fields - null by default, filled during billing process
       minBillableExceptionReason: null,
       minBillableExceptionApprovedByMemberId: null,
