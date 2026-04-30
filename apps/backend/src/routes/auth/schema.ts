@@ -5,6 +5,9 @@ import { MemberProfileSchema, MIKLang, MIKMemberTypes } from '../members/models.
 // register
 
 export const RegisterRequestSchema = MemberProfileSchema.extend({
+  // email is required for registration (but not for profile self-edits)
+  email: z.string(),
+
   // membertype can be selected when creating a new user
   memberType: z.nativeEnum(MIKMemberTypes),
 

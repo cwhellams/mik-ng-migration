@@ -285,7 +285,9 @@ router.post(
     }
 
     if (normalizedEmail === member.email) {
-      res.status(400).json(problem({ status: 400, detail: 'New email is the same as current email' }))
+      res
+        .status(400)
+        .json(problem({ status: 400, detail: 'New email is the same as current email' }))
       return
     }
 
@@ -312,7 +314,11 @@ router.post(
       }),
     )
 
-    logger.info('Email change verification sent to %s for member %s', normalizedEmail, member.memberId)
+    logger.info(
+      'Email change verification sent to %s for member %s',
+      normalizedEmail,
+      member.memberId,
+    )
 
     res.sendStatus(204)
   },

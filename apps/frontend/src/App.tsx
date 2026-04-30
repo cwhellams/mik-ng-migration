@@ -134,7 +134,10 @@ function App() {
                 <Route path='documents' element={<Documents />} />
                 <Route path='stats' element={<Stats />} />
               </Route>
-              <Route path='/profile/email-change/verify' element={<EmailChangeVerify />} />
+              <Route
+                path='/profile/email-change/verify'
+                element={<EmailChangeVerify />}
+              />
               <Route path='/accounting'>
                 <Route index element={<InvoicingAdminDashboard />} />
                 <Route path='invoicing' element={<FlightInvoicing />} />

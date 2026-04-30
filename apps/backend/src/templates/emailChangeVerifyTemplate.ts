@@ -31,8 +31,4 @@ const emailChangeVerifyDisclaimer = (lang: MIKLang): string => {
 }
 
 export const emailChangeVerifyBodyHtml = (lang: MIKLang, vars: EmailChangeVerifyVars): string =>
-  markdownEmailTemplate(
-    `email-change-verify-${lang}.md`,
-    vars,
-    emailChangeVerifyDisclaimer(lang),
-  )
+  markdownEmailTemplate(`email-change-verify-${lang}.md`, vars, emailChangeVerifyDisclaimer(lang))

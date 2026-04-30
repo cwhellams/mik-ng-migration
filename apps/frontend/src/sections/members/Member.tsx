@@ -69,7 +69,11 @@ const MemberProfile = () => {
 
   const handleEmailChangeRequest = async () => {
     setEmailChangeSending(true)
-    const { error } = await mutation.trigger('POST', { newEmail }, '/me/email-change/request')
+    const { error } = await mutation.trigger(
+      'POST',
+      { newEmail },
+      '/me/email-change/request'
+    )
     setEmailChangeSending(false)
 
     if (error) {
@@ -359,7 +363,11 @@ const MemberProfile = () => {
                           size='small'
                           variant='text'
                           onClick={() => setEmailChangeOpen(true)}
-                          sx={{ minWidth: 'auto', textTransform: 'none', fontSize: '0.75rem' }}
+                          sx={{
+                            minWidth: 'auto',
+                            textTransform: 'none',
+                            fontSize: '0.75rem',
+                          }}
                         >
                           {t('emailChange.changeEmailButton')}
                         </Button>
@@ -807,11 +815,21 @@ const MemberProfile = () => {
       )}
 
       {/* Email change dialog */}
-      <Dialog open={emailChangeOpen} onClose={handleEmailChangeClose} maxWidth='sm' fullWidth>
+      <Dialog
+        open={emailChangeOpen}
+        onClose={handleEmailChangeClose}
+        maxWidth='sm'
+        fullWidth
+      >
         <DialogContent>
           {emailChangeSent ? (
             <Box sx={{ textAlign: 'center', py: 2 }}>
-              <Icon icon='mdi:email-check' width={48} height={48} color='#4caf50' />
+              <Icon
+                icon='mdi:email-check'
+                width={48}
+                height={48}
+                color='#4caf50'
+              />
               <Typography variant='body1' sx={{ mt: 2 }}>
                 {t('emailChange.verificationSent', { email: newEmail })}
               </Typography>
@@ -834,7 +852,9 @@ const MemberProfile = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleEmailChangeClose} color='inherit'>
-            {emailChangeSent ? t('general.close', 'Close') : t('general.cancel', 'Cancel')}
+            {emailChangeSent
+              ? t('general.close', 'Close')
+              : t('general.cancel', 'Cancel')}
           </Button>
           {!emailChangeSent && (
             <Button
