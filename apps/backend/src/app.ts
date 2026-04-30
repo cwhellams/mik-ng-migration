@@ -26,6 +26,7 @@ import { router as weatherRoutes } from './routes/weather/api.ts'
 import { router as statsRoutes } from './routes/stats/api.ts'
 import { router as dashboardRoutes } from './routes/dashboard/api.ts'
 import taxReportRoutes from './routes/tax-reports/api.ts'
+import upliftReportRoutes from './routes/uplift-reports/api.ts'
 import { router as outboxRoutes } from './routes/outbox/api.ts'
 import { router as versionRoute } from './routes/version/api.ts'
 import { router as timeRoute } from './routes/time/api.ts'
@@ -113,6 +114,7 @@ app.use('/api/v1/weather', weatherRoutes)
 app.use('/api/v1/stats', statsRoutes)
 app.use('/api/v1/dashboard', dashboardRoutes)
 app.use('/api/v1/tax-reports', taxReportRoutes)
+app.use('/api/v1/uplift-reports', upliftReportRoutes)
 app.use('/api/v1/outbox', outboxRoutes)
 app.use('/api/v1/version', versionRoute)
 app.use('/api/v1/time', timeRoute)

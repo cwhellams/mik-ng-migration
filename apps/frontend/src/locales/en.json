@@ -777,7 +777,8 @@
       "flights": "Flights",
       "items": "Products",
       "tools": "Tools",
-      "taxReport": "Tax Report"
+      "taxReport": "Tax Report",
+      "upliftReport": "Uplift Report"
     },
     "dashboard": {
       "title": "Flights Waiting to be Invoiced",
@@ -1481,6 +1482,43 @@
       "noTranslation": "(no translation)",
       "attempts": "Attempts",
       "memberId": "Member ID"
+    }
+  },
+  "upliftReport": {
+    "title": "Fuel & Oil Uplift Report",
+    "description": "View fuel and oil uplifts per aircraft for a selected date range",
+    "filters": {
+      "aircraft": "Aircraft",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "generate": "Generate Report",
+      "export": "Export to CSV"
+    },
+    "quickRanges": {
+      "1w": "1 week",
+      "1m": "1 month",
+      "3m": "3 months",
+      "12m": "12 months"
+    },
+    "table": {
+      "dateTime": "Date & Time",
+      "pic": "PIC",
+      "fuelUplift": "Fuel Uplift (L)",
+      "oilUplift": "Oil Uplift (L)",
+      "details": "Details",
+      "open": "Open"
+    },
+    "summary": {
+      "totalFuel": "Total fuel uplift: {{value}} L",
+      "totalOil": "Total oil uplift: {{value}} L",
+      "fuelTypes": "Fuel types"
+    },
+    "noData": "No uplift data found for the selected aircraft and date range",
+    "errors": {
+      "aircraftRequired": "Aircraft selection is required",
+      "datesRequired": "Both start and end dates are required",
+      "endDateFuture": "End date cannot be in the future",
+      "startAfterEnd": "Start date cannot be after end date"
     }
   }
 }

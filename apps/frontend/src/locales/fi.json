@@ -774,7 +774,8 @@
       "dashboard": "Tietopaneeli",
       "flights": "Lennot",
       "items": "Tuotteet",
-      "tools": "Työkalut"
+      "tools": "Työkalut",
+      "upliftReport": "Tankkaausraportti"
     },
     "dashboard": {
       "title": "Odottaa laskutusta",
@@ -1451,6 +1452,43 @@
       "noTranslation": "(ei käännöstä)",
       "attempts": "Suoritukset",
       "memberId": "Jäsennumero"
+    }
+  },
+  "upliftReport": {
+    "title": "Polttoaine- ja öljytankkauksien raportti",
+    "description": "Tarkastele polttoaine- ja öljytankkaustietoja koneittain valitulta ajanjaksolta",
+    "filters": {
+      "aircraft": "Kone",
+      "startDate": "Alkupäivä",
+      "endDate": "Loppupäivä",
+      "generate": "Luo raportti",
+      "export": "Vie CSV:nä"
+    },
+    "quickRanges": {
+      "1w": "1 viikko",
+      "1m": "1 kuukausi",
+      "3m": "3 kuukautta",
+      "12m": "12 kuukautta"
+    },
+    "table": {
+      "dateTime": "Päivä & aika",
+      "pic": "PIC",
+      "fuelUplift": "Polttoaine (L)",
+      "oilUplift": "Öljy (L)",
+      "details": "Tiedot",
+      "open": "Avaa"
+    },
+    "summary": {
+      "totalFuel": "Polttoainetta yhteensä: {{value}} L",
+      "totalOil": "Öljyä yhteensä: {{value}} L",
+      "fuelTypes": "Polttoainetyypit"
+    },
+    "noData": "Ei tankkaustietoja valitulle koneelle ja ajalle",
+    "errors": {
+      "aircraftRequired": "Kone on pakollinen",
+      "datesRequired": "Alku- ja loppupäivä ovat pakollisia",
+      "endDateFuture": "Loppupäivä ei voi olla tulevaisuudessa",
+      "startAfterEnd": "Alkupäivä ei voi olla loppupäivän jälkeen"
     }
   }
 }
