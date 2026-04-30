@@ -75,9 +75,13 @@ const Login = () => {
         return !allowEmailFallback
       }
       if (result.reason === 'options-failed') {
+        // If triggered from the email button, silently fall through to email.
+        if (allowEmailFallback) return false
         setEmailError(t('login.passkey.startFailed'))
         return true
       }
+      // Generic failure — also fall through to email when allowed.
+      if (allowEmailFallback) return false
       setEmailError(result.message ?? t('login.passkey.failed'))
       return true
     } finally {
