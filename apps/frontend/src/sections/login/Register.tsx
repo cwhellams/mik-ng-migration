@@ -25,6 +25,7 @@ import {
   MIKLang,
   MIKMemberTypes,
   PrimaryMotivation,
+  type ApplicationData,
 } from '@backend/routes/members/models.ts'
 import dayjs, { Dayjs } from 'dayjs'
 import { useTranslation } from 'react-i18next'
@@ -121,9 +122,9 @@ const Register = () => {
     })
   }
 
-  const updateApplicationData = (
-    field: string,
-    value: string | number | boolean
+  const updateApplicationData = <K extends keyof ApplicationData>(
+    field: K,
+    value: ApplicationData[K]
   ) => {
     setMember((prev) => ({
       ...prev,

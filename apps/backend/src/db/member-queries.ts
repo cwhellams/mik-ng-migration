@@ -380,6 +380,13 @@ export async function updateMember(
       mailing_lists:
         patch.mailingLists === undefined ? undefined : JSON.stringify(patch.mailingLists),
 
+      application_data:
+        patch.applicationData === undefined
+          ? undefined
+          : patch.applicationData != null
+            ? JSON.stringify(patch.applicationData)
+            : null,
+
       licence_id: patch.licenceId,
       licence_expiry_date: patch.licenceExpiry,
       medical_expiry_date: patch.medicalExpiry,

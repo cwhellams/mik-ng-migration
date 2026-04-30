@@ -193,7 +193,7 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
   }
 
   const memberId = await addMember(member)
-  logger.info('new member registered with id %s : %j', memberId, member)
+  logger.info('new member registered with id %s (email: %s)', memberId, member.email)
 
   // Use registration verification strategy instead of magic login
   const link = registrationVerification.generateVerificationLink(member.email)

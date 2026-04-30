@@ -178,21 +178,45 @@ export enum PrimaryMotivation {
   OTHER = 'other',
 }
 
-export const ApplicationDataSchema = z.object({
-  totalFlightHours: z.number().min(0),
-  aircraftTypesFlown: z.string().min(1),
-  licenceAndRatings: z.string().min(1),
-  primaryMotivation: z.nativeEnum(PrimaryMotivation),
-  motivationOther: z.string().optional(),
-  coverLetter: z.string().min(1),
-  voluntaryWork: z.string().min(1),
-  otherAviationClubs: z.string().optional(),
-  accidentHistory: z.boolean(),
-  accidentHistoryDetails: z.string().optional(),
-  criminalRecord: z.boolean(),
-  criminalRecordDetails: z.string().optional(),
-  gdprAccepted: z.boolean(),
-})
+export const ApplicationDataSchema = z
+  .object({
+    totalFlightHours: z.number().min(0),
+    aircraftTypesFlown: z.string().min(1),
+    licenceAndRatings: z.string().min(1),
+    primaryMotivation: z.nativeEnum(PrimaryMotivation),
+    motivationOther: z.string().optional(),
+    coverLetter: z.string().min(1),
+    voluntaryWork: z.string().min(1),
+    otherAviationClubs: z.string().optional(),
+    accidentHistory: z.boolean(),
+    accidentHistoryDetails: z.string().optional(),
+    criminalRecord: z.boolean(),
+    criminalRecordDetails: z.string().optional(),
+    gdprAccepted: z.boolean().refine(v => v === true, { message: 'GDPR acceptance is required' }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.primaryMotivation === PrimaryMotivation.OTHER && !data.motivationOther) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'motivationOther is required when primaryMotivation is OTHER',
+        path: ['motivationOther'],
+      })
+    }
+    if (data.accidentHistory && !data.accidentHistoryDetails) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'accidentHistoryDetails is required when accidentHistory is true',
+        path: ['accidentHistoryDetails'],
+      })
+    }
+    if (data.criminalRecord && !data.criminalRecordDetails) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'criminalRecordDetails is required when criminalRecord is true',
+        path: ['criminalRecordDetails'],
+      })
+    }
+  })
 
 export type ApplicationData = z.infer<typeof ApplicationDataSchema>
 
@@ -287,8 +311,12 @@ export const MemberProfileSchema = MemberSchema.pick({
   mailingLists: true,
 }).extend({
   streetAddress: z.string().min(1),
-  postcode: z.string().min(1),
+  postcode: z.string().min(1).regex(/^\d+$/, 'Postcode must contain digits only'),
   townCity: z.string().min(1),
+  phoneNumber: z
+    .string()
+    .regex(/^[0-9+\s\-()]*$/, 'Phone number contains invalid characters')
+    .nullish(),
 })
 
 export type MemberProfile = z.infer<typeof MemberProfileSchema>

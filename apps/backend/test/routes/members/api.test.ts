@@ -10,6 +10,7 @@ import {
   MIKLang,
   MIKMemberTypes,
   MIKPermissions,
+  PrimaryMotivation,
   type Member,
   type MemberListFilters,
   type MemberListResponse,
@@ -886,6 +887,71 @@ describe('POST /members', () => {
   it('Return 400 with missing fields', async () => {
     const response = await post(
       { ...req, firstName: undefined } as unknown as RegisterRequest,
+      adminToken,
+    )
+    expect(response.status).toBe(400)
+  })
+
+  it('Create member with applicationData and verify it is stored and returned', async () => {
+    const applicationData = {
+      totalFlightHours: 150,
+      aircraftTypesFlown: 'C172, DA40',
+      licenceAndRatings: 'PPL(A), Night',
+      primaryMotivation: PrimaryMotivation.FLY,
+      coverLetter: 'I love flying and want to join MIK.',
+      voluntaryWork: 'Yes, I am happy to help.',
+      accidentHistory: false,
+      criminalRecord: false,
+      gdprAccepted: true,
+    }
+
+    const emailWithAppData = `${new Date().getTime()}-appdata@testdata.com`
+    const response = await post({ ...req, email: emailWithAppData, applicationData }, adminToken)
+    expect(response.status).toBe(200)
+
+    const member = response.body as Member
+    expect(member.applicationData).toMatchObject({
+      totalFlightHours: 150,
+      aircraftTypesFlown: 'C172, DA40',
+      licenceAndRatings: 'PPL(A), Night',
+      primaryMotivation: PrimaryMotivation.FLY,
+      coverLetter: 'I love flying and want to join MIK.',
+      voluntaryWork: 'Yes, I am happy to help.',
+      accidentHistory: false,
+      criminalRecord: false,
+      gdprAccepted: true,
+    })
+
+    // Verify applicationData is returned when fetching member by ID
+    const getResponse = await request(app)
+      .get(`/members/${member.memberId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    expect(getResponse.status).toBe(200)
+    expect((getResponse.body as Member).applicationData).toMatchObject(applicationData)
+
+    await remove(member.memberId, adminToken)
+  })
+
+  it('Create member with accidentHistory=true requires accidentHistoryDetails', async () => {
+    const emailForTest = `${new Date().getTime()}-accident@testdata.com`
+    const response = await post(
+      {
+        ...req,
+        email: emailForTest,
+        applicationData: {
+          totalFlightHours: 0,
+          aircraftTypesFlown: 'C172',
+          licenceAndRatings: 'PPL',
+          primaryMotivation: PrimaryMotivation.LEARN_TO_FLY,
+          coverLetter: 'test',
+          voluntaryWork: 'yes',
+          accidentHistory: true,
+          // missing accidentHistoryDetails
+          criminalRecord: false,
+          gdprAccepted: true,
+        },
+      },
       adminToken,
     )
     expect(response.status).toBe(400)

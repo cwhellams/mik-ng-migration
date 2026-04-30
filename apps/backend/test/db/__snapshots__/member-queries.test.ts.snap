@@ -23,6 +23,7 @@ exports[`Db add member tests Member Role Tests Adds a member role to the databas
 
 exports[`Db add member tests add member and update member 1`] = `
 {
+  "applicationData": undefined,
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
   "billingId": null,
@@ -68,6 +69,7 @@ exports[`Db add member tests add member and update member 1`] = `
 
 exports[`Db add member tests add member and update member 2`] = `
 {
+  "applicationData": undefined,
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
   "billingId": null,
@@ -134,6 +136,7 @@ exports[`Db add member tests add member and update member 2`] = `
 
 exports[`Db query member tests getMemberByEmail should return member data for a valid email address 1`] = `
 {
+  "applicationData": undefined,
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
   "billingId": "481",
@@ -227,6 +230,7 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
 
 exports[`Db query member tests getMemberByEmail should return member data regardless of the case 1`] = `
 {
+  "applicationData": undefined,
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
   "billingId": "481",
@@ -320,6 +324,7 @@ exports[`Db query member tests getMemberByEmail should return member data regard
 
 exports[`Db query member tests getMemberById should return member data for a valid id 1`] = `
 {
+  "applicationData": undefined,
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
   "billingId": "123",
@@ -441,6 +446,7 @@ exports[`Db query member tests getMemberById should return member data for a val
 
 exports[`Db query member tests getMemberById should return member data for a valid member id 1`] = `
 {
+  "applicationData": undefined,
   "autoRenewAnnualMembership": true,
   "autoRenewEquipmentFee": false,
   "billingId": "123",
