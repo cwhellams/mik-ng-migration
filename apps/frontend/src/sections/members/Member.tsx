@@ -12,17 +12,26 @@ import {
   FormControlLabel,
   Checkbox,
   CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
+import dayjs from 'dayjs'
 import { Member, MIKLang, MIKMemberTypes } from '@backend/routes/members/models'
+import { InvoiceListResponse } from '@backend/routes/invoicing/models'
+import { FlightLogListResponse } from '@backend/routes/flight-log/models'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useState, useEffect } from 'react'
 import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import { EditButton } from '../../components/EditButton'
 import { FormField } from '../../components/FormField'
 import { AuditFormField } from '../../components/AuditFormField'
+
 import { formatPhoneNumber } from '../../utils/format'
 import { langFlagIcon } from '../../utils/lang'
 import { FormTitle } from '../../components/FormTitle'
@@ -716,6 +725,10 @@ const MemberProfile = () => {
             </CardContent>
           </Card>
 
+          {isAdmin && memberId && <AdminInvoicesCard memberId={memberId} />}
+
+          {isAdmin && memberId && <AdminFlightsCard memberId={memberId} />}
+
           <Grid>
             {isAdmin && (
               <>
@@ -871,5 +884,213 @@ const MailingListsContent = ({
         />
       ))}
     </Stack>
+  )
+}
+
+const currencyFormatter = new Intl.NumberFormat('fi-FI', {
+  style: 'currency',
+  currency: 'EUR',
+})
+
+const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
+  const { t } = useTranslation()
+  const { formatDate } = useTimezone()
+  const { data, isLoading, error } = useApi<InvoiceListResponse>({
+    url: `v1/members/${memberId}/invoices`,
+    alwaysSudo: true,
+  })
+
+  const { mutation: pdfMutation } = useApi<never>({
+    url: `v1/invoices`,
+    skipFetch: true,
+    alwaysSudo: true,
+  })
+
+  const handleDownloadPdf = async (invoiceId: string) => {
+    try {
+      const response = await pdfMutation.trigger<undefined, string>(
+        'GET',
+        undefined,
+        `${invoiceId}/pdf`
+      )
+      if (!response.data) return
+      const byteCharacters = atob(response.data)
+      const byteNumbers = Array.from(byteCharacters).map((char) =>
+        char.charCodeAt(0)
+      )
+      const byteArray = new Uint8Array(byteNumbers)
+      const blob = new Blob([byteArray], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `invoice-${invoiceId}.pdf`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      // silently fail — PDF download is best-effort in this context
+    }
+  }
+
+  return (
+    <Card>
+      <CardContent>
+        <FormTitle
+          title={t('member.adminInvoices.title')}
+          icon='mdi:receipt-text'
+        />
+        <RemoteContent isLoading={isLoading} error={error}>
+          {!data?.invoices?.length ? (
+            <Typography variant='body2' color='text.secondary'>
+              {t('member.adminInvoices.noInvoices')}
+            </Typography>
+          ) : (
+            <Table size='small'>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('member.adminInvoices.date')}</TableCell>
+                  <TableCell>{t('member.adminInvoices.type')}</TableCell>
+                  <TableCell>{t('member.adminInvoices.description')}</TableCell>
+                  <TableCell align='right'>
+                    {t('member.adminInvoices.total')}
+                  </TableCell>
+                  <TableCell align='center'>
+                    {t('member.adminInvoices.status')}
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.invoices.slice(0, 10).map((invoice) => {
+                  const isPastDue =
+                    invoice.is_paid === false &&
+                    dayjs(invoice.due_at).isBefore(dayjs(), 'day')
+                  return (
+                    <TableRow key={invoice.id}>
+                      <TableCell>{formatDate(invoice.sent_at)}</TableCell>
+                      <TableCell>{invoice.invoice_type}</TableCell>
+                      <TableCell
+                        sx={{
+                          maxWidth: 200,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => handleDownloadPdf(invoice.id)}
+                      >
+                        {invoice.description || '—'}
+                      </TableCell>
+                      <TableCell align='right'>
+                        {invoice.total_sum
+                          ? currencyFormatter.format(
+                              parseFloat(invoice.total_sum)
+                            )
+                          : '—'}
+                      </TableCell>
+                      <TableCell align='center'>
+                        {invoice.is_paid ? (
+                          <Tooltip title={t('billing.filters.paid')}>
+                            <CheckCircleIcon color='success' fontSize='small' />
+                          </Tooltip>
+                        ) : isPastDue ? (
+                          <Tooltip title={t('billing.filters.pastDueOnly')}>
+                            <Icon
+                              icon='mdi:alert-circle'
+                              style={{ color: '#d32f2f' }}
+                              fontSize={20}
+                            />
+                          </Tooltip>
+                        ) : (
+                          <Tooltip title={t('billing.filters.unpaid')}>
+                            <Icon
+                              icon='mdi:clock-outline'
+                              style={{ color: '#ed6c02' }}
+                              fontSize={20}
+                            />
+                          </Tooltip>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </RemoteContent>
+      </CardContent>
+    </Card>
+  )
+}
+
+const AdminFlightsCard = ({ memberId }: { memberId: string }) => {
+  const { t } = useTranslation()
+  const { formatDate, formatTime } = useTimezone()
+  const { data, isLoading, error } = useApi<FlightLogListResponse>({
+    url: `v1/members/${memberId}/flights`,
+    alwaysSudo: true,
+  })
+
+  return (
+    <Card>
+      <CardContent>
+        <FormTitle title={t('member.adminFlights.title')} icon='mdi:airplane' />
+        <RemoteContent isLoading={isLoading} error={error}>
+          {!data?.logs?.length ? (
+            <Typography variant='body2' color='text.secondary'>
+              {t('member.adminFlights.noFlights')}
+            </Typography>
+          ) : (
+            <Table size='small'>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('member.adminFlights.date')}</TableCell>
+                  <TableCell>{t('member.adminFlights.aircraft')}</TableCell>
+                  <TableCell>{t('member.adminFlights.route')}</TableCell>
+                  <TableCell align='right'>
+                    {t('flightLog.offBlock', 'Off-block')}
+                  </TableCell>
+                  <TableCell align='right'>
+                    {t('flightLog.onBlock', 'On-block')}
+                  </TableCell>
+                  <TableCell>{t('member.adminFlights.duration')}</TableCell>
+                  <TableCell>{t('member.adminFlights.type')}</TableCell>
+                  <TableCell>{t('member.adminFlights.status')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.logs.map((log) => (
+                  <TableRow key={log.flightId}>
+                    <TableCell>
+                      <Link to={`/logs/flights/${log.flightId}`}>
+                        {formatDate(log.offBlockTimeUtc)}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{log.aircraftRegistration}</TableCell>
+                    <TableCell>
+                      {log.departureAirport} → {log.arrivalAirport}
+                    </TableCell>
+                    <TableCell align='right'>
+                      {formatTime(log.offBlockTimeUtc)}
+                    </TableCell>
+                    <TableCell align='right'>
+                      {formatTime(log.onBlockTimeUtc)}
+                    </TableCell>
+                    <TableCell>{log.flightTime}</TableCell>
+                    <TableCell>
+                      {t(
+                        `flightLog.flightTypes.${log.flightType}`,
+                        log.flightType
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {t(`flightLog.status.${log.status}`, log.status)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </RemoteContent>
+      </CardContent>
+    </Card>
   )
 }

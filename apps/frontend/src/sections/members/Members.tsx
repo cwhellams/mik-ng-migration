@@ -410,7 +410,7 @@ const Members = () => {
                   </Box>
                 </Box>
               </Grid>
-              <Grid container size='grow' spacing={0}>
+              <Grid container size='grow' spacing={0} alignItems='center'>
                 <Grid size={{ xs: 12, md: isMembersAdmin ? 2 : 3 }}>
                   {isMembersAdmin ? (
                     <Link to={`members/${row.memberId}`}>
@@ -431,7 +431,6 @@ const Members = () => {
 
                 <Grid
                   size={{ xs: 12, md: isMembersAdmin ? 2.3 : 'grow' }}
-                  sx={{ minWidth: 0, overflow: 'hidden' }}
                 >
                   {renderRoles(row.roles, roles, i18n.language as MIKLang)}
                 </Grid>
@@ -484,10 +483,10 @@ const renderRoles = (
   return (
     <Stack
       direction='row'
-      spacing={1}
-      display='inline-flex'
+      display='flex'
       sx={{
         flexWrap: 'wrap',
+        gap: '4px',
       }}
     >
       {memberRoles.map((role, index) => (

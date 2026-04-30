@@ -223,7 +223,26 @@
     "nonRenewalsBulkSendReminderSuccess": "Påminnelse skickad till {{count}} member(mar)",
     "nonRenewalsBulkRemove": "Ta bort medlemmar ({{count}})",
     "nonRenewalsBulkRemoveConfirm": "Avaktivera {{count}} valda member(mar)? Detta kan inte ångras.",
-    "nonRenewalsBulkRemoveSuccess": "{{count}} member(mar) avaktiverade"
+    "nonRenewalsBulkRemoveSuccess": "{{count}} member(mar) avaktiverade",
+    "adminInvoices": {
+      "title": "Senaste fakturor",
+      "noInvoices": "Inga fakturor hittades",
+      "date": "Datum",
+      "type": "Typ",
+      "description": "Beskrivning",
+      "total": "Totalt",
+      "status": "Status"
+    },
+    "adminFlights": {
+      "title": "Senaste flygningar",
+      "noFlights": "Inga flygningar hittades",
+      "date": "Datum",
+      "aircraft": "Luftfartyg",
+      "route": "Rutt",
+      "duration": "Varaktighet",
+      "type": "Typ",
+      "status": "Status"
+    }
   },
   "aircraft": {
     "location": "Plats",

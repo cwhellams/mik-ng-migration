@@ -222,7 +222,26 @@
     "nonRenewalsBulkSendReminderSuccess": "Muistutus lähetetty {{count}} jäsenelle",
     "nonRenewalsBulkRemove": "Poista jäsenet ({{count}})",
     "nonRenewalsBulkRemoveConfirm": "Poistetaanko {{count}} valitun jäsenen jäsenyys? Toimintoa ei voi kumota.",
-    "nonRenewalsBulkRemoveSuccess": "{{count}} jäsen(tä) poistettu"
+    "nonRenewalsBulkRemoveSuccess": "{{count}} jäsen(tä) poistettu",
+    "adminInvoices": {
+      "title": "Viimeisimmät laskut",
+      "noInvoices": "Laskuja ei löydy",
+      "date": "Päivämäärä",
+      "type": "Tyyppi",
+      "description": "Kuvaus",
+      "total": "Summa",
+      "status": "Tila"
+    },
+    "adminFlights": {
+      "title": "Viimeisimmät lennot",
+      "noFlights": "Lentoja ei löydy",
+      "date": "Päivämäärä",
+      "aircraft": "Ilma-alus",
+      "route": "Reitti",
+      "duration": "Kesto",
+      "type": "Tyyppi",
+      "status": "Tila"
+    }
   },
   "aircraft": {
     "location": "Sijainti",

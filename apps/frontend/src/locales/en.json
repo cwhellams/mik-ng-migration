@@ -223,7 +223,26 @@
     "nonRenewalsBulkSendReminderSuccess": "Reminder sent to {{count}} member(s)",
     "nonRenewalsBulkRemove": "Remove Members ({{count}})",
     "nonRenewalsBulkRemoveConfirm": "Deactivate {{count}} selected member(s)? This cannot be undone.",
-    "nonRenewalsBulkRemoveSuccess": "{{count}} member(s) deactivated"
+    "nonRenewalsBulkRemoveSuccess": "{{count}} member(s) deactivated",
+    "adminInvoices": {
+      "title": "Recent Invoices",
+      "noInvoices": "No invoices found",
+      "date": "Date",
+      "type": "Type",
+      "description": "Description",
+      "total": "Total",
+      "status": "Status"
+    },
+    "adminFlights": {
+      "title": "Recent Flights",
+      "noFlights": "No flights found",
+      "date": "Date",
+      "aircraft": "Aircraft",
+      "route": "Route",
+      "duration": "Duration",
+      "type": "Type",
+      "status": "Status"
+    }
   },
   "aircraft": {
     "location": "Location",
