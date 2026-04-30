@@ -55,9 +55,11 @@ jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
 }))
 
 const { router } = await import('../../../src/routes/stats/api.ts')
+const { router: timeRouter } = await import('../../../src/routes/time/api.ts')
 
 const app = express()
 app.use('/api/stats', router)
+app.use('/api/time', timeRouter)
 
 describe('Stats API', () => {
   beforeEach(() => {
@@ -629,13 +631,17 @@ describe('Stats API', () => {
       it('should default to current calendar year when no dates provided', async () => {
         mockGetPilotStatistics.mockResolvedValue(mockPilotStats)
 
+        const timeResponse = await request(app).get('/api/time')
+        const serverYear = new Date(
+          (timeResponse.body as { utcIso: string }).utcIso,
+        ).getUTCFullYear()
+
         const response = await request(app).get('/api/stats/pilots')
 
         expect(response.status).toBe(200)
-        const currentYear = new Date().getFullYear()
         expect(mockGetPilotStatistics).toHaveBeenCalledWith({
-          from: `${currentYear}-01-01`,
-          to: `${currentYear}-12-31`,
+          from: `${serverYear}-01-01`,
+          to: `${serverYear}-12-31`,
         })
       })
 
