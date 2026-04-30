@@ -54,6 +54,11 @@
     "title": "Enter your email to receive login link",
     "validEmailRequired": "Please enter a valid email address",
     "submitButton": "Login With Email",
+    "or": "or",
+    "passkey": {
+      "signIn": "Sign in with passkey",
+      "failed": "Passkey sign in failed"
+    },
     "withoutAccount": "Don't have an account?",
     "join": "Sign up",
     "checkYouEmail": "Check your email",
@@ -143,6 +148,20 @@
       "subscribed": "Subscribed",
       "notSubscribed": "Not subscribed",
       "noLists": "No mailing lists configured"
+    },
+    "passkeys": {
+      "title": "Passkeys",
+      "empty": "No passkeys registered. Add one for faster, more secure sign in.",
+      "add": "Add passkey",
+      "remove": "Remove passkey",
+      "unnamed": "Unnamed passkey",
+      "namePrompt": "Give this passkey a name (e.g. 'MacBook Touch ID' or 'YubiKey 5C')",
+      "added": "added",
+      "lastUsed": "last used",
+      "removeConfirm": "Remove passkey \"{{name}}\"? You will not be able to use it to sign in anymore.",
+      "removeAdminConfirm": "Remove passkey \"{{name}}\" for this member? They will not be able to use it to sign in anymore.",
+      "registerFailed": "Could not register passkey",
+      "unsupportedBrowser": "Your browser does not support passkeys."
     },
     "lang": "Language",
     "memberType": "Member Type",

@@ -4,6 +4,7 @@ import {
   TextField,
   Button,
   InputAdornment,
+  Divider,
 } from '@mui/material'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
@@ -16,11 +17,13 @@ import { MIKLang } from '@backend/routes/members/models'
 import LanguageSelector from '../../components/LanguageSelector'
 import { validateInternalPath } from '@backend/util/sanitizers'
 import { TurnstileWidget } from '../../components/TurnstileWidget'
+import { loginWithPasskey, passkeySupported } from '../../utils/passkey'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState('')
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [passkeyLoading, setPasskeyLoading] = useState(false)
 
   const { t, i18n } = useTranslation()
 
@@ -45,6 +48,44 @@ const Login = () => {
     return regex.test(email)
   }
 
+  // Try passkey first; fall back to magic-link email if the user has none.
+  // Returns true if the caller should stop (passkey succeeded or user is
+  // currently being prompted), false if email fallback should be attempted.
+  const tryPasskeyLogin = async (): Promise<boolean> => {
+    if (!passkeySupported()) return false
+    setPasskeyLoading(true)
+    try {
+      const safeTarget = validateInternalPath(location.state?.target)
+      const result = await loginWithPasskey(email)
+      if (result.ok) {
+        navigate(safeTarget)
+        return true
+      }
+      if (result.reason === 'no-passkeys') {
+        // Silently fall back to the email magic-link flow.
+        return false
+      }
+      if (result.reason === 'cancelled') {
+        // User dismissed the prompt — let them retry; do not auto-send email.
+        return true
+      }
+      setEmailError(result.message ?? t('login.passkey.failed'))
+      return true
+    } finally {
+      setPasskeyLoading(false)
+    }
+  }
+
+  const handlePasskeyLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setEmailError('')
+    if (!validateEmail(email)) {
+      setEmailError(t('login.validEmailRequired'))
+      return
+    }
+    await tryPasskeyLogin()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setEmailError('')
@@ -56,6 +97,10 @@ const Login = () => {
 
     // Validate target to prevent open redirect attacks
     const safeTarget = validateInternalPath(location.state?.target)
+
+    // First attempt passkey login. If the user has no passkey we silently
+    // fall through to the email magic-link flow.
+    if (await tryPasskeyLogin()) return
 
     const { data, error } = await trigger({
       email: email,
@@ -120,6 +165,39 @@ const Login = () => {
           disabled={isMutating}
         />
 
+        {passkeySupported() && (
+          <Button
+            type='button'
+            variant='outlined'
+            color='primary'
+            fullWidth
+            size='large'
+            onClick={handlePasskeyLogin}
+            loading={passkeyLoading}
+            startIcon={<Icon icon='mdi:fingerprint' />}
+            sx={{
+              mt: 3,
+              py: 1.5,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 'bold',
+              fontSize: '1rem',
+            }}
+          >
+            {t('login.passkey.signIn')}
+          </Button>
+        )}
+
+        {passkeySupported() && (
+          <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
+            <Divider sx={{ flex: 1 }} />
+            <Typography variant='body2' color='text.secondary' sx={{ mx: 2 }}>
+              {t('login.or')}
+            </Typography>
+            <Divider sx={{ flex: 1 }} />
+          </Box>
+        )}
+
         <Button
           type='submit'
           variant='contained'
@@ -129,7 +207,7 @@ const Login = () => {
           loadingPosition='start'
           loading={isMutating}
           sx={{
-            mt: 3,
+            mt: passkeySupported() ? 0 : 3,
             mb: 2,
             py: 1.5,
             borderRadius: 2,

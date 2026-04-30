@@ -54,6 +54,11 @@
     "title": "Ange din e-post för att få inloggningslänk",
     "validEmailRequired": "Vänligen ange en giltig e-postadress",
     "submitButton": "Logga in med e-post",
+    "or": "eller",
+    "passkey": {
+      "signIn": "Logga in med passnyckel",
+      "failed": "Inloggning med passnyckel misslyckades"
+    },
     "withoutAccount": "Har du inget konto?",
     "join": "Registrera dig",
     "checkYouEmail": "Kontrollera din e-post",
@@ -143,6 +148,20 @@
       "subscribed": "Prenumererad",
       "notSubscribed": "Inte prenumererad",
       "noLists": "Inga e-postlistor konfigurerade"
+    },
+    "passkeys": {
+      "title": "Passnycklar",
+      "empty": "Inga passnycklar registrerade. Lägg till en för snabbare och säkrare inloggning.",
+      "add": "Lägg till passnyckel",
+      "remove": "Ta bort passnyckel",
+      "unnamed": "Namnlös passnyckel",
+      "namePrompt": "Ge passnyckeln ett namn (t.ex. 'MacBook Touch ID' eller 'YubiKey 5C')",
+      "added": "tillagd",
+      "lastUsed": "senast använd",
+      "removeConfirm": "Ta bort passnyckeln \"{{name}}\"? Du kommer inte längre att kunna logga in med den.",
+      "removeAdminConfirm": "Ta bort medlemmens passnyckel \"{{name}}\"? Hen kommer inte längre att kunna logga in med den.",
+      "registerFailed": "Kunde inte registrera passnyckel",
+      "unsupportedBrowser": "Din webbläsare stöder inte passnycklar."
     },
     "lang": "Språk",
     "memberType": "Medlemstyp",

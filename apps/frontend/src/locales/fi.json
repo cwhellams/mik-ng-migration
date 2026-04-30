@@ -53,6 +53,11 @@
     "title": "Kirjaudu sisään sähköpostilinkillä",
     "validEmailRequired": "Anna kelvollinen sähköpostiosoite",
     "submitButton": "Kirjaudu sähköpostilla",
+    "or": "tai",
+    "passkey": {
+      "signIn": "Kirjaudu avainkoodilla",
+      "failed": "Avainkoodilla kirjautuminen epäonnistui"
+    },
     "withoutAccount": "Ei tunnuksia?",
     "join": "Liity jäseneksi",
     "checkYouEmail": "Tarkista sähköpostisi",
@@ -142,6 +147,20 @@
       "subscribed": "Tilattu",
       "notSubscribed": "Ei tilattu",
       "noLists": "Sähköpostilistoja ei ole määritetty"
+    },
+    "passkeys": {
+      "title": "Avainkoodit",
+      "empty": "Ei rekisteröityjä avainkoodeja. Lisää avainkoodi nopeampaa ja turvallisempaa kirjautumista varten.",
+      "add": "Lisää avainkoodi",
+      "remove": "Poista avainkoodi",
+      "unnamed": "Nimeämätön avainkoodi",
+      "namePrompt": "Anna avainkoodille nimi (esim. 'MacBookin Touch ID' tai 'YubiKey 5C')",
+      "added": "lisätty",
+      "lastUsed": "viimeksi käytetty",
+      "removeConfirm": "Poistetaanko avainkoodi \"{{name}}\"? Et voi enää käyttää sitä kirjautumiseen.",
+      "removeAdminConfirm": "Poistetaanko jäsenen avainkoodi \"{{name}}\"? Hän ei voi enää käyttää sitä kirjautumiseen.",
+      "registerFailed": "Avainkoodin rekisteröinti epäonnistui",
+      "unsupportedBrowser": "Selaimesi ei tue avainkoodeja."
     },
     "isTrainingProgramPilot": "Koulutusohjelmaoppilas",
     "lang": "Kieli",
