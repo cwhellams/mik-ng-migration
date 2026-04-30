@@ -238,6 +238,13 @@ describe('Passkey routes', () => {
   })
 
   describe('POST /authentication/options', () => {
+    it('rejects requests without an email', async () => {
+      const res = await request(app).post('/api/auth/passkey/authentication/options').send({})
+
+      expect(res.status).toBe(400)
+      expect(res.body.error).toMatch(/email/i)
+    })
+
     it('returns hasPasskeys=false when the email has no registered passkey', async () => {
       mockGetMemberByEmail.mockResolvedValue({ memberId: 'm1' })
       mockGetPasskeysByMemberId.mockResolvedValue([])

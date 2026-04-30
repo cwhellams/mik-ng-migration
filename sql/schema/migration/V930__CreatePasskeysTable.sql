@@ -57,18 +57,31 @@ CREATE TABLE member.webauthn_challenges (
     email       VARCHAR(100),
 
     -- 'registration' or 'authentication'
-    purpose     VARCHAR(16) NOT NULL,
+    purpose     VARCHAR(16) NOT NULL
+                  CHECK (purpose IN ('registration', 'authentication')),
 
     -- Random base64url-encoded challenge sent to the authenticator
     challenge   TEXT        NOT NULL,
 
     expires_at  TIMESTAMP   NOT NULL,
-    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- At least one principal must be known so the challenge can be claimed.
+    CONSTRAINT webauthn_challenges_principal_required
+      CHECK (member_id IS NOT NULL OR email IS NOT NULL)
 );
 
-CREATE INDEX idx_webauthn_challenges_member_id ON member.webauthn_challenges (member_id);
-CREATE INDEX idx_webauthn_challenges_email     ON member.webauthn_challenges (email);
-CREATE INDEX idx_webauthn_challenges_expires   ON member.webauthn_challenges (expires_at);
+-- Enforce at most one active challenge per (member_id, purpose) and
+-- (email, purpose) so storeChallenge can use ON CONFLICT … DO UPDATE.
+CREATE UNIQUE INDEX idx_webauthn_challenges_member_purpose
+  ON member.webauthn_challenges (member_id, purpose)
+  WHERE member_id IS NOT NULL;
+
+CREATE UNIQUE INDEX idx_webauthn_challenges_email_purpose
+  ON member.webauthn_challenges (email, purpose)
+  WHERE email IS NOT NULL;
+
+CREATE INDEX idx_webauthn_challenges_expires ON member.webauthn_challenges (expires_at);
 
 -- Add the new authentication event types so passkey logins/registrations are
 -- captured in the existing login_events audit log.

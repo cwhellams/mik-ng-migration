@@ -49,9 +49,12 @@ const Login = () => {
   }
 
   // Try passkey first; fall back to magic-link email if the user has none.
-  // Returns true if the caller should stop (passkey succeeded or user is
-  // currently being prompted), false if email fallback should be attempted.
-  const tryPasskeyLogin = async (): Promise<boolean> => {
+  // When `allowEmailFallback` is true (email-submit button), a passkey
+  // cancellation is treated the same as "no passkeys" so the user is not
+  // blocked from using the email flow.
+  const tryPasskeyLogin = async (
+    allowEmailFallback: boolean
+  ): Promise<boolean> => {
     if (!passkeySupported()) return false
     setPasskeyLoading(true)
     try {
@@ -66,8 +69,10 @@ const Login = () => {
         return false
       }
       if (result.reason === 'cancelled') {
-        // User dismissed the prompt — let them retry; do not auto-send email.
-        return true
+        // User dismissed the prompt. If triggered by the email-submit button
+        // fall through to the email flow; if triggered by the passkey button
+        // stay on the page so they can retry.
+        return !allowEmailFallback
       }
       setEmailError(result.message ?? t('login.passkey.failed'))
       return true
@@ -83,7 +88,7 @@ const Login = () => {
       setEmailError(t('login.validEmailRequired'))
       return
     }
-    await tryPasskeyLogin()
+    await tryPasskeyLogin(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,9 +103,9 @@ const Login = () => {
     // Validate target to prevent open redirect attacks
     const safeTarget = validateInternalPath(location.state?.target)
 
-    // First attempt passkey login. If the user has no passkey we silently
-    // fall through to the email magic-link flow.
-    if (await tryPasskeyLogin()) return
+    // First attempt passkey login. If the user has no passkey or cancels the
+    // prompt we silently fall through to the email magic-link flow.
+    if (await tryPasskeyLogin(true)) return
 
     const { data, error } = await trigger({
       email: email,

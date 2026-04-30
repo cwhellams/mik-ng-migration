@@ -154,45 +154,66 @@ export async function storeChallenge(input: {
   purpose: WebAuthnChallengePurpose
   challenge: string
 }): Promise<void> {
-  // Invalidate previous challenges of the same purpose for this principal so
-  // there is no ambiguity when verifying.
+  const expiresAt = new Date(Date.now() + CHALLENGE_TTL_SECONDS * 1000)
+
+  // The table has partial unique indexes on (member_id, purpose) and
+  // (email, purpose), so an INSERT … ON CONFLICT replaces any previous
+  // challenge atomically — no race window between DELETE and INSERT.
   if (input.memberId) {
     await db
-      .deleteFrom('member.webauthn_challenges')
-      .where('member_id', '=', input.memberId)
-      .where('purpose', '=', input.purpose)
+      .insertInto('member.webauthn_challenges')
+      .values({
+        member_id: input.memberId,
+        email: input.email ? input.email.toLowerCase() : null,
+        purpose: input.purpose,
+        challenge: input.challenge,
+        expires_at: expiresAt,
+      })
+      .onConflict(oc =>
+        oc.columns(['member_id', 'purpose']).doUpdateSet({
+          challenge: input.challenge,
+          email: input.email ? input.email.toLowerCase() : null,
+          expires_at: expiresAt,
+          created_at: new Date(),
+        }),
+      )
       .execute()
   } else if (input.email) {
     await db
-      .deleteFrom('member.webauthn_challenges')
-      .where('email', '=', input.email.toLowerCase())
-      .where('purpose', '=', input.purpose)
+      .insertInto('member.webauthn_challenges')
+      .values({
+        member_id: null,
+        email: input.email.toLowerCase(),
+        purpose: input.purpose,
+        challenge: input.challenge,
+        expires_at: expiresAt,
+      })
+      .onConflict(oc =>
+        oc.columns(['email', 'purpose']).doUpdateSet({
+          challenge: input.challenge,
+          expires_at: expiresAt,
+          created_at: new Date(),
+        }),
+      )
       .execute()
   }
-
-  const expiresAt = new Date(Date.now() + CHALLENGE_TTL_SECONDS * 1000)
-  await db
-    .insertInto('member.webauthn_challenges')
-    .values({
-      member_id: input.memberId,
-      email: input.email ? input.email.toLowerCase() : null,
-      purpose: input.purpose,
-      challenge: input.challenge,
-      expires_at: expiresAt,
-    })
-    .execute()
 }
 
 /**
- * Atomically claim and remove the most recent challenge matching the given
- * principal+purpose. Returns the challenge string on success or undefined if
- * no fresh challenge is found.
+ * Atomically claim and remove the challenge matching the given
+ * principal+purpose. The partial unique indexes guarantee at most one row
+ * exists, so a simple DELETE … RETURNING is safe. Returns the challenge
+ * string on success or undefined if no fresh challenge is found.
  */
 export async function claimChallenge(input: {
   memberId: string | null
   email: string | null
   purpose: WebAuthnChallengePurpose
 }): Promise<string | undefined> {
+  if (!input.memberId && !input.email) {
+    return undefined
+  }
+
   let query = db
     .deleteFrom('member.webauthn_challenges')
     .where('purpose', '=', input.purpose)
@@ -200,17 +221,12 @@ export async function claimChallenge(input: {
 
   if (input.memberId) {
     query = query.where('member_id', '=', input.memberId)
-  } else if (input.email) {
-    query = query.where('email', '=', input.email.toLowerCase())
   } else {
-    return undefined
+    query = query.where('email', '=', input.email!.toLowerCase())
   }
 
   const rows = await query.returning('challenge').execute()
-  if (rows.length === 0) return undefined
-  // If multiple rows somehow existed, prefer the latest. Returning order is
-  // undefined for DELETE, so just pick the first.
-  return rows[0].challenge
+  return rows.length > 0 ? rows[0].challenge : undefined
 }
 
 /** Periodic cleanup helper — also called opportunistically during reads. */

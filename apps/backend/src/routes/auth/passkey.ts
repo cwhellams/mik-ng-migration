@@ -24,7 +24,7 @@ import {
   type WebAuthnCredential,
 } from '@simplewebauthn/server'
 
-import { generateJWTUser } from './token.ts'
+import { generateJWTUser, respondWithAccessAndRefreshToken, type JWTUser } from './token.ts'
 import { getMemberByEmail, getMemberById } from '../../db/member-queries.ts'
 import {
   claimChallenge,
@@ -42,9 +42,6 @@ import { createLoginEvent } from '../../db/auth-queries.ts'
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
-import { generateAccessToken, generateRefreshToken, type JWTUser } from './token.ts'
-import dayjs from 'dayjs'
-import ms from 'ms'
 
 export const passkeyRouter = Router()
 export const memberPasskeysRouter = Router({ mergeParams: true })
@@ -70,25 +67,6 @@ function rpConfig(): { rpId: string; rpName: string; origin: string[] } {
     : [url.origin]
 
   return { rpId, rpName, origin: origins }
-}
-
-const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response): void => {
-  res.cookie('refreshToken', generateRefreshToken(user), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    expires: dayjs()
-      .add(ms(process.env.REFRESH_TOKEN_EXPIRATION as ms.StringValue), 'milliseconds')
-      .toDate(),
-    path: '/api/auth/refresh',
-  })
-  res.cookie('accessToken', generateAccessToken(user), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/',
-  })
-  res.json({ ok: true })
 }
 
 // ---------------------------------------------------------------------------
@@ -202,27 +180,26 @@ passkeyRouter.post('/registration/verify', validateUser(), async (req: Request, 
 // ---------------------------------------------------------------------------
 
 passkeyRouter.post('/authentication/options', async (req: Request, res: Response) => {
-  const email = typeof req.body?.email === 'string' ? req.body.email.toLowerCase() : null
+  const email = typeof req.body?.email === 'string' ? req.body.email.toLowerCase().trim() : null
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' })
+  }
   const { rpId } = rpConfig()
 
-  // If an email was provided, look up the member's passkeys and include them
-  // as allowCredentials hints. We deliberately do NOT leak whether the email
-  // exists — if there are no credentials we still issue an options object
-  // (with empty allowCredentials) so the client can attempt usernameless /
-  // discoverable-credential authentication.
+  // Look up the member's passkeys and include them as allowCredentials hints.
+  // We deliberately do NOT leak whether the email exists — if there are no
+  // credentials we still issue an options object (with empty allowCredentials).
   let allowCredentials: { id: string; transports?: AuthenticatorTransportFuture[] }[] = []
   let memberIdForChallenge: string | null = null
 
-  if (email) {
-    const member = await getMemberByEmail(email)
-    if (member) {
-      const passkeys = await getPasskeysByMemberId(member.memberId)
-      allowCredentials = passkeys.map(p => ({
-        id: p.credentialId,
-        transports: p.transports as AuthenticatorTransportFuture[],
-      }))
-      memberIdForChallenge = member.memberId
-    }
+  const member = await getMemberByEmail(email)
+  if (member) {
+    const passkeys = await getPasskeysByMemberId(member.memberId)
+    allowCredentials = passkeys.map(p => ({
+      id: p.credentialId,
+      transports: p.transports as AuthenticatorTransportFuture[],
+    }))
+    memberIdForChallenge = member.memberId
   }
 
   const options = await generateAuthenticationOptions({
