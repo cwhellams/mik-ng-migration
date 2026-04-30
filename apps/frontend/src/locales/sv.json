@@ -76,7 +76,30 @@
     "prices": "Vid medlemskap som fullständig medlem i Malmi Flygklubb läggs en anslutningsavgift på €125 till första säsongens medlemsavgift. Anslutningsavgiften för stödmedlemmar och juniormedlemmar är €25. Rätten att reservera och använda klubbens utrustning kan endast beviljas junior- och fullständiga medlemmar.",
     "submitButton": "Skicka ansökan",
     "withAccount": "Är du redan medlem?",
-    "login": "Logga in"
+    "login": "Logga in",
+    "sectionFlightExperience": "Flygerfarenhet",
+    "totalFlightHours": "Totala flygtimmar",
+    "aircraftTypesFlown": "Flygplanstyper du har flugit",
+    "licenceAndRatings": "Licens och behörigheter du har",
+    "sectionMotivation": "Motivation och om dig",
+    "primaryMotivation": "Primär motivation att gå med i MIK",
+    "motivation_fly": "Flyga",
+    "motivation_learnToFly": "Lära sig flyga",
+    "motivation_community": "Lära känna människor i flyggemenskapen",
+    "motivation_other": "Annat, vänligen specificera",
+    "motivationOtherText": "Vänligen specificera din motivation",
+    "coverLetter": "Berätta om dig själv och dina förhoppningar och förväntningar på klubben",
+    "voluntaryWork": "Är du villig att bidra i klubben via frivilligt arbete? Detta är ett icke-bindande svar, bara bra att veta för klubbstyrelsen vid planering av gemensamma arbetsinsatser (\"talkoo\")",
+    "otherAviationClubs": "Är du för närvarande medlem i några andra flygklubbar i Finland? Om ja, vänligen lista dem",
+    "sectionDeclarations": "Deklarationer",
+    "accidentHistory": "Har du någonsin varit inblandad, som pilot eller besättningsmedlem, i någon rapporterbar flygolycka eller allvarlig incident (enligt EASA/TrafiCom-regler) eller varit föremål för någon officiell flygstandardutredning?",
+    "accidentHistoryDetails": "Vänligen ge en kort beskrivning av händelsen/händelserna, din roll och det slutliga resultatet av eventuell utredning",
+    "criminalRecord": "Har du några ostraffade brottsdomar som är relevanta för din trovärdighet, karaktär eller säker drift av ett flygplan (t.ex. bedrägeri, våldsbrott, narkotikabrott eller flygningsrelaterade regelöverträdelser)?",
+    "criminalRecordDetails": "Vänligen ge detaljer, inklusive brottets art och datum för domen. Not: Enligt finsk lag behöver du i allmänhet inte redovisa preskriberade domar.",
+    "gdprAcceptance": "Genom att skicka in denna ansökan bekräftar jag att uppgifterna som lämnats är sanna och korrekta. Jag förstår att Malmin Ilmailukerho (MIK) kommer att behandla denna känsliga information (inklusive uppgifter om olyckshistorik och brottsredovisning) enbart i syfte att bedöma min lämplighet för medlemskap, säkerställa säkerheten i klubbens verksamhet och i enlighet med MIK:s medlemspolicy och finsk dataskyddslagstiftning. MIK förbehåller sig rätten att verifiera denna information.",
+    "gdprRequired": "Du måste godkänna dataskyddsdeklarationen för att skicka in din ansökan",
+    "yes": "Ja",
+    "no": "Nej"
   },
   "logout": {
     "title": "Utloggad",
@@ -881,8 +904,8 @@
     "nextStepsDescription": "Här är vad som händer härnäst när du blir fullständig medlem i vår flygklubb:",
     "onboardingSteps": {
       "step1": {
-        "title": "Medlemssekreteraren kommer att behandla ansökan",
-        "description": "Vår medlemssekreterare kommer att kontakta dig om det finns några frågor."
+        "title": "Välkomstmeddelande från klubbsekreteraren",
+        "description": "Du har fått ett välkomstmeddelande från klubbens sekreterare. Läs meddelandet noggrant eftersom det innehåller användbara länkar och information om till exempel att hyra ett flygplan eller påbörja resan som elev."
       },
       "step2": {
         "title": "Betalning av medlems- och anmälningsavgifter",
@@ -897,14 +920,10 @@
         "description": "Om tillämpligt, registrera dig för våra studentpilot-utbildningsprogram."
       },
       "step5": {
-        "title": "Introduktion till klubblokalen i Malmi",
-        "description": "Besök våra klubbanläggningar på Malmi flygfält och träffa andra medlemmar."
+        "title": "Delta i en klubb-onsdag i Malmi",
+        "description": "Delta i en klubb-onsdag i Malmi för att träffa andra medlemmar i klubben!"
       },
       "step6": {
-        "title": "Hämta nycklar till klubben",
-        "description": "Få dina klubbens åtkomstnycklar och lär dig om klubbens rutiner."
-      },
-      "step7": {
         "title": "Kontrollflygning med instruktör",
         "description": "Genomför en kontrollflygning med en av våra certifierade flyginstruktörer."
       }

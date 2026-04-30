@@ -10,6 +10,8 @@ import {
   Radio,
   RadioGroup,
   Alert,
+  Divider,
+  Checkbox,
 } from '@mui/material'
 import { DateField } from '@mui/x-date-pickers/DateField'
 import 'dayjs/locale/fi'
@@ -19,7 +21,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { LoginLayout } from './LoginLayout'
 import { LoginResponse, RegisterRequest } from '@backend/routes/auth/schema'
-import { MIKLang, MIKMemberTypes } from '@backend/routes/members/models.ts'
+import {
+  MIKLang,
+  MIKMemberTypes,
+  PrimaryMotivation,
+} from '@backend/routes/members/models.ts'
 import dayjs, { Dayjs } from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import LanguageSelector from '../../components/LanguageSelector'
@@ -47,6 +53,22 @@ const Register = () => {
     dateOfBirth: undefined,
 
     lang: selectedLanguage,
+
+    applicationData: {
+      totalFlightHours: 0,
+      aircraftTypesFlown: '',
+      licenceAndRatings: '',
+      primaryMotivation: PrimaryMotivation.FLY,
+      motivationOther: '',
+      coverLetter: '',
+      voluntaryWork: '',
+      otherAviationClubs: '',
+      accidentHistory: false,
+      accidentHistoryDetails: '',
+      criminalRecord: false,
+      criminalRecordDetails: '',
+      gdprAccepted: false,
+    },
   })
   const [dateOfBirth, setDateOfBirth] = useState<Dayjs | null>(dayjs())
 
@@ -80,6 +102,11 @@ const Register = () => {
       return
     }
 
+    if (!member.applicationData?.gdprAccepted) {
+      setRegisterError(t('register.gdprRequired'))
+      return
+    }
+
     const { data, error } = await trigger({
       ...member,
       turnstileToken: turnstileToken ?? undefined,
@@ -92,6 +119,19 @@ const Register = () => {
     navigate('/login/sent', {
       state: { email: member.email, code: data?.code },
     })
+  }
+
+  const updateApplicationData = (
+    field: string,
+    value: string | number | boolean
+  ) => {
+    setMember((prev) => ({
+      ...prev,
+      applicationData: {
+        ...prev.applicationData!,
+        [field]: value,
+      },
+    }))
   }
 
   return (
@@ -145,10 +185,16 @@ const Register = () => {
           label={t('member.phone')}
           margin='normal'
           value={member.phoneNumber}
-          onChange={(e) =>
-            setMember({ ...member, phoneNumber: e.target.value })
-          }
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9+\s-]/g, '')
+            setMember({ ...member, phoneNumber: value })
+          }}
           required
+          slotProps={{
+            htmlInput: {
+              inputMode: 'tel',
+            },
+          }}
         />
         <TextField
           fullWidth
@@ -165,8 +211,16 @@ const Register = () => {
           label={t('member.postcode')}
           margin='normal'
           value={member.postcode}
-          onChange={(e) => setMember({ ...member, postcode: e.target.value })}
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9]/g, '')
+            setMember({ ...member, postcode: value })
+          }}
           required
+          slotProps={{
+            htmlInput: {
+              inputMode: 'numeric',
+            },
+          }}
         />
         <TextField
           fullWidth
@@ -228,6 +282,254 @@ const Register = () => {
         <Typography variant='body2' color='text.secondary'>
           {t('register.prices')}
         </Typography>
+
+        {/* Flight Experience Section */}
+        <Divider sx={{ my: 3 }} />
+        <Typography variant='h6' sx={{ mb: 1 }}>
+          {t('register.sectionFlightExperience')}
+        </Typography>
+
+        <TextField
+          fullWidth
+          label={t('register.totalFlightHours')}
+          margin='normal'
+          type='number'
+          value={member.applicationData?.totalFlightHours ?? 0}
+          onChange={(e) =>
+            updateApplicationData(
+              'totalFlightHours',
+              Math.max(0, Number(e.target.value))
+            )
+          }
+          required
+          slotProps={{
+            htmlInput: {
+              min: 0,
+              inputMode: 'numeric',
+            },
+          }}
+        />
+        <TextField
+          fullWidth
+          label={t('register.aircraftTypesFlown')}
+          margin='normal'
+          value={member.applicationData?.aircraftTypesFlown ?? ''}
+          onChange={(e) =>
+            updateApplicationData('aircraftTypesFlown', e.target.value)
+          }
+          required
+        />
+        <TextField
+          fullWidth
+          label={t('register.licenceAndRatings')}
+          margin='normal'
+          value={member.applicationData?.licenceAndRatings ?? ''}
+          onChange={(e) =>
+            updateApplicationData('licenceAndRatings', e.target.value)
+          }
+          required
+        />
+
+        {/* Motivation Section */}
+        <Divider sx={{ my: 3 }} />
+        <Typography variant='h6' sx={{ mb: 1 }}>
+          {t('register.sectionMotivation')}
+        </Typography>
+
+        <FormControl sx={{ mt: 1, mb: 1 }}>
+          <FormLabel id='motivation-label'>
+            {t('register.primaryMotivation')}
+          </FormLabel>
+          <RadioGroup
+            aria-labelledby='motivation-label'
+            value={member.applicationData?.primaryMotivation ?? ''}
+            onChange={({ target }) =>
+              updateApplicationData(
+                'primaryMotivation',
+                target.value as PrimaryMotivation
+              )
+            }
+          >
+            <FormControlLabel
+              value={PrimaryMotivation.FLY}
+              control={<Radio />}
+              label={t('register.motivation_fly')}
+            />
+            <FormControlLabel
+              value={PrimaryMotivation.LEARN_TO_FLY}
+              control={<Radio />}
+              label={t('register.motivation_learnToFly')}
+            />
+            <FormControlLabel
+              value={PrimaryMotivation.COMMUNITY}
+              control={<Radio />}
+              label={t('register.motivation_community')}
+            />
+            <FormControlLabel
+              value={PrimaryMotivation.OTHER}
+              control={<Radio />}
+              label={t('register.motivation_other')}
+            />
+          </RadioGroup>
+        </FormControl>
+
+        {member.applicationData?.primaryMotivation ===
+          PrimaryMotivation.OTHER && (
+          <TextField
+            fullWidth
+            label={t('register.motivationOtherText')}
+            margin='normal'
+            value={member.applicationData?.motivationOther ?? ''}
+            onChange={(e) =>
+              updateApplicationData('motivationOther', e.target.value)
+            }
+            required
+          />
+        )}
+
+        <TextField
+          fullWidth
+          label={t('register.coverLetter')}
+          margin='normal'
+          value={member.applicationData?.coverLetter ?? ''}
+          onChange={(e) => updateApplicationData('coverLetter', e.target.value)}
+          required
+          multiline
+          minRows={3}
+        />
+
+        <TextField
+          fullWidth
+          label={t('register.voluntaryWork')}
+          margin='normal'
+          value={member.applicationData?.voluntaryWork ?? ''}
+          onChange={(e) =>
+            updateApplicationData('voluntaryWork', e.target.value)
+          }
+          required
+          multiline
+          minRows={2}
+        />
+
+        <TextField
+          fullWidth
+          label={t('register.otherAviationClubs')}
+          margin='normal'
+          value={member.applicationData?.otherAviationClubs ?? ''}
+          onChange={(e) =>
+            updateApplicationData('otherAviationClubs', e.target.value)
+          }
+          multiline
+          minRows={2}
+        />
+
+        {/* Declarations Section */}
+        <Divider sx={{ my: 3 }} />
+        <Typography variant='h6' sx={{ mb: 1 }}>
+          {t('register.sectionDeclarations')}
+        </Typography>
+
+        <FormControl sx={{ mt: 1, mb: 1 }}>
+          <FormLabel id='accident-history-label'>
+            {t('register.accidentHistory')}
+          </FormLabel>
+          <RadioGroup
+            aria-labelledby='accident-history-label'
+            value={
+              member.applicationData?.accidentHistory === true ? 'yes' : 'no'
+            }
+            onChange={({ target }) =>
+              updateApplicationData('accidentHistory', target.value === 'yes')
+            }
+          >
+            <FormControlLabel
+              value='no'
+              control={<Radio />}
+              label={t('register.no')}
+            />
+            <FormControlLabel
+              value='yes'
+              control={<Radio />}
+              label={t('register.yes')}
+            />
+          </RadioGroup>
+        </FormControl>
+
+        {member.applicationData?.accidentHistory && (
+          <TextField
+            fullWidth
+            label={t('register.accidentHistoryDetails')}
+            margin='normal'
+            value={member.applicationData?.accidentHistoryDetails ?? ''}
+            onChange={(e) =>
+              updateApplicationData('accidentHistoryDetails', e.target.value)
+            }
+            required
+            multiline
+            minRows={2}
+          />
+        )}
+
+        <FormControl sx={{ mt: 1, mb: 1 }}>
+          <FormLabel id='criminal-record-label'>
+            {t('register.criminalRecord')}
+          </FormLabel>
+          <RadioGroup
+            aria-labelledby='criminal-record-label'
+            value={
+              member.applicationData?.criminalRecord === true ? 'yes' : 'no'
+            }
+            onChange={({ target }) =>
+              updateApplicationData('criminalRecord', target.value === 'yes')
+            }
+          >
+            <FormControlLabel
+              value='no'
+              control={<Radio />}
+              label={t('register.no')}
+            />
+            <FormControlLabel
+              value='yes'
+              control={<Radio />}
+              label={t('register.yes')}
+            />
+          </RadioGroup>
+        </FormControl>
+
+        {member.applicationData?.criminalRecord && (
+          <TextField
+            fullWidth
+            label={t('register.criminalRecordDetails')}
+            margin='normal'
+            value={member.applicationData?.criminalRecordDetails ?? ''}
+            onChange={(e) =>
+              updateApplicationData('criminalRecordDetails', e.target.value)
+            }
+            required
+            multiline
+            minRows={2}
+          />
+        )}
+
+        {/* GDPR Section */}
+        <Divider sx={{ my: 3 }} />
+
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={member.applicationData?.gdprAccepted ?? false}
+              onChange={(e) =>
+                updateApplicationData('gdprAccepted', e.target.checked)
+              }
+            />
+          }
+          label={
+            <Typography variant='body2'>
+              {t('register.gdprAcceptance')}
+            </Typography>
+          }
+          sx={{ alignItems: 'flex-start', mt: 1 }}
+        />
 
         <TurnstileWidget
           onSuccess={(token) => setTurnstileToken(token)}

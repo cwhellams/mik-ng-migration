@@ -8,6 +8,7 @@ import type { JWTUser } from '../routes/auth/token.ts'
 import {
   MIKLang,
   MIKMemberTypes,
+  type ApplicationData,
   MIKPermissions,
   type InvoiceMember,
   type Member,
@@ -102,6 +103,7 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
 
     lang: member.lang_iso639 as MIKLang,
     mailingLists: (member.mailing_lists as string[] | null) ?? undefined,
+    applicationData: (member.application_data as ApplicationData | null) ?? undefined,
     roles: roles,
   }
 }
@@ -296,6 +298,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       medical_expiry_date: member.medicalExpiry,
 
       lang_iso639: member.lang,
+      application_data: member.applicationData ? JSON.stringify(member.applicationData) : undefined,
       created_at: now,
       created_by: jwt?.memberId ?? new_member_id,
       updated_at: now,

@@ -1,6 +1,11 @@
 import { z } from 'zod'
 
-import { MemberProfileSchema, MIKLang, MIKMemberTypes } from '../members/models.ts'
+import {
+  ApplicationDataSchema,
+  MemberProfileSchema,
+  MIKLang,
+  MIKMemberTypes,
+} from '../members/models.ts'
 
 // register
 
@@ -16,6 +21,9 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
 
   // optional turnstile token for bot protection
   turnstileToken: z.string().optional(),
+
+  // application data for membership review
+  applicationData: ApplicationDataSchema.optional(),
 })
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 

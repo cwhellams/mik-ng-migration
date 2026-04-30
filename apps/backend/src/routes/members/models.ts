@@ -171,6 +171,31 @@ export type MemberListResponse = z.infer<typeof MemberListResponseSchema>
 
 // member details endpoint
 
+export enum PrimaryMotivation {
+  FLY = 'fly',
+  LEARN_TO_FLY = 'learnToFly',
+  COMMUNITY = 'community',
+  OTHER = 'other',
+}
+
+export const ApplicationDataSchema = z.object({
+  totalFlightHours: z.number().min(0),
+  aircraftTypesFlown: z.string().min(1),
+  licenceAndRatings: z.string().min(1),
+  primaryMotivation: z.nativeEnum(PrimaryMotivation),
+  motivationOther: z.string().optional(),
+  coverLetter: z.string().min(1),
+  voluntaryWork: z.string().min(1),
+  otherAviationClubs: z.string().optional(),
+  accidentHistory: z.boolean(),
+  accidentHistoryDetails: z.string().optional(),
+  criminalRecord: z.boolean(),
+  criminalRecordDetails: z.string().optional(),
+  gdprAccepted: z.boolean(),
+})
+
+export type ApplicationData = z.infer<typeof ApplicationDataSchema>
+
 export const MemberSchema = AuditableSchema.extend({
   memberId: z.string(),
   memberType: z.nativeEnum(MIKMemberTypes),
@@ -224,6 +249,7 @@ export const MemberSchema = AuditableSchema.extend({
   autoRenewEquipmentFee: z.boolean().nullable().optional(),
   isMembershipExpired: z.boolean().nullable().optional(),
   mailingLists: z.array(z.string()).nullish(),
+  applicationData: ApplicationDataSchema.nullish(),
 })
 
 export type Member = z.infer<typeof MemberSchema>
