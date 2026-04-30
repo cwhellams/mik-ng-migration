@@ -20,6 +20,7 @@ import {
 } from './models.ts'
 import {
   getMemberById,
+  getMemberByEmail,
   getAllMemberRoles,
   getMembers,
   updateMember,
@@ -70,7 +71,7 @@ import {
   newMemberEmailBodyHtml,
 } from '../../templates/newMemberEmailTemplate.ts'
 import { SimplbooksEventType } from '../../services/simplbooks/models.ts'
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { z } from 'zod'
 import {
   addContactToMailingList,
@@ -81,6 +82,16 @@ import { getMemberForBrevoSync } from '../../db/brevo-sync-queries.ts'
 import logger from '../../lib/logger.ts'
 import { removeMemberFromBrevo } from '../../workers/brevoSyncWorker.ts'
 import { getCurrentYear } from '../../services/simplbooks/simplbooksOutboxHandler.ts'
+import { generateMagicLinkToken } from '../auth/magiclink.ts'
+import {
+  createPendingEmailChange,
+  claimPendingEmailChangeByTokenHash,
+} from '../../db/email-change-queries.ts'
+import {
+  emailChangeVerifySubject,
+  emailChangeVerifyBodyHtml,
+} from '../../templates/emailChangeVerifyTemplate.ts'
+import dayjs from 'dayjs'
 
 export const router = Router()
 
@@ -254,6 +265,94 @@ router.patch('/me/lang', validateUser(), async (req: Request, res: Response): Pr
   await updateMemberLang(req.user?.memberId!, validatedLang, req.user!)
   res.sendStatus(200)
 })
+
+// Email change request — sends verification email to the new address
+const EmailChangeRequestSchema = z.object({
+  newEmail: z.string().email(),
+})
+
+router.post(
+  '/me/email-change/request',
+  validateUser(),
+  async (req: Request, res: Response): Promise<void> => {
+    const { newEmail } = EmailChangeRequestSchema.parse(req.body)
+    const normalizedEmail = newEmail.toLowerCase()
+
+    const member = await getMemberById(req.user!.memberId)
+    if (!member) {
+      res.status(404).json(problem({ status: 404, detail: 'Member not found' }))
+      return
+    }
+
+    if (normalizedEmail === member.email) {
+      res.status(400).json(problem({ status: 400, detail: 'New email is the same as current email' }))
+      return
+    }
+
+    const existing = await getMemberByEmail(normalizedEmail)
+    if (existing) {
+      res.status(409).json(problem({ status: 409, detail: 'Email already in use' }))
+      return
+    }
+
+    const { token, tokenHash } = generateMagicLinkToken()
+    const expiresAt = dayjs().add(15, 'minutes').toDate()
+
+    await createPendingEmailChange(req.user!.memberId, normalizedEmail, tokenHash, expiresAt)
+
+    const href = `${process.env.PUBLIC_URL}/profile/email-change/verify?token=${token}`
+
+    sendEmail(
+      normalizedEmail,
+      emailChangeVerifySubject(member.lang),
+      emailChangeVerifyBodyHtml(member.lang, {
+        firstName: member.firstName,
+        newEmail: normalizedEmail,
+        href,
+      }),
+    )
+
+    logger.info('Email change verification sent to %s for member %s', normalizedEmail, member.memberId)
+
+    res.sendStatus(204)
+  },
+)
+
+// Email change verification — applies the email change after token verification
+router.post(
+  '/me/email-change/verify',
+  validateUser(),
+  async (req: Request, res: Response<Member>): Promise<void> => {
+    const raw: unknown = req.body.token
+    if (typeof raw !== 'string' || !raw) {
+      res.status(400).json(problem({ status: 400, detail: 'Token is required' }))
+      return
+    }
+
+    const tokenHash = createHash('sha256').update(raw).digest('hex')
+    const claimed = await claimPendingEmailChangeByTokenHash(tokenHash)
+
+    if (!claimed) {
+      res.status(401).json(problem({ status: 401, detail: 'Invalid or expired verification link' }))
+      return
+    }
+
+    if (claimed.member_id !== req.user!.memberId) {
+      logger.warn(
+        'Email change token member mismatch: token for %s but used by %s',
+        claimed.member_id,
+        req.user!.memberId,
+      )
+      res.status(403).json(problem({ status: 403, detail: 'Token does not belong to this user' }))
+      return
+    }
+
+    await updateMember(req.user!.memberId, { email: claimed.new_email }, req.user!)
+
+    const member = await getMemberById(req.user!.memberId)
+    res.status(200).json(member)
+  },
+)
 
 // returns the available mailing lists configured via AIRCRAFT_MAILING_LISTS env var
 router.get(
