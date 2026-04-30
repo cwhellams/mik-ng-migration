@@ -766,6 +766,7 @@ export interface ScheduleBookings {
   description: string | null
   end_time_epoch: Int8
   end_time_utc: Generated<Timestamp>
+  instructor_member_id: string | null
   member_id: string
   registration: string
   start_time_epoch: Int8

@@ -1011,10 +1011,12 @@
       "disablePast": "Date/time cannot be in the past",
       "minutesStep": "Please use 15-minute increments",
       "invalidDateTime": "Invalid date/time",
-      "endAfterStart": "End time must be after start time"
+      "endAfterStart": "End time must be after start time",
+      "instructorRequired": "Instructor / FE is required for training bookings"
     },
     "bookingOverlapError": "Booking overlaps with existing booking",
     "owner": "Owner",
+    "instructor": "Instructor / FE",
     "created": "Created",
     "updated": "Updated",
     "cancelled": "Cancelled",

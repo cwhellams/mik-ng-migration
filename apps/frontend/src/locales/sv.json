@@ -983,10 +983,12 @@
       "disablePast": "Datum/tid kan inte vara i det förflutna",
       "minutesStep": "Vänligen använd 15-minuters intervall",
       "invalidDateTime": "Ogiltigt datum/tid",
-      "endAfterStart": "Sluttiden måste vara efter starttiden"
+      "endAfterStart": "Sluttiden måste vara efter starttiden",
+      "instructorRequired": "Instruktör / FE krävs för träningsbokningar"
     },
     "bookingOverlapError": "Bokningen överlappar med befintlig bokning",
     "owner": "Ägare",
+    "instructor": "Instruktör / FE",
     "created": "Skapad",
     "updated": "Uppdaterad",
     "cancelled": "Avbokad",

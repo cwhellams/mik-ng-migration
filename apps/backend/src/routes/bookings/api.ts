@@ -3,6 +3,7 @@ import { Router, type Request, type Response } from 'express'
 import {
   BookingFiltersSchema,
   BookingStatus,
+  BookingType,
   BookingUpsertSchema,
   type Booking,
   type BookingFilters,
@@ -23,7 +24,7 @@ import {
 } from '../../db/booking-queries.ts'
 import dayjs from 'dayjs'
 import { sendEmail } from '../../lib/sendGmail.ts'
-import { getMemberById } from '../../db/member-queries.ts'
+import { getMemberById, getMemberRolesByMemberId } from '../../db/member-queries.ts'
 import {
   bookingCancelledEmailBodyHtml,
   bookingCancelledEmailSubject,
@@ -56,6 +57,9 @@ router.post('/', async (req: Request, res: Response) => {
   if (!isAdmin && req.user?.canMakeReservations !== true) {
     return problem({ status: 400, detail: 'Reservations suspended' })
   }
+
+  const instructorError = await validateInstructor(data.type, data.instructorMemberId)
+  if (instructorError) return instructorError
 
   await clearOverlappingBookings(
     {
@@ -136,12 +140,40 @@ router.get('/:id', async (req: Request, res: Response) => {
   res.status(200).json(booking)
 })
 
-const validateWriteAccess = (booking: Pick<Booking, 'memberId'>, req: Request) => {
-  // Check if the booking is owned by the user or the user is not a booking admin
-  if (booking.memberId !== req.user?.memberId && !isBookingAdmin(req.user)) {
+const validateWriteAccess = (
+  booking: Pick<Booking, 'memberId' | 'instructorMemberId'>,
+  req: Request,
+) => {
+  // Check if the booking is owned by the user, user is the assigned instructor, or user is a booking admin
+  const isOwner = booking.memberId === req.user?.memberId
+  const isAssignedInstructor =
+    !!booking.instructorMemberId && booking.instructorMemberId === req.user?.memberId
+  if (!isOwner && !isAssignedInstructor && !isBookingAdmin(req.user)) {
     return problem({
       status: 403,
       detail: 'Booking not owned by user or user has no admin rights',
+    })
+  }
+}
+
+const INSTRUCTOR_ROLES = ['INSTRUCTOR', 'EXAMINER']
+
+const validateInstructor = async (
+  type: BookingType,
+  instructorMemberId: string | null | undefined,
+) => {
+  if (type !== BookingType.TRAINING) {
+    return
+  }
+  if (!instructorMemberId) {
+    return problem({ status: 400, detail: 'Instructor is required for training bookings' })
+  }
+  const roles = await getMemberRolesByMemberId(instructorMemberId)
+  const hasInstructorRole = roles.some((role) => INSTRUCTOR_ROLES.includes(role.roleId))
+  if (!hasInstructorRole) {
+    return problem({
+      status: 400,
+      detail: 'Instructor must have INSTRUCTOR or EXAMINER role',
     })
   }
 }
@@ -215,6 +247,13 @@ router.patch('/:id', async (req: Request, res: Response) => {
       return problem({ status: 400, detail: 'Reservations suspended' })
     }
   }
+
+  // Validate instructor requirement: use patched type/instructor or fall back to existing booking values
+  const effectiveType = patch.type ?? booking.type
+  const effectiveInstructorMemberId =
+    patch.instructorMemberId !== undefined ? patch.instructorMemberId : booking.instructorMemberId
+  const instructorError = await validateInstructor(effectiveType, effectiveInstructorMemberId)
+  if (instructorError) return instructorError
 
   await clearOverlappingBookings(
     {

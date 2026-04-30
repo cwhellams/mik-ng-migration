@@ -982,10 +982,12 @@
       "disablePast": "Päivämäärä/aika ei voi olla menneisyydessä",
       "minutesStep": "Käytä 15 minuutin askelia",
       "invalidDateTime": "Virheellinen päivämäärä/aika",
-      "endAfterStart": "Loppuaika on oltava aloitusajan jälkeen"
+      "endAfterStart": "Loppuaika on oltava aloitusajan jälkeen",
+      "instructorRequired": "Lentokouluttaja / FE vaaditaan koululennoille"
     },
     "bookingOverlapError": "Päällekkäisyys toiseen varaukseen",
     "owner": "Omistaja",
+    "instructor": "Lentokouluttaja / FE",
     "created": "Luotu",
     "updated": "Päivitetty",
     "cancelled": "Peruutettu",

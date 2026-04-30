@@ -109,6 +109,12 @@ describe('GET /bookings/bookingId', () => {
       createdBy: 'Liisa1',
       endTime: expect.any(String),
       endTimeEpoch: expect.any(String),
+      instructor: {
+        firstName: expect.any(String),
+        lastName: expect.any(String),
+        phoneNumber: expect.any(String),
+      },
+      instructorMemberId: expect.any(String),
       member: {
         firstName: expect.any(String),
         lastName: expect.any(String),
@@ -159,10 +165,17 @@ describe('POST /bookings', () => {
     memberId: userId,
     registration: 'OH-IHQ',
     status: BookingStatus.CONFIRMED,
-    type: BookingType.TRAINING,
+    type: BookingType.PRACTICE,
     description: 'API booking',
     startTimeEpoch: startTime.unix().toString(),
     endTimeEpoch: startTime.add(15, 'minutes').unix().toString(),
+  }
+
+  // Matti1 has INSTRUCTOR role in test data
+  const trainingPayload: BookingUpsertRequest = {
+    ...payload,
+    type: BookingType.TRAINING,
+    instructorMemberId: userId, // Matti1 has INSTRUCTOR role
   }
 
   it('should create a booking with valid payload, return booking_id and be deleted using the returned id', async () => {
@@ -297,6 +310,61 @@ describe('POST /bookings', () => {
     expect(response.status).toBe(400)
     expect(response.body.errors).toBeDefined()
     expect(response.body.errors[0].message).toMatch(/Required/)
+  })
+
+  it('should return 400 when creating TRAINING booking without instructor', async () => {
+    const response = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ ...payload, type: BookingType.TRAINING })
+
+    expect(response.status).toBe(400)
+    expect(response.body.detail).toEqual('Instructor is required for training bookings')
+  })
+
+  it('should return 400 when creating TRAINING booking with non-instructor member', async () => {
+    // Pekka1 (adminMemberId) does not have INSTRUCTOR or EXAMINER role
+    const response = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ ...payload, type: BookingType.TRAINING, instructorMemberId: 'Pekka1' })
+
+    expect(response.status).toBe(400)
+    expect(response.body.detail).toEqual('Instructor must have INSTRUCTOR or EXAMINER role')
+  })
+
+  it('should create a TRAINING booking with a valid instructor', async () => {
+    const response = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(trainingPayload)
+
+    expect(response.status).toBe(201)
+    expect(response.body.bookingId).toBeDefined()
+    expect(response.body.instructorMemberId).toBe(userId)
+
+    // Cleanup
+    const delResponse = await request(app)
+      .delete(`/bookings/${response.body.bookingId}`)
+      .set('Cookie', `accessToken=${userToken}`)
+    expect(delResponse.status).toBe(204)
+  })
+
+  it('should allow assigned instructor to delete their training booking', async () => {
+    // Admin creates a booking where Antti1 is the member and userId (Matti1) is the instructor
+    const adminCreateResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ ...trainingPayload, memberId: 'Antti1', instructorMemberId: userId })
+
+    expect(adminCreateResponse.status).toBe(201)
+    const bookingId = adminCreateResponse.body.bookingId
+
+    // userId (Matti1) is the assigned instructor and should be able to delete
+    const delResponse = await request(app)
+      .delete(`/bookings/${bookingId}`)
+      .set('Cookie', `accessToken=${userToken}`)
+    expect(delResponse.status).toBe(204)
   })
 })
 
