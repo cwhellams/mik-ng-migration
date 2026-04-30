@@ -1452,7 +1452,12 @@
       "pilotCountAxis": "Number of Pilots",
       "hours": "hrs",
       "airports": "airports",
-      "noData": "No data for selected period"
+      "noData": "No data for selected period",
+      "timezone": {
+        "label": "Time Zone",
+        "local": "Local",
+        "utc": "UTC"
+      }
     }
   }
 }

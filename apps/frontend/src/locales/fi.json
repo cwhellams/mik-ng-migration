@@ -1422,7 +1422,12 @@
       "pilotCountAxis": "Lentäjien määrä",
       "hours": "h",
       "airports": "lentokenttää",
-      "noData": "Ei tietoja valitulle jaksolle"
+      "noData": "Ei tietoja valitulle jaksolle",
+      "timezone": {
+        "label": "Aikavyöhyke",
+        "local": "Paikallinen",
+        "utc": "UTC"
+      }
     }
   }
 }

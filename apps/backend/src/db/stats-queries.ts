@@ -440,7 +440,7 @@ const buildHistogram = (values: number[], binSize: number): PilotStatisticsHisto
     const binTo = (i + 1) * binSize
     const isLastBin = i === numBins - 1
     const pilotCount = values.filter(
-      (v) => v >= binFrom && (isLastBin ? v <= binTo : v < binTo),
+      v => v >= binFrom && (isLastBin ? v <= binTo : v < binTo),
     ).length
     bins.push({ binFrom, binTo, pilotCount })
   }

@@ -1389,7 +1389,12 @@
       "pilotCountAxis": "Antal piloter",
       "hours": "tim",
       "airports": "flygplatser",
-      "noData": "Ingen data för vald period"
+      "noData": "Ingen data för vald period",
+      "timezone": {
+        "label": "Tidszon",
+        "local": "Lokal",
+        "utc": "UTC"
+      }
     }
   }
 }

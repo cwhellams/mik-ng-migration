@@ -16,13 +16,18 @@ import { useThemeMode } from '../../../theme/ThemeContext'
 import { RemoteContent } from '../../../components/RemoteContent'
 import type { PilotStatistics as PilotStatisticsType } from '@backend/routes/stats/models'
 import { useTranslation } from 'react-i18next'
+import { dayjs } from '../../../utils/date'
 
 type DatePreset = 'currentYear' | 'previousYear' | 'last12months' | 'custom'
+type Timezone = 'local' | 'utc'
 
-const getPresetRange = (preset: DatePreset): { from: string; to: string } => {
-  const now = new Date()
-  const currentYear = now.getFullYear()
-  const today = now.toISOString().split('T')[0]
+const getPresetRange = (
+  preset: DatePreset,
+  tz: Timezone
+): { from: string; to: string } => {
+  const now = tz === 'utc' ? dayjs.utc() : dayjs()
+  const currentYear = now.year()
+  const today = now.format('YYYY-MM-DD')
 
   switch (preset) {
     case 'currentYear':
@@ -33,10 +38,8 @@ const getPresetRange = (preset: DatePreset): { from: string; to: string } => {
         to: `${currentYear - 1}-12-31`,
       }
     case 'last12months': {
-      const d = new Date(now)
-      d.setFullYear(d.getFullYear() - 1)
-      d.setDate(d.getDate() + 1)
-      return { from: d.toISOString().split('T')[0], to: today }
+      const fromDate = now.subtract(1, 'year').add(1, 'day')
+      return { from: fromDate.format('YYYY-MM-DD'), to: today }
     }
     default:
       return { from: `${currentYear}-01-01`, to: `${currentYear}-12-31` }
@@ -77,6 +80,7 @@ export const PilotStatistics = () => {
   const { mode } = useThemeMode()
 
   const [preset, setPreset] = useState<DatePreset>('currentYear')
+  const [timezone, setTimezone] = useState<Timezone>('local')
   const [customFrom, setCustomFrom] = useState<Dayjs | null>(null)
   const [customTo, setCustomTo] = useState<Dayjs | null>(null)
 
@@ -87,8 +91,8 @@ export const PilotStatistics = () => {
         to: customTo.format('YYYY-MM-DD'),
       }
     }
-    return getPresetRange(preset)
-  }, [preset, customFrom, customTo])
+    return getPresetRange(preset, timezone)
+  }, [preset, customFrom, customTo, timezone])
 
   const nivoTheme = useMemo(
     () => ({
@@ -198,6 +202,27 @@ export const PilotStatistics = () => {
                 {t('stats.pilots.presets.custom')}
               </ToggleButton>
             </ToggleButtonGroup>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              <Typography variant='caption' color='text.secondary'>
+                {t('stats.pilots.timezone.label')}
+              </Typography>
+              <ToggleButtonGroup
+                value={timezone}
+                exclusive
+                onChange={(_, value) => {
+                  if (value) setTimezone(value as Timezone)
+                }}
+                size='small'
+              >
+                <ToggleButton value='local'>
+                  {t('stats.pilots.timezone.local')}
+                </ToggleButton>
+                <ToggleButton value='utc'>
+                  {t('stats.pilots.timezone.utc')}
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
 
             {preset === 'custom' && (
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
