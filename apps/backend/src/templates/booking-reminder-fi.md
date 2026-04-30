@@ -2,7 +2,7 @@
 
 Hei {{firstName}},
 
-Muistutuksena, sinulla on varaus koneelle {{registration}} alkaa {{bookingTime}}.
+Muistutuksena, varauksesi koneelle {{registration}} alkaa {{bookingTime}}.
 
 [Lisää Google-kalenteriin]({{{calendarLink}}})
 

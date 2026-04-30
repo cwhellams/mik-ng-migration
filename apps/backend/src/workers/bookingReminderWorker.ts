@@ -89,7 +89,7 @@ export async function sendBookingReminders(sendEmailFn: typeof sendEmail): Promi
           `Sending booking reminder email for booking ${booking.bookingId} to ${member.email} (${member.lang})`,
         )
 
-        sendEmailFn(
+        await sendEmailFn(
           member.email,
           bookingReminderEmailSubject(member.lang),
           bookingReminderEmailBodyHtml(member.lang, member.firstName, booking),
