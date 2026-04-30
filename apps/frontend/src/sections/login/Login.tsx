@@ -74,6 +74,10 @@ const Login = () => {
         // stay on the page so they can retry.
         return !allowEmailFallback
       }
+      if (result.reason === 'options-failed') {
+        setEmailError(t('login.passkey.startFailed'))
+        return true
+      }
       setEmailError(result.message ?? t('login.passkey.failed'))
       return true
     } finally {

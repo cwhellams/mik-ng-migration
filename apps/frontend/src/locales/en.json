@@ -57,6 +57,7 @@
     "or": "or",
     "passkey": {
       "signIn": "Sign in with passkey",
+      "startFailed": "Could not start passkey login",
       "failed": "Passkey sign in failed"
     },
     "withoutAccount": "Don't have an account?",

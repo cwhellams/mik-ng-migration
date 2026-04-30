@@ -22,7 +22,7 @@ export type PasskeyLoginResult =
   | { ok: true }
   | {
       ok: false
-      reason: 'no-passkeys' | 'cancelled' | 'failed'
+      reason: 'no-passkeys' | 'cancelled' | 'options-failed' | 'failed'
       message?: string
     }
 
@@ -56,11 +56,7 @@ export async function loginWithPasskey(
     }>('/auth/passkey/authentication/options', { email })
     optionsResp = r.data
   } catch {
-    return {
-      ok: false,
-      reason: 'failed',
-      message: 'Could not start passkey login',
-    }
+    return { ok: false, reason: 'options-failed' }
   }
 
   if (!optionsResp.hasPasskeys) {
@@ -83,7 +79,7 @@ export async function loginWithPasskey(
       response: assertion,
     })
   } catch {
-    return { ok: false, reason: 'failed', message: 'Passkey login failed' }
+    return { ok: false, reason: 'failed' }
   }
 
   return { ok: true }

@@ -57,6 +57,7 @@
     "or": "eller",
     "passkey": {
       "signIn": "Logga in med passnyckel",
+      "startFailed": "Kunde inte starta inloggning med passnyckel",
       "failed": "Inloggning med passnyckel misslyckades"
     },
     "withoutAccount": "Har du inget konto?",
