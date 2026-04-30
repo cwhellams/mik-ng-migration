@@ -248,6 +248,60 @@ export const cancelBooking = async (
 }
 
 /**
+ * Get upcoming bookings that need a reminder email sent.
+ * Returns bookings with CONFIRMED or TENTATIVE status where start_time_epoch
+ * is between now+23h and now+25h (2-hour window centered on 24h ahead),
+ * and no reminder has been sent yet.
+ */
+export const getUpcomingBookingsNeedingReminder = async (): Promise<Booking[]> => {
+  const windowStart = dayjs().add(23, 'hour').unix().toString()
+  const windowEnd = dayjs().add(25, 'hour').unix().toString()
+
+  const results = await connection.db
+    .selectFrom('schedule.bookings')
+    .selectAll(['schedule.bookings'])
+    .innerJoin('member.register', 'schedule.bookings.member_id', 'member.register.member_id')
+    .select([
+      'member.register.first_name',
+      'member.register.last_name',
+      'member.register.phone_number',
+    ])
+    .leftJoin(
+      'member.register as instr',
+      'instr.member_id',
+      'schedule.bookings.instructor_member_id',
+    )
+    .select([
+      sql<string | null>`instr.first_name`.as('instructor_first_name'),
+      sql<string | null>`instr.last_name`.as('instructor_last_name'),
+      sql<string | null>`instr.phone_number`.as('instructor_phone_number'),
+    ])
+    .where('start_time_epoch', '>=', windowStart)
+    .where('start_time_epoch', '<=', windowEnd)
+    .where(eb =>
+      eb.or([
+        eb('booking_status', '=', BookingStatus.CONFIRMED),
+        eb('booking_status', '=', BookingStatus.TENTATIVE),
+      ]),
+    )
+    .where('reminder_sent_at', 'is', null)
+    .execute()
+
+  return results.map(mapResultToBooking)
+}
+
+/**
+ * Mark a booking's reminder as sent by setting reminder_sent_at to the current timestamp.
+ */
+export const markBookingReminderSent = async (bookingId: string): Promise<void> => {
+  await connection.db
+    .updateTable('schedule.bookings')
+    .set({ reminder_sent_at: new Date().toISOString() })
+    .where('booking_id', '=', bookingId)
+    .execute()
+}
+
+/**
  * Cancel all future bookings for a member
  * Cancels bookings with status TENTATIVE or CONFIRMED where start_time_epoch >= current epoch
  */

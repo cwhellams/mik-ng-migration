@@ -6,6 +6,7 @@ import {
   bookingConfirmedEmailBodyHtml,
   bookingUpdatedEmailBodyHtml,
 } from '../../src/templates/bookingConfirmedEmailTemplate.ts'
+import { bookingReminderEmailBodyHtml } from '../../src/templates/bookingReminderEmailTemplate.ts'
 import { loginEmailBodyHtml, type LoginVars } from '../../src/templates/loginEmailTemplate.ts'
 import { occurrenceNotificationEmailBodyHtml } from '../../src/templates/occurrenceNotification.ts'
 import { overdueInvoiceEmailBodyHtml } from '../../src/templates/overdueInvoiceEmailTemplate.ts'
@@ -107,6 +108,31 @@ describe('Booking confirmation template tests', () => {
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingUpdatedEmailBodyHtml', lang => {
     const result = bookingUpdatedEmailBodyHtml(lang, 'Tester', confirmedBooking)
+    expect(result).toMatchSnapshot()
+  })
+})
+describe('Booking reminder template tests', () => {
+  const upcomingBooking: Booking = {
+    bookingId: 'test-booking-id',
+    memberId: '2',
+    member: { firstName: 'Tester', lastName: 'User', phoneNumber: null },
+    registration: 'OH-IHQ',
+    startTimeEpoch: '1700000000',
+    endTimeEpoch: '1700003600',
+    startTime: '2023-11-14T22:13:20.000Z',
+    endTime: '2023-11-14T23:13:20.000Z',
+    type: BookingType.PRACTICE,
+    status: BookingStatus.CONFIRMED,
+    createdAt: '2023-11-14T20:00:00.000Z',
+    createdBy: '1',
+    updatedAt: '2023-11-14T20:00:00.000Z',
+    updatedBy: '1',
+    cancelledBy: null,
+    calendarSequence: 0,
+  }
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingReminderEmailBodyHtml', lang => {
+    const result = bookingReminderEmailBodyHtml(lang, 'Tester', upcomingBooking)
     expect(result).toMatchSnapshot()
   })
 })

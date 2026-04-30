@@ -42,6 +42,7 @@ import { startOccurrenceNotificationWorker } from './workers/occurrenceNotifyWor
 import { startBrevoSyncWorker } from './workers/brevoSyncWorker.ts'
 import { testConnection, closeDb } from './db/connection.ts'
 import { startSimplbooksSyncWorker } from './workers/simplbooksMemberSyncWorker.ts'
+import { startBookingReminderWorker } from './workers/bookingReminderWorker.ts'
 
 const app = express()
 const PORT = process.env.BACKEND_PORT ?? 3000
@@ -132,6 +133,7 @@ const overdueInvoiceWorker = startOverdueInvoiceWorker()
 const occurrenceNotificationWorker = startOccurrenceNotificationWorker()
 const brevoSyncWorker = startBrevoSyncWorker()
 const simplbooksMemberSyncWorker = startSimplbooksSyncWorker()
+const bookingReminderWorker = startBookingReminderWorker()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
@@ -153,6 +155,7 @@ const shutdown = async (): Promise<void> => {
   occurrenceNotificationWorker?.stop()
   brevoSyncWorker?.stop()
   simplbooksMemberSyncWorker?.stop()
+  bookingReminderWorker?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)
