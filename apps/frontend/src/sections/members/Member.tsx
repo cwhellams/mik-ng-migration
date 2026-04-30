@@ -13,6 +13,7 @@ import {
   Checkbox,
   CircularProgress,
   Dialog,
+  DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
@@ -72,7 +73,7 @@ const MemberProfile = () => {
     const { error } = await mutation.trigger(
       'POST',
       { newEmail },
-      '/me/email-change/request'
+      'email-change/request'
     )
     setEmailChangeSending(false)
 
@@ -820,7 +821,11 @@ const MemberProfile = () => {
         onClose={handleEmailChangeClose}
         maxWidth='sm'
         fullWidth
+        aria-labelledby='email-change-dialog-title'
       >
+        <DialogTitle id='email-change-dialog-title'>
+          {t('emailChange.changeEmailButton')}
+        </DialogTitle>
         <DialogContent>
           {emailChangeSent ? (
             <Box sx={{ textAlign: 'center', py: 2 }}>
@@ -836,9 +841,6 @@ const MemberProfile = () => {
             </Box>
           ) : (
             <Box>
-              <Typography variant='h6' sx={{ mb: 2 }}>
-                {t('emailChange.changeEmailButton')}
-              </Typography>
               <TextField
                 fullWidth
                 label={t('emailChange.newEmailLabel')}

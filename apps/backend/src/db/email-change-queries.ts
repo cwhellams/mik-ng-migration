@@ -39,16 +39,18 @@ export async function createPendingEmailChange(
 }
 
 /**
- * Atomically claim a pending email change by its token hash.
- * The UPDATE only succeeds when the row has not yet been used AND has not expired,
- * which prevents replay attacks even under concurrent requests.
- * Returns the claimed row, or undefined if the token is invalid/used/expired.
+ * Atomically claim a pending email change by its token hash, scoped to a specific member.
+ * The UPDATE only succeeds when the row has not yet been used, has not expired, AND
+ * belongs to the authenticated member — preventing both replay attacks and cross-member
+ * token reuse. The token is never consumed if the member ownership check would fail.
+ * Returns the claimed row, or undefined if no match.
  */
-export async function claimPendingEmailChangeByTokenHash(tokenHash: string) {
+export async function claimPendingEmailChangeByTokenHash(tokenHash: string, memberId: string) {
   return db
     .updateTable('member.pending_email_changes')
     .set({ used_at: new Date() })
     .where('token_hash', '=', tokenHash)
+    .where('member_id', '=', memberId)
     .where('used_at', 'is', null)
     .where('expires_at', '>', new Date())
     .returningAll()

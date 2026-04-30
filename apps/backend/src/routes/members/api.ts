@@ -336,20 +336,12 @@ router.post(
     }
 
     const tokenHash = createHash('sha256').update(raw).digest('hex')
-    const claimed = await claimPendingEmailChangeByTokenHash(tokenHash)
+    // memberId is included in the atomic UPDATE to ensure the token is never
+    // consumed if the requesting user is not the token owner (prevents cross-member reuse)
+    const claimed = await claimPendingEmailChangeByTokenHash(tokenHash, req.user!.memberId)
 
     if (!claimed) {
       res.status(401).json(problem({ status: 401, detail: 'Invalid or expired verification link' }))
-      return
-    }
-
-    if (claimed.member_id !== req.user!.memberId) {
-      logger.warn(
-        'Email change token member mismatch: token for %s but used by %s',
-        claimed.member_id,
-        req.user!.memberId,
-      )
-      res.status(403).json(problem({ status: 403, detail: 'Token does not belong to this user' }))
       return
     }
 

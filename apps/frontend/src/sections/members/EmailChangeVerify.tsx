@@ -27,7 +27,7 @@ const EmailChangeVerify = () => {
     if (token) {
       triggered.current = true
       mutation
-        .trigger('POST', { token }, '/me/email-change/verify')
+        .trigger('POST', { token }, 'email-change/verify')
         .then(({ error }) => {
           if (error) {
             setVerificationError(t('emailChange.verifyFailedMessage'))

@@ -22,6 +22,8 @@ import { deleteSimplbooksOutbox } from '../../db/__helpers__/simplbooksDbHelpers
 import { HttpStatusCode } from 'axios'
 import { db } from '../../../src/db/connection.ts'
 import { addMember } from '../../../src/db/member-queries.ts'
+import { generateMagicLinkToken } from '../../../src/routes/auth/magiclink.ts'
+import { createPendingEmailChange } from '../../../src/db/email-change-queries.ts'
 
 // Create an instance of the Express app
 const app = express()
@@ -1296,5 +1298,217 @@ describe('POST /members/:memberId/send-renewal-reminder', () => {
     if (action) {
       await db.deleteFrom('member.non_renewal_actions').where('id', '=', action.id).execute()
     }
+  })
+})
+
+describe('POST /members/me/email-change/request', () => {
+  let emailChangeMemberId: string
+  let emailChangeMemberToken: string
+
+  beforeAll(async () => {
+    emailChangeMemberId = await addMember({
+      memberType: MIKMemberTypes.FLYING,
+      email: `email-change-test-${Date.now()}@test.com`,
+      firstName: 'EmailChange',
+      lastName: 'TestMember',
+      lang: MIKLang.EN,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+    })
+    emailChangeMemberToken = generateAccessToken({
+      memberId: emailChangeMemberId,
+      lastName: 'TestMember',
+      email: `email-change-test-${Date.now()}@test.com`,
+      roles: ['MEMBER'],
+      permissions: [MIKPermissions.MEMBER],
+      canMakeReservations: false,
+    })
+  })
+
+  afterAll(async () => {
+    await db
+      .deleteFrom('member.pending_email_changes')
+      .where('member_id', '=', emailChangeMemberId)
+      .execute()
+    await db.deleteFrom('member.register').where('member_id', '=', emailChangeMemberId).execute()
+  })
+
+  it('should return 401 without auth', async () => {
+    const response = await request(app)
+      .post('/members/me/email-change/request')
+      .send({ newEmail: 'new@test.com' })
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 400 for invalid email format', async () => {
+    const response = await request(app)
+      .post('/members/me/email-change/request')
+      .set('Cookie', `accessToken=${emailChangeMemberToken}`)
+      .send({ newEmail: 'not-an-email' })
+    expect(response.status).toBe(400)
+  })
+
+  it('should return 400 when new email is same as current email', async () => {
+    const member = await db
+      .selectFrom('member.register')
+      .select('email')
+      .where('member_id', '=', emailChangeMemberId)
+      .executeTakeFirstOrThrow()
+    const response = await request(app)
+      .post('/members/me/email-change/request')
+      .set('Cookie', `accessToken=${emailChangeMemberToken}`)
+      .send({ newEmail: member.email })
+    expect(response.status).toBe(400)
+  })
+
+  it('should return 409 when new email already in use', async () => {
+    const response = await request(app)
+      .post('/members/me/email-change/request')
+      .set('Cookie', `accessToken=${emailChangeMemberToken}`)
+      .send({ newEmail: 'admin@mik.fi' })
+    expect(response.status).toBe(409)
+  })
+
+  it('should return 204 for a valid new email', async () => {
+    const response = await request(app)
+      .post('/members/me/email-change/request')
+      .set('Cookie', `accessToken=${emailChangeMemberToken}`)
+      .send({ newEmail: `new-email-${Date.now()}@test.com` })
+    expect(response.status).toBe(204)
+  })
+})
+
+describe('POST /members/me/email-change/verify', () => {
+  let verifyMemberId: string
+  let verifyMemberToken: string
+  const originalEmail = `verify-test-${Date.now()}@test.com`
+
+  beforeAll(async () => {
+    verifyMemberId = await addMember({
+      memberType: MIKMemberTypes.FLYING,
+      email: originalEmail,
+      firstName: 'Verify',
+      lastName: 'TestMember',
+      lang: MIKLang.EN,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+    })
+    verifyMemberToken = generateAccessToken({
+      memberId: verifyMemberId,
+      lastName: 'TestMember',
+      email: originalEmail,
+      roles: ['MEMBER'],
+      permissions: [MIKPermissions.MEMBER],
+      canMakeReservations: false,
+    })
+  })
+
+  afterAll(async () => {
+    await db
+      .deleteFrom('member.pending_email_changes')
+      .where('member_id', '=', verifyMemberId)
+      .execute()
+    await db.deleteFrom('member.register').where('member_id', '=', verifyMemberId).execute()
+  })
+
+  it('should return 401 without auth', async () => {
+    const response = await request(app)
+      .post('/members/me/email-change/verify')
+      .send({ token: 'any-token' })
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 400 when token is missing', async () => {
+    const response = await request(app)
+      .post('/members/me/email-change/verify')
+      .set('Cookie', `accessToken=${verifyMemberToken}`)
+      .send({})
+    expect(response.status).toBe(400)
+  })
+
+  it('should return 401 for an invalid/unknown token', async () => {
+    const response = await request(app)
+      .post('/members/me/email-change/verify')
+      .set('Cookie', `accessToken=${verifyMemberToken}`)
+      .send({ token: 'invalid-token-value' })
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 200 and update the email with a valid token', async () => {
+    const newEmail = `verified-${Date.now()}@test.com`
+    const { token, tokenHash } = generateMagicLinkToken()
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
+    await createPendingEmailChange(verifyMemberId, newEmail, tokenHash, expiresAt)
+
+    const response = await request(app)
+      .post('/members/me/email-change/verify')
+      .set('Cookie', `accessToken=${verifyMemberToken}`)
+      .send({ token })
+
+    expect(response.status).toBe(200)
+    expect(response.body.email).toBe(newEmail)
+  })
+
+  it('should return 401 for a token that has already been used (replay attack)', async () => {
+    const newEmail2 = `verified2-${Date.now()}@test.com`
+    const { token, tokenHash } = generateMagicLinkToken()
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
+    await createPendingEmailChange(verifyMemberId, newEmail2, tokenHash, expiresAt)
+
+    // First use should succeed
+    await request(app)
+      .post('/members/me/email-change/verify')
+      .set('Cookie', `accessToken=${verifyMemberToken}`)
+      .send({ token })
+
+    // Second use should fail
+    const response = await request(app)
+      .post('/members/me/email-change/verify')
+      .set('Cookie', `accessToken=${verifyMemberToken}`)
+      .send({ token })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 401 for an expired token', async () => {
+    const expiredEmail = `expired-${Date.now()}@test.com`
+    const { token, tokenHash } = generateMagicLinkToken()
+    const expiresAt = new Date(Date.now() - 1000) // already expired
+    await createPendingEmailChange(verifyMemberId, expiredEmail, tokenHash, expiresAt)
+
+    const response = await request(app)
+      .post('/members/me/email-change/verify')
+      .set('Cookie', `accessToken=${verifyMemberToken}`)
+      .send({ token })
+
+    expect(response.status).toBe(401)
+  })
+
+  it("should return 401 when using another member's token", async () => {
+    const otherEmail = `other-member-${Date.now()}@test.com`
+    const { token, tokenHash } = generateMagicLinkToken()
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
+    // Create the token for verifyMemberId
+    await createPendingEmailChange(verifyMemberId, otherEmail, tokenHash, expiresAt)
+
+    // Try to use it with a different member's token (memberToken = 'Matti1')
+    const response = await request(app)
+      .post('/members/me/email-change/verify')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({ token })
+
+    // Should fail because member_id in token doesn't match the authenticated user
+    expect(response.status).toBe(401)
+
+    // The original token should still be unused (not consumed by the foreign user)
+    const pendingRow = await db
+      .selectFrom('member.pending_email_changes')
+      .selectAll()
+      .where('token_hash', '=', tokenHash)
+      .executeTakeFirst()
+    expect(pendingRow).toBeDefined()
+    expect(pendingRow?.used_at).toBeNull()
   })
 })
