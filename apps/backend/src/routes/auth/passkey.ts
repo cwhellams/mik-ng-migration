@@ -31,6 +31,7 @@ import {
   deletePasskey,
   deletePasskeyById,
   getPasskeyByCredentialId,
+  getPasskeyById,
   getPasskeysByMemberId,
   insertPasskey,
   renamePasskey,
@@ -413,6 +414,19 @@ memberPasskeysRouter.delete('/:passkeyId', validateUser(), async (req: Request, 
     return res.status(403).json({ error: 'Forbidden' })
   }
 
+  // Look up the passkey first so the audit-log entry below records the
+  // correct owning memberId even when an admin is removing somebody else's
+  // passkey. This also lets us return 404 for unknown ids rather than
+  // silently succeeding with the wrong owner.
+  const target = await getPasskeyById(req.params.passkeyId)
+  if (!target) {
+    return res.status(404).json({ error: 'Passkey not found' })
+  }
+  // Self-delete must match the actual owner
+  if (isSelf && target.memberId !== user.memberId) {
+    return res.status(404).json({ error: 'Passkey not found' })
+  }
+
   const ok = isSelf
     ? await deletePasskey(req.params.passkeyId, user.memberId)
     : await deletePasskeyById(req.params.passkeyId)
@@ -421,12 +435,7 @@ memberPasskeysRouter.delete('/:passkeyId', validateUser(), async (req: Request, 
     return res.status(404).json({ error: 'Passkey not found' })
   }
 
-  await createLoginEvent(
-    isSelf ? user.memberId : (requested ?? null),
-    'passkey_removed',
-    req.ip,
-    req.headers['user-agent'],
-  )
+  await createLoginEvent(target.memberId, 'passkey_removed', req.ip, req.headers['user-agent'])
 
   res.json({ ok: true })
 })

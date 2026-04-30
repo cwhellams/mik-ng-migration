@@ -63,6 +63,16 @@ export async function getPasskeyByCredentialId(
   return row ? mapRow(row) : undefined
 }
 
+/** Look up a passkey by its id (regardless of owning member). */
+export async function getPasskeyById(id: string): Promise<PasskeyRow | undefined> {
+  const row = await db
+    .selectFrom('member.passkeys')
+    .selectAll()
+    .where('id', '=', id)
+    .executeTakeFirst()
+  return row ? mapRow(row) : undefined
+}
+
 export async function insertPasskey(input: {
   memberId: string
   credentialId: string
@@ -90,6 +100,16 @@ export async function insertPasskey(input: {
   return result.id
 }
 
+/**
+ * Persist the new authenticator counter and bump last_used_at. The counter
+ * monotonicity check that detects cloned authenticators is performed by
+ * `@simplewebauthn/server`'s `verifyAuthenticationResponse` before this is
+ * called: when both stored and reported counters are non-zero, the library
+ * throws if `newCounter <= storedCounter`. Many platform passkeys (e.g.
+ * synced iCloud Keychain / Google Password Manager passkeys) deliberately
+ * report a counter of 0 — in that case spec says clone detection is not
+ * possible and the library accepts it.
+ */
 export async function updatePasskeyCounter(id: string, counter: number): Promise<void> {
   await db
     .updateTable('member.passkeys')

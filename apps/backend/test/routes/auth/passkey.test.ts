@@ -8,6 +8,7 @@ const mockGetMemberByEmail = jest.fn<(email: string) => Promise<any>>()
 const mockGetMemberById = jest.fn<(id: string) => Promise<any>>()
 const mockGetPasskeysByMemberId = jest.fn<(id: string) => Promise<any[]>>()
 const mockGetPasskeyByCredentialId = jest.fn<(credentialId: string) => Promise<any>>()
+const mockGetPasskeyById = jest.fn<(id: string) => Promise<any>>()
 const mockInsertPasskey = jest.fn<(input: any) => Promise<string>>()
 const mockUpdatePasskeyCounter = jest.fn<(...a: any[]) => Promise<void>>()
 const mockDeletePasskey = jest.fn<(...a: any[]) => Promise<boolean>>()
@@ -30,6 +31,7 @@ jest.unstable_mockModule('../../../src/db/member-queries.ts', () => ({
 jest.unstable_mockModule('../../../src/db/passkey-queries.ts', () => ({
   getPasskeysByMemberId: mockGetPasskeysByMemberId,
   getPasskeyByCredentialId: mockGetPasskeyByCredentialId,
+  getPasskeyById: mockGetPasskeyById,
   insertPasskey: mockInsertPasskey,
   updatePasskeyCounter: mockUpdatePasskeyCounter,
   deletePasskey: mockDeletePasskey,
@@ -409,6 +411,19 @@ describe('Passkey routes', () => {
     })
 
     it('lets a member delete their own passkey', async () => {
+      mockGetPasskeyById.mockResolvedValue({
+        id: 'p1',
+        memberId: 'tester01',
+        credentialId: 'cred-1',
+        publicKey: Buffer.from([1]),
+        counter: 0,
+        transports: [],
+        deviceType: null,
+        backedUp: false,
+        name: null,
+        lastUsedAt: null,
+        createdAt: '2024-01-01T00:00:00.000Z',
+      })
       mockDeletePasskey.mockResolvedValue(true)
 
       const res = await request(app).delete('/api/v1/members/me/passkeys/p1')
@@ -422,14 +437,55 @@ describe('Passkey routes', () => {
       )
     })
 
-    it('lets an admin delete another member’s passkey', async () => {
+    it('lets an admin delete another member’s passkey and logs the actual owner', async () => {
       mockUser.permissions = ['member.admin']
+      // The URL hint says m99 but the actual owner of p1 is m42 — the audit
+      // log must record m42 (the real owner from the DB), not m99.
+      mockGetPasskeyById.mockResolvedValue({
+        id: 'p1',
+        memberId: 'm42',
+        credentialId: 'cred-1',
+        publicKey: Buffer.from([1]),
+        counter: 0,
+        transports: [],
+        deviceType: null,
+        backedUp: false,
+        name: null,
+        lastUsedAt: null,
+        createdAt: '2024-01-01T00:00:00.000Z',
+      })
       mockDeletePasskeyById.mockResolvedValue(true)
 
       const res = await request(app).delete('/api/v1/members/m99/passkeys/p1')
       expect(res.status).toBe(200)
       expect(mockDeletePasskeyById).toHaveBeenCalledWith('p1')
       expect(mockDeletePasskey).not.toHaveBeenCalled()
+      expect(mockCreateLoginEvent).toHaveBeenCalledWith(
+        'm42',
+        'passkey_removed',
+        expect.any(String),
+        undefined,
+      )
+    })
+
+    it('returns 404 when self-delete targets a passkey owned by someone else', async () => {
+      mockGetPasskeyById.mockResolvedValue({
+        id: 'p1',
+        memberId: 'someone-else',
+        credentialId: 'cred-1',
+        publicKey: Buffer.from([1]),
+        counter: 0,
+        transports: [],
+        deviceType: null,
+        backedUp: false,
+        name: null,
+        lastUsedAt: null,
+        createdAt: '2024-01-01T00:00:00.000Z',
+      })
+      const res = await request(app).delete('/api/v1/members/me/passkeys/p1')
+      expect(res.status).toBe(404)
+      expect(mockDeletePasskey).not.toHaveBeenCalled()
+      expect(mockDeletePasskeyById).not.toHaveBeenCalled()
     })
 
     it('forbids non-admin from deleting another member’s passkey', async () => {
