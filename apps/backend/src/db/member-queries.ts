@@ -122,6 +122,14 @@ const getPublicRolesToQuery = (publicRoles: string[], roles: string[]) => {
   return publicRoles
 }
 
+// Serialize a nullable JSON field for DB update: undefined leaves the column untouched,
+// null clears it, any other value is serialized to a JSON string.
+const serializeJsonField = (value: unknown | null | undefined): string | null | undefined => {
+  if (value === undefined) return undefined
+  if (value === null) return null
+  return JSON.stringify(value)
+}
+
 export async function getMembers(
   isAdmin: boolean,
   roles: string[],
@@ -380,12 +388,7 @@ export async function updateMember(
       mailing_lists:
         patch.mailingLists === undefined ? undefined : JSON.stringify(patch.mailingLists),
 
-      application_data:
-        patch.applicationData === undefined
-          ? undefined
-          : patch.applicationData != null
-            ? JSON.stringify(patch.applicationData)
-            : null,
+      application_data: serializeJsonField(patch.applicationData),
 
       licence_id: patch.licenceId,
       licence_expiry_date: patch.licenceExpiry,
