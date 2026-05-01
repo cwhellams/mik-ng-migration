@@ -98,6 +98,55 @@ export async function loginWithPasskey(
 }
 
 /**
+ * Attempt to log in with a passkey without requiring the user to type their
+ * email first (discoverable-credential / usernameless flow).
+ *
+ * The backend issues authentication options with an empty `allowCredentials`
+ * list, which tells the browser to show all stored passkeys for this RP.
+ * After the user selects one the credential is verified server-side exactly
+ * the same way as the email-scoped flow.
+ */
+export async function loginWithPasskeyDiscoverable(): Promise<PasskeyLoginResult> {
+  if (!browserSupportsWebAuthn()) {
+    return {
+      ok: false,
+      reason: 'failed',
+      message: 'Passkeys are not supported in this browser',
+    }
+  }
+
+  let optionsResp: { options: PublicKeyCredentialRequestOptionsJSON; sessionId?: string }
+  try {
+    const r = await sharedApi.post<{
+      options: PublicKeyCredentialRequestOptionsJSON
+      sessionId?: string
+    }>('auth/passkey/authentication/options', {})
+    optionsResp = r.data
+  } catch {
+    return { ok: false, reason: 'options-failed' }
+  }
+
+  let assertion
+  try {
+    assertion = await startAuthentication({ optionsJSON: optionsResp.options })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    return { ok: false, reason: 'cancelled', message }
+  }
+
+  try {
+    await sharedApi.post('auth/passkey/authentication/verify', {
+      sessionId: optionsResp.sessionId,
+      response: assertion,
+    })
+  } catch {
+    return { ok: false, reason: 'failed' }
+  }
+
+  return { ok: true }
+}
+
+/**
  * Register a new passkey for the currently-authenticated member.
  */
 export async function registerPasskey(

@@ -17,7 +17,11 @@ import { MIKLang } from '@backend/routes/members/models'
 import LanguageSelector from '../../components/LanguageSelector'
 import { validateInternalPath } from '@backend/util/sanitizers'
 import { TurnstileWidget } from '../../components/TurnstileWidget'
-import { loginWithPasskey, passkeySupported } from '../../utils/passkey'
+import {
+  loginWithPasskey,
+  loginWithPasskeyDiscoverable,
+  passkeySupported,
+} from '../../utils/passkey'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -92,11 +96,30 @@ const Login = () => {
   const handlePasskeyLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setEmailError('')
-    if (!validateEmail(email)) {
-      setEmailError(t('login.validEmailRequired'))
-      return
+    // If the user has typed an email, validate it and use the email-scoped flow
+    // (pre-filters credentials to that account). If the email field is empty,
+    // use the discoverable flow so the browser shows all stored passkeys for
+    // this RP — no email required.
+    if (email) {
+      if (!validateEmail(email)) {
+        setEmailError(t('login.validEmailRequired'))
+        return
+      }
+      await tryPasskeyLogin(false)
+    } else {
+      setPasskeyLoading(true)
+      try {
+        const safeTarget = validateInternalPath(location.state?.target)
+        const result = await loginWithPasskeyDiscoverable()
+        if (result.ok) {
+          navigate(safeTarget)
+        } else if (result.reason !== 'cancelled') {
+          setEmailError(result.message ?? t('login.passkey.failed'))
+        }
+      } finally {
+        setPasskeyLoading(false)
+      }
     }
-    await tryPasskeyLogin(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

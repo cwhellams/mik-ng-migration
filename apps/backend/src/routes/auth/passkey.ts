@@ -12,6 +12,7 @@
  *    discoverable credentials while older keys can still register a
  *    server-side credential
  */
+import { randomUUID } from 'node:crypto'
 import { Router, type Request, type Response } from 'express'
 import {
   generateAuthenticationOptions,
@@ -181,25 +182,33 @@ passkeyRouter.post('/registration/verify', validateUser(), async (req: Request, 
 
 passkeyRouter.post('/authentication/options', async (req: Request, res: Response) => {
   const email = typeof req.body?.email === 'string' ? req.body.email.toLowerCase().trim() : null
-  if (!email) {
-    return res.status(400).json({ error: 'Email is required' })
-  }
   const { rpId } = rpConfig()
 
-  // Look up the member's passkeys and include them as allowCredentials hints.
-  // We deliberately do NOT leak whether the email exists — if there are no
-  // credentials we still issue an options object (with empty allowCredentials).
   let allowCredentials: { id: string; transports?: AuthenticatorTransportFuture[] }[] = []
   let memberIdForChallenge: string | null = null
+  // For the discoverable (email-less) flow we generate a random session token
+  // and store the challenge under it so we can look it up during verify.
+  let sessionId: string | null = null
 
-  const member = await getMemberByEmail(email)
-  if (member) {
-    const passkeys = await getPasskeysByMemberId(member.memberId)
-    allowCredentials = passkeys.map(p => ({
-      id: p.credentialId,
-      transports: p.transports as AuthenticatorTransportFuture[],
-    }))
-    memberIdForChallenge = member.memberId
+  if (email) {
+    // Email-scoped flow: pre-populate allowCredentials with the member's
+    // passkeys so the browser can select the right one directly.
+    // We deliberately do NOT leak whether the email exists — if there are no
+    // credentials we still issue an options object (with empty allowCredentials).
+    const member = await getMemberByEmail(email)
+    if (member) {
+      const passkeys = await getPasskeysByMemberId(member.memberId)
+      allowCredentials = passkeys.map(p => ({
+        id: p.credentialId,
+        transports: p.transports as AuthenticatorTransportFuture[],
+      }))
+      memberIdForChallenge = member.memberId
+    }
+  } else {
+    // Discoverable (usernameless) flow: empty allowCredentials lets the
+    // browser surface any stored passkey for this RP. We generate a unique
+    // session token so the challenge can be claimed during verify.
+    sessionId = randomUUID()
   }
 
   const options = await generateAuthenticationOptions({
@@ -208,25 +217,34 @@ passkeyRouter.post('/authentication/options', async (req: Request, res: Response
     userVerification: 'preferred',
   })
 
+  // Store the challenge. For the email-scoped flow the principal is the
+  // member (or their email when the member could not be resolved). For the
+  // discoverable flow the session token acts as a single-use opaque key in
+  // the email column — it is a UUID rather than an email address, but the
+  // column type is VARCHAR(100) with no format constraint. This dual-purpose
+  // usage is intentional and documented here; no downstream code performs
+  // email-format validation on webauthn_challenges.email.
   await storeChallenge({
     memberId: memberIdForChallenge,
-    email,
+    email: sessionId ?? email,
     purpose: 'authentication',
     challenge: options.challenge,
   })
 
   // Tell the client whether the user appears to have at least one passkey.
-  // The client uses this to decide between offering passkey login or falling
-  // back to email magic-link.
+  // Also return the session token for the discoverable flow so the client can
+  // pass it back in the verify request.
   res.json({
     options,
     hasPasskeys: allowCredentials.length > 0,
+    ...(sessionId ? { sessionId } : {}),
   })
 })
 
 passkeyRouter.post('/authentication/verify', async (req: Request, res: Response) => {
   const response = req.body?.response as AuthenticationResponseJSON | undefined
   const email = typeof req.body?.email === 'string' ? req.body.email.toLowerCase() : null
+  const sessionId = typeof req.body?.sessionId === 'string' ? req.body.sessionId : null
   if (!response) {
     return res.status(400).json({ error: 'Missing authentication response' })
   }
@@ -239,15 +257,21 @@ passkeyRouter.post('/authentication/verify', async (req: Request, res: Response)
     return res.status(401).json({ error: 'Authentication failed' })
   }
 
-  // Look up the challenge for the actual owner of the credential. If the
-  // request supplied a different email, fall back to looking up by member.
+  // Look up the challenge for the actual owner of the credential.
+  // 1. Primary path: challenge stored keyed to the member (email-scoped flow).
+  // 2. Discoverable flow: challenge stored under the session token returned by
+  //    the options endpoint and passed back by the client.
+  // 3. Legacy fallback: challenge stored keyed to the typed email.
+  // claimChallenge returns undefined when both memberId and email are null, so
+  // the null sessionId / null email cases fall through naturally.
   const expectedChallenge =
     (await claimChallenge({
       memberId: passkey.memberId,
       email: null,
       purpose: 'authentication',
     })) ??
-    (email ? await claimChallenge({ memberId: null, email, purpose: 'authentication' }) : undefined)
+    (await claimChallenge({ memberId: null, email: sessionId, purpose: 'authentication' })) ??
+    (await claimChallenge({ memberId: null, email, purpose: 'authentication' }))
 
   if (!expectedChallenge) {
     await createLoginEvent(
