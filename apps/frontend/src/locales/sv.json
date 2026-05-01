@@ -162,7 +162,8 @@
       "removeConfirm": "Ta bort passnyckeln \"{{name}}\"? Du kommer inte längre att kunna logga in med den.",
       "removeAdminConfirm": "Ta bort medlemmens passnyckel \"{{name}}\"? Hen kommer inte längre att kunna logga in med den.",
       "registerFailed": "Kunde inte registrera passnyckel",
-      "unsupportedBrowser": "Din webbläsare stöder inte passnycklar."
+      "unsupportedBrowser": "Din webbläsare stöder inte passnycklar.",
+      "insecureContext": "Passnycklar kräver en säker HTTPS-anslutning."
     },
     "lang": "Språk",
     "memberType": "Medlemstyp",

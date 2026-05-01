@@ -162,7 +162,8 @@
       "removeConfirm": "Remove passkey \"{{name}}\"? You will not be able to use it to sign in anymore.",
       "removeAdminConfirm": "Remove passkey \"{{name}}\" for this member? They will not be able to use it to sign in anymore.",
       "registerFailed": "Could not register passkey",
-      "unsupportedBrowser": "Your browser does not support passkeys."
+      "unsupportedBrowser": "Your browser does not support passkeys.",
+      "insecureContext": "Passkeys require a secure HTTPS connection."
     },
     "lang": "Language",
     "memberType": "Member Type",

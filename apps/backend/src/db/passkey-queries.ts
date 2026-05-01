@@ -192,14 +192,11 @@ export async function storeChallenge(input: {
         expires_at: expiresAt,
       })
       .onConflict(oc =>
-        oc
-          .columns(['email', 'purpose'])
-          .where('email', 'is not', null)
-          .doUpdateSet({
-            challenge: input.challenge,
-            expires_at: expiresAt,
-            created_at: new Date(),
-          }),
+        oc.columns(['email', 'purpose']).where('email', 'is not', null).doUpdateSet({
+          challenge: input.challenge,
+          expires_at: expiresAt,
+          created_at: new Date(),
+        }),
       )
       .execute()
   }

@@ -19,7 +19,11 @@ import useApi from '../../../hooks/useApi'
 import { FormTitle } from '../../../components/FormTitle'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
-import { passkeySupported, registerPasskey } from '../../../utils/passkey'
+import {
+  isSecureContextForPasskeys,
+  passkeySupported,
+  registerPasskey,
+} from '../../../utils/passkey'
 
 type Passkey = {
   id: string
@@ -167,7 +171,9 @@ export const PasskeysCard = ({ memberId, isAdmin }: PasskeysCardProps) => {
         )}
         {!isAdmin && !passkeySupported() && (
           <Typography variant='caption' color='text.secondary'>
-            {t('member.passkeys.unsupportedBrowser')}
+            {!isSecureContextForPasskeys()
+              ? t('member.passkeys.insecureContext')
+              : t('member.passkeys.unsupportedBrowser')}
           </Typography>
         )}
       </CardContent>

@@ -18,6 +18,18 @@ import { sharedApi } from '../hooks/useApi'
 
 export const passkeySupported = (): boolean => browserSupportsWebAuthn()
 
+/**
+ * Returns true when the page is loaded in a secure context (HTTPS or
+ * localhost).  WebAuthn / passkeys are only available in secure contexts, so
+ * when this returns false the browser hides `PublicKeyCredential` entirely and
+ * `passkeySupported()` will also return false.  The two helpers together let
+ * the UI show a more actionable error message to the user.
+ */
+export const isSecureContextForPasskeys = (): boolean =>
+  typeof globalThis?.isSecureContext === 'boolean'
+    ? globalThis.isSecureContext
+    : false
+
 export type PasskeyLoginResult =
   | { ok: true }
   | {

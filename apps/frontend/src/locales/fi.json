@@ -161,7 +161,8 @@
       "removeConfirm": "Poistetaanko avainkoodi \"{{name}}\"? Et voi enää käyttää sitä kirjautumiseen.",
       "removeAdminConfirm": "Poistetaanko jäsenen avainkoodi \"{{name}}\"? Hän ei voi enää käyttää sitä kirjautumiseen.",
       "registerFailed": "Avainkoodin rekisteröinti epäonnistui",
-      "unsupportedBrowser": "Selaimesi ei tue avainkoodeja."
+      "unsupportedBrowser": "Selaimesi ei tue avainkoodeja.",
+      "insecureContext": "Avainkoodit vaativat suojatun HTTPS-yhteyden."
     },
     "isTrainingProgramPilot": "Koulutusohjelmaoppilas",
     "lang": "Kieli",
