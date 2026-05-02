@@ -3,10 +3,7 @@ import { Tooltip, useTheme, IconButton, CircularProgress } from '@mui/material'
 import { t } from 'i18next'
 import { EditButton } from '../../../components/EditButton'
 import { Icon } from '@iconify/react'
-import { useRoles } from '../../../hooks/useRoles'
-import { useState } from 'react'
-import useApi from '../../../hooks/useApi'
-import { downloadBase64Pdf } from '../../../lib/pdfDownload'
+import { useInvoicePdfDownload } from '../../../hooks/useInvoicePdfDownload'
 
 type Props = {
   log: FlightLogListEntry
@@ -15,41 +12,11 @@ type Props = {
 
 export const StatusButton = ({ log, update }: Props) => {
   const theme = useTheme()
-  const { me, isInvoicingAdmin } = useRoles()
-  const [loading, setLoading] = useState(false)
-  const { mutation } = useApi({ url: 'v1/invoices', skipFetch: true })
-
-  const canDownloadInvoice = () => {
-    if (!log.invoiceNumber) return false
-    if (isInvoicingAdmin) return true
-    return me?.memberId === log.billableMemberId
-  }
-
-  const handleDownloadPDF = async () => {
-    if (!log.invoiceNumber) return
-    setLoading(true)
-    try {
-      const response = await mutation.trigger<undefined, string>(
-        'GET',
-        undefined,
-        `${log.invoiceNumber}/pdf`
-      )
-
-      if (!response.data || response.error) {
-        console.error('Failed to fetch invoice PDF:', response.error)
-        return
-      }
-
-      downloadBase64Pdf({
-        base64Data: response.data,
-        filename: `invoice-${log.invoiceNumber}.pdf`,
-      })
-    } catch (error) {
-      console.error('Failed to download invoice PDF:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { canDownloadInvoice, handleDownloadPDF, loading } =
+    useInvoicePdfDownload({
+      invoiceNumber: log.invoiceNumber,
+      billableMemberId: log.billableMemberId,
+    })
 
   switch (log.status) {
     case 'NEW':
@@ -77,13 +44,14 @@ export const StatusButton = ({ log, update }: Props) => {
     case 'INVOICED':
       return canDownloadInvoice() ? (
         <Tooltip
-          title={`${t('flightLog.status.invoiced')} - ${t('document.download')}`}
+          title={`${t('flightLog.status.invoiced')} - ${t('aircraft.document.download')}`}
         >
           <IconButton
             onClick={handleDownloadPDF}
             disabled={loading}
             size='small'
             sx={{ p: 0.5 }}
+            aria-label={`${t('flightLog.status.invoiced')} - ${t('aircraft.document.download')}`}
           >
             {loading ? (
               <CircularProgress size={28} />
@@ -100,13 +68,14 @@ export const StatusButton = ({ log, update }: Props) => {
     case 'PAID':
       return canDownloadInvoice() ? (
         <Tooltip
-          title={`${t('flightLog.status.paid')} - ${t('document.download')}`}
+          title={`${t('flightLog.status.paid')} - ${t('aircraft.document.download')}`}
         >
           <IconButton
             onClick={handleDownloadPDF}
             disabled={loading}
             size='small'
             sx={{ p: 0.5 }}
+            aria-label={`${t('flightLog.status.paid')} - ${t('aircraft.document.download')}`}
           >
             {loading ? (
               <CircularProgress size={28} />

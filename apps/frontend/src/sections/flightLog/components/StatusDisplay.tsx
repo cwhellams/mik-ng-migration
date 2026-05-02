@@ -9,10 +9,7 @@ import { Link } from 'react-router-dom'
 import { FormField } from '../../../components/FormField'
 import theme from '../../../theme/theme'
 import { Icon } from '@iconify/react'
-import { useRoles } from '../../../hooks/useRoles'
-import { useState } from 'react'
-import useApi from '../../../hooks/useApi'
-import { downloadBase64Pdf } from '../../../lib/pdfDownload'
+import { useInvoicePdfDownload } from '../../../hooks/useInvoicePdfDownload'
 
 export const StatusDisplay = ({
   log,
@@ -23,44 +20,11 @@ export const StatusDisplay = ({
   showButton: boolean
   update: (payload: FlightLogValidationRequest) => void
 }) => {
-  const { me, isInvoicingAdmin } = useRoles()
-  const [loading, setLoading] = useState(false)
-  const { mutation } = useApi({ url: 'v1/invoices', skipFetch: true })
-
-  // Check if user can download invoice (admin or member viewing their own flight)
-  const canDownloadInvoice = () => {
-    if (!log.invoiceNumber) return false
-    // Admin can always download
-    if (isInvoicingAdmin) return true
-    // Member can download if they are the billed member
-    return me?.memberId === log.billableMemberId
-  }
-
-  const handleDownloadPDF = async () => {
-    if (!log.invoiceNumber) return
-    setLoading(true)
-    try {
-      const response = await mutation.trigger<undefined, string>(
-        'GET',
-        undefined,
-        `${log.invoiceNumber}/pdf`
-      )
-
-      if (!response.data || response.error) {
-        console.error('Failed to fetch invoice PDF:', response.error)
-        return
-      }
-
-      downloadBase64Pdf({
-        base64Data: response.data,
-        filename: `invoice-${log.invoiceNumber}.pdf`,
-      })
-    } catch (error) {
-      console.error('Failed to download invoice PDF:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { canDownloadInvoice, handleDownloadPDF, loading } =
+    useInvoicePdfDownload({
+      invoiceNumber: log.invoiceNumber,
+      billableMemberId: log.billableMemberId,
+    })
 
   return (
     <>
