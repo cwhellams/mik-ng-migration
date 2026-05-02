@@ -71,7 +71,8 @@ export const StatusDisplay = ({
               <Icon
                 icon='mdi:schedule'
                 color='orange'
-                width={20}
+                width={28}
+                height={28}
                 style={{ marginRight: theme.spacing(1) }}
               />
               {t('flightLog.status.new')}
@@ -96,7 +97,8 @@ export const StatusDisplay = ({
               <Icon
                 icon='mdi:check'
                 color='green'
-                width={20}
+                width={28}
+                height={28}
                 style={{ marginRight: theme.spacing(1) }}
               />
               {t('flightLog.status.validated')}
@@ -116,65 +118,65 @@ export const StatusDisplay = ({
         )}
 
         {log.status === FlightLogStatus.INVOICED && (
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
-            <Box component='span' display='flex' alignItems='center'>
-              <Icon
-                icon='mdi:invoice-send-outline'
-                color='orange'
-                width={20}
-                style={{ marginRight: theme.spacing(1) }}
-              />
-              {t('flightLog.status.invoiced')}
-            </Box>
-            {canDownloadInvoice() && log.invoiceNumber && (
-              <Button
-                onClick={handleDownloadPDF}
-                disabled={loading}
-                size='small'
-                startIcon={
-                  loading ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    <Icon icon='mdi:download' />
-                  )
-                }
-                variant='outlined'
-              >
-                {t('document.download')}
-              </Button>
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={loading || !canDownloadInvoice()}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: canDownloadInvoice() ? 'pointer' : 'default',
+              '&:hover': canDownloadInvoice() ? { opacity: 0.7 } : {},
+            }}
+          >
+            {loading ? (
+              <CircularProgress size={28} />
+            ) : (
+              <>
+                <Icon
+                  icon='mdi:invoice-send-outline'
+                  color='orange'
+                  width={28}
+                  height={28}
+                  style={{ marginRight: theme.spacing(1) }}
+                />
+                {t('flightLog.status.invoiced')}
+              </>
             )}
-          </Stack>
+          </Button>
         )}
 
         {log.status === FlightLogStatus.PAID && (
-          <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
-            <Box component='span' display='flex' alignItems='center'>
-              <Icon
-                icon='mdi:invoice-check'
-                color='green'
-                width={20}
-                style={{ marginRight: theme.spacing(1) }}
-              />
-              {t('flightLog.status.paid')}
-            </Box>
-            {canDownloadInvoice() && log.invoiceNumber && (
-              <Button
-                onClick={handleDownloadPDF}
-                disabled={loading}
-                size='small'
-                startIcon={
-                  loading ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    <Icon icon='mdi:download' />
-                  )
-                }
-                variant='outlined'
-              >
-                {t('document.download')}
-              </Button>
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={loading || !canDownloadInvoice()}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: canDownloadInvoice() ? 'pointer' : 'default',
+              '&:hover': canDownloadInvoice() ? { opacity: 0.7 } : {},
+            }}
+          >
+            {loading ? (
+              <CircularProgress size={28} />
+            ) : (
+              <>
+                <Icon
+                  icon='mdi:invoice-check'
+                  color='green'
+                  width={28}
+                  height={28}
+                  style={{ marginRight: theme.spacing(1) }}
+                />
+                {t('flightLog.status.paid')}
+              </>
             )}
-          </Stack>
+          </Button>
         )}
       </FormField>
 

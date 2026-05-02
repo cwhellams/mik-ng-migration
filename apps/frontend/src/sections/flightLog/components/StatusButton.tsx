@@ -1,11 +1,5 @@
 import { FlightLogListEntry } from '@backend/routes/flight-log/models'
-import {
-  Tooltip,
-  useTheme,
-  Stack,
-  Button,
-  CircularProgress,
-} from '@mui/material'
+import { Tooltip, useTheme, IconButton, CircularProgress } from '@mui/material'
 import { t } from 'i18next'
 import { EditButton } from '../../../components/EditButton'
 import { Icon } from '@iconify/react'
@@ -31,8 +25,7 @@ export const StatusButton = ({ log, update }: Props) => {
     return me?.memberId === log.billableMemberId
   }
 
-  const handleDownloadPDF = async (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleDownloadPDF = async () => {
     if (!log.invoiceNumber) return
     setLoading(true)
     try {
@@ -83,24 +76,22 @@ export const StatusButton = ({ log, update }: Props) => {
       )
     case 'INVOICED':
       return canDownloadInvoice() ? (
-        <Stack direction='row' spacing={0.5} alignItems='center'>
-          <Tooltip title={t('flightLog.status.invoiced')}>
-            <Icon icon='mdi:invoice-send-outline' color='orange' width={28} />
-          </Tooltip>
-          <Button
+        <Tooltip
+          title={`${t('flightLog.status.invoiced')} - ${t('booking.download')}`}
+        >
+          <IconButton
             onClick={handleDownloadPDF}
             disabled={loading}
             size='small'
-            sx={{ minWidth: 'auto', p: 0.5 }}
-            aria-label={t('document.download')}
+            sx={{ p: 0.5 }}
           >
             {loading ? (
-              <CircularProgress size={20} />
+              <CircularProgress size={28} />
             ) : (
-              <Icon icon='mdi:download' width={20} />
+              <Icon icon='mdi:invoice-send-outline' color='orange' width={28} />
             )}
-          </Button>
-        </Stack>
+          </IconButton>
+        </Tooltip>
       ) : (
         <Tooltip title={t('flightLog.status.invoiced')}>
           <Icon icon='mdi:invoice-send-outline' color='orange' width={28} />
@@ -108,24 +99,22 @@ export const StatusButton = ({ log, update }: Props) => {
       )
     case 'PAID':
       return canDownloadInvoice() ? (
-        <Stack direction='row' spacing={0.5} alignItems='center'>
-          <Tooltip title={t('flightLog.status.paid')}>
-            <Icon icon='mdi:invoice-check' color='green' width={28} />
-          </Tooltip>
-          <Button
+        <Tooltip
+          title={`${t('flightLog.status.paid')} - ${t('booking.download')}`}
+        >
+          <IconButton
             onClick={handleDownloadPDF}
             disabled={loading}
             size='small'
-            sx={{ minWidth: 'auto', p: 0.5 }}
-            aria-label={t('document.download')}
+            sx={{ p: 0.5 }}
           >
             {loading ? (
-              <CircularProgress size={20} />
+              <CircularProgress size={28} />
             ) : (
-              <Icon icon='mdi:download' width={20} />
+              <Icon icon='mdi:invoice-check' color='green' width={28} />
             )}
-          </Button>
-        </Stack>
+          </IconButton>
+        </Tooltip>
       ) : (
         <Tooltip title={t('flightLog.status.paid')}>
           <Icon icon='mdi:invoice-check' color='green' width={28} />
