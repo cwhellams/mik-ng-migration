@@ -32,13 +32,16 @@ export async function getInvoices(
   isAdmin: boolean,
   filters?: InvoiceItemQueryParams,
 ): Promise<Invoice[]> {
-  const { startDate, endDate, status, type, pastDue, id } = filters || {}
+  const { startDate, endDate, status, type, pastDue, id, memberId: filterMemberId } = filters || {}
 
   let query = db.selectFrom('accts.invoice').selectAll()
 
   if (!isAdmin) {
     // If not admin, filter by memberId
     query = query.where('member_id', '=', memberId)
+  } else if (filterMemberId) {
+    // Admin can optionally filter by a specific member
+    query = query.where('member_id', '=', filterMemberId)
   }
 
   if (id) {

@@ -239,6 +239,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       personsOnBoard: 2,
       billingRemarks: null,
       nonBillingReason: null,
+      minBillableExceptionReason: null,
       partiallyBillableFlight: false,
       entryErrorFee: false,
       creditedMins: null,
@@ -573,6 +574,24 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       const invoice = await createFlightInvoicePayload(payload, testMemberId)
 
       // Only the primary flight task — no top-up for cross-country flights
+      expect(invoice.Tasks).toHaveLength(1)
+      expect(invoice.Tasks[0].Task.amount).toBe(15)
+    })
+
+    it('should bill actual minutes (no top-up) for a local flight with minimum billable exception', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      const flight = createTestFlight({
+        flightMins: 15,
+        blockMins: 18,
+        departureAirport: 'EFHK',
+        arrivalAirport: 'EFHK',
+        minBillableExceptionReason: 'Engine failure on runway',
+      })
+      const payload = { flights: [flight] }
+
+      const invoice = await createFlightInvoicePayload(payload, testMemberId)
+
+      // Exception granted: bill actual 15 mins, no top-up
       expect(invoice.Tasks).toHaveLength(1)
       expect(invoice.Tasks[0].Task.amount).toBe(15)
     })

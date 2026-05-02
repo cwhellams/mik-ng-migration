@@ -151,6 +151,10 @@ const FlightLogEntry = () => {
       nonBillingApprovedByMemberId: null,
       validationRemarks: null,
 
+      // Billing admin fields - null by default, filled during billing process
+      minBillableExceptionReason: null,
+      minBillableExceptionApprovedByMemberId: null,
+
       // admin defaults, will be overwritten by the server
       ajlbSeqNo: 1, // ignored by backend on INSERT; required by schema validation
       ajlbBlankRowsBefore: 0,

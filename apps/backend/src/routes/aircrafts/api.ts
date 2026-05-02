@@ -36,7 +36,9 @@ const isAircraftAdmin = (user?: JWTUser): boolean =>
 router.get('/', async (req: Request<AircraftFilters>, res: Response<AircraftListResponse>) => {
   const data = AircraftFiltersSchema.parse(req.query)
   const activeOnly = isAircraftAdmin(req.user) ? (data.activeOnly ?? false) : true
-  const visibleOnly = isAircraftAdmin(req.user) ? (data.visibleOnly ?? false) : true
+  const visibleOnly = isAircraftAdmin(req.user)
+    ? (data.visibleOnly ?? false)
+    : (data.visibleOnly ?? true)
   const aircrafts = await getAllAircraft(activeOnly, visibleOnly)
 
   res.status(200).json({

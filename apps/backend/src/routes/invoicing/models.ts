@@ -19,7 +19,8 @@ export const InvoiceItemQuerySchema = z.object({
     .enum(['true', 'false'])
     .transform(val => val === 'true')
     .optional(),
-  id: z.number().int().optional(),
+  id: z.coerce.number().int().optional(),
+  memberId: z.string().optional(),
 })
 
 export type InvoiceItemQueryParams = z.infer<typeof InvoiceItemQuerySchema>
@@ -66,7 +67,7 @@ export const InvoiceSchema = z.object({
   member_id: z.string(),
   paid_at: z.string().datetime().nullable(),
   pmt_ref: z.string(),
-  sent_at: z.string().date().nullable(),
+  sent_at: z.string().date().nullable(), // 'YYYY-MM-DD' format, nullable
   total_sum: z.string().nullable(), // PG numeric (returned as string)
   updated_at: z.string().datetime(),
   updated_by: z.string(),

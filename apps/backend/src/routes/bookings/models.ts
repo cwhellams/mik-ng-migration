@@ -25,6 +25,16 @@ export const BookingSchema = AuditableSchema.extend({
     })
     .optional()
     .readonly(),
+  instructorMemberId: z.string().nullable().optional(),
+  instructor: z
+    .object({
+      firstName: z.string().optional().readonly(),
+      lastName: z.string().optional().readonly(),
+      phoneNumber: z.string().optional().nullable().readonly(),
+    })
+    .optional()
+    .nullable()
+    .readonly(),
   registration: z.string(),
   type: z.nativeEnum(BookingType),
   status: z.nativeEnum(BookingStatus),
@@ -49,6 +59,7 @@ export const BookingUpsertSchema = UpsertSchema(BookingSchema)
     startTimeEpoch: true,
     endTimeEpoch: true,
     description: true,
+    instructorMemberId: true,
   })
   .strip()
 
