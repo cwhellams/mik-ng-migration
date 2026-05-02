@@ -62,35 +62,6 @@ export const StatusDisplay = ({
     }
   }
 
-  const InvoiceDownloadButton = () => (
-    <FormField label={t('billing.columns.invoiceId')} sx={{ mb: 2 }}>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        gap={1}
-        alignItems='center'
-      >
-        <Box>{log.invoiceNumber}</Box>
-        {canDownloadInvoice() && (
-          <Button
-            onClick={handleDownloadPDF}
-            disabled={loading}
-            size='small'
-            startIcon={
-              loading ? (
-                <CircularProgress size={16} />
-              ) : (
-                <Icon icon='mdi:download' />
-              )
-            }
-            variant='outlined'
-          >
-            {t('document.download')}
-          </Button>
-        )}
-      </Stack>
-    </FormField>
-  )
-
   return (
     <>
       <FormField label={t('flightLog.status.title')} sx={{ mb: 2 }}>
@@ -155,25 +126,57 @@ export const StatusDisplay = ({
               />
               {t('flightLog.status.invoiced')}
             </Box>
+            {canDownloadInvoice() && log.invoiceNumber && (
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={loading}
+                size='small'
+                startIcon={
+                  loading ? (
+                    <CircularProgress size={16} />
+                  ) : (
+                    <Icon icon='mdi:download' />
+                  )
+                }
+                variant='outlined'
+              >
+                {t('document.download')}
+              </Button>
+            )}
           </Stack>
         )}
 
         {log.status === FlightLogStatus.PAID && (
-          <Box component='span' display='flex' alignItems='center'>
-            <Icon
-              icon='mdi:invoice-check'
-              color='green'
-              width={20}
-              style={{ marginRight: theme.spacing(1) }}
-            />
-            {t('flightLog.status.paid')}
-          </Box>
+          <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
+            <Box component='span' display='flex' alignItems='center'>
+              <Icon
+                icon='mdi:invoice-check'
+                color='green'
+                width={20}
+                style={{ marginRight: theme.spacing(1) }}
+              />
+              {t('flightLog.status.paid')}
+            </Box>
+            {canDownloadInvoice() && log.invoiceNumber && (
+              <Button
+                onClick={handleDownloadPDF}
+                disabled={loading}
+                size='small'
+                startIcon={
+                  loading ? (
+                    <CircularProgress size={16} />
+                  ) : (
+                    <Icon icon='mdi:download' />
+                  )
+                }
+                variant='outlined'
+              >
+                {t('document.download')}
+              </Button>
+            )}
+          </Stack>
         )}
       </FormField>
-
-      {(log.status === FlightLogStatus.INVOICED ||
-        log.status === FlightLogStatus.PAID) &&
-        log.invoiceNumber && <InvoiceDownloadButton />}
 
       <FormField label={t('flightLog.logbooks.ajlb')}>
         <Link
