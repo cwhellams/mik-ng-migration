@@ -249,13 +249,14 @@ export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<Invoice[]> {
  * Mark an invoice as paid in the database and update all related flight logs to PAID status
  */
 export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Promise<void> {
+  const now = new Date().toISOString()
   await db.transaction().execute(async trx => {
     await trx
       .updateTable('accts.invoice')
       .set({
         paid_at: paidAt,
         updated_by: MIK_SIMPLBOOKS_MEMBER,
-        updated_at: new Date().toISOString(),
+        updated_at: now,
       })
       .where('id', '=', invoiceId)
       .execute()
@@ -265,7 +266,7 @@ export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Prom
       .set({
         status: FlightLogStatus.PAID,
         updated_by: MIK_SIMPLBOOKS_MEMBER,
-        updated_at: new Date().toISOString(),
+        updated_at: now,
       })
       .where('invoice_number', '=', invoiceId)
       .where('status', '=', FlightLogStatus.INVOICED)

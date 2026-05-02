@@ -80,6 +80,15 @@ describe('Simplbooks Invoice Payment Worker', () => {
       .deleteFrom('flight.logs')
       .where('flight_id', '=', testFlightId)
       .execute()
+
+    // Generate past timestamps rounded down to the nearest minute (divisible by 60)
+    // to satisfy check_all_times_in_mins and check_epochs_not_future constraints.
+    const baseEpoch = Math.floor((Date.now() / 1000 - 86400) / 60) * 60 // yesterday, nearest minute
+    const offBlock = baseEpoch
+    const takeOff = baseEpoch + 900 // +15 min
+    const landing = baseEpoch + 4500 // +1h15min
+    const onBlock = baseEpoch + 5400 // +1h30min
+
     await db
       .insertInto('flight.logs')
       .values({
@@ -89,10 +98,10 @@ describe('Simplbooks Invoice Payment Worker', () => {
         pic_last_name: 'TestPilot',
         pic_role: 'PIC',
         aircraft_registration: 'OH-STL',
-        off_block_time_epoch: 1764583200,
-        takeoff_time_epoch: 1764584100,
-        landing_time_epoch: 1764590400,
-        on_block_time_epoch: 1764591300,
+        off_block_time_epoch: offBlock,
+        takeoff_time_epoch: takeOff,
+        landing_time_epoch: landing,
+        on_block_time_epoch: onBlock,
         persons_on_board: 1,
         number_of_landings: 1,
         night_flying_mins: 0,
