@@ -77,7 +77,7 @@ export const StatusButton = ({ log, update }: Props) => {
     case 'INVOICED':
       return canDownloadInvoice() ? (
         <Tooltip
-          title={`${t('flightLog.status.invoiced')} - ${t('booking.download')}`}
+          title={`${t('flightLog.status.invoiced')} - ${t('document.download')}`}
         >
           <IconButton
             onClick={handleDownloadPDF}
@@ -100,7 +100,7 @@ export const StatusButton = ({ log, update }: Props) => {
     case 'PAID':
       return canDownloadInvoice() ? (
         <Tooltip
-          title={`${t('flightLog.status.paid')} - ${t('booking.download')}`}
+          title={`${t('flightLog.status.paid')} - ${t('document.download')}`}
         >
           <IconButton
             onClick={handleDownloadPDF}
