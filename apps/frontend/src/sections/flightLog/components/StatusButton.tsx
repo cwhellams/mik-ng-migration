@@ -12,6 +12,7 @@ import { Icon } from '@iconify/react'
 import { useRoles } from '../../../hooks/useRoles'
 import { useState } from 'react'
 import useApi from '../../../hooks/useApi'
+import { downloadBase64Pdf } from '../../../lib/pdfDownload'
 
 type Props = {
   log: FlightLogListEntry
@@ -22,7 +23,7 @@ export const StatusButton = ({ log, update }: Props) => {
   const theme = useTheme()
   const { me, isInvoicingAdmin } = useRoles()
   const [loading, setLoading] = useState(false)
-  const { mutation } = useApi({ url: 'v1/invoices' })
+  const { mutation } = useApi({ url: 'v1/invoices', skipFetch: true })
 
   const canDownloadInvoice = () => {
     if (!log.invoiceNumber) return false
@@ -41,21 +42,15 @@ export const StatusButton = ({ log, update }: Props) => {
         `${log.invoiceNumber}/pdf`
       )
 
-      const byteCharacters = atob(response.data!)
-      const byteNumbers = Array.from(byteCharacters).map((char) =>
-        char.charCodeAt(0)
-      )
-      const byteArray = new Uint8Array(byteNumbers)
+      if (!response.data || response.error) {
+        console.error('Failed to fetch invoice PDF:', response.error)
+        return
+      }
 
-      const blob = new Blob([byteArray], { type: 'application/pdf' })
-      const url = URL.createObjectURL(blob)
-
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `invoice-${log.invoiceNumber}.pdf`
-      link.click()
-
-      URL.revokeObjectURL(url)
+      downloadBase64Pdf({
+        base64Data: response.data,
+        filename: `invoice-${log.invoiceNumber}.pdf`,
+      })
     } catch (error) {
       console.error('Failed to download invoice PDF:', error)
     } finally {
@@ -97,7 +92,7 @@ export const StatusButton = ({ log, update }: Props) => {
             disabled={loading}
             size='small'
             sx={{ minWidth: 'auto', p: 0.5 }}
-            title={t('document.download')}
+            aria-label={t('document.download')}
           >
             {loading ? (
               <CircularProgress size={20} />
@@ -122,7 +117,7 @@ export const StatusButton = ({ log, update }: Props) => {
             disabled={loading}
             size='small'
             sx={{ minWidth: 'auto', p: 0.5 }}
-            title={t('document.download')}
+            aria-label={t('document.download')}
           >
             {loading ? (
               <CircularProgress size={20} />

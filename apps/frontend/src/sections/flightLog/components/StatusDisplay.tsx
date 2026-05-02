@@ -12,6 +12,7 @@ import { Icon } from '@iconify/react'
 import { useRoles } from '../../../hooks/useRoles'
 import { useState } from 'react'
 import useApi from '../../../hooks/useApi'
+import { downloadBase64Pdf } from '../../../lib/pdfDownload'
 
 export const StatusDisplay = ({
   log,
@@ -24,7 +25,7 @@ export const StatusDisplay = ({
 }) => {
   const { me, isInvoicingAdmin } = useRoles()
   const [loading, setLoading] = useState(false)
-  const { mutation } = useApi({ url: 'v1/invoices' })
+  const { mutation } = useApi({ url: 'v1/invoices', skipFetch: true })
 
   // Check if user can download invoice (admin or member viewing their own flight)
   const canDownloadInvoice = () => {
@@ -45,21 +46,15 @@ export const StatusDisplay = ({
         `${log.invoiceNumber}/pdf`
       )
 
-      const byteCharacters = atob(response.data!)
-      const byteNumbers = Array.from(byteCharacters).map((char) =>
-        char.charCodeAt(0)
-      )
-      const byteArray = new Uint8Array(byteNumbers)
+      if (!response.data || response.error) {
+        console.error('Failed to fetch invoice PDF:', response.error)
+        return
+      }
 
-      const blob = new Blob([byteArray], { type: 'application/pdf' })
-      const url = URL.createObjectURL(blob)
-
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `invoice-${log.invoiceNumber}.pdf`
-      link.click()
-
-      URL.revokeObjectURL(url)
+      downloadBase64Pdf({
+        base64Data: response.data,
+        filename: `invoice-${log.invoiceNumber}.pdf`,
+      })
     } catch (error) {
       console.error('Failed to download invoice PDF:', error)
     } finally {
