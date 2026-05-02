@@ -68,8 +68,7 @@ export const InvoicingFlights = ({
     Record<string, string>
   >({})
 
-  const isMinBillableStep =
-    filters.flights === InvoicableFlights.MIN_BILLABLE
+  const isMinBillableStep = filters.flights === InvoicableFlights.MIN_BILLABLE
 
   const showReasonField = (log: InvoicableFlight) =>
     log.isBillableFlight !== true || log.flightId in editingReasons
@@ -97,7 +96,9 @@ export const InvoicingFlights = ({
     !!log.minBillableExceptionReason || log.flightId in editingExceptionReasons
 
   const getExceptionReasonValue = (log: InvoicableFlight) =>
-    editingExceptionReasons[log.flightId] ?? log.minBillableExceptionReason ?? ''
+    editingExceptionReasons[log.flightId] ??
+    log.minBillableExceptionReason ??
+    ''
 
   const handleExceptionReasonBlur = async (log: InvoicableFlight) => {
     const reason = getExceptionReasonValue(log)

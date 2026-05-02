@@ -1421,6 +1421,33 @@
       "memberId": "Medlems-ID"
     }
   },
+  "stats": {
+    "pilots": {
+      "dateRange": "Tidsperiod",
+      "from": "Från",
+      "to": "Till",
+      "presets": {
+        "currentYear": "Innevarande år",
+        "previousYear": "Föregående år",
+        "last12months": "Senaste 12 månader",
+        "custom": "Anpassat"
+      },
+      "uniquePics": "Unika PIC:ar under perioden",
+      "hoursHistogram": "Timmar per pilot",
+      "airportsHistogram": "Besökta flygplatser per pilot",
+      "hoursAxis": "Totala timmar",
+      "airportsAxis": "Besökta flygplatser",
+      "pilotCountAxis": "Antal piloter",
+      "hours": "tim",
+      "airports": "flygplatser",
+      "noData": "Ingen data för vald period",
+      "timezone": {
+        "label": "Tidszon",
+        "local": "Lokal",
+        "utc": "UTC"
+      }
+    }
+  },
   "upliftReport": {
     "title": "Rapport över bränsle- och oljeupptankningar",
     "description": "Se bränsle- och oljetankningsdata per flygplan för ett valt datumintervall",

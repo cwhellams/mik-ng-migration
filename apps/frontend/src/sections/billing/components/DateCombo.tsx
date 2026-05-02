@@ -28,7 +28,7 @@ export const InvoiceDatesCell: React.FC<InvoiceDatesCellProps> = ({
       </Typography>
       {sentAt ? (
         <Typography variant='body2' color='text.secondary'>
-             {t('invoiceItems.dates.sent')} {formatDate(sentAt)}
+          {t('invoiceItems.dates.sent')} {formatDate(sentAt)}
         </Typography>
       ) : (
         <Typography variant='body2' color='text.secondary'>

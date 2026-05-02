@@ -1484,6 +1484,33 @@
       "memberId": "Member ID"
     }
   },
+  "stats": {
+    "pilots": {
+      "dateRange": "Time Period",
+      "from": "From",
+      "to": "To",
+      "presets": {
+        "currentYear": "Current Year",
+        "previousYear": "Previous Year",
+        "last12months": "Last 12 Months",
+        "custom": "Custom"
+      },
+      "uniquePics": "Unique PICs in Period",
+      "hoursHistogram": "Hours per Pilot",
+      "airportsHistogram": "Visited Airports per Pilot",
+      "hoursAxis": "Total Hours",
+      "airportsAxis": "Airports Visited",
+      "pilotCountAxis": "Number of Pilots",
+      "hours": "hrs",
+      "airports": "airports",
+      "noData": "No data for selected period",
+      "timezone": {
+        "label": "Time Zone",
+        "local": "Local",
+        "utc": "UTC"
+      }
+    }
+  },
   "upliftReport": {
     "title": "Fuel & Oil Uplift Report",
     "description": "View fuel and oil uplifts per aircraft for a selected date range",
