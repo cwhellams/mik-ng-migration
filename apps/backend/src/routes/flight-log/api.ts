@@ -112,7 +112,7 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
     logs.logs = logs.logs.map(log => ({
       ...log,
       status: log.billableMemberId === userMemberId ? log.status : FlightLogStatus.VALIDATED,
-      invoiceNumber: log.billableMemberId === userMemberId ? log.invoiceNumber : undefined,
+      invoiceNumber: log.billableMemberId === userMemberId ? log.invoiceNumber : null,
     }))
   }
 
