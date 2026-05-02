@@ -195,45 +195,6 @@ const Login = () => {
           }}
         />
 
-        <TurnstileWidget
-          onSuccess={(token) => setTurnstileToken(token)}
-          onError={() => setTurnstileToken(null)}
-          disabled={isMutating}
-        />
-
-        {passkeySupported() && (
-          <Button
-            type='button'
-            variant='outlined'
-            color='primary'
-            fullWidth
-            size='large'
-            onClick={handlePasskeyLogin}
-            loading={passkeyLoading}
-            startIcon={<Icon icon='mdi:fingerprint' />}
-            sx={{
-              mt: 3,
-              py: 1.5,
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 'bold',
-              fontSize: '1rem',
-            }}
-          >
-            {t('login.passkey.signIn')}
-          </Button>
-        )}
-
-        {passkeySupported() && (
-          <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
-            <Divider sx={{ flex: 1 }} />
-            <Typography variant='body2' color='text.secondary' sx={{ mx: 2 }}>
-              {t('login.or')}
-            </Typography>
-            <Divider sx={{ flex: 1 }} />
-          </Box>
-        )}
-
         <Button
           type='submit'
           variant='contained'
@@ -243,8 +204,8 @@ const Login = () => {
           loadingPosition='start'
           loading={isMutating}
           sx={{
-            mt: passkeySupported() ? 0 : 3,
-            mb: 2,
+            mt: 3,
+            mb: passkeySupported() ? 2 : 2,
             py: 1.5,
             borderRadius: 2,
             textTransform: 'none',
@@ -262,6 +223,46 @@ const Login = () => {
         >
           {t('login.submitButton')}
         </Button>
+
+        {passkeySupported() && (
+          <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
+            <Divider sx={{ flex: 1 }} />
+            <Typography variant='body2' color='text.secondary' sx={{ mx: 2 }}>
+              {t('login.or')}
+            </Typography>
+            <Divider sx={{ flex: 1 }} />
+          </Box>
+        )}
+
+        {passkeySupported() && (
+          <Button
+            type='button'
+            variant='outlined'
+            color='primary'
+            fullWidth
+            size='large'
+            onClick={handlePasskeyLogin}
+            loading={passkeyLoading}
+            startIcon={<Icon icon='mdi:fingerprint' />}
+            sx={{
+              mt: 0,
+              mb: 2,
+              py: 1.5,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 'bold',
+              fontSize: '1rem',
+            }}
+          >
+            {t('login.passkey.signIn')}
+          </Button>
+        )}
+
+        <TurnstileWidget
+          onSuccess={(token) => setTurnstileToken(token)}
+          onError={() => setTurnstileToken(null)}
+          disabled={isMutating}
+        />
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>
           <Typography variant='body2' color='text.secondary'>

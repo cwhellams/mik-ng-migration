@@ -115,7 +115,10 @@ export async function loginWithPasskeyDiscoverable(): Promise<PasskeyLoginResult
     }
   }
 
-  let optionsResp: { options: PublicKeyCredentialRequestOptionsJSON; sessionId?: string }
+  let optionsResp: {
+    options: PublicKeyCredentialRequestOptionsJSON
+    sessionId?: string
+  }
   try {
     const r = await sharedApi.post<{
       options: PublicKeyCredentialRequestOptionsJSON
