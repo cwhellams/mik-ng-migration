@@ -76,10 +76,7 @@ describe('Simplbooks Invoice Payment Worker', () => {
 
     // Create a test flight log linked to the invoice (flight_id is VARCHAR(9))
     testFlightId = 'tstpymnt'
-    await db
-      .deleteFrom('flight.logs')
-      .where('flight_id', '=', testFlightId)
-      .execute()
+    await db.deleteFrom('flight.logs').where('flight_id', '=', testFlightId).execute()
 
     // Generate past timestamps rounded down to the nearest minute (divisible by 60)
     // to satisfy check_all_times_in_mins and check_epochs_not_future constraints.
