@@ -205,7 +205,7 @@ const Login = () => {
           loading={isMutating}
           sx={{
             mt: 3,
-            mb: passkeySupported() ? 2 : 2,
+            mb: 2,
             py: 1.5,
             borderRadius: 2,
             textTransform: 'none',
