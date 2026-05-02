@@ -3,12 +3,15 @@ import {
   FlightLogStatus,
   FlightLogValidationRequest,
 } from '@backend/routes/flight-log/models'
-import { Box, Button, Stack } from '@mui/material'
+import { Box, Button, Stack, CircularProgress } from '@mui/material'
 import { t } from 'i18next'
 import { Link } from 'react-router-dom'
 import { FormField } from '../../../components/FormField'
 import theme from '../../../theme/theme'
 import { Icon } from '@iconify/react'
+import { useRoles } from '../../../hooks/useRoles'
+import { useState } from 'react'
+import useApi from '../../../hooks/useApi'
 
 export const StatusDisplay = ({
   log,
@@ -19,6 +22,80 @@ export const StatusDisplay = ({
   showButton: boolean
   update: (payload: FlightLogValidationRequest) => void
 }) => {
+  const { me, isInvoicingAdmin } = useRoles()
+  const [loading, setLoading] = useState(false)
+  const { mutation } = useApi({ url: 'v1/invoices' })
+
+  // Check if user can download invoice (admin or member viewing their own flight)
+  const canDownloadInvoice = () => {
+    if (!log.invoiceNumber) return false
+    // Admin can always download
+    if (isInvoicingAdmin) return true
+    // Member can download if they are the billed member
+    return me?.memberId === log.billableMemberId
+  }
+
+  const handleDownloadPDF = async () => {
+    if (!log.invoiceNumber) return
+    setLoading(true)
+    try {
+      const response = await mutation.trigger<undefined, string>(
+        'GET',
+        undefined,
+        `${log.invoiceNumber}/pdf`
+      )
+
+      const byteCharacters = atob(response.data!)
+      const byteNumbers = Array.from(byteCharacters).map((char) =>
+        char.charCodeAt(0)
+      )
+      const byteArray = new Uint8Array(byteNumbers)
+
+      const blob = new Blob([byteArray], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `invoice-${log.invoiceNumber}.pdf`
+      link.click()
+
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Failed to download invoice PDF:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const InvoiceDownloadButton = () => (
+    <FormField label={t('billing.columns.invoiceId')} sx={{ mb: 2 }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        gap={1}
+        alignItems='center'
+      >
+        <Box>{log.invoiceNumber}</Box>
+        {canDownloadInvoice() && (
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={loading}
+            size='small'
+            startIcon={
+              loading ? (
+                <CircularProgress size={16} />
+              ) : (
+                <Icon icon='mdi:download' />
+              )
+            }
+            variant='outlined'
+          >
+            {t('document.download')}
+          </Button>
+        )}
+      </Stack>
+    </FormField>
+  )
+
   return (
     <>
       <FormField label={t('flightLog.status.title')} sx={{ mb: 2 }}>
@@ -73,15 +150,17 @@ export const StatusDisplay = ({
         )}
 
         {log.status === FlightLogStatus.INVOICED && (
-          <Box component='span' display='flex' alignItems='center'>
-            <Icon
-              icon='mdi:invoice-send-outline'
-              color='orange'
-              width={20}
-              style={{ marginRight: theme.spacing(1) }}
-            />
-            {t('flightLog.status.invoiced')}
-          </Box>
+          <Stack direction={{ xs: 'column', sm: 'row' }} gap={1}>
+            <Box component='span' display='flex' alignItems='center'>
+              <Icon
+                icon='mdi:invoice-send-outline'
+                color='orange'
+                width={20}
+                style={{ marginRight: theme.spacing(1) }}
+              />
+              {t('flightLog.status.invoiced')}
+            </Box>
+          </Stack>
         )}
 
         {log.status === FlightLogStatus.PAID && (
@@ -97,11 +176,9 @@ export const StatusDisplay = ({
         )}
       </FormField>
 
-      {log.status === FlightLogStatus.PAID && (
-        <FormField label={t('billing.columns.invoiceId')} sx={{ mb: 2 }}>
-          <Link to={`/club/billing`}>{log.invoiceNumber}</Link>
-        </FormField>
-      )}
+      {(log.status === FlightLogStatus.INVOICED ||
+        log.status === FlightLogStatus.PAID) &&
+        log.invoiceNumber && <InvoiceDownloadButton />}
 
       <FormField label={t('flightLog.logbooks.ajlb')}>
         <Link
