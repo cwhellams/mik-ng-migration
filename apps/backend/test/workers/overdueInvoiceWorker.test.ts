@@ -93,7 +93,7 @@ describe('Overdue Invoice Worker', () => {
       )
 
       const worker = startOverdueInvoiceWorker({
-        sendEmailFn: mockSendEmail,
+        sendEmailFn: mockSendEmail as any,
         cronSchedule: mockCronSchedule,
       })
 
@@ -113,7 +113,7 @@ describe('Overdue Invoice Worker', () => {
       )
 
       const worker = startOverdueInvoiceWorker({
-        sendEmailFn: mockSendEmail,
+        sendEmailFn: mockSendEmail as any,
         cronSchedule: mockCronSchedule,
       })
 

@@ -1,10 +1,7 @@
 import 'dotenv/config'
 
 import cron from 'node-cron'
-import {
-  getUpcomingBookingsNeedingReminder,
-  markBookingReminderSent,
-} from '../db/booking-queries.ts'
+import { claimUpcomingBookingsForReminder } from '../db/booking-queries.ts'
 import { getMemberById } from '../db/member-queries.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
 import logger from '../lib/logger.ts'
@@ -59,12 +56,14 @@ export function startBookingReminderWorker(deps: BookingReminderWorkerDeps = {})
 }
 
 /**
- * Send booking reminder emails for all upcoming bookings needing a reminder
+ * Send booking reminder emails for all upcoming bookings needing a reminder.
+ * Bookings are claimed atomically via an UPDATE...RETURNING query to prevent
+ * duplicate emails when multiple worker instances run concurrently.
  */
 export async function sendBookingReminders(sendEmailFn: typeof sendEmail): Promise<void> {
   try {
-    logger.info('Fetching upcoming bookings needing reminder from database')
-    const bookings = await getUpcomingBookingsNeedingReminder()
+    logger.info('Claiming upcoming bookings needing reminder from database')
+    const bookings = await claimUpcomingBookingsForReminder()
 
     if (bookings.length === 0) {
       logger.info('No upcoming bookings found that need reminder emails')
@@ -95,7 +94,6 @@ export async function sendBookingReminders(sendEmailFn: typeof sendEmail): Promi
           bookingReminderEmailBodyHtml(member.lang, member.firstName, booking),
         )
 
-        await markBookingReminderSent(booking.bookingId)
         sentCount++
         logger.info(
           `Sent booking reminder for booking ${booking.bookingId} to member ${booking.memberId}`,

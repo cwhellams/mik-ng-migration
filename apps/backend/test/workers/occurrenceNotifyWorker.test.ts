@@ -16,7 +16,7 @@ describe('Occurrence Notifying Worker', () => {
     jest.clearAllMocks()
 
     // Initialize mocks
-    mockSendEmail = jest.fn() as jest.Mock
+    mockSendEmail = jest.fn()
     mockCronSchedule = jest
       .fn<(expression: string, func: string | TaskFn, options?: TaskOptions) => ScheduledTask>()
       .mockImplementation((_expression, func) => {
@@ -34,7 +34,7 @@ describe('Occurrence Notifying Worker', () => {
       )
 
       const worker = startOccurrenceNotificationWorker({
-        sendEmailFn: mockSendEmail,
+        sendEmailFn: mockSendEmail as any,
         cronSchedule: mockCronSchedule,
       })
 
@@ -60,7 +60,7 @@ describe('Occurrence Notifying Worker', () => {
       )
 
       const worker = startOccurrenceNotificationWorker({
-        sendEmailFn: mockSendEmail,
+        sendEmailFn: mockSendEmail as any,
         cronSchedule: mockCronSchedule,
       })
 

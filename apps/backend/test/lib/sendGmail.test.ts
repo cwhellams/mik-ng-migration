@@ -30,7 +30,7 @@ const errorSpy = jest.spyOn(logger, 'error').mockImplementation((_infoObject: ob
 const originalEnv = process.env
 
 describe('sendEmail', () => {
-  let sendEmail: (to: string, subject: string, html: string) => void
+  let sendEmail: (to: string, subject: string, html: string) => Promise<void>
   beforeAll(async () => {
     // Set credentials before module import so the module-level smtpLogin const
     // captures the test value (it is evaluated once at module load time).
@@ -85,7 +85,7 @@ describe('sendEmail', () => {
     )
   })
 
-  test('should throw error when email sending fails', () => {
+  test('should throw error when email sending fails', async () => {
     // Setup error case
     const testError = new Error('Failed to send email')
     sendMailMock.mockImplementation((_options, callback) => {
@@ -98,9 +98,7 @@ describe('sendEmail', () => {
     const html = '<p>Test HTML content</p>'
 
     // Execute and expect error
-    expect(() => {
-      sendEmail(to, subject, html)
-    }).toThrow('Failed to send email')
+    await expect(sendEmail(to, subject, html)).rejects.toThrow('Failed to send email')
 
     // Verify logger.error was called
     expect(errorSpy).toHaveBeenCalled()
@@ -114,8 +112,8 @@ describe('sendEmail', () => {
     delete process.env.SMTP_LOGIN
     delete process.env.SMTP_PASSWORD
 
-    expect(() => {
-      sendEmail('recipient@example.com', 'Test Subject', '<p>Test HTML content</p>')
-    }).toThrow('SMTP_LOGIN or SMTP_PASSWORD is not defined in environment variables')
+    await expect(
+      sendEmail('recipient@example.com', 'Test Subject', '<p>Test HTML content</p>'),
+    ).rejects.toThrow('SMTP_LOGIN or SMTP_PASSWORD is not defined in environment variables')
   })
 })

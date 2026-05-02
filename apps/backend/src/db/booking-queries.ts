@@ -248,15 +248,45 @@ export const cancelBooking = async (
 }
 
 /**
- * Get upcoming bookings that need a reminder email sent.
- * Returns bookings with CONFIRMED or TENTATIVE status where start_time_epoch
- * is between now+23h and now+25h (2-hour window centered on 24h ahead),
- * and no reminder has been sent yet.
+ * Atomically claim upcoming bookings that need a reminder email.
+ * Uses UPDATE...WHERE reminder_sent_at IS NULL...RETURNING to ensure only one
+ * worker instance can process each booking, even in multi-instance deployments.
+ *
+ * Claims bookings with CONFIRMED or TENTATIVE status where start_time_epoch
+ * is between now+23h and now+25h (2-hour window around the 24h mark to handle
+ * hourly cron timing variance) and no reminder has been claimed yet.
+ *
+ * Returns the claimed bookings with full member info for email sending.
  */
-export const getUpcomingBookingsNeedingReminder = async (): Promise<Booking[]> => {
+export const claimUpcomingBookingsForReminder = async (): Promise<Booking[]> => {
   const windowStart = dayjs().add(23, 'hour').unix().toString()
   const windowEnd = dayjs().add(25, 'hour').unix().toString()
+  const now = new Date().toISOString()
 
+  // Atomically claim bookings by setting reminder_sent_at in a single UPDATE.
+  // Because this UPDATE is atomic, concurrent worker instances will each claim
+  // a disjoint set of rows (only rows still NULL are updated).
+  const claimed = await connection.db
+    .updateTable('schedule.bookings')
+    .set({ reminder_sent_at: now })
+    .where('start_time_epoch', '>=', windowStart)
+    .where('start_time_epoch', '<=', windowEnd)
+    .where(eb =>
+      eb.or([
+        eb('booking_status', '=', BookingStatus.CONFIRMED),
+        eb('booking_status', '=', BookingStatus.TENTATIVE),
+      ]),
+    )
+    .where('reminder_sent_at', 'is', null)
+    .returning(['booking_id'])
+    .execute()
+
+  if (claimed.length === 0) {
+    return []
+  }
+
+  // Fetch full booking data (including member info) for the claimed booking IDs
+  const claimedIds = claimed.map(r => r.booking_id)
   const results = await connection.db
     .selectFrom('schedule.bookings')
     .selectAll(['schedule.bookings'])
@@ -276,29 +306,10 @@ export const getUpcomingBookingsNeedingReminder = async (): Promise<Booking[]> =
       sql<string | null>`instr.last_name`.as('instructor_last_name'),
       sql<string | null>`instr.phone_number`.as('instructor_phone_number'),
     ])
-    .where('start_time_epoch', '>=', windowStart)
-    .where('start_time_epoch', '<=', windowEnd)
-    .where(eb =>
-      eb.or([
-        eb('booking_status', '=', BookingStatus.CONFIRMED),
-        eb('booking_status', '=', BookingStatus.TENTATIVE),
-      ]),
-    )
-    .where('reminder_sent_at', 'is', null)
+    .where('schedule.bookings.booking_id', 'in', claimedIds)
     .execute()
 
   return results.map(mapResultToBooking)
-}
-
-/**
- * Mark a booking's reminder as sent by setting reminder_sent_at to the current timestamp.
- */
-export const markBookingReminderSent = async (bookingId: string): Promise<void> => {
-  await connection.db
-    .updateTable('schedule.bookings')
-    .set({ reminder_sent_at: new Date().toISOString() })
-    .where('booking_id', '=', bookingId)
-    .execute()
 }
 
 /**
