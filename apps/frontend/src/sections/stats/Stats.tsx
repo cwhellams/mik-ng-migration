@@ -582,7 +582,7 @@ export const Stats = () => {
                 size='small'
               >
                 <ToggleButton value='aircraft'>Aircraft</ToggleButton>
-                <ToggleButton value='pilot'>Pilot</ToggleButton>
+                <ToggleButton value='pilot'>Members</ToggleButton>
                 <ToggleButton value='pilots'>Pilots</ToggleButton>
               </ToggleButtonGroup>
             </Grid>
@@ -911,57 +911,58 @@ export const Stats = () => {
           )}
 
           {/* Flight Time by Year */}
-          <RemoteContent isLoading={isLoading} error={error}>
-            <Card>
-              <CardContent>
-                <Typography variant='h6' gutterBottom>
-                  Flight Time by{' '}
-                  {viewMode === 'aircraft' ? 'Aircraft' : 'Pilot'} (Yearly)
-                </Typography>
-                <Box sx={{ height: 500 }}>
-                  <ResponsiveBar
-                    data={barData}
-                    keys={barChartKeys}
-                    indexBy='year'
-                    margin={{ top: 20, right: 130, bottom: 50, left: 60 }}
-                    padding={0.3}
-                    valueScale={{ type: 'linear' }}
-                    groupMode='grouped'
-                    colors={{ scheme: 'nivo' }}
-                    borderColor={{
-                      from: 'color',
-                      modifiers: [['darker', 1.6]],
-                    }}
-                    axisTop={null}
-                    axisRight={null}
-                    axisBottom={{
-                      tickSize: 5,
-                      tickPadding: 5,
-                      tickRotation: 0,
-                      legend: 'Year',
-                      legendPosition: 'middle',
-                      legendOffset: 40,
-                    }}
-                    axisLeft={{
-                      tickSize: 5,
-                      tickPadding: 5,
-                      tickRotation: 0,
-                      legend: 'Hours',
-                      legendPosition: 'middle',
-                      legendOffset: -50,
-                    }}
-                    labelSkipWidth={12}
-                    labelSkipHeight={12}
-                    labelTextColor={{
-                      from: 'color',
-                      modifiers: [['darker', 1.6]],
-                    }}
-                    theme={nivoTheme}
-                  />
-                </Box>
-              </CardContent>
-            </Card>
-          </RemoteContent>
+          {viewMode === 'aircraft' && (
+            <RemoteContent isLoading={isLoading} error={error}>
+              <Card>
+                <CardContent>
+                  <Typography variant='h6' gutterBottom>
+                    Flight Time by Aircraft (Yearly)
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    <ResponsiveBar
+                      data={barData}
+                      keys={barChartKeys}
+                      indexBy='year'
+                      margin={{ top: 20, right: 130, bottom: 50, left: 60 }}
+                      padding={0.3}
+                      valueScale={{ type: 'linear' }}
+                      groupMode='grouped'
+                      colors={{ scheme: 'nivo' }}
+                      borderColor={{
+                        from: 'color',
+                        modifiers: [['darker', 1.6]],
+                      }}
+                      axisTop={null}
+                      axisRight={null}
+                      axisBottom={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: 'Year',
+                        legendPosition: 'middle',
+                        legendOffset: 40,
+                      }}
+                      axisLeft={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: 'Hours',
+                        legendPosition: 'middle',
+                        legendOffset: -50,
+                      }}
+                      labelSkipWidth={12}
+                      labelSkipHeight={12}
+                      labelTextColor={{
+                        from: 'color',
+                        modifiers: [['darker', 1.6]],
+                      }}
+                      theme={nivoTheme}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            </RemoteContent>
+          )}
 
           {/* Visited Airfields Pie Chart */}
           {viewMode === 'aircraft' && visitedAirfieldsPieData.length > 0 && (

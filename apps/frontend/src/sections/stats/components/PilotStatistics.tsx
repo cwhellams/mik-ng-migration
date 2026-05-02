@@ -71,7 +71,7 @@ const HistogramTooltip = ({
     <strong>
       {binFrom}–{binTo} {unit}
     </strong>
-    : {pilotCount} pilot{pilotCount !== 1 ? 's' : ''}
+    : {Math.round(pilotCount)} pilot{Math.round(pilotCount) !== 1 ? 's' : ''}
   </Box>
 )
 
@@ -80,7 +80,6 @@ export const PilotStatistics = () => {
   const { mode } = useThemeMode()
 
   const [preset, setPreset] = useState<DatePreset>('currentYear')
-  const [timezone, setTimezone] = useState<Timezone>('local')
   const [customFrom, setCustomFrom] = useState<Dayjs | null>(null)
   const [customTo, setCustomTo] = useState<Dayjs | null>(null)
 
@@ -91,8 +90,8 @@ export const PilotStatistics = () => {
         to: customTo.format('YYYY-MM-DD'),
       }
     }
-    return getPresetRange(preset, timezone)
-  }, [preset, customFrom, customTo, timezone])
+    return getPresetRange(preset, 'local')
+  }, [preset, customFrom, customTo])
 
   const nivoTheme = useMemo(
     () => ({
@@ -154,6 +153,11 @@ export const PilotStatistics = () => {
     [pilotStats]
   )
 
+  const hoursTickValues = useMemo(() => {
+    const maxHours = Math.max(...(pilotStats?.hoursHistogram?.map(b => b.pilotCount) || [0]))
+    return Array.from({ length: Math.ceil(maxHours) + 1 }, (_, i) => i)
+  }, [pilotStats])
+
   const airportsBarData = useMemo(
     () =>
       (pilotStats?.airportsHistogram ?? []).map((bin) => ({
@@ -164,6 +168,11 @@ export const PilotStatistics = () => {
       })),
     [pilotStats]
   )
+
+  const airportsTickValues = useMemo(() => {
+    const maxAirports = Math.max(...(pilotStats?.airportsHistogram?.map(b => b.pilotCount) || [0]))
+    return Array.from({ length: Math.ceil(maxAirports) + 1 }, (_, i) => i)
+  }, [pilotStats])
 
   return (
     <Box>
@@ -203,27 +212,6 @@ export const PilotStatistics = () => {
               </ToggleButton>
             </ToggleButtonGroup>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Typography variant='caption' color='text.secondary'>
-                {t('stats.pilots.timezone.label')}
-              </Typography>
-              <ToggleButtonGroup
-                value={timezone}
-                exclusive
-                onChange={(_, value) => {
-                  if (value) setTimezone(value as Timezone)
-                }}
-                size='small'
-              >
-                <ToggleButton value='local'>
-                  {t('stats.pilots.timezone.local')}
-                </ToggleButton>
-                <ToggleButton value='utc'>
-                  {t('stats.pilots.timezone.utc')}
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-
             {preset === 'custom' && (
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                 <DatePicker
@@ -244,7 +232,7 @@ export const PilotStatistics = () => {
         </CardContent>
       </Card>
 
-      <RemoteContent isLoading={isLoading || skipFetch} error={error}>
+      <RemoteContent isLoading={isLoading && !skipFetch} error={error}>
         {/* KPI Card */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid size={{ xs: 12, sm: 4 }}>
@@ -275,7 +263,7 @@ export const PilotStatistics = () => {
                   indexBy='range'
                   margin={{ top: 20, right: 30, bottom: 60, left: 60 }}
                   padding={0.3}
-                  valueScale={{ type: 'linear' }}
+                  valueScale={{ type: 'linear', min: 0, max: 'auto' }}
                   colors={{ scheme: 'set2' }}
                   borderColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
                   axisTop={null}
@@ -295,12 +283,8 @@ export const PilotStatistics = () => {
                     legend: t('stats.pilots.pilotCountAxis'),
                     legendPosition: 'middle',
                     legendOffset: -50,
-                  }}
-                  labelSkipWidth={12}
-                  labelSkipHeight={12}
-                  labelTextColor={{
-                    from: 'color',
-                    modifiers: [['darker', 1.6]],
+                    tickValues: hoursTickValues,
+                    format: '.0f',
                   }}
                   tooltip={({ data: barData }) => (
                     <HistogramTooltip
@@ -344,7 +328,7 @@ export const PilotStatistics = () => {
                   indexBy='range'
                   margin={{ top: 20, right: 30, bottom: 60, left: 60 }}
                   padding={0.3}
-                  valueScale={{ type: 'linear' }}
+                  valueScale={{ type: 'linear', min: 0, max: 'auto' }}
                   colors={{ scheme: 'nivo' }}
                   borderColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
                   axisTop={null}
@@ -364,12 +348,8 @@ export const PilotStatistics = () => {
                     legend: t('stats.pilots.pilotCountAxis'),
                     legendPosition: 'middle',
                     legendOffset: -50,
-                  }}
-                  labelSkipWidth={12}
-                  labelSkipHeight={12}
-                  labelTextColor={{
-                    from: 'color',
-                    modifiers: [['darker', 1.6]],
+                    tickValues: airportsTickValues,
+                    format: '.0f',
                   }}
                   tooltip={({ data: barData }) => (
                     <HistogramTooltip

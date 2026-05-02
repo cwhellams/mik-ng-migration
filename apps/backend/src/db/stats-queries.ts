@@ -505,7 +505,7 @@ export const getPilotStatistics = async (filters: {
 
   return {
     uniquePicCount,
-    hoursHistogram: buildHistogram(hoursValues, 10),
-    airportsHistogram: buildHistogram(airportValues, 5),
+    hoursHistogram: buildHistogram(hoursValues, 2),
+    airportsHistogram: buildHistogram(airportValues, 2),
   }
 }
