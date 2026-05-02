@@ -281,6 +281,19 @@ export interface FlightAircraft {
   year_of_manufacture: number
 }
 
+export interface FlightAircraftCards {
+  aircraft_registration: string
+  card_id: Generated<number>
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: string | null
+  name: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+  valid_from: string | null
+  valid_to: string | null
+}
+
 export interface FlightAircraftDocumentsFiles {
   aircraft_registration: string
   created_at: Generated<Timestamp>
@@ -367,6 +380,8 @@ export interface FlightLogs {
   is_dto_training_flight: boolean
   landing_time_epoch: Int8
   landing_time_utc: Generated<Timestamp>
+  min_billable_exception_approved_by_member_id: string | null
+  min_billable_exception_reason: string | null
   night_flying_mins: number
   non_billing_approved_by_member_id: string | null
   non_billing_reason: string | null
@@ -751,6 +766,7 @@ export interface ScheduleBookings {
   description: string | null
   end_time_epoch: Int8
   end_time_utc: Generated<Timestamp>
+  instructor_member_id: string | null
   member_id: string
   registration: string
   start_time_epoch: Int8
@@ -1087,6 +1103,7 @@ export interface DB {
   'exam.question_translations': ExamQuestionTranslations
   'exam.questions': ExamQuestions
   'flight.aircraft': FlightAircraft
+  'flight.aircraft_cards': FlightAircraftCards
   'flight.aircraft_documents_files': FlightAircraftDocumentsFiles
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
   'flight.flight_credits': FlightFlightCredits

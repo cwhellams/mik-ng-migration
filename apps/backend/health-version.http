@@ -1,0 +1,10 @@
+# MIK-NG Backend API - Health and Version
+# Run these requests in VS Code REST Client.
+
+@baseUrl = http://0.0.0.0:3000
+
+### Health check
+GET {{baseUrl}}/health
+
+### API version
+GET {{baseUrl}}/api/v1/version

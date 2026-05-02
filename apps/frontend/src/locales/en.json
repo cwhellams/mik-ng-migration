@@ -223,7 +223,26 @@
     "nonRenewalsBulkSendReminderSuccess": "Reminder sent to {{count}} member(s)",
     "nonRenewalsBulkRemove": "Remove Members ({{count}})",
     "nonRenewalsBulkRemoveConfirm": "Deactivate {{count}} selected member(s)? This cannot be undone.",
-    "nonRenewalsBulkRemoveSuccess": "{{count}} member(s) deactivated"
+    "nonRenewalsBulkRemoveSuccess": "{{count}} member(s) deactivated",
+    "adminInvoices": {
+      "title": "Recent Invoices",
+      "noInvoices": "No invoices found",
+      "date": "Date",
+      "type": "Type",
+      "description": "Description",
+      "total": "Total",
+      "status": "Status"
+    },
+    "adminFlights": {
+      "title": "Recent Flights",
+      "noFlights": "No flights found",
+      "date": "Date",
+      "aircraft": "Aircraft",
+      "route": "Route",
+      "duration": "Duration",
+      "type": "Type",
+      "status": "Status"
+    }
   },
   "aircraft": {
     "location": "Location",
@@ -236,7 +255,8 @@
     "tabs": {
       "info": "Info",
       "documents": "Documents",
-      "pricing": "Pricing"
+      "pricing": "Pricing",
+      "cards": "Cards"
     },
     "document": {
       "arc": "ARC",
@@ -328,6 +348,32 @@
       "perMinute": "Per minute",
       "notes": "Notes",
       "notesHelp": "Optional notes about this pricing period"
+    },
+    "cards": {
+      "title": "Cards & Passes",
+      "add": "Add Card",
+      "edit": "Edit Card",
+      "noCards": "No cards or passes registered",
+      "name": "Name",
+      "nameHelp": "E.g. Air BP Fuel Card, Finavia Season Pass",
+      "nameRequired": "Card name is required",
+      "description": "Description",
+      "validFrom": "Valid From",
+      "validTo": "Valid To",
+      "validToHelp": "Leave empty if no expiry date",
+      "dateRangeError": "Valid from date must be before valid to date",
+      "actions": "Actions",
+      "status": {
+        "label": "Status",
+        "valid": "Valid",
+        "expiring": "Expiring Soon",
+        "expired": "Expired",
+        "future": "Not Yet Active"
+      },
+      "delete": {
+        "title": "Delete Card",
+        "confirm": "Are you sure you want to delete this card?"
+      }
     },
     "edit": {
       "new": "Add New Aircraft",
@@ -636,6 +682,7 @@
     "partiallyBillableConflict": "A flight cannot be both partially billable and non-billable",
     "nonBillingApprovedByMemberId": "Non-billing Approved By",
     "nonBillingReason": "Non-billing Reason",
+    "minBillableExceptionReason": "Minimum Billable Exception Reason",
     "validationRemarks": "Validation Remarks",
     "billingRemarks": "Billing Remarks",
     "billingRemarksTestOrFerryInstruction": "Describe the reason for the flight, who approved it, and whether there were any occurrences such as weather avoidance or technical issues found. If this was a test flight, please add the date the report was sent to kalusto@mik.fi",
@@ -730,7 +777,8 @@
       "flights": "Flights",
       "items": "Products",
       "tools": "Tools",
-      "taxReport": "Tax Report"
+      "taxReport": "Tax Report",
+      "upliftReport": "Uplift Report"
     },
     "dashboard": {
       "title": "Flights Waiting to be Invoiced",
@@ -747,6 +795,7 @@
     "completeMinBillable": "Confirm below-minimum flights",
     "other": "Other Flights",
     "isFreeFlight": "Non-billable Flight",
+    "isMinBillableException": "Exception from minimum billable time",
     "creditedMins": "Credited Minutes",
     "creditedNote": "Credit note",
     "creditedMinsInvalid": "Credited minutes must be a positive integer",
@@ -963,10 +1012,12 @@
       "disablePast": "Date/time cannot be in the past",
       "minutesStep": "Please use 15-minute increments",
       "invalidDateTime": "Invalid date/time",
-      "endAfterStart": "End time must be after start time"
+      "endAfterStart": "End time must be after start time",
+      "instructorRequired": "Instructor / FE is required for training bookings"
     },
     "bookingOverlapError": "Booking overlaps with existing booking",
     "owner": "Owner",
+    "instructor": "Instructor / FE",
     "created": "Created",
     "updated": "Updated",
     "cancelled": "Cancelled",
@@ -1458,6 +1509,43 @@
         "local": "Local",
         "utc": "UTC"
       }
+    }
+  },
+  "upliftReport": {
+    "title": "Fuel & Oil Uplift Report",
+    "description": "View fuel and oil uplifts per aircraft for a selected date range",
+    "filters": {
+      "aircraft": "Aircraft",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "generate": "Generate Report",
+      "export": "Export to CSV"
+    },
+    "quickRanges": {
+      "1w": "1 week",
+      "1m": "1 month",
+      "3m": "3 months",
+      "12m": "12 months"
+    },
+    "table": {
+      "dateTime": "Date & Time",
+      "pic": "PIC",
+      "fuelUplift": "Fuel Uplift (L)",
+      "oilUplift": "Oil Uplift (L)",
+      "details": "Details",
+      "open": "Open"
+    },
+    "summary": {
+      "totalFuel": "Total fuel uplift: {{value}} L",
+      "totalOil": "Total oil uplift: {{value}} L",
+      "fuelTypes": "Fuel types"
+    },
+    "noData": "No uplift data found for the selected aircraft and date range",
+    "errors": {
+      "aircraftRequired": "Aircraft selection is required",
+      "datesRequired": "Both start and end dates are required",
+      "endDateFuture": "End date cannot be in the future",
+      "startAfterEnd": "Start date cannot be after end date"
     }
   }
 }

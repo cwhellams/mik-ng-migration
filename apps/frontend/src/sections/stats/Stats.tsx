@@ -262,9 +262,9 @@ export const Stats = () => {
         grouped.set(item.yr, {})
       }
       const yearData = grouped.get(item.yr)!
-      yearData[item.aircraft_registration] = Math.round(
-        item.total_flight_mins / 60
-      ) // Convert to hours
+      yearData[item.aircraft_registration] =
+        (yearData[item.aircraft_registration] || 0) +
+        Math.round(item.total_flight_mins / 60) // Convert to hours and accumulate across flight types
     })
 
     return Array.from(grouped.entries())

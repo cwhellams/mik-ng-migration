@@ -30,6 +30,12 @@ describe('Db Get Booking by id', () => {
       description: undefined,
       endTime: expect.any(String),
       endTimeEpoch: expect.any(String),
+      instructor: {
+        firstName: expect.any(String),
+        lastName: expect.any(String),
+        phoneNumber: expect.any(String),
+      },
+      instructorMemberId: expect.any(String),
       member: {
         firstName: expect.any(String),
         lastName: expect.any(String),
@@ -103,6 +109,7 @@ describe('Db Booking insert, update, cancel', () => {
     description: 'Test booking',
     startTimeEpoch: startTime.unix().toString(),
     endTimeEpoch: endTime.unix().toString(),
+    instructorMemberId: 'Matti1',
     ...overrides,
   })
 
@@ -118,6 +125,8 @@ describe('Db Booking insert, update, cancel', () => {
         : endTime
       ).toISOString(),
       endTimeEpoch: endTime.unix().toString(),
+      instructor: undefined,
+      instructorMemberId: 'Matti1',
       member: {
         firstName: '',
         lastName: '',
@@ -148,6 +157,11 @@ describe('Db Booking insert, update, cancel', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       cancelledBy: null,
+      instructor: {
+        firstName: expect.any(String),
+        lastName: expect.any(String),
+        phoneNumber: expect.any(String),
+      },
       member: {
         firstName: 'MIK',
         lastName: 'Admin',

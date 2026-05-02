@@ -21,7 +21,11 @@ export const bookingFlags = (
   me: ReturnType<typeof useMe>['me'],
   isBookingAdmin: boolean
 ) => {
-  const editPermissions = booking.memberId === me?.memberId || isBookingAdmin
+  const editPermissions =
+    booking.memberId === me?.memberId ||
+    (!!booking.instructorMemberId &&
+      booking.instructorMemberId === me?.memberId) ||
+    isBookingAdmin
 
   const isCancelled = booking.status === BookingStatus.CANCELLED
   const isPastBooking = dayjs(booking.endTime).isBefore()

@@ -222,7 +222,26 @@
     "nonRenewalsBulkSendReminderSuccess": "Muistutus lähetetty {{count}} jäsenelle",
     "nonRenewalsBulkRemove": "Poista jäsenet ({{count}})",
     "nonRenewalsBulkRemoveConfirm": "Poistetaanko {{count}} valitun jäsenen jäsenyys? Toimintoa ei voi kumota.",
-    "nonRenewalsBulkRemoveSuccess": "{{count}} jäsen(tä) poistettu"
+    "nonRenewalsBulkRemoveSuccess": "{{count}} jäsen(tä) poistettu",
+    "adminInvoices": {
+      "title": "Viimeisimmät laskut",
+      "noInvoices": "Laskuja ei löydy",
+      "date": "Päivämäärä",
+      "type": "Tyyppi",
+      "description": "Kuvaus",
+      "total": "Summa",
+      "status": "Tila"
+    },
+    "adminFlights": {
+      "title": "Viimeisimmät lennot",
+      "noFlights": "Lentoja ei löydy",
+      "date": "Päivämäärä",
+      "aircraft": "Ilma-alus",
+      "route": "Reitti",
+      "duration": "Kesto",
+      "type": "Tyyppi",
+      "status": "Tila"
+    }
   },
   "aircraft": {
     "location": "Sijainti",
@@ -235,7 +254,8 @@
     "tabs": {
       "info": "Tiedot",
       "documents": "Asiakirjat",
-      "pricing": "Hinnoittelu"
+      "pricing": "Hinnoittelu",
+      "cards": "Kortit"
     },
     "document": {
       "arc": "ARC",
@@ -326,6 +346,32 @@
       "perMinute": "Minuuttihinta",
       "notes": "Huomiot",
       "notesHelp": "Vapaaehtoinen huomio hinnoittelujaksosta"
+    },
+    "cards": {
+      "title": "Kortit ja kausipassit",
+      "add": "Lisää kortti",
+      "edit": "Muokkaa korttia",
+      "noCards": "Ei rekisteröityjä kortteja tai kausipasseja",
+      "name": "Nimi",
+      "nameHelp": "Esim. Air BP -polttoainekortti, Finavia-kausikortti",
+      "nameRequired": "Kortin nimi on pakollinen",
+      "description": "Kuvaus",
+      "validFrom": "Voimassa alkaen",
+      "validTo": "Voimassa asti",
+      "validToHelp": "Jätä tyhjäksi jos ei vanhenemispäivää",
+      "dateRangeError": "Alkamispäivän on oltava ennen päättymispäivää",
+      "actions": "Toiminnot",
+      "status": {
+        "label": "Tila",
+        "valid": "Voimassa",
+        "expiring": "Vanhenee pian",
+        "expired": "Vanhentunut",
+        "future": "Ei vielä voimassa"
+      },
+      "delete": {
+        "title": "Poista kortti",
+        "confirm": "Haluatko varmasti poistaa tämän kortin?"
+      }
     },
     "edit": {
       "new": "Lisää uusi lentokone",
@@ -634,6 +680,7 @@
     "partiallyBillableConflict": "Lento ei voi olla samanaikaisesti osittain laskutettava ja laskuttamaton",
     "nonBillingApprovedByMemberId": "Laskuttamattomuuden hyväksynyt",
     "nonBillingReason": "Laskuttamattomuuden syy",
+    "minBillableExceptionReason": "Poikkeusperustelu minimilaskutusajasta",
     "validationRemarks": "Vahvistushuomautukset",
     "billingRemarks": "Laskutushuomautukset",
     "billingRemarksTestOrFerryInstruction": "Kuvaile lennon syy, kuka hyväksyi lennon ja oliko lennolla poikkeamia kuten sääväistöjä tai havaittuja teknisiä vikoja. Jos kyseessä oli koelento, lisää tähän päivämäärä jolloin raportti lähetettiin osoitteeseen kalusto@mik.fi",
@@ -727,7 +774,8 @@
       "dashboard": "Tietopaneeli",
       "flights": "Lennot",
       "items": "Tuotteet",
-      "tools": "Työkalut"
+      "tools": "Työkalut",
+      "upliftReport": "Tankkaausraportti"
     },
     "dashboard": {
       "title": "Odottaa laskutusta",
@@ -744,6 +792,7 @@
     "completeMinBillable": "Vahvista alle minimilaskutusajan lennot",
     "other": "Muut lennot",
     "isFreeFlight": "Ei laskutettava",
+    "isMinBillableException": "Poikkeus minimilaskutusajasta",
     "creditedMins": "Hyvitetyt minuutit",
     "creditedNote": "Hyvityksen huomautus",
     "creditedMinsInvalid": "Hyvitettyjen minuuttien täytyy olla positiivinen kokonaisluku",
@@ -934,10 +983,12 @@
       "disablePast": "Päivämäärä/aika ei voi olla menneisyydessä",
       "minutesStep": "Käytä 15 minuutin askelia",
       "invalidDateTime": "Virheellinen päivämäärä/aika",
-      "endAfterStart": "Loppuaika on oltava aloitusajan jälkeen"
+      "endAfterStart": "Loppuaika on oltava aloitusajan jälkeen",
+      "instructorRequired": "Lentokouluttaja / FE vaaditaan koululennoille"
     },
     "bookingOverlapError": "Päällekkäisyys toiseen varaukseen",
     "owner": "Omistaja",
+    "instructor": "Lentokouluttaja / FE",
     "created": "Luotu",
     "updated": "Päivitetty",
     "cancelled": "Peruutettu",
@@ -1428,6 +1479,43 @@
         "local": "Paikallinen",
         "utc": "UTC"
       }
+    }
+  },
+  "upliftReport": {
+    "title": "Polttoaine- ja öljytankkauksien raportti",
+    "description": "Tarkastele polttoaine- ja öljytankkaustietoja koneittain valitulta ajanjaksolta",
+    "filters": {
+      "aircraft": "Kone",
+      "startDate": "Alkupäivä",
+      "endDate": "Loppupäivä",
+      "generate": "Luo raportti",
+      "export": "Vie CSV:nä"
+    },
+    "quickRanges": {
+      "1w": "1 viikko",
+      "1m": "1 kuukausi",
+      "3m": "3 kuukautta",
+      "12m": "12 kuukautta"
+    },
+    "table": {
+      "dateTime": "Päivä & aika",
+      "pic": "PIC",
+      "fuelUplift": "Polttoaine (L)",
+      "oilUplift": "Öljy (L)",
+      "details": "Tiedot",
+      "open": "Avaa"
+    },
+    "summary": {
+      "totalFuel": "Polttoainetta yhteensä: {{value}} L",
+      "totalOil": "Öljyä yhteensä: {{value}} L",
+      "fuelTypes": "Polttoainetyypit"
+    },
+    "noData": "Ei tankkaustietoja valitulle koneelle ja ajalle",
+    "errors": {
+      "aircraftRequired": "Kone on pakollinen",
+      "datesRequired": "Alku- ja loppupäivä ovat pakollisia",
+      "endDateFuture": "Loppupäivä ei voi olla tulevaisuudessa",
+      "startAfterEnd": "Alkupäivä ei voi olla loppupäivän jälkeen"
     }
   }
 }
