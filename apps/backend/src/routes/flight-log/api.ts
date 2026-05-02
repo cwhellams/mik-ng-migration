@@ -105,6 +105,17 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
   }
 
   const logs = await getFlightLogs(filters)
+
+  // For non-admin users, clamp billing status to VALIDATED for other members' flights
+  if (!isFlightLogAdmin(req.user)) {
+    const userMemberId = req.user!.memberId
+    logs.logs = logs.logs.map(log => ({
+      ...log,
+      status: log.billableMemberId === userMemberId ? log.status : FlightLogStatus.VALIDATED,
+      invoiceNumber: log.billableMemberId === userMemberId ? log.invoiceNumber : null,
+    }))
+  }
+
   res.status(200).json(logs)
 })
 

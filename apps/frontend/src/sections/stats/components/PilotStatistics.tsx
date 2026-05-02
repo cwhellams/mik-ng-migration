@@ -154,7 +154,9 @@ export const PilotStatistics = () => {
   )
 
   const hoursTickValues = useMemo(() => {
-    const maxHours = Math.max(...(pilotStats?.hoursHistogram?.map(b => b.pilotCount) || [0]))
+    const maxHours = Math.max(
+      ...(pilotStats?.hoursHistogram?.map((b) => b.pilotCount) || [0])
+    )
     return Array.from({ length: Math.ceil(maxHours) + 1 }, (_, i) => i)
   }, [pilotStats])
 
@@ -170,7 +172,9 @@ export const PilotStatistics = () => {
   )
 
   const airportsTickValues = useMemo(() => {
-    const maxAirports = Math.max(...(pilotStats?.airportsHistogram?.map(b => b.pilotCount) || [0]))
+    const maxAirports = Math.max(
+      ...(pilotStats?.airportsHistogram?.map((b) => b.pilotCount) || [0])
+    )
     return Array.from({ length: Math.ceil(maxAirports) + 1 }, (_, i) => i)
   }, [pilotStats])
 
