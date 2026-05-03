@@ -807,6 +807,7 @@ export interface ScheduleBookings {
   instructor_member_id: string | null
   member_id: string
   registration: string
+  reminder_sent_at: Timestamp | null
   start_time_epoch: Int8
   start_time_utc: Generated<Timestamp>
   updated_at: Generated<Timestamp>

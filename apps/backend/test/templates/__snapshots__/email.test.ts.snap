@@ -306,6 +306,108 @@ exports[`Booking confirmation template tests bookingUpdatedEmailBodyHtml 3`] = `
   </div>"
 `;
 
+exports[`Booking reminder template tests bookingReminderEmailBodyHtml 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Muistutus tulevasta varauksesta</h1><p>Hei Tester,</p>
+<p>Muistutuksena, varauksesi koneelle OH-IHQ alkaa 15.11. 00:13 - 15.11. 01:13.</p>
+<p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRACTICE">Lisää Google-kalenteriin</a></p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/schedule?day&#x3D;2023-11-15" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Tarkistele varauskalenteria</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Booking reminder template tests bookingReminderEmailBodyHtml 2`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Upcoming booking reminder</h1><p>Hello Tester,</p>
+<p>This is a reminder that you have a booking for plane OH-IHQ starting 15.11. 00:13 - 15.11. 01:13.</p>
+<p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRACTICE">Add to Google Calendar</a></p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/schedule?day&#x3D;2023-11-15" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Check the booking calendar</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Booking reminder template tests bookingReminderEmailBodyHtml 3`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Påminnelse om kommande bokning</h1><p>Hej Tester,</p>
+<p>Detta är en påminnelse om att du har en bokning för flygplan OH-IHQ som börjar 15.11. 00:13 - 15.11. 01:13.</p>
+<p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRACTICE">Lägg till i Google Kalender</a></p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="http://localhost:5173/schedule?day&#x3D;2023-11-15" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Se bokningskalendern</a>
+    </div>
+    
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
 exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: en 1`] = `
 "
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">

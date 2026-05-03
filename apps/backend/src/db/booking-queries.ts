@@ -248,6 +248,81 @@ export const cancelBooking = async (
 }
 
 /**
+ * Atomically claim upcoming bookings that need a reminder email.
+ * Uses UPDATE...WHERE reminder_sent_at IS NULL...RETURNING to ensure only one
+ * worker instance can process each booking, even in multi-instance deployments.
+ *
+ * Claims bookings with CONFIRMED or TENTATIVE status where start_time_epoch
+ * is within a ±1h window around `hoursBeforeBooking` hours from now (to handle
+ * hourly cron timing variance) and no reminder has been claimed yet.
+ *
+ * @param hoursBeforeBooking - How many hours before the booking to send the reminder (default: 24)
+ *
+ * Returns the claimed bookings with full member info for email sending.
+ */
+export const claimUpcomingBookingsForReminder = async (
+  hoursBeforeBooking: number = 24,
+): Promise<Booking[]> => {
+  const windowStart = dayjs()
+    .add(hoursBeforeBooking - 1, 'hour')
+    .unix()
+    .toString()
+  const windowEnd = dayjs()
+    .add(hoursBeforeBooking + 1, 'hour')
+    .unix()
+    .toString()
+  const now = new Date().toISOString()
+
+  // Atomically claim bookings by setting reminder_sent_at in a single UPDATE.
+  // Because this UPDATE is atomic, concurrent worker instances will each claim
+  // a disjoint set of rows (only rows still NULL are updated).
+  const claimed = await connection.db
+    .updateTable('schedule.bookings')
+    .set({ reminder_sent_at: now })
+    .where('start_time_epoch', '>=', windowStart)
+    .where('start_time_epoch', '<=', windowEnd)
+    .where(eb =>
+      eb.or([
+        eb('booking_status', '=', BookingStatus.CONFIRMED),
+        eb('booking_status', '=', BookingStatus.TENTATIVE),
+      ]),
+    )
+    .where('reminder_sent_at', 'is', null)
+    .returning(['booking_id'])
+    .execute()
+
+  if (claimed.length === 0) {
+    return []
+  }
+
+  // Fetch full booking data (including member info) for the claimed booking IDs
+  const claimedIds = claimed.map(r => r.booking_id)
+  const results = await connection.db
+    .selectFrom('schedule.bookings')
+    .selectAll(['schedule.bookings'])
+    .innerJoin('member.register', 'schedule.bookings.member_id', 'member.register.member_id')
+    .select([
+      'member.register.first_name',
+      'member.register.last_name',
+      'member.register.phone_number',
+    ])
+    .leftJoin(
+      'member.register as instr',
+      'instr.member_id',
+      'schedule.bookings.instructor_member_id',
+    )
+    .select([
+      sql<string | null>`instr.first_name`.as('instructor_first_name'),
+      sql<string | null>`instr.last_name`.as('instructor_last_name'),
+      sql<string | null>`instr.phone_number`.as('instructor_phone_number'),
+    ])
+    .where('schedule.bookings.booking_id', 'in', claimedIds)
+    .execute()
+
+  return results.map(mapResultToBooking)
+}
+
+/**
  * Cancel all future bookings for a member
  * Cancels bookings with status TENTATIVE or CONFIRMED where start_time_epoch >= current epoch
  */

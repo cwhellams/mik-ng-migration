@@ -1,8 +1,9 @@
 import { jest } from '@jest/globals'
 import type { ScheduledTask, TaskContext, TaskFn, TaskOptions } from 'node-cron'
+import { sendEmail } from '../../src/lib/sendGmail.ts'
 
 describe('Occurrence Notifying Worker', () => {
-  let mockSendEmail: jest.Mock
+  let mockSendEmail: jest.Mock & typeof sendEmail
   let mockCronSchedule: jest.Mock<
     (expression: string, func: string | TaskFn, options?: TaskOptions) => ScheduledTask
   >
@@ -16,7 +17,8 @@ describe('Occurrence Notifying Worker', () => {
     jest.clearAllMocks()
 
     // Initialize mocks
-    mockSendEmail = jest.fn() as jest.Mock
+    mockSendEmail = jest.fn().mockImplementation(() => Promise.resolve()) as jest.Mock &
+      typeof sendEmail
     mockCronSchedule = jest
       .fn<(expression: string, func: string | TaskFn, options?: TaskOptions) => ScheduledTask>()
       .mockImplementation((_expression, func) => {
