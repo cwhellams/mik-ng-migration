@@ -38,7 +38,7 @@ type Passkey = {
 type PasskeysResponse = { passkeys: Passkey[] }
 
 interface PasskeysCardProps {
-  // Either 'me' (own profile) or a numeric memberId (admin viewing another).
+  // Either 'me' (own profile) or a string memberId (admin viewing another).
   memberId: string
   // True when the current user is viewing somebody else's profile as admin.
   isAdmin: boolean

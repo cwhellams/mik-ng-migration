@@ -243,7 +243,7 @@ passkeyRouter.post('/authentication/options', async (req: Request, res: Response
 
 passkeyRouter.post('/authentication/verify', async (req: Request, res: Response) => {
   const response = req.body?.response as AuthenticationResponseJSON | undefined
-  const email = typeof req.body?.email === 'string' ? req.body.email.toLowerCase() : null
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : null
   const sessionId = typeof req.body?.sessionId === 'string' ? req.body.sessionId : null
   if (!response) {
     return res.status(400).json({ error: 'Missing authentication response' })
@@ -368,15 +368,15 @@ const toDto = (p: Awaited<ReturnType<typeof getPasskeysByMemberId>>[number]): Pa
 memberPasskeysRouter.get('/', validateUser(), async (req: Request, res: Response) => {
   const user = req.user as JWTUser
   const requested = req.params.memberId
-  const targetMemberId =
-    !requested || requested === 'me'
-      ? user.memberId
-      : (() => {
-          if (!user.permissions.includes(MIKPermissions.MEMBER_ADMIN)) {
-            return null
-          }
-          return requested
-        })()
+  const isSelf = !requested || requested === 'me' || requested === user.memberId
+  const targetMemberId = isSelf
+    ? user.memberId
+    : (() => {
+        if (!user.permissions.includes(MIKPermissions.MEMBER_ADMIN)) {
+          return null
+        }
+        return requested
+      })()
 
   if (targetMemberId === null) {
     return res.status(403).json({ error: 'Forbidden' })

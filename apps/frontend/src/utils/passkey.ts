@@ -50,7 +50,11 @@ export async function loginWithPasskey(
   email: string
 ): Promise<PasskeyLoginResult> {
   if (!browserSupportsWebAuthn()) {
-    return { ok: false, reason: 'failed', message: 'member.passkeys.unsupportedBrowser' }
+    return {
+      ok: false,
+      reason: 'failed',
+      message: 'member.passkeys.unsupportedBrowser',
+    }
   }
 
   let optionsResp: {
@@ -61,7 +65,9 @@ export async function loginWithPasskey(
     const r = await sharedApi.post<{
       options: PublicKeyCredentialRequestOptionsJSON
       hasPasskeys: boolean
-    }>('auth/passkey/authentication/options', { email }, { allowUnauthenticated: true } as ExtendedAxiosConfig)
+    }>('auth/passkey/authentication/options', { email }, {
+      allowUnauthenticated: true,
+    } as ExtendedAxiosConfig)
     optionsResp = r.data
   } catch {
     return { ok: false, reason: 'options-failed' }
@@ -105,16 +111,31 @@ export async function loginWithPasskey(
  */
 export async function loginWithPasskeyDiscoverable(): Promise<PasskeyLoginResult> {
   if (!browserSupportsWebAuthn()) {
-    return { ok: false, reason: 'failed', message: 'member.passkeys.unsupportedBrowser' }
+    return {
+      ok: false,
+      reason: 'failed',
+      message: 'member.passkeys.unsupportedBrowser',
+    }
   }
 
-  let optionsResp: { options: PublicKeyCredentialRequestOptionsJSON; sessionId?: string }
+  let optionsResp: {
+    options: PublicKeyCredentialRequestOptionsJSON
+    sessionId: string
+  }
   try {
     const r = await sharedApi.post<{
       options: PublicKeyCredentialRequestOptionsJSON
       sessionId?: string
-    }>('auth/passkey/authentication/options', {}, { allowUnauthenticated: true } as ExtendedAxiosConfig)
-    optionsResp = r.data
+    }>('auth/passkey/authentication/options', {}, {
+      allowUnauthenticated: true,
+    } as ExtendedAxiosConfig)
+    if (!r.data.sessionId) {
+      return { ok: false, reason: 'options-failed' }
+    }
+    optionsResp = r.data as {
+      options: PublicKeyCredentialRequestOptionsJSON
+      sessionId: string
+    }
   } catch {
     return { ok: false, reason: 'options-failed' }
   }
@@ -144,7 +165,11 @@ export type PasskeyRegisterResult =
   | { ok: true }
   | {
       ok: false
-      reason: 'unsupported-browser' | 'options-failed' | 'cancelled' | 'verify-failed'
+      reason:
+        | 'unsupported-browser'
+        | 'options-failed'
+        | 'cancelled'
+        | 'verify-failed'
       /** Raw browser/server message for cases where the browser already provides a localized string. */
       message?: string
     }
