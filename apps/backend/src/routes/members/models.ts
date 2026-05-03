@@ -311,11 +311,11 @@ export const MemberProfileSchema = MemberSchema.pick({
   mailingLists: true,
 }).extend({
   streetAddress: z.string().min(1),
-  postcode: z.string().min(1).regex(/^\d+$/, 'Postcode must contain digits only'),
+  postcode: z.string().min(1).regex(/^\d+$/, 'member.postcodeDigitsOnly'),
   townCity: z.string().min(1),
   phoneNumber: z
     .string()
-    .regex(/^[0-9+\s\-()]*$/, 'Phone number contains invalid characters')
+    .regex(/^\+[0-9\s\-()]+$/, 'member.phoneRequiresCorrectFormatting')
     .nullish(),
 })
 

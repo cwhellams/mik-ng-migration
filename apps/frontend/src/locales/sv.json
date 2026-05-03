@@ -173,6 +173,8 @@
       "notSubscribed": "Inte prenumererad",
       "noLists": "Inga e-postlistor konfigurerade"
     },
+    "postcodeDigitsOnly": "Postnummer får endast innehålla siffror",
+    "phoneRequiresCorrectFormatting": "Telefonnumret måste innehålla landskod (börja med +) och får inte innehålla ogiltiga tecken",
     "passkeys": {
       "title": "Passnycklar",
       "empty": "Inga passnycklar registrerade. Lägg till en för snabbare och säkrare inloggning.",

@@ -172,6 +172,8 @@
       "notSubscribed": "Ei tilattu",
       "noLists": "Sähköpostilistoja ei ole määritetty"
     },
+    "postcodeDigitsOnly": "Postinumero saa sisältää vain numeroita",
+    "phoneRequiresCorrectFormatting": "Puhelinnumeron on sisällettävä maatunnus (alkaa +:lla), eikä se saa sisältää virheellisiä merkkejä",
     "passkeys": {
       "title": "Avainkoodit",
       "empty": "Ei rekisteröityjä avainkoodeja. Lisää avainkoodi nopeampaa ja turvallisempaa kirjautumista varten.",

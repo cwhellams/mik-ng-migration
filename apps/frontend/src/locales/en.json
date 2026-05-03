@@ -173,6 +173,8 @@
       "notSubscribed": "Not subscribed",
       "noLists": "No mailing lists configured"
     },
+    "postcodeDigitsOnly": "Postcode must contain only digits",
+    "phoneRequiresCorrectFormatting": "Phone number must include the country code (start with +) and not contain invalid characters",
     "passkeys": {
       "title": "Passkeys",
       "empty": "No passkeys registered. Add one for faster, more secure sign in.",
