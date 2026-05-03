@@ -13,11 +13,15 @@ import dayjs from 'dayjs'
 import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 
-const mapResultToBooking = (
-  row: Selectable<
-    ScheduleBookings & Pick<MemberRegister, 'first_name' | 'last_name' | 'phone_number'>
-  >,
-): Booking => ({
+type BookingRow = Selectable<
+  ScheduleBookings & Pick<MemberRegister, 'first_name' | 'last_name' | 'phone_number'>
+> & {
+  instructor_first_name?: string | null
+  instructor_last_name?: string | null
+  instructor_phone_number?: string | null
+}
+
+const mapResultToBooking = (row: BookingRow): Booking => ({
   bookingId: row.booking_id,
   memberId: row.member_id,
   member: {
@@ -25,6 +29,14 @@ const mapResultToBooking = (
     lastName: row.last_name,
     phoneNumber: row.phone_number,
   },
+  instructorMemberId: row.instructor_member_id ?? undefined,
+  instructor: row.instructor_member_id
+    ? {
+        firstName: row.instructor_first_name ?? undefined,
+        lastName: row.instructor_last_name ?? undefined,
+        phoneNumber: row.instructor_phone_number ?? null,
+      }
+    : undefined,
   registration: row.registration,
   status: row.booking_status as BookingStatus,
   type: row.booking_type as BookingType,
@@ -55,6 +67,16 @@ export const getBookings = async (filters: BookingFilters): Promise<Booking[]> =
       'member.register.first_name',
       'member.register.last_name',
       'member.register.phone_number',
+    ])
+    .leftJoin(
+      'member.register as instr',
+      'instr.member_id',
+      'schedule.bookings.instructor_member_id',
+    )
+    .select([
+      sql<string | null>`instr.first_name`.as('instructor_first_name'),
+      sql<string | null>`instr.last_name`.as('instructor_last_name'),
+      sql<string | null>`instr.phone_number`.as('instructor_phone_number'),
     ])
     .orderBy('start_time_epoch', filters.orderLatestFirst ? 'desc' : 'asc')
     .limit(filters.limit ?? 1000)
@@ -105,6 +127,16 @@ export const getBookingById = async (bookingId: string): Promise<Booking | undef
       'member.register.last_name',
       'member.register.phone_number',
     ])
+    .leftJoin(
+      'member.register as instr',
+      'instr.member_id',
+      'schedule.bookings.instructor_member_id',
+    )
+    .select([
+      sql<string | null>`instr.first_name`.as('instructor_first_name'),
+      sql<string | null>`instr.last_name`.as('instructor_last_name'),
+      sql<string | null>`instr.phone_number`.as('instructor_phone_number'),
+    ])
     .where('booking_id', '=', bookingId)
     .executeTakeFirst()
 
@@ -132,6 +164,7 @@ export const insertBooking = async (
       description: booking.description,
       start_time_epoch: booking.startTimeEpoch,
       end_time_epoch: booking.endTimeEpoch,
+      instructor_member_id: booking.instructorMemberId ?? null,
       created_by: jwt.memberId,
       created_at: now,
       updated_by: jwt.memberId,
@@ -147,6 +180,7 @@ export const insertBooking = async (
       lastName: '',
       phoneNumber: null,
     },
+    instructor: undefined,
     bookingId: newBooking.booking_id,
     calendarSequence: 0,
     startTime: newBooking.start_time_utc.toISOString(),
@@ -174,6 +208,7 @@ export const updateBooking = async (
       start_time_epoch: patch.startTimeEpoch,
       end_time_epoch: patch.endTimeEpoch,
       member_id: patch.memberId,
+      instructor_member_id: patch.instructorMemberId,
       updated_at: now,
       updated_by: jwt.memberId,
       cancelled_at: patch.status === BookingStatus.CANCELLED ? now : undefined,

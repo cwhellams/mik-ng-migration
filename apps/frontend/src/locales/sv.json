@@ -223,7 +223,26 @@
     "nonRenewalsBulkSendReminderSuccess": "Påminnelse skickad till {{count}} member(mar)",
     "nonRenewalsBulkRemove": "Ta bort medlemmar ({{count}})",
     "nonRenewalsBulkRemoveConfirm": "Avaktivera {{count}} valda member(mar)? Detta kan inte ångras.",
-    "nonRenewalsBulkRemoveSuccess": "{{count}} member(mar) avaktiverade"
+    "nonRenewalsBulkRemoveSuccess": "{{count}} member(mar) avaktiverade",
+    "adminInvoices": {
+      "title": "Senaste fakturor",
+      "noInvoices": "Inga fakturor hittades",
+      "date": "Datum",
+      "type": "Typ",
+      "description": "Beskrivning",
+      "total": "Totalt",
+      "status": "Status"
+    },
+    "adminFlights": {
+      "title": "Senaste flygningar",
+      "noFlights": "Inga flygningar hittades",
+      "date": "Datum",
+      "aircraft": "Luftfartyg",
+      "route": "Rutt",
+      "duration": "Varaktighet",
+      "type": "Typ",
+      "status": "Status"
+    }
   },
   "aircraft": {
     "location": "Plats",
@@ -756,7 +775,8 @@
       "dashboard": "Instrumentpanel",
       "invoicing": "Fakturering",
       "items": "Prislista",
-      "tools": "Verktyg"
+      "tools": "Verktyg",
+      "upliftReport": "Tankaningsrapport"
     },
     "dashboard": {
       "title": "Väntar på fakturering",
@@ -964,10 +984,12 @@
       "disablePast": "Datum/tid kan inte vara i det förflutna",
       "minutesStep": "Vänligen använd 15-minuters intervall",
       "invalidDateTime": "Ogiltigt datum/tid",
-      "endAfterStart": "Sluttiden måste vara efter starttiden"
+      "endAfterStart": "Sluttiden måste vara efter starttiden",
+      "instructorRequired": "Instruktör / FE krävs för träningsbokningar"
     },
     "bookingOverlapError": "Bokningen överlappar med befintlig bokning",
     "owner": "Ägare",
+    "instructor": "Instruktör / FE",
     "created": "Skapad",
     "updated": "Uppdaterad",
     "cancelled": "Avbokad",
@@ -1413,5 +1435,69 @@
     "goToProfile": "Gå till profil",
     "emailAlreadyInUse": "Denna e-postadress är redan kopplad till ett annat konto.",
     "invalidEmailFormat": "Ange en giltig e-postadress."
+  },
+  "stats": {
+    "pilots": {
+      "dateRange": "Tidsperiod",
+      "from": "Från",
+      "to": "Till",
+      "presets": {
+        "currentYear": "Innevarande år",
+        "previousYear": "Föregående år",
+        "last12months": "Senaste 12 månader",
+        "custom": "Anpassat"
+      },
+      "uniquePics": "Unika PIC:ar under perioden",
+      "hoursHistogram": "Timmar per pilot",
+      "airportsHistogram": "Besökta flygplatser per pilot",
+      "hoursAxis": "Totala timmar",
+      "airportsAxis": "Besökta flygplatser",
+      "pilotCountAxis": "Antal piloter",
+      "hours": "tim",
+      "airports": "flygplatser",
+      "noData": "Ingen data för vald period",
+      "timezone": {
+        "label": "Tidszon",
+        "local": "Lokal",
+        "utc": "UTC"
+      }
+    }
+  },
+  "upliftReport": {
+    "title": "Rapport över bränsle- och oljeupptankningar",
+    "description": "Se bränsle- och oljetankningsdata per flygplan för ett valt datumintervall",
+    "filters": {
+      "aircraft": "Flygplan",
+      "startDate": "Startdatum",
+      "endDate": "Slutdatum",
+      "generate": "Generera rapport",
+      "export": "Exportera till CSV"
+    },
+    "quickRanges": {
+      "1w": "1 vecka",
+      "1m": "1 månad",
+      "3m": "3 månader",
+      "12m": "12 månader"
+    },
+    "table": {
+      "dateTime": "Datum & tid",
+      "pic": "PIC",
+      "fuelUplift": "Bränsle (L)",
+      "oilUplift": "Olja (L)",
+      "details": "Detaljer",
+      "open": "Öppna"
+    },
+    "summary": {
+      "totalFuel": "Totalt bränsle: {{value}} L",
+      "totalOil": "Total olja: {{value}} L",
+      "fuelTypes": "Bränsletyper"
+    },
+    "noData": "Inga tankningstillfällen hittades för valt flygplan och datumintervall",
+    "errors": {
+      "aircraftRequired": "Flygplan måste väljas",
+      "datesRequired": "Både start- och slutdatum krävs",
+      "endDateFuture": "Slutdatum kan inte vara i framtiden",
+      "startAfterEnd": "Startdatum kan inte vara efter slutdatum"
+    }
   }
 }

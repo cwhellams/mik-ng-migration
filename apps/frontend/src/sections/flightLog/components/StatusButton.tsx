@@ -1,8 +1,9 @@
 import { FlightLogListEntry } from '@backend/routes/flight-log/models'
-import { Tooltip, useTheme } from '@mui/material'
+import { Tooltip, useTheme, IconButton, CircularProgress } from '@mui/material'
 import { t } from 'i18next'
 import { EditButton } from '../../../components/EditButton'
 import { Icon } from '@iconify/react'
+import { useInvoicePdfDownload } from '../../../hooks/useInvoicePdfDownload'
 
 type Props = {
   log: FlightLogListEntry
@@ -11,6 +12,11 @@ type Props = {
 
 export const StatusButton = ({ log, update }: Props) => {
   const theme = useTheme()
+  const { canDownloadInvoice, handleDownloadPDF, loading } =
+    useInvoicePdfDownload({
+      invoiceNumber: log.invoiceNumber,
+      billableMemberId: log.billableMemberId,
+    })
 
   switch (log.status) {
     case 'NEW':
@@ -36,13 +42,49 @@ export const StatusButton = ({ log, update }: Props) => {
         </Tooltip>
       )
     case 'INVOICED':
-      return (
+      return canDownloadInvoice() ? (
+        <Tooltip
+          title={`${t('flightLog.status.invoiced')} - ${t('aircraft.document.download')}`}
+        >
+          <IconButton
+            onClick={handleDownloadPDF}
+            disabled={loading}
+            size='small'
+            sx={{ p: 0.5 }}
+            aria-label={`${t('flightLog.status.invoiced')} - ${t('aircraft.document.download')}`}
+          >
+            {loading ? (
+              <CircularProgress size={28} />
+            ) : (
+              <Icon icon='mdi:invoice-send-outline' color='orange' width={28} />
+            )}
+          </IconButton>
+        </Tooltip>
+      ) : (
         <Tooltip title={t('flightLog.status.invoiced')}>
           <Icon icon='mdi:invoice-send-outline' color='orange' width={28} />
         </Tooltip>
       )
     case 'PAID':
-      return (
+      return canDownloadInvoice() ? (
+        <Tooltip
+          title={`${t('flightLog.status.paid')} - ${t('aircraft.document.download')}`}
+        >
+          <IconButton
+            onClick={handleDownloadPDF}
+            disabled={loading}
+            size='small'
+            sx={{ p: 0.5 }}
+            aria-label={`${t('flightLog.status.paid')} - ${t('aircraft.document.download')}`}
+          >
+            {loading ? (
+              <CircularProgress size={28} />
+            ) : (
+              <Icon icon='mdi:invoice-check' color='green' width={28} />
+            )}
+          </IconButton>
+        </Tooltip>
+      ) : (
         <Tooltip title={t('flightLog.status.paid')}>
           <Icon icon='mdi:invoice-check' color='green' width={28} />
         </Tooltip>

@@ -43,6 +43,10 @@ import {
   insertNonRenewalAction,
   canMemberBeDeleted,
 } from '../../db/member-queries.ts'
+import { getInvoices } from '../../db/invoicing-queries.ts'
+import { getFlightLogs } from '../../db/flight-log-queries.ts'
+import type { InvoiceListResponse } from '../invoicing/models.ts'
+import type { FlightLogListResponse } from '../flight-log/models.ts'
 import { cancelAllFutureBookingsForMember } from '../../db/booking-queries.ts'
 import { db } from '../../db/connection.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
@@ -536,6 +540,60 @@ router.post(
     )
 
     res.status(HttpStatusCode.NoContent).end()
+  },
+)
+
+router.get(
+  '/:memberId/invoices',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request<{ memberId: string }>, res: Response<InvoiceListResponse>) => {
+    const { memberId } = req.params
+
+    const member = await getMemberById(memberId)
+    if (!member) {
+      return problem({ status: 404 })
+    }
+
+    const rawItems = await getInvoices(req.user!.memberId, true, { memberId })
+    const invoices = rawItems.map(row => ({
+      id: String(row.id),
+      created_at: row.created_at ? new Date(row.created_at as any).toISOString() : '',
+      created_by: row.created_by,
+      currency: row.currency === null ? null : String(row.currency),
+      description: row.description,
+      due_at: new Date(row.due_at as any).toISOString().split('T')[0],
+      invoice_type: row.invoice_type as any,
+      is_paid: row.is_paid === null ? null : Boolean(row.is_paid),
+      member_id: row.member_id,
+      paid_at: row.paid_at ? new Date(row.paid_at as any).toISOString() : null,
+      pmt_ref: row.pmt_ref,
+      sent_at: row.sent_at ? new Date(row.sent_at as any).toISOString().split('T')[0] : null,
+      total_sum: row.total_sum === null ? null : String(row.total_sum),
+      updated_at: row.updated_at ? new Date(row.updated_at as any).toISOString() : '',
+      updated_by: row.updated_by,
+    }))
+
+    res.status(200).json({ invoices })
+  },
+)
+
+router.get(
+  '/:memberId/flights',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request<{ memberId: string }>, res: Response<FlightLogListResponse>) => {
+    const { memberId } = req.params
+
+    const member = await getMemberById(memberId)
+    if (!member) {
+      return problem({ status: 404 })
+    }
+
+    const result = await getFlightLogs({
+      billableMemberId: memberId,
+      limit: 10,
+      orderLatestFirst: true,
+    })
+    res.status(200).json(result)
   },
 )
 

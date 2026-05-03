@@ -14,6 +14,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Autocomplete,
 } from '@mui/material'
 import useApi, { MutateMethods } from '../../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
@@ -36,6 +37,7 @@ import { FormTitle } from '../../../components/FormTitle'
 import { FormField } from '../../../components/FormField'
 import { useRoles } from '../../../hooks/useRoles'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
+import { MemberListResponse } from '@backend/routes/members/models'
 import { BookingTable } from './BookingTable'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
@@ -91,6 +93,20 @@ export const BookingEditor = ({
     }
   )
 
+  const { data: instructorData } = useApi<MemberListResponse>(
+    {
+      url: 'v1/members',
+      params: { role: ['INSTRUCTOR', 'EXAMINER'] },
+      skipFetch: !booking,
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      revalidateOnMount: true,
+    }
+  )
+
   const [formData, setFormData] = useState<
     Omit<BookingUpsertRequest, 'startTimeEpoch' | 'endTimeEpoch'>
   >({
@@ -99,6 +115,7 @@ export const BookingEditor = ({
     description: '',
     type: BookingType.PRACTICE,
     status: BookingStatus.CONFIRMED,
+    instructorMemberId: null,
   })
 
   const [startDate, setStartDate] = useState({
@@ -215,6 +232,13 @@ export const BookingEditor = ({
   }
 
   const overlappingBookings = overlaps?.bookings ?? []
+
+  const isTraining = formData.type === BookingType.TRAINING
+  const isTrainingWithoutInstructor = isTraining && !formData.instructorMemberId
+
+  const instructors = instructorData?.members ?? []
+  const selectedInstructor =
+    instructors.find((m) => m.memberId === formData.instructorMemberId) ?? null
 
   const editorCard = () => (
     <Card sx={{ flex: 1, position: 'relative' }}>
@@ -371,6 +395,33 @@ export const BookingEditor = ({
             </Select>
           </FormControl>
 
+          <Autocomplete
+            fullWidth
+            disabled={isReadonly}
+            options={instructors}
+            getOptionLabel={(option) => `${option.first} ${option.last}`}
+            isOptionEqualToValue={(option, value) =>
+              option.memberId === value.memberId
+            }
+            value={selectedInstructor}
+            onChange={(_event, newValue) => {
+              handleChange('instructorMemberId', newValue?.memberId ?? null)
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label={t('schedule.instructor')}
+                required={isTraining}
+                error={isTrainingWithoutInstructor}
+                helperText={
+                  isTrainingWithoutInstructor
+                    ? t('schedule.validation.instructorRequired')
+                    : undefined
+                }
+              />
+            )}
+          />
+
           <TextField
             fullWidth
             multiline
@@ -417,6 +468,12 @@ export const BookingEditor = ({
                 {booking.member?.phoneNumber}
               </a>
             </FormField>
+
+            {booking.instructorMemberId && (
+              <FormField label={t('schedule.instructor')}>
+                {`${booking.instructor?.firstName ?? ''} ${booking.instructor?.lastName ?? ''}`.trim()}
+              </FormField>
+            )}
 
             <AuditFormField
               label={t('schedule.created')}
@@ -530,7 +587,8 @@ export const BookingEditor = ({
                 disabled={
                   (overlappingBookings.length > 0 && !isBookingAdmin) ||
                   !!startDate.error ||
-                  !!endDate.error
+                  !!endDate.error ||
+                  isTrainingWithoutInstructor
                 }
               />
             )}

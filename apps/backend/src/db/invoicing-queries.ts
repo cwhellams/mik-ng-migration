@@ -15,6 +15,7 @@ import {
   type FeeType,
   type ItemListArticle,
 } from '../services/simplbooks/models.ts'
+import { FlightLogStatus } from '../routes/flight-log/models.ts'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import { db } from './connection.ts'
 import type { AcctsInvoice, AcctsItems } from './schema.js'
@@ -31,13 +32,16 @@ export async function getInvoices(
   isAdmin: boolean,
   filters?: InvoiceItemQueryParams,
 ): Promise<Invoice[]> {
-  const { startDate, endDate, status, type, pastDue, id } = filters || {}
+  const { startDate, endDate, status, type, pastDue, id, memberId: filterMemberId } = filters || {}
 
   let query = db.selectFrom('accts.invoice').selectAll()
 
   if (!isAdmin) {
     // If not admin, filter by memberId
     query = query.where('member_id', '=', memberId)
+  } else if (filterMemberId) {
+    // Admin can optionally filter by a specific member
+    query = query.where('member_id', '=', filterMemberId)
   }
 
   if (id) {
@@ -242,18 +246,32 @@ export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<Invoice[]> {
 }
 
 /**
- * Mark an invoice as paid in the database
+ * Mark an invoice as paid in the database and update all related flight logs to PAID status
  */
 export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Promise<void> {
-  await db
-    .updateTable('accts.invoice')
-    .set({
-      paid_at: paidAt,
-      updated_by: MIK_SIMPLBOOKS_MEMBER,
-      updated_at: new Date().toISOString(),
-    })
-    .where('id', '=', invoiceId)
-    .execute()
+  const now = new Date().toISOString()
+  await db.transaction().execute(async trx => {
+    await trx
+      .updateTable('accts.invoice')
+      .set({
+        paid_at: paidAt,
+        updated_by: MIK_SIMPLBOOKS_MEMBER,
+        updated_at: now,
+      })
+      .where('id', '=', invoiceId)
+      .execute()
+
+    await trx
+      .updateTable('flight.logs')
+      .set({
+        status: FlightLogStatus.PAID,
+        updated_by: MIK_SIMPLBOOKS_MEMBER,
+        updated_at: now,
+      })
+      .where('invoice_number', '=', invoiceId)
+      .where('status', '=', FlightLogStatus.INVOICED)
+      .execute()
+  })
 }
 
 /**

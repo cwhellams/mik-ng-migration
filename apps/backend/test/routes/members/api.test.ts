@@ -1512,3 +1512,74 @@ describe('POST /members/me/email-change/verify', () => {
     expect(pendingRow?.used_at).toBeNull()
   })
 })
+
+describe('GET /members/:memberId/invoices', () => {
+  it('should return 401 without auth', async () => {
+    const response = await request(app).get('/members/Matti1/invoices')
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 403 for a regular member', async () => {
+    const response = await request(app)
+      .get('/members/Matti1/invoices')
+      .set('Cookie', `accessToken=${memberToken}`)
+    expect(response.status).toBe(403)
+  })
+
+  it('should return 404 for a non-existent member', async () => {
+    const response = await request(app)
+      .get('/members/NonExistent99/invoices')
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(response.status).toBe(404)
+  })
+
+  it('should return invoices for a valid member as admin', async () => {
+    const response = await request(app)
+      .get('/members/Matti1/invoices')
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty('invoices')
+    expect(Array.isArray(response.body.invoices)).toBe(true)
+    expect(
+      response.body.invoices.every(
+        (invoice: { member_id: string }) => invoice.member_id === 'Matti1',
+      ),
+    ).toBe(true)
+  })
+})
+
+describe('GET /members/:memberId/flights', () => {
+  it('should return 401 without auth', async () => {
+    const response = await request(app).get('/members/Matti1/flights')
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 403 for a regular member', async () => {
+    const response = await request(app)
+      .get('/members/Matti1/flights')
+      .set('Cookie', `accessToken=${memberToken}`)
+    expect(response.status).toBe(403)
+  })
+
+  it('should return 404 for a non-existent member', async () => {
+    const response = await request(app)
+      .get('/members/NonExistent99/flights')
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(response.status).toBe(404)
+  })
+
+  it('should return flights for a valid member as admin', async () => {
+    const response = await request(app)
+      .get('/members/Matti1/flights')
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty('logs')
+    expect(Array.isArray(response.body.logs)).toBe(true)
+
+    const { logs } = response.body
+    expect(logs.length).toBeLessThanOrEqual(10)
+    expect(
+      logs.every((log: { billableMemberId?: string }) => log.billableMemberId === 'Matti1'),
+    ).toBe(true)
+  })
+})

@@ -222,7 +222,26 @@
     "nonRenewalsBulkSendReminderSuccess": "Muistutus lähetetty {{count}} jäsenelle",
     "nonRenewalsBulkRemove": "Poista jäsenet ({{count}})",
     "nonRenewalsBulkRemoveConfirm": "Poistetaanko {{count}} valitun jäsenen jäsenyys? Toimintoa ei voi kumota.",
-    "nonRenewalsBulkRemoveSuccess": "{{count}} jäsen(tä) poistettu"
+    "nonRenewalsBulkRemoveSuccess": "{{count}} jäsen(tä) poistettu",
+    "adminInvoices": {
+      "title": "Viimeisimmät laskut",
+      "noInvoices": "Laskuja ei löydy",
+      "date": "Päivämäärä",
+      "type": "Tyyppi",
+      "description": "Kuvaus",
+      "total": "Summa",
+      "status": "Tila"
+    },
+    "adminFlights": {
+      "title": "Viimeisimmät lennot",
+      "noFlights": "Lentoja ei löydy",
+      "date": "Päivämäärä",
+      "aircraft": "Ilma-alus",
+      "route": "Reitti",
+      "duration": "Kesto",
+      "type": "Tyyppi",
+      "status": "Tila"
+    }
   },
   "aircraft": {
     "location": "Sijainti",
@@ -755,7 +774,8 @@
       "dashboard": "Tietopaneeli",
       "flights": "Lennot",
       "items": "Tuotteet",
-      "tools": "Työkalut"
+      "tools": "Työkalut",
+      "upliftReport": "Tankkaausraportti"
     },
     "dashboard": {
       "title": "Odottaa laskutusta",
@@ -963,10 +983,12 @@
       "disablePast": "Päivämäärä/aika ei voi olla menneisyydessä",
       "minutesStep": "Käytä 15 minuutin askelia",
       "invalidDateTime": "Virheellinen päivämäärä/aika",
-      "endAfterStart": "Loppuaika on oltava aloitusajan jälkeen"
+      "endAfterStart": "Loppuaika on oltava aloitusajan jälkeen",
+      "instructorRequired": "Lentokouluttaja / FE vaaditaan koululennoille"
     },
     "bookingOverlapError": "Päällekkäisyys toiseen varaukseen",
     "owner": "Omistaja",
+    "instructor": "Lentokouluttaja / FE",
     "created": "Luotu",
     "updated": "Päivitetty",
     "cancelled": "Peruutettu",
@@ -1446,5 +1468,69 @@
     "goToProfile": "Siirry profiiliin",
     "emailAlreadyInUse": "Tämä sähköpostiosoite on jo käytössä toisella tilillä.",
     "invalidEmailFormat": "Anna kelvollinen sähköpostiosoite."
+  },
+  "stats": {
+    "pilots": {
+      "dateRange": "Aikajakso",
+      "from": "Alkaen",
+      "to": "Päättyen",
+      "presets": {
+        "currentYear": "Kuluva vuosi",
+        "previousYear": "Edellinen vuosi",
+        "last12months": "Viimeiset 12 kk",
+        "custom": "Mukautettu"
+      },
+      "uniquePics": "Lentäjät (PIC) jaksolla",
+      "hoursHistogram": "Tunnit per lentäjä",
+      "airportsHistogram": "Vieraillut lentoasemat per lentäjä",
+      "hoursAxis": "Tunnit yhteensä",
+      "airportsAxis": "Vieraillut lentoasemat",
+      "pilotCountAxis": "Lentäjien määrä",
+      "hours": "h",
+      "airports": "lentokenttää",
+      "noData": "Ei tietoja valitulle jaksolle",
+      "timezone": {
+        "label": "Aikavyöhyke",
+        "local": "Paikallinen",
+        "utc": "UTC"
+      }
+    }
+  },
+  "upliftReport": {
+    "title": "Polttoaine- ja öljytankkauksien raportti",
+    "description": "Tarkastele polttoaine- ja öljytankkaustietoja koneittain valitulta ajanjaksolta",
+    "filters": {
+      "aircraft": "Kone",
+      "startDate": "Alkupäivä",
+      "endDate": "Loppupäivä",
+      "generate": "Luo raportti",
+      "export": "Vie CSV:nä"
+    },
+    "quickRanges": {
+      "1w": "1 viikko",
+      "1m": "1 kuukausi",
+      "3m": "3 kuukautta",
+      "12m": "12 kuukautta"
+    },
+    "table": {
+      "dateTime": "Päivä & aika",
+      "pic": "PIC",
+      "fuelUplift": "Polttoaine (L)",
+      "oilUplift": "Öljy (L)",
+      "details": "Tiedot",
+      "open": "Avaa"
+    },
+    "summary": {
+      "totalFuel": "Polttoainetta yhteensä: {{value}} L",
+      "totalOil": "Öljyä yhteensä: {{value}} L",
+      "fuelTypes": "Polttoainetyypit"
+    },
+    "noData": "Ei tankkaustietoja valitulle koneelle ja ajalle",
+    "errors": {
+      "aircraftRequired": "Kone on pakollinen",
+      "datesRequired": "Alku- ja loppupäivä ovat pakollisia",
+      "endDateFuture": "Loppupäivä ei voi olla tulevaisuudessa",
+      "startAfterEnd": "Alkupäivä ei voi olla loppupäivän jälkeen"
+    }
   }
 }
