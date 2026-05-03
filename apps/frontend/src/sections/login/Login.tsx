@@ -86,7 +86,7 @@ const Login = () => {
       }
       // Generic failure — also fall through to email when allowed.
       if (allowEmailFallback) return false
-      setEmailError(result.message ?? t('login.passkey.failed'))
+      setEmailError(t(result.message ?? 'login.passkey.failed'))
       return true
     } finally {
       setPasskeyLoading(false)
@@ -114,7 +114,7 @@ const Login = () => {
         if (result.ok) {
           navigate(safeTarget)
         } else if (result.reason !== 'cancelled') {
-          setEmailError(result.message ?? t('login.passkey.failed'))
+          setEmailError(t(result.message ?? 'login.passkey.failed'))
         }
       } finally {
         setPasskeyLoading(false)

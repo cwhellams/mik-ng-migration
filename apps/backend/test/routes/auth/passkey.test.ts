@@ -238,11 +238,16 @@ describe('Passkey routes', () => {
   })
 
   describe('POST /authentication/options', () => {
-    it('rejects requests without an email', async () => {
+    it('returns options and sessionId for discoverable (email-less) flow', async () => {
+      mockGenerateAuthenticationOptions.mockResolvedValue({ challenge: 'abc' })
+
       const res = await request(app).post('/api/auth/passkey/authentication/options').send({})
 
-      expect(res.status).toBe(400)
-      expect(res.body.error).toMatch(/email/i)
+      expect(res.status).toBe(200)
+      expect(typeof res.body.sessionId).toBe('string')
+      expect(res.body.hasPasskeys).toBe(false)
+      const callArgs = mockGenerateAuthenticationOptions.mock.calls[0][0] as any
+      expect(callArgs.allowCredentials).toEqual([])
     })
 
     it('returns hasPasskeys=false when the email has no registered passkey', async () => {

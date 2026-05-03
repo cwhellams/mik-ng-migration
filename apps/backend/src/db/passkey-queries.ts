@@ -156,6 +156,11 @@ export async function storeChallenge(input: {
 }): Promise<void> {
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_SECONDS * 1000)
 
+  // Opportunistically remove stale challenges so the table doesn't grow
+  // without bound when the endpoint is called with many distinct emails or
+  // session tokens (e.g. discoverable-flow requests).
+  await deleteExpiredChallenges()
+
   // The table has partial unique indexes on (member_id, purpose) and
   // (email, purpose), so an INSERT … ON CONFLICT replaces any previous
   // challenge atomically — no race window between DELETE and INSERT.

@@ -91,6 +91,16 @@ export type APIMutation<Data> = {
 
 export type MutateMethods = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
+/**
+ * Axios request config extended with MIK-specific interceptor flags.
+ * Use `allowUnauthenticated: true` for pre-login requests (e.g. passkey auth)
+ * to suppress the automatic token-refresh attempt on 401 responses.
+ */
+export type ExtendedAxiosConfig = AxiosRequestConfig & {
+  allowUnauthenticated?: boolean
+  skipRedirectOnUnauthorized?: boolean
+}
+
 export { api as sharedApi }
 
 export default function useApi<

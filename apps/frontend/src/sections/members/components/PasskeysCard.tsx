@@ -75,10 +75,16 @@ export const PasskeysCard = ({ memberId, isAdmin }: PasskeysCardProps) => {
     const result = await registerPasskey(name.trim() || null)
     setRegistering(false)
     if (!result.ok) {
+      const detail =
+        result.reason === 'unsupported-browser'
+          ? t('member.passkeys.unsupportedBrowser')
+          : result.reason === 'cancelled'
+            ? result.message
+            : undefined
       setProblem({
         status: 400,
         title: t('member.passkeys.registerFailed'),
-        detail: result.error,
+        detail,
       })
       return
     }

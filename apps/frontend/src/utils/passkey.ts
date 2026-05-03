@@ -14,7 +14,7 @@ import {
   type PublicKeyCredentialCreationOptionsJSON,
   type PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/browser'
-import { sharedApi } from '../hooks/useApi'
+import { sharedApi, type ExtendedAxiosConfig } from '../hooks/useApi'
 
 export const passkeySupported = (): boolean => browserSupportsWebAuthn()
 
@@ -50,11 +50,7 @@ export async function loginWithPasskey(
   email: string
 ): Promise<PasskeyLoginResult> {
   if (!browserSupportsWebAuthn()) {
-    return {
-      ok: false,
-      reason: 'failed',
-      message: 'Passkeys are not supported in this browser',
-    }
+    return { ok: false, reason: 'failed', message: 'member.passkeys.unsupportedBrowser' }
   }
 
   let optionsResp: {
@@ -65,7 +61,7 @@ export async function loginWithPasskey(
     const r = await sharedApi.post<{
       options: PublicKeyCredentialRequestOptionsJSON
       hasPasskeys: boolean
-    }>('auth/passkey/authentication/options', { email })
+    }>('auth/passkey/authentication/options', { email }, { allowUnauthenticated: true } as ExtendedAxiosConfig)
     optionsResp = r.data
   } catch {
     return { ok: false, reason: 'options-failed' }
@@ -86,10 +82,11 @@ export async function loginWithPasskey(
   }
 
   try {
-    await sharedApi.post('auth/passkey/authentication/verify', {
-      email,
-      response: assertion,
-    })
+    await sharedApi.post(
+      'auth/passkey/authentication/verify',
+      { email, response: assertion },
+      { allowUnauthenticated: true } as ExtendedAxiosConfig
+    )
   } catch {
     return { ok: false, reason: 'failed' }
   }
@@ -108,22 +105,15 @@ export async function loginWithPasskey(
  */
 export async function loginWithPasskeyDiscoverable(): Promise<PasskeyLoginResult> {
   if (!browserSupportsWebAuthn()) {
-    return {
-      ok: false,
-      reason: 'failed',
-      message: 'Passkeys are not supported in this browser',
-    }
+    return { ok: false, reason: 'failed', message: 'member.passkeys.unsupportedBrowser' }
   }
 
-  let optionsResp: {
-    options: PublicKeyCredentialRequestOptionsJSON
-    sessionId?: string
-  }
+  let optionsResp: { options: PublicKeyCredentialRequestOptionsJSON; sessionId?: string }
   try {
     const r = await sharedApi.post<{
       options: PublicKeyCredentialRequestOptionsJSON
       sessionId?: string
-    }>('auth/passkey/authentication/options', {})
+    }>('auth/passkey/authentication/options', {}, { allowUnauthenticated: true } as ExtendedAxiosConfig)
     optionsResp = r.data
   } catch {
     return { ok: false, reason: 'options-failed' }
@@ -138,10 +128,11 @@ export async function loginWithPasskeyDiscoverable(): Promise<PasskeyLoginResult
   }
 
   try {
-    await sharedApi.post('auth/passkey/authentication/verify', {
-      sessionId: optionsResp.sessionId,
-      response: assertion,
-    })
+    await sharedApi.post(
+      'auth/passkey/authentication/verify',
+      { sessionId: optionsResp.sessionId, response: assertion },
+      { allowUnauthenticated: true } as ExtendedAxiosConfig
+    )
   } catch {
     return { ok: false, reason: 'failed' }
   }
@@ -149,14 +140,23 @@ export async function loginWithPasskeyDiscoverable(): Promise<PasskeyLoginResult
   return { ok: true }
 }
 
+export type PasskeyRegisterResult =
+  | { ok: true }
+  | {
+      ok: false
+      reason: 'unsupported-browser' | 'options-failed' | 'cancelled' | 'verify-failed'
+      /** Raw browser/server message for cases where the browser already provides a localized string. */
+      message?: string
+    }
+
 /**
  * Register a new passkey for the currently-authenticated member.
  */
 export async function registerPasskey(
   name: string | null
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<PasskeyRegisterResult> {
   if (!browserSupportsWebAuthn()) {
-    return { ok: false, error: 'Passkeys are not supported in this browser' }
+    return { ok: false, reason: 'unsupported-browser' }
   }
 
   let options: PublicKeyCredentialCreationOptionsJSON
@@ -166,7 +166,7 @@ export async function registerPasskey(
     )
     options = r.data
   } catch {
-    return { ok: false, error: 'Could not start passkey registration' }
+    return { ok: false, reason: 'options-failed' }
   }
 
   let attResp
@@ -174,7 +174,8 @@ export async function registerPasskey(
     attResp = await startRegistration({ optionsJSON: options })
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
-    return { ok: false, error: message }
+    // The browser provides a localized cancellation/error message, use it as-is.
+    return { ok: false, reason: 'cancelled', message }
   }
 
   try {
@@ -182,10 +183,8 @@ export async function registerPasskey(
       response: attResp,
       name,
     })
-  } catch (err) {
-    const message =
-      err instanceof Error ? err.message : 'Passkey registration failed'
-    return { ok: false, error: message }
+  } catch {
+    return { ok: false, reason: 'verify-failed' }
   }
   return { ok: true }
 }
