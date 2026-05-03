@@ -151,8 +151,8 @@ describe('Booking Reminder Worker', () => {
       expect(claimed.find(b => b.bookingId === testBookingId)).toBeUndefined()
     })
 
-    it('should not claim bookings starting outside the 23h–25h window', async () => {
-      // Move booking to 48h from now (outside the window)
+    it('should not claim bookings starting outside the ±1h window', async () => {
+      // Move booking to 48h from now (outside the default 23h–25h window)
       const farEpoch = dayjs().add(48, 'hour').unix().toString()
       const farEndEpoch = dayjs().add(49, 'hour').unix().toString()
       await db
@@ -163,6 +163,25 @@ describe('Booking Reminder Worker', () => {
 
       const claimed = await claimUpcomingBookingsForReminder()
       expect(claimed.find(b => b.bookingId === testBookingId)).toBeUndefined()
+    })
+
+    it('should claim a booking in the window when hoursBeforeBooking is customized', async () => {
+      // Move booking to 48h from now - within the 47h–49h window when hoursBeforeBooking=48
+      const farEpoch = dayjs().add(48, 'hour').unix().toString()
+      const farEndEpoch = dayjs().add(49, 'hour').unix().toString()
+      await db
+        .updateTable('schedule.bookings')
+        .set({ start_time_epoch: farEpoch, end_time_epoch: farEndEpoch })
+        .where('booking_id', '=', testBookingId)
+        .execute()
+
+      // With default 24h window, the 48h booking should not be found
+      const defaultClaim = await claimUpcomingBookingsForReminder(24)
+      expect(defaultClaim.find(b => b.bookingId === testBookingId)).toBeUndefined()
+
+      // With 48h window, it should be found
+      const customClaim = await claimUpcomingBookingsForReminder(48)
+      expect(customClaim.find(b => b.bookingId === testBookingId)).toBeDefined()
     })
   })
 })

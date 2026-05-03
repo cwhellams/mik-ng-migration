@@ -34,14 +34,17 @@ export function startBookingReminderWorker(deps: BookingReminderWorkerDeps = {})
     }
   }
 
-  logger.info('Starting Booking Reminder Worker - scheduled hourly')
+  const hoursBeforeBooking = parseInt(process.env.BOOKING_REMINDER_HOURS_BEFORE || '24', 10)
+  logger.info(
+    `Starting Booking Reminder Worker - scheduled hourly, sending reminders ${hoursBeforeBooking}h before booking`,
+  )
 
   // Schedule task to run every hour
   // Cron format: minute hour day month weekday
   // '0 * * * *' = At minute 0 of every hour
   scheduledTask = cronSchedule('0 * * * *', async () => {
     logger.info('Booking Reminder Worker: Starting scheduled run')
-    await sendBookingReminders(sendEmailFn)
+    await sendBookingReminders(sendEmailFn, hoursBeforeBooking)
   })
 
   return {
@@ -59,11 +62,17 @@ export function startBookingReminderWorker(deps: BookingReminderWorkerDeps = {})
  * Send booking reminder emails for all upcoming bookings needing a reminder.
  * Bookings are claimed atomically via an UPDATE...RETURNING query to prevent
  * duplicate emails when multiple worker instances run concurrently.
+ *
+ * @param sendEmailFn - Email sending function (injectable for testing)
+ * @param hoursBeforeBooking - How many hours before the booking to send the reminder (default: 24)
  */
-export async function sendBookingReminders(sendEmailFn: typeof sendEmail): Promise<void> {
+export async function sendBookingReminders(
+  sendEmailFn: typeof sendEmail,
+  hoursBeforeBooking: number = 24,
+): Promise<void> {
   try {
     logger.info('Claiming upcoming bookings needing reminder from database')
-    const bookings = await claimUpcomingBookingsForReminder()
+    const bookings = await claimUpcomingBookingsForReminder(hoursBeforeBooking)
 
     if (bookings.length === 0) {
       logger.info('No upcoming bookings found that need reminder emails')

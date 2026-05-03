@@ -253,14 +253,24 @@ export const cancelBooking = async (
  * worker instance can process each booking, even in multi-instance deployments.
  *
  * Claims bookings with CONFIRMED or TENTATIVE status where start_time_epoch
- * is between now+23h and now+25h (2-hour window around the 24h mark to handle
+ * is within a ±1h window around `hoursBeforeBooking` hours from now (to handle
  * hourly cron timing variance) and no reminder has been claimed yet.
+ *
+ * @param hoursBeforeBooking - How many hours before the booking to send the reminder (default: 24)
  *
  * Returns the claimed bookings with full member info for email sending.
  */
-export const claimUpcomingBookingsForReminder = async (): Promise<Booking[]> => {
-  const windowStart = dayjs().add(23, 'hour').unix().toString()
-  const windowEnd = dayjs().add(25, 'hour').unix().toString()
+export const claimUpcomingBookingsForReminder = async (
+  hoursBeforeBooking: number = 24,
+): Promise<Booking[]> => {
+  const windowStart = dayjs()
+    .add(hoursBeforeBooking - 1, 'hour')
+    .unix()
+    .toString()
+  const windowEnd = dayjs()
+    .add(hoursBeforeBooking + 1, 'hour')
+    .unix()
+    .toString()
   const now = new Date().toISOString()
 
   // Atomically claim bookings by setting reminder_sent_at in a single UPDATE.
