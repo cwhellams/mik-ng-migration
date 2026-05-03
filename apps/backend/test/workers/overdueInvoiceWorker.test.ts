@@ -28,7 +28,8 @@ import type { ScheduledTask, TaskFn, TaskOptions } from 'node-cron'
 describe('Overdue Invoice Worker', () => {
   const testMemberId = 'Matti1'
   let testInvoiceId: string
-  let mockSendEmail: jest.MockedFunction<typeof sendEmail>  let mockCronSchedule: jest.Mock<
+  let mockSendEmail: jest.Mock & typeof sendEmail
+  let mockCronSchedule: jest.Mock<
     (expression: string, func: string | TaskFn, options?: TaskOptions) => ScheduledTask
   >
 
@@ -44,7 +45,8 @@ describe('Overdue Invoice Worker', () => {
     jest.clearAllMocks()
 
     // Initialize mocks
-    mockSendEmail = jest.fn().mockResolvedValue(undefined)
+    mockSendEmail = jest.fn().mockImplementation(() => Promise.resolve()) as jest.Mock &
+      typeof sendEmail
     mockCronSchedule = jest.fn().mockReturnValue({
       stop: jest.fn(),
     }) as any
