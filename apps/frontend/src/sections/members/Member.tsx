@@ -70,7 +70,7 @@ const MemberProfile = () => {
   const [emailChangeSent, setEmailChangeSent] = useState(false)
 
   const isValidEmail = (email: string) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)
 
   const handleEmailChangeRequest = async () => {
     if (!isValidEmail(newEmail)) {
@@ -877,7 +877,7 @@ const MemberProfile = () => {
             <Button
               onClick={handleEmailChangeRequest}
               variant='contained'
-              disabled={!newEmail || emailChangeSending || !!emailChangeError}
+              disabled={!newEmail || emailChangeSending}
             >
               {emailChangeSending ? (
                 <CircularProgress size={20} />
