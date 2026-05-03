@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals'
 import { db } from '../../src/db/connection.ts'
 import type { InvoiceResponse } from '../../src/services/simplbooks/models.ts'
+import { FlightLogStatus } from '../../src/routes/flight-log/models.ts'
 
 // Mock the logger
 jest.mock('../../src/lib/logger.ts', () => ({
@@ -23,6 +24,7 @@ import type { ScheduledTask, TaskFn, TaskOptions } from 'node-cron'
 describe('Simplbooks Invoice Payment Worker', () => {
   const testMemberId = 'Matti1'
   let testInvoiceId: string
+  let testFlightId: string
   let mockGetInvoice: jest.Mock<(id: number) => Promise<InvoiceResponse>>
   let mockCronSchedule: jest.Mock<
     (expression: string, func: string | TaskFn, options?: TaskOptions) => ScheduledTask
@@ -71,10 +73,62 @@ describe('Simplbooks Invoice Payment Worker', () => {
       .execute()
 
     testInvoiceId = nextId.toString()
+
+    // Create a test flight log linked to the invoice (flight_id is VARCHAR(9))
+    testFlightId = 'tstpymnt'
+    await db.deleteFrom('flight.logs').where('flight_id', '=', testFlightId).execute()
+
+    // Generate past timestamps rounded down to the nearest minute (divisible by 60)
+    // to satisfy check_all_times_in_mins and check_epochs_not_future constraints.
+    const baseEpoch = Math.floor((Date.now() / 1000 - 86400) / 60) * 60 // yesterday, nearest minute
+    const offBlock = baseEpoch
+    const takeOff = baseEpoch + 900 // +15 min
+    const landing = baseEpoch + 4500 // +1h15min
+    const onBlock = baseEpoch + 5400 // +1h30min
+
+    await db
+      .insertInto('flight.logs')
+      .values({
+        flight_id: testFlightId,
+        billable_member_id: testMemberId,
+        pic_member_id: testMemberId,
+        pic_last_name: 'TestPilot',
+        pic_role: 'PIC',
+        aircraft_registration: 'OH-STL',
+        off_block_time_epoch: offBlock,
+        takeoff_time_epoch: takeOff,
+        landing_time_epoch: landing,
+        on_block_time_epoch: onBlock,
+        persons_on_board: 1,
+        number_of_landings: 1,
+        night_flying_mins: 0,
+        instrument_flying_mins: 0,
+        fuel_remaining_litres: 20,
+        departure_airport: 'EFHK',
+        arrival_airport: 'EFHK',
+        invoice_number: testInvoiceId,
+        flight_type: 'XC',
+        created_by: MIK_SIMPLBOOKS_MEMBER,
+        updated_by: MIK_SIMPLBOOKS_MEMBER,
+        is_billable_flight: true,
+        is_dto_training_flight: false,
+        priv_or_com_flight: 'C',
+        ajlb_seq_no: 2,
+        ajlb_blank_rows_before: 0,
+        ajlb_total_flight_mins: 60,
+        ajlb_page_number: 1,
+        ajlb_row_number: 1,
+        total_time_in_service: 1.0,
+        status: FlightLogStatus.INVOICED,
+      } as any)
+      .execute()
   })
 
   afterEach(async () => {
-    // Clean up test invoice
+    // Clean up test flight log and invoice
+    if (testFlightId) {
+      await db.deleteFrom('flight.logs').where('flight_id', '=', testFlightId).execute()
+    }
     if (testInvoiceId) {
       await db.deleteFrom('accts.invoice').where('id', '=', testInvoiceId).execute()
     }
@@ -175,7 +229,7 @@ describe('Simplbooks Invoice Payment Worker', () => {
       await db.deleteFrom('accts.invoice').where('id', '=', noRefInvoiceId).execute()
     })
 
-    it('should mark invoice as paid', async () => {
+    it('should mark invoice as paid and update linked flight logs to PAID', async () => {
       const paidDate = '2024-11-27'
       await markInvoiceAsPaid(testInvoiceId, paidDate)
 
@@ -188,6 +242,15 @@ describe('Simplbooks Invoice Payment Worker', () => {
       expect(invoice?.is_paid).toBe(true)
       expect(invoice?.paid_at).toBe(paidDate)
       expect(invoice?.updated_by).toBe('simplbks')
+
+      const flightLog = await db
+        .selectFrom('flight.logs')
+        .selectAll()
+        .where('flight_id', '=', testFlightId)
+        .executeTakeFirst()
+
+      expect(flightLog?.status).toBe(FlightLogStatus.PAID)
+      expect(flightLog?.updated_by).toBe('simplbks')
     })
   })
 
@@ -244,6 +307,15 @@ describe('Simplbooks Invoice Payment Worker', () => {
       expect(invoiceAfter?.is_paid).toBe(true)
       expect(invoiceAfter?.paid_at).toBe('2024-11-27')
       expect(invoiceAfter?.updated_by).toBe('simplbks')
+
+      // Verify flight logs linked to the invoice are also marked as PAID
+      const flightLogAfter = await db
+        .selectFrom('flight.logs')
+        .selectAll()
+        .where('flight_id', '=', testFlightId)
+        .executeTakeFirst()
+
+      expect(flightLogAfter?.status).toBe(FlightLogStatus.PAID)
     })
 
     it('should not update invoice if still unpaid in Simplbooks', async () => {

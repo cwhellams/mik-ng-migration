@@ -403,6 +403,7 @@ export const FlightLogListEntrySchema = FlightLogSchema.pick({
   fuelUpliftLitres: true,
   incidentOrObservations: true,
   instrumentFlyingMins: true,
+  invoiceNumber: true,
   nightFlyingMins: true,
   numberOfLandings: true,
   numberOfNightLandings: true,

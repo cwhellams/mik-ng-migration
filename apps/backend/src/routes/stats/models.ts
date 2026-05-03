@@ -174,7 +174,22 @@ export const TotalFlightTimeByPilotYrMthSchema = z.object({
   total_ifr_mins: z.number(),
 })
 
+// Pilot Statistics
+export const PilotStatisticsHistogramBinSchema = z.object({
+  binFrom: z.number(),
+  binTo: z.number(),
+  pilotCount: z.number(),
+})
+
+export const PilotStatisticsSchema = z.object({
+  uniquePicCount: z.number(),
+  hoursHistogram: z.array(PilotStatisticsHistogramBinSchema),
+  airportsHistogram: z.array(PilotStatisticsHistogramBinSchema),
+})
+
 // Type exports
+export type PilotStatisticsHistogramBin = z.infer<typeof PilotStatisticsHistogramBinSchema>
+export type PilotStatistics = z.infer<typeof PilotStatisticsSchema>
 export type TotalFlightTimeByAc = z.infer<typeof TotalFlightTimeByAcSchema>
 export type TotalFlightTimeByAcCalendar = z.infer<typeof TotalFlightTimeByAcCalendarSchema>
 export type TotalFlightTimeByAcYr = z.infer<typeof TotalFlightTimeByAcYrSchema>
