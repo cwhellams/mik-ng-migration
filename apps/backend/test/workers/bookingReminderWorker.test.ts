@@ -29,6 +29,7 @@ describe('Booking Reminder Worker', () => {
   let mockCronSchedule: jest.Mock<
     (expression: string, func: string | TaskFn, options?: TaskOptions) => ScheduledTask
   >
+  let bookingCounter = 0
 
   beforeAll(async () => {
     process.env.BOOKING_REMINDER_WORKER_ENABLED = 'true'
@@ -46,7 +47,8 @@ describe('Booking Reminder Worker', () => {
     // Insert a test booking starting in 24h, with no reminder sent yet
     const startEpoch = dayjs().add(24, 'hour').unix().toString()
     const endEpoch = dayjs().add(25, 'hour').unix().toString()
-    testBookingId = `reminder-test-${Date.now()}`
+    // booking_id is varchar(9) — keep it short: 'rm' prefix + zero-padded counter
+    testBookingId = `rm${String(++bookingCounter).padStart(7, '0')}`
 
     await db
       .insertInto('schedule.bookings')
