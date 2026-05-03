@@ -1454,6 +1454,21 @@
       "memberId": "Jäsennumero"
     }
   },
+  "emailChange": {
+    "changeEmailButton": "Vaihda sähköposti",
+    "newEmailLabel": "Uusi sähköpostiosoite",
+    "sendVerificationButton": "Lähetä vahvistussähköposti",
+    "verificationSent": "Vahvistuslinkki on lähetetty osoitteeseen {{email}}. Tarkista saapuneet ja klikkaa linkkiä vahvistaaksesi uuden sähköpostiosoitteesi.",
+    "verifyTitle": "Vahvista sähköpostin vaihto",
+    "verifyingEmail": "Vahvistetaan sähköpostiosoitettasi...",
+    "verifySuccess": "Sähköpostiosoite päivitetty!",
+    "verifySuccessMessage": "Sähköpostiosoitteesi on vaihdettu. Voit nyt kirjautua uudella osoitteella.",
+    "verifyFailed": "Vahvistus epäonnistui",
+    "verifyFailedMessage": "Vahvistuslinkki on virheellinen tai vanhentunut. Pyydä uusi sähköpostin vaihto profiilisivultasi.",
+    "goToProfile": "Siirry profiiliin",
+    "emailAlreadyInUse": "Tämä sähköpostiosoite on jo käytössä toisella tilillä.",
+    "invalidEmailFormat": "Anna kelvollinen sähköpostiosoite."
+  },
   "stats": {
     "pilots": {
       "dateRange": "Aikajakso",

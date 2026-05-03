@@ -1421,6 +1421,21 @@
       "memberId": "Medlems-ID"
     }
   },
+  "emailChange": {
+    "changeEmailButton": "Ändra e-post",
+    "newEmailLabel": "Ny e-postadress",
+    "sendVerificationButton": "Skicka verifieringsmail",
+    "verificationSent": "En verifieringslänk har skickats till {{email}}. Kontrollera din inkorg och klicka på länken för att bekräfta din nya e-postadress.",
+    "verifyTitle": "Verifiera e-poständring",
+    "verifyingEmail": "Verifierar din e-postadress...",
+    "verifySuccess": "E-postadressen har uppdaterats!",
+    "verifySuccessMessage": "Din e-postadress har ändrats. Du kan nu logga in med din nya adress.",
+    "verifyFailed": "Verifiering misslyckades",
+    "verifyFailedMessage": "Verifieringslänken är ogiltig eller har gått ut. Begär en ny e-poständring från din profilsida.",
+    "goToProfile": "Gå till profil",
+    "emailAlreadyInUse": "Denna e-postadress är redan kopplad till ett annat konto.",
+    "invalidEmailFormat": "Ange en giltig e-postadress."
+  },
   "stats": {
     "pilots": {
       "dateRange": "Tidsperiod",

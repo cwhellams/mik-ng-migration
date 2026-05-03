@@ -229,8 +229,9 @@ export const MemberSchema = AuditableSchema.extend({
 export type Member = z.infer<typeof MemberSchema>
 
 // Limited number of member fields the user can edit, the rest are for admins only
+// Note: email is intentionally excluded — email changes go through a dedicated
+// verification flow (POST /me/email-change/request + /verify) to prevent lockouts.
 export const MemberProfileSchema = MemberSchema.pick({
-  email: true,
   firstName: true,
   lastName: true,
 
