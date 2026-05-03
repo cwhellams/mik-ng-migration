@@ -12,6 +12,11 @@ import {
   FormControlLabel,
   Checkbox,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
   Table,
   TableBody,
   TableCell,
@@ -66,6 +71,49 @@ const MemberProfile = () => {
   const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
   const [isPreFlightChecked, setIsPreFlightChecked] = useState<boolean>(false)
   const [problem, setProblem] = useState<Problem | undefined>()
+
+  // Email change dialog state
+  const [emailChangeOpen, setEmailChangeOpen] = useState(false)
+  const [newEmail, setNewEmail] = useState('')
+  const [emailChangeError, setEmailChangeError] = useState('')
+  const [emailChangeSending, setEmailChangeSending] = useState(false)
+  const [emailChangeSent, setEmailChangeSent] = useState(false)
+
+  const isValidEmail = (email: string) =>
+    /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(email)
+
+  const handleEmailChangeRequest = async () => {
+    if (!isValidEmail(newEmail)) {
+      setEmailChangeError(t('emailChange.invalidEmailFormat'))
+      return
+    }
+    setEmailChangeError('')
+    setEmailChangeSending(true)
+    const { error } = await mutation.trigger(
+      'POST',
+      { newEmail },
+      'email-change/request'
+    )
+    setEmailChangeSending(false)
+
+    if (error) {
+      if (error.status === 409) {
+        setProblem({ status: 409, detail: t('emailChange.emailAlreadyInUse') })
+      } else {
+        setProblem(error)
+      }
+      return
+    }
+
+    setEmailChangeSent(true)
+  }
+
+  const handleEmailChangeClose = () => {
+    setEmailChangeOpen(false)
+    setNewEmail('')
+    setEmailChangeError('')
+    setEmailChangeSent(false)
+  }
 
   const handlePreFlightCheckboxChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -329,7 +377,23 @@ const MemberProfile = () => {
                   </FormField>
 
                   <FormField label={t('member.email')} width={100}>
-                    {email}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {email}
+                      {memberId === 'me' && (
+                        <Button
+                          size='small'
+                          variant='text'
+                          onClick={() => setEmailChangeOpen(true)}
+                          sx={{
+                            minWidth: 'auto',
+                            textTransform: 'none',
+                            fontSize: '0.75rem',
+                          }}
+                        >
+                          {t('emailChange.changeEmailButton')}
+                        </Button>
+                      )}
+                    </Box>
                   </FormField>
 
                   <FormField label={t('member.phone')} width={100}>
@@ -778,6 +842,70 @@ const MemberProfile = () => {
       {data?.memberType === MIKMemberTypes.REMOVED && (
         <Watermark text={t('member.types.removed')} color='red' />
       )}
+
+      {/* Email change dialog */}
+      <Dialog
+        open={emailChangeOpen}
+        onClose={handleEmailChangeClose}
+        maxWidth='sm'
+        fullWidth
+        aria-labelledby='email-change-dialog-title'
+      >
+        <DialogTitle id='email-change-dialog-title'>
+          {t('emailChange.changeEmailButton')}
+        </DialogTitle>
+        <DialogContent>
+          {emailChangeSent ? (
+            <Box sx={{ textAlign: 'center', py: 2 }}>
+              <Icon
+                icon='mdi:email-check'
+                width={48}
+                height={48}
+                color='#4caf50'
+              />
+              <Typography variant='body1' sx={{ mt: 2 }}>
+                {t('emailChange.verificationSent', { email: newEmail })}
+              </Typography>
+            </Box>
+          ) : (
+            <Box sx={{ pt: 1 }}>
+              <TextField
+                fullWidth
+                label={t('emailChange.newEmailLabel')}
+                type='email'
+                value={newEmail}
+                onChange={(e) => {
+                  setNewEmail(e.target.value)
+                  if (emailChangeError) setEmailChangeError('')
+                }}
+                error={!!emailChangeError}
+                helperText={emailChangeError || undefined}
+                autoFocus
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleEmailChangeClose} color='inherit'>
+            {emailChangeSent
+              ? t('general.close', 'Close')
+              : t('general.cancel', 'Cancel')}
+          </Button>
+          {!emailChangeSent && (
+            <Button
+              onClick={handleEmailChangeRequest}
+              variant='contained'
+              disabled={!newEmail || emailChangeSending}
+            >
+              {emailChangeSending ? (
+                <CircularProgress size={20} />
+              ) : (
+                t('emailChange.sendVerificationButton')
+              )}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </RemoteContent>
   )
 }

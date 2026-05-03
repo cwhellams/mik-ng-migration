@@ -588,6 +588,16 @@ export interface MemberDocumentTinyUrls {
   url: string
 }
 
+export interface MemberPendingEmailChanges {
+  created_at: Generated<Timestamp>
+  expires_at: Timestamp
+  id: Generated<string>
+  member_id: string
+  new_email: string
+  token_hash: string
+  used_at: Timestamp | null
+}
+
 export interface MemberLoginAttempts {
   code_hash: string
   created_at: Generated<Timestamp>
@@ -1153,6 +1163,7 @@ export interface DB {
   'member.member_to_roles': MemberMemberToRoles
   'member.non_renewal_actions': MemberNonRenewalActions
   'member.passkeys': MemberPasskeys
+  'member.pending_email_changes': MemberPendingEmailChanges
   'member.register': MemberRegister
   'member.register_audit': MemberRegisterAudit
   'member.roles': MemberRoles

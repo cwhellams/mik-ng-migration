@@ -92,7 +92,6 @@ export const EditMemberModal = ({
         setFormData({
           firstName: memberData.firstName,
           lastName: memberData.lastName,
-          email: memberData.email,
           phoneNumber: memberData.phoneNumber || '',
           streetAddress: memberData.streetAddress || '',
           postcode: memberData.postcode || '',
@@ -277,14 +276,6 @@ export const EditMemberModal = ({
           label={t('member.lastName')}
           value={formData.lastName || ''}
           onChange={handleChange('lastName')}
-        />
-      </Grid>
-      <Grid size={12}>
-        <TextField
-          fullWidth
-          label={t('member.email')}
-          value={formData.email || ''}
-          onChange={handleChange('email')}
         />
       </Grid>
       <Grid size={12}>

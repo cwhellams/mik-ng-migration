@@ -1505,6 +1505,21 @@
       "memberId": "Member ID"
     }
   },
+  "emailChange": {
+    "changeEmailButton": "Change email",
+    "newEmailLabel": "New email address",
+    "sendVerificationButton": "Send verification email",
+    "verificationSent": "A verification link has been sent to {{email}}. Check your inbox and click the link to confirm your new email address.",
+    "verifyTitle": "Verify Email Change",
+    "verifyingEmail": "Verifying your email address...",
+    "verifySuccess": "Email address updated successfully!",
+    "verifySuccessMessage": "Your email address has been changed. You can now use your new address to log in.",
+    "verifyFailed": "Verification failed",
+    "verifyFailedMessage": "The verification link is invalid or has expired. Please request a new email change from your profile.",
+    "goToProfile": "Go to Profile",
+    "emailAlreadyInUse": "This email address is already associated with another account.",
+    "invalidEmailFormat": "Please enter a valid email address."
+  },
   "stats": {
     "pilots": {
       "dateRange": "Time Period",
