@@ -54,6 +54,12 @@
     "title": "Ange din e-post för att få inloggningslänk",
     "validEmailRequired": "Vänligen ange en giltig e-postadress",
     "submitButton": "Logga in med e-post",
+    "or": "eller",
+    "passkey": {
+      "signIn": "Logga in med passnyckel",
+      "startFailed": "Kunde inte starta inloggning med passnyckel",
+      "failed": "Inloggning med passnyckel misslyckades"
+    },
     "withoutAccount": "Har du inget konto?",
     "join": "Registrera dig",
     "checkYouEmail": "Kontrollera din e-post",
@@ -143,6 +149,21 @@
       "subscribed": "Prenumererad",
       "notSubscribed": "Inte prenumererad",
       "noLists": "Inga e-postlistor konfigurerade"
+    },
+    "passkeys": {
+      "title": "Passnycklar",
+      "empty": "Inga passnycklar registrerade. Lägg till en för snabbare och säkrare inloggning.",
+      "add": "Lägg till passnyckel",
+      "remove": "Ta bort passnyckel",
+      "unnamed": "Namnlös passnyckel",
+      "namePrompt": "Ge passnyckeln ett namn (t.ex. 'MacBook Touch ID' eller 'YubiKey 5C')",
+      "added": "tillagd",
+      "lastUsed": "senast använd",
+      "removeConfirm": "Ta bort passnyckeln \"{{name}}\"? Du kommer inte längre att kunna logga in med den.",
+      "removeAdminConfirm": "Ta bort medlemmens passnyckel \"{{name}}\"? Hen kommer inte längre att kunna logga in med den.",
+      "registerFailed": "Kunde inte registrera passnyckel",
+      "unsupportedBrowser": "Din webbläsare stöder inte passnycklar.",
+      "insecureContext": "Passnycklar kräver en säker HTTPS-anslutning."
     },
     "lang": "Språk",
     "memberType": "Medlemstyp",
@@ -1420,6 +1441,21 @@
       "attempts": "Försök",
       "memberId": "Medlems-ID"
     }
+  },
+  "emailChange": {
+    "changeEmailButton": "Ändra e-post",
+    "newEmailLabel": "Ny e-postadress",
+    "sendVerificationButton": "Skicka verifieringsmail",
+    "verificationSent": "En verifieringslänk har skickats till {{email}}. Kontrollera din inkorg och klicka på länken för att bekräfta din nya e-postadress.",
+    "verifyTitle": "Verifiera e-poständring",
+    "verifyingEmail": "Verifierar din e-postadress...",
+    "verifySuccess": "E-postadressen har uppdaterats!",
+    "verifySuccessMessage": "Din e-postadress har ändrats. Du kan nu logga in med din nya adress.",
+    "verifyFailed": "Verifiering misslyckades",
+    "verifyFailedMessage": "Verifieringslänken är ogiltig eller har gått ut. Begär en ny e-poständring från din profilsida.",
+    "goToProfile": "Gå till profil",
+    "emailAlreadyInUse": "Denna e-postadress är redan kopplad till ett annat konto.",
+    "invalidEmailFormat": "Ange en giltig e-postadress."
   },
   "stats": {
     "pilots": {

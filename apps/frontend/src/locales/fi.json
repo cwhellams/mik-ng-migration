@@ -53,6 +53,12 @@
     "title": "Kirjaudu sisään sähköpostilinkillä",
     "validEmailRequired": "Anna kelvollinen sähköpostiosoite",
     "submitButton": "Kirjaudu sähköpostilla",
+    "or": "tai",
+    "passkey": {
+      "signIn": "Kirjaudu avainkoodilla",
+      "startFailed": "Avainkoodikirjautumista ei voitu aloittaa",
+      "failed": "Avainkoodilla kirjautuminen epäonnistui"
+    },
     "withoutAccount": "Ei tunnuksia?",
     "join": "Liity jäseneksi",
     "checkYouEmail": "Tarkista sähköpostisi",
@@ -142,6 +148,21 @@
       "subscribed": "Tilattu",
       "notSubscribed": "Ei tilattu",
       "noLists": "Sähköpostilistoja ei ole määritetty"
+    },
+    "passkeys": {
+      "title": "Avainkoodit",
+      "empty": "Ei rekisteröityjä avainkoodeja. Lisää avainkoodi nopeampaa ja turvallisempaa kirjautumista varten.",
+      "add": "Lisää avainkoodi",
+      "remove": "Poista avainkoodi",
+      "unnamed": "Nimeämätön avainkoodi",
+      "namePrompt": "Anna avainkoodille nimi (esim. 'MacBookin Touch ID' tai 'YubiKey 5C')",
+      "added": "lisätty",
+      "lastUsed": "viimeksi käytetty",
+      "removeConfirm": "Poistetaanko avainkoodi \"{{name}}\"? Et voi enää käyttää sitä kirjautumiseen.",
+      "removeAdminConfirm": "Poistetaanko jäsenen avainkoodi \"{{name}}\"? Hän ei voi enää käyttää sitä kirjautumiseen.",
+      "registerFailed": "Avainkoodin rekisteröinti epäonnistui",
+      "unsupportedBrowser": "Selaimesi ei tue avainkoodeja.",
+      "insecureContext": "Avainkoodit vaativat suojatun HTTPS-yhteyden."
     },
     "isTrainingProgramPilot": "Koulutusohjelmaoppilas",
     "lang": "Kieli",
@@ -1453,6 +1474,21 @@
       "attempts": "Suoritukset",
       "memberId": "Jäsennumero"
     }
+  },
+  "emailChange": {
+    "changeEmailButton": "Vaihda sähköposti",
+    "newEmailLabel": "Uusi sähköpostiosoite",
+    "sendVerificationButton": "Lähetä vahvistussähköposti",
+    "verificationSent": "Vahvistuslinkki on lähetetty osoitteeseen {{email}}. Tarkista saapuneet ja klikkaa linkkiä vahvistaaksesi uuden sähköpostiosoitteesi.",
+    "verifyTitle": "Vahvista sähköpostin vaihto",
+    "verifyingEmail": "Vahvistetaan sähköpostiosoitettasi...",
+    "verifySuccess": "Sähköpostiosoite päivitetty!",
+    "verifySuccessMessage": "Sähköpostiosoitteesi on vaihdettu. Voit nyt kirjautua uudella osoitteella.",
+    "verifyFailed": "Vahvistus epäonnistui",
+    "verifyFailedMessage": "Vahvistuslinkki on virheellinen tai vanhentunut. Pyydä uusi sähköpostin vaihto profiilisivultasi.",
+    "goToProfile": "Siirry profiiliin",
+    "emailAlreadyInUse": "Tämä sähköpostiosoite on jo käytössä toisella tilillä.",
+    "invalidEmailFormat": "Anna kelvollinen sähköpostiosoite."
   },
   "stats": {
     "pilots": {

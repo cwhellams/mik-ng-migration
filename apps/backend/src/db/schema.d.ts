@@ -12,6 +12,10 @@ export type AuthEventType =
   | 'login_failed'
   | 'login_success'
   | 'logout'
+  | 'passkey_login_failed'
+  | 'passkey_login_success'
+  | 'passkey_registered'
+  | 'passkey_removed'
   | 'registration_verified'
   | 'token_refresh'
 
@@ -584,6 +588,16 @@ export interface MemberDocumentTinyUrls {
   url: string
 }
 
+export interface MemberPendingEmailChanges {
+  created_at: Generated<Timestamp>
+  expires_at: Timestamp
+  id: Generated<string>
+  member_id: string
+  new_email: string
+  token_hash: string
+  used_at: Timestamp | null
+}
+
 export interface MemberLoginAttempts {
   code_hash: string
   created_at: Generated<Timestamp>
@@ -603,6 +617,30 @@ export interface MemberLoginEvents {
   ip_address: string | null
   member_id: string | null
   user_agent: string | null
+}
+
+export interface MemberPasskeys {
+  backed_up: Generated<boolean>
+  counter: Generated<Int8>
+  created_at: Generated<Timestamp>
+  credential_id: string
+  device_type: string | null
+  id: Generated<string>
+  last_used_at: Timestamp | null
+  member_id: string
+  name: string | null
+  public_key: Buffer
+  transports: Generated<string[]>
+}
+
+export interface MemberWebauthnChallenges {
+  challenge: string
+  created_at: Generated<Timestamp>
+  email: string | null
+  expires_at: Timestamp
+  id: Generated<string>
+  member_id: string | null
+  purpose: string
 }
 
 export interface MemberMemberToRoles {
@@ -1125,10 +1163,13 @@ export interface DB {
   'member.login_events': MemberLoginEvents
   'member.member_to_roles': MemberMemberToRoles
   'member.non_renewal_actions': MemberNonRenewalActions
+  'member.passkeys': MemberPasskeys
+  'member.pending_email_changes': MemberPendingEmailChanges
   'member.register': MemberRegister
   'member.register_audit': MemberRegisterAudit
   'member.roles': MemberRoles
   'member.simplbooks_sync_state': MemberSimplbooksSyncState
+  'member.webauthn_challenges': MemberWebauthnChallenges
   'prepaid.member_packages': PrepaidMemberPackages
   'prepaid.packages': PrepaidPackages
   'prepaid.usage_log': PrepaidUsageLog

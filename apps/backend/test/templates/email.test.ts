@@ -18,6 +18,11 @@ import {
 } from '../../src/templates/registrationEmailTemplate.ts'
 import { reservationSuspendedEmailBodyHtml } from '../../src/templates/reservationSuspendedEmailTemplate.ts'
 import { newMemberEmailBodyHtml } from '../../src/templates/newMemberEmailTemplate.ts'
+import {
+  emailChangeVerifyBodyHtml,
+  emailChangeVerifySubject,
+  type EmailChangeVerifyVars,
+} from '../../src/templates/emailChangeVerifyTemplate.ts'
 
 describe('Login Email template tests', () => {
   const loginVars: LoginVars = {
@@ -219,6 +224,24 @@ describe('New member notification template tests', () => {
       firstName: 'Tester1',
       href: 'http://localhost:5173/club/members',
     })
+    expect(result).toMatchSnapshot()
+  })
+})
+
+describe('Email change verify template tests', () => {
+  const emailChangeVars: EmailChangeVerifyVars = {
+    firstName: 'Tester1',
+    newEmail: 'new@example.com',
+    href: 'https://example.com/profile/email-change/verify?token=abc123',
+  }
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('emailChangeVerifyBodyHtml for lang: %s', lang => {
+    const result = emailChangeVerifyBodyHtml(lang, emailChangeVars)
+    expect(result).toMatchSnapshot()
+  })
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('emailChangeVerifySubject for lang: %s', lang => {
+    const result = emailChangeVerifySubject(lang)
     expect(result).toMatchSnapshot()
   })
 })

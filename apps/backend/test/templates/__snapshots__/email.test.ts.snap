@@ -408,6 +408,135 @@ exports[`Booking reminder template tests bookingReminderEmailBodyHtml 3`] = `
   </div>"
 `;
 
+exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: en 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Verify Your New Email Address</h1><p>Hello Tester1,</p>
+<p>You have requested to change your email address to <strong><a href="mailto:new@example.com">new@example.com</a></strong>. Please confirm this change by clicking the button below:</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/profile/email-change/verify?token&#x3D;abc123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Verify Email Change</a>
+    </div>
+    <p>If the button above doesn&#39;t work, please copy and paste the following link into your browser:</p>
+<p style="word-break: break-all;">
+  <a href="https://example.com/profile/email-change/verify?token&#x3D;abc123">
+  https://example.com/profile/email-change/verify?token&#x3D;abc123
+  </a>
+</p>
+
+<p>This link will expire in 15 minutes.</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        <p style="font-size: 0.9em; color: #666666;">If you didn't request this change, you can safely ignore this email.</p>
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: fi 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Vahvista uusi sähköpostiosoitteesi</h1><p>Hei Tester1,</p>
+<p>Olet pyytänyt sähköpostiosoitteen vaihtamista osoitteeksi <strong><a href="mailto:new@example.com">new@example.com</a></strong>. Vahvista muutos napsauttamalla alla olevaa painiketta:</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/profile/email-change/verify?token&#x3D;abc123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Vahvista sähköpostin vaihto</a>
+    </div>
+    <p>Jos painike ei toimi, kopioi ja liitä seuraava linkki selaimeesi:</p>
+<p style="word-break: break-all;">
+  <a href="https://example.com/profile/email-change/verify?token&#x3D;abc123">
+  https://example.com/profile/email-change/verify?token&#x3D;abc123
+  </a>
+</p>
+
+<p>Tämä linkki vanhenee 15 minuutissa.</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        <p style="font-size: 0.9em; color: #666666;">Jos et pyytänyt tätä muutosta, voit huoletta sivuuttaa tämän sähköpostin.</p>
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: sv 1`] = `
+"
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+      </div>
+
+      <div style="color: #333333">
+        <h1 style="text-align: center; color: #003366;">Verifiera din nya e-postadress</h1><p>Hej Tester1,</p>
+<p>Du har begärt att ändra din e-postadress till <strong><a href="mailto:new@example.com">new@example.com</a></strong>. Bekräfta ändringen genom att klicka på knappen nedan:</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/profile/email-change/verify?token&#x3D;abc123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Verifiera e-poständring</a>
+    </div>
+    <p>Om knappen ovan inte fungerar, vänligen kopiera och klistra in följande länk i din webbläsare:</p>
+<p style="word-break: break-all;">
+  <a href="https://example.com/profile/email-change/verify?token&#x3D;abc123">
+  https://example.com/profile/email-change/verify?token&#x3D;abc123
+  </a>
+</p>
+
+<p>Denna länk upphör att gälla om 15 minuter.</p>
+
+      </div>
+
+      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+        <p style="font-size: 0.9em; color: #666666;">Om du inte begärde denna ändring kan du lugnt ignorera detta e-postmeddelande.</p>
+        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+    </div>
+  </div>"
+`;
+
+exports[`Email change verify template tests emailChangeVerifySubject for lang: en 1`] = `"Verify your new email address"`;
+
+exports[`Email change verify template tests emailChangeVerifySubject for lang: fi 1`] = `"Vahvista uusi sähköpostiosoitteesi"`;
+
+exports[`Email change verify template tests emailChangeVerifySubject for lang: sv 1`] = `"Verifiera din nya e-postadress"`;
+
 exports[`Login Email template tests loginEmailBodyHtml for lang: en 1`] = `
 "
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
