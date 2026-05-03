@@ -4,6 +4,7 @@ import {
   TextField,
   Button,
   InputAdornment,
+  Divider,
 } from '@mui/material'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
@@ -16,11 +17,17 @@ import { MIKLang } from '@backend/routes/members/models'
 import LanguageSelector from '../../components/LanguageSelector'
 import { validateInternalPath } from '@backend/util/sanitizers'
 import { TurnstileWidget } from '../../components/TurnstileWidget'
+import {
+  loginWithPasskey,
+  loginWithPasskeyDiscoverable,
+  passkeySupported,
+} from '../../utils/passkey'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState('')
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [passkeyLoading, setPasskeyLoading] = useState(false)
 
   const { t, i18n } = useTranslation()
 
@@ -45,6 +52,76 @@ const Login = () => {
     return regex.test(email)
   }
 
+  // Try passkey first; fall back to magic-link email if the user has none.
+  // When `allowEmailFallback` is true (email-submit button), a passkey
+  // cancellation is treated the same as "no passkeys" so the user is not
+  // blocked from using the email flow.
+  const tryPasskeyLogin = async (
+    allowEmailFallback: boolean
+  ): Promise<boolean> => {
+    if (!passkeySupported()) return false
+    setPasskeyLoading(true)
+    try {
+      const safeTarget = validateInternalPath(location.state?.target)
+      const result = await loginWithPasskey(email)
+      if (result.ok) {
+        navigate(safeTarget)
+        return true
+      }
+      if (result.reason === 'no-passkeys') {
+        // Silently fall back to the email magic-link flow.
+        return false
+      }
+      if (result.reason === 'cancelled') {
+        // User dismissed the prompt. If triggered by the email-submit button
+        // fall through to the email flow; if triggered by the passkey button
+        // stay on the page so they can retry.
+        return !allowEmailFallback
+      }
+      if (result.reason === 'options-failed') {
+        // If triggered from the email button, silently fall through to email.
+        if (allowEmailFallback) return false
+        setEmailError(t('login.passkey.startFailed'))
+        return true
+      }
+      // Generic failure — also fall through to email when allowed.
+      if (allowEmailFallback) return false
+      setEmailError(t(result.message ?? 'login.passkey.failed'))
+      return true
+    } finally {
+      setPasskeyLoading(false)
+    }
+  }
+
+  const handlePasskeyLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setEmailError('')
+    // If the user has typed an email, validate it and use the email-scoped flow
+    // (pre-filters credentials to that account). If the email field is empty,
+    // use the discoverable flow so the browser shows all stored passkeys for
+    // this RP — no email required.
+    if (email) {
+      if (!validateEmail(email)) {
+        setEmailError(t('login.validEmailRequired'))
+        return
+      }
+      await tryPasskeyLogin(false)
+    } else {
+      setPasskeyLoading(true)
+      try {
+        const safeTarget = validateInternalPath(location.state?.target)
+        const result = await loginWithPasskeyDiscoverable()
+        if (result.ok) {
+          navigate(safeTarget)
+        } else if (result.reason !== 'cancelled') {
+          setEmailError(t(result.message ?? 'login.passkey.failed'))
+        }
+      } finally {
+        setPasskeyLoading(false)
+      }
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setEmailError('')
@@ -56,6 +133,10 @@ const Login = () => {
 
     // Validate target to prevent open redirect attacks
     const safeTarget = validateInternalPath(location.state?.target)
+
+    // First attempt passkey login. If the user has no passkey or cancels the
+    // prompt we silently fall through to the email magic-link flow.
+    if (await tryPasskeyLogin(true)) return
 
     const { data, error } = await trigger({
       email: email,
@@ -114,12 +195,6 @@ const Login = () => {
           }}
         />
 
-        <TurnstileWidget
-          onSuccess={(token) => setTurnstileToken(token)}
-          onError={() => setTurnstileToken(null)}
-          disabled={isMutating}
-        />
-
         <Button
           type='submit'
           variant='contained'
@@ -148,6 +223,46 @@ const Login = () => {
         >
           {t('login.submitButton')}
         </Button>
+
+        {passkeySupported() && (
+          <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
+            <Divider sx={{ flex: 1 }} />
+            <Typography variant='body2' color='text.secondary' sx={{ mx: 2 }}>
+              {t('login.or')}
+            </Typography>
+            <Divider sx={{ flex: 1 }} />
+          </Box>
+        )}
+
+        {passkeySupported() && (
+          <Button
+            type='button'
+            variant='outlined'
+            color='primary'
+            fullWidth
+            size='large'
+            onClick={handlePasskeyLogin}
+            loading={passkeyLoading}
+            startIcon={<Icon icon='mdi:fingerprint' />}
+            sx={{
+              mt: 0,
+              mb: 2,
+              py: 1.5,
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 'bold',
+              fontSize: '1rem',
+            }}
+          >
+            {t('login.passkey.signIn')}
+          </Button>
+        )}
+
+        <TurnstileWidget
+          onSuccess={(token) => setTurnstileToken(token)}
+          onError={() => setTurnstileToken(null)}
+          disabled={isMutating}
+        />
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>
           <Typography variant='body2' color='text.secondary'>

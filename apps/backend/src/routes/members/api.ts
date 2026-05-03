@@ -86,6 +86,7 @@ import { getMemberForBrevoSync } from '../../db/brevo-sync-queries.ts'
 import logger from '../../lib/logger.ts'
 import { removeMemberFromBrevo } from '../../workers/brevoSyncWorker.ts'
 import { getCurrentYear } from '../../services/simplbooks/simplbooksOutboxHandler.ts'
+import { memberPasskeysRouter } from '../auth/passkey.ts'
 import { generateMagicLinkToken } from '../auth/magiclink.ts'
 import {
   createPendingEmailChange,
@@ -98,6 +99,10 @@ import {
 import dayjs from 'dayjs'
 
 export const router = Router()
+
+// Mount passkey-management subroutes for self (/me/passkeys) and admin (/:memberId/passkeys).
+router.use('/me/passkeys', memberPasskeysRouter)
+router.use('/:memberId/passkeys', memberPasskeysRouter)
 
 const isMemberAdmin = (user?: JWTUser): boolean =>
   user?.permissions?.includes(MIKPermissions.MEMBER_ADMIN) ?? false

@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import dayjs from 'dayjs'
-import ms from 'ms'
 
 import { buildMagicLinkHref, generateMagicLinkToken, generateLoginCode } from './magiclink.ts'
 import { MIKRegistrationVerificationStrategy } from './registration-verification.ts'
@@ -16,8 +15,8 @@ import {
   type LoginResponse,
   type RegisterRequest,
 } from './schema.ts'
-import { decodeRefreshToken, generateAccessToken, generateRefreshToken } from './token.ts'
-import { generateJWTUser, type JWTUser } from './token.ts'
+import { decodeRefreshToken, respondWithAccessAndRefreshToken } from './token.ts'
+import { generateJWTUser } from './token.ts'
 import {
   addMember,
   getMemberByEmail,
@@ -115,9 +114,6 @@ router.post('/login', async (req: Request<LoginRequest>, res: Response<LoginResp
 })
 
 // PWA numeric-code verification endpoint.
-// The client posts {email, code}; we verify the code server-side against the stored hash.
-// This replaces the insecure client-side code-check that previously relied on the JWT
-// being returned in the login response.
 router.post('/login/verify-code', async (req: Request, res: Response) => {
   const parseResult = VerifyCodeRequestSchema.safeParse(req.body)
   if (!parseResult.success) {
@@ -212,36 +208,6 @@ router.post('/register', async (req: Request<RegisterRequest>, res: Response<Log
 
   return res.json({ code: link.code })
 })
-
-const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response): void => {
-  // Refresh token is stored in a secure httpOnly cookie not accessible by frontend JS
-  res.cookie('refreshToken', generateRefreshToken(user), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    expires: dayjs()
-      .add(ms(process.env.REFRESH_TOKEN_EXPIRATION as ms.StringValue), 'milliseconds')
-      .toDate(),
-
-    // cookie is only sent to the refresh endpoint
-    path: '/api/auth/refresh',
-  })
-
-  // Access token also stored to httpOnly cookie.
-  // The cookie has no expiration date so that browsers will send the cookie
-  // and the requests do not get rate-limited.
-  res.cookie('accessToken', generateAccessToken(user), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    // Make access token available to all API endpoints and allow logout to clear it reliably
-    path: '/',
-  })
-
-  // Send a minimal body so the client knows the request succeeded.
-  // Auth is carried entirely by the cookies above.
-  res.json({ ok: true })
-}
 
 // Magic-link email click-through verification.
 // The frontend POSTs the raw token from the URL query parameter.

@@ -52,6 +52,7 @@ import { Problem } from '@backend/routes/response'
 import { Title } from '../../components/Title'
 import { sanitizeUrl } from '@backend/util/sanitizers'
 import { useTimezone } from '../../hooks/useTimezone'
+import { PasskeysCard } from './components/PasskeysCard'
 
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
@@ -528,6 +529,10 @@ const MemberProfile = () => {
             currentLists={data?.mailingLists ?? []}
             onSaved={() => mutate(() => true)}
           />
+
+          {!isExternalUser && (
+            <PasskeysCard memberId={memberId!} isAdmin={isAdmin} />
+          )}
 
           {!isExternalUser && (
             <Card>
