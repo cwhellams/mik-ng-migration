@@ -1444,6 +1444,7 @@
     "verifyFailed": "Vahvistus epäonnistui",
     "verifyFailedMessage": "Vahvistuslinkki on virheellinen tai vanhentunut. Pyydä uusi sähköpostin vaihto profiilisivultasi.",
     "goToProfile": "Siirry profiiliin",
-    "emailAlreadyInUse": "Tämä sähköpostiosoite on jo käytössä toisella tilillä."
+    "emailAlreadyInUse": "Tämä sähköpostiosoite on jo käytössä toisella tilillä.",
+    "invalidEmailFormat": "Anna kelvollinen sähköpostiosoite."
   }
 }

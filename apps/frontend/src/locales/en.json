@@ -1474,6 +1474,7 @@
     "verifyFailed": "Verification failed",
     "verifyFailedMessage": "The verification link is invalid or has expired. Please request a new email change from your profile.",
     "goToProfile": "Go to Profile",
-    "emailAlreadyInUse": "This email address is already associated with another account."
+    "emailAlreadyInUse": "This email address is already associated with another account.",
+    "invalidEmailFormat": "Please enter a valid email address."
   }
 }

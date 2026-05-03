@@ -65,10 +65,19 @@ const MemberProfile = () => {
   // Email change dialog state
   const [emailChangeOpen, setEmailChangeOpen] = useState(false)
   const [newEmail, setNewEmail] = useState('')
+  const [emailChangeError, setEmailChangeError] = useState('')
   const [emailChangeSending, setEmailChangeSending] = useState(false)
   const [emailChangeSent, setEmailChangeSent] = useState(false)
 
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
   const handleEmailChangeRequest = async () => {
+    if (!isValidEmail(newEmail)) {
+      setEmailChangeError(t('emailChange.invalidEmailFormat'))
+      return
+    }
+    setEmailChangeError('')
     setEmailChangeSending(true)
     const { error } = await mutation.trigger(
       'POST',
@@ -92,6 +101,7 @@ const MemberProfile = () => {
   const handleEmailChangeClose = () => {
     setEmailChangeOpen(false)
     setNewEmail('')
+    setEmailChangeError('')
     setEmailChangeSent(false)
   }
 
@@ -840,13 +850,18 @@ const MemberProfile = () => {
               </Typography>
             </Box>
           ) : (
-            <Box>
+            <Box sx={{ pt: 1 }}>
               <TextField
                 fullWidth
                 label={t('emailChange.newEmailLabel')}
                 type='email'
                 value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
+                onChange={(e) => {
+                  setNewEmail(e.target.value)
+                  if (emailChangeError) setEmailChangeError('')
+                }}
+                error={!!emailChangeError}
+                helperText={emailChangeError || undefined}
                 autoFocus
               />
             </Box>
@@ -862,7 +877,7 @@ const MemberProfile = () => {
             <Button
               onClick={handleEmailChangeRequest}
               variant='contained'
-              disabled={!newEmail || emailChangeSending}
+              disabled={!newEmail || emailChangeSending || !!emailChangeError}
             >
               {emailChangeSending ? (
                 <CircularProgress size={20} />

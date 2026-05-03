@@ -1411,6 +1411,7 @@
     "verifyFailed": "Verifiering misslyckades",
     "verifyFailedMessage": "Verifieringslänken är ogiltig eller har gått ut. Begär en ny e-poständring från din profilsida.",
     "goToProfile": "Gå till profil",
-    "emailAlreadyInUse": "Denna e-postadress är redan kopplad till ett annat konto."
+    "emailAlreadyInUse": "Denna e-postadress är redan kopplad till ett annat konto.",
+    "invalidEmailFormat": "Ange en giltig e-postadress."
   }
 }
