@@ -45,8 +45,9 @@ describe('Booking Reminder Worker', () => {
     }) as any
 
     // Insert a test booking starting in 24h, with no reminder sent yet
-    const startEpoch = dayjs().add(24, 'hour').unix().toString()
-    const endEpoch = dayjs().add(25, 'hour').unix().toString()
+    // Epoch must be divisible by 60 (check_all_times_in_mins constraint)
+    const startEpoch = (Math.floor(dayjs().add(24, 'hour').unix() / 60) * 60).toString()
+    const endEpoch = (Math.floor(dayjs().add(25, 'hour').unix() / 60) * 60).toString()
     // booking_id is varchar(9) — keep it short: 'rm' prefix + zero-padded counter
     testBookingId = `rm${String(++bookingCounter).padStart(7, '0')}`
 
@@ -145,7 +146,11 @@ describe('Booking Reminder Worker', () => {
     it('should not claim CANCELLED bookings', async () => {
       await db
         .updateTable('schedule.bookings')
-        .set({ booking_status: 'CANCELLED' })
+        .set({
+          booking_status: 'CANCELLED',
+          cancelled_at: new Date().toISOString(),
+          cancelled_by: 'k1mnimda',
+        })
         .where('booking_id', '=', testBookingId)
         .execute()
 
@@ -155,8 +160,8 @@ describe('Booking Reminder Worker', () => {
 
     it('should not claim bookings starting outside the ±1h window', async () => {
       // Move booking to 48h from now (outside the default 23h–25h window)
-      const farEpoch = dayjs().add(48, 'hour').unix().toString()
-      const farEndEpoch = dayjs().add(49, 'hour').unix().toString()
+      const farEpoch = (Math.floor(dayjs().add(48, 'hour').unix() / 60) * 60).toString()
+      const farEndEpoch = (Math.floor(dayjs().add(49, 'hour').unix() / 60) * 60).toString()
       await db
         .updateTable('schedule.bookings')
         .set({ start_time_epoch: farEpoch, end_time_epoch: farEndEpoch })
@@ -169,8 +174,8 @@ describe('Booking Reminder Worker', () => {
 
     it('should claim a booking in the window when hoursBeforeBooking is customized', async () => {
       // Move booking to 48h from now - within the 47h–49h window when hoursBeforeBooking=48
-      const farEpoch = dayjs().add(48, 'hour').unix().toString()
-      const farEndEpoch = dayjs().add(49, 'hour').unix().toString()
+      const farEpoch = (Math.floor(dayjs().add(48, 'hour').unix() / 60) * 60).toString()
+      const farEndEpoch = (Math.floor(dayjs().add(49, 'hour').unix() / 60) * 60).toString()
       await db
         .updateTable('schedule.bookings')
         .set({ start_time_epoch: farEpoch, end_time_epoch: farEndEpoch })
