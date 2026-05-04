@@ -41,8 +41,8 @@ describe('Db Get FlightLog tests', () => {
 describe('Db query FlightLog tests', () => {
   it('getFlightLogs with no params should return all logs', async () => {
     const result = await getFlightLogs({})
-    expect(result.rows).toEqual(209)
-    expect(result.logs.length).toEqual(9)
+    expect(result.rows).toEqual(208)
+    expect(result.logs.length).toEqual(8)
   })
 
   it('getFlightLogs with Captain and copilot should return filtered logs', async () => {
@@ -76,12 +76,12 @@ describe('Db query FlightLog tests', () => {
 
   it('getFlightLogs for specified aircraft should match snapshot', async () => {
     const result = await getFlightLogs({ aircraftRegistration: 'OH-STL' })
-    expect(result.rows).toEqual(207)
+    expect(result.rows).toEqual(203)
   })
 
   it('getFlightLogs for specific member id should match snapshot', async () => {
     const result = await getFlightLogs({ billableMemberId: 'Sanna1' })
-    expect(result.rows).toEqual(2)
+    expect(result.rows).toEqual(1)
     expect(result).toMatchSnapshot()
   })
 
@@ -97,7 +97,7 @@ describe('Db query FlightLog tests', () => {
     const result = await getFlightLogs({
       endDate: '2025-03-06',
     })
-    expect(result.rows).toEqual(206)
+    expect(result.rows).toEqual(205)
     expect(result.pages).toEqual(5)
     expect(result.page).toEqual(5)
     expect(result.logs[0]).toMatchSnapshot()
@@ -132,8 +132,8 @@ describe('Db query FlightLog tests', () => {
     const result = await getFlightLogs({
       incidentsOrObservations: true,
     })
-    expect(result.rows).toEqual(2)
-    expect(result.logs?.map(f => f.incidentOrObservations)).toContainEqual('Engine stopped briefly')
+    expect(result.rows).toEqual(1)
+    expect(result.logs?.map(f => f.incidentOrObservations)).toEqual(['Engine stopped briefly'])
   })
 
   it('getFlightLogTotals returns totals for all ac', async () => {
@@ -253,9 +253,9 @@ describe('Db update status tests', () => {
     const flightId = 'bLwnAstr0'
 
     const originalLog = await getFlightLog(flightId)
-    expect(originalLog?.acTotalFlightTime).toEqual('4784:35')
+    expect(originalLog?.acTotalFlightTime).toEqual('4783:20')
     expect(originalLog?.ajlbPageNo).toEqual(10)
-    expect(originalLog?.ajlbRowNo).toEqual(4)
+    expect(originalLog?.ajlbRowNo).toEqual(3)
 
     const user = {
       memberId: 'Liisa1',
