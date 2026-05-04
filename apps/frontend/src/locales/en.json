@@ -311,6 +311,17 @@
       "duration": "Duration",
       "type": "Type",
       "status": "Status"
+    },
+    "applicationData": {
+      "title": "Membership Application",
+      "coverLetter": "About the Applicant",
+      "voluntaryWork": "Voluntary Work",
+      "otherAviationClubs": "Other Aviation Clubs",
+      "accidentHistory": "Accident / Incident History",
+      "accidentHistoryDetails": "Details",
+      "criminalRecord": "Criminal Record",
+      "criminalRecordDetails": "Details",
+      "gdprAccepted": "Data Protection Declaration"
     }
   },
   "aircraft": {

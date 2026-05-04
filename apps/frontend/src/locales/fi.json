@@ -310,6 +310,17 @@
       "duration": "Kesto",
       "type": "Tyyppi",
       "status": "Tila"
+    },
+    "applicationData": {
+      "title": "Jäsenhakemus",
+      "coverLetter": "Tietoa hakijasta",
+      "voluntaryWork": "Vapaaehtoistyö",
+      "otherAviationClubs": "Muut ilmailukerhot",
+      "accidentHistory": "Onnettomuus- / vaaratilannekanta",
+      "accidentHistoryDetails": "Lisätiedot",
+      "criminalRecord": "Rikosrekisteri",
+      "criminalRecordDetails": "Lisätiedot",
+      "gdprAccepted": "Tietosuojaseloste"
     }
   },
   "aircraft": {

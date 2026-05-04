@@ -311,6 +311,17 @@
       "duration": "Varaktighet",
       "type": "Typ",
       "status": "Status"
+    },
+    "applicationData": {
+      "title": "Medlemsansökan",
+      "coverLetter": "Om sökanden",
+      "voluntaryWork": "Frivilligt arbete",
+      "otherAviationClubs": "Andra flygklubbar",
+      "accidentHistory": "Olycks- / tillbudshistorik",
+      "accidentHistoryDetails": "Detaljer",
+      "criminalRecord": "Brottsregister",
+      "criminalRecordDetails": "Detaljer",
+      "gdprAccepted": "Dataskyddsdeklaration"
     }
   },
   "aircraft": {

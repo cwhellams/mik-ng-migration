@@ -53,6 +53,7 @@ import { Title } from '../../components/Title'
 import { sanitizeUrl } from '@backend/util/sanitizers'
 import { useTimezone } from '../../hooks/useTimezone'
 import { PasskeysCard } from './components/PasskeysCard'
+import { ApplicationDataCard } from './components/ApplicationDataCard'
 
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
@@ -357,6 +358,13 @@ const MemberProfile = () => {
                 </Card>
               </Stack>
             )}
+          {isAdmin && data?.applicationData && (
+            <ApplicationDataCard
+              applicationData={data.applicationData}
+              isMembershipApproved={Boolean(isMembershipApproved)}
+            />
+          )}
+
           <Stack direction={{ sm: 'column', md: 'row' }} spacing={3}>
             <Card sx={{ flex: 1, mb: 3 }}>
               <EditButton
