@@ -171,6 +171,87 @@ export type MemberListResponse = z.infer<typeof MemberListResponseSchema>
 
 // member details endpoint
 
+export enum PrimaryMotivation {
+  FLY = 'fly',
+  LEARN_TO_FLY = 'learnToFly',
+  COMMUNITY = 'community',
+  OTHER = 'other',
+}
+
+export enum PilotLicenceType {
+  LAPL_A = 'LAPL(A)',
+  PPL_A = 'PPL(A)',
+  CPL_A = 'CPL(A)',
+  ATPL_A = 'ATPL(A)',
+  OTHER = 'other',
+}
+
+export enum AircraftRating {
+  SEP_LAND = 'SEP(land)',
+  IR = 'IR',
+  NF = 'NF',
+  OTHER = 'other',
+}
+
+export const ApplicationDataSchema = z
+  .object({
+    totalFlightHours: z.number().min(0).max(99999).optional(),
+    aircraftTypesFlown: z.string().max(500).optional(),
+    pilotLicenceType: z.nativeEnum(PilotLicenceType).optional(),
+    pilotLicenceTypeOther: z.string().max(200).optional(),
+    ratings: z.array(z.nativeEnum(AircraftRating)).optional(),
+    ratingsOther: z.string().max(200).optional(),
+    primaryMotivation: z.nativeEnum(PrimaryMotivation),
+    motivationOther: z.string().max(500).optional(),
+    coverLetter: z.string().min(1).max(2000),
+    voluntaryWork: z.string().min(1).max(1000),
+    otherAviationClubs: z.string().max(500).optional(),
+    accidentHistory: z.boolean(),
+    accidentHistoryDetails: z.string().max(1000).optional(),
+    criminalRecord: z.boolean(),
+    criminalRecordDetails: z.string().max(1000).optional(),
+    gdprAccepted: z.literal(true, { errorMap: () => ({ message: 'GDPR acceptance is required' }) }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.pilotLicenceType === PilotLicenceType.OTHER && !data.pilotLicenceTypeOther) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'pilotLicenceTypeOther is required when pilotLicenceType is OTHER',
+        path: ['pilotLicenceTypeOther'],
+      })
+    }
+    if (data.ratings?.includes(AircraftRating.OTHER) && !data.ratingsOther) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'ratingsOther is required when ratings includes OTHER',
+        path: ['ratingsOther'],
+      })
+    }
+    if (data.primaryMotivation === PrimaryMotivation.OTHER && !data.motivationOther) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'motivationOther is required when primaryMotivation is OTHER',
+        path: ['motivationOther'],
+      })
+    }
+    if (data.accidentHistory && !data.accidentHistoryDetails) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'accidentHistoryDetails is required when accidentHistory is true',
+        path: ['accidentHistoryDetails'],
+      })
+    }
+    if (data.criminalRecord && !data.criminalRecordDetails) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'criminalRecordDetails is required when criminalRecord is true',
+        path: ['criminalRecordDetails'],
+      })
+    }
+  })
+
+export type ApplicationData = z.infer<typeof ApplicationDataSchema>
+
 export const MemberSchema = AuditableSchema.extend({
   memberId: z.string(),
   memberType: z.nativeEnum(MIKMemberTypes),
@@ -224,6 +305,7 @@ export const MemberSchema = AuditableSchema.extend({
   autoRenewEquipmentFee: z.boolean().nullable().optional(),
   isMembershipExpired: z.boolean().nullable().optional(),
   mailingLists: z.array(z.string()).nullish(),
+  applicationData: ApplicationDataSchema.nullish(),
 })
 
 export type Member = z.infer<typeof MemberSchema>
@@ -261,8 +343,12 @@ export const MemberProfileSchema = MemberSchema.pick({
   mailingLists: true,
 }).extend({
   streetAddress: z.string().min(1),
-  postcode: z.string().min(1),
+  postcode: z.string().min(1).regex(/^\d+$/, 'member.postcodeDigitsOnly'),
   townCity: z.string().min(1),
+  phoneNumber: z
+    .string()
+    .regex(/^\+[0-9\s\-()]+$/, 'member.phoneRequiresCorrectFormatting')
+    .nullish(),
 })
 
 export type MemberProfile = z.infer<typeof MemberProfileSchema>

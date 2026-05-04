@@ -10,6 +10,9 @@ import {
   MIKLang,
   MIKMemberTypes,
   MIKPermissions,
+  PrimaryMotivation,
+  PilotLicenceType,
+  AircraftRating,
   type Member,
   type MemberListFilters,
   type MemberListResponse,
@@ -886,6 +889,158 @@ describe('POST /members', () => {
   it('Return 400 with missing fields', async () => {
     const response = await post(
       { ...req, firstName: undefined } as unknown as RegisterRequest,
+      adminToken,
+    )
+    expect(response.status).toBe(400)
+  })
+
+  it('Create member with applicationData and verify it is stored and returned', async () => {
+    const applicationData = {
+      totalFlightHours: 150,
+      aircraftTypesFlown: 'C172, DA40',
+      pilotLicenceType: PilotLicenceType.PPL_A,
+      ratings: [AircraftRating.SEP_LAND],
+      primaryMotivation: PrimaryMotivation.FLY,
+      coverLetter: 'I love flying and want to join MIK.',
+      voluntaryWork: 'Yes, I am happy to help.',
+      accidentHistory: false,
+      criminalRecord: false,
+      gdprAccepted: true as const,
+    }
+
+    const emailWithAppData = `${new Date().getTime()}-appdata@testdata.com`
+    const response = await post({ ...req, email: emailWithAppData, applicationData }, adminToken)
+    expect(response.status).toBe(200)
+
+    const member = response.body as Member
+    expect(member.applicationData).toMatchObject({
+      totalFlightHours: 150,
+      aircraftTypesFlown: 'C172, DA40',
+      pilotLicenceType: PilotLicenceType.PPL_A,
+      ratings: [AircraftRating.SEP_LAND],
+      primaryMotivation: PrimaryMotivation.FLY,
+      coverLetter: 'I love flying and want to join MIK.',
+      voluntaryWork: 'Yes, I am happy to help.',
+      accidentHistory: false,
+      criminalRecord: false,
+      gdprAccepted: true,
+    })
+
+    // Verify applicationData is returned when fetching member by ID
+    const getResponse = await request(app)
+      .get(`/members/${member.memberId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    expect(getResponse.status).toBe(200)
+    expect((getResponse.body as Member).applicationData).toMatchObject(applicationData)
+
+    await remove(member.memberId, adminToken)
+  })
+
+  it('Create member with accidentHistory=true requires accidentHistoryDetails', async () => {
+    const emailForTest = `${new Date().getTime()}-accident@testdata.com`
+    const response = await post(
+      {
+        ...req,
+        email: emailForTest,
+        applicationData: {
+          totalFlightHours: 0,
+          aircraftTypesFlown: 'C172',
+          primaryMotivation: PrimaryMotivation.LEARN_TO_FLY,
+          coverLetter: 'test',
+          voluntaryWork: 'yes',
+          accidentHistory: true,
+          // missing accidentHistoryDetails
+          criminalRecord: false,
+          gdprAccepted: true,
+        },
+      },
+      adminToken,
+    )
+    expect(response.status).toBe(400)
+  })
+
+  it('Create member with criminalRecord=true requires criminalRecordDetails', async () => {
+    const emailForTest = `${new Date().getTime()}-criminal@testdata.com`
+    const response = await post(
+      {
+        ...req,
+        email: emailForTest,
+        applicationData: {
+          primaryMotivation: PrimaryMotivation.FLY,
+          coverLetter: 'test',
+          voluntaryWork: 'yes',
+          accidentHistory: false,
+          criminalRecord: true,
+          // missing criminalRecordDetails
+          gdprAccepted: true as const,
+        },
+      },
+      adminToken,
+    )
+    expect(response.status).toBe(400)
+  })
+
+  it('Create member with pilotLicenceType=OTHER requires pilotLicenceTypeOther', async () => {
+    const emailForTest = `${new Date().getTime()}-licence@testdata.com`
+    const response = await post(
+      {
+        ...req,
+        email: emailForTest,
+        applicationData: {
+          pilotLicenceType: PilotLicenceType.OTHER,
+          // missing pilotLicenceTypeOther
+          primaryMotivation: PrimaryMotivation.FLY,
+          coverLetter: 'test',
+          voluntaryWork: 'yes',
+          accidentHistory: false,
+          criminalRecord: false,
+          gdprAccepted: true as const,
+        },
+      },
+      adminToken,
+    )
+    expect(response.status).toBe(400)
+  })
+
+  it('Create member with ratings including OTHER requires ratingsOther', async () => {
+    const emailForTest = `${new Date().getTime()}-ratings@testdata.com`
+    const response = await post(
+      {
+        ...req,
+        email: emailForTest,
+        applicationData: {
+          ratings: [AircraftRating.OTHER],
+          // missing ratingsOther
+          primaryMotivation: PrimaryMotivation.FLY,
+          coverLetter: 'test',
+          voluntaryWork: 'yes',
+          accidentHistory: false,
+          criminalRecord: false,
+          gdprAccepted: true as const,
+        },
+      },
+      adminToken,
+    )
+    expect(response.status).toBe(400)
+  })
+
+  it('Create member with primaryMotivation=OTHER requires motivationOther', async () => {
+    const emailForTest = `${new Date().getTime()}-motivation@testdata.com`
+    const response = await post(
+      {
+        ...req,
+        email: emailForTest,
+        applicationData: {
+          primaryMotivation: PrimaryMotivation.OTHER,
+          // missing motivationOther
+          coverLetter: 'test',
+          voluntaryWork: 'yes',
+          accidentHistory: false,
+          criminalRecord: false,
+          gdprAccepted: true as const,
+        },
+      },
       adminToken,
     )
     expect(response.status).toBe(400)

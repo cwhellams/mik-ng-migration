@@ -75,7 +75,53 @@
     "prices": "Liittyessäsi täysjäseneksi Malmin ilmailukerhoon ensimmäisen kauden jäsenmaksuun lisätään liittymismaksu 125€. Kannatusjäsenen ja nuorisojäsenen liittymismaksu on 25€. Kerhon kaluston varaus- ja käyttöoikeus voidaan myöntää vain nuoriso- ja täysjäsenille.",
     "submitButton": "Lähetä hakemus",
     "withAccount": "Oletko jo jäsen?",
-    "login": "Kirjaudu sisään"
+    "login": "Kirjaudu sisään",
+    "sectionFlightExperience": "Lentokokemus",
+    "totalFlightHours": "Kokonaislentotunnit",
+    "aircraftTypesFlown": "Lennetyt konetyypit",
+    "sectionMotivation": "Motivaatio ja tietoa sinusta",
+    "primaryMotivation": "Ensisijainen motivaatio liittyä MIK:iin",
+    "motivation_fly": "Lentäminen",
+    "motivation_learnToFly": "Oppia lentämään",
+    "motivation_community": "Tutustua ilmailuyhteisön ihmisiin",
+    "motivation_other": "Muu, kerro tarkemmin",
+    "motivationOtherText": "Kerro tarkemmin motivaatiostasi",
+    "coverLetter": "Kerro itsestäsi sekä toiveistasi ja odotuksistasi kerholle",
+    "voluntaryWork": "Oletko valmis osallistumaan kerhon vapaaehtoistyöhön? Tämä on ei-sitova vastaus, mutta kerhon hallitukselle hyödyllistä tietoa talkootapahtumia suunniteltaessa",
+    "otherAviationClubs": "Oletko tällä hetkellä jäsenenä muissa ilmailukerhoissa Suomessa? Jos kyllä, listaa ne",
+    "sectionDeclarations": "Ilmoitukset",
+    "accidentHistory": "Oletko koskaan ollut osallisena, lentäjänä tai miehistön jäsenenä, raportoitavassa lento-onnettomuudessa tai vakavassa vaaratilanteessa (EASA/TrafiCom-määräysten mukaisesti) tai ollut virallisen lentoturvallisuustutkinnan kohteena?",
+    "accidentHistoryDetails": "Anna lyhyt kuvaus tapahtumasta/-tapahtumista, roolistasi ja tutkinnan lopputuloksesta",
+    "criminalRecord": "Onko sinulla merkintöjä rikosrekisterissä, jotka liittyvät luotettavuuteesi, luonteeseesi tai ilma-aluksen turvalliseen käyttöön (esim. petokset, väkivaltarikokset, huumerikokset tai ilmailuun liittyvät rikkomukset)?",
+    "criminalRecordDetails": "Anna tiedot, mukaan lukien rikoksen luonne ja tuomion päivämäärä. Huom: Suomen lain mukaan sinun ei yleensä tarvitse ilmoittaa vanhentuneita tuomioita.",
+    "gdprAcceptance": "Lähettämällä tämän hakemuksen vahvistan, että annetut tiedot ovat totuudenmukaisia ja tarkkoja. Ymmärrän, että Malmin Ilmailukerho (MIK) käsittelee näitä arkaluonteisia tietoja (mukaan lukien onnettomuushistoria ja rikostaustan ilmoitus) ainoastaan jäsenkelpoisuuden arviointia, kerhon toiminnan turvallisuuden varmistamista varten ja MIK:n jäsenpolitiikan sekä Suomen tietosuojalakien mukaisesti. MIK pidättää oikeuden tarkistaa nämä tiedot.",
+    "gdprRequired": "Sinun on hyväksyttävä tietosuojaseloste lähettääksesi hakemuksen",
+    "yes": "Kyllä",
+    "no": "Ei",
+    "selectMemberType": "Valitse jäsenyystyyppi",
+    "selectMotivation": "Valitse ensisijainen motivaatiosi",
+    "selectAccidentHistory": "Vastaa onnettomuushistoriakysymykseen",
+    "selectCriminalRecord": "Vastaa rikosrekisterikysymykseen",
+    "juniorAgeError": "Nuorisojäsenyys on tarkoitettu alle 18-vuotiaille",
+    "juniorRecommended": "Syntymäaikasi perusteella voit olla oikeutettu nuorisojäsenyyteen",
+    "dateOfBirthRequired": "Anna kelvollinen syntymäaika",
+    "pilotLicenceType": "Lupakirjatyyppi",
+    "pilotLicence_LAPL_A": "LAPL(A)",
+    "pilotLicence_PPL_A": "PPL(A)",
+    "pilotLicence_CPL_A": "CPL(A)",
+    "pilotLicence_ATPL_A": "ATPL(A)",
+    "pilotLicence_other": "Muu, kerro tarkemmin",
+    "pilotLicenceOtherText": "Kerro tarkemmin lupakirjatyyppi",
+    "ratings": "Kelpuutukset",
+    "rating_SEP_LAND": "SEP(maa)",
+    "rating_IR": "IR (mittarilentokelpuutus)",
+    "rating_NF": "Yölento (NF)",
+    "rating_other": "Muu, kerro tarkemmin",
+    "ratingsOtherText": "Kerro tarkemmin muista kelpuutuksistasi",
+    "nextButton": "Seuraava",
+    "backButton": "Takaisin",
+    "page1of2": "Vaihe 1/2: Perustiedot",
+    "page2of2": "Vaihe 2/2: Lentokokemus ja hakemus"
   },
   "logout": {
     "title": "Kirjauduttu ulos",
@@ -149,6 +195,8 @@
       "notSubscribed": "Ei tilattu",
       "noLists": "Sähköpostilistoja ei ole määritetty"
     },
+    "postcodeDigitsOnly": "Postinumero saa sisältää vain numeroita",
+    "phoneRequiresCorrectFormatting": "Puhelinnumeron on sisällettävä maatunnus (alkaa +:lla), eikä se saa sisältää virheellisiä merkkejä",
     "passkeys": {
       "title": "Avainkoodit",
       "empty": "Ei rekisteröityjä avainkoodeja. Lisää avainkoodi nopeampaa ja turvallisempaa kirjautumista varten.",
@@ -262,6 +310,17 @@
       "duration": "Kesto",
       "type": "Tyyppi",
       "status": "Tila"
+    },
+    "applicationData": {
+      "title": "Jäsenhakemus",
+      "coverLetter": "Tietoa hakijasta",
+      "voluntaryWork": "Vapaaehtoistyö",
+      "otherAviationClubs": "Muut ilmailukerhot",
+      "accidentHistory": "Onnettomuus- / vaaratilannekanta",
+      "accidentHistoryDetails": "Lisätiedot",
+      "criminalRecord": "Rikosrekisteri",
+      "criminalRecordDetails": "Lisätiedot",
+      "gdprAccepted": "Tietosuojaseloste"
     }
   },
   "aircraft": {
@@ -881,7 +940,7 @@
     "onboardingSteps": {
       "step1": {
         "title": "Jäsensihteeri käsittelee hakemuksesi",
-        "description": "Jäsensihteerimme perehtyy hakemukseesi."
+        "description": "Jäsensihteerimme perehtyy hakemukseesi. Sinuun otetaan yhteyttä, mikäli tarvitaan lisätietoja."
       },
       "step2": {
         "title": "Liittymis- ja jäsenmaksun maksaminen",
@@ -896,8 +955,8 @@
         "description": "Mikäli soveltuu, rekisteröidy lupakirjakoulutusohjelmaamme."
       },
       "step5": {
-        "title": "Tutustuminen kerhohuoneeseen Malmilla",
-        "description": "Vieraile kerhotiloillamme Malmin lentokentällä ja tutustu muihin jäseniimme"
+        "title": "Osallistu kerhon keskiviikkotapaamiseen Malmilla",
+        "description": "Tule mukaan kerhon keskiviikkotapaamiseen Malmille tapaamaan muita jäseniä!"
       },
       "step6": {
         "title": "Kerhon avainten saaminen",

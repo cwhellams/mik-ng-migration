@@ -19,7 +19,7 @@ export function PendingReviewBanner() {
 
   const onboardingSteps = [
     {
-      icon: 'mdi:phone',
+      icon: 'mdi:email-open',
       title: t('registrationVerify.onboardingSteps.step1.title'),
       description: t('registrationVerify.onboardingSteps.step1.description'),
     },
@@ -39,7 +39,7 @@ export function PendingReviewBanner() {
       description: t('registrationVerify.onboardingSteps.step4.description'),
     },
     {
-      icon: 'mdi:map-marker',
+      icon: 'mdi:account-group',
       title: t('registrationVerify.onboardingSteps.step5.title'),
       description: t('registrationVerify.onboardingSteps.step5.description'),
     },

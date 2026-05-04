@@ -76,7 +76,53 @@
     "prices": "When joining as a full member of Malmi Aviation Club, a joining fee of €125 will be added to the first season's membership fee. The joining fee for supporting members and junior members is €25. The right to reserve and use the club's equipment can only be granted to junior and full members.",
     "submitButton": "Send Application",
     "withAccount": "Already a member?",
-    "login": "Login"
+    "login": "Login",
+    "sectionFlightExperience": "Flight Experience",
+    "totalFlightHours": "Total Flight Hours",
+    "aircraftTypesFlown": "Aircraft Types Flown",
+    "sectionMotivation": "Motivation & About You",
+    "primaryMotivation": "Primary Motivation to Join MIK",
+    "motivation_fly": "Fly",
+    "motivation_learnToFly": "Learn to Fly",
+    "motivation_community": "Get to know people in aviation community",
+    "motivation_other": "Other, please specify",
+    "motivationOtherText": "Please specify your motivation",
+    "coverLetter": "Tell about yourself and your hopes and expectations for the club",
+    "voluntaryWork": "Are you willing to contribute in the club via voluntary work? This is a non-binding answer, just nice to know for club board when considering collective work events (\"talkoo\")",
+    "otherAviationClubs": "Are you currently a member of any other aviation clubs in Finland? If yes, please list",
+    "sectionDeclarations": "Declarations",
+    "accidentHistory": "Have you ever been involved, as a pilot or crew member, in any reportable aviation accident or serious incident (as defined by EASA/TrafiCom regulations) or been subject to any official flight standards investigation?",
+    "accidentHistoryDetails": "Please provide a brief description of the event(s), the role you played, and the final outcome or conclusion of any investigation",
+    "criminalRecord": "Do you have any unspent criminal convictions that are relevant to your trustworthiness, character, or the safe operation of an aircraft (e.g., fraud, violent crimes, drug offenses, or aviation-related regulatory breaches)?",
+    "criminalRecordDetails": "Please provide details, including the nature of the offense and date of conviction. Note: Under Finnish law, you are generally not required to disclose spent convictions.",
+    "gdprAcceptance": "By submitting this application, I confirm that the information provided is true and accurate. I understand that Malmin Ilmailukerho (MIK) will process this sensitive information (including details on accident history and criminal disclosure) solely for the purpose of assessing my suitability for membership, ensuring the safety of club operations, and in accordance with MIK's membership policy and Finnish data protection laws. MIK reserves the right to verify this information.",
+    "gdprRequired": "You must accept the data protection declaration to submit your application",
+    "yes": "Yes",
+    "no": "No",
+    "selectMemberType": "Please select a membership type",
+    "selectMotivation": "Please select your primary motivation",
+    "selectAccidentHistory": "Please answer the accident history question",
+    "selectCriminalRecord": "Please answer the criminal record question",
+    "juniorAgeError": "Junior membership is only available for members under 18 years old",
+    "juniorRecommended": "Based on your date of birth, you may be eligible for junior membership",
+    "dateOfBirthRequired": "Please enter a valid date of birth",
+    "pilotLicenceType": "Pilot Licence Type",
+    "pilotLicence_LAPL_A": "LAPL(A)",
+    "pilotLicence_PPL_A": "PPL(A)",
+    "pilotLicence_CPL_A": "CPL(A)",
+    "pilotLicence_ATPL_A": "ATPL(A)",
+    "pilotLicence_other": "Other, please specify",
+    "pilotLicenceOtherText": "Please specify your licence type",
+    "ratings": "Ratings You Hold",
+    "rating_SEP_LAND": "SEP(land)",
+    "rating_IR": "IR (Instrument Rating)",
+    "rating_NF": "Night Flying (NF)",
+    "rating_other": "Other, please specify",
+    "ratingsOtherText": "Please specify your other ratings",
+    "nextButton": "Next",
+    "backButton": "Back",
+    "page1of2": "Step 1 of 2: Basic Information",
+    "page2of2": "Step 2 of 2: Flight Experience & Application"
   },
   "logout": {
     "title": "Successfully logged out",
@@ -150,6 +196,8 @@
       "notSubscribed": "Not subscribed",
       "noLists": "No mailing lists configured"
     },
+    "postcodeDigitsOnly": "Postcode must contain only digits",
+    "phoneRequiresCorrectFormatting": "Phone number must include the country code (start with +) and not contain invalid characters",
     "passkeys": {
       "title": "Passkeys",
       "empty": "No passkeys registered. Add one for faster, more secure sign in.",
@@ -263,6 +311,17 @@
       "duration": "Duration",
       "type": "Type",
       "status": "Status"
+    },
+    "applicationData": {
+      "title": "Membership Application",
+      "coverLetter": "About the Applicant",
+      "voluntaryWork": "Voluntary Work",
+      "otherAviationClubs": "Other Aviation Clubs",
+      "accidentHistory": "Accident / Incident History",
+      "accidentHistoryDetails": "Details",
+      "criminalRecord": "Criminal Record",
+      "criminalRecordDetails": "Details",
+      "gdprAccepted": "Data Protection Declaration"
     }
   },
   "aircraft": {
@@ -909,8 +968,8 @@
     "nextStepsDescription": "Here's what happens next as you become a full member of our flying club:",
     "onboardingSteps": {
       "step1": {
-        "title": "Member secretary will process application",
-        "description": "Our member secretary will contact you if there are any questions."
+        "title": "Secretary reviews your membership application",
+        "description": "The club secretary will review your membership application. You will be contacted if any additional information is needed."
       },
       "step2": {
         "title": "Payment of member and joining fees",
@@ -925,8 +984,8 @@
         "description": "If applicable, register for our student pilot training programs."
       },
       "step5": {
-        "title": "Introduction to club room at Malmi",
-        "description": "Visit our club facilities at Malmi airfield and meet other members."
+        "title": "Join a club Wednesday at Malmi",
+        "description": "Join a club Wednesday at Malmi to see other members of the club!"
       },
       "step6": {
         "title": "Getting keys to the club",

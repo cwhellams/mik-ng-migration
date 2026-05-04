@@ -673,6 +673,10 @@ export interface MemberRegister {
   created_at: Generated<Timestamp>
   created_by: string
   /**
+   * Registration application data: flight hours, aircraft types, motivation, cover letter, declarations, etc.
+   */
+  application_data: Json | null
+  /**
    * User preferences for dashboard component order and visibility. Structure: {"components": [{"id": "weather", "visible": true, "order": 0}, ...]}
    */
   dashboard_settings: Json | null
