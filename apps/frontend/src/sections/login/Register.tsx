@@ -14,6 +14,8 @@ import {
   Checkbox,
   FormGroup,
   LinearProgress,
+  List,
+  ListItem,
 } from '@mui/material'
 import { DateField } from '@mui/x-date-pickers/DateField'
 import 'dayjs/locale/fi'
@@ -35,6 +37,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import LanguageSelector from '../../components/LanguageSelector'
 import { TurnstileWidget } from '../../components/TurnstileWidget'
+import { PhoneNumberInput } from '../../components/PhoneNumberInput'
 
 // Local form state type — allows undefined for radio-button fields so that
 // none are pre-selected; cast to RegisterRequest on submission after validation.
@@ -111,7 +114,7 @@ const Register = () => {
   })
   const [dateOfBirth, setDateOfBirth] = useState<Dayjs | null>(null)
 
-  const [registerError, setRegisterError] = useState('')
+  const [registerErrors, setRegisterErrors] = useState<string[]>([])
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const navigate = useNavigate()
@@ -139,30 +142,28 @@ const Register = () => {
 
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault()
-    setRegisterError('')
+    const errors: string[] = []
 
     if (!validateEmail(member.email)) {
-      setRegisterError(t('login.validEmailRequired'))
-      return
+      errors.push(t('login.validEmailRequired'))
     }
 
     if (!member.memberType) {
-      setRegisterError(t('register.selectMemberType'))
-      return
+      errors.push(t('register.selectMemberType'))
     }
 
     // Issue #770: validate age for junior membership
     const age = getAge(dateOfBirth)
     if (member.memberType === MIKMemberTypes.JUNIOR) {
       if (!dateOfBirth || age === null) {
-        setRegisterError(t('register.dateOfBirthRequired'))
-        return
-      }
-      if (age >= 18) {
-        setRegisterError(t('register.juniorAgeError'))
-        return
+        errors.push(t('register.dateOfBirthRequired'))
+      } else if (age >= 18) {
+        errors.push(t('register.juniorAgeError'))
       }
     }
+
+    setRegisterErrors(errors)
+    if (errors.length > 0) return
 
     setStep(2)
     window.scrollTo(0, 0)
@@ -170,35 +171,38 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setRegisterError('')
+    const errors: string[] = []
 
     if (member.applicationData?.primaryMotivation === undefined) {
-      setRegisterError(t('register.selectMotivation'))
-      return
+      errors.push(t('register.selectMotivation'))
     }
 
     if (member.applicationData?.accidentHistory === undefined) {
-      setRegisterError(t('register.selectAccidentHistory'))
-      return
+      errors.push(t('register.selectAccidentHistory'))
     }
 
     if (member.applicationData?.criminalRecord === undefined) {
-      setRegisterError(t('register.selectCriminalRecord'))
-      return
+      errors.push(t('register.selectCriminalRecord'))
     }
 
     if (!member.applicationData?.gdprAccepted) {
-      setRegisterError(t('register.gdprRequired'))
-      return
+      errors.push(t('register.gdprRequired'))
     }
+
+    setRegisterErrors(errors)
+    if (errors.length > 0) return
 
     const { data, error } = await trigger({
       ...(member as RegisterRequest),
+      // coerce empty string to undefined — backend phoneNumber is .nullish() and
+      // rejects '' because it fails the /^\+.../ regex
+      phoneNumber: member.phoneNumber || undefined,
       turnstileToken: turnstileToken ?? undefined,
     })
     if (!data?.code || error) {
       console.log('Error:', error)
-      return setRegisterError(error?.detail ?? error?.title ?? 'Error')
+      setRegisterErrors([error?.detail ?? error?.title ?? 'Error'])
+      return
     }
 
     navigate('/login/sent', {
@@ -289,22 +293,17 @@ const Register = () => {
             onChange={(e) => setMember({ ...member, lastName: e.target.value })}
             required
           />
-          <TextField
-            fullWidth
-            label={t('member.phone')}
-            margin='normal'
-            value={member.phoneNumber}
-            onChange={(e) => {
-              const value = e.target.value.replace(/[^0-9+\s-]/g, '')
-              setMember({ ...member, phoneNumber: value })
-            }}
-            required
-            slotProps={{
-              htmlInput: {
-                inputMode: 'tel',
-              },
-            }}
-          />
+          <Box sx={{ mt: 1, mb: 0.5 }}>
+            <PhoneNumberInput
+              label={t('member.phone')}
+              value={member.phoneNumber ?? ''}
+              onChange={(value) =>
+                setMember({ ...member, phoneNumber: value })
+              }
+              fullWidth
+              required
+            />
+          </Box>
           <TextField
             fullWidth
             label={t('member.street')}
@@ -418,9 +417,19 @@ const Register = () => {
             {t('register.prices')}
           </Typography>
 
-          {registerError && (
+          {registerErrors.length > 0 && (
             <Alert variant='outlined' severity='error' sx={{ mt: 2 }}>
-              {registerError}
+              {registerErrors.length === 1 ? (
+                registerErrors[0]
+              ) : (
+                <List dense disablePadding>
+                  {registerErrors.map((err, i) => (
+                    <ListItem key={i} sx={{ py: 0.25, px: 0 }}>
+                      {'• ' + err}
+                    </ListItem>
+                  ))}
+                </List>
+              )}
             </Alert>
           )}
 
@@ -818,9 +827,19 @@ const Register = () => {
             disabled={isMutating}
           />
 
-          {registerError && (
+          {registerErrors.length > 0 && (
             <Alert variant='outlined' severity='error' sx={{ mt: 2 }}>
-              {registerError}
+              {registerErrors.length === 1 ? (
+                registerErrors[0]
+              ) : (
+                <List dense disablePadding>
+                  {registerErrors.map((err, i) => (
+                    <ListItem key={i} sx={{ py: 0.25, px: 0 }}>
+                      {'• ' + err}
+                    </ListItem>
+                  ))}
+                </List>
+              )}
             </Alert>
           )}
 
@@ -837,7 +856,7 @@ const Register = () => {
                 fontSize: '1rem',
               }}
               onClick={() => {
-                setRegisterError('')
+                setRegisterErrors([])
                 setStep(1)
                 window.scrollTo(0, 0)
               }}

@@ -11,6 +11,8 @@ import {
   MIKMemberTypes,
   MIKPermissions,
   PrimaryMotivation,
+  PilotLicenceType,
+  AircraftRating,
   type Member,
   type MemberListFilters,
   type MemberListResponse,
@@ -896,7 +898,8 @@ describe('POST /members', () => {
     const applicationData = {
       totalFlightHours: 150,
       aircraftTypesFlown: 'C172, DA40',
-      licenceAndRatings: 'PPL(A), Night',
+      pilotLicenceType: PilotLicenceType.PPL_A,
+      ratings: [AircraftRating.SEP_LAND],
       primaryMotivation: PrimaryMotivation.FLY,
       coverLetter: 'I love flying and want to join MIK.',
       voluntaryWork: 'Yes, I am happy to help.',
@@ -913,7 +916,8 @@ describe('POST /members', () => {
     expect(member.applicationData).toMatchObject({
       totalFlightHours: 150,
       aircraftTypesFlown: 'C172, DA40',
-      licenceAndRatings: 'PPL(A), Night',
+      pilotLicenceType: PilotLicenceType.PPL_A,
+      ratings: [AircraftRating.SEP_LAND],
       primaryMotivation: PrimaryMotivation.FLY,
       coverLetter: 'I love flying and want to join MIK.',
       voluntaryWork: 'Yes, I am happy to help.',
@@ -942,7 +946,6 @@ describe('POST /members', () => {
         applicationData: {
           totalFlightHours: 0,
           aircraftTypesFlown: 'C172',
-          licenceAndRatings: 'PPL',
           primaryMotivation: PrimaryMotivation.LEARN_TO_FLY,
           coverLetter: 'test',
           voluntaryWork: 'yes',
