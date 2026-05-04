@@ -178,11 +178,29 @@ export enum PrimaryMotivation {
   OTHER = 'other',
 }
 
+export enum PilotLicenceType {
+  LAPL_A = 'LAPL(A)',
+  PPL_A = 'PPL(A)',
+  CPL_A = 'CPL(A)',
+  ATPL_A = 'ATPL(A)',
+  OTHER = 'other',
+}
+
+export enum AircraftRating {
+  SEP_LAND = 'SEP(land)',
+  IR = 'IR',
+  NF = 'NF',
+  OTHER = 'other',
+}
+
 export const ApplicationDataSchema = z
   .object({
     totalFlightHours: z.number().min(0).optional(),
     aircraftTypesFlown: z.string().optional(),
-    licenceAndRatings: z.string().optional(),
+    pilotLicenceType: z.nativeEnum(PilotLicenceType).optional(),
+    pilotLicenceTypeOther: z.string().optional(),
+    ratings: z.array(z.nativeEnum(AircraftRating)).optional(),
+    ratingsOther: z.string().optional(),
     primaryMotivation: z.nativeEnum(PrimaryMotivation),
     motivationOther: z.string().optional(),
     coverLetter: z.string().min(1),
@@ -195,6 +213,20 @@ export const ApplicationDataSchema = z
     gdprAccepted: z.boolean().refine(v => v === true, { message: 'GDPR acceptance is required' }),
   })
   .superRefine((data, ctx) => {
+    if (data.pilotLicenceType === PilotLicenceType.OTHER && !data.pilotLicenceTypeOther) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'pilotLicenceTypeOther is required when pilotLicenceType is OTHER',
+        path: ['pilotLicenceTypeOther'],
+      })
+    }
+    if (data.ratings?.includes(AircraftRating.OTHER) && !data.ratingsOther) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'ratingsOther is required when ratings includes OTHER',
+        path: ['ratingsOther'],
+      })
+    }
     if (data.primaryMotivation === PrimaryMotivation.OTHER && !data.motivationOther) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
