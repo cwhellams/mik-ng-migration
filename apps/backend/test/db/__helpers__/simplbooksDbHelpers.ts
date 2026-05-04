@@ -84,6 +84,26 @@ export const revertBillingIdChanges = async (memberId: string, billingId: string
     .execute()
 }
 
+export const expectAnnualFeeRecordForJoiningFeeInvoice = async (memberId: string) => {
+  const invoice = await db
+    .selectFrom('accts.invoice')
+    .select(['id'])
+    .where('member_id', '=', memberId)
+    .where('invoice_type', '=', MIKInvoiceType.JOINING_FEE)
+    .executeTakeFirstOrThrow()
+
+  const result = await db
+    .selectFrom('member.annual_fees')
+    .selectAll()
+    .where('member_id', '=', memberId)
+    .where('fee_type', '=', 'annual_fee')
+    .where('invoice_id', '=', Number(invoice.id))
+    .execute()
+
+  expect(result.length).toEqual(1)
+  expect(result[0].fee_type).toEqual('annual_fee')
+}
+
 export const insertStuckRowToOutbox = async () => {
   await db
     .insertInto('accts.outbox_simplbooks')

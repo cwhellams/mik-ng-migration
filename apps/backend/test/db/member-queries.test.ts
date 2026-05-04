@@ -20,6 +20,7 @@ import {
   deactivateMember,
   restoreMember,
   hasMemberFlownBillableFlightInYear,
+  getUnpaidMembershipFeesForYear,
 } from '../../src/db/member-queries.ts'
 import { db } from '../../src/db/connection.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
@@ -31,6 +32,7 @@ import {
 } from '../../src/routes/members/models.ts'
 import type { Upsert } from '../../src/types/schema.ts'
 import { deleteSimplbooksOutbox } from './__helpers__/simplbooksDbHelpers.ts'
+import { MIKInvoiceType } from '../../src/services/simplbooks/models.ts'
 
 const jwt: JWTUser = {
   memberId: 'k1mnimda',
@@ -596,5 +598,172 @@ describe('hasMemberFlownInYear Tests', () => {
     const currentYear = new Date().getFullYear()
     const result = await hasMemberFlownBillableFlightInYear('NonExistent', currentYear)
     expect(result).toBe(false)
+  })
+})
+
+describe('getUnpaidMembershipFeesForYear Tests', () => {
+  const currentYear = new Date().getFullYear()
+  let testMemberId: string
+  // Small fixed IDs that fit in PostgreSQL integer and don't conflict with test data (max existing ~2788)
+  const INV_ANNUAL = 50001
+  const INV_JOINING = 50002
+  const INV_PAID = 50003
+  const INV_EQUIP = 50004
+
+  beforeAll(async () => {
+    testMemberId = await addMember({
+      memberType: MIKMemberTypes.FLYING,
+      email: `${Date.now()}@unpaidfees.test`,
+      firstName: 'UnpaidFees',
+      lastName: 'Test',
+      lang: MIKLang.FI,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+    })
+  })
+
+  afterAll(async () => {
+    await db.deleteFrom('member.annual_fees').where('member_id', '=', testMemberId).execute()
+    await db.deleteFrom('accts.invoice').where('member_id', '=', testMemberId).execute()
+    await removeMember(testMemberId)
+  })
+
+  it('should return empty array when member has no invoices', async () => {
+    const result = await getUnpaidMembershipFeesForYear(testMemberId, currentYear)
+    expect(result).toHaveLength(0)
+  })
+
+  it('should return unpaid annual fee invoice tracked in member.annual_fees', async () => {
+    await db
+      .insertInto('accts.invoice')
+      .values({
+        id: String(INV_ANNUAL),
+        member_id: testMemberId,
+        invoice_type: MIKInvoiceType.ANNUAL_FEE,
+        pmt_ref: 'REF-ANNUAL',
+        due_at: `${currentYear}-12-31`,
+        created_by: 'k1mnimda',
+        updated_by: 'k1mnimda',
+      })
+      .execute()
+    await db
+      .insertInto('member.annual_fees')
+      .values({
+        member_id: testMemberId,
+        fee_type: 'annual_fee',
+        year: currentYear,
+        invoice_id: INV_ANNUAL,
+        created_by: 'k1mnimda',
+        updated_by: 'k1mnimda',
+      })
+      .execute()
+
+    const result = await getUnpaidMembershipFeesForYear(testMemberId, currentYear)
+    expect(result).toHaveLength(1)
+    expect(result[0].invoice_type).toBe(MIKInvoiceType.ANNUAL_FEE)
+    expect(result[0].pmt_ref).toBe('REF-ANNUAL')
+
+    await db.deleteFrom('member.annual_fees').where('invoice_id', '=', INV_ANNUAL).execute()
+    await db.deleteFrom('accts.invoice').where('id', '=', String(INV_ANNUAL)).execute()
+  })
+
+  it('should return joining fee invoice when tracked as annual_fee in member.annual_fees', async () => {
+    await db
+      .insertInto('accts.invoice')
+      .values({
+        id: String(INV_JOINING),
+        member_id: testMemberId,
+        invoice_type: MIKInvoiceType.JOINING_FEE,
+        pmt_ref: 'REF-JOINING',
+        due_at: `${currentYear}-12-31`,
+        created_by: 'k1mnimda',
+        updated_by: 'k1mnimda',
+      })
+      .execute()
+    await db
+      .insertInto('member.annual_fees')
+      .values({
+        member_id: testMemberId,
+        fee_type: 'annual_fee',
+        year: currentYear,
+        invoice_id: INV_JOINING,
+        created_by: 'k1mnimda',
+        updated_by: 'k1mnimda',
+      })
+      .execute()
+
+    const result = await getUnpaidMembershipFeesForYear(testMemberId, currentYear)
+    const joiningFee = result.find(r => r.invoice_type === MIKInvoiceType.JOINING_FEE)
+    expect(joiningFee).toBeDefined()
+    expect(joiningFee?.pmt_ref).toBe('REF-JOINING')
+
+    await db.deleteFrom('member.annual_fees').where('invoice_id', '=', INV_JOINING).execute()
+    await db.deleteFrom('accts.invoice').where('id', '=', String(INV_JOINING)).execute()
+  })
+
+  it('should not return a paid invoice', async () => {
+    await db
+      .insertInto('accts.invoice')
+      .values({
+        id: String(INV_PAID),
+        member_id: testMemberId,
+        invoice_type: MIKInvoiceType.ANNUAL_FEE,
+        pmt_ref: 'REF-PAID',
+        due_at: `${currentYear}-12-31`,
+        paid_at: `${currentYear}-01-15`,
+        created_by: 'k1mnimda',
+        updated_by: 'k1mnimda',
+      })
+      .execute()
+    await db
+      .insertInto('member.annual_fees')
+      .values({
+        member_id: testMemberId,
+        fee_type: 'annual_fee',
+        year: currentYear,
+        invoice_id: INV_PAID,
+        created_by: 'k1mnimda',
+        updated_by: 'k1mnimda',
+      })
+      .execute()
+
+    const result = await getUnpaidMembershipFeesForYear(testMemberId, currentYear)
+    expect(result.find(r => r.pmt_ref === 'REF-PAID')).toBeUndefined()
+
+    await db.deleteFrom('member.annual_fees').where('invoice_id', '=', INV_PAID).execute()
+    await db.deleteFrom('accts.invoice').where('id', '=', String(INV_PAID)).execute()
+  })
+
+  it('should not return unpaid equipment fee invoice', async () => {
+    await db
+      .insertInto('accts.invoice')
+      .values({
+        id: String(INV_EQUIP),
+        member_id: testMemberId,
+        invoice_type: MIKInvoiceType.EQUIPMENT_FEE,
+        pmt_ref: 'REF-EQUIP',
+        due_at: `${currentYear}-12-31`,
+        created_by: 'k1mnimda',
+        updated_by: 'k1mnimda',
+      })
+      .execute()
+    await db
+      .insertInto('member.annual_fees')
+      .values({
+        member_id: testMemberId,
+        fee_type: 'equipment_fee',
+        year: currentYear,
+        invoice_id: INV_EQUIP,
+        created_by: 'k1mnimda',
+        updated_by: 'k1mnimda',
+      })
+      .execute()
+
+    const result = await getUnpaidMembershipFeesForYear(testMemberId, currentYear)
+    expect(result.find(r => r.invoice_type === MIKInvoiceType.EQUIPMENT_FEE)).toBeUndefined()
+
+    await db.deleteFrom('member.annual_fees').where('invoice_id', '=', INV_EQUIP).execute()
+    await db.deleteFrom('accts.invoice').where('id', '=', String(INV_EQUIP)).execute()
   })
 })

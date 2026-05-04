@@ -804,7 +804,9 @@ export async function restoreMember(memberId: string, restoredBy: string): Promi
 }
 
 /**
- * Get unpaid membership and equipment fee invoices for a member in a given year
+ * Get unpaid annual membership fee invoices for a member in a given year.
+ * Equipment fees are intentionally excluded. Joining fee invoices are included
+ * because they are recorded in member.annual_fees as annual_fee when created.
  * Returns invoices that could be eligible for credit notes
  */
 export async function getUnpaidMembershipFeesForYear(
@@ -817,6 +819,7 @@ export async function getUnpaidMembershipFeesForYear(
     .select(['accts.invoice.id', 'accts.invoice.invoice_type', 'accts.invoice.pmt_ref'])
     .where('member.annual_fees.member_id', '=', memberId)
     .where('member.annual_fees.year', '=', year)
+    .where('member.annual_fees.fee_type', '=', 'annual_fee')
     .where('accts.invoice.is_paid', '=', false)
     .execute()
 

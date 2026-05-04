@@ -119,9 +119,54 @@ export function validateFlightsBillableMemberId(
 
 async function createNewMemberFeesInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   const member = InvoiceMemberSchema.parse(outboxMsg.payload)
+  const year = getCurrentYear()
+
+  // Guard against duplicate/out-of-order processing: if the annual_fee row already exists
+  // for this member+year the invoice has already been created successfully. Skip before
+  // making any call to SimplBooks so no duplicate invoice is created there.
+  const annualFeeAlreadyCreated = await isRecurringFeeAlreadyCreated(
+    RecurringFeeType.ANNUAL_FEE,
+    year,
+    member.memberId,
+  )
+  if (annualFeeAlreadyCreated) {
+    logger.warn(
+      `Annual membership fee (via joining fee invoice) for year ${year} has already been created for member ${member.memberId}`,
+    )
+    await db.transaction().execute(async txn => {
+      await setOutboxStatus(
+        txn,
+        outboxMsg.id,
+        SimplbooksStatus.SKIPPED,
+        `Annual membership fee (via joining fee invoice) already exists for member ${member.memberId} for year ${year}, skipping creation.`,
+      )
+    })
+    return
+  }
+
   const feeInvoice = await createNewMemberFeesInvoicePayload(member)
   await db.transaction().execute(async txn => {
-    await createInvoice(member.memberId, outboxMsg.id, MIKInvoiceType.JOINING_FEE, feeInvoice, txn)
+    const invoiceId = await createInvoice(
+      member.memberId,
+      outboxMsg.id,
+      MIKInvoiceType.JOINING_FEE,
+      feeInvoice,
+      txn,
+    )
+
+    // The joining fee invoice also covers the annual membership fee for the current year,
+    // so we record it in annual_fees to ensure it is eligible for a credit note if the
+    // member is deactivated before paying.
+    await insertMemberAnnualFees(txn, {
+      memberId: member.memberId,
+      feeType: FeeTypeEnum.Values.annual_fee,
+      year: year,
+      invoiceId: invoiceId,
+      createdAt: new Date().toISOString(),
+      createdBy: MIK_SIMPLBOOKS_MEMBER,
+      updatedAt: new Date().toISOString(),
+      updatedBy: MIK_SIMPLBOOKS_MEMBER,
+    })
   })
 }
 

@@ -27,6 +27,7 @@ import {
   checkForOutboxStuckRows,
   deleteCreatedInvoice,
   deleteSimplbooksOutbox,
+  expectAnnualFeeRecordForJoiningFeeInvoice,
   expectBillingIdSet,
   expectInvoiceForJoiningFee,
   expectInvoiceForMemberFee,
@@ -35,6 +36,8 @@ import {
   revertBillingIdChanges,
 } from '../../db/__helpers__/simplbooksDbHelpers.ts'
 import { checkAndClearStuckMessages } from '../../../src/db/outbox-simplbooks-queries.ts'
+import { db } from '../../../src/db/connection.ts'
+import type { Json } from '../../../src/db/schema.d.ts'
 
 const newMemberId = 'Anna1'
 
@@ -125,6 +128,50 @@ describe('Simplbooks Outbox Handler tests', () => {
     await dispatchOutboxMsg(obMsgNewMembershipFeeInvoice)
 
     await expectInvoiceForJoiningFee(newMemberId)
+    await expectAnnualFeeRecordForJoiningFeeInvoice(newMemberId)
+    await revertBillingIdChanges(newMemberId, 'BILL004')
+    await deleteCreatedInvoice(MIKInvoiceType.JOINING_FEE)
+  })
+
+  it('skips new member fees invoice when annual_fee row already exists (idempotency)', async () => {
+    // First dispatch creates the invoice and annual_fee row normally
+    await dispatchOutboxMsg(obMsgNewMembershipFeeInvoice)
+    await expectInvoiceForJoiningFee(newMemberId)
+
+    // Count SimplBooks post calls before the duplicate dispatch
+    const baselineApiCallCount = (simplbooksApiClient.post as jest.Mock).mock.calls.length
+
+    // Insert a duplicate outbox row and dispatch it — annual_fee row now exists, must be skipped
+    const duplicateId = randomUUID()
+    await db
+      .insertInto('accts.outbox_simplbooks')
+      .values({
+        id: duplicateId,
+        event_type: SimplbooksEventType.NEW_MEMBER_FEES,
+        payload: obMsgNewMembershipFeeInvoice.payload as Json,
+        created_at_utc: new Date(),
+        updated_at_utc: new Date(),
+        status: SimplbooksStatus.PENDING,
+      })
+      .execute()
+
+    const duplicateMsg: AcctsOutboxSimplbooks = {
+      ...obMsgNewMembershipFeeInvoice,
+      id: duplicateId,
+    }
+    await dispatchOutboxMsg(duplicateMsg)
+
+    // No additional SimplBooks calls should have been made
+    expect((simplbooksApiClient.post as jest.Mock).mock.calls.length).toBe(baselineApiCallCount)
+
+    // The duplicate outbox row should be marked SKIPPED
+    const skipped = await db
+      .selectFrom('accts.outbox_simplbooks')
+      .selectAll()
+      .where('id', '=', duplicateId)
+      .executeTakeFirst()
+    expect(skipped?.status).toBe(SimplbooksStatus.SKIPPED)
+
     await revertBillingIdChanges(newMemberId, 'BILL004')
     await deleteCreatedInvoice(MIKInvoiceType.JOINING_FEE)
   })
