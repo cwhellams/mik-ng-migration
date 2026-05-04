@@ -159,7 +159,7 @@ const Schedule = () => {
   )
 
   const [filters, setFilters] = useState<BookingFilters>({
-    'registration[]': [],
+    registration: [],
   })
 
   const {
@@ -181,7 +181,7 @@ const Schedule = () => {
       bookingId?: string
     ): Promise<boolean> => {
       const payload: BookingFilters = {
-        'registration[]': [registration],
+        registration: [registration],
         from: from.toISOString(),
         to: to.toISOString(),
         exclusiveStartEnd: true,
@@ -299,8 +299,8 @@ const Schedule = () => {
         bookingId: '',
         memberId: me?.memberId ?? '',
         registration:
-          typeof filters['registration[]'] === 'string'
-            ? filters['registration[]']
+          typeof filters['registration'] === 'string'
+            ? filters['registration']
             : (aircraftData?.aircrafts?.[0].registration ?? ''),
         type: BookingType.PRACTICE,
         status: BookingStatus.CONFIRMED,
@@ -452,7 +452,7 @@ const Schedule = () => {
 
   const dayLayoutAlgorithm: DayLayoutFunction<BookingEvent> = (params) => {
     return noOverlap(params).map((item) => {
-      if (item.size == 100 && filters['registration[]']?.length == 0) {
+      if (item.size == 100 && filters['registration']?.length == 0) {
         // make a single plane booking more narrow to make it more clear another plane
         // can also be booked at the same time
         return {
@@ -493,10 +493,10 @@ const Schedule = () => {
         <Box display='flex' flexDirection='row' alignItems='center'>
           <Typography variant='body2'>{t('schedule.showPlanes')}</Typography>
           <ToggleButtonGroup
-            value={filters['registration[]']}
+            value={filters['registration']}
             exclusive
             onChange={(_, value) =>
-              setFilters((filters) => ({ ...filters, 'registration[]': value }))
+              setFilters((filters) => ({ ...filters, registration: value }))
             }
             aria-label='plane selection'
             size='small'
@@ -504,7 +504,7 @@ const Schedule = () => {
           >
             <ToggleButton
               value={[]}
-              selected={filters['registration[]']?.length == 0}
+              selected={filters['registration']?.length == 0}
             >
               {t('schedule.ALL')}
             </ToggleButton>

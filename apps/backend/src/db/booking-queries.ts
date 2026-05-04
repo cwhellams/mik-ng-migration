@@ -81,8 +81,8 @@ export const getBookings = async (filters: BookingFilters): Promise<Booking[]> =
     .orderBy('start_time_epoch', filters.orderLatestFirst ? 'desc' : 'asc')
     .limit(filters.limit ?? 1000)
 
-  if (filters['registration[]']) {
-    query = query.where('registration', 'in', toArray(filters['registration[]']))
+  if (filters['registration']) {
+    query = query.where('registration', 'in', toArray(filters['registration']))
   }
 
   if (filters['memberId']) {

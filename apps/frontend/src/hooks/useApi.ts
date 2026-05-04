@@ -13,6 +13,20 @@ const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 const api = axios.create({
   baseURL: `${API_BASE}/api/`,
   withCredentials: true,
+  // Serialize array params as repeated bare keys (e.g. registration=A&registration=B)
+  // rather than axios's default bracket notation (registration[]=A&registration[]=B),
+  // which Express's qs parser would keep as the literal key 'registration[]'.
+  paramsSerializer: (params: Record<string, unknown>) => {
+    const searchParams = new URLSearchParams()
+    for (const [key, value] of Object.entries(params)) {
+      if (Array.isArray(value)) {
+        value.forEach((v) => searchParams.append(key, String(v)))
+      } else if (value !== undefined && value !== null) {
+        searchParams.append(key, String(value))
+      }
+    }
+    return searchParams.toString()
+  },
 })
 
 // Tracks an in-flight token refresh so concurrent 401s only trigger one refresh.

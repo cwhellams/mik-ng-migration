@@ -61,7 +61,7 @@ describe('GET /bookings', () => {
       .query(<BookingFilters>{
         from: dayjs().startOf('day').add(1, 'day').toISOString(),
         to: dayjs().startOf('day').add(2, 'day').toISOString(),
-        'registration[]': ['OH-IHQ'],
+        registration: ['OH-IHQ'],
       })
 
     expect(response.status).toBe(200)

@@ -56,7 +56,7 @@ describe('Db Get Booking by id', () => {
 describe('Db Get Bookings', () => {
   it('get test data bookings from single plane', async () => {
     const result = await bookingQueries.getBookings({
-      'registration[]': ['OH-STL'],
+      registration: ['OH-STL'],
       from: dayjs().startOf('day').toISOString(),
       showCancelled: true,
     })
@@ -75,7 +75,7 @@ describe('Db Get Bookings', () => {
 
   it('getBookings with all filters', async () => {
     const all = await bookingQueries.getBookings({
-      'registration[]': ['OH-STL'],
+      registration: ['OH-STL'],
       from: dayjs().startOf('day').toISOString(),
     })
     const first = all[0]
@@ -83,7 +83,7 @@ describe('Db Get Bookings', () => {
     const result = await bookingQueries.getBookings({
       from: first.startTime,
       to: first.endTime,
-      'registration[]': first.registration,
+      registration: first.registration,
       memberId: first.memberId,
     })
     expect(result.length).toEqual(1)
