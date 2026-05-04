@@ -44,9 +44,14 @@ export function PendingReviewBanner() {
       description: t('registrationVerify.onboardingSteps.step5.description'),
     },
     {
-      icon: 'mdi:airplane-check',
+      icon: 'mdi:key',
       title: t('registrationVerify.onboardingSteps.step6.title'),
       description: t('registrationVerify.onboardingSteps.step6.description'),
+    },
+    {
+      icon: 'mdi:airplane-check',
+      title: t('registrationVerify.onboardingSteps.step7.title'),
+      description: t('registrationVerify.onboardingSteps.step7.description'),
     },
   ]
 

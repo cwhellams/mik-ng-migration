@@ -99,7 +99,13 @@
     "gdprAcceptance": "By submitting this application, I confirm that the information provided is true and accurate. I understand that Malmin Ilmailukerho (MIK) will process this sensitive information (including details on accident history and criminal disclosure) solely for the purpose of assessing my suitability for membership, ensuring the safety of club operations, and in accordance with MIK's membership policy and Finnish data protection laws. MIK reserves the right to verify this information.",
     "gdprRequired": "You must accept the data protection declaration to submit your application",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "selectMemberType": "Please select a membership type",
+    "selectMotivation": "Please select your primary motivation",
+    "selectAccidentHistory": "Please answer the accident history question",
+    "selectCriminalRecord": "Please answer the criminal record question",
+    "juniorAgeError": "Junior membership is only available for members under 18 years old",
+    "juniorRecommended": "Based on your date of birth, you may be eligible for junior membership"
   },
   "logout": {
     "title": "Successfully logged out",
@@ -934,8 +940,8 @@
     "nextStepsDescription": "Here's what happens next as you become a full member of our flying club:",
     "onboardingSteps": {
       "step1": {
-        "title": "Welcome email from club secretary",
-        "description": "You have received a welcome email from the club secretary. Please read the email carefully as it contains useful links and information regarding for example renting a plane or starting the journey as a student."
+        "title": "Secretary reviews your membership application",
+        "description": "The club secretary will review your membership application. You will be contacted if any additional information is needed."
       },
       "step2": {
         "title": "Payment of member and joining fees",
@@ -954,6 +960,10 @@
         "description": "Join a club Wednesday at Malmi to see other members of the club!"
       },
       "step6": {
+        "title": "Getting keys to the club",
+        "description": "Receive your club access keys and learn about club procedures."
+      },
+      "step7": {
         "title": "Check ride with instructor",
         "description": "Complete a check ride with one of our certified flight instructors."
       }

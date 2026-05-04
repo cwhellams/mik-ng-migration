@@ -32,6 +32,33 @@ import { useTranslation } from 'react-i18next'
 import LanguageSelector from '../../components/LanguageSelector'
 import { TurnstileWidget } from '../../components/TurnstileWidget'
 
+// Local form state type — allows undefined for radio-button fields so that
+// none are pre-selected; cast to RegisterRequest on submission after validation.
+type FormApplicationData = Omit<
+  ApplicationData,
+  | 'totalFlightHours'
+  | 'aircraftTypesFlown'
+  | 'licenceAndRatings'
+  | 'accidentHistory'
+  | 'criminalRecord'
+  | 'primaryMotivation'
+> & {
+  totalFlightHours?: number
+  aircraftTypesFlown?: string
+  licenceAndRatings?: string
+  accidentHistory?: boolean
+  criminalRecord?: boolean
+  primaryMotivation?: PrimaryMotivation
+}
+
+type RegisterFormState = Omit<
+  RegisterRequest,
+  'memberType' | 'applicationData'
+> & {
+  memberType?: MIKMemberTypes
+  applicationData: FormApplicationData
+}
+
 const Register = () => {
   const { t, i18n } = useTranslation()
 
@@ -40,7 +67,7 @@ const Register = () => {
     i18n.language as MIKLang
   )
 
-  const [member, setMember] = useState<RegisterRequest>({
+  const [member, setMember] = useState<RegisterFormState>({
     email: '',
     firstName: '',
     lastName: '',
@@ -50,28 +77,28 @@ const Register = () => {
     streetAddress: '',
     townCity: '',
 
-    memberType: MIKMemberTypes.FLYING,
+    memberType: undefined,
     dateOfBirth: undefined,
 
     lang: selectedLanguage,
 
     applicationData: {
-      totalFlightHours: 0,
-      aircraftTypesFlown: '',
-      licenceAndRatings: '',
-      primaryMotivation: PrimaryMotivation.FLY,
+      totalFlightHours: undefined,
+      aircraftTypesFlown: undefined,
+      licenceAndRatings: undefined,
+      primaryMotivation: undefined,
       motivationOther: '',
       coverLetter: '',
       voluntaryWork: '',
       otherAviationClubs: '',
-      accidentHistory: false,
+      accidentHistory: undefined,
       accidentHistoryDetails: '',
-      criminalRecord: false,
+      criminalRecord: undefined,
       criminalRecordDetails: '',
       gdprAccepted: false,
     },
   })
-  const [dateOfBirth, setDateOfBirth] = useState<Dayjs | null>(dayjs())
+  const [dateOfBirth, setDateOfBirth] = useState<Dayjs | null>(null)
 
   const [registerError, setRegisterError] = useState('')
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
@@ -94,6 +121,11 @@ const Register = () => {
     return email && regex.test(email)
   }
 
+  const getAge = (dob: Dayjs | null): number | null => {
+    if (!dob || !dob.isValid()) return null
+    return dayjs().diff(dob, 'year')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setRegisterError('')
@@ -103,13 +135,49 @@ const Register = () => {
       return
     }
 
+    if (!member.memberType) {
+      setRegisterError(t('register.selectMemberType'))
+      return
+    }
+
+    // Issue #770: validate age for junior membership
+    const age = getAge(dateOfBirth)
+    if (member.memberType === MIKMemberTypes.JUNIOR) {
+      if (!dateOfBirth || age === null) {
+        setRegisterError(
+          t('member.dateOfBirth') + ' ' + t('login.validEmailRequired')
+        )
+        return
+      }
+      if (age >= 18) {
+        setRegisterError(t('register.juniorAgeError'))
+        return
+      }
+    }
+
+    if (member.applicationData?.primaryMotivation === undefined) {
+      setRegisterError(t('register.selectMotivation'))
+      return
+    }
+
+    if (member.applicationData?.accidentHistory === undefined) {
+      setRegisterError(t('register.selectAccidentHistory'))
+      return
+    }
+
+    if (member.applicationData?.criminalRecord === undefined) {
+      setRegisterError(t('register.selectCriminalRecord'))
+      return
+    }
+
     if (!member.applicationData?.gdprAccepted) {
       setRegisterError(t('register.gdprRequired'))
       return
     }
 
     const { data, error } = await trigger({
-      ...member,
+      ...(member as RegisterRequest),
+      memberType: member.memberType,
       turnstileToken: turnstileToken ?? undefined,
     })
     if (!data?.code || error) {
@@ -122,9 +190,9 @@ const Register = () => {
     })
   }
 
-  const updateApplicationData = <K extends keyof ApplicationData>(
+  const updateApplicationData = <K extends keyof FormApplicationData>(
     field: K,
-    value: ApplicationData[K]
+    value: FormApplicationData[K]
   ) => {
     setMember((prev) => ({
       ...prev,
@@ -235,9 +303,8 @@ const Register = () => {
           <FormLabel id='member-type-label'>{t('member.memberType')}</FormLabel>
           <RadioGroup
             aria-labelledby='member-type-label'
-            defaultValue='FLYING'
             name='memberType'
-            value={member.memberType}
+            value={member.memberType ?? ''}
             onChange={({ target }) =>
               setMember({
                 ...member,
@@ -263,22 +330,45 @@ const Register = () => {
           </RadioGroup>
         </FormControl>
 
-        {member.memberType == 'JUNIOR' && (
-          <DateField
-            label={t('member.dateOfBirth')}
-            required
-            margin='normal'
-            defaultValue={dayjs()}
-            value={dateOfBirth}
-            onChange={(value) => {
-              setDateOfBirth(value)
-              setMember({
-                ...member,
-                dateOfBirth: value?.format('YYYY-MM-DD'),
-              })
-            }}
-          />
-        )}
+        <DateField
+          label={t('member.dateOfBirth')}
+          required={member.memberType === MIKMemberTypes.JUNIOR}
+          margin='normal'
+          value={dateOfBirth}
+          onChange={(value) => {
+            setDateOfBirth(value)
+            setMember({
+              ...member,
+              dateOfBirth: value?.format('YYYY-MM-DD'),
+            })
+          }}
+        />
+        {(() => {
+          const age = getAge(dateOfBirth)
+          if (
+            member.memberType === MIKMemberTypes.JUNIOR &&
+            age !== null &&
+            age >= 18
+          ) {
+            return (
+              <Alert severity='error' sx={{ mt: 1 }}>
+                {t('register.juniorAgeError')}
+              </Alert>
+            )
+          }
+          if (
+            member.memberType !== MIKMemberTypes.JUNIOR &&
+            age !== null &&
+            age < 18
+          ) {
+            return (
+              <Alert severity='info' sx={{ mt: 1 }}>
+                {t('register.juniorRecommended')}
+              </Alert>
+            )
+          }
+          return null
+        })()}
 
         <Typography variant='body2' color='text.secondary'>
           {t('register.prices')}
@@ -295,14 +385,15 @@ const Register = () => {
           label={t('register.totalFlightHours')}
           margin='normal'
           type='number'
-          value={member.applicationData?.totalFlightHours ?? 0}
+          value={member.applicationData?.totalFlightHours ?? ''}
           onChange={(e) =>
             updateApplicationData(
               'totalFlightHours',
-              Math.max(0, Number(e.target.value))
+              e.target.value === ''
+                ? undefined
+                : Math.max(0, Number(e.target.value))
             )
           }
-          required
           slotProps={{
             htmlInput: {
               min: 0,
@@ -316,9 +407,11 @@ const Register = () => {
           margin='normal'
           value={member.applicationData?.aircraftTypesFlown ?? ''}
           onChange={(e) =>
-            updateApplicationData('aircraftTypesFlown', e.target.value)
+            updateApplicationData(
+              'aircraftTypesFlown',
+              e.target.value || undefined
+            )
           }
-          required
         />
         <TextField
           fullWidth
@@ -326,9 +419,11 @@ const Register = () => {
           margin='normal'
           value={member.applicationData?.licenceAndRatings ?? ''}
           onChange={(e) =>
-            updateApplicationData('licenceAndRatings', e.target.value)
+            updateApplicationData(
+              'licenceAndRatings',
+              e.target.value || undefined
+            )
           }
-          required
         />
 
         {/* Motivation Section */}
@@ -437,7 +532,11 @@ const Register = () => {
           <RadioGroup
             aria-labelledby='accident-history-label'
             value={
-              member.applicationData?.accidentHistory === true ? 'yes' : 'no'
+              member.applicationData?.accidentHistory === undefined
+                ? ''
+                : member.applicationData.accidentHistory
+                  ? 'yes'
+                  : 'no'
             }
             onChange={({ target }) =>
               updateApplicationData('accidentHistory', target.value === 'yes')
@@ -478,7 +577,11 @@ const Register = () => {
           <RadioGroup
             aria-labelledby='criminal-record-label'
             value={
-              member.applicationData?.criminalRecord === true ? 'yes' : 'no'
+              member.applicationData?.criminalRecord === undefined
+                ? ''
+                : member.applicationData.criminalRecord
+                  ? 'yes'
+                  : 'no'
             }
             onChange={({ target }) =>
               updateApplicationData('criminalRecord', target.value === 'yes')

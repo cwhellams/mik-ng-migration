@@ -99,7 +99,13 @@
     "gdprAcceptance": "Genom att skicka in denna ansökan bekräftar jag att uppgifterna som lämnats är sanna och korrekta. Jag förstår att Malmin Ilmailukerho (MIK) kommer att behandla denna känsliga information (inklusive uppgifter om olyckshistorik och brottsredovisning) enbart i syfte att bedöma min lämplighet för medlemskap, säkerställa säkerheten i klubbens verksamhet och i enlighet med MIK:s medlemspolicy och finsk dataskyddslagstiftning. MIK förbehåller sig rätten att verifiera denna information.",
     "gdprRequired": "Du måste godkänna dataskyddsdeklarationen för att skicka in din ansökan",
     "yes": "Ja",
-    "no": "Nej"
+    "no": "Nej",
+    "selectMemberType": "Välj en medlemskapstyp",
+    "selectMotivation": "Välj din primära motivation",
+    "selectAccidentHistory": "Svara på frågan om olyckshistorik",
+    "selectCriminalRecord": "Svara på frågan om brottsregister",
+    "juniorAgeError": "Juniormedlemskap är endast tillgängligt för medlemmar under 18 år",
+    "juniorRecommended": "Baserat på ditt födelsedatum kan du vara berättigad till juniormedlemskap"
   },
   "logout": {
     "title": "Utloggad",
@@ -906,8 +912,8 @@
     "nextStepsDescription": "Här är vad som händer härnäst när du blir fullständig medlem i vår flygklubb:",
     "onboardingSteps": {
       "step1": {
-        "title": "Välkomstmeddelande från klubbsekreteraren",
-        "description": "Du har fått ett välkomstmeddelande från klubbens sekreterare. Läs meddelandet noggrant eftersom det innehåller användbara länkar och information om till exempel att hyra ett flygplan eller påbörja resan som elev."
+        "title": "Sekreteraren granskar din medlemsansökan",
+        "description": "Klubbsekreteraren granskar din ansökan om medlemskap. Du kontaktas om ytterligare information behövs."
       },
       "step2": {
         "title": "Betalning av medlems- och anmälningsavgifter",
@@ -926,6 +932,10 @@
         "description": "Delta i en klubb-onsdag i Malmi för att träffa andra medlemmar i klubben!"
       },
       "step6": {
+        "title": "Hämta nycklar till klubben",
+        "description": "Få dina klubbens åtkomstnycklar och lär dig om klubbens rutiner."
+      },
+      "step7": {
         "title": "Kontrollflygning med instruktör",
         "description": "Genomför en kontrollflygning med en av våra certifierade flyginstruktörer."
       }

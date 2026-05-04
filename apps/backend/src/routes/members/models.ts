@@ -180,9 +180,9 @@ export enum PrimaryMotivation {
 
 export const ApplicationDataSchema = z
   .object({
-    totalFlightHours: z.number().min(0),
-    aircraftTypesFlown: z.string().min(1),
-    licenceAndRatings: z.string().min(1),
+    totalFlightHours: z.number().min(0).optional(),
+    aircraftTypesFlown: z.string().optional(),
+    licenceAndRatings: z.string().optional(),
     primaryMotivation: z.nativeEnum(PrimaryMotivation),
     motivationOther: z.string().optional(),
     coverLetter: z.string().min(1),

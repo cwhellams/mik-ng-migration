@@ -98,7 +98,13 @@
     "gdprAcceptance": "Lähettämällä tämän hakemuksen vahvistan, että annetut tiedot ovat totuudenmukaisia ja tarkkoja. Ymmärrän, että Malmin Ilmailukerho (MIK) käsittelee näitä arkaluonteisia tietoja (mukaan lukien onnettomuushistoria ja rikostaustan ilmoitus) ainoastaan jäsenkelpoisuuden arviointia, kerhon toiminnan turvallisuuden varmistamista varten ja MIK:n jäsenpolitiikan sekä Suomen tietosuojalakien mukaisesti. MIK pidättää oikeuden tarkistaa nämä tiedot.",
     "gdprRequired": "Sinun on hyväksyttävä tietosuojaseloste lähettääksesi hakemuksen",
     "yes": "Kyllä",
-    "no": "Ei"
+    "no": "Ei",
+    "selectMemberType": "Valitse jäsenyystyyppi",
+    "selectMotivation": "Valitse ensisijainen motivaatiosi",
+    "selectAccidentHistory": "Vastaa onnettomuushistoriakysymykseen",
+    "selectCriminalRecord": "Vastaa rikosrekisterikysymykseen",
+    "juniorAgeError": "Nuorisojäsenyys on tarkoitettu alle 18-vuotiaille",
+    "juniorRecommended": "Syntymäaikasi perusteella voit olla oikeutettu nuorisojäsenyyteen"
   },
   "logout": {
     "title": "Kirjauduttu ulos",
@@ -905,8 +911,8 @@
     "nextStepsDescription": "Näin etenee täysjäseneksi liittymisesi lentokerhoomme:",
     "onboardingSteps": {
       "step1": {
-        "title": "Tervetuloviesti jäsensihteeriltä",
-        "description": "Olet saanut tervetuloa-sähköpostin kerhon jäsensihteeriltä. Lue viesti huolellisesti, sillä se sisältää hyödyllisiä linkkejä ja tietoa esimerkiksi koneen vuokraamisesta tai lento-oppilaaksi ryhtymisestä."
+        "title": "Jäsensihteeri käsittelee hakemuksesi",
+        "description": "Jäsensihteerimme perehtyy hakemukseesi. Sinuun otetaan yhteyttä, mikäli tarvitaan lisätietoja."
       },
       "step2": {
         "title": "Liittymis- ja jäsenmaksun maksaminen",
@@ -925,6 +931,10 @@
         "description": "Tule mukaan kerhon keskiviikkotapaamiseen Malmille tapaamaan muita jäseniä!"
       },
       "step6": {
+        "title": "Kerhon avainten saaminen",
+        "description": "Vastaanota kerhon kulkuavaimesi ja opi kerhon toimintatavoista."
+      },
+      "step7": {
         "title": "Kerhotarkastuslento opettajan kanssa",
         "description": "Suorita kerhotarkkari kerhomme opettajan kanssa."
       }
