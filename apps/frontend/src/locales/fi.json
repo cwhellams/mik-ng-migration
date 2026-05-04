@@ -104,7 +104,8 @@
     "selectAccidentHistory": "Vastaa onnettomuushistoriakysymykseen",
     "selectCriminalRecord": "Vastaa rikosrekisterikysymykseen",
     "juniorAgeError": "Nuorisojäsenyys on tarkoitettu alle 18-vuotiaille",
-    "juniorRecommended": "Syntymäaikasi perusteella voit olla oikeutettu nuorisojäsenyyteen"
+    "juniorRecommended": "Syntymäaikasi perusteella voit olla oikeutettu nuorisojäsenyyteen",
+    "dateOfBirthRequired": "Anna kelvollinen syntymäaika"
   },
   "logout": {
     "title": "Kirjauduttu ulos",

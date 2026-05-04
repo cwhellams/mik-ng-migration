@@ -144,9 +144,7 @@ const Register = () => {
     const age = getAge(dateOfBirth)
     if (member.memberType === MIKMemberTypes.JUNIOR) {
       if (!dateOfBirth || age === null) {
-        setRegisterError(
-          t('member.dateOfBirth') + ' ' + t('login.validEmailRequired')
-        )
+        setRegisterError(t('register.dateOfBirthRequired'))
         return
       }
       if (age >= 18) {
@@ -177,7 +175,6 @@ const Register = () => {
 
     const { data, error } = await trigger({
       ...(member as RegisterRequest),
-      memberType: member.memberType,
       turnstileToken: turnstileToken ?? undefined,
     })
     if (!data?.code || error) {

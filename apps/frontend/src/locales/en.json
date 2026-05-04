@@ -105,7 +105,8 @@
     "selectAccidentHistory": "Please answer the accident history question",
     "selectCriminalRecord": "Please answer the criminal record question",
     "juniorAgeError": "Junior membership is only available for members under 18 years old",
-    "juniorRecommended": "Based on your date of birth, you may be eligible for junior membership"
+    "juniorRecommended": "Based on your date of birth, you may be eligible for junior membership",
+    "dateOfBirthRequired": "Please enter a valid date of birth"
   },
   "logout": {
     "title": "Successfully logged out",
