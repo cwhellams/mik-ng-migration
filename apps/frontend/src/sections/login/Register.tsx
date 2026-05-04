@@ -50,6 +50,7 @@ type FormApplicationData = Omit<
   | 'accidentHistory'
   | 'criminalRecord'
   | 'primaryMotivation'
+  | 'gdprAccepted'
 > & {
   totalFlightHours?: number
   aircraftTypesFlown?: string
@@ -58,6 +59,7 @@ type FormApplicationData = Omit<
   accidentHistory?: boolean
   criminalRecord?: boolean
   primaryMotivation?: PrimaryMotivation
+  gdprAccepted: boolean
 }
 
 type RegisterFormState = Omit<
@@ -590,9 +592,7 @@ const Register = () => {
                       onChange={(e) => toggleRating(rating, e.target.checked)}
                     />
                   }
-                  label={t(
-                    `register.rating_${rating === AircraftRating.SEP_LAND ? 'SEP_LAND' : rating === AircraftRating.IR ? 'IR' : rating === AircraftRating.NF ? 'NF' : 'other'}`
-                  )}
+                  label={t(ratingTranslationKey[rating])}
                 />
               ))}
             </FormGroup>

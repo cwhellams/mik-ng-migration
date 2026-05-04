@@ -905,7 +905,7 @@ describe('POST /members', () => {
       voluntaryWork: 'Yes, I am happy to help.',
       accidentHistory: false,
       criminalRecord: false,
-      gdprAccepted: true,
+      gdprAccepted: true as const,
     }
 
     const emailWithAppData = `${new Date().getTime()}-appdata@testdata.com`
