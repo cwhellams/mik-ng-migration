@@ -2,11 +2,11 @@
 
 exports[`GET /flight-log Get flight log with Id should return a single row when data is present for the given Id 1`] = `
 {
-  "acTotalFlightTime": "4781:50",
+  "acTotalFlightTime": "4783:05",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
-  "ajlbRowNo": 2,
+  "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
@@ -72,35 +72,35 @@ exports[`GET /flight-log Get flight log with Id should return a single row when 
 
 exports[`GET /flight-log should allow query parameters to be optional 1`] = `
 {
-  "acTotalFlightTime": "4781:50",
+  "acTotalFlightTime": "4781:20",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
-  "blockTime": "02:15",
+  "blockTime": "01:45",
   "crew2LastName": "Nieminen",
   "departureAirport": "EFHK",
-  "flightId": "mikify",
-  "flightTime": "01:45",
+  "flightId": "fi_inst1",
+  "flightTime": "01:15",
   "flightType": "SCHOOL",
-  "fuelRemainingLitres": 20,
-  "fuelUpliftLitres": 50,
-  "incidentOrObservations": "Engine stopped briefly",
-  "instrumentFlyingMins": 45,
-  "landingTimeUtc": "2025-03-01T10:00:00.000Z",
-  "nightFlyingMins": 30,
+  "fuelRemainingLitres": 15,
+  "fuelUpliftLitres": 40,
+  "incidentOrObservations": null,
+  "instrumentFlyingMins": 0,
+  "landingTimeUtc": "2025-01-15T10:30:00.000Z",
+  "nightFlyingMins": 0,
   "numberOfLandings": 1,
   "numberOfNightLandings": 0,
-  "offBlockTimeUtc": "2025-03-01T08:00:00.000Z",
-  "oilUpliftLitres": 1.5,
-  "onBlockTimeUtc": "2025-03-01T10:15:00.000Z",
-  "personsOnBoard": 4,
-  "picLastName": "Korhonen",
+  "offBlockTimeUtc": "2025-01-15T09:00:00.000Z",
+  "oilUpliftLitres": 1,
+  "onBlockTimeUtc": "2025-01-15T10:45:00.000Z",
+  "personsOnBoard": 2,
+  "picLastName": "Virtanen",
   "status": "NEW",
-  "takeoffTimeUtc": "2025-03-01T08:15:00.000Z",
-  "totalTimeInService": 2,
+  "takeoffTimeUtc": "2025-01-15T09:15:00.000Z",
+  "totalTimeInService": null,
 }
 `;
 
@@ -140,10 +140,10 @@ exports[`GET /flight-log should only return data for the logged in user when not
 
 exports[`GET /flight-log should return 200 for Start Date with time offset 1`] = `
 {
-  "acTotalFlightTime": "4781:50",
+  "acTotalFlightTime": "4783:05",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
-  "ajlbRowNo": 2,
+  "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
@@ -174,35 +174,35 @@ exports[`GET /flight-log should return 200 for Start Date with time offset 1`] =
 
 exports[`GET /flight-log should return 200 with valid query params 1`] = `
 {
-  "acTotalFlightTime": "4781:50",
+  "acTotalFlightTime": "4781:20",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
-  "blockTime": "02:15",
+  "blockTime": "01:45",
   "crew2LastName": "Nieminen",
   "departureAirport": "EFHK",
-  "flightId": "mikify",
-  "flightTime": "01:45",
+  "flightId": "fi_inst1",
+  "flightTime": "01:15",
   "flightType": "SCHOOL",
-  "fuelRemainingLitres": 20,
-  "fuelUpliftLitres": 50,
-  "incidentOrObservations": "Engine stopped briefly",
-  "instrumentFlyingMins": 45,
-  "landingTimeUtc": "2025-03-01T10:00:00.000Z",
-  "nightFlyingMins": 30,
+  "fuelRemainingLitres": 15,
+  "fuelUpliftLitres": 40,
+  "incidentOrObservations": null,
+  "instrumentFlyingMins": 0,
+  "landingTimeUtc": "2025-01-15T10:30:00.000Z",
+  "nightFlyingMins": 0,
   "numberOfLandings": 1,
   "numberOfNightLandings": 0,
-  "offBlockTimeUtc": "2025-03-01T08:00:00.000Z",
-  "oilUpliftLitres": 1.5,
-  "onBlockTimeUtc": "2025-03-01T10:15:00.000Z",
-  "personsOnBoard": 4,
-  "picLastName": "Korhonen",
+  "offBlockTimeUtc": "2025-01-15T09:00:00.000Z",
+  "oilUpliftLitres": 1,
+  "onBlockTimeUtc": "2025-01-15T10:45:00.000Z",
+  "personsOnBoard": 2,
+  "picLastName": "Virtanen",
   "status": "NEW",
-  "takeoffTimeUtc": "2025-03-01T08:15:00.000Z",
-  "totalTimeInService": 2,
+  "takeoffTimeUtc": "2025-01-15T09:15:00.000Z",
+  "totalTimeInService": null,
 }
 `;
 
@@ -376,11 +376,11 @@ exports[`GET /flight-log/flightid should return flight for admin with sudo right
 
 exports[`GET /flight-log/flightid should return flights for the logged in user when not admin 1`] = `
 {
-  "acTotalFlightTime": "4781:50",
+  "acTotalFlightTime": "4783:05",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
-  "ajlbRowNo": 2,
+  "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
@@ -455,8 +455,8 @@ exports[`GET /flight-log/totals should return 200 with all ac totals 1`] = `
 
 exports[`GET /flight-log/totals should return 200 with valid registration 1`] = `
 {
-  "acTotalFlightMins": 287000,
-  "acTotalFlightTime": "4783:20",
+  "acTotalFlightMins": 287235,
+  "acTotalFlightTime": "4787:15",
   "aircraftRegistration": "OH-STL",
   "ajlbSeqNo": 2,
 }
@@ -464,11 +464,11 @@ exports[`GET /flight-log/totals should return 200 with valid registration 1`] = 
 
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 1`] = `
 {
-  "acTotalFlightTime": "4783:20",
+  "acTotalFlightTime": "4784:35",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
-  "ajlbRowNo": 3,
+  "ajlbRowNo": 4,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
@@ -534,11 +534,11 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
 
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 2`] = `
 {
-  "acTotalFlightTime": "4783:20",
+  "acTotalFlightTime": "4784:35",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
-  "ajlbRowNo": 3,
+  "ajlbRowNo": 4,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
@@ -604,11 +604,11 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
 
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 3`] = `
 {
-  "acTotalFlightTime": "4783:20",
+  "acTotalFlightTime": "4784:35",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
-  "ajlbRowNo": 3,
+  "ajlbRowNo": 4,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Antti1",
@@ -674,11 +674,11 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
 
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 4`] = `
 {
-  "acTotalFlightTime": "4783:20",
+  "acTotalFlightTime": "4784:35",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
-  "ajlbRowNo": 3,
+  "ajlbRowNo": 4,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",

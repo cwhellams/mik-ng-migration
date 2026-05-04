@@ -72,11 +72,11 @@ exports[`Db Get FlightLog tests getFlightLog return existing flight 1`] = `
 
 exports[`Db insert tests insertFlightLog inserts a new flight log to the db, querying using returned flight id returns the row, row can be deleted using flight id 1`] = `
 {
-  "acTotalFlightTime": "4784:20",
+  "acTotalFlightTime": "4785:35",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
-  "ajlbRowNo": 4,
+  "ajlbRowNo": 5,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFVA",
   "billableMemberId": "Matti1",
@@ -155,8 +155,8 @@ exports[`Db query FlightLog tests getFlightLogTotals returns totals for all ac 1
     "ajlbSeqNo": 4,
   },
   {
-    "acTotalFlightMins": 287000,
-    "acTotalFlightTime": "4783:20",
+    "acTotalFlightMins": 287235,
+    "acTotalFlightTime": "4787:15",
     "aircraftRegistration": "OH-STL",
     "ajlbSeqNo": 2,
   },
@@ -166,8 +166,8 @@ exports[`Db query FlightLog tests getFlightLogTotals returns totals for all ac 1
 exports[`Db query FlightLog tests getFlightLogTotals returns totals for single ac 1`] = `
 [
   {
-    "acTotalFlightMins": 287000,
-    "acTotalFlightTime": "4783:20",
+    "acTotalFlightMins": 287235,
+    "acTotalFlightTime": "4787:15",
     "aircraftRegistration": "OH-STL",
     "ajlbSeqNo": 2,
   },
@@ -320,10 +320,10 @@ exports[`Db query FlightLog tests getFlightLogs for start date should match snap
 
 exports[`Db query FlightLog tests getFlightLogs with Captain and copilot should return filtered logs 1`] = `
 {
-  "acTotalFlightTime": "4781:50",
+  "acTotalFlightTime": "4783:05",
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
-  "ajlbRowNo": 2,
+  "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",

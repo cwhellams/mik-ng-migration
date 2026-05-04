@@ -96,10 +96,10 @@ exports[`GET /ajlb should get all ajlbs for an admin user 1`] = `
     "updatedBy": "k1mnimda",
     "view": {
       "lastPage": 10,
-      "newFlightsCount": 3,
+      "newFlightsCount": 6,
       "newFlightsPage": 10,
-      "newFlightsTime": "5:00",
-      "unverifiedTotalFlightTime": "4783:20",
+      "newFlightsTime": "8:55",
+      "unverifiedTotalFlightTime": "4787:15",
       "validatedBeforeUTC": null,
       "validatedFlightsCount": 0,
       "validatedFlightsTime": "00:00",
