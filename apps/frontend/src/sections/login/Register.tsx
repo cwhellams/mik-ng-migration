@@ -223,6 +223,13 @@ const Register = () => {
     }))
   }
 
+  const ratingTranslationKey: Record<AircraftRating, string> = {
+    [AircraftRating.SEP_LAND]: 'register.rating_SEP_LAND',
+    [AircraftRating.IR]: 'register.rating_IR',
+    [AircraftRating.NF]: 'register.rating_NF',
+    [AircraftRating.OTHER]: 'register.rating_other',
+  }
+
   const toggleRating = (rating: AircraftRating, checked: boolean) => {
     const current = member.applicationData?.ratings ?? []
     const updated = checked
