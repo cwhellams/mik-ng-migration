@@ -5,7 +5,7 @@
 --   Matti1 and Anna1 are students (STU).
 --
 --   Flight fi_inst1: 2025-01-15, Matti1 (STU/PIC) + Jukka1 (FI/crew2), block 105 min, air 75 min
---   Flight fi_inst2: 2025-03-20, Anna1  (STU/PIC) + Jukka1 (FI/crew2), block 120 min, air 90 min (wait, 105 min)
+--   Flight fi_inst2: 2025-03-20, Anna1  (STU/PIC) + Jukka1 (FI/crew2), block 120 min, air 90 min
 --   Flight fi_inst3: 2025-06-10, Jukka1 (FI/PIC)  + Liisa1 (STU/crew2), block 90 min,  air 70 min
 --
 -- Epoch reference (UTC):
