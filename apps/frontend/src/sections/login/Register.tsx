@@ -679,6 +679,7 @@ const Register = () => {
             required
             multiline
             minRows={3}
+            inputProps={{ maxLength: 2000 }}
           />
 
           <TextField
@@ -692,6 +693,7 @@ const Register = () => {
             required
             multiline
             minRows={2}
+            inputProps={{ maxLength: 1000 }}
           />
 
           <TextField
@@ -704,6 +706,7 @@ const Register = () => {
             }
             multiline
             minRows={2}
+            inputProps={{ maxLength: 500 }}
           />
 
           {/* Declarations Section */}
@@ -757,6 +760,7 @@ const Register = () => {
               required
               multiline
               minRows={2}
+              inputProps={{ maxLength: 1000 }}
             />
           )}
 
@@ -805,6 +809,7 @@ const Register = () => {
               required
               multiline
               minRows={2}
+              inputProps={{ maxLength: 1000 }}
             />
           )}
 

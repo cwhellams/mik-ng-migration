@@ -959,6 +959,92 @@ describe('POST /members', () => {
     )
     expect(response.status).toBe(400)
   })
+
+  it('Create member with criminalRecord=true requires criminalRecordDetails', async () => {
+    const emailForTest = `${new Date().getTime()}-criminal@testdata.com`
+    const response = await post(
+      {
+        ...req,
+        email: emailForTest,
+        applicationData: {
+          primaryMotivation: PrimaryMotivation.FLY,
+          coverLetter: 'test',
+          voluntaryWork: 'yes',
+          accidentHistory: false,
+          criminalRecord: true,
+          // missing criminalRecordDetails
+          gdprAccepted: true as const,
+        },
+      },
+      adminToken,
+    )
+    expect(response.status).toBe(400)
+  })
+
+  it('Create member with pilotLicenceType=OTHER requires pilotLicenceTypeOther', async () => {
+    const emailForTest = `${new Date().getTime()}-licence@testdata.com`
+    const response = await post(
+      {
+        ...req,
+        email: emailForTest,
+        applicationData: {
+          pilotLicenceType: PilotLicenceType.OTHER,
+          // missing pilotLicenceTypeOther
+          primaryMotivation: PrimaryMotivation.FLY,
+          coverLetter: 'test',
+          voluntaryWork: 'yes',
+          accidentHistory: false,
+          criminalRecord: false,
+          gdprAccepted: true as const,
+        },
+      },
+      adminToken,
+    )
+    expect(response.status).toBe(400)
+  })
+
+  it('Create member with ratings including OTHER requires ratingsOther', async () => {
+    const emailForTest = `${new Date().getTime()}-ratings@testdata.com`
+    const response = await post(
+      {
+        ...req,
+        email: emailForTest,
+        applicationData: {
+          ratings: [AircraftRating.OTHER],
+          // missing ratingsOther
+          primaryMotivation: PrimaryMotivation.FLY,
+          coverLetter: 'test',
+          voluntaryWork: 'yes',
+          accidentHistory: false,
+          criminalRecord: false,
+          gdprAccepted: true as const,
+        },
+      },
+      adminToken,
+    )
+    expect(response.status).toBe(400)
+  })
+
+  it('Create member with primaryMotivation=OTHER requires motivationOther', async () => {
+    const emailForTest = `${new Date().getTime()}-motivation@testdata.com`
+    const response = await post(
+      {
+        ...req,
+        email: emailForTest,
+        applicationData: {
+          primaryMotivation: PrimaryMotivation.OTHER,
+          // missing motivationOther
+          coverLetter: 'test',
+          voluntaryWork: 'yes',
+          accidentHistory: false,
+          criminalRecord: false,
+          gdprAccepted: true as const,
+        },
+      },
+      adminToken,
+    )
+    expect(response.status).toBe(400)
+  })
 })
 
 describe('Membership approval tests', () => {

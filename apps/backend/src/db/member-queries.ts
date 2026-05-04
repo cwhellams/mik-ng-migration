@@ -8,7 +8,7 @@ import type { JWTUser } from '../routes/auth/token.ts'
 import {
   MIKLang,
   MIKMemberTypes,
-  type ApplicationData,
+  ApplicationDataSchema,
   MIKPermissions,
   type InvoiceMember,
   type Member,
@@ -103,7 +103,11 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
 
     lang: member.lang_iso639 as MIKLang,
     mailingLists: (member.mailing_lists as string[] | null) ?? undefined,
-    applicationData: (member.application_data as ApplicationData | null) ?? undefined,
+    applicationData: (() => {
+      if (!member.application_data) return undefined
+      const result = ApplicationDataSchema.safeParse(member.application_data)
+      return result.success ? result.data : undefined
+    })(),
     roles: roles,
   }
 }

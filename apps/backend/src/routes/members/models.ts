@@ -195,21 +195,21 @@ export enum AircraftRating {
 
 export const ApplicationDataSchema = z
   .object({
-    totalFlightHours: z.number().min(0).optional(),
-    aircraftTypesFlown: z.string().optional(),
+    totalFlightHours: z.number().min(0).max(99999).optional(),
+    aircraftTypesFlown: z.string().max(500).optional(),
     pilotLicenceType: z.nativeEnum(PilotLicenceType).optional(),
-    pilotLicenceTypeOther: z.string().optional(),
+    pilotLicenceTypeOther: z.string().max(200).optional(),
     ratings: z.array(z.nativeEnum(AircraftRating)).optional(),
-    ratingsOther: z.string().optional(),
+    ratingsOther: z.string().max(200).optional(),
     primaryMotivation: z.nativeEnum(PrimaryMotivation),
-    motivationOther: z.string().optional(),
-    coverLetter: z.string().min(1),
-    voluntaryWork: z.string().min(1),
-    otherAviationClubs: z.string().optional(),
+    motivationOther: z.string().max(500).optional(),
+    coverLetter: z.string().min(1).max(2000),
+    voluntaryWork: z.string().min(1).max(1000),
+    otherAviationClubs: z.string().max(500).optional(),
     accidentHistory: z.boolean(),
-    accidentHistoryDetails: z.string().optional(),
+    accidentHistoryDetails: z.string().max(1000).optional(),
     criminalRecord: z.boolean(),
-    criminalRecordDetails: z.string().optional(),
+    criminalRecordDetails: z.string().max(1000).optional(),
     gdprAccepted: z.literal(true, { errorMap: () => ({ message: 'GDPR acceptance is required' }) }),
   })
   .superRefine((data, ctx) => {
