@@ -3,12 +3,13 @@ import {
   FlightLogStatus,
   FlightLogValidationRequest,
 } from '@backend/routes/flight-log/models'
-import { Box, Button, Stack } from '@mui/material'
+import { Box, Button, Stack, CircularProgress } from '@mui/material'
 import { t } from 'i18next'
 import { Link } from 'react-router-dom'
 import { FormField } from '../../../components/FormField'
 import theme from '../../../theme/theme'
 import { Icon } from '@iconify/react'
+import { useInvoicePdfDownload } from '../../../hooks/useInvoicePdfDownload'
 
 export const StatusDisplay = ({
   log,
@@ -19,6 +20,12 @@ export const StatusDisplay = ({
   showButton: boolean
   update: (payload: FlightLogValidationRequest) => void
 }) => {
+  const { canDownloadInvoice, handleDownloadPDF, loading } =
+    useInvoicePdfDownload({
+      invoiceNumber: log.invoiceNumber,
+      billableMemberId: log.billableMemberId,
+    })
+
   return (
     <>
       <FormField label={t('flightLog.status.title')} sx={{ mb: 2 }}>
@@ -28,7 +35,8 @@ export const StatusDisplay = ({
               <Icon
                 icon='mdi:schedule'
                 color='orange'
-                width={20}
+                width={28}
+                height={28}
                 style={{ marginRight: theme.spacing(1) }}
               />
               {t('flightLog.status.new')}
@@ -53,7 +61,8 @@ export const StatusDisplay = ({
               <Icon
                 icon='mdi:check'
                 color='green'
-                width={20}
+                width={28}
+                height={28}
                 style={{ marginRight: theme.spacing(1) }}
               />
               {t('flightLog.status.validated')}
@@ -73,35 +82,67 @@ export const StatusDisplay = ({
         )}
 
         {log.status === FlightLogStatus.INVOICED && (
-          <Box component='span' display='flex' alignItems='center'>
-            <Icon
-              icon='mdi:invoice-send-outline'
-              color='orange'
-              width={20}
-              style={{ marginRight: theme.spacing(1) }}
-            />
-            {t('flightLog.status.invoiced')}
-          </Box>
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={loading || !canDownloadInvoice()}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: canDownloadInvoice() ? 'pointer' : 'default',
+              '&:hover': canDownloadInvoice() ? { opacity: 0.7 } : {},
+            }}
+          >
+            {loading ? (
+              <CircularProgress size={28} />
+            ) : (
+              <>
+                <Icon
+                  icon='mdi:invoice-send-outline'
+                  color='orange'
+                  width={28}
+                  height={28}
+                  style={{ marginRight: theme.spacing(1) }}
+                />
+                {t('flightLog.status.invoiced')}
+              </>
+            )}
+          </Button>
         )}
 
         {log.status === FlightLogStatus.PAID && (
-          <Box component='span' display='flex' alignItems='center'>
-            <Icon
-              icon='mdi:invoice-check'
-              color='green'
-              width={20}
-              style={{ marginRight: theme.spacing(1) }}
-            />
-            {t('flightLog.status.paid')}
-          </Box>
+          <Button
+            onClick={handleDownloadPDF}
+            disabled={loading || !canDownloadInvoice()}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: canDownloadInvoice() ? 'pointer' : 'default',
+              '&:hover': canDownloadInvoice() ? { opacity: 0.7 } : {},
+            }}
+          >
+            {loading ? (
+              <CircularProgress size={28} />
+            ) : (
+              <>
+                <Icon
+                  icon='mdi:invoice-check'
+                  color='green'
+                  width={28}
+                  height={28}
+                  style={{ marginRight: theme.spacing(1) }}
+                />
+                {t('flightLog.status.paid')}
+              </>
+            )}
+          </Button>
         )}
       </FormField>
-
-      {log.status === FlightLogStatus.PAID && (
-        <FormField label={t('billing.columns.invoiceId')} sx={{ mb: 2 }}>
-          <Link to={`/club/billing`}>{log.invoiceNumber}</Link>
-        </FormField>
-      )}
 
       <FormField label={t('flightLog.logbooks.ajlb')}>
         <Link

@@ -103,7 +103,7 @@ router.get('/', async (req: Request<BookingFilters>, res: Response<BookingListRe
   const previous = filters.from
     ? await getBookings({
         ...filters,
-        'registration[]': filters['registration[]'],
+        registration: filters.registration,
         from: undefined,
         to: filters.from,
         orderLatestFirst: true,
@@ -114,7 +114,7 @@ router.get('/', async (req: Request<BookingFilters>, res: Response<BookingListRe
   const next = filters.to
     ? await getBookings({
         ...filters,
-        'registration[]': filters['registration[]'],
+        registration: filters.registration,
         from: filters.to,
         to: undefined,
         limit: 1,
@@ -183,7 +183,7 @@ const clearOverlappingBookings = async (
   jwt: JWTUser,
 ) => {
   const overlaps = await getBookings({
-    'registration[]': booking.registration,
+    registration: booking.registration,
     from: dayjs.unix(Number(booking.startTimeEpoch)).toISOString(),
     to: dayjs.unix(Number(booking.endTimeEpoch)).toISOString(),
     excludeBookingId: booking.bookingId,

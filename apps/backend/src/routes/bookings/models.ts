@@ -71,7 +71,7 @@ export const BookingFiltersSchema = z
   .object({
     bookingId: z.string().optional(),
     memberId: z.string().optional(),
-    'registration[]': z.union([z.string(), z.array(z.string())]).optional(),
+    registration: z.union([z.string(), z.array(z.string())]).optional(),
     from: z.string().datetime().optional(),
     to: z.string().datetime().optional(),
     showCancelled: BooleanSchema.optional(),

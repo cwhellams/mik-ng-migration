@@ -17,6 +17,7 @@ import RegistrationVerify from './sections/login/RegistrationVerify'
 import LogoutSuccess from './sections/login/LogoutSuccess'
 import NotFound from './sections/error/NotFound'
 import Member from './sections/members/Member'
+import EmailChangeVerify from './sections/members/EmailChangeVerify'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/LocalizationProvider'
 import Roles from './sections/members/Roles'
@@ -135,6 +136,10 @@ function App() {
                 <Route path='documents' element={<Documents />} />
                 <Route path='stats' element={<Stats />} />
               </Route>
+              <Route
+                path='/profile/email-change/verify'
+                element={<EmailChangeVerify />}
+              />
               <Route path='/accounting'>
                 <Route index element={<InvoicingAdminDashboard />} />
                 <Route path='invoicing' element={<FlightInvoicing />} />

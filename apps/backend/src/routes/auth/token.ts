@@ -1,7 +1,9 @@
 import jwt, { type SignOptions } from 'jsonwebtoken'
-import type ms from 'ms'
+import ms from 'ms'
 import { z } from 'zod'
 import { randomUUID } from 'node:crypto'
+import type { Response } from 'express'
+import dayjs from 'dayjs'
 
 import { MIKPermissions, type Member } from '../members/models.ts'
 import { problem } from '../response.ts'
@@ -63,3 +65,27 @@ export const decodeRefreshToken = (refreshToken: string): JWTUser =>
     issuer: MIK_ISS,
     audience: REFRESH_AUD,
   }) as JWTUser
+
+/**
+ * Set httpOnly access + refresh cookies on the response and return a minimal
+ * success body. Used by all login flows (magic-link, verify-code, passkey,
+ * registration, token-refresh) so cookie flags/paths stay consistent.
+ */
+export const respondWithAccessAndRefreshToken = (user: JWTUser, res: Response): void => {
+  res.cookie('refreshToken', generateRefreshToken(user), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    expires: dayjs()
+      .add(ms(process.env.REFRESH_TOKEN_EXPIRATION as ms.StringValue), 'milliseconds')
+      .toDate(),
+    path: '/api/auth/refresh',
+  })
+  res.cookie('accessToken', generateAccessToken(user), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/',
+  })
+  res.json({ ok: true })
+}

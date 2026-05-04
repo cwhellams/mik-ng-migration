@@ -13,6 +13,20 @@ const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 const api = axios.create({
   baseURL: `${API_BASE}/api/`,
   withCredentials: true,
+  // Serialize array params as repeated bare keys (e.g. registration=A&registration=B)
+  // rather than axios's default bracket notation (registration[]=A&registration[]=B),
+  // which Express's qs parser would keep as the literal key 'registration[]'.
+  paramsSerializer: (params: Record<string, unknown>) => {
+    const searchParams = new URLSearchParams()
+    for (const [key, value] of Object.entries(params)) {
+      if (Array.isArray(value)) {
+        value.forEach((v) => searchParams.append(key, String(v)))
+      } else if (value !== undefined && value !== null) {
+        searchParams.append(key, String(value))
+      }
+    }
+    return searchParams.toString()
+  },
 })
 
 // Tracks an in-flight token refresh so concurrent 401s only trigger one refresh.
@@ -90,6 +104,16 @@ export type APIMutation<Data> = {
 }
 
 export type MutateMethods = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+
+/**
+ * Axios request config extended with MIK-specific interceptor flags.
+ * Use `allowUnauthenticated: true` for pre-login requests (e.g. passkey auth)
+ * to suppress the automatic token-refresh attempt on 401 responses.
+ */
+export type ExtendedAxiosConfig = AxiosRequestConfig & {
+  allowUnauthenticated?: boolean
+  skipRedirectOnUnauthorized?: boolean
+}
 
 export { api as sharedApi }
 

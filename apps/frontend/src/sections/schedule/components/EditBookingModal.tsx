@@ -139,7 +139,7 @@ export const BookingEditor = ({
     url: 'v1/bookings',
     skipFetch: !booking || !datesAreValid || isReadonly,
     params: {
-      'registration[]': [formData.registration],
+      registration: [formData.registration],
       exclusiveStartEnd: true,
       from: startDate?.date.isValid()
         ? startDate.date.toISOString()
@@ -378,7 +378,17 @@ export const BookingEditor = ({
               disabled={isReadonly}
               value={formData.type ?? ''}
               label={t('schedule.type')}
-              onChange={({ target }) => handleChange('type', target.value)}
+              onChange={({ target }) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  type: target.value as BookingType,
+                  // clear instructor when leaving training so we don't persist
+                  // a stale instructor on non-training bookings
+                  ...(target.value !== BookingType.TRAINING
+                    ? { instructorMemberId: null }
+                    : {}),
+                }))
+              }
             >
               <MenuItem value={BookingType.PRACTICE}>
                 {t(`schedule.types.${BookingType.PRACTICE}`)}
@@ -395,32 +405,34 @@ export const BookingEditor = ({
             </Select>
           </FormControl>
 
-          <Autocomplete
-            fullWidth
-            disabled={isReadonly}
-            options={instructors}
-            getOptionLabel={(option) => `${option.first} ${option.last}`}
-            isOptionEqualToValue={(option, value) =>
-              option.memberId === value.memberId
-            }
-            value={selectedInstructor}
-            onChange={(_event, newValue) => {
-              handleChange('instructorMemberId', newValue?.memberId ?? null)
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label={t('schedule.instructor')}
-                required={isTraining}
-                error={isTrainingWithoutInstructor}
-                helperText={
-                  isTrainingWithoutInstructor
-                    ? t('schedule.validation.instructorRequired')
-                    : undefined
-                }
-              />
-            )}
-          />
+          {isTraining && (
+            <Autocomplete
+              fullWidth
+              disabled={isReadonly}
+              options={instructors}
+              getOptionLabel={(option) => `${option.first} ${option.last}`}
+              isOptionEqualToValue={(option, value) =>
+                option.memberId === value.memberId
+              }
+              value={selectedInstructor}
+              onChange={(_event, newValue) => {
+                handleChange('instructorMemberId', newValue?.memberId ?? null)
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={t('schedule.instructor')}
+                  required={isTraining}
+                  error={isTrainingWithoutInstructor}
+                  helperText={
+                    isTrainingWithoutInstructor
+                      ? t('schedule.validation.instructorRequired')
+                      : undefined
+                  }
+                />
+              )}
+            />
+          )}
 
           <TextField
             fullWidth

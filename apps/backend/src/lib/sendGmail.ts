@@ -47,11 +47,11 @@ export const sendEmail = (
   subject: string,
   html: string,
   attachments?: EmailAttachment[],
-): void => {
+): Promise<void> => {
   // Validate email address to prevent injection attacks
   if (!validator.isEmail(to)) {
     logger.error(`Invalid email address: ${to}`)
-    throw new Error('Invalid email address')
+    return Promise.reject(new Error('Invalid email address'))
   }
 
   // Sanitize subject to prevent header injection
@@ -69,13 +69,15 @@ export const sendEmail = (
     : false
   if (disableEmailSending) {
     logger.info(`Email sending is disabled. Email not sent to ${to}`)
-    return
+    return Promise.resolve()
   }
 
   const smtpLogin = process.env.SMTP_LOGIN
   const smtpPwd = process.env.SMTP_PASSWORD
   if (!smtpLogin || !smtpPwd) {
-    throw new Error('SMTP_LOGIN or SMTP_PASSWORD is not defined in environment variables')
+    return Promise.reject(
+      new Error('SMTP_LOGIN or SMTP_PASSWORD is not defined in environment variables'),
+    )
   }
 
   const transporter = getTransporter(smtpLogin, smtpPwd)
@@ -89,13 +91,16 @@ export const sendEmail = (
     attachments, // Add attachments if provided
   }
 
-  // Send email
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      logger.error(`Error occurred sending email to : ${to} with error ${error.message}`)
-      throw error
-    } else {
-      logger.info(`Email sent: to ${to} with response ${info.response}`)
-    }
+  // Send email - wrap callback in a Promise so callers can await delivery success/failure
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        logger.error(`Error occurred sending email to : ${to} with error ${error.message}`)
+        reject(error)
+      } else {
+        logger.info(`Email sent: to ${to} with response ${info.response}`)
+        resolve()
+      }
+    })
   })
 }

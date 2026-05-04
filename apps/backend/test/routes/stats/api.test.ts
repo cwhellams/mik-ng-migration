@@ -23,6 +23,7 @@ const mockGetTotalFlightTimeByPilotYr = jest.fn<() => Promise<any>>()
 const mockGetTotalFlightTimeByPilotYrMth = jest.fn<() => Promise<any>>()
 const mockGetTotalFlightTimeByAcDt = jest.fn<() => Promise<any>>()
 const mockGetCommercialFlightTimeByAcYrMth = jest.fn<() => Promise<any>>()
+const mockGetPilotStatistics = jest.fn<() => Promise<any>>()
 
 jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getTotalFlightTimeByAc: mockGetTotalFlightTimeByAc,
@@ -45,6 +46,7 @@ jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getTotalFlightTimeByPilotYrMth: mockGetTotalFlightTimeByPilotYrMth,
   getTotalFlightTimeByAcDt: mockGetTotalFlightTimeByAcDt,
   getCommercialFlightTimeByAcYrMth: mockGetCommercialFlightTimeByAcYrMth,
+  getPilotStatistics: mockGetPilotStatistics,
 }))
 
 jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
@@ -53,9 +55,11 @@ jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
 }))
 
 const { router } = await import('../../../src/routes/stats/api.ts')
+const { router: timeRouter } = await import('../../../src/routes/time/api.ts')
 
 const app = express()
 app.use('/api/stats', router)
+app.use('/api/time', timeRouter)
 
 describe('Stats API', () => {
   beforeEach(() => {
@@ -591,6 +595,69 @@ describe('Stats API', () => {
 
         expect(response.status).toBe(200)
         expect(response.body).toEqual(mockData)
+      })
+    })
+  })
+
+  describe('Pilot Statistics Endpoint', () => {
+    describe('GET /api/stats/pilots', () => {
+      const mockPilotStats = {
+        uniquePicCount: 3,
+        hoursHistogram: [
+          { binFrom: 0, binTo: 10, pilotCount: 1 },
+          { binFrom: 10, binTo: 20, pilotCount: 2 },
+        ],
+        airportsHistogram: [
+          { binFrom: 0, binTo: 5, pilotCount: 2 },
+          { binFrom: 5, binTo: 10, pilotCount: 1 },
+        ],
+      }
+
+      it('should return pilot statistics with explicit date range', async () => {
+        mockGetPilotStatistics.mockResolvedValue(mockPilotStats)
+
+        const response = await request(app)
+          .get('/api/stats/pilots')
+          .query({ from: '2024-01-01', to: '2024-12-31' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual(mockPilotStats)
+        expect(mockGetPilotStatistics).toHaveBeenCalledWith({
+          from: '2024-01-01',
+          to: '2024-12-31',
+        })
+      })
+
+      it('should default to current calendar year when no dates provided', async () => {
+        mockGetPilotStatistics.mockResolvedValue(mockPilotStats)
+
+        const timeResponse = await request(app).get('/api/time')
+        const serverYear = new Date(
+          (timeResponse.body as { utcIso: string }).utcIso,
+        ).getUTCFullYear()
+
+        const response = await request(app).get('/api/stats/pilots')
+
+        expect(response.status).toBe(200)
+        expect(mockGetPilotStatistics).toHaveBeenCalledWith({
+          from: `${serverYear}-01-01`,
+          to: `${serverYear}-12-31`,
+        })
+      })
+
+      it('should return uniquePicCount, hoursHistogram, and airportsHistogram', async () => {
+        mockGetPilotStatistics.mockResolvedValue(mockPilotStats)
+
+        const response = await request(app)
+          .get('/api/stats/pilots')
+          .query({ from: '2024-01-01', to: '2024-12-31' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toHaveProperty('uniquePicCount')
+        expect(response.body).toHaveProperty('hoursHistogram')
+        expect(response.body).toHaveProperty('airportsHistogram')
+        expect(Array.isArray(response.body.hoursHistogram)).toBe(true)
+        expect(Array.isArray(response.body.airportsHistogram)).toBe(true)
       })
     })
   })
