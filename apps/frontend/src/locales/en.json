@@ -799,7 +799,8 @@
       "items": "Products",
       "tools": "Tools",
       "taxReport": "Tax Report",
-      "upliftReport": "Uplift Report"
+      "upliftReport": "Uplift Report",
+      "instructorWorktime": "Instructor Worktime"
     },
     "dashboard": {
       "title": "Flights Waiting to be Invoiced",
@@ -1580,6 +1581,37 @@
     "errors": {
       "aircraftRequired": "Aircraft selection is required",
       "datesRequired": "Both start and end dates are required",
+      "endDateFuture": "End date cannot be in the future",
+      "startAfterEnd": "Start date cannot be after end date"
+    }
+  },
+  "instructorWorktime": {
+    "title": "Instructor Worktime Report",
+    "description": "Calculate and report instructor work hours. Work time = 1h before + flight time + 30min after each flight.",
+    "filters": {
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "blockTime": "Block Time",
+      "airTime": "Air Time",
+      "generate": "Generate Report",
+      "export": "Export to CSV"
+    },
+    "groupBy": {
+      "day": "Daily",
+      "week": "Weekly",
+      "month": "Monthly",
+      "year": "Yearly"
+    },
+    "table": {
+      "instructor": "Instructor",
+      "period": "Period",
+      "flights": "Flights",
+      "totalTime": "Flight Time",
+      "workTime": "Work Time"
+    },
+    "noData": "No instructor flights found for the selected date range",
+    "errors": {
+      "required": "Both start and end dates are required",
       "endDateFuture": "End date cannot be in the future",
       "startAfterEnd": "Start date cannot be after end date"
     }

@@ -2,12 +2,14 @@ import dayJs, { Dayjs } from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import tz from 'dayjs/plugin/timezone'
 import updateLocale from 'dayjs/plugin/updateLocale'
+import isoWeek from 'dayjs/plugin/isoWeek'
 import 'dayjs/locale/fi'
 import 'dayjs/locale/en'
 
 dayJs.extend(utc)
 dayJs.extend(updateLocale)
 dayJs.extend(tz)
+dayJs.extend(isoWeek)
 
 // // Configure both locales to start week on Monday (1)
 dayJs.updateLocale('en', {

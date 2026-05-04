@@ -796,7 +796,8 @@
       "flights": "Lennot",
       "items": "Tuotteet",
       "tools": "Työkalut",
-      "upliftReport": "Tankkaausraportti"
+      "upliftReport": "Tankkaausraportti",
+      "instructorWorktime": "Lennonopettajien työaika"
     },
     "dashboard": {
       "title": "Odottaa laskutusta",
@@ -1550,6 +1551,37 @@
     "errors": {
       "aircraftRequired": "Kone on pakollinen",
       "datesRequired": "Alku- ja loppupäivä ovat pakollisia",
+      "endDateFuture": "Loppupäivä ei voi olla tulevaisuudessa",
+      "startAfterEnd": "Alkupäivä ei voi olla loppupäivän jälkeen"
+    }
+  },
+  "instructorWorktime": {
+    "title": "Lennonopettajien työaikaraportti",
+    "description": "Laske ja raportoi lennonopettajien työtunnit. Työaika = 1h ennen + lentoaika + 30min jälkeen jokaista lentoa.",
+    "filters": {
+      "startDate": "Alkupäivä",
+      "endDate": "Loppupäivä",
+      "blockTime": "Block-aika",
+      "airTime": "Lentoaika",
+      "generate": "Luo raportti",
+      "export": "Vie CSV-tiedostoon"
+    },
+    "groupBy": {
+      "day": "Päivä",
+      "week": "Viikko",
+      "month": "Kuukausi",
+      "year": "Vuosi"
+    },
+    "table": {
+      "instructor": "Lennonopettaja",
+      "period": "Jakso",
+      "flights": "Lennot",
+      "totalTime": "Lentoaika",
+      "workTime": "Työaika"
+    },
+    "noData": "Ei lennonopettajan lentoja valitulle ajanjaksolle",
+    "errors": {
+      "required": "Alku- ja loppupäivä vaaditaan",
       "endDateFuture": "Loppupäivä ei voi olla tulevaisuudessa",
       "startAfterEnd": "Alkupäivä ei voi olla loppupäivän jälkeen"
     }

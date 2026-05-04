@@ -797,7 +797,8 @@
       "invoicing": "Fakturering",
       "items": "Prislista",
       "tools": "Verktyg",
-      "upliftReport": "Tankaningsrapport"
+      "upliftReport": "Tankaningsrapport",
+      "instructorWorktime": "Instruktörs arbetstid"
     },
     "dashboard": {
       "title": "Väntar på fakturering",
@@ -1517,6 +1518,37 @@
     "errors": {
       "aircraftRequired": "Flygplan måste väljas",
       "datesRequired": "Både start- och slutdatum krävs",
+      "endDateFuture": "Slutdatum kan inte vara i framtiden",
+      "startAfterEnd": "Startdatum kan inte vara efter slutdatum"
+    }
+  },
+  "instructorWorktime": {
+    "title": "Instruktörernas arbetstidsrapport",
+    "description": "Beräkna och rapportera instruktörernas arbetstimmar. Arbetstid = 1h före + flygtid + 30min efter varje flygning.",
+    "filters": {
+      "startDate": "Startdatum",
+      "endDate": "Slutdatum",
+      "blockTime": "Blocktid",
+      "airTime": "Flygtid",
+      "generate": "Generera rapport",
+      "export": "Exportera till CSV"
+    },
+    "groupBy": {
+      "day": "Daglig",
+      "week": "Veckovis",
+      "month": "Månadsvis",
+      "year": "Årlig"
+    },
+    "table": {
+      "instructor": "Instruktör",
+      "period": "Period",
+      "flights": "Flygningar",
+      "totalTime": "Flygtid",
+      "workTime": "Arbetstid"
+    },
+    "noData": "Inga instruktörsflygningar hittades för valt datumintervall",
+    "errors": {
+      "required": "Både start- och slutdatum krävs",
       "endDateFuture": "Slutdatum kan inte vara i framtiden",
       "startAfterEnd": "Startdatum kan inte vara efter slutdatum"
     }

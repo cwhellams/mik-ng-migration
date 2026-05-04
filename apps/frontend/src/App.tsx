@@ -39,6 +39,7 @@ import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
 import ToolsPage from './sections/accounting/ToolsPage'
 import { TaxReport } from './sections/accounting/TaxReport'
 import { UpliftReport } from './sections/accounting/UpliftReport'
+import { InstructorWorktimeReport } from './sections/accounting/InstructorWorktimeReport'
 import { Occurrences } from './sections/occurrences/Occurences'
 import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
 import LogbookFlights from './sections/flightLog/LogbookPage'
@@ -146,6 +147,10 @@ function App() {
                 <Route path='tools' element={<ToolsPage />} />
                 <Route path='tax-report' element={<TaxReport />} />
                 <Route path='uplift-report' element={<UpliftReport />} />
+                <Route
+                  path='instructor-worktime'
+                  element={<InstructorWorktimeReport />}
+                />
               </Route>
               <Route path='/shop'>
                 <Route index element={<ShopPage />} />
