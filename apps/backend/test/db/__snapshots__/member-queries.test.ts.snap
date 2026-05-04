@@ -839,21 +839,5 @@ exports[`Db query member tests getMembers should return unapproved members for a
     "roles": [],
     "townCity": "Pori",
   },
-  {
-    "autoRenewAnnualMembership": true,
-    "autoRenewEquipmentFee": false,
-    "automaticBillingStatus": false,
-    "canMakeReservations": false,
-    "email": "test@example.com",
-    "first": "test",
-    "isTrainingProgramPilot": false,
-    "lang": "fi",
-    "last": "test",
-    "memberId": "WLOMZ0K62",
-    "memberSince": Any<String>,
-    "phoneNumber": "+358402221122",
-    "roles": [],
-    "townCity": "vantaa",
-  },
 ]
 `;
