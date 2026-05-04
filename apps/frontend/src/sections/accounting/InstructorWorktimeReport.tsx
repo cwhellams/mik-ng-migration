@@ -69,7 +69,7 @@ const groupEntries = (
         period = entry.date
         break
       case 'week':
-        period = `${d.year()}-W${String(d.isoWeek()).padStart(2, '0')}`
+        period = `${d.isoWeekYear()}-W${String(d.isoWeek()).padStart(2, '0')}`
         break
       case 'month':
         period = d.format('YYYY-MM')
@@ -336,8 +336,8 @@ export const InstructorWorktimeReport = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {groupedData.map((row, idx) => (
-                      <TableRow key={idx}>
+                    {groupedData.map((row) => (
+                      <TableRow key={`${row.instructorName}:${row.period}`}>
                         <TableCell>{row.instructorName}</TableCell>
                         <TableCell>{row.period}</TableCell>
                         <TableCell align='right'>{row.flightCount}</TableCell>
