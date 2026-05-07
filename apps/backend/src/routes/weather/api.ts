@@ -142,9 +142,9 @@ router.get(
       })
 
       // Set appropriate headers
-      res.setHeader('Content-Type', response.headers['content-type'] || 'audio/mpeg')
+      res.setHeader('Content-Type', String(response.headers['content-type'] ?? 'audio/mpeg'))
       if (response.headers['content-length']) {
-        res.setHeader('Content-Length', response.headers['content-length'])
+        res.setHeader('Content-Length', String(response.headers['content-length']))
       }
 
       // Stream the audio data to the client
