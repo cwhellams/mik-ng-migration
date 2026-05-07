@@ -4,6 +4,13 @@ import { sendEmail } from '../../lib/sendGmail.ts'
 import { getInvoice, getInvoicePdf } from './simplbooksApiClient.ts'
 import { escapeHtml } from '../../util/sanitizers.ts'
 import { markdownEmailTemplate } from '../../templates/emailTemplate.ts'
+import {
+  generateFinnishBankingBarcode,
+  generateBankBarcodeImage,
+  formatFinnishReference,
+  generateEpcQrCodeData,
+  generateEpcQrCodeImage,
+} from '../../util/finnishBankingBarcode.ts'
 
 export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: string) {
   const member = await getMemberById(memberId)
@@ -37,11 +44,113 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
 
   logger.info(`Fetched PDF for invoice ${invoiceId} to be sent to member ${memberId}`)
 
+  const invoiceData = invoice.data.Invoice
+  const invoiceRows = invoice.data.Task ?? []
+  const totalSum = Number(invoiceData.total_sum) || 0
+  const dueDate = typeof invoiceData.due === 'string' ? invoiceData.due : ''
+  const rawReference = invoiceData.reference
+  const reference = rawReference != null ? String(rawReference).replace(/\s+/g, '') : undefined
+
+  let barcode: string | undefined
+  let barcodeImageHtml: string | undefined
+  const mikIban = 'FI1080001870592137'
+  if (reference && /^\d+$/.test(reference)) {
+    try {
+      barcode = generateFinnishBankingBarcode(mikIban, totalSum, reference, dueDate)
+    } catch (err) {
+      logger.warn(
+        `Could not generate Finnish banking barcode for invoice ${invoiceId}: ${err instanceof Error ? err.message : String(err)}`,
+      )
+    }
+  }
+
+  if (barcode) {
+    try {
+      const imageBuffer = await generateBankBarcodeImage(barcode)
+      const base64 = imageBuffer.toString('base64')
+      barcodeImageHtml = `<div style="margin: 16px 0; text-align: center;"><img src="data:image/png;base64,${base64}" alt="Barcode" style="max-width: 100%; height: auto; border: 0;" /></div>`
+    } catch (err) {
+      logger.warn(
+        `Could not generate barcode image for invoice ${invoiceId}: ${err instanceof Error ? err.message : String(err)}`,
+      )
+    }
+  }
+
+  let qrCodeImageHtml: string | undefined
+  const mikBeneficiaryName = process.env.MIK_BENEFICIARY_NAME ?? 'Malmin Ilmailukerho ry'
+  if (reference && /^\d+$/.test(reference)) {
+    try {
+      const qrData = generateEpcQrCodeData(
+        mikIban,
+        totalSum,
+        mikBeneficiaryName,
+        reference,
+        undefined,
+        dueDate,
+      )
+      const qrBuffer = await generateEpcQrCodeImage(qrData)
+      const qrBase64 = qrBuffer.toString('base64')
+      qrCodeImageHtml = `<div style="margin: 16px 0; text-align: center;"><img src="data:image/png;base64,${qrBase64}" alt="QR code" style="width: 200px; height: 200px; border: 0;" /></div>`
+    } catch (err) {
+      logger.warn(
+        `Could not generate EPC QR code for invoice ${invoiceId}: ${err instanceof Error ? err.message : String(err)}`,
+      )
+    }
+  }
+
+  let itemsTableHtml: string | undefined
+  if (invoiceRows.length > 0) {
+    const lang = member.lang
+    const headers =
+      lang === 'fi'
+        ? { description: 'Kuvaus', qty: 'Määrä', unitPrice: 'À-hinta', total: 'Yhteensä' }
+        : lang === 'sv'
+          ? { description: 'Beskrivning', qty: 'Antal', unitPrice: 'À-pris', total: 'Totalt' }
+          : { description: 'Description', qty: 'Qty', unitPrice: 'Unit price', total: 'Total' }
+    const rowsHtml = invoiceRows
+      .map(row => {
+        const name = escapeHtml(row.name ?? '')
+        const contents = row.contents
+          ? `<br><small style="color:#666">${escapeHtml(row.contents)}</small>`
+          : ''
+        const qty = row.amount != null ? String(row.amount) : ''
+        const unit = row.unit ? escapeHtml(row.unit) : ''
+        const unitPrice = row.price_per_unit != null ? Number(row.price_per_unit).toFixed(2) : ''
+        const lineTotal =
+          row.amount != null && row.price_per_unit != null
+            ? (row.amount * row.price_per_unit * (1 - (row.discount ?? 0) / 100)).toFixed(2)
+            : ''
+        return `<tr>
+            <td style="padding:6px 8px;border-bottom:1px solid #eee">${name}${contents}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap">${qty}${unit ? `&nbsp;${unit}` : ''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap">${unitPrice ? `€${unitPrice}` : ''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;font-weight:bold">${lineTotal ? `€${lineTotal}` : ''}</td>
+          </tr>`
+      })
+      .join('')
+    itemsTableHtml = `<table style="width:100%;border-collapse:collapse;font-size:0.9em;margin:16px 0">
+        <thead>
+          <tr style="background:#f5f5f5">
+            <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #ddd">${headers.description}</th>
+            <th style="padding:6px 8px;text-align:right;border-bottom:2px solid #ddd">${headers.qty}</th>
+            <th style="padding:6px 8px;text-align:right;border-bottom:2px solid #ddd">${headers.unitPrice}</th>
+            <th style="padding:6px 8px;text-align:right;border-bottom:2px solid #ddd">${headers.total}</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>`
+  }
+
   const emailVars = {
-    invoiceId: invoice.data.Invoice.id!.toString(),
+    invoiceId: invoiceData.id!.toString(),
     firstName: member.firstName,
-    amount: invoice.data.Invoice.total_sum!.toString(),
-    dueDate: invoice.data.Invoice.due!,
+    amount: totalSum.toFixed(2),
+    dueDate,
+    reference: reference ? formatFinnishReference(reference) : undefined,
+    barcode,
+    barcodeImageHtml,
+    qrCodeImageHtml,
+    itemsTableHtml,
   }
 
   // Note: Email subject doesn't need HTML escaping as it's plain text in email headers,
@@ -58,7 +167,7 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
       encoding: 'base64' as const,
     },
   ]
-  sendEmail(
+  await sendEmail(
     member.email,
     subject,
     markdownEmailTemplate(`invoice-created-${member.lang}.md`, emailVars),

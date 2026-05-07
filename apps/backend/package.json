@@ -187,6 +187,7 @@
     "axios": "^1.15.0",
     "bcryptjs": "^3.0.3",
     "bottleneck": "^2.19.5",
+    "bwip-js": "^4.10.1",
     "compression": "^1.8.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -217,6 +218,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
+    "@types/bwip-js": "^3.2.3",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",

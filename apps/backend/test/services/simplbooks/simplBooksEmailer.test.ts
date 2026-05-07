@@ -6,13 +6,7 @@ import type { EmailAttachment } from '../../../src/lib/sendGmail.ts'
 const getMemberById = jest.fn<() => Promise<Member | undefined>>()
 const sendEmail =
   jest.fn<
-    (
-      to: string,
-      subject: string,
-      html: string,
-      text: string,
-      attachments?: EmailAttachment[],
-    ) => void
+    (to: string, subject: string, html: string, attachments?: EmailAttachment[]) => Promise<void>
   >()
 const getInvoice = jest.fn<() => Promise<any>>()
 const getInvoicePdf = jest.fn<() => Promise<string>>()
@@ -90,7 +84,7 @@ describe('SimplBooks Emailer Tests', () => {
       getMemberById.mockResolvedValue(mockMember)
       getInvoice.mockResolvedValue(mockInvoice as any)
       getInvoicePdf.mockResolvedValue(mockPdfBase64)
-      sendEmail.mockImplementation(() => {})
+      sendEmail.mockImplementation(() => Promise.resolve())
 
       // Act
       await sendSimplbooksInvoiceEmail(12345, 'test-member-123')
@@ -119,7 +113,7 @@ describe('SimplBooks Emailer Tests', () => {
       getMemberById.mockResolvedValue(finnishMember)
       getInvoice.mockResolvedValue(mockInvoice as any)
       getInvoicePdf.mockResolvedValue(mockPdfBase64)
-      sendEmail.mockImplementation(() => {})
+      sendEmail.mockImplementation(() => Promise.resolve())
 
       // Act
       await sendSimplbooksInvoiceEmail(12345, 'test-member-123')
@@ -144,7 +138,7 @@ describe('SimplBooks Emailer Tests', () => {
       getMemberById.mockResolvedValue(mockMember)
       getInvoice.mockResolvedValue(mockInvoice as any)
       getInvoicePdf.mockResolvedValue(mockPdfBase64)
-      sendEmail.mockImplementation(() => {})
+      sendEmail.mockImplementation(() => Promise.resolve())
 
       // Act
       await sendSimplbooksInvoiceEmail(12345, 'test-member-123')
@@ -154,6 +148,62 @@ describe('SimplBooks Emailer Tests', () => {
       expect(emailHtml).toContain('Test') // firstName
       expect(emailHtml).toContain('150.00') // amount
       expect(emailHtml).toContain('2025-12-31') // dueDate
+    })
+
+    it('should include formatted reference number in email when reference is present', async () => {
+      // Arrange
+      getMemberById.mockResolvedValue(mockMember)
+      getInvoice.mockResolvedValue(mockInvoice as any)
+      getInvoicePdf.mockResolvedValue(mockPdfBase64)
+      sendEmail.mockImplementation(() => Promise.resolve())
+
+      // Act
+      await sendSimplbooksInvoiceEmail(12345, 'test-member-123')
+
+      // Assert: reference 12345678901 should be formatted as "1 23456 78901"
+      const emailHtml = sendEmail.mock.calls[0][2]
+      expect(emailHtml).toContain('1 23456 78901')
+    })
+
+    it('should include Finnish banking barcode in email', async () => {
+      // Arrange
+      getMemberById.mockResolvedValue(mockMember)
+      getInvoice.mockResolvedValue(mockInvoice as any)
+      getInvoicePdf.mockResolvedValue(mockPdfBase64)
+      sendEmail.mockImplementation(() => Promise.resolve())
+
+      // Act
+      await sendSimplbooksInvoiceEmail(12345, 'test-member-123')
+
+      // Assert: email should contain a 54-character barcode string
+      const emailHtml = sendEmail.mock.calls[0][2]
+      expect(emailHtml).toMatch(/[0-9]{54}/)
+
+      // Assert: email should contain a Code 128 Set C barcode PNG image
+      expect(emailHtml).toContain('data:image/png;base64,')
+      expect(emailHtml).toContain('<img src="data:image/png;base64,')
+    })
+
+    it('should send email without barcode when reference is missing', async () => {
+      // Arrange
+      const invoiceWithoutReference = {
+        data: {
+          Invoice: { ...mockInvoice.data.Invoice, reference: null },
+          Task: [],
+        },
+      }
+      getMemberById.mockResolvedValue(mockMember)
+      getInvoice.mockResolvedValue(invoiceWithoutReference as any)
+      getInvoicePdf.mockResolvedValue(mockPdfBase64)
+      sendEmail.mockImplementation(() => Promise.resolve())
+
+      // Act
+      await sendSimplbooksInvoiceEmail(12345, 'test-member-123')
+
+      // Assert: email should still be sent successfully but without barcode
+      expect(sendEmail).toHaveBeenCalled()
+      const emailHtml = sendEmail.mock.calls[0][2]
+      expect(emailHtml).not.toMatch(/[0-9]{54}/)
     })
   })
 
@@ -222,7 +272,7 @@ describe('SimplBooks Emailer Tests', () => {
       getMemberById.mockResolvedValue(mockMember)
       getInvoice.mockResolvedValue(mockInvoice as any)
       getInvoicePdf.mockResolvedValue(mockPdfBase64)
-      sendEmail.mockImplementation(() => {})
+      sendEmail.mockImplementation(() => Promise.resolve())
 
       // Act
       await sendSimplbooksInvoiceEmail(12345, 'test-member-123')
