@@ -148,7 +148,15 @@ Always check these locations when working on the codebase:
 - `apps/backend/.env` - Backend environment configuration
 - `sql/schema/migration/` - Database schema migrations
 - `sql/schema/testdata/` - Test data scripts
+- `sql/migration.conf` - Flyway configuration (defines schemas via `flyway.schemas`)
 - Package files: `package.json`, `apps/*/package.json`
+
+## Database Schema Management
+
+**NEVER use `CREATE SCHEMA` in Flyway migration SQL files.** PostgreSQL schemas (e.g. `dto`, `member`, `flight`) are created automatically by Flyway based on the `flyway.schemas` property in the Flyway configuration files (`sql/migration.conf`, `sql/migration_prod.conf`). To add a new schema:
+
+1. Add the schema name to the `flyway.schemas` list in `sql/migration.conf` (and `sql/migration_prod.conf` if needed).
+2. Use the schema directly in migration SQL (e.g. `CREATE TABLE dto.my_table ...`) without any preceding `CREATE SCHEMA` statement.
 
 ## Browser Login Flow
 
