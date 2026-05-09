@@ -35,6 +35,20 @@ export function mockSimplbooksPost(url: string, data?: any): Promise<AxiosRespon
       config: {} as any,
     })
   }
+  if (url === '/client_notes/create') {
+    return Promise.resolve({
+      data: {
+        status: 200,
+        duration: 0.0531,
+        inserted_id: 1,
+        response: 'New entry saved.',
+      },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as any,
+    })
+  }
   if (url === '/clients/update') {
     return Promise.resolve({
       data: {

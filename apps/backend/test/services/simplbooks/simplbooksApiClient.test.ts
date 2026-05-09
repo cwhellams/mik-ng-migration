@@ -2,6 +2,7 @@ import { jest } from '@jest/globals'
 
 import { MIKLang, MIKMemberTypes, type Member } from '../../../src/routes/members/models.ts'
 import {
+  createClientNote,
   createNewClient,
   createSimplbooksInvoice,
   getInvoice,
@@ -684,6 +685,47 @@ describe('Response Interceptors', () => {
       expect.stringContaining('[Error] 404 /invoices/get/999'),
       error,
     )
+  })
+})
+
+describe('createClientNote', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('should create a client note successfully', async () => {
+    jest.spyOn(simplbooksApiClient, 'post').mockImplementation(mockSimplbooksPost)
+
+    await expect(
+      createClientNote(5, 123, 'Overdue reminder sent from mik.intra'),
+    ).resolves.not.toThrow()
+
+    expect(simplbooksApiClient.post).toHaveBeenCalledWith('/client_notes/create', {
+      ClientNote: {
+        note: 'Overdue reminder sent from mik.intra',
+        client_id: 5,
+        object_type: 'Invoice',
+        object_id: 123,
+      },
+    })
+  })
+
+  it('should throw when response status is not 200', async () => {
+    jest.spyOn(simplbooksApiClient, 'post').mockResolvedValue({
+      status: 400,
+      statusText: 'Bad Request',
+      data: {},
+    } as any)
+
+    await expect(createClientNote(5, 123, 'test note')).rejects.toThrow(
+      'Failed to create client note for invoice 123: Bad Request',
+    )
+  })
+
+  it('should throw and log on API error', async () => {
+    jest.spyOn(simplbooksApiClient, 'post').mockImplementation(mockSimplbooksFailure)
+
+    await expect(createClientNote(5, 123, 'test note')).rejects.toThrow()
   })
 })
 

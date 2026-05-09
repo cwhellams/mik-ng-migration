@@ -863,6 +863,14 @@ describe('GET /flight-log/totals', () => {
 })
 
 describe('GET /flight-log/stats', () => {
+  let createdFlightId: string
+
+  afterAll(async () => {
+    if (createdFlightId) {
+      await db.deleteFrom('flight.logs').where('flight_id', '=', createdFlightId).execute()
+    }
+  })
+
   it('should return 403 with no permissions', async () => {
     const token = generateAccessToken({
       memberId: 'simplbks',
@@ -901,6 +909,50 @@ describe('GET /flight-log/stats', () => {
   })
 
   it('should return 200 with single plane', async () => {
+    const beforeResponse = await request(app)
+      .get('/flight-log/stats')
+      .set('Cookie', `accessToken=${mattiToken}`)
+
+    expect(beforeResponse.status).toBe(200)
+    const previousStats = beforeResponse.body.stats.find(
+      (entry: { aircraftRegistration: string }) => entry.aircraftRegistration === 'OH-STL',
+    )
+    assert(previousStats)
+
+    const currentMinuteAlignedSeconds = Math.floor(Date.now() / 60000) * 60
+    const takeoffTimeEpoch = currentMinuteAlignedSeconds - 60 * 60
+    const landingTimeEpoch = takeoffTimeEpoch + 55 * 60
+    const offBlockTimeEpoch = takeoffTimeEpoch - 10 * 60
+    const onBlockTimeEpoch = landingTimeEpoch + 5 * 60
+    const offBlockTimeEpochString = offBlockTimeEpoch.toString()
+    const takeoffTimeEpochString = takeoffTimeEpoch.toString()
+    const landingTimeEpochString = landingTimeEpoch.toString()
+    const onBlockTimeEpochString = onBlockTimeEpoch.toString()
+
+    const createResponse = await request(app)
+      .post('/flight-log')
+      .set('Cookie', `accessToken=${mattiToken}`)
+      .send({
+        ...flightPayload,
+        picMemberId: test_member_id,
+        offBlockTimeEpoch: offBlockTimeEpochString,
+        takeoffTimeEpoch: takeoffTimeEpochString,
+        landingTimeEpoch: landingTimeEpochString,
+        onBlockTimeEpoch: onBlockTimeEpochString,
+      })
+
+    expect(createResponse.status).toBe(201)
+    createdFlightId = createResponse.body.flight_id
+    expect(createdFlightId).toBeDefined()
+
+    const createdFlightResponse = await request(app)
+      .get(`/flight-log/${createdFlightId}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
+
+    expect(createdFlightResponse.status).toBe(200)
+    expect(createdFlightResponse.body.aircraftRegistration).toBe('OH-STL')
+    expect(createdFlightResponse.body.takeoffTimeEpoch).toBe(takeoffTimeEpochString)
+
     const response = await request(app)
       .get('/flight-log/stats')
       .set('Cookie', `accessToken=${mattiToken}`)
@@ -910,22 +962,29 @@ describe('GET /flight-log/stats', () => {
       stats: [
         {
           aircraftRegistration: 'OH-STL',
-          landings12month: 0,
-          landings1month: 0,
-          landings3month: 0,
-          landings6month: 0,
-          lastFlightId: 'bLwnAstr0',
-          lastTakeoffTimeUtc: '2025-03-03T10:30:00.000Z',
-          time12month: 0,
-          time1month: 0,
-          time3month: 0,
-          time6month: 0,
-          totalFlightMins: 195,
-          totalFlights: 2,
-          totalLandings: 2,
+          landings12month: previousStats.landings12month + 1,
+          landings1month: previousStats.landings1month + 1,
+          landings3month: previousStats.landings3month + 1,
+          landings6month: previousStats.landings6month + 1,
+          lastFlightId: createdFlightId,
+          // takeoffTimeEpoch variable is in epoch seconds; Date expects milliseconds.
+          lastTakeoffTimeUtc: new Date(takeoffTimeEpoch * 1000).toISOString(),
+          time12month: previousStats.time12month + 55,
+          time1month: previousStats.time1month + 55,
+          time3month: previousStats.time3month + 55,
+          time6month: previousStats.time6month + 55,
+          totalFlightMins: previousStats.totalFlightMins + 55,
+          totalFlights: previousStats.totalFlights + 1,
+          totalLandings: previousStats.totalLandings + 1,
         },
       ],
     })
+
+    // Cleanup: delete the flight we created so subsequent tests see a clean DB
+    const deleteResponse = await request(app)
+      .delete(`/flight-log/${createdFlightId}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
+    expect(deleteResponse.status).toBe(204)
   })
 
   //TODO: fix test data and reenable test
@@ -986,5 +1045,11 @@ describe('GET /flight-log/stats', () => {
         },
       ],
     })
+
+    const deleteResponse = await request(app)
+      .delete(`/flight-log/${createdFlightId}`)
+      .set('Cookie', `accessToken=${mattiToken}`)
+
+    expect(deleteResponse.status).toBe(204)
   })
 })

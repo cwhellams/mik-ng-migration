@@ -15,6 +15,7 @@ import {
 } from '../db/member-queries.ts'
 import { cancelAllFutureBookingsForMember } from '../db/booking-queries.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
+import { createClientNote } from '../services/simplbooks/simplbooksApiClient.ts'
 import logger from '../lib/logger.ts'
 import type { Invoice } from '../routes/invoicing/models.ts'
 import {
@@ -98,14 +99,14 @@ export function startOverdueInvoiceWorker(deps: OverdueInvoiceWorkerDeps = {}) {
   // '0 6 * * *' = At 6:00 AM every day
   scheduledTask = cronSchedule('0 6 * * *', async () => {
     logger.info('Overdue Invoice Worker: Starting scheduled run')
-    await processOverdueInvoices(sendEmailFn)
+    await processOverdueInvoices(sendEmailFn, createClientNote)
     await processSuspendedMembers(sendEmailFn)
   })
 
   // Run immediately on startup for testing (optional - remove if not needed)
   if (process.env.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP === 'true') {
     logger.info('Running overdue invoice check immediately on startup')
-    processOverdueInvoices(sendEmailFn).catch(error => {
+    processOverdueInvoices(sendEmailFn, createClientNote).catch(error => {
       logger.error('Error during startup overdue invoice check:', error)
     })
     processSuspendedMembers(sendEmailFn).catch(error => {
@@ -127,7 +128,10 @@ export function startOverdueInvoiceWorker(deps: OverdueInvoiceWorkerDeps = {}) {
 /**
  * Process all overdue invoices and send reminder emails
  */
-async function processOverdueInvoices(sendEmailFn: typeof sendEmail): Promise<void> {
+export async function processOverdueInvoices(
+  sendEmailFn: typeof sendEmail,
+  createClientNoteFn: typeof createClientNote = createClientNote,
+): Promise<void> {
   try {
     logger.info('Fetching overdue invoices from database')
     const overdueInvoices = await getOverdueInvoicesWithoutReminder()
@@ -145,12 +149,27 @@ async function processOverdueInvoices(sendEmailFn: typeof sendEmail): Promise<vo
     // Process each overdue invoice
     for (const invoice of overdueInvoices) {
       try {
-        await sendOverdueInvoiceReminder(invoice, sendEmailFn)
+        const member = await getMemberById(invoice.member_id)
+        await sendOverdueInvoiceReminder(invoice, member, sendEmailFn)
         await markOverdueEmailSent(invoice.id.toString())
         sentCount++
         logger.info(
           `Sent overdue reminder for invoice ${invoice.id} to member ${invoice.member_id}`,
         )
+        if (member?.billingId) {
+          try {
+            await createClientNoteFn(
+              Number(member.billingId),
+              Number(invoice.id),
+              `Overdue reminder email sent from mik.intra to ${member.email}`,
+            )
+          } catch (noteError) {
+            logger.warn(
+              `Failed to create SimplBooks reminder note for invoice ${invoice.id}:`,
+              noteError,
+            )
+          }
+        }
       } catch (error) {
         errorCount++
         logger.error(
@@ -173,11 +192,10 @@ async function processOverdueInvoices(sendEmailFn: typeof sendEmail): Promise<vo
  */
 async function sendOverdueInvoiceReminder(
   invoice: Invoice,
+  member: Awaited<ReturnType<typeof getMemberById>>,
   sendEmailFn: typeof sendEmail,
 ): Promise<void> {
   try {
-    // Get member details
-    const member = await getMemberById(invoice.member_id)
     if (!member) {
       logger.warn(`Member not found for invoice ${invoice.id}: ${invoice.member_id}`)
       return
@@ -207,7 +225,7 @@ async function sendOverdueInvoiceReminder(
  * Process members with overdue flight invoices and manage reservation suspensions
  */
 async function processSuspendedMembers(sendEmailFn: typeof sendEmail): Promise<void> {
-  const suspensionDays = parseInt(process.env.OVERDUE_INVOICE_SUSPENSION_DAYS || '30', 10)
+  const suspensionDays = Number.parseInt(process.env.OVERDUE_INVOICE_SUSPENSION_DAYS || '30', 10)
 
   try {
     logger.info('Processing member reservation suspensions')

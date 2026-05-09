@@ -338,6 +338,44 @@ export async function createSimplbooksReceipt(
   })
 }
 
+export async function createClientNote(
+  clientId: number,
+  invoiceId: number,
+  note: string,
+): Promise<void> {
+  return enqueueRateLimitedRequest(async () => {
+    try {
+      const response = await simplbooksApiClient.post(`/client_notes/create`, {
+        ClientNote: {
+          note,
+          client_id: clientId,
+          object_type: 'Invoice',
+          object_id: invoiceId,
+        },
+      })
+      if (response.status !== 200) {
+        throw new Error(
+          `Failed to create client note for invoice ${invoiceId}: ${response.statusText}`,
+        )
+      }
+    } catch (error) {
+      logAndThrowSimplbooksError(error, {
+        operation: 'createClientNote',
+        endpoint: '/client_notes/create',
+        method: 'POST',
+        payload: {
+          ClientNote: {
+            note,
+            client_id: clientId,
+            object_type: 'Invoice',
+            object_id: invoiceId,
+          },
+        },
+      })
+    }
+  })
+}
+
 export async function getItemByCode(code: string): Promise<ItemListArticle | undefined> {
   const items = await getItems(code)
 

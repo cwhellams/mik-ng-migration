@@ -48,6 +48,25 @@ describe('Booking Reminder Worker', () => {
     // Epoch must be divisible by 60 (check_all_times_in_mins constraint)
     const startEpoch = (Math.floor(dayjs().add(24, 'hour').unix() / 60) * 60).toString()
     const endEpoch = (Math.floor(dayjs().add(25, 'hour').unix() / 60) * 60).toString()
+
+    // Defensive cleanup before inserting:
+    // 1. Remove any leftover rm* bookings from a previous interrupted test run.
+    // 2. Remove any stl* test-data bookings (V120__bookings.sql generates stl1-stl20
+    //    with times relative to current_date that can overlap with our 24h window).
+    await db
+      .deleteFrom('schedule.bookings')
+      .where(eb =>
+        eb.or([
+          eb('booking_id', 'like', 'rm%'),
+          eb.and([
+            eb('booking_id', 'like', 'stl%'),
+            eb('start_time_epoch', '<=', endEpoch),
+            eb('end_time_epoch', '>=', startEpoch),
+          ]),
+        ]),
+      )
+      .execute()
+
     // booking_id is varchar(9) — keep it short: 'rm' prefix + zero-padded counter
     testBookingId = `rm${String(++bookingCounter).padStart(7, '0')}`
 

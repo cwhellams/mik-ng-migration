@@ -1,5 +1,7 @@
 import { jest } from '@jest/globals'
 import { db } from '../../src/db/connection.ts'
+import type { sendEmail } from '../../src/lib/sendGmail.ts'
+import type { createClientNote } from '../../src/services/simplbooks/simplbooksApiClient.ts'
 
 // Mock the logger
 jest.mock('../../src/lib/logger.ts', () => ({
@@ -11,9 +13,20 @@ jest.mock('../../src/lib/logger.ts', () => ({
   },
 }))
 
+// Pre-declare mock for sendEmail
+const mockSendEmail = jest.fn<typeof sendEmail>().mockResolvedValue(undefined)
+
 // Mock sendEmail
 jest.mock('../../src/lib/sendGmail.ts', () => ({
-  sendEmail: jest.fn(),
+  sendEmail: mockSendEmail,
+}))
+
+// Pre-declare mock for SimplBooks API client
+const mockCreateClientNote = jest.fn<typeof createClientNote>().mockResolvedValue(undefined)
+
+// Mock SimplBooks API client
+jest.mock('../../src/services/simplbooks/simplbooksApiClient.ts', () => ({
+  createClientNote: mockCreateClientNote,
 }))
 
 // Import modules AFTER setting up mocks
@@ -22,13 +35,12 @@ import {
   markOverdueEmailSent,
 } from '../../src/db/invoicing-queries.ts'
 import { MIK_SIMPLBOOKS_MEMBER } from '../../src/services/simplbooks/simplbooksOutboxHandler.ts'
-import { sendEmail } from '../../src/lib/sendGmail.ts'
+import { processOverdueInvoices } from '../../src/workers/overdueInvoiceWorker.ts'
 import type { ScheduledTask, TaskFn, TaskOptions } from 'node-cron'
 
 describe('Overdue Invoice Worker', () => {
   const testMemberId = 'Matti1'
   let testInvoiceId: string
-  let mockSendEmail: jest.Mock & typeof sendEmail
   let mockCronSchedule: jest.Mock<
     (expression: string, func: string | TaskFn, options?: TaskOptions) => ScheduledTask
   >
@@ -45,8 +57,7 @@ describe('Overdue Invoice Worker', () => {
     jest.clearAllMocks()
 
     // Initialize mocks
-    mockSendEmail = jest.fn().mockImplementation(() => Promise.resolve()) as jest.Mock &
-      typeof sendEmail
+    mockCreateClientNote.mockResolvedValue(undefined)
     mockCronSchedule = jest.fn().mockReturnValue({
       stop: jest.fn(),
     }) as any
@@ -251,6 +262,58 @@ describe('Overdue Invoice Worker', () => {
 
       expect(invoice?.overdue_email_sent_at).not.toBeNull()
       expect(invoice?.updated_by).toBe(MIK_SIMPLBOOKS_MEMBER)
+    })
+  })
+
+  describe('SimplBooks client note on overdue reminder', () => {
+    it('should create a SimplBooks note when a reminder is sent for a member with a billingId', async () => {
+      await processOverdueInvoices(mockSendEmail, mockCreateClientNote)
+
+      const testInvoiceCall = mockCreateClientNote.mock.calls.find(
+        ([, invoiceId]) => invoiceId === Number(testInvoiceId),
+      )
+      expect(testInvoiceCall).toBeDefined()
+      expect(testInvoiceCall?.[2]).toMatch(/^Overdue reminder email sent from mik\.intra to /)
+    })
+
+    it('should not create a SimplBooks note when member has no billingId', async () => {
+      // Remove billing_id from the test member
+      await db
+        .updateTable('member.register')
+        .set({ billing_id: null })
+        .where('member_id', '=', testMemberId)
+        .execute()
+
+      await processOverdueInvoices(mockSendEmail, mockCreateClientNote)
+
+      expect(mockCreateClientNote).not.toHaveBeenCalled()
+
+      // Restore billing_id to original test data value
+      await db
+        .updateTable('member.register')
+        .set({ billing_id: '123' })
+        .where('member_id', '=', testMemberId)
+        .execute()
+    })
+
+    it('should not fail the reminder flow when SimplBooks note creation throws', async () => {
+      mockCreateClientNote.mockRejectedValueOnce(new Error('SimplBooks API error'))
+
+      // Should not throw — note failure is non-fatal
+      await expect(
+        processOverdueInvoices(mockSendEmail, mockCreateClientNote),
+      ).resolves.not.toThrow()
+
+      // Reminder email was still sent
+      expect(mockSendEmail).toHaveBeenCalled()
+
+      // Invoice was still marked as reminded
+      const invoice = await db
+        .selectFrom('accts.invoice')
+        .select('overdue_email_sent_at')
+        .where('id', '=', testInvoiceId)
+        .executeTakeFirst()
+      expect(invoice?.overdue_email_sent_at).not.toBeNull()
     })
   })
 })

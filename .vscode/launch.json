@@ -86,6 +86,16 @@
       "skipFiles": ["<node_internals>/**"],
       "envFile": "${workspaceFolder}/apps/simplbooks_sync/.env",
       "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Smoke test: overdueInvoiceWorker",
+      "runtimeArgs": ["--experimental-transform-types"],
+      "program": "${workspaceFolder}/apps/backend/scripts/smokeTestOverdueInvoiceWorker.ts",
+      "cwd": "${workspaceFolder}/apps/backend",
+      "envFile": "${workspaceFolder}/apps/backend/.env",
+      "console": "integratedTerminal"
     }
   ]
 }
