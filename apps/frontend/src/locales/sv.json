@@ -853,11 +853,13 @@
   "invoicing": {
     "tabs": {
       "dashboard": "Instrumentpanel",
-      "invoicing": "Fakturering",
+      "flights": "Flyg",
+      "instructorWorktime": "Instruktörs arbetstid",
       "items": "Prislista",
       "tools": "Verktyg",
-      "upliftReport": "Tankaningsrapport",
-      "instructorWorktime": "Instruktörs arbetstid"
+      "taxReport": "Skatterapport",
+      "traficomReport": "Traficom-rapport",
+      "upliftReport": "Tankaningsrapport"
     },
     "dashboard": {
       "title": "Väntar på fakturering",
@@ -919,6 +921,63 @@
         "createdAt": "Skapad",
         "completedAt": "Slutförd",
         "createdBy": "Skapad av"
+      }
+    },
+    "taxReport": {
+      "title": "Skatterapport",
+      "description": "Sammanställning av flygtid per månad och luftfartyg för skatterapportering",
+      "filters": {
+        "startDate": "Startdatum",
+        "endDate": "Slutdatum",
+        "generate": "Skapa rapport",
+        "export": "Exportera till CSV"
+      },
+      "table": {
+        "month": "Månad",
+        "aircraft": "Luftfartyg",
+        "commercialBlock": "Kommersiell block",
+        "commercialFlight": "Kommersiell flygning",
+        "privateBlock": "Privat block",
+        "privateFlight": "Privat flygning",
+        "totalBlock": "Totalt block",
+        "totalFlight": "Totalt flyg"
+      },
+      "noData": "Inga flygningar hittades för det valda datumintervallet",
+      "errors": {
+        "endDateFuture": "Slutdatum kan inte vara i framtiden",
+        "startAfterEnd": "Startdatum kan inte vara efter slutdatum",
+        "required": "Både start- och slutdatum är obligatoriska"
+      }
+    },
+    "traficomReport": {
+      "title": "Traficom-rapport",
+      "description": "Årlig flygaktivitetsrapport per luftfartyg för Traficom (körs vanligtvis för föregående kalenderår).",
+      "filters": {
+        "year": "År",
+        "filter": "Filter",
+        "generate": "Skapa rapport",
+        "export": "Exportera till CSV"
+      },
+      "filterOptions": {
+        "ALL": "Alla",
+        "PRIVATE": "Privat",
+        "SCHOOL": "Skola",
+        "DTO_SCHOOL": "DTO-skola",
+        "NON_DTO_SCHOOL": "Icke-DTO-skola"
+      },
+      "table": {
+        "aircraft": "Luftfartyg",
+        "flights": "Flygningar",
+        "landings": "Landningar",
+        "zzzzLandings": "ZZZZ-landningar",
+        "yearHours": "Årets timmar",
+        "lifetimeHours": "Totala timmar",
+        "lifetimeLandings": "Totala landningar",
+        "lifetimeNote": "Filtret gäller ej"
+      },
+      "noData": "Inga flygningar hittades för det valda året och filtret",
+      "errors": {
+        "invalidYear": "Året måste ligga mellan 1900 och {{max}}"
       }
     }
   },

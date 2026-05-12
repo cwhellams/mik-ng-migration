@@ -44,7 +44,13 @@ const motivationKey: Record<PrimaryMotivation, string> = {
 }
 
 // Compact side-by-side row for short values
-const InfoRow = ({ label, children }: { label: string; children: ReactNode }) => (
+const InfoRow = ({
+  label,
+  children,
+}: {
+  label: string
+  children: ReactNode
+}) => (
   <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
     <Typography
       variant='body2'
@@ -129,19 +135,22 @@ export const ApplicationDataCard = ({
 
       <AccordionDetails sx={{ px: 2, pb: 3 }}>
         <Stack spacing={2} divider={<Divider />}>
-
           {/* Flight experience */}
           <Stack spacing={1.5}>
             <SectionHeader label={t('register.sectionFlightExperience')} />
 
             <InfoRow label={t('register.totalFlightHours')}>
               <Typography variant='body2'>
-                {totalFlightHours !== undefined ? String(totalFlightHours) : '—'}
+                {totalFlightHours !== undefined
+                  ? String(totalFlightHours)
+                  : '—'}
               </Typography>
             </InfoRow>
 
             <InfoRow label={t('register.aircraftTypesFlown')}>
-              <Typography variant='body2'>{aircraftTypesFlown || '—'}</Typography>
+              <Typography variant='body2'>
+                {aircraftTypesFlown || '—'}
+              </Typography>
             </InfoRow>
 
             <InfoRow label={t('register.pilotLicenceType')}>
@@ -150,7 +159,8 @@ export const ApplicationDataCard = ({
                 {pilotLicenceType === PilotLicenceType.OTHER &&
                   pilotLicenceTypeOther && (
                     <Typography component='span' color='text.secondary'>
-                      {' '}({pilotLicenceTypeOther})
+                      {' '}
+                      ({pilotLicenceTypeOther})
                     </Typography>
                   )}
               </Typography>
@@ -188,7 +198,8 @@ export const ApplicationDataCard = ({
                 {primaryMotivation === PrimaryMotivation.OTHER &&
                   motivationOther && (
                     <Typography component='span' color='text.secondary'>
-                      {' '}({motivationOther})
+                      {' '}
+                      ({motivationOther})
                     </Typography>
                   )}
               </Typography>
@@ -268,7 +279,6 @@ export const ApplicationDataCard = ({
               </Box>
             </InfoRow>
           </Stack>
-
         </Stack>
       </AccordionDetails>
     </Accordion>

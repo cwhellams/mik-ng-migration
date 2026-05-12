@@ -126,6 +126,7 @@ export const menuItems: MenuItem[] = [
       { label: 'invoicing.tabs.items', path: 'items' },
       { label: 'invoicing.tabs.tools', path: 'tools' },
       { label: 'invoicing.tabs.taxReport', path: 'tax-report' },
+      { label: 'invoicing.tabs.traficomReport', path: 'traficom-report' },
       { label: 'invoicing.tabs.upliftReport', path: 'uplift-report' },
       {
         label: 'invoicing.tabs.instructorWorktime',

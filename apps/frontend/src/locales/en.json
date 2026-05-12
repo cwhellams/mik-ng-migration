@@ -855,11 +855,12 @@
     "tabs": {
       "dashboard": "Dashboard",
       "flights": "Flights",
+      "instructorWorktime": "Instructor Worktime",
       "items": "Products",
       "tools": "Tools",
       "taxReport": "Tax Report",
-      "upliftReport": "Uplift Report",
-      "instructorWorktime": "Instructor Worktime"
+      "traficomReport": "Traficom Report",
+      "upliftReport": "Uplift Report"
     },
     "dashboard": {
       "title": "Flights Waiting to be Invoiced",
@@ -947,6 +948,37 @@
         "endDateFuture": "End date cannot be in the future",
         "startAfterEnd": "Start date cannot be after end date",
         "required": "Both start and end dates are required"
+      }
+    },
+    "traficomReport": {
+      "title": "Traficom Report",
+      "description": "Annual per-aircraft flight activity report for Traficom reporting (typically run for the previous calendar year).",
+      "filters": {
+        "year": "Year",
+        "filter": "Filter",
+        "generate": "Generate Report",
+        "export": "Export to CSV"
+      },
+      "filterOptions": {
+        "ALL": "All",
+        "PRIVATE": "Private",
+        "SCHOOL": "School",
+        "DTO_SCHOOL": "DTO school",
+        "NON_DTO_SCHOOL": "Non-DTO school"
+      },
+      "table": {
+        "aircraft": "Aircraft",
+        "flights": "Flights",
+        "landings": "Landings",
+        "zzzzLandings": "ZZZZ landings",
+        "yearHours": "Year hours",
+        "lifetimeHours": "Lifetime hours",
+        "lifetimeLandings": "Lifetime landings",
+        "lifetimeNote": "Filter not applied"
+      },
+      "noData": "No flight data found for the selected year and filter",
+      "errors": {
+        "invalidYear": "Year must be a valid year between 1900 and {{max}}"
       }
     }
   },

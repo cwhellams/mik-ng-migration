@@ -853,10 +853,12 @@
     "tabs": {
       "dashboard": "Tietopaneeli",
       "flights": "Lennot",
+      "instructorWorktime": "Lennonopettajien työaika",
       "items": "Tuotteet",
       "tools": "Työkalut",
-      "upliftReport": "Tankkaausraportti",
-      "instructorWorktime": "Lennonopettajien työaika"
+      "taxReport": "Veroraportti",
+      "traficomReport": "Traficom-raportti",
+      "upliftReport": "Tankkaausraportti"
     },
     "dashboard": {
       "title": "Odottaa laskutusta",
@@ -918,6 +920,63 @@
         "createdAt": "Luotu",
         "completedAt": "Valmistunut",
         "createdBy": "Luonut"
+      }
+    },
+    "taxReport": {
+      "title": "Veroraportti",
+      "description": "Lentoaikayhteenveto kuukauden ja ilma-aluksen mukaan veroraportointia varten",
+      "filters": {
+        "startDate": "Aloituspäivämäärä",
+        "endDate": "Lopetuspäivämäärä",
+        "generate": "Luo raportti",
+        "export": "Vie CSV-tiedostoon"
+      },
+      "table": {
+        "month": "Kuukausi",
+        "aircraft": "Ilma-alus",
+        "commercialBlock": "Kaupallinen lohko",
+        "commercialFlight": "Kaupallinen lento",
+        "privateBlock": "Yksityinen lohko",
+        "privateFlight": "Yksityinen lento",
+        "totalBlock": "Kokonaislohko",
+        "totalFlight": "Kokonaislento"
+      },
+      "noData": "Valitulle päivämääräalueelle ei löytynyt lentotietoja",
+      "errors": {
+        "endDateFuture": "Lopetuspäivämäärä ei voi olla tulevaisuudessa",
+        "startAfterEnd": "Aloituspäivämäärä ei voi olla lopetuspäivämäärän jälkeen",
+        "required": "Sekä aloitus- että lopetuspäivämäärä ovat pakollisia"
+      }
+    },
+    "traficomReport": {
+      "title": "Traficom-raportti",
+      "description": "Vuosittainen ilma-aluskohtainen lentotoimintaraportti Traficomille (yleensä edelliseltä kalenterivuodelta).",
+      "filters": {
+        "year": "Vuosi",
+        "filter": "Suodatin",
+        "generate": "Luo raportti",
+        "export": "Vie CSV-tiedostoon"
+      },
+      "filterOptions": {
+        "ALL": "Kaikki",
+        "PRIVATE": "Yksityinen",
+        "SCHOOL": "Koulu",
+        "DTO_SCHOOL": "DTO-koulu",
+        "NON_DTO_SCHOOL": "Ei-DTO-koulu"
+      },
+      "table": {
+        "aircraft": "Ilma-alus",
+        "flights": "Lentoja",
+        "landings": "Laskuja",
+        "zzzzLandings": "ZZZZ-laskuja",
+        "yearHours": "Vuoden tunnit",
+        "lifetimeHours": "Tunnit yhteensä",
+        "lifetimeLandings": "Laskut yhteensä",
+        "lifetimeNote": "Suodatin ei koske"
+      },
+      "noData": "Valitulle vuodelle ja suodattimelle ei löytynyt lentoja",
+      "errors": {
+        "invalidYear": "Vuoden tulee olla välillä 1900 - {{max}}"
       }
     }
   },

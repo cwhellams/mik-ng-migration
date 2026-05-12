@@ -253,7 +253,11 @@ const Register = () => {
 
       {/* Step indicator */}
       <Box sx={{ mb: 2 }}>
-        <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
+        <Typography
+          variant='caption'
+          color='text.secondary'
+          sx={{ mb: 0.5, display: 'block' }}
+        >
           {step === 1 ? t('register.page1of2') : t('register.page2of2')}
         </Typography>
         <LinearProgress
@@ -306,9 +310,7 @@ const Register = () => {
             <PhoneNumberInput
               label={t('member.phone')}
               value={member.phoneNumber ?? ''}
-              onChange={(value) =>
-                setMember({ ...member, phoneNumber: value })
-              }
+              onChange={(value) => setMember({ ...member, phoneNumber: value })}
               fullWidth
               required
             />
@@ -344,9 +346,7 @@ const Register = () => {
             label={t('member.town')}
             margin='normal'
             value={member.townCity}
-            onChange={(e) =>
-              setMember({ ...member, townCity: e.target.value })
-            }
+            onChange={(e) => setMember({ ...member, townCity: e.target.value })}
             required
           />
           <FormControl sx={{ mt: 1 }}>
@@ -729,10 +729,7 @@ const Register = () => {
                     : 'no'
               }
               onChange={({ target }) =>
-                updateApplicationData(
-                  'accidentHistory',
-                  target.value === 'yes'
-                )
+                updateApplicationData('accidentHistory', target.value === 'yes')
               }
             >
               <FormControlLabel
@@ -778,10 +775,7 @@ const Register = () => {
                     : 'no'
               }
               onChange={({ target }) =>
-                updateApplicationData(
-                  'criminalRecord',
-                  target.value === 'yes'
-                )
+                updateApplicationData('criminalRecord', target.value === 'yes')
               }
             >
               <FormControlLabel
