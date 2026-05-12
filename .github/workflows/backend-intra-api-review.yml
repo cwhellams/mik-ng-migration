@@ -20,8 +20,8 @@ env: # Set environment variables for entire workflow
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   POSTGRES_DB: mik_ng
   POSTGRES_PORT: 5432
-  POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'admin' }}
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'ci_password' }}
   VITE_API_TARGET: ${{ vars.VITE_API_TARGET }}
 jobs:
   build-and-test:
@@ -39,8 +39,8 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ env.POSTGRES_DB }}
           POSTGRES_PORT: ${{ env.POSTGRES_PORT }}
           POSTGRES_INITDB_ARGS: "--locale-provider=libc --locale=en_US.UTF-8"
@@ -57,8 +57,8 @@ jobs:
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/database:/flyway/sql \
             -v ${{ github.workspace }}/sql/database.conf:/flyway/conf/flyway.conf \
-            -e FLYWAY_USER=${{ secrets.POSTGRES_USER }} \
-            -e FLYWAY_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
+            -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
             -e FLYWAY_URL=jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }} \
             flyway/flyway:latest migrate
       - name: Run Flyway migrations
@@ -66,8 +66,8 @@ jobs:
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/migration:/flyway/sql \
             -v ${{ github.workspace }}/sql/migration.conf:/flyway/conf/flyway.conf \
-            -e FLYWAY_USER=${{ secrets.POSTGRES_USER }} \
-            -e FLYWAY_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
+            -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
             -e FLYWAY_URL=jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }} \
             flyway/flyway:latest migrate
 
@@ -76,8 +76,8 @@ jobs:
           docker run --network host --rm \
             -v ${{ github.workspace }}/sql/schema/testdata/:/flyway/sql \
             -v ${{ github.workspace }}/sql/testdata.conf:/flyway/conf/flyway.conf \
-            -e FLYWAY_USER=${{ secrets.POSTGRES_USER }} \
-            -e FLYWAY_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            -e FLYWAY_USER=${{ env.POSTGRES_USER }} \
+            -e FLYWAY_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
             -e FLYWAY_URL=jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }} \
             flyway/flyway:latest migrate
 
