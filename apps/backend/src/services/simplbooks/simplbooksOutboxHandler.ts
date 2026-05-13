@@ -31,7 +31,8 @@ import {
   createAnnualMemberFeeWithEquipmentFeeInvoicePayload,
   createNewMemberFeesInvoicePayload,
 } from '../accounting/recurringFeesInvoiceCreator.ts'
-import { sendSimplbooksInvoiceEmail } from './simplBooksEmailer.ts'
+import { sendDryRunInvoiceEmail, sendSimplbooksInvoiceEmail } from './simplBooksEmailer.ts'
+import { isDryRunEnabled, generateDryRunInvoiceId, type DryRunTask } from './simplbooksDryRun.ts'
 
 import {
   setOutboxStatus,
@@ -503,11 +504,20 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
 }
 
 async function createSimplbooksInvoiceEmail(outboxMsg: AcctsOutboxSimplbooks) {
-  const { memberId, invoiceId } = outboxMsg.payload as any
-  await sendInvoiceEmail(memberId, invoiceId, outboxMsg.id)
+  const { memberId, invoiceId, dryRunTasks } = outboxMsg.payload as {
+    memberId: string
+    invoiceId: number
+    dryRunTasks?: DryRunTask[]
+  }
+  await sendInvoiceEmail(memberId, invoiceId, outboxMsg.id, dryRunTasks)
 }
 
-async function sendInvoiceEmail(memberId: string, invoiceId: number, outboxMsgId: string) {
+async function sendInvoiceEmail(
+  memberId: string,
+  invoiceId: number,
+  outboxMsgId: string,
+  dryRunTasks?: DryRunTask[],
+) {
   try {
     await db.transaction().execute(async txn => {
       // Mark the outbox message as processed
@@ -530,6 +540,15 @@ async function sendInvoiceEmail(memberId: string, invoiceId: number, outboxMsgId
           `Expected to update exactly 1 invoice, but updated ${result[0]?.numUpdatedRows ?? 0} rows for invoice ${invoiceId}`,
         )
       }
+
+      if (isDryRunEnabled()) {
+        // Dry-run: send email with invoice rows from the outbox payload;
+        // skip the SimplBooks PDF fetch and the "mark as sent" API call.
+        logger.info(`[DRY RUN] Sending dry-run invoice email for invoice ${invoiceId}`)
+        await sendDryRunInvoiceEmail(invoiceId, memberId, dryRunTasks ?? [])
+        return
+      }
+
       // Send the email first - if this fails, we don't update the database
       await sendSimplbooksInvoiceEmail(invoiceId, memberId)
 
@@ -553,6 +572,10 @@ async function createInvoice(
   payload: InvoicePost,
   txn: Transaction<DB>,
 ): Promise<number> {
+  if (isDryRunEnabled()) {
+    return createDryRunInvoice(memberId, outboxMsgId, invoiceType, payload, txn)
+  }
+
   // Create the invoice in Simplbooks
   const retval = await createSimplbooksInvoice(payload)
 
@@ -577,9 +600,83 @@ async function createInvoice(
   return invoiceData.id!
 }
 
+/**
+ * Dry-run version of createInvoice.
+ * Builds a synthetic invoice record from the payload without calling SimplBooks.
+ * Stores the invoice tasks in the SEND_INVOICE_PDF outbox payload so the email
+ * sender can render the line-item table without any API calls.
+ */
+async function createDryRunInvoice(
+  memberId: string,
+  outboxMsgId: string,
+  invoiceType: MIKInvoiceType,
+  payload: InvoicePost,
+  txn: Transaction<DB>,
+): Promise<number> {
+  const fakeId = generateDryRunInvoiceId()
+  const now = new Date()
+  const totalSum = payload.Tasks.reduce(
+    (sum, t) => sum + (t.Task.amount ?? 0) * (t.Task.price_per_unit ?? 0),
+    0,
+  )
+  const due = new Date(now.getTime() + 14 * 86_400_000).toISOString().slice(0, 10)
+
+  const invoiceData = {
+    id: fakeId,
+    client_id: payload.Invoice.client_id,
+    total_sum: totalSum,
+    currency_name: MIK_CURRENCY,
+    due,
+    created: now.toISOString().slice(0, 10),
+    additional_info: payload.Invoice.additional_info ?? '',
+  }
+
+  logger.info(
+    `[DRY RUN] Skipping SimplBooks invoice creation — fake invoice ID ${fakeId}, total €${totalSum.toFixed(2)}`,
+  )
+
+  await insertInvoice(txn, memberId, invoiceType, invoiceData, MIK_CURRENCY)
+
+  // Carry task data in the outbox payload so the email can render the item table.
+  await insertOutboxItem(
+    SimplbooksEventType.SEND_INVOICE_PDF,
+    {
+      memberId,
+      invoiceId: fakeId,
+      dryRunTasks: payload.Tasks.map(t => t.Task),
+    },
+    txn,
+  )
+
+  await setOutboxStatus(txn, outboxMsgId, SimplbooksStatus.SYNCED)
+
+  return fakeId
+}
+
 async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
   // Extract the member data from the outbox message, validate it, and create a new client in SimplBooks
   const member = MemberSchema.parse(outboxMsg.payload)
+
+  if (isDryRunEnabled()) {
+    // Assign a fake billing ID without touching SimplBooks.
+    const fakeBillingId = generateDryRunInvoiceId().toString()
+    logger.info(
+      `[DRY RUN] Skipping SimplBooks client creation for member ${member.memberId} — fake billing ID: ${fakeBillingId}`,
+    )
+    await db.transaction().execute(async txn => {
+      await updateMemberBillingId(txn, member.memberId, fakeBillingId)
+      await insertOutboxItem(
+        SimplbooksEventType.NEW_MEMBER_FEES,
+        {
+          ...member,
+          billingId: fakeBillingId,
+        },
+        txn,
+      )
+      await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
+    })
+    return
+  }
 
   // Check whether a client with this email already exists in SimplBooks.
   // This can happen if the member was previously registered or if a duplicate

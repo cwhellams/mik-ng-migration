@@ -120,6 +120,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 - Frontend URL: http://localhost:5173
 - **Important**: Add `SIMPLBOOKS_COMPANY_ID=123` to the .env file if missing to avoid startup errors
 - **Important**: Add `DISABLE_EMAIL_SENDING=true` to the .env file to prevent actual emails being sent in development
+- **Important**: Add `SIMPLBOOKS_DRY_RUN=true` to test the invoice outbox worker locally without calling SimplBooks (see Dry-Run Mode below)
 
 ## Known Issues and Workarounds
 
@@ -135,6 +136,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 ├── apps/
 │   ├── backend/          # Node.js/Express API with TypeScript
 │   └── frontend/         # React/Vite application
+├── simplbooks/           # Cloudflare Worker — mock SimplBooks API (see below)
 ├── sql/                  # Database migrations and test data
 ├── scripts/              # Utility scripts for development
 └── .github/workflows/    # CI/CD pipelines
@@ -144,11 +146,13 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 
 Always check these locations when working on the codebase:
 
-- `apps/backend/src/db/schema.d.ts` - Generated database types
+- `apps/backend/src/db/schema.d.ts` - Generated database types (run `pnpm schema` to regenerate)
 - `apps/backend/.env` - Backend environment configuration
 - `sql/schema/migration/` - Database schema migrations
 - `sql/schema/testdata/` - Test data scripts
 - `sql/migration.conf` - Flyway configuration (defines schemas via `flyway.schemas`)
+- `simplbooks/src/worker/` - Cloudflare Worker source for the SimplBooks mock API
+- `simplbooks/wrangler.toml` - Cloudflare Worker configuration (must set real `database_id` before first deploy)
 - Package files: `package.json`, `apps/*/package.json`
 
 ## Database Schema Management
@@ -187,3 +191,82 @@ The GitHub Actions workflows require:
 - PostgreSQL service for backend tests
 
 Always run `pnpm format` and `pnpm build` before committing changes to ensure CI passes.
+
+## SimplBooks Dry-Run Mode
+
+The outbox worker supports a dry-run mode for testing invoice generation locally or in the beta environment **without making any HTTP calls to SimplBooks**.
+
+### Enabling dry-run
+
+Add to `apps/backend/.env`:
+
+```
+SIMPLBOOKS_DRY_RUN=true
+```
+
+`NODE_ENV=production` always overrides this to `false` (logs a critical error if set). It is safe to commit the flag as `false` or absent in production config.
+
+### What dry-run does
+
+| Outbox event       | Dry-run behaviour                                                                                                                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ADD_MEMBER`       | Assigns a fake timestamp-based `billingId`; no SimplBooks client is created                                                                                                                        |
+| `NEW_MEMBER_FEES`  | Builds the full invoice payload, then skips the SimplBooks API call; stores a synthetic invoice row in `accts.invoice` and embeds the task/line-item data in the `SEND_INVOICE_PDF` outbox payload |
+| `SEND_INVOICE_PDF` | Skips fetching invoice + PDF from SimplBooks; sends a real email with full line-item table rendered from the embedded tasks                                                                        |
+
+The email is clearly marked `[DEV DRY RUN]` in the subject and includes a warning banner. No PDF is attached.
+
+### Key files
+
+- `apps/backend/src/services/simplbooks/simplbooksDryRun.ts` — `isDryRunEnabled()`, `generateDryRunInvoiceId()`, `DryRunTask`
+- `apps/backend/src/services/simplbooks/simplbooksOutboxHandler.ts` — dry-run branches in `createInvoice()` and `addMember()`
+- `apps/backend/src/services/simplbooks/simplBooksEmailer.ts` — `sendDryRunInvoiceEmail()`
+
+## Cloudflare Worker — SimplBooks Mock API
+
+The `simplbooks/` directory contains a Cloudflare Worker that mocks the SimplBooks API. It stores data in Cloudflare D1 (SQLite) and can generate PDF invoices and send emails.
+
+### Local development
+
+```bash
+cd simplbooks
+# Copy secrets file (never commit this)
+cp .dev.vars.example .dev.vars   # fill in API_TOKEN and email credentials
+
+# Create the local D1 database
+npx wrangler d1 execute mik-simplbooks-db --local --file=src/d1-schema.sql
+
+# Start local dev server (Miniflare simulation)
+npx wrangler dev --local
+# Worker available at http://localhost:8787
+```
+
+Test it:
+
+```bash
+curl -X GET http://localhost:8787/api/clients \
+  -H "X-Simplbooks-Token: your_test_token"
+```
+
+### Deploying to Cloudflare
+
+1. Create a D1 database: `npx wrangler d1 create mik-simplbooks-db`
+2. Replace `database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"` in `simplbooks/wrangler.toml` with the real ID
+3. Set secrets: `npx wrangler secret put SIMPLBOOKS_API_TOKEN` (and others listed in `wrangler.toml`)
+4. Push `main` — the GitHub Actions workflow `deploy-simplbooks-worker.yml` deploys automatically when `simplbooks/` files change
+
+### Security
+
+- All requests require `X-Simplbooks-Token` header matching `SIMPLBOOKS_API_TOKEN` secret
+- Optional IP allowlist: set `ALLOWED_IPS` secret to a comma-separated list of allowed IPs (e.g. your Digital Ocean droplet IP). Uses Cloudflare's `CF-Connecting-IP` header (cannot be spoofed). Leave unset to allow any IP.
+
+### Required GitHub Secrets for CI/CD
+
+| Secret                                     | Purpose                                                            |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| `CLOUDFLARE_API_TOKEN`                     | Custom token with `Workers Scripts: Edit` + `D1: Edit` permissions |
+| `CLOUDFLARE_ACCOUNT_ID`                    | Your Cloudflare account ID                                         |
+| `SIMPLBOOKS_API_TOKEN`                     | Shared secret for `X-Simplbooks-Token` auth                        |
+| `SIMPLBOOKS_MOCK_ALLOWED_IPS`              | Comma-separated IP allowlist (optional)                            |
+| `SMTP_HOST`, `SMTP_LOGIN`, `SMTP_PASSWORD` | Email sending credentials                                          |
+| `DISABLE_EMAIL_SENDING`                    | Set `false` in production, `true` otherwise                        |

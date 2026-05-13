@@ -186,6 +186,9 @@ services:
       - key: NODE_ENV
         value: 'production'
         type: GENERAL
+      - key: APP_ENV
+        value: 'production'
+        type: GENERAL
 
     instance_count: 1
     health_check:

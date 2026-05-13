@@ -18,7 +18,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment:
-      name: test
+      name: TEST
       url: ${{ vars.PUBLIC_URL_TEST }}
 
     steps:
@@ -106,6 +106,7 @@ jobs:
           echo "VITE_API_TARGET=${{ vars.VITE_API_TARGET_TEST }}" >> "$GITHUB_ENV"
           echo "BETTERSTACK_API_TOKEN=${{ secrets.BETTERSTACK_API_TOKEN }}" >> "$GITHUB_ENV"
           echo "SIMPLBOOKS_OUTBOX_WORKER_ENABLED=${{ vars.SIMPLBOOKS_OUTBOX_WORKER_ENABLED }}" >> "$GITHUB_ENV"
+          echo "SIMPLBOOKS_DRY_RUN=${{ vars.SIMPLBOOKS_DRY_RUN }}" >> "$GITHUB_ENV"
           echo "SIMPLBOOKS_COMPANY_ID=${{ vars.SIMPLBOOKS_COMPANY_ID }}" >> "$GITHUB_ENV"
           echo "SIMPLBOOKS_BASE_URI=${{ vars.SIMPLBOOKS_BASE_URI }}" >> "$GITHUB_ENV"
           echo "SIMPLBOOKS_API_KEY=${{ secrets.SIMPLBOOKS_API_KEY }}" >> "$GITHUB_ENV"
