@@ -29,7 +29,7 @@ export const ViewFlightDate = ({
   ) : (
     <>
       <Typography fontSize={25} lineHeight={0.75}>
-        {formatDateCustom(date, 'D.M.')}
+        {formatDateCustom(date, 'DD.MM.')}
       </Typography>
       <Typography fontSize={16}>{formatDateCustom(date, 'YYYY')}</Typography>
     </>
