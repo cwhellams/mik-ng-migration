@@ -336,7 +336,8 @@
       "info": "Info",
       "documents": "Dokument",
       "pricing": "Priser",
-      "cards": "Kort"
+      "cards": "Kort",
+      "navdata": "Navdata"
     },
     "document": {
       "arc": "ARC",
@@ -501,7 +502,34 @@
       "caution": "Försiktighet",
       "warning": "Varning"
     },
-    "hiddenBadge": "Dold"
+    "hiddenBadge": "Dold",
+    "navdata": {
+      "title": "Navdata",
+      "navdataLabel": "Navdata:",
+      "add": "Lägg till navdatauppdatering",
+      "noRecords": "Inga navdataposter",
+      "updater": "Uppdaterad av",
+      "updaterHelp": "Medlem som utförde navdatauppdateringen",
+      "updaterRequired": "Uppdaterare krävs",
+      "updateDate": "Uppdateringsdatum",
+      "updateDateRequired": "Uppdateringsdatum krävs",
+      "cycle": "Cykel",
+      "cycleHelp": "T.ex. 2604",
+      "cycleRequired": "Cykel krävs",
+      "expires": "Upphör",
+      "expiresRequired": "Utgångsdatum krävs",
+      "status": {
+        "label": "Status",
+        "valid": "Giltig",
+        "expiring": "Upphör snart",
+        "expired": "Utgången",
+        "unknown": "Ingen data"
+      },
+      "delete": {
+        "title": "Ta bort navdatapost",
+        "confirm": "Är du säker på att du vill ta bort denna navdatapost?"
+      }
+    }
   },
   "documents": {
     "title": "Dokumentarkiv",

@@ -335,7 +335,8 @@
       "info": "Tiedot",
       "documents": "Asiakirjat",
       "pricing": "Hinnoittelu",
-      "cards": "Kortit"
+      "cards": "Kortit",
+      "navdata": "Navdata"
     },
     "document": {
       "arc": "ARC",
@@ -499,7 +500,34 @@
       "caution": "Varoitus",
       "warning": "Vaara"
     },
-    "hiddenBadge": "Piilotettu"
+    "hiddenBadge": "Piilotettu",
+    "navdata": {
+      "title": "Navdata",
+      "navdataLabel": "Navdata:",
+      "add": "Lisää navdata-päivitys",
+      "noRecords": "Ei navdata-tietoja",
+      "updater": "Päivittäjä",
+      "updaterHelp": "Jäsen, joka suoritti navdata-päivityksen",
+      "updaterRequired": "Päivittäjä on pakollinen",
+      "updateDate": "Päivityspäivä",
+      "updateDateRequired": "Päivityspäivä on pakollinen",
+      "cycle": "Sykli",
+      "cycleHelp": "Esim. 2604",
+      "cycleRequired": "Sykli on pakollinen",
+      "expires": "Vanhenee",
+      "expiresRequired": "Vanhenemispäivä on pakollinen",
+      "status": {
+        "label": "Tila",
+        "valid": "Voimassa",
+        "expiring": "Vanhenee pian",
+        "expired": "Vanhentunut",
+        "unknown": "Ei tietoa"
+      },
+      "delete": {
+        "title": "Poista navdata-merkintä",
+        "confirm": "Haluatko varmasti poistaa tämän navdata-merkinnän?"
+      }
+    }
   },
   "documents": {
     "title": "Asiakirja-arkisto",

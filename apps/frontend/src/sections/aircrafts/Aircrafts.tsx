@@ -36,6 +36,7 @@ import { FormField } from '../../components/FormField'
 import { Icon } from '@iconify/react'
 import { AircraftDocumentSection } from './components/AircraftDocumentSection'
 import { AircraftCardSection } from './components/AircraftCardSection'
+import { NavdataSection, NavdataInfoStatus } from './components/NavdataSection'
 import { useRoles } from '../../hooks/useRoles'
 import { useState } from 'react'
 import {
@@ -520,6 +521,10 @@ const Aircrafts = () => {
                           }
                           max={aircraft.maintenance.maintenanceCycle}
                         />
+
+                        <NavdataInfoStatus
+                          aircraftRegistration={aircraft.registration}
+                        />
                       </>
                     )}
 
@@ -546,6 +551,16 @@ const Aircrafts = () => {
                     {currentTab === 3 && (
                       <Box sx={{ flex: 1 }}>
                         <AircraftCardSection
+                          aircraftRegistration={aircraft.registration}
+                          isAdmin={isAircraftAdmin}
+                        />
+                      </Box>
+                    )}
+
+                    {/* Navdata Tab Content */}
+                    {currentTab === 4 && (
+                      <Box sx={{ flex: 1 }}>
+                        <NavdataSection
                           aircraftRegistration={aircraft.registration}
                           isAdmin={isAircraftAdmin}
                         />
@@ -584,6 +599,10 @@ const Aircrafts = () => {
                   <BottomNavigationAction
                     label={t('aircraft.tabs.cards', 'Cards')}
                     icon={<Icon icon='mdi:card-account-details' />}
+                  />
+                  <BottomNavigationAction
+                    label={t('aircraft.tabs.navdata', 'Navdata')}
+                    icon={<Icon icon='mdi:satellite-uplink' />}
                   />
                 </BottomNavigation>
               </Card>

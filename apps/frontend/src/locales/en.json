@@ -336,7 +336,8 @@
       "info": "Info",
       "documents": "Documents",
       "pricing": "Pricing",
-      "cards": "Cards"
+      "cards": "Cards",
+      "navdata": "Navdata"
     },
     "document": {
       "arc": "ARC",
@@ -501,7 +502,34 @@
       "caution": "Caution",
       "warning": "Warning"
     },
-    "hiddenBadge": "Hidden"
+    "hiddenBadge": "Hidden",
+    "navdata": {
+      "title": "Navdata",
+      "navdataLabel": "Navdata:",
+      "add": "Add Navdata Update",
+      "noRecords": "No navdata records",
+      "updater": "Updated By",
+      "updaterHelp": "Member who performed the navdata update",
+      "updaterRequired": "Updater is required",
+      "updateDate": "Update Date",
+      "updateDateRequired": "Update date is required",
+      "cycle": "Cycle",
+      "cycleHelp": "E.g. 2604",
+      "cycleRequired": "Cycle is required",
+      "expires": "Expires",
+      "expiresRequired": "Expiry date is required",
+      "status": {
+        "label": "Status",
+        "valid": "Valid",
+        "expiring": "Expires Soon",
+        "expired": "Expired",
+        "unknown": "No Data"
+      },
+      "delete": {
+        "title": "Delete Navdata Record",
+        "confirm": "Are you sure you want to delete this navdata record?"
+      }
+    }
   },
   "documents": {
     "title": "Document Archive",

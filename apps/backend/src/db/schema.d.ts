@@ -298,6 +298,17 @@ export interface FlightAircraftCards {
   valid_to: string | null
 }
 
+export interface FlightAircraftNavdata {
+  navdata_id: Generated<string>
+  aircraft_registration: string
+  updater_member_id: string
+  update_date: string
+  cycle: string
+  expires: string
+  created_at: Generated<Timestamp>
+  created_by: string
+}
+
 export interface FlightAircraftDocumentsFiles {
   aircraft_registration: string
   created_at: Generated<Timestamp>
@@ -1149,6 +1160,7 @@ export interface DB {
   'flight.aircraft_cards': FlightAircraftCards
   'flight.aircraft_documents_files': FlightAircraftDocumentsFiles
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
+  'flight.aircraft_navdata': FlightAircraftNavdata
   'flight.flight_credits': FlightFlightCredits
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit
