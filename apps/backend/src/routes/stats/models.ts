@@ -174,6 +174,56 @@ export const TotalFlightTimeByPilotYrMthSchema = z.object({
   total_ifr_mins: z.number(),
 })
 
+// V1000: Reservation Efficiency Views
+export const ReservationEfficiencyByYrSchema = z.object({
+  yr: z.number().nullable(),
+  total_flight_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const ReservationEfficiencyByYrMthSchema = z.object({
+  yr: z.number().nullable(),
+  mth: z.number().nullable(),
+  total_flight_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const ReservationEfficiencyByAcYrSchema = z.object({
+  aircraft_registration: z.string().nullable(),
+  yr: z.number().nullable(),
+  total_flight_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const ReservationEfficiencyByAcYrMthSchema = z.object({
+  aircraft_registration: z.string().nullable(),
+  yr: z.number().nullable(),
+  mth: z.number().nullable(),
+  total_flight_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const ReservationEfficiencyByMemberYrSchema = z.object({
+  member: z.string().nullable(),
+  yr: z.number().nullable(),
+  total_flight_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const ReservationEfficiencyByMemberYrMthSchema = z.object({
+  member: z.string().nullable(),
+  yr: z.number().nullable(),
+  mth: z.number().nullable(),
+  total_flight_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
 // Pilot Statistics
 export const PilotStatisticsHistogramBinSchema = z.object({
   binFrom: z.number(),
@@ -211,3 +261,11 @@ export type TotalFlightTimeByPilot = z.infer<typeof TotalFlightTimeByPilotSchema
 export type TotalFlightTimeByPilotYr = z.infer<typeof TotalFlightTimeByPilotYrSchema>
 export type TotalFlightTimeByPilotYrMth = z.infer<typeof TotalFlightTimeByPilotYrMthSchema>
 export type CommercialFlightTimeByAcYrMth = z.infer<typeof CommercialFlightTimeByAcYrMthSchema>
+export type ReservationEfficiencyByYr = z.infer<typeof ReservationEfficiencyByYrSchema>
+export type ReservationEfficiencyByYrMth = z.infer<typeof ReservationEfficiencyByYrMthSchema>
+export type ReservationEfficiencyByAcYr = z.infer<typeof ReservationEfficiencyByAcYrSchema>
+export type ReservationEfficiencyByAcYrMth = z.infer<typeof ReservationEfficiencyByAcYrMthSchema>
+export type ReservationEfficiencyByMemberYr = z.infer<typeof ReservationEfficiencyByMemberYrSchema>
+export type ReservationEfficiencyByMemberYrMth = z.infer<
+  typeof ReservationEfficiencyByMemberYrMthSchema
+>

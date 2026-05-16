@@ -23,6 +23,12 @@ import {
   getTotalFlightTimeByAcDt,
   getCommercialFlightTimeByAcYrMth,
   getPilotStatistics,
+  getReservationEfficiencyByYr,
+  getReservationEfficiencyByYrMth,
+  getReservationEfficiencyByAcYr,
+  getReservationEfficiencyByAcYrMth,
+  getReservationEfficiencyByMemberYr,
+  getReservationEfficiencyByMemberYrMth,
 } from '../../db/stats-queries.ts'
 import type {
   TotalFlightTimeByAc,
@@ -46,6 +52,12 @@ import type {
   TotalFlightTimeByAcCalendar,
   CommercialFlightTimeByAcYrMth,
   PilotStatistics,
+  ReservationEfficiencyByYr,
+  ReservationEfficiencyByYrMth,
+  ReservationEfficiencyByAcYr,
+  ReservationEfficiencyByAcYrMth,
+  ReservationEfficiencyByMemberYr,
+  ReservationEfficiencyByMemberYrMth,
 } from './models.ts'
 
 export const router = Router()
@@ -275,6 +287,92 @@ router.get('/pilots', async (req: Request, res: Response<PilotStatistics>) => {
   const data = await getPilotStatistics({ from, to })
   res.status(200).json(data)
 })
+
+// V1010: Reservation Efficiency Routes
+router.get(
+  '/reservation-efficiency/year',
+  async (req: Request, res: Response<ReservationEfficiencyByYr[]>) => {
+    const { yr, yr_from, yr_to } = req.query
+    const data = await getReservationEfficiencyByYr({
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/reservation-efficiency/year/month',
+  async (req: Request, res: Response<ReservationEfficiencyByYrMth[]>) => {
+    const { yr, yr_from, yr_to, mth } = req.query
+    const data = await getReservationEfficiencyByYrMth({
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+      mth: mth ? Number(mth) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/reservation-efficiency/aircraft/year',
+  async (req: Request, res: Response<ReservationEfficiencyByAcYr[]>) => {
+    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const data = await getReservationEfficiencyByAcYr({
+      aircraft_registration: aircraft_registration as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/reservation-efficiency/aircraft/year/month',
+  async (req: Request, res: Response<ReservationEfficiencyByAcYrMth[]>) => {
+    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const data = await getReservationEfficiencyByAcYrMth({
+      aircraft_registration: aircraft_registration as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+      mth: mth ? Number(mth) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/reservation-efficiency/member/year',
+  async (req: Request, res: Response<ReservationEfficiencyByMemberYr[]>) => {
+    const { member, yr, yr_from, yr_to } = req.query
+    const data = await getReservationEfficiencyByMemberYr({
+      member: member as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/reservation-efficiency/member/year/month',
+  async (req: Request, res: Response<ReservationEfficiencyByMemberYrMth[]>) => {
+    const { member, yr, yr_from, yr_to, mth } = req.query
+    const data = await getReservationEfficiencyByMemberYrMth({
+      member: member as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+      mth: mth ? Number(mth) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
 
 router.use(
   validateUser(

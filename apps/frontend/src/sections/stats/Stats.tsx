@@ -26,8 +26,9 @@ import {
 } from '@backend/routes/stats/models'
 import { RemoteContent } from '../../components/RemoteContent'
 import { PilotStatistics as PilotStatisticsView } from './components/PilotStatistics'
+import { ReservationEfficiency as ReservationEfficiencyView } from './components/ReservationEfficiency'
 
-type ViewMode = 'aircraft' | 'pilot' | 'pilots'
+type ViewMode = 'aircraft' | 'pilot' | 'pilots' | 'efficiency'
 
 const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
   <Box
@@ -584,6 +585,9 @@ export const Stats = () => {
                 <ToggleButton value='aircraft'>Aircraft</ToggleButton>
                 <ToggleButton value='pilot'>Members</ToggleButton>
                 <ToggleButton value='pilots'>Pilots</ToggleButton>
+                <ToggleButton value='efficiency'>
+                  Reservation Efficiency
+                </ToggleButton>
               </ToggleButtonGroup>
             </Grid>
           </Grid>
@@ -593,7 +597,10 @@ export const Stats = () => {
       {/* Pilot Statistics view */}
       {viewMode === 'pilots' && <PilotStatisticsView />}
 
-      {viewMode !== 'pilots' && (
+      {/* Reservation Efficiency view */}
+      {viewMode === 'efficiency' && <ReservationEfficiencyView />}
+
+      {viewMode !== 'pilots' && viewMode !== 'efficiency' && (
         <>
           {/* Summary Stats */}
           {viewMode === 'aircraft' ? (

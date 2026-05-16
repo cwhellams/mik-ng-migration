@@ -25,6 +25,12 @@ export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'TRAININ
 
 export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
 
+export type DtoItemOutcome = 'COMPLETED' | 'FAILED' | 'MOVED_TO_HIL'
+
+export type DtoSyllabusStatus = 'ARCHIVED' | 'DRAFT' | 'PUBLISHED' | 'WAITING_FOR_APPROVAL'
+
+export type DtoVerificationResult = 'APPROVED' | 'FAILED'
+
 export type ExamAttemptStatus = 'ABANDONED' | 'GRADED' | 'IN_PROGRESS' | 'SUBMITTED'
 
 export type ExamExamType = 'AFM' | 'DTO' | 'OTHER' | 'SELF_STUDY'
@@ -170,6 +176,100 @@ export interface AcctsRecurringFeesProcessing {
   updated_at: Generated<Timestamp>
   updated_by: string
   year: number
+}
+
+export interface DtoFlightItemOutcomes {
+  attempt_id: string
+  created_at: Generated<Timestamp>
+  item_id: string
+  outcome: DtoItemOutcome
+  remarks: string | null
+  updated_at: Generated<Timestamp>
+}
+
+export interface DtoHilQueue {
+  hil_id: Generated<string>
+  item_id: string
+  member_id: string
+  notes: string | null
+  opened_at: Generated<Timestamp>
+  opened_on_attempt_id: string
+  resolution_outcome: DtoItemOutcome | null
+  resolved_at: Timestamp | null
+  resolved_on_attempt_id: string | null
+  syllabus_id: string
+}
+
+export interface DtoMemberSyllabus {
+  assigned_at: Generated<Timestamp>
+  assigned_by: string
+  deactivated_at: Timestamp | null
+  is_active: Generated<boolean>
+  member_id: string
+  member_syllabus_id: Generated<string>
+  syllabus_id: string
+}
+
+export interface DtoSyllabus {
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: string | null
+  major_version: number
+  minor_version: number
+  patch_version: Generated<number>
+  program_id: string
+  published_at: Timestamp | null
+  status: Generated<DtoSyllabusStatus>
+  syllabus_id: Generated<string>
+  updated_at: Generated<Timestamp>
+  updated_by: string
+  version: Generated<string | null>
+}
+
+export interface DtoSyllabusFlightAttempts {
+  attempt_id: Generated<string>
+  created_at: Generated<Timestamp>
+  flight_log_id: string
+  instructor_comments: string | null
+  instructor_member_id: string
+  member_syllabus_id: string
+  syllabus_flight_id: string
+  updated_at: Generated<Timestamp>
+  verification_result: DtoVerificationResult | null
+  verified_at: Timestamp | null
+  verified_by: string | null
+}
+
+export interface DtoSyllabusFlightItems {
+  description: string | null
+  item_id: Generated<string>
+  mandatory: Generated<boolean>
+  name: string
+  sort_order: number
+  syllabus_flight_id: string
+}
+
+export interface DtoSyllabusFlights {
+  code: string
+  created_at: Generated<Timestamp>
+  description: string | null
+  flight_id: Generated<string>
+  is_interim_checkpoint: Generated<boolean>
+  name: string
+  sort_order: number
+  syllabus_id: string
+  tags: Generated<string[]>
+  updated_at: Generated<Timestamp>
+}
+
+export interface DtoTrainingProgram {
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: string | null
+  name: string
+  program_id: Generated<string>
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface ExamAttemptAnswers {
@@ -599,16 +699,6 @@ export interface MemberDocumentTinyUrls {
   url: string
 }
 
-export interface MemberPendingEmailChanges {
-  created_at: Generated<Timestamp>
-  expires_at: Timestamp
-  id: Generated<string>
-  member_id: string
-  new_email: string
-  token_hash: string
-  used_at: Timestamp | null
-}
-
 export interface MemberLoginAttempts {
   code_hash: string
   created_at: Generated<Timestamp>
@@ -630,30 +720,6 @@ export interface MemberLoginEvents {
   user_agent: string | null
 }
 
-export interface MemberPasskeys {
-  backed_up: Generated<boolean>
-  counter: Generated<Int8>
-  created_at: Generated<Timestamp>
-  credential_id: string
-  device_type: string | null
-  id: Generated<string>
-  last_used_at: Timestamp | null
-  member_id: string
-  name: string | null
-  public_key: Buffer
-  transports: Generated<string[]>
-}
-
-export interface MemberWebauthnChallenges {
-  challenge: string
-  created_at: Generated<Timestamp>
-  email: string | null
-  expires_at: Timestamp
-  id: Generated<string>
-  member_id: string | null
-  purpose: string
-}
-
 export interface MemberMemberToRoles {
   created_at: Generated<Timestamp>
   created_by: string
@@ -673,7 +739,35 @@ export interface MemberNonRenewalActions {
   performed_by: string
 }
 
+export interface MemberPasskeys {
+  backed_up: Generated<boolean>
+  counter: Generated<Int8>
+  created_at: Generated<Timestamp>
+  credential_id: string
+  device_type: string | null
+  id: Generated<string>
+  last_used_at: Timestamp | null
+  member_id: string
+  name: string | null
+  public_key: Buffer
+  transports: Generated<string[]>
+}
+
+export interface MemberPendingEmailChanges {
+  created_at: Generated<Timestamp>
+  expires_at: Timestamp
+  id: Generated<string>
+  member_id: string
+  new_email: string
+  token_hash: string
+  used_at: Timestamp | null
+}
+
 export interface MemberRegister {
+  /**
+   * Registration application data: flight hours, aircraft types, motivation, cover letter, declarations, etc.
+   */
+  application_data: Json | null
   auto_renew_annual_membership: Generated<boolean | null>
   auto_renew_equipment_fee: Generated<boolean | null>
   billing_id: string | null
@@ -683,10 +777,6 @@ export interface MemberRegister {
   can_make_reservations: Generated<boolean>
   created_at: Generated<Timestamp>
   created_by: string
-  /**
-   * Registration application data: flight hours, aircraft types, motivation, cover letter, declarations, etc.
-   */
-  application_data: Json | null
   /**
    * User preferences for dashboard component order and visibility. Structure: {"components": [{"id": "weather", "visible": true, "order": 0}, ...]}
    */
@@ -764,6 +854,16 @@ export interface MemberSimplbooksSyncState {
   last_synced_at: Generated<Timestamp>
   members_synced: Generated<number>
   sync_status: Generated<string>
+}
+
+export interface MemberWebauthnChallenges {
+  challenge: string
+  created_at: Generated<Timestamp>
+  email: string | null
+  expires_at: Timestamp
+  id: Generated<string>
+  member_id: string | null
+  purpose: string
 }
 
 export interface PrepaidMemberPackages {
@@ -1042,6 +1142,55 @@ export interface StatsNonBillableTotalFlightTimeByAcYrMth {
   yr: number
 }
 
+export interface StatsReservationEfficiencyByAcYr {
+  aircraft_registration: string | null
+  efficiency_pct: Numeric | null
+  total_flight_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsReservationEfficiencyByAcYrMth {
+  aircraft_registration: string | null
+  efficiency_pct: Numeric | null
+  mth: Numeric | null
+  total_flight_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsReservationEfficiencyByMemberYr {
+  efficiency_pct: Numeric | null
+  member: string | null
+  total_flight_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsReservationEfficiencyByMemberYrMth {
+  efficiency_pct: Numeric | null
+  member: string | null
+  mth: Numeric | null
+  total_flight_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsReservationEfficiencyByYr {
+  efficiency_pct: Numeric | null
+  total_flight_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsReservationEfficiencyByYrMth {
+  efficiency_pct: Numeric | null
+  mth: Numeric | null
+  total_flight_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
 export interface StatsTotalCommercialFlightTimeByAcYrMth {
   aircraft_registration: string
   mth: number
@@ -1147,6 +1296,14 @@ export interface DB {
   'accts.items': AcctsItems
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks
   'accts.recurring_fees_processing': AcctsRecurringFeesProcessing
+  'dto.flight_item_outcomes': DtoFlightItemOutcomes
+  'dto.hil_queue': DtoHilQueue
+  'dto.member_syllabus': DtoMemberSyllabus
+  'dto.syllabus': DtoSyllabus
+  'dto.syllabus_flight_attempts': DtoSyllabusFlightAttempts
+  'dto.syllabus_flight_items': DtoSyllabusFlightItems
+  'dto.syllabus_flights': DtoSyllabusFlights
+  'dto.training_program': DtoTrainingProgram
   'exam.attempt_answers': ExamAttemptAnswers
   'exam.attempts': ExamAttempts
   'exam.choice_translations': ExamChoiceTranslations
@@ -1210,6 +1367,12 @@ export interface DB {
   'stats.non_billable_total_flight_time_by_ac': StatsNonBillableTotalFlightTimeByAc
   'stats.non_billable_total_flight_time_by_ac_yr': StatsNonBillableTotalFlightTimeByAcYr
   'stats.non_billable_total_flight_time_by_ac_yr_mth': StatsNonBillableTotalFlightTimeByAcYrMth
+  'stats.reservation_efficiency_by_ac_yr': StatsReservationEfficiencyByAcYr
+  'stats.reservation_efficiency_by_ac_yr_mth': StatsReservationEfficiencyByAcYrMth
+  'stats.reservation_efficiency_by_member_yr': StatsReservationEfficiencyByMemberYr
+  'stats.reservation_efficiency_by_member_yr_mth': StatsReservationEfficiencyByMemberYrMth
+  'stats.reservation_efficiency_by_yr': StatsReservationEfficiencyByYr
+  'stats.reservation_efficiency_by_yr_mth': StatsReservationEfficiencyByYrMth
   'stats.total_commercial_flight_time_by_ac_yr_mth': StatsTotalCommercialFlightTimeByAcYrMth
   'stats.total_flight_time_by_ac_dt': StatsTotalFlightTimeByAcDt
   'stats.total_flight_time_by_ac_ft': StatsTotalFlightTimeByAcFt

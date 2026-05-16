@@ -24,6 +24,12 @@ const mockGetTotalFlightTimeByPilotYrMth = jest.fn<() => Promise<any>>()
 const mockGetTotalFlightTimeByAcDt = jest.fn<() => Promise<any>>()
 const mockGetCommercialFlightTimeByAcYrMth = jest.fn<() => Promise<any>>()
 const mockGetPilotStatistics = jest.fn<() => Promise<any>>()
+const mockGetReservationEfficiencyByYr = jest.fn<() => Promise<any>>()
+const mockGetReservationEfficiencyByYrMth = jest.fn<() => Promise<any>>()
+const mockGetReservationEfficiencyByAcYr = jest.fn<() => Promise<any>>()
+const mockGetReservationEfficiencyByAcYrMth = jest.fn<() => Promise<any>>()
+const mockGetReservationEfficiencyByMemberYr = jest.fn<() => Promise<any>>()
+const mockGetReservationEfficiencyByMemberYrMth = jest.fn<() => Promise<any>>()
 
 jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getTotalFlightTimeByAc: mockGetTotalFlightTimeByAc,
@@ -47,6 +53,12 @@ jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getTotalFlightTimeByAcDt: mockGetTotalFlightTimeByAcDt,
   getCommercialFlightTimeByAcYrMth: mockGetCommercialFlightTimeByAcYrMth,
   getPilotStatistics: mockGetPilotStatistics,
+  getReservationEfficiencyByYr: mockGetReservationEfficiencyByYr,
+  getReservationEfficiencyByYrMth: mockGetReservationEfficiencyByYrMth,
+  getReservationEfficiencyByAcYr: mockGetReservationEfficiencyByAcYr,
+  getReservationEfficiencyByAcYrMth: mockGetReservationEfficiencyByAcYrMth,
+  getReservationEfficiencyByMemberYr: mockGetReservationEfficiencyByMemberYr,
+  getReservationEfficiencyByMemberYrMth: mockGetReservationEfficiencyByMemberYrMth,
 }))
 
 jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
@@ -658,6 +670,135 @@ describe('Stats API', () => {
         expect(response.body).toHaveProperty('airportsHistogram')
         expect(Array.isArray(response.body.hoursHistogram)).toBe(true)
         expect(Array.isArray(response.body.airportsHistogram)).toBe(true)
+      })
+    })
+  })
+
+  describe('V1010: Reservation Efficiency Endpoints (accessible by any authenticated member)', () => {
+    const mockEfficiencyData = {
+      yr: 2024,
+      total_flight_mins: 1200,
+      total_reserved_mins: 1800,
+      efficiency_pct: 66.67,
+    }
+
+    describe('GET /api/stats/reservation-efficiency/year', () => {
+      it('should return reservation efficiency by year for any authenticated member (no admin required)', async () => {
+        mockGetReservationEfficiencyByYr.mockResolvedValue([mockEfficiencyData])
+
+        const response = await request(app)
+          .get('/api/stats/reservation-efficiency/year')
+          .query({ yr_from: '2024', yr_to: '2024' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockEfficiencyData])
+        expect(mockGetReservationEfficiencyByYr).toHaveBeenCalledWith({
+          yr: undefined,
+          yr_from: 2024,
+          yr_to: 2024,
+        })
+      })
+    })
+
+    describe('GET /api/stats/reservation-efficiency/year/month', () => {
+      it('should return reservation efficiency by year and month for any authenticated member (no admin required)', async () => {
+        const mockData = { ...mockEfficiencyData, mth: 6 }
+        mockGetReservationEfficiencyByYrMth.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/reservation-efficiency/year/month')
+          .query({ yr: '2024', mth: '6' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetReservationEfficiencyByYrMth).toHaveBeenCalledWith({
+          yr: 2024,
+          yr_from: undefined,
+          yr_to: undefined,
+          mth: 6,
+        })
+      })
+    })
+
+    describe('GET /api/stats/reservation-efficiency/aircraft/year', () => {
+      it('should return reservation efficiency by aircraft and year for any authenticated member (no admin required)', async () => {
+        const mockData = { ...mockEfficiencyData, aircraft_registration: 'OH-STL' }
+        mockGetReservationEfficiencyByAcYr.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/reservation-efficiency/aircraft/year')
+          .query({ aircraft_registration: 'OH-STL', yr: '2024' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetReservationEfficiencyByAcYr).toHaveBeenCalledWith({
+          aircraft_registration: 'OH-STL',
+          yr: 2024,
+          yr_from: undefined,
+          yr_to: undefined,
+        })
+      })
+    })
+
+    describe('GET /api/stats/reservation-efficiency/aircraft/year/month', () => {
+      it('should return reservation efficiency by aircraft, year, and month for any authenticated member (no admin required)', async () => {
+        const mockData = { ...mockEfficiencyData, aircraft_registration: 'OH-STL', mth: 7 }
+        mockGetReservationEfficiencyByAcYrMth.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/reservation-efficiency/aircraft/year/month')
+          .query({ aircraft_registration: 'OH-STL', yr_from: '2024', yr_to: '2024', mth: '7' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetReservationEfficiencyByAcYrMth).toHaveBeenCalledWith({
+          aircraft_registration: 'OH-STL',
+          yr: undefined,
+          yr_from: 2024,
+          yr_to: 2024,
+          mth: 7,
+        })
+      })
+    })
+
+    describe('GET /api/stats/reservation-efficiency/member/year', () => {
+      it('should return reservation efficiency by member and year for any authenticated member (no admin required)', async () => {
+        const mockData = { ...mockEfficiencyData, member: 'abc123def456' }
+        mockGetReservationEfficiencyByMemberYr.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/reservation-efficiency/member/year')
+          .query({ yr_from: '2024', yr_to: '2024' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetReservationEfficiencyByMemberYr).toHaveBeenCalledWith({
+          member: undefined,
+          yr: undefined,
+          yr_from: 2024,
+          yr_to: 2024,
+        })
+      })
+    })
+
+    describe('GET /api/stats/reservation-efficiency/member/year/month', () => {
+      it('should return reservation efficiency by member, year, and month for any authenticated member (no admin required)', async () => {
+        const mockData = { ...mockEfficiencyData, member: 'abc123def456', mth: 8 }
+        mockGetReservationEfficiencyByMemberYrMth.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/reservation-efficiency/member/year/month')
+          .query({ member: 'abc123def456', yr: '2024', mth: '8' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetReservationEfficiencyByMemberYrMth).toHaveBeenCalledWith({
+          member: 'abc123def456',
+          yr: 2024,
+          yr_from: undefined,
+          yr_to: undefined,
+          mth: 8,
+        })
       })
     })
   })
