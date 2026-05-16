@@ -23,7 +23,7 @@ import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import Papa from 'papaparse'
 import { Download } from '@mui/icons-material'
-import { formatHHMM } from '../../utils/format'
+import { formatDecimalHours } from '../../utils/format'
 
 interface TaxReportEntry {
   month: string
@@ -92,12 +92,12 @@ export const TaxReport = () => {
     const csvData = reportData.data.map((entry) => ({
       Month: entry.month,
       Aircraft: entry.aircraftRegistration,
-      'Commercial Block Time': formatHHMM(entry.commercialBlockMins),
-      'Commercial Flight Time': formatHHMM(entry.commercialFlightMins),
-      'Private Block Time': formatHHMM(entry.privateBlockMins),
-      'Private Flight Time': formatHHMM(entry.privateFlightMins),
-      'Total Block Time': formatHHMM(entry.totalBlockMins),
-      'Total Flight Time': formatHHMM(entry.totalFlightMins),
+      'Commercial Block Time': formatDecimalHours(entry.commercialBlockMins),
+      'Commercial Flight Time': formatDecimalHours(entry.commercialFlightMins),
+      'Private Block Time': formatDecimalHours(entry.privateBlockMins),
+      'Private Flight Time': formatDecimalHours(entry.privateFlightMins),
+      'Total Block Time': formatDecimalHours(entry.totalBlockMins),
+      'Total Flight Time': formatDecimalHours(entry.totalFlightMins),
     }))
 
     const csv = Papa.unparse(csvData)
@@ -252,22 +252,22 @@ export const TaxReport = () => {
                       <TableCell>{row.month}</TableCell>
                       <TableCell>{row.aircraftRegistration}</TableCell>
                       <TableCell align='right'>
-                        {formatHHMM(row.commercialBlockMins)}
+                        {formatDecimalHours(row.commercialBlockMins)}
                       </TableCell>
                       <TableCell align='right'>
-                        {formatHHMM(row.commercialFlightMins)}
+                        {formatDecimalHours(row.commercialFlightMins)}
                       </TableCell>
                       <TableCell align='right'>
-                        {formatHHMM(row.privateBlockMins)}
+                        {formatDecimalHours(row.privateBlockMins)}
                       </TableCell>
                       <TableCell align='right'>
-                        {formatHHMM(row.privateFlightMins)}
+                        {formatDecimalHours(row.privateFlightMins)}
                       </TableCell>
                       <TableCell align='right'>
-                        {formatHHMM(row.totalBlockMins)}
+                        {formatDecimalHours(row.totalBlockMins)}
                       </TableCell>
                       <TableCell align='right'>
-                        {formatHHMM(row.totalFlightMins)}
+                        {formatDecimalHours(row.totalFlightMins)}
                       </TableCell>
                     </TableRow>
                   ))}

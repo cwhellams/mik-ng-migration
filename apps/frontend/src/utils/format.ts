@@ -81,3 +81,9 @@ export const formatHHMM = (minutes: number): string => {
   const mins = absMinutes % 60
   return `${sign}${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`
 }
+
+export const formatDecimalHours = (minutes: number): string => {
+  const sign = minutes < 0 ? '-' : ''
+  const hours = Math.abs(minutes) / 60
+  return `${sign}${hours.toFixed(2).replace('.', ',')}`
+}
