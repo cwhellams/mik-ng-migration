@@ -19,6 +19,8 @@ const mapResultToAjlb = (
         | 'validated_on_block_time_utc'
         | 'verified_total_flight_time'
         | 'unverified_total_flight_time'
+        | 'validated_total_landings'
+        | 'total_landings'
       >
   >,
 ): AircraftJourneyLogBook => ({
@@ -26,6 +28,7 @@ const mapResultToAjlb = (
   aircraftRegistration: row.aircraft_registration,
   startFlightMins: row.start_flight_mins,
   startFlightTime: row.start_flight_time,
+  startLandings: row.start_landings,
   noOfPages: row.no_of_pages,
   rowsPerPage: row.rows_per_page,
   startPage: row.start_page,
@@ -41,6 +44,8 @@ const mapResultToAjlb = (
     unverifiedTotalFlightTime: row.unverified_total_flight_time ?? '00:00',
     validatedFlightsCount: row.sum_validated_flights ?? 0,
     validatedFlightsTime: row.sum_validated_time ?? '00:00',
+    validatedTotalLandings: row.validated_total_landings ?? 0,
+    totalLandings: row.total_landings ?? 0,
   },
 
   updatedAt: row.updated_at?.toISOString(),
@@ -68,6 +73,8 @@ export async function getAjlbs(filter: AjlbFilter): Promise<AircraftJourneyLogBo
       'totals.validated_on_block_time_utc',
       'totals.verified_total_flight_time',
       'totals.unverified_total_flight_time',
+      'totals.validated_total_landings',
+      'totals.total_landings',
     ])
     .orderBy('aircraft_registration')
     .orderBy('seq_no', 'desc')
@@ -118,6 +125,8 @@ export async function getAjlb(
       'totals.validated_on_block_time_utc',
       'totals.verified_total_flight_time',
       'totals.unverified_total_flight_time',
+      'totals.validated_total_landings',
+      'totals.total_landings',
     ])
     .where('ajlb.aircraft_registration', '=', registration)
     .where('ajlb.seq_no', '=', seqNo)
@@ -137,6 +146,7 @@ export async function createAjlb(
       aircraft_registration: ajlb.aircraftRegistration,
       seq_no: ajlb.seqNo,
       start_flight_mins: ajlb.startFlightMins,
+      start_landings: ajlb.startLandings,
       no_of_pages: ajlb.noOfPages,
       rows_per_page: ajlb.rowsPerPage,
       start_page: ajlb.startPage,
@@ -171,6 +181,7 @@ export async function updateAjlb(
       aircraft_registration: ajlb.aircraftRegistration,
       seq_no: ajlb.seqNo,
       start_flight_mins: ajlb.startFlightMins,
+      start_landings: ajlb.startLandings,
       no_of_pages: ajlb.noOfPages,
       rows_per_page: ajlb.rowsPerPage,
       start_page: ajlb.startPage,

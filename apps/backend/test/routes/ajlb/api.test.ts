@@ -119,6 +119,7 @@ describe('CRUD /ajlb', () => {
     startDate: '2025-06-01',
     endDate: '2026-06-01',
     startFlightMins: 600,
+    startLandings: 0,
     noOfPages: 10,
     rowsPerPage: 30,
     startPage: 1,
@@ -160,6 +161,8 @@ describe('CRUD /ajlb', () => {
         validatedFlightsCount: 0,
         validatedFlightsTime: '00:00',
         verifiedTotalFlightTime: '10:00',
+        validatedTotalLandings: 0,
+        totalLandings: 1,
       },
     })
   })
@@ -202,6 +205,8 @@ describe('CRUD /ajlb', () => {
         validatedFlightsCount: 0,
         validatedFlightsTime: '00:00',
         verifiedTotalFlightTime: '15:00',
+        validatedTotalLandings: 0,
+        totalLandings: 1,
       },
     })
   })

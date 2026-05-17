@@ -68,6 +68,7 @@ describe('Db ajlb CRUD tests', () => {
     startDate: '2025-06-01',
     endDate: '2026-06-01',
     startFlightMins: 600,
+    startLandings: 0,
     noOfPages: 10,
     rowsPerPage: 30,
     startPage: 1,
@@ -89,6 +90,8 @@ describe('Db ajlb CRUD tests', () => {
         validatedFlightsCount: 0,
         validatedFlightsTime: '00:00',
         verifiedTotalFlightTime: '10:00',
+        validatedTotalLandings: 0,
+        totalLandings: 0,
       },
     })
   })
@@ -119,6 +122,8 @@ describe('Db ajlb CRUD tests', () => {
         validatedFlightsCount: 0,
         validatedFlightsTime: '00:00',
         verifiedTotalFlightTime: '15:00',
+        validatedTotalLandings: 0,
+        totalLandings: 0,
       },
     })
     expect(await getAjlb('OH-STL', 3)).toEqual(result)

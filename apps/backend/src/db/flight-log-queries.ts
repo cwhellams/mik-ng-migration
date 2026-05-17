@@ -39,16 +39,22 @@ import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHa
 
 function mapFullResultToFlightLogs(
   row: Selectable<
-    FlightLogs & Pick<FlightVwFlightLogs, 'ac_total_flight_time' | 'page_number' | 'row_number'>
+    FlightLogs &
+      Pick<
+        FlightVwFlightLogs,
+        'ac_total_flight_time' | 'ac_total_landings' | 'page_number' | 'row_number'
+      >
   >,
 ): FlightLog {
   return {
     acTotalFlightTime: row.ajlb_total_flight_time ?? row.ac_total_flight_time ?? '00:00',
+    acTotalLandings: row.ajlb_total_landings ?? row.ac_total_landings ?? null,
     aircraftRegistration: row.aircraft_registration,
     ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
     ajlbSeqNo: row.ajlb_seq_no,
     ajlbPageNo: row.ajlb_page_number ?? row.page_number ?? 0,
     ajlbRowNo: row.ajlb_row_number ?? row.row_number ?? 0,
+    ajlbTotalLandings: row.ajlb_total_landings ?? null,
     arrivalAirport: row.arrival_airport,
     billableMemberId: row.billable_member_id,
     billingRemarks: row.billing_remarks,
@@ -118,7 +124,12 @@ export async function getFlightLog(flightId: string): Promise<FlightLog | undefi
     .selectFrom('flight.logs')
     .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
     .selectAll('flight.logs')
-    .select(['totals.ac_total_flight_time', 'totals.page_number', 'totals.row_number'])
+    .select([
+      'totals.ac_total_flight_time',
+      'totals.ac_total_landings',
+      'totals.page_number',
+      'totals.row_number',
+    ])
     .where('flight.logs.flight_id', '=', flightId)
     .executeTakeFirst()
 
@@ -185,6 +196,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'flight.logs.ajlb_blank_rows_before',
       'flight.logs.ajlb_seq_no',
       'flight.logs.ajlb_total_flight_time',
+      'flight.logs.ajlb_total_landings',
       'flight.logs.ajlb_page_number',
       'flight.logs.ajlb_row_number',
       'flight.logs.arrival_airport',
@@ -213,7 +225,12 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'flight.logs.status',
       'flight.logs.total_time_in_service',
     ])
-    .select(['totals.ac_total_flight_time', 'totals.row_number', 'totals.page_number'])
+    .select([
+      'totals.ac_total_flight_time',
+      'totals.ac_total_landings',
+      'totals.row_number',
+      'totals.page_number',
+    ])
     .orderBy('off_block_time_epoch', filters.orderLatestFirst ? 'desc' : 'asc')
     // offset only valid with dynamic paging
     .offset(!ajlbPaging && page > 0 ? pageSize * (page - 1) : 0)
@@ -224,6 +241,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     logs: results.map((row) => {
       const res: FlightLogListEntry = {
         acTotalFlightTime: row.ajlb_total_flight_time ?? row.ac_total_flight_time ?? '00:00',
+        acTotalLandings: row.ajlb_total_landings ?? row.ac_total_landings ?? null,
         aircraftRegistration: row.aircraft_registration,
         ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
         ajlbSeqNo: row.ajlb_seq_no,
@@ -747,6 +765,7 @@ export const updateFlightLogStatus = async (
         ajlb_total_flight_mins: null,
         ajlb_page_number: null,
         ajlb_row_number: null,
+        ajlb_total_landings: null,
       }))
     case FlightLogStatus.VALIDATED:
       // copy values from the view
@@ -765,6 +784,10 @@ export const updateFlightLogStatus = async (
               ajlb_row_number: eb
                 .selectFrom('flight.vw_flight_logs')
                 .select('row_number')
+                .where('flight_id', '=', flightId),
+              ajlb_total_landings: eb
+                .selectFrom('flight.vw_flight_logs')
+                .select('ac_total_landings')
                 .where('flight_id', '=', flightId),
             }
           : {}),
@@ -840,6 +863,7 @@ export async function getFlightLogTotals(registration?: string): Promise<FlightT
     // there are no nullable values in the view, it is safe to use ! operator
     acTotalFlightTime: row.unverified_total_flight_time!,
     acTotalFlightMins: row.unverified_total_flight_mins!,
+    acTotalLandings: row.total_landings ?? null,
     aircraftRegistration: row.aircraft_registration!,
     ajlbSeqNo: row.ajlb_seq_no!,
   }))

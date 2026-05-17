@@ -3,11 +3,13 @@
 exports[`GET /flight-log Get flight log with Id should return a single row when data is present for the given Id 1`] = `
 {
   "acTotalFlightTime": "4781:50",
+  "acTotalLandings": 2,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
   "ajlbRowNo": 2,
   "ajlbSeqNo": 2,
+  "ajlbTotalLandings": null,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
   "billingRemarks": "N/A",
@@ -73,6 +75,7 @@ exports[`GET /flight-log Get flight log with Id should return a single row when 
 exports[`GET /flight-log should allow query parameters to be optional 1`] = `
 {
   "acTotalFlightTime": "4781:50",
+  "acTotalLandings": 2,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,
@@ -108,6 +111,7 @@ exports[`GET /flight-log should allow query parameters to be optional 1`] = `
 exports[`GET /flight-log should only return data for the logged in user when not admin 1`] = `
 {
   "acTotalFlightTime": "4781:50",
+  "acTotalLandings": 2,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,
@@ -143,6 +147,7 @@ exports[`GET /flight-log should only return data for the logged in user when not
 exports[`GET /flight-log should return 200 for Start Date with time offset 1`] = `
 {
   "acTotalFlightTime": "4781:50",
+  "acTotalLandings": 2,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,
@@ -178,6 +183,7 @@ exports[`GET /flight-log should return 200 for Start Date with time offset 1`] =
 exports[`GET /flight-log should return 200 with valid query params 1`] = `
 {
   "acTotalFlightTime": "4781:50",
+  "acTotalLandings": 2,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,
@@ -214,6 +220,7 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
 [
   {
     "acTotalFlightTime": "4780:05",
+    "acTotalLandings": 1,
     "aircraftRegistration": "OH-STL",
     "ajlbBlankRowsBefore": 0,
     "ajlbRowNo": 1,
@@ -246,6 +253,7 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
   },
   {
     "acTotalFlightTime": "4781:50",
+    "acTotalLandings": 2,
     "aircraftRegistration": "OH-STL",
     "ajlbBlankRowsBefore": 0,
     "ajlbRowNo": 2,
@@ -278,6 +286,7 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
   },
   {
     "acTotalFlightTime": "4783:20",
+    "acTotalLandings": 3,
     "aircraftRegistration": "OH-STL",
     "ajlbBlankRowsBefore": 0,
     "ajlbRowNo": 3,
@@ -314,11 +323,13 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
 exports[`GET /flight-log/flightid should return flight for admin with sudo rights 1`] = `
 {
   "acTotalFlightTime": "6118:40",
+  "acTotalLandings": null,
   "aircraftRegistration": "OH-IHQ",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 81,
   "ajlbRowNo": 1,
   "ajlbSeqNo": 2,
+  "ajlbTotalLandings": null,
   "arrivalAirport": "EFTP",
   "billableMemberId": "Jukka1",
   "billingRemarks": "N/A",
@@ -384,11 +395,13 @@ exports[`GET /flight-log/flightid should return flight for admin with sudo right
 exports[`GET /flight-log/flightid should return flights for the logged in user when not admin 1`] = `
 {
   "acTotalFlightTime": "4781:50",
+  "acTotalLandings": 2,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
   "ajlbRowNo": 2,
   "ajlbSeqNo": 2,
+  "ajlbTotalLandings": null,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
   "billingRemarks": "N/A",
@@ -453,8 +466,9 @@ exports[`GET /flight-log/flightid should return flights for the logged in user w
 
 exports[`GET /flight-log/totals should return 200 with all ac totals 1`] = `
 {
-  "acTotalFlightMins": 315935,
-  "acTotalFlightTime": "5265:35",
+  "acTotalFlightMins": 314045,
+  "acTotalFlightTime": "5234:05",
+  "acTotalLandings": 4,
   "aircraftRegistration": "OH-P28",
   "ajlbSeqNo": 4,
 }
@@ -464,6 +478,7 @@ exports[`GET /flight-log/totals should return 200 with valid registration 1`] = 
 {
   "acTotalFlightMins": 287000,
   "acTotalFlightTime": "4783:20",
+  "acTotalLandings": 3,
   "aircraftRegistration": "OH-STL",
   "ajlbSeqNo": 2,
 }
@@ -472,11 +487,13 @@ exports[`GET /flight-log/totals should return 200 with valid registration 1`] = 
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 1`] = `
 {
   "acTotalFlightTime": "4783:20",
+  "acTotalLandings": 3,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
   "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
+  "ajlbTotalLandings": null,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
   "billingRemarks": "N/A",
@@ -542,11 +559,13 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 2`] = `
 {
   "acTotalFlightTime": "4783:20",
+  "acTotalLandings": 3,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
   "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
+  "ajlbTotalLandings": null,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
   "billingRemarks": "N/A",
@@ -612,11 +631,13 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 3`] = `
 {
   "acTotalFlightTime": "4783:20",
+  "acTotalLandings": 3,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
   "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
+  "ajlbTotalLandings": null,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Antti1",
   "billingRemarks": "N/A",
@@ -682,11 +703,13 @@ exports[`PATCH /flight-log/ should update a flight log when billable member matc
 exports[`PATCH /flight-log/ should update a flight log when billable member matches token member or user has elevated role 4`] = `
 {
   "acTotalFlightTime": "4783:20",
+  "acTotalLandings": 3,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
   "ajlbRowNo": 3,
   "ajlbSeqNo": 2,
+  "ajlbTotalLandings": null,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Matti1",
   "billingRemarks": "N/A",

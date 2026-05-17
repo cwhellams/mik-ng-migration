@@ -906,10 +906,12 @@
       "startPage": "Aloitus sivu",
       "pagesInUse": "Sivuja käytössä",
       "flightTimeAtStart": "Aika alussa",
+      "landingsAtStart": "Laskeutumiset alussa",
       "unverifiedFlights": "Uudet lennot",
       "unverifiedFlightsTime": "Vahvistamaton lentoaika",
       "verifiedTotalFlightTime": "Vahvistettu kokonaisaika",
       "unverifiedTotalFlightTime": "Vahvistamaton kokonaisaika",
+      "totalLandings": "Laskeutumiset yhteensä",
       "nextSequence": "Aloita seuraava matkapäiväkirja",
       "flightsToMove": "Vahvistamattomat lennot, jotka siirretään uuteen matkapäiväkirjaan",
       "oldBookMustBeEnded": "Vanha lokikirja on ensin päätettävä.",
@@ -1789,6 +1791,7 @@
     "invalidEmailFormat": "Anna kelvollinen sähköpostiosoite."
   },
   "stats": {
+    "totalLandingsByYear": "Laskeutumiset koneittain (vuosittain)",
     "pilots": {
       "dateRange": "Aikajakso",
       "from": "Alkaen",

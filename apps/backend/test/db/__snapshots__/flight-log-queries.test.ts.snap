@@ -3,11 +3,13 @@
 exports[`Db Get FlightLog tests getFlightLog return existing flight 1`] = `
 {
   "acTotalFlightTime": "5230:10",
+  "acTotalLandings": null,
   "aircraftRegistration": "OH-P28",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 1,
   "ajlbRowNo": 1,
   "ajlbSeqNo": 4,
+  "ajlbTotalLandings": null,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Jukka1",
   "billingRemarks": "N/A",
@@ -73,11 +75,13 @@ exports[`Db Get FlightLog tests getFlightLog return existing flight 1`] = `
 exports[`Db insert tests insertFlightLog inserts a new flight log to the db, querying using returned flight id returns the row, row can be deleted using flight id 1`] = `
 {
   "acTotalFlightTime": "4784:20",
+  "acTotalLandings": 4,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbPageNo": 10,
   "ajlbRowNo": 4,
   "ajlbSeqNo": 2,
+  "ajlbTotalLandings": null,
   "arrivalAirport": "EFVA",
   "billableMemberId": "Matti1",
   "billingRemarks": "Test flight",
@@ -145,18 +149,21 @@ exports[`Db query FlightLog tests getFlightLogTotals returns totals for all ac 1
   {
     "acTotalFlightMins": 367120,
     "acTotalFlightTime": "6118:40",
+    "acTotalLandings": 0,
     "aircraftRegistration": "OH-IHQ",
     "ajlbSeqNo": 2,
   },
   {
-    "acTotalFlightMins": 315935,
-    "acTotalFlightTime": "5265:35",
+    "acTotalFlightMins": 314045,
+    "acTotalFlightTime": "5234:05",
+    "acTotalLandings": 4,
     "aircraftRegistration": "OH-P28",
     "ajlbSeqNo": 4,
   },
   {
     "acTotalFlightMins": 287000,
     "acTotalFlightTime": "4783:20",
+    "acTotalLandings": 3,
     "aircraftRegistration": "OH-STL",
     "ajlbSeqNo": 2,
   },
@@ -168,6 +175,7 @@ exports[`Db query FlightLog tests getFlightLogTotals returns totals for single a
   {
     "acTotalFlightMins": 287000,
     "acTotalFlightTime": "4783:20",
+    "acTotalLandings": 3,
     "aircraftRegistration": "OH-STL",
     "ajlbSeqNo": 2,
   },
@@ -177,6 +185,7 @@ exports[`Db query FlightLog tests getFlightLogTotals returns totals for single a
 exports[`Db query FlightLog tests getFlightLogs between start and end date should match snapshot 1`] = `
 {
   "acTotalFlightTime": "5230:10",
+  "acTotalLandings": null,
   "aircraftRegistration": "OH-P28",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 1,
@@ -212,6 +221,7 @@ exports[`Db query FlightLog tests getFlightLogs between start and end date shoul
 exports[`Db query FlightLog tests getFlightLogs for end date should match snapshot 1`] = `
 {
   "acTotalFlightTime": "4780:05",
+  "acTotalLandings": 1,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 1,
@@ -250,6 +260,7 @@ exports[`Db query FlightLog tests getFlightLogs for specific member id should ma
   "logs": [
     {
       "acTotalFlightTime": "4780:05",
+      "acTotalLandings": 1,
       "aircraftRegistration": "OH-STL",
       "ajlbBlankRowsBefore": 0,
       "ajlbRowNo": 1,
@@ -290,6 +301,7 @@ exports[`Db query FlightLog tests getFlightLogs for specific member id should ma
 exports[`Db query FlightLog tests getFlightLogs for start date should match snapshot 1`] = `
 {
   "acTotalFlightTime": "5230:10",
+  "acTotalLandings": null,
   "aircraftRegistration": "OH-P28",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 1,
@@ -325,6 +337,7 @@ exports[`Db query FlightLog tests getFlightLogs for start date should match snap
 exports[`Db query FlightLog tests getFlightLogs with Captain and copilot should return filtered logs 1`] = `
 {
   "acTotalFlightTime": "4781:50",
+  "acTotalLandings": 2,
   "aircraftRegistration": "OH-STL",
   "ajlbBlankRowsBefore": 0,
   "ajlbRowNo": 2,

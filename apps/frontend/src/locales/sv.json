@@ -907,10 +907,12 @@
       "startPage": "Start sida",
       "pagesInUse": "Sidor i bruk",
       "flightTimeAtStart": "Tid vid start",
+      "landingsAtStart": "Landningar vid start",
       "unverifiedFlights": "Overifierade flyg",
       "unverifiedFlightsTime": "Overifierad flygtid",
       "verifiedTotalFlightTime": "Verifierad total flygtid",
       "unverifiedTotalFlightTime": "Overifierad total flygtid",
+      "totalLandings": "Totalt antal landningar",
       "nextSequence": "Starta nästa loggbok",
       "flightsToMove": "Obekräftade flyg att flytta till ny loggbok",
       "oldBookMustBeEnded": "Den gamla loggboken måste avslutas först.",
@@ -1756,6 +1758,7 @@
     "invalidEmailFormat": "Ange en giltig e-postadress."
   },
   "stats": {
+    "totalLandingsByYear": "Landningar per flygplan (årsvis)",
     "pilots": {
       "dateRange": "Tidsperiod",
       "from": "Från",
