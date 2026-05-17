@@ -460,14 +460,10 @@ export const Stats = () => {
 
   // Get all unique aircraft keys for landings bar chart
   const landingsBarKeys = useMemo(() => {
-    const keys = new Set<string>()
-    landingsBarData.forEach((item) => {
-      Object.keys(item).forEach((key) => {
-        if (key !== 'year') keys.add(key)
-      })
-    })
+    if (!landingsYearlyData) return []
+    const keys = new Set(landingsYearlyData.map((d) => d.aircraft_registration))
     return Array.from(keys).sort()
-  }, [landingsBarData])
+  }, [landingsYearlyData])
 
   // Transform visited airfields data for pie chart (separate for OH-STL and OH-IHQ)
   const visitedAirfieldsPieData = useMemo(() => {
