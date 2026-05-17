@@ -1183,7 +1183,23 @@
     "ends": "Loppuu {{at}}",
     "starts": "Alkaa {{at}}",
     "addToGoogleCalendar": "Lisää Google-kalenteriin",
-    "downloadIcs": "Lataa kalenterikutsu (.ics)"
+    "downloadIcs": "Lataa kalenterikutsu (.ics)",
+    "cancellationReason": "Peruutuksen syy",
+    "cancellationNote": "Lisätiedot",
+    "cancellationNoteHint": "Valinnainen: lisätietoja peruutuksen syystä",
+    "cancellationReasonRequired": "Valitse peruutuksen syy",
+    "confirmCancel": "Peru varaus",
+    "confirmCancelMessage": "Valitse syy tämän varauksen peruuttamiselle.",
+    "cancellationReasons": {
+      "IM_SAFE_CHECKLIST": "IM SAFE -tarkistuslista ei läpi",
+      "AIRCRAFT_TECHNICAL": "Lentokoneen tekninen vika",
+      "WEATHER_DEPARTURE": "Sää (Lähtökenttä)",
+      "WEATHER_ENROUTE": "Sää (Reitillä)",
+      "WEATHER_DESTINATION": "Sää (Kohdekentällä)",
+      "PERSONAL_CONFLICT": "Henkilökohtainen este",
+      "OTHER": "Muu syy",
+      "PREFER_NOT_DISCLOSE": "En halua kertoa syytä"
+    }
   },
   "fuelPrices": {
     "title": "Polttoainehinnat",

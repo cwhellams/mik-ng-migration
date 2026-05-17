@@ -1,10 +1,12 @@
 import * as connection from './connection.ts'
 import {
   BookingStatus,
+  CancellationReason,
   type Booking,
   type BookingFilters,
   type BookingType,
   type BookingUpsertRequest,
+  type CancellationRequest,
 } from '../routes/bookings/models.ts'
 import type { MemberRegister, ScheduleBookings } from './schema.js'
 import type { Selectable } from 'kysely'
@@ -52,6 +54,8 @@ const mapResultToBooking = (row: BookingRow): Booking => ({
   updatedBy: row.updated_by,
   cancelledAt: row.cancelled_at?.toISOString(),
   cancelledBy: row.cancelled_by,
+  cancellationReason: (row.cancellation_reason as CancellationReason) ?? undefined,
+  cancellationNote: row.cancellation_note ?? undefined,
 })
 
 const toArray = <T>(value: T | T[]): T[] => {
@@ -228,6 +232,7 @@ export const updateBooking = async (
 export const cancelBooking = async (
   bookingId: string,
   jwt: JWTUser,
+  cancellation?: CancellationRequest,
 ): Promise<Booking | undefined> => {
   const updated = await connection.db
     .updateTable('schedule.bookings')
@@ -235,6 +240,8 @@ export const cancelBooking = async (
       booking_status: BookingStatus.CANCELLED,
       cancelled_at: new Date().toISOString(),
       cancelled_by: jwt.memberId,
+      cancellation_reason: cancellation?.reason ?? null,
+      cancellation_note: cancellation?.note ?? null,
       calendar_sequence: sql`calendar_sequence + 1`,
     })
     .where('booking_id', '=', bookingId)

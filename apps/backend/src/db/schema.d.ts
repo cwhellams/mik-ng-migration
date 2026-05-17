@@ -23,6 +23,16 @@ export type BookingStatus = 'CANCELLED' | 'CONFIRMED' | 'TENTATIVE'
 
 export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'TRAINING'
 
+export type CancellationReason =
+  | 'IM_SAFE_CHECKLIST'
+  | 'AIRCRAFT_TECHNICAL'
+  | 'WEATHER_DEPARTURE'
+  | 'WEATHER_ENROUTE'
+  | 'WEATHER_DESTINATION'
+  | 'PERSONAL_CONFLICT'
+  | 'OTHER'
+  | 'PREFER_NOT_DISCLOSE'
+
 export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
 
 export type DtoItemOutcome = 'COMPLETED' | 'FAILED' | 'MOVED_TO_HIL'
@@ -912,6 +922,8 @@ export interface ScheduleBookings {
   booking_status: BookingStatus
   booking_type: BookingType
   calendar_sequence: Generated<number>
+  cancellation_note: string | null
+  cancellation_reason: CancellationReason | null
   cancelled_at: Timestamp | null
   cancelled_by: string | null
   created_at: Generated<Timestamp>

@@ -1185,7 +1185,23 @@
     "ends": "Ends {{at}}",
     "starts": "Starts {{at}}",
     "addToGoogleCalendar": "Add to Google Calendar",
-    "downloadIcs": "Download calendar invite (.ics)"
+    "downloadIcs": "Download calendar invite (.ics)",
+    "cancellationReason": "Cancellation Reason",
+    "cancellationNote": "Additional Notes",
+    "cancellationNoteHint": "Optional: provide additional details about the reason",
+    "cancellationReasonRequired": "Please select a reason for cancellation",
+    "confirmCancel": "Cancel Booking",
+    "confirmCancelMessage": "Please select a reason for cancelling this booking.",
+    "cancellationReasons": {
+      "IM_SAFE_CHECKLIST": "IM SAFE checklist not passed",
+      "AIRCRAFT_TECHNICAL": "Aircraft technical issue",
+      "WEATHER_DEPARTURE": "Weather (Departure)",
+      "WEATHER_ENROUTE": "Weather (Enroute)",
+      "WEATHER_DESTINATION": "Weather (Destination)",
+      "PERSONAL_CONFLICT": "Personal conflict",
+      "OTHER": "Other",
+      "PREFER_NOT_DISCLOSE": "Prefer not to disclose"
+    }
   },
   "fuelPrices": {
     "title": "Fuel prices",

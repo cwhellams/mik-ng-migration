@@ -15,6 +15,7 @@ import {
   MenuItem,
   Select,
   Autocomplete,
+  FormHelperText,
 } from '@mui/material'
 import useApi, { MutateMethods } from '../../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
@@ -28,6 +29,8 @@ import {
   BookingStatus,
   BookingType,
   BookingUpsertRequest,
+  CancellationReason,
+  CancellationRequest,
 } from '@backend/routes/bookings/models'
 import dayjs from 'dayjs'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker/DateTimePicker'
@@ -129,6 +132,13 @@ export const BookingEditor = ({
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [cancellationReason, setCancellationReason] = useState<
+    CancellationReason | ''
+  >('')
+  const [cancellationNote, setCancellationNote] = useState('')
+  const [cancellationReasonError, setCancellationReasonError] = useState(false)
+
   const datesAreValid =
     startDate?.date.isValid() &&
     endDate?.date.isValid() &&
@@ -214,7 +224,37 @@ export const BookingEditor = ({
     onClose()
   }
 
-  const handleRemove = async () => trigger('DELETE')
+  const handleRemove = () => {
+    setCancellationReason('')
+    setCancellationNote('')
+    setCancellationReasonError(false)
+    setCancelDialogOpen(true)
+  }
+
+  const handleCancelConfirm = async () => {
+    if (!cancellationReason) {
+      setCancellationReasonError(true)
+      return
+    }
+    setCancelDialogOpen(false)
+    setProblem(undefined)
+
+    const body: CancellationRequest = {
+      reason: cancellationReason,
+      note: cancellationNote || undefined,
+    }
+    const { error } = await mutation.trigger<CancellationRequest>(
+      'POST',
+      body,
+      'cancel'
+    )
+    if (error) {
+      return setProblem(error)
+    }
+
+    mutate((key) => Array.isArray(key) && key[0] == 'v1/bookings')
+    onClose()
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -510,6 +550,24 @@ export const BookingEditor = ({
               />
             )}
 
+            {booking.status == BookingStatus.CANCELLED &&
+              isBookingAdmin &&
+              booking.cancellationReason && (
+                <FormField label={t('schedule.cancellationReason')}>
+                  {t(
+                    `schedule.cancellationReasons.${booking.cancellationReason}`
+                  )}
+                </FormField>
+              )}
+
+            {booking.status == BookingStatus.CANCELLED &&
+              isBookingAdmin &&
+              booking.cancellationNote && (
+                <FormField label={t('schedule.cancellationNote')}>
+                  {booking.cancellationNote}
+                </FormField>
+              )}
+
             {booking.status !== BookingStatus.CANCELLED && (
               <Stack direction='row' spacing={1} flexWrap='wrap'>
                 <Button
@@ -607,6 +665,72 @@ export const BookingEditor = ({
           </Grid>
         </Grid>
       </DialogActions>
+
+      {/* Cancellation reason dialog */}
+      <Dialog
+        open={cancelDialogOpen}
+        onClose={() => setCancelDialogOpen(false)}
+        maxWidth='xs'
+        fullWidth
+      >
+        <EditDialogTitle
+          title='schedule.confirmCancel'
+          onClose={() => setCancelDialogOpen(false)}
+        />
+        <DialogContent dividers>
+          <Stack spacing={2}>
+            <FormControl fullWidth error={cancellationReasonError}>
+              <InputLabel id='cancel-reason-label'>
+                {t('schedule.cancellationReason')} *
+              </InputLabel>
+              <Select
+                labelId='cancel-reason-label'
+                value={cancellationReason}
+                label={`${t('schedule.cancellationReason')} *`}
+                onChange={({ target }) => {
+                  setCancellationReason(target.value as CancellationReason)
+                  setCancellationReasonError(false)
+                }}
+              >
+                {Object.values(CancellationReason).map((reason) => (
+                  <MenuItem key={reason} value={reason}>
+                    {t(`schedule.cancellationReasons.${reason}`)}
+                  </MenuItem>
+                ))}
+              </Select>
+              {cancellationReasonError && (
+                <FormHelperText>
+                  {t('schedule.cancellationReasonRequired')}
+                </FormHelperText>
+              )}
+            </FormControl>
+
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label={t('schedule.cancellationNote')}
+              placeholder={t('schedule.cancellationNoteHint')}
+              value={cancellationNote}
+              onChange={({ target }) => setCancellationNote(target.value)}
+              inputProps={{ maxLength: 500 }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCancelDialogOpen(false)} color='inherit'>
+            {t('general.back')}
+          </Button>
+          <Button
+            onClick={handleCancelConfirm}
+            color='error'
+            variant='contained'
+            loading={mutation.isMutating}
+          >
+            {t('schedule.confirmCancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   )
 }

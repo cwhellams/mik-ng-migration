@@ -1184,7 +1184,23 @@
     "ends": "Slutar {{at}}",
     "starts": "Startar {{at}}",
     "addToGoogleCalendar": "Lägg till i Google Kalender",
-    "downloadIcs": "Ladda ner kalenderinbjudan (.ics)"
+    "downloadIcs": "Ladda ner kalenderinbjudan (.ics)",
+    "cancellationReason": "Orsak till avbokning",
+    "cancellationNote": "Ytterligare anteckningar",
+    "cancellationNoteHint": "Valfritt: ange ytterligare detaljer om orsaken",
+    "cancellationReasonRequired": "Välj en orsak för avbokning",
+    "confirmCancel": "Avboka",
+    "confirmCancelMessage": "Välj en orsak för att avboka denna bokning.",
+    "cancellationReasons": {
+      "IM_SAFE_CHECKLIST": "IM SAFE-checklista ej godkänd",
+      "AIRCRAFT_TECHNICAL": "Tekniskt fel på flygplanet",
+      "WEATHER_DEPARTURE": "Väder (Avgång)",
+      "WEATHER_ENROUTE": "Väder (Enroute)",
+      "WEATHER_DESTINATION": "Väder (Destination)",
+      "PERSONAL_CONFLICT": "Personlig konflikt",
+      "OTHER": "Annat",
+      "PREFER_NOT_DISCLOSE": "Föredrar att inte uppge"
+    }
   },
   "fuelPrices": {
     "title": "Bränslepriser",

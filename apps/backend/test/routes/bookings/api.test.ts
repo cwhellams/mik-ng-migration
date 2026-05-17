@@ -5,7 +5,11 @@ import request from 'supertest'
 
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import bookingsRouter from '../../../src/routes/bookings/api.ts'
-import { BookingStatus, BookingType } from '../../../src/routes/bookings/models.ts'
+import {
+  BookingStatus,
+  BookingType,
+  CancellationReason,
+} from '../../../src/routes/bookings/models.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import type {
@@ -482,5 +486,155 @@ describe('PATCH /bookings/', () => {
       instance: '/bookings/stl1',
       timestamp: expect.any(String),
     })
+  })
+})
+
+describe('POST /bookings/:id/cancel', () => {
+  const startTime = dayjs().startOf('day').add(3, 'day')
+  const createPayload: BookingUpsertRequest = {
+    memberId: userId,
+    registration: 'OH-IHQ',
+    status: BookingStatus.CONFIRMED,
+    type: BookingType.PRACTICE,
+    description: 'Cancel test booking',
+    startTimeEpoch: startTime.unix().toString(),
+    endTimeEpoch: startTime.add(30, 'minutes').unix().toString(),
+  }
+
+  it('should cancel a booking with a reason and return 200 with the updated booking', async () => {
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
+    const cancelResponse = await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.PERSONAL_CONFLICT })
+
+    expect(cancelResponse.status).toBe(200)
+    expect(cancelResponse.body.status).toBe(BookingStatus.CANCELLED)
+    expect(cancelResponse.body.cancellationReason).toBe(CancellationReason.PERSONAL_CONFLICT)
+    expect(cancelResponse.body.cancellationNote).toBeFalsy()
+    expect(cancelResponse.body.cancelledBy).toBe(userId)
+    expect(cancelResponse.body.cancelledAt).toBeDefined()
+  })
+
+  it('should cancel a booking with a reason and optional note', async () => {
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
+    const cancelResponse = await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.WEATHER_DEPARTURE, note: 'Low visibility at EFHK' })
+
+    expect(cancelResponse.status).toBe(200)
+    expect(cancelResponse.body.status).toBe(BookingStatus.CANCELLED)
+    expect(cancelResponse.body.cancellationReason).toBe(CancellationReason.WEATHER_DEPARTURE)
+    expect(cancelResponse.body.cancellationNote).toBe('Low visibility at EFHK')
+  })
+
+  it('should return 400 for an invalid cancellation reason', async () => {
+    const cancelResponse = await request(app)
+      .post('/bookings/stl2/cancel')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: 'NOT_A_VALID_REASON' })
+
+    expect(cancelResponse.status).toBe(400)
+    expect(cancelResponse.body.errors).toBeDefined()
+  })
+
+  it('should return 400 when reason is missing from request body', async () => {
+    const cancelResponse = await request(app)
+      .post('/bookings/stl2/cancel')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({})
+
+    expect(cancelResponse.status).toBe(400)
+    expect(cancelResponse.body.errors).toBeDefined()
+  })
+
+  it('should return 404 when booking does not exist', async () => {
+    const cancelResponse = await request(app)
+      .post('/bookings/does-not-exist/cancel')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.OTHER })
+
+    expect(cancelResponse.status).toBe(404)
+    expect(cancelResponse.body.detail).toBe('Booking not found')
+  })
+
+  it('should return 409 when booking is already cancelled', async () => {
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
+    await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.OTHER })
+
+    const secondCancel = await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.OTHER })
+
+    expect(secondCancel.status).toBe(409)
+    expect(secondCancel.body.detail).toBe('Booking already cancelled')
+  })
+
+  it('should return 403 when user does not own the booking', async () => {
+    const otherUserToken = generateAccessToken({
+      memberId: 'Kaisa1',
+      lastName: 'Laine',
+      email: 'kaisa@mik.fi',
+      roles: [],
+      permissions: [MIKPermissions.BOOKING_USER],
+      canMakeReservations: true,
+    })
+
+    const cancelResponse = await request(app)
+      .post('/bookings/stl2/cancel')
+      .set('Cookie', `accessToken=${otherUserToken}`)
+      .send({ reason: CancellationReason.PERSONAL_CONFLICT })
+
+    expect(cancelResponse.status).toBe(403)
+    expect(cancelResponse.body.detail).toBe('Booking not owned by user or user has no admin rights')
+  })
+
+  it('should allow an admin to cancel another members booking', async () => {
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
+    const cancelResponse = await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ reason: CancellationReason.AIRCRAFT_TECHNICAL })
+
+    expect(cancelResponse.status).toBe(200)
+    expect(cancelResponse.body.status).toBe(BookingStatus.CANCELLED)
+    expect(cancelResponse.body.cancelledBy).toBe(adminMemberId)
+  })
+
+  it('should return 401 when called without a valid token', async () => {
+    const cancelResponse = await request(app)
+      .post('/bookings/stl2/cancel')
+      .send({ reason: CancellationReason.OTHER })
+
+    expect(cancelResponse.status).toBe(401)
   })
 })

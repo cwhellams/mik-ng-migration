@@ -5,6 +5,7 @@ import {
   BookingStatus,
   BookingType,
   BookingUpsertSchema,
+  CancellationRequestSchema,
   type Booking,
   type BookingFilters,
   type BookingListResponse,
@@ -291,7 +292,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
   res.status(200).json(updated)
 })
 
-// Cancel a booking
+// Cancel a booking (legacy endpoint, no reason required)
 router.delete('/:id', async (req: Request, res: Response) => {
   const bookingId = req.params.id
 
@@ -333,6 +334,52 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 
   res.status(204).json(cancelled)
+})
+
+// Cancel a booking with a reason
+router.post('/:id/cancel', async (req: Request, res: Response) => {
+  const bookingId = req.params.id
+
+  const cancellation = CancellationRequestSchema.parse(req.body)
+
+  const booking = await getBookingById(bookingId)
+  if (!booking) {
+    return problem({ status: 404, detail: 'Booking not found' })
+  }
+  if (booking.status === BookingStatus.CANCELLED) {
+    return problem({ status: 409, detail: 'Booking already cancelled' })
+  }
+  validateWriteAccess(booking, req)
+
+  logger.info(
+    `Cancelling booking ${bookingId}. Cancelled by member: ${req.user?.memberId} with permissions :${req.user?.permissions}`,
+  )
+
+  const cancelled = await cancelBooking(bookingId, req.user!, cancellation)
+  if (!cancelled) {
+    return problem({
+      status: 500,
+      detail: 'Booking cancellation failed',
+    })
+  }
+
+  const member = await getMemberById(cancelled.memberId)
+  if (member?.email) {
+    sendEmail(
+      member.email,
+      bookingCancelledEmailSubject(member.lang),
+      bookingCancelledEmailBodyHtml(member.lang, member.firstName, cancelled),
+      [
+        {
+          filename: 'booking.ics',
+          content: generateCancelIcsContent(cancelled),
+          contentType: 'text/calendar',
+        },
+      ],
+    )
+  }
+
+  res.status(200).json(cancelled)
 })
 
 export default router

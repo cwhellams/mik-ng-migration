@@ -14,6 +14,17 @@ export enum BookingStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export enum CancellationReason {
+  IM_SAFE_CHECKLIST = 'IM_SAFE_CHECKLIST',
+  AIRCRAFT_TECHNICAL = 'AIRCRAFT_TECHNICAL',
+  WEATHER_DEPARTURE = 'WEATHER_DEPARTURE',
+  WEATHER_ENROUTE = 'WEATHER_ENROUTE',
+  WEATHER_DESTINATION = 'WEATHER_DESTINATION',
+  PERSONAL_CONFLICT = 'PERSONAL_CONFLICT',
+  OTHER = 'OTHER',
+  PREFER_NOT_DISCLOSE = 'PREFER_NOT_DISCLOSE',
+}
+
 export const BookingSchema = AuditableSchema.extend({
   bookingId: z.string().readonly(),
   memberId: z.string(),
@@ -46,6 +57,8 @@ export const BookingSchema = AuditableSchema.extend({
   calendarSequence: z.number().int().default(0),
   cancelledBy: z.string().nullable().nullish(),
   cancelledAt: z.string().datetime().nullish(),
+  cancellationReason: z.nativeEnum(CancellationReason).nullable().nullish(),
+  cancellationNote: z.string().max(500).nullable().nullish(),
 })
 
 export type Booking = z.infer<typeof BookingSchema>
@@ -91,3 +104,10 @@ export const BookingListResponseSchema = z.object({
 })
 
 export type BookingListResponse = z.infer<typeof BookingListResponseSchema>
+
+export const CancellationRequestSchema = z.object({
+  reason: z.nativeEnum(CancellationReason),
+  note: z.string().max(500).optional(),
+})
+
+export type CancellationRequest = z.infer<typeof CancellationRequestSchema>
