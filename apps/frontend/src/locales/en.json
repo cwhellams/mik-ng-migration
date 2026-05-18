@@ -1566,7 +1566,10 @@
     "loading": "Loading",
     "search": "Search",
     "notFound": "Not found",
-    "notApplicable": "N/A"
+    "notApplicable": "N/A",
+    "updateAvailable": "A new version is available",
+    "refresh": "Refresh",
+    "dismiss": "Dismiss"
   },
   "exams": {
     "title": "Exams",

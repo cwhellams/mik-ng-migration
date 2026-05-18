@@ -1563,7 +1563,10 @@
     "loading": "Ladataan",
     "search": "Hae",
     "notFound": "Ei löydy",
-    "notApplicable": "Ei sovellettavissa"
+    "notApplicable": "Ei sovellettavissa",
+    "updateAvailable": "Uusi versio on saatavilla",
+    "refresh": "Päivitä",
+    "dismiss": "Hylkää"
   },
   "exams": {
     "title": "Kokeet",

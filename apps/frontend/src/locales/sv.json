@@ -1530,7 +1530,10 @@
     "loading": "Laddar",
     "search": "Sök",
     "notFound": "Hittades inte",
-    "notApplicable": "Ej tillämpligt"
+    "notApplicable": "Ej tillämpligt",
+    "updateAvailable": "En ny version är tillgänglig",
+    "refresh": "Uppdatera",
+    "dismiss": "Avvisa"
   },
   "exams": {
     "title": "Prov",

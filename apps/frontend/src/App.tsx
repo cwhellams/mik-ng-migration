@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Snackbar, Button, Box } from '@mui/material'
 import SplashScreen from './components/SplashScreen'
 import MainLayout from './layouts/MainLayout'
 import AuthLayout from './layouts/AuthLayout'
+import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate'
 
 // Import your page components (create these files)
 import Dashboard from './sections/dashboard/Dashboard'
@@ -70,23 +72,29 @@ import { ServerClockProvider } from './hooks/useServerClock'
 
 function App() {
   const [loading, setLoading] = useState(true)
-
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
+  const { isUpdateAvailable, dismissUpdate, refreshApp } = useServiceWorkerUpdate()
 
   useEffect(() => {
-    // Check if document fonts are loaded
+    // Check if document fonts are loaded with a hard timeout to prevent infinite loading on mobile
     const checkFontsLoaded = async () => {
-      if (await document.fonts?.ready) {
-        // Add a small delay to ensure smooth transition
-        setTimeout(() => {
-          setLoading(false)
-        }, 500)
-      } else {
-        // Fallback for browsers that don't support document.fonts
-        setTimeout(() => {
-          setLoading(false)
-        }, 1500)
+      let fontsReady = false
+      
+      // Race: fonts.ready vs. hard timeout
+      try {
+        await Promise.race([
+          document.fonts?.ready || Promise.resolve(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+        ])
+        fontsReady = true
+      } catch {
+        fontsReady = false
       }
+
+      // Add a small delay to ensure smooth transition
+      setTimeout(() => {
+        setLoading(false)
+      }, fontsReady ? 300 : 500)
     }
 
     checkFontsLoaded()
@@ -214,6 +222,24 @@ function App() {
             <Route path='*' element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        {/* Service Worker Update Notification */}
+        <Snackbar
+          open={isUpdateAvailable}
+          autoHideDuration={null}
+          onClose={dismissUpdate}
+          message={t('common.updateAvailable')}
+          action={
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button color='primary' size='small' onClick={refreshApp}>
+                {t('common.refresh')}
+              </Button>
+              <Button color='inherit' size='small' onClick={dismissUpdate}>
+                {t('common.dismiss')}
+              </Button>
+            </Box>
+          }
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        />
       </ServerClockProvider>
     </LocalizationProvider>
   )
