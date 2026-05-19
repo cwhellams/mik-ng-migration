@@ -32,6 +32,12 @@ import {
   invalidatePreviousLoginAttempts,
   markLoginAttemptUsed,
 } from '../../db/auth-queries.ts'
+import { getArticleFees } from '../../db/invoicing-queries.ts'
+import {
+  ART_JOINING_FEE,
+  ART_JUNIOR_JOINING_FEE,
+  ART_SUPPORTING_MEMBER_JOINING_FEE,
+} from '../../services/accounting/config.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { loginEmailTitle, loginEmailBodyHtml } from '../../templates/loginEmailTemplate.ts'
@@ -309,4 +315,23 @@ router.post('/logout', async (req: Request, res: Response) => {
     path: '/',
   })
   res.status(200).json({})
+})
+
+// Public endpoint — no auth required — returns joining fee prices from the database.
+router.get('/joining-fees', async (_req: Request, res: Response) => {
+  const fees = await getArticleFees([
+    ART_JOINING_FEE,
+    ART_JUNIOR_JOINING_FEE,
+    ART_SUPPORTING_MEMBER_JOINING_FEE,
+  ])
+
+  const fullMemberFee = fees.find(f => f.code === ART_JOINING_FEE)?.price_per_unit ?? null
+  // Junior and supporting members share the same joining-fee tier; prefer junior code
+  // (NLIITTYMINEN) and fall back to supporting-member code (KLIITTYMINEN) if absent.
+  const reducedMemberFee =
+    fees.find(f => f.code === ART_JUNIOR_JOINING_FEE)?.price_per_unit ??
+    fees.find(f => f.code === ART_SUPPORTING_MEMBER_JOINING_FEE)?.price_per_unit ??
+    null
+
+  res.status(200).json({ fullMemberFee, reducedMemberFee })
 })

@@ -73,7 +73,7 @@
   },
   "register": {
     "title": "Gå med som medlem",
-    "prices": "Vid medlemskap som fullständig medlem i Malmi Flygklubb läggs en anslutningsavgift på €125 till första säsongens medlemsavgift. Anslutningsavgiften för stödmedlemmar och juniormedlemmar är €25. Rätten att reservera och använda klubbens utrustning kan endast beviljas junior- och fullständiga medlemmar.",
+    "prices": "Vid medlemskap som fullständig medlem i Malmi Flygklubb läggs en anslutningsavgift på €{{fullMemberFee}} till första säsongens medlemsavgift. Anslutningsavgiften för stödmedlemmar och juniormedlemmar är €{{reducedMemberFee}}. Rätten att reservera och använda klubbens utrustning kan endast beviljas junior- och fullständiga medlemmar.",
     "submitButton": "Skicka ansökan",
     "withAccount": "Är du redan medlem?",
     "login": "Logga in",

@@ -73,7 +73,7 @@
   },
   "register": {
     "title": "Join as a member",
-    "prices": "When joining as a full member of Malmi Aviation Club, a joining fee of €125 will be added to the first season's membership fee. The joining fee for supporting members and junior members is €25. The right to reserve and use the club's equipment can only be granted to junior and full members.",
+    "prices": "When joining as a full member of Malmi Aviation Club, a joining fee of €{{fullMemberFee}} will be added to the first season's membership fee. The joining fee for supporting members and junior members is €{{reducedMemberFee}}. The right to reserve and use the club's equipment can only be granted to junior and full members.",
     "submitButton": "Send Application",
     "withAccount": "Already a member?",
     "login": "Login",

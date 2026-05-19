@@ -38,6 +38,7 @@ import { useTranslation } from 'react-i18next'
 import LanguageSelector from '../../components/LanguageSelector'
 import { TurnstileWidget } from '../../components/TurnstileWidget'
 import { PhoneNumberInput } from '../../components/PhoneNumberInput'
+import useApi from '../../hooks/useApi'
 
 // Local form state type — allows undefined for radio-button fields so that
 // none are pre-selected; cast to RegisterRequest on submission after validation.
@@ -124,6 +125,14 @@ const Register = () => {
   const { isMutating, trigger } = useAuth<RegisterRequest, LoginResponse>(
     'register'
   )
+
+  const { data: joiningFees } = useApi<{
+    fullMemberFee: number | null
+    reducedMemberFee: number | null
+  }>({
+    url: 'auth/joining-fees',
+    allowUnauthenticated: true,
+  })
 
   // Handle language change and update both UI and member data
   const handleLanguageChange = (language: MIKLang) => {
@@ -423,7 +432,10 @@ const Register = () => {
           })()}
 
           <Typography variant='body2' color='text.secondary' sx={{ mt: 2 }}>
-            {t('register.prices')}
+            {t('register.prices', {
+              fullMemberFee: joiningFees?.fullMemberFee ?? '–',
+              reducedMemberFee: joiningFees?.reducedMemberFee ?? '–',
+            })}
           </Typography>
 
           {registerErrors.length > 0 && (
