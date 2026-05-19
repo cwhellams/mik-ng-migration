@@ -34,7 +34,7 @@ VALUES (
         2005,
         4,
         181.5,
-        ARRAY ['AVGAS'],
+        ARRAY ['100LL'],
         FALSE,
         50,
         '2024-04-15',

@@ -157,6 +157,21 @@ Always check these locations when working on the codebase:
 
 ## Database Schema Management
 
+### Branch discipline for SQL files
+
+**NEVER modify SQL files that are already deployed to production or present in the `main` branch.** Flyway tracks a checksum for every applied migration; modifying an existing file causes a checksum-mismatch error and breaks all deployments.
+
+This applies to both:
+
+- **Schema migrations** — `sql/schema/migration/V*.sql`
+- **Static-data migrations** — `sql/schema/static_data/V*.sql` (deployed to production via `flyway_staticdata_full.sh`)
+
+The only SQL files that may be created **or** modified in a feature branch are new files that were **created in that branch** (i.e. they do not yet appear in `main`).
+
+If a correction to existing data or logic is needed, create a new, higher-versioned migration file instead of editing the deployed one.
+
+**NEVER insert a migration with a version number that falls between already-deployed versions.** Flyway processes migrations in strict version order. Any new migration must use a version number _higher than the highest already-deployed version_ — it must be appended at the end of the sequence. Inserting an out-of-order version (e.g. V436 when V440 is already deployed) causes an out-of-order error and breaks all deployments.
+
 **NEVER use `CREATE SCHEMA` in Flyway migration SQL files.** PostgreSQL schemas (e.g. `dto`, `member`, `flight`) are created automatically by Flyway based on the `flyway.schemas` property in the Flyway configuration files (`sql/migration.conf`, `sql/migration_prod.conf`). To add a new schema:
 
 1. Add the schema name to the `flyway.schemas` list in `sql/migration.conf` (and `sql/migration_prod.conf` if needed).

@@ -326,6 +326,8 @@
   },
   "aircraft": {
     "location": "Plats",
+    "fuelTypes": "Bränsletyper",
+    "preferredFuelTypeTooltip": "Föredragen bränsletyp",
     "details": "Grundläggande detaljer",
     "documents": "Dokument",
     "missingDocuments": "Saknade dokument",
@@ -473,6 +475,8 @@
       "seats": "Antal säten",
       "usableFuelLitres": "Användbara bränslesliter",
       "fuelTypes": "Bränsletyper",
+      "preferredFuelType": "Föredragen bränsletyp",
+      "preferredFuelTypeNone": "Inget val",
       "active": "Är aktiv",
       "location": "Plats",
       "equipment": "Utrustning",

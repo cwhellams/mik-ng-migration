@@ -458,6 +458,54 @@ const Aircrafts = () => {
                           {aircraft.location}
                         </FormField>
 
+                        {aircraft.fuelTypes.length > 0 && (
+                          <FormField
+                            label={t('aircraft.fuelTypes')}
+                            sx={{ display: 'block' }}
+                          >
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 0.5,
+                              }}
+                            >
+                              {aircraft.fuelTypes.map((fuelType) => {
+                                const isPreferred =
+                                  fuelType === aircraft.preferredFuelType
+                                const chip = (
+                                  <Chip
+                                    key={fuelType}
+                                    label={fuelType}
+                                    size='small'
+                                    color={isPreferred ? 'primary' : 'default'}
+                                    variant={
+                                      isPreferred ? 'filled' : 'outlined'
+                                    }
+                                    icon={
+                                      isPreferred ? (
+                                        <Icon icon='mdi:star' />
+                                      ) : undefined
+                                    }
+                                  />
+                                )
+                                return isPreferred ? (
+                                  <Tooltip
+                                    key={fuelType}
+                                    title={t(
+                                      'aircraft.preferredFuelTypeTooltip'
+                                    )}
+                                  >
+                                    {chip}
+                                  </Tooltip>
+                                ) : (
+                                  chip
+                                )
+                              })}
+                            </Box>
+                          </FormField>
+                        )}
+
                         {notes.length > 0 && (
                           <FormField
                             label={t('aircraft.notes.title')}

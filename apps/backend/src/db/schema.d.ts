@@ -24,14 +24,14 @@ export type BookingStatus = 'CANCELLED' | 'CONFIRMED' | 'TENTATIVE'
 export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'TRAINING'
 
 export type CancellationReason =
-  | 'IM_SAFE_CHECKLIST'
   | 'AIRCRAFT_TECHNICAL'
-  | 'WEATHER_DEPARTURE'
-  | 'WEATHER_ENROUTE'
-  | 'WEATHER_DESTINATION'
-  | 'PERSONAL_CONFLICT'
+  | 'IM_SAFE_CHECKLIST'
   | 'OTHER'
+  | 'PERSONAL_CONFLICT'
   | 'PREFER_NOT_DISCLOSE'
+  | 'WEATHER_DEPARTURE'
+  | 'WEATHER_DESTINATION'
+  | 'WEATHER_ENROUTE'
 
 export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
 
@@ -385,6 +385,7 @@ export interface FlightAircraft {
   next_maintenance_mins: number
   next_maintenance_type: string
   notes: Json | null
+  preferred_fuel_type: string | null
   registration: string
   reserved_hours: number
   seats: number
@@ -406,17 +407,6 @@ export interface FlightAircraftCards {
   updated_by: string
   valid_from: string | null
   valid_to: string | null
-}
-
-export interface FlightAircraftNavdata {
-  navdata_id: Generated<string>
-  aircraft_registration: string
-  updater_member_id: string
-  update_date: string
-  cycle: string
-  expires: string
-  created_at: Generated<Timestamp>
-  created_by: string
 }
 
 export interface FlightAircraftDocumentsFiles {
@@ -455,6 +445,17 @@ export interface FlightAircraftJourneyLogBook {
   updated_by: string
 }
 
+export interface FlightAircraftNavdata {
+  aircraft_registration: string
+  created_at: Generated<Timestamp>
+  created_by: string
+  cycle: string
+  expires: string
+  navdata_id: Generated<string>
+  update_date: string
+  updater_member_id: string
+}
+
 export interface FlightFlightCredits {
   allocated_by_member_id: string
   created_at: Generated<Timestamp>
@@ -462,6 +463,11 @@ export interface FlightFlightCredits {
   flight_id: string
   note: string | null
   updated_at: Generated<Timestamp>
+}
+
+export interface FlightFuelTypes {
+  name: string
+  sort_order: Generated<number>
 }
 
 export interface FlightLogs {
@@ -1331,6 +1337,7 @@ export interface DB {
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
   'flight.aircraft_navdata': FlightAircraftNavdata
   'flight.flight_credits': FlightFlightCredits
+  'flight.fuel_types': FlightFuelTypes
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit
   'flight.occurrence_access': FlightOccurrenceAccess

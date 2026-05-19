@@ -326,6 +326,8 @@
   },
   "aircraft": {
     "location": "Location",
+    "fuelTypes": "Fuel Types",
+    "preferredFuelTypeTooltip": "Preferred fuel type",
     "details": "Basic Details",
     "documents": "Documents",
     "missingDocuments": "Missing Documents",
@@ -473,6 +475,8 @@
       "seats": "Numbers of Seats",
       "usableFuelLitres": "Usable Fuel Litres",
       "fuelTypes": "Fuel Types",
+      "preferredFuelType": "Preferred Fuel Type",
+      "preferredFuelTypeNone": "No preference",
       "active": "Is Active",
       "location": "Location",
       "equipment": "Equipment",

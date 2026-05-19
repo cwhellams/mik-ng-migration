@@ -8,6 +8,7 @@ import {
   type AircraftFilters,
   type AircraftListResponse,
   type AircraftStatus,
+  type FuelTypesListResponse,
 } from './models.ts'
 import {
   getAllAircraft,
@@ -15,6 +16,7 @@ import {
   updateAircraft,
   addAircraft,
   removeAircraft,
+  getAllFuelTypes,
 } from '../../db/aircraft-queries.ts'
 import { getFlightLogs, getFlightLogTotals } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
@@ -55,6 +57,12 @@ router.get('/', async (req: Request<AircraftFilters>, res: Response<AircraftList
 router.get('/registrations', async (req: Request, res: Response<string[]>) => {
   const registrations = await getAircraftRegistrations()
   res.status(200).json(registrations)
+})
+
+// Get available fuel types from the reference table (readable by all aircraft users)
+router.get('/fuel-types', async (req: Request, res: Response<FuelTypesListResponse>) => {
+  const fuelTypes = await getAllFuelTypes()
+  res.status(200).json({ fuelTypes })
 })
 
 // Get aircraft by registration

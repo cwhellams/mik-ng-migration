@@ -25,11 +25,18 @@ export enum Severity {
   off = 'off',
 }
 
-export enum FuelType {
-  AVGAS = 'AVGAS',
-  MOGAS = 'MOGAS',
-  'JETA-1' = 'JETA-1',
-}
+export const FuelTypeSchema = z.object({
+  name: z.string(),
+  sortOrder: z.number().int(),
+})
+
+export type FuelTypeEntry = z.infer<typeof FuelTypeSchema>
+
+export const FuelTypesListResponseSchema = z.object({
+  fuelTypes: z.array(FuelTypeSchema),
+})
+
+export type FuelTypesListResponse = z.infer<typeof FuelTypesListResponseSchema>
 
 export const AircraftNoteSchema = z.object({
   text: z.string(),
@@ -72,7 +79,8 @@ export const AircraftSchema = AuditableSchema.extend({
   yearOfManufacture: z.number().int().positive(),
   seats: z.number().int().positive(),
   usableFuelLitres: z.number().int().positive(),
-  fuelTypes: z.array(z.nativeEnum(FuelType)),
+  fuelTypes: z.array(z.string().nonempty()),
+  preferredFuelType: z.string().nullable().optional(),
   active: z.boolean(),
   hidden: z.boolean(),
 

@@ -1,8 +1,8 @@
-import type { Selectable } from 'kysely'
+import { sql, type Selectable } from 'kysely'
 
 import * as connection from './connection.ts'
 import type { FlightAircraft } from './schema.js'
-import { FuelType, type Aircraft, type AircraftNote } from '../routes/aircrafts/models.ts'
+import type { Aircraft, AircraftNote, FuelTypeEntry } from '../routes/aircrafts/models.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { problem } from '../routes/response.ts'
 import type { Upsert } from '../types/schema.ts'
@@ -66,7 +66,8 @@ const toAircraft = (
   yearOfManufacture: aircraft.year_of_manufacture,
   seats: aircraft.seats,
   usableFuelLitres: aircraft.usable_fuel_litres,
-  fuelTypes: aircraft.fuel_types ? (aircraft.fuel_types as FuelType[]) : [],
+  fuelTypes: aircraft.fuel_types ?? [],
+  preferredFuelType: aircraft.preferred_fuel_type ?? null,
   active: aircraft.active,
   hidden: aircraft.hidden,
 
@@ -109,6 +110,7 @@ export async function addAircraft(aircraft: Upsert<Aircraft>, jwt: JWTUser): Pro
       seats: aircraft.seats,
       usable_fuel_litres: aircraft.usableFuelLitres,
       fuel_types: aircraft.fuelTypes,
+      preferred_fuel_type: aircraft.preferredFuelType ?? null,
       active: aircraft.active,
       hidden: aircraft.hidden,
 
@@ -154,6 +156,17 @@ export async function updateAircraft(
 ): Promise<boolean> {
   const now = new Date()
 
+  // When fuelTypes changes but preferredFuelType is not explicitly provided,
+  // preserve the existing preferred_fuel_type only if it is still contained
+  // in the new fuel_types array; otherwise clear it to NULL.
+  let preferredFuelType: string | null | undefined | ReturnType<typeof sql<string | null>> =
+    patch.preferredFuelType
+  if (patch.fuelTypes && preferredFuelType === undefined) {
+    preferredFuelType = sql<
+      string | null
+    >`CASE WHEN preferred_fuel_type = ANY(${patch.fuelTypes}) THEN preferred_fuel_type ELSE NULL END`
+  }
+
   const result = await connection.db
     .updateTable('flight.aircraft')
     .set({
@@ -163,6 +176,9 @@ export async function updateAircraft(
       manufacturer: patch.manufacturer,
       year_of_manufacture: patch.yearOfManufacture,
       seats: patch.seats,
+      usable_fuel_litres: patch.usableFuelLitres,
+      fuel_types: patch.fuelTypes,
+      preferred_fuel_type: preferredFuelType as any,
       active: patch.active,
       hidden: patch.hidden,
 
@@ -197,4 +213,13 @@ export async function removeAircraft(registration: string): Promise<boolean> {
     .where('registration', '=', registration)
     .executeTakeFirstOrThrow()
   return result.numDeletedRows == BigInt(1)
+}
+
+export async function getAllFuelTypes(): Promise<FuelTypeEntry[]> {
+  const rows = await connection.db
+    .selectFrom('flight.fuel_types')
+    .selectAll()
+    .orderBy('sort_order')
+    .execute()
+  return rows.map(row => ({ name: row.name, sortOrder: row.sort_order }))
 }

@@ -325,6 +325,8 @@
   },
   "aircraft": {
     "location": "Sijainti",
+    "fuelTypes": "Polttoainetyypit",
+    "preferredFuelTypeTooltip": "Ensisijainen polttoainetyyppi",
     "details": "Perustiedot",
     "documents": "Dokumentit",
     "missingDocuments": "Puuttuvat asiakirjat",
@@ -471,6 +473,8 @@
       "seats": "Paikkoja",
       "usableFuelLitres": "Käytettävissä oleva polttoaine (litraa)",
       "fuelTypes": "Polttoainetyypit",
+      "preferredFuelType": "Ensisijainen polttoainetyyppi",
+      "preferredFuelTypeNone": "Ei valintaa",
       "active": "Aktiivinen",
       "location": "Sijainti",
       "equipment": "Varustelu",

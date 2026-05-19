@@ -33,7 +33,7 @@ import {
   Aircraft,
   AircraftNote,
   Severity,
-  FuelType,
+  FuelTypesListResponse,
 } from '@backend/routes/aircrafts/models'
 import { AuditFormField } from '../../../components/AuditFormField'
 import { FormTitle } from '../../../components/FormTitle'
@@ -70,6 +70,11 @@ export const EditAircraftModal = ({
       : `v1/aircrafts/${aircraft?.registration}`,
     skipFetch: true,
   })
+
+  const { data: fuelTypesData } = useApi<FuelTypesListResponse>({
+    url: 'v1/aircrafts/fuel-types',
+  })
+  const availableFuelTypes = fuelTypesData?.fuelTypes ?? []
 
   // Define form states based on the mode
   const [formData, setFormData] = useState<Partial<Aircraft>>({})
@@ -113,6 +118,7 @@ export const EditAircraftModal = ({
         seats: aircraft.seats,
         usableFuelLitres: aircraft.usableFuelLitres,
         fuelTypes: aircraft.fuelTypes,
+        preferredFuelType: aircraft.preferredFuelType ?? null,
         active: aircraft.active,
         hidden: aircraft.hidden,
         location: aircraft.location,
@@ -143,12 +149,26 @@ export const EditAircraftModal = ({
     const {
       target: { value },
     } = event
+    const newFuelTypes =
+      typeof value === 'string'
+        ? value.split(',')
+        : (value as string[])
     setFormData((prev) => ({
       ...prev,
-      fuelTypes:
-        typeof value === 'string'
-          ? (value.split(',') as FuelType[])
-          : (value as FuelType[]),
+      fuelTypes: newFuelTypes,
+      // Clear preferredFuelType if it is no longer one of the selected fuel types
+      preferredFuelType:
+        prev.preferredFuelType && newFuelTypes.includes(prev.preferredFuelType)
+          ? prev.preferredFuelType
+          : null,
+    }))
+  }
+
+  const handlePreferredFuelTypeChange = (event: SelectChangeEvent<string>) => {
+    const value = event.target.value
+    setFormData((prev) => ({
+      ...prev,
+      preferredFuelType: value === '' ? null : value,
     }))
   }
 
@@ -335,7 +355,35 @@ export const EditAircraftModal = ({
               </Box>
             )}
           >
-            {Object.values(FuelType).map((fuelType) => (
+            {availableFuelTypes.map((ft) => (
+              <MenuItem key={ft.name} value={ft.name}>
+                {ft.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <FormControl
+          fullWidth
+          disabled={!formData.fuelTypes || formData.fuelTypes.length === 0}
+        >
+          <InputLabel id='preferred-fuel-type-label'>
+            {t('aircraft.edit.preferredFuelType')}
+          </InputLabel>
+          <Select
+            labelId='preferred-fuel-type-label'
+            id='preferred-fuel-type'
+            value={formData.preferredFuelType ?? ''}
+            onChange={handlePreferredFuelTypeChange}
+            input={
+              <OutlinedInput label={t('aircraft.edit.preferredFuelType')} />
+            }
+          >
+            <MenuItem value=''>
+              <em>{t('aircraft.edit.preferredFuelTypeNone')}</em>
+            </MenuItem>
+            {(formData.fuelTypes || []).map((fuelType) => (
               <MenuItem key={fuelType} value={fuelType}>
                 {fuelType}
               </MenuItem>

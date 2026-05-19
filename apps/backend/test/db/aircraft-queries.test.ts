@@ -4,11 +4,11 @@ import {
   addAircraft,
   getAircraftByRegistration,
   getAllAircraft,
+  getAllFuelTypes,
   removeAircraft,
   updateAircraft,
 } from '../../src/db/aircraft-queries.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
-import { FuelType } from '../../src/routes/aircrafts/models.ts'
 
 const jwt: JWTUser = {
   memberId: 'k1mnimda',
@@ -18,6 +18,23 @@ const jwt: JWTUser = {
   permissions: [],
   canMakeReservations: false,
 }
+
+describe('Db query fuel types tests', () => {
+  it('getAllFuelTypes returns all 8 reference fuel types in order', async () => {
+    const result = await getAllFuelTypes()
+    expect(result.length).toEqual(8)
+    expect(result.map(ft => ft.name)).toEqual([
+      'JET A',
+      'JET A-1',
+      'JP-8',
+      '100LL',
+      'MOGAS 98E5',
+      'MOGAS 95E10',
+      'EN228 SUPER',
+      'EN228 SUPER PLUS',
+    ])
+  })
+})
 
 describe('Db query Get aircrafts tests', () => {
   it('getAllAircraft returns all aircraft in the db', async () => {
@@ -90,7 +107,7 @@ describe('Db add aircraft tests', () => {
         yearOfManufacture: 2000,
         seats: 2,
         usableFuelLitres: 100,
-        fuelTypes: [FuelType.AVGAS],
+        fuelTypes: ['100LL'],
         active: true,
         hidden: false,
         maintenance: {
@@ -140,7 +157,7 @@ describe('Db add aircraft tests', () => {
             yearOfManufacture: 2000,
             seats: 4,
             usableFuelLitres: 100,
-            fuelTypes: [FuelType.AVGAS],
+            fuelTypes: ['100LL'],
             active: true,
             hidden: false,
             maintenance: {
@@ -163,5 +180,57 @@ describe('Db add aircraft tests', () => {
           jwt,
         ),
     ).rejects.toThrow('aircraft_pkey')
+  })
+
+  it('updating fuelTypes preserves valid preferredFuelType and clears invalid one', async () => {
+    const aircraft = await addAircraft(
+      {
+        registration: 'OH-FPT',
+        displayName: 'Fuel pref test',
+        model: 'Jest',
+        manufacturer: 'Jest',
+        yearOfManufacture: 2020,
+        seats: 2,
+        usableFuelLitres: 100,
+        fuelTypes: ['100LL', 'MOGAS 98E5'],
+        preferredFuelType: '100LL',
+        active: true,
+        hidden: false,
+        maintenance: {
+          maintenanceCycle: 50,
+          lastMaintenanceDate: '2024-01-01',
+          lastMaintenanceType: '50h',
+          lastMaintenanceMins: 3000,
+          nextMaintenanceDate: null,
+          nextMaintenanceType: '50h',
+          nextMaintenanceMins: 6000,
+          totalPercentageHours: 5,
+          reservedHours: 2,
+        },
+        notes: [],
+        location: 'test',
+        equipment: 'test',
+        hourlyRateEur: 100,
+        documents: [],
+      },
+      jwt,
+    )
+
+    // Verify preferred fuel type was set
+    const inserted = await getAircraftByRegistration(aircraft.registration, false)
+    expect(inserted?.preferredFuelType).toEqual('100LL')
+
+    // Update fuelTypes but keep 100LL in the list — preferred should be preserved
+    await updateAircraft(aircraft.registration, { fuelTypes: ['MOGAS 98E5', '100LL'] }, jwt)
+    const afterValidUpdate = await getAircraftByRegistration(aircraft.registration, false)
+    expect(afterValidUpdate?.preferredFuelType).toEqual('100LL')
+
+    // Update fuelTypes to exclude 100LL — preferred should be cleared
+    await updateAircraft(aircraft.registration, { fuelTypes: ['MOGAS 98E5'] }, jwt)
+    const afterInvalidUpdate = await getAircraftByRegistration(aircraft.registration, false)
+    expect(afterInvalidUpdate?.preferredFuelType).toBeNull()
+
+    // Cleanup
+    await removeAircraft(aircraft.registration)
   })
 })

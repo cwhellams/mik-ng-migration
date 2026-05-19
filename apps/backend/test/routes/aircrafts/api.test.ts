@@ -6,9 +6,9 @@ import request from 'supertest'
 
 import { router } from '../../../src/routes/aircrafts/api.ts'
 import {
-  FuelType,
   type Aircraft,
   type AircraftListResponse,
+  type FuelTypesListResponse,
 } from '../../../src/routes/aircrafts/models.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
@@ -182,7 +182,7 @@ describe('Add and update aircrafts', () => {
     yearOfManufacture: 2000,
     seats: 2,
     usableFuelLitres: 100,
-    fuelTypes: [FuelType.AVGAS],
+    fuelTypes: ['100LL'],
     active: true,
     hidden: false,
     maintenance: {
@@ -254,5 +254,57 @@ describe('Add and update aircrafts', () => {
 
     const removed = await remove(adminToken, res.registration)
     expect(removed.status).toBe(204)
+  })
+})
+
+describe('GET /aircrafts/fuel-types', () => {
+  const query = async (token: string) =>
+    request(app).get('/aircrafts/fuel-types').set('Cookie', `accessToken=${token}`)
+
+  it('should return 401 for invalid token', async () => {
+    const response = await request(app)
+      .get('/aircrafts/fuel-types')
+      .set('Cookie', `accessToken=NOUP`)
+
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 403 for user without required roles', async () => {
+    const response = await query(noPermissionsToken)
+
+    expect(response.body).toEqual({
+      status: 403,
+      title: 'Forbidden',
+      detail: 'Protected Content',
+      instance: '/aircrafts/fuel-types',
+      timestamp: expect.any(String),
+    })
+  })
+
+  it('should return all 8 fuel types for a user', async () => {
+    const response = await query(userToken)
+
+    expect(response.status).toBe(200)
+    const body = response.body as FuelTypesListResponse
+    expect(body.fuelTypes).toHaveLength(8)
+    expect(body.fuelTypes.map(ft => ft.name)).toEqual([
+      'JET A',
+      'JET A-1',
+      'JP-8',
+      '100LL',
+      'MOGAS 98E5',
+      'MOGAS 95E10',
+      'EN228 SUPER',
+      'EN228 SUPER PLUS',
+    ])
+    expect(body.fuelTypes.every(ft => typeof ft.sortOrder === 'number')).toBe(true)
+  })
+
+  it('should return all 8 fuel types for an admin', async () => {
+    const response = await query(adminToken)
+
+    expect(response.status).toBe(200)
+    const body = response.body as FuelTypesListResponse
+    expect(body.fuelTypes).toHaveLength(8)
   })
 })
