@@ -10,7 +10,7 @@ import {
   updateMemberSimplbooksSyncStatus,
   updateSimplbooksSyncState,
 } from '../db/simplbooks-sync-queries.ts'
-import type { ClientData } from '../services/simplbooks/models.ts'
+import { mapMIKLangToSimplbooksLanguage, type ClientData } from '../services/simplbooks/models.ts'
 
 let intervalId: NodeJS.Timeout | null = null
 const SYNC_INTERVAL_MS = 8 * 60 * 60 * 1000 // 8 hours
@@ -148,6 +148,7 @@ async function syncMemberToSimplbooks(member: MemberToSync): Promise<void> {
       address_street: member.street_address ?? '',
       address_city: member.town_city ?? '',
       address_postal_code: member.postcode ?? '',
+      client_settings_language: mapMIKLangToSimplbooksLanguage(member.lang_iso639),
     },
   }
   await updateClient(Number(member.billing_id), client)

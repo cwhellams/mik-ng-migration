@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { type Member } from '../../routes/members/models.ts'
+import { MIKLang, type Member } from '../../routes/members/models.ts'
 import { AuditableSchema } from '../../types/schema.ts'
 
 // Regex pattern for dd-mm-yyyy
@@ -59,10 +59,28 @@ export const clientSchema = z.object({
     address_country: z.string().optional(),
     e_mail: z.string().email(),
     phone: z.string(),
+    client_settings_language: z.string().optional(),
   }),
 })
 
 export type ClientData = z.infer<typeof clientSchema>
+
+/**
+ * Maps a MIK language code to the SimplBooks client_settings_language locale string.
+ * English → en_GB, Finnish → fi_FI, Swedish → sv_FI
+ */
+export function mapMIKLangToSimplbooksLanguage(lang: MIKLang | string): string {
+  switch (lang) {
+    case MIKLang.EN:
+      return 'en_GB'
+    case MIKLang.FI:
+      return 'fi_FI'
+    case MIKLang.SV:
+      return 'sv_SE'
+    default:
+      return 'fi_FI'
+  }
+}
 
 export const clientFilterSchema = z
   .object({
@@ -129,6 +147,7 @@ export function mapMemberToClient(member: Member): ClientData {
       address_country: 'FI',
       e_mail: member.email,
       phone: member.phoneNumber ?? '',
+      client_settings_language: mapMIKLangToSimplbooksLanguage(member.lang),
     },
   }
 }

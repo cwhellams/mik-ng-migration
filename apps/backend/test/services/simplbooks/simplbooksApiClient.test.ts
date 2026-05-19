@@ -20,10 +20,12 @@ import {
   mockSimplbooksGet,
   mockSimplbooksPost,
 } from '../../__mocks__/simplbooksMock.ts'
-import type {
-  ClientFilter,
-  InvoiceFilter,
-  InvoicePost,
+import {
+  mapMIKLangToSimplbooksLanguage,
+  mapMemberToClient,
+  type ClientFilter,
+  type InvoiceFilter,
+  type InvoicePost,
 } from '../../../src/services/simplbooks/models.ts'
 import logger from '../../../src/lib/logger.ts'
 import { SimplbooksApiError } from '../../../src/services/simplbooks/simplbooksErrorHandler.ts'
@@ -733,4 +735,59 @@ describe('createClientNote', () => {
 afterAll(() => {
   jest.restoreAllMocks()
   jest.clearAllMocks()
+})
+
+describe('mapMIKLangToSimplbooksLanguage', () => {
+  it('maps Finnish to fi_FI', () => {
+    expect(mapMIKLangToSimplbooksLanguage(MIKLang.FI)).toBe('fi_FI')
+  })
+
+  it('maps English to en_GB', () => {
+    expect(mapMIKLangToSimplbooksLanguage(MIKLang.EN)).toBe('en_GB')
+  })
+
+  it('maps Swedish to sv_SE', () => {
+    expect(mapMIKLangToSimplbooksLanguage(MIKLang.SV)).toBe('sv_SE')
+  })
+})
+
+describe('mapMemberToClient', () => {
+  const baseMember: Member = {
+    memberId: 'abc123',
+    memberType: MIKMemberTypes.FLYING,
+    firstName: 'John',
+    lastName: 'Doe',
+    streetAddress: '123 Main St',
+    townCity: 'Helsinki',
+    postcode: '00100',
+    email: 'john@mik.fi',
+    isTrainingProgramPilot: false,
+    isMembershipApproved: true,
+    canMakeReservations: true,
+    memberSince: '2023-01-01',
+    createdBy: 'admin',
+    updatedBy: 'admin',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    roles: [],
+    autoRenewAnnualMembership: true,
+    autoRenewEquipmentFee: false,
+    isMembershipExpired: false,
+    lang: MIKLang.FI,
+  }
+
+  it('includes client_settings_language fi_FI for Finnish members', () => {
+    const result = mapMemberToClient({ ...baseMember, lang: MIKLang.FI })
+    expect(result.Client.client_settings_language).toBe('fi_FI')
+  })
+
+  it('includes client_settings_language en_GB for English members', () => {
+    const result = mapMemberToClient({ ...baseMember, lang: MIKLang.EN })
+    expect(result.Client.client_settings_language).toBe('en_GB')
+  })
+
+  it('includes client_settings_language sv_FI for Swedish members', () => {
+    const result = mapMemberToClient({ ...baseMember, lang: MIKLang.SV })
+    expect(result.Client.client_settings_language).toBe('sv_SE')
+  })
 })
