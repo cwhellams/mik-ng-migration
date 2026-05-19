@@ -73,18 +73,21 @@ import { ServerClockProvider } from './hooks/useServerClock'
 function App() {
   const [loading, setLoading] = useState(true)
   const { i18n, t } = useTranslation()
-  const { isUpdateAvailable, dismissUpdate, refreshApp } = useServiceWorkerUpdate()
+  const { isUpdateAvailable, dismissUpdate, refreshApp } =
+    useServiceWorkerUpdate()
 
   useEffect(() => {
     // Check if document fonts are loaded with a hard timeout to prevent infinite loading on mobile
     const checkFontsLoaded = async () => {
       let fontsReady = false
-      
+
       // Race: fonts.ready vs. hard timeout
       try {
         await Promise.race([
           document.fonts?.ready || Promise.resolve(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('timeout')), 3000)
+          ),
         ])
         fontsReady = true
       } catch {
@@ -92,9 +95,12 @@ function App() {
       }
 
       // Add a small delay to ensure smooth transition
-      setTimeout(() => {
-        setLoading(false)
-      }, fontsReady ? 300 : 500)
+      setTimeout(
+        () => {
+          setLoading(false)
+        },
+        fontsReady ? 300 : 500
+      )
     }
 
     checkFontsLoaded()

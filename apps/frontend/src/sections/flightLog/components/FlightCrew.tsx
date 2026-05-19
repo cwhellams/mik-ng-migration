@@ -16,6 +16,7 @@ import {
   Controller,
   UseFormRegister,
   UseFormSetValue,
+  UseFormTrigger,
   UseFormWatch,
 } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -35,6 +36,7 @@ interface FlightCrewProps {
   register: UseFormRegister<FlightLogUpsertRequest>
   control: Control<FlightLogUpsertRequest>
   setValue?: UseFormSetValue<FlightLogUpsertRequest>
+  trigger?: UseFormTrigger<FlightLogUpsertRequest>
   watch: UseFormWatch<FlightLogUpsertRequest>
 }
 
@@ -59,6 +61,7 @@ const FlightCrew = ({
   maximumCrewCount,
   control,
   setValue,
+  trigger,
   watch,
 }: FlightCrewProps) => {
   const { t } = useTranslation()
@@ -177,6 +180,44 @@ const FlightCrew = ({
     [me, memberList]
   )
 
+  // whether the current user (SELF) qualifies as instructor or examiner
+  const selfIsInstructor = useMemo(
+    () =>
+      memberList?.members?.some(
+        (m) => m.memberId === me?.memberId && m.roles.includes('INSTRUCTOR')
+      ) ?? false,
+    [me, memberList]
+  )
+  const selfIsExaminer = useMemo(
+    () =>
+      memberList?.members?.some(
+        (m) => m.memberId === me?.memberId && m.roles.includes('EXAMINER')
+      ) ?? false,
+    [me, memberList]
+  )
+
+  const isMemberQualifiedForDuty = useCallback(
+    (member: CrewMember, duty: string | null | undefined): boolean => {
+      if (duty === 'FI') {
+        return (
+          member.role === 'INSTRUCTOR' ||
+          (member.role === 'SELF' && selfIsInstructor)
+        )
+      }
+      if (duty === 'FE') {
+        return (
+          member.role === 'EXAMINER' ||
+          (member.role === 'SELF' && selfIsExaminer)
+        )
+      }
+      return true
+    },
+    [selfIsInstructor, selfIsExaminer]
+  )
+
+  // watch duty (role) for all slots so filtering and validation react to changes
+  const crewRoles = watch(['picRole', 'crew2Role', 'crew3Role', 'crew4Role'])
+
   // change between single and multi-pilot operations
   useEffect(() => {
     const filledCrewCount = crewMembers.filter(Boolean).length
@@ -260,6 +301,16 @@ const FlightCrew = ({
       {slots.slice(0, crewCount).map((slot, index, { length }) => {
         const crewId = `${slot}MemberId` as keyof FlightLogUpsertRequest
         const crewRole = `${slot}Role` as keyof FlightLogUpsertRequest
+        const currentDuty = crewRoles[index]
+
+        // When duty is FI or FE, filter the member list to only qualified members
+        const filteredMembers = members.filter((m) => {
+          // do not allow duplicates across slots
+          const atIndex = crewMembers.findIndex((id) => id === m.value)
+          if (atIndex !== index && atIndex !== -1) return false
+
+          return isMemberQualifiedForDuty(m, currentDuty)
+        })
 
         return (
           <Grid key={slot} size={{ xs: 12 }}>
@@ -268,17 +319,30 @@ const FlightCrew = ({
                 <Controller
                   name={crewId}
                   control={control}
-                  rules={{ required: true }}
-                  render={({ field: { onChange, value } }) => (
+                  rules={{
+                    required: true,
+                    validate: (value) => {
+                      const duty = watch(
+                        crewRole as keyof FlightLogUpsertRequest
+                      ) as string | null | undefined
+                      if (!value || !duty) return true
+                      const member = members.find((m) => m.value === value)
+                      if (!member) return true
+                      if (!isMemberQualifiedForDuty(member, duty)) {
+                        return duty === 'FI'
+                          ? t('flightLog.error.memberNotInstructor')
+                          : t('flightLog.error.memberNotExaminer')
+                      }
+                      return true
+                    },
+                  }}
+                  render={({
+                    field: { onChange, value },
+                    fieldState: { error },
+                  }) => (
                     <Autocomplete
                       disabled={!isEditable}
-                      options={members.filter((m) => {
-                        // do not allow duplicates
-                        const atIndex = crewMembers.findIndex(
-                          (id) => id === m.value
-                        )
-                        return atIndex == index || atIndex == -1
-                      })}
+                      options={filteredMembers}
                       value={
                         members.find((member) => member.value === value) ?? null
                       }
@@ -289,6 +353,8 @@ const FlightCrew = ({
                           label={t(`flightLog.crews.${slot}`)}
                           placeholder={t('flightLog.selectCrew')}
                           margin='normal'
+                          error={!!error}
+                          helperText={error?.message?.toString()}
                           slotProps={{
                             inputLabel: {
                               shrink: true,
@@ -338,6 +404,11 @@ const FlightCrew = ({
                           value={field.value || ''}
                           label={t('flightLog.duty')}
                           disabled={!isEditable}
+                          onChange={(e) => {
+                            field.onChange(e)
+                            // re-validate the member field when duty changes
+                            trigger?.(crewId)
+                          }}
                         >
                           {CREW_ROLES.map((type) => (
                             <MenuItem key={type.value} value={type.value}>

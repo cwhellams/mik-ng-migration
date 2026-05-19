@@ -471,6 +471,7 @@ const FlightLogEntry = () => {
                 register={register}
                 control={control}
                 setValue={isEditable ? setValue : undefined}
+                trigger={isEditable ? trigger : undefined}
                 watch={watch}
               />
             </Grid>

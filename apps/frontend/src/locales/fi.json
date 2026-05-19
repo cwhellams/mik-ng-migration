@@ -762,6 +762,10 @@
     "selectCrew": "Valitse henkilö",
     "duty": "Rooli",
     "addCrew": "Lisää miehistön jäsen",
+    "error": {
+      "memberNotInstructor": "Valitulla jäsenellä tulee olla lentokouluttajan rooli FI-tehtävään",
+      "memberNotExaminer": "Valitulla jäsenellä tulee olla tarkastuslentäjän rooli FE-tehtävään"
+    },
     "aircraftInfo": "Ilma-aluksen tiedot",
     "additionalInfo": "Lisätiedot",
     "departureAirport": "Lähtökenttä",
