@@ -319,23 +319,7 @@ const FlightCrew = ({
                 <Controller
                   name={crewId}
                   control={control}
-                  rules={{
-                    required: true,
-                    validate: (value) => {
-                      const duty = watch(
-                        crewRole as keyof FlightLogUpsertRequest
-                      ) as string | null | undefined
-                      if (!value || !duty) return true
-                      const member = members.find((m) => m.value === value)
-                      if (!member) return true
-                      if (!isMemberQualifiedForDuty(member, duty)) {
-                        return duty === 'FI'
-                          ? t('flightLog.error.memberNotInstructor')
-                          : t('flightLog.error.memberNotExaminer')
-                      }
-                      return true
-                    },
-                  }}
+                  rules={{ required: true }}
                   render={({
                     field: { onChange, value },
                     fieldState: { error },
