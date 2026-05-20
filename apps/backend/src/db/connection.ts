@@ -23,18 +23,20 @@ if (useSSL) {
   }
 }
 
-// Parse dates as strings - this is necessary because the PostgreSQL driver
-// returns dates as Date objects by default, which can cause issues
-// due to times being included in the date with timezone conversions
-// This can result in dates being off by a day when stored in the database
-// and retrieved back as Date objects
-pg.types.setTypeParser(pg.types.builtins.DATE, val => val)
-
-// Override the built-in parser for int8
-pg.types.setTypeParser(pg.types.builtins.INT8, val => val)
-
-// Decimals as numbers
-pg.types.setTypeParser(pg.types.builtins.NUMERIC, val => Number.parseFloat(val))
+// Per-pool type overrides — isolated from the global pg.types registry.
+// This prevents third-party libraries (e.g. Emmett's dumbo adapter) from
+// corrupting our parsers via pg.types.setTypeParser() globally.
+const poolTypes: pg.CustomTypesConfig = {
+  getTypeParser: (oid: number, format?: string) => {
+    // Return dates as strings to avoid timezone-offset day-shift issues.
+    if (oid === pg.types.builtins.DATE) return (val: string) => val
+    // Return int8 (bigint) as string — mixing BigInt with Number throws at runtime.
+    if (oid === pg.types.builtins.INT8) return (val: string) => val
+    // Return numeric/decimal as JS number.
+    if (oid === pg.types.builtins.NUMERIC) return (val: string) => Number.parseFloat(val)
+    return pg.types.getTypeParser(oid, format as 'text' | 'binary')
+  },
+}
 
 export const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -42,6 +44,7 @@ export const pool = new pg.Pool({
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
   connectionTimeoutMillis: Number.parseInt(process.env.DATABASE_CN_TIMEOUT || '10000', 10), // Wait for a connection
   options: '-c timezone=UTC',
+  types: poolTypes,
   ssl: useSSL
     ? {
         rejectUnauthorized: true,
