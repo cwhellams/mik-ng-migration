@@ -151,8 +151,10 @@ const FlightLogEntry = () => {
         },
       ]
 
-      const additionalErrors: Record<string, { type: string; message: string }> =
-        {}
+      const additionalErrors: Record<
+        string,
+        { type: string; message: string }
+      > = {}
       for (const { memberId, role, field } of crewSlots) {
         if (!memberId || (role !== 'FI' && role !== 'FE')) continue
         const member = memberList?.members.find((m) => m.memberId === memberId)
