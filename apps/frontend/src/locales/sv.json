@@ -38,7 +38,8 @@
     "exams": "Prov",
     "examsBrowse": "Bläddra prov",
     "examsHistory": "Min historik",
-    "examsAdmin": "Provadmin"
+    "examsAdmin": "Provadmin",
+    "instructorStatus": "Instruktörsstatus"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -1249,7 +1250,12 @@
     },
     "profileUpdateRequired": "Uppdatera din profilinformation",
     "profileUpdateMessage": "Verifiera och uppdatera din information i MIK-medlemsregistret.",
-    "navigateToProfile": "Gå till profil"
+    "navigateToProfile": "Gå till profil",
+    "instructorQualificationsAlert": {
+      "missing": "Dina instruktörsbehörigheter har inte angetts. Vänligen uppdatera din profil.",
+      "expiredOrExpiring": "Vissa av dina instruktörsbehörigheter har gått ut eller håller på att gå ut.",
+      "viewProfile": "Visa behörigheter"
+    }
   },
   "occurrences": {
     "title": "Tillbudsrapporter",
@@ -1721,5 +1727,66 @@
       "endDateFuture": "Slutdatum kan inte vara i framtiden",
       "startAfterEnd": "Startdatum kan inte vara efter slutdatum"
     }
+  },
+  "instructorStatus": {
+    "title": "Instruktörsstatus",
+    "subtitle": "EASA DTO instruktörsövervakning",
+    "name": "Namn",
+    "fi": "FI",
+    "fiTooltip": "Flyginstruktör",
+    "iri": "IRI",
+    "iriTooltip": "Instrumentbehörighetsinstruktör",
+    "cri": "CRI",
+    "criTooltip": "Klassbehörighetsinstruktör",
+    "sep": "SEP",
+    "sepTooltip": "SEP(land) behörighet",
+    "medClass1": "MED I",
+    "medClass1Tooltip": "Medicinsk klass I",
+    "medClass2": "MED II",
+    "medClass2Tooltip": "Medicinsk klass II",
+    "medLapl": "MED LAPL",
+    "medLaplTooltip": "Medicinsk LAPL",
+    "notHeld": "–",
+    "expired": "Utgången",
+    "expiringWarning": "Utgår inom 30 dagar",
+    "valid": "Giltig",
+    "noInstructors": "Inga instruktörer hittades",
+    "editQualifications": "Redigera kvalifikationer",
+    "qualifications": "Instruktörskvalifikationer",
+    "history": "Ändringshistorik",
+    "noHistory": "Ingen historik hittades",
+    "changedAt": "Ändrad",
+    "changedBy": "Ändrad av",
+    "operation": "Åtgärd",
+    "export": "Exportera",
+    "count": "{{count}} instruktör(er)",
+    "proofUploadTitle": "Ladda upp bevis på behörighet",
+    "proofUploadMessage": "Vill du ladda upp bevis på denna behörighet? (PDF eller JPG)",
+    "proofUpload": "Ladda upp",
+    "proofSkip": "Hoppa över",
+    "proofUploaded": "Bevis laddat upp framgångsrikt",
+    "snapshotTitle": "Point-in-Time Audit Lookup",
+    "snapshotSubtitle": "Select a date to reconstruct the qualification status that was in effect on that day.",
+    "snapshotDate": "Audit Date",
+    "snapshotLookup": "View Status",
+    "snapshotResultTitle": "Qualification status on {{date}}",
+    "snapshotNoRecord": "No qualification records existed on this date.",
+    "snapshotProofFiles": "Proof documents uploaded with this change:",
+    "snapshotError": "Failed to load snapshot. Please try again.",
+    "proofLicenseLabel": "Licens (FI / IRI / CRI / SEP)",
+    "proofLicenseHint": "Ladda upp bevis för din flyginstruktörslicens / behörighet / SEP-rättighet",
+    "proofMedicalLabel": "Medicinskt (MED I / MED II / MED LAPL)",
+    "proofMedicalHint": "Ladda upp bevis för ditt läkarintyg",
+    "noProofFile": "—",
+    "auditTitle": "Historisk granskning",
+    "auditSubtitle": "Välj ett datum för att rekonstruera instruktörernas kvalifikationsstatus den dagen.",
+    "auditDate": "Granskningsdatum",
+    "auditLookup": "Visa status",
+    "auditClear": "Tillbaka till aktuell status",
+    "auditViewingDate": "Visar kvalifikationsstatus den {{date}}",
+    "auditError": "Det gick inte att ladda historisk status. Försök igen.",
+    "openProof": "Öppna kvalifikationsbevis",
+    "historyClose": "Stäng",
+    "viewProfile": "Visa medlemsprofil"
   }
 }

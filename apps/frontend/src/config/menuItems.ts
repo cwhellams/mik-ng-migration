@@ -87,6 +87,12 @@ export const menuItems: MenuItem[] = [
         adminModeOnly: true,
       },
       {
+        path: 'instructor-status',
+        label: 'header.instructorStatus',
+        requiredRoles: [MIKPermissions.MEMBER_ADMIN],
+        adminModeOnly: true,
+      },
+      {
         path: 'documents',
         label: 'header.documents',
       },

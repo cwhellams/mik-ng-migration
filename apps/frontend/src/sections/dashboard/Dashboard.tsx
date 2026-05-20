@@ -16,6 +16,7 @@ import { FlightLogUserDashboard } from './components/FlightLogUserDashboard'
 import { PendingReviewBanner } from './components/PendingReviewBanner'
 import { ProfileUpdateRequiredBanner } from './components/ProfileUpdateRequiredBanner'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
+import { InstructorQualificationsBanner } from './components/InstructorQualificationsBanner'
 import useApi from '../../hooks/useApi'
 import type { DashboardSettings, DashboardComponent } from './types'
 import { ALWAYS_VISIBLE_COMPONENTS } from './types'
@@ -157,6 +158,8 @@ const Dashboard = () => {
             <Box key={component.id}>{ComponentElement}</Box>
           ) : null
         })}
+
+        <InstructorQualificationsBanner />
 
         {/* Render customizable components in user-defined order */}
         {orderedComponents.length > 0 ? (
