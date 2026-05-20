@@ -36,7 +36,7 @@ pg.types.setTypeParser(pg.types.builtins.INT8, val => val)
 // Decimals as numbers
 pg.types.setTypeParser(pg.types.builtins.NUMERIC, val => Number.parseFloat(val))
 
-const pool = new pg.Pool({
+export const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   max: 10, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds

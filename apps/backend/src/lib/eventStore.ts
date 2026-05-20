@@ -2,6 +2,7 @@ import {
   getPostgreSQLEventStore,
   type PostgresEventStore,
 } from '@event-driven-io/emmett-postgresql'
+import { pool } from '../db/connection.ts'
 import logger from './logger.ts'
 
 let _eventStore: PostgresEventStore | null = null
@@ -9,16 +10,14 @@ let _eventStore: PostgresEventStore | null = null
 /**
  * Returns the shared PostgreSQL event store singleton.
  * Schema migration is disabled — Flyway manages the emt_* tables.
+ * Uses the shared pg.Pool from connection.ts so SSL config is inherited.
  */
 export function getEventStore(): PostgresEventStore {
   if (!_eventStore) {
-    const connectionString = process.env.DATABASE_URL
-    if (!connectionString) {
-      throw new Error('DATABASE_URL environment variable is required for the event store')
-    }
     logger.info('Initializing PostgreSQL event store (schema migration delegated to Flyway)')
-    _eventStore = getPostgreSQLEventStore(connectionString, {
+    _eventStore = getPostgreSQLEventStore(process.env.DATABASE_URL ?? '', {
       schema: { autoMigration: 'None' },
+      connectionOptions: { pool },
     })
   }
   return _eventStore
