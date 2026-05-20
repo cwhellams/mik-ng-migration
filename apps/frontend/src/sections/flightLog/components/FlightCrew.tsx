@@ -312,18 +312,6 @@ const FlightCrew = ({
           return isMemberQualifiedForDuty(m, currentDuty)
         })
 
-        // Filter the duty options based on the currently selected member
-        const selectedMember = members.find(
-          (m) => m.value === crewMembers[index]
-        )
-        const availableDuties = CREW_ROLES.filter(({ value: dutyValue }) => {
-          if (!selectedMember) return true
-          if (dutyValue === 'FI' || dutyValue === 'FE') {
-            return isMemberQualifiedForDuty(selectedMember, dutyValue)
-          }
-          return true
-        })
-
         return (
           <Grid key={slot} size={{ xs: 12 }}>
             <Grid container spacing={2}>
@@ -406,7 +394,7 @@ const FlightCrew = ({
                             trigger?.(crewId)
                           }}
                         >
-                          {availableDuties.map((type) => (
+                          {CREW_ROLES.map((type) => (
                             <MenuItem key={type.value} value={type.value}>
                               {type.value} - {type.label}
                             </MenuItem>
