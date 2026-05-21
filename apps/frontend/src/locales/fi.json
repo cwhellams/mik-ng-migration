@@ -1127,7 +1127,12 @@
     "hideValue": "Piilota arvo",
     "secretKeyRequired": "Salaisuuden nimi on pakollinen",
     "secretValueRequired": "Salaisuuden arvo on pakollinen",
-    "noSecrets": "Ei salaisuuksia saatavilla"
+    "noSecrets": "Ei salaisuuksia saatavilla",
+    "secretClass": "Salaisuuden luokka",
+    "memberClass": "Jäsen",
+    "boardClass": "Hallitus",
+    "memberSecretsTitle": "Jäsenkoodit",
+    "boardSecretsTitle": "Hallituksen koodit"
   },
   "schedule": {
     "showPlanes": "Lentokoneet",

@@ -599,7 +599,9 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
         "fi": "Hallituksen jäsen",
         "sv": "Styrelsemedlem",
       },
-      "permissions": [],
+      "permissions": [
+        "access_codes.admin",
+      ],
       "roleId": "COMMITTEE",
       "updatedAt": Any<String>,
       "updatedBy": "k1mnimda",

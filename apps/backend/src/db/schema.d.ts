@@ -121,6 +121,8 @@ export type Occurrencestatus =
   | 'PROCESSED'
   | 'RECEIVED'
 
+export type SecretClassType = 'BOARD' | 'MEMBER'
+
 export type ShopOrderStatus = 'CANCELLED' | 'INVOICED' | 'PENDING' | 'PROCESSING' | 'REFUNDED'
 
 export type ShopProductType = 'FLIGHT_HOURS_PACKAGE' | 'STANDARD'
@@ -1021,6 +1023,10 @@ export interface Secrets {
   created_at: Generated<Timestamp>
   created_by: string
   id: Generated<Int8>
+  /**
+   * Class of the secret: MEMBER (visible to all flying members) or BOARD (visible only to board members with admin access)
+   */
+  secret_class: Generated<SecretClassType>
   /**
    * The name/description of the secret (e.g., "Club house key code")
    */

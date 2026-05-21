@@ -1128,7 +1128,12 @@
     "hideValue": "Dölj värde",
     "secretKeyRequired": "Hemlighetens namn är obligatoriskt",
     "secretValueRequired": "Hemlighetens värde är obligatoriskt",
-    "noSecrets": "Inga hemligheter tillgängliga"
+    "noSecrets": "Inga hemligheter tillgängliga",
+    "secretClass": "Hemlighetsklass",
+    "memberClass": "Medlem",
+    "boardClass": "Styrelse",
+    "memberSecretsTitle": "Medlemskoder",
+    "boardSecretsTitle": "Styrelsekoder"
   },
   "schedule": {
     "showPlanes": "Flygplan",

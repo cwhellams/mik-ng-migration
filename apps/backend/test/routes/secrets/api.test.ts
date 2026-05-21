@@ -91,6 +91,42 @@ describe('Secrets API', () => {
       expect(response.body.secrets[0].secretKey).toBe('A First Key')
       expect(response.body.secrets[1].secretKey).toBe('Z Last Key')
     })
+
+    it('should not return BOARD secrets to ACCESS_CODES_USER', async () => {
+      await request(app)
+        .post('/secrets')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ secretKey: 'Member Code', secretValue: '1234', secretClass: 'MEMBER' })
+
+      await request(app)
+        .post('/secrets')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ secretKey: 'Board Safe Code', secretValue: '9999', secretClass: 'BOARD' })
+
+      const response = await request(app).get('/secrets').set('Cookie', `accessToken=${userToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.secrets).toHaveLength(1)
+      expect(response.body.secrets[0].secretKey).toBe('Member Code')
+      expect(response.body.secrets[0].secretClass).toBe('MEMBER')
+    })
+
+    it('should return both MEMBER and BOARD secrets to ACCESS_CODES_ADMIN', async () => {
+      await request(app)
+        .post('/secrets')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ secretKey: 'Member Code', secretValue: '1234', secretClass: 'MEMBER' })
+
+      await request(app)
+        .post('/secrets')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ secretKey: 'Board Safe Code', secretValue: '9999', secretClass: 'BOARD' })
+
+      const response = await request(app).get('/secrets').set('Cookie', `accessToken=${adminToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.secrets).toHaveLength(2)
+    })
   })
 
   describe('POST /secrets', () => {
@@ -136,6 +172,59 @@ describe('Secrets API', () => {
         .send({})
 
       expect(response.status).toBe(400)
+    })
+
+    it('should default secretClass to MEMBER when not specified', async () => {
+      const response = await request(app)
+        .post('/secrets')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ secretKey: 'No Class Key', secretValue: 'value' })
+
+      expect(response.status).toBe(201)
+      expect(response.body.secretClass).toBe('MEMBER')
+    })
+
+    it('should create a BOARD secret for admin user', async () => {
+      const response = await request(app)
+        .post('/secrets')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ secretKey: 'Board Secret', secretValue: 'board-value', secretClass: 'BOARD' })
+
+      expect(response.status).toBe(201)
+      expect(response.body.secretClass).toBe('BOARD')
+    })
+  })
+
+  describe('GET /secrets/:id', () => {
+    it('should return 403 when user only has ACCESS_CODES_USER and secret is BOARD class', async () => {
+      const createResponse = await request(app)
+        .post('/secrets')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ secretKey: 'Board Secret', secretValue: 'board-value', secretClass: 'BOARD' })
+
+      const secretId = createResponse.body.id
+
+      const response = await request(app)
+        .get(`/secrets/${secretId}`)
+        .set('Cookie', `accessToken=${userToken}`)
+
+      expect(response.status).toBe(403)
+    })
+
+    it('should allow ACCESS_CODES_ADMIN to access BOARD secret by id', async () => {
+      const createResponse = await request(app)
+        .post('/secrets')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ secretKey: 'Board Secret', secretValue: 'board-value', secretClass: 'BOARD' })
+
+      const secretId = createResponse.body.id
+
+      const response = await request(app)
+        .get(`/secrets/${secretId}`)
+        .set('Cookie', `accessToken=${adminToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.secretClass).toBe('BOARD')
     })
   })
 

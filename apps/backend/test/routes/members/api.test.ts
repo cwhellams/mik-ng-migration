@@ -504,7 +504,7 @@ describe('GET /members/roles', () => {
         ],
         roleId: 'ADMIN',
       },
-      { permissions: [], roleId: 'COMMITTEE' },
+      { permissions: ['access_codes.admin'], roleId: 'COMMITTEE' },
       { permissions: [], roleId: 'EXAMINER' },
       {
         permissions: [

@@ -7,16 +7,23 @@ import {
   TextField,
   Button,
   Box,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import type {
   Secret,
   SecretsListResponse,
+  SecretClass,
 } from '@backend/routes/secrets/models'
 import useApi from '../../hooks/useApi'
 import { SaveButton } from '../../components/SaveButton'
 import { Problem } from '@backend/routes/response'
 import { SnackAlert } from '../../components/SnackAlert'
+import { useRoles } from '../../hooks/useRoles'
 
 interface SecretDialogProps {
   open: boolean
@@ -32,6 +39,7 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
   secret,
 }) => {
   const { t } = useTranslation()
+  const { isAccessCodesAdmin } = useRoles()
 
   const { isLoading, mutation } = useApi<SecretsListResponse>({
     url: 'v1/secrets' + (secret ? `/${secret.id}` : ''),
@@ -41,6 +49,7 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
   const [formData, setFormData] = useState({
     secretKey: '',
     secretValue: '',
+    secretClass: 'MEMBER' as SecretClass,
   })
   const [errors, setErrors] = useState({
     secretKey: '',
@@ -56,11 +65,13 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
         setFormData({
           secretKey: secret.secretKey,
           secretValue: secret.secretValue,
+          secretClass: secret.secretClass,
         })
       } else {
         setFormData({
           secretKey: '',
           secretValue: '',
+          secretClass: 'MEMBER',
         })
       }
       setErrors({
@@ -100,6 +111,7 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
     const secretData = {
       secretKey: formData.secretKey.trim(),
       secretValue: formData.secretValue.trim(),
+      secretClass: formData.secretClass,
     }
 
     const { error } = await mutation.trigger(
@@ -124,7 +136,7 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
       }))
 
       // Clear error when user starts typing
-      if (errors[field]) {
+      if (field in errors && errors[field as keyof typeof errors]) {
         setErrors((prev) => ({
           ...prev,
           [field]: '',
@@ -174,6 +186,28 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
               rows={3}
               disabled={isLoading}
             />
+
+            {isAccessCodesAdmin && (
+              <FormControl>
+                <FormLabel>{t('accessCodes.secretClass')}</FormLabel>
+                <RadioGroup
+                  row
+                  value={formData.secretClass}
+                  onChange={handleChange('secretClass')}
+                >
+                  <FormControlLabel
+                    value='MEMBER'
+                    control={<Radio />}
+                    label={t('accessCodes.memberClass')}
+                  />
+                  <FormControlLabel
+                    value='BOARD'
+                    control={<Radio />}
+                    label={t('accessCodes.boardClass')}
+                  />
+                </RadioGroup>
+              </FormControl>
+            )}
           </Box>
         </DialogContent>
 

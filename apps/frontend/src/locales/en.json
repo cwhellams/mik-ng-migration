@@ -1129,7 +1129,12 @@
     "hideValue": "Hide value",
     "secretKeyRequired": "Secret key is required",
     "secretValueRequired": "Secret value is required",
-    "noSecrets": "No secrets available"
+    "noSecrets": "No secrets available",
+    "secretClass": "Secret class",
+    "memberClass": "Member",
+    "boardClass": "Board",
+    "memberSecretsTitle": "Member codes",
+    "boardSecretsTitle": "Board codes"
   },
   "schedule": {
     "showPlanes": "Planes",
