@@ -943,6 +943,15 @@ export interface MemberWebauthnChallenges {
   purpose: string
 }
 
+export interface NotificationBanner {
+  enabled: Generated<boolean>
+  id: Generated<number>
+  message: string | null
+  severity: Generated<string>
+  updated_at: Generated<Timestamp>
+  updated_by: string | null
+}
+
 export interface PrepaidMemberPackages {
   created_at: Generated<Timestamp>
   expires_at: string
@@ -1428,6 +1437,7 @@ export interface DB {
   'member.roles': MemberRoles
   'member.simplbooks_sync_state': MemberSimplbooksSyncState
   'member.webauthn_challenges': MemberWebauthnChallenges
+  notification_banner: NotificationBanner
   'prepaid.member_packages': PrepaidMemberPackages
   'prepaid.packages': PrepaidPackages
   'prepaid.usage_log': PrepaidUsageLog

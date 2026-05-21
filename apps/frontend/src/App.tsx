@@ -49,6 +49,7 @@ import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
 import LogbookFlights from './sections/flightLog/LogbookPage'
 import Outbox from './sections/admin/Outbox'
 import NonRenewals from './sections/admin/NonRenewals'
+import NotificationBannerAdmin from './sections/admin/NotificationBannerAdmin'
 import ShopPage from './sections/shop/ShopPage'
 import ProductPage from './sections/shop/ProductPage'
 import CartPage from './sections/shop/CartPage'
@@ -192,6 +193,10 @@ function App() {
                 <Route index element={<Navigate to='outbox' replace />} />
                 <Route path='outbox' element={<Outbox />} />
                 <Route path='non-renewals' element={<NonRenewals />} />
+                <Route
+                  path='notification-banner'
+                  element={<NotificationBannerAdmin />}
+                />
                 <Route path='shop' element={<ShopAdminDashboard />} />
                 <Route path='shop/products' element={<ProductsAdmin />} />
                 <Route path='shop/categories' element={<CategoriesAdmin />} />

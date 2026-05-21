@@ -38,6 +38,7 @@
     "examsBrowse": "Selaa kokeita",
     "examsHistory": "Historiani",
     "examsAdmin": "Koehallinta",
+    "notificationBanner": "Ilmoitusbanneri",
     "instructorStatus": "Opettajien tila"
   },
   "languageSelector": {
@@ -1759,6 +1760,23 @@
       "required": "Alku- ja loppupäivä vaaditaan",
       "endDateFuture": "Loppupäivä ei voi olla tulevaisuudessa",
       "startAfterEnd": "Alkupäivä ei voi olla loppupäivän jälkeen"
+    }
+  },
+  "notificationBanner": {
+    "admin": {
+      "title": "Ilmoitusbanneri",
+      "description": "Aseta banneriviesti, joka näkyy kaikille käyttäjille myös ennen kirjautumista. Vaihda kytkintä näyttääksesi tai piilottaaksesi bannerin ilman viestin poistamista.",
+      "enabled": "Näytä banneri",
+      "message": "Banneriviesti",
+      "severity": "Tyyppi",
+      "severityInfo": "Info",
+      "severityWarning": "Varoitus",
+      "severityError": "Virhe",
+      "severitySuccess": "Onnistuminen",
+      "save": "Tallenna",
+      "clear": "Poista banneri",
+      "saved": "Banneri päivitetty onnistuneesti.",
+      "saveError": "Bannerin tallennus epäonnistui. Yritä uudelleen."
     }
   },
   "instructorStatus": {

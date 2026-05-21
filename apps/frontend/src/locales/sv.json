@@ -39,6 +39,7 @@
     "examsBrowse": "Bläddra prov",
     "examsHistory": "Min historik",
     "examsAdmin": "Provadmin",
+    "notificationBanner": "Notifieringsbanner",
     "instructorStatus": "Instruktörsstatus"
   },
   "languageSelector": {
@@ -1726,6 +1727,23 @@
       "required": "Både start- och slutdatum krävs",
       "endDateFuture": "Slutdatum kan inte vara i framtiden",
       "startAfterEnd": "Startdatum kan inte vara efter slutdatum"
+    }
+  },
+  "notificationBanner": {
+    "admin": {
+      "title": "Notifieringsbanner",
+      "description": "Ange ett bannermeddelande som visas för alla användare, även de som inte är inloggade. Växla knappen för att visa eller dölja bannern utan att rensa meddelandet.",
+      "enabled": "Visa banner",
+      "message": "Bannermeddelande",
+      "severity": "Typ",
+      "severityInfo": "Info",
+      "severityWarning": "Varning",
+      "severityError": "Fel",
+      "severitySuccess": "Lyckades",
+      "save": "Spara",
+      "clear": "Rensa banner",
+      "saved": "Bannern uppdaterades.",
+      "saveError": "Det gick inte att spara bannern. Försök igen."
     }
   },
   "instructorStatus": {

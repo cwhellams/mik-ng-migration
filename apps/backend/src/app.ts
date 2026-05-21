@@ -39,6 +39,7 @@ import { router as prepaidHoursRoutes } from './routes/prepaid-hours/api.ts'
 import { router as examRoutes } from './routes/exams/api.ts'
 import { router as instructorQualificationRoutes } from './routes/instructor-qualifications/api.ts'
 import { router as fuelPricesRoutes } from './routes/fuel-prices/api.ts'
+import { router as notificationBannerRoutes } from './routes/notification-banner/api.ts'
 import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
 import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoicePaymentWorker.ts'
 import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
@@ -134,6 +135,7 @@ app.use('/api/v1/shop', shopRoutes)
 app.use('/api/v1/prepaid-hours', prepaidHoursRoutes)
 app.use('/api/v1/fuel-prices', fuelPricesRoutes)
 app.use('/api/v1/exams', examRoutes)
+app.use('/api/v1/notification-banner', notificationBannerRoutes)
 app.use('/api/v1/instructor-qualifications', instructorQualificationRoutes)
 
 // Test database connection before starting workers

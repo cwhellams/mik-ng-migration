@@ -603,13 +603,27 @@ describe('POST /bookings/:id/cancel', () => {
       canMakeReservations: true,
     })
 
+    // Create a fresh booking owned by userToken (not stl2, which gets cancelled by booking-queries tests)
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
     const cancelResponse = await request(app)
-      .post('/bookings/stl2/cancel')
+      .post(`/bookings/${bookingId}/cancel`)
       .set('Cookie', `accessToken=${otherUserToken}`)
       .send({ reason: CancellationReason.PERSONAL_CONFLICT })
 
     expect(cancelResponse.status).toBe(403)
     expect(cancelResponse.body.detail).toBe('Booking not owned by user or user has no admin rights')
+
+    // Cleanup: cancel as the owner
+    await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.PERSONAL_CONFLICT })
   })
 
   it('should allow an admin to cancel another members booking', async () => {

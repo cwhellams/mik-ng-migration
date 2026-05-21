@@ -174,6 +174,12 @@ export const menuItems: MenuItem[] = [
         requiredRoles: [MIKPermissions.EXAM_ADMIN],
         adminModeOnly: true,
       },
+      {
+        label: 'header.notificationBanner',
+        path: 'notification-banner',
+        requiredRoles: [MIKPermissions.MEMBER_ADMIN],
+        adminModeOnly: true,
+      },
     ],
   },
 ]

@@ -39,6 +39,7 @@
     "examsBrowse": "Browse Exams",
     "examsHistory": "My History",
     "examsAdmin": "Exam Admin",
+    "notificationBanner": "Notification Banner",
     "instructorStatus": "Instructor Status"
   },
   "languageSelector": {
@@ -1762,6 +1763,23 @@
       "required": "Both start and end dates are required",
       "endDateFuture": "End date cannot be in the future",
       "startAfterEnd": "Start date cannot be after end date"
+    }
+  },
+  "notificationBanner": {
+    "admin": {
+      "title": "Notification Banner",
+      "description": "Set a banner message visible to all users, including those not logged in. Toggle the switch to show or hide the banner without clearing the message.",
+      "enabled": "Show banner",
+      "message": "Banner message",
+      "severity": "Type",
+      "severityInfo": "Info",
+      "severityWarning": "Warning",
+      "severityError": "Error",
+      "severitySuccess": "Success",
+      "save": "Save",
+      "clear": "Clear banner",
+      "saved": "Banner updated successfully.",
+      "saveError": "Failed to save the banner. Please try again."
     }
   },
   "instructorStatus": {
