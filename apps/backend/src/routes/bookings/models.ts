@@ -3,8 +3,7 @@ import { AuditableSchema, BigintAsString, BooleanSchema, UpsertSchema } from '..
 
 export enum BookingType {
   MAINTENANCE = 'MAINTENANCE',
-  PRACTICE = 'PRACTICE',
-  CROSSCOUNTRY = 'CROSSCOUNTRY',
+  PRIVATE = 'PRIVATE',
   TRAINING = 'TRAINING',
 }
 

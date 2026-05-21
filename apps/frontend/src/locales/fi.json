@@ -1142,8 +1142,7 @@
     "type": "Tyyppi",
     "types": {
       "MAINTENANCE": "Huolto",
-      "PRACTICE": "Harjoituslento",
-      "CROSSCOUNTRY": "Matkalento",
+      "PRIVATE": "Yksityinen",
       "TRAINING": "Koululento"
     },
     "status": "Tila",

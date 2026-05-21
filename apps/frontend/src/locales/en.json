@@ -1144,8 +1144,7 @@
     "type": "Type",
     "types": {
       "MAINTENANCE": "Maintenance",
-      "PRACTICE": "Practice",
-      "CROSSCOUNTRY": "Crosscountry",
+      "PRIVATE": "Private",
       "TRAINING": "Training"
     },
     "status": "Status",

@@ -116,7 +116,7 @@ export const BookingEditor = ({
     memberId: '',
     registration: '',
     description: '',
-    type: BookingType.PRACTICE,
+    type: BookingType.PRIVATE,
     status: BookingStatus.CONFIRMED,
     instructorMemberId: null,
   })
@@ -430,14 +430,11 @@ export const BookingEditor = ({
                 }))
               }
             >
-              <MenuItem value={BookingType.PRACTICE}>
-                {t(`schedule.types.${BookingType.PRACTICE}`)}
+              <MenuItem value={BookingType.PRIVATE}>
+                {t(`schedule.types.${BookingType.PRIVATE}`)}
               </MenuItem>
               <MenuItem value={BookingType.TRAINING}>
                 {t(`schedule.types.${BookingType.TRAINING}`)}
-              </MenuItem>
-              <MenuItem value={BookingType.CROSSCOUNTRY}>
-                {t(`schedule.types.${BookingType.CROSSCOUNTRY}`)}
               </MenuItem>
               <MenuItem value={BookingType.MAINTENANCE}>
                 {t(`schedule.types.${BookingType.MAINTENANCE}`)}

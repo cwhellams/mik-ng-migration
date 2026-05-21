@@ -1143,8 +1143,7 @@
     "type": "Typ",
     "types": {
       "MAINTENANCE": "Underhåll",
-      "PRACTICE": "Övning",
-      "CROSSCOUNTRY": "Korsflyg",
+      "PRIVATE": "Privat",
       "TRAINING": "Träning"
     },
     "status": "Status",

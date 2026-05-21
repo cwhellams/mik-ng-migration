@@ -21,7 +21,7 @@ export type AuthEventType =
 
 export type BookingStatus = 'CANCELLED' | 'CONFIRMED' | 'TENTATIVE'
 
-export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'TRAINING'
+export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'PRIVATE' | 'TRAINING'
 
 export type CancellationReason =
   | 'AIRCRAFT_TECHNICAL'
