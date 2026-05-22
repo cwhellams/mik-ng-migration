@@ -256,7 +256,16 @@ function createTasksForFlight(
     const packageUsages = prepaidFlight?.packageUsages ?? []
     const standardMinutes =
       prepaidFlight?.standardMinutes ?? Math.max(0, billableMins - creditedMins)
-    const standardPricedMinutes = standardMinutes + creditedMins
+    const topUpMins = prepaidFlight?.topUpMins ?? computeTopUpMins(flight, ctx.minBillableMins)
+    const prepaidMinutesUsed = packageUsages.reduce((sum, u) => sum + u.minutesUsed, 0)
+
+    // How many of the top-up minutes fall in the standard (non-prepaid) portion.
+    // Prepaid is assumed to cover actual flight time first; any excess covers topup.
+    const residualTopUpMins = Math.max(
+      0,
+      topUpMins - Math.max(0, prepaidMinutesUsed - (billableMins - creditedMins)),
+    )
+    const standardActualMins = standardMinutes - residualTopUpMins
 
     // Group usages by (perMinRate, simplbooksItemId) so each unique package gets its own lines
     type PackageGroup = { perMinRate: number; minutesUsed: number; simplbooksItemId: string | null }
@@ -307,10 +316,24 @@ function createTasksForFlight(
       tasks,
       flight,
       ctx.articleId,
-      standardPricedMinutes,
+      standardActualMins + creditedMins,
       ctx.pricePerMinute,
       createFlightTaskContents(flight),
     )
+
+    if (residualTopUpMins > 0) {
+      logger.info(
+        `Adding minimum billable time top-up (${residualTopUpMins} min) for flight ${flight.flightId}`,
+      )
+      addFlightTask(
+        tasks,
+        flight,
+        ctx.articleId,
+        residualTopUpMins,
+        ctx.pricePerMinute,
+        createFlightTaskContents(flight, `minimum billable time top-up: ${residualTopUpMins} min`),
+      )
+    }
   } else {
     addFlightTask(
       tasks,
@@ -320,24 +343,6 @@ function createTasksForFlight(
       ctx.pricePerMinute,
       createFlightTaskContents(flight),
       discountPct,
-    )
-  }
-
-  // topUpMins is folded into standardPricedMinutes via the prepaid plan.
-  // Only add a separate top-up task in the fallback path where no plan is available.
-  const topUpMins = prepaidFlight?.topUpMins ?? computeTopUpMins(flight, ctx.minBillableMins)
-  const hasPrepaidPlan = prepaidFlight !== undefined
-  if (topUpMins > 0 && flight.isBillableFlight && !hasPrepaidPlan) {
-    logger.info(
-      `Applying minimum billable minutes (Top up ${topUpMins} mins) for flight ${flight.flightId}`,
-    )
-    addFlightTask(
-      tasks,
-      flight,
-      ctx.articleId,
-      topUpMins,
-      ctx.pricePerMinute,
-      createFlightTaskContents(flight, `minimum billable time ${ctx.minBillableMins} min`),
     )
   }
 

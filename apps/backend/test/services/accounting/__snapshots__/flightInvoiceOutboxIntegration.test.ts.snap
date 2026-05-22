@@ -1,0 +1,455 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Flight Invoice Outbox Integration Suite 1 — Billability combinations S1-1: fully billable flight without equipment fee — adds kalustonkaytto task 1`] = `
+[
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+  {
+    "amount": 90,
+    "article_id": 9999,
+    "code": "KALUSTONKAYTTO",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)",
+    "name": "Kalustomaksun Käyttömaksu",
+    "price_per_unit": 0.15,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 1 — Billability combinations S1-2: fully billable flight with equipment fee paid — no kalustonkaytto task 1`] = `
+[
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 1 — Billability combinations S1-3: non-billable flight — 100% discount, no equipment fee 1`] = `
+[
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)  [Non-billable flight - 100% discount]",
+    "discount": 100,
+    "price_per_unit": 2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 1 — Billability combinations S1-4: partially billable flight — billed normally, billingRemarks required 1`] = `
+[
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+  {
+    "amount": 10,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (credit for 10 min)",
+    "discount": 0,
+    "price_per_unit": -2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios S2-1: fully prepaid — charge at package rate + credit row; usage_log created 1`] = `
+[
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
+    "discount": 0,
+    "price_per_unit": 1.5,
+  },
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
+    "discount": 0,
+    "price_per_unit": -1.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios S2-2: partially prepaid (balance exhausted) — prepaid + credit + standard remainder 1`] = `
+[
+  {
+    "amount": 40,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
+    "discount": 0,
+    "price_per_unit": 1.5,
+  },
+  {
+    "amount": 40,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
+    "discount": 0,
+    "price_per_unit": -1.5,
+  },
+  {
+    "amount": 50,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios S2-3: local short flight with prepaid — top-up mins folded into prepaid 1`] = `
+[
+  {
+    "amount": 20,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFHK (flight time)   (prepaid package rate)",
+    "discount": 0,
+    "price_per_unit": 1.5,
+  },
+  {
+    "amount": 20,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFHK (flight time)   (prepaid package credit)",
+    "discount": 0,
+    "price_per_unit": -1.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios S2-4: multiple packages drained first-to-expire first 1`] = `
+[
+  {
+    "amount": 60,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
+    "discount": 0,
+    "price_per_unit": 1.5,
+  },
+  {
+    "amount": 60,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
+    "discount": 0,
+    "price_per_unit": -1.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios S2-5: package with simplbooksItemId — credit row uses package article code 1`] = `
+[
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
+    "discount": 0,
+    "price_per_unit": 1.5,
+  },
+  {
+    "amount": 90,
+    "article_id": 9996,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
+    "discount": 0,
+    "price_per_unit": -1.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 2 — Prepaid package scenarios S2-6: two flights, two packages different rates, prepaid exhausted — remainder at standard rate; first-to-expire consumed first 1`] = `
+[
+  {
+    "amount": 40,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
+    "discount": 0,
+    "price_per_unit": 1,
+  },
+  {
+    "amount": 40,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
+    "discount": 0,
+    "price_per_unit": -1,
+  },
+  {
+    "amount": 20,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
+    "discount": 0,
+    "price_per_unit": 1.5,
+  },
+  {
+    "amount": 20,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
+    "discount": 0,
+    "price_per_unit": -1.5,
+  },
+  {
+    "amount": 10,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package rate)",
+    "discount": 0,
+    "price_per_unit": 1.5,
+  },
+  {
+    "amount": 10,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (prepaid package credit)",
+    "discount": 0,
+    "price_per_unit": -1.5,
+  },
+  {
+    "amount": 20,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 3 — Training program pilot S3-1: training program pilot billed on block time, not flight time 1`] = `
+[
+  {
+    "amount": 100,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (Training Program Flight - Block time)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+  {
+    "amount": 100,
+    "article_id": 9999,
+    "code": "KALUSTONKAYTTO",
+    "contents": "2025-06-15 EFHK -> EFTU (Training Program Flight - Block time)",
+    "name": "Kalustomaksun Käyttömaksu",
+    "price_per_unit": 0.15,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 3 — Training program pilot S3-2: training program pilot with prepaid — block time is allocation basis 1`] = `
+[
+  {
+    "amount": 100,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (Training Program Flight - Block time)   (prepaid package rate)",
+    "discount": 0,
+    "price_per_unit": 1.5,
+  },
+  {
+    "amount": 100,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (Training Program Flight - Block time)   (prepaid package credit)",
+    "discount": 0,
+    "price_per_unit": -1.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 4 — Minimum billable time S4-1: local flight below 20 min — billed at minimum 20 min 1`] = `
+[
+  {
+    "amount": 15,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFHK (flight time)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+  {
+    "amount": 5,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFHK (flight time)   (minimum billable time top-up: 5 min)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 4 — Minimum billable time S4-2: cross-country flight below 20 min — no top-up applied 1`] = `
+[
+  {
+    "amount": 15,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 4 — Minimum billable time S4-3: local flight with minBillableExceptionReason — actual minutes billed 1`] = `
+[
+  {
+    "amount": 15,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFHK (flight time)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 5 — Entry error fee (VIRHEMERKINTA) S5-1: billable flight with entryErrorFee — VIRHEMERKINTA task appended 1`] = `
+[
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   Error in entry",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+  {
+    "amount": 1,
+    "article_id": 9997,
+    "code": "VIRHEMERKINTA",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)   (Virhemerkintä) Error in entry",
+    "name": "Virhemerkintämaksu",
+    "price_per_unit": 50,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 5 — Entry error fee (VIRHEMERKINTA) S5-2: non-billable flight with entryErrorFee — VIRHEMERKINTA NOT added 1`] = `
+[
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)  [Non-billable flight - 100% discount]  Error in entry",
+    "discount": 100,
+    "price_per_unit": 2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 6 — Multi-flight dispatch and DB side-effects S6-1: two flights in one outbox message — both logs updated, one invoice 1`] = `
+[
+  {
+    "amount": 60,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+  {
+    "amount": 45,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)",
+    "discount": 0,
+    "price_per_unit": 2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 7 — Test flight S7-1: test flight — zero-value invoice with billing remarks, no equipment fee 1`] = `
+[
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)  [Non-billable flight - 100% discount]",
+    "discount": 100,
+    "price_per_unit": 2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 8 — Ferry flight S8-1: ferry flight — zero-value invoice with billing remarks, no equipment fee 1`] = `
+[
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-06-15 EFHK -> EFTU (flight time)  [Non-billable flight - 100% discount]",
+    "discount": 100,
+    "price_per_unit": 2.5,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 9 — DB-driven aircraft pricing S9-1: standard flight in July 2025 — billed at the higher DB rate (€3.00/min) 1`] = `
+[
+  {
+    "amount": 90,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-07-01 EFHK -> EFTU (flight time)",
+    "discount": 0,
+    "price_per_unit": 3,
+  },
+]
+`;
+
+exports[`Flight Invoice Outbox Integration Suite 9 — DB-driven aircraft pricing S9-2: flight with prepaid package in July 2025 — standard remainder at DB rate 1`] = `
+[
+  {
+    "amount": 60,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-07-01 EFHK -> EFTU (flight time)   (prepaid package rate)",
+    "discount": 0,
+    "price_per_unit": 1.5,
+  },
+  {
+    "amount": 60,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-07-01 EFHK -> EFTU (flight time)   (prepaid package credit)",
+    "discount": 0,
+    "price_per_unit": -1.5,
+  },
+  {
+    "amount": 30,
+    "article_id": 9998,
+    "code": "OH-IHQ",
+    "contents": "2025-07-01 EFHK -> EFTU (flight time)",
+    "discount": 0,
+    "price_per_unit": 3,
+  },
+]
+`;

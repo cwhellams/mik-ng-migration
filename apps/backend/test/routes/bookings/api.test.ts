@@ -606,7 +606,6 @@ describe('POST /bookings/:id/cancel', () => {
       canMakeReservations: true,
     })
 
-    // Create a fresh booking owned by userToken (not stl2, which gets cancelled by booking-queries tests)
     const createResponse = await request(app)
       .post('/bookings')
       .set('Cookie', `accessToken=${userToken}`)
@@ -622,7 +621,7 @@ describe('POST /bookings/:id/cancel', () => {
     expect(cancelResponse.status).toBe(403)
     expect(cancelResponse.body.detail).toBe('Booking not owned by user or user has no admin rights')
 
-    // Cleanup: cancel as the owner
+    // Cleanup: cancel as the owner so the slot is free for subsequent tests
     await request(app)
       .post(`/bookings/${bookingId}/cancel`)
       .set('Cookie', `accessToken=${userToken}`)
