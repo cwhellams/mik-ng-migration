@@ -15,9 +15,10 @@ WITH first_logbooks AS (
 )
 UPDATE flight.aircraft_journey_log_book AS ajlb
 SET start_landings = baseline.baseline_landings
-FROM flight.aircraft_landings_baseline AS baseline
-JOIN first_logbooks AS first ON ajlb.aircraft_registration = first.aircraft_registration
+FROM flight.aircraft_landings_baseline AS baseline,
+     first_logbooks AS first
 WHERE ajlb.aircraft_registration = baseline.aircraft_registration
+    AND ajlb.aircraft_registration = first.aircraft_registration
     AND ajlb.seq_no = first.seq_no;
 
 -- Step 2: Update start_landings for subsequent logbooks based on previous logbook's total
