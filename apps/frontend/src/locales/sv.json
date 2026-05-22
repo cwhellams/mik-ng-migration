@@ -1639,6 +1639,12 @@
       "memberId": "Medlems-ID"
     }
   },
+  "gdprExport": {
+    "title": "Ladda ner mina uppgifter",
+    "description": "Du kan ladda ner en kopia av dina personuppgifter som lagras i MIK-systemen, inklusive din medlemsprofil och hela flyglogg.",
+    "downloadButton": "Ladda ner mina uppgifter",
+    "downloadError": "Det gick inte att ladda ner uppgifterna. Försök igen."
+  },
   "emailChange": {
     "changeEmailButton": "Ändra e-post",
     "newEmailLabel": "Ny e-postadress",

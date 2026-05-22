@@ -1675,6 +1675,12 @@
       "memberId": "Member ID"
     }
   },
+  "gdprExport": {
+    "title": "Download My Data",
+    "description": "You can download a copy of your personal data stored in MIK systems, including your member profile and full flight log.",
+    "downloadButton": "Download My Data",
+    "downloadError": "Failed to download data. Please try again."
+  },
   "emailChange": {
     "changeEmailButton": "Change email",
     "newEmailLabel": "New email address",
