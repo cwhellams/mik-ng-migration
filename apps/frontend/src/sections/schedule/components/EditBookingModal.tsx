@@ -527,6 +527,7 @@ export const BookingEditor = ({
             <AuditFormField
               label={t('schedule.created')}
               by={booking.createdBy}
+              byName={booking.createdByName}
               at={booking.createdAt}
               includeTime={true}
             />
@@ -534,6 +535,7 @@ export const BookingEditor = ({
             <AuditFormField
               label={t('schedule.updated')}
               by={booking.updatedBy}
+              byName={booking.updatedByName}
               at={booking.updatedAt}
               includeTime={true}
             />
@@ -542,6 +544,7 @@ export const BookingEditor = ({
               <AuditFormField
                 label={t('schedule.cancelled')}
                 by={booking.cancelledBy ?? undefined}
+                byName={booking.cancelledByName}
                 at={booking.cancelledAt ?? undefined}
                 includeTime={true}
               />

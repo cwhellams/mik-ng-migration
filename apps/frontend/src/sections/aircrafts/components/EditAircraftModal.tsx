@@ -150,9 +150,7 @@ export const EditAircraftModal = ({
       target: { value },
     } = event
     const newFuelTypes =
-      typeof value === 'string'
-        ? value.split(',')
-        : (value as string[])
+      typeof value === 'string' ? value.split(',') : (value as string[])
     setFormData((prev) => ({
       ...prev,
       fuelTypes: newFuelTypes,

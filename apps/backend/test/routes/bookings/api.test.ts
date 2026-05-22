@@ -109,8 +109,10 @@ describe('GET /bookings/bookingId', () => {
       bookingId: 'stl1',
       calendarSequence: expect.any(Number),
       cancelledBy: null,
+      cancelledByName: undefined,
       createdAt: expect.any(String),
       createdBy: 'Liisa1',
+      createdByName: 'Liisa Korhonen',
       endTime: expect.any(String),
       endTimeEpoch: expect.any(String),
       instructor: {
@@ -132,6 +134,7 @@ describe('GET /bookings/bookingId', () => {
       type: 'TRAINING',
       updatedAt: expect.any(String),
       updatedBy: 'Liisa1',
+      updatedByName: 'Liisa Korhonen',
     })
   })
 
