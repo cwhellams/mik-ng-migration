@@ -1164,7 +1164,11 @@
       "minutesStep": "Please use 15-minute increments",
       "invalidDateTime": "Invalid date/time",
       "endAfterStart": "End time must be after start time",
-      "instructorRequired": "Instructor / FE is required for training bookings"
+      "instructorRequired": "Instructor / FE is required for training bookings",
+      "licenceExpiresBeforeBooking": "Warning: Your SEP(land) licence expires on {{date}}, which is before the end of this booking. Your licence must be valid at the time of the flight.",
+      "medicalExpiresBeforeBooking": "Warning: Your medical certificate expires on {{date}}, which is before the end of this booking. Your medical must be valid at the time of the flight.",
+      "medicalNotEnteredBlocksBooking": "Error: A valid medical certificate is required for private and cross-country flights. Your medical certificate has not been entered.",
+      "medicalExpiredBlocksBooking": "Error: A valid medical certificate is required for private and cross-country flights. Your medical certificate expired on {{date}}."
     },
     "bookingOverlapError": "Booking overlaps with existing booking",
     "owner": "Owner",
@@ -1261,7 +1265,15 @@
       "missing": "Your instructor qualifications have not been set. Please update your profile.",
       "expiredOrExpiring": "Some of your instructor qualifications have expired or are expiring soon.",
       "viewProfile": "View Qualifications"
-    }
+    },
+    "licenceExpired": "Licence Expired",
+    "licenceExpiringSoon": "Licence Expiring Soon",
+    "licenceExpiredMessage": "Your SEP(land) licence expired on {{date}}. Please renew it before flying.",
+    "licenceExpiringSoonMessage": "Your SEP(land) licence will expire on {{date}}. Please renew it soon.",
+    "medicalExpired": "Medical Certificate Expired",
+    "medicalExpiringSoon": "Medical Certificate Expiring Soon",
+    "medicalExpiredMessage": "Your medical certificate expired on {{date}}. Please renew it before flying.",
+    "medicalExpiringSoonMessage": "Your medical certificate will expire on {{date}}. Please renew it soon."
   },
   "occurrences": {
     "title": "Occurrence Reports",

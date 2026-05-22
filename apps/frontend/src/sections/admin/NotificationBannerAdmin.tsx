@@ -51,7 +51,11 @@ export default function NotificationBannerAdmin() {
   const handleSave = async () => {
     setSaveStatus('saving')
     try {
-      await mutation.trigger('PUT', { enabled, message: message || null, severity })
+      await mutation.trigger('PUT', {
+        enabled,
+        message: message || null,
+        severity,
+      })
       await mutate()
       setSaveStatus('saved')
       setTimeout(() => setSaveStatus('idle'), 3000)

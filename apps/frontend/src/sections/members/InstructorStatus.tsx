@@ -79,8 +79,12 @@ const InstructorStatus = () => {
   const [openingProof, setOpeningProof] = useState<string | null>(null)
 
   // History panel state
-  const [selectedInstructorId, setSelectedInstructorId] = useState<string | null>(null)
-  const [historyData, setHistoryData] = useState<InstructorQualificationHistory[] | null>(null)
+  const [selectedInstructorId, setSelectedInstructorId] = useState<
+    string | null
+  >(null)
+  const [historyData, setHistoryData] = useState<
+    InstructorQualificationHistory[] | null
+  >(null)
   const [historyLoading, setHistoryLoading] = useState(false)
   const [historyError, setHistoryError] = useState<string | null>(null)
 
@@ -90,7 +94,9 @@ const InstructorStatus = () => {
 
   const displayInstructors = auditData ?? data?.instructors
 
-  const handleSelectInstructor = async (instructor: InstructorStatusSummary) => {
+  const handleSelectInstructor = async (
+    instructor: InstructorStatusSummary
+  ) => {
     if (selectedInstructorId === instructor.memberId) {
       setSelectedInstructorId(null)
       setHistoryData(null)
@@ -484,7 +490,11 @@ const InstructorStatus = () => {
                   <TableRow key={instructor.memberId} hover>
                     <TableCell>
                       {isMembersAdmin ? (
-                        <Stack direction='row' alignItems='center' spacing={0.5}>
+                        <Stack
+                          direction='row'
+                          alignItems='center'
+                          spacing={0.5}
+                        >
                           <Button
                             variant='text'
                             size='small'
@@ -494,12 +504,17 @@ const InstructorStatus = () => {
                               minWidth: 0,
                               textTransform: 'none',
                               fontWeight:
-                                selectedInstructorId === instructor.memberId ? 700 : 400,
+                                selectedInstructorId === instructor.memberId
+                                  ? 700
+                                  : 400,
                             }}
                           >
                             {instructor.lastName} {instructor.firstName}
                           </Button>
-                          <Tooltip title={t('instructorStatus.viewProfile')} placement='top'>
+                          <Tooltip
+                            title={t('instructorStatus.viewProfile')}
+                            placement='top'
+                          >
                             <IconButton
                               component={Link}
                               to={`/club/members/${instructor.memberId}`}
@@ -549,7 +564,11 @@ const InstructorStatus = () => {
             </Typography>
             <Stack direction='row' spacing={1}>
               {historyData && historyData.length > 0 && (
-                <Button variant='outlined' size='small' onClick={handleExportHistory}>
+                <Button
+                  variant='outlined'
+                  size='small'
+                  onClick={handleExportHistory}
+                >
                   {t('instructorStatus.export')}
                 </Button>
               )}

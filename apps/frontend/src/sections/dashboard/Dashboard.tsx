@@ -15,6 +15,7 @@ import { t } from 'i18next'
 import { FlightLogUserDashboard } from './components/FlightLogUserDashboard'
 import { PendingReviewBanner } from './components/PendingReviewBanner'
 import { ProfileUpdateRequiredBanner } from './components/ProfileUpdateRequiredBanner'
+import { ExpiryWarningBanner } from './components/ExpiryWarningBanner'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { InstructorQualificationsBanner } from './components/InstructorQualificationsBanner'
 import useApi from '../../hooks/useApi'
@@ -40,6 +41,7 @@ const createComponentMap = (
     me.memberType !== MIKMemberTypes.EXTERNAL ? (
       <PendingReviewBanner />
     ) : null,
+  expiryWarning: () => <ExpiryWarningBanner />,
   weather: () => (bookingUser ? <WeatherWidget /> : null),
   bookingUser: () => (bookingUser ? <BookingUserDashboard /> : null),
   flightLogUser: () => (flyingUser ? <FlightLogUserDashboard /> : null),

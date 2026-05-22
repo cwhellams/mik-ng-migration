@@ -1163,7 +1163,11 @@
       "minutesStep": "Vänligen använd 15-minuters intervall",
       "invalidDateTime": "Ogiltigt datum/tid",
       "endAfterStart": "Sluttiden måste vara efter starttiden",
-      "instructorRequired": "Instruktör / FE krävs för träningsbokningar"
+      "instructorRequired": "Instruktör / FE krävs för träningsbokningar",
+      "licenceExpiresBeforeBooking": "Varning: Ditt SEP(land)-flygcertifikat löper ut {{date}}, vilket är före slutet av denna bokning. Ditt certifikat måste vara giltigt vid tidpunkten för flygningen.",
+      "medicalExpiresBeforeBooking": "Varning: Ditt medicinska intyg löper ut {{date}}, vilket är före slutet av denna bokning. Ditt medicinska intyg måste vara giltigt vid tidpunkten för flygningen.",
+      "medicalNotEnteredBlocksBooking": "Fel: Ett giltigt medicinskt intyg krävs för privat- och fjärrflygningar. Ditt medicinska intyg har inte angetts.",
+      "medicalExpiredBlocksBooking": "Fel: Ett giltigt medicinskt intyg krävs för privat- och fjärrflygningar. Ditt medicinska intyg löpte ut {{date}}."
     },
     "bookingOverlapError": "Bokningen överlappar med befintlig bokning",
     "owner": "Ägare",
@@ -1260,7 +1264,15 @@
       "missing": "Dina instruktörsbehörigheter har inte angetts. Vänligen uppdatera din profil.",
       "expiredOrExpiring": "Vissa av dina instruktörsbehörigheter har gått ut eller håller på att gå ut.",
       "viewProfile": "Visa behörigheter"
-    }
+    },
+    "licenceExpired": "Flygcertifikat utgånget",
+    "licenceExpiringSoon": "Flygcertifikat löper ut snart",
+    "licenceExpiredMessage": "Ditt SEP(land)-flygcertifikat gick ut {{date}}. Förnya det innan du flyger.",
+    "licenceExpiringSoonMessage": "Ditt SEP(land)-flygcertifikat löper ut {{date}}. Förnya det snart.",
+    "medicalExpired": "Medicinskt intyg utgånget",
+    "medicalExpiringSoon": "Medicinskt intyg löper ut snart",
+    "medicalExpiredMessage": "Ditt medicinska intyg gick ut {{date}}. Förnya det innan du flyger.",
+    "medicalExpiringSoonMessage": "Ditt medicinska intyg löper ut {{date}}. Förnya det snart."
   },
   "occurrences": {
     "title": "Tillbudsrapporter",

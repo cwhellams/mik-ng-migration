@@ -16,6 +16,7 @@ import {
   Select,
   Autocomplete,
   FormHelperText,
+  Alert,
 } from '@mui/material'
 import useApi, { MutateMethods } from '../../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
@@ -39,6 +40,7 @@ import { AuditFormField } from '../../../components/AuditFormField'
 import { FormTitle } from '../../../components/FormTitle'
 import { FormField } from '../../../components/FormField'
 import { useRoles } from '../../../hooks/useRoles'
+import { useAppConfig } from '../../../hooks/useAppConfig'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
 import { MemberListResponse } from '@backend/routes/members/models'
 import { BookingTable } from './BookingTable'
@@ -70,7 +72,8 @@ export const BookingEditor = ({
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const { isBookingAdmin } = useRoles()
+  const { isBookingAdmin, me } = useRoles()
+  const { config: appConfig } = useAppConfig()
   const isNewBooking = booking?.isNewBooking
   const isReadonly = booking?.isReadonly
   const minDate = booking?.minDate
@@ -272,6 +275,26 @@ export const BookingEditor = ({
   }
 
   const overlappingBookings = overlaps?.bookings ?? []
+
+  const licenceExpiry = me?.licenceExpiry ? dayjs(me.licenceExpiry) : null
+  const medicalExpiry = me?.medicalExpiry ? dayjs(me.medicalExpiry) : null
+
+  const licenceExpiresBeforeBooking =
+    licenceExpiry !== null &&
+    endDate.date.isValid() &&
+    endDate.date.isAfter(licenceExpiry.endOf('day'))
+
+  const medicalExpiresBeforeBooking =
+    medicalExpiry !== null &&
+    endDate.date.isValid() &&
+    endDate.date.isAfter(medicalExpiry.endOf('day'))
+
+  const requiresMedical = formData.type === BookingType.PRIVATE
+
+  const medicalCurrentlyInvalid =
+    (appConfig?.medicalCheckEnabled ?? true) &&
+    requiresMedical &&
+    (medicalExpiry === null || dayjs().isAfter(medicalExpiry.endOf('day')))
 
   const isTraining = formData.type === BookingType.TRAINING
   const isTrainingWithoutInstructor = isTraining && !formData.instructorMemberId
@@ -620,6 +643,32 @@ export const BookingEditor = ({
 
       <DialogContent dividers>
         <Stack spacing={3}>
+          {medicalCurrentlyInvalid && (
+            <Alert severity='error'>
+              {medicalExpiry === null
+                ? t('schedule.validation.medicalNotEnteredBlocksBooking')
+                : t('schedule.validation.medicalExpiredBlocksBooking', {
+                    date: medicalExpiry.format('DD.MM.YYYY'),
+                  })}
+            </Alert>
+          )}
+
+          {licenceExpiresBeforeBooking && licenceExpiry && (
+            <Alert severity='warning'>
+              {t('schedule.validation.licenceExpiresBeforeBooking', {
+                date: licenceExpiry.format('DD.MM.YYYY'),
+              })}
+            </Alert>
+          )}
+
+          {medicalExpiresBeforeBooking && medicalExpiry && (
+            <Alert severity='warning'>
+              {t('schedule.validation.medicalExpiresBeforeBooking', {
+                date: medicalExpiry.format('DD.MM.YYYY'),
+              })}
+            </Alert>
+          )}
+
           {editorCard()}
 
           {overlappingBookings.length > 0 && overlapsCard()}
@@ -658,7 +707,8 @@ export const BookingEditor = ({
                   (overlappingBookings.length > 0 && !isBookingAdmin) ||
                   !!startDate.error ||
                   !!endDate.error ||
-                  isTrainingWithoutInstructor
+                  isTrainingWithoutInstructor ||
+                  medicalCurrentlyInvalid
                 }
               />
             )}
