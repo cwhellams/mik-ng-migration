@@ -138,6 +138,7 @@ jobs:
           echo "TINY_URL_BASE_URL=${{ vars.TINY_URL_BASE_URL_TEST }}" >> "$GITHUB_ENV"
           echo "MIK_LOGO_PATH=/home/node/app/apps/backend/src/assets/mik-logo-blue.png" >> "$GITHUB_ENV"
           echo "SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID=${{ vars.SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID }}" >> "$GITHUB_ENV"
+          echo "MEDICAL_CHECK_ENABLED=${{ vars.MEDICAL_CHECK_ENABLED }}" >> "$GITHUB_ENV"
           echo "IMAGE_TAG=${{ inputs.version_tag }}" >> "$GITHUB_ENV"
 
       - name: Build and push Docker image

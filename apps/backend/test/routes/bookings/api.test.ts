@@ -109,8 +109,10 @@ describe('GET /bookings/bookingId', () => {
       bookingId: 'stl1',
       calendarSequence: expect.any(Number),
       cancelledBy: null,
+      cancelledByName: undefined,
       createdAt: expect.any(String),
       createdBy: 'Liisa1',
+      createdByName: 'Liisa Korhonen',
       endTime: expect.any(String),
       endTimeEpoch: expect.any(String),
       instructor: {
@@ -132,6 +134,7 @@ describe('GET /bookings/bookingId', () => {
       type: 'TRAINING',
       updatedAt: expect.any(String),
       updatedBy: 'Liisa1',
+      updatedByName: 'Liisa Korhonen',
     })
   })
 
@@ -169,7 +172,7 @@ describe('POST /bookings', () => {
     memberId: userId,
     registration: 'OH-IHQ',
     status: BookingStatus.CONFIRMED,
-    type: BookingType.PRACTICE,
+    type: BookingType.PRIVATE,
     description: 'API booking',
     startTimeEpoch: startTime.unix().toString(),
     endTimeEpoch: startTime.add(15, 'minutes').unix().toString(),
@@ -495,7 +498,7 @@ describe('POST /bookings/:id/cancel', () => {
     memberId: userId,
     registration: 'OH-IHQ',
     status: BookingStatus.CONFIRMED,
-    type: BookingType.PRACTICE,
+    type: BookingType.PRIVATE,
     description: 'Cancel test booking',
     startTimeEpoch: startTime.unix().toString(),
     endTimeEpoch: startTime.add(30, 'minutes').unix().toString(),
@@ -603,13 +606,26 @@ describe('POST /bookings/:id/cancel', () => {
       canMakeReservations: true,
     })
 
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
     const cancelResponse = await request(app)
-      .post('/bookings/stl2/cancel')
+      .post(`/bookings/${bookingId}/cancel`)
       .set('Cookie', `accessToken=${otherUserToken}`)
       .send({ reason: CancellationReason.PERSONAL_CONFLICT })
 
     expect(cancelResponse.status).toBe(403)
     expect(cancelResponse.body.detail).toBe('Booking not owned by user or user has no admin rights')
+
+    // Cleanup: cancel as the owner so the slot is free for subsequent tests
+    await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.PERSONAL_CONFLICT })
   })
 
   it('should allow an admin to cancel another members booking', async () => {

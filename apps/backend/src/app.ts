@@ -37,7 +37,10 @@ import { router as timeRoute } from './routes/time/api.ts'
 import { router as shopRoutes } from './routes/shop/api.ts'
 import { router as prepaidHoursRoutes } from './routes/prepaid-hours/api.ts'
 import { router as examRoutes } from './routes/exams/api.ts'
+import { router as instructorQualificationRoutes } from './routes/instructor-qualifications/api.ts'
 import { router as fuelPricesRoutes } from './routes/fuel-prices/api.ts'
+import { router as notificationBannerRoutes } from './routes/notification-banner/api.ts'
+import { router as configRoutes } from './routes/config/api.ts'
 import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
 import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoicePaymentWorker.ts'
 import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
@@ -45,8 +48,11 @@ import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
 import { startOccurrenceNotificationWorker } from './workers/occurrenceNotifyWorker.ts'
 import { startBrevoSyncWorker } from './workers/brevoSyncWorker.ts'
 import { testConnection, closeDb } from './db/connection.ts'
+import { closeEventStore } from './lib/eventStore.ts'
 import { startSimplbooksSyncWorker } from './workers/simplbooksMemberSyncWorker.ts'
 import { startBookingReminderWorker } from './workers/bookingReminderWorker.ts'
+import { startJuniorMemberPromotionWorker } from './workers/juniorMemberPromotionWorker.ts'
+import { startQualificationExpiryWorker } from './workers/qualificationExpiryWorker.ts'
 
 const app = express()
 const PORT = process.env.BACKEND_PORT ?? 3000
@@ -131,6 +137,9 @@ app.use('/api/v1/shop', shopRoutes)
 app.use('/api/v1/prepaid-hours', prepaidHoursRoutes)
 app.use('/api/v1/fuel-prices', fuelPricesRoutes)
 app.use('/api/v1/exams', examRoutes)
+app.use('/api/v1/notification-banner', notificationBannerRoutes)
+app.use('/api/v1/instructor-qualifications', instructorQualificationRoutes)
+app.use('/api/v1/config', configRoutes)
 
 // Test database connection before starting workers
 await testConnection()
@@ -142,6 +151,8 @@ const occurrenceNotificationWorker = startOccurrenceNotificationWorker()
 const brevoSyncWorker = startBrevoSyncWorker()
 const simplbooksMemberSyncWorker = startSimplbooksSyncWorker()
 const bookingReminderWorker = startBookingReminderWorker()
+const juniorMemberPromotionWorker = startJuniorMemberPromotionWorker()
+const qualificationExpiryWorker = startQualificationExpiryWorker()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
@@ -157,6 +168,7 @@ const server = app.listen(PORT, () => {
 const shutdown = async (): Promise<void> => {
   console.warn('\nShutting down server...')
   await closeDb() // Close DB connections
+  await closeEventStore() // Close Emmett event store connections
   poller?.stop()
   invoicePaymentWorker?.stop()
   overdueInvoiceWorker?.stop()
@@ -164,6 +176,8 @@ const shutdown = async (): Promise<void> => {
   brevoSyncWorker?.stop()
   simplbooksMemberSyncWorker?.stop()
   bookingReminderWorker?.stop()
+  juniorMemberPromotionWorker?.stop()
+  qualificationExpiryWorker?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)

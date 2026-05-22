@@ -21,7 +21,19 @@ type BookingRow = Selectable<
   instructor_first_name?: string | null
   instructor_last_name?: string | null
   instructor_phone_number?: string | null
+  created_by_first_name?: string | null
+  created_by_last_name?: string | null
+  updated_by_first_name?: string | null
+  updated_by_last_name?: string | null
+  cancelled_by_first_name?: string | null
+  cancelled_by_last_name?: string | null
 }
+
+const formatMemberName = (
+  firstName: string | null | undefined,
+  lastName: string | null | undefined,
+): string | undefined =>
+  firstName || lastName ? [firstName, lastName].filter(Boolean).join(' ') : undefined
 
 const mapResultToBooking = (row: BookingRow): Booking => ({
   bookingId: row.booking_id,
@@ -50,10 +62,13 @@ const mapResultToBooking = (row: BookingRow): Booking => ({
   endTime: row.end_time_utc.toISOString(),
   createdAt: row.created_at.toISOString(),
   createdBy: row.created_by,
+  createdByName: formatMemberName(row.created_by_first_name, row.created_by_last_name),
   updatedAt: row.updated_at.toISOString(),
   updatedBy: row.updated_by,
+  updatedByName: formatMemberName(row.updated_by_first_name, row.updated_by_last_name),
   cancelledAt: row.cancelled_at?.toISOString(),
   cancelledBy: row.cancelled_by,
+  cancelledByName: formatMemberName(row.cancelled_by_first_name, row.cancelled_by_last_name),
   cancellationReason: (row.cancellation_reason as CancellationReason) ?? undefined,
   cancellationNote: row.cancellation_note ?? undefined,
 })
@@ -81,6 +96,25 @@ export const getBookings = async (filters: BookingFilters): Promise<Booking[]> =
       sql<string | null>`instr.first_name`.as('instructor_first_name'),
       sql<string | null>`instr.last_name`.as('instructor_last_name'),
       sql<string | null>`instr.phone_number`.as('instructor_phone_number'),
+    ])
+    .leftJoin('member.register as creator', 'creator.member_id', 'schedule.bookings.created_by')
+    .select([
+      sql<string | null>`creator.first_name`.as('created_by_first_name'),
+      sql<string | null>`creator.last_name`.as('created_by_last_name'),
+    ])
+    .leftJoin('member.register as updater', 'updater.member_id', 'schedule.bookings.updated_by')
+    .select([
+      sql<string | null>`updater.first_name`.as('updated_by_first_name'),
+      sql<string | null>`updater.last_name`.as('updated_by_last_name'),
+    ])
+    .leftJoin(
+      'member.register as canceller',
+      'canceller.member_id',
+      'schedule.bookings.cancelled_by',
+    )
+    .select([
+      sql<string | null>`canceller.first_name`.as('cancelled_by_first_name'),
+      sql<string | null>`canceller.last_name`.as('cancelled_by_last_name'),
     ])
     .orderBy('start_time_epoch', filters.orderLatestFirst ? 'desc' : 'asc')
     .limit(filters.limit ?? 1000)
@@ -140,6 +174,25 @@ export const getBookingById = async (bookingId: string): Promise<Booking | undef
       sql<string | null>`instr.first_name`.as('instructor_first_name'),
       sql<string | null>`instr.last_name`.as('instructor_last_name'),
       sql<string | null>`instr.phone_number`.as('instructor_phone_number'),
+    ])
+    .leftJoin('member.register as creator', 'creator.member_id', 'schedule.bookings.created_by')
+    .select([
+      sql<string | null>`creator.first_name`.as('created_by_first_name'),
+      sql<string | null>`creator.last_name`.as('created_by_last_name'),
+    ])
+    .leftJoin('member.register as updater', 'updater.member_id', 'schedule.bookings.updated_by')
+    .select([
+      sql<string | null>`updater.first_name`.as('updated_by_first_name'),
+      sql<string | null>`updater.last_name`.as('updated_by_last_name'),
+    ])
+    .leftJoin(
+      'member.register as canceller',
+      'canceller.member_id',
+      'schedule.bookings.cancelled_by',
+    )
+    .select([
+      sql<string | null>`canceller.first_name`.as('cancelled_by_first_name'),
+      sql<string | null>`canceller.last_name`.as('cancelled_by_last_name'),
     ])
     .where('booking_id', '=', bookingId)
     .executeTakeFirst()
@@ -322,6 +375,25 @@ export const claimUpcomingBookingsForReminder = async (
       sql<string | null>`instr.first_name`.as('instructor_first_name'),
       sql<string | null>`instr.last_name`.as('instructor_last_name'),
       sql<string | null>`instr.phone_number`.as('instructor_phone_number'),
+    ])
+    .leftJoin('member.register as creator', 'creator.member_id', 'schedule.bookings.created_by')
+    .select([
+      sql<string | null>`creator.first_name`.as('created_by_first_name'),
+      sql<string | null>`creator.last_name`.as('created_by_last_name'),
+    ])
+    .leftJoin('member.register as updater', 'updater.member_id', 'schedule.bookings.updated_by')
+    .select([
+      sql<string | null>`updater.first_name`.as('updated_by_first_name'),
+      sql<string | null>`updater.last_name`.as('updated_by_last_name'),
+    ])
+    .leftJoin(
+      'member.register as canceller',
+      'canceller.member_id',
+      'schedule.bookings.cancelled_by',
+    )
+    .select([
+      sql<string | null>`canceller.first_name`.as('cancelled_by_first_name'),
+      sql<string | null>`canceller.last_name`.as('cancelled_by_last_name'),
     ])
     .where('schedule.bookings.booking_id', 'in', claimedIds)
     .execute()

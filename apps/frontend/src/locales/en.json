@@ -38,7 +38,9 @@
     "exams": "Exams",
     "examsBrowse": "Browse Exams",
     "examsHistory": "My History",
-    "examsAdmin": "Exam Admin"
+    "examsAdmin": "Exam Admin",
+    "notificationBanner": "Notification Banner",
+    "instructorStatus": "Instructor Status"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
@@ -1131,7 +1133,12 @@
     "hideValue": "Hide value",
     "secretKeyRequired": "Secret key is required",
     "secretValueRequired": "Secret value is required",
-    "noSecrets": "No secrets available"
+    "noSecrets": "No secrets available",
+    "secretClass": "Secret class",
+    "memberClass": "Member",
+    "boardClass": "Board",
+    "memberSecretsTitle": "Member codes",
+    "boardSecretsTitle": "Board codes"
   },
   "schedule": {
     "showPlanes": "Planes",
@@ -1146,8 +1153,7 @@
     "type": "Type",
     "types": {
       "MAINTENANCE": "Maintenance",
-      "PRACTICE": "Practice",
-      "CROSSCOUNTRY": "Crosscountry",
+      "PRIVATE": "Private",
       "TRAINING": "Training"
     },
     "status": "Status",
@@ -1162,7 +1168,11 @@
       "minutesStep": "Please use 15-minute increments",
       "invalidDateTime": "Invalid date/time",
       "endAfterStart": "End time must be after start time",
-      "instructorRequired": "Instructor / FE is required for training bookings"
+      "instructorRequired": "Instructor / FE is required for training bookings",
+      "licenceExpiresBeforeBooking": "Warning: Your SEP(land) licence expires on {{date}}, which is before the end of this booking. Your licence must be valid at the time of the flight.",
+      "medicalExpiresBeforeBooking": "Warning: Your medical certificate expires on {{date}}, which is before the end of this booking. Your medical must be valid at the time of the flight.",
+      "medicalNotEnteredBlocksBooking": "Error: A valid medical certificate is required for private and cross-country flights. Your medical certificate has not been entered.",
+      "medicalExpiredBlocksBooking": "Error: A valid medical certificate is required for private and cross-country flights. Your medical certificate expired on {{date}}."
     },
     "bookingOverlapError": "Booking overlaps with existing booking",
     "owner": "Owner",
@@ -1254,7 +1264,20 @@
     },
     "profileUpdateRequired": "Please update your profile information",
     "profileUpdateMessage": "Verify and update your information in the MIK member registry.",
-    "navigateToProfile": "Go to Profile"
+    "navigateToProfile": "Go to Profile",
+    "instructorQualificationsAlert": {
+      "missing": "Your instructor qualifications have not been set. Please update your profile.",
+      "expiredOrExpiring": "Some of your instructor qualifications have expired or are expiring soon.",
+      "viewProfile": "View Qualifications"
+    },
+    "licenceExpired": "Licence Expired",
+    "licenceExpiringSoon": "Licence Expiring Soon",
+    "licenceExpiredMessage": "Your SEP(land) licence expired on {{date}}. Please renew it before flying.",
+    "licenceExpiringSoonMessage": "Your SEP(land) licence will expire on {{date}}. Please renew it soon.",
+    "medicalExpired": "Medical Certificate Expired",
+    "medicalExpiringSoon": "Medical Certificate Expiring Soon",
+    "medicalExpiredMessage": "Your medical certificate expired on {{date}}. Please renew it before flying.",
+    "medicalExpiringSoonMessage": "Your medical certificate will expire on {{date}}. Please renew it soon."
   },
   "occurrences": {
     "title": "Occurrence Reports",
@@ -1761,5 +1784,83 @@
       "endDateFuture": "End date cannot be in the future",
       "startAfterEnd": "Start date cannot be after end date"
     }
+  },
+  "notificationBanner": {
+    "admin": {
+      "title": "Notification Banner",
+      "description": "Set a banner message visible to all users, including those not logged in. Toggle the switch to show or hide the banner without clearing the message.",
+      "enabled": "Show banner",
+      "message": "Banner message",
+      "severity": "Type",
+      "severityInfo": "Info",
+      "severityWarning": "Warning",
+      "severityError": "Error",
+      "severitySuccess": "Success",
+      "save": "Save",
+      "clear": "Clear banner",
+      "saved": "Banner updated successfully.",
+      "saveError": "Failed to save the banner. Please try again."
+    }
+  },
+  "instructorStatus": {
+    "title": "Instructor Status",
+    "subtitle": "EASA DTO instructor compliance monitoring",
+    "name": "Name",
+    "fi": "FI",
+    "fiTooltip": "Flight Instructor",
+    "iri": "IRI",
+    "iriTooltip": "Instrument Rating Instructor",
+    "cri": "CRI",
+    "criTooltip": "Class Rating Instructor",
+    "sep": "SEP",
+    "sepTooltip": "SEP(land) rating",
+    "medClass1": "MED I",
+    "medClass1Tooltip": "Medical Class I",
+    "medClass2": "MED II",
+    "medClass2Tooltip": "Medical Class II",
+    "medLapl": "MED LAPL",
+    "medLaplTooltip": "Medical LAPL",
+    "notHeld": "–",
+    "expired": "Expired",
+    "expiringWarning": "Expiring within 30 days",
+    "valid": "Valid",
+    "noInstructors": "No instructors found",
+    "editQualifications": "Edit Qualifications",
+    "qualifications": "Instructor Qualifications",
+    "history": "Change History",
+    "noHistory": "No history records found",
+    "changedAt": "Changed at",
+    "changedBy": "Changed by",
+    "operation": "Operation",
+    "export": "Export",
+    "count": "{{count}} instructor(s)",
+    "proofUploadTitle": "Upload Proof of Qualification",
+    "proofUploadMessage": "Would you like to upload proof of this qualification? (PDF or JPG)",
+    "proofUpload": "Upload",
+    "proofSkip": "Skip",
+    "proofUploaded": "Proof uploaded successfully",
+    "snapshotTitle": "Point-in-Time Audit Lookup",
+    "snapshotSubtitle": "Select a date to reconstruct the qualification status that was in effect on that day.",
+    "snapshotDate": "Audit Date",
+    "snapshotLookup": "View Status",
+    "snapshotResultTitle": "Qualification status on {{date}}",
+    "snapshotNoRecord": "No qualification records existed on this date.",
+    "snapshotProofFiles": "Proof documents uploaded with this change:",
+    "snapshotError": "Failed to load snapshot. Please try again.",
+    "proofLicenseLabel": "License (FI / IRI / CRI / SEP)",
+    "proofLicenseHint": "Upload proof for your flight instructor / rating / SEP licence",
+    "proofMedicalLabel": "Medical (MED I / MED II / MED LAPL)",
+    "proofMedicalHint": "Upload proof for your medical certificate",
+    "noProofFile": "—",
+    "auditTitle": "Point-in-Time Audit",
+    "auditSubtitle": "Select a past date to reconstruct the qualification status of all instructors on that day.",
+    "auditDate": "Audit date",
+    "auditLookup": "View status",
+    "auditClear": "Back to current",
+    "auditViewingDate": "Showing qualification status on {{date}}",
+    "auditError": "Failed to load historical status. Please try again.",
+    "openProof": "Open proof document",
+    "historyClose": "Close",
+    "viewProfile": "View member profile"
   }
 }

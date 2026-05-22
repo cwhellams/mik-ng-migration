@@ -848,6 +848,54 @@ export async function getUnpaidMembershipFeesForYear(
 }
 
 /**
+ * Get all active JUNIOR members whose 18th birthday is today.
+ * Used by the junior member promotion worker.
+ */
+export async function getJuniorMembersTurning18Today(): Promise<
+  Array<{ member_id: string; first_name: string; email: string; lang: MIKLang }>
+> {
+  const today = new Date()
+  const birthYear = today.getFullYear() - 18
+  const birthMonth = String(today.getMonth() + 1).padStart(2, '0')
+  const birthDay = String(today.getDate()).padStart(2, '0')
+  const targetDob = `${birthYear}-${birthMonth}-${birthDay}`
+
+  const members = await db
+    .selectFrom('member.register')
+    .select(['member_id', 'first_name', 'email', 'lang_iso639'])
+    .where('member_type', '=', MIKMemberTypes.JUNIOR)
+    .where('is_membership_approved', '=', true)
+    .where('is_membership_expired', '=', false)
+    .where('date_of_birth', '=', targetDob)
+    .execute()
+
+  return members.map(m => ({
+    member_id: m.member_id,
+    first_name: m.first_name,
+    email: m.email,
+    lang: m.lang_iso639 as MIKLang,
+  }))
+}
+
+/**
+ * Promote a JUNIOR member to FLYING member type.
+ * Used by the junior member promotion worker when a member turns 18.
+ */
+export async function promoteMemberToFlying(memberId: string): Promise<void> {
+  const now = new Date()
+
+  await db
+    .updateTable('member.register')
+    .set({
+      member_type: MIKMemberTypes.FLYING,
+      updated_at: now,
+      updated_by: 'k1mnimda',
+    })
+    .where('member_id', '=', memberId)
+    .execute()
+}
+
+/**
  * Check if member has any billable flights in a given year
  */
 export async function hasMemberFlownBillableFlightInYear(

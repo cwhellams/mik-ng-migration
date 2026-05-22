@@ -37,7 +37,9 @@
     "exams": "Kokeet",
     "examsBrowse": "Selaa kokeita",
     "examsHistory": "Historiani",
-    "examsAdmin": "Koehallinta"
+    "examsAdmin": "Koehallinta",
+    "notificationBanner": "Ilmoitusbanneri",
+    "instructorStatus": "Opettajien tila"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -1129,7 +1131,12 @@
     "hideValue": "Piilota arvo",
     "secretKeyRequired": "Salaisuuden nimi on pakollinen",
     "secretValueRequired": "Salaisuuden arvo on pakollinen",
-    "noSecrets": "Ei salaisuuksia saatavilla"
+    "noSecrets": "Ei salaisuuksia saatavilla",
+    "secretClass": "Salaisuuden luokka",
+    "memberClass": "Jäsen",
+    "boardClass": "Hallitus",
+    "memberSecretsTitle": "Jäsenkoodit",
+    "boardSecretsTitle": "Hallituksen koodit"
   },
   "schedule": {
     "showPlanes": "Lentokoneet",
@@ -1144,8 +1151,7 @@
     "type": "Tyyppi",
     "types": {
       "MAINTENANCE": "Huolto",
-      "PRACTICE": "Harjoituslento",
-      "CROSSCOUNTRY": "Matkalento",
+      "PRIVATE": "Yksityinen",
       "TRAINING": "Koululento"
     },
     "status": "Tila",
@@ -1160,7 +1166,11 @@
       "minutesStep": "Käytä 15 minuutin askelia",
       "invalidDateTime": "Virheellinen päivämäärä/aika",
       "endAfterStart": "Loppuaika on oltava aloitusajan jälkeen",
-      "instructorRequired": "Lentokouluttaja / FE vaaditaan koululennoille"
+      "instructorRequired": "Lentokouluttaja / FE vaaditaan koululennoille",
+      "licenceExpiresBeforeBooking": "Varoitus: SEP(land)-lentolupakirjasi vanhenee {{date}}, joka on ennen tämän varauksen loppua. Lentolupakirjasi tulee olla voimassa lennon aikana.",
+      "medicalExpiresBeforeBooking": "Varoitus: Lääketieteellinen todistuksesi vanhenee {{date}}, joka on ennen tämän varauksen loppua. Lääketieteellinen todistuksesi tulee olla voimassa lennon aikana.",
+      "medicalNotEnteredBlocksBooking": "Virhe: Yksityislennoille ja reittilennoille vaaditaan voimassa oleva lääketieteellinen todistus. Lääketieteellistä todistustasi ei ole syötetty.",
+      "medicalExpiredBlocksBooking": "Virhe: Yksityislennoille ja reittilennoille vaaditaan voimassa oleva lääketieteellinen todistus. Lääketieteellinen todistuksesi vanheni {{date}}."
     },
     "bookingOverlapError": "Päällekkäisyys toiseen varaukseen",
     "owner": "Omistaja",
@@ -1252,7 +1262,20 @@
     },
     "profileUpdateRequired": "Päivitä profiilisi tiedot",
     "profileUpdateMessage": "Tarkista ja päivitä MIK:n jäsenrekisterin tietosi.",
-    "navigateToProfile": "Siirry profiiliin"
+    "navigateToProfile": "Siirry profiiliin",
+    "instructorQualificationsAlert": {
+      "missing": "Ohjaajankelpoisuustietojasi ei ole asetettu. Päivitä profiilisi.",
+      "expiredOrExpiring": "Jotkut kelpoisuustietosi ovat vanhentuneet tai vanhentumassa pian.",
+      "viewProfile": "Katso kelpoisuudet"
+    },
+    "licenceExpired": "Lentolupakirja vanhentunut",
+    "licenceExpiringSoon": "Lentolupakirja vanhenee pian",
+    "licenceExpiredMessage": "SEP(land)-lentolupakirjasi vanheni {{date}}. Uusi se ennen lentämistä.",
+    "licenceExpiringSoonMessage": "SEP(land)-lentolupakirjasi vanhenee {{date}}. Uusi se pian.",
+    "medicalExpired": "Lääketieteellinen todistus vanhentunut",
+    "medicalExpiringSoon": "Lääketieteellinen todistus vanhenee pian",
+    "medicalExpiredMessage": "Lääketieteellinen todistuksesi vanheni {{date}}. Uusi se ennen lentämistä.",
+    "medicalExpiringSoonMessage": "Lääketieteellinen todistuksesi vanhenee {{date}}. Uusi se pian."
   },
   "occurrences": {
     "title": "Poikkeamaraportit",
@@ -1758,5 +1781,83 @@
       "endDateFuture": "Loppupäivä ei voi olla tulevaisuudessa",
       "startAfterEnd": "Alkupäivä ei voi olla loppupäivän jälkeen"
     }
+  },
+  "notificationBanner": {
+    "admin": {
+      "title": "Ilmoitusbanneri",
+      "description": "Aseta banneriviesti, joka näkyy kaikille käyttäjille myös ennen kirjautumista. Vaihda kytkintä näyttääksesi tai piilottaaksesi bannerin ilman viestin poistamista.",
+      "enabled": "Näytä banneri",
+      "message": "Banneriviesti",
+      "severity": "Tyyppi",
+      "severityInfo": "Info",
+      "severityWarning": "Varoitus",
+      "severityError": "Virhe",
+      "severitySuccess": "Onnistuminen",
+      "save": "Tallenna",
+      "clear": "Poista banneri",
+      "saved": "Banneri päivitetty onnistuneesti.",
+      "saveError": "Bannerin tallennus epäonnistui. Yritä uudelleen."
+    }
+  },
+  "instructorStatus": {
+    "title": "Opettajien tila",
+    "subtitle": "EASA DTO -opettajien vaatimustenmukaisuuden seuranta",
+    "name": "Nimi",
+    "fi": "FI",
+    "fiTooltip": "Lentokouluttaja",
+    "iri": "IRI",
+    "iriTooltip": "Mittarilentokouluttaja",
+    "cri": "CRI",
+    "criTooltip": "Luokkakelpuutuskouluttaja",
+    "sep": "SEP",
+    "sepTooltip": "SEP(land) -kelpuutus",
+    "medClass1": "MED I",
+    "medClass1Tooltip": "Lääketieteellinen luokka I",
+    "medClass2": "MED II",
+    "medClass2Tooltip": "Lääketieteellinen luokka II",
+    "medLapl": "MED LAPL",
+    "medLaplTooltip": "Lääketieteellinen LAPL",
+    "notHeld": "–",
+    "expired": "Vanhentunut",
+    "expiringWarning": "Vanhenee 30 päivän sisällä",
+    "valid": "Voimassa",
+    "noInstructors": "Opettajia ei löytynyt",
+    "editQualifications": "Muokkaa pätevyyksiä",
+    "qualifications": "Opettajapätevyydet",
+    "history": "Muutoshistoria",
+    "noHistory": "Muutoshistoriaa ei löytynyt",
+    "changedAt": "Muutettu",
+    "changedBy": "Muuttaja",
+    "operation": "Toiminto",
+    "export": "Vie",
+    "count": "{{count}} opettaja(a)",
+    "proofUploadTitle": "Lataa todistus kelpoisuudesta",
+    "proofUploadMessage": "Haluatko ladata todistuksen tästä kelpoisuudesta? (PDF tai JPG)",
+    "proofUpload": "Lataa",
+    "proofSkip": "Ohita",
+    "proofUploaded": "Todistus ladattu onnistuneesti",
+    "snapshotTitle": "Point-in-Time Audit Lookup",
+    "snapshotSubtitle": "Select a date to reconstruct the qualification status that was in effect on that day.",
+    "snapshotDate": "Audit Date",
+    "snapshotLookup": "View Status",
+    "snapshotResultTitle": "Qualification status on {{date}}",
+    "snapshotNoRecord": "No qualification records existed on this date.",
+    "snapshotProofFiles": "Proof documents uploaded with this change:",
+    "snapshotError": "Failed to load snapshot. Please try again.",
+    "proofLicenseLabel": "Lisenssi (FI / IRI / CRI / SEP)",
+    "proofLicenseHint": "Lataa todistus lentokouluttajallisenssistä / kelpuutuksesta / SEP-oikeudesta",
+    "proofMedicalLabel": "Lääketieteellinen (MED I / MED II / MED LAPL)",
+    "proofMedicalHint": "Lataa todistus lääketieteellisestä todistuksesta",
+    "noProofFile": "—",
+    "auditTitle": "Historiallinen katselmus",
+    "auditSubtitle": "Valitse päivämäärä, jolloin haluat tarkastella kouluttajien pätevyystilannetta.",
+    "auditDate": "Katselmuspäivä",
+    "auditLookup": "Katso tilanne",
+    "auditClear": "Palaa nykytilanteeseen",
+    "auditViewingDate": "Näytetään pätevyystilanne {{date}}",
+    "auditError": "Historiallisen tilanteen lataus epäonnistui. Yritä uudelleen.",
+    "openProof": "Avaa todistusasiakirja",
+    "historyClose": "Sulje",
+    "viewProfile": "Näytä jäsenprofiili"
   }
 }

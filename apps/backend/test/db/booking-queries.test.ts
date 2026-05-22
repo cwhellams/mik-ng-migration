@@ -25,8 +25,10 @@ describe('Db Get Booking by id', () => {
       calendarSequence: expect.any(Number),
       cancelledAt: undefined,
       cancelledBy: null,
+      cancelledByName: undefined,
       createdAt: expect.any(String),
       createdBy: 'Liisa1',
+      createdByName: 'Liisa Korhonen',
       description: undefined,
       endTime: expect.any(String),
       endTimeEpoch: expect.any(String),
@@ -49,6 +51,7 @@ describe('Db Get Booking by id', () => {
       type: 'TRAINING',
       updatedAt: expect.any(String),
       updatedBy: 'Liisa1',
+      updatedByName: 'Liisa Korhonen',
     })
   })
 })
@@ -157,6 +160,9 @@ describe('Db Booking insert, update, cancel', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       cancelledBy: null,
+      cancelledByName: undefined,
+      createdByName: 'MIK Admin',
+      updatedByName: 'MIK Admin',
       instructor: {
         firstName: expect.any(String),
         lastName: expect.any(String),

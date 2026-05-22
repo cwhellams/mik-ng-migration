@@ -76,7 +76,7 @@ describe('Booking Reminder Worker', () => {
         booking_id: testBookingId,
         member_id: testMemberId,
         registration: 'OH-STL',
-        booking_type: 'PRACTICE',
+        booking_type: 'PRIVATE',
         booking_status: 'CONFIRMED',
         start_time_epoch: startEpoch,
         end_time_epoch: endEpoch,

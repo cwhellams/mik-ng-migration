@@ -31,7 +31,8 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
   let createdPrepaidProductIds: string[] = []
   let createdMemberPackageIds: number[] = []
   let equipmentFeeArticleId: number
-  const testArticleIds = [9999, 9998, 9997] // IDs for test articles
+  const testArticleIds = [9999, 9998, 9997, 9996] // IDs for test articles
+  const TEST_PKG_ARTICLE_CODE = 'TEST_PKG_ART'
 
   beforeAll(async () => {
     // Remove any pre-existing articles with these codes so our test IDs are authoritative
@@ -53,6 +54,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
         ART_EQUIP_USAGE_FEE_CODE,
         ART_ENTRY_ERROR_CODE,
         testAircraftRegistration,
+        TEST_PKG_ARTICLE_CODE,
       ])
       .execute()
 
@@ -131,6 +133,33 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
           ean: '',
           contents: 'Virhemerkintämaksu',
           price_per_unit: 50,
+          markup_type: 'fixed',
+          is_inventory: false,
+          sales_vat_type_id: 0,
+          purchase_vat_type_id: 0,
+        },
+      })
+      .onConflict(oc => oc.column('id').doNothing())
+      .execute()
+
+    // Insert dedicated package article (used to test simplbooksItemId path)
+    await db
+      .insertInto('accts.items')
+      .values({
+        id: testArticleIds[3],
+        code: TEST_PKG_ARTICLE_CODE,
+        name: 'Test Package Article',
+        item: {
+          id: testArticleIds[3],
+          code: TEST_PKG_ARTICLE_CODE,
+          name: 'Test Package Article',
+          unit: 'min',
+          markup_value: 1.5,
+          active: true,
+          amount: 1,
+          ean: '',
+          contents: 'Dedicated article for prepaid package credit',
+          price_per_unit: 1.5,
           markup_type: 'fixed',
           is_inventory: false,
           sales_vat_type_id: 0,
@@ -290,12 +319,14 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
     minutes,
     perMinRate,
     usedMinutes = 0,
+    simplbooksItemId = null,
     aircraftRegistration = testAircraftRegistration,
   }: {
     productId: string
     minutes: number
     perMinRate: number
     usedMinutes?: number
+    simplbooksItemId?: string | null
     aircraftRegistration?: string
   }) => {
     const actualProductId = `${productId}${Date.now().toString().slice(-2)}`.slice(0, 9)
@@ -305,6 +336,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       .values({
         product_id: actualProductId,
         category_id: 'FLT_PKG',
+        simplbooks_item_id: simplbooksItemId,
         name: { en: actualProductId, fi: actualProductId, sv: actualProductId },
         description: null,
         price: Number((minutes * perMinRate).toFixed(2)),
@@ -540,10 +572,13 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       const invoice = await createFlightInvoicePayload(payload, testMemberId)
 
-      // topUpMins (5) is folded into the standard billing line — one combined task for 20 mins
-      expect(invoice.Tasks).toHaveLength(1)
-      expect(invoice.Tasks[0].Task.amount).toBe(20)
+      // Actual flight time shown as a separate line + top-up as a clearly-labelled second line
+      expect(invoice.Tasks).toHaveLength(2)
+      expect(invoice.Tasks[0].Task.amount).toBe(15)
       expect(invoice.Tasks[0].Task.price_per_unit).toBe(2.5)
+      expect(invoice.Tasks[1].Task.amount).toBe(5)
+      expect(invoice.Tasks[1].Task.price_per_unit).toBe(2.5)
+      expect(invoice.Tasks[1].Task.contents).toContain('minimum billable time top-up: 5 min')
     })
 
     it('should not add a top-up task for a local flight that meets minimum billable minutes', async () => {
@@ -721,6 +756,27 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       expect(invoice.Tasks[3].Task.price_per_unit).toBe(-1.5)
       expect(invoice.Tasks[4].Task.amount).toBe(20)
       expect(invoice.Tasks[4].Task.price_per_unit).toBe(2.5)
+    })
+
+    it('credit row should use package-specific article when simplbooksItemId is set', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      await createMemberPackage({
+        productId: 'TPKG_PKG',
+        minutes: 90,
+        perMinRate: 1.5,
+        simplbooksItemId: TEST_PKG_ARTICLE_CODE,
+      })
+
+      const flight = createTestFlight({ flightMins: 90, blockMins: 95 })
+      const invoice = await createFlightInvoicePayload({ flights: [flight] }, testMemberId)
+
+      expect(invoice.Tasks).toHaveLength(2)
+      // Debit line: uses aircraft article
+      expect(invoice.Tasks[0].Task.article_id).toBe(testArticleIds[1])
+      expect(invoice.Tasks[0].Task.price_per_unit).toBe(1.5)
+      // Credit line: uses the package's dedicated article, not the aircraft article
+      expect(invoice.Tasks[1].Task.article_id).toBe(testArticleIds[3])
+      expect(invoice.Tasks[1].Task.price_per_unit).toBe(-1.5)
     })
   })
 

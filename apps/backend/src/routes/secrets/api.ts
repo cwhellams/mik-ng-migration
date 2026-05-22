@@ -25,7 +25,8 @@ router.get(
   '/',
   validateUser(MIKPermissions.ACCESS_CODES_USER, MIKPermissions.ACCESS_CODES_ADMIN),
   async (req: Request, res: Response<SecretsListResponse>) => {
-    const secrets = await getAllSecrets()
+    const isAdmin = req.user!.permissions.includes(MIKPermissions.ACCESS_CODES_ADMIN)
+    const secrets = await getAllSecrets(isAdmin)
 
     res.status(200).json({
       secrets,
@@ -48,6 +49,11 @@ router.get(
 
     if (!secret) {
       return problem({ status: 404, detail: 'Secret not found' })
+    }
+
+    const isAdmin = req.user!.permissions.includes(MIKPermissions.ACCESS_CODES_ADMIN)
+    if (secret.secretClass === 'BOARD' && !isAdmin) {
+      return problem({ status: 403, detail: 'Forbidden' })
     }
 
     res.status(200).json(secret)

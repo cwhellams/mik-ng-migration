@@ -21,7 +21,7 @@ export type AuthEventType =
 
 export type BookingStatus = 'CANCELLED' | 'CONFIRMED' | 'TENTATIVE'
 
-export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'TRAINING'
+export type BookingType = 'CROSSCOUNTRY' | 'MAINTENANCE' | 'PRACTICE' | 'PRIVATE' | 'TRAINING'
 
 export type CancellationReason =
   | 'AIRCRAFT_TECHNICAL'
@@ -120,6 +120,8 @@ export type Occurrencestatus =
   | 'NEW'
   | 'PROCESSED'
   | 'RECEIVED'
+
+export type SecretClassType = 'BOARD' | 'MEMBER'
 
 export type ShopOrderStatus = 'CANCELLED' | 'INVOICED' | 'PENDING' | 'PROCESSING' | 'REFUNDED'
 
@@ -280,6 +282,55 @@ export interface DtoTrainingProgram {
   program_id: Generated<string>
   updated_at: Generated<Timestamp>
   updated_by: string
+}
+
+export interface EmtMessages {
+  created: Generated<Timestamp>
+  global_position: Generated<Int8 | null>
+  is_archived: Generated<boolean>
+  message_data: Json
+  message_id: string
+  message_kind: Generated<string>
+  message_metadata: Json
+  message_schema_version: string
+  message_type: string
+  partition: Generated<string>
+  stream_id: string
+  stream_position: Int8
+  transaction_id: string
+}
+
+export interface EmtProcessors {
+  created_at: Generated<Timestamp>
+  last_processed_checkpoint: string
+  last_processed_transaction_id: string
+  last_updated: Generated<Timestamp>
+  partition: Generated<string>
+  processor_id: string
+  processor_instance_id: Generated<string | null>
+  status: Generated<string>
+  version: Generated<number>
+}
+
+export interface EmtProjections {
+  created_at: Generated<Timestamp>
+  definition: Generated<Json>
+  kind: string
+  last_updated: Generated<Timestamp>
+  name: string
+  partition: Generated<string>
+  status: string
+  type: string
+  version: Generated<number>
+}
+
+export interface EmtStreams {
+  is_archived: Generated<boolean>
+  partition: Generated<string>
+  stream_id: string
+  stream_metadata: Json
+  stream_position: Int8
+  stream_type: string
 }
 
 export interface ExamAttemptAnswers {
@@ -779,6 +830,18 @@ export interface MemberPendingEmailChanges {
   used_at: Timestamp | null
 }
 
+export interface MemberQualificationProofFiles {
+  document_category: Generated<string>
+  file_name: string
+  history_id: Int8 | null
+  id: Generated<number>
+  member_id: string
+  mime_type: string
+  storage_key: string
+  uploaded_at: Generated<Timestamp>
+  uploaded_by: string
+}
+
 export interface MemberRegister {
   /**
    * Registration application data: flight hours, aircraft types, motivation, cover letter, declarations, etc.
@@ -882,6 +945,15 @@ export interface MemberWebauthnChallenges {
   purpose: string
 }
 
+export interface NotificationBanner {
+  enabled: Generated<boolean>
+  id: Generated<number>
+  message: string | null
+  severity: Generated<string>
+  updated_at: Generated<Timestamp>
+  updated_by: string | null
+}
+
 export interface PrepaidMemberPackages {
   created_at: Generated<Timestamp>
   expires_at: string
@@ -951,6 +1023,10 @@ export interface Secrets {
   created_at: Generated<Timestamp>
   created_by: string
   id: Generated<Int8>
+  /**
+   * Class of the secret: MEMBER (visible to all flying members) or BOARD (visible only to board members with admin access)
+   */
+  secret_class: Generated<SecretClassType>
   /**
    * The name/description of the secret (e.g., "Club house key code")
    */
@@ -1322,6 +1398,10 @@ export interface DB {
   'dto.syllabus_flight_items': DtoSyllabusFlightItems
   'dto.syllabus_flights': DtoSyllabusFlights
   'dto.training_program': DtoTrainingProgram
+  emt_messages: EmtMessages
+  emt_processors: EmtProcessors
+  emt_projections: EmtProjections
+  emt_streams: EmtStreams
   'exam.attempt_answers': ExamAttemptAnswers
   'exam.attempts': ExamAttempts
   'exam.choice_translations': ExamChoiceTranslations
@@ -1357,11 +1437,13 @@ export interface DB {
   'member.non_renewal_actions': MemberNonRenewalActions
   'member.passkeys': MemberPasskeys
   'member.pending_email_changes': MemberPendingEmailChanges
+  'member.qualification_proof_files': MemberQualificationProofFiles
   'member.register': MemberRegister
   'member.register_audit': MemberRegisterAudit
   'member.roles': MemberRoles
   'member.simplbooks_sync_state': MemberSimplbooksSyncState
   'member.webauthn_challenges': MemberWebauthnChallenges
+  notification_banner: NotificationBanner
   'prepaid.member_packages': PrepaidMemberPackages
   'prepaid.packages': PrepaidPackages
   'prepaid.usage_log': PrepaidUsageLog

@@ -113,15 +113,15 @@ const mapDescription = (type: string, description: string): string => {
 const mapBookingType = (type: string): BookingType => {
   switch (type) {
     case 'A':
-      return BookingType.PRACTICE
+      return BookingType.PRIVATE
     case 'B':
-      return BookingType.CROSSCOUNTRY
+      return BookingType.PRIVATE
     case 'C':
       return BookingType.TRAINING
     case 'D':
       return BookingType.MAINTENANCE
     default:
-      return BookingType.PRACTICE
+      return BookingType.PRIVATE
   }
 }
 

@@ -3,8 +3,7 @@ import { AuditableSchema, BigintAsString, BooleanSchema, UpsertSchema } from '..
 
 export enum BookingType {
   MAINTENANCE = 'MAINTENANCE',
-  PRACTICE = 'PRACTICE',
-  CROSSCOUNTRY = 'CROSSCOUNTRY',
+  PRIVATE = 'PRIVATE',
   TRAINING = 'TRAINING',
 }
 
@@ -59,6 +58,9 @@ export const BookingSchema = AuditableSchema.extend({
   cancelledAt: z.string().datetime().nullish(),
   cancellationReason: z.nativeEnum(CancellationReason).nullable().nullish(),
   cancellationNote: z.string().max(500).nullable().nullish(),
+  createdByName: z.string().nullish(),
+  updatedByName: z.string().nullish(),
+  cancelledByName: z.string().nullish(),
 })
 
 export type Booking = z.infer<typeof BookingSchema>

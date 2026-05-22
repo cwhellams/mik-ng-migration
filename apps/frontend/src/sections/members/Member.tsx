@@ -36,6 +36,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom'
 import { EditButton } from '../../components/EditButton'
 import { FormField } from '../../components/FormField'
 import { AuditFormField } from '../../components/AuditFormField'
+import { InstructorQualificationsCard } from './components/InstructorQualificationsCard'
 
 import { formatPhoneNumber } from '../../utils/format'
 import { langFlagIcon } from '../../utils/lang'
@@ -531,6 +532,18 @@ const MemberProfile = () => {
               </Stack>
             </CardContent>
           </Card>
+
+          {(isAdmin || memberId === 'me') &&
+            data?.roles?.some(
+              (r) => r.roleId === 'INSTRUCTOR' || r.roleId === 'EXAMINER'
+            ) && (
+              <InstructorQualificationsCard
+                memberId={memberId!}
+                canEdit={isAdmin || memberId === 'me'}
+                canViewHistory={isAdmin}
+                onSaved={() => mutate(() => true)}
+              />
+            )}
 
           <MailingListsCard
             memberId={memberId!}

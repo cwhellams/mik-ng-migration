@@ -87,6 +87,12 @@ export const menuItems: MenuItem[] = [
         adminModeOnly: true,
       },
       {
+        path: 'instructor-status',
+        label: 'header.instructorStatus',
+        requiredRoles: [MIKPermissions.MEMBER_ADMIN],
+        adminModeOnly: true,
+      },
+      {
         path: 'documents',
         label: 'header.documents',
       },
@@ -166,6 +172,12 @@ export const menuItems: MenuItem[] = [
         label: 'header.examsAdmin',
         path: 'exams',
         requiredRoles: [MIKPermissions.EXAM_ADMIN],
+        adminModeOnly: true,
+      },
+      {
+        label: 'header.notificationBanner',
+        path: 'notification-banner',
+        requiredRoles: [MIKPermissions.MEMBER_ADMIN],
         adminModeOnly: true,
       },
     ],

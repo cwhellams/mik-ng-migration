@@ -82,12 +82,10 @@ interface BookingEvent extends Event {
 
 const colors: Record<string, string> = {
   'OH-STL-MAINTENANCE': '#eacf22ff',
-  'OH-STL-PRACTICE': '#729AAC',
-  'OH-STL-CROSSCOUNTRY': '#8DCE92',
+  'OH-STL-PRIVATE': '#729AAC',
   'OH-STL-TRAINING': '#DCBCD5',
   'OH-IHQ-MAINTENANCE': '#fde85d78',
-  'OH-IHQ-PRACTICE': '#729aac85',
-  'OH-IHQ-CROSSCOUNTRY': '#8dce92a0',
+  'OH-IHQ-PRIVATE': '#729aac85',
   'OH-IHQ-TRAINING': '#dcbcd59c',
 }
 
@@ -302,7 +300,7 @@ const Schedule = () => {
           typeof filters['registration'] === 'string'
             ? filters['registration']
             : (aircraftData?.aircrafts?.[0].registration ?? ''),
-        type: BookingType.PRACTICE,
+        type: BookingType.PRIVATE,
         status: BookingStatus.CONFIRMED,
         startTimeEpoch: Math.floor(start.getTime() / 1000).toString(),
         endTimeEpoch: Math.floor(end.getTime() / 1000).toString(),

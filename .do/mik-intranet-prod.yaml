@@ -183,6 +183,9 @@ services:
       - key: SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID
         value: ${SIMPLBOOKS_CREDIT_NOTE_INCOME_ACCT_ID}
         type: GENERAL
+      - key: MEDICAL_CHECK_ENABLED
+        value: ${MEDICAL_CHECK_ENABLED}
+        type: GENERAL
       - key: NODE_ENV
         value: 'production'
         type: GENERAL

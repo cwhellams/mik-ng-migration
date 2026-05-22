@@ -36,6 +36,7 @@ import FuelPrices from './sections/fuelPrices/FuelPrices'
 import Documents from './sections/documents/Documents'
 import { Stats } from './sections/stats/Stats'
 import MemberTrash from './sections/members/MemberTrash'
+import InstructorStatus from './sections/members/InstructorStatus'
 import 'dayjs/locale/en-gb'
 import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
 import ToolsPage from './sections/accounting/ToolsPage'
@@ -48,6 +49,7 @@ import { OccurrenceEntry } from './sections/occurrences/OccurrenceEntry'
 import LogbookFlights from './sections/flightLog/LogbookPage'
 import Outbox from './sections/admin/Outbox'
 import NonRenewals from './sections/admin/NonRenewals'
+import NotificationBannerAdmin from './sections/admin/NotificationBannerAdmin'
 import ShopPage from './sections/shop/ShopPage'
 import ProductPage from './sections/shop/ProductPage'
 import CartPage from './sections/shop/CartPage'
@@ -147,6 +149,10 @@ function App() {
                 <Route index path='members/roles' element={<Roles />} />
                 <Route path='members/trash' element={<MemberTrash />} />
                 <Route path='members/:memberId' element={<Member />} />
+                <Route
+                  path='instructor-status'
+                  element={<InstructorStatus />}
+                />
                 <Route path='billing' element={<Billing />} />
                 <Route path='documents' element={<Documents />} />
                 <Route path='stats' element={<Stats />} />
@@ -193,6 +199,10 @@ function App() {
                 <Route index element={<Navigate to='outbox' replace />} />
                 <Route path='outbox' element={<Outbox />} />
                 <Route path='non-renewals' element={<NonRenewals />} />
+                <Route
+                  path='notification-banner'
+                  element={<NotificationBannerAdmin />}
+                />
                 <Route path='shop' element={<ShopAdminDashboard />} />
                 <Route path='shop/products' element={<ProductsAdmin />} />
                 <Route path='shop/categories' element={<CategoriesAdmin />} />

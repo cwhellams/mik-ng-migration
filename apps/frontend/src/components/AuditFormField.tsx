@@ -3,12 +3,23 @@ import { FormField } from './FormField'
 import { Link } from 'react-router-dom'
 import { useTimezone } from '../hooks/useTimezone'
 
-const AuditBy = ({ by, memberId }: { by?: string; memberId?: string }) => {
+const AuditBy = ({
+  by,
+  byName,
+  memberId,
+}: {
+  by?: string
+  byName?: string | null
+  memberId?: string
+}) => {
   if (!by) {
     return <></>
   }
   if (by == memberId) {
     return ' (self)'
+  }
+  if (byName) {
+    return <> ({byName})</>
   }
   return (
     <>
@@ -24,6 +35,7 @@ export const AuditFormField = ({
   width,
   at,
   by,
+  byName,
   memberId,
   includeTime = false,
 }: {
@@ -31,6 +43,7 @@ export const AuditFormField = ({
   width?: number
   at?: string
   by?: string
+  byName?: string | null
   memberId?: string
   includeTime?: boolean
 }) => {
@@ -40,7 +53,7 @@ export const AuditFormField = ({
       <Tooltip title={at}>
         <span>{includeTime ? formatDateTime(at) : formatDate(at)} </span>
       </Tooltip>
-      {by && <AuditBy by={by} memberId={memberId} />}
+      {by && <AuditBy by={by} byName={byName} memberId={memberId} />}
     </FormField>
   )
 }

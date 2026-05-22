@@ -24,6 +24,7 @@ export const ALWAYS_VISIBLE_COMPONENTS = [
   'reservationsSuspended',
   'overdueInvoice',
   'pendingReview',
+  'expiryWarning',
 ] as const
 
 /**

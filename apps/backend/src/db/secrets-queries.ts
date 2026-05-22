@@ -3,18 +3,21 @@ import type { Secret, SecretCreate, SecretUpdate } from '../routes/secrets/model
 import type { JWTUser } from '../routes/auth/token.ts'
 
 // Get all secrets ordered alphabetically by secret_key
-export const getAllSecrets = async (): Promise<Secret[]> => {
+// If isAdmin is false, only MEMBER class secrets are returned
+export const getAllSecrets = async (isAdmin: boolean): Promise<Secret[]> => {
   const secrets = await db
     .selectFrom('secrets')
     .select([
       'id',
       'secret_key as secretKey',
       'secret_value as secretValue',
+      'secret_class as secretClass',
       'created_at as createdAt',
       'updated_at as updatedAt',
       'created_by as createdBy',
       'updated_by as updatedBy',
     ])
+    .$if(!isAdmin, qb => qb.where('secret_class', '=', 'MEMBER'))
     .orderBy('secret_key', 'asc')
     .execute()
 
@@ -34,6 +37,7 @@ export const getSecretById = async (id: number): Promise<Secret | undefined> => 
       'id',
       'secret_key as secretKey',
       'secret_value as secretValue',
+      'secret_class as secretClass',
       'created_at as createdAt',
       'updated_at as updatedAt',
       'created_by as createdBy',
@@ -61,6 +65,7 @@ export const createSecret = async (secret: SecretCreate, user: JWTUser): Promise
     .values({
       secret_key: secret.secretKey,
       secret_value: secret.secretValue,
+      secret_class: secret.secretClass,
       created_by: user.memberId,
       updated_by: user.memberId,
     })
@@ -68,6 +73,7 @@ export const createSecret = async (secret: SecretCreate, user: JWTUser): Promise
       'id',
       'secret_key as secretKey',
       'secret_value as secretValue',
+      'secret_class as secretClass',
       'created_at as createdAt',
       'updated_at as updatedAt',
       'created_by as createdBy',
@@ -94,6 +100,7 @@ export const updateSecret = async (
     .set({
       ...(secret.secretKey && { secret_key: secret.secretKey }),
       ...(secret.secretValue && { secret_value: secret.secretValue }),
+      ...(secret.secretClass && { secret_class: secret.secretClass }),
       updated_by: user.memberId,
       updated_at: new Date().toISOString(),
     })
@@ -102,6 +109,7 @@ export const updateSecret = async (
       'id',
       'secret_key as secretKey',
       'secret_value as secretValue',
+      'secret_class as secretClass',
       'created_at as createdAt',
       'updated_at as updatedAt',
       'created_by as createdBy',
