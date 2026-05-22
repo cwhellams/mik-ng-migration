@@ -389,7 +389,26 @@ const FlightCrew = ({
                           label={t('flightLog.duty')}
                           disabled={!isEditable}
                           onChange={(e) => {
+                            const nextDuty = e.target.value
                             field.onChange(e)
+
+                            const selectedMemberId = watch(crewId)
+                            const selectedMember = members.find(
+                              (member) => member.value === selectedMemberId
+                            )
+
+                            if (
+                              selectedMemberId &&
+                              (nextDuty === 'FI' || nextDuty === 'FE') &&
+                              (!selectedMember ||
+                                !isMemberQualifiedForDuty(
+                                  selectedMember,
+                                  nextDuty
+                                ))
+                            ) {
+                              setValue?.(crewId, null)
+                            }
+
                             // re-validate the member field when duty changes
                             trigger?.(crewId)
                           }}

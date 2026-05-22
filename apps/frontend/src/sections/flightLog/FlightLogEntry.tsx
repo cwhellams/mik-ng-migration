@@ -157,17 +157,37 @@ const FlightLogEntry = () => {
       > = {}
       for (const { memberId, role, field } of crewSlots) {
         if (!memberId || (role !== 'FI' && role !== 'FE')) continue
-        const member = memberList?.members.find((m) => m.memberId === memberId)
-        if (!member) continue
+        const roleErrorMessage =
+          role === 'FI'
+            ? t('flightLog.error.memberNotInstructor')
+            : t('flightLog.error.memberNotExaminer')
+
+        if (!memberList?.members) {
+          additionalErrors[field] = {
+            type: 'custom',
+            message: roleErrorMessage,
+          }
+          continue
+        }
+
+        const member = memberList.members.find((m) => m.memberId === memberId)
+        if (!member) {
+          additionalErrors[field] = {
+            type: 'custom',
+            message: roleErrorMessage,
+          }
+          continue
+        }
+
         if (role === 'FI' && !member.roles.includes('INSTRUCTOR')) {
           additionalErrors[field] = {
             type: 'custom',
-            message: t('flightLog.error.memberNotInstructor'),
+            message: roleErrorMessage,
           }
         } else if (role === 'FE' && !member.roles.includes('EXAMINER')) {
           additionalErrors[field] = {
             type: 'custom',
-            message: t('flightLog.error.memberNotExaminer'),
+            message: roleErrorMessage,
           }
         }
       }
