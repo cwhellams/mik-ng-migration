@@ -236,12 +236,13 @@ export const AjlbEditor = ({
                 inputMode='numeric'
                 label={t('flightLog.logbooks.landingsAtStart')}
                 value={formData.startLandings ?? 0}
-                onChange={({ target }) =>
+                onChange={({ target }) => {
+                  const num = Number(target.value)
                   handleChange(
                     'startLandings',
-                    Math.max(0, Number(target.value))
+                    Number.isFinite(num) ? Math.max(0, num) : 0
                   )
-                }
+                }}
                 slotProps={{ htmlInput: { min: 0 } }}
               />
             </Grid>

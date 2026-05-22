@@ -1759,6 +1759,8 @@
   },
   "stats": {
     "totalLandingsByYear": "Landningar per flygplan (årsvis)",
+    "yearAxis": "År",
+    "landingsAxis": "Landningar",
     "pilots": {
       "dateRange": "Tidsperiod",
       "from": "Från",

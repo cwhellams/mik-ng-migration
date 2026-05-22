@@ -1016,7 +1016,7 @@ export const Stats = () => {
                         tickSize: 5,
                         tickPadding: 5,
                         tickRotation: 0,
-                        legend: 'Year',
+                        legend: t('stats.yearAxis'),
                         legendPosition: 'middle',
                         legendOffset: 40,
                       }}
@@ -1024,7 +1024,7 @@ export const Stats = () => {
                         tickSize: 5,
                         tickPadding: 5,
                         tickRotation: 0,
-                        legend: 'Landings',
+                        legend: t('stats.landingsAxis'),
                         legendPosition: 'middle',
                         legendOffset: -50,
                       }}

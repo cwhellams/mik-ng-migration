@@ -1786,6 +1786,8 @@
   },
   "stats": {
     "totalLandingsByYear": "Landings by Aircraft (Yearly)",
+    "yearAxis": "Year",
+    "landingsAxis": "Landings",
     "pilots": {
       "dateRange": "Time Period",
       "from": "From",

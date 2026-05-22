@@ -1792,6 +1792,8 @@
   },
   "stats": {
     "totalLandingsByYear": "Laskeutumiset koneittain (vuosittain)",
+    "yearAxis": "Vuosi",
+    "landingsAxis": "Laskeutumiset",
     "pilots": {
       "dateRange": "Aikajakso",
       "from": "Alkaen",
