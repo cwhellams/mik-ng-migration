@@ -766,6 +766,10 @@
     "selectCrew": "Select crew",
     "duty": "Duty",
     "addCrew": "Add Crew Member",
+    "error": {
+      "memberNotInstructor": "Selected member must have the Flight Instructor role for FI duty",
+      "memberNotExaminer": "Selected member must have the Flight Examiner role for FE duty"
+    },
     "aircraftInfo": "Aircraft Information",
     "additionalInfo": "Additional Information",
     "departureAirport": "Departure Airport",

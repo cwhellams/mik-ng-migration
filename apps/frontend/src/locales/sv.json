@@ -765,6 +765,10 @@
     "selectCrew": "Välj besättning",
     "duty": "Tjänst",
     "addCrew": "Lägg till besättningsmedlem",
+    "error": {
+      "memberNotInstructor": "Den valda medlemmen måste ha rollen flyginstruktör för FI-tjänst",
+      "memberNotExaminer": "Den valda medlemmen måste ha rollen flygkontrollant för FE-tjänst"
+    },
     "aircraftInfo": "Flygplansinformation",
     "additionalInfo": "Ytterligare information",
     "departureAirport": "Avgångsflygplats",
