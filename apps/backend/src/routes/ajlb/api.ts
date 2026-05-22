@@ -6,19 +6,85 @@ import {
   type AircraftJourneyLogBook,
   type AjlbFilter,
   type AjlbListResponse,
+  type AircraftLandingsBaselineResponse,
 } from './model.ts'
-import { getAjlbs, getAjlb, createAjlb, updateAjlb, deleteAjlb } from '../../db/ajlb-queries.ts'
+import {
+  getAjlbs,
+  getAjlb,
+  createAjlb,
+  updateAjlb,
+  deleteAjlb,
+  getAircraftLandingsBaseline,
+  setAircraftLandingsBaseline,
+  deleteAircraftLandingsBaseline,
+} from '../../db/ajlb-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { UpsertSchema } from '../../types/schema.ts'
 import { problem } from '../response.ts'
 import { getFlightLogs, updateFlightLog } from '../../db/flight-log-queries.ts'
 import { FlightLogStatus } from '../flight-log/models.ts'
+import { z } from 'zod'
 
 export const router = Router()
 
 router.use(validateUser(MIKPermissions.FLIGHTLOG_USER, MIKPermissions.FLIGHTLOG_ADMIN))
 
+// Landing baseline endpoints (must come before generic :registration routes)
+router.get(
+  '/:registration/baseline',
+  async (
+    req: Request<{ registration: string }>,
+    res: Response<AircraftLandingsBaselineResponse>,
+  ) => {
+    const { registration } = req.params
+
+    const baseline = await getAircraftLandingsBaseline(registration)
+    res.status(200).json({ baseline })
+  },
+)
+
+router.post(
+  '/:registration/baseline',
+  validateUser(MIKPermissions.FLIGHTLOG_ADMIN),
+  async (
+    req: Request<{ registration: string }>,
+    res: Response<AircraftLandingsBaselineResponse>,
+  ) => {
+    const { registration } = req.params
+    const schema = z.object({ baselineLandings: z.number().int().min(0) })
+
+    try {
+      const { baselineLandings } = schema.parse(req.body)
+      await setAircraftLandingsBaseline(registration, baselineLandings, req.user!)
+
+      const baseline = await getAircraftLandingsBaseline(registration)
+      res.status(200).json({ baseline })
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return problem({ status: 400, detail: 'Invalid baseline landings value' })
+      }
+      throw error
+    }
+  },
+)
+
+router.delete(
+  '/:registration/baseline',
+  validateUser(MIKPermissions.FLIGHTLOG_ADMIN),
+  async (req: Request<{ registration: string }>, res: Response) => {
+    const { registration } = req.params
+
+    const removed = await deleteAircraftLandingsBaseline(registration)
+    if (!removed) {
+      return problem({ status: 404, detail: 'Baseline not found' })
+    }
+
+    res.status(204).end()
+  },
+)
+
+// AJLB logbook endpoints
 router.get('/:registration/:seqNo', async (req: Request, res: Response<AircraftJourneyLogBook>) => {
   const { registration, seqNo } = req.params
 

@@ -47,3 +47,18 @@ export const AjlbListResponseSchema = z.object({
 })
 
 export type AjlbListResponse = z.infer<typeof AjlbListResponseSchema>
+
+export const AircraftLandingsBaselineSchema = AuditableSchema.extend({
+  aircraftRegistration: z.string(),
+  baselineLandings: z.number().int().min(0),
+})
+
+export type AircraftLandingsBaseline = z.infer<typeof AircraftLandingsBaselineSchema>
+
+export const AircraftLandingsBaselineResponseSchema = z.object({
+  baseline: AircraftLandingsBaselineSchema.optional(),
+})
+
+export type AircraftLandingsBaselineResponse = z.infer<
+  typeof AircraftLandingsBaselineResponseSchema
+>
