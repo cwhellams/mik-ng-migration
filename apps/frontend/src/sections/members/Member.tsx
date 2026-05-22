@@ -55,6 +55,7 @@ import { sanitizeUrl } from '@backend/util/sanitizers'
 import { useTimezone } from '../../hooks/useTimezone'
 import { PasskeysCard } from './components/PasskeysCard'
 import { ApplicationDataCard } from './components/ApplicationDataCard'
+import { GdprExportCard } from './components/GdprExportCard'
 
 const MemberProfile = () => {
   const { t, i18n } = useTranslation()
@@ -554,6 +555,8 @@ const MemberProfile = () => {
           {!isExternalUser && (
             <PasskeysCard memberId={memberId!} isAdmin={isAdmin} />
           )}
+
+          {!isAdmin && memberId === 'me' && <GdprExportCard />}
 
           {!isExternalUser && (
             <Card>

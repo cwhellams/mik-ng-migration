@@ -48,6 +48,22 @@ import { getFlightLogs } from '../../db/flight-log-queries.ts'
 import type { InvoiceListResponse } from '../invoicing/models.ts'
 import type { FlightLogListResponse } from '../flight-log/models.ts'
 import { cancelAllFutureBookingsForMember } from '../../db/booking-queries.ts'
+import {
+  getGdprFlightLogs,
+  getGdprBookings,
+  getGdprInvoices,
+  getGdprAnnualFees,
+  getGdprShopOrders,
+  getGdprPrepaidPackages,
+  getGdprTraining,
+  getGdprExamAttempts,
+  getGdprLoginEvents,
+  getGdprPasskeys,
+  getGdprPendingEmailChanges,
+  getGdprIncidentReports,
+  getGdprProfileAuditTrail,
+  getGdprFlightLogAuditTrail,
+} from '../../db/gdpr-queries.ts'
 import { db } from '../../db/connection.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { UpsertSchema } from '../../types/schema.ts'
@@ -724,6 +740,80 @@ router.post('/me/cancel-membership', validateUser(), async (req: Request, res: R
   const memberId = req.user!.memberId
   return await cancelMembershipHandler(req, res, memberId, reason)
 })
+
+// GDPR self-service data export: returns complete member data as JSON
+router.get(
+  '/me/gdpr-export',
+  validateUser(),
+  async (req: Request, res: Response): Promise<void> => {
+    const memberId = req.user!.memberId
+
+    const member = await getMemberById(memberId)
+    if (!member) {
+      res.status(404).json(problem({ status: 404, detail: 'Member not found' }))
+      return
+    }
+
+    // Fetch all data categories in parallel
+    const [
+      flightLog,
+      bookings,
+      invoices,
+      annualFees,
+      shopOrders,
+      prepaidPackages,
+      training,
+      examAttempts,
+      authenticationEvents,
+      passkeys,
+      pendingEmailChanges,
+      incidentReports,
+      profileAuditTrail,
+      flightLogAuditTrail,
+    ] = await Promise.all([
+      getGdprFlightLogs(memberId),
+      getGdprBookings(memberId),
+      getGdprInvoices(memberId),
+      getGdprAnnualFees(memberId),
+      getGdprShopOrders(memberId),
+      getGdprPrepaidPackages(memberId),
+      getGdprTraining(memberId),
+      getGdprExamAttempts(memberId),
+      getGdprLoginEvents(memberId),
+      getGdprPasskeys(memberId),
+      getGdprPendingEmailChanges(memberId),
+      getGdprIncidentReports(memberId),
+      getGdprProfileAuditTrail(memberId),
+      getGdprFlightLogAuditTrail(memberId),
+    ])
+
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      profile: member,
+      flightLog,
+      bookings,
+      invoices,
+      annualFees,
+      shopOrders,
+      prepaidPackages,
+      training,
+      examAttempts,
+      authenticationEvents,
+      passkeys,
+      pendingEmailChanges,
+      incidentReports,
+      profileAuditTrail,
+      flightLogAuditTrail,
+    }
+
+    // Sanitize memberId for use in a Content-Disposition filename
+    const safeMemberId = memberId.replace(/[^\w-]/g, '_')
+    const filename = `mik-data-export-${safeMemberId}.json`
+    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    res.status(200).json(exportData)
+  },
+)
 
 const cancelMembershipHandler = async (
   req: Request,

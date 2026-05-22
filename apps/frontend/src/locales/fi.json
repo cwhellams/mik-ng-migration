@@ -1668,6 +1668,12 @@
       "memberId": "Jäsennumero"
     }
   },
+  "gdprExport": {
+    "title": "Lataa omat tietoni",
+    "description": "Voit ladata kopion MIK-järjestelmiin tallennetuista henkilötiedoistasi, mukaan lukien jäsenprofiilisi ja koko lentokirjanpitosi.",
+    "downloadButton": "Lataa omat tietoni",
+    "downloadError": "Tietojen lataus epäonnistui. Yritä uudelleen."
+  },
   "emailChange": {
     "changeEmailButton": "Vaihda sähköposti",
     "newEmailLabel": "Uusi sähköpostiosoite",
