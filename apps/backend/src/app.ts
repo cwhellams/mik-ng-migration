@@ -51,6 +51,7 @@ import { testConnection, closeDb } from './db/connection.ts'
 import { closeEventStore } from './lib/eventStore.ts'
 import { startSimplbooksSyncWorker } from './workers/simplbooksMemberSyncWorker.ts'
 import { startBookingReminderWorker } from './workers/bookingReminderWorker.ts'
+import { startJuniorMemberPromotionWorker } from './workers/juniorMemberPromotionWorker.ts'
 import { startQualificationExpiryWorker } from './workers/qualificationExpiryWorker.ts'
 
 const app = express()
@@ -150,6 +151,7 @@ const occurrenceNotificationWorker = startOccurrenceNotificationWorker()
 const brevoSyncWorker = startBrevoSyncWorker()
 const simplbooksMemberSyncWorker = startSimplbooksSyncWorker()
 const bookingReminderWorker = startBookingReminderWorker()
+const juniorMemberPromotionWorker = startJuniorMemberPromotionWorker()
 const qualificationExpiryWorker = startQualificationExpiryWorker()
 
 //Ensure this is the last middleware!
@@ -174,6 +176,7 @@ const shutdown = async (): Promise<void> => {
   brevoSyncWorker?.stop()
   simplbooksMemberSyncWorker?.stop()
   bookingReminderWorker?.stop()
+  juniorMemberPromotionWorker?.stop()
   qualificationExpiryWorker?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
