@@ -77,10 +77,13 @@ const corsOrigins = process.env.CORS_ALLOWED_ORIGINS
   ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
   : ['*']
 
+// Wildcard origin cannot be combined with credentials: true (violates CORS spec)
+const isWildcard = corsOrigins.length === 1 && corsOrigins[0] === '*'
+
 app.use(
   cors({
-    origin: corsOrigins.length === 1 && corsOrigins[0] === '*' ? '*' : corsOrigins,
-    credentials: true,
+    origin: isWildcard ? '*' : corsOrigins,
+    credentials: !isWildcard,
   }),
 )
 

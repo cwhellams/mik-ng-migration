@@ -14,10 +14,13 @@ describe('CORS Configuration', () => {
     // Simulate the same CORS logic as app.ts
     const corsOrigins = origins ? origins.split(',').map(origin => origin.trim()) : ['*']
 
+    // Wildcard origin cannot be combined with credentials: true (violates CORS spec)
+    const isWildcard = corsOrigins.length === 1 && corsOrigins[0] === '*'
+
     app.use(
       cors({
-        origin: corsOrigins.length === 1 && corsOrigins[0] === '*' ? '*' : corsOrigins,
-        credentials: true,
+        origin: isWildcard ? '*' : corsOrigins,
+        credentials: !isWildcard,
       }),
     )
 
@@ -111,6 +114,8 @@ describe('CORS Configuration', () => {
         .expect(200)
 
       expect(response.headers['access-control-allow-origin']).toBe('*')
+      // credentials must not be enabled with wildcard origin (violates CORS spec)
+      expect(response.headers['access-control-allow-credentials']).toBeUndefined()
     })
   })
 
