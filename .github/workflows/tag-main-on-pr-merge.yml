@@ -25,7 +25,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "22" # Match your project's Node version
+                  node-version: "24" # Match your project's Node version
 
             - name: Get version from package.json
               id: version
