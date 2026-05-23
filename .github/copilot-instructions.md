@@ -9,11 +9,11 @@ Always reference these instructions first and fallback to search or bash command
 Install required tools:
 
 ```bash
-# Install Node.js v22 (required for experimental transform types)
-wget https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz
-sudo tar -xf node-v22.14.0-linux-x64.tar.xz -C /opt/
-sudo ln -sf /opt/node-v22.14.0-linux-x64/bin/node /usr/local/bin/node
-sudo ln -sf /opt/node-v22.14.0-linux-x64/bin/npm /usr/local/bin/npm
+# Install Node.js v24 (required for experimental transform types)
+wget https://nodejs.org/dist/v24.15.0/node-v24.15.0-linux-x64.tar.xz
+sudo tar -xf node-v24.15.0-linux-x64.tar.xz -C /opt/
+sudo ln -sf /opt/node-v24.15.0-linux-x64/bin/node /usr/local/bin/node
+sudo ln -sf /opt/node-v24.15.0-linux-x64/bin/npm /usr/local/bin/npm
 
 # Install pnpm
 npm install -g pnpm@10.11.0
@@ -67,7 +67,7 @@ pnpm dev
 # Backend: http://localhost:3000 | Frontend: http://localhost:5173/
 
 # Or run individually:
-# Backend development - requires Node.js v22 for --experimental-transform-types flag
+# Backend development - requires Node.js v24 for --experimental-transform-types flag
 cd apps/backend && pnpm dev
 
 # Frontend development - works reliably, takes ~1 second to start
@@ -124,7 +124,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 
 ## Known Issues and Workarounds
 
-1. **Node.js Version Requirement**: Backend dev mode requires Node.js v22 for `--experimental-transform-types` flag. V20 will not work.
+1. **Node.js Version Requirement**: Backend dev mode requires Node.js v24 for `--experimental-transform-types` flag. V20 will not work.
 2. **ESLint Configuration**: May fail due to missing `@eslint/js` dependency in backend
 3. **Test Environment Variables**: Tests require SimplBooks API configuration to pass fully
 4. **PostgreSQL Credentials**: Local development uses admin/password (never use in production)

@@ -13,7 +13,7 @@
 
 Welcome to the MIK ng "next gen" project
 
-> Node : We are currently using Node v22.x.x
+> Node : We are currently using Node v24.x.x
 
 # Toolstack
 
