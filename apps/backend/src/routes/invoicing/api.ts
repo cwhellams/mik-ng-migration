@@ -345,7 +345,7 @@ router.get('/:invoiceId/pdf', async (req: Request, res: Response) => {
     id: Number(invoiceId),
   })
 
-  if (!invoiceBelongingToUser) {
+  if (!invoiceBelongingToUser.length) {
     return problem({
       status: HttpStatusCode.NotFound,
       detail: 'PDF not found for user.',
