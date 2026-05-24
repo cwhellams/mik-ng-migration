@@ -12,7 +12,16 @@ describe('CORS Configuration', () => {
 
   const createAppWithCorsOrigins = (origins: string) => {
     // Simulate the same CORS logic as app.ts
-    const corsOrigins = origins ? origins.split(',').map(origin => origin.trim()) : ['*']
+    const corsOrigins = origins
+      ? origins
+          .split(',')
+          .map(origin => origin.trim())
+          .filter(origin => origin.length > 0)
+      : ['*']
+
+    if (corsOrigins.length === 0) {
+      corsOrigins.push('*')
+    }
 
     // Wildcard origin cannot be combined with credentials: true (violates CORS spec)
     const isWildcard = corsOrigins.length === 1 && corsOrigins[0] === '*'
@@ -115,6 +124,18 @@ describe('CORS Configuration', () => {
 
       expect(response.headers['access-control-allow-origin']).toBe('*')
       // credentials must not be enabled with wildcard origin (violates CORS spec)
+      expect(response.headers['access-control-allow-credentials']).toBeUndefined()
+    })
+
+    test('should keep wildcard behavior when configuration contains empty entries', async () => {
+      app = createAppWithCorsOrigins('* ,')
+
+      const response = await request(app)
+        .get('/test')
+        .set('Origin', 'https://any-domain.com')
+        .expect(200)
+
+      expect(response.headers['access-control-allow-origin']).toBe('*')
       expect(response.headers['access-control-allow-credentials']).toBeUndefined()
     })
   })

@@ -74,8 +74,14 @@ app.use(helmet()) // Secure headers
 
 // Parse CORS allowed origins from comma-separated environment variable
 const corsOrigins = process.env.CORS_ALLOWED_ORIGINS
-  ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  ? process.env.CORS_ALLOWED_ORIGINS.split(',')
+      .map(origin => origin.trim())
+      .filter(origin => origin.length > 0)
   : ['*']
+
+if (corsOrigins.length === 0) {
+  corsOrigins.push('*')
+}
 
 // Wildcard origin cannot be combined with credentials: true (violates CORS spec)
 const isWildcard = corsOrigins.length === 1 && corsOrigins[0] === '*'
