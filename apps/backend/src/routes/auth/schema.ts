@@ -7,6 +7,38 @@ import {
   MIKMemberTypes,
 } from '../members/models.ts'
 
+// Calculate age in full years from a YYYY-MM-DD date string.
+// Returns NaN if the date string is invalid (wrong format, out-of-range components, or non-existent calendar date).
+// Parses components manually to avoid timezone-dependent Date parsing of YYYY-MM-DD strings
+// (JS parses them as UTC midnight, so local month/day can shift in non-UTC timezones).
+export function calculateAge(dateOfBirth: string): number {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateOfBirth)
+  if (!match) return NaN
+  const birthYear = parseInt(match[1], 10)
+  const birthMonth = parseInt(match[2], 10) // 1–12
+  const birthDay = parseInt(match[3], 10)
+  // Validate component ranges and calendar validity via UTC round-trip.
+  // Invalid values like month 13 or day 40 cause JS to roll over to different dates,
+  // so the round-trip values will differ from the originals.
+  const utcDate = new Date(Date.UTC(birthYear, birthMonth - 1, birthDay))
+  if (
+    utcDate.getUTCFullYear() !== birthYear ||
+    utcDate.getUTCMonth() + 1 !== birthMonth ||
+    utcDate.getUTCDate() !== birthDay
+  ) {
+    return NaN
+  }
+  const today = new Date()
+  const todayYear = today.getUTCFullYear()
+  const todayMonth = today.getUTCMonth() + 1 // 1–12
+  const todayDay = today.getUTCDate()
+  let age = todayYear - birthYear
+  if (todayMonth < birthMonth || (todayMonth === birthMonth && todayDay < birthDay)) {
+    age--
+  }
+  return age
+}
+
 // register
 
 export const RegisterRequestSchema = MemberProfileSchema.extend({
@@ -24,6 +56,41 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
 
   // application data for membership review
   applicationData: ApplicationDataSchema.optional(),
+}).superRefine((data, ctx) => {
+  if (data.memberType === MIKMemberTypes.JUNIOR) {
+    if (!data.dateOfBirth) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Date of birth is required for junior membership',
+        path: ['dateOfBirth'],
+      })
+      return
+    }
+    const age = calculateAge(data.dateOfBirth)
+    if (isNaN(age)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Date of birth must be a valid date',
+        path: ['dateOfBirth'],
+      })
+      return
+    }
+    if (age < 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Date of birth must not be in the future',
+        path: ['dateOfBirth'],
+      })
+      return
+    }
+    if (age >= 18) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Junior membership is only available for members under 18 years old',
+        path: ['dateOfBirth'],
+      })
+    }
+  }
 })
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>
 
