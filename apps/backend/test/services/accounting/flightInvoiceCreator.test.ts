@@ -127,7 +127,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
           code: ART_ENTRY_ERROR_CODE,
           name: 'Virhemerkintämaksu',
           unit: 'kpl',
-          markup_value: 0,
+          markup_value: 50,
           active: true,
           amount: 1,
           ean: '',
