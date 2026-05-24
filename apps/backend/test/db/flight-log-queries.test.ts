@@ -674,18 +674,34 @@ describe('Db Flight statistics', () => {
     ])
   })
 
-  it.skip('get flights statistics with multiple planes including inactive planes', async () => {
+  it('get flights statistics with multiple planes including inactive planes', async () => {
     const result = await getFlightStats('Jukka1', false)
     expect(result).toEqual([
       {
+        aircraftRegistration: 'OH-P28',
+        landings12month: 0,
+        landings1month: 0,
+        landings3month: 0,
+        landings6month: 0,
+        lastFlightId: 'fi_inst3',
+        lastTakeoffTimeUtc: '2025-05-05T09:10:00.000Z',
+        time12month: 0,
+        time1month: 0,
+        time3month: 0,
+        time6month: 0,
+        totalFlightMins: 255,
+        totalFlights: 3,
+        totalLandings: 5,
+      },
+      {
         aircraftRegistration: 'OH-IHQ',
-        landings12month: 2,
+        landings12month: 0,
         landings1month: 0,
         landings3month: 0,
         landings6month: 0,
         lastFlightId: 'efnu4evr',
         lastTakeoffTimeUtc: '2025-03-02T09:20:00.000Z',
-        time12month: 120,
+        time12month: 0,
         time1month: 0,
         time3month: 0,
         time6month: 0,
@@ -693,23 +709,8 @@ describe('Db Flight statistics', () => {
         totalFlights: 1,
         totalLandings: 2,
       },
-      {
-        aircraftRegistration: 'OH-P28',
-        landings12month: 3,
-        landings1month: 0,
-        landings3month: 0,
-        landings6month: 0,
-        lastFlightId: 'da40tndra',
-        lastTakeoffTimeUtc: '2025-03-04T11:30:00.000Z',
-        time12month: 110,
-        time1month: 0,
-        time3month: 0,
-        time6month: 0,
-        totalFlightMins: 110,
-        totalFlights: 1,
-        totalLandings: 3,
-      },
     ])
+    expect(result.map(item => item.aircraftRegistration)).toEqual(['OH-P28', 'OH-IHQ'])
   })
 
   it.skip('get flights statistics with multiple planes where only one is active', async () => {

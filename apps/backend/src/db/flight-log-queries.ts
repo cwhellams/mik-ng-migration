@@ -325,6 +325,7 @@ export async function getFlightStats(
       ),
     )
     .groupBy(['flight.logs.aircraft_registration', 'flight.logs.billable_member_id'])
+    .orderBy('lastTakeoffTimeUtc', 'desc')
     .execute()
 
   return res.map(row => ({
