@@ -314,6 +314,16 @@
       "type": "Typ",
       "status": "Status"
     },
+    "adminBookings": {
+      "title": "Kommande reservationer",
+      "noBookings": "Inga bokningar",
+      "date": "Datum",
+      "startTime": "Start",
+      "endTime": "Slut",
+      "registration": "Registrering",
+      "type": "Typ",
+      "instructor": "Instruktör / FE"
+    },
     "applicationData": {
       "title": "Medlemsansökan",
       "coverLetter": "Om sökanden",

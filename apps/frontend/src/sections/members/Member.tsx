@@ -28,9 +28,13 @@ import dayjs from 'dayjs'
 import { Member, MIKLang, MIKMemberTypes } from '@backend/routes/members/models'
 import { InvoiceListResponse } from '@backend/routes/invoicing/models'
 import { FlightLogListResponse } from '@backend/routes/flight-log/models'
+import {
+  BookingListResponse,
+  BookingFilters,
+} from '@backend/routes/bookings/models'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { EditMemberModal, MemberEditMode } from './components/EditMemberModal'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { EditButton } from '../../components/EditButton'
@@ -822,6 +826,10 @@ const MemberProfile = () => {
 
           {isAdmin && memberId && <AdminFlightsCard memberId={memberId} />}
 
+          {isAdmin && roles.isBookingAdmin && memberId && (
+            <AdminBookingsCard memberId={memberId} />
+          )}
+
           <Grid>
             {isAdmin && (
               <>
@@ -1243,6 +1251,75 @@ const AdminFlightsCard = ({ memberId }: { memberId: string }) => {
                     </TableCell>
                   </TableRow>
                 ))}
+              </TableBody>
+            </Table>
+          )}
+        </RemoteContent>
+      </CardContent>
+    </Card>
+  )
+}
+
+const AdminBookingsCard = ({ memberId }: { memberId: string }) => {
+  const { t } = useTranslation()
+  const { formatDate, formatTime } = useTimezone()
+  const bookingFilters: BookingFilters = useMemo(
+    () => ({
+      memberId,
+      from: dayjs().toISOString(),
+    }),
+    [memberId]
+  )
+  const { data, isLoading, error } = useApi<BookingListResponse>({
+    url: 'v1/bookings',
+    params: bookingFilters,
+    alwaysSudo: true,
+  })
+
+  return (
+    <Card>
+      <CardContent>
+        <FormTitle
+          title={t('member.adminBookings.title')}
+          icon='mdi:calendar-clock'
+        />
+        <RemoteContent isLoading={isLoading} error={error}>
+          {!data?.bookings?.length ? (
+            <Typography variant='body2' color='text.secondary'>
+              {t('member.adminBookings.noBookings')}
+            </Typography>
+          ) : (
+            <Table size='small'>
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('member.adminBookings.date')}</TableCell>
+                  <TableCell>{t('member.adminBookings.startTime')}</TableCell>
+                  <TableCell>{t('member.adminBookings.endTime')}</TableCell>
+                  <TableCell>
+                    {t('member.adminBookings.registration')}
+                  </TableCell>
+                  <TableCell>{t('member.adminBookings.type')}</TableCell>
+                  <TableCell>{t('member.adminBookings.instructor')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.bookings.map((booking) => {
+                  const instructorName = booking.instructor
+                    ? `${booking.instructor.firstName ?? ''} ${booking.instructor.lastName ?? ''}`.trim()
+                    : ''
+                  return (
+                    <TableRow key={booking.bookingId}>
+                      <TableCell>{formatDate(booking.startTime)}</TableCell>
+                      <TableCell>{formatTime(booking.startTime)}</TableCell>
+                      <TableCell>{formatTime(booking.endTime)}</TableCell>
+                      <TableCell>{booking.registration}</TableCell>
+                      <TableCell>
+                        {t(`schedule.types.${booking.type}`, booking.type)}
+                      </TableCell>
+                      <TableCell>{instructorName || '—'}</TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           )}

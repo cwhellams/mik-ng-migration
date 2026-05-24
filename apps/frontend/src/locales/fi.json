@@ -313,6 +313,16 @@
       "type": "Tyyppi",
       "status": "Tila"
     },
+    "adminBookings": {
+      "title": "Tulevat varaukset",
+      "noBookings": "Ei varauksia",
+      "date": "Päivämäärä",
+      "startTime": "Alkaa",
+      "endTime": "Päättyy",
+      "registration": "Rekisteritunnus",
+      "type": "Tyyppi",
+      "instructor": "Kouluttaja / tutkija"
+    },
     "applicationData": {
       "title": "Jäsenhakemus",
       "coverLetter": "Tietoa hakijasta",

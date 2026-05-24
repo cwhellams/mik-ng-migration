@@ -314,6 +314,16 @@
       "type": "Type",
       "status": "Status"
     },
+    "adminBookings": {
+      "title": "Upcoming Reservations",
+      "noBookings": "No bookings",
+      "date": "Date",
+      "startTime": "Start",
+      "endTime": "End",
+      "registration": "Registration",
+      "type": "Type",
+      "instructor": "Instructor / FE"
+    },
     "applicationData": {
       "title": "Membership Application",
       "coverLetter": "About the Applicant",
