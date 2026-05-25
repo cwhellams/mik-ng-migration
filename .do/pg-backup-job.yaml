@@ -16,9 +16,9 @@ jobs:
   instance_count: 1
   instance_size_slug: basic-xxs
   envs:
-  - key: DO_POSTGRES_URL    
+  - key: DO_POSTGRES_PRIVATE_URL    
     type: GENERAL
-    value: ${DO_POSTGRES_URL}
+    value: ${DO_POSTGRES_PRIVATE_URL}
   - key: DO_POSTGRES_USER
     type: GENERAL    
     value: ${DO_POSTGRES_USER}

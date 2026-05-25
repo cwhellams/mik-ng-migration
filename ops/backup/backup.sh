@@ -2,8 +2,8 @@
 set -e
 
 # Check required environment variables
-if [ -z "$DO_POSTGRES_URL" ] || [ -z "$DO_POSTGRES_USER" ] || [ -z "$DO_POSTGRES_PASSWORD" ]; then
-    echo "Error: Database credentials are missing (DO_POSTGRES_URL, DO_POSTGRES_USER, DO_POSTGRES_PASSWORD)."
+if [ -z "$DO_POSTGRES_PRIVATE_URL" ] || [ -z "$DO_POSTGRES_USER" ] || [ -z "$DO_POSTGRES_PASSWORD" ]; then
+    echo "Error: Database credentials are missing (DO_POSTGRES_PRIVATE_URL, DO_POSTGRES_USER, DO_POSTGRES_PASSWORD)."
     exit 1
 fi
 
@@ -18,9 +18,9 @@ if [ -z "$BACKUP_ENCRYPTION_PASSWORD" ]; then
 fi
 
 # Extract host, port, and database from the URL
-# Assuming DO_POSTGRES_URL format is like: hostname:port/dbname or similar logic from original workflow
-PGHOST=$(echo $DO_POSTGRES_URL | sed -E 's#^([^:/]+)(:[0-9]+)?/.*$#\1#')
-PGDATABASE=$(echo $DO_POSTGRES_URL | sed -E 's#.*/##')
+# Assuming DO_POSTGRES_PRIVATE_URL format is like: hostname:port/dbname or similar logic from original workflow
+PGHOST=$(echo $DO_POSTGRES_PRIVATE_URL | sed -E 's#^([^:/]+)(:[0-9]+)?/.*$#\1#')
+PGDATABASE=$(echo $DO_POSTGRES_PRIVATE_URL | sed -E 's#.*/##')
 
 export PGPASSWORD="$DO_POSTGRES_PASSWORD"
 export PGPORT="${DO_POSTGRES_PORT:-25060}"

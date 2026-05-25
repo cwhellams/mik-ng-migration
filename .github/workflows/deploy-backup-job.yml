@@ -24,7 +24,7 @@ jobs:
             DO_POSTGRES_USER: ${{ vars.DO_POSTGRES_USER }}
             DO_POSTGRES_PASSWORD: ${{ secrets.DO_POSTGRES_PASSWORD }}
             DO_POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
-            DO_POSTGRES_URL: ${{ vars.DO_POSTGRES_URL }}
+            DO_POSTGRES_PRIVATE_URL: ${{ vars.DO_POSTGRES_PRIVATE_URL }}
             CLOUDFLARE_R2_ACCESSKEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESSKEY_ID }}
             CLOUDFLARE_R2_SECRET_ACCESSKEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESSKEY }}
             CLOUDFLARE_R2_EU_ENDPOINT: ${{ vars.CLOUDFLARE_R2_EU_ENDPOINT }}
@@ -89,7 +89,7 @@ jobs:
                   GHCR_PASSWORD: ${{ secrets.GHCR_READ_TOKEN }}
                   DO_POSTGRES_USER: ${{ vars.DO_POSTGRES_USER }}
                   DO_POSTGRES_PASSWORD: ${{ secrets.DO_POSTGRES_PASSWORD }}
-                  DO_POSTGRES_URL: ${{ vars.DO_POSTGRES_URL }}
+                  DO_POSTGRES_PRIVATE_URL: ${{ vars.DO_POSTGRES_PRIVATE_URL }}
                   DO_POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
                   CLOUDFLARE_R2_ACCESSKEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESSKEY_ID }}
                   CLOUDFLARE_R2_SECRET_ACCESSKEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESSKEY }}
