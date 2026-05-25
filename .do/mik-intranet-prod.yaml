@@ -189,6 +189,12 @@ services:
       - key: NODE_ENV
         value: 'production'
         type: GENERAL
+      - key: TINY_URL_CLEANUP_WORKER_ENABLED 
+        value: ${TINY_URL_CLEANUP_WORKER_ENABLED }
+        type: GENERAL
+      - key: TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP  
+        value: ${TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP  }
+        type: GENERAL
       - key: APP_ENV
         value: 'production'
         type: GENERAL

@@ -53,6 +53,7 @@ import { startSimplbooksSyncWorker } from './workers/simplbooksMemberSyncWorker.
 import { startBookingReminderWorker } from './workers/bookingReminderWorker.ts'
 import { startJuniorMemberPromotionWorker } from './workers/juniorMemberPromotionWorker.ts'
 import { startQualificationExpiryWorker } from './workers/qualificationExpiryWorker.ts'
+import { startTinyUrlCleanupWorker } from './workers/tinyUrlCleanupWorker.ts'
 
 const app = express()
 const PORT = process.env.BACKEND_PORT ?? 3000
@@ -153,6 +154,7 @@ const simplbooksMemberSyncWorker = startSimplbooksSyncWorker()
 const bookingReminderWorker = startBookingReminderWorker()
 const juniorMemberPromotionWorker = startJuniorMemberPromotionWorker()
 const qualificationExpiryWorker = startQualificationExpiryWorker()
+const tinyUrlCleanupWorker = startTinyUrlCleanupWorker()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
@@ -178,6 +180,7 @@ const shutdown = async (): Promise<void> => {
   bookingReminderWorker?.stop()
   juniorMemberPromotionWorker?.stop()
   qualificationExpiryWorker?.stop()
+  tinyUrlCleanupWorker?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)
