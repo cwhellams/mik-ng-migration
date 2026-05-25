@@ -4,6 +4,7 @@ import type { FlightAircraftJourneyLogBook, FlightVwFlightTimeTotals } from './s
 import type { Selectable } from 'kysely'
 import type { Upsert } from '../types/schema.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
+import type { PoolClient } from 'pg'
 
 const mapResultToAjlb = (
   row: Selectable<
@@ -243,109 +244,23 @@ export async function setAircraftLandingsBaseline(
   jwt: JWTUser,
 ): Promise<void> {
   const now = new Date()
-
-  // Insert or update baseline
-  await connection.pool.query(
-    `INSERT INTO flight.aircraft_landings_baseline 
-     (aircraft_registration, baseline_landings, created_by, created_at, updated_by, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     ON CONFLICT (aircraft_registration) DO UPDATE SET
-       baseline_landings = $2,
-       updated_by = $5,
-       updated_at = $6`,
-    [aircraftRegistration, baselineLandings, jwt.memberId!, now, jwt.memberId!, now],
-  )
-
-  // Backfill landing totals from the baseline within a transaction
-  await backfillLandingsFromBaseline(aircraftRegistration)
-}
-
-async function backfillLandingsFromBaseline(aircraftRegistration: string): Promise<void> {
   const client = await connection.pool.connect()
   try {
     await client.query('BEGIN')
 
-    // Step 1: Update first logbook's start_landings to baseline
+    // Insert or update baseline
     await client.query(
-      `
-      WITH first_logbook AS (
-        SELECT seq_no FROM flight.aircraft_journey_log_book 
-        WHERE aircraft_registration = $1
-        ORDER BY seq_no ASC LIMIT 1
-      ),
-      baseline_val AS (
-        SELECT baseline_landings FROM flight.aircraft_landings_baseline
-        WHERE aircraft_registration = $1
-      )
-      UPDATE flight.aircraft_journey_log_book
-      SET start_landings = (SELECT baseline_landings FROM baseline_val)
-      WHERE aircraft_registration = $1
-        AND seq_no = (SELECT seq_no FROM first_logbook)
-      `,
-      [aircraftRegistration],
+      `INSERT INTO flight.aircraft_landings_baseline 
+       (aircraft_registration, baseline_landings, created_by, created_at, updated_by, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (aircraft_registration) DO UPDATE SET
+         baseline_landings = $2,
+         updated_by = $5,
+         updated_at = $6`,
+      [aircraftRegistration, baselineLandings, jwt.memberId!, now, jwt.memberId!, now],
     )
 
-    // Step 2: Update subsequent logbooks based on previous logbook totals
-    await client.query(
-      `
-      WITH logbook_prev AS (
-        SELECT 
-          aircraft_registration,
-          seq_no,
-          LAG(seq_no) OVER (PARTITION BY aircraft_registration ORDER BY seq_no) as prev_seq_no
-        FROM flight.aircraft_journey_log_book
-        WHERE aircraft_registration = $1
-      ),
-      prev_totals AS (
-        SELECT
-          lp.aircraft_registration,
-          lp.seq_no,
-          ajlb_prev.start_landings + COALESCE(
-            (SELECT SUM(number_of_landings) 
-             FROM flight.logs 
-             WHERE aircraft_registration = $1
-               AND ajlb_seq_no = lp.prev_seq_no
-               AND status != 'NEW'),
-            0
-          ) as calculated_start_landings
-        FROM logbook_prev lp
-        JOIN flight.aircraft_journey_log_book ajlb_prev 
-          ON ajlb_prev.aircraft_registration = lp.aircraft_registration
-          AND ajlb_prev.seq_no = lp.prev_seq_no
-        WHERE lp.prev_seq_no IS NOT NULL
-      )
-      UPDATE flight.aircraft_journey_log_book ajlb
-      SET start_landings = pt.calculated_start_landings
-      FROM prev_totals pt
-      WHERE ajlb.aircraft_registration = pt.aircraft_registration
-        AND ajlb.seq_no = pt.seq_no
-      `,
-      [aircraftRegistration],
-    )
-
-    // Step 3: Recalculate flight landing totals for all flights
-    await client.query(
-      `
-      UPDATE flight.logs
-      SET ajlb_total_landings = cumulative.total_landings
-      FROM (
-        SELECT
-          l.flight_id,
-          ajlb.start_landings + SUM(l.number_of_landings) OVER (
-            PARTITION BY l.aircraft_registration, l.ajlb_seq_no
-            ORDER BY l.off_block_time_epoch
-            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-          ) AS total_landings
-        FROM flight.logs l
-        JOIN flight.aircraft_journey_log_book ajlb
-          ON ajlb.aircraft_registration = l.aircraft_registration
-          AND ajlb.seq_no = l.ajlb_seq_no
-        WHERE l.aircraft_registration = $1 AND l.status != 'NEW'
-      ) cumulative
-      WHERE flight.logs.flight_id = cumulative.flight_id
-      `,
-      [aircraftRegistration],
-    )
+    await backfillLandingsFromBaseline(client, aircraftRegistration)
 
     await client.query('COMMIT')
   } catch (error) {
@@ -354,6 +269,93 @@ async function backfillLandingsFromBaseline(aircraftRegistration: string): Promi
   } finally {
     client.release()
   }
+}
+
+async function backfillLandingsFromBaseline(
+  client: PoolClient,
+  aircraftRegistration: string,
+): Promise<void> {
+  // Step 1: Update first logbook's start_landings to baseline
+  await client.query(
+    `
+    WITH first_logbook AS (
+      SELECT seq_no FROM flight.aircraft_journey_log_book 
+      WHERE aircraft_registration = $1
+      ORDER BY seq_no ASC LIMIT 1
+    ),
+    baseline_val AS (
+      SELECT baseline_landings FROM flight.aircraft_landings_baseline
+      WHERE aircraft_registration = $1
+    )
+    UPDATE flight.aircraft_journey_log_book
+    SET start_landings = (SELECT baseline_landings FROM baseline_val)
+    WHERE aircraft_registration = $1
+      AND seq_no = (SELECT seq_no FROM first_logbook)
+    `,
+    [aircraftRegistration],
+  )
+
+  // Step 2: Update subsequent logbooks based on previous logbook totals
+  await client.query(
+    `
+    WITH logbook_prev AS (
+      SELECT 
+        aircraft_registration,
+        seq_no,
+        LAG(seq_no) OVER (PARTITION BY aircraft_registration ORDER BY seq_no) as prev_seq_no
+      FROM flight.aircraft_journey_log_book
+      WHERE aircraft_registration = $1
+    ),
+    prev_totals AS (
+      SELECT
+        lp.aircraft_registration,
+        lp.seq_no,
+        ajlb_prev.start_landings + COALESCE(
+          (SELECT SUM(number_of_landings) 
+           FROM flight.logs 
+           WHERE aircraft_registration = $1
+             AND ajlb_seq_no = lp.prev_seq_no
+             AND status != 'NEW'),
+          0
+        ) as calculated_start_landings
+      FROM logbook_prev lp
+      JOIN flight.aircraft_journey_log_book ajlb_prev 
+        ON ajlb_prev.aircraft_registration = lp.aircraft_registration
+        AND ajlb_prev.seq_no = lp.prev_seq_no
+      WHERE lp.prev_seq_no IS NOT NULL
+    )
+    UPDATE flight.aircraft_journey_log_book ajlb
+    SET start_landings = pt.calculated_start_landings
+    FROM prev_totals pt
+    WHERE ajlb.aircraft_registration = pt.aircraft_registration
+      AND ajlb.seq_no = pt.seq_no
+    `,
+    [aircraftRegistration],
+  )
+
+  // Step 3: Recalculate flight landing totals for all flights
+  await client.query(
+    `
+    UPDATE flight.logs
+    SET ajlb_total_landings = cumulative.total_landings
+    FROM (
+      SELECT
+        l.flight_id,
+        ajlb.start_landings + SUM(l.number_of_landings) OVER (
+          PARTITION BY l.aircraft_registration, l.ajlb_seq_no
+          ORDER BY l.off_block_time_epoch
+          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS total_landings
+      FROM flight.logs l
+      JOIN flight.aircraft_journey_log_book ajlb
+        ON ajlb.aircraft_registration = l.aircraft_registration
+        AND ajlb.seq_no = l.ajlb_seq_no
+      WHERE l.aircraft_registration = $1 AND l.status != 'NEW'
+    ) cumulative
+    WHERE flight.logs.flight_id = cumulative.flight_id
+    `,
+    [aircraftRegistration],
+  )
 }
 
 export async function deleteAircraftLandingsBaseline(

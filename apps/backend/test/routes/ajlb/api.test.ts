@@ -112,6 +112,65 @@ describe('GET /ajlb', () => {
   })
 })
 
+describe('Landing baseline endpoints', () => {
+  it('should set baseline and backfill cumulative landing totals across logbooks', async () => {
+    const baselineLandings = 100
+
+    const baselineResponse = await request(app)
+      .post('/ajlb/OH-STL/baseline')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ baselineLandings })
+
+    expect(baselineResponse.status).toBe(200)
+    expect(baselineResponse.body.baseline).toEqual({
+      aircraftRegistration: 'OH-STL',
+      baselineLandings,
+      createdAt: expect.any(String),
+      createdBy: expect.any(String),
+      updatedAt: expect.any(String),
+      updatedBy: expect.any(String),
+    })
+
+    const ajlbResponse = await request(app)
+      .get('/ajlb')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .query({ aircraftRegistration: 'OH-STL' })
+
+    expect(ajlbResponse.status).toBe(200)
+    expect(ajlbResponse.body.books).toHaveLength(2)
+    const latestLogbook = ajlbResponse.body.books[0]
+    const previousLogbook = ajlbResponse.body.books[1]
+
+    expect(previousLogbook).toMatchObject({
+      aircraftRegistration: 'OH-STL',
+      seqNo: 1,
+      startLandings: 100,
+    })
+    expect(previousLogbook.view.validatedTotalLandings).toBeGreaterThanOrEqual(100)
+    expect(latestLogbook).toMatchObject({
+      aircraftRegistration: 'OH-STL',
+      seqNo: 2,
+      startLandings: previousLogbook.view.validatedTotalLandings,
+    })
+  })
+
+  it('should return 400 for invalid baseline payload', async () => {
+    const response = await request(app)
+      .post('/ajlb/OH-STL/baseline')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ baselineLandings: -1 })
+
+    expect(response.status).toBe(400)
+    expect(response.body).toEqual({
+      status: 400,
+      title: 'Bad Request',
+      detail: 'Invalid baseline landings value',
+      instance: '/ajlb/OH-STL/baseline',
+      timestamp: expect.any(String),
+    })
+  })
+})
+
 describe('CRUD /ajlb', () => {
   const payload: Upsert<AircraftJourneyLogBook> = {
     aircraftRegistration: 'OH-IHQ',
