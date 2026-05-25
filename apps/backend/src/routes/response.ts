@@ -83,7 +83,10 @@ export const problemErrorHandler = (
 
   return sendProblem({
     status: 500,
-    detail: err.message,
+    detail:
+      process.env.NODE_ENV === 'test'
+        ? err.message
+        : 'An unexpected error occurred. Please try again later.',
   })
 }
 

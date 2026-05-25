@@ -68,6 +68,7 @@ test_*.html
 
 # Downloaded files
 *.tar.xz
+*.tar.xz.*
 *.tar.gz
 
 **/junit.xml
