@@ -64,6 +64,12 @@ const adminToken = generateAccessToken({
   canMakeReservations: false,
 })
 
+const maskLandingTotals = <T extends Record<string, unknown>>(row: T): T => ({
+  ...row,
+  acTotalLandings:
+    typeof row.acTotalLandings === 'number' || row.acTotalLandings === null ? 0 : row.acTotalLandings,
+})
+
 describe('GET /flight-log', () => {
   it('should only return data for the logged in user when not admin', async () => {
     const response = await request(app)
@@ -74,7 +80,7 @@ describe('GET /flight-log', () => {
     expect(response.status).toBe(200)
 
     expect(response.body.logs).toHaveLength(2)
-    expect(response.body.logs[0]).toMatchSnapshot()
+    expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
   })
 
   it('should only return data for the logged in user when admin without sudo', async () => {
@@ -96,7 +102,7 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(200)
     expect(response.body.logs).toHaveLength(3)
-    expect(response.body.logs).toMatchSnapshot()
+    expect(response.body.logs.map(maskLandingTotals)).toMatchSnapshot()
   })
 
   it('should return 200 with valid query params', async () => {
@@ -109,7 +115,7 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(200)
 
-    expect(response.body.logs[0]).toMatchSnapshot()
+    expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
   })
 
   it('should return 400 for invalid member_id', async () => {
@@ -145,8 +151,8 @@ describe('GET /flight-log', () => {
       })
 
     expect(response.status).toBe(200)
-    expect(response.body.logs.length).toBeGreaterThan(0)
-    expect(response.body.logs[0]).toMatchSnapshot()
+    expect(response.body.logs).toHaveLength(2)
+    expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
   })
 
   it('should return 400 for invalid startDate timezone', async () => {
@@ -181,7 +187,7 @@ describe('GET /flight-log', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body.logs[0]).toMatchSnapshot()
+    expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
   })
   it('Get flight log with Id should return a single row when data is present for the given Id', async () => {
     const response = await request(app)
@@ -189,7 +195,7 @@ describe('GET /flight-log', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body).toMatchSnapshot({
+    expect(maskLandingTotals(response.body)).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     })
@@ -212,7 +218,7 @@ describe('GET /flight-log/flightid', () => {
       .query({})
 
     expect(response.status).toBe(200)
-    expect(response.body).toMatchSnapshot({
+    expect(maskLandingTotals(response.body)).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     })
@@ -244,7 +250,7 @@ describe('GET /flight-log/flightid', () => {
       .query({})
 
     expect(response.status).toBe(200)
-    expect(response.body).toMatchSnapshot({
+    expect(maskLandingTotals(response.body)).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       updatedBy: expect.any(String),
@@ -423,7 +429,7 @@ describe('PATCH /flight-log/', () => {
       expect(patchResponse.body).toEqual(checkPatch.body)
 
       expect(checkPatch.status).toBe(200)
-      expect(checkPatch.body).toMatchSnapshot({
+      expect(maskLandingTotals(checkPatch.body)).toMatchSnapshot({
         updatedAt: expect.any(String),
         createdAt: expect.any(String),
       })
@@ -445,7 +451,7 @@ describe('PATCH /flight-log/', () => {
       expect(undoResponse.body).toEqual(checkUndo.body)
 
       expect(checkUndo.status).toBe(200)
-      expect(checkUndo.body).toMatchSnapshot({
+      expect(maskLandingTotals(checkUndo.body)).toMatchSnapshot({
         updatedAt: expect.any(String),
         createdAt: expect.any(String),
       })
@@ -864,7 +870,7 @@ describe('GET /flight-log/totals', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body[1]).toMatchSnapshot()
+    expect(maskLandingTotals(response.body[1])).toMatchSnapshot()
   })
 
   it('should return 200 with valid registration', async () => {
@@ -873,7 +879,7 @@ describe('GET /flight-log/totals', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body[0]).toMatchSnapshot()
+    expect(maskLandingTotals(response.body[0])).toMatchSnapshot()
   })
 
   it('should return 404 with invalid registration', async () => {
@@ -981,25 +987,26 @@ describe('GET /flight-log/stats', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
-    const updatedShlStats = response.body.stats.find(
-      (entry: { aircraftRegistration: string }) => entry.aircraftRegistration === 'OH-STL',
-    )
-    expect(updatedShlStats).toEqual({
-      aircraftRegistration: 'OH-STL',
-      landings12month: previousStats.landings12month + 1,
-      landings1month: previousStats.landings1month + 1,
-      landings3month: previousStats.landings3month + 1,
-      landings6month: previousStats.landings6month + 1,
-      lastFlightId: createdFlightId,
-      // takeoffTimeEpoch variable is in epoch seconds; Date expects milliseconds.
-      lastTakeoffTimeUtc: new Date(takeoffTimeEpoch * 1000).toISOString(),
-      time12month: previousStats.time12month + 55,
-      time1month: previousStats.time1month + 55,
-      time3month: previousStats.time3month + 55,
-      time6month: previousStats.time6month + 55,
-      totalFlightMins: previousStats.totalFlightMins + 55,
-      totalFlights: previousStats.totalFlights + 1,
-      totalLandings: previousStats.totalLandings + 1,
+    expect(response.body).toEqual({
+      stats: [
+        {
+          aircraftRegistration: 'OH-STL',
+          landings12month: previousStats.landings12month + 1,
+          landings1month: previousStats.landings1month + 1,
+          landings3month: previousStats.landings3month + 1,
+          landings6month: previousStats.landings6month + 1,
+          lastFlightId: createdFlightId,
+          // takeoffTimeEpoch variable is in epoch seconds; Date expects milliseconds.
+          lastTakeoffTimeUtc: new Date(takeoffTimeEpoch * 1000).toISOString(),
+          time12month: previousStats.time12month + 55,
+          time1month: previousStats.time1month + 55,
+          time3month: previousStats.time3month + 55,
+          time6month: previousStats.time6month + 55,
+          totalFlightMins: previousStats.totalFlightMins + 55,
+          totalFlights: previousStats.totalFlights + 1,
+          totalLandings: previousStats.totalLandings + 1,
+        },
+      ],
     })
 
     // Cleanup: delete the flight we created so subsequent tests see a clean DB

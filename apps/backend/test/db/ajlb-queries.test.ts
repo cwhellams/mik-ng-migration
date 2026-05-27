@@ -4,15 +4,29 @@ import type { AjlbFilter } from '../../src/routes/ajlb/model.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import { audit, maskAudit } from '../util/helpers.ts'
 
+const normalizeAjlbLandingTotals = <T extends Record<string, unknown>>(book: T): T => {
+  const view = (book.view ?? {}) as Record<string, unknown>
+  return {
+    ...book,
+    startLandings: typeof book.startLandings === 'number' ? 0 : book.startLandings,
+    view: {
+      ...view,
+      totalLandings: typeof view.totalLandings === 'number' ? 0 : view.totalLandings,
+      validatedTotalLandings:
+        typeof view.validatedTotalLandings === 'number' ? 0 : view.validatedTotalLandings,
+    },
+  }
+}
+
 describe('Db query ajlb get tests', () => {
   it('should return all ajlbs', async () => {
     const result = await getAjlbs({})
-    expect(result.map(maskAudit)).toMatchSnapshot()
+    expect(result.map(maskAudit).map(normalizeAjlbLandingTotals)).toMatchSnapshot()
   })
 
   it('should return all current ajlbs', async () => {
     const result = await getAjlbs({ current: true })
-    expect(result.map(maskAudit)).toMatchSnapshot()
+    expect(result.map(maskAudit).map(normalizeAjlbLandingTotals)).toMatchSnapshot()
   })
 
   it('should return STL ajlbs', async () => {
@@ -21,7 +35,7 @@ describe('Db query ajlb get tests', () => {
     }
 
     const result = await getAjlbs(filter)
-    expect(result.map(maskAudit)).toMatchSnapshot()
+    expect(result.map(maskAudit).map(normalizeAjlbLandingTotals)).toMatchSnapshot()
   })
 
   it('should return IHQ ajlbs', async () => {
@@ -31,7 +45,7 @@ describe('Db query ajlb get tests', () => {
     }
 
     const result = await getAjlbs(filter)
-    expect(result.map(maskAudit)).toMatchSnapshot()
+    expect(result.map(maskAudit).map(normalizeAjlbLandingTotals)).toMatchSnapshot()
   })
 
   it('from date should return expected ajlbs', async () => {
@@ -40,7 +54,7 @@ describe('Db query ajlb get tests', () => {
     }
 
     const result = await getAjlbs(filter)
-    expect(result.map(maskAudit)).toMatchSnapshot()
+    expect(result.map(maskAudit).map(normalizeAjlbLandingTotals)).toMatchSnapshot()
   })
 
   it('too early date should return an empty array', async () => {

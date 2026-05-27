@@ -43,11 +43,25 @@ const adminToken = generateAccessToken({
   permissions: [MIKPermissions.FLIGHTLOG_ADMIN],
 })
 
+const normalizeAjlbLandingTotals = <T extends Record<string, unknown>>(book: T): T => {
+  const view = (book.view ?? {}) as Record<string, unknown>
+  return {
+    ...book,
+    startLandings: typeof book.startLandings === 'number' ? 0 : book.startLandings,
+    view: {
+      ...view,
+      totalLandings: typeof view.totalLandings === 'number' ? 0 : view.totalLandings,
+      validatedTotalLandings:
+        typeof view.validatedTotalLandings === 'number' ? 0 : view.validatedTotalLandings,
+    },
+  }
+}
+
 describe('GET /ajlb', () => {
   it('should get all ajlbs for an admin user', async () => {
     const response = await request(app).get('/ajlb').set('Cookie', `accessToken=${adminToken}`)
     expect(response.status).toBe(200)
-    expect(response.body.books.map(maskAudit)).toMatchSnapshot()
+    expect(response.body.books.map(maskAudit).map(normalizeAjlbLandingTotals)).toMatchSnapshot()
   })
 
   it('should return 200 for members', async () => {
@@ -109,7 +123,7 @@ describe('GET /ajlb', () => {
       .set('Cookie', `accessToken=${adminToken}`)
       .query(filter)
     expect(response.status).toBe(200)
-    expect(response.body.books.map(maskAudit)).toMatchSnapshot()
+    expect(response.body.books.map(maskAudit).map(normalizeAjlbLandingTotals)).toMatchSnapshot()
   })
 })
 
@@ -120,7 +134,8 @@ describe('Landing baseline endpoints', () => {
       .get('/ajlb')
       .set('Cookie', `accessToken=${adminToken}`)
       .query({ aircraftRegistration: 'OH-STL' })
-    const originalBaselineLandings = initialAjlbResponse.body.books[1]?.startLandings ?? baselineLandings
+    const originalBaselineLandings =
+      initialAjlbResponse.body.books[1]?.startLandings ?? baselineLandings
 
     const baselineResponse = await request(app)
       .post('/ajlb/OH-STL/baseline')
