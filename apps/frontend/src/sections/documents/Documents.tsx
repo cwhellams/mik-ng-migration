@@ -18,6 +18,7 @@ import {
   Snackbar,
 } from '@mui/material'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
@@ -42,17 +43,26 @@ const Documents = () => {
   const { t } = useTranslation()
   const { isDocumentAdmin } = useRoles()
   const { formatDate } = useTimezone()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   // Use a local array for selected categories, but keep filters.category as a comma-separated string for API compatibility
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [filters, setFilters] = useState<DocumentFilters>({
-    category: '',
-    search: '',
-    tags: '',
-    showArchived: false,
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
+    const cat = searchParams.get('category')
+    return cat
+      ? cat
+          .split(',')
+          .map((c) => c.trim())
+          .filter(Boolean)
+      : []
+  })
+  const [filters, setFilters] = useState<DocumentFilters>(() => ({
+    category: searchParams.get('category') ?? '',
+    search: searchParams.get('search') ?? '',
+    tags: searchParams.get('tags') ?? '',
+    showArchived: searchParams.get('showArchived') === 'true',
     limit: 50,
     offset: 0,
-  })
+  }))
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
@@ -95,7 +105,19 @@ const Documents = () => {
   })
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters((prev) => ({ ...prev, search: event.target.value }))
+    const value = event.target.value
+    setFilters((prev) => ({ ...prev, search: value }))
+    setSearchParams(
+      (prev) => {
+        if (value) {
+          prev.set('search', value)
+        } else {
+          prev.delete('search')
+        }
+        return prev
+      },
+      { replace: true }
+    )
   }
 
   const handleCategoryToggle = (category: string) => {
@@ -103,11 +125,23 @@ const Documents = () => {
       const newCategories = prev.includes(category)
         ? prev.filter((c) => c !== category)
         : [...prev, category]
+      const categoryString = newCategories.join(',')
       // Update filters.category as a comma-separated string
       setFilters((filters) => ({
         ...filters,
-        category: newCategories.join(','),
+        category: categoryString,
       }))
+      setSearchParams(
+        (params) => {
+          if (categoryString) {
+            params.set('category', categoryString)
+          } else {
+            params.delete('category')
+          }
+          return params
+        },
+        { replace: true }
+      )
       return newCategories
     })
   }
@@ -202,13 +236,37 @@ const Documents = () => {
   }
 
   const handleTagsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters((prev) => ({ ...prev, tags: event.target.value }))
+    const value = event.target.value
+    setFilters((prev) => ({ ...prev, tags: value }))
+    setSearchParams(
+      (prev) => {
+        if (value) {
+          prev.set('tags', value)
+        } else {
+          prev.delete('tags')
+        }
+        return prev
+      },
+      { replace: true }
+    )
   }
 
   const handleShowArchivedChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setFilters((prev) => ({ ...prev, showArchived: event.target.checked }))
+    const checked = event.target.checked
+    setFilters((prev) => ({ ...prev, showArchived: checked }))
+    setSearchParams(
+      (prev) => {
+        if (checked) {
+          prev.set('showArchived', 'true')
+        } else {
+          prev.delete('showArchived')
+        }
+        return prev
+      },
+      { replace: true }
+    )
   }
 
   const handleEditDocument = (document: Document) => {
