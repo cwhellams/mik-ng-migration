@@ -67,7 +67,9 @@ const adminToken = generateAccessToken({
 const maskLandingTotals = <T extends Record<string, unknown>>(row: T): T => ({
   ...row,
   acTotalLandings:
-    typeof row.acTotalLandings === 'number' || row.acTotalLandings === null ? 0 : row.acTotalLandings,
+    typeof row.acTotalLandings === 'number' || row.acTotalLandings === null
+      ? 0
+      : row.acTotalLandings,
 })
 
 describe('GET /flight-log', () => {
