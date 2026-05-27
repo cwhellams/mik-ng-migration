@@ -9,6 +9,7 @@ import { problemErrorHandler } from '../../../src/routes/response.ts'
 import { audit, maskAudit } from '../../util/helpers.ts'
 import type { AircraftJourneyLogBook } from '../../../src/routes/ajlb/model.ts'
 import type { Upsert } from '../../../src/types/schema.ts'
+import { db } from '../../../src/db/connection.ts'
 import {
   deleteFlightLog,
   getFlightLogs,
@@ -115,6 +116,11 @@ describe('GET /ajlb', () => {
 describe('Landing baseline endpoints', () => {
   it('should set baseline and backfill cumulative landing totals across logbooks', async () => {
     const baselineLandings = 100
+    const initialAjlbResponse = await request(app)
+      .get('/ajlb')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .query({ aircraftRegistration: 'OH-STL' })
+    const originalBaselineLandings = initialAjlbResponse.body.books[1]?.startLandings ?? baselineLandings
 
     const baselineResponse = await request(app)
       .post('/ajlb/OH-STL/baseline')
@@ -152,6 +158,12 @@ describe('Landing baseline endpoints', () => {
       seqNo: 2,
       startLandings: previousLogbook.view.validatedTotalLandings,
     })
+
+    const restoreResponse = await request(app)
+      .post('/ajlb/OH-STL/baseline')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ baselineLandings: originalBaselineLandings })
+    expect(restoreResponse.status).toBe(200)
   })
 
   it('should return 400 for invalid baseline payload', async () => {
@@ -172,17 +184,28 @@ describe('Landing baseline endpoints', () => {
 })
 
 describe('CRUD /ajlb', () => {
-  const payload: Upsert<AircraftJourneyLogBook> = {
-    aircraftRegistration: 'OH-IHQ',
-    seqNo: 3,
-    startDate: '2025-06-01',
-    endDate: '2026-06-01',
-    startFlightMins: 600,
-    startLandings: 0,
-    noOfPages: 10,
-    rowsPerPage: 30,
-    startPage: 1,
-  }
+  let payload: Upsert<AircraftJourneyLogBook>
+
+  beforeAll(async () => {
+    const maxSeqResult = await db
+      .selectFrom('flight.aircraft_journey_log_book')
+      .select(({ fn }) => fn.max<number>('seq_no').as('maxSeqNo'))
+      .where('aircraft_registration', '=', 'OH-IHQ')
+      .executeTakeFirst()
+    const seqNo = (maxSeqResult?.maxSeqNo ?? 0) + 1
+
+    payload = {
+      aircraftRegistration: 'OH-IHQ',
+      seqNo,
+      startDate: '2025-06-01',
+      endDate: '2026-06-01',
+      startFlightMins: 600,
+      startLandings: 0,
+      noOfPages: 10,
+      rowsPerPage: 30,
+      startPage: 1,
+    }
+  })
 
   it('should return 403 for members', async () => {
     const response = await request(app).post('/ajlb').set('Cookie', `accessToken=${memberToken}`)
@@ -243,7 +266,7 @@ describe('CRUD /ajlb', () => {
 
   it('should update logbook', async () => {
     const response = await request(app)
-      .patch('/ajlb/OH-IHQ/3')
+      .patch(`/ajlb/OH-IHQ/${payload.seqNo}`)
       .set('Cookie', `accessToken=${adminToken}`)
       .send({
         startFlightMins: 900,
@@ -272,7 +295,7 @@ describe('CRUD /ajlb', () => {
 
   it('should return 500 for deleting logbook with flights', async () => {
     const response = await request(app)
-      .delete('/ajlb/OH-IHQ/3')
+      .delete(`/ajlb/OH-IHQ/${payload.seqNo}`)
       .set('Cookie', `accessToken=${adminToken}`)
       .send(payload)
 
@@ -281,19 +304,19 @@ describe('CRUD /ajlb', () => {
       title: 'Internal Server Error',
       detail:
         'update or delete on table \"aircraft_journey_log_book\" violates foreign key constraint \"fk_ajlb_logs\" on table \"logs\"',
-      instance: '/ajlb/OH-IHQ/3',
+      instance: `/ajlb/OH-IHQ/${payload.seqNo}`,
       timestamp: expect.any(String),
     })
   })
 
   it('should delete logbook without flights', async () => {
-    const logs = await getFlightLogs({ aircraftRegistration: 'OH-IHQ', ajlbSeqNo: 3 })
+    const logs = await getFlightLogs({ aircraftRegistration: 'OH-IHQ', ajlbSeqNo: payload.seqNo })
     for (const log of logs.logs) {
       await deleteFlightLog(log.flightId)
     }
 
     const response = await request(app)
-      .delete('/ajlb/OH-IHQ/3')
+      .delete(`/ajlb/OH-IHQ/${payload.seqNo}`)
       .set('Cookie', `accessToken=${adminToken}`)
       .send(payload)
 

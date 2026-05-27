@@ -1,4 +1,5 @@
 import { createAjlb, deleteAjlb, getAjlb, getAjlbs, updateAjlb } from '../../src/db/ajlb-queries.ts'
+import { db } from '../../src/db/connection.ts'
 import type { AjlbFilter } from '../../src/routes/ajlb/model.ts'
 import type { JWTUser } from '../../src/routes/auth/token.ts'
 import { audit, maskAudit } from '../util/helpers.ts'
@@ -62,21 +63,42 @@ describe('Db ajlb CRUD tests', () => {
     canMakeReservations: false,
   }
 
-  const payload = {
-    aircraftRegistration: 'OH-STL',
-    seqNo: 3,
-    startDate: '2025-06-01',
-    endDate: '2026-06-01',
-    startFlightMins: 600,
-    startLandings: 0,
-    noOfPages: 10,
-    rowsPerPage: 30,
-    startPage: 1,
+  let payload: {
+    aircraftRegistration: string
+    seqNo: number
+    startDate: string
+    endDate: string
+    startFlightMins: number
+    startLandings: number
+    noOfPages: number
+    rowsPerPage: number
+    startPage: number
   }
+
+  beforeAll(async () => {
+    const maxSeqResult = await db
+      .selectFrom('flight.aircraft_journey_log_book')
+      .select(({ fn }) => fn.max<number>('seq_no').as('maxSeqNo'))
+      .where('aircraft_registration', '=', 'OH-STL')
+      .executeTakeFirst()
+    const seqNo = (maxSeqResult?.maxSeqNo ?? 0) + 1
+
+    payload = {
+      aircraftRegistration: 'OH-STL',
+      seqNo,
+      startDate: '2025-06-01',
+      endDate: '2026-06-01',
+      startFlightMins: 600,
+      startLandings: 0,
+      noOfPages: 10,
+      rowsPerPage: 30,
+      startPage: 1,
+    }
+  })
 
   it('should create new ajlb', async () => {
     await createAjlb(payload, jwt)
-    expect(await getAjlb('OH-STL', 3)).toEqual({
+    expect(await getAjlb('OH-STL', payload.seqNo)).toEqual({
       ...payload,
       startFlightTime: '10:00',
       ...audit(jwt.memberId),
@@ -106,7 +128,7 @@ describe('Db ajlb CRUD tests', () => {
       startPage: 2,
     }
 
-    const result = await updateAjlb('OH-STL', 3, patch, jwt)
+    const result = await updateAjlb('OH-STL', payload.seqNo, patch, jwt)
     expect(result).toEqual({
       ...payload,
       ...patch,
@@ -126,12 +148,12 @@ describe('Db ajlb CRUD tests', () => {
         totalLandings: 0,
       },
     })
-    expect(await getAjlb('OH-STL', 3)).toEqual(result)
+    expect(await getAjlb('OH-STL', payload.seqNo)).toEqual(result)
   })
 
   it('should delete ajlb', async () => {
-    const result = await deleteAjlb('OH-STL', 3)
+    const result = await deleteAjlb('OH-STL', payload.seqNo)
     expect(result).toEqual(true)
-    expect(await getAjlb('OH-STL', 3)).toBeUndefined()
+    expect(await getAjlb('OH-STL', payload.seqNo)).toBeUndefined()
   })
 })

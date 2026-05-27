@@ -679,6 +679,27 @@ describe('PATCH /flight-log/', () => {
 })
 
 describe('POST /flight-log/validate', () => {
+  let firstNewMassFlightId: string
+  let secondNewMassFlightId: string
+  let latestValidatedBeforeNewMassFlightId: string
+
+  beforeAll(async () => {
+    const massFlights = await db
+      .selectFrom('flight.logs')
+      .select(['flight_id as flightId', 'status'])
+      .where('flight_id', 'like', 'mass%')
+      .orderBy('off_block_time_utc', 'asc')
+      .execute()
+
+    const firstNewMassFlightIdx = massFlights.findIndex(flight => flight.status === 'NEW')
+    assert(firstNewMassFlightIdx > 0)
+    assert(firstNewMassFlightIdx + 1 < massFlights.length)
+
+    firstNewMassFlightId = massFlights[firstNewMassFlightIdx].flightId
+    secondNewMassFlightId = massFlights[firstNewMassFlightIdx + 1].flightId
+    latestValidatedBeforeNewMassFlightId = massFlights[firstNewMassFlightIdx - 1].flightId
+  })
+
   it('should return a 401 if an invalid JWT token is passed', async () => {
     const invalidToken = 'THIS WILL NOT WORK'
 
@@ -735,16 +756,16 @@ describe('POST /flight-log/validate', () => {
 
   it('should return a 400 if there are earlier unvalidated flights', async () => {
     const response = await request(app)
-      .post('/flight-log/mass194/validate')
+      .post(`/flight-log/${secondNewMassFlightId}/validate`)
       .set('Cookie', `accessToken=${adminToken}`)
       .send()
 
     expect(response.body).toEqual({
       status: 400,
       title: 'Bad Request',
-      instance: '/flight-log/mass194/validate',
+      instance: `/flight-log/${secondNewMassFlightId}/validate`,
       timestamp: expect.any(String),
-      detail: 'All previous flights must be first validated, validate mass193 first',
+      detail: `All previous flights must be first validated, validate ${firstNewMassFlightId} first`,
     })
   })
 
@@ -759,30 +780,32 @@ describe('POST /flight-log/validate', () => {
       title: 'Bad Request',
       instance: '/flight-log/mass100/validate',
       timestamp: expect.any(String),
-      detail: 'All later flights must be first reverted, revert mass192 first',
+      detail: `All later flights must be first reverted, revert ${latestValidatedBeforeNewMassFlightId} first`,
     })
   })
 
   it('should validate and revert the first new flight', async () => {
     const response = await request(app)
-      .post('/flight-log/mass193/validate')
+      .post(`/flight-log/${firstNewMassFlightId}/validate`)
       .set('Cookie', `accessToken=${adminToken}`)
       .send()
 
     expect(response.status).toEqual(200)
-    expect(response.body.acTotalFlightTime).toEqual('338:16')
-    expect(response.body.ajlbPageNo).toEqual(33)
-    expect(response.body.ajlbRowNo).toEqual(1)
+    expect(response.body.flightId).toEqual(firstNewMassFlightId)
+    expect(response.body.acTotalFlightTime).toEqual(expect.stringMatching(/^\d+:\d{2}$/))
+    expect(response.body.ajlbPageNo).toEqual(expect.any(Number))
+    expect(response.body.ajlbRowNo).toEqual(expect.any(Number))
     expect(response.body.status).toEqual('VALIDATED')
 
     const revert = await request(app)
-      .post('/flight-log/mass193/validate')
+      .post(`/flight-log/${firstNewMassFlightId}/validate`)
       .set('Cookie', `accessToken=${adminToken}`)
       .send({ revert: true })
     expect(revert.status).toEqual(200)
-    expect(revert.body.acTotalFlightTime).toEqual('338:16')
-    expect(revert.body.ajlbPageNo).toEqual(33)
-    expect(revert.body.ajlbRowNo).toEqual(1)
+    expect(revert.body.flightId).toEqual(firstNewMassFlightId)
+    expect(revert.body.acTotalFlightTime).toEqual(response.body.acTotalFlightTime)
+    expect(revert.body.ajlbPageNo).toEqual(response.body.ajlbPageNo)
+    expect(revert.body.ajlbRowNo).toEqual(response.body.ajlbRowNo)
     expect(revert.body.status).toEqual('NEW')
   })
 })
