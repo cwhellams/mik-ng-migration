@@ -31,9 +31,8 @@ describe('Occurrence Notifying Worker', () => {
 
   describe('Worker Initialization', () => {
     it('should schedule task when worker is enabled', async () => {
-      const { startOccurrenceNotificationWorker } = await import(
-        '../../src/workers/occurrenceNotifyWorker.ts'
-      )
+      const { startOccurrenceNotificationWorker } =
+        await import('../../src/workers/occurrenceNotifyWorker.ts')
 
       const worker = startOccurrenceNotificationWorker({
         sendEmailFn: mockSendEmail,
@@ -57,9 +56,8 @@ describe('Occurrence Notifying Worker', () => {
       // Clear module cache to re-import with new env var
       jest.resetModules()
 
-      const { startOccurrenceNotificationWorker } = await import(
-        '../../src/workers/occurrenceNotifyWorker.ts'
-      )
+      const { startOccurrenceNotificationWorker } =
+        await import('../../src/workers/occurrenceNotifyWorker.ts')
 
       const worker = startOccurrenceNotificationWorker({
         sendEmailFn: mockSendEmail,

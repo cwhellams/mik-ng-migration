@@ -80,9 +80,8 @@ describe('Junior Member Promotion Worker', () => {
 
   describe('Worker Initialization', () => {
     it('should schedule task when worker is enabled', async () => {
-      const { startJuniorMemberPromotionWorker } = await import(
-        '../../src/workers/juniorMemberPromotionWorker.ts'
-      )
+      const { startJuniorMemberPromotionWorker } =
+        await import('../../src/workers/juniorMemberPromotionWorker.ts')
 
       const worker = startJuniorMemberPromotionWorker({
         sendEmailFn: mockSendEmail,
@@ -100,9 +99,8 @@ describe('Junior Member Promotion Worker', () => {
       // Clear module cache to re-import with new env var
       jest.resetModules()
 
-      const { startJuniorMemberPromotionWorker } = await import(
-        '../../src/workers/juniorMemberPromotionWorker.ts'
-      )
+      const { startJuniorMemberPromotionWorker } =
+        await import('../../src/workers/juniorMemberPromotionWorker.ts')
 
       const worker = startJuniorMemberPromotionWorker({
         sendEmailFn: mockSendEmail,

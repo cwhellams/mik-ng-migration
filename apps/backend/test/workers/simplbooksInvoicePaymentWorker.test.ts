@@ -137,9 +137,8 @@ describe('Simplbooks Invoice Payment Worker', () => {
   describe('Worker Initialization', () => {
     it('should schedule task when worker is enabled', async () => {
       // Import the worker module fresh
-      const { startSimplbooksInvoicePaymentWorker } = await import(
-        '../../src/workers/simplbooksInvoicePaymentWorker.ts'
-      )
+      const { startSimplbooksInvoicePaymentWorker } =
+        await import('../../src/workers/simplbooksInvoicePaymentWorker.ts')
 
       const worker = startSimplbooksInvoicePaymentWorker({
         getInvoice: mockGetInvoice,
@@ -157,9 +156,8 @@ describe('Simplbooks Invoice Payment Worker', () => {
 
       // Clear module cache to reload with new env var
       jest.resetModules()
-      const { startSimplbooksInvoicePaymentWorker } = await import(
-        '../../src/workers/simplbooksInvoicePaymentWorker.ts'
-      )
+      const { startSimplbooksInvoicePaymentWorker } =
+        await import('../../src/workers/simplbooksInvoicePaymentWorker.ts')
 
       const worker = startSimplbooksInvoicePaymentWorker({
         getInvoice: mockGetInvoice,
