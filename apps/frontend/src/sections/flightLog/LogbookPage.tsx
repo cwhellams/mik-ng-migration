@@ -47,7 +47,7 @@ type LogbookTableRow = {
 
 export const buildLogbookRows = (
   logs: FlightLogListEntry[] | undefined,
-  pageSize = 50
+  pageSize = 0
 ): LogbookTableRow[] => {
   if (!logs?.length) {
     return Array.from({ length: pageSize }, () => ({
@@ -219,7 +219,7 @@ const FlightLogsList = () => {
     </Stack>
   )
 
-  const logsWithEmptyRows = buildLogbookRows(data?.logs)
+  const logsWithEmptyRows = buildLogbookRows(data?.logs, ajlb?.rowsPerPage ?? 0)
 
   return (
     <Box>
