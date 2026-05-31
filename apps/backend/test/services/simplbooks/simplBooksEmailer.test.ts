@@ -26,8 +26,9 @@ jest.unstable_mockModule('../../../src/services/simplbooks/simplbooksApiClient.t
   markInvoiceAsSent,
 }))
 
-const { sendSimplbooksInvoiceEmail } =
-  await import('../../../src/services/simplbooks/simplBooksEmailer.ts')
+const { sendSimplbooksInvoiceEmail } = await import(
+  '../../../src/services/simplbooks/simplBooksEmailer.ts'
+)
 
 describe('SimplBooks Emailer Tests', () => {
   const mockMember: Member = {

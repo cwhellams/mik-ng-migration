@@ -32,8 +32,9 @@ import {
   ART_EQUIP_USAGE_FEE_CODE,
 } from '../../../src/services/accounting/config.ts'
 
-const { dispatchOutboxMsg } =
-  await import('../../../src/services/simplbooks/simplbooksOutboxHandler.ts')
+const { dispatchOutboxMsg } = await import(
+  '../../../src/services/simplbooks/simplbooksOutboxHandler.ts'
+)
 const { insertOutboxItem } = await import('../../../src/db/outbox-simplbooks-queries.ts')
 
 // ────────────────────────────────────────────────────────────────────────────
