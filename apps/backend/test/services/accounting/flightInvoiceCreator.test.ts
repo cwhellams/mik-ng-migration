@@ -17,9 +17,8 @@ jest.unstable_mockModule('../../../src/db/aircraft-pricing-queries.ts', () => ({
 }))
 
 const { getAircraftPriceForDate } = await import('../../../src/db/aircraft-pricing-queries.ts')
-const { createFlightInvoicePayload } = await import(
-  '../../../src/services/accounting/flightInvoiceCreator.ts'
-)
+const { createFlightInvoicePayload } =
+  await import('../../../src/services/accounting/flightInvoiceCreator.ts')
 
 describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
   const testMemberId = 'Matti1'

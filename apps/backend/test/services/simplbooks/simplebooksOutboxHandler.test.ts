@@ -116,6 +116,39 @@ describe('Simplbooks Outbox Handler tests', () => {
     await revertBillingIdChanges(newMemberId, 'BILL004')
   })
 
+  it('creates a SimplBooks client but skips NEW_MEMBER_FEES for an honorary member', async () => {
+    const honoraryMember: Member = { ...flyingMember, memberType: MIKMemberTypes.HONORARY }
+    const honoraryMemberPayload: InvoiceMember = InvoiceMemberSchema.parse({
+      ...honoraryMember,
+      autoRenewAnnualMembership: false,
+      autoRenewEquipmentFee: false,
+      billingId: 'BILL004',
+    })
+    const obMsgAddHonoraryMember: AcctsOutboxSimplbooks = {
+      ...obMsgAddMember,
+      id: randomUUID(),
+      payload: honoraryMemberPayload,
+    }
+
+    await dispatchOutboxMsg(obMsgAddHonoraryMember)
+
+    const memberRow = await db
+      .selectFrom('member.register')
+      .selectAll()
+      .where('member_id', '=', newMemberId)
+      .executeTakeFirstOrThrow()
+    expect(memberRow.billing_id).not.toBeNull()
+    expect(memberRow.billing_id).not.toEqual('BILL004')
+
+    const feeRows = await db
+      .selectFrom('accts.outbox_simplbooks')
+      .where('event_type', '=', SimplbooksEventType.NEW_MEMBER_FEES)
+      .execute()
+    expect(feeRows).toHaveLength(0)
+
+    await revertBillingIdChanges(newMemberId, 'BILL004')
+  })
+
   it('dispatches outbox messages for annual member fee', async () => {
     await dispatchOutboxMsg(obMsgMembershipFeeInvoice)
 

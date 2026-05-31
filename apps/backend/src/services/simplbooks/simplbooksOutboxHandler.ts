@@ -1,6 +1,6 @@
 import { db } from '../../db/connection.ts'
 import logger from '../../lib/logger.ts'
-import { InvoiceMemberSchema, MemberSchema } from '../../routes/members/models.ts'
+import { InvoiceMemberSchema, MemberSchema, MIKMemberTypes } from '../../routes/members/models.ts'
 import {
   FeeTypeEnum,
   mapMemberToClient,
@@ -665,14 +665,18 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
     )
     await db.transaction().execute(async txn => {
       await updateMemberBillingId(txn, member.memberId, fakeBillingId)
-      await insertOutboxItem(
-        SimplbooksEventType.NEW_MEMBER_FEES,
-        {
-          ...member,
-          billingId: fakeBillingId,
-        },
-        txn,
-      )
+      if (member.memberType !== MIKMemberTypes.HONORARY) {
+        await insertOutboxItem(
+          SimplbooksEventType.NEW_MEMBER_FEES,
+          {
+            ...member,
+            billingId: fakeBillingId,
+          },
+          txn,
+        )
+      } else {
+        logger.info(`[DRY RUN] Skipping NEW_MEMBER_FEES for honorary member ${member.memberId}`)
+      }
       await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
     })
     return
@@ -700,13 +704,18 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
     // Set the billing id in our DB - which is the returned SimplBooks client id
     await updateMemberBillingId(txn, member.memberId, clientId.toString())
 
-    // We add the create invoice action to the outbox, this will allow us to handle the situation
-    // where the client id is created but invoice creation fails - now its async and decoupled
-    await insertOutboxItem(SimplbooksEventType.NEW_MEMBER_FEES, {
-      ...member,
-      billingId: clientId.toString(),
-      txn,
-    })
+    // Honorary members get a billing ID (for shop orders etc.) but are not charged annual fees
+    if (member.memberType !== MIKMemberTypes.HONORARY) {
+      // We add the create invoice action to the outbox, this will allow us to handle the situation
+      // where the client id is created but invoice creation fails - now its async and decoupled
+      await insertOutboxItem(SimplbooksEventType.NEW_MEMBER_FEES, {
+        ...member,
+        billingId: clientId.toString(),
+        txn,
+      })
+    } else {
+      logger.info(`Skipping NEW_MEMBER_FEES for honorary member ${member.memberId}`)
+    }
 
     await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
   })

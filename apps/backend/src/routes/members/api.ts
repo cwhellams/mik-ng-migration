@@ -199,7 +199,7 @@ router.get(
 const rolesForNewMember = (memberType: MIKMemberTypes): string[] => {
   if (memberType === MIKMemberTypes.FLYING || memberType === MIKMemberTypes.JUNIOR) {
     return ['MEMBER', 'FLYING_MEMBER']
-  } else if (memberType == MIKMemberTypes.NONFLYING) {
+  } else if (memberType === MIKMemberTypes.NONFLYING || memberType === MIKMemberTypes.HONORARY) {
     return ['MEMBER']
   } else {
     return []
