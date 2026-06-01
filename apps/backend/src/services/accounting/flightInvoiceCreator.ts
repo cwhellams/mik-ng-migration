@@ -377,7 +377,7 @@ function createTasksForFlight(
 
   if (applyErrorFee) {
     logger.info(
-      `Adding entry error fee (VIRHEMERKINTA) for flight ${flight.flightId} of member ${flight.billableMemberId}`,
+      `Adding entry error fee (VIRHEMERKINTA) for flight ${flight.flightId} of member ${flight.billableMemberId}. Code : ${ART_ENTRY_ERROR_CODE} markup value : ${ctx.virhemerkintaFee.markup_value}`,
     )
     const virhemerkintaAdditionalText =
       ctx.virhemerkintaFee.contents && ctx.virhemerkintaFee.contents.trim() !== ''
