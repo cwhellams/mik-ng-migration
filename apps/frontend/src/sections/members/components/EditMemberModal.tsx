@@ -117,7 +117,9 @@ export const EditMemberModal = ({
         setFormData({
           licenceId: memberData.licenceId || '',
           licenceExpiry: memberData.licenceExpiry,
-          medicalExpiry: memberData.medicalExpiry,
+          medicalClass1Expiry: memberData.medicalClass1Expiry,
+          medicalClass2Expiry: memberData.medicalClass2Expiry,
+          medicalLaplExpiry: memberData.medicalLaplExpiry,
         })
       } else if (mode === 'training') {
         setFormData({
@@ -460,14 +462,48 @@ export const EditMemberModal = ({
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>
         <DateField
-          label={t('member.licenceInfo.medicalExpiry')}
+          label={t('member.licenceInfo.medicalClass1Expiry')}
           value={
-            formData.medicalExpiry ? dayjs(formData.medicalExpiry) : undefined
+            formData.medicalClass1Expiry
+              ? dayjs(formData.medicalClass1Expiry)
+              : undefined
           }
           onChange={(value: Dayjs | null) => {
             setFormData({
               ...formData,
-              medicalExpiry: value?.format('YYYY-MM-DD'),
+              medicalClass1Expiry: value?.format('YYYY-MM-DD'),
+            })
+          }}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <DateField
+          label={t('member.licenceInfo.medicalClass2Expiry')}
+          value={
+            formData.medicalClass2Expiry
+              ? dayjs(formData.medicalClass2Expiry)
+              : undefined
+          }
+          onChange={(value: Dayjs | null) => {
+            setFormData({
+              ...formData,
+              medicalClass2Expiry: value?.format('YYYY-MM-DD'),
+            })
+          }}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6 }}>
+        <DateField
+          label={t('member.licenceInfo.medicalLaplExpiry')}
+          value={
+            formData.medicalLaplExpiry
+              ? dayjs(formData.medicalLaplExpiry)
+              : undefined
+          }
+          onChange={(value: Dayjs | null) => {
+            setFormData({
+              ...formData,
+              medicalLaplExpiry: value?.format('YYYY-MM-DD'),
             })
           }}
         />

@@ -166,7 +166,10 @@
       "licenceInfo": "Lupakirjatiedot",
       "licenceId": "Lupakirjanumero",
       "licenceExpiry": "SEP(land) kelpuutuksen tai lento-oikeuden vanhenemispäivä",
-      "medicalExpiry": "Lääketieteellisen kelpoisuustodistuksen vanhenemispäivä"
+      "medicalExpiry": "Lääketieteellisen kelpoisuustodistuksen vanhenemispäivä",
+      "medicalClass1Expiry": "Luokka 1 lääketieteellinen vanhenemispäivä",
+      "medicalClass2Expiry": "Luokka 2 lääketieteellinen vanhenemispäivä",
+      "medicalLaplExpiry": "LAPL lääketieteellinen vanhenemispäivä"
     },
     "roles": "Roolit",
     "trainingProgram": "Koulutusohjelma",

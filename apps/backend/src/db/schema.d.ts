@@ -883,7 +883,10 @@ export interface MemberRegister {
    * Aircraft mailing list subscriptions. Structure: ["list-id-1", "list-id-2"]
    */
   mailing_lists: Json | null
+  medical_class1_expiry_date: string | null
+  medical_class2_expiry_date: string | null
   medical_expiry_date: string | null
+  medical_lapl_expiry_date: string | null
   member_id: string
   member_since: Generated<string>
   member_type: MemberType

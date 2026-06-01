@@ -167,7 +167,10 @@
       "licenceInfo": "Licence Information",
       "licenceId": "Licence ID",
       "licenceExpiry": "SEP(land) expiry",
-      "medicalExpiry": "Medical Expiry"
+      "medicalExpiry": "Medical Expiry",
+      "medicalClass1Expiry": "Class 1 Medical Expiry",
+      "medicalClass2Expiry": "Class 2 Medical Expiry",
+      "medicalLaplExpiry": "LAPL Medical Expiry"
     },
     "roles": "Roles",
     "trainingProgram": "Training Program",

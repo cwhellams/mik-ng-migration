@@ -83,3 +83,28 @@ export const getOffsetLabelInTz = (
 
   return parts?.value.replace('GMT', 'UTC') ?? 'HEL'
 }
+
+/**
+ * Returns the effective medical expiry as the latest non-null date among
+ * Class 1, Class 2, and LAPL certificates. Returns null when none are set.
+ * Rationale: if any cert is still valid, the member is medically current.
+ */
+export const getEffectiveMedicalExpiry = (
+  medicalClass1Expiry: string | null | undefined,
+  medicalClass2Expiry: string | null | undefined,
+  medicalLaplExpiry: string | null | undefined,
+  medicalExpiryLegacy?: string | null | undefined
+): Dayjs | null => {
+  const dates = [
+    medicalClass1Expiry,
+    medicalClass2Expiry,
+    medicalLaplExpiry,
+    medicalExpiryLegacy,
+  ]
+    .filter((d): d is string => d != null && d !== '')
+    .map((d) => dayJs(d))
+    .filter((d) => d.isValid())
+
+  if (dates.length === 0) return null
+  return dates.reduce((latest, d) => (d.isAfter(latest) ? d : latest))
+}

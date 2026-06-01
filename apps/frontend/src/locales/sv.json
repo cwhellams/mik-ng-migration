@@ -167,7 +167,10 @@
       "licenceInfo": "Licensinformation",
       "licenceId": "Licens-ID",
       "licenceExpiry": "Utgångsdatum för SEP(land)-behörighet eller flygprivilegium",
-      "medicalExpiry": "Medicinsk utgång"
+      "medicalExpiry": "Medicinsk utgång",
+      "medicalClass1Expiry": "Klass 1 medicinsk utgång",
+      "medicalClass2Expiry": "Klass 2 medicinsk utgång",
+      "medicalLaplExpiry": "LAPL medicinsk utgång"
     },
     "roles": "Roller",
     "trainingProgram": "Utbildningsprogram",
