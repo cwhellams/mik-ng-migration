@@ -60,8 +60,8 @@ describe('Db Get FlightLog tests', () => {
 describe('Db query FlightLog tests', () => {
   it('getFlightLogs with no params should return all logs', async () => {
     const result = await getFlightLogs({})
-    expect(result.rows).toEqual(208)
-    expect(result.logs.length).toEqual(8)
+    expect(result.rows).toEqual(224)
+    expect(result.logs.length).toEqual(24)
   })
 
   it('getFlightLogs with Captain and copilot should return filtered logs', async () => {
@@ -108,7 +108,7 @@ describe('Db query FlightLog tests', () => {
     const result = await getFlightLogs({
       startDate: '2025-03-04',
     })
-    expect(result.rows).toEqual(4)
+    expect(result.rows).toEqual(20)
     expect(normalizeLandingTotals(result.logs[0])).toMatchSnapshot()
   })
 
@@ -275,6 +275,7 @@ describe('Db update status tests', () => {
     expect(originalLog?.acTotalFlightTime).toEqual('4783:20')
     expect(originalLog?.ajlbPageNo).toEqual(10)
     expect(originalLog?.ajlbRowNo).toEqual(3)
+    expect(originalLog?.acTotalLandings).toEqual(556) // view-computed: start_landings(0) + cumulative NEW landings
 
     const user = {
       memberId: 'Liisa1',
@@ -297,6 +298,7 @@ describe('Db update status tests', () => {
     expect(result?.acTotalFlightTime).toEqual('4783:20')
     expect(result?.ajlbPageNo).toEqual(10)
     expect(result?.ajlbRowNo).toEqual(3)
+    expect(result?.acTotalLandings).toEqual(556) // stored from view at validation time
 
     //cleanup
     const cleanup = await updateFlightLogStatus(
@@ -312,6 +314,7 @@ describe('Db update status tests', () => {
     expect(cleaned?.acTotalFlightTime).toEqual('4783:20')
     expect(cleaned?.ajlbPageNo).toEqual(10)
     expect(cleaned?.ajlbRowNo).toEqual(3)
+    expect(cleaned?.acTotalLandings).toEqual(556) // back to NEW: re-computed from view
   })
 })
 

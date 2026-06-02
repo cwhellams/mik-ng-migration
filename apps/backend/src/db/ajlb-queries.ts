@@ -295,40 +295,55 @@ async function backfillLandingsFromBaseline(
     [aircraftRegistration],
   )
 
-  // Step 2: Update subsequent logbooks based on previous logbook totals
+  // Step 2: Update subsequent logbooks using a recursive CTE so each logbook's
+  // start_landings correctly accumulates across 3+ logbooks in sequence.
   await client.query(
     `
-    WITH logbook_prev AS (
-      SELECT 
-        aircraft_registration,
-        seq_no,
-        LAG(seq_no) OVER (PARTITION BY aircraft_registration ORDER BY seq_no) as prev_seq_no
-      FROM flight.aircraft_journey_log_book
-      WHERE aircraft_registration = $1
-    ),
-    prev_totals AS (
+    WITH RECURSIVE logbook_chain AS (
       SELECT
-        lp.aircraft_registration,
-        lp.seq_no,
-        ajlb_prev.start_landings + COALESCE(
-          (SELECT SUM(number_of_landings) 
-           FROM flight.logs 
-           WHERE aircraft_registration = $1
-             AND ajlb_seq_no = lp.prev_seq_no
-             AND status != 'NEW'),
+        ajlb.seq_no,
+        ajlb.start_landings AS new_start_landings,
+        COALESCE(
+          (SELECT SUM(l.number_of_landings)::int
+           FROM flight.logs l
+           WHERE l.aircraft_registration = $1
+             AND l.ajlb_seq_no = ajlb.seq_no
+             AND l.status != 'NEW'),
           0
-        ) as calculated_start_landings
-      FROM logbook_prev lp
-      JOIN flight.aircraft_journey_log_book ajlb_prev 
-        ON ajlb_prev.aircraft_registration = lp.aircraft_registration
-        AND ajlb_prev.seq_no = lp.prev_seq_no
-      WHERE lp.prev_seq_no IS NOT NULL
+        ) AS landings_in_book
+      FROM flight.aircraft_journey_log_book ajlb
+      WHERE ajlb.aircraft_registration = $1
+        AND ajlb.seq_no = (
+          SELECT MIN(seq_no) FROM flight.aircraft_journey_log_book WHERE aircraft_registration = $1
+        )
+      UNION ALL
+      SELECT
+        next_ajlb.seq_no,
+        (lc.new_start_landings + lc.landings_in_book)::int,
+        COALESCE(
+          (SELECT SUM(l.number_of_landings)::int
+           FROM flight.logs l
+           WHERE l.aircraft_registration = $1
+             AND l.ajlb_seq_no = next_ajlb.seq_no
+             AND l.status != 'NEW'),
+          0
+        )
+      FROM logbook_chain lc
+      JOIN flight.aircraft_journey_log_book next_ajlb
+        ON next_ajlb.aircraft_registration = $1
+        AND next_ajlb.seq_no = (
+          SELECT MIN(seq_no) FROM flight.aircraft_journey_log_book
+          WHERE aircraft_registration = $1 AND seq_no > lc.seq_no
+        )
     )
     UPDATE flight.aircraft_journey_log_book ajlb
-    SET start_landings = pt.calculated_start_landings
-    FROM prev_totals pt
-    WHERE ajlb.aircraft_registration = pt.aircraft_registration
-      AND ajlb.seq_no = pt.seq_no
+    SET start_landings = lc.new_start_landings
+    FROM logbook_chain lc
+    WHERE ajlb.aircraft_registration = $1
+      AND ajlb.seq_no = lc.seq_no
+      AND lc.seq_no != (
+        SELECT MIN(seq_no) FROM flight.aircraft_journey_log_book WHERE aircraft_registration = $1
+      )
     `,
     [aircraftRegistration],
   )
@@ -361,9 +376,32 @@ async function backfillLandingsFromBaseline(
 export async function deleteAircraftLandingsBaseline(
   aircraftRegistration: string,
 ): Promise<boolean> {
-  const result = await connection.pool.query(
-    'DELETE FROM flight.aircraft_landings_baseline WHERE aircraft_registration = $1',
-    [aircraftRegistration],
-  )
-  return (result.rowCount ?? 0) > 0
+  const client = await connection.pool.connect()
+  try {
+    await client.query('BEGIN')
+
+    const result = await client.query(
+      'DELETE FROM flight.aircraft_landings_baseline WHERE aircraft_registration = $1',
+      [aircraftRegistration],
+    )
+
+    if ((result.rowCount ?? 0) > 0) {
+      await client.query(
+        'UPDATE flight.aircraft_journey_log_book SET start_landings = 0 WHERE aircraft_registration = $1',
+        [aircraftRegistration],
+      )
+      await client.query(
+        'UPDATE flight.logs SET ajlb_total_landings = NULL WHERE aircraft_registration = $1',
+        [aircraftRegistration],
+      )
+    }
+
+    await client.query('COMMIT')
+    return (result.rowCount ?? 0) > 0
+  } catch (error) {
+    await client.query('ROLLBACK')
+    throw error
+  } finally {
+    client.release()
+  }
 }
