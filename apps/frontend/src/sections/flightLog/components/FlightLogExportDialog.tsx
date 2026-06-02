@@ -47,16 +47,22 @@ type Props = {
   defaultAircraftRegistration?: string
 }
 
-export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistration }: Props) => {
+export const FlightLogExportDialog = ({
+  open,
+  onClose,
+  defaultAircraftRegistration,
+}: Props) => {
   const { t } = useTranslation()
   const { sudo } = useThemeMode()
 
   const [startDate, setStartDate] = useState<Dayjs | null>(null)
   const [endDate, setEndDate] = useState<Dayjs | null>(null)
-  const [aircraftRegistration, setAircraftRegistration] = useState<string | undefined>(
-    defaultAircraftRegistration,
+  const [aircraftRegistration, setAircraftRegistration] = useState<
+    string | undefined
+  >(defaultAircraftRegistration)
+  const [format, setFormat] = useState<FlightLogExportFormat>(
+    FlightLogExportFormat.CSV
   )
-  const [format, setFormat] = useState<FlightLogExportFormat>(FlightLogExportFormat.CSV)
   const [count, setCount] = useState<number | null>(null)
   const [isCountLoading, setIsCountLoading] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
@@ -84,7 +90,8 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
       const params: Record<string, string> = {}
       if (startDate) params.startDate = startDate.toISOString()
       if (endDate) params.endDate = endDate.toISOString()
-      if (aircraftRegistration) params.aircraftRegistration = aircraftRegistration
+      if (aircraftRegistration)
+        params.aircraftRegistration = aircraftRegistration
 
       setIsCountLoading(true)
       try {
@@ -111,7 +118,8 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
       const params: Record<string, string> = { format }
       if (startDate) params.startDate = startDate.toISOString()
       if (endDate) params.endDate = endDate.toISOString()
-      if (aircraftRegistration) params.aircraftRegistration = aircraftRegistration
+      if (aircraftRegistration)
+        params.aircraftRegistration = aircraftRegistration
 
       const res = await sharedApi.get('v1/flight-logs/export', {
         params,
@@ -267,7 +275,9 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
           disabled={count === 0 || isExporting}
           startIcon={isExporting ? <CircularProgress size={16} /> : undefined}
         >
-          {isExporting ? t('flightLog.export.exporting') : t('flightLog.export.exportButton')}
+          {isExporting
+            ? t('flightLog.export.exporting')
+            : t('flightLog.export.exportButton')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -60,8 +60,8 @@ describe('Db Get FlightLog tests', () => {
 describe('Db query FlightLog tests', () => {
   it('getFlightLogs with no params should return all logs', async () => {
     const result = await getFlightLogs({})
-    expect(result.rows).toEqual(224)
-    expect(result.logs.length).toEqual(24)
+    expect(result.rows).toEqual(227)
+    expect(result.logs.length).toEqual(27)
   })
 
   it('getFlightLogs with Captain and copilot should return filtered logs', async () => {
@@ -108,8 +108,8 @@ describe('Db query FlightLog tests', () => {
     const result = await getFlightLogs({
       startDate: '2025-03-04',
     })
-    expect(result.rows).toEqual(20)
-    expect(normalizeLandingTotals(result.logs[0])).toMatchSnapshot()
+    expect(result.rows).toEqual(23)
+    expect(result.logs[0]).toMatchSnapshot()
   })
 
   it('getFlightLogs for end date should match snapshot', async () => {

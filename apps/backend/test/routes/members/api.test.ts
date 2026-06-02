@@ -1543,10 +1543,10 @@ describe('GET /members/non-renewals', () => {
       memberId: string
       billableFlightCount: number
     }>
-    // Matti1 has 2 billable flights in V50 test data (takeoff epochs 1740816000, 1740996000 → Mar 2025)
+    // Matti1 has 2 billable flights in V50 test data + 3 in V201 blank row test data = 5
     const matti = members.find((m) => m.memberId === 'Matti1')
     expect(matti).toBeDefined()
-    expect(matti!.billableFlightCount).toBe(2)
+    expect(matti!.billableFlightCount).toBe(5)
     // All counts must be non-negative integers
     expect(
       members.every((m) => Number.isInteger(m.billableFlightCount) && m.billableFlightCount >= 0),
