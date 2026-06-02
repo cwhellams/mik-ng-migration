@@ -223,7 +223,7 @@ describe('GET /members', () => {
     const membersQry = await query(memberToken, {
       role: 'NOT_ROLE',
     })
-    expect(membersQry.members.length).toEqual(10)
+    expect(membersQry.members.length).toEqual(11)
   })
 
   it('should skip search by private roles as a member', async () => {
@@ -231,7 +231,7 @@ describe('GET /members', () => {
       role: 'ADMIN',
     })
 
-    expect(membersQry.members.length).toEqual(10)
+    expect(membersQry.members.length).toEqual(11)
   })
 
   it('should skip search by unapproved roles as a member', async () => {
@@ -239,7 +239,7 @@ describe('GET /members', () => {
       showUnapproved: true,
     })
 
-    expect(membersQry.members.length).toEqual(10)
+    expect(membersQry.members.length).toEqual(11)
   })
 
   it('should skip search by removed roles as a member', async () => {
@@ -247,7 +247,7 @@ describe('GET /members', () => {
       showRemoved: true,
     })
 
-    expect(membersQry.members.length).toEqual(10)
+    expect(membersQry.members.length).toEqual(11)
   })
 
   it('should skip search by private roles as a admin without sudo mode', async () => {
@@ -260,7 +260,7 @@ describe('GET /members', () => {
     expect(res.status).toBe(200)
 
     const membersQry = res.body as MemberListResponse
-    expect(membersQry.members.length).toEqual(10)
+    expect(membersQry.members.length).toEqual(11)
   })
 
   it('should search by private and approved roles as an admin', async () => {
@@ -282,7 +282,7 @@ describe('GET /members', () => {
       {
         first: 'John',
         last: 'McDoe',
-        roles: ['ADMIN'],
+        roles: ['ADMIN', 'MEMBER'],
       },
     ])
   })
@@ -489,6 +489,7 @@ describe('GET /members/roles', () => {
       'dto.user',
       'dto.instructor',
       'dto.admin',
+      'events.admin',
     ])
     expect(roles.map(({ roleId, permissions }) => ({ roleId, permissions }))).toEqual([
       {
@@ -505,6 +506,7 @@ describe('GET /members/roles', () => {
           'fuelPrices.admin',
           'exam.admin',
           'dto.admin',
+          'events.admin',
         ],
         roleId: 'ADMIN',
       },
@@ -598,6 +600,7 @@ describe('GET /members/roles/id', () => {
         'fuelPrices.admin',
         'exam.admin',
         'dto.admin',
+        'events.admin',
       ],
       createdAt: expect.any(String),
       createdBy: 'k1mnimda',

@@ -1,0 +1,184 @@
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  Button,
+  Chip,
+  Divider,
+  IconButton,
+  Menu,
+  MenuItem,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { Icon } from '@iconify/react'
+import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
+import dayjs from 'dayjs'
+import { useState } from 'react'
+import useApi from '../../../hooks/useApi'
+import { RemoteContent } from '../../../components/RemoteContent'
+import type {
+  ClubEvent,
+  EventListResponse,
+} from '@backend/routes/events/models'
+import {
+  downloadEventIcs,
+  generateEventGoogleCalendarLink,
+} from '../../../utils/eventCalendar'
+
+const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
+  const { t } = useTranslation()
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const menuOpen = Boolean(anchorEl)
+
+  const start = dayjs(event.startTime)
+  const end = dayjs(event.endTime)
+  const isMultiDay = !start.isSame(end, 'day')
+  const isPast = end.isBefore(dayjs())
+
+  const dateLabel = isMultiDay
+    ? `${start.format('D.M.YYYY HH:mm')} – ${end.format('D.M.YYYY HH:mm')}`
+    : `${start.format('D.M.YYYY')} ${start.format('HH:mm')} – ${end.format('HH:mm')}`
+
+  return (
+    <Box sx={{ opacity: isPast ? 0.65 : 1 }}>
+      <Stack
+        direction='row'
+        alignItems='flex-start'
+        justifyContent='space-between'
+        gap={1}
+      >
+        <Box flex={1} minWidth={0}>
+          <Stack direction='row' alignItems='center' gap={1} flexWrap='wrap'>
+            <Typography variant='body1' fontWeight='medium'>
+              {event.title}
+            </Typography>
+            {isPast && (
+              <Chip label={t('events.past')} size='small' variant='outlined' />
+            )}
+          </Stack>
+
+          <Stack direction='row' alignItems='center' gap={0.5} mt={0.25}>
+            <Icon icon='mdi:clock-outline' width={13} />
+            <Typography variant='body2' color='text.secondary'>
+              {dateLabel}
+            </Typography>
+          </Stack>
+
+          {event.location && (
+            <Stack direction='row' alignItems='center' gap={0.5} mt={0.1}>
+              <Icon icon='mdi:map-marker-outline' width={13} />
+              <Typography variant='body2' color='text.secondary'>
+                {event.location}
+              </Typography>
+            </Stack>
+          )}
+        </Box>
+
+        <Tooltip title={t('events.addToCalendar')}>
+          <IconButton
+            size='small'
+            onClick={(e) => setAnchorEl(e.currentTarget)}
+            aria-label={t('events.addToCalendar')}
+          >
+            <Icon icon='mdi:calendar-plus' width={18} />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={menuOpen}
+        onClose={() => setAnchorEl(null)}
+        onClick={() => setAnchorEl(null)}
+      >
+        <MenuItem
+          component='a'
+          href={generateEventGoogleCalendarLink(event)}
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          <Icon icon='mdi:google' width={18} style={{ marginRight: 8 }} />
+          {t('events.addToGoogle')}
+        </MenuItem>
+        <MenuItem onClick={() => downloadEventIcs(event)}>
+          <Icon
+            icon='mdi:calendar-export'
+            width={18}
+            style={{ marginRight: 8 }}
+          />
+          {t('events.downloadIcs')}
+        </MenuItem>
+      </Menu>
+    </Box>
+  )
+}
+
+export const EventsDashboard = () => {
+  const { t } = useTranslation()
+
+  const { data, isLoading, error } = useApi<EventListResponse>({
+    url: 'v1/events',
+  })
+
+  const now = dayjs()
+
+  // Previous event: most recently ended event (sort by endTime DESC)
+  const previousEvent = data?.events
+    .filter((e) => dayjs(e.endTime).isBefore(now))
+    .slice()
+    .sort((a, b) => dayjs(b.endTime).diff(dayjs(a.endTime)))
+    .at(0)
+
+  // Next 2 upcoming events
+  const nextEvents = data?.events
+    .filter((e) => dayjs(e.endTime).isAfter(now))
+    .slice(0, 2)
+
+  const displayEvents = [
+    ...(previousEvent ? [previousEvent] : []),
+    ...(nextEvents ?? []),
+  ]
+
+  return (
+    <Accordion defaultExpanded sx={{ mt: 4 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Typography variant='h5'>{t('events.dashboardTitle')}</Typography>
+      </AccordionSummary>
+      <AccordionDetails>
+        <RemoteContent isLoading={isLoading} error={error}>
+          {displayEvents.length === 0 ? (
+            <Typography color='text.secondary'>
+              {t('events.noEvents')}
+            </Typography>
+          ) : (
+            <Stack gap={0}>
+              {displayEvents.map((event, i) => (
+                <Box key={event.eventId}>
+                  <DashboardEventItem event={event} />
+                  {i < displayEvents.length - 1 && <Divider sx={{ my: 1.5 }} />}
+                </Box>
+              ))}
+            </Stack>
+          )}
+
+          <Box mt={2}>
+            <Button
+              component={Link}
+              to='/club/events'
+              variant='text'
+              size='small'
+              endIcon={<Icon icon='mdi:arrow-right' width={16} />}
+            >
+              {t('events.viewAll')}
+            </Button>
+          </Box>
+        </RemoteContent>
+      </AccordionDetails>
+    </Accordion>
+  )
+}

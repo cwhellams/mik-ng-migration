@@ -69,6 +69,12 @@ export const DASHBOARD_COMPONENT_METADATA: DashboardComponentMetadata[] = [
     icon: '🌤️',
   },
   {
+    id: 'events',
+    label: 'Club Events',
+    description: 'Upcoming and recent club events',
+    icon: '📆',
+  },
+  {
     id: 'bookingUser',
     label: 'Booking Dashboard',
     description: 'User booking information and calendar',
@@ -105,7 +111,9 @@ export const DASHBOARD_COMPONENT_METADATA: DashboardComponentMetadata[] = [
  */
 export const getCustomizableComponentMetadata =
   (): DashboardComponentMetadata[] => {
+    const alwaysVisibleComponentIds: readonly string[] =
+      ALWAYS_VISIBLE_COMPONENTS
     return DASHBOARD_COMPONENT_METADATA.filter(
-      (metadata) => !ALWAYS_VISIBLE_COMPONENTS.includes(metadata.id as any)
+      (metadata) => !alwaysVisibleComponentIds.includes(metadata.id)
     )
   }

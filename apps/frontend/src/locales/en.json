@@ -45,7 +45,9 @@
     "dtoAdmin": "DTO Admin",
     "dtoMyTraining": "My Training",
     "dtoVerify": "Verify Flights",
-    "dtoProgress": "Student Progress"
+    "dtoProgress": "Student Progress",
+    "events": "Events",
+    "eventsAdmin": "Events Admin"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
@@ -1676,7 +1678,12 @@
     "notApplicable": "N/A",
     "updateAvailable": "A new version is available",
     "refresh": "Refresh",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "edit": "Edit",
+    "delete": "Delete",
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "requiresAdminMode": "Admin mode required"
   },
   "exams": {
     "title": "Exams",
@@ -1992,6 +1999,37 @@
     },
     "progress": {
       "title": "DTO Student Progress"
+    }
+  },
+  "events": {
+    "title": "Club Events",
+    "adminTitle": "Manage Events",
+    "dashboardTitle": "Club Events",
+    "upcoming": "Upcoming Events",
+    "past_section": "Past Events",
+    "past": "Past",
+    "public": "Public",
+    "noEvents": "No events scheduled.",
+    "manage": "Manage Events",
+    "viewAll": "View all events",
+    "create": "Create Event",
+    "editEvent": "Edit Event",
+    "createEvent": "New Event",
+    "addToCalendar": "Add to calendar",
+    "addToGoogle": "Add to Google Calendar",
+    "downloadIcs": "Download .ics file",
+    "deleteTitle": "Delete Event",
+    "deleteConfirm": "Are you sure you want to delete \"{{title}}\"? This cannot be undone.",
+    "saveError": "Failed to save the event. Please try again.",
+    "deleteError": "Failed to delete the event. Please try again.",
+    "form": {
+      "title": "Title",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "location": "Location",
+      "description": "Description",
+      "isPublic": "Public event",
+      "isPublicHint": "Public events are visible on the MIK.fi website and accessible without login."
     }
   }
 }

@@ -31,8 +31,9 @@ export const DEFAULT_DASHBOARD_COMPONENTS: DashboardComponent[] = [
   { id: 'equipmentFee', visible: true, order: 3 },
   { id: 'pendingReview', visible: true, order: 4 },
   { id: 'weather', visible: true, order: 5 },
-  { id: 'bookingUser', visible: true, order: 6 },
-  { id: 'flightLogUser', visible: true, order: 7 },
-  { id: 'memberAdmin', visible: true, order: 8 },
-  { id: 'flightLogAdmin', visible: true, order: 9 },
+  { id: 'events', visible: true, order: 6 },
+  { id: 'bookingUser', visible: true, order: 7 },
+  { id: 'flightLogUser', visible: true, order: 8 },
+  { id: 'memberAdmin', visible: true, order: 9 },
+  { id: 'flightLogAdmin', visible: true, order: 10 },
 ]

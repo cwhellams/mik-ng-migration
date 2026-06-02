@@ -45,7 +45,9 @@
     "dtoAdmin": "DTO Admin",
     "dtoMyTraining": "Min träning",
     "dtoVerify": "Verifiera flygningar",
-    "dtoProgress": "Elevens framsteg"
+    "dtoProgress": "Elevens framsteg",
+    "events": "Händelser",
+    "eventsAdmin": "Händelseadmin"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -1640,7 +1642,12 @@
     "notApplicable": "Ej tillämpligt",
     "updateAvailable": "En ny version är tillgänglig",
     "refresh": "Uppdatera",
-    "dismiss": "Avvisa"
+    "dismiss": "Avvisa",
+    "edit": "Redigera",
+    "delete": "Ta bort",
+    "saving": "Sparar...",
+    "deleting": "Tar bort...",
+    "requiresAdminMode": "Administratörsläge krävs"
   },
   "exams": {
     "title": "Prov",
@@ -1956,6 +1963,37 @@
     },
     "progress": {
       "title": "DTO elevframsteg"
+    }
+  },
+  "events": {
+    "title": "Klubbhändelser",
+    "adminTitle": "Hantera händelser",
+    "dashboardTitle": "Klubbhändelser",
+    "upcoming": "Kommande händelser",
+    "past_section": "Tidigare händelser",
+    "past": "Passerat",
+    "public": "Offentlig",
+    "noEvents": "Inga planerade händelser.",
+    "manage": "Hantera händelser",
+    "viewAll": "Visa alla händelser",
+    "create": "Skapa händelse",
+    "editEvent": "Redigera händelse",
+    "createEvent": "Ny händelse",
+    "addToCalendar": "Lägg till i kalender",
+    "addToGoogle": "Lägg till i Google Kalender",
+    "downloadIcs": "Ladda ned .ics-fil",
+    "deleteTitle": "Ta bort händelse",
+    "deleteConfirm": "Är du säker på att du vill ta bort \"{{title}}\"? Det går inte att ångra.",
+    "saveError": "Det gick inte att spara händelsen. Försök igen.",
+    "deleteError": "Det gick inte att ta bort händelsen. Försök igen.",
+    "form": {
+      "title": "Titel",
+      "startTime": "Starttid",
+      "endTime": "Sluttid",
+      "location": "Plats",
+      "description": "Beskrivning",
+      "isPublic": "Offentlig händelse",
+      "isPublicHint": "Offentliga händelser visas på MIK.fi-webbplatsen och är tillgängliga utan inloggning."
     }
   }
 }

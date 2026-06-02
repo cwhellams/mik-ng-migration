@@ -79,6 +79,8 @@ import DtoProgressPage from './sections/dto/DtoProgressPage'
 import DtoVerificationPage from './sections/dto/DtoVerificationPage'
 import DtoMyTrainingPage from './sections/dto/DtoMyTrainingPage'
 import DtoStudentDetailPage from './sections/dto/DtoStudentDetailPage'
+import EventsList from './sections/events/EventsList'
+import EventsAdmin from './sections/admin/events/EventsAdmin'
 import { ServerClockProvider } from './hooks/useServerClock'
 
 function DtoIndexRedirect() {
@@ -173,6 +175,7 @@ function App() {
                 <Route path='billing' element={<Billing />} />
                 <Route path='documents' element={<Documents />} />
                 <Route path='stats' element={<Stats />} />
+                <Route path='events' element={<EventsList />} />
               </Route>
               <Route
                 path='/profile/email-change/verify'
@@ -232,6 +235,7 @@ function App() {
                   path='shop/flight-packages'
                   element={<FlightPackagesAdmin />}
                 />
+                <Route path='events' element={<EventsAdmin />} />
                 <Route path='exams' element={<ExamsAdminPage />} />
                 <Route
                   path='exams/versions/:versionId'

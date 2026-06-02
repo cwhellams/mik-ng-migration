@@ -756,6 +756,20 @@ export interface MemberDocuments {
   updated_by: string
 }
 
+export interface MemberEvents {
+  event_id: Generated<string>
+  title: string
+  description: string | null
+  location: string | null
+  start_time: Timestamp
+  end_time: Timestamp
+  is_public: Generated<boolean>
+  created_at: Generated<Timestamp>
+  created_by: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
 export interface MemberDocumentTinyUrls {
   access_count: Generated<number>
   aircraft_document_id: number | null
@@ -1437,6 +1451,7 @@ export interface DB {
   'member.brevo_sync_state': MemberBrevoSyncState
   'member.document_tiny_urls': MemberDocumentTinyUrls
   'member.documents': MemberDocuments
+  'member.events': MemberEvents
   'member.login_attempts': MemberLoginAttempts
   'member.login_events': MemberLoginEvents
   'member.member_to_roles': MemberMemberToRoles

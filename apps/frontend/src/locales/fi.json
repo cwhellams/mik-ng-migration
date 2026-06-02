@@ -44,7 +44,9 @@
     "dtoAdmin": "DTO Hallinta",
     "dtoMyTraining": "Oma koulutus",
     "dtoVerify": "Vahvista lennot",
-    "dtoProgress": "Oppilaan edistyminen"
+    "dtoProgress": "Oppilaan edistyminen",
+    "events": "Tapahtumat",
+    "eventsAdmin": "Tapahtumahallinta"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -1673,7 +1675,12 @@
     "notApplicable": "Ei sovellettavissa",
     "updateAvailable": "Uusi versio on saatavilla",
     "refresh": "Päivitä",
-    "dismiss": "Hylkää"
+    "dismiss": "Hylkää",
+    "edit": "Muokkaa",
+    "delete": "Poista",
+    "saving": "Tallennetaan...",
+    "deleting": "Poistetaan...",
+    "requiresAdminMode": "Ylläpitotila vaaditaan"
   },
   "exams": {
     "title": "Kokeet",
@@ -1989,6 +1996,37 @@
     },
     "progress": {
       "title": "DTO oppilasedistyminen"
+    }
+  },
+  "events": {
+    "title": "Kerhon tapahtumat",
+    "adminTitle": "Hallitse tapahtumia",
+    "dashboardTitle": "Kerhon tapahtumat",
+    "upcoming": "Tulevat tapahtumat",
+    "past_section": "Menneet tapahtumat",
+    "past": "Mennyt",
+    "public": "Julkinen",
+    "noEvents": "Ei tulevia tapahtumia.",
+    "manage": "Hallitse tapahtumia",
+    "viewAll": "Näytä kaikki tapahtumat",
+    "create": "Luo tapahtuma",
+    "editEvent": "Muokkaa tapahtumaa",
+    "createEvent": "Uusi tapahtuma",
+    "addToCalendar": "Lisää kalenteriin",
+    "addToGoogle": "Lisää Google Kalenteriin",
+    "downloadIcs": "Lataa .ics-tiedosto",
+    "deleteTitle": "Poista tapahtuma",
+    "deleteConfirm": "Haluatko varmasti poistaa tapahtuman \"{{title}}\"? Tätä ei voi peruuttaa.",
+    "saveError": "Tapahtuman tallentaminen epäonnistui. Yritä uudelleen.",
+    "deleteError": "Tapahtuman poistaminen epäonnistui. Yritä uudelleen.",
+    "form": {
+      "title": "Otsikko",
+      "startTime": "Alkuaika",
+      "endTime": "Loppuaika",
+      "location": "Paikka",
+      "description": "Kuvaus",
+      "isPublic": "Julkinen tapahtuma",
+      "isPublicHint": "Julkiset tapahtumat näkyvät MIK.fi-sivustolla eikä niihin vaadita kirjautumista."
     }
   }
 }

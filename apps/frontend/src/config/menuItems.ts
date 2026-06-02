@@ -109,6 +109,11 @@ export const menuItems: MenuItem[] = [
         label: 'header.documents',
       },
       {
+        path: 'events',
+        label: 'header.events',
+        requiredRoles: [MIKPermissions.MEMBER, MIKPermissions.MEMBER_ADMIN],
+      },
+      {
         path: '/exams',
         label: 'header.exams',
         requiredRoles: [MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN],
@@ -160,6 +165,7 @@ export const menuItems: MenuItem[] = [
       MIKPermissions.MEMBER_ADMIN,
       MIKPermissions.EXAM_ADMIN,
       MIKPermissions.DTO_ADMIN,
+      MIKPermissions.EVENTS_ADMIN,
     ],
     adminModeOnly: true,
     subItems: [
@@ -197,6 +203,12 @@ export const menuItems: MenuItem[] = [
         label: 'header.dtoAdmin',
         path: 'dto',
         requiredRoles: [MIKPermissions.DTO_ADMIN],
+        adminModeOnly: true,
+      },
+      {
+        label: 'header.eventsAdmin',
+        path: 'events',
+        requiredRoles: [MIKPermissions.EVENTS_ADMIN],
         adminModeOnly: true,
       },
     ],
