@@ -32,6 +32,8 @@ import { useRoles } from '../hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
 import { HeaderSubMenu } from './HeaderSubMenu'
 import ClockDisplay from './ClockDisplay'
+import { MIKPermissions } from '@backend/routes/members/models'
+import { useMyDtoSyllabus } from '../sections/dto/useMyDtoSyllabus'
 
 interface HeaderProps {
   window?: () => Window
@@ -54,6 +56,19 @@ const Header = (props: HeaderProps) => {
   const location = useLocation()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const { hasAccess } = useRoles()
+
+  // Only fetch the active DTO syllabus when the user is acting as a plain
+  // DTO_USER (student).  Instructors always see the DTO nav; admins only see
+  // it when sudo mode is on — when sudo is off they are treated as students
+  // and the syllabus check applies.
+  const hasElevatedDtoRole =
+    hasAccess(MIKPermissions.DTO_INSTRUCTOR) ||
+    (sudo && hasAccess(MIKPermissions.DTO_ADMIN))
+  const { activeSyllabus } = useMyDtoSyllabus(
+    // Skip the fetch when the user already has elevated access (always sees nav)
+    // or when they have neither DTO_USER nor elevated access (nav never shows).
+    hasElevatedDtoRole || !hasAccess(MIKPermissions.DTO_USER)
+  )
 
   // Check if the page has been scrolled
   const scrollTrigger = useScrollTrigger({
@@ -93,6 +108,15 @@ const Header = (props: HeaderProps) => {
   const authorizedMenuItems = menuItems.filter((item) => {
     if (item.adminModeOnly === true && !sudo) {
       return false
+    }
+    // requiresActiveDtoSyllabus: hide for students (DTO_USER only) without an
+    // active syllabus assignment.  Instructors always bypass this gate; admins
+    // only bypass it when sudo mode is on (so admins with sudo off still need
+    // an active syllabus to see the DTO nav, just like regular members).
+    if (item.requiresActiveDtoSyllabus) {
+      if (!hasElevatedDtoRole && !activeSyllabus) {
+        return false
+      }
     }
     return hasAccess(...(item.requiredRoles ?? []))
   })

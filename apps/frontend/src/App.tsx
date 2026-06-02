@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { MIKPermissions } from '@backend/routes/members/models'
+import { useRoles } from './hooks/useRoles'
 import { Snackbar, Button, Box } from '@mui/material'
 import SplashScreen from './components/SplashScreen'
 import MainLayout from './layouts/MainLayout'
@@ -70,7 +72,22 @@ import MyExamHistoryPage from './sections/exams/MyExamHistoryPage'
 import ExamsAdminPage from './sections/admin/exams/ExamsAdminPage'
 import ExamVersionEditorPage from './sections/admin/exams/ExamVersionEditorPage'
 import AttemptsAdminPage from './sections/admin/exams/AttemptsAdminPage'
+import DtoProgramsAdminPage from './sections/admin/dto/DtoProgramsAdminPage'
+import DtoSyllabusEditorPage from './sections/admin/dto/DtoSyllabusEditorPage'
+import DtoImportPage from './sections/admin/dto/DtoImportPage'
+import DtoProgressPage from './sections/dto/DtoProgressPage'
+import DtoVerificationPage from './sections/dto/DtoVerificationPage'
+import DtoMyTrainingPage from './sections/dto/DtoMyTrainingPage'
+import DtoStudentDetailPage from './sections/dto/DtoStudentDetailPage'
 import { ServerClockProvider } from './hooks/useServerClock'
+
+function DtoIndexRedirect() {
+  const { hasAccess } = useRoles()
+  const isElevated =
+    hasAccess(MIKPermissions.DTO_INSTRUCTOR) ||
+    hasAccess(MIKPermissions.DTO_ADMIN)
+  return <Navigate to={isElevated ? 'verify' : 'my-training'} replace />
+}
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -221,6 +238,25 @@ function App() {
                   element={<ExamVersionEditorPage />}
                 />
                 <Route path='exams/attempts' element={<AttemptsAdminPage />} />
+                <Route path='dto' element={<DtoProgramsAdminPage />} />
+                <Route
+                  path='dto/syllabi/:syllabusId'
+                  element={<DtoSyllabusEditorPage />}
+                />
+                <Route
+                  path='dto/programs/:programId/import'
+                  element={<DtoImportPage />}
+                />
+              </Route>
+              <Route path='/dto'>
+                <Route index element={<DtoIndexRedirect />} />
+                <Route path='my-training' element={<DtoMyTrainingPage />} />
+                <Route path='progress' element={<DtoProgressPage />} />
+                <Route
+                  path='progress/:memberSyllabusId'
+                  element={<DtoStudentDetailPage />}
+                />
+                <Route path='verify' element={<DtoVerificationPage />} />
               </Route>
             </Route>
 

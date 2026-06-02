@@ -4,6 +4,7 @@ import { t } from 'i18next'
 import { MenuItem } from '../config/menuItems'
 import { useRoles } from '../hooks/useRoles'
 import { useThemeMode } from '../theme/ThemeContext'
+import { MIKPermissions } from '@backend/routes/members/models'
 
 export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
   const location = useLocation()
@@ -19,6 +20,15 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
   const subItems = parent.subItems?.filter((i) => {
     if (i.adminModeOnly === true && !sudo) {
       return false
+    }
+    // requiresDtoElevatedAccess: requires dto.instructor OR (sudo + dto.admin).
+    // Pure admins with sudo off must not see instructor/admin-only DTO sub-items.
+    if (i.requiresDtoElevatedAccess) {
+      const hasInstructor = hasAccess(MIKPermissions.DTO_INSTRUCTOR)
+      const hasAdminSudo = sudo && hasAccess(MIKPermissions.DTO_ADMIN)
+      if (!hasInstructor && !hasAdminSudo) {
+        return false
+      }
     }
     return hasAccess(...(i.requiredRoles ?? []))
   })

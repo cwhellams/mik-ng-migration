@@ -226,6 +226,9 @@ const MemberProfile = () => {
     licenceId,
     licenceExpiry,
     medicalExpiry,
+    medicalClass1Expiry,
+    medicalClass2Expiry,
+    medicalLaplExpiry,
     //memberId,
     memberType,
     canMakeReservations,
@@ -530,6 +533,15 @@ const MemberProfile = () => {
                 </FormField>
                 <FormField label={t('member.licenceInfo.licenceExpiry')}>
                   {licenceExpiry || 'N/A'}
+                </FormField>
+                <FormField label={t('member.licenceInfo.medicalClass1Expiry')}>
+                  {medicalClass1Expiry || 'N/A'}
+                </FormField>
+                <FormField label={t('member.licenceInfo.medicalClass2Expiry')}>
+                  {medicalClass2Expiry || 'N/A'}
+                </FormField>
+                <FormField label={t('member.licenceInfo.medicalLaplExpiry')}>
+                  {medicalLaplExpiry || 'N/A'}
                 </FormField>
                 <FormField label={t('member.licenceInfo.medicalExpiry')}>
                   {medicalExpiry || 'N/A'}

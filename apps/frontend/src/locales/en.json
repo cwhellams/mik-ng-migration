@@ -40,7 +40,12 @@
     "examsHistory": "My History",
     "examsAdmin": "Exam Admin",
     "notificationBanner": "Notification Banner",
-    "instructorStatus": "Instructor Status"
+    "instructorStatus": "Instructor Status",
+    "dto": "DTO Training",
+    "dtoAdmin": "DTO Admin",
+    "dtoMyTraining": "My Training",
+    "dtoVerify": "Verify Flights",
+    "dtoProgress": "Student Progress"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
@@ -167,7 +172,10 @@
       "licenceInfo": "Licence Information",
       "licenceId": "Licence ID",
       "licenceExpiry": "SEP(land) expiry",
-      "medicalExpiry": "Medical Expiry"
+      "medicalExpiry": "Medical Expiry",
+      "medicalClass1Expiry": "Class 1 Medical Expiry",
+      "medicalClass2Expiry": "Class 2 Medical Expiry",
+      "medicalLaplExpiry": "LAPL Medical Expiry"
     },
     "roles": "Roles",
     "trainingProgram": "Training Program",
@@ -897,6 +905,62 @@
       "flightsToMove": "Unconfirmed flights to move to new logbook",
       "oldBookMustBeEnded": "Old logbook must be ended first.",
       "showOldBooks": "Show old logbooks"
+    },
+    "export": {
+      "button": "Export",
+      "title": "Export Flight Logs",
+      "dateRange": "Date Range",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "allAircraft": "All Aircraft",
+      "countLoading": "Counting...",
+      "countResult": "{{count}} flight logs in this range",
+      "countResultZero": "No flight logs in this range",
+      "format": "Export Format",
+      "exportButton": "Export",
+      "exporting": "Exporting...",
+      "formats": {
+        "CSV": {
+          "label": "Generic CSV",
+          "extension": ".csv",
+          "platforms": "Excel, Google Sheets, and other platforms"
+        },
+        "FOREFLIGHT": {
+          "label": "ForeFlight",
+          "extension": ".csv",
+          "platforms": "ForeFlight, CloudAhoy"
+        },
+        "MYFLIGHTBOOK": {
+          "label": "MyFlightbook",
+          "extension": ".csv",
+          "platforms": "MyFlightbook"
+        },
+        "CREWLOUNGE": {
+          "label": "CrewLounge Pilotlog",
+          "extension": ".csv",
+          "platforms": "CrewLounge Pilotlog"
+        },
+        "LOGBOOK_AERO": {
+          "label": "logbook.aero",
+          "extension": ".csv",
+          "platforms": "logbook.aero"
+        },
+        "LOGTEN": {
+          "label": "LogTen Pilot Logbook",
+          "extension": ".csv",
+          "platforms": "LogTen Pilot Logbook"
+        },
+        "FLYLOG": {
+          "label": "flylog.io",
+          "extension": ".csv",
+          "platforms": "flylog.io"
+        },
+        "EASA_PDF": {
+          "label": "EASA Logbook",
+          "extension": ".pdf",
+          "platforms": "EASA Part-FCL compliant pilot logbook"
+        }
+      }
     }
   },
   "invoicing": {
@@ -1244,6 +1308,7 @@
       "editBooking": "Edit Booking"
     },
     "equipmentFeeNotPaid": "Your equipment fee for {{year}} has not been paid. If you don't want to pay fee of €{{discount}} per hour on flight bookings request the equipment fee by clicking the button. The fee of €{{discount}} won't be applied to upcoming invoices after you have requested the equipment fee.",
+    "equipmentFeeSeasonalDiscountNote": "{{percent}}% seasonal discount applies — your equipment fee invoice will be €{{discountedAmount}} ({{percent}}% of €{{amount}}).",
     "requestInvoice": "Request Invoice",
     "requestingInvoice": "Requesting...",
     "viewInvoices": "View Invoices",
@@ -1253,6 +1318,7 @@
     "confirmEquipmentFee": {
       "title": "Confirm Equipment Fee Request",
       "message": "By clicking Accept you commit to pay the equipment fee invoice of €{{amount}}, which will be sent to you shortly. The fee of €{{discount}} per hour won't be applied to upcoming invoices.",
+      "messageWithDiscount": "By clicking Accept you commit to pay the equipment fee invoice of €{{discountedAmount}} ({{percent}}% seasonal discount applied, original price €{{amount}}), which will be sent to you shortly. The fee of €{{discount}} per hour won't be applied to upcoming invoices.",
       "accept": "Accept",
       "cancel": "Cancel"
     },
@@ -1878,5 +1944,54 @@
     "openProof": "Open proof document",
     "historyClose": "Close",
     "viewProfile": "View member profile"
+  },
+  "dto": {
+    "myTraining": {
+      "title": "My DTO Training",
+      "activeSyllabus": "Active Syllabus",
+      "noActiveSyllabus": "You do not have an active DTO syllabus assignment.",
+      "version": "Version",
+      "progress": "Progress",
+      "interimPassed": "Interim Check Passed",
+      "interimPending": "Interim Check Pending",
+      "interimCheckpoint": "Interim checkpoint flight",
+      "hilItems": "Hold Item List (HIL)",
+      "flightCode": "Code",
+      "flightName": "Flight",
+      "tags": "Tags",
+      "status": "Status",
+      "statusCompleted": "Completed",
+      "statusPending": "Pending verification",
+      "statusNotStarted": "Not started",
+      "requiresReverification": "Re-verification required"
+    },
+    "detail": {
+      "title": "Student Detail",
+      "approved": "Approved",
+      "failed": "Failed",
+      "pendingVerification": "Pending verification",
+      "notFlown": "Not flown",
+      "requiresReverification": "Re-verification required",
+      "hilItems": "Hold Item List (HIL)",
+      "noFlights": "No flights in this syllabus.",
+      "item": "Item",
+      "outcome": "Outcome",
+      "completed": "Completed",
+      "hil": "HIL",
+      "comments": "Comments",
+      "verifiedBy": "Verified by {{name}} on {{date}}",
+      "date": "Date",
+      "blockTime": "Block time",
+      "flightTime": "Flight time",
+      "viewFlightLog": "View flight log"
+    },
+    "flightLog": {
+      "approvedDtoWarningTitle": "Flight has been DTO-approved",
+      "approvedDtoWarningBody": "This flight has been approved for DTO training. Saving changes will require the instructor to re-verify the flight.",
+      "approvedDtoWarningConfirm": "Save & Request Re-verification"
+    },
+    "progress": {
+      "title": "DTO Student Progress"
+    }
   }
 }

@@ -72,3 +72,6 @@ test_*.html
 *.tar.gz
 
 **/junit.xml
+sample-*.html
+sample-*.png
+example-*.png

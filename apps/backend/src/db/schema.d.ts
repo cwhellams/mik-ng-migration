@@ -227,6 +227,7 @@ export interface DtoSyllabus {
   created_by: string
   description: string | null
   major_version: number
+  min_block_time_mins: number | null
   minor_version: number
   patch_version: Generated<number>
   program_id: string
@@ -245,6 +246,7 @@ export interface DtoSyllabusFlightAttempts {
   instructor_comments: string | null
   instructor_member_id: string
   member_syllabus_id: string
+  requires_reverification: Generated<boolean>
   syllabus_flight_id: string
   updated_at: Generated<Timestamp>
   verification_result: DtoVerificationResult | null
@@ -268,6 +270,7 @@ export interface DtoSyllabusFlights {
   flight_id: Generated<string>
   is_interim_checkpoint: Generated<boolean>
   name: string
+  recommended_block_time_mins: number | null
   sort_order: number
   syllabus_id: string
   tags: Generated<string[]>
@@ -883,7 +886,10 @@ export interface MemberRegister {
    * Aircraft mailing list subscriptions. Structure: ["list-id-1", "list-id-2"]
    */
   mailing_lists: Json | null
+  medical_class1_expiry_date: string | null
+  medical_class2_expiry_date: string | null
   medical_expiry_date: string | null
+  medical_lapl_expiry_date: string | null
   member_id: string
   member_since: Generated<string>
   member_type: MemberType

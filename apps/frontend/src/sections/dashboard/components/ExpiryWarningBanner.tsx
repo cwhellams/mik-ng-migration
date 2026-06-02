@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useMe } from '../../../hooks/useMe'
 import dayjs from 'dayjs'
+import { getEffectiveMedicalExpiry } from '../../../utils/date'
 
 const EXPIRY_WARNING_DAYS = 30
 
@@ -19,7 +20,13 @@ export function ExpiryWarningBanner() {
   const warningThreshold = today.add(EXPIRY_WARNING_DAYS, 'day')
 
   const licenceExpiry = me.licenceExpiry ? dayjs(me.licenceExpiry) : null
-  const medicalExpiry = me.medicalExpiry ? dayjs(me.medicalExpiry) : null
+
+  const medicalExpiry = getEffectiveMedicalExpiry(
+    me.medicalClass1Expiry,
+    me.medicalClass2Expiry,
+    me.medicalLaplExpiry,
+    me.medicalExpiry
+  )
 
   const licenceExpired = licenceExpiry && licenceExpiry.isBefore(today)
   const licenceExpiringSoon =

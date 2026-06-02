@@ -14,6 +14,14 @@ import {
   Checkbox,
   FormControlLabel,
   Tooltip,
+  Alert,
+  Box,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
@@ -51,6 +59,14 @@ import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../components/SaveButton'
 import { Title } from '../../components/Title'
+import {
+  getMemberSyllabus,
+  getFlightAttempt,
+  createFlightAttempt,
+  updateFlightAttempt,
+  type MemberSyllabusDetail,
+} from '../dto/dtoApi'
+import { MIKPermissions } from '@backend/routes/members/models'
 
 const flightTypes: FlightType[] = [
   FlightType.PRIVATE,
@@ -73,7 +89,7 @@ const FlightLogEntry = () => {
   const { flightId } = useParams()
 
   const { me } = useMe()
-  const { isFlightLogAdmin } = useRoles()
+  const { isFlightLogAdmin, hasAccess } = useRoles()
 
   const isNew = flightId == 'new'
 
@@ -98,6 +114,13 @@ const FlightLogEntry = () => {
   const isValidated = data?.status == FlightLogStatus.VALIDATED
   const isInvoiced = !isEditable && !isValidated
   const adminFieldsEditable = isFlightLogAdmin && !isInvoiced
+  // Instructors and admins may update the syllabus flight link on validated
+  // (non-invoiced) flights, while regular members can only do so before
+  // instructor verification.
+  const syllabusEditable =
+    isEditable ||
+    ((hasAccess(MIKPermissions.DTO_INSTRUCTOR) || isFlightLogAdmin) &&
+      !isInvoiced)
 
   // Fetch member list here so it can be used in the form resolver.
   // SWR deduplicates this request with the identical call in FlightCrew.
@@ -395,11 +418,52 @@ const FlightLogEntry = () => {
 
   const [problem, setProblem] = useState<Problem | undefined>()
 
+  // DTO syllabus integration
+  const billableMemberIdWatched = watch('billableMemberId')
+  const [memberSyllabus, setMemberSyllabus] =
+    useState<MemberSyllabusDetail | null>(null)
+  const [selectedSyllabusFlightId, setSelectedSyllabusFlightId] =
+    useState<string>('')
+  const [existingAttemptId, setExistingAttemptId] = useState<string | null>(
+    null
+  )
+  const [existingAttemptVerified, setExistingAttemptVerified] = useState(false)
+  // Track the original linked syllabus flight so we can detect changes by instructors/admins
+  const [originalSyllabusFlightId, setOriginalSyllabusFlightId] =
+    useState<string>('')
+  const [showDtoWarning, setShowDtoWarning] = useState(false)
+  const [pendingSubmitData, setPendingSubmitData] =
+    useState<FlightLogUpsertRequest | null>(null)
+
+  useEffect(() => {
+    if (!billableMemberIdWatched) return
+    getMemberSyllabus(billableMemberIdWatched)
+      .then((s) => setMemberSyllabus(s))
+      .catch(() => setMemberSyllabus(null))
+  }, [billableMemberIdWatched])
+
+  // Pre-populate syllabus flight selection when editing an existing flight
+  useEffect(() => {
+    if (isNew || !flightId) return
+    getFlightAttempt(flightId)
+      .then((attempt) => {
+        if (attempt?.syllabusFlightId) {
+          setSelectedSyllabusFlightId(attempt.syllabusFlightId)
+          setOriginalSyllabusFlightId(attempt.syllabusFlightId)
+          setExistingAttemptId(attempt.attemptId)
+          setExistingAttemptVerified(attempt.verificationResult != null)
+        }
+      })
+      .catch(() => {
+        /* no attempt yet */
+      })
+  }, [isNew, flightId])
+
   const backLink = `/logs${location.state ?? ''}#${flightId}`
 
-  const onSubmit = async (data: FlightLogUpsertRequest) => {
+  const doSave = async (data: FlightLogUpsertRequest) => {
     try {
-      const { error } = await mutation.trigger(
+      const { data: savedFlight, error } = await mutation.trigger(
         isNew ? 'POST' : 'PATCH',
         data,
         undefined,
@@ -414,10 +478,41 @@ const FlightLogEntry = () => {
         return setProblem(error)
       }
 
+      // Link the selected syllabus flight to this flight log entry.
+      // - If no attempt exists yet: create a new one.
+      // - If an attempt already exists and the selection changed (instructor/admin update): update it.
+      const savedFlightId = isNew ? savedFlight?.flightId : flightId
+      if (savedFlightId && selectedSyllabusFlightId && memberSyllabus) {
+        if (!existingAttemptId) {
+          await createFlightAttempt(savedFlightId, {
+            syllabusFlightId: selectedSyllabusFlightId,
+            memberSyllabusId: memberSyllabus.memberSyllabusId,
+          }).catch(() => {
+            /* non-fatal: attempt may already exist */
+          })
+        } else if (selectedSyllabusFlightId !== originalSyllabusFlightId) {
+          await updateFlightAttempt(
+            savedFlightId,
+            selectedSyllabusFlightId
+          ).catch(() => {
+            /* non-fatal */
+          })
+        }
+      }
+
       navigate(backLink)
     } catch (err) {
       console.error('Unexpected error:', err)
       setProblem({ status: 500, detail: t('general.savingError') })
+    }
+  }
+
+  const onSubmit = (data: FlightLogUpsertRequest) => {
+    if (!isNew && existingAttemptVerified) {
+      setPendingSubmitData(data)
+      setShowDtoWarning(true)
+    } else {
+      doSave(data)
     }
   }
 
@@ -577,6 +672,100 @@ const FlightLogEntry = () => {
                 watch={watch}
               />
             </Grid>
+
+            {/* DTO Syllabus Flight Selection */}
+            {memberSyllabus?.syllabusDetail && (
+              <>
+                <Grid size={12}>
+                  <Typography variant='h6'>DTO Training Flight</Typography>
+                </Grid>
+                <Grid size={12}>
+                  <Alert severity='info' sx={{ mb: 1 }}>
+                    Member has an active syllabus:{' '}
+                    <strong>{memberSyllabus.syllabusDetail.version}</strong>
+                  </Alert>
+                  <FormControl fullWidth>
+                    <InputLabel>Syllabus Flight (optional)</InputLabel>
+                    <Select
+                      value={selectedSyllabusFlightId}
+                      label='Syllabus Flight (optional)'
+                      onChange={(e) =>
+                        setSelectedSyllabusFlightId(e.target.value)
+                      }
+                      disabled={!syllabusEditable}
+                    >
+                      <MenuItem value=''>— None —</MenuItem>
+                      {(memberSyllabus.syllabusDetail.flights ?? []).map(
+                        (f) => (
+                          <MenuItem key={f.flightId} value={f.flightId}>
+                            {f.code} – {f.name}
+                            {f.isInterimCheckpoint && (
+                              <Chip
+                                label='Interim'
+                                size='small'
+                                sx={{ ml: 1 }}
+                              />
+                            )}
+                          </MenuItem>
+                        )
+                      )}
+                    </Select>
+                  </FormControl>
+                  {selectedSyllabusFlightId &&
+                    (() => {
+                      const flight =
+                        memberSyllabus.syllabusDetail?.flights?.find(
+                          (f) => f.flightId === selectedSyllabusFlightId
+                        )
+                      return flight ? (
+                        <Box
+                          sx={{
+                            mt: 1,
+                            p: 1.5,
+                            bgcolor: 'action.hover',
+                            borderRadius: 1,
+                          }}
+                        >
+                          <Typography variant='subtitle2'>
+                            {flight.name}
+                          </Typography>
+                          {flight.description && (
+                            <Typography variant='body2' color='text.secondary'>
+                              {flight.description}
+                            </Typography>
+                          )}
+                          {(flight.tags?.length ?? 0) > 0 && (
+                            <Box display='flex' gap={0.5} mt={0.5}>
+                              {flight.tags.map((tag) => (
+                                <Chip key={tag} label={tag} size='small' />
+                              ))}
+                            </Box>
+                          )}
+                          {(flight.items?.length ?? 0) > 0 && (
+                            <Box mt={1}>
+                              <Typography variant='caption' fontWeight={600}>
+                                Training items:
+                              </Typography>
+                              {flight.items!.map((item) => (
+                                <Typography key={item.itemId} variant='body2'>
+                                  • {item.name}
+                                  {item.mandatory && (
+                                    <Chip
+                                      label='mandatory'
+                                      size='small'
+                                      sx={{ ml: 0.5 }}
+                                    />
+                                  )}
+                                </Typography>
+                              ))}
+                            </Box>
+                          )}
+                        </Box>
+                      ) : null
+                    })()}
+                </Grid>
+              </>
+            )}
 
             {/* Flight Date and Time Settings */}
             <Grid size={12}>
@@ -1084,6 +1273,30 @@ const FlightLogEntry = () => {
           </Stack>
         </form>
       </Paper>
+
+      <Dialog open={showDtoWarning} onClose={() => setShowDtoWarning(false)}>
+        <DialogTitle>{t('dto.flightLog.approvedDtoWarningTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('dto.flightLog.approvedDtoWarningBody')}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowDtoWarning(false)}>
+            {t('general.cancel')}
+          </Button>
+          <Button
+            variant='contained'
+            color='warning'
+            onClick={() => {
+              setShowDtoWarning(false)
+              if (pendingSubmitData) doSave(pendingSubmitData)
+            }}
+          >
+            {t('dto.flightLog.approvedDtoWarningConfirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </RemoteContent>
   )
 }

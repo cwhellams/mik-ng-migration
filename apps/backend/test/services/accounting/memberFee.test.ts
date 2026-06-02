@@ -12,6 +12,11 @@ const { createNewMemberFeesInvoicePayload: createMembershipFeeInvoicePayload } =
 
 import { MIKLang, MIKMemberTypes, type Member } from '../../../src/routes/members/models.ts'
 
+// A date in January — before both discount cutoffs (Sept 1 and Oct 1)
+const DATE_BEFORE_DISCOUNTS = new Date('2025-01-15T12:00:00Z')
+// A date on October 1 — membership fee discount applies
+const DATE_AFTER_MEMBERSHIP_DISCOUNT = new Date('2025-10-01T12:00:00Z')
+
 const flyingMember: Member = {
   memberId: 'abc123',
   memberType: MIKMemberTypes.FLYING,
@@ -39,48 +44,85 @@ describe('Membership Fee Invoice Payload Tests', () => {
     jest.clearAllMocks()
   })
 
-  it('creates an invoice template for a FLYING member', async () => {
-    const mockedGetItemByCode = jest.mocked(getItemByCode)
-    //;(getItemByCode as jest.Mock)
-    mockedGetItemByCode.mockResolvedValue({
-      id: 1,
-      name: 'Flying Member',
-      markup_value: 120.0,
+  describe('without seasonal discount (before October 1)', () => {
+    it('creates an invoice template for a FLYING member', async () => {
+      const mockedGetItemByCode = jest.mocked(getItemByCode)
+      mockedGetItemByCode.mockResolvedValue({
+        id: 1,
+        name: 'Flying Member',
+        markup_value: 120.0,
+      })
+
+      var invoice = await createMembershipFeeInvoicePayload(flyingMember, DATE_BEFORE_DISCOUNTS)
+      expect(invoice).toMatchSnapshot()
     })
 
-    var invoice = await createMembershipFeeInvoicePayload(flyingMember)
-    expect(invoice).toMatchSnapshot()
+    it('creates an invoice template for a JUNIOR member', async () => {
+      const juniorMember = { ...flyingMember, memberType: MIKMemberTypes.JUNIOR }
+
+      const mockedGetItemByCode = jest.mocked(getItemByCode)
+      mockedGetItemByCode.mockResolvedValue({
+        id: 2,
+        name: 'Junior Member',
+        markup_value: 50.0,
+      })
+
+      var invoice = await createMembershipFeeInvoicePayload(juniorMember, DATE_BEFORE_DISCOUNTS)
+      expect(invoice).toMatchSnapshot()
+    })
+
+    it('creates an invoice template for a supporting member', async () => {
+      const supportingMember = { ...flyingMember, memberType: MIKMemberTypes.NONFLYING }
+
+      const mockedGetItemByCode = jest.mocked(getItemByCode)
+      mockedGetItemByCode.mockResolvedValue({
+        id: 3,
+        name: 'Supporting Member',
+        markup_value: 80.0,
+      })
+
+      var invoice = await createMembershipFeeInvoicePayload(supportingMember, DATE_BEFORE_DISCOUNTS)
+      expect(invoice).toMatchSnapshot()
+    })
   })
 
-  it('creates an invoice template for a FLYING member', async () => {
-    const juniorMember = { ...flyingMember, memberType: MIKMemberTypes.JUNIOR }
+  describe('with 50% membership fee seasonal discount (on or after October 1)', () => {
+    it('applies 50% discount to membership fee for a FLYING member', async () => {
+      const mockedGetItemByCode = jest.mocked(getItemByCode)
+      mockedGetItemByCode.mockResolvedValue({
+        id: 1,
+        name: 'Flying Member',
+        markup_value: 120.0,
+      })
 
-    const mockedGetItemByCode = jest.mocked(getItemByCode)
+      const invoice = await createMembershipFeeInvoicePayload(
+        flyingMember,
+        DATE_AFTER_MEMBERSHIP_DISCOUNT,
+      )
 
-    //;(getItemByCode as jest.Mock)
-    mockedGetItemByCode.mockResolvedValue({
-      id: 2,
-      name: 'Junior Member',
-      markup_value: 50.0,
+      // Joining fee task should have no discount
+      expect(invoice.Tasks[0].Task.discount).toBeUndefined()
+      // Membership fee task should have 50% discount
+      expect(invoice.Tasks[1].Task.discount).toBe(50)
+      expect(invoice).toMatchSnapshot()
     })
 
-    var invoice = await createMembershipFeeInvoicePayload(juniorMember)
-    expect(invoice).toMatchSnapshot()
-  })
+    it('applies 50% discount to membership fee for a JUNIOR member', async () => {
+      const juniorMember = { ...flyingMember, memberType: MIKMemberTypes.JUNIOR }
+      const mockedGetItemByCode = jest.mocked(getItemByCode)
+      mockedGetItemByCode.mockResolvedValue({
+        id: 2,
+        name: 'Junior Member',
+        markup_value: 50.0,
+      })
 
-  it('creates an invoice template for a supporting member', async () => {
-    const supportingMember = { ...flyingMember, memberType: MIKMemberTypes.NONFLYING }
+      const invoice = await createMembershipFeeInvoicePayload(
+        juniorMember,
+        DATE_AFTER_MEMBERSHIP_DISCOUNT,
+      )
 
-    const mockedGetItemByCode = jest.mocked(getItemByCode)
-
-    //;(getItemByCode as jest.Mock<Promise<ItemListArticle>)
-    mockedGetItemByCode.mockResolvedValue({
-      id: 3,
-      name: 'Supporting Member',
-      markup_value: 80.0,
+      expect(invoice.Tasks[0].Task.discount).toBeUndefined()
+      expect(invoice.Tasks[1].Task.discount).toBe(50)
     })
-
-    var invoice = await createMembershipFeeInvoicePayload(supportingMember)
-    expect(invoice).toMatchSnapshot()
   })
 })

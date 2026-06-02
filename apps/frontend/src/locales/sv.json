@@ -40,7 +40,12 @@
     "examsHistory": "Min historik",
     "examsAdmin": "Provadmin",
     "notificationBanner": "Notifieringsbanner",
-    "instructorStatus": "Instruktörsstatus"
+    "instructorStatus": "Instruktörsstatus",
+    "dto": "DTO Utbildning",
+    "dtoAdmin": "DTO Admin",
+    "dtoMyTraining": "Min träning",
+    "dtoVerify": "Verifiera flygningar",
+    "dtoProgress": "Elevens framsteg"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -167,7 +172,10 @@
       "licenceInfo": "Licensinformation",
       "licenceId": "Licens-ID",
       "licenceExpiry": "Utgångsdatum för SEP(land)-behörighet eller flygprivilegium",
-      "medicalExpiry": "Medicinsk utgång"
+      "medicalExpiry": "Medicinsk utgång",
+      "medicalClass1Expiry": "Klass 1 medicinsk utgång",
+      "medicalClass2Expiry": "Klass 2 medicinsk utgång",
+      "medicalLaplExpiry": "LAPL medicinsk utgång"
     },
     "roles": "Roller",
     "trainingProgram": "Utbildningsprogram",
@@ -896,6 +904,62 @@
       "flightsToMove": "Obekräftade flyg att flytta till ny loggbok",
       "oldBookMustBeEnded": "Den gamla loggboken måste avslutas först.",
       "showOldBooks": "Visa gamla loggböcker"
+    },
+    "export": {
+      "button": "Exportera",
+      "title": "Exportera flyglogg",
+      "dateRange": "Datumintervall",
+      "startDate": "Startdatum",
+      "endDate": "Slutdatum",
+      "allAircraft": "Alla flygplan",
+      "countLoading": "Räknar...",
+      "countResult": "{{count}} flygningar i detta intervall",
+      "countResultZero": "Inga flygningar i detta intervall",
+      "format": "Exportformat",
+      "exportButton": "Exportera",
+      "exporting": "Exporterar...",
+      "formats": {
+        "CSV": {
+          "label": "Generisk CSV",
+          "extension": ".csv",
+          "platforms": "Excel, Google Sheets och andra plattformar"
+        },
+        "FOREFLIGHT": {
+          "label": "ForeFlight",
+          "extension": ".csv",
+          "platforms": "ForeFlight, CloudAhoy"
+        },
+        "MYFLIGHTBOOK": {
+          "label": "MyFlightbook",
+          "extension": ".csv",
+          "platforms": "MyFlightbook"
+        },
+        "CREWLOUNGE": {
+          "label": "CrewLounge Pilotlog",
+          "extension": ".csv",
+          "platforms": "CrewLounge Pilotlog"
+        },
+        "LOGBOOK_AERO": {
+          "label": "logbook.aero",
+          "extension": ".csv",
+          "platforms": "logbook.aero"
+        },
+        "LOGTEN": {
+          "label": "LogTen Pilot Logbook",
+          "extension": ".csv",
+          "platforms": "LogTen Pilot Logbook"
+        },
+        "FLYLOG": {
+          "label": "flylog.io",
+          "extension": ".csv",
+          "platforms": "flylog.io"
+        },
+        "EASA_PDF": {
+          "label": "EASA-flyglogg",
+          "extension": ".pdf",
+          "platforms": "EASA Part-FCL-kompatibel flyglogg"
+        }
+      }
     }
   },
   "invoicing": {
@@ -1243,6 +1307,7 @@
       "editBooking": "Redigera bokning"
     },
     "equipmentFeeNotPaid": "Din utrustningsavgift för {{year}} har inte betalats. Om du inte vill betala extra €{{discount}} per timme på flygningar kan du begära utrustningsavgiften genom att klicka på knappen. Om du begär en faktura för utrustningsavgiften tillämpas rabatten omedelbart.",
+    "equipmentFeeSeasonalDiscountNote": "{{percent}}% säsongsrabatt gäller — din faktura för utrustningsavgiften blir €{{discountedAmount}} ({{percent}}% av €{{amount}}).",
     "requestInvoice": "Begär faktura",
     "requestingInvoice": "Begär...",
     "viewInvoices": "Visa fakturor",
@@ -1252,6 +1317,7 @@
     "confirmEquipmentFee": {
       "title": "Bekräfta utrustningsavgiftsbegäran",
       "message": "Genom att klicka på Godkänn förbinder du dig att betala fakturan för utrustningsavgiften på €{{amount}}, som skickas till dig inom kort. Avgiften på €{{discount}} per timme kommer inte att tillämpas på kommande fakturor.",
+      "messageWithDiscount": "Genom att klicka på Godkänn förbinder du dig att betala fakturan för utrustningsavgiften på €{{discountedAmount}} ({{percent}}% säsongsrabatt, ordinarie pris €{{amount}}), som skickas till dig inom kort. Avgiften på €{{discount}} per timme kommer inte att tillämpas på kommande fakturor.",
       "accept": "Acceptera",
       "cancel": "Avbryt"
     },
@@ -1842,5 +1908,54 @@
     "openProof": "Öppna kvalifikationsbevis",
     "historyClose": "Stäng",
     "viewProfile": "Visa medlemsprofil"
+  },
+  "dto": {
+    "myTraining": {
+      "title": "Min DTO-träning",
+      "activeSyllabus": "Aktiv kursplan",
+      "noActiveSyllabus": "Du har ingen aktiv DTO-kursplanetilldelning.",
+      "version": "Version",
+      "progress": "Framsteg",
+      "interimPassed": "Mellankontroll godkänd",
+      "interimPending": "Mellankontroll väntande",
+      "interimCheckpoint": "Mellankontrollflyg",
+      "hilItems": "Uppehållslista (HIL)",
+      "flightCode": "Kod",
+      "flightName": "Flyg",
+      "tags": "Taggar",
+      "status": "Status",
+      "statusCompleted": "Genomförd",
+      "statusPending": "Väntar på verifiering",
+      "statusNotStarted": "Inte påbörjad",
+      "requiresReverification": "Kräver omverifiering"
+    },
+    "detail": {
+      "title": "Elevdetaljer",
+      "approved": "Godkänd",
+      "failed": "Underkänd",
+      "pendingVerification": "Väntar på verifiering",
+      "notFlown": "Ej genomförd",
+      "requiresReverification": "Kräver omverifiering",
+      "hilItems": "Hold Item List (HIL)",
+      "noFlights": "Inga flygningar i denna läroplan.",
+      "item": "Moment",
+      "outcome": "Utfall",
+      "completed": "Genomförd",
+      "hil": "HIL",
+      "comments": "Kommentarer",
+      "verifiedBy": "Verifierad av {{name}} den {{date}}",
+      "date": "Datum",
+      "blockTime": "Blocktid",
+      "flightTime": "Flygtid",
+      "viewFlightLog": "Visa flygloggpost"
+    },
+    "flightLog": {
+      "approvedDtoWarningTitle": "Flygningen är DTO-godkänd",
+      "approvedDtoWarningBody": "Den här flygningen har godkänts för DTO-utbildning. Om du sparar ändringarna måste instruktören omverifiera flygningen.",
+      "approvedDtoWarningConfirm": "Spara & begär omverifiering"
+    },
+    "progress": {
+      "title": "DTO elevframsteg"
+    }
   }
 }

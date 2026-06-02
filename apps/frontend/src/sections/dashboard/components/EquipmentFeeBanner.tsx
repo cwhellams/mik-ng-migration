@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Typography,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../../hooks/useApi'
@@ -56,6 +57,14 @@ export const EquipmentFeeBanner = () => {
 
   const shouldShowBanner = !data?.hasPaid && !requestSuccess
 
+  const fullAmount = feeData?.markup_value ?? 0
+  const seasonalDiscountPercent = feeData?.seasonal_discount_percent
+  const hasSeasonalDiscount =
+    seasonalDiscountPercent !== undefined && seasonalDiscountPercent > 0
+  const discountedAmount = hasSeasonalDiscount
+    ? Math.round(fullAmount * (1 - seasonalDiscountPercent / 100) * 100) / 100
+    : fullAmount
+
   return (
     <RemoteContent isLoading={isLoading} error={error}>
       {shouldShowBanner && (
@@ -81,6 +90,15 @@ export const EquipmentFeeBanner = () => {
               year: data?.year,
               discount: feeData?.discount_amount ?? 0,
             })}
+            {hasSeasonalDiscount && (
+              <Typography variant='body2' sx={{ mt: 0.5, fontWeight: 'bold' }}>
+                {t('dashboard.equipmentFeeSeasonalDiscountNote', {
+                  discountedAmount,
+                  amount: fullAmount,
+                  percent: seasonalDiscountPercent,
+                })}
+              </Typography>
+            )}
           </Alert>
 
           <Dialog
@@ -92,11 +110,19 @@ export const EquipmentFeeBanner = () => {
             </DialogTitle>
             <DialogContent>
               <DialogContentText>
-                {t('dashboard.confirmEquipmentFee.message', {
-                  year: data?.year,
-                  amount: feeData?.markup_value ?? 0,
-                  discount: feeData?.discount_amount ?? 0,
-                })}
+                {hasSeasonalDiscount
+                  ? t('dashboard.confirmEquipmentFee.messageWithDiscount', {
+                      year: data?.year,
+                      amount: fullAmount,
+                      discountedAmount,
+                      discount: feeData?.discount_amount ?? 0,
+                      percent: seasonalDiscountPercent,
+                    })
+                  : t('dashboard.confirmEquipmentFee.message', {
+                      year: data?.year,
+                      amount: fullAmount,
+                      discount: feeData?.discount_amount ?? 0,
+                    })}
               </DialogContentText>
             </DialogContent>
             <DialogActions>

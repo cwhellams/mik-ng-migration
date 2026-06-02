@@ -807,6 +807,70 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       const errorFeeTask = invoice.Tasks.find(t => t.Task.code === ART_ENTRY_ERROR_CODE)
       expect(errorFeeTask).toBeUndefined()
     })
+
+    it('should use markup_value as price_per_unit when item price_per_unit is 0 (production data)', async () => {
+      // Reproduces the production scenario where the VIRHEMERKINTA item has
+      // price_per_unit: 0 and markup_value: 10. The task must be billed at
+      // markup_value (10), not price_per_unit (0).
+      await createEquipmentFeeRequest(year2025, testMemberId)
+
+      await db
+        .updateTable('accts.items')
+        .set({
+          id: 22,
+          name: 'Puuttuva tai virheellinen merkintä lentopäiväkirjassa',
+          item: {
+            id: 22,
+            ean: '',
+            code: ART_ENTRY_ERROR_CODE,
+            name: 'Puuttuva tai virheellinen merkintä lentopäiväkirjassa',
+            unit: 'kpl',
+            active: true,
+            amount: 1,
+            contents: '',
+            markup_type: 'fixed',
+            is_inventory: false,
+            markup_value: 10,
+            price_per_unit: 0,
+          },
+        })
+        .where('code', '=', ART_ENTRY_ERROR_CODE)
+        .execute()
+
+      try {
+        const flight = createTestFlight({ entryErrorFee: true })
+        const invoice = await createFlightInvoicePayload({ flights: [flight] }, testMemberId)
+
+        const errorFeeTask = invoice.Tasks.find(t => t.Task.code === ART_ENTRY_ERROR_CODE)
+        expect(errorFeeTask).toBeDefined()
+        expect(errorFeeTask?.Task.price_per_unit).toBe(10)
+        expect(errorFeeTask?.Task.amount).toBe(1)
+      } finally {
+        // Restore the item to the shared test data so other tests are unaffected
+        await db
+          .updateTable('accts.items')
+          .set({
+            id: testArticleIds[2],
+            name: 'Virhemerkintämaksu',
+            item: {
+              id: testArticleIds[2],
+              code: ART_ENTRY_ERROR_CODE,
+              name: 'Virhemerkintämaksu',
+              unit: 'kpl',
+              markup_value: 50,
+              active: true,
+              amount: 1,
+              ean: '',
+              contents: 'Virhemerkintämaksu',
+              price_per_unit: 50,
+              markup_type: 'fixed',
+              is_inventory: false,
+            },
+          })
+          .where('code', '=', ART_ENTRY_ERROR_CODE)
+          .execute()
+      }
+    })
   })
 
   describe('Invoice metadata', () => {

@@ -49,7 +49,11 @@ import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../../components/SaveButton'
 import { RemoveButton } from '../../../components/RemoveButton'
 import { DateTimeValidationError } from '@mui/x-date-pickers/models'
-import { getOffsetLabelInTz, HELSINKI_TIMEZONE } from '../../../utils/date'
+import {
+  getOffsetLabelInTz,
+  HELSINKI_TIMEZONE,
+  getEffectiveMedicalExpiry,
+} from '../../../utils/date'
 import {
   generateGoogleCalendarLink,
   downloadIcs,
@@ -277,7 +281,13 @@ export const BookingEditor = ({
   const overlappingBookings = overlaps?.bookings ?? []
 
   const licenceExpiry = me?.licenceExpiry ? dayjs(me.licenceExpiry) : null
-  const medicalExpiry = me?.medicalExpiry ? dayjs(me.medicalExpiry) : null
+
+  const medicalExpiry = getEffectiveMedicalExpiry(
+    me?.medicalClass1Expiry,
+    me?.medicalClass2Expiry,
+    me?.medicalLaplExpiry,
+    me?.medicalExpiry
+  )
 
   const licenceExpiresBeforeBooking =
     licenceExpiry !== null &&

@@ -145,7 +145,10 @@ async function createNewMemberFeesInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     return
   }
 
-  const feeInvoice = await createNewMemberFeesInvoicePayload(member)
+  const feeInvoice = await createNewMemberFeesInvoicePayload(
+    member,
+    outboxMsg.created_at_utc ? new Date(outboxMsg.created_at_utc) : new Date(),
+  )
   await db.transaction().execute(async txn => {
     const invoiceId = await createInvoice(
       member.memberId,
@@ -201,11 +204,12 @@ async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     year,
     member.memberId,
   )
-  // Check if the memeber has opted for equipment fee renewal at the same time
+  // Check if the member has opted for equipment fee renewal at the same time
   const includeEquipmentFee = member.autoRenewEquipmentFee === true && !equipmentFeealreadyCreated
 
+  const outboxDate = outboxMsg.created_at_utc ? new Date(outboxMsg.created_at_utc) : new Date()
   const feeInvoice = includeEquipmentFee
-    ? await createAnnualMemberFeeWithEquipmentFeeInvoicePayload(member)
+    ? await createAnnualMemberFeeWithEquipmentFeeInvoicePayload(member, outboxDate)
     : await createAnnualMemberFeeInvoicePayload(member)
 
   await db.transaction().execute(async txn => {
@@ -290,7 +294,10 @@ async function createFlightInvoice(outboxMsg: AcctsOutboxSimplbooks) {
 async function createAnnualEquipmentFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   const member = MemberSchema.parse(outboxMsg.payload)
   const year = getCurrentYear()
-  const feeInvoicePayload = await createAnnualEquipmentFeeInvoicePayload(member)
+  const feeInvoicePayload = await createAnnualEquipmentFeeInvoicePayload(
+    member,
+    outboxMsg.created_at_utc ? new Date(outboxMsg.created_at_utc) : new Date(),
+  )
 
   await db.transaction().execute(async txn => {
     const invoiceId = await createInvoice(

@@ -55,6 +55,15 @@ export enum MIKPermissions {
 
   // can create/edit/publish exams and view all exam attempts
   EXAM_ADMIN = 'exam.admin',
+
+  // can view own syllabus assignment and select syllabus flights when logging flights
+  DTO_USER = 'dto.user',
+
+  // can verify DTO flights (instructor role – flight_instructor / flight_examiner)
+  DTO_INSTRUCTOR = 'dto.instructor',
+
+  // can create/edit/import/publish syllabi and assign syllabi to members
+  DTO_ADMIN = 'dto.admin',
 }
 
 // admins can be downgraded to user permissions when not in sudo mode
@@ -80,6 +89,8 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
       return MIKPermissions.STORE_USER
     case MIKPermissions.EXAM_ADMIN:
       return MIKPermissions.EXAM_USER
+    case MIKPermissions.DTO_ADMIN:
+      return MIKPermissions.DTO_USER
 
     // no separate user roles for SMS or outbox permissions
     case MIKPermissions.SMS_PROCESSOR:
@@ -156,6 +167,10 @@ export type MemberList = z.infer<typeof MemberListSchema>
 export const MemberListFiltersSchema = z.object({
   name: z.string().optional(),
   role: z.string().or(z.array(z.string())).nullish(),
+  memberType: z
+    .nativeEnum(MIKMemberTypes)
+    .or(z.array(z.nativeEnum(MIKMemberTypes)))
+    .nullish(),
   showUnapproved: BooleanSchema.optional(),
   showRemoved: BooleanSchema.optional(),
   showExternal: BooleanSchema.optional(),
@@ -277,6 +292,9 @@ export const MemberSchema = AuditableSchema.extend({
   licenceId: z.string().nullish(),
   licenceExpiry: z.string().date().nullish(),
   medicalExpiry: z.string().date().nullish(),
+  medicalClass1Expiry: z.string().date().nullish(),
+  medicalClass2Expiry: z.string().date().nullish(),
+  medicalLaplExpiry: z.string().date().nullish(),
 
   isTrainingProgramPilot: z.boolean(),
   isMembershipApproved: z.boolean(),
@@ -337,6 +355,9 @@ export const MemberProfileSchema = MemberSchema.pick({
   licenceId: true,
   licenceExpiry: true,
   medicalExpiry: true,
+  medicalClass1Expiry: true,
+  medicalClass2Expiry: true,
+  medicalLaplExpiry: true,
   autoRenewAnnualMembership: true,
   autoRenewEquipmentFee: true,
   lang: true,

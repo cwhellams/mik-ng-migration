@@ -223,7 +223,7 @@ describe('GET /members', () => {
     const membersQry = await query(memberToken, {
       role: 'NOT_ROLE',
     })
-    expect(membersQry.members.length).toEqual(7)
+    expect(membersQry.members.length).toEqual(10)
   })
 
   it('should skip search by private roles as a member', async () => {
@@ -231,7 +231,7 @@ describe('GET /members', () => {
       role: 'ADMIN',
     })
 
-    expect(membersQry.members.length).toEqual(7)
+    expect(membersQry.members.length).toEqual(10)
   })
 
   it('should skip search by unapproved roles as a member', async () => {
@@ -239,7 +239,7 @@ describe('GET /members', () => {
       showUnapproved: true,
     })
 
-    expect(membersQry.members.length).toEqual(7)
+    expect(membersQry.members.length).toEqual(10)
   })
 
   it('should skip search by removed roles as a member', async () => {
@@ -247,7 +247,7 @@ describe('GET /members', () => {
       showRemoved: true,
     })
 
-    expect(membersQry.members.length).toEqual(7)
+    expect(membersQry.members.length).toEqual(10)
   })
 
   it('should skip search by private roles as a admin without sudo mode', async () => {
@@ -260,7 +260,7 @@ describe('GET /members', () => {
     expect(res.status).toBe(200)
 
     const membersQry = res.body as MemberListResponse
-    expect(membersQry.members.length).toEqual(7)
+    expect(membersQry.members.length).toEqual(10)
   })
 
   it('should search by private and approved roles as an admin', async () => {
@@ -486,6 +486,9 @@ describe('GET /members/roles', () => {
       'store.admin',
       'exam.user',
       'exam.admin',
+      'dto.user',
+      'dto.instructor',
+      'dto.admin',
     ])
     expect(roles.map(({ roleId, permissions }) => ({ roleId, permissions }))).toEqual([
       {
@@ -501,11 +504,12 @@ describe('GET /members/roles', () => {
           'store.admin',
           'fuelPrices.admin',
           'exam.admin',
+          'dto.admin',
         ],
         roleId: 'ADMIN',
       },
       { permissions: ['access_codes.admin'], roleId: 'COMMITTEE' },
-      { permissions: [], roleId: 'EXAMINER' },
+      { permissions: ['dto.instructor'], roleId: 'EXAMINER' },
       {
         permissions: [
           'flightlog.user',
@@ -515,12 +519,16 @@ describe('GET /members/roles', () => {
           'document.user',
           'store.user',
           'fuelPrices.user',
+          'dto.user',
         ],
         roleId: 'FLYING_MEMBER',
       },
-      { permissions: [], roleId: 'INSTRUCTOR' },
+      { permissions: ['dto.instructor'], roleId: 'INSTRUCTOR' },
       { permissions: ['flightlog.user', 'aircraft.user', 'document.user'], roleId: 'MAINTENANCE' },
-      { permissions: ['member', 'document.user', 'store.user', 'exam.user'], roleId: 'MEMBER' },
+      {
+        permissions: ['member', 'document.user', 'store.user', 'exam.user', 'dto.user'],
+        roleId: 'MEMBER',
+      },
       {
         permissions: [
           'flightlog.admin',
@@ -589,6 +597,7 @@ describe('GET /members/roles/id', () => {
         'store.admin',
         'fuelPrices.admin',
         'exam.admin',
+        'dto.admin',
       ],
       createdAt: expect.any(String),
       createdBy: 'k1mnimda',
@@ -1384,13 +1393,19 @@ describe('GET /members/non-renewals', () => {
     }
   })
 
-  it('should return billableFlightCount as 0 for all members in 2026 (no 2026 flights in test data)', async () => {
+  it('should return billableFlightCount as 0 for members with no 2026 flights', async () => {
     const response = await query(adminToken, 2026)
     expect(response.status).toBe(200)
 
-    const members = response.body.members as Array<{ billableFlightCount: number }>
+    const members = response.body.members as Array<{
+      memberId: string
+      billableFlightCount: number
+    }>
     expect(members.length).toBeGreaterThan(0)
-    expect(members.every(m => m.billableFlightCount === 0)).toBe(true)
+    // Members with no 2026 flights should have billableFlightCount of 0
+    const noFlightMembers = members.filter(m => ['Liisa1', 'Jukka1', 'Antti1'].includes(m.memberId))
+    expect(noFlightMembers.length).toBeGreaterThan(0)
+    expect(noFlightMembers.every(m => m.billableFlightCount === 0)).toBe(true)
   })
 
   it('should return non-zero billableFlightCount for members with 2025 billable flights', async () => {

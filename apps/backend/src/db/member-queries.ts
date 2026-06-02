@@ -92,6 +92,9 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     licenceId: member.licence_id ?? undefined,
     licenceExpiry: member.licence_expiry_date,
     medicalExpiry: member.medical_expiry_date,
+    medicalClass1Expiry: member.medical_class1_expiry_date,
+    medicalClass2Expiry: member.medical_class2_expiry_date,
+    medicalLaplExpiry: member.medical_lapl_expiry_date,
 
     isMembershipApproved: member.is_membership_approved,
     membershipApprovedAt: member.membership_approved_at?.toISOString(),
@@ -137,7 +140,7 @@ const serializeJsonField = (value: unknown | null | undefined): string | null | 
 export async function getMembers(
   isAdmin: boolean,
   roles: string[],
-  { name, showUnapproved, showRemoved, showExternal }: Omit<MemberListFilters, 'role'>,
+  { name, memberType, showUnapproved, showRemoved, showExternal }: Omit<MemberListFilters, 'role'>,
 ): Promise<MemberList[]> {
   // admin can search any roles
   const publicRoles = (await getAllMemberRoles(true)).map(role => role.roleId)
@@ -214,6 +217,12 @@ export async function getMembers(
         ),
       ),
     )
+
+    // query by member type
+    .$if(memberType != null, qb => {
+      const types = Array.isArray(memberType) ? memberType! : [memberType!]
+      return qb.where('member_type', 'in', types)
+    })
     .orderBy('last_name')
     .orderBy('first_name')
     .execute()
@@ -308,6 +317,9 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       licence_id: member.licenceId,
       licence_expiry_date: member.licenceExpiry,
       medical_expiry_date: member.medicalExpiry,
+      medical_class1_expiry_date: member.medicalClass1Expiry,
+      medical_class2_expiry_date: member.medicalClass2Expiry,
+      medical_lapl_expiry_date: member.medicalLaplExpiry,
 
       lang_iso639: member.lang,
       application_data: member.applicationData ? JSON.stringify(member.applicationData) : undefined,
@@ -397,6 +409,9 @@ export async function updateMember(
       licence_id: patch.licenceId,
       licence_expiry_date: patch.licenceExpiry,
       medical_expiry_date: patch.medicalExpiry,
+      medical_class1_expiry_date: patch.medicalClass1Expiry,
+      medical_class2_expiry_date: patch.medicalClass2Expiry,
+      medical_lapl_expiry_date: patch.medicalLaplExpiry,
 
       updated_at: now,
       updated_by: jwt.memberId,

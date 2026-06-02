@@ -1,6 +1,42 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Membership Fee Invoice Payload Tests creates an invoice template for a FLYING member 1`] = `
+exports[`Membership Fee Invoice Payload Tests with 50% membership fee seasonal discount (on or after October 1) applies 50% discount to membership fee for a FLYING member 1`] = `
+{
+  "Invoice": {
+    "client_id": 123456,
+    "overdue_charge_percent": 0,
+  },
+  "Tasks": [
+    {
+      "Projects": [
+        {
+          "code": "Varainhankinta",
+        },
+      ],
+      "Task": {
+        "amount": 1,
+        "article_id": 1,
+        "price_per_unit": 120,
+      },
+    },
+    {
+      "Projects": [
+        {
+          "code": "Varainhankinta",
+        },
+      ],
+      "Task": {
+        "amount": 1,
+        "article_id": 1,
+        "discount": 50,
+        "price_per_unit": 120,
+      },
+    },
+  ],
+}
+`;
+
+exports[`Membership Fee Invoice Payload Tests without seasonal discount (before October 1) creates an invoice template for a FLYING member 1`] = `
 {
   "Invoice": {
     "client_id": 123456,
@@ -35,7 +71,7 @@ exports[`Membership Fee Invoice Payload Tests creates an invoice template for a 
 }
 `;
 
-exports[`Membership Fee Invoice Payload Tests creates an invoice template for a FLYING member 2`] = `
+exports[`Membership Fee Invoice Payload Tests without seasonal discount (before October 1) creates an invoice template for a JUNIOR member 1`] = `
 {
   "Invoice": {
     "client_id": 123456,
@@ -70,7 +106,7 @@ exports[`Membership Fee Invoice Payload Tests creates an invoice template for a 
 }
 `;
 
-exports[`Membership Fee Invoice Payload Tests creates an invoice template for a supporting member 1`] = `
+exports[`Membership Fee Invoice Payload Tests without seasonal discount (before October 1) creates an invoice template for a supporting member 1`] = `
 {
   "Invoice": {
     "client_id": 123456,

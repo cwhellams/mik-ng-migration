@@ -39,7 +39,12 @@
     "examsHistory": "Historiani",
     "examsAdmin": "Koehallinta",
     "notificationBanner": "Ilmoitusbanneri",
-    "instructorStatus": "Opettajien tila"
+    "instructorStatus": "Opettajien tila",
+    "dto": "DTO Koulutus",
+    "dtoAdmin": "DTO Hallinta",
+    "dtoMyTraining": "Oma koulutus",
+    "dtoVerify": "Vahvista lennot",
+    "dtoProgress": "Oppilaan edistyminen"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -166,7 +171,10 @@
       "licenceInfo": "Lupakirjatiedot",
       "licenceId": "Lupakirjanumero",
       "licenceExpiry": "SEP(land) kelpuutuksen tai lento-oikeuden vanhenemispäivä",
-      "medicalExpiry": "Lääketieteellisen kelpoisuustodistuksen vanhenemispäivä"
+      "medicalExpiry": "Lääketieteellisen kelpoisuustodistuksen vanhenemispäivä",
+      "medicalClass1Expiry": "Luokka 1 lääketieteellinen vanhenemispäivä",
+      "medicalClass2Expiry": "Luokka 2 lääketieteellinen vanhenemispäivä",
+      "medicalLaplExpiry": "LAPL lääketieteellinen vanhenemispäivä"
     },
     "roles": "Roolit",
     "trainingProgram": "Koulutusohjelma",
@@ -895,6 +903,62 @@
       "flightsToMove": "Vahvistamattomat lennot, jotka siirretään uuteen matkapäiväkirjaan",
       "oldBookMustBeEnded": "Vanha lokikirja on ensin päätettävä.",
       "showOldBooks": "Näytä vanhat lokikirjat"
+    },
+    "export": {
+      "button": "Vie",
+      "title": "Vie lentopäiväkirja",
+      "dateRange": "Aikaväli",
+      "startDate": "Alkupäivä",
+      "endDate": "Loppupäivä",
+      "allAircraft": "Kaikki ilma-alukset",
+      "countLoading": "Lasketaan...",
+      "countResult": "{{count}} lentoa valitulla aikavälillä",
+      "countResultZero": "Ei lentoja valitulla aikavälillä",
+      "format": "Vientimuoto",
+      "exportButton": "Vie",
+      "exporting": "Viedään...",
+      "formats": {
+        "CSV": {
+          "label": "Yleinen CSV",
+          "extension": ".csv",
+          "platforms": "Excel, Google Sheets ja muut alustat"
+        },
+        "FOREFLIGHT": {
+          "label": "ForeFlight",
+          "extension": ".csv",
+          "platforms": "ForeFlight, CloudAhoy"
+        },
+        "MYFLIGHTBOOK": {
+          "label": "MyFlightbook",
+          "extension": ".csv",
+          "platforms": "MyFlightbook"
+        },
+        "CREWLOUNGE": {
+          "label": "CrewLounge Pilotlog",
+          "extension": ".csv",
+          "platforms": "CrewLounge Pilotlog"
+        },
+        "LOGBOOK_AERO": {
+          "label": "logbook.aero",
+          "extension": ".csv",
+          "platforms": "logbook.aero"
+        },
+        "LOGTEN": {
+          "label": "LogTen Pilot Logbook",
+          "extension": ".csv",
+          "platforms": "LogTen Pilot Logbook"
+        },
+        "FLYLOG": {
+          "label": "flylog.io",
+          "extension": ".csv",
+          "platforms": "flylog.io"
+        },
+        "EASA_PDF": {
+          "label": "EASA-lentopäiväkirja",
+          "extension": ".pdf",
+          "platforms": "EASA Part-FCL -yhteensopiva lentopäiväkirja"
+        }
+      }
     }
   },
   "invoicing": {
@@ -1242,6 +1306,7 @@
       "editBooking": "Muokkaa varausta"
     },
     "equipmentFeeNotPaid": "Kalustomaksuasi vuodelle {{year}} ei ole maksettu. Jos et halua maksaa {{discount}}€ lisähintaa tunnilta lentokoneen käytöstä, pyydä kalustomaksu napsauttamalla painiketta. Kun pyydät kalustomaksun laskun, alennus otetaan käyttöön välittömästi.",
+    "equipmentFeeSeasonalDiscountNote": "{{percent}}% kausikohtainen alennus – kalustomaksulaskusi summa on €{{discountedAmount}} ({{percent}}% alkuperäisestä €{{amount}}).",
     "requestInvoice": "Pyydä lasku",
     "requestingInvoice": "Pyydetään...",
     "viewInvoices": "Näytä laskut",
@@ -1251,6 +1316,7 @@
     "confirmEquipmentFee": {
       "title": "Vahvista kalustomaksupyyntö",
       "message": "Klikkaamalla Hyväksy sitoudut maksamaan kalustomaksulaskun €{{amount}}, joka lähetetään sinulle pian. Kalustomaksu astuu välittömästi voimaan ja {{discount}}€ lisämaksua ei lisätä lentohintoihin tulevissa laskuissa.",
+      "messageWithDiscount": "Klikkaamalla Hyväksy sitoudut maksamaan kalustomaksulaskun €{{discountedAmount}} ({{percent}}% kausialennus, alkuperäinen hinta €{{amount}}), joka lähetetään sinulle pian. Kalustomaksu astuu välittömästi voimaan ja {{discount}}€ lisämaksua ei lisätä lentohintoihin tulevissa laskuissa.",
       "accept": "Hyväksy",
       "cancel": "Peruuta"
     },
@@ -1875,5 +1941,54 @@
     "openProof": "Avaa todistusasiakirja",
     "historyClose": "Sulje",
     "viewProfile": "Näytä jäsenprofiili"
+  },
+  "dto": {
+    "myTraining": {
+      "title": "Oma DTO-koulutus",
+      "activeSyllabus": "Aktiivinen opetussuunnitelma",
+      "noActiveSyllabus": "Sinulla ei ole aktiivista DTO-opetussuunnitelmaa.",
+      "version": "Versio",
+      "progress": "Edistyminen",
+      "interimPassed": "Välitarkastuslento suoritettu",
+      "interimPending": "Välitarkastuslento odottaa",
+      "interimCheckpoint": "Välitarkastuslento",
+      "hilItems": "Pidätyslistalla (HIL)",
+      "flightCode": "Koodi",
+      "flightName": "Lento",
+      "tags": "Tagit",
+      "status": "Tila",
+      "statusCompleted": "Hyväksytty",
+      "statusPending": "Odottaa vahvistusta",
+      "statusNotStarted": "Ei aloitettu",
+      "requiresReverification": "Vaatii uudelleentarkastuksen"
+    },
+    "detail": {
+      "title": "Oppilaan tiedot",
+      "approved": "Hyväksytty",
+      "failed": "Hylätty",
+      "pendingVerification": "Odottaa tarkastusta",
+      "notFlown": "Ei lennetty",
+      "requiresReverification": "Vaatii uudelleentarkastuksen",
+      "hilItems": "Seurattavat kohteet (HIL)",
+      "noFlights": "Opetussuunnitelmassa ei ole lentoja.",
+      "item": "Kohde",
+      "outcome": "Tulos",
+      "completed": "Suoritettu",
+      "hil": "HIL",
+      "comments": "Kommentit",
+      "verifiedBy": "Tarkastettu: {{name}}, {{date}}",
+      "date": "Päivämäärä",
+      "blockTime": "Lohkoaika",
+      "flightTime": "Lentoaika",
+      "viewFlightLog": "Näytä lentopäiväkirjamerkintä"
+    },
+    "flightLog": {
+      "approvedDtoWarningTitle": "Lento on DTO-hyväksytty",
+      "approvedDtoWarningBody": "Tämä lento on hyväksytty DTO-koulutukseen. Muutosten tallentaminen edellyttää, että ohjaaja tarkistaa lennon uudelleen.",
+      "approvedDtoWarningConfirm": "Tallenna ja pyydä uudelleentarkastus"
+    },
+    "progress": {
+      "title": "DTO oppilasedistyminen"
+    }
   }
 }
