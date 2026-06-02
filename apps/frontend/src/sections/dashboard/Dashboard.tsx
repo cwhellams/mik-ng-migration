@@ -166,7 +166,7 @@ const Dashboard = () => {
           ) : null
         })}
 
-        <InstructorQualificationsBanner />
+        {isMember && <InstructorQualificationsBanner />}
 
         {/* Render customizable components in user-defined order */}
         {orderedComponents.length > 0 ? (

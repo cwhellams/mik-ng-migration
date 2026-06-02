@@ -9,11 +9,10 @@ import { DashboardSettingsSchema, DEFAULT_DASHBOARD_COMPONENTS } from './models.
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { getDashboardSettings, setDashboardSettings } from '../../db/member-queries.ts'
-import { MIKPermissions } from '../members/models.ts'
 
 export const router = Router()
 
-router.use(validateUser(MIKPermissions.MEMBER))
+router.use(validateUser())
 /**
  * GET /v1/dashboard/settings
  * Retrieve the current user's dashboard settings
