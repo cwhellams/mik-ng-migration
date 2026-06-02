@@ -92,6 +92,12 @@ export const DASHBOARD_COMPONENT_METADATA: DashboardComponentMetadata[] = [
     description: 'Flight log administration panel',
     icon: '📋',
   },
+  {
+    id: 'dtoInstructor',
+    label: 'DTO Verification',
+    description: 'DTO flights awaiting instructor verification',
+    icon: '🛩️',
+  },
 ]
 
 /**

@@ -18,6 +18,7 @@ import { ProfileUpdateRequiredBanner } from './components/ProfileUpdateRequiredB
 import { ExpiryWarningBanner } from './components/ExpiryWarningBanner'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { InstructorQualificationsBanner } from './components/InstructorQualificationsBanner'
+import { DtoInstructorWidget } from './components/DtoInstructorWidget'
 import useApi from '../../hooks/useApi'
 import type { DashboardSettings, DashboardComponent } from './types'
 import { ALWAYS_VISIBLE_COMPONENTS } from './types'
@@ -50,6 +51,10 @@ const createComponentMap = (
   flightLogAdmin: () =>
     hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) ? (
       <FlightLogAdminDashboard />
+    ) : null,
+  dtoInstructor: () =>
+    hasAccess(MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN) ? (
+      <DtoInstructorWidget />
     ) : null,
 })
 

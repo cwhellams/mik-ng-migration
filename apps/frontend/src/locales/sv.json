@@ -40,7 +40,12 @@
     "examsHistory": "Min historik",
     "examsAdmin": "Provadmin",
     "notificationBanner": "Notifieringsbanner",
-    "instructorStatus": "Instruktörsstatus"
+    "instructorStatus": "Instruktörsstatus",
+    "dto": "DTO Utbildning",
+    "dtoAdmin": "DTO Admin",
+    "dtoMyTraining": "Min träning",
+    "dtoVerify": "Verifiera flygningar",
+    "dtoProgress": "Elevens framsteg"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -1845,5 +1850,54 @@
     "openProof": "Öppna kvalifikationsbevis",
     "historyClose": "Stäng",
     "viewProfile": "Visa medlemsprofil"
+  },
+  "dto": {
+    "myTraining": {
+      "title": "Min DTO-träning",
+      "activeSyllabus": "Aktiv kursplan",
+      "noActiveSyllabus": "Du har ingen aktiv DTO-kursplanetilldelning.",
+      "version": "Version",
+      "progress": "Framsteg",
+      "interimPassed": "Mellankontroll godkänd",
+      "interimPending": "Mellankontroll väntande",
+      "interimCheckpoint": "Mellankontrollflyg",
+      "hilItems": "Uppehållslista (HIL)",
+      "flightCode": "Kod",
+      "flightName": "Flyg",
+      "tags": "Taggar",
+      "status": "Status",
+      "statusCompleted": "Genomförd",
+      "statusPending": "Väntar på verifiering",
+      "statusNotStarted": "Inte påbörjad",
+      "requiresReverification": "Kräver omverifiering"
+    },
+    "detail": {
+      "title": "Elevdetaljer",
+      "approved": "Godkänd",
+      "failed": "Underkänd",
+      "pendingVerification": "Väntar på verifiering",
+      "notFlown": "Ej genomförd",
+      "requiresReverification": "Kräver omverifiering",
+      "hilItems": "Hold Item List (HIL)",
+      "noFlights": "Inga flygningar i denna läroplan.",
+      "item": "Moment",
+      "outcome": "Utfall",
+      "completed": "Genomförd",
+      "hil": "HIL",
+      "comments": "Kommentarer",
+      "verifiedBy": "Verifierad av {{name}} den {{date}}",
+      "date": "Datum",
+      "blockTime": "Blocktid",
+      "flightTime": "Flygtid",
+      "viewFlightLog": "Visa flygloggpost"
+    },
+    "flightLog": {
+      "approvedDtoWarningTitle": "Flygningen är DTO-godkänd",
+      "approvedDtoWarningBody": "Den här flygningen har godkänts för DTO-utbildning. Om du sparar ändringarna måste instruktören omverifiera flygningen.",
+      "approvedDtoWarningConfirm": "Spara & begär omverifiering"
+    },
+    "progress": {
+      "title": "DTO elevframsteg"
+    }
   }
 }

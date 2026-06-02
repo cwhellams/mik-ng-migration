@@ -21,6 +21,8 @@ export const SelectMember = ({
   placeholder,
   exclude,
   disabled,
+  role = 'MEMBER',
+  memberType,
 }: {
   entries?: Member[]
   value: string | null
@@ -29,9 +31,11 @@ export const SelectMember = ({
   placeholder?: string
   exclude?: string[]
   disabled?: boolean
+  role?: string
+  memberType?: MemberListFilters['memberType']
 }) => {
   const filters: MemberListFilters = {
-    role: 'MEMBER',
+    ...(memberType != null ? { memberType } : { role }),
   }
 
   const { data: memberList } = useApi<MemberListResponse>(
@@ -51,10 +55,12 @@ export const SelectMember = ({
     () =>
       [...(entries ?? [])].concat(
         memberList?.members
-          .filter((m) =>
-            exclude?.every(
-              (excludedMemberId) => excludedMemberId !== m.memberId
-            )
+          .filter(
+            (m) =>
+              !exclude ||
+              exclude.every(
+                (excludedMemberId) => excludedMemberId !== m.memberId
+              )
           )
           .map((m) => ({
             id: m.memberId,

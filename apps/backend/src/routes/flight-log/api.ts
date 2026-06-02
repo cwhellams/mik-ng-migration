@@ -32,6 +32,7 @@ import {
   updateFlightLog,
   updateFlightLogStatus,
 } from '../../db/flight-log-queries.ts'
+import { invalidateApprovedAttempt } from '../../db/dto-queries.ts'
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import type { JWTUser } from '../auth/token.ts'
@@ -286,6 +287,8 @@ router.patch('/:id', async (req: Request, res: Response) => {
       detail: 'Flight log update failed',
     })
   }
+
+  await invalidateApprovedAttempt(flightId)
 
   const afterUpdate = await getFlightLog(flightId)
 

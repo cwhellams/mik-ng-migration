@@ -39,7 +39,12 @@
     "examsHistory": "Historiani",
     "examsAdmin": "Koehallinta",
     "notificationBanner": "Ilmoitusbanneri",
-    "instructorStatus": "Opettajien tila"
+    "instructorStatus": "Opettajien tila",
+    "dto": "DTO Koulutus",
+    "dtoAdmin": "DTO Hallinta",
+    "dtoMyTraining": "Oma koulutus",
+    "dtoVerify": "Vahvista lennot",
+    "dtoProgress": "Oppilaan edistyminen"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -1878,5 +1883,54 @@
     "openProof": "Avaa todistusasiakirja",
     "historyClose": "Sulje",
     "viewProfile": "Näytä jäsenprofiili"
+  },
+  "dto": {
+    "myTraining": {
+      "title": "Oma DTO-koulutus",
+      "activeSyllabus": "Aktiivinen opetussuunnitelma",
+      "noActiveSyllabus": "Sinulla ei ole aktiivista DTO-opetussuunnitelmaa.",
+      "version": "Versio",
+      "progress": "Edistyminen",
+      "interimPassed": "Välitarkastuslento suoritettu",
+      "interimPending": "Välitarkastuslento odottaa",
+      "interimCheckpoint": "Välitarkastuslento",
+      "hilItems": "Pidätyslistalla (HIL)",
+      "flightCode": "Koodi",
+      "flightName": "Lento",
+      "tags": "Tagit",
+      "status": "Tila",
+      "statusCompleted": "Hyväksytty",
+      "statusPending": "Odottaa vahvistusta",
+      "statusNotStarted": "Ei aloitettu",
+      "requiresReverification": "Vaatii uudelleentarkastuksen"
+    },
+    "detail": {
+      "title": "Oppilaan tiedot",
+      "approved": "Hyväksytty",
+      "failed": "Hylätty",
+      "pendingVerification": "Odottaa tarkastusta",
+      "notFlown": "Ei lennetty",
+      "requiresReverification": "Vaatii uudelleentarkastuksen",
+      "hilItems": "Seurattavat kohteet (HIL)",
+      "noFlights": "Opetussuunnitelmassa ei ole lentoja.",
+      "item": "Kohde",
+      "outcome": "Tulos",
+      "completed": "Suoritettu",
+      "hil": "HIL",
+      "comments": "Kommentit",
+      "verifiedBy": "Tarkastettu: {{name}}, {{date}}",
+      "date": "Päivämäärä",
+      "blockTime": "Lohkoaika",
+      "flightTime": "Lentoaika",
+      "viewFlightLog": "Näytä lentopäiväkirjamerkintä"
+    },
+    "flightLog": {
+      "approvedDtoWarningTitle": "Lento on DTO-hyväksytty",
+      "approvedDtoWarningBody": "Tämä lento on hyväksytty DTO-koulutukseen. Muutosten tallentaminen edellyttää, että ohjaaja tarkistaa lennon uudelleen.",
+      "approvedDtoWarningConfirm": "Tallenna ja pyydä uudelleentarkastus"
+    },
+    "progress": {
+      "title": "DTO oppilasedistyminen"
+    }
   }
 }

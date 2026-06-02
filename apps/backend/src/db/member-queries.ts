@@ -140,7 +140,7 @@ const serializeJsonField = (value: unknown | null | undefined): string | null | 
 export async function getMembers(
   isAdmin: boolean,
   roles: string[],
-  { name, showUnapproved, showRemoved, showExternal }: Omit<MemberListFilters, 'role'>,
+  { name, memberType, showUnapproved, showRemoved, showExternal }: Omit<MemberListFilters, 'role'>,
 ): Promise<MemberList[]> {
   // admin can search any roles
   const publicRoles = (await getAllMemberRoles(true)).map(role => role.roleId)
@@ -217,6 +217,12 @@ export async function getMembers(
         ),
       ),
     )
+
+    // query by member type
+    .$if(memberType != null, qb => {
+      const types = Array.isArray(memberType) ? memberType! : [memberType!]
+      return qb.where('member_type', 'in', types)
+    })
     .orderBy('last_name')
     .orderBy('first_name')
     .execute()

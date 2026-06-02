@@ -149,8 +149,8 @@ exports[`Db query FlightLog tests getFlightLogTotals returns totals for all ac 1
     "ajlbSeqNo": 2,
   },
   {
-    "acTotalFlightMins": 314045,
-    "acTotalFlightTime": "5234:05",
+    "acTotalFlightMins": 315935,
+    "acTotalFlightTime": "5265:35",
     "aircraftRegistration": "OH-P28",
     "ajlbSeqNo": 4,
   },

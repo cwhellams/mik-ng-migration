@@ -7,6 +7,18 @@ export interface MenuItem {
   icon?: ReactNode
   requiredRoles?: MIKPermissions[]
   adminModeOnly?: boolean
+  /**
+   * When true this item is hidden for users that only have the `dto.user`
+   * permission (i.e. regular members) unless they have an active DTO syllabus
+   * assignment.  Instructors and admins (`dto.instructor` / `dto.admin`) are
+   * always shown the item regardless of this flag.
+   */
+  requiresActiveDtoSyllabus?: boolean
+  /**
+   * When true, this item requires either `dto.instructor` OR `dto.admin` with
+   * sudo mode active.  Pure admins with sudo off will NOT see the item.
+   */
+  requiresDtoElevatedAccess?: boolean
   subItems?: MenuItem[]
 }
 
@@ -147,6 +159,7 @@ export const menuItems: MenuItem[] = [
       MIKPermissions.OUTBOX_ADMIN,
       MIKPermissions.MEMBER_ADMIN,
       MIKPermissions.EXAM_ADMIN,
+      MIKPermissions.DTO_ADMIN,
     ],
     adminModeOnly: true,
     subItems: [
@@ -179,6 +192,47 @@ export const menuItems: MenuItem[] = [
         path: 'notification-banner',
         requiredRoles: [MIKPermissions.MEMBER_ADMIN],
         adminModeOnly: true,
+      },
+      {
+        label: 'header.dtoAdmin',
+        path: 'dto',
+        requiredRoles: [MIKPermissions.DTO_ADMIN],
+        adminModeOnly: true,
+      },
+    ],
+  },
+  {
+    path: '/dto',
+    label: 'header.dto',
+    requiredRoles: [
+      MIKPermissions.DTO_USER,
+      MIKPermissions.DTO_INSTRUCTOR,
+      MIKPermissions.DTO_ADMIN,
+    ],
+    requiresActiveDtoSyllabus: true,
+    subItems: [
+      {
+        path: 'my-training',
+        label: 'header.dtoMyTraining',
+        requiredRoles: [MIKPermissions.DTO_USER],
+      },
+      {
+        path: 'verify',
+        label: 'header.dtoVerify',
+        requiredRoles: [
+          MIKPermissions.DTO_INSTRUCTOR,
+          MIKPermissions.DTO_ADMIN,
+        ],
+        requiresDtoElevatedAccess: true,
+      },
+      {
+        path: 'progress',
+        label: 'header.dtoProgress',
+        requiredRoles: [
+          MIKPermissions.DTO_INSTRUCTOR,
+          MIKPermissions.DTO_ADMIN,
+        ],
+        requiresDtoElevatedAccess: true,
       },
     ],
   },

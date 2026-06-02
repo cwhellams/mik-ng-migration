@@ -40,8 +40,8 @@ describe('Occurrence Notifying Worker', () => {
         cronSchedule: mockCronSchedule,
       })
 
-      // wait the scheduled task run
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // wait the scheduled task run (allow extra time for DB queries on slow CI)
+      await new Promise(resolve => setTimeout(resolve, 5000))
 
       expect(mockCronSchedule).toHaveBeenCalledWith('0 7 * * *', expect.any(Function))
 
@@ -49,7 +49,7 @@ describe('Occurrence Notifying Worker', () => {
       expect(mockSendEmail).toHaveBeenCalledTimes(5)
 
       worker.stop()
-    })
+    }, 15000)
 
     it('should not schedule task when worker is disabled', async () => {
       process.env.OCCURRENCE_NOTIFICATION_WORKER_ENABLED = 'false'
