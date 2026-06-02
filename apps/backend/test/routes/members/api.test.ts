@@ -545,7 +545,10 @@ describe('GET /members/roles', () => {
         ],
         roleId: 'PLANE_CAPTAIN',
       },
-      { permissions: ['member.admin', 'flightlog.admin', 'document.admin'], roleId: 'SECRETARY' },
+      {
+        permissions: ['member.admin', 'flightlog.admin', 'document.admin', 'invoicing.user'],
+        roleId: 'SECRETARY',
+      },
       { permissions: null, roleId: 'SERVICE' },
       { permissions: ['sms.manager'], roleId: 'SMS_MANAGER' },
       { permissions: ['sms.processor'], roleId: 'SMS_PROCESSOR' },

@@ -972,7 +972,8 @@
       "tools": "Työkalut",
       "taxReport": "Veroraportti",
       "traficomReport": "Traficom-raportti",
-      "upliftReport": "Tankkaausraportti"
+      "upliftReport": "Tankkaausraportti",
+      "unpaidOverdue": "Maksamattomat erääntyneet laskut"
     },
     "dashboard": {
       "title": "Odottaa laskutusta",
@@ -1948,6 +1949,21 @@
     "openProof": "Avaa todistusasiakirja",
     "historyClose": "Sulje",
     "viewProfile": "Näytä jäsenprofiili"
+  },
+  "unpaidOverdueInvoices": {
+    "title": "Maksamattomat erääntyneet laskut",
+    "columns": {
+      "member": "Jäsen",
+      "dueDate": "Eräpäivä",
+      "type": "Tyyppi",
+      "description": "Kuvaus",
+      "sum": "Summa",
+      "daysOverdue": "Myöhässä"
+    },
+    "daysLate_one": "{{count}} pv",
+    "daysLate_other": "{{count}} pv",
+    "totalSum": "Yhteensä",
+    "noInvoicesFound": "Maksamattomia erääntyniä laskuja ei löytynyt"
   },
   "dto": {
     "myTraining": {

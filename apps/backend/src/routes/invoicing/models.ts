@@ -126,3 +126,20 @@ export const ArticleFeeSchema = z.object({
 })
 
 export type ArticleFee = z.infer<typeof ArticleFeeSchema>
+
+export const UnpaidOverdueInvoiceSchema = InvoiceSchema.extend({
+  member_first_name: z.string(),
+  member_last_name: z.string(),
+  days_overdue: z.number().int(),
+})
+
+export type UnpaidOverdueInvoice = z.infer<typeof UnpaidOverdueInvoiceSchema>
+
+export const UnpaidOverdueInvoiceListResponseSchema = z.object({
+  invoices: z.array(UnpaidOverdueInvoiceSchema),
+  total_sum: z.string().nullable(),
+})
+
+export type UnpaidOverdueInvoiceListResponse = z.infer<
+  typeof UnpaidOverdueInvoiceListResponseSchema
+>

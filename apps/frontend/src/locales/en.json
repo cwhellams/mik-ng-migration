@@ -974,7 +974,8 @@
       "tools": "Tools",
       "taxReport": "Tax Report",
       "traficomReport": "Traficom Report",
-      "upliftReport": "Uplift Report"
+      "upliftReport": "Uplift Report",
+      "unpaidOverdue": "Unpaid Overdue Invoices"
     },
     "dashboard": {
       "title": "Flights Waiting to be Invoiced",
@@ -1951,6 +1952,21 @@
     "openProof": "Open proof document",
     "historyClose": "Close",
     "viewProfile": "View member profile"
+  },
+  "unpaidOverdueInvoices": {
+    "title": "Unpaid Overdue Invoices",
+    "columns": {
+      "member": "Member",
+      "dueDate": "Due Date",
+      "type": "Type",
+      "description": "Description",
+      "sum": "Sum",
+      "daysOverdue": "Days Overdue"
+    },
+    "daysLate_one": "{{count}} day",
+    "daysLate_other": "{{count}} days",
+    "totalSum": "Total",
+    "noInvoicesFound": "No unpaid overdue invoices found"
   },
   "dto": {
     "myTraining": {

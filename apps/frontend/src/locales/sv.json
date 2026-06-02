@@ -973,7 +973,8 @@
       "tools": "Verktyg",
       "taxReport": "Skatterapport",
       "traficomReport": "Traficom-rapport",
-      "upliftReport": "Tankaningsrapport"
+      "upliftReport": "Tankaningsrapport",
+      "unpaidOverdue": "Obetalda förfallna fakturor"
     },
     "dashboard": {
       "title": "Väntar på fakturering",
@@ -1915,6 +1916,21 @@
     "openProof": "Öppna kvalifikationsbevis",
     "historyClose": "Stäng",
     "viewProfile": "Visa medlemsprofil"
+  },
+  "unpaidOverdueInvoices": {
+    "title": "Obetalda förfallna fakturor",
+    "columns": {
+      "member": "Medlem",
+      "dueDate": "Förfallodatum",
+      "type": "Typ",
+      "description": "Beskrivning",
+      "sum": "Summa",
+      "daysOverdue": "Dagar försenad"
+    },
+    "daysLate_one": "{{count}} dag",
+    "daysLate_other": "{{count}} dagar",
+    "totalSum": "Totalt",
+    "noInvoicesFound": "Inga obetalda förfallna fakturor hittades"
   },
   "dto": {
     "myTraining": {

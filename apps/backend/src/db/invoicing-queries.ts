@@ -7,6 +7,7 @@ import {
   ArticleFeeSchema,
   type ArticleFee,
   type Invoice,
+  type UnpaidOverdueInvoice,
 } from '../routes/invoicing/models.ts'
 import { ART_EQUIP_FEE_CODE } from '../services/accounting/config.ts'
 import {
@@ -319,7 +320,7 @@ export async function markOverdueEmailSent(invoiceId: string): Promise<void> {
 }
 
 /**
- * Get overdue flight invoices for a specific member
+ * Get all overdue flight invoices for a specific member
  * Returns flight invoices where:
  * - is_paid = false
  * - invoice_type = 'FLIGHT'
@@ -393,4 +394,67 @@ export async function getOverdueFlightInvoicesPastDays(daysOverdue: number): Pro
     due_at: row.due_at ? String(row.due_at) : null,
     currency: row.currency ? String(row.currency) : null,
   }))
+}
+
+/**
+ * Get all unpaid overdue invoices joined with member names.
+ * Returns invoices where is_paid = false and due_at < today, enriched with
+ * the invoiced member's first and last name and days overdue.
+ */
+export async function getUnpaidOverdueInvoicesWithMemberInfo(): Promise<UnpaidOverdueInvoice[]> {
+  const today = new Date().toISOString().split('T')[0]
+
+  const rows = await db
+    .selectFrom('accts.invoice as inv')
+    .innerJoin('member.register as m', 'm.member_id', 'inv.member_id')
+    .select([
+      'inv.id',
+      'inv.created_at',
+      'inv.created_by',
+      'inv.currency',
+      'inv.description',
+      'inv.due_at',
+      'inv.invoice_type',
+      'inv.is_paid',
+      'inv.member_id',
+      'inv.paid_at',
+      'inv.pmt_ref',
+      'inv.sent_at',
+      'inv.total_sum',
+      'inv.updated_at',
+      'inv.updated_by',
+      'm.first_name',
+      'm.last_name',
+    ])
+    .where('inv.is_paid', '=', false)
+    .where('inv.due_at', '<', today)
+    .orderBy('inv.due_at', 'asc')
+    .execute()
+
+  return rows.map(row => {
+    const dueDate = new Date(row.due_at as string)
+    const now = new Date()
+    const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
+
+    return {
+      id: String(row.id),
+      created_at: row.created_at.toISOString(),
+      created_by: row.created_by,
+      currency: row.currency,
+      description: row.description,
+      due_at: row.due_at as string,
+      invoice_type: row.invoice_type as MIKInvoiceType,
+      is_paid: row.is_paid,
+      member_id: row.member_id,
+      paid_at: row.paid_at,
+      pmt_ref: row.pmt_ref,
+      sent_at: row.sent_at,
+      total_sum: row.total_sum === null ? null : String(row.total_sum),
+      updated_at: row.updated_at.toISOString(),
+      updated_by: row.updated_by,
+      member_first_name: row.first_name,
+      member_last_name: row.last_name,
+      days_overdue: daysOverdue,
+    }
+  })
 }

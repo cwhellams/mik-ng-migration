@@ -52,6 +52,7 @@ import LogbookFlights from './sections/flightLog/LogbookPage'
 import Outbox from './sections/admin/Outbox'
 import NonRenewals from './sections/admin/NonRenewals'
 import NotificationBannerAdmin from './sections/admin/NotificationBannerAdmin'
+import { UnpaidOverdueInvoices } from './sections/accounting/UnpaidOverdueInvoices'
 import ShopPage from './sections/shop/ShopPage'
 import ProductPage from './sections/shop/ProductPage'
 import CartPage from './sections/shop/CartPage'
@@ -192,6 +193,10 @@ function App() {
                 <Route
                   path='instructor-worktime'
                   element={<InstructorWorktimeReport />}
+                />
+                <Route
+                  path='unpaid-overdue'
+                  element={<UnpaidOverdueInvoices />}
                 />
               </Route>
               <Route path='/shop'>

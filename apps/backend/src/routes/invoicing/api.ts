@@ -7,6 +7,7 @@ import {
   getInvoiceItems,
   getInvoices,
   getRecurringFeesProcessing,
+  getUnpaidOverdueInvoicesWithMemberInfo,
   hasRequestedEquipmentFee,
   upsertInvoiceItems,
 } from '../../db/invoicing-queries.ts'
@@ -21,6 +22,7 @@ import {
   type AnnualBillingResponse,
   type EquipmentFee,
   type Invoice,
+  type UnpaidOverdueInvoiceListResponse,
 } from './models.ts'
 
 import { getInvoicePdf, getItems } from '../../services/simplbooks/simplbooksApiClient.ts'
@@ -104,6 +106,24 @@ router.get('/', async (req: Request, res: Response<InvoiceListResponse>) => {
 
   res.status(200).json(response)
 })
+
+router.get(
+  '/unpaid-overdue',
+  async (req: Request, res: Response<UnpaidOverdueInvoiceListResponse>) => {
+    const invoices = await getUnpaidOverdueInvoicesWithMemberInfo()
+
+    const totalSum = invoices
+      .filter(inv => inv.total_sum !== null)
+      .reduce((sum, inv) => sum + parseFloat(inv.total_sum!), 0)
+
+    const response: UnpaidOverdueInvoiceListResponse = {
+      invoices,
+      total_sum: invoices.length > 0 ? totalSum.toFixed(2) : null,
+    }
+
+    res.status(200).json(response)
+  },
+)
 
 router.get(
   '/flights',
