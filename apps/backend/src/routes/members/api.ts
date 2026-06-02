@@ -640,6 +640,12 @@ router.patch(
 
     const patch = MemberSchema.partial().parse(req.body)
 
+    // Capture current canMakeReservations before update to detect access revocation
+    const existingMember = await getMemberById(memberId)
+    if (!existingMember) {
+      return problem({ status: 404 })
+    }
+
     const mailingListSync = await captureMailingListSyncData(memberId, patch.mailingLists)
 
     const updated = await updateMember(memberId, patch, req.user!)
@@ -648,6 +654,18 @@ router.patch(
     }
 
     await applyMailingListSync(mailingListSync)
+
+    // If booking access was revoked, cancel all future bookings
+    if (existingMember.canMakeReservations && patch.canMakeReservations === false) {
+      const cancelled = await cancelAllFutureBookingsForMember(
+        memberId,
+        'Booking access revoked',
+        req.user!.memberId,
+      )
+      logger.info(
+        `Cancelled ${cancelled} future booking(s) for member ${memberId} due to booking access revocation`,
+      )
+    }
 
     const member = await getMemberById(memberId)
     res.status(200).json(member)

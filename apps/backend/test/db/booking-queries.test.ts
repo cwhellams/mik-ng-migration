@@ -2,6 +2,7 @@ import * as bookingQueries from '../../src/db/booking-queries.ts'
 import {
   BookingStatus,
   BookingType,
+  CancellationReason,
   type Booking,
   type BookingUpsertRequest,
 } from '../../src/routes/bookings/models.ts'
@@ -68,12 +69,32 @@ describe('Db Get Bookings', () => {
   })
 
   it('getBookings in reverse order with limit', async () => {
-    const result = await bookingQueries.getBookings({
-      orderLatestFirst: true,
-      limit: 1,
-    })
-    expect(result.length).toEqual(1)
-    expect(result[0].bookingId).toEqual('stl20')
+    // Insert a booking far in the future so it is always the latest, regardless of testdata randomness
+    const farFuture = dayjs('2099-12-31T12:00:00Z')
+    const inserted = await bookingQueries.insertBooking(
+      {
+        memberId: 'k1mnimda',
+        registration: 'OH-STL',
+        status: BookingStatus.CONFIRMED,
+        type: BookingType.PRIVATE,
+        startTimeEpoch: farFuture.unix().toString(),
+        endTimeEpoch: farFuture.add(1, 'hour').unix().toString(),
+      },
+      jwt,
+    )
+    try {
+      const result = await bookingQueries.getBookings({
+        orderLatestFirst: true,
+        limit: 1,
+      })
+      expect(result.length).toEqual(1)
+      expect(result[0].bookingId).toEqual(inserted.bookingId)
+    } finally {
+      await bookingQueries.cancelBooking(inserted.bookingId, jwt, {
+        reason: CancellationReason.OTHER,
+        note: 'test cleanup',
+      })
+    }
   })
 
   it('getBookings with all filters', async () => {

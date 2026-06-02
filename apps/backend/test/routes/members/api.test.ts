@@ -27,6 +27,9 @@ import { db } from '../../../src/db/connection.ts'
 import { addMember } from '../../../src/db/member-queries.ts'
 import { generateMagicLinkToken } from '../../../src/routes/auth/magiclink.ts'
 import { createPendingEmailChange } from '../../../src/db/email-change-queries.ts'
+import { insertBooking, getBookings } from '../../../src/db/booking-queries.ts'
+import { BookingStatus, BookingType } from '../../../src/routes/bookings/models.ts'
+import dayjs from 'dayjs'
 
 // Create an instance of the Express app
 const app = express()
@@ -795,6 +798,115 @@ describe('PATCH /members/id', () => {
     const revertedRole = reverted.body as Member
     expect(revertedRole.firstName).toEqual('MIK')
     expect(revertedRole.isTrainingProgramPilot).toBe(false)
+  })
+
+  describe('canMakeReservations revocation cancels future bookings', () => {
+    // Matti1 has canMakeReservations=true in test data (V30__MemberData.sql)
+    const testMemberId = 'Matti1'
+    const adminJwt = {
+      memberId: 'k1mnimda',
+      lastName: 'Admin',
+      email: 'admin@mik.fi',
+      roles: ['ADMIN'] as string[],
+      permissions: [MIKPermissions.MEMBER_ADMIN],
+      canMakeReservations: false,
+    }
+    let insertedBookingId: string
+
+    beforeEach(async () => {
+      // Insert a future booking for Matti1 using a fixed far-future date for test stability
+      const futureStart = dayjs('2030-06-01T10:00:00Z')
+      const futureEnd = futureStart.add(1, 'hour')
+      const booking = await insertBooking(
+        {
+          memberId: testMemberId,
+          registration: 'OH-STL',
+          status: BookingStatus.CONFIRMED,
+          type: BookingType.TRAINING,
+          startTimeEpoch: futureStart.unix().toString(),
+          endTimeEpoch: futureEnd.unix().toString(),
+          instructorMemberId: 'k1mnimda',
+        },
+        adminJwt,
+      )
+      insertedBookingId = booking.bookingId
+    })
+
+    afterEach(async () => {
+      // Clean up inserted booking and restore canMakeReservations
+      await db.deleteFrom('schedule.bookings').where('booking_id', '=', insertedBookingId).execute()
+      await patch(testMemberId, { canMakeReservations: true }, adminToken)
+      // Restore any testdata bookings for this member that were cancelled as a side-effect of
+      // the true→false canMakeReservations transition (stl*/ihq* are shared testdata used by
+      // other test suites and must not be left in a cancelled state).
+      await db
+        .updateTable('schedule.bookings')
+        .set({ booking_status: BookingStatus.CONFIRMED, cancelled_at: null, cancelled_by: null })
+        .where('member_id', '=', testMemberId)
+        .where(eb => eb.or([eb('booking_id', 'like', 'stl%'), eb('booking_id', 'like', 'ihq%')]))
+        .where('booking_status', '=', BookingStatus.CANCELLED)
+        .execute()
+    })
+
+    it('cancels future bookings when canMakeReservations transitions true → false', async () => {
+      const bookingsBefore = await getBookings({ memberId: testMemberId })
+      expect(bookingsBefore.some(b => b.bookingId === insertedBookingId)).toBe(true)
+
+      const response = await patch(testMemberId, { canMakeReservations: false }, adminToken)
+      expect(response.status).toBe(200)
+      expect((response.body as Member).canMakeReservations).toBe(false)
+
+      const bookingsAfter = await getBookings({ memberId: testMemberId })
+      expect(bookingsAfter.some(b => b.bookingId === insertedBookingId)).toBe(false)
+    })
+
+    it('does not cancel future bookings when canMakeReservations stays true', async () => {
+      const bookingsBefore = await getBookings({ memberId: testMemberId })
+      expect(bookingsBefore.some(b => b.bookingId === insertedBookingId)).toBe(true)
+
+      const response = await patch(testMemberId, { canMakeReservations: true }, adminToken)
+      expect(response.status).toBe(200)
+
+      const bookingsAfter = await getBookings({ memberId: testMemberId })
+      expect(bookingsAfter.some(b => b.bookingId === insertedBookingId)).toBe(true)
+    })
+
+    it('does not cancel future bookings when canMakeReservations is already false', async () => {
+      // First revoke access via true → false transition
+      await patch(testMemberId, { canMakeReservations: false }, adminToken)
+
+      // Insert a second future booking directly via the DB layer to simulate an edge case
+      // where a booking exists for a member whose access is already revoked (e.g. created
+      // by an admin on their behalf). A subsequent false → false PATCH must not cancel it.
+      const futureStart = dayjs('2030-06-02T10:00:00Z')
+      const futureEnd = futureStart.add(1, 'hour')
+      const secondBooking = await insertBooking(
+        {
+          memberId: testMemberId,
+          registration: 'OH-IHQ',
+          status: BookingStatus.CONFIRMED,
+          type: BookingType.TRAINING,
+          startTimeEpoch: futureStart.unix().toString(),
+          endTimeEpoch: futureEnd.unix().toString(),
+          instructorMemberId: 'k1mnimda',
+        },
+        adminJwt,
+      )
+
+      try {
+        // Patching false → false should not trigger cancellation
+        const response = await patch(testMemberId, { canMakeReservations: false }, adminToken)
+        expect(response.status).toBe(200)
+
+        const bookingsAfter = await getBookings({ memberId: testMemberId })
+        expect(bookingsAfter.some(b => b.bookingId === secondBooking.bookingId)).toBe(true)
+      } finally {
+        await db
+          .deleteFrom('schedule.bookings')
+          .where('booking_id', '=', secondBooking.bookingId)
+          .execute()
+      }
+    })
   })
 })
 
