@@ -187,7 +187,7 @@
     "@event-driven-io/emmett-postgresql": "^0.42.1",
     "@event-driven-io/pongo": "^0.16.11",
     "@simplewebauthn/server": "13.3.0",
-    "axios": "^1.16.0",
+    "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
     "bottleneck": "^2.19.5",
     "bwip-js": "^4.10.1",
