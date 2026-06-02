@@ -1740,6 +1740,8 @@
       "supportedLanguages": "Saatavilla olevat kielet",
       "defaultLanguage": "Oletuskieli",
       "passPercent": "Hyväksymis-%",
+      "questionCount": "Kysymyksiä per suoritus (tyhjä = kaikki)",
+      "questionCountHelp": "Jätä tyhjäksi, jos haluat käyttää kaikki kysymykset",
       "cloneFromPublished": "Kopioi julkaistusta versiosta",
       "addQuestion": "Lisää kysymys",
       "questionPrompt": "Kysymys",

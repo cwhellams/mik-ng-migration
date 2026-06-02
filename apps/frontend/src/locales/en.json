@@ -1743,6 +1743,8 @@
       "supportedLanguages": "Supported Languages",
       "defaultLanguage": "Default Language",
       "passPercent": "Pass %",
+      "questionCount": "Questions per attempt (leave blank to use all)",
+      "questionCountHelp": "Leave blank to include all questions",
       "cloneFromPublished": "Clone from Published",
       "addQuestion": "Add Question",
       "questionPrompt": "Prompt",

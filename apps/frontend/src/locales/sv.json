@@ -1707,6 +1707,8 @@
       "supportedLanguages": "Tillgängliga språk",
       "defaultLanguage": "Standardspråk",
       "passPercent": "Godkänt %",
+      "questionCount": "Frågor per försök (lämna tomt för alla)",
+      "questionCountHelp": "Lämna tomt för att använda alla frågor",
       "cloneFromPublished": "Kopiera från publicerad version",
       "addQuestion": "Lägg till fråga",
       "questionPrompt": "Fråga",

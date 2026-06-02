@@ -33,6 +33,15 @@ function toIso(d: Date | string | null | undefined): string {
   return d instanceof Date ? d.toISOString() : d
 }
 
+function fisherYatesShuffle<T>(arr: T[]): T[] {
+  const result = [...arr]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Exams
 // ─────────────────────────────────────────────────────────────────────────────
@@ -186,6 +195,7 @@ export async function getVersionsByExamId(examId: string): Promise<ExamVersion[]
     defaultLanguage: r.default_language,
     supportedLanguages: r.supported_languages,
     passPercent: Number(r.pass_percent),
+    questionCount: r.question_count ?? null,
     createdAt: toIso(r.created_at),
     createdBy: r.created_by,
     updatedAt: toIso(r.updated_at),
@@ -208,6 +218,7 @@ export async function getVersionById(versionId: string): Promise<ExamVersion | u
     defaultLanguage: r.default_language,
     supportedLanguages: r.supported_languages,
     passPercent: Number(r.pass_percent),
+    questionCount: r.question_count ?? null,
     createdAt: toIso(r.created_at),
     createdBy: r.created_by,
     updatedAt: toIso(r.updated_at),
@@ -336,6 +347,7 @@ export async function createVersion(
         default_language: data.defaultLanguage ?? 'en',
         supported_languages: data.supportedLanguages ?? [],
         pass_percent: data.passPercent ?? 75,
+        question_count: data.questionCount ?? null,
         created_at: now,
         created_by: user.memberId,
         updated_at: now,
@@ -414,6 +426,7 @@ export async function updateVersion(
         supported_languages: data.supportedLanguages,
       }),
       ...(data.passPercent !== undefined && { pass_percent: data.passPercent }),
+      ...('questionCount' in data && { question_count: data.questionCount ?? null }),
       updated_at: new Date(),
       updated_by: user.memberId,
     })
@@ -815,56 +828,170 @@ export async function createAttempt(
 ): Promise<Attempt> {
   const id = newId()
   const now = new Date()
-  await db
-    .insertInto('exam.attempts')
-    .values({
-      attempt_id: id,
-      version_id: versionId,
-      member_id: memberId,
-      language,
-      status: 'IN_PROGRESS',
-      created_at: now,
-      updated_at: now,
-    })
+
+  const version = await getVersionById(versionId)
+  if (!version) return problem({ status: 404, detail: 'Exam version not found' })
+
+  const allQuestions = await db
+    .selectFrom('exam.questions')
+    .select('question_id')
+    .where('version_id', '=', versionId)
     .execute()
+
+  const shuffled = fisherYatesShuffle(allQuestions.map(q => q.question_id))
+  const selected =
+    version.questionCount != null && version.questionCount < shuffled.length
+      ? shuffled.slice(0, version.questionCount)
+      : shuffled
+
+  await db.transaction().execute(async trx => {
+    await trx
+      .insertInto('exam.attempts')
+      .values({
+        attempt_id: id,
+        version_id: versionId,
+        member_id: memberId,
+        language,
+        status: 'IN_PROGRESS',
+        created_at: now,
+        updated_at: now,
+      })
+      .execute()
+
+    for (let i = 0; i < selected.length; i++) {
+      await trx
+        .insertInto('exam.attempt_questions')
+        .values({ attempt_id: id, question_id: selected[i], sort_order: i })
+        .execute()
+    }
+  })
+
   const created = await getAttemptById(id)
   if (!created) return problem({ status: 500, detail: 'Failed to create attempt' })
   return created
 }
 
+export async function getAttemptVersionDetail(
+  attemptId: string,
+): Promise<ExamVersionDetail | undefined> {
+  const attempt = await getAttemptById(attemptId)
+  if (!attempt) return undefined
+
+  const version = await getVersionById(attempt.versionId)
+  if (!version) return undefined
+
+  // translations
+  const tranRows = await db
+    .selectFrom('exam.exam_version_translations')
+    .selectAll()
+    .where('version_id', '=', attempt.versionId)
+    .execute()
+  const translations: ExamVersionDetail['translations'] = {}
+  for (const t of tranRows) {
+    translations[t.language] = { title: t.title, description: t.description }
+  }
+
+  // Only the questions assigned to this attempt, in attempt order
+  const aqRows = await db
+    .selectFrom('exam.attempt_questions as aq')
+    .innerJoin('exam.questions as q', 'q.question_id', 'aq.question_id')
+    .select([
+      'q.question_id',
+      'q.version_id',
+      'q.sort_order',
+      'aq.sort_order as attempt_sort_order',
+    ])
+    .where('aq.attempt_id', '=', attemptId)
+    .orderBy('aq.sort_order')
+    .execute()
+
+  if (aqRows.length === 0) {
+    return { ...version, translations, questions: [] }
+  }
+
+  const questionIds = aqRows.map(r => r.question_id)
+
+  const qtRows = await db
+    .selectFrom('exam.question_translations')
+    .selectAll()
+    .where('question_id', 'in', questionIds)
+    .execute()
+
+  const cRows = await db
+    .selectFrom('exam.choices')
+    .selectAll()
+    .where('question_id', 'in', questionIds)
+    .orderBy('sort_order')
+    .execute()
+
+  const choiceIds = cRows.map(c => c.choice_id)
+  const ctRows =
+    choiceIds.length > 0
+      ? await db
+          .selectFrom('exam.choice_translations')
+          .selectAll()
+          .where('choice_id', 'in', choiceIds)
+          .execute()
+      : []
+
+  const qtByQuestion = new Map<string, Question['translations']>()
+  for (const qt of qtRows) {
+    if (!qtByQuestion.has(qt.question_id)) qtByQuestion.set(qt.question_id, {})
+    qtByQuestion.get(qt.question_id)![qt.language] = { prompt: qt.prompt, reasoning: qt.reasoning }
+  }
+
+  const ctByChoice = new Map<string, Choice['translations']>()
+  for (const ct of ctRows) {
+    if (!ctByChoice.has(ct.choice_id)) ctByChoice.set(ct.choice_id, {})
+    ctByChoice.get(ct.choice_id)![ct.language] = { text: ct.text }
+  }
+
+  const choicesByQuestion = new Map<string, Choice[]>()
+  for (const c of cRows) {
+    if (!choicesByQuestion.has(c.question_id)) choicesByQuestion.set(c.question_id, [])
+    choicesByQuestion.get(c.question_id)!.push({
+      choiceId: c.choice_id,
+      questionId: c.question_id,
+      isCorrect: c.is_correct,
+      sortOrder: c.sort_order,
+      translations: ctByChoice.get(c.choice_id) ?? {},
+    })
+  }
+
+  const questions: ExamVersionDetail['questions'] = aqRows.map(r => ({
+    questionId: r.question_id,
+    versionId: r.version_id,
+    sortOrder: r.attempt_sort_order,
+    translations: qtByQuestion.get(r.question_id) ?? {},
+    choices: choicesByQuestion.get(r.question_id) ?? [],
+  }))
+
+  return { ...version, translations, questions }
+}
+
 export async function validateAnswerInputs(
-  versionId: string,
+  attemptId: string,
   questionId: string,
   choiceId?: string | null,
 ): Promise<{ valid: boolean; detail?: string }> {
-  // Single query: join question to optional choice when choiceId is provided
-  let query = db
-    .selectFrom('exam.questions as q')
-    .select(['q.question_id'])
-    .where('q.question_id', '=', questionId)
-    .where('q.version_id', '=', versionId)
+  // Verify the question was assigned to this attempt
+  const aqRow = await db
+    .selectFrom('exam.attempt_questions')
+    .select('question_id')
+    .where('attempt_id', '=', attemptId)
+    .where('question_id', '=', questionId)
+    .executeTakeFirst()
+
+  if (!aqRow) return { valid: false, detail: 'Question not part of this attempt' }
 
   if (choiceId) {
-    query = query
-      .innerJoin('exam.choices as c', join =>
-        join.onRef('c.question_id', '=', 'q.question_id').on('c.choice_id', '=', choiceId),
-      )
-      .select('c.choice_id') as typeof query
-  }
-
-  const row = await query.executeTakeFirst()
-
-  if (!row) {
-    // Distinguish which check failed: first verify the question exists in the version
-    const questionExists = await db
-      .selectFrom('exam.questions')
-      .select('question_id')
+    const choiceRow = await db
+      .selectFrom('exam.choices')
+      .select('choice_id')
+      .where('choice_id', '=', choiceId)
       .where('question_id', '=', questionId)
-      .where('version_id', '=', versionId)
       .executeTakeFirst()
-    if (!questionExists)
-      return { valid: false, detail: 'Question does not belong to this exam version' }
-    return { valid: false, detail: 'Choice does not belong to this question' }
+    if (!choiceRow) return { valid: false, detail: 'Choice does not belong to this question' }
   }
 
   return { valid: true }
@@ -926,7 +1053,7 @@ export async function submitAttempt(attemptId: string): Promise<Attempt> {
   if (attempt.status !== 'IN_PROGRESS')
     return problem({ status: 409, detail: 'Attempt is not in progress' })
 
-  const detail = await getVersionDetail(attempt.versionId)
+  const detail = await getAttemptVersionDetail(attemptId)
   if (!detail) return problem({ status: 404, detail: 'Exam version not found' })
 
   const answers = await getAttemptAnswers(attemptId)

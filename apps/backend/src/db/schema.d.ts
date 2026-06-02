@@ -344,6 +344,12 @@ export interface ExamAttemptAnswers {
   updated_at: Generated<Timestamp>
 }
 
+export interface ExamAttemptQuestions {
+  attempt_id: string
+  question_id: string
+  sort_order: Generated<number>
+}
+
 export interface ExamAttempts {
   abandon_reason: string | null
   abandoned_at: Timestamp | null
@@ -391,6 +397,7 @@ export interface ExamExamVersions {
   default_language: Generated<string>
   exam_id: string
   pass_percent: Generated<Numeric>
+  question_count: number | null
   status: Generated<ExamExamVersionStatus>
   supported_languages: Generated<string[]>
   updated_at: Generated<Timestamp>
@@ -1423,6 +1430,7 @@ export interface DB {
   emt_projections: EmtProjections
   emt_streams: EmtStreams
   'exam.attempt_answers': ExamAttemptAnswers
+  'exam.attempt_questions': ExamAttemptQuestions
   'exam.attempts': ExamAttempts
   'exam.choice_translations': ExamChoiceTranslations
   'exam.choices': ExamChoices

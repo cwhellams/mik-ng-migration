@@ -23,6 +23,7 @@ const mockGetVersionById = jest.fn<() => Promise<unknown>>()
 const mockGetVersionByQuestionId = jest.fn<() => Promise<unknown>>()
 const mockGetVersionByChoiceId = jest.fn<() => Promise<unknown>>()
 const mockGetVersionDetail = jest.fn<() => Promise<unknown>>()
+const mockGetAttemptVersionDetail = jest.fn<() => Promise<unknown>>()
 const mockCreateVersion = jest.fn<() => Promise<unknown>>()
 const mockUpdateVersion = jest.fn<() => Promise<unknown>>()
 const mockPublishVersion = jest.fn<() => Promise<unknown>>()
@@ -54,6 +55,7 @@ jest.unstable_mockModule('../../../src/db/exam-queries.ts', () => ({
   getVersionByQuestionId: mockGetVersionByQuestionId,
   getVersionByChoiceId: mockGetVersionByChoiceId,
   getVersionDetail: mockGetVersionDetail,
+  getAttemptVersionDetail: mockGetAttemptVersionDetail,
   createVersion: mockCreateVersion,
   updateVersion: mockUpdateVersion,
   publishVersion: mockPublishVersion,
@@ -435,5 +437,89 @@ describe('GET /exams/admin/attempts', () => {
       .get('/exams/admin/attempts')
       .set('Cookie', `accessToken=${examUserToken}`)
     expect(res.status).toBe(403)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /exams/attempts/:attemptId/version — uses getAttemptVersionDetail
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('GET /exams/attempts/:attemptId/version', () => {
+  beforeEach(() => {
+    mockGetAttemptById.mockResolvedValue({
+      attemptId: 'ATT00001',
+      versionId: 'VER00001',
+      memberId: 'MEMBER001',
+      language: 'en',
+      status: 'IN_PROGRESS',
+    })
+    mockGetAttemptVersionDetail.mockResolvedValue({
+      versionId: 'VER00001',
+      examId: 'EXAM00001',
+      versionNumber: 1,
+      status: 'PUBLISHED',
+      defaultLanguage: 'en',
+      supportedLanguages: ['en'],
+      passPercent: 75,
+      questionCount: 3,
+      translations: {},
+      questions: [
+        { questionId: 'Q001', versionId: 'VER00001', sortOrder: 0, translations: {}, choices: [] },
+        { questionId: 'Q002', versionId: 'VER00001', sortOrder: 1, translations: {}, choices: [] },
+        { questionId: 'Q003', versionId: 'VER00001', sortOrder: 2, translations: {}, choices: [] },
+      ],
+    })
+  })
+
+  it('returns only the attempt question subset for the owning member', async () => {
+    const res = await request(app)
+      .get('/exams/attempts/ATT00001/version')
+      .set('Cookie', `accessToken=${examUserToken}`)
+    expect(res.status).toBe(200)
+    expect(res.body.questions).toHaveLength(3)
+    expect(mockGetAttemptVersionDetail).toHaveBeenCalledWith('ATT00001')
+  })
+
+  it('returns 403 when member does not own the attempt', async () => {
+    mockGetAttemptById.mockResolvedValue({
+      attemptId: 'ATT00001',
+      versionId: 'VER00001',
+      memberId: 'OTHER001',
+      language: 'en',
+      status: 'IN_PROGRESS',
+    })
+    const res = await request(app)
+      .get('/exams/attempts/ATT00001/version')
+      .set('Cookie', `accessToken=${examUserToken}`)
+    expect(res.status).toBe(403)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PUT /exams/attempts/:attemptId/answers — answer validation scoped to attempt
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('PUT /exams/attempts/:attemptId/answers — question not in attempt', () => {
+  beforeEach(() => {
+    mockGetAttemptById.mockResolvedValue({
+      attemptId: 'ATT00001',
+      versionId: 'VER00001',
+      memberId: 'MEMBER001',
+      language: 'en',
+      status: 'IN_PROGRESS',
+    })
+  })
+
+  it('returns 400 when question is not part of the attempt', async () => {
+    mockValidateAnswerInputs.mockResolvedValue({
+      valid: false,
+      detail: 'Question not part of this attempt',
+    })
+    const res = await request(app)
+      .put('/exams/attempts/ATT00001/answers')
+      .set('Cookie', `accessToken=${examUserToken}`)
+      .send({ questionId: 'QOTHER01', choiceId: null })
+    expect(res.status).toBe(400)
+    expect(mockValidateAnswerInputs).toHaveBeenCalledWith('ATT00001', 'QOTHER01', null)
   })
 })

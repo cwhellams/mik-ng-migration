@@ -452,6 +452,7 @@ export default function ExamVersionEditorPage() {
     defaultLanguage: ExamLanguage
     supportedLanguages: ExamLanguage[]
     passPercent: number
+    questionCount: number | null
   } | null>(null)
   const [savingVersionSettings, setSavingVersionSettings] = useState(false)
   const [versionSettingsError, setVersionSettingsError] = useState<
@@ -484,6 +485,7 @@ export default function ExamVersionEditorPage() {
         'en',
       supportedLanguages,
       passPercent: version.passPercent,
+      questionCount: version.questionCount ?? null,
     })
   }, [version])
 
@@ -519,6 +521,7 @@ export default function ExamVersionEditorPage() {
         defaultLanguage: versionSettings.defaultLanguage,
         supportedLanguages: versionSettings.supportedLanguages,
         passPercent: versionSettings.passPercent,
+        questionCount: versionSettings.questionCount,
       })
       await mutate()
     } catch {
@@ -663,6 +666,28 @@ export default function ExamVersionEditorPage() {
                   fullWidth
                   sx={{ mb: 2 }}
                   inputProps={{ min: 0, max: 100 }}
+                />
+                <TextField
+                  label={t('exams.admin.questionCount')}
+                  type='number'
+                  value={versionSettings.questionCount ?? ''}
+                  onChange={(e) =>
+                    setVersionSettings((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            questionCount:
+                              e.target.value === ''
+                                ? null
+                                : Number(e.target.value),
+                          }
+                        : prev
+                    )
+                  }
+                  fullWidth
+                  sx={{ mb: 2 }}
+                  inputProps={{ min: 1 }}
+                  helperText={t('exams.admin.questionCountHelp')}
                 />
                 <Button
                   onClick={handleSaveVersionSettings}
