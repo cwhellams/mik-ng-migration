@@ -19,6 +19,10 @@ import { FlightLogStatus } from '../routes/flight-log/models.ts'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import { db } from './connection.ts'
 import type { AcctsInvoice, AcctsItems } from './schema.js'
+import {
+  HALF_YEAR_DISCOUNT_PERCENT,
+  isAfterEquipmentFeeDiscountDate,
+} from '../util/feeDiscounts.ts'
 
 function overdueInvoiceCutoff(): string {
   const now = new Date()
@@ -112,6 +116,9 @@ export async function getAnnualEquipmmentFee(): Promise<EquipmentFee | undefined
     unit: rawItem.unit,
     markup_value: rawItem.markup_value,
     discount_amount: Number(process.env.EQUIPMENT_FEE_DISCOUNT_PER_HOUR || 0),
+    seasonal_discount_percent: isAfterEquipmentFeeDiscountDate()
+      ? HALF_YEAR_DISCOUNT_PERCENT
+      : undefined,
   }
 
   return EquipmentFeeSchema.parse(equipmentFee)

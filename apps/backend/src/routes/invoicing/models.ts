@@ -109,6 +109,7 @@ export const EquipmentFeeSchema = z.object({
   unit: z.string(),
   markup_value: z.number(),
   discount_amount: z.number(),
+  seasonal_discount_percent: z.number().optional(),
 })
 
 export type EquipmentFee = z.infer<typeof EquipmentFeeSchema>

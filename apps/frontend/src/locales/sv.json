@@ -1251,6 +1251,7 @@
       "editBooking": "Redigera bokning"
     },
     "equipmentFeeNotPaid": "Din utrustningsavgift för {{year}} har inte betalats. Om du inte vill betala extra €{{discount}} per timme på flygningar kan du begära utrustningsavgiften genom att klicka på knappen. Om du begär en faktura för utrustningsavgiften tillämpas rabatten omedelbart.",
+    "equipmentFeeSeasonalDiscountNote": "{{percent}}% säsongsrabatt gäller — din faktura för utrustningsavgiften blir €{{discountedAmount}} ({{percent}}% av €{{amount}}).",
     "requestInvoice": "Begär faktura",
     "requestingInvoice": "Begär...",
     "viewInvoices": "Visa fakturor",
@@ -1260,6 +1261,7 @@
     "confirmEquipmentFee": {
       "title": "Bekräfta utrustningsavgiftsbegäran",
       "message": "Genom att klicka på Godkänn förbinder du dig att betala fakturan för utrustningsavgiften på €{{amount}}, som skickas till dig inom kort. Avgiften på €{{discount}} per timme kommer inte att tillämpas på kommande fakturor.",
+      "messageWithDiscount": "Genom att klicka på Godkänn förbinder du dig att betala fakturan för utrustningsavgiften på €{{discountedAmount}} ({{percent}}% säsongsrabatt, ordinarie pris €{{amount}}), som skickas till dig inom kort. Avgiften på €{{discount}} per timme kommer inte att tillämpas på kommande fakturor.",
       "accept": "Acceptera",
       "cancel": "Avbryt"
     },

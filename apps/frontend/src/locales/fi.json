@@ -1250,6 +1250,7 @@
       "editBooking": "Muokkaa varausta"
     },
     "equipmentFeeNotPaid": "Kalustomaksuasi vuodelle {{year}} ei ole maksettu. Jos et halua maksaa {{discount}}€ lisähintaa tunnilta lentokoneen käytöstä, pyydä kalustomaksu napsauttamalla painiketta. Kun pyydät kalustomaksun laskun, alennus otetaan käyttöön välittömästi.",
+    "equipmentFeeSeasonalDiscountNote": "{{percent}}% kausikohtainen alennus – kalustomaksulaskusi summa on €{{discountedAmount}} ({{percent}}% alkuperäisestä €{{amount}}).",
     "requestInvoice": "Pyydä lasku",
     "requestingInvoice": "Pyydetään...",
     "viewInvoices": "Näytä laskut",
@@ -1259,6 +1260,7 @@
     "confirmEquipmentFee": {
       "title": "Vahvista kalustomaksupyyntö",
       "message": "Klikkaamalla Hyväksy sitoudut maksamaan kalustomaksulaskun €{{amount}}, joka lähetetään sinulle pian. Kalustomaksu astuu välittömästi voimaan ja {{discount}}€ lisämaksua ei lisätä lentohintoihin tulevissa laskuissa.",
+      "messageWithDiscount": "Klikkaamalla Hyväksy sitoudut maksamaan kalustomaksulaskun €{{discountedAmount}} ({{percent}}% kausialennus, alkuperäinen hinta €{{amount}}), joka lähetetään sinulle pian. Kalustomaksu astuu välittömästi voimaan ja {{discount}}€ lisämaksua ei lisätä lentohintoihin tulevissa laskuissa.",
       "accept": "Hyväksy",
       "cancel": "Peruuta"
     },

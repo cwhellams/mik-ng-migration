@@ -14,6 +14,11 @@ import {
 } from './config.ts'
 
 import { createInvoicePostPayload } from './invoiceTemplate.ts'
+import {
+  HALF_YEAR_DISCOUNT_PERCENT,
+  isAfterEquipmentFeeDiscountDate,
+  isAfterMembershipFeeDiscountDate,
+} from '../../util/feeDiscounts.ts'
 
 const getMemberFeeSimplBooksCodeFromMemberType = (memberType: MIKMemberTypes) => {
   switch (memberType) {
@@ -41,16 +46,21 @@ const getJoiningFeeSimplBooksCodeFromMemberType = (memberType: MIKMemberTypes) =
   }
 }
 
-const createTasksFromArticleCodes = async (
-  articleCodes: string[],
+interface ArticleTaskInput {
+  code: string
+  discountPercent?: number
+}
+
+const createTasksFromArticleInputs = async (
+  articles: ArticleTaskInput[],
 ): Promise<InvoicePost['Tasks']> => {
   const tasks: InvoicePost['Tasks'] = []
 
-  for (const articleCode of articleCodes) {
-    const article = await simplbooksApiClient.getItemByCode(articleCode)
+  for (const { code, discountPercent } of articles) {
+    const article = await simplbooksApiClient.getItemByCode(code)
 
     if (!article) {
-      throw new Error(`Article with code '${articleCode}' not found in SimplBooks`)
+      throw new Error(`Article with code '${code}' not found in SimplBooks`)
     }
 
     tasks.push({
@@ -58,6 +68,9 @@ const createTasksFromArticleCodes = async (
         article_id: article.id,
         amount: 1,
         price_per_unit: article.markup_value,
+        ...(discountPercent !== undefined && discountPercent > 0
+          ? { discount: discountPercent }
+          : {}),
       },
       Projects: [
         {
@@ -70,13 +83,27 @@ const createTasksFromArticleCodes = async (
   return tasks
 }
 
+const createTasksFromArticleCodes = async (
+  articleCodes: string[],
+): Promise<InvoicePost['Tasks']> => {
+  return createTasksFromArticleInputs(articleCodes.map(code => ({ code })))
+}
+
 export const createNewMemberFeesInvoicePayload = async (
   member: InvoiceMember,
+  date: Date,
 ): Promise<InvoicePost> => {
   const articleAnnualFeeCode = getMemberFeeSimplBooksCodeFromMemberType(member.memberType)
   const articleJoiningFeeCode = getJoiningFeeSimplBooksCodeFromMemberType(member.memberType)
 
-  const tasks = await createTasksFromArticleCodes([articleJoiningFeeCode, articleAnnualFeeCode])
+  const membershipFeeDiscountPercent = isAfterMembershipFeeDiscountDate(date)
+    ? HALF_YEAR_DISCOUNT_PERCENT
+    : undefined
+
+  const tasks = await createTasksFromArticleInputs([
+    { code: articleJoiningFeeCode },
+    { code: articleAnnualFeeCode, discountPercent: membershipFeeDiscountPercent },
+  ])
 
   const invoice: InvoicePost = {
     Invoice: createInvoicePostPayload(member, true),
@@ -103,10 +130,18 @@ export const createAnnualMemberFeeInvoicePayload = async (
 
 export const createAnnualMemberFeeWithEquipmentFeeInvoicePayload = async (
   member: InvoiceMember,
+  date: Date,
 ): Promise<InvoicePost> => {
   const articleAnnualFeeCode = getMemberFeeSimplBooksCodeFromMemberType(member.memberType)
 
-  const tasks = await createTasksFromArticleCodes([articleAnnualFeeCode, ART_EQUIP_FEE_CODE])
+  const equipmentFeeDiscountPercent = isAfterEquipmentFeeDiscountDate(date)
+    ? HALF_YEAR_DISCOUNT_PERCENT
+    : undefined
+
+  const tasks = await createTasksFromArticleInputs([
+    { code: articleAnnualFeeCode },
+    { code: ART_EQUIP_FEE_CODE, discountPercent: equipmentFeeDiscountPercent },
+  ])
 
   const invoice: InvoicePost = {
     Invoice: createInvoicePostPayload(member, true),
@@ -118,8 +153,15 @@ export const createAnnualMemberFeeWithEquipmentFeeInvoicePayload = async (
 
 export const createAnnualEquipmentFeeInvoicePayload = async (
   member: InvoiceMember,
+  date: Date,
 ): Promise<InvoicePost> => {
-  const tasks = await createTasksFromArticleCodes([ART_EQUIP_FEE_CODE])
+  const equipmentFeeDiscountPercent = isAfterEquipmentFeeDiscountDate(date)
+    ? HALF_YEAR_DISCOUNT_PERCENT
+    : undefined
+
+  const tasks = await createTasksFromArticleInputs([
+    { code: ART_EQUIP_FEE_CODE, discountPercent: equipmentFeeDiscountPercent },
+  ])
 
   const invoice: InvoicePost = {
     Invoice: createInvoicePostPayload(member, true),
