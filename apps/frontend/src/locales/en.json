@@ -905,6 +905,62 @@
       "flightsToMove": "Unconfirmed flights to move to new logbook",
       "oldBookMustBeEnded": "Old logbook must be ended first.",
       "showOldBooks": "Show old logbooks"
+    },
+    "export": {
+      "button": "Export",
+      "title": "Export Flight Logs",
+      "dateRange": "Date Range",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "allAircraft": "All Aircraft",
+      "countLoading": "Counting...",
+      "countResult": "{{count}} flight logs in this range",
+      "countResultZero": "No flight logs in this range",
+      "format": "Export Format",
+      "exportButton": "Export",
+      "exporting": "Exporting...",
+      "formats": {
+        "CSV": {
+          "label": "Generic CSV",
+          "extension": ".csv",
+          "platforms": "Excel, Google Sheets, and other platforms"
+        },
+        "FOREFLIGHT": {
+          "label": "ForeFlight",
+          "extension": ".csv",
+          "platforms": "ForeFlight, CloudAhoy"
+        },
+        "MYFLIGHTBOOK": {
+          "label": "MyFlightbook",
+          "extension": ".csv",
+          "platforms": "MyFlightbook"
+        },
+        "CREWLOUNGE": {
+          "label": "CrewLounge Pilotlog",
+          "extension": ".csv",
+          "platforms": "CrewLounge Pilotlog"
+        },
+        "LOGBOOK_AERO": {
+          "label": "logbook.aero",
+          "extension": ".csv",
+          "platforms": "logbook.aero"
+        },
+        "LOGTEN": {
+          "label": "LogTen Pilot Logbook",
+          "extension": ".csv",
+          "platforms": "LogTen Pilot Logbook"
+        },
+        "FLYLOG": {
+          "label": "flylog.io",
+          "extension": ".csv",
+          "platforms": "flylog.io"
+        },
+        "EASA_PDF": {
+          "label": "EASA Logbook",
+          "extension": ".pdf",
+          "platforms": "EASA Part-FCL compliant pilot logbook"
+        }
+      }
     }
   },
   "invoicing": {

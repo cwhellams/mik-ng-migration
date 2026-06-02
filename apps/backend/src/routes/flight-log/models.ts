@@ -610,3 +610,35 @@ export const InvoiceFlightsSchema = z
   .strict()
 
 export type InvoiceFlights = z.infer<typeof InvoiceFlightsSchema>
+
+export enum FlightLogExportFormat {
+  FOREFLIGHT = 'FOREFLIGHT',
+  MYFLIGHTBOOK = 'MYFLIGHTBOOK',
+  CREWLOUNGE = 'CREWLOUNGE',
+  LOGBOOK_AERO = 'LOGBOOK_AERO',
+  LOGTEN = 'LOGTEN',
+  FLYLOG = 'FLYLOG',
+  CSV = 'CSV',
+  EASA_PDF = 'EASA_PDF',
+}
+
+export const FlightLogExportFiltersSchema = z
+  .object({
+    startDate: z.string().datetime().optional(),
+    endDate: z.string().datetime().optional(),
+    aircraftRegistration: z.string().optional(),
+    format: z.nativeEnum(FlightLogExportFormat).optional(),
+  })
+  .strict()
+
+export type FlightLogExportFilters = z.infer<typeof FlightLogExportFiltersSchema>
+
+export type FlightLogExportEntry = FlightLogListEntry & {
+  flightMins: number
+  picRole: string | null
+  aircraftModel: string | null
+  personalRemarks: string | null
+}
+
+export const FlightLogExportCountResponseSchema = z.object({ count: z.number().int() })
+export type FlightLogExportCountResponse = z.infer<typeof FlightLogExportCountResponseSchema>

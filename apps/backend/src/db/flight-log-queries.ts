@@ -18,6 +18,8 @@ import {
   InvoicableFlights,
   type FlightLogStats,
   type FlightCredit,
+  type FlightLogExportFilters,
+  type FlightLogExportEntry,
 } from '../routes/flight-log/models.ts'
 import type { MIKPermissions } from '../routes/members/models.ts'
 import { generateShortId } from '../util/nanoId.ts'
@@ -887,4 +889,119 @@ export async function upsertFlightCredit(
     .execute()
 
   return { flightId, creditedMins, note }
+}
+
+function buildExportBaseQuery(filters: FlightLogExportFilters, memberId?: string) {
+  return db
+    .selectFrom('flight.logs')
+    .leftJoin(
+      'flight.aircraft',
+      'flight.logs.aircraft_registration',
+      'flight.aircraft.registration',
+    )
+    .$if(!!memberId, qb => qb.where('billable_member_id', '=', memberId!))
+    .$if(!!filters.aircraftRegistration, qb =>
+      qb.where('aircraft_registration', '=', filters.aircraftRegistration!),
+    )
+    .$if(!!filters.startDate, qb =>
+      qb.where('off_block_time_epoch', '>=', dayjs(filters.startDate!).unix().toString()),
+    )
+    .$if(!!filters.endDate, qb =>
+      qb.where('on_block_time_epoch', '<=', dayjs(filters.endDate!).endOf('day').unix().toString()),
+    )
+}
+
+export async function countFlightLogsForExport(
+  filters: FlightLogExportFilters,
+  memberId?: string,
+): Promise<number> {
+  const { count } = await buildExportBaseQuery(filters, memberId)
+    .select(eb => eb.fn.countAll<number>().as('count'))
+    .executeTakeFirstOrThrow()
+  return Number(count)
+}
+
+export async function getFlightLogsForExport(
+  filters: FlightLogExportFilters,
+  memberId?: string,
+): Promise<FlightLogExportEntry[]> {
+  const results = await buildExportBaseQuery(filters, memberId)
+    .select([
+      'flight.logs.aircraft_registration',
+      'flight.logs.ajlb_blank_rows_before',
+      'flight.logs.ajlb_seq_no',
+      'flight.logs.arrival_airport',
+      'flight.logs.billable_member_id',
+      'flight.logs.block_time',
+      'flight.logs.crew2_last_name',
+      'flight.logs.departure_airport',
+      'flight.logs.flight_id',
+      'flight.logs.flight_mins',
+      'flight.logs.flight_time',
+      'flight.logs.flight_type',
+      'flight.logs.fuel_remaining_litres',
+      'flight.logs.fuel_uplift_litres',
+      'flight.logs.incident_or_observations',
+      'flight.logs.instrument_flying_mins',
+      'flight.logs.invoice_number',
+      'flight.logs.night_flying_mins',
+      'flight.logs.number_of_landings',
+      'flight.logs.number_of_night_landings',
+      'flight.logs.oil_uplift_litres',
+      'flight.logs.off_block_time_utc',
+      'flight.logs.on_block_time_utc',
+      'flight.logs.takeoff_time_utc',
+      'flight.logs.landing_time_utc',
+      'flight.logs.personal_remarks',
+      'flight.logs.persons_on_board',
+      'flight.logs.pic_last_name',
+      'flight.logs.pic_role',
+      'flight.logs.status',
+      'flight.logs.total_time_in_service',
+      'flight.aircraft.model as aircraft_model',
+    ])
+    .orderBy('off_block_time_epoch', 'asc')
+    .execute()
+
+  return results.map(row => {
+    const listEntry: FlightLogListEntry = {
+      acTotalFlightTime: '00:00',
+      aircraftRegistration: row.aircraft_registration,
+      ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
+      ajlbSeqNo: row.ajlb_seq_no,
+      ajlbRowNo: 0,
+      arrivalAirport: row.arrival_airport,
+      billableMemberId: row.billable_member_id,
+      blockTime: row.block_time,
+      crew2LastName: row.crew2_last_name,
+      departureAirport: row.departure_airport,
+      flightId: row.flight_id,
+      flightTime: row.flight_time,
+      flightType: row.flight_type as FlightType,
+      fuelRemainingLitres: row.fuel_remaining_litres,
+      fuelUpliftLitres: row.fuel_uplift_litres,
+      incidentOrObservations: row.incident_or_observations,
+      instrumentFlyingMins: row.instrument_flying_mins,
+      invoiceNumber: row.invoice_number,
+      nightFlyingMins: row.night_flying_mins,
+      numberOfLandings: row.number_of_landings,
+      numberOfNightLandings: row.number_of_night_landings,
+      oilUpliftLitres: row.oil_uplift_litres,
+      offBlockTimeUtc: row.off_block_time_utc.toISOString(),
+      takeoffTimeUtc: row.takeoff_time_utc.toISOString(),
+      landingTimeUtc: row.landing_time_utc.toISOString(),
+      onBlockTimeUtc: row.on_block_time_utc.toISOString(),
+      personsOnBoard: row.persons_on_board,
+      picLastName: row.pic_last_name,
+      status: row.status as FlightLogStatus,
+      totalTimeInService: row.total_time_in_service,
+    }
+    return {
+      ...listEntry,
+      flightMins: row.flight_mins,
+      picRole: row.pic_role,
+      aircraftModel: row.aircraft_model ?? null,
+      personalRemarks: row.personal_remarks,
+    }
+  })
 }

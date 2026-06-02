@@ -31,6 +31,7 @@ import {
 } from './components/FlightListEntry'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { useTimezone } from '../../hooks/useTimezone'
+import { FlightLogExportDialog } from './components/FlightLogExportDialog'
 
 const FlightLogsList = () => {
   const { t } = useTranslation()
@@ -49,6 +50,8 @@ const FlightLogsList = () => {
       : undefined,
     aircraftRegistration: searchParams.get('aircraftRegistration') ?? undefined,
   })
+
+  const [exportOpen, setExportOpen] = useState(false)
 
   useEffect(() => {
     const aircraftRegistration =
@@ -82,6 +85,13 @@ const FlightLogsList = () => {
     <Box>
       <Title label={t('flightLog.title')}>
         <Button
+          variant='outlined'
+          startIcon={<Icon icon='mdi:export' />}
+          onClick={() => setExportOpen(true)}
+        >
+          {t('flightLog.export.button')}
+        </Button>
+        <Button
           variant='contained'
           color='primary'
           startIcon={<Icon icon='mdi:plus' />}
@@ -91,6 +101,12 @@ const FlightLogsList = () => {
           {t('flightLog.newEntry', 'New Entry')}
         </Button>
       </Title>
+
+      <FlightLogExportDialog
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        defaultAircraftRegistration={filters.aircraftRegistration}
+      />
 
       <Grid
         size={12}

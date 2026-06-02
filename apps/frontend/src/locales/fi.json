@@ -903,6 +903,62 @@
       "flightsToMove": "Vahvistamattomat lennot, jotka siirretään uuteen matkapäiväkirjaan",
       "oldBookMustBeEnded": "Vanha lokikirja on ensin päätettävä.",
       "showOldBooks": "Näytä vanhat lokikirjat"
+    },
+    "export": {
+      "button": "Vie",
+      "title": "Vie lentopäiväkirja",
+      "dateRange": "Aikaväli",
+      "startDate": "Alkupäivä",
+      "endDate": "Loppupäivä",
+      "allAircraft": "Kaikki ilma-alukset",
+      "countLoading": "Lasketaan...",
+      "countResult": "{{count}} lentoa valitulla aikavälillä",
+      "countResultZero": "Ei lentoja valitulla aikavälillä",
+      "format": "Vientimuoto",
+      "exportButton": "Vie",
+      "exporting": "Viedään...",
+      "formats": {
+        "CSV": {
+          "label": "Yleinen CSV",
+          "extension": ".csv",
+          "platforms": "Excel, Google Sheets ja muut alustat"
+        },
+        "FOREFLIGHT": {
+          "label": "ForeFlight",
+          "extension": ".csv",
+          "platforms": "ForeFlight, CloudAhoy"
+        },
+        "MYFLIGHTBOOK": {
+          "label": "MyFlightbook",
+          "extension": ".csv",
+          "platforms": "MyFlightbook"
+        },
+        "CREWLOUNGE": {
+          "label": "CrewLounge Pilotlog",
+          "extension": ".csv",
+          "platforms": "CrewLounge Pilotlog"
+        },
+        "LOGBOOK_AERO": {
+          "label": "logbook.aero",
+          "extension": ".csv",
+          "platforms": "logbook.aero"
+        },
+        "LOGTEN": {
+          "label": "LogTen Pilot Logbook",
+          "extension": ".csv",
+          "platforms": "LogTen Pilot Logbook"
+        },
+        "FLYLOG": {
+          "label": "flylog.io",
+          "extension": ".csv",
+          "platforms": "flylog.io"
+        },
+        "EASA_PDF": {
+          "label": "EASA-lentopäiväkirja",
+          "extension": ".pdf",
+          "platforms": "EASA Part-FCL -yhteensopiva lentopäiväkirja"
+        }
+      }
     }
   },
   "invoicing": {

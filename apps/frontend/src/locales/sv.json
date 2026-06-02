@@ -904,6 +904,62 @@
       "flightsToMove": "Obekräftade flyg att flytta till ny loggbok",
       "oldBookMustBeEnded": "Den gamla loggboken måste avslutas först.",
       "showOldBooks": "Visa gamla loggböcker"
+    },
+    "export": {
+      "button": "Exportera",
+      "title": "Exportera flyglogg",
+      "dateRange": "Datumintervall",
+      "startDate": "Startdatum",
+      "endDate": "Slutdatum",
+      "allAircraft": "Alla flygplan",
+      "countLoading": "Räknar...",
+      "countResult": "{{count}} flygningar i detta intervall",
+      "countResultZero": "Inga flygningar i detta intervall",
+      "format": "Exportformat",
+      "exportButton": "Exportera",
+      "exporting": "Exporterar...",
+      "formats": {
+        "CSV": {
+          "label": "Generisk CSV",
+          "extension": ".csv",
+          "platforms": "Excel, Google Sheets och andra plattformar"
+        },
+        "FOREFLIGHT": {
+          "label": "ForeFlight",
+          "extension": ".csv",
+          "platforms": "ForeFlight, CloudAhoy"
+        },
+        "MYFLIGHTBOOK": {
+          "label": "MyFlightbook",
+          "extension": ".csv",
+          "platforms": "MyFlightbook"
+        },
+        "CREWLOUNGE": {
+          "label": "CrewLounge Pilotlog",
+          "extension": ".csv",
+          "platforms": "CrewLounge Pilotlog"
+        },
+        "LOGBOOK_AERO": {
+          "label": "logbook.aero",
+          "extension": ".csv",
+          "platforms": "logbook.aero"
+        },
+        "LOGTEN": {
+          "label": "LogTen Pilot Logbook",
+          "extension": ".csv",
+          "platforms": "LogTen Pilot Logbook"
+        },
+        "FLYLOG": {
+          "label": "flylog.io",
+          "extension": ".csv",
+          "platforms": "flylog.io"
+        },
+        "EASA_PDF": {
+          "label": "EASA-flyglogg",
+          "extension": ".pdf",
+          "platforms": "EASA Part-FCL-kompatibel flyglogg"
+        }
+      }
     }
   },
   "invoicing": {

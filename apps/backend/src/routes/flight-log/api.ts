@@ -21,6 +21,8 @@ import {
   type FlightLogStats,
   type FlightLogStatsFilter,
   FlightLogStatsFilterSchema,
+  FlightLogExportFiltersSchema,
+  FlightLogExportFormat,
 } from './models.ts'
 import {
   deleteFlightLog,
@@ -31,13 +33,17 @@ import {
   insertFlightLog,
   updateFlightLog,
   updateFlightLogStatus,
+  countFlightLogsForExport,
+  getFlightLogsForExport,
 } from '../../db/flight-log-queries.ts'
+import { generateCsv, generateEasaPdf, getFilename, type PdfMemberInfo } from './exportFormats.ts'
 import { invalidateApprovedAttempt } from '../../db/dto-queries.ts'
 import logger from '../../lib/logger.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import type { JWTUser } from '../auth/token.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
+import { getMemberById } from '../../db/member-queries.ts'
 import { getAirfields } from '../../db/airfields-queries.ts'
 import { getAjlbs } from '../../db/ajlb-queries.ts'
 import type { z } from 'zod'
@@ -186,8 +192,55 @@ router.get('/:registration/totals', async (req: Request, res: Response) => {
   res.status(200).json(totals)
 })
 
+// GET /export/count — returns { count: N } for filter preview
+router.get('/export/count', async (req: Request, res: Response) => {
+  const filters = FlightLogExportFiltersSchema.parse(req.query)
+  const memberId = isFlightLogAdmin(req.user) ? undefined : req.user!.memberId
+  const count = await countFlightLogsForExport(filters, memberId)
+  res.status(200).json({ count })
+})
+
+const MAX_EXPORT_ROWS = 10_000
+
+// GET /export — streams a CSV or PDF file download
+router.get('/export', async (req: Request, res: Response) => {
+  const { format = FlightLogExportFormat.CSV, ...rest } = FlightLogExportFiltersSchema.parse(
+    req.query,
+  )
+  const memberId = isFlightLogAdmin(req.user) ? undefined : req.user!.memberId
+  const count = await countFlightLogsForExport(rest, memberId)
+  if (count > MAX_EXPORT_ROWS) {
+    return problem({
+      status: 422,
+      detail: `Export would include ${count} rows, which exceeds the maximum of ${MAX_EXPORT_ROWS}. Narrow the date range or aircraft filter and try again.`,
+    })
+  }
+  const logs = await getFlightLogsForExport(rest, memberId)
+  const filename = getFilename(format, rest.startDate, rest.endDate)
+  if (format === FlightLogExportFormat.EASA_PDF) {
+    const member = await getMemberById(req.user!.memberId)
+    const memberInfo: PdfMemberInfo = {
+      firstName: member?.firstName ?? '',
+      lastName: member?.lastName ?? '',
+      licenceId: member?.licenceId ?? undefined,
+      streetAddress: member?.streetAddress ?? undefined,
+      townCity: member?.townCity ?? undefined,
+      postcode: member?.postcode ?? undefined,
+    }
+    const pdf = await generateEasaPdf(logs, memberInfo)
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    res.status(200).send(pdf)
+  } else {
+    const csv = generateCsv(logs, format)
+    res.setHeader('Content-Type', 'text/csv')
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+    res.status(200).send(csv)
+  }
+})
+
 // Get a flight log by ID
-// Caution - KEEP THIS LASTin Get endpoints so that other paths are used first
+// Caution - KEEP THIS LAST in Get endpoints so that other paths are used first
 router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
 
