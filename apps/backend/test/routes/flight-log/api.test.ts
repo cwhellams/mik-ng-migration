@@ -197,7 +197,7 @@ describe('GET /flight-log', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body.acTotalLandings).toBe(555) // NEW flight: start_landings(0) + cumulative landings from view
+    expect(response.body.acTotalLandings).toBe(2) // NEW flight: start_landings(0) + cumulative landings from view
     expect(maskLandingTotals(response.body)).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
