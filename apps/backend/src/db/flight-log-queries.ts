@@ -990,6 +990,7 @@ export async function getFlightLogsForExport(
   return results.map((row) => {
     const listEntry: FlightLogListEntry = {
       acTotalFlightTime: '00:00',
+      acTotalLandings: null,
       aircraftRegistration: row.aircraft_registration,
       ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
       ajlbSeqNo: row.ajlb_seq_no,
