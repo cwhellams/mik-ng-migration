@@ -140,3 +140,41 @@ exports[`Membership Fee Invoice Payload Tests without seasonal discount (before 
   ],
 }
 `;
+
+exports[`Membership Fee Invoice Payload Tests without seasonal discount (before October 1) creates an invoice template for an HONORARY member with 100% discount and note 1`] = `
+{
+  "Invoice": {
+    "additional_info": "Honorary member — fees fully discounted",
+    "client_id": 123456,
+    "overdue_charge_percent": 0,
+  },
+  "Tasks": [
+    {
+      "Projects": [
+        {
+          "code": "Varainhankinta",
+        },
+      ],
+      "Task": {
+        "amount": 1,
+        "article_id": 1,
+        "discount": 100,
+        "price_per_unit": 120,
+      },
+    },
+    {
+      "Projects": [
+        {
+          "code": "Varainhankinta",
+        },
+      ],
+      "Task": {
+        "amount": 1,
+        "article_id": 1,
+        "discount": 100,
+        "price_per_unit": 120,
+      },
+    },
+  ],
+}
+`;

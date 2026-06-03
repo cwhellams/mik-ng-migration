@@ -84,6 +84,26 @@ describe('Membership Fee Invoice Payload Tests', () => {
       var invoice = await createMembershipFeeInvoicePayload(supportingMember, DATE_BEFORE_DISCOUNTS)
       expect(invoice).toMatchSnapshot()
     })
+
+    it('creates an invoice template for an HONORARY member with 100% discount and note', async () => {
+      const honoraryMember = { ...flyingMember, memberType: MIKMemberTypes.HONORARY }
+
+      const mockedGetItemByCode = jest.mocked(getItemByCode)
+      mockedGetItemByCode.mockResolvedValue({
+        id: 1,
+        name: 'Flying Member',
+        markup_value: 120.0,
+      })
+
+      const invoice = await createMembershipFeeInvoicePayload(honoraryMember, DATE_BEFORE_DISCOUNTS)
+
+      // Both tasks must have 100% discount
+      expect(invoice.Tasks[0].Task.discount).toBe(100)
+      expect(invoice.Tasks[1].Task.discount).toBe(100)
+      // Invoice must carry the honorary note
+      expect(invoice.Invoice.additional_info).toBe('Honorary member — fees fully discounted')
+      expect(invoice).toMatchSnapshot()
+    })
   })
 
   describe('with 50% membership fee seasonal discount (on or after October 1)', () => {
@@ -123,6 +143,26 @@ describe('Membership Fee Invoice Payload Tests', () => {
 
       expect(invoice.Tasks[0].Task.discount).toBeUndefined()
       expect(invoice.Tasks[1].Task.discount).toBe(50)
+    })
+
+    it('always applies 100% discount for an HONORARY member regardless of season', async () => {
+      const honoraryMember = { ...flyingMember, memberType: MIKMemberTypes.HONORARY }
+      const mockedGetItemByCode = jest.mocked(getItemByCode)
+      mockedGetItemByCode.mockResolvedValue({
+        id: 1,
+        name: 'Flying Member',
+        markup_value: 120.0,
+      })
+
+      const invoice = await createMembershipFeeInvoicePayload(
+        honoraryMember,
+        DATE_AFTER_MEMBERSHIP_DISCOUNT,
+      )
+
+      // Both tasks must carry the full honorary discount, not the seasonal 50%
+      expect(invoice.Tasks[0].Task.discount).toBe(100)
+      expect(invoice.Tasks[1].Task.discount).toBe(100)
+      expect(invoice.Invoice.additional_info).toBe('Honorary member — fees fully discounted')
     })
   })
 })

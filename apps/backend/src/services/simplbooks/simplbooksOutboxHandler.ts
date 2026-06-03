@@ -1,6 +1,6 @@
 import { db } from '../../db/connection.ts'
 import logger from '../../lib/logger.ts'
-import { InvoiceMemberSchema, MemberSchema, MIKMemberTypes } from '../../routes/members/models.ts'
+import { InvoiceMemberSchema, MemberSchema } from '../../routes/members/models.ts'
 import {
   FeeTypeEnum,
   mapMemberToClient,
@@ -622,10 +622,11 @@ async function createDryRunInvoice(
 ): Promise<number> {
   const fakeId = generateDryRunInvoiceId()
   const now = new Date()
-  const totalSum = payload.Tasks.reduce(
-    (sum, t) => sum + (t.Task.amount ?? 0) * (t.Task.price_per_unit ?? 0),
-    0,
-  )
+  const totalSum = payload.Tasks.reduce((sum, t) => {
+    const subtotal = (t.Task.amount ?? 0) * (t.Task.price_per_unit ?? 0)
+    const discountFactor = 1 - (t.Task.discount ?? 0) / 100
+    return sum + subtotal * discountFactor
+  }, 0)
   const due = new Date(now.getTime() + 14 * 86_400_000).toISOString().slice(0, 10)
 
   const invoiceData = {
@@ -672,18 +673,14 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
     )
     await db.transaction().execute(async txn => {
       await updateMemberBillingId(txn, member.memberId, fakeBillingId)
-      if (member.memberType !== MIKMemberTypes.HONORARY) {
-        await insertOutboxItem(
-          SimplbooksEventType.NEW_MEMBER_FEES,
-          {
-            ...member,
-            billingId: fakeBillingId,
-          },
-          txn,
-        )
-      } else {
-        logger.info(`[DRY RUN] Skipping NEW_MEMBER_FEES for honorary member ${member.memberId}`)
-      }
+      await insertOutboxItem(
+        SimplbooksEventType.NEW_MEMBER_FEES,
+        {
+          ...member,
+          billingId: fakeBillingId,
+        },
+        txn,
+      )
       await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
     })
     return
@@ -711,18 +708,15 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
     // Set the billing id in our DB - which is the returned SimplBooks client id
     await updateMemberBillingId(txn, member.memberId, clientId.toString())
 
-    // Honorary members get a billing ID (for shop orders etc.) but are not charged annual fees
-    if (member.memberType !== MIKMemberTypes.HONORARY) {
-      // We add the create invoice action to the outbox, this will allow us to handle the situation
-      // where the client id is created but invoice creation fails - now its async and decoupled
-      await insertOutboxItem(SimplbooksEventType.NEW_MEMBER_FEES, {
+    // Queue the new member fees invoice — honorary members receive a full-discount invoice
+    await insertOutboxItem(
+      SimplbooksEventType.NEW_MEMBER_FEES,
+      {
         ...member,
         billingId: clientId.toString(),
-        txn,
-      })
-    } else {
-      logger.info(`Skipping NEW_MEMBER_FEES for honorary member ${member.memberId}`)
-    }
+      },
+      txn,
+    )
 
     await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
   })
