@@ -8,6 +8,7 @@ import {
   PaginationItem,
   Breadcrumbs,
   Typography,
+  Button,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
@@ -38,22 +39,33 @@ import {
 } from './components/FlightListEntry'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { useTimezone } from '../../hooks/useTimezone'
+import { Icon } from '@iconify/react'
+import { useMaintenanceNotes } from '../../hooks/useMaintenanceNotes'
+import { MaintenanceNoteMarker } from './MaintenanceNoteMarker'
+import { AddMaintenanceNoteDialog } from './AddMaintenanceNoteDialog'
+import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
 
 type LogbookTableRow = {
   log: FlightLogListEntry | null
   isEmptyRow: boolean
   hasEditActions: boolean
+  note: MaintenanceNote | undefined
+  isNoteRow: false
+  isNoteBlankRow: false
 }
 
 export const buildLogbookRows = (
   logs: FlightLogListEntry[] | undefined,
   pageSize = 0,
 ): LogbookTableRow[] => {
+  const noteDefaults = { note: undefined, isNoteRow: false as const, isNoteBlankRow: false as const }
+
   if (!logs?.length) {
     return Array.from({ length: pageSize }, () => ({
       log: null,
       isEmptyRow: true,
       hasEditActions: false,
+      ...noteDefaults,
     }))
   }
 
@@ -67,6 +79,7 @@ export const buildLogbookRows = (
         log,
         isEmptyRow: true,
         hasEditActions: true,
+        ...noteDefaults,
       })),
     )
 
@@ -74,6 +87,7 @@ export const buildLogbookRows = (
       log,
       isEmptyRow: false,
       hasEditActions: false,
+      ...noteDefaults,
     })
 
     prevRowNo = log.ajlbRowNo
@@ -85,6 +99,7 @@ export const buildLogbookRows = (
       log: null,
       isEmptyRow: true,
       hasEditActions: false,
+      ...noteDefaults,
     })),
   )
 
@@ -96,7 +111,7 @@ const FlightLogsList = () => {
 
   const { aircraftRegistration, ajlbSeqNo } = useParams()
 
-  const { me, isFlightLogAdmin } = useRoles()
+  const { me, isFlightLogAdmin, hasAccess } = useRoles()
 
   // selected aircraft journey log books
   const { data: ajlb, mutate: mutateLogbooks } = useApi<AircraftJourneyLogBook>({
@@ -107,6 +122,7 @@ const FlightLogsList = () => {
   const { formatTime } = useTimezone()
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
+  const [addNoteOpen, setAddNoteOpen] = useState(false)
 
   const [searchParams, setSearchParams] = useSearchParams()
   const scrollToRef = useScrollOnRender()
@@ -135,6 +151,11 @@ const FlightLogsList = () => {
       // don't clear old data when searching
       keepPreviousData: true,
     },
+  )
+
+  const { data: maintenanceNotes, mutate: mutateNotes } = useMaintenanceNotes(
+    ajlb?.aircraftRegistration,
+    ajlb?.seqNo
   )
 
   const theme = useTheme()
@@ -219,6 +240,104 @@ const FlightLogsList = () => {
 
   const logsWithEmptyRows = buildLogbookRows(data?.logs, ajlb?.rowsPerPage ?? 0)
 
+  // Merge maintenance notes into the row list at the correct position.
+  // A note at flight_mins X is placed after the last flight row whose
+  // acTotalFlightMins <= X (i.e. just after the flight that reached that time).
+  const mergedRows = (() => {
+    if (!logsWithEmptyRows) return []
+    if (!maintenanceNotes?.length) return logsWithEmptyRows
+
+    type RowItem = (typeof logsWithEmptyRows)[number]
+    type MergedItem =
+      | RowItem
+      | {
+          log: FlightLogListEntry
+          isEmptyRow: false
+          hasEditActions: false
+          note: MaintenanceNote
+          isNoteRow: true
+          isNoteBlankRow: false
+        }
+      | {
+          log: FlightLogListEntry
+          isEmptyRow: true
+          hasEditActions: false
+          note: MaintenanceNote
+          isNoteRow: false
+          isNoteBlankRow: true
+        }
+
+    const result: MergedItem[] = []
+    const notesToInsert = [...maintenanceNotes].sort(
+      (a, b) => a.flightMins - b.flightMins
+    )
+    let noteIdx = 0
+
+    for (let i = 0; i < logsWithEmptyRows.length; i++) {
+      const row = logsWithEmptyRows[i]
+      result.push(row as MergedItem)
+
+      if (!row.isEmptyRow) {
+        const logMins = row.log.acTotalFlightMins ?? 0
+        // Insert all notes whose flightMins falls at or before this flight's total
+        while (
+          noteIdx < notesToInsert.length &&
+          notesToInsert[noteIdx].flightMins <= logMins
+        ) {
+          const note = notesToInsert[noteIdx]
+          result.push({
+            log: row.log,
+            isEmptyRow: false,
+            hasEditActions: false,
+            note,
+            isNoteRow: true,
+            isNoteBlankRow: false,
+          })
+          for (let b = 0; b < note.blankRowsAfter; b++) {
+            result.push({
+              log: row.log,
+              isEmptyRow: true,
+              hasEditActions: false,
+              note,
+              isNoteRow: false,
+              isNoteBlankRow: true,
+            })
+          }
+          noteIdx++
+        }
+      }
+    }
+
+    // Append any remaining notes after the last flight row
+    while (noteIdx < notesToInsert.length) {
+      const note = notesToInsert[noteIdx]
+      const lastLog = logsWithEmptyRows[logsWithEmptyRows.length - 1]?.log
+      if (lastLog) {
+        result.push({
+          log: lastLog,
+          isEmptyRow: false,
+          hasEditActions: false,
+          note,
+          isNoteRow: true,
+          isNoteBlankRow: false,
+        })
+        for (let b = 0; b < note.blankRowsAfter; b++) {
+          result.push({
+            log: lastLog,
+            isEmptyRow: true,
+            hasEditActions: false,
+            note,
+            isNoteRow: false,
+            isNoteBlankRow: true,
+          })
+        }
+      }
+      noteIdx++
+    }
+
+    return result
+  })()
+
   return (
     <Box>
       <SnackAlert problem={problem} />
@@ -231,6 +350,19 @@ const FlightLogsList = () => {
       </Breadcrumbs>
 
       <Title label={t('flightLog.logbooks.title')} />
+
+      {hasAccess('flightlog.user' as never) && ajlb && (
+        <Stack direction='row' spacing={1} sx={{ mb: 2 }}>
+          <Button
+            variant='outlined'
+            startIcon={<Icon icon='mdi:wrench-clock' />}
+            onClick={() => setAddNoteOpen(true)}
+            size='small'
+          >
+            {t('flightLog.maintenanceNotes.addButton')}
+          </Button>
+        </Stack>
+      )}
 
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
@@ -252,11 +384,27 @@ const FlightLogsList = () => {
             </>
           }
           notFoundMsg={t('flightLog.noLogs')}
-          rows={logsWithEmptyRows}
+          rows={mergedRows}
           rowProps={() => ({
             minHeight: rowHeight,
           })}
-          row={({ log, isEmptyRow, hasEditActions }) => {
+          row={({ log, isEmptyRow, hasEditActions, note, isNoteRow, isNoteBlankRow }) => {
+            if (isNoteRow && note) {
+              return (
+                <Box sx={{ gridColumn: '1 / -1', width: '100%', py: 0.25 }}>
+                  <MaintenanceNoteMarker
+                    note={note}
+                    onChanged={() => mutateNotes()}
+                  />
+                </Box>
+              )
+            }
+
+            if (isNoteBlankRow) {
+              return <></>
+            }
+
+
             if (isEmptyRow) {
               if (hasEditActions && log && isFlightLogAdmin && log.status === FlightLogStatus.NEW) {
                 return (
@@ -404,6 +552,22 @@ const FlightLogsList = () => {
           }}
           validateEntry={validateEntry}
           isMutating={mutation.isMutating}
+        />
+      )}
+
+      {ajlb && (
+        <AddMaintenanceNoteDialog
+          open={addNoteOpen}
+          onClose={() => setAddNoteOpen(false)}
+          onSuccess={() => {
+            setAddNoteOpen(false)
+            mutateNotes()
+          }}
+          aircraftRegistration={ajlb.aircraftRegistration}
+          ajlbSeqNo={ajlb.seqNo}
+          defaultFlightMins={
+            data?.logs[data.logs.length - 1]?.acTotalFlightMins ?? undefined
+          }
         />
       )}
     </Box>

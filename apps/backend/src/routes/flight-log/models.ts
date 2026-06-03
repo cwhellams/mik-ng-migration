@@ -419,6 +419,8 @@ export const FlightLogListEntrySchema = FlightLogSchema.pick({
   picLastName: true,
   status: true,
   totalTimeInService: true,
+}).extend({
+  acTotalFlightMins: z.number().int().nullable(),
 })
 
 export type FlightLogListEntry = z.infer<typeof FlightLogListEntrySchema>

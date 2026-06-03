@@ -43,6 +43,7 @@ import { router as notificationBannerRoutes } from './routes/notification-banner
 import { router as configRoutes } from './routes/config/api.ts'
 import { router as dtoRoutes } from './routes/dto/api.ts'
 import { router as eventRoutes } from './routes/events/api.ts'
+import maintenanceNoteRoutes from './routes/maintenance-notes/api.ts'
 import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
 import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoicePaymentWorker.ts'
 import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
@@ -169,6 +170,7 @@ app.use('/api/v1/instructor-qualifications', instructorQualificationRoutes)
 app.use('/api/v1/config', configRoutes)
 app.use('/api/v1/dto', dtoRoutes)
 app.use('/api/v1/events', eventRoutes)
+app.use('/api/v1/maintenance-notes', maintenanceNoteRoutes)
 
 // Test database connection before starting workers
 await testConnection()

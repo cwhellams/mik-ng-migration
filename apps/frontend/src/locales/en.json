@@ -691,7 +691,8 @@
     "delete": "Delete",
     "back": "Back",
     "view": "View",
-    "dateFormat": "YYYY-MM-DD"
+    "dateFormat": "YYYY-MM-DD",
+    "close": "Close"
   },
   "billing": {
     "title": "My Invoices",
@@ -968,6 +969,23 @@
           "platforms": "EASA Part-FCL compliant pilot logbook"
         }
       }
+    },
+    "maintenanceNotes": {
+      "addButton": "Add maintenance note",
+      "addTitle": "Add Maintenance Note",
+      "viewTitle": "Maintenance Note",
+      "description": "Description",
+      "performedBy": "Performed by",
+      "flightTime": "Aircraft total flight time",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "blankRowsAfter": "Blank rows after",
+      "blankRowsAfterHelp": "Blank rows added to physical logbook after this note",
+      "hilId": "Linked HIL",
+      "recordedBy": "Recorded by",
+      "clickToView": "Click to view details",
+      "deleteTitle": "Delete maintenance note",
+      "deleteMessage": "Are you sure you want to delete this maintenance note? This action cannot be undone."
     }
   },
   "invoicing": {

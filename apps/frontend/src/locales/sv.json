@@ -699,7 +699,8 @@
     "delete": "Radera",
     "back": "Tillbaka",
     "view": "Visa",
-    "dateFormat": "YYYY-MM-DD"
+    "dateFormat": "YYYY-MM-DD",
+    "close": "Stäng"
   },
   "billing": {
     "title": "Mina fakturor",
@@ -976,6 +977,23 @@
           "platforms": "EASA Part-FCL-kompatibel flyglogg"
         }
       }
+    },
+    "maintenanceNotes": {
+      "addButton": "Lägg till underhållsanteckning",
+      "addTitle": "Ny underhållsanteckning",
+      "viewTitle": "Underhållsanteckning",
+      "description": "Beskrivning",
+      "performedBy": "Utförd av",
+      "flightTime": "Flygplanets totala flygtid",
+      "hours": "Timmar",
+      "minutes": "Minuter",
+      "blankRowsAfter": "Tomma rader efter",
+      "blankRowsAfterHelp": "Tomma rader som läggs till i den fysiska loggboken efter denna anteckning",
+      "hilId": "Länkad HIL",
+      "recordedBy": "Registrerad av",
+      "clickToView": "Klicka för att visa detaljer",
+      "deleteTitle": "Ta bort underhållsanteckning",
+      "deleteMessage": "Är du säker på att du vill ta bort denna underhållsanteckning? Åtgärden kan inte ångras."
     }
   },
   "invoicing": {

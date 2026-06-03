@@ -224,6 +224,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'flight.logs.pic_last_name',
       'flight.logs.status',
       'flight.logs.total_time_in_service',
+      'flight.logs.ajlb_total_flight_mins',
     ])
     .select([
       'totals.ac_total_flight_time',
@@ -271,6 +272,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         picLastName: row.pic_last_name,
         status: row.status as FlightLogStatus,
         totalTimeInService: row.total_time_in_service,
+        acTotalFlightMins: row.ajlb_total_flight_mins ?? null,
       }
       return res
     }),
@@ -1020,6 +1022,7 @@ export async function getFlightLogsForExport(
       picLastName: row.pic_last_name,
       status: row.status as FlightLogStatus,
       totalTimeInService: row.total_time_in_service,
+      acTotalFlightMins: null,
     }
     return {
       ...listEntry,
