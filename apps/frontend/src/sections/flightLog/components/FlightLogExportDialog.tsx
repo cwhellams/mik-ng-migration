@@ -26,8 +26,8 @@ import {
   FlightLogExportFormat,
   type FlightLogExportCountResponse,
 } from '@backend/routes/flight-log/models'
-import useApi from '../../../hooks/useApi'
-import { sharedApi } from '../../../hooks/useApi'
+import useApi, { sharedApi } from '../../../hooks/useApi'
+import { useThemeMode } from '../../../theme/ThemeContext'
 import { AxiosError } from 'axios'
 
 const ALL_FORMATS = [
@@ -49,6 +49,7 @@ type Props = {
 
 export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistration }: Props) => {
   const { t } = useTranslation()
+  const { sudo } = useThemeMode()
 
   const [startDate, setStartDate] = useState<Dayjs | null>(null)
   const [endDate, setEndDate] = useState<Dayjs | null>(null)
@@ -88,7 +89,7 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
       try {
         const res = await sharedApi.get<FlightLogExportCountResponse>(
           'v1/flight-logs/export/count',
-          { params },
+          { params, headers: { 'x-sudo': sudo ? 'true' : 'false' } },
         )
         setCount(res.data.count)
       } catch {
@@ -101,7 +102,7 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [startDate, endDate, aircraftRegistration])
+  }, [startDate, endDate, aircraftRegistration, sudo])
 
   const handleExport = async () => {
     setIsExporting(true)
@@ -114,6 +115,7 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
       const res = await sharedApi.get('v1/flight-logs/export', {
         params,
         responseType: 'blob',
+        headers: { 'x-sudo': sudo ? 'true' : 'false' },
       })
 
       const disposition: string = res.headers['content-disposition'] ?? ''
