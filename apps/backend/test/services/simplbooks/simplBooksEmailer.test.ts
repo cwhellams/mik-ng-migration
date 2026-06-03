@@ -97,13 +97,13 @@ describe('SimplBooks Emailer Tests', () => {
         'test@example.com',
         'MIK New Invoice - 12345',
         expect.stringContaining('Test'), // Should contain firstName
-        [
+        expect.arrayContaining([
           {
             filename: 'mik_lasku_12345.pdf',
             content: mockPdfBase64,
             encoding: 'base64',
           },
-        ],
+        ]),
       )
     })
 
@@ -123,13 +123,13 @@ describe('SimplBooks Emailer Tests', () => {
         'test@example.com',
         'Malmin Ilmailukerhon lasku - 12345',
         expect.stringContaining('Test'), // Should contain firstName
-        [
+        expect.arrayContaining([
           {
             filename: 'mik_lasku_12345.pdf',
             content: mockPdfBase64,
             encoding: 'base64',
           },
-        ],
+        ]),
       )
     })
 
@@ -179,9 +179,17 @@ describe('SimplBooks Emailer Tests', () => {
       const emailHtml = sendEmail.mock.calls[0][2]
       expect(emailHtml).toMatch(/[0-9]{54}/)
 
-      // Assert: email should contain a Code 128 Set C barcode PNG image
-      expect(emailHtml).toContain('data:image/png;base64,')
-      expect(emailHtml).toContain('<img src="data:image/png;base64,')
+      // Assert: email should contain a Code 128 Set C barcode PNG image via CID
+      expect(emailHtml).toContain('cid:barcode-12345@mik.fi')
+      expect(emailHtml).toContain('<img src="cid:barcode-12345@mik.fi"')
+      // Assert: barcode CID attachment is included
+      const attachments = sendEmail.mock.calls[0][3]!
+      const barcodeAttachment = attachments.find(
+        (a: EmailAttachment) => a.cid === 'barcode-12345@mik.fi',
+      )
+      expect(barcodeAttachment).toBeDefined()
+      expect(barcodeAttachment?.contentType).toBe('image/png')
+      expect(barcodeAttachment?.contentDisposition).toBe('inline')
     })
 
     it('should send email without barcode when reference is missing', async () => {
@@ -277,13 +285,34 @@ describe('SimplBooks Emailer Tests', () => {
       // Act
       await sendSimplbooksInvoiceEmail(12345, 'test-member-123')
 
-      // Assert
+      // Assert: PDF attachment has correct format
       const attachments = sendEmail.mock.calls[0][3]
-      expect(attachments).toHaveLength(1)
-      expect(attachments![0]).toEqual({
+      const pdfAttachment = attachments!.find(
+        (a: EmailAttachment) => a.filename === 'mik_lasku_12345.pdf',
+      )
+      expect(pdfAttachment).toEqual({
         filename: 'mik_lasku_12345.pdf',
         content: mockPdfBase64,
         encoding: 'base64',
+      })
+      // Assert: barcode and QR code are inline CID attachments
+      const barcodeAttachment = attachments!.find(
+        (a: EmailAttachment) => a.cid === 'barcode-12345@mik.fi',
+      )
+      expect(barcodeAttachment).toMatchObject({
+        filename: 'barcode.png',
+        contentType: 'image/png',
+        cid: 'barcode-12345@mik.fi',
+        contentDisposition: 'inline',
+      })
+      const qrAttachment = attachments!.find(
+        (a: EmailAttachment) => a.cid === 'qrcode-12345@mik.fi',
+      )
+      expect(qrAttachment).toMatchObject({
+        filename: 'qrcode.png',
+        contentType: 'image/png',
+        cid: 'qrcode-12345@mik.fi',
+        contentDisposition: 'inline',
       })
     })
   })

@@ -47,15 +47,21 @@ type Props = {
   defaultAircraftRegistration?: string
 }
 
-export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistration }: Props) => {
+export const FlightLogExportDialog = ({
+  open,
+  onClose,
+  defaultAircraftRegistration,
+}: Props) => {
   const { t } = useTranslation()
 
   const [startDate, setStartDate] = useState<Dayjs | null>(null)
   const [endDate, setEndDate] = useState<Dayjs | null>(null)
-  const [aircraftRegistration, setAircraftRegistration] = useState<string | undefined>(
-    defaultAircraftRegistration,
+  const [aircraftRegistration, setAircraftRegistration] = useState<
+    string | undefined
+  >(defaultAircraftRegistration)
+  const [format, setFormat] = useState<FlightLogExportFormat>(
+    FlightLogExportFormat.CSV
   )
-  const [format, setFormat] = useState<FlightLogExportFormat>(FlightLogExportFormat.CSV)
   const [count, setCount] = useState<number | null>(null)
   const [isCountLoading, setIsCountLoading] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
@@ -82,13 +88,14 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
       const params: Record<string, string> = {}
       if (startDate) params.startDate = startDate.toISOString()
       if (endDate) params.endDate = endDate.toISOString()
-      if (aircraftRegistration) params.aircraftRegistration = aircraftRegistration
+      if (aircraftRegistration)
+        params.aircraftRegistration = aircraftRegistration
 
       setIsCountLoading(true)
       try {
         const res = await sharedApi.get<FlightLogExportCountResponse>(
           'v1/flight-logs/export/count',
-          { params },
+          { params }
         )
         setCount(res.data.count)
       } catch {
@@ -109,7 +116,8 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
       const params: Record<string, string> = { format }
       if (startDate) params.startDate = startDate.toISOString()
       if (endDate) params.endDate = endDate.toISOString()
-      if (aircraftRegistration) params.aircraftRegistration = aircraftRegistration
+      if (aircraftRegistration)
+        params.aircraftRegistration = aircraftRegistration
 
       const res = await sharedApi.get('v1/flight-logs/export', {
         params,
@@ -118,7 +126,9 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
 
       const disposition: string = res.headers['content-disposition'] ?? ''
       const match = disposition.match(/filename="([^"]+)"/)
-      const filename = match?.[1] ?? `flight-log.${format === FlightLogExportFormat.EASA_PDF ? 'pdf' : 'csv'}`
+      const filename =
+        match?.[1] ??
+        `flight-log.${format === FlightLogExportFormat.EASA_PDF ? 'pdf' : 'csv'}`
 
       const url = URL.createObjectURL(res.data as Blob)
       const a = document.createElement('a')
@@ -156,12 +166,16 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
               labelId='export-aircraft-label'
               value={aircraftRegistration ?? ''}
               label={t('flightLog.aircraft')}
-              onChange={e =>
-                setAircraftRegistration(e.target.value === '' ? undefined : e.target.value)
+              onChange={(e) =>
+                setAircraftRegistration(
+                  e.target.value === '' ? undefined : e.target.value
+                )
               }
             >
-              <MenuItem value={''}>{t('flightLog.export.allAircraft')}</MenuItem>
-              {aircraftData?.aircrafts.map(plane => (
+              <MenuItem value={''}>
+                {t('flightLog.export.allAircraft')}
+              </MenuItem>
+              {aircraftData?.aircrafts.map((plane) => (
                 <MenuItem key={plane.registration} value={plane.registration}>
                   {plane.registration}
                 </MenuItem>
@@ -214,8 +228,13 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
             <Typography variant='subtitle2' sx={{ mb: 1 }}>
               {t('flightLog.export.format')}
             </Typography>
-            <RadioGroup value={format} onChange={e => setFormat(e.target.value as FlightLogExportFormat)}>
-              {ALL_FORMATS.map(fmt => {
+            <RadioGroup
+              value={format}
+              onChange={(e) =>
+                setFormat(e.target.value as FlightLogExportFormat)
+              }
+            >
+              {ALL_FORMATS.map((fmt) => {
                 const label = t(`flightLog.export.formats.${fmt}.label`)
                 const extension = t(`flightLog.export.formats.${fmt}.extension`)
                 const platforms = t(`flightLog.export.formats.${fmt}.platforms`)
@@ -265,7 +284,9 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
           disabled={count === 0 || isExporting}
           startIcon={isExporting ? <CircularProgress size={16} /> : undefined}
         >
-          {isExporting ? t('flightLog.export.exporting') : t('flightLog.export.exportButton')}
+          {isExporting
+            ? t('flightLog.export.exporting')
+            : t('flightLog.export.exportButton')}
         </Button>
       </DialogActions>
     </Dialog>

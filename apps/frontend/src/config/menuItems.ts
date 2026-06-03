@@ -141,16 +141,47 @@ export const menuItems: MenuItem[] = [
   {
     path: '/accounting',
     label: 'header.accounts',
-    requiredRoles: [MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN],
+    requiredRoles: [
+      MIKPermissions.INVOICING_USER,
+      MIKPermissions.INVOICING_ADMIN,
+    ],
     adminModeOnly: true,
     subItems: [
-      { label: 'invoicing.tabs.dashboard', path: '', requiredRoles: [MIKPermissions.INVOICING_ADMIN] },
-      { label: 'invoicing.tabs.flights', path: 'invoicing', requiredRoles: [MIKPermissions.INVOICING_ADMIN] },
-      { label: 'invoicing.tabs.items', path: 'items', requiredRoles: [MIKPermissions.INVOICING_ADMIN] },
-      { label: 'invoicing.tabs.tools', path: 'tools', requiredRoles: [MIKPermissions.INVOICING_ADMIN] },
-      { label: 'invoicing.tabs.taxReport', path: 'tax-report', requiredRoles: [MIKPermissions.INVOICING_ADMIN] },
-      { label: 'invoicing.tabs.traficomReport', path: 'traficom-report', requiredRoles: [MIKPermissions.INVOICING_ADMIN] },
-      { label: 'invoicing.tabs.upliftReport', path: 'uplift-report', requiredRoles: [MIKPermissions.INVOICING_ADMIN] },
+      {
+        label: 'invoicing.tabs.dashboard',
+        path: '',
+        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'invoicing.tabs.flights',
+        path: 'invoicing',
+        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'invoicing.tabs.items',
+        path: 'items',
+        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'invoicing.tabs.tools',
+        path: 'tools',
+        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'invoicing.tabs.taxReport',
+        path: 'tax-report',
+        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'invoicing.tabs.traficomReport',
+        path: 'traficom-report',
+        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
+      },
+      {
+        label: 'invoicing.tabs.upliftReport',
+        path: 'uplift-report',
+        requiredRoles: [MIKPermissions.INVOICING_ADMIN],
+      },
       {
         label: 'invoicing.tabs.instructorWorktime',
         path: 'instructor-worktime',
@@ -159,7 +190,10 @@ export const menuItems: MenuItem[] = [
       {
         label: 'invoicing.tabs.unpaidOverdue',
         path: 'unpaid-overdue',
-        requiredRoles: [MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN],
+        requiredRoles: [
+          MIKPermissions.INVOICING_USER,
+          MIKPermissions.INVOICING_ADMIN,
+        ],
       },
     ],
   },

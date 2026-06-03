@@ -22,6 +22,8 @@ export interface EmailAttachment {
   path?: string // File path or URL
   contentType?: string // MIME type
   encoding?: string // 'base64' | 'hex' | 'binary' etc.
+  cid?: string // Content-ID for inline images (referenced as cid:<value> in HTML)
+  contentDisposition?: 'inline' | 'attachment'
 }
 
 const getTransporter = (smtpLogin: string, smtpPwd: string): nodemailer.Transporter => {
