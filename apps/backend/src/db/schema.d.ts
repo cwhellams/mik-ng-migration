@@ -344,6 +344,12 @@ export interface ExamAttemptAnswers {
   updated_at: Generated<Timestamp>
 }
 
+export interface ExamAttemptQuestions {
+  attempt_id: string
+  question_id: string
+  sort_order: Generated<number>
+}
+
 export interface ExamAttempts {
   abandon_reason: string | null
   abandoned_at: Timestamp | null
@@ -391,6 +397,7 @@ export interface ExamExamVersions {
   default_language: Generated<string>
   exam_id: string
   pass_percent: Generated<Numeric>
+  question_count: number | null
   status: Generated<ExamExamVersionStatus>
   supported_languages: Generated<string[]>
   updated_at: Generated<Timestamp>
@@ -752,6 +759,20 @@ export interface MemberDocuments {
   storage_key: string | null
   tags: string[] | null
   title: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface MemberEvents {
+  event_id: Generated<string>
+  title: string
+  description: string | null
+  location: string | null
+  start_time: Timestamp
+  end_time: Timestamp
+  is_public: Generated<boolean>
+  created_at: Generated<Timestamp>
+  created_by: string
   updated_at: Generated<Timestamp>
   updated_by: string
 }
@@ -1409,6 +1430,7 @@ export interface DB {
   emt_projections: EmtProjections
   emt_streams: EmtStreams
   'exam.attempt_answers': ExamAttemptAnswers
+  'exam.attempt_questions': ExamAttemptQuestions
   'exam.attempts': ExamAttempts
   'exam.choice_translations': ExamChoiceTranslations
   'exam.choices': ExamChoices
@@ -1437,6 +1459,7 @@ export interface DB {
   'member.brevo_sync_state': MemberBrevoSyncState
   'member.document_tiny_urls': MemberDocumentTinyUrls
   'member.documents': MemberDocuments
+  'member.events': MemberEvents
   'member.login_attempts': MemberLoginAttempts
   'member.login_events': MemberLoginEvents
   'member.member_to_roles': MemberMemberToRoles

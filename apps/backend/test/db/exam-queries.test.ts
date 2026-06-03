@@ -5,6 +5,10 @@ import {
   getAttempts,
   getExamWithPublishedVersion,
   getExamsWithPublishedVersions,
+  createAttempt,
+  getAttemptVersionDetail,
+  validateAnswerInputs,
+  submitAttempt,
 } from '../../src/db/exam-queries.ts'
 
 describe('Db exam attempt tests', () => {
@@ -180,5 +184,126 @@ describe('Db exam attempt tests', () => {
     const result = await getExamWithPublishedVersion(unpublishedExamId)
 
     expect(result).toBeUndefined()
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Randomised question selection tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Randomised question selection', () => {
+  const rndExamId = 'RNDEXAM1'
+  const rndVersionId = 'RNDVER01'
+  const rndMemberId = 'Matti1' // exists in test data
+  const createdBy = 'k1mnimda'
+  const questionIds = ['RNDQ0001', 'RNDQ0002', 'RNDQ0003', 'RNDQ0004', 'RNDQ0005']
+
+  const cleanup = async () => {
+    await db.deleteFrom('exam.attempts').where('version_id', '=', rndVersionId).execute()
+    await db.deleteFrom('exam.questions').where('version_id', '=', rndVersionId).execute()
+    await db.deleteFrom('exam.exam_versions').where('version_id', '=', rndVersionId).execute()
+    await db.deleteFrom('exam.exams').where('exam_id', '=', rndExamId).execute()
+  }
+
+  beforeEach(async () => {
+    await cleanup()
+
+    await db
+      .insertInto('exam.exams')
+      .values({
+        exam_id: rndExamId,
+        exam_type: 'OTHER',
+        name: 'Rnd Exam',
+        created_by: createdBy,
+        updated_by: createdBy,
+      })
+      .execute()
+
+    await db
+      .insertInto('exam.exam_versions')
+      .values({
+        version_id: rndVersionId,
+        exam_id: rndExamId,
+        version_number: 1,
+        status: 'PUBLISHED',
+        default_language: 'en',
+        supported_languages: ['en'],
+        pass_percent: 75,
+        question_count: 3,
+        created_by: createdBy,
+        updated_by: createdBy,
+      })
+      .execute()
+
+    for (let i = 0; i < questionIds.length; i++) {
+      await db
+        .insertInto('exam.questions')
+        .values({ question_id: questionIds[i], version_id: rndVersionId, sort_order: i })
+        .execute()
+    }
+  })
+
+  afterEach(cleanup)
+
+  it('creates an attempt with exactly question_count questions when pool is larger', async () => {
+    const attempt = await createAttempt(rndVersionId, rndMemberId, 'en')
+    const detail = await getAttemptVersionDetail(attempt.attemptId)
+
+    expect(detail).toBeDefined()
+    expect(detail!.questions).toHaveLength(3)
+  })
+
+  it('every question in an attempt belongs to the version pool', async () => {
+    const attempt = await createAttempt(rndVersionId, rndMemberId, 'en')
+    const detail = await getAttemptVersionDetail(attempt.attemptId)
+
+    const assignedIds = detail!.questions.map(q => q.questionId)
+    expect(assignedIds.every(id => questionIds.includes(id))).toBe(true)
+  })
+
+  it('re-fetching the same attempt always returns the same questions in the same order', async () => {
+    const attempt = await createAttempt(rndVersionId, rndMemberId, 'en')
+    const first = await getAttemptVersionDetail(attempt.attemptId)
+    const second = await getAttemptVersionDetail(attempt.attemptId)
+
+    expect(first!.questions.map(q => q.questionId)).toEqual(
+      second!.questions.map(q => q.questionId),
+    )
+  })
+
+  it('uses all questions when question_count is null', async () => {
+    await db
+      .updateTable('exam.exam_versions')
+      .set({ question_count: null })
+      .where('version_id', '=', rndVersionId)
+      .execute()
+
+    const attempt = await createAttempt(rndVersionId, rndMemberId, 'en')
+    const detail = await getAttemptVersionDetail(attempt.attemptId)
+
+    expect(detail!.questions).toHaveLength(questionIds.length)
+  })
+
+  it('validateAnswerInputs rejects a question not in the attempt', async () => {
+    const attempt = await createAttempt(rndVersionId, rndMemberId, 'en')
+    const detail = await getAttemptVersionDetail(attempt.attemptId)
+    const assignedIds = new Set(detail!.questions.map(q => q.questionId))
+    const notAssigned = questionIds.find(id => !assignedIds.has(id))
+
+    if (!notAssigned) {
+      // All questions assigned (shouldn't happen with 5 questions and count=3), skip
+      return
+    }
+
+    const result = await validateAnswerInputs(attempt.attemptId, notAssigned, null)
+    expect(result.valid).toBe(false)
+    expect(result.detail).toMatch(/not part of this attempt/i)
+  })
+
+  it('submitAttempt grades only the attempt questions (totalCount === question_count)', async () => {
+    const attempt = await createAttempt(rndVersionId, rndMemberId, 'en')
+    const graded = await submitAttempt(attempt.attemptId)
+
+    expect(graded.totalCount).toBe(3)
   })
 })

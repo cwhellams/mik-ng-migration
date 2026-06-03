@@ -108,6 +108,7 @@ export const adminUpdateVersion = (
     defaultLanguage?: string
     supportedLanguages?: string[]
     passPercent?: number
+    questionCount?: number | null
   }
 ): Promise<ExamVersion> => put<ExamVersion>(`admin/versions/${versionId}`, data)
 

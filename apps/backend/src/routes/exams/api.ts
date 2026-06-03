@@ -44,6 +44,7 @@ import {
   getAttemptAnswers,
   submitAttempt,
   abandonAttempt,
+  getAttemptVersionDetail,
 } from '../../db/exam-queries.ts'
 
 export const router = Router()
@@ -134,7 +135,7 @@ router.get(
     if (!isAdmin && attempt.memberId !== req.user!.memberId) {
       return problem({ status: 403, detail: 'Forbidden' })
     }
-    const detail = await getVersionDetail(attempt.versionId)
+    const detail = await getAttemptVersionDetail(req.params.attemptId)
     if (!detail) return problem({ status: 404, detail: 'Version not found' })
     res.json(detail)
   },
@@ -171,7 +172,11 @@ router.put(
 
     const data = AttemptAnswerUpsertSchema.parse(req.body)
 
-    const validation = await validateAnswerInputs(attempt.versionId, data.questionId, data.choiceId)
+    const validation = await validateAnswerInputs(
+      req.params.attemptId,
+      data.questionId,
+      data.choiceId,
+    )
     if (!validation.valid)
       return problem({ status: 400, detail: validation.detail ?? 'Invalid answer input' })
 

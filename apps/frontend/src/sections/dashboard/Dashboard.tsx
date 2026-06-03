@@ -1,4 +1,4 @@
-import { Box, IconButton, Tooltip } from '@mui/material'
+import { Box, IconButton, Stack, Tooltip } from '@mui/material'
 import SettingsIcon from '@mui/icons-material/Settings'
 import { useState, useMemo, JSX } from 'react'
 import { useRoles } from '../../hooks/useRoles'
@@ -19,6 +19,7 @@ import { ExpiryWarningBanner } from './components/ExpiryWarningBanner'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { InstructorQualificationsBanner } from './components/InstructorQualificationsBanner'
 import { DtoInstructorWidget } from './components/DtoInstructorWidget'
+import { EventsDashboard } from './components/EventsDashboard'
 import useApi from '../../hooks/useApi'
 import type { DashboardSettings, DashboardComponent } from './types'
 import { ALWAYS_VISIBLE_COMPONENTS } from './types'
@@ -44,6 +45,7 @@ const createComponentMap = (
     ) : null,
   expiryWarning: () => <ExpiryWarningBanner />,
   weather: () => (bookingUser ? <WeatherWidget /> : null),
+  events: () => (isMember ? <EventsDashboard /> : null),
   bookingUser: () => (bookingUser ? <BookingUserDashboard /> : null),
   flightLogUser: () => (flyingUser ? <FlightLogUserDashboard /> : null),
   memberAdmin: () =>
@@ -100,42 +102,74 @@ const Dashboard = () => {
     me,
     hasAccess
   )
+  const alwaysVisibleComponentIds: readonly string[] = ALWAYS_VISIBLE_COMPONENTS
+  const customizableComponentIds = useMemo(
+    () =>
+      Object.keys(componentMap).filter(
+        (id) => !alwaysVisibleComponentIds.includes(id)
+      ),
+    [alwaysVisibleComponentIds, componentMap]
+  )
 
   // Get list of component IDs that user has access to (excluding always-visible)
   const accessibleComponentIds = useMemo(() => {
-    return Object.keys(componentMap)
-      .filter((id) => !ALWAYS_VISIBLE_COMPONENTS.includes(id as any))
-      .filter((id) => {
-        const component = componentMap[id]
-        // Check if component function returns non-null (has access)
-        return component() !== null
-      })
-  }, [componentMap])
+    return customizableComponentIds.filter((id) => {
+      const component = componentMap[id]
+      // Check if component function returns non-null (has access)
+      return component() !== null
+    })
+  }, [componentMap, customizableComponentIds])
+
+  const mergedDashboardComponents = useMemo(() => {
+    if (!dashboardSettings?.components) return []
+
+    const knownComponentIds = new Set(
+      dashboardSettings.components.map((component) => component.id)
+    )
+    let nextOrder =
+      dashboardSettings.components.reduce(
+        (maxOrder, component) => Math.max(maxOrder, component.order),
+        -1
+      ) + 1
+
+    return [
+      ...dashboardSettings.components,
+      ...customizableComponentIds
+        .filter((id) => !knownComponentIds.has(id))
+        .map(
+          (id): DashboardComponent => ({
+            id,
+            visible: true,
+            order: nextOrder++,
+          })
+        ),
+    ]
+  }, [customizableComponentIds, dashboardSettings?.components])
 
   // Always visible components (alerts/banners)
   const alwaysVisibleComponents = useMemo(() => {
-    return ALWAYS_VISIBLE_COMPONENTS.map((id) => ({
-      id,
-      render: componentMap[id],
-    })).filter((component) => component.render)
-  }, [componentMap])
+    return alwaysVisibleComponentIds
+      .map((id) => ({
+        id,
+        render: componentMap[id],
+      }))
+      .filter((component) => component.render)
+  }, [alwaysVisibleComponentIds, componentMap])
 
   // Sort and filter customizable components based on settings
   const orderedComponents = useMemo(() => {
-    if (!dashboardSettings?.components) return []
+    if (!mergedDashboardComponents.length) return []
 
-    return dashboardSettings.components
+    return mergedDashboardComponents
       .filter((component) => component.visible)
-      .filter(
-        (component) => !ALWAYS_VISIBLE_COMPONENTS.includes(component.id as any)
-      )
+      .filter((component) => !alwaysVisibleComponentIds.includes(component.id))
       .sort((a, b) => a.order - b.order)
       .map((component) => ({
         id: component.id,
         render: componentMap[component.id],
       }))
       .filter((component) => component.render) // Remove components without render function
-  }, [dashboardSettings?.components, componentMap])
+  }, [alwaysVisibleComponentIds, componentMap, mergedDashboardComponents])
 
   return (
     <RemoteContent isLoading={isLoading} error={error}>
@@ -170,18 +204,22 @@ const Dashboard = () => {
 
         {/* Render customizable components in user-defined order */}
         {orderedComponents.length > 0 ? (
-          orderedComponents.map((component) => {
-            const ComponentElement = component.render()
-            return ComponentElement ? (
-              <Box key={component.id}>{ComponentElement}</Box>
-            ) : null
-          })
+          <Stack spacing={2}>
+            {orderedComponents.map((component) => {
+              const ComponentElement = component.render()
+              return ComponentElement ? (
+                <Box key={component.id}>{ComponentElement}</Box>
+              ) : null
+            })}
+          </Stack>
         ) : (
           // Fallback to default order if no settings for customizable components
           <>
             {isMember && flyingUser && <EquipmentFeeBanner />}
 
             {bookingUser && <WeatherWidget />}
+
+            {isMember && <EventsDashboard />}
 
             {bookingUser && <BookingUserDashboard />}
 
@@ -200,7 +238,7 @@ const Dashboard = () => {
           <DashboardSettingsModal
             open={settingsModalOpen}
             onClose={() => setSettingsModalOpen(false)}
-            settings={dashboardSettings.components}
+            settings={mergedDashboardComponents}
             onSave={handleSaveSettings}
             accessibleComponentIds={accessibleComponentIds}
           />

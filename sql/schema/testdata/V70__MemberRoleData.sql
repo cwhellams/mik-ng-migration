@@ -16,5 +16,6 @@ VALUES ('Matti1', 'MEMBER', 'k1mnimda'),
     ('Sanna1', 'COMMITTEE', 'k1mnimda'),
     ('Sanna1', 'SMS_PROCESSOR', 'k1mnimda'),
     ('Juha1', 'MEMBER', 'k1mnimda'),
+    ('John1', 'MEMBER', 'k1mnimda'),
     ('John1', 'ADMIN', 'k1mnimda'),
     ('Examiner1', 'EXAMINER', 'k1mnimda');

@@ -52,6 +52,7 @@ import LogbookFlights from './sections/flightLog/LogbookPage'
 import Outbox from './sections/admin/Outbox'
 import NonRenewals from './sections/admin/NonRenewals'
 import NotificationBannerAdmin from './sections/admin/NotificationBannerAdmin'
+import { UnpaidOverdueInvoices } from './sections/accounting/UnpaidOverdueInvoices'
 import ShopPage from './sections/shop/ShopPage'
 import ProductPage from './sections/shop/ProductPage'
 import CartPage from './sections/shop/CartPage'
@@ -79,6 +80,8 @@ import DtoProgressPage from './sections/dto/DtoProgressPage'
 import DtoVerificationPage from './sections/dto/DtoVerificationPage'
 import DtoMyTrainingPage from './sections/dto/DtoMyTrainingPage'
 import DtoStudentDetailPage from './sections/dto/DtoStudentDetailPage'
+import EventsList from './sections/events/EventsList'
+import EventsAdmin from './sections/admin/events/EventsAdmin'
 import { ServerClockProvider } from './hooks/useServerClock'
 
 function DtoIndexRedirect() {
@@ -173,6 +176,7 @@ function App() {
                 <Route path='billing' element={<Billing />} />
                 <Route path='documents' element={<Documents />} />
                 <Route path='stats' element={<Stats />} />
+                <Route path='events' element={<EventsList />} />
               </Route>
               <Route
                 path='/profile/email-change/verify'
@@ -189,6 +193,10 @@ function App() {
                 <Route
                   path='instructor-worktime'
                   element={<InstructorWorktimeReport />}
+                />
+                <Route
+                  path='unpaid-overdue'
+                  element={<UnpaidOverdueInvoices />}
                 />
               </Route>
               <Route path='/shop'>
@@ -232,6 +240,7 @@ function App() {
                   path='shop/flight-packages'
                   element={<FlightPackagesAdmin />}
                 />
+                <Route path='events' element={<EventsAdmin />} />
                 <Route path='exams' element={<ExamsAdminPage />} />
                 <Route
                   path='exams/versions/:versionId'

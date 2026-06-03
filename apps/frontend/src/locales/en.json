@@ -45,7 +45,9 @@
     "dtoAdmin": "DTO Admin",
     "dtoMyTraining": "My Training",
     "dtoVerify": "Verify Flights",
-    "dtoProgress": "Student Progress"
+    "dtoProgress": "Student Progress",
+    "events": "Events",
+    "eventsAdmin": "Events Admin"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
@@ -972,7 +974,8 @@
       "tools": "Tools",
       "taxReport": "Tax Report",
       "traficomReport": "Traficom Report",
-      "upliftReport": "Uplift Report"
+      "upliftReport": "Uplift Report",
+      "unpaidOverdue": "Unpaid Overdue Invoices"
     },
     "dashboard": {
       "title": "Flights Waiting to be Invoiced",
@@ -1676,7 +1679,12 @@
     "notApplicable": "N/A",
     "updateAvailable": "A new version is available",
     "refresh": "Refresh",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "edit": "Edit",
+    "delete": "Delete",
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "requiresAdminMode": "Admin mode required"
   },
   "exams": {
     "title": "Exams",
@@ -1735,6 +1743,8 @@
       "supportedLanguages": "Supported Languages",
       "defaultLanguage": "Default Language",
       "passPercent": "Pass %",
+      "questionCount": "Questions per attempt (leave blank to use all)",
+      "questionCountHelp": "Leave blank to include all questions",
       "cloneFromPublished": "Clone from Published",
       "addQuestion": "Add Question",
       "questionPrompt": "Prompt",
@@ -1945,6 +1955,21 @@
     "historyClose": "Close",
     "viewProfile": "View member profile"
   },
+  "unpaidOverdueInvoices": {
+    "title": "Unpaid Overdue Invoices",
+    "columns": {
+      "member": "Member",
+      "dueDate": "Due Date",
+      "type": "Type",
+      "description": "Description",
+      "sum": "Sum",
+      "daysOverdue": "Days Overdue"
+    },
+    "daysLate_one": "{{count}} day",
+    "daysLate_other": "{{count}} days",
+    "totalSum": "Total",
+    "noInvoicesFound": "No unpaid overdue invoices found"
+  },
   "dto": {
     "myTraining": {
       "title": "My DTO Training",
@@ -1992,6 +2017,37 @@
     },
     "progress": {
       "title": "DTO Student Progress"
+    }
+  },
+  "events": {
+    "title": "Club Events",
+    "adminTitle": "Manage Events",
+    "dashboardTitle": "Club Events",
+    "upcoming": "Upcoming Events",
+    "past_section": "Past Events",
+    "past": "Past",
+    "public": "Public",
+    "noEvents": "No events scheduled.",
+    "manage": "Manage Events",
+    "viewAll": "View all events",
+    "create": "Create Event",
+    "editEvent": "Edit Event",
+    "createEvent": "New Event",
+    "addToCalendar": "Add to calendar",
+    "addToGoogle": "Add to Google Calendar",
+    "downloadIcs": "Download .ics file",
+    "deleteTitle": "Delete Event",
+    "deleteConfirm": "Are you sure you want to delete \"{{title}}\"? This cannot be undone.",
+    "saveError": "Failed to save the event. Please try again.",
+    "deleteError": "Failed to delete the event. Please try again.",
+    "form": {
+      "title": "Title",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "location": "Location",
+      "description": "Description",
+      "isPublic": "Public event",
+      "isPublicHint": "Public events are visible on the MIK.fi website and accessible without login."
     }
   }
 }

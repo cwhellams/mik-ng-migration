@@ -64,6 +64,9 @@ export enum MIKPermissions {
 
   // can create/edit/import/publish syllabi and assign syllabi to members
   DTO_ADMIN = 'dto.admin',
+
+  // can create, edit and delete club events
+  EVENTS_ADMIN = 'events.admin',
 }
 
 // admins can be downgraded to user permissions when not in sudo mode
@@ -91,6 +94,10 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
       return MIKPermissions.EXAM_USER
     case MIKPermissions.DTO_ADMIN:
       return MIKPermissions.DTO_USER
+
+    // no separate user role for events – all members can read events
+    case MIKPermissions.EVENTS_ADMIN:
+      return undefined
 
     // no separate user roles for SMS or outbox permissions
     case MIKPermissions.SMS_PROCESSOR:

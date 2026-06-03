@@ -44,7 +44,9 @@
     "dtoAdmin": "DTO Hallinta",
     "dtoMyTraining": "Oma koulutus",
     "dtoVerify": "Vahvista lennot",
-    "dtoProgress": "Oppilaan edistyminen"
+    "dtoProgress": "Oppilaan edistyminen",
+    "events": "Tapahtumat",
+    "eventsAdmin": "Tapahtumahallinta"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -970,7 +972,8 @@
       "tools": "Työkalut",
       "taxReport": "Veroraportti",
       "traficomReport": "Traficom-raportti",
-      "upliftReport": "Tankkaausraportti"
+      "upliftReport": "Tankkaausraportti",
+      "unpaidOverdue": "Maksamattomat erääntyneet laskut"
     },
     "dashboard": {
       "title": "Odottaa laskutusta",
@@ -1673,7 +1676,12 @@
     "notApplicable": "Ei sovellettavissa",
     "updateAvailable": "Uusi versio on saatavilla",
     "refresh": "Päivitä",
-    "dismiss": "Hylkää"
+    "dismiss": "Hylkää",
+    "edit": "Muokkaa",
+    "delete": "Poista",
+    "saving": "Tallennetaan...",
+    "deleting": "Poistetaan...",
+    "requiresAdminMode": "Ylläpitotila vaaditaan"
   },
   "exams": {
     "title": "Kokeet",
@@ -1732,6 +1740,8 @@
       "supportedLanguages": "Saatavilla olevat kielet",
       "defaultLanguage": "Oletuskieli",
       "passPercent": "Hyväksymis-%",
+      "questionCount": "Kysymyksiä per suoritus (tyhjä = kaikki)",
+      "questionCountHelp": "Jätä tyhjäksi, jos haluat käyttää kaikki kysymykset",
       "cloneFromPublished": "Kopioi julkaistusta versiosta",
       "addQuestion": "Lisää kysymys",
       "questionPrompt": "Kysymys",
@@ -1942,6 +1952,21 @@
     "historyClose": "Sulje",
     "viewProfile": "Näytä jäsenprofiili"
   },
+  "unpaidOverdueInvoices": {
+    "title": "Maksamattomat erääntyneet laskut",
+    "columns": {
+      "member": "Jäsen",
+      "dueDate": "Eräpäivä",
+      "type": "Tyyppi",
+      "description": "Kuvaus",
+      "sum": "Summa",
+      "daysOverdue": "Myöhässä"
+    },
+    "daysLate_one": "{{count}} pv",
+    "daysLate_other": "{{count}} pv",
+    "totalSum": "Yhteensä",
+    "noInvoicesFound": "Maksamattomia erääntyniä laskuja ei löytynyt"
+  },
   "dto": {
     "myTraining": {
       "title": "Oma DTO-koulutus",
@@ -1989,6 +2014,37 @@
     },
     "progress": {
       "title": "DTO oppilasedistyminen"
+    }
+  },
+  "events": {
+    "title": "Kerhon tapahtumat",
+    "adminTitle": "Hallitse tapahtumia",
+    "dashboardTitle": "Kerhon tapahtumat",
+    "upcoming": "Tulevat tapahtumat",
+    "past_section": "Menneet tapahtumat",
+    "past": "Mennyt",
+    "public": "Julkinen",
+    "noEvents": "Ei tulevia tapahtumia.",
+    "manage": "Hallitse tapahtumia",
+    "viewAll": "Näytä kaikki tapahtumat",
+    "create": "Luo tapahtuma",
+    "editEvent": "Muokkaa tapahtumaa",
+    "createEvent": "Uusi tapahtuma",
+    "addToCalendar": "Lisää kalenteriin",
+    "addToGoogle": "Lisää Google Kalenteriin",
+    "downloadIcs": "Lataa .ics-tiedosto",
+    "deleteTitle": "Poista tapahtuma",
+    "deleteConfirm": "Haluatko varmasti poistaa tapahtuman \"{{title}}\"? Tätä ei voi peruuttaa.",
+    "saveError": "Tapahtuman tallentaminen epäonnistui. Yritä uudelleen.",
+    "deleteError": "Tapahtuman poistaminen epäonnistui. Yritä uudelleen.",
+    "form": {
+      "title": "Otsikko",
+      "startTime": "Alkuaika",
+      "endTime": "Loppuaika",
+      "location": "Paikka",
+      "description": "Kuvaus",
+      "isPublic": "Julkinen tapahtuma",
+      "isPublicHint": "Julkiset tapahtumat näkyvät MIK.fi-sivustolla eikä niihin vaadita kirjautumista."
     }
   }
 }

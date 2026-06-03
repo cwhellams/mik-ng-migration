@@ -38,6 +38,7 @@ export const ExamVersionSchema = AuditableSchema.extend({
   defaultLanguage: z.string().max(5).default('en'),
   supportedLanguages: z.array(z.string()).default([]),
   passPercent: z.number().nonnegative().default(75),
+  questionCount: z.number().int().positive().nullable().optional(),
 })
 export type ExamVersion = z.infer<typeof ExamVersionSchema>
 
