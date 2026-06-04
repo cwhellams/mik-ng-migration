@@ -78,6 +78,7 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!open) return
 
     debounceRef.current = setTimeout(async () => {
       const params: Record<string, string> = {}
@@ -102,7 +103,7 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [startDate, endDate, aircraftRegistration, sudo])
+  }, [open, startDate, endDate, aircraftRegistration, sudo])
 
   const handleExport = async () => {
     setIsExporting(true)
