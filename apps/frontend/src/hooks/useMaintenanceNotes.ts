@@ -18,17 +18,3 @@ export function useCreateMaintenanceNote() {
     skipFetch: true,
   })
 }
-
-export function useUpdateMaintenanceNote(noteId: string) {
-  return useApi<MaintenanceNote>({
-    url: `v1/maintenance-notes/${noteId}`,
-    skipFetch: true,
-  })
-}
-
-export function useDeleteMaintenanceNote(noteId: string) {
-  return useApi<void>({
-    url: `v1/maintenance-notes/${noteId}`,
-    skipFetch: true,
-  })
-}

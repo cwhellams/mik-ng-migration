@@ -44,6 +44,7 @@ import { useMaintenanceNotes } from '../../hooks/useMaintenanceNotes'
 import { MaintenanceNoteMarker } from './MaintenanceNoteMarker'
 import { AddMaintenanceNoteDialog } from './AddMaintenanceNoteDialog'
 import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
+import { MIKPermissions } from '@backend/routes/members/models'
 
 type LogbookTableRow = {
   log: FlightLogListEntry | null
@@ -308,33 +309,6 @@ const FlightLogsList = () => {
       }
     }
 
-    // Append any remaining notes after the last flight row
-    while (noteIdx < notesToInsert.length) {
-      const note = notesToInsert[noteIdx]
-      const lastLog = logsWithEmptyRows[logsWithEmptyRows.length - 1]?.log
-      if (lastLog) {
-        result.push({
-          log: lastLog,
-          isEmptyRow: false,
-          hasEditActions: false,
-          note,
-          isNoteRow: true,
-          isNoteBlankRow: false,
-        })
-        for (let b = 0; b < note.blankRowsAfter; b++) {
-          result.push({
-            log: lastLog,
-            isEmptyRow: true,
-            hasEditActions: false,
-            note,
-            isNoteRow: false,
-            isNoteBlankRow: true,
-          })
-        }
-      }
-      noteIdx++
-    }
-
     return result
   })()
 
@@ -351,7 +325,7 @@ const FlightLogsList = () => {
 
       <Title label={t('flightLog.logbooks.title')} />
 
-      {hasAccess('flightlog.user' as never) && ajlb && (
+      {hasAccess(MIKPermissions.FLIGHTLOG_USER) && ajlb && (
         <Stack direction='row' spacing={1} sx={{ mb: 2 }}>
           <Button
             variant='outlined'
