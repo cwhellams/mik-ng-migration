@@ -13,12 +13,15 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import useApi from '../../hooks/useApi'
 import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
 import { SaveButton } from '../../components/SaveButton'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
+import {
+  MaintenanceNoteFormSchema,
+  type MaintenanceNoteFormValues,
+} from './maintenanceNoteFormSchema'
 
 interface AddMaintenanceNoteDialogProps {
   open: boolean
@@ -28,16 +31,6 @@ interface AddMaintenanceNoteDialogProps {
   ajlbSeqNo: number
   defaultFlightMins?: number
 }
-
-const FormSchema = z.object({
-  description: z.string().min(1),
-  performedBy: z.string().min(1),
-  flightHours: z.coerce.number().int().min(0),
-  flightMinutes: z.coerce.number().int().min(0).max(59),
-  blankRowsAfter: z.coerce.number().int().min(0),
-})
-
-type FormValues = z.infer<typeof FormSchema>
 
 export const AddMaintenanceNoteDialog: React.FC<
   AddMaintenanceNoteDialogProps
@@ -57,23 +50,22 @@ export const AddMaintenanceNoteDialog: React.FC<
     skipFetch: true,
   })
 
-  const defaultHours =
-    defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0
-  const defaultMinutes =
-    defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0
-
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(FormSchema),
+  } = useForm<MaintenanceNoteFormValues>({
+    resolver: zodResolver(MaintenanceNoteFormSchema),
     defaultValues: {
       description: '',
       performedBy: '',
-      flightHours: defaultHours,
-      flightMinutes: defaultMinutes,
+      flightHours:
+        defaultFlightMins !== undefined
+          ? Math.floor(defaultFlightMins / 60)
+          : 0,
+      flightMinutes:
+        defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
       blankRowsAfter: 0,
     },
   })
@@ -95,7 +87,7 @@ export const AddMaintenanceNoteDialog: React.FC<
     }
   }, [open, defaultFlightMins, reset])
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (values: MaintenanceNoteFormValues) => {
     const { error } = await mutation.trigger('POST', {
       aircraftRegistration,
       ajlbSeqNo,

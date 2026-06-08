@@ -72,8 +72,9 @@ export async function createMaintenanceNote(
 export async function updateMaintenanceNote(
   noteId: string,
   data: UpdateMaintenanceNoteRequest,
+  createdByFilter?: string,
 ): Promise<MaintenanceNote | undefined> {
-  const row = await connection.db
+  let query = connection.db
     .updateTable('flight.maintenance_note')
     .set({
       ...(data.description !== undefined && { description: data.description }),
@@ -83,19 +84,22 @@ export async function updateMaintenanceNote(
       ...(data.hilId !== undefined && { hil_id: data.hilId }),
     })
     .where('note_id', '=', noteId)
-    .returningAll()
-    .executeTakeFirst()
-
+  if (createdByFilter !== undefined) {
+    query = query.where('created_by', '=', createdByFilter)
+  }
+  const row = await query.returningAll().executeTakeFirst()
   return row ? mapRowToNote(row) : undefined
 }
 
-export async function deleteMaintenanceNote(noteId: string): Promise<MaintenanceNote | undefined> {
-  const row = await connection.db
-    .deleteFrom('flight.maintenance_note')
-    .where('note_id', '=', noteId)
-    .returningAll()
-    .executeTakeFirst()
-
+export async function deleteMaintenanceNote(
+  noteId: string,
+  createdByFilter?: string,
+): Promise<MaintenanceNote | undefined> {
+  let query = connection.db.deleteFrom('flight.maintenance_note').where('note_id', '=', noteId)
+  if (createdByFilter !== undefined) {
+    query = query.where('created_by', '=', createdByFilter)
+  }
+  const row = await query.returningAll().executeTakeFirst()
   return row ? mapRowToNote(row) : undefined
 }
 

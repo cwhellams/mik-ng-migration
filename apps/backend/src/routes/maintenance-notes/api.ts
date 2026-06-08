@@ -7,7 +7,6 @@ import {
 } from './models.ts'
 import {
   getMaintenanceNotes,
-  getMaintenanceNote,
   createMaintenanceNote,
   updateMaintenanceNote,
   deleteMaintenanceNote,
@@ -35,39 +34,17 @@ router.post('/', async (req: Request, res: Response<MaintenanceNote>) => {
 router.patch('/:id', async (req: Request<{ id: string }>, res: Response<MaintenanceNote>) => {
   const { id } = req.params
   const data = UpdateMaintenanceNoteSchema.parse(req.body)
-
-  const existing = await getMaintenanceNote(id)
-  if (!existing) {
-    return problem({ status: 404, detail: 'Maintenance note not found' })
-  }
-
   const isAdmin = req.user?.permissions?.includes(MIKPermissions.FLIGHTLOG_ADMIN)
-  if (!isAdmin && existing.createdBy !== req.user!.memberId) {
-    return problem({ status: 403, detail: 'You can only edit your own maintenance notes' })
-  }
-
-  const updated = await updateMaintenanceNote(id, data)
-  if (!updated) {
-    return problem({ status: 404, detail: 'Maintenance note not found' })
-  }
-
+  const updated = await updateMaintenanceNote(id, data, isAdmin ? undefined : req.user!.memberId!)
+  if (!updated) return problem({ status: 404, detail: 'Maintenance note not found' })
   res.status(200).json(updated)
 })
 
 router.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
   const { id } = req.params
-
-  const existing = await getMaintenanceNote(id)
-  if (!existing) {
-    return problem({ status: 404, detail: 'Maintenance note not found' })
-  }
-
   const isAdmin = req.user?.permissions?.includes(MIKPermissions.FLIGHTLOG_ADMIN)
-  if (!isAdmin && existing.createdBy !== req.user!.memberId) {
-    return problem({ status: 403, detail: 'You can only delete your own maintenance notes' })
-  }
-
-  await deleteMaintenanceNote(id)
+  const deleted = await deleteMaintenanceNote(id, isAdmin ? undefined : req.user!.memberId!)
+  if (!deleted) return problem({ status: 404, detail: 'Maintenance note not found' })
   res.status(204).end()
 })
 

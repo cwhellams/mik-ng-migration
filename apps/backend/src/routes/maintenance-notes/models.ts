@@ -41,11 +41,9 @@ export const UpdateMaintenanceNoteSchema = z
 
 export type UpdateMaintenanceNoteRequest = z.infer<typeof UpdateMaintenanceNoteSchema>
 
-export const MaintenanceNoteFilterSchema = z
-  .object({
-    aircraftRegistration: z.string(),
-    ajlbSeqNo: z.coerce.number().int().positive(),
-  })
-  .strict()
+export const MaintenanceNoteFilterSchema = z.object({
+  aircraftRegistration: z.string(),
+  ajlbSeqNo: z.coerce.number().int().positive(),
+})
 
 export type MaintenanceNoteFilter = z.infer<typeof MaintenanceNoteFilterSchema>

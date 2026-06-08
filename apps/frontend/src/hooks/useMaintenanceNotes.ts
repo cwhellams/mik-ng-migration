@@ -11,10 +11,3 @@ export function useMaintenanceNotes(
     skipFetch: !aircraftRegistration || !ajlbSeqNo,
   })
 }
-
-export function useCreateMaintenanceNote() {
-  return useApi<MaintenanceNote>({
-    url: 'v1/maintenance-notes',
-    skipFetch: true,
-  })
-}

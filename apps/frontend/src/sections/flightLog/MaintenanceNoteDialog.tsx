@@ -14,10 +14,13 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
 import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
+import {
+  MaintenanceNoteFormSchema,
+  type MaintenanceNoteFormValues,
+} from './maintenanceNoteFormSchema'
 import { useRoles } from '../../hooks/useRoles'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { SaveButton } from '../../components/SaveButton'
@@ -30,16 +33,6 @@ interface MaintenanceNoteDialogProps {
   onClose: () => void
   onChanged: () => void
 }
-
-const EditFormSchema = z.object({
-  description: z.string().min(1),
-  performedBy: z.string().min(1),
-  flightHours: z.coerce.number().int().min(0),
-  flightMinutes: z.coerce.number().int().min(0).max(59),
-  blankRowsAfter: z.coerce.number().int().min(0),
-})
-
-type EditFormValues = z.infer<typeof EditFormSchema>
 
 export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
   note,
@@ -70,8 +63,8 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<EditFormValues>({
-    resolver: zodResolver(EditFormSchema),
+  } = useForm<MaintenanceNoteFormValues>({
+    resolver: zodResolver(MaintenanceNoteFormSchema),
     values: {
       description: note.description,
       performedBy: note.performedBy,
@@ -89,7 +82,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
     setIsEditing(!isEditing)
   }
 
-  const onSubmit = async (values: EditFormValues) => {
+  const onSubmit = async (values: MaintenanceNoteFormValues) => {
     const { error } = await updateMutation.trigger('PATCH', {
       description: values.description,
       performedBy: values.performedBy,
