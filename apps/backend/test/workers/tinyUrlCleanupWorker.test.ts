@@ -36,8 +36,9 @@ describe('Tiny URL Cleanup Worker', () => {
 
   describe('Worker Initialization', () => {
     it('should schedule task when worker is enabled', async () => {
-      const { startTinyUrlCleanupWorker } =
-        await import('../../src/workers/tinyUrlCleanupWorker.ts')
+      const { startTinyUrlCleanupWorker } = await import(
+        '../../src/workers/tinyUrlCleanupWorker.ts'
+      )
 
       const worker = startTinyUrlCleanupWorker({ cronSchedule: mockCronSchedule })
 
@@ -51,8 +52,9 @@ describe('Tiny URL Cleanup Worker', () => {
 
       jest.resetModules()
 
-      const { startTinyUrlCleanupWorker } =
-        await import('../../src/workers/tinyUrlCleanupWorker.ts')
+      const { startTinyUrlCleanupWorker } = await import(
+        '../../src/workers/tinyUrlCleanupWorker.ts'
+      )
 
       const worker = startTinyUrlCleanupWorker({ cronSchedule: mockCronSchedule })
 

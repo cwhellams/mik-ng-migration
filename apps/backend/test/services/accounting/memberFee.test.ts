@@ -6,8 +6,9 @@ jest.unstable_mockModule('../../../src/services/simplbooks/simplbooksApiClient.t
 
 const { getItemByCode } = await import('../../../src/services/simplbooks/simplbooksApiClient.ts')
 
-const { createNewMemberFeesInvoicePayload: createMembershipFeeInvoicePayload } =
-  await import('../../../src/services/accounting/recurringFeesInvoiceCreator.ts')
+const { createNewMemberFeesInvoicePayload: createMembershipFeeInvoicePayload } = await import(
+  '../../../src/services/accounting/recurringFeesInvoiceCreator.ts'
+)
 
 import { MIKLang, MIKMemberTypes, type Member } from '../../../src/routes/members/models.ts'
 
