@@ -72,14 +72,38 @@ app.use(
 // Security Middlewares
 app.use(helmet()) // Secure headers
 
-// Parse CORS allowed origins from comma-separated environment variable
-const corsOrigins = process.env.CORS_ALLOWED_ORIGINS
-  ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-  : ['*']
+// Parse CORS allowed origins from comma-separated environment variable.
+// Wildcard ('*') is explicitly rejected — it cannot be used with credentialed requests
+// (httpOnly cookies) as required by the CORS spec.
+const rawOrigins = process.env.CORS_ALLOWED_ORIGINS
+  ? process.env.CORS_ALLOWED_ORIGINS.split(',')
+      .map(origin => origin.trim())
+      .filter(origin => origin.length > 0 && origin !== '*')
+  : []
+
+let corsOrigins: string[]
+
+if (rawOrigins.length === 0) {
+  if (process.env.NODE_ENV === 'production') {
+    logger.error(
+      'CORS_ALLOWED_ORIGINS is not configured — cross-origin requests will be rejected. ' +
+        'Set it to your frontend origin (e.g. https://intra.mik.fi).',
+    )
+    corsOrigins = []
+  } else {
+    logger.warn(
+      'CORS_ALLOWED_ORIGINS not set — defaulting to http://localhost:5173 (local dev only)',
+    )
+    corsOrigins = ['http://localhost:5173']
+  }
+} else {
+  corsOrigins = rawOrigins
+}
 
 app.use(
   cors({
-    origin: corsOrigins.length === 1 && corsOrigins[0] === '*' ? '*' : corsOrigins,
+    // Use false (block all cross-origin) if no valid origins are configured in production
+    origin: corsOrigins.length > 0 ? corsOrigins : false,
     credentials: true,
   }),
 )
