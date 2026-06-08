@@ -22,7 +22,11 @@ import {
 } from '../../../src/services/simplbooks/simplbooksOutboxHandler.ts'
 import type { InvoiceResponse } from '../../../src/services/simplbooks/models.ts'
 import { simplbooksApiClient } from '../../../src/services/simplbooks/simplbooksApiClient.ts'
-import { mockSimplbooksGet, mockSimplbooksPost } from '../../__mocks__/simplbooksMock.ts'
+import {
+  mockSimplbooksGet,
+  mockSimplbooksPost,
+  resetSimplbooksMockCounters,
+} from '../../__mocks__/simplbooksMock.ts'
 import {
   checkForOutboxStuckRows,
   deleteCreatedInvoice,
@@ -96,8 +100,10 @@ const obMsgNewMembershipFeeInvoice: AcctsOutboxSimplbooks = {
 describe('Simplbooks Outbox Handler tests', () => {
   beforeAll(async () => {
     await deleteSimplbooksOutbox()
-    jest.clearAllMocks()
+  })
 
+  beforeEach(() => {
+    resetSimplbooksMockCounters()
     jest.spyOn(simplbooksApiClient, 'post').mockImplementation(mockSimplbooksPost)
     jest.spyOn(simplbooksApiClient, 'get').mockImplementation(mockSimplbooksGet)
   })
@@ -109,6 +115,28 @@ describe('Simplbooks Outbox Handler tests', () => {
 
   it('dispatches outbox messages for add member', async () => {
     await dispatchOutboxMsg(obMsgAddMember)
+
+    await expectBillingIdSet(newMemberId)
+    await expectOutbox1Row(SimplbooksEventType.NEW_MEMBER_FEES)
+
+    await revertBillingIdChanges(newMemberId, 'BILL004')
+  })
+
+  it('queues NEW_MEMBER_FEES with a billing ID set for an honorary member', async () => {
+    const honoraryMember: Member = { ...flyingMember, memberType: MIKMemberTypes.HONORARY }
+    const honoraryMemberPayload: InvoiceMember = InvoiceMemberSchema.parse({
+      ...honoraryMember,
+      autoRenewAnnualMembership: false,
+      autoRenewEquipmentFee: false,
+      billingId: 'BILL004',
+    })
+    const obMsgAddHonoraryMember: AcctsOutboxSimplbooks = {
+      ...obMsgAddMember,
+      id: randomUUID(),
+      payload: honoraryMemberPayload,
+    }
+
+    await dispatchOutboxMsg(obMsgAddHonoraryMember)
 
     await expectBillingIdSet(newMemberId)
     await expectOutbox1Row(SimplbooksEventType.NEW_MEMBER_FEES)

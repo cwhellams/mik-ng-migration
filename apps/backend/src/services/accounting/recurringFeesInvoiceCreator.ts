@@ -23,6 +23,7 @@ import {
 const getMemberFeeSimplBooksCodeFromMemberType = (memberType: MIKMemberTypes) => {
   switch (memberType) {
     case MIKMemberTypes.FLYING:
+    case MIKMemberTypes.HONORARY:
       return ART_MEMBER_FEE_CODE
     case MIKMemberTypes.JUNIOR:
       return ART_JUNIOR_MEMBER_FEE_CODE
@@ -36,6 +37,7 @@ const getMemberFeeSimplBooksCodeFromMemberType = (memberType: MIKMemberTypes) =>
 const getJoiningFeeSimplBooksCodeFromMemberType = (memberType: MIKMemberTypes) => {
   switch (memberType) {
     case MIKMemberTypes.FLYING:
+    case MIKMemberTypes.HONORARY:
       return ART_JOINING_FEE
     case MIKMemberTypes.JUNIOR:
       return ART_JUNIOR_JOINING_FEE
@@ -45,6 +47,9 @@ const getJoiningFeeSimplBooksCodeFromMemberType = (memberType: MIKMemberTypes) =
       throw new Error('Unsupported Member Type for Fee invoicing')
   }
 }
+
+const HONORARY_MEMBER_DISCOUNT = 100
+const HONORARY_MEMBER_INVOICE_NOTE = 'Honorary member — fees fully discounted'
 
 interface ArticleTaskInput {
   code: string
@@ -96,17 +101,26 @@ export const createNewMemberFeesInvoicePayload = async (
   const articleAnnualFeeCode = getMemberFeeSimplBooksCodeFromMemberType(member.memberType)
   const articleJoiningFeeCode = getJoiningFeeSimplBooksCodeFromMemberType(member.memberType)
 
-  const membershipFeeDiscountPercent = isAfterMembershipFeeDiscountDate(date)
-    ? HALF_YEAR_DISCOUNT_PERCENT
-    : undefined
+  const isHonorary = member.memberType === MIKMemberTypes.HONORARY
+
+  // Honorary members receive a full-discount invoice; otherwise apply seasonal half-year discount if applicable
+  const membershipFeeDiscountPercent = isHonorary
+    ? HONORARY_MEMBER_DISCOUNT
+    : isAfterMembershipFeeDiscountDate(date)
+      ? HALF_YEAR_DISCOUNT_PERCENT
+      : undefined
+  const joiningFeeDiscountPercent = isHonorary ? HONORARY_MEMBER_DISCOUNT : undefined
 
   const tasks = await createTasksFromArticleInputs([
-    { code: articleJoiningFeeCode },
+    { code: articleJoiningFeeCode, discountPercent: joiningFeeDiscountPercent },
     { code: articleAnnualFeeCode, discountPercent: membershipFeeDiscountPercent },
   ])
 
   const invoice: InvoicePost = {
-    Invoice: createInvoicePostPayload(member, true),
+    Invoice: {
+      ...createInvoicePostPayload(member, true),
+      ...(isHonorary && { additional_info: HONORARY_MEMBER_INVOICE_NOTE }),
+    },
     Tasks: tasks,
   }
 

@@ -68,7 +68,8 @@ export const MemberTypeToBrevoListId: Partial<Record<MIKMemberTypes, number>> = 
   [MIKMemberTypes.NONFLYING]: BrevoListId.NON_FLYING,
   [MIKMemberTypes.JUNIOR]: BrevoListId.JUNIOR,
   [MIKMemberTypes.REMOVED]: BrevoListId.REMOVED,
-  // EXTERNAL & HONORARY members are not synced to any Brevo list
+  // EXTERNAL members are not synced to any Brevo list
+  // HONORARY members are synced to the ALL list (like other active members) but have no type-specific list
 }
 
 export const BrevoSyncStatusSchema = z.enum(['PENDING', 'SYNCED', 'FAILED'])

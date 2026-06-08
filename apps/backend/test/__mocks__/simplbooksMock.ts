@@ -6,6 +6,11 @@ const ZERO_DATE = '0000-00-00'
 let invoiceIdCounter = 3788
 let clientIdCounter = 123456
 
+export function resetSimplbooksMockCounters() {
+  invoiceIdCounter = 3788
+  clientIdCounter = 123456
+}
+
 export function mockSimplbooksPost(url: string, data?: any): Promise<AxiosResponse> {
   if (url === '/invoices/create') {
     return Promise.resolve({
