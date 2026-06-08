@@ -1,7 +1,7 @@
 import { getMemberById } from '../../db/member-queries.ts'
 import { db } from '../../db/connection.ts'
 import logger from '../../lib/logger.ts'
-import { sendEmail } from '../../lib/sendGmail.ts'
+import { sendEmail, type EmailAttachment } from '../../lib/sendGmail.ts'
 import { getInvoice, getInvoicePdf } from './simplbooksApiClient.ts'
 import { escapeHtml } from '../../util/sanitizers.ts'
 import { markdownEmailTemplate } from '../../templates/emailTemplate.ts'
@@ -66,11 +66,12 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
     }
   }
 
+  const barcodeCid = `barcode-${invoiceId}@mik.fi`
+  let barcodeBuffer: Buffer | undefined
   if (barcode) {
     try {
-      const imageBuffer = await generateBankBarcodeImage(barcode)
-      const base64 = imageBuffer.toString('base64')
-      barcodeImageHtml = `<div style="margin: 16px 0; text-align: center;"><img src="data:image/png;base64,${base64}" alt="Barcode" style="max-width: 100%; height: auto; border: 0;" /></div>`
+      barcodeBuffer = await generateBankBarcodeImage(barcode)
+      barcodeImageHtml = `<div style="margin: 16px 0; text-align: center;"><img src="cid:${barcodeCid}" alt="Barcode" style="max-width: 100%; height: auto; border: 0;" /></div>`
     } catch (err) {
       logger.warn(
         `Could not generate barcode image for invoice ${invoiceId}: ${err instanceof Error ? err.message : String(err)}`,
@@ -79,6 +80,8 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
   }
 
   let qrCodeImageHtml: string | undefined
+  const qrCodeCid = `qrcode-${invoiceId}@mik.fi`
+  let qrBuffer: Buffer | undefined
   const mikBeneficiaryName = process.env.MIK_BENEFICIARY_NAME ?? 'Malmin Ilmailukerho ry'
   if (reference && /^\d+$/.test(reference)) {
     try {
@@ -90,9 +93,8 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
         undefined,
         dueDate,
       )
-      const qrBuffer = await generateEpcQrCodeImage(qrData)
-      const qrBase64 = qrBuffer.toString('base64')
-      qrCodeImageHtml = `<div style="margin: 16px 0; text-align: center;"><img src="data:image/png;base64,${qrBase64}" alt="QR code" style="width: 200px; height: 200px; border: 0;" /></div>`
+      qrBuffer = await generateEpcQrCodeImage(qrData)
+      qrCodeImageHtml = `<div style="margin: 16px 0; text-align: center;"><img src="cid:${qrCodeCid}" alt="QR code" style="width: 200px; height: 200px; border: 0;" /></div>`
     } catch (err) {
       logger.warn(
         `Could not generate EPC QR code for invoice ${invoiceId}: ${err instanceof Error ? err.message : String(err)}`,
@@ -124,13 +126,31 @@ export async function sendSimplbooksInvoiceEmail(invoiceId: number, memberId: st
       ? `Malmin Ilmailukerhon lasku - ${escapeHtml(emailVars.invoiceId)}`
       : `MIK New Invoice - ${escapeHtml(emailVars.invoiceId)}`
 
-  const attachments = [
+  const attachments: EmailAttachment[] = [
     {
       filename: `mik_lasku_${emailVars.invoiceId}.pdf`,
       content: invoicePdfBase64,
       encoding: 'base64' as const,
     },
   ]
+  if (barcodeBuffer) {
+    attachments.push({
+      filename: 'barcode.png',
+      content: barcodeBuffer,
+      contentType: 'image/png',
+      cid: barcodeCid,
+      contentDisposition: 'inline',
+    })
+  }
+  if (qrBuffer) {
+    attachments.push({
+      filename: 'qrcode.png',
+      content: qrBuffer,
+      contentType: 'image/png',
+      cid: qrCodeCid,
+      contentDisposition: 'inline',
+    })
+  }
   await sendEmail(
     member.email,
     subject,
