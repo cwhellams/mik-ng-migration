@@ -193,7 +193,7 @@ const FlightLogsList = () => {
 
       {isFlightLogAdmin && log.status == FlightLogStatus.NEW && (
         <>
-          {log.ajlbRowNo == 1 && log.ajlbBlankRowsBefore > 0 && (
+          {log.ajlbBlankRowsBefore > 0 && (
             <EditButton
               title={t('flightLog.logbooks.deleteBlankRow')}
               onClick={() =>
