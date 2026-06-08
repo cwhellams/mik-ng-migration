@@ -22,7 +22,11 @@ import {
 } from '../../../src/services/simplbooks/simplbooksOutboxHandler.ts'
 import type { InvoiceResponse } from '../../../src/services/simplbooks/models.ts'
 import { simplbooksApiClient } from '../../../src/services/simplbooks/simplbooksApiClient.ts'
-import { mockSimplbooksGet, mockSimplbooksPost } from '../../__mocks__/simplbooksMock.ts'
+import {
+  mockSimplbooksGet,
+  mockSimplbooksPost,
+  resetSimplbooksMockCounters,
+} from '../../__mocks__/simplbooksMock.ts'
 import {
   checkForOutboxStuckRows,
   deleteCreatedInvoice,
@@ -96,8 +100,10 @@ const obMsgNewMembershipFeeInvoice: AcctsOutboxSimplbooks = {
 describe('Simplbooks Outbox Handler tests', () => {
   beforeAll(async () => {
     await deleteSimplbooksOutbox()
-    jest.clearAllMocks()
+  })
 
+  beforeEach(() => {
+    resetSimplbooksMockCounters()
     jest.spyOn(simplbooksApiClient, 'post').mockImplementation(mockSimplbooksPost)
     jest.spyOn(simplbooksApiClient, 'get').mockImplementation(mockSimplbooksGet)
   })
