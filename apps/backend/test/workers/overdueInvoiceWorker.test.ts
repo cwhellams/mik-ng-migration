@@ -100,9 +100,8 @@ describe('Overdue Invoice Worker', () => {
 
   describe('Worker Initialization', () => {
     it('should schedule task when worker is enabled', async () => {
-      const { startOverdueInvoiceWorker } = await import(
-        '../../src/workers/overdueInvoiceWorker.ts'
-      )
+      const { startOverdueInvoiceWorker } =
+        await import('../../src/workers/overdueInvoiceWorker.ts')
 
       const worker = startOverdueInvoiceWorker({
         sendEmailFn: mockSendEmail,
@@ -120,9 +119,8 @@ describe('Overdue Invoice Worker', () => {
       // Clear module cache to re-import with new env var
       jest.resetModules()
 
-      const { startOverdueInvoiceWorker } = await import(
-        '../../src/workers/overdueInvoiceWorker.ts'
-      )
+      const { startOverdueInvoiceWorker } =
+        await import('../../src/workers/overdueInvoiceWorker.ts')
 
       const worker = startOverdueInvoiceWorker({
         sendEmailFn: mockSendEmail,
