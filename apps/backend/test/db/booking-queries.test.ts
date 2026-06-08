@@ -27,6 +27,8 @@ describe('Db Get Booking by id', () => {
       cancelledAt: undefined,
       cancelledBy: null,
       cancelledByName: undefined,
+      cancellationNote: undefined,
+      cancellationReason: undefined,
       createdAt: expect.any(String),
       createdBy: 'Liisa1',
       createdByName: 'Liisa Korhonen',

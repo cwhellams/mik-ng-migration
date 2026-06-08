@@ -844,7 +844,14 @@ describe('PATCH /members/id', () => {
       // other test suites and must not be left in a cancelled state).
       await db
         .updateTable('schedule.bookings')
-        .set({ booking_status: BookingStatus.CONFIRMED, cancelled_at: null, cancelled_by: null })
+        .set(eb => ({
+          booking_status: BookingStatus.CONFIRMED,
+          cancelled_at: null,
+          cancelled_by: null,
+          description: null,
+          // Restore updated_by to the original creator so other tests see clean seed data
+          updated_by: eb.ref('created_by'),
+        }))
         .where('member_id', '=', testMemberId)
         .where(eb => eb.or([eb('booking_id', 'like', 'stl%'), eb('booking_id', 'like', 'ihq%')]))
         .where('booking_status', '=', BookingStatus.CANCELLED)

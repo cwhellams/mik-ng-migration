@@ -67,8 +67,9 @@ describe('SimplBooks Member Sync Worker', () => {
 
       // Clear module cache to reload with new env var
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
 
@@ -83,8 +84,9 @@ describe('SimplBooks Member Sync Worker', () => {
 
       // Clear module cache to reload with new env var
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
 
@@ -99,8 +101,9 @@ describe('SimplBooks Member Sync Worker', () => {
 
       // Clear module cache to reload with new env var
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
 
@@ -182,8 +185,9 @@ describe('SimplBooks Member Sync Worker', () => {
 
       // Since we can't directly test the internal function, verify worker can be created
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -220,8 +224,9 @@ describe('SimplBooks Member Sync Worker', () => {
       })
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -257,8 +262,9 @@ describe('SimplBooks Member Sync Worker', () => {
       })
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -270,8 +276,9 @@ describe('SimplBooks Member Sync Worker', () => {
       mockCreateSimplbooksSyncState.mockRejectedValue(new Error('Database connection error'))
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -308,8 +315,9 @@ describe('SimplBooks Member Sync Worker', () => {
       })
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -344,8 +352,9 @@ describe('SimplBooks Member Sync Worker', () => {
       })
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -384,8 +393,9 @@ describe('SimplBooks Member Sync Worker', () => {
       })
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -422,8 +432,9 @@ describe('SimplBooks Member Sync Worker', () => {
       })
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -460,8 +471,9 @@ describe('SimplBooks Member Sync Worker', () => {
       })
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -513,8 +525,9 @@ describe('SimplBooks Member Sync Worker', () => {
       })
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -530,8 +543,9 @@ describe('SimplBooks Member Sync Worker', () => {
       mockUpdateSimplbooksSyncState.mockResolvedValue(undefined)
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -558,8 +572,9 @@ describe('SimplBooks Member Sync Worker', () => {
       mockUpdateSimplbooksSyncState.mockResolvedValue(undefined)
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
@@ -576,8 +591,9 @@ describe('SimplBooks Member Sync Worker', () => {
       mockUpdateSimplbooksSyncState.mockResolvedValue(undefined)
 
       jest.resetModules()
-      const { startSimplbooksSyncWorker } =
-        await import('../../src/workers/simplbooksMemberSyncWorker.ts')
+      const { startSimplbooksSyncWorker } = await import(
+        '../../src/workers/simplbooksMemberSyncWorker.ts'
+      )
 
       const worker = startSimplbooksSyncWorker()
       worker.stop()
