@@ -228,9 +228,9 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     ])
     .select([
       'totals.ac_total_flight_time',
-      'totals.ac_total_landings',
       'totals.row_number',
       'totals.page_number',
+      'totals.ac_total_flight_mins',
     ])
     .orderBy('off_block_time_epoch', filters.orderLatestFirst ? 'desc' : 'asc')
     // offset only valid with dynamic paging
@@ -272,7 +272,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         picLastName: row.pic_last_name,
         status: row.status as FlightLogStatus,
         totalTimeInService: row.total_time_in_service,
-        acTotalFlightMins: row.ajlb_total_flight_mins ?? null,
+        acTotalFlightMins: row.ajlb_total_flight_mins ?? row.ac_total_flight_mins ?? null,
       }
       return res
     }),

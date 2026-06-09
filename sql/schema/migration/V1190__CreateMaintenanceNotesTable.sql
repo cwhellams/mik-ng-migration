@@ -10,6 +10,8 @@ CREATE TABLE flight.maintenance_note (
   created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_by            TEXT        NOT NULL,
 
+  CONSTRAINT maintenance_note_flight_mins_check CHECK (flight_mins >= 0),
+  CONSTRAINT maintenance_note_blank_rows_after_check CHECK (blank_rows_after >= 0),
   CONSTRAINT maintenance_note_pkey PRIMARY KEY (note_id),
   CONSTRAINT maintenance_note_ajlb_fk FOREIGN KEY (aircraft_registration, ajlb_seq_no)
     REFERENCES flight.aircraft_journey_log_book (aircraft_registration, seq_no),
