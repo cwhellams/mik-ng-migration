@@ -125,6 +125,7 @@ const Roles = () => {
               <Grid size={1.5}>{t('flightLog.logbooks.verifiedTotalFlightTime')}</Grid>
               <Grid size={1.5}>{t('flightLog.logbooks.unverifiedFlights')}</Grid>
               <Grid size={1}>{t('flightLog.logbooks.unverifiedTotalFlightTime')}</Grid>
+              <Grid size={1}>{t('flightLog.logbooks.totalLandings')}</Grid>
             </>
           }
           rows={logbooks?.books}
@@ -166,6 +167,7 @@ const Roles = () => {
                   </Link>
                 </Grid>
                 <Grid size={1}>{ajlb.view?.unverifiedTotalFlightTime}</Grid>
+                <Grid size={1}>{ajlb.view?.totalLandings ?? '-'}</Grid>
               </>
             ) : (
               <>
@@ -206,6 +208,9 @@ const Roles = () => {
                   </FormField>
                   <FormField label={t('flightLog.logbooks.unverifiedTotalFlightTime')}>
                     {ajlb.view?.unverifiedTotalFlightTime}
+                  </FormField>
+                  <FormField label={t('flightLog.logbooks.totalLandings')}>
+                    {ajlb.view?.totalLandings ?? '-'}
                   </FormField>
                 </Grid>
               </>

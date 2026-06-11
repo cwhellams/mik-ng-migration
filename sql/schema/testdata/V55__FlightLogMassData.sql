@@ -111,3 +111,23 @@ SET status = CASE
 WHERE off_block_time_epoch < 1276200000;
 -- before 2010-01-11 00:00:00 UTC
 ALTER TABLE flight.logs ENABLE TRIGGER USER;
+
+-- Set ajlb_total_landings for all non-NEW flights (cumulative per logbook)
+WITH cumulative AS (
+    SELECT
+        l.flight_id,
+        ajlb.start_landings + SUM(l.number_of_landings) OVER (
+            PARTITION BY l.aircraft_registration, l.ajlb_seq_no
+            ORDER BY l.off_block_time_epoch
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS total_landings
+    FROM flight.logs l
+    JOIN flight.aircraft_journey_log_book ajlb
+        ON ajlb.aircraft_registration = l.aircraft_registration
+        AND ajlb.seq_no = l.ajlb_seq_no
+    WHERE l.status != 'NEW'
+)
+UPDATE flight.logs
+SET ajlb_total_landings = c.total_landings
+FROM cumulative c
+WHERE flight.logs.flight_id = c.flight_id;
