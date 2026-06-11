@@ -199,6 +199,18 @@ const Documents = () => {
     }
   }
 
+  const handleCopyFilterLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setSnackbarMessage(
+        t('documents.filterLinkCopied', 'Filter link copied to clipboard!')
+      )
+      setSnackbarOpen(true)
+    } catch (error) {
+      console.error('Failed to copy filter link:', error)
+    }
+  }
+
   const handleCopyTinyUrl = async () => {
     if (downloadData?.tinyUrl) {
       try {
@@ -367,17 +379,25 @@ const Documents = () => {
               />
             ))}
           </Stack>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showArchived}
-                onChange={handleShowArchivedChange}
-                name='showArchived'
-              />
-            }
-            label={t('documents.archive.show', 'Show archived documents')}
-            sx={{ ml: 2 }}
-          />
+          <Stack direction='row' alignItems='center' spacing={1}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showArchived}
+                  onChange={handleShowArchivedChange}
+                  name='showArchived'
+                />
+              }
+              label={t('documents.archive.show', 'Show archived documents')}
+            />
+            <IconButton
+              size='small'
+              onClick={handleCopyFilterLink}
+              title={t('documents.copyFilterLink', 'Copy link to current view')}
+            >
+              <Icon icon='mdi:share-variant' />
+            </IconButton>
+          </Stack>
         </Stack>
       </Stack>
 

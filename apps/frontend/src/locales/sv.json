@@ -586,11 +586,20 @@
     },
     "action": {
       "open": "Öppna dokument",
+      "tinyUrl": "Visa Tiny URL",
+      "qrCode": "Visa QR-kod",
       "edit": "Redigera dokument",
       "delete": "Ta bort dokument",
       "archive": "Arkivera dokument",
       "unarchive": "Ta bort från arkiv"
     },
+    "downloadOptions": "Nedladdningsalternativ",
+    "tinyUrl": "Tiny URL",
+    "tinyUrlCopied": "Tiny URL kopierad till urklipp!",
+    "qrCode": "QR-kod",
+    "openDocument": "Öppna dokument",
+    "copyFilterLink": "Kopiera länk till aktuell vy",
+    "filterLinkCopied": "Filterlänk kopierad till urklipp!",
     "archive": {
       "show": "Visa arkiverade dokument",
       "hide": "Dölj arkiverade dokument",
