@@ -275,7 +275,14 @@ const FlightLogsList = () => {
 
                     <Grid size={1.1}>{log.acTotalFlightTime}</Grid>
 
-                    <Grid size={0.8}>{log.numberOfLandings}</Grid>
+                    <Grid size={0.8}>
+                      <Box>{log.numberOfLandings}</Box>
+                      {log.acTotalLandings != null && (
+                        <Box color='text.secondary' fontSize='0.75em'>
+                          {log.acTotalLandings}
+                        </Box>
+                      )}
+                    </Grid>
 
                     <Grid size={1.2}>{t(`flightLog.flightTypes.${log.flightType}`)}</Grid>
 

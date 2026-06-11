@@ -501,6 +501,7 @@ export interface FlightAircraftJourneyLogBook {
   start_date: string
   start_flight_mins: number
   start_flight_time: Generated<string>
+  start_landings: Generated<number>
   start_page: number
   updated_at: Generated<Timestamp>
   updated_by: string
@@ -539,6 +540,7 @@ export interface FlightLogs {
   ajlb_seq_no: number
   ajlb_total_flight_mins: number | null
   ajlb_total_flight_time: Generated<string | null>
+  ajlb_total_landings: number | null
   arrival_airport: string
   billable_member_id: string
   billing_remarks: string | null
@@ -654,6 +656,7 @@ export interface FlightOccurrences {
 export interface FlightVwFlightLogs {
   ac_total_flight_mins: number | null
   ac_total_flight_time: string | null
+  ac_total_landings: number | null
   flight_id: string | null
   page_number: number | null
   row_number: number | null
@@ -669,10 +672,12 @@ export interface FlightVwFlightTimeTotals {
   sum_new_time: string | null
   sum_validated_flights: number | null
   sum_validated_time: string | null
+  total_landings: number | null
   unverified_total_flight_mins: number | null
   unverified_total_flight_time: string | null
   validated_on_block_time_utc: Timestamp | null
   validated_total_flight_mins: number | null
+  validated_total_landings: number | null
   verified_total_flight_time: string | null
 }
 

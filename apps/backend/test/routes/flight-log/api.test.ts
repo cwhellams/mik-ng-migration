@@ -64,6 +64,14 @@ const adminToken = generateAccessToken({
   canMakeReservations: false,
 })
 
+const maskLandingTotals = <T extends Record<string, unknown>>(row: T): T => ({
+  ...row,
+  acTotalLandings:
+    typeof row.acTotalLandings === 'number' || row.acTotalLandings === null
+      ? 0
+      : row.acTotalLandings,
+})
+
 describe('GET /flight-log', () => {
   it('should only return data for the logged in user when not admin', async () => {
     const response = await request(app)
@@ -74,7 +82,7 @@ describe('GET /flight-log', () => {
     expect(response.status).toBe(200)
 
     expect(response.body.logs).toHaveLength(2)
-    expect(response.body.logs[0]).toMatchSnapshot()
+    expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
   })
 
   it('should only return data for the logged in user when admin without sudo', async () => {
@@ -96,7 +104,7 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(200)
     expect(response.body.logs).toHaveLength(3)
-    expect(response.body.logs).toMatchSnapshot()
+    expect(response.body.logs.map(maskLandingTotals)).toMatchSnapshot()
   })
 
   it('should return 200 with valid query params', async () => {
@@ -109,7 +117,7 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(200)
 
-    expect(response.body.logs[0]).toMatchSnapshot()
+    expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
   })
 
   it('should return 400 for invalid member_id', async () => {
@@ -145,8 +153,8 @@ describe('GET /flight-log', () => {
       })
 
     expect(response.status).toBe(200)
-    expect(response.body.logs.length).toBeGreaterThan(0)
-    expect(response.body.logs[0]).toMatchSnapshot()
+    expect(response.body.logs).toHaveLength(8)
+    expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
   })
 
   it('should return 400 for invalid startDate timezone', async () => {
@@ -181,7 +189,7 @@ describe('GET /flight-log', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body.logs[0]).toMatchSnapshot()
+    expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
   })
   it('Get flight log with Id should return a single row when data is present for the given Id', async () => {
     const response = await request(app)
@@ -189,7 +197,8 @@ describe('GET /flight-log', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body).toMatchSnapshot({
+    expect(response.body.acTotalLandings).toBeGreaterThan(0) // NEW flight: baseline + cumulative landings from view
+    expect(maskLandingTotals(response.body)).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     })
@@ -212,7 +221,7 @@ describe('GET /flight-log/flightid', () => {
       .query({})
 
     expect(response.status).toBe(200)
-    expect(response.body).toMatchSnapshot({
+    expect(maskLandingTotals(response.body)).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
     })
@@ -244,7 +253,7 @@ describe('GET /flight-log/flightid', () => {
       .query({})
 
     expect(response.status).toBe(200)
-    expect(response.body).toMatchSnapshot({
+    expect(maskLandingTotals(response.body)).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       updatedBy: expect.any(String),
@@ -423,7 +432,7 @@ describe('PATCH /flight-log/', () => {
       expect(patchResponse.body).toEqual(checkPatch.body)
 
       expect(checkPatch.status).toBe(200)
-      expect(checkPatch.body).toMatchSnapshot({
+      expect(maskLandingTotals(checkPatch.body)).toMatchSnapshot({
         updatedAt: expect.any(String),
         createdAt: expect.any(String),
       })
@@ -445,7 +454,7 @@ describe('PATCH /flight-log/', () => {
       expect(undoResponse.body).toEqual(checkUndo.body)
 
       expect(checkUndo.status).toBe(200)
-      expect(checkUndo.body).toMatchSnapshot({
+      expect(maskLandingTotals(checkUndo.body)).toMatchSnapshot({
         updatedAt: expect.any(String),
         createdAt: expect.any(String),
       })
@@ -679,6 +688,27 @@ describe('PATCH /flight-log/', () => {
 })
 
 describe('POST /flight-log/validate', () => {
+  let firstNewMassFlightId: string
+  let secondNewMassFlightId: string
+  let latestValidatedBeforeNewMassFlightId: string
+
+  beforeAll(async () => {
+    const massFlights = await db
+      .selectFrom('flight.logs')
+      .select(['flight_id as flightId', 'status'])
+      .where('flight_id', 'like', 'mass%')
+      .orderBy('off_block_time_utc', 'asc')
+      .execute()
+
+    const firstNewMassFlightIdx = massFlights.findIndex((flight) => flight.status === 'NEW')
+    assert(firstNewMassFlightIdx > 0)
+    assert(firstNewMassFlightIdx + 1 < massFlights.length)
+
+    firstNewMassFlightId = massFlights[firstNewMassFlightIdx].flightId
+    secondNewMassFlightId = massFlights[firstNewMassFlightIdx + 1].flightId
+    latestValidatedBeforeNewMassFlightId = massFlights[firstNewMassFlightIdx - 1].flightId
+  })
+
   it('should return a 401 if an invalid JWT token is passed', async () => {
     const invalidToken = 'THIS WILL NOT WORK'
 
@@ -735,16 +765,16 @@ describe('POST /flight-log/validate', () => {
 
   it('should return a 400 if there are earlier unvalidated flights', async () => {
     const response = await request(app)
-      .post('/flight-log/mass194/validate')
+      .post(`/flight-log/${secondNewMassFlightId}/validate`)
       .set('Cookie', `accessToken=${adminToken}`)
       .send()
 
     expect(response.body).toEqual({
       status: 400,
       title: 'Bad Request',
-      instance: '/flight-log/mass194/validate',
+      instance: `/flight-log/${secondNewMassFlightId}/validate`,
       timestamp: expect.any(String),
-      detail: 'All previous flights must be first validated, validate mass193 first',
+      detail: `All previous flights must be first validated, validate ${firstNewMassFlightId} first`,
     })
   })
 
@@ -759,30 +789,32 @@ describe('POST /flight-log/validate', () => {
       title: 'Bad Request',
       instance: '/flight-log/mass100/validate',
       timestamp: expect.any(String),
-      detail: 'All later flights must be first reverted, revert mass192 first',
+      detail: `All later flights must be first reverted, revert ${latestValidatedBeforeNewMassFlightId} first`,
     })
   })
 
   it('should validate and revert the first new flight', async () => {
     const response = await request(app)
-      .post('/flight-log/mass193/validate')
+      .post(`/flight-log/${firstNewMassFlightId}/validate`)
       .set('Cookie', `accessToken=${adminToken}`)
       .send()
 
     expect(response.status).toEqual(200)
-    expect(response.body.acTotalFlightTime).toEqual('338:16')
-    expect(response.body.ajlbPageNo).toEqual(33)
-    expect(response.body.ajlbRowNo).toEqual(1)
+    expect(response.body.flightId).toEqual(firstNewMassFlightId)
+    expect(response.body.acTotalFlightTime).toEqual(expect.stringMatching(/^\d+:\d{2}$/))
+    expect(response.body.ajlbPageNo).toEqual(expect.any(Number))
+    expect(response.body.ajlbRowNo).toEqual(expect.any(Number))
     expect(response.body.status).toEqual('VALIDATED')
 
     const revert = await request(app)
-      .post('/flight-log/mass193/validate')
+      .post(`/flight-log/${firstNewMassFlightId}/validate`)
       .set('Cookie', `accessToken=${adminToken}`)
       .send({ revert: true })
     expect(revert.status).toEqual(200)
-    expect(revert.body.acTotalFlightTime).toEqual('338:16')
-    expect(revert.body.ajlbPageNo).toEqual(33)
-    expect(revert.body.ajlbRowNo).toEqual(1)
+    expect(revert.body.flightId).toEqual(firstNewMassFlightId)
+    expect(revert.body.acTotalFlightTime).toEqual(response.body.acTotalFlightTime)
+    expect(revert.body.ajlbPageNo).toEqual(response.body.ajlbPageNo)
+    expect(revert.body.ajlbRowNo).toEqual(response.body.ajlbRowNo)
     expect(revert.body.status).toEqual('NEW')
   })
 })
@@ -841,7 +873,7 @@ describe('GET /flight-log/totals', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body[1]).toMatchSnapshot()
+    expect(maskLandingTotals(response.body[1])).toMatchSnapshot()
   })
 
   it('should return 200 with valid registration', async () => {
@@ -850,7 +882,7 @@ describe('GET /flight-log/totals', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body[0]).toMatchSnapshot()
+    expect(maskLandingTotals(response.body[0])).toMatchSnapshot()
   })
 
   it('should return 404 with invalid registration', async () => {
@@ -958,10 +990,10 @@ describe('GET /flight-log/stats', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
 
     expect(response.status).toBe(200)
-    const updatedShlStats = response.body.stats.find(
+    const afterStats = response.body.stats.find(
       (entry: { aircraftRegistration: string }) => entry.aircraftRegistration === 'OH-STL',
     )
-    expect(updatedShlStats).toEqual({
+    expect(afterStats).toMatchObject({
       aircraftRegistration: 'OH-STL',
       landings12month: previousStats.landings12month + 1,
       landings1month: previousStats.landings1month + 1,

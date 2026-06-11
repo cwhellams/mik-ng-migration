@@ -11,6 +11,7 @@ import {
 import { ResponsiveBar } from '@nivo/bar'
 import { ResponsiveCalendar } from '@nivo/calendar'
 import { ResponsivePie } from '@nivo/pie'
+import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
 import { useThemeMode } from '../../theme/ThemeContext'
@@ -23,6 +24,7 @@ import {
   MemberCountByType,
   VisitedAirfieldsByAc,
   CommercialFlightTimeByAcYrMth,
+  TotalLandingsByAcYr,
 } from '@backend/routes/stats/models'
 import { RemoteContent } from '../../components/RemoteContent'
 import { PilotStatistics as PilotStatisticsView } from './components/PilotStatistics'
@@ -45,6 +47,7 @@ const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
 )
 
 export const Stats = () => {
+  const { t } = useTranslation()
   const [viewMode, setViewMode] = useState<ViewMode>('aircraft')
   const { hasAccess: hasAdminAccess } = useRoles()
   const { sudo, mode } = useThemeMode()
@@ -245,6 +248,24 @@ export const Stats = () => {
     },
   )
 
+  // Fetch landings by aircraft per year
+  const {
+    data: landingsYearlyData,
+    error: landingsError,
+    isLoading: landingsLoading,
+  } = useApi<TotalLandingsByAcYr[]>(
+    {
+      url: 'v1/stats/landings/year',
+      params: {
+        yr_from: yrFrom,
+        yr_to: yrTo,
+      },
+    },
+    {
+      refreshInterval: 0,
+    },
+  )
+
   // Transform aircraft data for bar chart
   const aircraftBarData = useMemo(() => {
     if (!aircraftYearlyData) return []
@@ -413,6 +434,36 @@ export const Stats = () => {
 
     return result
   }, [commercialData])
+
+  // Transform landings data for bar chart
+  const landingsBarData = useMemo(() => {
+    if (!landingsYearlyData) return []
+
+    const grouped = new Map<number, { [key: string]: number }>()
+
+    landingsYearlyData.forEach((item) => {
+      if (!grouped.has(item.yr)) {
+        grouped.set(item.yr, {})
+      }
+      const yearData = grouped.get(item.yr)!
+      yearData[item.aircraft_registration] =
+        (yearData[item.aircraft_registration] || 0) + item.total_landings
+    })
+
+    return Array.from(grouped.entries())
+      .map(([yr, data]) => ({
+        year: yr.toString(),
+        ...data,
+      }))
+      .sort((a, b) => a.year.localeCompare(b.year))
+  }, [landingsYearlyData])
+
+  // Get all unique aircraft keys for landings bar chart
+  const landingsBarKeys = useMemo(() => {
+    if (!landingsYearlyData) return []
+    const keys = new Set(landingsYearlyData.map((d) => d.aircraft_registration))
+    return Array.from(keys).sort()
+  }, [landingsYearlyData])
 
   // Transform visited airfields data for pie chart (separate for OH-STL and OH-IHQ)
   const visitedAirfieldsPieData = useMemo(() => {
@@ -930,6 +981,84 @@ export const Stats = () => {
                         modifiers: [['darker', 1.6]],
                       }}
                       theme={nivoTheme}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            </RemoteContent>
+          )}
+
+          {/* Landings by Aircraft (Yearly) */}
+          {viewMode === 'aircraft' && (
+            <RemoteContent isLoading={landingsLoading} error={landingsError}>
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant='h6' gutterBottom>
+                    {t('stats.totalLandingsByYear')}
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    <ResponsiveBar
+                      data={landingsBarData}
+                      keys={landingsBarKeys}
+                      indexBy='year'
+                      margin={{ top: 20, right: 130, bottom: 50, left: 60 }}
+                      padding={0.3}
+                      valueScale={{ type: 'linear' }}
+                      groupMode='grouped'
+                      colors={{ scheme: 'set2' }}
+                      borderColor={{
+                        from: 'color',
+                        modifiers: [['darker', 1.6]],
+                      }}
+                      axisTop={null}
+                      axisRight={null}
+                      axisBottom={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: t('stats.yearAxis'),
+                        legendPosition: 'middle',
+                        legendOffset: 40,
+                      }}
+                      axisLeft={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: t('stats.landingsAxis'),
+                        legendPosition: 'middle',
+                        legendOffset: -50,
+                      }}
+                      labelSkipWidth={12}
+                      labelSkipHeight={12}
+                      labelTextColor={{
+                        from: 'color',
+                        modifiers: [['darker', 1.6]],
+                      }}
+                      theme={nivoTheme}
+                      legends={[
+                        {
+                          dataFrom: 'keys',
+                          anchor: 'bottom-right',
+                          direction: 'column',
+                          justify: false,
+                          translateX: 120,
+                          translateY: 0,
+                          itemsSpacing: 2,
+                          itemWidth: 100,
+                          itemHeight: 20,
+                          itemDirection: 'left-to-right',
+                          itemOpacity: 0.85,
+                          symbolSize: 20,
+                          effects: [
+                            {
+                              on: 'hover',
+                              style: {
+                                itemOpacity: 1,
+                              },
+                            },
+                          ],
+                        },
+                      ]}
                     />
                   </Box>
                 </CardContent>

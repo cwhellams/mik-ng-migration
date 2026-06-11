@@ -64,6 +64,7 @@ export const AjlbEditor = ({
     aircraftRegistration: '',
     seqNo: -1,
     startFlightMins: 0,
+    startLandings: 0,
     noOfPages: 0,
     rowsPerPage: 0,
     startPage: 0,
@@ -228,6 +229,21 @@ export const AjlbEditor = ({
               />
             </Grid>
 
+            <Grid size={12}>
+              <TextField
+                fullWidth
+                type='number'
+                inputMode='numeric'
+                label={t('flightLog.logbooks.landingsAtStart')}
+                value={formData.startLandings ?? 0}
+                onChange={({ target }) => {
+                  const num = Number(target.value)
+                  handleChange('startLandings', Number.isFinite(num) ? Math.max(0, num) : 0)
+                }}
+                slotProps={{ htmlInput: { min: 0 } }}
+              />
+            </Grid>
+
             {!isNewBook && (
               <Grid size={12}>
                 <FormField label={t('flightLog.logbooks.verifiedTotalFlightTime')} width={200}>
@@ -240,6 +256,10 @@ export const AjlbEditor = ({
 
                 <FormField label={t('flightLog.logbooks.unverifiedFlightsTime')} width={200}>
                   {book.view?.newFlightsTime}
+                </FormField>
+
+                <FormField label={t('flightLog.logbooks.totalLandings')} width={200}>
+                  {book.view?.totalLandings}
                 </FormField>
               </Grid>
             )}
@@ -266,6 +286,7 @@ export const AjlbEditor = ({
                   endDate: null,
                   seqNo: book.seqNo + 1,
                   startFlightMins: hours * 60 + minutes,
+                  startLandings: book.view?.validatedTotalLandings ?? 0,
                   view: undefined,
                   createdAt: undefined,
                   createdBy: undefined,

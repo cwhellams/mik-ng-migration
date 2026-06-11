@@ -75,11 +75,13 @@ export type FlightLogFilters = z.infer<typeof FlightLogFiltersSchema>
 
 export const FlightLogSchema = AuditableSchema.extend({
   acTotalFlightTime: z.string().nullable().readonly(),
+  acTotalLandings: z.number().int().nullable().readonly(),
   aircraftRegistration: z.string(),
   ajlbBlankRowsBefore: z.number().int().min(0),
   ajlbSeqNo: z.number().int().positive(),
   ajlbPageNo: z.number().int().positive(),
   ajlbRowNo: z.number().int().positive().readonly(),
+  ajlbTotalLandings: z.number().int().nullable().readonly(),
   arrivalAirport: z.string(),
   billableMemberId: z.string(),
   billingRemarks: z.string().nullable(),
@@ -387,6 +389,7 @@ export type FlightLogValidationRequest = z.infer<typeof FlightLogValidationReque
 
 export const FlightLogListEntrySchema = FlightLogSchema.pick({
   acTotalFlightTime: true,
+  acTotalLandings: true,
   aircraftRegistration: true,
   ajlbBlankRowsBefore: true,
   ajlbSeqNo: true,
@@ -435,6 +438,7 @@ export const FlightTimeTotalsSchema = z.object({
   ajlbSeqNo: z.number().int(),
   acTotalFlightTime: z.string(),
   acTotalFlightMins: z.number(),
+  acTotalLandings: z.number().int().nullable(),
 })
 
 export type FlightTimeTotals = z.infer<typeof FlightTimeTotalsSchema>

@@ -899,10 +899,12 @@
       "startPage": "Start page",
       "pagesInUse": "Pages in use",
       "flightTimeAtStart": "Time at Start",
+      "landingsAtStart": "Landings at Start",
       "unverifiedFlights": "New Flights",
       "unverifiedFlightsTime": "Unverified Flight Time",
       "verifiedTotalFlightTime": "Verified Total Flight Time",
       "unverifiedTotalFlightTime": "Unverified Total Flight Time",
+      "totalLandings": "Total Landings",
       "nextSequence": "Start Next Logbook",
       "flightsToMove": "Unconfirmed flights to move to new logbook",
       "oldBookMustBeEnded": "Old logbook must be ended first.",
@@ -1783,6 +1785,9 @@
     "invalidEmailFormat": "Please enter a valid email address."
   },
   "stats": {
+    "totalLandingsByYear": "Landings by Aircraft (Yearly)",
+    "yearAxis": "Year",
+    "landingsAxis": "Landings",
     "pilots": {
       "dateRange": "Time Period",
       "from": "From",
