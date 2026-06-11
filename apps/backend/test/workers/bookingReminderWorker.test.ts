@@ -30,6 +30,26 @@ describe('Booking Reminder Worker', () => {
     (expression: string, func: string | TaskFn, options?: TaskOptions) => ScheduledTask
   >
   let bookingCounter = 0
+  let savedStlBookings: Array<{
+    booking_id: string
+    member_id: string
+    registration: string
+    booking_type: string
+    booking_status: string
+    start_time_epoch: unknown
+    end_time_epoch: unknown
+    instructor_member_id: string | null
+    cancellation_note: string | null
+    cancellation_reason: string | null
+    cancelled_at: unknown
+    cancelled_by: string | null
+    description: string | null
+    reminder_sent_at: unknown
+    created_by: string
+    created_at: unknown
+    updated_by: string
+    updated_at: unknown
+  }> = []
 
   beforeAll(async () => {
     process.env.BOOKING_REMINDER_WORKER_ENABLED = 'true'
@@ -49,10 +69,42 @@ describe('Booking Reminder Worker', () => {
     const startEpoch = (Math.floor(dayjs().add(24, 'hour').unix() / 60) * 60).toString()
     const endEpoch = (Math.floor(dayjs().add(25, 'hour').unix() / 60) * 60).toString()
 
+    // Save any stl* test-data bookings that overlap with our window so we can
+    // restore them in afterEach — prevents permanently corrupting shared test data.
+    savedStlBookings = (await db
+      .selectFrom('schedule.bookings')
+      .select([
+        'booking_id',
+        'member_id',
+        'registration',
+        'booking_type',
+        'booking_status',
+        'start_time_epoch',
+        'end_time_epoch',
+        'instructor_member_id',
+        'cancellation_note',
+        'cancellation_reason',
+        'cancelled_at',
+        'cancelled_by',
+        'description',
+        'reminder_sent_at',
+        'created_by',
+        'created_at',
+        'updated_by',
+        'updated_at',
+      ])
+      .where(eb =>
+        eb.and([
+          eb('booking_id', 'like', 'stl%'),
+          eb('start_time_epoch', '<=', endEpoch),
+          eb('end_time_epoch', '>=', startEpoch),
+        ]),
+      )
+      .execute()) as typeof savedStlBookings
+
     // Defensive cleanup before inserting:
     // 1. Remove any leftover rm* bookings from a previous interrupted test run.
-    // 2. Remove any stl* test-data bookings (V120__bookings.sql generates stl1-stl20
-    //    with times relative to current_date that can overlap with our 24h window).
+    // 2. Remove stl* bookings that overlap with our 24h window (saved above for restore).
     await db
       .deleteFrom('schedule.bookings')
       .where(eb =>
@@ -90,6 +142,10 @@ describe('Booking Reminder Worker', () => {
   afterEach(async () => {
     if (testBookingId) {
       await db.deleteFrom('schedule.bookings').where('booking_id', '=', testBookingId).execute()
+    }
+    if (savedStlBookings.length > 0) {
+      await db.insertInto('schedule.bookings').values(savedStlBookings).execute()
+      savedStlBookings = []
     }
   })
 
