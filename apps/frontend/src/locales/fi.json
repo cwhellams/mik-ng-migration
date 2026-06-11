@@ -584,11 +584,20 @@
     },
     "action": {
       "open": "Avaa asiakirja",
+      "tinyUrl": "Näytä Tiny URL",
+      "qrCode": "Näytä QR-koodi",
       "edit": "Muokkaa asiakirjaa",
       "delete": "Poista asiakirja",
       "archive": "Arkistoi asiakirja",
       "unarchive": "Poista arkistoinnista"
     },
+    "downloadOptions": "Latausvaihtoehdot",
+    "tinyUrl": "Tiny URL",
+    "tinyUrlCopied": "Tiny URL kopioitu leikepöydälle!",
+    "qrCode": "QR-koodi",
+    "openDocument": "Avaa asiakirja",
+    "copyFilterLink": "Kopioi linkki nykyiseen näkymään",
+    "filterLinkCopied": "Suodatinlinkki kopioitu leikepöydälle!",
     "archive": {
       "show": "Näytä arkistoidut asiakirjat",
       "hide": "Piilota arkistoidut asiakirjat",

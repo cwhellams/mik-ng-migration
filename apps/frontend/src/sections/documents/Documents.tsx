@@ -18,6 +18,7 @@ import {
   Snackbar,
 } from '@mui/material'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
@@ -38,21 +39,43 @@ import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { useTimezone } from '../../hooks/useTimezone'
 
+// Express serializes Buffer as { type: 'Buffer', data: number[] }
+const bufferToDataUrl = (buf: any): string | null => {
+  if (!buf) return null
+  const bytes =
+    buf.type === 'Buffer' && Array.isArray(buf.data) ? buf.data : buf
+  return `data:image/png;base64,${btoa(String.fromCharCode(...bytes))}`
+}
+
 const Documents = () => {
   const { t } = useTranslation()
   const { isDocumentAdmin } = useRoles()
   const { formatDate } = useTimezone()
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  // Use a local array for selected categories, but keep filters.category as a comma-separated string for API compatibility
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [filters, setFilters] = useState<DocumentFilters>({
-    category: '',
-    search: '',
-    tags: '',
-    showArchived: false,
+  // searchParams is the single source of truth for all filter state.
+  // useSearchParams re-renders the component on URL changes (including
+  // browser back/forward), so these derived values are always in sync.
+  const search = searchParams.get('search') ?? ''
+  const tags = searchParams.get('tags') ?? ''
+  const categoryString = searchParams.get('category') ?? ''
+  const showArchived = searchParams.get('showArchived') === 'true'
+  const selectedCategories = categoryString
+    ? categoryString
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean)
+    : []
+
+  const filters: DocumentFilters = {
+    category: categoryString,
+    search,
+    tags,
+    showArchived,
     limit: 50,
     offset: 0,
-  })
+  }
+
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
@@ -94,22 +117,39 @@ const Documents = () => {
     skipFetch: true,
   })
 
+  const setParam = (key: string, value: string) => {
+    setSearchParams(
+      (prev) => {
+        if (value) {
+          prev.set(key, value)
+        } else {
+          prev.delete(key)
+        }
+        return prev
+      },
+      { replace: true }
+    )
+  }
+
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters((prev) => ({ ...prev, search: event.target.value }))
+    setParam('search', event.target.value)
+  }
+
+  const handleTagsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setParam('tags', event.target.value)
+  }
+
+  const handleShowArchivedChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setParam('showArchived', event.target.checked ? 'true' : '')
   }
 
   const handleCategoryToggle = (category: string) => {
-    setSelectedCategories((prev) => {
-      const newCategories = prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
-      // Update filters.category as a comma-separated string
-      setFilters((filters) => ({
-        ...filters,
-        category: newCategories.join(','),
-      }))
-      return newCategories
-    })
+    const newCategories = selectedCategories.includes(category)
+      ? selectedCategories.filter((c) => c !== category)
+      : [...selectedCategories, category]
+    setParam('category', newCategories.join(','))
   }
 
   const handleDownloadDocument = async (document: Document) => {
@@ -118,72 +158,56 @@ const Documents = () => {
       return
     }
 
+    // Open a blank tab within the user gesture to avoid popup blocking,
+    // then redirect it to the actual URL once the async request completes.
+    const tab = window.open('', '_blank')
+
     const res = await downloadMutation.trigger('GET', {
       id: document.documentId,
     })
 
     const tinyUrl = res.data?.tinyUrl ?? null
-    const qrCodeBuffer = res.data?.qrCode
+    const qrCode = bufferToDataUrl(res.data?.qrCode)
 
-    // Convert Buffer to base64 data URL for display
-    let qrCode: string | null = null
-    if (qrCodeBuffer) {
-      // When Express sends a Buffer via JSON, it gets serialized as { type: 'Buffer', data: number[] }
-      const bufferData = qrCodeBuffer as any
-      const bytes =
-        bufferData.type === 'Buffer' && Array.isArray(bufferData.data)
-          ? bufferData.data
-          : qrCodeBuffer
-
-      const base64 = btoa(String.fromCharCode(...bytes))
-      qrCode = `data:image/png;base64,${base64}`
-    }
-
-    // Cache the download data for this document
     setDownloadData({ tinyUrl, qrCode })
 
-    // Open document directly
-    if (tinyUrl) {
-      window.open(tinyUrl, '_blank')
+    if (tinyUrl && tab) {
+      tab.location.href = tinyUrl
+    } else {
+      tab?.close()
     }
   }
 
   const handleShowTinyUrl = async (document: Document) => {
     if (!document.documentId) return
 
-    // Always fetch fresh data for the current document
     const res = await downloadMutation.trigger('GET', {
       id: document.documentId,
     })
 
     const tinyUrl = res.data?.tinyUrl ?? null
-    const qrCodeBuffer = res.data?.qrCode
-
-    let qrCode: string | null = null
-    if (qrCodeBuffer) {
-      // When Express sends a Buffer via JSON, it gets serialized as { type: 'Buffer', data: number[] }
-      const bufferData = qrCodeBuffer as any
-      const bytes =
-        bufferData.type === 'Buffer' && Array.isArray(bufferData.data)
-          ? bufferData.data
-          : qrCodeBuffer
-
-      const base64 = btoa(String.fromCharCode(...bytes))
-      qrCode = `data:image/png;base64,${base64}`
-    }
+    const qrCode = bufferToDataUrl(res.data?.qrCode)
 
     setDownloadData({ tinyUrl, qrCode })
     setDownloadDialogOpen(true)
-  }
-
-  const handleShowQRCode = async (document: Document) => {
-    await handleShowTinyUrl(document)
   }
 
   const handleDirectDownload = () => {
     if (downloadData?.tinyUrl) {
       window.open(downloadData.tinyUrl, '_blank')
       setDownloadDialogOpen(false)
+    }
+  }
+
+  const handleCopyFilterLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setSnackbarMessage(
+        t('documents.filterLinkCopied', 'Filter link copied to clipboard!')
+      )
+      setSnackbarOpen(true)
+    } catch (error) {
+      console.error('Failed to copy filter link:', error)
     }
   }
 
@@ -199,16 +223,6 @@ const Documents = () => {
         console.error('Failed to copy tiny URL:', error)
       }
     }
-  }
-
-  const handleTagsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters((prev) => ({ ...prev, tags: event.target.value }))
-  }
-
-  const handleShowArchivedChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFilters((prev) => ({ ...prev, showArchived: event.target.checked }))
   }
 
   const handleEditDocument = (document: Document) => {
@@ -296,7 +310,7 @@ const Documents = () => {
               'documents.search.placeholder',
               'Search documents...'
             )}
-            value={filters.search}
+            value={search}
             onChange={handleSearchChange}
             slotProps={{
               input: {
@@ -312,7 +326,7 @@ const Documents = () => {
           <TextField
             fullWidth
             placeholder={t('documents.tags.search', 'Search by tags...')}
-            value={filters.tags}
+            value={tags}
             onChange={handleTagsChange}
             slotProps={{
               input: {
@@ -365,17 +379,25 @@ const Documents = () => {
               />
             ))}
           </Stack>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={filters.showArchived}
-                onChange={handleShowArchivedChange}
-                name='showArchived'
-              />
-            }
-            label={t('documents.archive.show', 'Show archived documents')}
-            sx={{ ml: 2 }}
-          />
+          <Stack direction='row' alignItems='center' spacing={1}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showArchived}
+                  onChange={handleShowArchivedChange}
+                  name='showArchived'
+                />
+              }
+              label={t('documents.archive.show', 'Show archived documents')}
+            />
+            <IconButton
+              size='small'
+              onClick={handleCopyFilterLink}
+              title={t('documents.copyFilterLink', 'Copy link to current view')}
+            >
+              <Icon icon='mdi:share-variant' />
+            </IconButton>
+          </Stack>
         </Stack>
       </Stack>
 
@@ -392,7 +414,7 @@ const Documents = () => {
             </>
           }
           notFoundMsg={
-            filters.search || filters.category || filters.tags
+            search || categoryString || tags || showArchived
               ? t(
                   'documents.noResults',
                   'No documents found matching your criteria.'
@@ -471,7 +493,7 @@ const Documents = () => {
                   </IconButton>
                   <IconButton
                     size='small'
-                    onClick={() => handleShowQRCode(document)}
+                    onClick={() => handleShowTinyUrl(document)}
                     title={t('documents.action.qrCode', 'Show QR Code')}
                   >
                     <Icon icon='mdi:qrcode' />
