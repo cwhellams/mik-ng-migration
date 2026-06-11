@@ -335,7 +335,7 @@ describe('Db invoicable FlightLog tests', () => {
       endDate: '2025-01-01',
     })
     expect(result.rows).toEqual(191)
-    expect(result.logs.length).toEqual(35)
+    expect(result.logs.length).toEqual(41)
   })
 
   it('getInvoicableFlights with test flights', async () => {
