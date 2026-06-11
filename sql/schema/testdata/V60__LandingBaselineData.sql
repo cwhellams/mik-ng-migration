@@ -7,6 +7,17 @@ VALUES
     ('OH-STL', 150, 'k1mnimda', 'k1mnimda'),
     ('OH-IHQ', 1000, 'k1mnimda', 'k1mnimda');
 
+-- V55 mass data leaves the last few OH-STL book 1 flights as NEW (epoch cutoff).
+-- Book 1 is a closed logbook so those flights should be validated — otherwise the
+-- chain from book 1 → book 2 would be missing their landings.
+ALTER TABLE flight.logs DISABLE TRIGGER USER;
+UPDATE flight.logs
+SET status = 'VALIDATED'
+WHERE aircraft_registration = 'OH-STL'
+  AND ajlb_seq_no = 1
+  AND status = 'NEW';
+ALTER TABLE flight.logs ENABLE TRIGGER USER;
+
 -- Step 1: Set first logbook start_landings to baseline
 UPDATE flight.aircraft_journey_log_book
 SET start_landings = CASE
@@ -17,7 +28,7 @@ WHERE (aircraft_registration = 'OH-STL' AND seq_no = 1)
    OR (aircraft_registration = 'OH-IHQ' AND seq_no = 1);
 
 -- Step 2: Chain start_landings to second logbooks
--- OH-STL book 2 = 150 + sum of validated landings from book 1
+-- OH-STL book 2 = 150 + sum of all book 1 landings (no NEW flights remain after fix above)
 UPDATE flight.aircraft_journey_log_book
 SET start_landings = 150 + COALESCE((
     SELECT SUM(l.number_of_landings)
