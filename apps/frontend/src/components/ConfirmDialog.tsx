@@ -28,15 +28,7 @@ export const ConfirmButton: React.FC<
   ConfirmProps & {
     buttonProps?: React.ComponentProps<typeof Button>
   }
-> = ({
-  onConfirm,
-  title,
-  message,
-  confirmText,
-  cancelText,
-  severity = 'warning',
-  buttonProps,
-}) => {
+> = ({ onConfirm, title, message, confirmText, cancelText, severity = 'warning', buttonProps }) => {
   const [isOpen, setIsOpen] = React.useState(false)
 
   return (
@@ -127,12 +119,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <Button onClick={onClose} variant='outlined'>
           {cancelText}
         </Button>
-        <Button
-          onClick={onConfirm}
-          variant='contained'
-          color={severity}
-          autoFocus
-        >
+        <Button onClick={onConfirm} variant='contained' color={severity} autoFocus>
           {confirmText}
         </Button>
       </DialogActions>

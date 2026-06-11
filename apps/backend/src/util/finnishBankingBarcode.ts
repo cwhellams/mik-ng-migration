@@ -28,7 +28,7 @@ function validateIBANChecksum(iban: string): boolean {
   // Move first 4 characters (country code + check digits) to the end
   const rearranged = iban.slice(4) + iban.slice(0, 4)
   // Replace each letter with its numeric value (A=10 … Z=35)
-  const numeric = rearranged.replace(/[A-Z]/g, ch => (ch.charCodeAt(0) - 55).toString())
+  const numeric = rearranged.replace(/[A-Z]/g, (ch) => (ch.charCodeAt(0) - 55).toString())
   // Process digit-by-digit to avoid integer overflow
   let remainder = 0
   for (const ch of numeric) {

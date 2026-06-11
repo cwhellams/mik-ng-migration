@@ -173,9 +173,9 @@ describe('Db exam attempt tests', () => {
   it('getExamsWithPublishedVersions excludes exams without a published version', async () => {
     const result = await getExamsWithPublishedVersions()
 
-    expect(result.map(exam => exam.examId)).toContain(examId)
-    expect(result.map(exam => exam.examId)).not.toContain(unpublishedExamId)
-    expect(result.find(exam => exam.examId === examId)?.currentVersion?.versionId).toBe(
+    expect(result.map((exam) => exam.examId)).toContain(examId)
+    expect(result.map((exam) => exam.examId)).not.toContain(unpublishedExamId)
+    expect(result.find((exam) => exam.examId === examId)?.currentVersion?.versionId).toBe(
       newerPublishedVersionId,
     )
   })
@@ -257,8 +257,8 @@ describe('Randomised question selection', () => {
     const attempt = await createAttempt(rndVersionId, rndMemberId, 'en')
     const detail = await getAttemptVersionDetail(attempt.attemptId)
 
-    const assignedIds = detail!.questions.map(q => q.questionId)
-    expect(assignedIds.every(id => questionIds.includes(id))).toBe(true)
+    const assignedIds = detail!.questions.map((q) => q.questionId)
+    expect(assignedIds.every((id) => questionIds.includes(id))).toBe(true)
   })
 
   it('re-fetching the same attempt always returns the same questions in the same order', async () => {
@@ -266,8 +266,8 @@ describe('Randomised question selection', () => {
     const first = await getAttemptVersionDetail(attempt.attemptId)
     const second = await getAttemptVersionDetail(attempt.attemptId)
 
-    expect(first!.questions.map(q => q.questionId)).toEqual(
-      second!.questions.map(q => q.questionId),
+    expect(first!.questions.map((q) => q.questionId)).toEqual(
+      second!.questions.map((q) => q.questionId),
     )
   })
 
@@ -287,8 +287,8 @@ describe('Randomised question selection', () => {
   it('validateAnswerInputs rejects a question not in the attempt', async () => {
     const attempt = await createAttempt(rndVersionId, rndMemberId, 'en')
     const detail = await getAttemptVersionDetail(attempt.attemptId)
-    const assignedIds = new Set(detail!.questions.map(q => q.questionId))
-    const notAssigned = questionIds.find(id => !assignedIds.has(id))
+    const assignedIds = new Set(detail!.questions.map((q) => q.questionId))
+    const notAssigned = questionIds.find((id) => !assignedIds.has(id))
 
     if (!notAssigned) {
       // All questions assigned (shouldn't happen with 5 questions and count=3), skip

@@ -21,10 +21,7 @@ import { dayjs } from '../../../utils/date'
 type DatePreset = 'currentYear' | 'previousYear' | 'last12months' | 'custom'
 type Timezone = 'local' | 'utc'
 
-const getPresetRange = (
-  preset: DatePreset,
-  tz: Timezone
-): { from: string; to: string } => {
+const getPresetRange = (preset: DatePreset, tz: Timezone): { from: string; to: string } => {
   const now = tz === 'utc' ? dayjs.utc() : dayjs()
   const currentYear = now.year()
   const today = now.format('YYYY-MM-DD')
@@ -53,12 +50,7 @@ interface HistogramTooltipProps {
   unit: string
 }
 
-const HistogramTooltip = ({
-  binFrom,
-  binTo,
-  pilotCount,
-  unit,
-}: HistogramTooltipProps) => (
+const HistogramTooltip = ({ binFrom, binTo, pilotCount, unit }: HistogramTooltipProps) => (
   <Box
     sx={(theme) => ({
       background: theme.palette.background.paper,
@@ -124,7 +116,7 @@ export const PilotStatistics = () => {
         text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
       },
     }),
-    [mode]
+    [mode],
   )
 
   const skipFetch = preset === 'custom' && (!customFrom || !customTo)
@@ -139,7 +131,7 @@ export const PilotStatistics = () => {
       params: { from, to },
       skipFetch,
     },
-    { refreshInterval: 0 }
+    { refreshInterval: 0 },
   )
 
   const hoursBarData = useMemo(
@@ -150,13 +142,11 @@ export const PilotStatistics = () => {
         binFrom: bin.binFrom,
         binTo: bin.binTo,
       })),
-    [pilotStats]
+    [pilotStats],
   )
 
   const hoursTickValues = useMemo(() => {
-    const maxHours = Math.max(
-      ...(pilotStats?.hoursHistogram?.map((b) => b.pilotCount) || [0])
-    )
+    const maxHours = Math.max(...(pilotStats?.hoursHistogram?.map((b) => b.pilotCount) || [0]))
     return Array.from({ length: Math.ceil(maxHours) + 1 }, (_, i) => i)
   }, [pilotStats])
 
@@ -168,12 +158,12 @@ export const PilotStatistics = () => {
         binFrom: bin.binFrom,
         binTo: bin.binTo,
       })),
-    [pilotStats]
+    [pilotStats],
   )
 
   const airportsTickValues = useMemo(() => {
     const maxAirports = Math.max(
-      ...(pilotStats?.airportsHistogram?.map((b) => b.pilotCount) || [0])
+      ...(pilotStats?.airportsHistogram?.map((b) => b.pilotCount) || [0]),
     )
     return Array.from({ length: Math.ceil(maxAirports) + 1 }, (_, i) => i)
   }, [pilotStats])
@@ -211,9 +201,7 @@ export const PilotStatistics = () => {
               <ToggleButton value='last12months'>
                 {t('stats.pilots.presets.last12months')}
               </ToggleButton>
-              <ToggleButton value='custom'>
-                {t('stats.pilots.presets.custom')}
-              </ToggleButton>
+              <ToggleButton value='custom'>{t('stats.pilots.presets.custom')}</ToggleButton>
             </ToggleButtonGroup>
 
             {preset === 'custom' && (
@@ -309,9 +297,7 @@ export const PilotStatistics = () => {
                     height: '100%',
                   }}
                 >
-                  <Typography color='text.secondary'>
-                    {t('stats.pilots.noData')}
-                  </Typography>
+                  <Typography color='text.secondary'>{t('stats.pilots.noData')}</Typography>
                 </Box>
               )}
             </Box>
@@ -374,9 +360,7 @@ export const PilotStatistics = () => {
                     height: '100%',
                   }}
                 >
-                  <Typography color='text.secondary'>
-                    {t('stats.pilots.noData')}
-                  </Typography>
+                  <Typography color='text.secondary'>{t('stats.pilots.noData')}</Typography>
                 </Box>
               )}
             </Box>

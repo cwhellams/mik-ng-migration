@@ -15,11 +15,11 @@ properties:
   description:
     type: string
     description: Description of the payment
-    example: "Black friday rebate"
+    example: 'Black friday rebate'
   currency_name:
     type: string
     description: ISO 4217 currency code
-    example: "EUR"
+    example: 'EUR'
   currency_rate:
     type: number
     description: Ratio of chosen currency to the base currency

@@ -57,7 +57,7 @@ export function startQualificationExpiryWorker(deps: QualificationExpiryWorkerDe
 
   if (process.env.QUALIFICATION_EXPIRY_WORKER_RUN_ON_STARTUP === 'true') {
     logger.info('Running qualification expiry check immediately on startup')
-    processQualificationExpiry(sendEmailFn).catch(error => {
+    processQualificationExpiry(sendEmailFn).catch((error) => {
       logger.error('Error during startup qualification expiry check:', error)
     })
   }

@@ -100,9 +100,8 @@ describe('Overdue Invoice Worker', () => {
 
   describe('Worker Initialization', () => {
     it('should schedule task when worker is enabled', async () => {
-      const { startOverdueInvoiceWorker } = await import(
-        '../../src/workers/overdueInvoiceWorker.ts'
-      )
+      const { startOverdueInvoiceWorker } =
+        await import('../../src/workers/overdueInvoiceWorker.ts')
 
       const worker = startOverdueInvoiceWorker({
         sendEmailFn: mockSendEmail,
@@ -120,9 +119,8 @@ describe('Overdue Invoice Worker', () => {
       // Clear module cache to re-import with new env var
       jest.resetModules()
 
-      const { startOverdueInvoiceWorker } = await import(
-        '../../src/workers/overdueInvoiceWorker.ts'
-      )
+      const { startOverdueInvoiceWorker } =
+        await import('../../src/workers/overdueInvoiceWorker.ts')
 
       const worker = startOverdueInvoiceWorker({
         sendEmailFn: mockSendEmail,
@@ -143,7 +141,7 @@ describe('Overdue Invoice Worker', () => {
       const overdueInvoices = await getOverdueInvoicesWithoutReminder()
 
       // Should include our test invoice
-      const testInvoice = overdueInvoices.find(inv => inv.id.toString() === testInvoiceId)
+      const testInvoice = overdueInvoices.find((inv) => inv.id.toString() === testInvoiceId)
 
       expect(testInvoice).toBeDefined()
       expect(testInvoice?.member_id).toBe(testMemberId)
@@ -157,7 +155,7 @@ describe('Overdue Invoice Worker', () => {
       const overdueInvoices = await getOverdueInvoicesWithoutReminder()
 
       // Should NOT include our test invoice anymore
-      const testInvoice = overdueInvoices.find(inv => inv.id.toString() === testInvoiceId)
+      const testInvoice = overdueInvoices.find((inv) => inv.id.toString() === testInvoiceId)
 
       expect(testInvoice).toBeUndefined()
     })
@@ -176,7 +174,7 @@ describe('Overdue Invoice Worker', () => {
       const overdueInvoices = await getOverdueInvoicesWithoutReminder()
 
       // Should NOT include paid invoice
-      const testInvoice = overdueInvoices.find(inv => inv.id.toString() === testInvoiceId)
+      const testInvoice = overdueInvoices.find((inv) => inv.id.toString() === testInvoiceId)
 
       expect(testInvoice).toBeUndefined()
     })
@@ -195,7 +193,7 @@ describe('Overdue Invoice Worker', () => {
       const overdueInvoices = await getOverdueInvoicesWithoutReminder()
 
       // Should NOT include future invoice
-      const testInvoice = overdueInvoices.find(inv => inv.id.toString() === testInvoiceId)
+      const testInvoice = overdueInvoices.find((inv) => inv.id.toString() === testInvoiceId)
 
       expect(testInvoice).toBeUndefined()
     })
@@ -217,7 +215,7 @@ describe('Overdue Invoice Worker', () => {
       const overdueInvoices = await getOverdueInvoicesWithoutReminder()
 
       // Should NOT include invoice because it's within grace period
-      const testInvoice = overdueInvoices.find(inv => inv.id.toString() === testInvoiceId)
+      const testInvoice = overdueInvoices.find((inv) => inv.id.toString() === testInvoiceId)
       expect(testInvoice).toBeUndefined()
 
       // Restore grace period to 0
@@ -241,7 +239,7 @@ describe('Overdue Invoice Worker', () => {
       const overdueInvoices = await getOverdueInvoicesWithoutReminder()
 
       // Should include invoice because it's past grace period
-      const testInvoice = overdueInvoices.find(inv => inv.id.toString() === testInvoiceId)
+      const testInvoice = overdueInvoices.find((inv) => inv.id.toString() === testInvoiceId)
       expect(testInvoice).toBeDefined()
       expect(testInvoice?.member_id).toBe(testMemberId)
 

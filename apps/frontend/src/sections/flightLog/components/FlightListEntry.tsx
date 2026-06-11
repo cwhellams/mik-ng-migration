@@ -77,9 +77,7 @@ export const ViewMobileFlightTime = ({
         <Box>{arrivalAirport}</Box>
       </Grid>
       <Grid size={3} alignContent='start' alignSelf='start'>
-        {offBlockTimeUtc && (
-          <Box color='text.secondary'>{formatTime(offBlockTimeUtc)}</Box>
-        )}
+        {offBlockTimeUtc && <Box color='text.secondary'>{formatTime(offBlockTimeUtc)}</Box>}
         <Box color='text.secondary'>{formatTime(takeoffTimeUtc)}</Box>
       </Grid>
       <Grid size={6}>
@@ -110,9 +108,7 @@ export const ViewMobileFlightTime = ({
       </Grid>
       <Grid size={3} textAlign='end' alignSelf='start'>
         <Box color='text.secondary'>{formatTime(landingTimeUtc)}</Box>
-        {onBlockTimeUtc && (
-          <Box color='text.secondary'>{formatTime(onBlockTimeUtc)}</Box>
-        )}
+        {onBlockTimeUtc && <Box color='text.secondary'>{formatTime(onBlockTimeUtc)}</Box>}
       </Grid>
     </Grid>
   )
@@ -131,14 +127,8 @@ export const ViewMobileFlightDetails = ({
 }) => {
   const { t } = useTranslation()
   return (
-    <Grid
-      size={size}
-      justifyContent='flex-end'
-      display='flex'
-      alignItems='center'
-    >
-      {numberOfLandings}{' '}
-      <Icon icon='mdi:airplane-landing' style={{ verticalAlign: 'middle' }} />
+    <Grid size={size} justifyContent='flex-end' display='flex' alignItems='center'>
+      {numberOfLandings} <Icon icon='mdi:airplane-landing' style={{ verticalAlign: 'middle' }} />
       <Box mx={1}>{t(`flightLog.flightTypes.${flightType}`)}</Box>
       {children}
     </Grid>

@@ -32,9 +32,8 @@ import {
   ART_EQUIP_USAGE_FEE_CODE,
 } from '../../../src/services/accounting/config.ts'
 
-const { dispatchOutboxMsg } = await import(
-  '../../../src/services/simplbooks/simplbooksOutboxHandler.ts'
-)
+const { dispatchOutboxMsg } =
+  await import('../../../src/services/simplbooks/simplbooksOutboxHandler.ts')
 const { insertOutboxItem } = await import('../../../src/db/outbox-simplbooks-queries.ts')
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -142,7 +141,7 @@ describe('Flight Invoice Outbox Integration', () => {
           purchase_vat_type_id: 0,
         },
       })
-      .onConflict(oc => oc.column('id').doNothing())
+      .onConflict((oc) => oc.column('id').doNothing())
       .execute()
 
     // ── Insert aircraft article ──────────────────────────────────────────
@@ -169,7 +168,7 @@ describe('Flight Invoice Outbox Integration', () => {
           purchase_vat_type_id: 0,
         },
       })
-      .onConflict(oc => oc.column('id').doNothing())
+      .onConflict((oc) => oc.column('id').doNothing())
       .execute()
 
     // ── Insert VIRHEMERKINTA article ─────────────────────────────────────
@@ -196,7 +195,7 @@ describe('Flight Invoice Outbox Integration', () => {
           purchase_vat_type_id: 0,
         },
       })
-      .onConflict(oc => oc.column('id').doNothing())
+      .onConflict((oc) => oc.column('id').doNothing())
       .execute()
 
     // ── Insert dedicated package article (used by S2-5) ──────────────────
@@ -223,7 +222,7 @@ describe('Flight Invoice Outbox Integration', () => {
           purchase_vat_type_id: 0,
         },
       })
-      .onConflict(oc => oc.column('id').doNothing())
+      .onConflict((oc) => oc.column('id').doNothing())
       .execute()
 
     // ── Ensure shop category for prepaid packages exists ─────────────────
@@ -236,7 +235,7 @@ describe('Flight Invoice Outbox Integration', () => {
         created_by: 'Matti1',
         updated_by: 'Matti1',
       })
-      .onConflict(oc => oc.column('category_id').doNothing())
+      .onConflict((oc) => oc.column('category_id').doNothing())
       .execute()
 
     // ── Insert aircraft pricing records that cover all test dates ────────
@@ -301,7 +300,7 @@ describe('Flight Invoice Outbox Integration', () => {
         name: 'Flight log entry error fee',
         item: { amount: 1, price_per_unit: 10, sum_with_vat: 10, markup_value: 10 },
       })
-      .onConflict(oc => oc.column('id').doNothing())
+      .onConflict((oc) => oc.column('id').doNothing())
       .execute()
   })
 
@@ -841,7 +840,7 @@ describe('Flight Invoice Outbox Integration', () => {
       // Partially billable flight: standard task for full 90 min + credit line item for 10 min
       expect(tasks).toHaveLength(2)
       const creditTask = (tasks as Array<{ price_per_unit?: number; amount?: number }>).find(
-        t => (t.price_per_unit ?? 0) < 0,
+        (t) => (t.price_per_unit ?? 0) < 0,
       )
       expect(creditTask?.amount).toBe(10)
       expect(creditTask?.price_per_unit).toBeCloseTo(-2.5)
@@ -925,7 +924,7 @@ describe('Flight Invoice Outbox Integration', () => {
       // 3 tasks: 40 min prepaid + credit + 50 min standard
       expect(tasks).toHaveLength(3)
       const chargeTasks = (tasks as Array<{ price_per_unit?: number; amount?: number }>).filter(
-        t => (t.price_per_unit ?? 0) > 0,
+        (t) => (t.price_per_unit ?? 0) > 0,
       )
       expect(chargeTasks[0].amount).toBe(40)
       expect(chargeTasks[0].price_per_unit).toBeCloseTo(1.5)
@@ -976,7 +975,7 @@ describe('Flight Invoice Outbox Integration', () => {
       // Prepaid covers the 20 min (15 + 5 top-up), credit row; no standard task
       expect(tasks).toHaveLength(2) // prepaid charge + credit
       const prepaidCharge = (tasks as Array<{ amount?: number; price_per_unit?: number }>).find(
-        t => (t.price_per_unit ?? 0) > 0,
+        (t) => (t.price_per_unit ?? 0) > 0,
       )
       expect(prepaidCharge?.amount).toBe(20) // 15 + 5 top-up
       expect(tasks).toMatchSnapshot()
@@ -1151,10 +1150,10 @@ describe('Flight Invoice Outbox Integration', () => {
 
       // Pkg1 (1.0/min): one pair, 40 min from flight 1 only
       const pkg1Charges = typedTasks.filter(
-        t => (t.price_per_unit ?? 0) > 0 && Math.abs((t.price_per_unit ?? 0) - 1.0) < 0.01,
+        (t) => (t.price_per_unit ?? 0) > 0 && Math.abs((t.price_per_unit ?? 0) - 1.0) < 0.01,
       )
       const pkg1Credits = typedTasks.filter(
-        t => (t.price_per_unit ?? 0) < 0 && Math.abs((t.price_per_unit ?? 0) + 1.0) < 0.01,
+        (t) => (t.price_per_unit ?? 0) < 0 && Math.abs((t.price_per_unit ?? 0) + 1.0) < 0.01,
       )
       expect(pkg1Charges).toHaveLength(1)
       expect(pkg1Charges[0].amount).toBe(40)
@@ -1163,10 +1162,10 @@ describe('Flight Invoice Outbox Integration', () => {
 
       // Pkg2 (1.5/min): two pairs — 20 min from flight 1, 10 min from flight 2
       const pkg2Charges = typedTasks.filter(
-        t => (t.price_per_unit ?? 0) > 0 && Math.abs((t.price_per_unit ?? 0) - 1.5) < 0.01,
+        (t) => (t.price_per_unit ?? 0) > 0 && Math.abs((t.price_per_unit ?? 0) - 1.5) < 0.01,
       )
       const pkg2Credits = typedTasks.filter(
-        t => (t.price_per_unit ?? 0) < 0 && Math.abs((t.price_per_unit ?? 0) + 1.5) < 0.01,
+        (t) => (t.price_per_unit ?? 0) < 0 && Math.abs((t.price_per_unit ?? 0) + 1.5) < 0.01,
       )
       expect(pkg2Charges).toHaveLength(2)
       expect(pkg2Credits).toHaveLength(2)
@@ -1174,7 +1173,7 @@ describe('Flight Invoice Outbox Integration', () => {
       expect(pkg2TotalCharged).toBe(30) // 20 + 10
 
       // Standard remainder (2.5/min): 20 min from flight 2 after prepaid exhausted
-      const standardTasks = typedTasks.filter(t => Math.abs((t.price_per_unit ?? 0) - 2.5) < 0.01)
+      const standardTasks = typedTasks.filter((t) => Math.abs((t.price_per_unit ?? 0) - 2.5) < 0.01)
       expect(standardTasks).toHaveLength(1)
       expect(standardTasks[0].amount).toBe(20)
 
@@ -1232,7 +1231,7 @@ describe('Flight Invoice Outbox Integration', () => {
       // 2 tasks; both should use blockMins=100
       expect(tasks).toHaveLength(2)
       const flightTask = (tasks as Array<{ amount?: number; price_per_unit?: number }>).find(
-        t => (t.price_per_unit ?? 0) > 0 && t.amount === 100,
+        (t) => (t.price_per_unit ?? 0) > 0 && t.amount === 100,
       )
       expect(flightTask).toBeDefined()
       expect(tasks).toMatchSnapshot()
@@ -1310,8 +1309,8 @@ describe('Flight Invoice Outbox Integration', () => {
       // Actual flight (15 min) + labelled top-up (5 min) as two separate invoice lines
       expect(tasks).toHaveLength(2)
       const typedTasks = tasks as Array<{ amount?: number; contents?: string }>
-      const flightTask = typedTasks.find(t => !(t.contents ?? '').includes('top-up'))
-      const topUpTask = typedTasks.find(t => (t.contents ?? '').includes('top-up'))
+      const flightTask = typedTasks.find((t) => !(t.contents ?? '').includes('top-up'))
+      const topUpTask = typedTasks.find((t) => (t.contents ?? '').includes('top-up'))
       expect(flightTask?.amount).toBe(15)
       expect(topUpTask?.amount).toBe(5)
       expect(topUpTask?.contents).toContain('minimum billable time top-up: 5 min')
@@ -1411,7 +1410,7 @@ describe('Flight Invoice Outbox Integration', () => {
       expect(tasks).toHaveLength(2)
       const errorFeeTask = (
         tasks as Array<{ article_id?: number; price_per_unit?: number; amount?: number }>
-      ).find(t => t.article_id === TEST_ARTICLE_IDS[2])
+      ).find((t) => t.article_id === TEST_ARTICLE_IDS[2])
       expect(errorFeeTask).toBeDefined()
       expect(errorFeeTask?.amount).toBe(1)
       expect(tasks).toMatchSnapshot()
@@ -1439,7 +1438,7 @@ describe('Flight Invoice Outbox Integration', () => {
       expect(tasks).toHaveLength(1)
       expect((tasks[0] as { discount?: number }).discount).toBe(100)
       const errorFeeTask = (tasks as Array<{ article_id?: number }>).find(
-        t => t.article_id === TEST_ARTICLE_IDS[2],
+        (t) => t.article_id === TEST_ARTICLE_IDS[2],
       )
       expect(errorFeeTask).toBeUndefined()
       expect(tasks).toMatchSnapshot()
@@ -1652,11 +1651,11 @@ describe('Flight Invoice Outbox Integration', () => {
       expect(tasks).toHaveLength(3)
       const typedTasks = tasks as Array<{ amount?: number; price_per_unit?: number }>
       const prepaidCharge = typedTasks.find(
-        t => (t.price_per_unit ?? 0) > 0 && Math.abs((t.price_per_unit ?? 0) - 1.5) < 0.01,
+        (t) => (t.price_per_unit ?? 0) > 0 && Math.abs((t.price_per_unit ?? 0) - 1.5) < 0.01,
       )
-      const prepaidCredit = typedTasks.find(t => (t.price_per_unit ?? 0) < 0)
+      const prepaidCredit = typedTasks.find((t) => (t.price_per_unit ?? 0) < 0)
       const standardTask = typedTasks.find(
-        t => Math.abs((t.price_per_unit ?? 0) - PRICE_JUL_2025) < 0.01,
+        (t) => Math.abs((t.price_per_unit ?? 0) - PRICE_JUL_2025) < 0.01,
       )
 
       expect(prepaidCharge?.amount).toBe(60)

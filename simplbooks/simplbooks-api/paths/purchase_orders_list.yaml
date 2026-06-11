@@ -60,10 +60,10 @@ get:
                           example: 123
                         client_name:
                           type: string
-                          example: "SimplBooks OÜ"
+                          example: 'SimplBooks OÜ'
                         client_reg_no:
                           type: string
-                          example: "12213296"
+                          example: '12213296'
                         client_vat_no:
                           type: string
                           example: EE101555357

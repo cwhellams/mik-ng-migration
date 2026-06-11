@@ -20,12 +20,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import { useState } from 'react'
 import type { DashboardComponent, DashboardComponentMetadata } from '../types'
 import { getCustomizableComponentMetadata } from '../types'
-import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  type DropResult,
-} from '@hello-pangea/dnd'
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 
 interface DashboardSettingsModalProps {
   open: boolean
@@ -43,16 +38,13 @@ export const DashboardSettingsModal = ({
   accessibleComponentIds,
 }: DashboardSettingsModalProps) => {
   // Filter settings to only include accessible components
-  const accessibleSettings = (settings || []).filter((s) =>
-    accessibleComponentIds.includes(s.id)
-  )
-  const [localSettings, setLocalSettings] =
-    useState<DashboardComponent[]>(accessibleSettings)
+  const accessibleSettings = (settings || []).filter((s) => accessibleComponentIds.includes(s.id))
+  const [localSettings, setLocalSettings] = useState<DashboardComponent[]>(accessibleSettings)
   const [saving, setSaving] = useState(false)
 
   // Filter metadata to only show components the user has access to
   const customizableMetadata = getCustomizableComponentMetadata().filter((m) =>
-    accessibleComponentIds.includes(m.id)
+    accessibleComponentIds.includes(m.id),
   )
 
   const getMetadata = (id: string): DashboardComponentMetadata | undefined => {
@@ -62,10 +54,8 @@ export const DashboardSettingsModal = ({
   const handleToggleVisibility = (id: string) => {
     setLocalSettings((prev) =>
       prev.map((component) =>
-        component.id === id
-          ? { ...component, visible: !component.visible }
-          : component
-      )
+        component.id === id ? { ...component, visible: !component.visible } : component,
+      ),
     )
   }
 
@@ -93,9 +83,7 @@ export const DashboardSettingsModal = ({
       // Merge the modified accessible settings back into the full settings list
       // This ensures we send all components to the backend, not just the ones the user can customize
       const updatedSettings = (settings || []).map((originalComponent) => {
-        const modifiedComponent = localSettings.find(
-          (c) => c.id === originalComponent.id
-        )
+        const modifiedComponent = localSettings.find((c) => c.id === originalComponent.id)
         return modifiedComponent || originalComponent
       })
 
@@ -121,12 +109,7 @@ export const DashboardSettingsModal = ({
       <DialogTitle>
         <Box display='flex' justifyContent='space-between' alignItems='center'>
           <Typography variant='h6'>Dashboard Settings</Typography>
-          <IconButton
-            edge='end'
-            color='inherit'
-            onClick={handleCancel}
-            aria-label='close'
-          >
+          <IconButton edge='end' color='inherit' onClick={handleCancel} aria-label='close'>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -135,8 +118,8 @@ export const DashboardSettingsModal = ({
         <Alert severity='info' sx={{ mb: 2 }}>
           Drag components to reorder them. Toggle visibility with the switch.
           <br />
-          <strong>Note:</strong> Alert and notification banners are always
-          visible when applicable and cannot be customized.
+          <strong>Note:</strong> Alert and notification banners are always visible when applicable
+          and cannot be customized.
         </Alert>
 
         <DragDropContext onDragEnd={handleDragEnd}>
@@ -146,9 +129,7 @@ export const DashboardSettingsModal = ({
                 {...provided.droppableProps}
                 ref={provided.innerRef}
                 sx={{
-                  bgcolor: snapshot.isDraggingOver
-                    ? 'action.hover'
-                    : 'background.paper',
+                  bgcolor: snapshot.isDraggingOver ? 'action.hover' : 'background.paper',
                   borderRadius: 1,
                 }}
               >
@@ -157,11 +138,7 @@ export const DashboardSettingsModal = ({
                   if (!metadata) return null
 
                   return (
-                    <Draggable
-                      key={component.id}
-                      draggableId={component.id}
-                      index={index}
-                    >
+                    <Draggable key={component.id} draggableId={component.id} index={index}>
                       {(provided, snapshot) => (
                         <Paper
                           ref={provided.innerRef}
@@ -170,9 +147,7 @@ export const DashboardSettingsModal = ({
                           sx={{
                             mb: 1,
                             opacity: component.visible ? 1 : 0.5,
-                            bgcolor: snapshot.isDragging
-                              ? 'action.selected'
-                              : 'background.paper',
+                            bgcolor: snapshot.isDragging ? 'action.selected' : 'background.paper',
                           }}
                         >
                           <ListItem
@@ -180,9 +155,7 @@ export const DashboardSettingsModal = ({
                               <Switch
                                 edge='end'
                                 checked={component.visible}
-                                onChange={() =>
-                                  handleToggleVisibility(component.id)
-                                }
+                                onChange={() => handleToggleVisibility(component.id)}
                                 slotProps={{
                                   input: {
                                     'aria-label': `Toggle ${metadata.label}`,
@@ -191,15 +164,10 @@ export const DashboardSettingsModal = ({
                               />
                             }
                           >
-                            <ListItemIcon
-                              {...provided.dragHandleProps}
-                              sx={{ cursor: 'grab' }}
-                            >
+                            <ListItemIcon {...provided.dragHandleProps} sx={{ cursor: 'grab' }}>
                               <DragIndicatorIcon />
                             </ListItemIcon>
-                            <Box sx={{ mr: 2, fontSize: '1.5rem' }}>
-                              {metadata.icon}
-                            </Box>
+                            <Box sx={{ mr: 2, fontSize: '1.5rem' }}>{metadata.icon}</Box>
                             <ListItemText
                               primary={metadata.label}
                               secondary={metadata.description}

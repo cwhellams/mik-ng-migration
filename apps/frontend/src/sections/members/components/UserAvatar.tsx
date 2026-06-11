@@ -23,13 +23,7 @@ const getGravatarUrl = (email: string, size: number): string => {
   return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=404`
 }
 
-const UserAvatar: React.FC<Props> = ({
-  email,
-  firstName,
-  lastName,
-  size = 40,
-  onClick,
-}) => {
+const UserAvatar: React.FC<Props> = ({ email, firstName, lastName, size = 40, onClick }) => {
   const [error, setError] = useState(false)
   const showGravatar = email && !error
 

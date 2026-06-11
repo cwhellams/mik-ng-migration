@@ -20,11 +20,7 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: [
-          'mik-logo-blue.png',
-          'pwa-192x192.png',
-          'pwa-512x512.png',
-        ],
+        includeAssets: ['mik-logo-blue.png', 'pwa-192x192.png', 'pwa-512x512.png'],
         manifest: {
           name: 'MIK NG Intranet',
           short_name: 'MIK NG',

@@ -32,7 +32,7 @@ describe('Invoicing Queries', () => {
       expect(invoices).toBeDefined()
       expect(Array.isArray(invoices)).toBe(true)
       // All returned invoices should belong to the member
-      invoices.forEach(invoice => {
+      invoices.forEach((invoice) => {
         expect(invoice.member_id).toBe(testMemberId)
       })
     })
@@ -41,7 +41,7 @@ describe('Invoicing Queries', () => {
       const filters: InvoiceItemQueryParams = { id: 1 }
       const invoices = await getInvoices(adminMemberId, true, filters)
       expect(invoices).toBeDefined()
-      invoices.forEach(invoice => {
+      invoices.forEach((invoice) => {
         expect(invoice.id).toBe('1')
       })
     })
@@ -51,7 +51,7 @@ describe('Invoicing Queries', () => {
       const filters: InvoiceItemQueryParams = { startDate }
       const invoices = await getInvoices(adminMemberId, true, filters)
       expect(invoices).toBeDefined()
-      invoices.forEach(invoice => {
+      invoices.forEach((invoice) => {
         if (invoice.sent_at) {
           expect(new Date(invoice.sent_at).getTime()).toBeGreaterThanOrEqual(
             new Date(startDate).getTime(),
@@ -65,7 +65,7 @@ describe('Invoicing Queries', () => {
       const filters: InvoiceItemQueryParams = { endDate }
       const invoices = await getInvoices(adminMemberId, true, filters)
       expect(invoices).toBeDefined()
-      invoices.forEach(invoice => {
+      invoices.forEach((invoice) => {
         if (invoice.sent_at) {
           expect(new Date(invoice.sent_at).getTime()).toBeLessThanOrEqual(
             new Date(endDate).getTime(),
@@ -78,7 +78,7 @@ describe('Invoicing Queries', () => {
       const filters: InvoiceItemQueryParams = { status: 'paid' }
       const invoices = await getInvoices(adminMemberId, true, filters)
       expect(invoices).toBeDefined()
-      invoices.forEach(invoice => {
+      invoices.forEach((invoice) => {
         expect(invoice.is_paid).toBe(true)
       })
     })
@@ -87,7 +87,7 @@ describe('Invoicing Queries', () => {
       const filters: InvoiceItemQueryParams = { status: 'unpaid' }
       const invoices = await getInvoices(adminMemberId, true, filters)
       expect(invoices).toBeDefined()
-      invoices.forEach(invoice => {
+      invoices.forEach((invoice) => {
         expect(invoice.is_paid).toBe(false)
       })
     })
@@ -96,7 +96,7 @@ describe('Invoicing Queries', () => {
       const filters: InvoiceItemQueryParams = { type: MIKInvoiceType.EQUIPMENT_FEE }
       const invoices = await getInvoices(adminMemberId, true, filters)
       expect(invoices).toBeDefined()
-      invoices.forEach(invoice => {
+      invoices.forEach((invoice) => {
         expect(invoice.invoice_type).toBe(MIKInvoiceType.EQUIPMENT_FEE)
       })
     })
@@ -106,7 +106,7 @@ describe('Invoicing Queries', () => {
       const invoices = await getInvoices(adminMemberId, true, filters)
       expect(invoices).toBeDefined()
       const now = new Date()
-      invoices.forEach(invoice => {
+      invoices.forEach((invoice) => {
         expect(new Date(invoice.due_at).getTime()).toBeLessThan(now.getTime())
         expect(invoice.is_paid).toBe(false)
       })
@@ -122,7 +122,7 @@ describe('Invoicing Queries', () => {
       expect(invoices).toBeDefined()
       const startTime = new Date('2024-01-01').getTime()
       const endTime = new Date('2025-12-31').getTime()
-      invoices.forEach(invoice => {
+      invoices.forEach((invoice) => {
         if (invoice.sent_at) {
           const sentTime = new Date(invoice.sent_at).getTime()
           expect(sentTime).toBeGreaterThanOrEqual(startTime)
@@ -185,7 +185,7 @@ describe('Invoicing Queries', () => {
             purchase_vat_type_id: 0,
           },
         })
-        .onConflict(oc => oc.column('id').doNothing())
+        .onConflict((oc) => oc.column('id').doNothing())
         .execute()
     })
   })
@@ -323,7 +323,7 @@ describe('Invoicing Queries', () => {
       await upsertInvoiceItems(testItems)
 
       // Update the items
-      const updatedItems = testItems.map(item => ({
+      const updatedItems = testItems.map((item) => ({
         ...item,
         name: `${item.name} - Updated`,
       }))
@@ -401,7 +401,7 @@ describe('Invoicing Queries', () => {
             purchase_vat_type_id: 0,
           },
         })
-        .onConflict(oc => oc.column('id').doNothing())
+        .onConflict((oc) => oc.column('id').doNothing())
         .execute()
     })
 
@@ -436,7 +436,7 @@ describe('Invoicing Queries', () => {
       const records = await getRecurringFeesProcessing('annual_fee')
       expect(records).toBeDefined()
       expect(Array.isArray(records)).toBe(true)
-      records.forEach(record => {
+      records.forEach((record) => {
         expect(record.fee_type).toBe('annual_fee')
         expect(record).toHaveProperty('status')
         expect(record).toHaveProperty('year')
@@ -451,7 +451,7 @@ describe('Invoicing Queries', () => {
       const records = await getRecurringFeesProcessing('equipment_fee')
       expect(records).toBeDefined()
       expect(Array.isArray(records)).toBe(true)
-      records.forEach(record => {
+      records.forEach((record) => {
         expect(record.fee_type).toBe('equipment_fee')
       })
     })

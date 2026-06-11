@@ -106,10 +106,10 @@ export function startOverdueInvoiceWorker(deps: OverdueInvoiceWorkerDeps = {}) {
   // Run immediately on startup for testing (optional - remove if not needed)
   if (process.env.OVERDUE_INVOICE_WORKER_RUN_ON_STARTUP === 'true') {
     logger.info('Running overdue invoice check immediately on startup')
-    processOverdueInvoices(sendEmailFn, createClientNote).catch(error => {
+    processOverdueInvoices(sendEmailFn, createClientNote).catch((error) => {
       logger.error('Error during startup overdue invoice check:', error)
     })
-    processSuspendedMembers(sendEmailFn).catch(error => {
+    processSuspendedMembers(sendEmailFn).catch((error) => {
       logger.error('Error during startup suspension check:', error)
     })
   }

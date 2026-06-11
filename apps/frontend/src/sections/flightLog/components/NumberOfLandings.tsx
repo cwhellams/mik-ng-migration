@@ -10,12 +10,7 @@ interface Props {
   disabled?: boolean
 }
 
-export const NumberOfLandings = ({
-  name,
-  control,
-  min = 1,
-  disabled,
-}: Props) => {
+export const NumberOfLandings = ({ name, control, min = 1, disabled }: Props) => {
   const { t } = useTranslation()
   return (
     <Controller
@@ -32,21 +27,16 @@ export const NumberOfLandings = ({
             {t('flightLog.' + name)}
           </Typography>
 
-          <ButtonGroup
-            sx={{ mb: 3, width: '100%' }}
-            fullWidth
-            disabled={disabled}
-          >
+          <ButtonGroup sx={{ mb: 3, width: '100%' }} fullWidth disabled={disabled}>
             <Button
               value='-'
               onClick={() =>
                 field.onChange(
                   Math.max(
                     min,
-                    (typeof field.value === 'number' && field.value !== null
-                      ? field.value
-                      : min) - 1
-                  )
+                    (typeof field.value === 'number' && field.value !== null ? field.value : min) -
+                      1,
+                  ),
                 )
               }
             >
@@ -72,9 +62,7 @@ export const NumberOfLandings = ({
               value='+'
               onClick={() => {
                 const currentValue =
-                  typeof field.value === 'number' && field.value !== null
-                    ? field.value
-                    : min
+                  typeof field.value === 'number' && field.value !== null ? field.value : min
                 field.onChange(Math.min(50, currentValue + 1))
               }}
             >

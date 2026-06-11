@@ -14,10 +14,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Link } from 'react-router-dom'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { useMe } from '../../../hooks/useMe'
-import {
-  FlightLogStatsFilter,
-  FlightLogStatsResponse,
-} from '@backend/routes/flight-log/models'
+import { FlightLogStatsFilter, FlightLogStatsResponse } from '@backend/routes/flight-log/models'
 import { t } from 'i18next'
 import { useTimezone } from '../../../hooks/useTimezone'
 import { useState } from 'react'
@@ -49,7 +46,7 @@ export const FlightLogUserDashboard = () => {
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
       keepPreviousData: true,
-    }
+    },
   )
 
   const formatCurrency = (landings: number, mins: number) =>
@@ -71,9 +68,7 @@ export const FlightLogUserDashboard = () => {
               <Switch
                 checked={!filters.activeOnly}
                 onClick={(event) => event.stopPropagation()}
-                onChange={(e) =>
-                  setFilters({ ...filters, activeOnly: !e.target.checked })
-                }
+                onChange={(e) => setFilters({ ...filters, activeOnly: !e.target.checked })}
               />
             }
             label={t('aircraft.showActive')}

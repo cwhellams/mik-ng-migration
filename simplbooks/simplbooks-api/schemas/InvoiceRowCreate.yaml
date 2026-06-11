@@ -11,11 +11,11 @@ properties:
   name:
     type: string
     description: Name of the item or service
-    example: "Double scrollwheel mouse"
+    example: 'Double scrollwheel mouse'
   unit:
     type: string
     description: Unit of measurement
-    example: "Pcs."
+    example: 'Pcs.'
   amount:
     type: number
     description: Quantity
@@ -39,7 +39,7 @@ properties:
   contents:
     type: string
     description: Description or details
-    example: "Scroll together with your buddy using only one mouse!"
+    example: 'Scroll together with your buddy using only one mouse!'
   income_account_id:
     type: integer
     description: Income account identifier

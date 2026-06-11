@@ -51,9 +51,7 @@ export const BookingTimeline = ({
         <Typography variant='body2' fontWeight='medium' color={'primary.info'}>
           {t('schedule.freeBefore')}
         </Typography>
-        <Typography variant='body1'>
-          {showDiff(previousEndDate, startDate)}
-        </Typography>
+        <Typography variant='body1'>{showDiff(previousEndDate, startDate)}</Typography>
         <Typography variant='caption' color='text.secondary'>
           {previousEndDate
             ? t('schedule.ends', {
@@ -92,9 +90,7 @@ export const BookingTimeline = ({
         <Typography variant='body2' fontWeight='medium' color={'info.main'}>
           {t('schedule.freeAfter')}
         </Typography>
-        <Typography variant='body1'>
-          {showDiff(endDate, nextStartDate)}
-        </Typography>
+        <Typography variant='body1'>{showDiff(endDate, nextStartDate)}</Typography>
         <Typography variant='caption' color='text.secondary'>
           {nextStartDate
             ? t('schedule.starts', {

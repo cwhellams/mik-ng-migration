@@ -75,7 +75,7 @@ export async function getInstructorWorktime(
     ORDER BY date ASC, instructor_name ASC
   `.execute(db)
 
-  return result.rows.map(row => ({
+  return result.rows.map((row) => ({
     instructorMemberId: row.instructor_member_id,
     instructorName: row.instructor_name,
     date: row.date,

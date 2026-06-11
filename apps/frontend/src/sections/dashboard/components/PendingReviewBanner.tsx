@@ -63,10 +63,7 @@ export function PendingReviewBanner() {
 
       <Card elevation={2} sx={{ mb: 4 }}>
         <CardContent>
-          <Typography
-            variant='h6'
-            sx={{ mb: 2, display: 'flex', alignItems: 'center' }}
-          >
+          <Typography variant='h6' sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
             <Icon icon='mdi:timeline' style={{ marginRight: 8 }} />
             {t('registrationVerify.nextStepsTitle')}
           </Typography>
@@ -119,9 +116,7 @@ export function PendingReviewBanner() {
                     }
                   />
                 </ListItem>
-                {index < onboardingSteps.length - 1 && (
-                  <Divider component='li' />
-                )}
+                {index < onboardingSteps.length - 1 && <Divider component='li' />}
               </div>
             ))}
           </List>

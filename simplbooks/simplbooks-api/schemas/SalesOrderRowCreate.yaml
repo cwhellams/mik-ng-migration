@@ -11,11 +11,11 @@ properties:
   name:
     type: string
     description: Name of the article
-    example: "Spring Loaded T-shirt"
+    example: 'Spring Loaded T-shirt'
   unit:
     type: string
     description: Unit name of the given article
-    example: "Pcs."
+    example: 'Pcs.'
   amount:
     type: number
     description: Number of units ordered
@@ -39,4 +39,4 @@ properties:
   contents:
     type: string
     description: Description of the article
-    example: "Jumpotron XXL wearable exoskeleton."
+    example: 'Jumpotron XXL wearable exoskeleton.'

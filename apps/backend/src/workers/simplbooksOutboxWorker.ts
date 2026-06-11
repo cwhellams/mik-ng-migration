@@ -7,7 +7,7 @@ import logger from '../lib/logger.ts'
 import { dispatchOutboxMsg } from '../services/simplbooks/simplbooksOutboxHandler.ts'
 import { checkAndClearStuckMessages } from '../db/outbox-simplbooks-queries.ts'
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export function startSimpleBooksOutboxProcessor() {
   let shouldRun = process.env.SIMPLBOOKS_OUTBOX_WORKER_ENABLED === 'true'
@@ -37,7 +37,7 @@ async function processOutbox(): Promise<number> {
   try {
     logger.info('Outbox worker iteration started')
 
-    const taskRow = await db.transaction().execute(async txn => {
+    const taskRow = await db.transaction().execute(async (txn) => {
       const nextRow = (await txn
         .selectFrom('accts.outbox_simplbooks')
         .selectAll()

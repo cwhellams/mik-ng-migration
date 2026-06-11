@@ -15,15 +15,15 @@ properties:
   code:
     type: string
     description: Code of the associated item
-    example: "OO6"
+    example: 'OO6'
   name:
     type: string
     description: Name of the item or service
-    example: "Antiviral toilet paper"
+    example: 'Antiviral toilet paper'
   unit:
     type: string
     description: Name of the unit
-    example: "Pcs."
+    example: 'Pcs.'
   amount:
     type: number
     description: Quantity

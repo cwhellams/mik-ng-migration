@@ -24,7 +24,7 @@ export const migratePlanes = async () => {
   for (const plane of planes) {
     const existingPlanes = await request<AircraftFilters, AircraftListResponse>(
       'GET',
-      `v1/aircrafts`
+      `v1/aircrafts`,
     )
     if (existingPlanes?.aircrafts.some((a) => a.registration == plane.nimi)) {
       continue

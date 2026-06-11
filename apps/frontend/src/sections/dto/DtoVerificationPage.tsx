@@ -55,10 +55,7 @@ function formatTime(utc: string): string {
   })
 }
 
-function FlightInfoRow({
-  label,
-  value,
-}: Readonly<{ label: string; value: React.ReactNode }>) {
+function FlightInfoRow({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
   return (
     <Box display='flex' gap={1} alignItems='baseline'>
       <Typography variant='caption' color='text.secondary' minWidth={110}>
@@ -92,12 +89,7 @@ function TrainingItemCard({
         borderWidth: missing ? 2 : 1,
       }}
     >
-      <Box
-        display='flex'
-        justifyContent='space-between'
-        alignItems='flex-start'
-        mb={1}
-      >
+      <Box display='flex' justifyContent='space-between' alignItems='flex-start' mb={1}>
         <Typography variant='body2' fontWeight={500} sx={{ flex: 1, mr: 1 }}>
           {item.name}
         </Typography>
@@ -151,10 +143,7 @@ function TrainingItemCard({
   )
 }
 
-function VerifyPanel({
-  attemptId,
-  onDone,
-}: Readonly<{ attemptId: string; onDone: () => void }>) {
+function VerifyPanel({ attemptId, onDone }: Readonly<{ attemptId: string; onDone: () => void }>) {
   const navigate = useNavigate()
 
   const {
@@ -165,10 +154,9 @@ function VerifyPanel({
     url: `v1/dto/attempts/${attemptId}`,
   })
 
-  const { data: flightDetail, isLoading: flightDetailLoading } =
-    useApi<SyllabusFlight>({
-      url: attempt ? `v1/dto/flights/${attempt.syllabusFlightId}` : undefined,
-    })
+  const { data: flightDetail, isLoading: flightDetailLoading } = useApi<SyllabusFlight>({
+    url: attempt ? `v1/dto/flights/${attempt.syllabusFlightId}` : undefined,
+  })
 
   const [result, setResult] = useState<'APPROVED' | 'FAILED'>('APPROVED')
   const [comments, setComments] = useState('')
@@ -177,9 +165,9 @@ function VerifyPanel({
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
-  const mandatoryItems: SyllabusFlightItem[] = (
-    flightDetail?.items ?? []
-  ).filter((i) => i.mandatory)
+  const mandatoryItems: SyllabusFlightItem[] = (flightDetail?.items ?? []).filter(
+    (i) => i.mandatory,
+  )
   const allMandatoryHaveOutcome =
     !flightDetailLoading && mandatoryItems.every((i) => outcomes[i.itemId])
   const missingCount = mandatoryItems.filter((i) => !outcomes[i.itemId]).length
@@ -207,25 +195,19 @@ function VerifyPanel({
   }
 
   if (isLoading) return <CircularProgress />
-  if (error || !attempt)
-    return <Alert severity='error'>Could not load attempt</Alert>
+  if (error || !attempt) return <Alert severity='error'>Could not load attempt</Alert>
 
   return (
     <Stack spacing={2}>
       {attempt.requiresReverification && (
         <Alert severity='warning'>
           <Typography variant='body2' fontWeight='bold'>
-            Flight data was edited after the previous verification. Please
-            re-verify.
+            Flight data was edited after the previous verification. Please re-verify.
           </Typography>
           {attempt.verifiedAt && (
             <Typography variant='caption'>
-              Previously{' '}
-              {attempt.verificationResult === 'APPROVED'
-                ? 'approved'
-                : 'reviewed'}{' '}
-              by {attempt.verifierName ?? attempt.verifiedBy} on{' '}
-              {attempt.verifiedAt.substring(0, 10)}
+              Previously {attempt.verificationResult === 'APPROVED' ? 'approved' : 'reviewed'} by{' '}
+              {attempt.verifierName ?? attempt.verifiedBy} on {attempt.verifiedAt.substring(0, 10)}
             </Typography>
           )}
         </Alert>
@@ -298,20 +280,16 @@ function VerifyPanel({
                 item={item}
                 outcome={outcomes[item.itemId]}
                 remark={remarks[item.itemId] ?? ''}
-                onOutcome={(val) =>
-                  setOutcomes((prev) => ({ ...prev, [item.itemId]: val }))
-                }
-                onRemark={(val) =>
-                  setRemarks((prev) => ({ ...prev, [item.itemId]: val }))
-                }
+                onOutcome={(val) => setOutcomes((prev) => ({ ...prev, [item.itemId]: val }))}
+                onRemark={(val) => setRemarks((prev) => ({ ...prev, [item.itemId]: val }))}
               />
             ))}
           </Stack>
 
           {!allMandatoryHaveOutcome && (
             <Alert severity='warning'>
-              {missingCount} mandatory item{missingCount !== 1 ? 's' : ''} still
-              need an outcome before you can submit.
+              {missingCount} mandatory item{missingCount !== 1 ? 's' : ''} still need an outcome
+              before you can submit.
             </Alert>
           )}
 
@@ -356,9 +334,7 @@ function VerifyPanel({
           )
         }
       >
-        {saving
-          ? 'Verifying…'
-          : `Submit — ${result === 'APPROVED' ? 'APPROVED' : 'FAILED'}`}
+        {saving ? 'Verifying…' : `Submit — ${result === 'APPROVED' ? 'APPROVED' : 'FAILED'}`}
       </Button>
     </Stack>
   )
@@ -410,8 +386,7 @@ export default function DtoVerificationPage() {
         ) : (
           <Stack spacing={1.5}>
             <Typography variant='body2' color='text.secondary'>
-              {pending!.length} flight{pending!.length !== 1 ? 's' : ''}{' '}
-              awaiting verification
+              {pending!.length} flight{pending!.length !== 1 ? 's' : ''} awaiting verification
             </Typography>
             {pending!.map((a) => (
               <Card key={a.attemptId} variant='outlined'>

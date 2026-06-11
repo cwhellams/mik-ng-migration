@@ -26,10 +26,7 @@ import { Title } from '../../components/Title'
 import { SnackAlert } from '../../components/SnackAlert'
 import { formatPhoneNumber } from '../../utils/format'
 import type { Problem } from '@backend/routes/response'
-import type {
-  NonRenewalListResponse,
-  NonRenewalMember,
-} from '@backend/routes/members/models'
+import type { NonRenewalListResponse, NonRenewalMember } from '@backend/routes/members/models'
 import { useTimezone } from '../../hooks/useTimezone'
 
 export default function NonRenewals() {
@@ -52,11 +49,8 @@ export default function NonRenewals() {
   const members = data?.members ?? []
 
   // ── selection helpers ──────────────────────────────────────────────────────
-  const selectableIds = members
-    .filter((m) => m.billableFlightCount === 0)
-    .map((m) => m.memberId)
-  const isAllSelected =
-    selectableIds.length > 0 && selectableIds.every((id) => selected.has(id))
+  const selectableIds = members.filter((m) => m.billableFlightCount === 0).map((m) => m.memberId)
+  const isAllSelected = selectableIds.length > 0 && selectableIds.every((id) => selected.has(id))
   const isIndeterminate = selected.size > 0 && !isAllSelected
 
   const toggleSelectAll = () => {
@@ -89,9 +83,7 @@ export default function NonRenewals() {
 
   const handleSendReminder = async (member: NonRenewalMember) => {
     const name = `${member.firstName} ${member.lastName}`
-    if (
-      !globalThis.confirm(t('member.nonRenewalsSendReminderConfirm', { name }))
-    ) {
+    if (!globalThis.confirm(t('member.nonRenewalsSendReminderConfirm', { name }))) {
       return
     }
 
@@ -99,7 +91,7 @@ export default function NonRenewals() {
     const { error: mutErr } = await mutation.trigger(
       'POST',
       {},
-      `/v1/members/${member.memberId}/send-renewal-reminder`
+      `/v1/members/${member.memberId}/send-renewal-reminder`,
     )
     setActionLoadingId(null)
 
@@ -117,9 +109,7 @@ export default function NonRenewals() {
 
   const handleRemoveMember = async (member: NonRenewalMember) => {
     const name = `${member.firstName} ${member.lastName}`
-    if (
-      !globalThis.confirm(t('member.nonRenewalsRemoveMemberConfirm', { name }))
-    ) {
+    if (!globalThis.confirm(t('member.nonRenewalsRemoveMemberConfirm', { name }))) {
       return
     }
 
@@ -127,7 +117,7 @@ export default function NonRenewals() {
     const { error: mutErr } = await mutation.trigger(
       'POST',
       { reason: 'Membership deactivated due to non-renewal of annual fee' },
-      `/v1/members/${member.memberId}/deactivate`
+      `/v1/members/${member.memberId}/deactivate`,
     )
     setActionLoadingId(null)
 
@@ -146,11 +136,7 @@ export default function NonRenewals() {
   // ── bulk handlers ──────────────────────────────────────────────────────────
   const handleBulkSendReminder = async () => {
     const count = selected.size
-    if (
-      !globalThis.confirm(
-        t('member.nonRenewalsBulkSendReminderConfirm', { count })
-      )
-    ) {
+    if (!globalThis.confirm(t('member.nonRenewalsBulkSendReminderConfirm', { count }))) {
       return
     }
 
@@ -163,7 +149,7 @@ export default function NonRenewals() {
       const { error: mutErr } = await mutation.trigger(
         'POST',
         {},
-        `/v1/members/${memberId}/send-renewal-reminder`
+        `/v1/members/${memberId}/send-renewal-reminder`,
       )
       if (mutErr) {
         firstError = mutErr
@@ -196,9 +182,7 @@ export default function NonRenewals() {
     })
     const count = ids.length
     if (count === 0) return
-    if (
-      !globalThis.confirm(t('member.nonRenewalsBulkRemoveConfirm', { count }))
-    ) {
+    if (!globalThis.confirm(t('member.nonRenewalsBulkRemoveConfirm', { count }))) {
       return
     }
 
@@ -210,7 +194,7 @@ export default function NonRenewals() {
       const { error: mutErr } = await mutation.trigger(
         'POST',
         { reason: 'Membership deactivated due to non-renewal of annual fee' },
-        `/v1/members/${memberId}/deactivate`
+        `/v1/members/${memberId}/deactivate`,
       )
       if (mutErr) {
         firstError = mutErr
@@ -250,11 +234,7 @@ export default function NonRenewals() {
     <Box>
       <SnackAlert problem={problem} />
       <Title
-        label={t(
-          'member.nonRenewalsTitle',
-          'Members Without Annual Fee {{year}}',
-          { year }
-        )}
+        label={t('member.nonRenewalsTitle', 'Members Without Annual Fee {{year}}', { year })}
       />
 
       <Typography variant='body2' color='text.secondary' mb={3}>
@@ -263,9 +243,7 @@ export default function NonRenewals() {
 
       <RemoteContent error={error} isLoading={isLoading}>
         {members.length === 0 ? (
-          <Typography color='text.secondary'>
-            {t('member.nonRenewalsEmpty', { year })}
-          </Typography>
+          <Typography color='text.secondary'>{t('member.nonRenewalsEmpty', { year })}</Typography>
         ) : (
           <>
             {/* Bulk action toolbar — visible only when rows are selected */}
@@ -293,11 +271,9 @@ export default function NonRenewals() {
                   startIcon={<Icon icon='mdi:email-send-outline' />}
                   onClick={handleBulkSendReminder}
                 >
-                  {t(
-                    'member.nonRenewalsBulkSendReminder',
-                    'Send Reminders ({{count}})',
-                    { count: selected.size }
-                  )}
+                  {t('member.nonRenewalsBulkSendReminder', 'Send Reminders ({{count}})', {
+                    count: selected.size,
+                  })}
                 </Button>
 
                 <Button
@@ -308,11 +284,9 @@ export default function NonRenewals() {
                   startIcon={<Icon icon='mdi:account-remove-outline' />}
                   onClick={handleBulkRemove}
                 >
-                  {t(
-                    'member.nonRenewalsBulkRemove',
-                    'Remove Members ({{count}})',
-                    { count: selected.size }
-                  )}
+                  {t('member.nonRenewalsBulkRemove', 'Remove Members ({{count}})', {
+                    count: selected.size,
+                  })}
                 </Button>
               </Stack>
             )}
@@ -336,62 +310,39 @@ export default function NonRenewals() {
                       />
                     </TableCell>
                     <TableCell>{t('member.name', 'Name')}</TableCell>
-                    <TableCell>
-                      {t('member.emailPhone', 'Email / Phone')}
-                    </TableCell>
-                    <TableCell>
-                      {t('member.nonRenewalsAutoRenew', 'Opted In')}
-                    </TableCell>
-                    <TableCell>
-                      {t('member.nonRenewalsFeeStatus', 'Fee Status')}
-                    </TableCell>
+                    <TableCell>{t('member.emailPhone', 'Email / Phone')}</TableCell>
+                    <TableCell>{t('member.nonRenewalsAutoRenew', 'Opted In')}</TableCell>
+                    <TableCell>{t('member.nonRenewalsFeeStatus', 'Fee Status')}</TableCell>
                     <TableCell align='center'>
                       {t('member.nonRenewalsFlights', 'Flights')}
                     </TableCell>
-                    <TableCell align='right'>
-                      {t('member.nonRenewalsActions', 'Actions')}
-                    </TableCell>
+                    <TableCell align='right'>{t('member.nonRenewalsActions', 'Actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {members.map((member) => {
                     const fullName = `${member.firstName} ${member.lastName}`
-                    const isReminderLoading =
-                      actionLoadingId === `reminder-${member.memberId}`
-                    const isRemoveLoading =
-                      actionLoadingId === `remove-${member.memberId}`
+                    const isReminderLoading = actionLoadingId === `reminder-${member.memberId}`
+                    const isRemoveLoading = actionLoadingId === `remove-${member.memberId}`
                     const isChecked = selected.has(member.memberId)
                     const hasFlightsThisYear = member.billableFlightCount > 0
-                    const lastReminderDate = formatDateTime(
-                      member.lastReminderSentAt
-                    )
+                    const lastReminderDate = formatDateTime(member.lastReminderSentAt)
 
                     return (
                       <TableRow
                         key={member.memberId}
                         hover
                         selected={isChecked}
-                        onClick={() =>
-                          !isBusy &&
-                          toggleSelect(member.memberId, hasFlightsThisYear)
-                        }
+                        onClick={() => !isBusy && toggleSelect(member.memberId, hasFlightsThisYear)}
                         sx={{
-                          cursor:
-                            isBusy || hasFlightsThisYear
-                              ? 'default'
-                              : 'pointer',
+                          cursor: isBusy || hasFlightsThisYear ? 'default' : 'pointer',
                         }}
                       >
-                        <TableCell
-                          padding='checkbox'
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                        <TableCell padding='checkbox' onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             size='small'
                             checked={isChecked}
-                            onChange={() =>
-                              toggleSelect(member.memberId, hasFlightsThisYear)
-                            }
+                            onChange={() => toggleSelect(member.memberId, hasFlightsThisYear)}
                             disabled={isBusy || hasFlightsThisYear}
                             slotProps={{
                               input: { 'aria-label': `select ${fullName}` },
@@ -409,20 +360,9 @@ export default function NonRenewals() {
                         </TableCell>
 
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Stack
-                            direction='row'
-                            alignItems='center'
-                            spacing={0.5}
-                          >
-                            <Typography variant='body2'>
-                              {member.email}
-                            </Typography>
-                            <Tooltip
-                              title={t(
-                                'member.nonRenewalsEmailCopied',
-                                'Copy email'
-                              )}
-                            >
+                          <Stack direction='row' alignItems='center' spacing={0.5}>
+                            <Typography variant='body2'>{member.email}</Typography>
+                            <Tooltip title={t('member.nonRenewalsEmailCopied', 'Copy email')}>
                               <IconButton
                                 size='small'
                                 onClick={() => handleCopyEmail(member.email)}
@@ -433,29 +373,21 @@ export default function NonRenewals() {
                             </Tooltip>
                           </Stack>
                           <Typography variant='body2' color='text.secondary'>
-                            {member.phoneNumber
-                              ? formatPhoneNumber(member.phoneNumber)
-                              : '—'}
+                            {member.phoneNumber ? formatPhoneNumber(member.phoneNumber) : '—'}
                           </Typography>
                         </TableCell>
 
                         <TableCell>
                           {member.autoRenewAnnualMembership === false ? (
                             <Chip
-                              label={t(
-                                'member.nonRenewalsAutoRenewOff',
-                                'Opted Out'
-                              )}
+                              label={t('member.nonRenewalsAutoRenewOff', 'Opted Out')}
                               size='small'
                               color='warning'
                               variant='outlined'
                             />
                           ) : (
                             <Chip
-                              label={t(
-                                'member.nonRenewalsAutoRenewOn',
-                                'Opted In'
-                              )}
+                              label={t('member.nonRenewalsAutoRenewOn', 'Opted In')}
                               size='small'
                               color='success'
                               variant='outlined'
@@ -467,26 +399,16 @@ export default function NonRenewals() {
                           {member.feeStatus === 'unpaid' ? (
                             <Stack spacing={0.25}>
                               <Chip
-                                label={t(
-                                  'member.nonRenewalsInvoiceUnpaid',
-                                  'Invoice Unpaid'
-                                )}
+                                label={t('member.nonRenewalsInvoiceUnpaid', 'Invoice Unpaid')}
                                 size='small'
                                 color='warning'
                                 variant='filled'
                               />
                               {member.invoiceSentAt && (
-                                <Typography
-                                  variant='caption'
-                                  color='text.secondary'
-                                >
-                                  {t(
-                                    'member.nonRenewalsInvoicedOn',
-                                    'Invoiced: {{date}}',
-                                    {
-                                      date: formatDate(member.invoiceSentAt),
-                                    }
-                                  )}
+                                <Typography variant='caption' color='text.secondary'>
+                                  {t('member.nonRenewalsInvoicedOn', 'Invoiced: {{date}}', {
+                                    date: formatDate(member.invoiceSentAt),
+                                  })}
                                 </Typography>
                               )}
                               {member.invoiceDueAt && (
@@ -498,22 +420,15 @@ export default function NonRenewals() {
                                       : 'text.secondary'
                                   }
                                 >
-                                  {t(
-                                    'member.nonRenewalsInvoiceDueOn',
-                                    'Due: {{date}}',
-                                    {
-                                      date: formatDate(member.invoiceDueAt),
-                                    }
-                                  )}
+                                  {t('member.nonRenewalsInvoiceDueOn', 'Due: {{date}}', {
+                                    date: formatDate(member.invoiceDueAt),
+                                  })}
                                 </Typography>
                               )}
                             </Stack>
                           ) : (
                             <Chip
-                              label={t(
-                                'member.nonRenewalsNoFeeRecord',
-                                'No Fee Record'
-                              )}
+                              label={t('member.nonRenewalsNoFeeRecord', 'No Fee Record')}
                               size='small'
                               color='default'
                               variant='outlined'
@@ -521,10 +436,7 @@ export default function NonRenewals() {
                           )}
                         </TableCell>
 
-                        <TableCell
-                          align='center'
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                        <TableCell align='center' onClick={(e) => e.stopPropagation()}>
                           {hasFlightsThisYear ? (
                             <Chip
                               label={member.billableFlightCount}
@@ -539,10 +451,7 @@ export default function NonRenewals() {
                           )}
                         </TableCell>
 
-                        <TableCell
-                          align='right'
-                          onClick={(e) => e.stopPropagation()}
-                        >
+                        <TableCell align='right' onClick={(e) => e.stopPropagation()}>
                           <Stack
                             direction='row'
                             spacing={1}
@@ -565,25 +474,14 @@ export default function NonRenewals() {
                                 onClick={() => handleSendReminder(member)}
                               >
                                 {lastReminderDate
-                                  ? t(
-                                      'member.nonRenewalsSendReminderAgain',
-                                      'Send Reminder Again'
-                                    )
-                                  : t(
-                                      'member.nonRenewalsSendReminder',
-                                      'Send Reminder'
-                                    )}
+                                  ? t('member.nonRenewalsSendReminderAgain', 'Send Reminder Again')
+                                  : t('member.nonRenewalsSendReminder', 'Send Reminder')}
                               </Button>
                               {lastReminderDate && (
-                                <Typography
-                                  variant='caption'
-                                  color='text.secondary'
-                                >
-                                  {t(
-                                    'member.nonRenewalsReminderSentOn',
-                                    'Sent: {{date}}',
-                                    { date: lastReminderDate }
-                                  )}
+                                <Typography variant='caption' color='text.secondary'>
+                                  {t('member.nonRenewalsReminderSentOn', 'Sent: {{date}}', {
+                                    date: lastReminderDate,
+                                  })}
                                 </Typography>
                               )}
                             </Stack>
@@ -591,7 +489,7 @@ export default function NonRenewals() {
                             <Tooltip
                               title={t(
                                 'member.nonRenewalsRemoveDisabledFlights',
-                                'Members with flights in the current year cannot be removed or have their membership cancelled'
+                                'Members with flights in the current year cannot be removed or have their membership cancelled',
                               )}
                               disableHoverListener={!hasFlightsThisYear}
                               disableFocusListener={!hasFlightsThisYear}
@@ -605,20 +503,14 @@ export default function NonRenewals() {
                                   disabled={isBusy || hasFlightsThisYear}
                                   startIcon={
                                     isRemoveLoading ? (
-                                      <Icon
-                                        icon='mdi:loading'
-                                        className='spin'
-                                      />
+                                      <Icon icon='mdi:loading' className='spin' />
                                     ) : (
                                       <Icon icon='mdi:account-remove-outline' />
                                     )
                                   }
                                   onClick={() => handleRemoveMember(member)}
                                 >
-                                  {t(
-                                    'member.nonRenewalsRemoveMember',
-                                    'Remove'
-                                  )}
+                                  {t('member.nonRenewalsRemoveMember', 'Remove')}
                                 </Button>
                               </span>
                             </Tooltip>

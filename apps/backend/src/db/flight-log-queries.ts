@@ -133,31 +133,31 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
   const query = db
     .selectFrom('flight.logs')
     .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
-    .$if(!!filters.flightId, qb => qb.where('flight.logs.flight_id', '=', filters.flightId!))
-    .$if(!!filters.billableMemberId, qb =>
+    .$if(!!filters.flightId, (qb) => qb.where('flight.logs.flight_id', '=', filters.flightId!))
+    .$if(!!filters.billableMemberId, (qb) =>
       qb.where('billable_member_id', '=', filters.billableMemberId!),
     )
-    .$if(!!filters.pic, qb => qb.where('pic_member_id', '=', filters.pic!))
-    .$if(!!filters.crew2, qb => qb.where('crew2_member_id', '=', filters.crew2!))
-    .$if(!!filters.crew3, qb => qb.where('crew3_member_id', '=', filters.crew3!))
-    .$if(!!filters.crew4, qb => qb.where('crew4_member_id', '=', filters.crew4!))
-    .$if(!!filters.aircraftRegistration, qb =>
+    .$if(!!filters.pic, (qb) => qb.where('pic_member_id', '=', filters.pic!))
+    .$if(!!filters.crew2, (qb) => qb.where('crew2_member_id', '=', filters.crew2!))
+    .$if(!!filters.crew3, (qb) => qb.where('crew3_member_id', '=', filters.crew3!))
+    .$if(!!filters.crew4, (qb) => qb.where('crew4_member_id', '=', filters.crew4!))
+    .$if(!!filters.aircraftRegistration, (qb) =>
       qb.where('aircraft_registration', '=', filters.aircraftRegistration!),
     )
-    .$if(!!filters.startDate, qb =>
+    .$if(!!filters.startDate, (qb) =>
       qb.where('off_block_time_epoch', '>=', toLocal(filters.startDate!).unix().toString()),
     )
-    .$if(!!filters.endDate, qb =>
+    .$if(!!filters.endDate, (qb) =>
       qb.where('on_block_time_epoch', '<=', dayjs(filters.endDate).endOf('day').unix().toString()),
     )
-    .$if(!!filters.status, qb => qb.where('status', '=', filters.status!))
-    .$if(!!filters.incidentsOrObservations, qb =>
+    .$if(!!filters.status, (qb) => qb.where('status', '=', filters.status!))
+    .$if(!!filters.incidentsOrObservations, (qb) =>
       qb.where('incident_or_observations', 'is not', null),
     )
-    .$if(ajlbPaging, qb =>
+    .$if(ajlbPaging, (qb) =>
       qb
         .where('ajlb_seq_no', '=', filters.ajlbSeqNo!)
-        .where(eb =>
+        .where((eb) =>
           eb('flight.logs.ajlb_page_number', '=', filters.page!).or(
             'totals.page_number',
             '=',
@@ -170,7 +170,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
   // This have to be separate query so that we can do
   // dynamic paging (no ajlb page)
   const { rows } = await query
-    .select(eb => eb.fn.countAll<number>().as('rows'))
+    .select((eb) => eb.fn.countAll<number>().as('rows'))
     .executeTakeFirstOrThrow()
 
   const pageSize = filters.limit ?? 50
@@ -221,7 +221,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     .execute()
 
   return {
-    logs: results.map(row => {
+    logs: results.map((row) => {
       const res: FlightLogListEntry = {
         acTotalFlightTime: row.ajlb_total_flight_time ?? row.ac_total_flight_time ?? '00:00',
         aircraftRegistration: row.aircraft_registration,
@@ -288,7 +288,7 @@ export async function getFlightStats(
 ): Promise<FlightLogStats[]> {
   const res = await db
     .selectFrom('flight.logs')
-    .select(eb => [
+    .select((eb) => [
       'flight.logs.aircraft_registration as aircraftRegistration',
       eb.fn.max<Date>('flight.logs.takeoff_time_utc').as('lastTakeoffTimeUtc'),
       eb
@@ -314,8 +314,8 @@ export async function getFlightStats(
       sumIfMonths(eb, 12, 'flight.logs.number_of_landings').as('landings12month'),
     ])
     .where('billable_member_id', '=', billableMemberId)
-    .$if(activeOnly === true, qb =>
-      qb.where(eb =>
+    .$if(activeOnly === true, (qb) =>
+      qb.where((eb) =>
         eb(
           'flight.logs.aircraft_registration',
           'in',
@@ -330,7 +330,7 @@ export async function getFlightStats(
     .orderBy('lastTakeoffTimeUtc', 'desc')
     .execute()
 
-  return res.map(row => ({
+  return res.map((row) => ({
     ...row,
     lastTakeoffTimeUtc: row.lastTakeoffTimeUtc.toISOString(),
   }))
@@ -344,7 +344,7 @@ export async function getInvoicableFlights(
     .leftJoin('member.register', 'flight.logs.billable_member_id', 'member.register.member_id')
     .leftJoin('flight.flight_credits', 'flight.logs.flight_id', 'flight.flight_credits.flight_id')
     .where('status', '=', FlightLogStatus.VALIDATED)
-    .$if(!!filters.aircraftRegistration, qb =>
+    .$if(!!filters.aircraftRegistration, (qb) =>
       qb.where('aircraft_registration', '=', filters.aircraftRegistration),
     )
     .where('on_block_time_epoch', '<=', toLocal(filters.endDate).endOf('day').unix().toString())
@@ -363,7 +363,7 @@ export async function getInvoicableFlights(
     query = query.where('flight.logs.partially_billable_flight', '=', true)
   } else if (filters.flights === InvoicableFlights.MIN_BILLABLE) {
     const minMins = Number(process.env.MIN_BILLABLE_FLIGHT_MINS) || 20
-    query = query.where(eb =>
+    query = query.where((eb) =>
       eb(
         eb
           .case()
@@ -384,7 +384,7 @@ export async function getInvoicableFlights(
       .where('flight.logs.partially_billable_flight', 'is not', true)
       .where('flight.logs.entry_error_fee', '=', false)
       .where('flight_type', 'not in', [FlightType.FERRY, FlightType.TEST_FLIGHT])
-      .where(eb =>
+      .where((eb) =>
         eb.or([
           // Cross-country flights (any duration) - departure != arrival
           eb('flight.logs.departure_airport', '!=', eb.ref('flight.logs.arrival_airport')),
@@ -407,7 +407,7 @@ export async function getInvoicableFlights(
   }
 
   const { rows } = await query
-    .select(eb => eb.fn.countAll<number>().as('rows'))
+    .select((eb) => eb.fn.countAll<number>().as('rows'))
     .executeTakeFirstOrThrow()
 
   const pageSize = filters.limit ?? 50
@@ -454,7 +454,7 @@ export async function getInvoicableFlights(
     .execute()
 
   return {
-    logs: results.map(row => {
+    logs: results.map((row) => {
       const res: InvoicableFlight = {
         aircraftRegistration: row.aircraft_registration,
         arrivalAirport: row.arrival_airport,
@@ -520,7 +520,7 @@ export async function insertFlightLog(
 
   const retval = await db
     .insertInto('flight.logs')
-    .values(eb => ({
+    .values((eb) => ({
       aircraft_registration: data.aircraftRegistration,
       arrival_airport: data.arrivalAirport,
       billable_member_id: billableMemberId,
@@ -643,7 +643,7 @@ export const updateFlightLog = async (
   data: Partial<FlightLogUpsertRequest>,
   user: JWTUser,
 ): Promise<boolean> =>
-  updateFlightLogWithAudit(flight_id, user, eb => ({
+  updateFlightLogWithAudit(flight_id, user, (eb) => ({
     aircraft_registration: data.aircraftRegistration,
     arrival_airport: data.arrivalAirport,
     billable_member_id: data.billableMemberId,
@@ -750,7 +750,7 @@ export const updateFlightLogStatus = async (
       }))
     case FlightLogStatus.VALIDATED:
       // copy values from the view
-      return updateFlightLogWithAudit(flightId, user, eb => ({
+      return updateFlightLogWithAudit(flightId, user, (eb) => ({
         status: newStatus,
         ...(oldStatus == FlightLogStatus.NEW
           ? {
@@ -780,7 +780,7 @@ export const updateFlightLogStatus = async (
 export const invoiceFlights = async (flights: InvoicableFlight[]): Promise<void> => {
   // send all billable flights to simplbooks invoicing through outbox
   // and mark the corresponding flight logs as QUEUED_FOR_INVOICING in the same transaction
-  await db.transaction().execute(async trx => {
+  await db.transaction().execute(async (trx) => {
     const now = new Date()
     // Mark flights as invoiced so they are not selected again by getInvoicableFlights
     for (const flight of flights) {
@@ -836,7 +836,7 @@ export async function getFlightLogTotals(registration?: string): Promise<FlightT
     query = query.where('aircraft_registration', '=', registration)
   }
   const results = await query.execute()
-  return results.map(row => ({
+  return results.map((row) => ({
     // there are no nullable values in the view, it is safe to use ! operator
     acTotalFlightTime: row.unverified_total_flight_time!,
     acTotalFlightMins: row.unverified_total_flight_mins!,
@@ -878,7 +878,7 @@ export async function upsertFlightCredit(
       created_at: now,
       updated_at: now,
     })
-    .onConflict(oc =>
+    .onConflict((oc) =>
       oc.column('flight_id').doUpdateSet({
         credited_mins: creditedMins,
         note,
@@ -899,14 +899,14 @@ function buildExportBaseQuery(filters: FlightLogExportFilters, memberId?: string
       'flight.logs.aircraft_registration',
       'flight.aircraft.registration',
     )
-    .$if(!!memberId, qb => qb.where('billable_member_id', '=', memberId!))
-    .$if(!!filters.aircraftRegistration, qb =>
+    .$if(!!memberId, (qb) => qb.where('billable_member_id', '=', memberId!))
+    .$if(!!filters.aircraftRegistration, (qb) =>
       qb.where('aircraft_registration', '=', filters.aircraftRegistration!),
     )
-    .$if(!!filters.startDate, qb =>
+    .$if(!!filters.startDate, (qb) =>
       qb.where('off_block_time_epoch', '>=', dayjs(filters.startDate!).unix().toString()),
     )
-    .$if(!!filters.endDate, qb =>
+    .$if(!!filters.endDate, (qb) =>
       qb.where('on_block_time_epoch', '<=', dayjs(filters.endDate!).endOf('day').unix().toString()),
     )
 }
@@ -916,7 +916,7 @@ export async function countFlightLogsForExport(
   memberId?: string,
 ): Promise<number> {
   const { count } = await buildExportBaseQuery(filters, memberId)
-    .select(eb => eb.fn.countAll<number>().as('count'))
+    .select((eb) => eb.fn.countAll<number>().as('count'))
     .executeTakeFirstOrThrow()
   return Number(count)
 }
@@ -963,7 +963,7 @@ export async function getFlightLogsForExport(
     .orderBy('off_block_time_epoch', 'asc')
     .execute()
 
-  return results.map(row => {
+  return results.map((row) => {
     const listEntry: FlightLogListEntry = {
       acTotalFlightTime: '00:00',
       aircraftRegistration: row.aircraft_registration,

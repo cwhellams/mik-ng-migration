@@ -34,7 +34,7 @@ export async function getInstructorQualification(
   const streamId = instructorQualificationStreamId(memberId)
   const { events } = await eventStore.readStream<InstructorQualificationEvent>(streamId)
 
-  const setEvents = events.filter(e => e.type === 'InstructorQualificationSet')
+  const setEvents = events.filter((e) => e.type === 'InstructorQualificationSet')
   if (setEvents.length === 0) return undefined
 
   const state = setEvents.reduce(
@@ -109,9 +109,9 @@ export async function getInstructorQualificationHistory(
   const { events } = await eventStore.readStream<InstructorQualificationEvent>(streamId)
 
   return events
-    .filter(e => e.type === 'InstructorQualificationSet')
+    .filter((e) => e.type === 'InstructorQualificationSet')
     .reverse()
-    .map(e => {
+    .map((e) => {
       const d = e.data as {
         memberId: string
         fiExpiry: string | null
@@ -158,8 +158,8 @@ export async function getQualificationSnapshotAtDate(
   const { events } = await eventStore.readStream<InstructorQualificationEvent>(streamId)
 
   const setEvents = events
-    .filter(e => e.type === 'InstructorQualificationSet')
-    .filter(e => new Date((e.data as { changedAt: string }).changedAt) <= endOfDay)
+    .filter((e) => e.type === 'InstructorQualificationSet')
+    .filter((e) => new Date((e.data as { changedAt: string }).changedAt) <= endOfDay)
   const state = setEvents.reduce(
     (s, e) => evolve(s, { type: e.type, data: e.data } as InstructorQualificationEvent),
     initialState(),
@@ -213,12 +213,12 @@ export async function getAllInstructorStatuses(): Promise<InstructorStatusSummar
     .orderBy('member.register.first_name')
     .execute()
 
-  const memberIds = members.map(m => m.member_id)
+  const memberIds = members.map((m) => m.member_id)
   const proofIds = await getLatestProofIdsByMembers(memberIds)
   const eventStore = getEventStore()
 
   return Promise.all(
-    members.map(async member => {
+    members.map(async (member) => {
       const streamId = instructorQualificationStreamId(member.member_id)
       const { state } = await eventStore.aggregateStream<
         ReturnType<typeof initialState>,
@@ -278,17 +278,17 @@ export async function getAllInstructorStatusesAtDate(
     .orderBy('member.register.first_name')
     .execute()
 
-  const memberIds = members.map(m => m.member_id)
+  const memberIds = members.map((m) => m.member_id)
   const proofIds = await getLatestProofIdsByMembers(memberIds, endOfDay)
   const eventStore = getEventStore()
 
   const results: InstructorStatusSummary[] = await Promise.all(
-    members.map(async member => {
+    members.map(async (member) => {
       const streamId = instructorQualificationStreamId(member.member_id)
       const { events } = await eventStore.readStream<InstructorQualificationEvent>(streamId)
       const eventsUpToDate = events
-        .filter(e => e.type === 'InstructorQualificationSet')
-        .filter(e => new Date((e.data as { changedAt: string }).changedAt) <= endOfDay)
+        .filter((e) => e.type === 'InstructorQualificationSet')
+        .filter((e) => new Date((e.data as { changedAt: string }).changedAt) <= endOfDay)
       const state = eventsUpToDate.reduce(
         (s, e) => evolve(s, { type: e.type, data: e.data } as InstructorQualificationEvent),
         initialState(),
@@ -352,7 +352,7 @@ export async function getQualificationsByExpiryDate(
   const results: ExpiringQualification[] = []
 
   await Promise.all(
-    members.map(async member => {
+    members.map(async (member) => {
       const { state } = await eventStore.aggregateStream<
         ReturnType<typeof initialState>,
         InstructorQualificationEvent

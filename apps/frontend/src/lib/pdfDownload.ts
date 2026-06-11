@@ -18,9 +18,7 @@ export const downloadBase64Pdf = ({
 }: DownloadBase64PdfOptions): void => {
   try {
     const byteCharacters = atob(base64Data)
-    const byteNumbers = Array.from(byteCharacters).map((char) =>
-      char.charCodeAt(0)
-    )
+    const byteNumbers = Array.from(byteCharacters).map((char) => char.charCodeAt(0))
     const byteArray = new Uint8Array(byteNumbers)
 
     const blob = new Blob([byteArray], { type: 'application/pdf' })

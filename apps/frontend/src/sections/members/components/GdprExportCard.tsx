@@ -17,12 +17,9 @@ export const GdprExportCard = () => {
     setLoading(true)
     setProblem(undefined)
     try {
-      const response = await fetch(
-        `${API_BASE}/api/v1/members/me/gdpr-export`,
-        {
-          credentials: 'include',
-        }
-      )
+      const response = await fetch(`${API_BASE}/api/v1/members/me/gdpr-export`, {
+        credentials: 'include',
+      })
 
       if (!response.ok) {
         setProblem({

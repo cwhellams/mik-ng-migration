@@ -12,11 +12,10 @@ type Props = {
 
 export const StatusButton = ({ log, update }: Props) => {
   const theme = useTheme()
-  const { canDownloadInvoice, handleDownloadPDF, loading } =
-    useInvoicePdfDownload({
-      invoiceNumber: log.invoiceNumber,
-      billableMemberId: log.billableMemberId,
-    })
+  const { canDownloadInvoice, handleDownloadPDF, loading } = useInvoicePdfDownload({
+    invoiceNumber: log.invoiceNumber,
+    billableMemberId: log.billableMemberId,
+  })
 
   switch (log.status) {
     case 'NEW':
@@ -43,9 +42,7 @@ export const StatusButton = ({ log, update }: Props) => {
       )
     case 'INVOICED':
       return canDownloadInvoice() ? (
-        <Tooltip
-          title={`${t('flightLog.status.invoiced')} - ${t('aircraft.document.download')}`}
-        >
+        <Tooltip title={`${t('flightLog.status.invoiced')} - ${t('aircraft.document.download')}`}>
           <IconButton
             onClick={handleDownloadPDF}
             disabled={loading}
@@ -67,9 +64,7 @@ export const StatusButton = ({ log, update }: Props) => {
       )
     case 'PAID':
       return canDownloadInvoice() ? (
-        <Tooltip
-          title={`${t('flightLog.status.paid')} - ${t('aircraft.document.download')}`}
-        >
+        <Tooltip title={`${t('flightLog.status.paid')} - ${t('aircraft.document.download')}`}>
           <IconButton
             onClick={handleDownloadPDF}
             disabled={loading}

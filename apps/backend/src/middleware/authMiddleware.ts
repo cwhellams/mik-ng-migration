@@ -44,7 +44,7 @@ export const validateUser = (...permissions: MIKPermissions[]): RequestHandler[]
     }
 
     // Check if user has any of the required permissions
-    if (permissions.some(p => req.user?.permissions?.includes(p))) {
+    if (permissions.some((p) => req.user?.permissions?.includes(p))) {
       return next()
     }
 

@@ -53,7 +53,7 @@ const removeTimestamps = (aircraft: Aircraft) => ({
   ...aircraft,
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
-  documents: aircraft.documents.map(doc => ({
+  documents: aircraft.documents.map((doc) => ({
     ...doc,
     createdAt: expect.any(String),
     updatedAt: expect.any(String),
@@ -287,7 +287,7 @@ describe('GET /aircrafts/fuel-types', () => {
     expect(response.status).toBe(200)
     const body = response.body as FuelTypesListResponse
     expect(body.fuelTypes).toHaveLength(8)
-    expect(body.fuelTypes.map(ft => ft.name)).toEqual([
+    expect(body.fuelTypes.map((ft) => ft.name)).toEqual([
       'JET A',
       'JET A-1',
       'JP-8',
@@ -297,7 +297,7 @@ describe('GET /aircrafts/fuel-types', () => {
       'EN228 SUPER',
       'EN228 SUPER PLUS',
     ])
-    expect(body.fuelTypes.every(ft => typeof ft.sortOrder === 'number')).toBe(true)
+    expect(body.fuelTypes.every((ft) => typeof ft.sortOrder === 'number')).toBe(true)
   })
 
   it('should return all 8 fuel types for an admin', async () => {

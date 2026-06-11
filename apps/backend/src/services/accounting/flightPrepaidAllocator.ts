@@ -83,7 +83,7 @@ async function loadActivePackagesForMember(
     .where('mp.is_expired', '=', false)
     .where('mp.expires_at', '>=', today)
     .where('p.is_active', '=', true)
-    .where(eb => eb('mp.total_minutes', '>', eb.ref('mp.used_minutes')))
+    .where((eb) => eb('mp.total_minutes', '>', eb.ref('mp.used_minutes')))
     .orderBy('p.aircraft_registration', 'asc')
     .orderBy('mp.expires_at', 'asc')
     .orderBy('mp.member_package_id', 'asc')
@@ -95,7 +95,7 @@ async function loadActivePackagesForMember(
   const rows = await query.execute()
 
   // Fetch simplbooks_item_id separately to avoid FOR UPDATE on the nullable side of an outer join
-  const productIds = [...new Set(rows.map(r => r.product_id))]
+  const productIds = [...new Set(rows.map((r) => r.product_id))]
   const simplbooksItemIdByProductId = new Map<string, string | null>()
   if (productIds.length > 0) {
     const productRows = await getExecutor(options?.executor)
@@ -108,7 +108,7 @@ async function loadActivePackagesForMember(
     }
   }
 
-  return rows.map(row => ({
+  return rows.map((row) => ({
     memberPackageId: row.member_package_id,
     aircraftRegistration: row.aircraft_registration,
     totalMinutes: row.total_minutes,
@@ -258,9 +258,9 @@ export async function applyPrepaidFlightUsagePlan(
   invoiceId: string | number,
   txn: Transaction<DB>,
 ): Promise<void> {
-  const usages = plan.groups.flatMap(group =>
-    group.flights.flatMap(flight =>
-      flight.packageUsages.map(usage => ({
+  const usages = plan.groups.flatMap((group) =>
+    group.flights.flatMap((flight) =>
+      flight.packageUsages.map((usage) => ({
         ...usage,
         flightId: flight.flightId,
       })),
@@ -271,7 +271,7 @@ export async function applyPrepaidFlightUsagePlan(
     return
   }
 
-  const packageIds = [...new Set(usages.map(usage => usage.memberPackageId))]
+  const packageIds = [...new Set(usages.map((usage) => usage.memberPackageId))]
   const rows = await txn
     .selectFrom('prepaid.member_packages')
     .select(['member_package_id', 'total_minutes', 'used_minutes'])
@@ -280,7 +280,7 @@ export async function applyPrepaidFlightUsagePlan(
     .execute()
 
   const packageState = new Map(
-    rows.map(row => [
+    rows.map((row) => [
       row.member_package_id,
       {
         totalMinutes: row.total_minutes,

@@ -28,9 +28,8 @@ const { router } = await import('../../../src/routes/members/api.ts')
 const { generateAccessToken } = await import('../../../src/routes/auth/token.ts')
 const { db } = await import('../../../src/db/connection.ts')
 const { problemErrorHandler } = await import('../../../src/routes/response.ts')
-const { MIKLang, MIKMemberTypes, MIKPermissions } = await import(
-  '../../../src/routes/members/models.ts'
-)
+const { MIKLang, MIKMemberTypes, MIKPermissions } =
+  await import('../../../src/routes/members/models.ts')
 const { deleteSimplbooksOutbox } = await import('../../db/__helpers__/simplbooksDbHelpers.ts')
 import type { Member } from '../../../src/routes/members/models.ts'
 import type { RegisterRequest } from '../../../src/routes/auth/schema.ts'
@@ -81,7 +80,7 @@ describe('POST /members – secretary notification', () => {
     await db
       .insertInto('member.member_to_roles')
       .values({ member_id: 'Matti1', role_id: 'SECRETARY', created_by: 'k1mnimda' })
-      .onConflict(oc => oc.doNothing())
+      .onConflict((oc) => oc.doNothing())
       .execute()
 
     // Derive the expected email from the DB so the assertion is not brittle
@@ -100,7 +99,7 @@ describe('POST /members – secretary notification', () => {
       // Wait for the background async task (DB query + sendEmail) to complete
       const deadline = Date.now() + 2000
       while (mockSendEmail.mock.calls.length === 0 && Date.now() < deadline) {
-        await new Promise(resolve => setTimeout(resolve, 20))
+        await new Promise((resolve) => setTimeout(resolve, 20))
       }
 
       expect(mockSendEmail).toHaveBeenCalledWith(

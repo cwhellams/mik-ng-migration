@@ -45,10 +45,7 @@ import { Title } from '../../components/Title'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker/DateTimePicker'
 import { Airfields } from '../../components/Airfields'
 import { FormField } from '../../components/FormField'
-import {
-  formatDuration,
-  getDurationInMinutes,
-} from '../flightLog/utils/timeUtils'
+import { formatDuration, getDurationInMinutes } from '../flightLog/utils/timeUtils'
 import { OccurrenceStatusChip } from './components/OccurrenceStatusChip'
 import { ConfirmButton } from '../../components/ConfirmDialog'
 import { FormTitle } from '../../components/FormTitle'
@@ -89,14 +86,12 @@ export const OccurrenceEntry = () => {
       revalidateOnReconnect: false,
       revalidateIfStale: false,
       revalidateOnMount: true,
-    }
+    },
   )
   // make sure old aircrafts are shown in the list
-  const currentAircrafts =
-    aircraftData?.aircrafts.map((a) => a.registration) ?? []
+  const currentAircrafts = aircraftData?.aircrafts.map((a) => a.registration) ?? []
   const aircrafts =
-    data?.aircraftRegistration &&
-    !currentAircrafts.includes(data.aircraftRegistration)
+    data?.aircraftRegistration && !currentAircrafts.includes(data.aircraftRegistration)
       ? [...currentAircrafts, data.aircraftRegistration]
       : currentAircrafts
 
@@ -105,7 +100,7 @@ export const OccurrenceEntry = () => {
       isAdmin
         ? a.roleId && me?.roles.find((r) => r.roleId == a.roleId)
         : a.memberId === me?.memberId ||
-          (a.roleId && me?.roles.find((r) => r.roleId == a.roleId && !a.manage))
+          (a.roleId && me?.roles.find((r) => r.roleId == a.roleId && !a.manage)),
     )
     ?.sort((a, b) => {
       if (a.manage && !b.manage) return -1
@@ -118,8 +113,7 @@ export const OccurrenceEntry = () => {
   const isEditable =
     isNew ||
     (access?.write &&
-      (data?.status == OccurrenceStatus.NEW ||
-        data?.status == OccurrenceStatus.ANONYMIZING))
+      (data?.status == OccurrenceStatus.NEW || data?.status == OccurrenceStatus.ANONYMIZING))
 
   const {
     handleSubmit,
@@ -176,7 +170,7 @@ export const OccurrenceEntry = () => {
           // put returned payload to the cache
           revalidate: false,
           populateCache: (result) => result,
-        }
+        },
       )
       if (error) {
         return setProblem(error)
@@ -193,17 +187,13 @@ export const OccurrenceEntry = () => {
     }
   }
 
-  const handleCancel = () =>
-    navigate(`/logs/occurrences?${location.state}#${reportId}`)
+  const handleCancel = () => navigate(`/logs/occurrences?${location.state}#${reportId}`)
 
-  const handleStateChange = async (
-    status: OccurrenceStatus,
-    payload?: unknown
-  ) => {
+  const handleStateChange = async (status: OccurrenceStatus, payload?: unknown) => {
     const { data, error } = await mutation.trigger<unknown, Occurrence>(
       'POST',
       payload ?? {},
-      `status/${status}`
+      `status/${status}`,
     )
     if (error) {
       return setProblem(error)
@@ -219,14 +209,11 @@ export const OccurrenceEntry = () => {
     }
   }
 
-  const handleAccessChange = async (
-    method: MutateMethods,
-    access: OccurrenceAccess
-  ) => {
+  const handleAccessChange = async (method: MutateMethods, access: OccurrenceAccess) => {
     const { error } = await mutation.trigger<OccurrenceAccess, Occurrence>(
       method,
       access,
-      method == 'POST' ? 'access' : `access/${access.accessId}`
+      method == 'POST' ? 'access' : `access/${access.accessId}`,
     )
     if (error) {
       return setProblem(error)
@@ -235,11 +222,7 @@ export const OccurrenceEntry = () => {
   }
 
   const handleCommentChange = async (comment: string) => {
-    const { error } = await mutation.trigger<unknown, Occurrence>(
-      'POST',
-      { comment },
-      'comment'
-    )
+    const { error } = await mutation.trigger<unknown, Occurrence>('POST', { comment }, 'comment')
     if (error) {
       return setProblem(error)
     }
@@ -249,9 +232,7 @@ export const OccurrenceEntry = () => {
   // Check if form has validation errors
   const hasValidationErrors = Object.keys(errors).length > 0
 
-  const title = isNew
-    ? t('occurrences.newReport')
-    : t('occurrences.existingReport')
+  const title = isNew ? t('occurrences.newReport') : t('occurrences.existingReport')
 
   const SummaryForm = () => (
     <Grid container spacing={3} mb={3}>
@@ -270,35 +251,26 @@ export const OccurrenceEntry = () => {
             </FormField>
           )}
 
-          {data.status !== OccurrenceStatus.RECEIVED &&
-            data.status !== OccurrenceStatus.CLOSED && (
-              <FormField
-                label={t('occurrences.reportAgePending')}
-                sx={{ mb: 2 }}
-              >
-                {formatDuration(getDurationInMinutes(data.reportDate))}
-              </FormField>
-            )}
-          {(data.status == OccurrenceStatus.RECEIVED ||
-            data.status == OccurrenceStatus.CLOSED) && (
+          {data.status !== OccurrenceStatus.RECEIVED && data.status !== OccurrenceStatus.CLOSED && (
+            <FormField label={t('occurrences.reportAgePending')} sx={{ mb: 2 }}>
+              {formatDuration(getDurationInMinutes(data.reportDate))}
+            </FormField>
+          )}
+          {(data.status == OccurrenceStatus.RECEIVED || data.status == OccurrenceStatus.CLOSED) && (
             <FormField
               label={t(
                 data.status == OccurrenceStatus.RECEIVED
                   ? 'occurrences.reportAgeReceived'
-                  : 'occurrences.reportAgeClosed'
+                  : 'occurrences.reportAgeClosed',
               )}
               sx={{ mb: 2 }}
             >
-              {formatDuration(
-                getDurationInMinutes(data.reportDate, data.updatedAt)
-              )}
+              {formatDuration(getDurationInMinutes(data.reportDate, data.updatedAt))}
             </FormField>
           )}
           {data.createdBy !== '-' && (
             <FormField label={t('occurrences.reporter')} sx={{ mb: 2 }}>
-              <Link to={`/club/members/${data.createdBy}`}>
-                {data?.createdBy}
-              </Link>
+              <Link to={`/club/members/${data.createdBy}`}>{data?.createdBy}</Link>
             </FormField>
           )}
           <FormField label={t('occurrences.status')} sx={{ mb: 2 }}>
@@ -438,9 +410,7 @@ export const OccurrenceEntry = () => {
               )}
             />
             {errors.categories && (
-              <FormHelperText>
-                {errors.categories.message?.toString()}
-              </FormHelperText>
+              <FormHelperText>{errors.categories.message?.toString()}</FormHelperText>
             )}
           </FormControl>
         </Grid>
@@ -476,9 +446,7 @@ export const OccurrenceEntry = () => {
               control={
                 <Checkbox
                   checked={animals !== '0'}
-                  onChange={({ target }) =>
-                    setValue('animalNumber', target.checked ? '1' : '0')
-                  }
+                  onChange={({ target }) => setValue('animalNumber', target.checked ? '1' : '0')}
                   disabled={!isEditable}
                 />
               }
@@ -500,9 +468,7 @@ export const OccurrenceEntry = () => {
                       label={`${t('occurrences.animalNumber')}`}
                       disabled={!isEditable}
                     >
-                      <MenuItem value={'unknown'}>
-                        {t('occurrences.options.unknown')}
-                      </MenuItem>
+                      <MenuItem value={'unknown'}>{t('occurrences.options.unknown')}</MenuItem>
                       <MenuItem value={'0'}>0</MenuItem>
                       <MenuItem value={'1'}>1</MenuItem>
                       <MenuItem value={'2-10'}>2-10</MenuItem>
@@ -512,9 +478,7 @@ export const OccurrenceEntry = () => {
                   )}
                 />
                 {errors.categories && (
-                  <FormHelperText>
-                    {errors.categories.message?.toString()}
-                  </FormHelperText>
+                  <FormHelperText>{errors.categories.message?.toString()}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -531,25 +495,15 @@ export const OccurrenceEntry = () => {
                       label={`${t('occurrences.animalSize')}`}
                       disabled={!isEditable}
                     >
-                      <MenuItem value={'unknown'}>
-                        {t('occurrences.options.unknown')}
-                      </MenuItem>
-                      <MenuItem value={'S'}>
-                        {t('occurrences.options.small')}
-                      </MenuItem>
-                      <MenuItem value={'M'}>
-                        {t('occurrences.options.medium')}
-                      </MenuItem>
-                      <MenuItem value={'L'}>
-                        {t('occurrences.options.large')}
-                      </MenuItem>
+                      <MenuItem value={'unknown'}>{t('occurrences.options.unknown')}</MenuItem>
+                      <MenuItem value={'S'}>{t('occurrences.options.small')}</MenuItem>
+                      <MenuItem value={'M'}>{t('occurrences.options.medium')}</MenuItem>
+                      <MenuItem value={'L'}>{t('occurrences.options.large')}</MenuItem>
                     </Select>
                   )}
                 />
                 {errors.categories && (
-                  <FormHelperText>
-                    {errors.categories.message?.toString()}
-                  </FormHelperText>
+                  <FormHelperText>{errors.categories.message?.toString()}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -626,9 +580,7 @@ export const OccurrenceEntry = () => {
                     render={({ field }) => (
                       <Checkbox
                         checked={field.value ?? false}
-                        onChange={({ target }) =>
-                          field.onChange(target.checked)
-                        }
+                        onChange={({ target }) => field.onChange(target.checked)}
                         disabled={!isEditable}
                       />
                     )}
@@ -779,8 +731,7 @@ export const OccurrenceEntry = () => {
                 exclude={
                   // exclude all existing members and self
                   [
-                    ...(data?.access.map((a) => a.memberId ?? a.roleId ?? '') ??
-                      []),
+                    ...(data?.access.map((a) => a.memberId ?? a.roleId ?? '') ?? []),
                     me?.memberId ?? '',
                   ]
                 }
@@ -794,19 +745,15 @@ export const OccurrenceEntry = () => {
             {data?.access.map((access, index) => (
               <FormField
                 key={index}
-                label={
-                  access.roleId ?? access.lastName ?? access.memberId ?? '-'
-                }
+                label={access.roleId ?? access.lastName ?? access.memberId ?? '-'}
               >
                 {!canEditPermissions || access.author || access.manage ? (
                   t(
-                    `occurrences.access.${!access.author && access.manage ? 'manage' : access.write ? 'write' : 'read'}`
+                    `occurrences.access.${!access.author && access.manage ? 'manage' : access.write ? 'write' : 'read'}`,
                   )
                 ) : (
                   <Select
-                    value={
-                      access.write ? 'write' : !access.write ? 'read' : 'none'
-                    }
+                    value={access.write ? 'write' : !access.write ? 'read' : 'none'}
                     onChange={async ({ target: { value } }) => {
                       if (value == 'none') {
                         await handleAccessChange('DELETE', access)
@@ -818,15 +765,9 @@ export const OccurrenceEntry = () => {
                       }
                     }}
                   >
-                    <MenuItem value='none'>
-                      {t('occurrences.access.none')}
-                    </MenuItem>
-                    <MenuItem value='read'>
-                      {t('occurrences.access.read')}
-                    </MenuItem>
-                    <MenuItem value={'write'}>
-                      {t('occurrences.access.write')}
-                    </MenuItem>
+                    <MenuItem value='none'>{t('occurrences.access.none')}</MenuItem>
+                    <MenuItem value='read'>{t('occurrences.access.read')}</MenuItem>
+                    <MenuItem value={'write'}>{t('occurrences.access.write')}</MenuItem>
                   </Select>
                 )}
               </FormField>
@@ -843,18 +784,15 @@ export const OccurrenceEntry = () => {
         adversity: 0,
         probability: 0,
         forwardedToTraficom: false,
-      }
+      },
     )
 
-    const isEditable =
-      access?.manage && data?.status == OccurrenceStatus.ANONYMIZED
+    const isEditable = access?.manage && data?.status == OccurrenceStatus.ANONYMIZED
 
     return (
       <Grid container spacing={3} mb={3}>
         <Grid size={12}>
-          <Typography variant='h6'>
-            {t('occurrences.handling.before')}
-          </Typography>
+          <Typography variant='h6'>{t('occurrences.handling.before')}</Typography>
         </Grid>
 
         <Grid size={6}>
@@ -905,11 +843,7 @@ export const OccurrenceEntry = () => {
         </Grid>
 
         <Grid size={12} display='flex' alignItems='center'>
-          <Typography
-            variant='body2'
-            color='text.secondary'
-            sx={{ width: 200 }}
-          >
+          <Typography variant='body2' color='text.secondary' sx={{ width: 200 }}>
             {t('occurrences.handling.forwardedToTraficom')}
           </Typography>
           <Checkbox
@@ -927,9 +861,7 @@ export const OccurrenceEntry = () => {
         {isEditable && (
           <Grid size={12} display='flex' justifyContent='center' mt={2}>
             <ConfirmButton
-              onConfirm={() =>
-                handleStateChange(OccurrenceStatus.PROCESSED, handling)
-              }
+              onConfirm={() => handleStateChange(OccurrenceStatus.PROCESSED, handling)}
               title={t('occurrences.actions.processed')}
               message={t('occurrences.actions.confirmProcessed')}
               confirmText={t('general.save')}
@@ -952,18 +884,15 @@ export const OccurrenceEntry = () => {
         adversity: 0,
         probability: 0,
         mitigatingAction: '',
-      }
+      },
     )
 
-    const isEditable =
-      access?.manage && data?.status == OccurrenceStatus.PROCESSED
+    const isEditable = access?.manage && data?.status == OccurrenceStatus.PROCESSED
 
     return (
       <Grid container spacing={3} mb={3}>
         <Grid size={12}>
-          <Typography variant='h6'>
-            {t('occurrences.handling.after')}
-          </Typography>
+          <Typography variant='h6'>{t('occurrences.handling.after')}</Typography>
         </Grid>
 
         <Grid size={12} display='flex' alignItems='center'>
@@ -1031,9 +960,7 @@ export const OccurrenceEntry = () => {
         {isEditable && (
           <Grid size={12} display='flex' justifyContent='center' mt={2}>
             <ConfirmButton
-              onConfirm={() =>
-                handleStateChange(OccurrenceStatus.CLOSED, handling)
-              }
+              onConfirm={() => handleStateChange(OccurrenceStatus.CLOSED, handling)}
               title={t('occurrences.actions.close')}
               message={t('occurrences.actions.confirmClose')}
               confirmText={t('general.save')}
@@ -1058,18 +985,13 @@ export const OccurrenceEntry = () => {
     return (
       <Card sx={{ mt: 4 }}>
         <CardContent>
-          <FormTitle
-            title={t('occurrences.handling.comments')}
-            icon='mdi:information'
-          />
+          <FormTitle title={t('occurrences.handling.comments')} icon='mdi:information' />
 
           <Stack spacing={1.5}>
             {data?.comments.map((audit, index) => (
               <FormField key={index} label={formatDateTime(audit.at)}>
                 {audit.by} -{' '}
-                {audit.status
-                  ? t(`occurrences.statuses.${audit.status}`)
-                  : audit.comment}
+                {audit.status ? t(`occurrences.statuses.${audit.status}`) : audit.comment}
               </FormField>
             ))}
 
@@ -1150,10 +1072,7 @@ export const OccurrenceEntry = () => {
           <>
             <Card sx={{ mt: 4 }}>
               <CardContent>
-                <FormTitle
-                  title={t('occurrences.handling.title')}
-                  icon='mdi:information'
-                />
+                <FormTitle title={t('occurrences.handling.title')} icon='mdi:information' />
                 <SMSFormContent />
               </CardContent>
             </Card>

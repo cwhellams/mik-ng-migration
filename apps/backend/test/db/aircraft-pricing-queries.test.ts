@@ -27,7 +27,7 @@ describe('Aircraft Pricing Queries', () => {
       const pricing = await getAircraftPricing({ registration: testRegistration })
       expect(pricing).toBeDefined()
       expect(Array.isArray(pricing)).toBe(true)
-      pricing.forEach(p => {
+      pricing.forEach((p) => {
         expect(p.registration).toBe(testRegistration)
       })
     })
@@ -37,7 +37,7 @@ describe('Aircraft Pricing Queries', () => {
       const pricing = await getAircraftPricing({ fromDate })
       expect(pricing).toBeDefined()
       expect(Array.isArray(pricing)).toBe(true)
-      pricing.forEach(p => {
+      pricing.forEach((p) => {
         // Either valid_from >= fromDate OR valid_to >= fromDate (or null)
         const startsAfter = p.valid_from >= fromDate
         const endsAfter = !p.valid_to || p.valid_to >= fromDate
@@ -50,7 +50,7 @@ describe('Aircraft Pricing Queries', () => {
       const pricing = await getAircraftPricing({ toDate })
       expect(pricing).toBeDefined()
       expect(Array.isArray(pricing)).toBe(true)
-      pricing.forEach(p => {
+      pricing.forEach((p) => {
         expect(p.valid_from <= toDate).toBe(true)
       })
     })
@@ -71,7 +71,7 @@ describe('Aircraft Pricing Queries', () => {
       })
       expect(pricing).toBeDefined()
       expect(Array.isArray(pricing)).toBe(true)
-      pricing.forEach(p => {
+      pricing.forEach((p) => {
         expect(p.registration).toBe(testRegistration)
       })
     })
@@ -128,7 +128,7 @@ describe('Aircraft Pricing Queries', () => {
         registration: 'OH-IHQ',
         fromDate: '2025-01-01',
       })
-      const openPricing = currentPricing.find(p => p.valid_to === null)
+      const openPricing = currentPricing.find((p) => p.valid_to === null)
 
       // Insert new pricing
       const result = await insertAircraftPricing(testPricing)
@@ -141,7 +141,7 @@ describe('Aircraft Pricing Queries', () => {
           fromDate: openPricing.valid_from,
           toDate: openPricing.valid_from,
         })
-        const closed = updatedOldPricing.find(p => p.valid_from === openPricing.valid_from)
+        const closed = updatedOldPricing.find((p) => p.valid_from === openPricing.valid_from)
         expect(closed?.valid_to).toBe('2025-12-31') // Should be '2025-12-31', the day before new pricing starts ('2026-01-01')
       }
     })
@@ -253,7 +253,7 @@ describe('Aircraft Pricing Queries', () => {
         registration: inserted.registration,
         fromDate: inserted.valid_from,
       })
-      const deleted = pricing.find(p => p.valid_from === inserted.valid_from)
+      const deleted = pricing.find((p) => p.valid_from === inserted.valid_from)
       expect(deleted).toBeUndefined()
     })
     it('should throw error when deleting non-existent pricing', async () => {

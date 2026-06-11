@@ -12,11 +12,11 @@ properties:
   client_name:
     type: string
     description: Name of the client
-    example: "SimplBooks OÜ"
+    example: 'SimplBooks OÜ'
   client_reg_no:
     type: string
     description: Registration number of the client
-    example: "12213296"
+    example: '12213296'
   client_vat_no:
     type: string
     description: VAT registration number of the client
@@ -53,7 +53,7 @@ properties:
     type: string
     format: date
     description: Date of the invoice
-    example: "2018-01-01"
+    example: '2018-01-01'
   transaction_date:
     type: string
     format: date
@@ -67,7 +67,7 @@ properties:
   number:
     type: string
     description: Unique number assigned to the invoice
-    example: "18001"
+    example: '18001'
   reference:
     type: string
     description: Reference number for the transaction
@@ -115,7 +115,7 @@ properties:
       - type: string
         format: date
       - type: string
-        enum: [ "0000-00-00" ]
+        enum: ['0000-00-00']
     description: Date when the invoice was sent
     example: 0000-00-00
   paid:
@@ -123,7 +123,7 @@ properties:
       - type: string
         format: date
       - type: string
-        enum: [ "0000-00-00" ]
+        enum: ['0000-00-00']
     description: Date when the invoice was paid
     example: 0000-00-00
   remnant:
@@ -137,7 +137,7 @@ properties:
   credit_invoice_for:
     type: number
     example: 0
-    description: "ID of the credited invoice"
+    description: 'ID of the credited invoice'
   proforma:
     type: boolean
     description: Indicates if this is a prepayment invoice

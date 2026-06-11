@@ -100,7 +100,7 @@ describe('GET /members', () => {
     members.members = members.members.sort((a, b) => a.memberId.localeCompare(b.memberId))
 
     expect(members).toMatchSnapshot({
-      members: members.members.map(member => ({
+      members: members.members.map((member) => ({
         ...member,
         ...(member.memberSince !== undefined ? { memberSince: expect.any(String) } : {}),
       })),
@@ -112,8 +112,8 @@ describe('GET /members', () => {
       name: 'an',
     })
 
-    expect(membersQry.members.map(m => m.first)).toEqual(['Antti'])
-    expect(membersQry.members.map(m => m.last)).toEqual(['Heikkinen'])
+    expect(membersQry.members.map((m) => m.first)).toEqual(['Antti'])
+    expect(membersQry.members.map((m) => m.last)).toEqual(['Heikkinen'])
   })
 
   it('should return unapproved prefix matches with name filter', async () => {
@@ -122,8 +122,8 @@ describe('GET /members', () => {
       showUnapproved: true,
     })
 
-    expect(membersQry.members.map(m => m.first)).toEqual(['Anna'])
-    expect(membersQry.members.map(m => m.last)).toEqual(['Mäkinen'])
+    expect(membersQry.members.map((m) => m.first)).toEqual(['Anna'])
+    expect(membersQry.members.map((m) => m.last)).toEqual(['Mäkinen'])
   })
 
   it('should return empty list with non-existing name filter', async () => {
@@ -137,12 +137,12 @@ describe('GET /members', () => {
   it('should include city or town information in member list', async () => {
     const membersQry = await query(memberToken)
 
-    expect(membersQry.members.every(member => 'townCity' in member)).toBe(true)
+    expect(membersQry.members.every((member) => 'townCity' in member)).toBe(true)
   })
 
   it('should include admin-only attributes for member admins', async () => {
     const membersQry = await query(adminToken)
-    const member = membersQry.members.find(m => m.memberId === 'Matti1')
+    const member = membersQry.members.find((m) => m.memberId === 'Matti1')
 
     expect(member).toMatchObject({
       memberSince: expect.any(String),
@@ -295,8 +295,8 @@ describe('GET /members', () => {
       showUnapproved: true,
     })
 
-    const member = membersQry.members.filter(m => m.memberId === 'Marja1')
-    expect(member).toMatchSnapshot(member.map(m => ({ ...m, memberSince: expect.any(String) })))
+    const member = membersQry.members.filter((m) => m.memberId === 'Marja1')
+    expect(member).toMatchSnapshot(member.map((m) => ({ ...m, memberSince: expect.any(String) })))
   })
 
   it('should search by private and unapproved roles as an admin', async () => {
@@ -321,7 +321,7 @@ describe('GET /members/me', () => {
 
   test.each([[memberToken], [adminToken], [noPermissionsToken]])(
     'should return 200 with valid token for user',
-    async token => {
+    async (token) => {
       const response = await query(token)
 
       expect(response.status).toBe(200)
@@ -334,7 +334,7 @@ describe('GET /members/me', () => {
         updatedBy: expect.any(String),
         ...(member.emailVerifiedAt ? { emailVerifiedAt: expect.any(String) } : {}),
         ...(token !== adminToken ? { membershipApprovedAt: expect.any(String) } : {}),
-        roles: member.roles.map(role => ({
+        roles: member.roles.map((role) => ({
           ...role,
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
@@ -844,7 +844,7 @@ describe('PATCH /members/id', () => {
       // other test suites and must not be left in a cancelled state).
       await db
         .updateTable('schedule.bookings')
-        .set(eb => ({
+        .set((eb) => ({
           booking_status: BookingStatus.CONFIRMED,
           cancelled_at: null,
           cancelled_by: null,
@@ -853,32 +853,32 @@ describe('PATCH /members/id', () => {
           updated_by: eb.ref('created_by'),
         }))
         .where('member_id', '=', testMemberId)
-        .where(eb => eb.or([eb('booking_id', 'like', 'stl%'), eb('booking_id', 'like', 'ihq%')]))
+        .where((eb) => eb.or([eb('booking_id', 'like', 'stl%'), eb('booking_id', 'like', 'ihq%')]))
         .where('booking_status', '=', BookingStatus.CANCELLED)
         .execute()
     })
 
     it('cancels future bookings when canMakeReservations transitions true → false', async () => {
       const bookingsBefore = await getBookings({ memberId: testMemberId })
-      expect(bookingsBefore.some(b => b.bookingId === insertedBookingId)).toBe(true)
+      expect(bookingsBefore.some((b) => b.bookingId === insertedBookingId)).toBe(true)
 
       const response = await patch(testMemberId, { canMakeReservations: false }, adminToken)
       expect(response.status).toBe(200)
       expect((response.body as Member).canMakeReservations).toBe(false)
 
       const bookingsAfter = await getBookings({ memberId: testMemberId })
-      expect(bookingsAfter.some(b => b.bookingId === insertedBookingId)).toBe(false)
+      expect(bookingsAfter.some((b) => b.bookingId === insertedBookingId)).toBe(false)
     })
 
     it('does not cancel future bookings when canMakeReservations stays true', async () => {
       const bookingsBefore = await getBookings({ memberId: testMemberId })
-      expect(bookingsBefore.some(b => b.bookingId === insertedBookingId)).toBe(true)
+      expect(bookingsBefore.some((b) => b.bookingId === insertedBookingId)).toBe(true)
 
       const response = await patch(testMemberId, { canMakeReservations: true }, adminToken)
       expect(response.status).toBe(200)
 
       const bookingsAfter = await getBookings({ memberId: testMemberId })
-      expect(bookingsAfter.some(b => b.bookingId === insertedBookingId)).toBe(true)
+      expect(bookingsAfter.some((b) => b.bookingId === insertedBookingId)).toBe(true)
     })
 
     it('does not cancel future bookings when canMakeReservations is already false', async () => {
@@ -909,7 +909,7 @@ describe('PATCH /members/id', () => {
         expect(response.status).toBe(200)
 
         const bookingsAfter = await getBookings({ memberId: testMemberId })
-        expect(bookingsAfter.some(b => b.bookingId === secondBooking.bookingId)).toBe(true)
+        expect(bookingsAfter.some((b) => b.bookingId === secondBooking.bookingId)).toBe(true)
       } finally {
         await db
           .deleteFrom('schedule.bookings')
@@ -953,7 +953,7 @@ describe('GET /members/id', () => {
       memberSince: expect.any(String),
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
-      roles: member.roles.map(role => ({
+      roles: member.roles.map((role) => ({
         ...role,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -1226,7 +1226,7 @@ describe('Membership approval tests', () => {
 
     const member = response.body as Member
     expect(member.membershipApprovedBy).toEqual('k1mnimda')
-    expect(member.roles.map(r => r.roleId)).toEqual(['FLYING_MEMBER', 'MEMBER'])
+    expect(member.roles.map((r) => r.roleId)).toEqual(['FLYING_MEMBER', 'MEMBER'])
 
     //revert changes
     await db
@@ -1496,7 +1496,7 @@ describe('GET /members/non-renewals', () => {
     const response = await query(adminToken)
     expect(response.status).toBe(200)
     const members = response.body.members as Array<{ memberType: string }>
-    expect(members.every(m => m.memberType !== 'REMOVED')).toBe(true)
+    expect(members.every((m) => m.memberType !== 'REMOVED')).toBe(true)
   })
 
   it('each member should have the expected fields', async () => {
@@ -1528,9 +1528,11 @@ describe('GET /members/non-renewals', () => {
     }>
     expect(members.length).toBeGreaterThan(0)
     // Members with no 2026 flights should have billableFlightCount of 0
-    const noFlightMembers = members.filter(m => ['Liisa1', 'Jukka1', 'Antti1'].includes(m.memberId))
+    const noFlightMembers = members.filter((m) =>
+      ['Liisa1', 'Jukka1', 'Antti1'].includes(m.memberId),
+    )
     expect(noFlightMembers.length).toBeGreaterThan(0)
-    expect(noFlightMembers.every(m => m.billableFlightCount === 0)).toBe(true)
+    expect(noFlightMembers.every((m) => m.billableFlightCount === 0)).toBe(true)
   })
 
   it('should return non-zero billableFlightCount for members with 2025 billable flights', async () => {
@@ -1542,12 +1544,12 @@ describe('GET /members/non-renewals', () => {
       billableFlightCount: number
     }>
     // Matti1 has 2 billable flights in V50 test data (takeoff epochs 1740816000, 1740996000 → Mar 2025)
-    const matti = members.find(m => m.memberId === 'Matti1')
+    const matti = members.find((m) => m.memberId === 'Matti1')
     expect(matti).toBeDefined()
     expect(matti!.billableFlightCount).toBe(2)
     // All counts must be non-negative integers
     expect(
-      members.every(m => Number.isInteger(m.billableFlightCount) && m.billableFlightCount >= 0),
+      members.every((m) => Number.isInteger(m.billableFlightCount) && m.billableFlightCount >= 0),
     ).toBe(true)
   })
 })

@@ -1,15 +1,6 @@
-import {
-  BookingListResponse,
-  Booking,
-  BookingFilters,
-} from '@backend/routes/bookings/models'
+import { BookingListResponse, Booking, BookingFilters } from '@backend/routes/bookings/models'
 import { Upsert } from '@backend/types/schema'
-import {
-  Typography,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-} from '@mui/material'
+import { Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Box } from '@mui/system'
 import { t } from 'i18next'
@@ -18,10 +9,7 @@ import { EditButton } from '../../../components/EditButton'
 import { RemoteContent } from '../../../components/RemoteContent'
 import useApi from '../../../hooks/useApi'
 import { BookingTable } from '../../schedule/components/BookingTable'
-import {
-  BookingEditor,
-  BookingFlags,
-} from '../../schedule/components/EditBookingModal'
+import { BookingEditor, BookingFlags } from '../../schedule/components/EditBookingModal'
 import dayjs from 'dayjs'
 import { useMe } from '../../../hooks/useMe'
 import { bookingFlags } from '../../schedule/helpers'
@@ -67,11 +55,7 @@ export const BookingUserDashboard = () => {
             <BookingTable
               bookings={scheduleData?.bookings || []}
               eventDescription={(booking) => (
-                <Box
-                  display='flex'
-                  justifyContent='space-between'
-                  alignItems='center'
-                >
+                <Box display='flex' justifyContent='space-between' alignItems='center'>
                   <Typography variant='body1'>{`${booking.registration}`}</Typography>
 
                   <EditButton
@@ -89,10 +73,7 @@ export const BookingUserDashboard = () => {
             />
           )}
 
-          <BookingEditor
-            booking={editMode}
-            onClose={() => setEditMode(undefined)}
-          />
+          <BookingEditor booking={editMode} onClose={() => setEditMode(undefined)} />
         </RemoteContent>
       </AccordionDetails>
     </Accordion>

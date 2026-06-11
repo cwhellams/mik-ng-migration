@@ -11,7 +11,7 @@ export function useAppConfig(): {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       revalidateIfStale: false,
-    }
+    },
   )
 
   return {

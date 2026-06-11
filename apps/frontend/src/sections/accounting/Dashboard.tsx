@@ -1,13 +1,6 @@
 import { AjlbListResponse } from '@backend/routes/ajlb/model'
 import useApi from '../../hooks/useApi'
-import {
-  Card,
-  CardContent,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-} from '@mui/material'
+import { Card, CardContent, Typography, List, ListItem, ListItemText } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { RemoteContent } from '../../components/RemoteContent'
 import { formatDuration, splitTime } from '../flightLog/utils/timeUtils'
@@ -28,7 +21,7 @@ export const InvoicingAdminDashboard = () => {
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
       keepPreviousData: true,
-    }
+    },
   )
 
   const logbooksToValidate =
@@ -36,9 +29,7 @@ export const InvoicingAdminDashboard = () => {
       (acc, logbook) => {
         const existing = acc[logbook.aircraftRegistration]
 
-        const newFlightTime = splitTime(
-          logbook.view?.validatedFlightsTime ?? '00:00'
-        )
+        const newFlightTime = splitTime(logbook.view?.validatedFlightsTime ?? '00:00')
         const newFlightMins = newFlightTime.hours * 60 + newFlightTime.minutes
 
         return {
@@ -46,8 +37,7 @@ export const InvoicingAdminDashboard = () => {
           [logbook.aircraftRegistration]: {
             ...logbook,
             validatedCount:
-              (existing?.validatedCount ?? 0) +
-              (logbook.view?.validatedFlightsCount ?? 0),
+              (existing?.validatedCount ?? 0) + (logbook.view?.validatedFlightsCount ?? 0),
             validatedMins: (existing?.validatedMins ?? 0) + newFlightMins,
           },
         }
@@ -59,7 +49,7 @@ export const InvoicingAdminDashboard = () => {
           validatedCount: number
           validatedMins: number
         }
-      >
+      >,
     ) ?? {}
 
   return (

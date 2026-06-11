@@ -1,10 +1,7 @@
 import React from 'react'
 import { Box, Typography } from '@mui/material'
 
-const Watermark: React.FC<{ text: string; color?: string }> = ({
-  text,
-  color = 'black',
-}) => {
+const Watermark: React.FC<{ text: string; color?: string }> = ({ text, color = 'black' }) => {
   const isRed = color === 'red'
   const boxOpacity = isRed ? 0.15 : 0.1
   const textOpacity = isRed ? 1 : 0.2

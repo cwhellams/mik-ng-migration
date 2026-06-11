@@ -21,14 +21,8 @@ import dayjs from 'dayjs'
 import { useState } from 'react'
 import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
-import type {
-  ClubEvent,
-  EventListResponse,
-} from '@backend/routes/events/models'
-import {
-  downloadEventIcs,
-  generateEventGoogleCalendarLink,
-} from '../../../utils/eventCalendar'
+import type { ClubEvent, EventListResponse } from '@backend/routes/events/models'
+import { downloadEventIcs, generateEventGoogleCalendarLink } from '../../../utils/eventCalendar'
 
 const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
   const { t } = useTranslation()
@@ -46,20 +40,13 @@ const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
 
   return (
     <Box sx={{ opacity: isPast ? 0.65 : 1 }}>
-      <Stack
-        direction='row'
-        alignItems='flex-start'
-        justifyContent='space-between'
-        gap={1}
-      >
+      <Stack direction='row' alignItems='flex-start' justifyContent='space-between' gap={1}>
         <Box flex={1} minWidth={0}>
           <Stack direction='row' alignItems='center' gap={1} flexWrap='wrap'>
             <Typography variant='body1' fontWeight='medium'>
               {event.title}
             </Typography>
-            {isPast && (
-              <Chip label={t('events.past')} size='small' variant='outlined' />
-            )}
+            {isPast && <Chip label={t('events.past')} size='small' variant='outlined' />}
           </Stack>
 
           <Stack direction='row' alignItems='center' gap={0.5} mt={0.25}>
@@ -106,11 +93,7 @@ const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
           {t('events.addToGoogle')}
         </MenuItem>
         <MenuItem onClick={() => downloadEventIcs(event)}>
-          <Icon
-            icon='mdi:calendar-export'
-            width={18}
-            style={{ marginRight: 8 }}
-          />
+          <Icon icon='mdi:calendar-export' width={18} style={{ marginRight: 8 }} />
           {t('events.downloadIcs')}
         </MenuItem>
       </Menu>
@@ -135,14 +118,9 @@ export const EventsDashboard = () => {
     .at(0)
 
   // Next 2 upcoming events
-  const nextEvents = data?.events
-    .filter((e) => dayjs(e.endTime).isAfter(now))
-    .slice(0, 2)
+  const nextEvents = data?.events.filter((e) => dayjs(e.endTime).isAfter(now)).slice(0, 2)
 
-  const displayEvents = [
-    ...(previousEvent ? [previousEvent] : []),
-    ...(nextEvents ?? []),
-  ]
+  const displayEvents = [...(previousEvent ? [previousEvent] : []), ...(nextEvents ?? [])]
 
   return (
     <Accordion defaultExpanded sx={{ mt: 4 }}>
@@ -152,9 +130,7 @@ export const EventsDashboard = () => {
       <AccordionDetails>
         <RemoteContent isLoading={isLoading} error={error}>
           {displayEvents.length === 0 ? (
-            <Typography color='text.secondary'>
-              {t('events.noEvents')}
-            </Typography>
+            <Typography color='text.secondary'>{t('events.noEvents')}</Typography>
           ) : (
             <Stack gap={0}>
               {displayEvents.map((event, i) => (

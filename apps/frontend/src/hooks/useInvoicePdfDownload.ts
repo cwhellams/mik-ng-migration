@@ -40,7 +40,7 @@ export function useInvoicePdfDownload({
       const response = await mutation.trigger<undefined, string>(
         'GET',
         undefined,
-        `${invoiceNumber}/pdf`
+        `${invoiceNumber}/pdf`,
       )
 
       if (!response.data || response.error) {

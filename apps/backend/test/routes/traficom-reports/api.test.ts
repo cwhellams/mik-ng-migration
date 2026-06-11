@@ -112,7 +112,7 @@ describe('GET /traficom-reports', () => {
 
     it.each(['ALL', 'PRIVATE', 'SCHOOL', 'DTO_SCHOOL', 'NON_DTO_SCHOOL'])(
       'should accept filter=%s',
-      async filter => {
+      async (filter) => {
         const res = await request(app)
           .get('/traficom-reports')
           .set('Cookie', `accessToken=${adminToken}`)

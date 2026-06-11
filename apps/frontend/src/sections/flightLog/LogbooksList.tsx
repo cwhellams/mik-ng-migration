@@ -16,11 +16,7 @@ import { useState } from 'react'
 import { AjlbEditor } from './components/AjlbModal'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Upsert } from '@backend/types/schema'
-import {
-  AircraftJourneyLogBook,
-  AjlbFilter,
-  AjlbListResponse,
-} from '@backend/routes/ajlb/model'
+import { AircraftJourneyLogBook, AjlbFilter, AjlbListResponse } from '@backend/routes/ajlb/model'
 import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
 import { Title } from '../../components/Title'
@@ -42,9 +38,7 @@ const Roles = () => {
     current: true,
   })
 
-  const [editMode, setEditMode] = useState<
-    Upsert<AircraftJourneyLogBook> | undefined
-  >(undefined)
+  const [editMode, setEditMode] = useState<Upsert<AircraftJourneyLogBook> | undefined>(undefined)
 
   const {
     data: logbooks,
@@ -60,7 +54,7 @@ const Roles = () => {
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
       keepPreviousData: true,
-    }
+    },
   )
 
   const handleEditMode = (role: AircraftJourneyLogBook) => {
@@ -87,9 +81,7 @@ const Roles = () => {
             id='role'
             value={filters.aircraftRegistration ?? ''}
             label={t('flightLog.aircraft')}
-            onChange={({ target }) =>
-              setFilters({ aircraftRegistration: target.value })
-            }
+            onChange={({ target }) => setFilters({ aircraftRegistration: target.value })}
           >
             <MenuItem value={''}>{t('flightLog.logbooks.showAll')}</MenuItem>
             {logbooks?.books
@@ -98,7 +90,7 @@ const Roles = () => {
                   planes.includes(book.aircraftRegistration)
                     ? planes
                     : [...planes, book.aircraftRegistration].sort(),
-                [] as string[]
+                [] as string[],
               )
               .map((plane) => (
                 <MenuItem key={plane} value={plane}>
@@ -113,9 +105,7 @@ const Roles = () => {
             control={
               <Switch
                 checked={!filters.current}
-                onChange={(e) =>
-                  setFilters({ ...filters, current: !e.target.checked })
-                }
+                onChange={(e) => setFilters({ ...filters, current: !e.target.checked })}
               />
             }
             label={t('flightLog.logbooks.showOldBooks')}
@@ -131,18 +121,10 @@ const Roles = () => {
               <Grid size={2}>{t('flightLog.logbooks.book')}</Grid>
               <Grid size={2.5}>{t('flightLog.logbooks.validity')}</Grid>
               <Grid size={1}>{t('flightLog.logbooks.pagesInUse')}</Grid>
-              <Grid size={1.5}>
-                {t('flightLog.logbooks.flightTimeAtStart')}
-              </Grid>
-              <Grid size={1.5}>
-                {t('flightLog.logbooks.verifiedTotalFlightTime')}
-              </Grid>
-              <Grid size={1.5}>
-                {t('flightLog.logbooks.unverifiedFlights')}
-              </Grid>
-              <Grid size={1}>
-                {t('flightLog.logbooks.unverifiedTotalFlightTime')}
-              </Grid>
+              <Grid size={1.5}>{t('flightLog.logbooks.flightTimeAtStart')}</Grid>
+              <Grid size={1.5}>{t('flightLog.logbooks.verifiedTotalFlightTime')}</Grid>
+              <Grid size={1.5}>{t('flightLog.logbooks.unverifiedFlights')}</Grid>
+              <Grid size={1}>{t('flightLog.logbooks.unverifiedTotalFlightTime')}</Grid>
             </>
           }
           rows={logbooks?.books}
@@ -171,9 +153,7 @@ const Roles = () => {
                 </Grid>
                 <Grid size={2.5}>
                   {formatDate(ajlb.startDate)}-
-                  {ajlb.endDate
-                    ? formatDate(ajlb.endDate)
-                    : t('flightLog.logbooks.current')}
+                  {ajlb.endDate ? formatDate(ajlb.endDate) : t('flightLog.logbooks.current')}
                 </Grid>
                 <Grid size={1}>
                   {lastPage} / {ajlb.noOfPages}
@@ -206,9 +186,7 @@ const Roles = () => {
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <FormField label={t('flightLog.logbooks.validity')}>
                     {formatDate(ajlb.startDate)}-
-                    {ajlb.endDate
-                      ? formatDate(ajlb.endDate)
-                      : t('flightLog.logbooks.current')}
+                    {ajlb.endDate ? formatDate(ajlb.endDate) : t('flightLog.logbooks.current')}
                   </FormField>
                   <FormField label={t('flightLog.logbooks.pagesInUse')}>
                     {lastPage} / {ajlb.noOfPages}
@@ -216,9 +194,7 @@ const Roles = () => {
                   <FormField label={t('flightLog.logbooks.flightTimeAtStart')}>
                     {ajlb.startFlightTime}
                   </FormField>
-                  <FormField
-                    label={t('flightLog.logbooks.verifiedTotalFlightTime')}
-                  >
+                  <FormField label={t('flightLog.logbooks.verifiedTotalFlightTime')}>
                     {ajlb.view?.verifiedTotalFlightTime}
                   </FormField>
                 </Grid>
@@ -228,9 +204,7 @@ const Roles = () => {
                       {ajlb.view?.newFlightsCount} - {ajlb.view?.newFlightsTime}
                     </Link>
                   </FormField>
-                  <FormField
-                    label={t('flightLog.logbooks.unverifiedTotalFlightTime')}
-                  >
+                  <FormField label={t('flightLog.logbooks.unverifiedTotalFlightTime')}>
                     {ajlb.view?.unverifiedTotalFlightTime}
                   </FormField>
                 </Grid>

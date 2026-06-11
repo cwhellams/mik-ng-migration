@@ -102,14 +102,14 @@ export function validateFlightsBillableMemberId(
   flights: Array<{ flightId: string; billableMemberId: string }>,
   expectedMemberId: string,
 ): void {
-  const invalidFlights = flights.filter(flight => flight.billableMemberId !== expectedMemberId)
+  const invalidFlights = flights.filter((flight) => flight.billableMemberId !== expectedMemberId)
 
   if (invalidFlights.length > 0) {
-    const flightIds = invalidFlights.map(f => f.flightId).join(', ')
+    const flightIds = invalidFlights.map((f) => f.flightId).join(', ')
     const message = `Flight invoice validation failed: Expected all flights to have billable member ID ${expectedMemberId}, but found ${invalidFlights.length} flight(s) with different billable member IDs. Flight IDs: ${flightIds}`
     logger.error(message, {
       expectedMemberId,
-      invalidFlights: invalidFlights.map(f => ({
+      invalidFlights: invalidFlights.map((f) => ({
         flightId: f.flightId,
         billableMemberId: f.billableMemberId,
       })),
@@ -134,7 +134,7 @@ async function createNewMemberFeesInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     logger.warn(
       `Annual membership fee (via joining fee invoice) for year ${year} has already been created for member ${member.memberId}`,
     )
-    await db.transaction().execute(async txn => {
+    await db.transaction().execute(async (txn) => {
       await setOutboxStatus(
         txn,
         outboxMsg.id,
@@ -149,7 +149,7 @@ async function createNewMemberFeesInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     member,
     outboxMsg.created_at_utc ? new Date(outboxMsg.created_at_utc) : new Date(),
   )
-  await db.transaction().execute(async txn => {
+  await db.transaction().execute(async (txn) => {
     const invoiceId = await createInvoice(
       member.memberId,
       outboxMsg.id,
@@ -188,7 +188,7 @@ async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     logger.warn(
       `Annual membership fee invoice for year ${year} has already been created for member ${member.memberId}`,
     )
-    await db.transaction().execute(async txn => {
+    await db.transaction().execute(async (txn) => {
       await setOutboxStatus(
         txn,
         outboxMsg.id,
@@ -212,7 +212,7 @@ async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     ? await createAnnualMemberFeeWithEquipmentFeeInvoicePayload(member, outboxDate)
     : await createAnnualMemberFeeInvoicePayload(member)
 
-  await db.transaction().execute(async txn => {
+  await db.transaction().execute(async (txn) => {
     // Create invoice entry to db
     const invoiceId = await createInvoice(
       member.memberId,
@@ -265,9 +265,9 @@ async function createFlightInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   validateFlightsBillableMemberId(flights.flights, billableMemberId)
 
   // Extract all flight IDs from the payload
-  const flightIds = flights.flights.map(flight => flight.flightId)
+  const flightIds = flights.flights.map((flight) => flight.flightId)
 
-  await db.transaction().execute(async txn => {
+  await db.transaction().execute(async (txn) => {
     const { invoice: flightInvoicePayload, prepaidUsagePlan } =
       await createPlannedFlightInvoicePayload(flights, billableMemberId, {
         executor: txn,
@@ -299,7 +299,7 @@ async function createAnnualEquipmentFeeInvoice(outboxMsg: AcctsOutboxSimplbooks)
     outboxMsg.created_at_utc ? new Date(outboxMsg.created_at_utc) : new Date(),
   )
 
-  await db.transaction().execute(async txn => {
+  await db.transaction().execute(async (txn) => {
     const invoiceId = await createInvoice(
       member.memberId,
       outboxMsg.id,
@@ -355,7 +355,7 @@ function extractLocalizedName(nameValue: unknown): string | undefined {
 
   const localized = nameValue as Record<string, unknown>
   const preferred = [localized.fi, localized.en, ...Object.values(localized)].find(
-    value => typeof value === 'string' && value.trim() !== '',
+    (value) => typeof value === 'string' && value.trim() !== '',
   )
 
   return typeof preferred === 'string' ? preferred : undefined
@@ -417,7 +417,7 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   }
 
   if (order.invoice_id) {
-    await db.transaction().execute(async txn => {
+    await db.transaction().execute(async (txn) => {
       await setOutboxStatus(
         txn,
         outboxMsg.id,
@@ -453,7 +453,7 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
   }
 
   const tasks = await Promise.all(
-    items.map(async item => {
+    items.map(async (item) => {
       const snapshot = parseProductSnapshot(item.product_snapshot)
       const namePart = snapshot.name ?? `Shop order ${payload.orderId}`
       const contents = snapshot.description ? `${namePart}\n${snapshot.description}` : namePart
@@ -484,7 +484,7 @@ async function createShopOrderInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     .where('order_id', '=', payload.orderId)
     .execute()
 
-  await db.transaction().execute(async txn => {
+  await db.transaction().execute(async (txn) => {
     const invoiceId = await createInvoice(
       order.member_id,
       outboxMsg.id,
@@ -526,7 +526,7 @@ async function sendInvoiceEmail(
   dryRunTasks?: DryRunTask[],
 ) {
   try {
-    await db.transaction().execute(async txn => {
+    await db.transaction().execute(async (txn) => {
       // Mark the outbox message as processed
       await setOutboxStatus(txn, outboxMsgId, SimplbooksStatus.SYNCED)
 
@@ -651,7 +651,7 @@ async function createDryRunInvoice(
     {
       memberId,
       invoiceId: fakeId,
-      dryRunTasks: payload.Tasks.map(t => t.Task),
+      dryRunTasks: payload.Tasks.map((t) => t.Task),
     },
     txn,
   )
@@ -671,7 +671,7 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
     logger.info(
       `[DRY RUN] Skipping SimplBooks client creation for member ${member.memberId} — fake billing ID: ${fakeBillingId}`,
     )
-    await db.transaction().execute(async txn => {
+    await db.transaction().execute(async (txn) => {
       await updateMemberBillingId(txn, member.memberId, fakeBillingId)
       await insertOutboxItem(
         SimplbooksEventType.NEW_MEMBER_FEES,
@@ -704,7 +704,7 @@ async function addMember(outboxMsg: AcctsOutboxSimplbooks) {
     clientId = existingClientId
   }
 
-  await db.transaction().execute(async txn => {
+  await db.transaction().execute(async (txn) => {
     // Set the billing id in our DB - which is the returned SimplBooks client id
     await updateMemberBillingId(txn, member.memberId, clientId.toString())
 
@@ -736,7 +736,7 @@ export async function buildCreditNotePayload(
       additional_info: `Credit note for invoice ${simplbooksInvoiceId}. Reason: ${reason}`,
       due: new Date().toISOString().split('T')[0], // Due immediately
     },
-    Tasks: originalInvoice.data.Task.map(invoiceTask => {
+    Tasks: originalInvoice.data.Task.map((invoiceTask) => {
       // Extract task data without the embedded Projects array
       const { Projects, ...taskData } = invoiceTask
 
@@ -838,7 +838,7 @@ async function createCreditNote(outboxMsg: AcctsOutboxSimplbooks) {
     )
 
     // Mark invoice as credited in our database
-    await db.transaction().execute(async txn => {
+    await db.transaction().execute(async (txn) => {
       await txn
         .updateTable('accts.invoice')
         .set({
@@ -852,7 +852,7 @@ async function createCreditNote(outboxMsg: AcctsOutboxSimplbooks) {
     })
   } catch (error) {
     logger.error(`Failed to create credit note for invoice ${payload.simplbooksInvoiceId}`, error)
-    await db.transaction().execute(async txn => {
+    await db.transaction().execute(async (txn) => {
       await setOutboxStatus(
         txn,
         outboxMsg.id,

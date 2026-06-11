@@ -1,11 +1,7 @@
 import axios, { AxiosInstance } from 'axios'
 import http from 'http'
 import https from 'https'
-import {
-  SimplBooksClient,
-  SimplBooksClientWrapper,
-  SimplBooksListResponse,
-} from './types.js'
+import { SimplBooksClient, SimplBooksClientWrapper, SimplBooksListResponse } from './types.js'
 
 export class SimplBooksApiClient {
   private client: AxiosInstance
@@ -34,11 +30,7 @@ export class SimplBooksApiClient {
   private buildApiBaseUrl(baseUrl: string, companyId: string): string {
     const url = new URL(baseUrl)
     const normalizedBasePath = url.pathname.replace(/^\/+|\/+$/g, '')
-    const pathParts = [
-      normalizedBasePath,
-      encodeURIComponent(companyId),
-      'api',
-    ].filter(Boolean)
+    const pathParts = [normalizedBasePath, encodeURIComponent(companyId), 'api'].filter(Boolean)
     url.pathname = `/${pathParts.join('/')}`
     return url.toString()
   }
@@ -67,36 +59,32 @@ export class SimplBooksApiClient {
         await this.rateLimit()
 
         // SimplBooks API requires GET with request body (non-standard)
-        const response = await this.client.request<
-          SimplBooksListResponse<SimplBooksClientWrapper>
-        >({
-          method: 'GET',
-          url: '/clients/list',
-          data: {
-            page: currentPage,
-            per_page: perPage,
+        const response = await this.client.request<SimplBooksListResponse<SimplBooksClientWrapper>>(
+          {
+            method: 'GET',
+            url: '/clients/list',
+            data: {
+              page: currentPage,
+              per_page: perPage,
+            },
           },
-        })
+        )
 
         // Validate response structure before processing
         if (!response.data || !Array.isArray(response.data.data)) {
-          console.warn(
-            `Invalid response format for page ${currentPage}: data is not an array`
-          )
+          console.warn(`Invalid response format for page ${currentPage}: data is not an array`)
           hasMorePages = false
           continue
         }
 
         // Unwrap the Client objects from the wrapper
-        const unwrappedClients = response.data.data.map(
-          (wrapper) => wrapper.Client
-        )
+        const unwrappedClients = response.data.data.map((wrapper) => wrapper.Client)
 
         const fetchedCount = unwrappedClients.length
         allClients.push(...unwrappedClients)
 
         console.log(
-          `Fetched page ${currentPage}: ${fetchedCount} clients (total so far: ${allClients.length})`
+          `Fetched page ${currentPage}: ${fetchedCount} clients (total so far: ${allClients.length})`,
         )
 
         // If we got fewer results than per_page, we've reached the last page
@@ -106,13 +94,10 @@ export class SimplBooksApiClient {
         if (axios.isAxiosError(error)) {
           console.error(
             `Error fetching clients (page ${currentPage}):`,
-            error.response?.data || error.message
+            error.response?.data || error.message,
           )
         } else {
-          console.error(
-            `Unexpected error fetching clients (page ${currentPage}):`,
-            error
-          )
+          console.error(`Unexpected error fetching clients (page ${currentPage}):`, error)
         }
         throw error
       }
@@ -127,9 +112,7 @@ export class SimplBooksApiClient {
       // Rate limit to max 1 request per second
       await this.rateLimit()
 
-      const response = await this.client.request<
-        SimplBooksListResponse<SimplBooksClientWrapper>
-      >({
+      const response = await this.client.request<SimplBooksListResponse<SimplBooksClientWrapper>>({
         method: 'GET',
         url: '/clients/list',
         data: {
@@ -147,7 +130,7 @@ export class SimplBooksApiClient {
       if (!Array.isArray(response.data.data)) {
         console.warn(
           `Invalid response format searching clients by name "${name}": data is not an array`,
-          response.data
+          response.data,
         )
         return []
       }
@@ -160,12 +143,12 @@ export class SimplBooksApiClient {
         console.error(
           `Error searching clients by name "${name}":`,
           error.response?.status,
-          error.response?.data || error.message
+          error.response?.data || error.message,
         )
       } else {
         console.error(
           `Unexpected error searching clients by name "${name}":`,
-          error instanceof Error ? error.message : String(error)
+          error instanceof Error ? error.message : String(error),
         )
       }
       return []

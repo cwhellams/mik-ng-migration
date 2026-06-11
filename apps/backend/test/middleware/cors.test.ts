@@ -20,8 +20,8 @@ describe('CORS Configuration', () => {
     const rawOrigins = origins
       ? origins
           .split(',')
-          .map(origin => origin.trim())
-          .filter(origin => origin.length > 0 && origin !== '*')
+          .map((origin) => origin.trim())
+          .filter((origin) => origin.length > 0 && origin !== '*')
       : []
 
     let corsOrigins: string[]

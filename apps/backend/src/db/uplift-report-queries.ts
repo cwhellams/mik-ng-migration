@@ -24,7 +24,7 @@ export async function getUpliftReport(filters: UpliftReportFilters): Promise<{
     .where('flight.logs.aircraft_registration', '=', filters.aircraftRegistration)
     .where(sql`flight.logs.off_block_time_utc::date`, '>=', sql`${filters.startDate}::date`)
     .where(sql`flight.logs.off_block_time_utc::date`, '<=', sql`${filters.endDate}::date`)
-    .where(eb =>
+    .where((eb) =>
       eb.or([
         eb('flight.logs.fuel_uplift_litres', 'is not', null),
         eb('flight.logs.oil_uplift_litres', 'is not', null),
@@ -33,7 +33,7 @@ export async function getUpliftReport(filters: UpliftReportFilters): Promise<{
     .orderBy('flight.logs.off_block_time_utc', 'asc')
     .execute()
 
-  const data: UpliftReportEntry[] = rows.map(row => ({
+  const data: UpliftReportEntry[] = rows.map((row) => ({
     flightId: row.flight_id,
     offBlockTimeUtc: row.off_block_time_utc.toISOString(),
     picName: [row.first_name, row.pic_last_name].filter(Boolean).join(' '),

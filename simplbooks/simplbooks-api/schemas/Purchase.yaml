@@ -11,11 +11,11 @@ properties:
   client_name:
     type: string
     description: Name of the supplier
-    example: "SimplBooks OÜ"
+    example: 'SimplBooks OÜ'
   client_reg_no:
     type: string
     description: Registration number of the supplier
-    example: "12213296"
+    example: '12213296'
   client_vat_no:
     type: string
     description: VAT registration number of the supplier
@@ -43,27 +43,27 @@ properties:
   number:
     type: string
     description: Purchase invoice number
-    example: "12345"
+    example: '12345'
   internal_number:
     type: string
     description: Internal document number for the purpose of structuring the documents
-    example: "12345"
+    example: '12345'
   created:
     type: string
     description: Date of the purchase invoice
-    example: "2022-01-01"
+    example: '2022-01-01'
   transaction_date:
     type: string
     description: Accounting date of the purchase invoice
-    example: "2022-01-01"
+    example: '2022-01-01'
   due:
     type: string
     description: Due date of the purchase invoice
-    example: "2022-01-02"
+    example: '2022-01-02'
   paid:
     type: string
     description: Date when the invoice was paid
-    example: "0000-00-00"
+    example: '0000-00-00'
   sum:
     type: number
     description: Total amount of the invoice, excluding VAT
@@ -87,7 +87,7 @@ properties:
   currency_name:
     type: string
     description: ISO 4217 currency code
-    example: "EUR"
+    example: 'EUR'
   currency_rate:
     type: number
     description: Ratio of chosen currency to the base currency
@@ -95,8 +95,8 @@ properties:
   comments:
     type: string
     description: Additional notes or information on the invoice
-    example: "Absolutely necessary"
+    example: 'Absolutely necessary'
   reference:
     type: string
     description: Reference number for the transaction
-    example: "201506262811"
+    example: '201506262811'

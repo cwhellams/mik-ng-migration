@@ -86,7 +86,7 @@ export async function getTraficomReport(
 
   return (
     result
-      .map(row => ({
+      .map((row) => ({
         aircraftRegistration: row.aircraft_registration,
         flights: Number(row.flights),
         landings: Number(row.landings),
@@ -100,6 +100,6 @@ export async function getTraficomReport(
       // in the selected year. Aircraft with no flights/landings for the chosen
       // filter (e.g. an aircraft that only had school flights when
       // filter=PRIVATE) are omitted to avoid noisy zero rows.
-      .filter(row => row.flights > 0 || row.landings > 0)
+      .filter((row) => row.flights > 0 || row.landings > 0)
   )
 }

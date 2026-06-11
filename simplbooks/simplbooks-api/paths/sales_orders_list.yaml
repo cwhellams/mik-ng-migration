@@ -29,11 +29,11 @@ get:
             created_from:
               type: string
               description: filter invoices by creation date after and including
-              example: "01-01-2021"
+              example: '01-01-2021'
             created_until:
               type: string
               description: filter invoices by creation date before and including
-              example: "01-01-2022"
+              example: '01-01-2022'
             page:
               type: integer
               description: specifies from which page the list starts

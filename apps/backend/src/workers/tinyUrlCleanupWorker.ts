@@ -39,7 +39,7 @@ export function startTinyUrlCleanupWorker(deps: TinyUrlCleanupWorkerDeps = {}) {
 
   if (process.env.TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP === 'true') {
     logger.info('Running tiny URL cleanup immediately on startup')
-    processExpiredTinyUrls().catch(error => {
+    processExpiredTinyUrls().catch((error) => {
       logger.error('Error during startup tiny URL cleanup:', error)
     })
   }

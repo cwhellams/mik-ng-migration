@@ -24,49 +24,36 @@ const del = (path: string): Promise<void> =>
   sharedApi.delete(`${EXAMS_BASE}${path}`).then(() => undefined)
 
 // ── User-facing ───────────────────────────────────────────────────────────────
-export const getExams = (): Promise<ExamWithVersion[]> =>
-  get<ExamWithVersion[]>('')
+export const getExams = (): Promise<ExamWithVersion[]> => get<ExamWithVersion[]>('')
 
-export const getExam = (examId: string): Promise<ExamWithVersion> =>
-  get<ExamWithVersion>(examId)
+export const getExam = (examId: string): Promise<ExamWithVersion> => get<ExamWithVersion>(examId)
 
-export const startAttempt = (
-  examId: string,
-  language: string
-): Promise<Attempt> => post<Attempt>(`${examId}/attempts`, { language })
+export const startAttempt = (examId: string, language: string): Promise<Attempt> =>
+  post<Attempt>(`${examId}/attempts`, { language })
 
-export const getMyAttempts = (
-  params?: Record<string, string>
-): Promise<AttemptListResponse> =>
+export const getMyAttempts = (params?: Record<string, string>): Promise<AttemptListResponse> =>
   get<AttemptListResponse>('my/attempts', params)
 
 export const getAttempt = (attemptId: string): Promise<Attempt> =>
   get<Attempt>(`attempts/${attemptId}`)
 
-export const getAttemptVersion = (
-  attemptId: string
-): Promise<ExamVersionDetail> =>
+export const getAttemptVersion = (attemptId: string): Promise<ExamVersionDetail> =>
   get<ExamVersionDetail>(`attempts/${attemptId}/version`)
 
-export const getAttemptAnswers = (
-  attemptId: string
-): Promise<AttemptAnswer[]> =>
+export const getAttemptAnswers = (attemptId: string): Promise<AttemptAnswer[]> =>
   get<AttemptAnswer[]>(`attempts/${attemptId}/answers`)
 
 export const saveAnswer = (
   attemptId: string,
   questionId: string,
-  choiceId: string | null
+  choiceId: string | null,
 ): Promise<AttemptAnswer> =>
   put<AttemptAnswer>(`attempts/${attemptId}/answers`, { questionId, choiceId })
 
 export const submitAttempt = (attemptId: string): Promise<Attempt> =>
   post<Attempt>(`attempts/${attemptId}/submit`)
 
-export const abandonAttempt = (
-  attemptId: string,
-  reason?: string
-): Promise<Attempt> =>
+export const abandonAttempt = (attemptId: string, reason?: string): Promise<Attempt> =>
   post<Attempt>(`attempts/${attemptId}/abandon`, { reason })
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
@@ -75,13 +62,10 @@ export const adminGetExams = (): Promise<Exam[]> => get<Exam[]>('admin/exams')
 export const adminCreateExam = (data: Partial<Exam>): Promise<Exam> =>
   post<Exam>('admin/exams', data)
 
-export const adminUpdateExam = (
-  examId: string,
-  data: Partial<Exam>
-): Promise<Exam> => put<Exam>(`admin/exams/${examId}`, data)
+export const adminUpdateExam = (examId: string, data: Partial<Exam>): Promise<Exam> =>
+  put<Exam>(`admin/exams/${examId}`, data)
 
-export const adminDeleteExam = (examId: string): Promise<void> =>
-  del(`admin/exams/${examId}`)
+export const adminDeleteExam = (examId: string): Promise<void> => del(`admin/exams/${examId}`)
 
 export const adminGetVersions = (examId: string): Promise<ExamVersion[]> =>
   get<ExamVersion[]>(`admin/exams/${examId}/versions`)
@@ -93,13 +77,10 @@ export const adminCreateVersion = (
     supportedLanguages?: string[]
     passPercent?: number
     cloneFromPublished?: boolean
-  }
-): Promise<ExamVersion> =>
-  post<ExamVersion>(`admin/exams/${examId}/versions`, data)
+  },
+): Promise<ExamVersion> => post<ExamVersion>(`admin/exams/${examId}/versions`, data)
 
-export const adminGetVersionDetail = (
-  versionId: string
-): Promise<ExamVersionDetail> =>
+export const adminGetVersionDetail = (versionId: string): Promise<ExamVersionDetail> =>
   get<ExamVersionDetail>(`admin/versions/${versionId}`)
 
 export const adminUpdateVersion = (
@@ -109,7 +90,7 @@ export const adminUpdateVersion = (
     supportedLanguages?: string[]
     passPercent?: number
     questionCount?: number | null
-  }
+  },
 ): Promise<ExamVersion> => put<ExamVersion>(`admin/versions/${versionId}`, data)
 
 export const adminPublishVersion = (versionId: string): Promise<ExamVersion> =>
@@ -122,7 +103,7 @@ export const adminUpsertTranslation = (
   versionId: string,
   language: string,
   title: string,
-  description?: string | null
+  description?: string | null,
 ): Promise<void> =>
   put<void>(`admin/versions/${versionId}/translations/${language}`, {
     title,
@@ -135,9 +116,8 @@ export const adminUpsertQuestion = (
     questionId?: string
     sortOrder?: number
     translations: Record<string, { prompt: string; reasoning?: string | null }>
-  }
-): Promise<unknown> =>
-  put<unknown>(`admin/versions/${versionId}/questions`, data)
+  },
+): Promise<unknown> => put<unknown>(`admin/versions/${versionId}/questions`, data)
 
 export const adminDeleteQuestion = (questionId: string): Promise<void> =>
   del(`admin/questions/${questionId}`)
@@ -149,14 +129,11 @@ export const adminUpsertChoice = (
     isCorrect?: boolean
     sortOrder?: number
     translations: Record<string, { text: string }>
-  }
-): Promise<unknown> =>
-  put<unknown>(`admin/questions/${questionId}/choices`, data)
+  },
+): Promise<unknown> => put<unknown>(`admin/questions/${questionId}/choices`, data)
 
 export const adminDeleteChoice = (choiceId: string): Promise<void> =>
   del(`admin/choices/${choiceId}`)
 
-export const adminGetAttempts = (
-  params?: Record<string, string>
-): Promise<AttemptListResponse> =>
+export const adminGetAttempts = (params?: Record<string, string>): Promise<AttemptListResponse> =>
   get<AttemptListResponse>('admin/attempts', params)

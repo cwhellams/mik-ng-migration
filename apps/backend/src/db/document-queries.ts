@@ -23,8 +23,8 @@ export const getAllDocuments = async (
   if (category) {
     const categoryArray = category
       .split(',')
-      .map(c => c.trim())
-      .filter(c => c.length > 0)
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0)
     if (categoryArray.length === 1) {
       query = query.where('category', '=', categoryArray[0])
     } else if (categoryArray.length > 1) {
@@ -33,7 +33,7 @@ export const getAllDocuments = async (
   }
 
   if (search) {
-    query = query.where(eb =>
+    query = query.where((eb) =>
       eb.or([
         eb('title', 'ilike', `%${search}%`),
         eb('description', 'ilike', `%${search}%`),
@@ -47,12 +47,12 @@ export const getAllDocuments = async (
     // Search for documents that contain any of the specified tags
     const tagArray = tags
       .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0)
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
     if (tagArray.length > 0) {
-      query = query.where(eb =>
+      query = query.where((eb) =>
         eb.or(
-          tagArray.map(tag =>
+          tagArray.map((tag) =>
             eb(sql`COALESCE(array_to_string(tags, ','), '')`, 'ilike', `%${tag}%`),
           ),
         ),
@@ -63,7 +63,7 @@ export const getAllDocuments = async (
   query = query.limit(limit).offset(offset)
 
   const records = await query.execute()
-  return records.map(record => ({
+  return records.map((record) => ({
     documentId: record.document_id,
     title: record.title,
     description: record.description,
@@ -91,7 +91,7 @@ export const countDocuments = async (
 
   let query = connection.db
     .selectFrom('member.documents')
-    .select(eb => eb.fn.count('document_id').as('count'))
+    .select((eb) => eb.fn.count('document_id').as('count'))
     .where('is_public', '=', true)
 
   // Filter by archive status
@@ -102,8 +102,8 @@ export const countDocuments = async (
   if (category) {
     const categoryArray = category
       .split(',')
-      .map(c => c.trim())
-      .filter(c => c.length > 0)
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0)
     if (categoryArray.length === 1) {
       query = query.where('category', '=', categoryArray[0])
     } else if (categoryArray.length > 1) {
@@ -112,7 +112,7 @@ export const countDocuments = async (
   }
 
   if (search) {
-    query = query.where(eb =>
+    query = query.where((eb) =>
       eb.or([
         eb('title', 'ilike', `%${search}%`),
         eb('description', 'ilike', `%${search}%`),
@@ -126,12 +126,12 @@ export const countDocuments = async (
     // Search for documents that contain any of the specified tags
     const tagArray = tags
       .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0)
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
     if (tagArray.length > 0) {
-      query = query.where(eb =>
+      query = query.where((eb) =>
         eb.or(
-          tagArray.map(tag =>
+          tagArray.map((tag) =>
             eb(sql`COALESCE(array_to_string(tags, ','), '')`, 'ilike', `%${tag}%`),
           ),
         ),

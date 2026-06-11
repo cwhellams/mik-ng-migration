@@ -13,10 +13,7 @@ import {
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { Link as RouterLink } from 'react-router-dom'
-import type {
-  ClubEvent,
-  EventListResponse,
-} from '@backend/routes/events/models'
+import type { ClubEvent, EventListResponse } from '@backend/routes/events/models'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
@@ -25,10 +22,7 @@ import { useThemeMode } from '../../theme/ThemeContext'
 import { MIKPermissions } from '@backend/routes/members/models'
 import dayjs from 'dayjs'
 import { useState } from 'react'
-import {
-  downloadEventIcs,
-  generateEventGoogleCalendarLink,
-} from '../../utils/eventCalendar'
+import { downloadEventIcs, generateEventGoogleCalendarLink } from '../../utils/eventCalendar'
 
 const EventCard = ({ event }: { event: ClubEvent }) => {
   const { t } = useTranslation()
@@ -66,11 +60,7 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
         <Typography variant='h5' fontWeight='bold' lineHeight={1}>
           {start.format('D')}
         </Typography>
-        <Typography
-          variant='caption'
-          color='text.secondary'
-          textTransform='uppercase'
-        >
+        <Typography variant='caption' color='text.secondary' textTransform='uppercase'>
           {start.format('MMM')}
         </Typography>
         <Typography variant='caption' color='text.secondary'>
@@ -80,32 +70,16 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
 
       {/* Content column */}
       <Box flex={1} minWidth={0}>
-        <Stack
-          direction='row'
-          alignItems='flex-start'
-          justifyContent='space-between'
-          gap={1}
-        >
+        <Stack direction='row' alignItems='flex-start' justifyContent='space-between' gap={1}>
           <Box flex={1} minWidth={0}>
             <Stack direction='row' alignItems='center' gap={1} flexWrap='wrap'>
               <Typography variant='h6' component='span'>
                 {event.title}
               </Typography>
               {event.isPublic && (
-                <Chip
-                  label={t('events.public')}
-                  size='small'
-                  color='primary'
-                  variant='outlined'
-                />
+                <Chip label={t('events.public')} size='small' color='primary' variant='outlined' />
               )}
-              {isPast && (
-                <Chip
-                  label={t('events.past')}
-                  size='small'
-                  variant='outlined'
-                />
-              )}
+              {isPast && <Chip label={t('events.past')} size='small' variant='outlined' />}
             </Stack>
 
             <Stack direction='row' alignItems='center' gap={0.5} mt={0.5}>
@@ -125,11 +99,7 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
             )}
 
             {event.description && (
-              <Typography
-                variant='body2'
-                mt={1}
-                sx={{ whiteSpace: 'pre-line' }}
-              >
+              <Typography variant='body2' mt={1} sx={{ whiteSpace: 'pre-line' }}>
                 {event.description}
               </Typography>
             )}
@@ -165,11 +135,7 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
           {t('events.addToGoogle')}
         </MenuItem>
         <MenuItem onClick={() => downloadEventIcs(event)}>
-          <Icon
-            icon='mdi:calendar-export'
-            width={18}
-            style={{ marginRight: 8 }}
-          />
+          <Icon icon='mdi:calendar-export' width={18} style={{ marginRight: 8 }} />
           {t('events.downloadIcs')}
         </MenuItem>
       </Menu>

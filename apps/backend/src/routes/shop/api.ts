@@ -310,7 +310,7 @@ router.post(
     const data = OrderCreateSchema.parse(req.body)
     const cart = await getCart(req.user!.memberId)
     const hasUnavailableItem = (cart.items ?? []).some(
-      item => !item.product || !isPurchasableProduct(item.product),
+      (item) => !item.product || !isPurchasableProduct(item.product),
     )
     if (hasUnavailableItem) {
       return problem({

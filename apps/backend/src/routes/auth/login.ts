@@ -325,12 +325,12 @@ router.get('/joining-fees', async (_req: Request, res: Response) => {
     ART_SUPPORTING_MEMBER_JOINING_FEE,
   ])
 
-  const fullMemberFee = fees.find(f => f.code === ART_JOINING_FEE)?.price_per_unit ?? null
+  const fullMemberFee = fees.find((f) => f.code === ART_JOINING_FEE)?.price_per_unit ?? null
   // Junior and supporting members share the same joining-fee tier; prefer junior code
   // (NLIITTYMINEN) and fall back to supporting-member code (KLIITTYMINEN) if absent.
   const reducedMemberFee =
-    fees.find(f => f.code === ART_JUNIOR_JOINING_FEE)?.price_per_unit ??
-    fees.find(f => f.code === ART_SUPPORTING_MEMBER_JOINING_FEE)?.price_per_unit ??
+    fees.find((f) => f.code === ART_JUNIOR_JOINING_FEE)?.price_per_unit ??
+    fees.find((f) => f.code === ART_SUPPORTING_MEMBER_JOINING_FEE)?.price_per_unit ??
     null
 
   res.status(200).json({ fullMemberFee, reducedMemberFee })

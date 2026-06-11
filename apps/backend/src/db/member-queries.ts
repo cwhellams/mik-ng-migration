@@ -119,7 +119,7 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
 const getPublicRolesToQuery = (publicRoles: string[], roles: string[]) => {
   const allowedRoles = roles
     // drop other than public roles
-    .filter(role => publicRoles.includes(role))
+    .filter((role) => publicRoles.includes(role))
 
   if (allowedRoles.length > 0) {
     return allowedRoles
@@ -143,12 +143,12 @@ export async function getMembers(
   { name, memberType, showUnapproved, showRemoved, showExternal }: Omit<MemberListFilters, 'role'>,
 ): Promise<MemberList[]> {
   // admin can search any roles
-  const publicRoles = (await getAllMemberRoles(true)).map(role => role.roleId)
+  const publicRoles = (await getAllMemberRoles(true)).map((role) => role.roleId)
   const filterRoles = isAdmin ? roles : getPublicRolesToQuery(publicRoles, roles)
 
   let list = await db
     .selectFrom('member.register')
-    .select(eb => [
+    .select((eb) => [
       'member.register.member_id',
       'first_name',
       'last_name',
@@ -172,14 +172,14 @@ export async function getMembers(
     ])
 
     // see only members waiting for approval
-    .$if(isAdmin && showUnapproved === true, qb =>
+    .$if(isAdmin && showUnapproved === true, (qb) =>
       qb
         .where('is_membership_approved', '=', false)
         .where('member_type', '!=', MIKMemberTypes.EXTERNAL),
     )
     // or everybody else
-    .$if(!isAdmin || !showUnapproved, qb =>
-      qb.where(eb =>
+    .$if(!isAdmin || !showUnapproved, (qb) =>
+      qb.where((eb) =>
         eb.or([
           eb('is_membership_approved', '=', true),
           eb('member_type', '=', MIKMemberTypes.EXTERNAL),
@@ -188,7 +188,7 @@ export async function getMembers(
     )
 
     // show only external members
-    .$if(isAdmin && showExternal === true, qb =>
+    .$if(isAdmin && showExternal === true, (qb) =>
       qb.where('member_type', '=', MIKMemberTypes.EXTERNAL),
     )
     // show only removed members or hide otherwise
@@ -198,15 +198,15 @@ export async function getMembers(
     .where('member_type', '!=', MIKMemberTypes.SYSTEM)
 
     // query by name
-    .$if(!!name, qb =>
-      qb.where(eb => eb('first_name', 'ilike', `${name}%`).or('last_name', 'ilike', `${name}%`)),
+    .$if(!!name, (qb) =>
+      qb.where((eb) => eb('first_name', 'ilike', `${name}%`).or('last_name', 'ilike', `${name}%`)),
     )
 
     // query users with roles
-    .$if(filterRoles.length > 0, qb =>
-      qb.where(eb =>
+    .$if(filterRoles.length > 0, (qb) =>
+      qb.where((eb) =>
         eb.or(
-          filterRoles.map(role =>
+          filterRoles.map((role) =>
             eb.exists(
               eb
                 .selectFrom('member.member_to_roles')
@@ -219,7 +219,7 @@ export async function getMembers(
     )
 
     // query by member type
-    .$if(memberType != null, qb => {
+    .$if(memberType != null, (qb) => {
       const types = Array.isArray(memberType) ? memberType! : [memberType!]
       return qb.where('member_type', 'in', types)
     })
@@ -227,7 +227,7 @@ export async function getMembers(
     .orderBy('first_name')
     .execute()
 
-  return list.map(member => ({
+  return list.map((member) => ({
     memberId: member.member_id,
     first: member.first_name,
     last: member.last_name,
@@ -236,8 +236,8 @@ export async function getMembers(
     email: member.email,
     lang: member.lang_iso639 as MIKLang,
     roles: member.roles
-      .map(role => role.role_id)
-      .filter(role => isAdmin || publicRoles.includes(role)),
+      .map((role) => role.role_id)
+      .filter((role) => isAdmin || publicRoles.includes(role)),
     ...(isAdmin
       ? {
           memberSince: member.member_since,
@@ -278,7 +278,7 @@ export async function getMembersForAnnualMembershipFee(year: number): Promise<In
     .orderBy('first_name')
     .execute()
 
-  return members.map(member => ({
+  return members.map((member) => ({
     memberId: member.member_id,
     firstName: member.first_name,
     lastName: member.last_name,
@@ -426,7 +426,7 @@ export async function updateMember(
   if (patch.roles) {
     await updateMemberRoles(
       memberId,
-      patch.roles.map(role => role.roleId),
+      patch.roles.map((role) => role.roleId),
       jwt,
     )
   }
@@ -453,7 +453,7 @@ export async function setMembershipApproval(
   approvedBy: string,
   createSimplbooksAccount: boolean,
 ): Promise<Member> {
-  return await db.transaction().execute(async txn => {
+  return await db.transaction().execute(async (txn) => {
     const member = await txn
       .updateTable('member.register')
       .set({
@@ -487,16 +487,16 @@ export async function updateMemberRoles(
 ): Promise<void> {
   const now = new Date()
 
-  const existingRoleIds = (await getMemberRolesByMemberId(memberId)).map(role => role.roleId)
+  const existingRoleIds = (await getMemberRolesByMemberId(memberId)).map((role) => role.roleId)
 
-  const newRoles = roles.filter(role => !existingRoleIds.includes(role))
-  const oldRoles = existingRoleIds.filter(existingRoleId => !roles.includes(existingRoleId))
+  const newRoles = roles.filter((role) => !existingRoleIds.includes(role))
+  const oldRoles = existingRoleIds.filter((existingRoleId) => !roles.includes(existingRoleId))
 
   if (newRoles.length > 0) {
     await db
       .insertInto('member.member_to_roles')
       .values(
-        newRoles.map(newRole => ({
+        newRoles.map((newRole) => ({
           member_id: memberId,
           role_id: newRole,
           created_by: jwt.memberId,
@@ -555,7 +555,7 @@ export async function getMemberRolesByPermission(
   const roles = await db
     .selectFrom('member.roles')
     .selectAll()
-    .where(eb => eb('permissions', '@>', JSON.stringify(permission)))
+    .where((eb) => eb('permissions', '@>', JSON.stringify(permission)))
     .orderBy('role_id')
     .execute()
   return roles.map(toMemberRole)
@@ -565,7 +565,7 @@ export async function getAllMemberRoles(isPublic?: boolean): Promise<MemberRole[
   const roles = await db
     .selectFrom('member.roles')
     .selectAll()
-    .$if(isPublic !== undefined, qb => qb.where('is_public', '=', isPublic!))
+    .$if(isPublic !== undefined, (qb) => qb.where('is_public', '=', isPublic!))
     .orderBy('role_id')
     .execute()
   return roles.map(toMemberRole)
@@ -729,7 +729,7 @@ export async function setDashboardSettings(
 export async function canMemberBeDeleted(memberId: string): Promise<MemberDeletability> {
   const result = await db
     .selectFrom('member.register')
-    .select(eb => [
+    .select((eb) => [
       eb
         .exists(eb.selectFrom('accts.invoice').select('id').where('member_id', '=', memberId))
         .as('has_invoices'),
@@ -738,7 +738,7 @@ export async function canMemberBeDeleted(memberId: string): Promise<MemberDeleta
           eb
             .selectFrom('flight.logs')
             .select('flight_id')
-            .where(eb2 =>
+            .where((eb2) =>
               eb2.or([
                 eb2('pic_member_id', '=', memberId),
                 eb2('crew2_member_id', '=', memberId),
@@ -782,7 +782,7 @@ export async function deactivateMember(
   removedBy: string,
   reason?: string,
 ): Promise<void> {
-  await db.transaction().execute(async txn => {
+  await db.transaction().execute(async (txn) => {
     // Remove all roles/permissions
     await txn.deleteFrom('member.member_to_roles').where('member_id', '=', memberId).execute()
 
@@ -855,7 +855,7 @@ export async function getUnpaidMembershipFeesForYear(
     .where('accts.invoice.is_paid', '=', false)
     .execute()
 
-  return invoices.map(inv => ({
+  return invoices.map((inv) => ({
     id: String(inv.id),
     invoice_type: String(inv.invoice_type),
     pmt_ref: inv.pmt_ref,
@@ -884,7 +884,7 @@ export async function getJuniorMembersTurning18Today(): Promise<
     .where('date_of_birth', '=', targetDob)
     .execute()
 
-  return members.map(m => ({
+  return members.map((m) => ({
     member_id: m.member_id,
     first_name: m.first_name,
     email: m.email,
@@ -924,7 +924,7 @@ export async function hasMemberFlownBillableFlightInYear(
 
   const flightCount = await db
     .selectFrom('flight.logs')
-    .select(eb => eb.fn.count('flight_id').as('count'))
+    .select((eb) => eb.fn.count('flight_id').as('count'))
     .where('billable_member_id', '=', memberId)
     .where('takeoff_time_epoch', '>=', yearStartEpoch)
     .where('takeoff_time_epoch', '<', nextYearStartEpoch)
@@ -942,43 +942,43 @@ export async function getMembersWithNoOrUnpaidAnnualFee(year: number): Promise<N
   const results = await db
     .selectFrom('member.register as r')
     .leftJoin(
-      eb =>
+      (eb) =>
         eb
           .selectFrom('member.annual_fees')
           .select(['member_id', 'invoice_id'])
           .where('fee_type', '=', 'annual_fee')
           .where('year', '=', year)
           .as('af'),
-      join => join.onRef('af.member_id', '=', 'r.member_id'),
+      (join) => join.onRef('af.member_id', '=', 'r.member_id'),
     )
     .leftJoin('accts.invoice as inv', 'inv.id', 'af.invoice_id')
     .leftJoin(
-      eb =>
+      (eb) =>
         eb
           .selectFrom('member.non_renewal_actions')
-          .select(eb2 => ['member_id', eb2.fn.max('performed_at').as('last_reminder_at')])
+          .select((eb2) => ['member_id', eb2.fn.max('performed_at').as('last_reminder_at')])
           .where('action_type', '=', 'REMINDER_SENT')
           .groupBy('member_id')
           .as('lr'),
-      join => join.onRef('lr.member_id', '=', 'r.member_id'),
+      (join) => join.onRef('lr.member_id', '=', 'r.member_id'),
     )
     .leftJoin(
-      eb => {
+      (eb) => {
         const yearStart = new Date(year, 0, 1)
         const nextYearStart = new Date(year + 1, 0, 1)
         const yearStartEpoch = Math.floor(yearStart.getTime() / 1000).toString()
         const nextYearStartEpoch = Math.floor(nextYearStart.getTime() / 1000).toString()
         return eb
           .selectFrom('flight.logs')
-          .select(eb2 => ['billable_member_id', eb2.fn.count('flight_id').as('flight_count')])
+          .select((eb2) => ['billable_member_id', eb2.fn.count('flight_id').as('flight_count')])
           .where('takeoff_time_epoch', '>=', yearStartEpoch)
           .where('takeoff_time_epoch', '<', nextYearStartEpoch)
           .groupBy('billable_member_id')
           .as('fc')
       },
-      join => join.onRef('fc.billable_member_id', '=', 'r.member_id'),
+      (join) => join.onRef('fc.billable_member_id', '=', 'r.member_id'),
     )
-    .select(eb => [
+    .select((eb) => [
       'r.member_id',
       'r.first_name',
       'r.last_name',
@@ -999,12 +999,12 @@ export async function getMembersWithNoOrUnpaidAnnualFee(year: number): Promise<N
     .where('r.member_type', '!=', MIKMemberTypes.EXTERNAL)
     .where('r.member_type', '!=', MIKMemberTypes.HONORARY)
     .where('r.is_membership_approved', '=', true)
-    .where(eb => eb.or([eb('af.member_id', 'is', null), eb('inv.is_paid', '=', false)]))
+    .where((eb) => eb.or([eb('af.member_id', 'is', null), eb('inv.is_paid', '=', false)]))
     .orderBy('r.last_name')
     .orderBy('r.first_name')
     .execute()
 
-  return results.map(r => ({
+  return results.map((r) => ({
     memberId: r.member_id,
     firstName: r.first_name,
     lastName: r.last_name,

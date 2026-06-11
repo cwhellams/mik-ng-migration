@@ -15,7 +15,7 @@ export const InvoiceItemsPage: React.FC = () => {
 
   const { data, isLoading, error, mutate, mutation } = useApi<ItemListResponse>(
     { url: 'v1/invoices/items' },
-    { keepPreviousData: true }
+    { keepPreviousData: true },
   )
 
   const handleRefresh = async () => {
@@ -79,9 +79,7 @@ export const InvoiceItemsPage: React.FC = () => {
             >
               {item.name}
             </Grid>
-            <Grid size={{ xs: 4, md: 1 }}>
-              {eurFormatter.format(item.markup_value ?? 0)}
-            </Grid>
+            <Grid size={{ xs: 4, md: 1 }}>{eurFormatter.format(item.markup_value ?? 0)}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{item.markup_type ?? 'N/A'}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{item.unit ?? 'N/A'}</Grid>
           </>

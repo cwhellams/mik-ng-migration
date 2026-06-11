@@ -57,13 +57,13 @@ export const EditPricingModal = ({
   })
 
   const [validFrom, setValidFrom] = useState<Dayjs | null>(
-    pricing ? dayjs(pricing.valid_from) : dayjs()
+    pricing ? dayjs(pricing.valid_from) : dayjs(),
   )
   const [validTo, setValidTo] = useState<Dayjs | null>(
-    pricing?.valid_to ? dayjs(pricing.valid_to) : null
+    pricing?.valid_to ? dayjs(pricing.valid_to) : null,
   )
   const [pricePerHour, setPricePerHour] = useState<string>(
-    pricing ? (pricing.price_per_min * 60).toFixed(2) : ''
+    pricing ? (pricing.price_per_min * 60).toFixed(2) : '',
   )
   const [notes, setNotes] = useState<string>(pricing?.notes || '')
 
@@ -141,22 +141,14 @@ export const EditPricingModal = ({
       }
     }
 
-    await mutate(
-      (key) => typeof key === 'string' && key.includes('aircraft-pricing')
-    )
+    await mutate((key) => typeof key === 'string' && key.includes('aircraft-pricing'))
     onClose()
   }
 
   if (!mode) return null
 
   return (
-    <Dialog
-      open={!!mode}
-      onClose={onClose}
-      maxWidth='sm'
-      fullWidth
-      fullScreen={isXs}
-    >
+    <Dialog open={!!mode} onClose={onClose} maxWidth='sm' fullWidth fullScreen={isXs}>
       <EditDialogTitle
         title={
           isNew
@@ -184,10 +176,7 @@ export const EditPricingModal = ({
                 fullWidth: true,
                 helperText: isNew
                   ? undefined
-                  : t(
-                      'aircraft.pricing.fromDisabled',
-                      'From date cannot be changed'
-                    ),
+                  : t('aircraft.pricing.fromDisabled', 'From date cannot be changed'),
               },
             }}
           />
@@ -200,10 +189,7 @@ export const EditPricingModal = ({
             slotProps={{
               textField: {
                 fullWidth: true,
-                helperText: t(
-                  'aircraft.pricing.toHelp',
-                  'Leave empty for open-ended pricing'
-                ),
+                helperText: t('aircraft.pricing.toHelp', 'Leave empty for open-ended pricing'),
               },
             }}
           />
@@ -216,9 +202,7 @@ export const EditPricingModal = ({
             required
             fullWidth
             InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>€</InputAdornment>
-              ),
+              startAdornment: <InputAdornment position='start'>€</InputAdornment>,
               endAdornment: <InputAdornment position='end'>/h</InputAdornment>,
             }}
             inputProps={{
@@ -239,10 +223,7 @@ export const EditPricingModal = ({
             fullWidth
             multiline
             rows={3}
-            helperText={t(
-              'aircraft.pricing.notesHelp',
-              'Optional notes about this pricing period'
-            )}
+            helperText={t('aircraft.pricing.notesHelp', 'Optional notes about this pricing period')}
           />
         </Stack>
       </DialogContent>

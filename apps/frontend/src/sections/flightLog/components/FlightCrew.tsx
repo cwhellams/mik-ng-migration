@@ -22,10 +22,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-  FlightLogUpsertRequest,
-  FlightType,
-} from '@backend/routes/flight-log/models'
+import { FlightLogUpsertRequest, FlightType } from '@backend/routes/flight-log/models'
 import { MemberListResponse } from '@backend/routes/members/models'
 import useApi from '../../../hooks/useApi'
 import { useMe } from '../../../hooks/useMe'
@@ -69,12 +66,7 @@ const FlightCrew = ({
   const isEditable = !!setValue
 
   // crew member ids currently in use
-  const crewMembers = watch([
-    'picMemberId',
-    'crew2MemberId',
-    'crew3MemberId',
-    'crew4MemberId',
-  ])
+  const crewMembers = watch(['picMemberId', 'crew2MemberId', 'crew3MemberId', 'crew4MemberId'])
 
   const slots: CrewSlot[] = ['pic', 'crew2', 'crew3', 'crew4']
 
@@ -104,7 +96,7 @@ const FlightCrew = ({
       setValue?.(`${slot}MemberId` as keyof FlightLogUpsertRequest, null)
       setValue?.(`${slot}Role` as keyof FlightLogUpsertRequest, null)
     },
-    [setValue]
+    [setValue],
   )
 
   const getDefaultMultiRole = (crew: CrewMember) => {
@@ -134,7 +126,7 @@ const FlightCrew = ({
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   )
 
   // list of all members, including self
@@ -154,7 +146,7 @@ const FlightCrew = ({
               value: m.memberId,
               label: `${m.first} ${m.last}`,
               role: 'EXAMINER',
-            })) ?? []
+            })) ?? [],
         )
         .concat(
           memberList?.members
@@ -163,56 +155,47 @@ const FlightCrew = ({
               value: m.memberId,
               label: `${m.first} ${m.last}`,
               role: 'INSTRUCTOR',
-            })) ?? []
+            })) ?? [],
         )
         .concat(
           memberList?.members
-            ?.filter(
-              (m) =>
-                !m.roles.includes('INSTRUCTOR') && !m.roles.includes('EXAMINER')
-            )
+            ?.filter((m) => !m.roles.includes('INSTRUCTOR') && !m.roles.includes('EXAMINER'))
             ?.map((m) => ({
               value: m.memberId,
               label: `${m.first} ${m.last}`,
               role: 'MEMBER',
-            })) ?? []
+            })) ?? [],
         ),
-    [me, memberList]
+    [me, memberList],
   )
 
   // whether the current user (SELF) qualifies as instructor or examiner
   const selfIsInstructor = useMemo(
     () =>
       memberList?.members?.some(
-        (m) => m.memberId === me?.memberId && m.roles.includes('INSTRUCTOR')
+        (m) => m.memberId === me?.memberId && m.roles.includes('INSTRUCTOR'),
       ) ?? false,
-    [me, memberList]
+    [me, memberList],
   )
   const selfIsExaminer = useMemo(
     () =>
       memberList?.members?.some(
-        (m) => m.memberId === me?.memberId && m.roles.includes('EXAMINER')
+        (m) => m.memberId === me?.memberId && m.roles.includes('EXAMINER'),
       ) ?? false,
-    [me, memberList]
+    [me, memberList],
   )
 
   const isMemberQualifiedForDuty = useCallback(
     (member: CrewMember, duty: string | null | undefined): boolean => {
       if (duty === 'FI') {
-        return (
-          member.role === 'INSTRUCTOR' ||
-          (member.role === 'SELF' && selfIsInstructor)
-        )
+        return member.role === 'INSTRUCTOR' || (member.role === 'SELF' && selfIsInstructor)
       }
       if (duty === 'FE') {
-        return (
-          member.role === 'EXAMINER' ||
-          (member.role === 'SELF' && selfIsExaminer)
-        )
+        return member.role === 'EXAMINER' || (member.role === 'SELF' && selfIsExaminer)
       }
       return true
     },
-    [selfIsInstructor, selfIsExaminer]
+    [selfIsInstructor, selfIsExaminer],
   )
 
   // watch duty (role) for all slots so filtering and validation react to changes
@@ -288,7 +271,7 @@ const FlightCrew = ({
           <Typography color='text.secondary'>
             {t(
               'flightLog.selectFlightTypeCrew',
-              'Please select a flight type to continue with crew information'
+              'Please select a flight type to continue with crew information',
             )}
           </Typography>
         </Box>
@@ -320,16 +303,11 @@ const FlightCrew = ({
                   name={crewId}
                   control={control}
                   rules={{ required: true }}
-                  render={({
-                    field: { onChange, value },
-                    fieldState: { error },
-                  }) => (
+                  render={({ field: { onChange, value }, fieldState: { error } }) => (
                     <Autocomplete
                       disabled={!isEditable}
                       options={filteredMembers}
-                      value={
-                        members.find((member) => member.value === value) ?? null
-                      }
+                      value={members.find((member) => member.value === value) ?? null}
                       groupBy={(option) => option.role}
                       renderInput={(params) => (
                         <TextField
@@ -356,10 +334,7 @@ const FlightCrew = ({
                           const defaultRole = getDefaultMultiRole(crew)
                           setValue?.(crewRole, defaultRole)
 
-                          if (
-                            slot == 'pic' &&
-                            (defaultRole == 'FI' || defaultRole == 'FE')
-                          ) {
+                          if (slot == 'pic' && (defaultRole == 'FI' || defaultRole == 'FE')) {
                             // instructor was selected as PIC, add missing self crew
                             if (crewCount < 2) {
                               setCrewCount(2)
@@ -394,17 +369,14 @@ const FlightCrew = ({
 
                             const selectedMemberId = watch(crewId)
                             const selectedMember = members.find(
-                              (member) => member.value === selectedMemberId
+                              (member) => member.value === selectedMemberId,
                             )
 
                             if (
                               selectedMemberId &&
                               (nextDuty === 'FI' || nextDuty === 'FE') &&
                               (!selectedMember ||
-                                !isMemberQualifiedForDuty(
-                                  selectedMember,
-                                  nextDuty
-                                ))
+                                !isMemberQualifiedForDuty(selectedMember, nextDuty))
                             ) {
                               setValue?.(crewId, null)
                             }
@@ -419,11 +391,7 @@ const FlightCrew = ({
                             </MenuItem>
                           ))}
                         </Select>
-                        {error && (
-                          <FormHelperText>
-                            {error.message?.toString()}
-                          </FormHelperText>
-                        )}
+                        {error && <FormHelperText>{error.message?.toString()}</FormHelperText>}
                       </FormControl>
                     )}
                   />
@@ -433,10 +401,7 @@ const FlightCrew = ({
 
             {index >= minimumCrewCount && index == length - 1 && isEditable && (
               // only last crew slot can be removed
-              <Grid
-                size={{ xs: 12 }}
-                sx={{ display: 'flex', alignItems: 'center' }}
-              >
+              <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
                 <Button
                   color='error'
                   onClick={() => handleRemoveCrew(slot)}

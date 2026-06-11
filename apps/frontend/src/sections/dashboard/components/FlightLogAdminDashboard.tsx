@@ -12,10 +12,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Link } from 'react-router-dom'
 import { RemoteContent } from '../../../components/RemoteContent'
-import {
-  FlightLogListResponse,
-  FlightLogStatus,
-} from '@backend/routes/flight-log/models'
+import { FlightLogListResponse, FlightLogStatus } from '@backend/routes/flight-log/models'
 import { useThemeMode } from '../../../theme/ThemeContext'
 import { useTranslation } from 'react-i18next'
 import { useTimezone } from '../../../hooks/useTimezone'
@@ -41,11 +38,11 @@ export const FlightLogAdminDashboard = () => {
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
       keepPreviousData: true,
-    }
+    },
   )
 
   const logbooksToValidate = logbooks?.books.filter(
-    (logbook) => (logbook.view?.newFlightsCount ?? 0) > 0
+    (logbook) => (logbook.view?.newFlightsCount ?? 0) > 0,
   )
 
   const {
@@ -66,22 +63,17 @@ export const FlightLogAdminDashboard = () => {
     {
       // don't clear old data when searching
       keepPreviousData: true,
-    }
+    },
   )
 
   return (
     <>
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant='h5'>
-            {t('dashboard.latestFlightsWithIncidents')}
-          </Typography>
+          <Typography variant='h5'>{t('dashboard.latestFlightsWithIncidents')}</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <RemoteContent
-            isLoading={observationsLoading}
-            error={observationsError}
-          >
+          <RemoteContent isLoading={observationsLoading} error={observationsError}>
             <List>
               {observations?.logs.length === 0 && (
                 <Typography>{t('dashboard.noFlightsWithIncidents')}</Typography>
@@ -90,12 +82,8 @@ export const FlightLogAdminDashboard = () => {
                 <ListItem key={log.flightId}>
                   <ListItemText
                     primary={
-                      <Link
-                        to={`/logs/flights/${log.flightId}`}
-                        onClick={() => toggleSudo(true)}
-                      >
-                        {log.aircraftRegistration} -{' '}
-                        {formatDate(log.takeoffTimeUtc)}
+                      <Link to={`/logs/flights/${log.flightId}`} onClick={() => toggleSudo(true)}>
+                        {log.aircraftRegistration} - {formatDate(log.takeoffTimeUtc)}
                       </Link>
                     }
                     secondary={log.incidentOrObservations}
@@ -109,9 +97,7 @@ export const FlightLogAdminDashboard = () => {
 
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant='h5'>
-            {t('dashboard.newFlightsToValidate')}
-          </Typography>
+          <Typography variant='h5'>{t('dashboard.newFlightsToValidate')}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <RemoteContent isLoading={isLoading} error={error}>

@@ -1,10 +1,4 @@
-import {
-  Box,
-  Card,
-  CardActionArea,
-  CardContent,
-  Typography,
-} from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'

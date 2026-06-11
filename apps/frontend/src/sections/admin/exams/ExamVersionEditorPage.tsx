@@ -54,13 +54,7 @@ interface LangFieldsProps {
   onChange: (lang: ExamLanguage, val: string) => void
 }
 
-function LangFields({
-  label,
-  languages,
-  values,
-  multiline,
-  onChange,
-}: Readonly<LangFieldsProps>) {
+function LangFields({ label, languages, values, multiline, onChange }: Readonly<LangFieldsProps>) {
   return (
     <Box
       sx={{
@@ -71,11 +65,7 @@ function LangFields({
         mb: 2,
       }}
     >
-      <Typography
-        variant='caption'
-        color='text.secondary'
-        sx={{ display: 'block', mb: 1 }}
-      >
+      <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mb: 1 }}>
         {label}
       </Typography>
       {languages.map((lang, i) => (
@@ -88,11 +78,7 @@ function LangFields({
             alignItems: multiline ? 'flex-start' : 'center',
           }}
         >
-          <Chip
-            label={lang.toUpperCase()}
-            size='small'
-            sx={{ width: 38, flexShrink: 0 }}
-          />
+          <Chip label={lang.toUpperCase()} size='small' sx={{ width: 38, flexShrink: 0 }} />
           <TextField
             size='small'
             fullWidth
@@ -124,9 +110,10 @@ function ChoiceEditor({
 }: Readonly<ChoiceEditorProps>) {
   const { t } = useTranslation()
   const [text, setText] = useState<Record<ExamLanguage, string>>(
-    Object.fromEntries(
-      languages.map((l) => [l, choice?.translations[l]?.text ?? ''])
-    ) as Record<ExamLanguage, string>
+    Object.fromEntries(languages.map((l) => [l, choice?.translations[l]?.text ?? ''])) as Record<
+      ExamLanguage,
+      string
+    >,
   )
   const [isCorrect, setIsCorrect] = useState(choice?.isCorrect ?? false)
   const [sortOrder, setSortOrder] = useState(choice?.sortOrder ?? 0)
@@ -141,9 +128,10 @@ function ChoiceEditor({
         choiceId: choice?.choiceId,
         isCorrect,
         sortOrder,
-        translations: Object.fromEntries(
-          languages.map((l) => [l, { text: text[l] }])
-        ) as Record<string, { text: string }>,
+        translations: Object.fromEntries(languages.map((l) => [l, { text: text[l] }])) as Record<
+          string,
+          { text: string }
+        >,
       })
       onSaved()
     } catch {
@@ -155,9 +143,7 @@ function ChoiceEditor({
 
   return (
     <Dialog open onClose={onClose} maxWidth='sm' fullWidth>
-      <DialogTitle>
-        {choice ? t('exams.admin.editChoice') : t('exams.admin.addChoice')}
-      </DialogTitle>
+      <DialogTitle>{choice ? t('exams.admin.editChoice') : t('exams.admin.addChoice')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity='error' sx={{ mb: 2 }}>
@@ -173,10 +159,7 @@ function ChoiceEditor({
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <FormControlLabel
             control={
-              <Switch
-                checked={isCorrect}
-                onChange={(e) => setIsCorrect(e.target.checked)}
-              />
+              <Switch checked={isCorrect} onChange={(e) => setIsCorrect(e.target.checked)} />
             }
             label={t('exams.admin.isCorrect')}
           />
@@ -216,26 +199,25 @@ function QuestionCard({
   onChanged,
 }: Readonly<QuestionCardProps>) {
   const { t } = useTranslation()
-  const [editingChoice, setEditingChoice] = useState<
-    ChoiceDetail | null | 'new'
-  >(null)
+  const [editingChoice, setEditingChoice] = useState<ChoiceDetail | null | 'new'>(null)
   const [editingQuestion, setEditingQuestion] = useState(false)
   const [prompt, setPrompt] = useState<Record<ExamLanguage, string>>(
-    Object.fromEntries(
-      languages.map((l) => [l, question.translations[l]?.prompt ?? ''])
-    ) as Record<ExamLanguage, string>
+    Object.fromEntries(languages.map((l) => [l, question.translations[l]?.prompt ?? ''])) as Record<
+      ExamLanguage,
+      string
+    >,
   )
   const [reasoning, setReasoning] = useState<Record<ExamLanguage, string>>(
     Object.fromEntries(
-      languages.map((l) => [l, question.translations[l]?.reasoning ?? ''])
-    ) as Record<ExamLanguage, string>
+      languages.map((l) => [l, question.translations[l]?.reasoning ?? '']),
+    ) as Record<ExamLanguage, string>,
   )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const previewLanguage = getPreferredExamLanguage(
     'en',
     { supportedLanguages: languages, defaultLanguage: languages[0] },
-    Object.keys(question.translations)
+    Object.keys(question.translations),
   )
 
   const handleSaveQuestion = async () => {
@@ -246,10 +228,7 @@ function QuestionCard({
         questionId: question.questionId,
         sortOrder: question.sortOrder,
         translations: Object.fromEntries(
-          languages.map((l) => [
-            l,
-            { prompt: prompt[l], reasoning: reasoning[l] || null },
-          ])
+          languages.map((l) => [l, { prompt: prompt[l], reasoning: reasoning[l] || null }]),
         ) as Record<string, { prompt: string; reasoning?: string | null }>,
       })
       setEditingQuestion(false)
@@ -303,10 +282,7 @@ function QuestionCard({
           {t('exams.questionNumber', { n: index + 1 })}
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton
-            size='small'
-            onClick={() => setEditingQuestion(!editingQuestion)}
-          >
+          <IconButton size='small' onClick={() => setEditingQuestion(!editingQuestion)}>
             <Icon icon='mdi:pencil' />
           </IconButton>
           <IconButton size='small' color='error' onClick={handleDeleteQuestion}>
@@ -337,12 +313,7 @@ function QuestionCard({
             onChange={(l, v) => setReasoning((prev) => ({ ...prev, [l]: v }))}
           />
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              onClick={handleSaveQuestion}
-              disabled={saving}
-              variant='contained'
-              size='small'
-            >
+            <Button onClick={handleSaveQuestion} disabled={saving} variant='contained' size='small'>
               {t('common.save')}
             </Button>
             <Button onClick={() => setEditingQuestion(false)} size='small'>
@@ -353,8 +324,7 @@ function QuestionCard({
       ) : (
         <Typography variant='body2' color='text.secondary'>
           {previewLanguage
-            ? (question.translations[previewLanguage]?.prompt ??
-              t('exams.admin.noTranslation'))
+            ? (question.translations[previewLanguage]?.prompt ?? t('exams.admin.noTranslation'))
             : t('exams.admin.noTranslation')}
         </Typography>
       )}
@@ -369,7 +339,7 @@ function QuestionCard({
           const choiceLanguage = getPreferredExamLanguage(
             'en',
             { supportedLanguages: languages, defaultLanguage: languages[0] },
-            Object.keys(choice.translations)
+            Object.keys(choice.translations),
           )
 
           return (
@@ -383,9 +353,7 @@ function QuestionCard({
                 <Icon icon='mdi:circle-outline' />
               )}
               <Typography variant='body2' sx={{ flex: 1 }}>
-                {choiceLanguage
-                  ? (choice.translations[choiceLanguage]?.text ?? '')
-                  : ''}
+                {choiceLanguage ? (choice.translations[choiceLanguage]?.text ?? '') : ''}
               </Typography>
               <IconButton size='small' onClick={() => setEditingChoice(choice)}>
                 <Icon icon='mdi:pencil' />
@@ -399,7 +367,7 @@ function QuestionCard({
               </IconButton>
             </Box>
           )
-        })()
+        })(),
       )}
 
       <Button
@@ -455,9 +423,7 @@ export default function ExamVersionEditorPage() {
     questionCount: number | null
   } | null>(null)
   const [savingVersionSettings, setSavingVersionSettings] = useState(false)
-  const [versionSettingsError, setVersionSettingsError] = useState<
-    string | null
-  >(null)
+  const [versionSettingsError, setVersionSettingsError] = useState<string | null>(null)
   const versionLanguages = version
     ? getConfiguredExamLanguages(version, Object.keys(version.translations))
     : []
@@ -466,7 +432,7 @@ export default function ExamVersionEditorPage() {
     if (!version) return
     const supportedLanguages = getConfiguredExamLanguages(
       version,
-      Object.keys(version.translations)
+      Object.keys(version.translations),
     )
     const init = Object.fromEntries(
       supportedLanguages.map((l) => [
@@ -475,7 +441,7 @@ export default function ExamVersionEditorPage() {
           title: version.translations?.[l]?.title ?? '',
           description: version.translations?.[l]?.description ?? '',
         },
-      ])
+      ]),
     ) as Record<ExamLanguage, { title: string; description: string }>
     setTranslations(init)
     setVersionSettings({
@@ -500,9 +466,9 @@ export default function ExamVersionEditorPage() {
             versionId,
             l,
             translations[l].title,
-            translations[l].description || null
-          )
-        )
+            translations[l].description || null,
+          ),
+        ),
       )
       await mutate()
     } catch {
@@ -535,9 +501,10 @@ export default function ExamVersionEditorPage() {
     if (!versionId) return
     await adminUpsertQuestion(versionId, {
       sortOrder: version?.questions.length ?? 0,
-      translations: Object.fromEntries(
-        versionLanguages.map((l) => [l, { prompt: '' }])
-      ) as Record<string, { prompt: string }>,
+      translations: Object.fromEntries(versionLanguages.map((l) => [l, { prompt: '' }])) as Record<
+        string,
+        { prompt: string }
+      >,
     })
     await mutate()
   }
@@ -556,9 +523,7 @@ export default function ExamVersionEditorPage() {
         {version && (
           <>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-              <Title
-                label={`${t('exams.admin.versionEditor')} v${version.versionNumber}`}
-              />
+              <Title label={`${t('exams.admin.versionEditor')} v${version.versionNumber}`} />
               <Chip
                 label={version.status}
                 color={
@@ -588,9 +553,7 @@ export default function ExamVersionEditorPage() {
                     value={versionSettings.supportedLanguages}
                     label={t('exams.admin.supportedLanguages')}
                     renderValue={(selected) =>
-                      (selected as string[])
-                        .map((lang) => t(`exams.languages.${lang}`))
-                        .join(', ')
+                      (selected as string[]).map((lang) => t(`exams.languages.${lang}`)).join(', ')
                     }
                     onChange={(e) => {
                       const nextLanguages = (
@@ -603,23 +566,17 @@ export default function ExamVersionEditorPage() {
                           ? {
                               ...prev,
                               supportedLanguages: nextLanguages,
-                              defaultLanguage: nextLanguages.includes(
-                                prev.defaultLanguage
-                              )
+                              defaultLanguage: nextLanguages.includes(prev.defaultLanguage)
                                 ? prev.defaultLanguage
                                 : (nextLanguages[0] ?? prev.defaultLanguage),
                             }
-                          : prev
+                          : prev,
                       )
                     }}
                   >
                     {EXAM_LANGUAGES.map((lang) => (
                       <MenuItem key={lang} value={lang}>
-                        <Checkbox
-                          checked={versionSettings.supportedLanguages.includes(
-                            lang
-                          )}
-                        />
+                        <Checkbox checked={versionSettings.supportedLanguages.includes(lang)} />
                         <ListItemText primary={t(`exams.languages.${lang}`)} />
                       </MenuItem>
                     ))}
@@ -637,7 +594,7 @@ export default function ExamVersionEditorPage() {
                               ...prev,
                               defaultLanguage: e.target.value as ExamLanguage,
                             }
-                          : prev
+                          : prev,
                       )
                     }
                     disabled={versionSettings.supportedLanguages.length === 0}
@@ -660,7 +617,7 @@ export default function ExamVersionEditorPage() {
                             ...prev,
                             passPercent: Number(e.target.value),
                           }
-                        : prev
+                        : prev,
                     )
                   }
                   fullWidth
@@ -676,12 +633,9 @@ export default function ExamVersionEditorPage() {
                       prev
                         ? {
                             ...prev,
-                            questionCount:
-                              e.target.value === ''
-                                ? null
-                                : Number(e.target.value),
+                            questionCount: e.target.value === '' ? null : Number(e.target.value),
                           }
-                        : prev
+                        : prev,
                     )
                   }
                   fullWidth
@@ -692,8 +646,7 @@ export default function ExamVersionEditorPage() {
                 <Button
                   onClick={handleSaveVersionSettings}
                   disabled={
-                    savingVersionSettings ||
-                    versionSettings.supportedLanguages.length === 0
+                    savingVersionSettings || versionSettings.supportedLanguages.length === 0
                   }
                   variant='outlined'
                   sx={{ mb: 4 }}
@@ -717,11 +670,7 @@ export default function ExamVersionEditorPage() {
               versionLanguages.map((lang) => (
                 <Box key={lang} sx={{ mb: 2 }}>
                   <Typography variant='subtitle2' gutterBottom>
-                    <Chip
-                      label={t(`exams.languages.${lang}`)}
-                      size='small'
-                      sx={{ mr: 1 }}
-                    />
+                    <Chip label={t(`exams.languages.${lang}`)} size='small' sx={{ mr: 1 }} />
                   </Typography>
                   <TextField
                     label={t('exams.admin.versionTitle')}

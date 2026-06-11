@@ -1,11 +1,4 @@
-import {
-  Typography,
-  Box,
-  TextField,
-  Button,
-  InputAdornment,
-  Divider,
-} from '@mui/material'
+import { Typography, Box, TextField, Button, InputAdornment, Divider } from '@mui/material'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -32,9 +25,7 @@ const Login = () => {
   const { t, i18n } = useTranslation()
 
   // Initialize language based on current i18n language
-  const [selectedLanguage, setSelectedLanguage] = useState<MIKLang>(
-    i18n.language as MIKLang
-  )
+  const [selectedLanguage, setSelectedLanguage] = useState<MIKLang>(i18n.language as MIKLang)
 
   const navigate = useNavigate()
   const location = useLocation()
@@ -56,9 +47,7 @@ const Login = () => {
   // When `allowEmailFallback` is true (email-submit button), a passkey
   // cancellation is treated the same as "no passkeys" so the user is not
   // blocked from using the email flow.
-  const tryPasskeyLogin = async (
-    allowEmailFallback: boolean
-  ): Promise<boolean> => {
+  const tryPasskeyLogin = async (allowEmailFallback: boolean): Promise<boolean> => {
     if (!passkeySupported()) return false
     setPasskeyLoading(true)
     try {
@@ -211,13 +200,11 @@ const Login = () => {
             textTransform: 'none',
             fontWeight: 'bold',
             fontSize: '1rem',
-            boxShadow:
-              '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)',
+            boxShadow: '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)',
             transition: 'all 0.2s',
             '&:hover': {
               transform: 'translateY(-1px)',
-              boxShadow:
-                '0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08)',
+              boxShadow: '0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08)',
             },
           }}
         >

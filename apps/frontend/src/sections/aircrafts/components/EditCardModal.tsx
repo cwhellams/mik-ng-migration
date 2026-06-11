@@ -18,10 +18,7 @@ import { SaveButton } from '../../../components/SaveButton'
 import { Problem } from '@backend/routes/response'
 import { SnackAlert } from '../../../components/SnackAlert'
 import dayjs, { Dayjs } from 'dayjs'
-import {
-  AircraftCard,
-  AircraftCardAuditable,
-} from '@backend/routes/aircraft-cards/models'
+import { AircraftCard, AircraftCardAuditable } from '@backend/routes/aircraft-cards/models'
 
 export type CardEditMode = 'new' | 'edit'
 
@@ -50,15 +47,11 @@ export const EditCardModal = ({
   })
 
   const [name, setName] = useState<string>(card?.name || '')
-  const [description, setDescription] = useState<string>(
-    card?.description || ''
-  )
+  const [description, setDescription] = useState<string>(card?.description || '')
   const [validFrom, setValidFrom] = useState<Dayjs | null>(
-    card?.validFrom ? dayjs(card.validFrom) : null
+    card?.validFrom ? dayjs(card.validFrom) : null,
   )
-  const [validTo, setValidTo] = useState<Dayjs | null>(
-    card?.validTo ? dayjs(card.validTo) : null
-  )
+  const [validTo, setValidTo] = useState<Dayjs | null>(card?.validTo ? dayjs(card.validTo) : null)
   const [problem, setProblem] = useState<Problem | undefined>()
 
   useEffect(() => {
@@ -91,10 +84,7 @@ export const EditCardModal = ({
       setProblem({
         type: 'validation-error',
         title: 'Validation Error',
-        detail: t(
-          'aircraft.cards.dateRangeError',
-          'Valid from date must be before valid to date'
-        ),
+        detail: t('aircraft.cards.dateRangeError', 'Valid from date must be before valid to date'),
         status: 400,
       })
       return
@@ -120,9 +110,7 @@ export const EditCardModal = ({
 
     await mutate(
       (key: unknown) =>
-        Array.isArray(key) &&
-        typeof key[0] === 'string' &&
-        key[0].includes('aircraft-cards')
+        Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('aircraft-cards'),
     )
     onClose()
   }
@@ -130,19 +118,9 @@ export const EditCardModal = ({
   if (!mode) return null
 
   return (
-    <Dialog
-      open={!!mode}
-      onClose={onClose}
-      maxWidth='sm'
-      fullWidth
-      fullScreen={isXs}
-    >
+    <Dialog open={!!mode} onClose={onClose} maxWidth='sm' fullWidth fullScreen={isXs}>
       <EditDialogTitle
-        title={
-          isNew
-            ? t('aircraft.cards.add', 'Add Card')
-            : t('aircraft.cards.edit', 'Edit Card')
-        }
+        title={isNew ? t('aircraft.cards.add', 'Add Card') : t('aircraft.cards.edit', 'Edit Card')}
         onClose={onClose}
       />
       <DialogContent>
@@ -155,10 +133,7 @@ export const EditCardModal = ({
             onChange={(e) => setName(e.target.value)}
             required
             fullWidth
-            helperText={t(
-              'aircraft.cards.nameHelp',
-              'E.g. Air BP Fuel Card, Finavia Season Pass'
-            )}
+            helperText={t('aircraft.cards.nameHelp', 'E.g. Air BP Fuel Card, Finavia Season Pass')}
           />
 
           <TextField
@@ -189,10 +164,7 @@ export const EditCardModal = ({
             slotProps={{
               textField: {
                 fullWidth: true,
-                helperText: t(
-                  'aircraft.cards.validToHelp',
-                  'Leave empty if no expiry date'
-                ),
+                helperText: t('aircraft.cards.validToHelp', 'Leave empty if no expiry date'),
               },
             }}
           />

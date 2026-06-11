@@ -39,10 +39,8 @@ export const DEFAULT_ALLOWED_FILE_TYPES = [
 export const getFileIcon = (mimeType?: string | null): string => {
   if (!mimeType) return 'mdi:file'
   if (mimeType.includes('pdf')) return 'mdi:file-pdf-box'
-  if (mimeType.includes('word') || mimeType.includes('document'))
-    return 'mdi:file-word-box'
-  if (mimeType.includes('excel') || mimeType.includes('sheet'))
-    return 'mdi:file-excel-box'
+  if (mimeType.includes('word') || mimeType.includes('document')) return 'mdi:file-word-box'
+  if (mimeType.includes('excel') || mimeType.includes('sheet')) return 'mdi:file-excel-box'
   if (mimeType.includes('powerpoint') || mimeType.includes('presentation'))
     return 'mdi:file-powerpoint-box'
   if (mimeType.includes('image')) return 'mdi:file-image'

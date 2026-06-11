@@ -31,16 +31,14 @@ const createComponentMap = (
   bookingUser: boolean,
   flyingUser: boolean,
   me: ReturnType<typeof useRoles>['me'],
-  hasAccess: ReturnType<typeof useRoles>['hasAccess']
+  hasAccess: ReturnType<typeof useRoles>['hasAccess'],
 ): Record<string, () => JSX.Element | null> => ({
   profileUpdateRequired: () => <ProfileUpdateRequiredBanner />,
-  reservationsSuspended: () =>
-    isMember ? <ReservationsSuspendedBanner /> : null,
+  reservationsSuspended: () => (isMember ? <ReservationsSuspendedBanner /> : null),
   overdueInvoice: () => (isMember ? <OverdueInvoiceBanner /> : null),
   equipmentFee: () => (isMember && flyingUser ? <EquipmentFeeBanner /> : null),
   pendingReview: () =>
-    me?.isMembershipApproved === false &&
-    me.memberType !== MIKMemberTypes.EXTERNAL ? (
+    me?.isMembershipApproved === false && me.memberType !== MIKMemberTypes.EXTERNAL ? (
       <PendingReviewBanner />
     ) : null,
   expiryWarning: () => <ExpiryWarningBanner />,
@@ -48,12 +46,9 @@ const createComponentMap = (
   events: () => (isMember ? <EventsDashboard /> : null),
   bookingUser: () => (bookingUser ? <BookingUserDashboard /> : null),
   flightLogUser: () => (flyingUser ? <FlightLogUserDashboard /> : null),
-  memberAdmin: () =>
-    hasAccess(MIKPermissions.MEMBER_ADMIN) ? <MemberAdminDashboard /> : null,
+  memberAdmin: () => (hasAccess(MIKPermissions.MEMBER_ADMIN) ? <MemberAdminDashboard /> : null),
   flightLogAdmin: () =>
-    hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) ? (
-      <FlightLogAdminDashboard />
-    ) : null,
+    hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) ? <FlightLogAdminDashboard /> : null,
   dtoInstructor: () =>
     hasAccess(MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN) ? (
       <DtoInstructorWidget />
@@ -65,14 +60,8 @@ const Dashboard = () => {
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
 
   const isMember = hasAccess(MIKPermissions.MEMBER)
-  const bookingUser = hasAccess(
-    MIKPermissions.BOOKING_USER,
-    MIKPermissions.BOOKING_ADMIN
-  )
-  const flyingUser = hasAccess(
-    MIKPermissions.FLIGHTLOG_USER,
-    MIKPermissions.FLIGHTLOG_ADMIN
-  )
+  const bookingUser = hasAccess(MIKPermissions.BOOKING_USER, MIKPermissions.BOOKING_ADMIN)
+  const flyingUser = hasAccess(MIKPermissions.FLIGHTLOG_USER, MIKPermissions.FLIGHTLOG_ADMIN)
 
   // Fetch dashboard settings
   const {
@@ -95,20 +84,11 @@ const Dashboard = () => {
   }
 
   // Component mapping - returns null if component should not be shown based on permissions
-  const componentMap = createComponentMap(
-    isMember,
-    bookingUser,
-    flyingUser,
-    me,
-    hasAccess
-  )
+  const componentMap = createComponentMap(isMember, bookingUser, flyingUser, me, hasAccess)
   const alwaysVisibleComponentIds: readonly string[] = ALWAYS_VISIBLE_COMPONENTS
   const customizableComponentIds = useMemo(
-    () =>
-      Object.keys(componentMap).filter(
-        (id) => !alwaysVisibleComponentIds.includes(id)
-      ),
-    [alwaysVisibleComponentIds, componentMap]
+    () => Object.keys(componentMap).filter((id) => !alwaysVisibleComponentIds.includes(id)),
+    [alwaysVisibleComponentIds, componentMap],
   )
 
   // Get list of component IDs that user has access to (excluding always-visible)
@@ -123,13 +103,11 @@ const Dashboard = () => {
   const mergedDashboardComponents = useMemo(() => {
     if (!dashboardSettings?.components) return []
 
-    const knownComponentIds = new Set(
-      dashboardSettings.components.map((component) => component.id)
-    )
+    const knownComponentIds = new Set(dashboardSettings.components.map((component) => component.id))
     let nextOrder =
       dashboardSettings.components.reduce(
         (maxOrder, component) => Math.max(maxOrder, component.order),
-        -1
+        -1,
       ) + 1
 
     return [
@@ -141,7 +119,7 @@ const Dashboard = () => {
             id,
             visible: true,
             order: nextOrder++,
-          })
+          }),
         ),
     ]
   }, [customizableComponentIds, dashboardSettings?.components])
@@ -174,12 +152,7 @@ const Dashboard = () => {
   return (
     <RemoteContent isLoading={isLoading} error={error}>
       <Box>
-        <Box
-          display='flex'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
-        >
+        <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
           <Title label={t('header.dashboard')} />
           <Tooltip title='Dashboard Settings'>
             <IconButton
@@ -195,9 +168,7 @@ const Dashboard = () => {
         {/* Always visible components (alerts/banners) */}
         {alwaysVisibleComponents.map((component) => {
           const ComponentElement = component.render()
-          return ComponentElement ? (
-            <Box key={component.id}>{ComponentElement}</Box>
-          ) : null
+          return ComponentElement ? <Box key={component.id}>{ComponentElement}</Box> : null
         })}
 
         {isMember && <InstructorQualificationsBanner />}
@@ -207,9 +178,7 @@ const Dashboard = () => {
           <Stack spacing={2}>
             {orderedComponents.map((component) => {
               const ComponentElement = component.render()
-              return ComponentElement ? (
-                <Box key={component.id}>{ComponentElement}</Box>
-              ) : null
+              return ComponentElement ? <Box key={component.id}>{ComponentElement}</Box> : null
             })}
           </Stack>
         ) : (
@@ -227,9 +196,7 @@ const Dashboard = () => {
 
             {hasAccess(MIKPermissions.MEMBER_ADMIN) && <MemberAdminDashboard />}
 
-            {hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) && (
-              <FlightLogAdminDashboard />
-            )}
+            {hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) && <FlightLogAdminDashboard />}
           </>
         )}
 

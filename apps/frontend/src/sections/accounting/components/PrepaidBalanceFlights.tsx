@@ -30,14 +30,13 @@ export const PrepaidBalanceFlights = ({
     previous: () => void
   }
 }) => {
-  const { data, isLoading, error, mutation } =
-    useApi<PrepaidFlightSummaryResponse>({
-      url: 'v1/invoices/flights/prepaid-summary',
-      params: {
-        aircraftRegistration: filters.aircraftRegistration ?? '',
-        endDate: filters.endDate,
-      },
-    })
+  const { data, isLoading, error, mutation } = useApi<PrepaidFlightSummaryResponse>({
+    url: 'v1/invoices/flights/prepaid-summary',
+    params: {
+      aircraftRegistration: filters.aircraftRegistration ?? '',
+      endDate: filters.endDate,
+    },
+  })
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
@@ -50,7 +49,7 @@ export const PrepaidBalanceFlights = ({
         aircraftRegistration: filters.aircraftRegistration,
         endDate: filters.endDate,
       },
-      '/v1/invoices/flights'
+      '/v1/invoices/flights',
     )
 
     if (res.error) {
@@ -96,14 +95,10 @@ export const PrepaidBalanceFlights = ({
                   <Grid size={1.2}>{t('flightLog.departure')}</Grid>
                   <Grid size={1.2}>{t('flightLog.arrival')}</Grid>
                   <Grid size={1.1}>{t('invoicing.billableMinutes')}</Grid>
-                  <Grid size={1.5}>
-                    {t('invoicing.availablePrepaidMinutes')}
-                  </Grid>
+                  <Grid size={1.5}>{t('invoicing.availablePrepaidMinutes')}</Grid>
                   <Grid size={1.5}>{t('invoicing.prepaidMinutesUsed')}</Grid>
                   <Grid size={1.5}>{t('invoicing.standardMinutes')}</Grid>
-                  <Grid size={1.5}>
-                    {t('invoicing.remainingPrepaidMinutes')}
-                  </Grid>
+                  <Grid size={1.5}>{t('invoicing.remainingPrepaidMinutes')}</Grid>
                 </>
               }
               notFoundMsg={t('invoicing.noPrepaidFlights')}
@@ -116,22 +111,14 @@ export const PrepaidBalanceFlights = ({
                       {flight.billableMemberLastName}
                     </Typography>
                   </Grid>
-                  <Grid size={{ xs: 6, md: 1.2 }}>
-                    {flight.departureAirport}
-                  </Grid>
+                  <Grid size={{ xs: 6, md: 1.2 }}>{flight.departureAirport}</Grid>
                   <Grid size={{ xs: 6, md: 1.2 }}>{flight.arrivalAirport}</Grid>
-                  <Grid size={{ xs: 6, md: 1.1 }}>
-                    {formatMinutes(flight.billableMinutes)}
-                  </Grid>
+                  <Grid size={{ xs: 6, md: 1.1 }}>{formatMinutes(flight.billableMinutes)}</Grid>
                   <Grid size={{ xs: 6, md: 1.5 }}>
                     {formatMinutes(flight.availablePrepaidMinutes)}
                   </Grid>
-                  <Grid size={{ xs: 6, md: 1.5 }}>
-                    {formatMinutes(flight.prepaidMinutesUsed)}
-                  </Grid>
-                  <Grid size={{ xs: 6, md: 1.5 }}>
-                    {formatMinutes(flight.standardMinutes)}
-                  </Grid>
+                  <Grid size={{ xs: 6, md: 1.5 }}>{formatMinutes(flight.prepaidMinutesUsed)}</Grid>
+                  <Grid size={{ xs: 6, md: 1.5 }}>{formatMinutes(flight.standardMinutes)}</Grid>
                   <Grid size={{ xs: 12, md: 1.5 }}>
                     {formatMinutes(flight.remainingPrepaidMinutes)}
                   </Grid>
@@ -143,12 +130,7 @@ export const PrepaidBalanceFlights = ({
       </RemoteContent>
 
       <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-        <Button
-          color='secondary'
-          variant='outlined'
-          onClick={navigate.previous}
-          sx={{ mr: 1 }}
-        >
+        <Button color='secondary' variant='outlined' onClick={navigate.previous} sx={{ mr: 1 }}>
           {t('general.back')}
         </Button>
         <Box sx={{ flex: '1 1 auto' }} />

@@ -37,8 +37,7 @@ export function DtoInstructorWidget() {
       {count > 0 ? (
         <>
           <Alert severity='warning' sx={{ mb: 1 }}>
-            You have <strong>{count}</strong> flight{count !== 1 ? 's' : ''}{' '}
-            awaiting verification.
+            You have <strong>{count}</strong> flight{count !== 1 ? 's' : ''} awaiting verification.
           </Alert>
           <Button
             component={Link}

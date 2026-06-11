@@ -43,7 +43,7 @@ services:
       registry_type: DOCR
       repository: mik-dev-team/mik-ng
       tag: ${IMAGE_TAG}
-      
+
     http_port: 3000 #Setup port mapping from public internet port 80 or 443, the platform will forward traffic to this port
 
     log_destinations:
@@ -189,10 +189,10 @@ services:
       - key: NODE_ENV
         value: 'production'
         type: GENERAL
-      - key: TINY_URL_CLEANUP_WORKER_ENABLED 
+      - key: TINY_URL_CLEANUP_WORKER_ENABLED
         value: ${TINY_URL_CLEANUP_WORKER_ENABLED }
         type: GENERAL
-      - key: TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP  
+      - key: TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP
         value: ${TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP  }
         type: GENERAL
       - key: APP_ENV
@@ -236,7 +236,7 @@ static_sites:
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
       - key: DEPLOY_TIMESTAMP
-        value: "${DEPLOY_TIMESTAMP}"
+        value: '${DEPLOY_TIMESTAMP}'
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
     catchall_document: index.html

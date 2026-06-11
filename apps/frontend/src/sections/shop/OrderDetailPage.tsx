@@ -25,11 +25,7 @@ import { ORDER_STATUS_COLOR } from './orderStatusColor'
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>()
   const { t, i18n } = useTranslation()
-  const lang = i18n.language.startsWith('fi')
-    ? 'fi'
-    : i18n.language.startsWith('sv')
-      ? 'sv'
-      : 'en'
+  const lang = i18n.language.startsWith('fi') ? 'fi' : i18n.language.startsWith('sv') ? 'sv' : 'en'
 
   const {
     data: order,
@@ -40,14 +36,10 @@ export default function OrderDetailPage() {
     skipFetch: !orderId,
   })
 
-  const localName = (obj?: Record<string, string> | null) =>
-    obj?.[lang] ?? obj?.['en'] ?? ''
+  const localName = (obj?: Record<string, string> | null) => obj?.[lang] ?? obj?.['en'] ?? ''
 
   const itemsTotal =
-    order?.items?.reduce(
-      (sum, item) => sum + item.unitPrice * item.quantity,
-      0
-    ) ?? 0
+    order?.items?.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) ?? 0
   const discountAmount = order?.discountAmount ?? 0
 
   return (
@@ -64,9 +56,7 @@ export default function OrderDetailPage() {
       <Title label={t('shop.orderDetail')} />
 
       <RemoteContent isLoading={isLoading} error={error}>
-        {!isLoading && !error && !order && (
-          <Alert severity='error'>{t('common.notFound')}</Alert>
-        )}
+        {!isLoading && !error && !order && <Alert severity='error'>{t('common.notFound')}</Alert>}
         {order && (
           <Box>
             <Paper sx={{ p: 3, mb: 3 }}>
@@ -94,9 +84,7 @@ export default function OrderDetailPage() {
                     <Typography variant='caption' color='text.secondary'>
                       {t('shop.orderDate')}
                     </Typography>
-                    <Typography>
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </Typography>
+                    <Typography>{new Date(order.createdAt).toLocaleDateString()}</Typography>
                   </Box>
                 )}
               </Box>
@@ -128,13 +116,13 @@ export default function OrderDetailPage() {
                     <TableRow key={item.orderItemId}>
                       <TableCell>
                         {localName(
-                          (item.productSnapshot as Record<string, unknown>)
-                            ?.name as Record<string, string>
+                          (item.productSnapshot as Record<string, unknown>)?.name as Record<
+                            string,
+                            string
+                          >,
                         ) || `Product #${item.productId}`}
                       </TableCell>
-                      <TableCell align='right'>
-                        €{item.unitPrice.toFixed(2)}
-                      </TableCell>
+                      <TableCell align='right'>€{item.unitPrice.toFixed(2)}</TableCell>
                       <TableCell align='right'>{item.quantity}</TableCell>
                       <TableCell align='right'>
                         €{(item.unitPrice * item.quantity).toFixed(2)}
@@ -165,20 +153,14 @@ export default function OrderDetailPage() {
                       mb: 1,
                     }}
                   >
-                    <Typography color='success.main'>
-                      {t('shop.discount')}
-                    </Typography>
-                    <Typography color='success.main'>
-                      -€{discountAmount.toFixed(2)}
-                    </Typography>
+                    <Typography color='success.main'>{t('shop.discount')}</Typography>
+                    <Typography color='success.main'>-€{discountAmount.toFixed(2)}</Typography>
                   </Box>
                 )}
                 <Divider sx={{ my: 1 }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant='h6'>{t('shop.total')}</Typography>
-                  <Typography variant='h6'>
-                    €{order.totalAmount.toFixed(2)}
-                  </Typography>
+                  <Typography variant='h6'>€{order.totalAmount.toFixed(2)}</Typography>
                 </Box>
               </Box>
             </Box>

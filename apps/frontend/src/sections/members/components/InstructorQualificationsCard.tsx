@@ -56,10 +56,7 @@ type QualField = keyof Pick<
   | 'medicalLaplExpiry'
 >
 
-const renderDateCell = (
-  dateStr: string | null | undefined,
-  t: (key: string) => string
-) => {
+const renderDateCell = (dateStr: string | null | undefined, t: (key: string) => string) => {
   if (!dateStr) {
     return (
       <Typography variant='body2' color='text.disabled'>
@@ -71,18 +68,12 @@ const renderDateCell = (
   const expiry = dayjs(dateStr)
   const now = dayjs()
   const isExpired = expiry.isBefore(now, 'day')
-  const isExpiring =
-    !isExpired && expiry.diff(now, 'day') <= EXPIRING_DAYS_THRESHOLD
+  const isExpiring = !isExpired && expiry.diff(now, 'day') <= EXPIRING_DAYS_THRESHOLD
 
   if (isExpired) {
     return (
       <Tooltip title={t('instructorStatus.expired')}>
-        <Chip
-          label={expiry.format('DD.MM.YYYY')}
-          size='small'
-          color='error'
-          variant='outlined'
-        />
+        <Chip label={expiry.format('DD.MM.YYYY')} size='small' color='error' variant='outlined' />
       </Tooltip>
     )
   }
@@ -90,12 +81,7 @@ const renderDateCell = (
   if (isExpiring) {
     return (
       <Tooltip title={t('instructorStatus.expiringWarning')}>
-        <Chip
-          label={expiry.format('DD.MM.YYYY')}
-          size='small'
-          color='warning'
-          variant='outlined'
-        />
+        <Chip label={expiry.format('DD.MM.YYYY')} size='small' color='warning' variant='outlined' />
       </Tooltip>
     )
   }
@@ -173,10 +159,7 @@ export const InstructorQualificationsCard = ({
     e.preventDefault()
     setProblem(undefined)
 
-    const { data: saveData, error: saveError } = await mutation.trigger(
-      'PUT',
-      formData
-    )
+    const { data: saveData, error: saveError } = await mutation.trigger('PUT', formData)
     if (saveError) {
       return setProblem(saveError)
     }
@@ -190,10 +173,7 @@ export const InstructorQualificationsCard = ({
     setShowProofUpload(true)
   }
 
-  const uploadProofFile = async (
-    file: File,
-    category: 'LICENSE' | 'MEDICAL'
-  ) => {
+  const uploadProofFile = async (file: File, category: 'LICENSE' | 'MEDICAL') => {
     const fd = new FormData()
     fd.append('file', file)
     fd.append('documentCategory', category)
@@ -253,7 +233,7 @@ export const InstructorQualificationsCard = ({
     try {
       const dateStr = snapshotDate.format('YYYY-MM-DD')
       const response = await sharedApi.get<QualificationSnapshot>(
-        `v1/instructor-qualifications/${memberId}/snapshot?date=${dateStr}`
+        `v1/instructor-qualifications/${memberId}/snapshot?date=${dateStr}`,
       )
       setSnapshot(response.data)
     } catch {
@@ -322,15 +302,11 @@ export const InstructorQualificationsCard = ({
   }
 
   const qualFields = fields.map((f) => f.key)
-  const displayData: Partial<Record<QualField, string | null | undefined>> =
-    snapshot
-      ? snapshot
-      : Object.fromEntries(
-          qualFields.map((k) => [
-            k,
-            data ? data[k as keyof typeof data] : undefined,
-          ])
-        )
+  const displayData: Partial<Record<QualField, string | null | undefined>> = snapshot
+    ? snapshot
+    : Object.fromEntries(
+        qualFields.map((k) => [k, data ? data[k as keyof typeof data] : undefined]),
+      )
 
   return (
     <>
@@ -343,20 +319,12 @@ export const InstructorQualificationsCard = ({
           />
         )}
         <CardContent>
-          <FormTitle
-            title={t('instructorStatus.qualifications')}
-            icon='mdi:certificate-outline'
-          />
+          <FormTitle title={t('instructorStatus.qualifications')} icon='mdi:certificate-outline' />
 
           {/* Date picker for point-in-time snapshot — admins only */}
           {canViewHistory && (
             <Box mb={2}>
-              <Stack
-                direction='row'
-                spacing={2}
-                alignItems='center'
-                flexWrap='wrap'
-              >
+              <Stack direction='row' spacing={2} alignItems='center' flexWrap='wrap'>
                 <DatePicker
                   label={t('instructorStatus.snapshotDate')}
                   value={snapshotDate}
@@ -373,11 +341,7 @@ export const InstructorQualificationsCard = ({
                   {t('instructorStatus.snapshotLookup')}
                 </Button>
                 {snapshot && (
-                  <Button
-                    variant='outlined'
-                    size='small'
-                    onClick={handleClearSnapshot}
-                  >
+                  <Button variant='outlined' size='small' onClick={handleClearSnapshot}>
                     {t('instructorStatus.auditClear')}
                   </Button>
                 )}
@@ -438,12 +402,7 @@ export const InstructorQualificationsCard = ({
         </CardContent>
       </Card>
 
-      <Dialog
-        open={editOpen}
-        onClose={handleCloseDialog}
-        fullWidth
-        maxWidth='sm'
-      >
+      <Dialog open={editOpen} onClose={handleCloseDialog} fullWidth maxWidth='sm'>
         {!showProofUpload ? (
           <form onSubmit={handleSave}>
             <EditDialogTitle
@@ -457,9 +416,7 @@ export const InstructorQualificationsCard = ({
                   <Grid size={{ xs: 12, sm: 6 }} key={field.key}>
                     <DatePicker
                       label={`${field.short} – ${field.tooltip}`}
-                      value={
-                        formData[field.key] ? dayjs(formData[field.key]) : null
-                      }
+                      value={formData[field.key] ? dayjs(formData[field.key]) : null}
                       onChange={handleDateChange(field.key)}
                       slotProps={{ textField: { fullWidth: true } }}
                     />
@@ -468,9 +425,7 @@ export const InstructorQualificationsCard = ({
               </Grid>
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleCloseDialog}>
-                {t('common.cancel', 'Cancel')}
-              </Button>
+              <Button onClick={handleCloseDialog}>{t('common.cancel', 'Cancel')}</Button>
               <SaveButton />
             </DialogActions>
           </form>
@@ -499,9 +454,7 @@ export const InstructorQualificationsCard = ({
                     {t('instructorStatus.proofLicenseHint')}
                   </Typography>
                   {licenseSuccess ? (
-                    <Alert severity='success'>
-                      {t('instructorStatus.proofUploaded')}
-                    </Alert>
+                    <Alert severity='success'>{t('instructorStatus.proofUploaded')}</Alert>
                   ) : (
                     <>
                       <input
@@ -509,18 +462,14 @@ export const InstructorQualificationsCard = ({
                         type='file'
                         accept='.pdf,.jpg,.jpeg'
                         style={{ display: 'none' }}
-                        onChange={(e) =>
-                          setLicenseFile(e.target.files?.[0] ?? null)
-                        }
+                        onChange={(e) => setLicenseFile(e.target.files?.[0] ?? null)}
                       />
                       <Button
                         variant='outlined'
                         size='small'
                         onClick={() => licenseInputRef.current?.click()}
                       >
-                        {licenseFile
-                          ? licenseFile.name
-                          : t('common.chooseFile', 'Choose file')}
+                        {licenseFile ? licenseFile.name : t('common.chooseFile', 'Choose file')}
                       </Button>
                     </>
                   )}
@@ -535,9 +484,7 @@ export const InstructorQualificationsCard = ({
                     {t('instructorStatus.proofMedicalHint')}
                   </Typography>
                   {medicalSuccess ? (
-                    <Alert severity='success'>
-                      {t('instructorStatus.proofUploaded')}
-                    </Alert>
+                    <Alert severity='success'>{t('instructorStatus.proofUploaded')}</Alert>
                   ) : (
                     <>
                       <input
@@ -545,18 +492,14 @@ export const InstructorQualificationsCard = ({
                         type='file'
                         accept='.pdf,.jpg,.jpeg'
                         style={{ display: 'none' }}
-                        onChange={(e) =>
-                          setMedicalFile(e.target.files?.[0] ?? null)
-                        }
+                        onChange={(e) => setMedicalFile(e.target.files?.[0] ?? null)}
                       />
                       <Button
                         variant='outlined'
                         size='small'
                         onClick={() => medicalInputRef.current?.click()}
                       >
-                        {medicalFile
-                          ? medicalFile.name
-                          : t('common.chooseFile', 'Choose file')}
+                        {medicalFile ? medicalFile.name : t('common.chooseFile', 'Choose file')}
                       </Button>
                     </>
                   )}
@@ -564,9 +507,7 @@ export const InstructorQualificationsCard = ({
               </Stack>
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleCloseDialog}>
-                {t('instructorStatus.proofSkip')}
-              </Button>
+              <Button onClick={handleCloseDialog}>{t('instructorStatus.proofSkip')}</Button>
               {(!licenseSuccess || !medicalSuccess) && (
                 <Button
                   variant='contained'

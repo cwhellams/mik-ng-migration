@@ -1,12 +1,4 @@
-import {
-  Box,
-  Button,
-  Typography,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  Divider,
-} from '@mui/material'
+import { Box, Button, Typography, Menu, MenuItem, ListItemIcon, Divider } from '@mui/material'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
@@ -133,11 +125,7 @@ const User = () => {
               </ListItemIcon>
               English
               {i18n.language === MIKLang.EN && (
-                <Icon
-                  icon='mdi:check'
-                  fontSize={20}
-                  style={{ marginLeft: 'auto' }}
-                />
+                <Icon icon='mdi:check' fontSize={20} style={{ marginLeft: 'auto' }} />
               )}
             </MenuItem>
             <MenuItem onClick={() => changeLanguage(MIKLang.FI)}>
@@ -146,11 +134,7 @@ const User = () => {
               </ListItemIcon>
               Suomi
               {i18n.language === MIKLang.FI && (
-                <Icon
-                  icon='mdi:check'
-                  fontSize={20}
-                  style={{ marginLeft: 'auto' }}
-                />
+                <Icon icon='mdi:check' fontSize={20} style={{ marginLeft: 'auto' }} />
               )}
             </MenuItem>
             <MenuItem onClick={() => changeLanguage(MIKLang.SV)}>
@@ -159,11 +143,7 @@ const User = () => {
               </ListItemIcon>
               Svenska
               {i18n.language === MIKLang.SV && (
-                <Icon
-                  icon='mdi:check'
-                  fontSize={20}
-                  style={{ marginLeft: 'auto' }}
-                />
+                <Icon icon='mdi:check' fontSize={20} style={{ marginLeft: 'auto' }} />
               )}
             </MenuItem>
             <Divider />
@@ -179,25 +159,16 @@ const User = () => {
               </ListItemIcon>
               {t('flightLog.utcTime')}
               {timezone === 'utc' && (
-                <Icon
-                  icon='mdi:check'
-                  fontSize={20}
-                  style={{ marginLeft: 'auto' }}
-                />
+                <Icon icon='mdi:check' fontSize={20} style={{ marginLeft: 'auto' }} />
               )}
             </MenuItem>
             <MenuItem onClick={() => setTimezone('local')}>
               <ListItemIcon>
                 <Icon icon='mdi:map-marker' fontSize={25} />
               </ListItemIcon>
-              {t('flightLog.localTime')}{' '}
-              {getOffsetLabelInTz(undefined, 'local')}
+              {t('flightLog.localTime')} {getOffsetLabelInTz(undefined, 'local')}
               {timezone === 'local' && (
-                <Icon
-                  icon='mdi:check'
-                  fontSize={20}
-                  style={{ marginLeft: 'auto' }}
-                />
+                <Icon icon='mdi:check' fontSize={20} style={{ marginLeft: 'auto' }} />
               )}
             </MenuItem>
 

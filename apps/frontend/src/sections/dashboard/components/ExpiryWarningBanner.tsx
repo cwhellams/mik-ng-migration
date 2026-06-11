@@ -25,7 +25,7 @@ export function ExpiryWarningBanner() {
     me.medicalClass1Expiry,
     me.medicalClass2Expiry,
     me.medicalLaplExpiry,
-    me.medicalExpiry
+    me.medicalExpiry,
   )
 
   const licenceExpired = licenceExpiry && licenceExpiry.isBefore(today)
@@ -56,15 +56,9 @@ export function ExpiryWarningBanner() {
   return (
     <>
       {showLicenceWarning && licenceExpiry && (
-        <Alert
-          severity={licenceExpired ? 'error' : 'warning'}
-          sx={{ mb: 2 }}
-          action={action}
-        >
+        <Alert severity={licenceExpired ? 'error' : 'warning'} sx={{ mb: 2 }} action={action}>
           <AlertTitle>
-            {licenceExpired
-              ? t('dashboard.licenceExpired')
-              : t('dashboard.licenceExpiringSoon')}
+            {licenceExpired ? t('dashboard.licenceExpired') : t('dashboard.licenceExpiringSoon')}
           </AlertTitle>
           {licenceExpired
             ? t('dashboard.licenceExpiredMessage', {
@@ -76,15 +70,9 @@ export function ExpiryWarningBanner() {
         </Alert>
       )}
       {showMedicalWarning && medicalExpiry && (
-        <Alert
-          severity={medicalExpired ? 'error' : 'warning'}
-          sx={{ mb: 2 }}
-          action={action}
-        >
+        <Alert severity={medicalExpired ? 'error' : 'warning'} sx={{ mb: 2 }} action={action}>
           <AlertTitle>
-            {medicalExpired
-              ? t('dashboard.medicalExpired')
-              : t('dashboard.medicalExpiringSoon')}
+            {medicalExpired ? t('dashboard.medicalExpired') : t('dashboard.medicalExpiringSoon')}
           </AlertTitle>
           {medicalExpired
             ? t('dashboard.medicalExpiredMessage', {

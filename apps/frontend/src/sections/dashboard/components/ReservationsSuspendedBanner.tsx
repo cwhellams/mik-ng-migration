@@ -8,12 +8,7 @@ export function ReservationsSuspendedBanner() {
   const navigate = useNavigate()
   const { me, isLoading } = useMe()
 
-  if (
-    isLoading ||
-    !me ||
-    !me.isMembershipApproved ||
-    me.canMakeReservations !== false
-  ) {
+  if (isLoading || !me || !me.isMembershipApproved || me.canMakeReservations !== false) {
     return null
   }
 

@@ -34,12 +34,7 @@ export const OverdueInvoiceBanner = () => {
           icon={<WarningAmberIcon />}
           sx={{ mb: 3 }}
           action={
-            <Button
-              variant='contained'
-              color='error'
-              size='small'
-              onClick={handleViewInvoices}
-            >
+            <Button variant='contained' color='error' size='small' onClick={handleViewInvoices}>
               {t('dashboard.viewInvoices')}
             </Button>
           }

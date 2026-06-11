@@ -39,12 +39,9 @@ export const FlightLogValidation = ({
 
   const hasNewFlights = view.newFlightsCount > 0
 
-  const pageValidated = data.logs.every(
-    (log) => log.status !== FlightLogStatus.NEW
-  )
+  const pageValidated = data.logs.every((log) => log.status !== FlightLogStatus.NEW)
 
-  const unverifiedFlights =
-    data?.logs.filter((log) => log.status === FlightLogStatus.NEW) ?? []
+  const unverifiedFlights = data?.logs.filter((log) => log.status === FlightLogStatus.NEW) ?? []
 
   const { formatDate } = useTimezone()
 
@@ -59,10 +56,7 @@ export const FlightLogValidation = ({
           boxShadow: 1,
         }}
       >
-        <FormTitle
-          title={t('flightLog.logbooks.validateTitle')}
-          icon='mdi:check'
-        />
+        <FormTitle title={t('flightLog.logbooks.validateTitle')} icon='mdi:check' />
 
         <Stack spacing={2}>
           <Stack direction={'row'} alignItems='center'>
@@ -89,32 +83,30 @@ export const FlightLogValidation = ({
             </Button>
           )}
 
-          {isFlightLogAdmin &&
-            hasNewFlights &&
-            view.newFlightsPage == data.page && (
-              <Button
-                variant='contained'
-                color='primary'
-                startIcon={<Icon icon='mdi:check' color='green' />}
-                loadingPosition='start'
-                loading={isMutating}
-                onClick={async () => {
-                  for (const [index, log] of unverifiedFlights.entries()) {
-                    const isLast = index == unverifiedFlights.length - 1
+          {isFlightLogAdmin && hasNewFlights && view.newFlightsPage == data.page && (
+            <Button
+              variant='contained'
+              color='primary'
+              startIcon={<Icon icon='mdi:check' color='green' />}
+              loadingPosition='start'
+              loading={isMutating}
+              onClick={async () => {
+                for (const [index, log] of unverifiedFlights.entries()) {
+                  const isLast = index == unverifiedFlights.length - 1
 
-                    const res = await validateEntry(log, isLast)
-                    if (!res) {
-                      // operation failed, stop processing
-                      return
-                    }
+                  const res = await validateEntry(log, isLast)
+                  if (!res) {
+                    // operation failed, stop processing
+                    return
                   }
-                }}
-              >
-                {t('flightLog.logbooks.validateAll', {
-                  count: unverifiedFlights.length,
-                })}
-              </Button>
-            )}
+                }
+              }}
+            >
+              {t('flightLog.logbooks.validateAll', {
+                count: unverifiedFlights.length,
+              })}
+            </Button>
+          )}
           {hasNewFlights && (
             <>
               <Typography variant='h6' mb={2}>
@@ -122,16 +114,10 @@ export const FlightLogValidation = ({
                   date: formatDate(view.validatedBeforeUTC),
                 })}
               </Typography>
-              <FormField
-                label={t(`flightLog.logbooks.newFlightsCount`)}
-                width={200}
-              >
+              <FormField label={t(`flightLog.logbooks.newFlightsCount`)} width={200}>
                 {view.newFlightsCount}
               </FormField>
-              <FormField
-                label={t(`flightLog.logbooks.newFlightsTime`)}
-                width={200}
-              >
+              <FormField label={t(`flightLog.logbooks.newFlightsTime`)} width={200}>
                 {view.newFlightsTime}
               </FormField>
             </>

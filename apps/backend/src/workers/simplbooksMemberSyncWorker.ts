@@ -34,7 +34,7 @@ export function startSimplbooksSyncWorker() {
   // Run sync on startup if enabled
   if (SIMPLBOOKS_MEMBER_SYNC_RUN_ON_STARTUP) {
     logger.info('Running Simplbooks member sync on startup')
-    syncMembersToSimplbooks().catch(error => {
+    syncMembersToSimplbooks().catch((error) => {
       logger.error('Error during startup Simplbooks sync:', error)
     })
   }

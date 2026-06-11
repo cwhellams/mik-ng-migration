@@ -3,7 +3,7 @@ properties:
   number:
     type: string
     description: Unique number of the sales order
-    example: "333"
+    example: '333'
   client_id:
     type: string
     description: ID of the associated partner
@@ -15,23 +15,23 @@ properties:
   created:
     type: string
     description: Creation date of the sales order
-    example: "2022-01-01"
+    example: '2022-01-01'
   supply_date:
     type: string
     description: Supply date of the sales order
-    example: "2023-01-01"
+    example: '2023-01-01'
   sent:
     type: string
     description: The date when the sales order was sent
-    example: "2022-01-01"
+    example: '2022-01-01'
   cancelled:
     type: string
     description: The date when the sales order was cancelled
-    example: "0000-00-00"
+    example: '0000-00-00'
   currency_name:
     type: string
     description: ISO 4217 currency code
-    example: "EEK"
+    example: 'EEK'
   currency_rate:
     type: number
     description: Ratio of chosen currency to the base currency
@@ -43,11 +43,11 @@ properties:
   additional_info:
     type: string
     description: Additional string note
-    example: "Cash only"
+    example: 'Cash only'
   language:
     type: string
     description: language code
-    example: "et_EE"
+    example: 'et_EE'
   document_template_id:
     type: integer
     description: Specify the ID of a document template to use

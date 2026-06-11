@@ -1,11 +1,6 @@
 import { Dayjs } from 'dayjs'
 import { useThemeMode } from '../theme/ThemeContext'
-import {
-  formatDateInTz,
-  formatTimeInTz,
-  timezoneName,
-  getOffsetLabelInTz,
-} from '../utils/date'
+import { formatDateInTz, formatTimeInTz, timezoneName, getOffsetLabelInTz } from '../utils/date'
 
 export function useTimezone() {
   const { timezone, setTimezone } = useThemeMode()
@@ -13,8 +8,7 @@ export function useTimezone() {
     timezone,
     timezoneLetter: timezone === 'utc' ? 'Z' : 'L',
     timezoneName: timezoneName(timezone),
-    timezoneOffset: (timestamp?: string | number | Date) =>
-      getOffsetLabelInTz(timestamp, timezone),
+    timezoneOffset: (timestamp?: string | number | Date) => getOffsetLabelInTz(timestamp, timezone),
     setTimezone,
 
     // Format date part in format "DD.MM.YYYY"
@@ -27,17 +21,10 @@ export function useTimezone() {
     // Format date and time in format "DD.MM.YYYY HH:mm"
     formatDateTime: (
       timestamp: string | Date | Dayjs | null | undefined,
-      { showSeconds }: { showSeconds?: boolean } = { showSeconds: false }
-    ) =>
-      formatDateInTz(
-        timestamp,
-        timezone,
-        `DD.MM.YYYY HH:mm${showSeconds ? ':ss' : ''}`
-      ),
-    formatDateCustom: (
-      timestamp: string | Date | Dayjs | null | undefined,
-      template: string
-    ) => formatDateInTz(timestamp, timezone, template),
+      { showSeconds }: { showSeconds?: boolean } = { showSeconds: false },
+    ) => formatDateInTz(timestamp, timezone, `DD.MM.YYYY HH:mm${showSeconds ? ':ss' : ''}`),
+    formatDateCustom: (timestamp: string | Date | Dayjs | null | undefined, template: string) =>
+      formatDateInTz(timestamp, timezone, template),
 
     // Format date part only in ISO format "YYYY-MM-DD".
     formatISODate: (timestamp: string | Date | Dayjs | null | undefined) =>

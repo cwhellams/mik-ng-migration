@@ -21,7 +21,7 @@ const AdminToggle = () => {
     MIKPermissions.FUEL_PRICES_ADMIN,
     MIKPermissions.DOCUMENT_ADMIN,
     MIKPermissions.SMS_PROCESSOR,
-    MIKPermissions.SMS_MANAGER
+    MIKPermissions.SMS_MANAGER,
   )
 
   if (!canUseAdminMode) {

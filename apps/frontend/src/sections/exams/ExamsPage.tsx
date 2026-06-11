@@ -21,33 +21,19 @@ import { getPreferredExamLanguage } from './language'
 export default function ExamsPage() {
   const { t, i18n } = useTranslation()
 
-  const {
-    data: exams,
-    isLoading,
-    error,
-  } = useApi<ExamWithVersion[]>({ url: 'v1/exams' })
+  const { data: exams, isLoading, error } = useApi<ExamWithVersion[]>({ url: 'v1/exams' })
 
   const getTitle = (exam: ExamWithVersion) => {
     const cv = exam.currentVersion
     if (!cv) return exam.name
-    const language = getPreferredExamLanguage(
-      i18n.language,
-      cv,
-      Object.keys(cv.translations)
-    )
-    return language
-      ? (cv.translations[language]?.title ?? exam.name)
-      : exam.name
+    const language = getPreferredExamLanguage(i18n.language, cv, Object.keys(cv.translations))
+    return language ? (cv.translations[language]?.title ?? exam.name) : exam.name
   }
 
   const getDescription = (exam: ExamWithVersion) => {
     const cv = exam.currentVersion
     if (!cv) return null
-    const language = getPreferredExamLanguage(
-      i18n.language,
-      cv,
-      Object.keys(cv.translations)
-    )
+    const language = getPreferredExamLanguage(i18n.language, cv, Object.keys(cv.translations))
     return language ? (cv.translations[language]?.description ?? null) : null
   }
 
@@ -100,11 +86,7 @@ export default function ExamsPage() {
                         }}
                       >
                         <Icon icon='mdi:school' width={28} />
-                        <Chip
-                          label={getExamTypeLabel(exam)}
-                          size='small'
-                          variant='outlined'
-                        />
+                        <Chip label={getExamTypeLabel(exam)} size='small' variant='outlined' />
                       </Box>
                       <Typography variant='h6' gutterBottom>
                         {getTitle(exam)}

@@ -268,7 +268,7 @@ router.get(
     }
 
     const proofs = await getQualificationProofs(memberId)
-    const proof = proofs.find(p => p.id === proofIdNum)
+    const proof = proofs.find((p) => p.id === proofIdNum)
 
     if (!proof) {
       return problem({ status: 404, detail: 'Proof file not found' })

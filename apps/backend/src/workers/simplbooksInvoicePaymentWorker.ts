@@ -51,7 +51,7 @@ export function startSimplbooksInvoicePaymentWorker(deps: SimplbooksInvoicePayme
   // Run immediately on startup for testing (optional - remove if not needed)
   if (process.env.SIMPLBOOKS_INVOICE_PAYMENT_WORKER_RUN_ON_STARTUP === 'true') {
     logger.info('Running invoice payment sync immediately on startup')
-    syncInvoicePayments(getInvoiceFn).catch(error => {
+    syncInvoicePayments(getInvoiceFn).catch((error) => {
       logger.error('Error during startup invoice payment sync:', error)
     })
   }

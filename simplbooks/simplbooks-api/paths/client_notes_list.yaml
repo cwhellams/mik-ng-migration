@@ -8,7 +8,7 @@ get:
     content:
       application/json:
         schema:
-            $ref: '../schemas/ClientNoteListRequest.yaml'
+          $ref: '../schemas/ClientNoteListRequest.yaml'
   responses:
     200:
       description: OK

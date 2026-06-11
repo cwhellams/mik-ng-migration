@@ -59,11 +59,7 @@ export default function ShopPage() {
   })
 
   const handleAddToCart = async (productId: string) => {
-    const result = await cartMutation.trigger(
-      'POST',
-      { productId, quantity: 1 },
-      'items'
-    )
+    const result = await cartMutation.trigger('POST', { productId, quantity: 1 }, 'items')
     if (result.error) {
       setSnack({ msg: t('common.error'), sev: 'error' })
     } else {
@@ -75,13 +71,11 @@ export default function ShopPage() {
 
   const isMaxedOut = (product: Product): boolean => {
     if (product.maxOrderQuantity == null) return false
-    const inCart =
-      cart?.items.find((i) => i.productId === product.productId)?.quantity ?? 0
+    const inCart = cart?.items.find((i) => i.productId === product.productId)?.quantity ?? 0
     return inCart >= product.maxOrderQuantity
   }
 
-  const localName = (obj: Record<string, string>) =>
-    obj?.[lang] ?? obj?.['en'] ?? ''
+  const localName = (obj: Record<string, string>) => obj?.[lang] ?? obj?.['en'] ?? ''
 
   return (
     <Box>
@@ -209,18 +203,11 @@ export default function ShopPage() {
                   </Box>
 
                   <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography
-                      variant='subtitle2'
-                      color='text.secondary'
-                      gutterBottom
-                    >
-                      {categories?.find(
-                        (c) => c.categoryId === product.categoryId
-                      )
+                    <Typography variant='subtitle2' color='text.secondary' gutterBottom>
+                      {categories?.find((c) => c.categoryId === product.categoryId)
                         ? localName(
-                            categories.find(
-                              (c) => c.categoryId === product.categoryId
-                            )!.name as Record<string, string>
+                            categories.find((c) => c.categoryId === product.categoryId)!
+                              .name as Record<string, string>,
                           )
                         : ''}
                     </Typography>
@@ -230,14 +217,8 @@ export default function ShopPage() {
                     </Typography>
 
                     {product.description && (
-                      <Typography
-                        variant='body2'
-                        color='text.secondary'
-                        sx={{ mb: 1 }}
-                      >
-                        {localName(
-                          product.description as Record<string, string>
-                        )}
+                      <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+                        {localName(product.description as Record<string, string>)}
                       </Typography>
                     )}
 
@@ -254,8 +235,7 @@ export default function ShopPage() {
                       />
                     )}
                     {product.stockQuantity > 0 &&
-                      product.stockQuantity <=
-                        (product.lowStockThreshold ?? 5) && (
+                      product.stockQuantity <= (product.lowStockThreshold ?? 5) && (
                         <Chip
                           label={t('shop.lowStock')}
                           size='small'
@@ -264,11 +244,7 @@ export default function ShopPage() {
                         />
                       )}
                     {product.maxOrderQuantity && (
-                      <Typography
-                        variant='caption'
-                        display='block'
-                        sx={{ mt: 0.5 }}
-                      >
+                      <Typography variant='caption' display='block' sx={{ mt: 0.5 }}>
                         {t('shop.maxPerMemberQty', {
                           max: product.maxOrderQuantity,
                         })}
@@ -285,12 +261,7 @@ export default function ShopPage() {
                         }}
                       >
                         {product.tags.map((tag) => (
-                          <Chip
-                            key={tag}
-                            label={tag}
-                            size='small'
-                            variant='outlined'
-                          />
+                          <Chip key={tag} label={tag} size='small' variant='outlined' />
                         ))}
                       </Box>
                     )}
@@ -309,9 +280,7 @@ export default function ShopPage() {
                       size='small'
                       variant='contained'
                       disabled={
-                        product.stockQuantity <= 0 ||
-                        cartMutation.isMutating ||
-                        isMaxedOut(product)
+                        product.stockQuantity <= 0 || cartMutation.isMutating || isMaxedOut(product)
                       }
                       onClick={() => handleAddToCart(product.productId)}
                       startIcon={<Icon icon='mdi:cart-plus' />}

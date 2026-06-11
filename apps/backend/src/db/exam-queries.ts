@@ -48,7 +48,7 @@ function fisherYatesShuffle<T>(arr: T[]): T[] {
 
 export async function getExams(): Promise<Exam[]> {
   const rows = await db.selectFrom('exam.exams').selectAll().orderBy('name').execute()
-  return rows.map(r => ({
+  return rows.map((r) => ({
     examId: r.exam_id,
     examType: r.exam_type,
     name: r.name,
@@ -101,7 +101,7 @@ export async function getExamsWithPublishedVersions(): Promise<ExamWithVersion[]
   const exams = await getExams()
   if (exams.length === 0) return []
 
-  const examIds = exams.map(e => e.examId)
+  const examIds = exams.map((e) => e.examId)
 
   // Single query to find all published versions for these exams
   const publishedRows = await db
@@ -111,12 +111,12 @@ export async function getExamsWithPublishedVersions(): Promise<ExamWithVersion[]
     .where('status', '=', 'PUBLISHED')
     .execute()
 
-  const publishedVersionByExam = new Map(publishedRows.map(r => [r.exam_id, r.version_id]))
+  const publishedVersionByExam = new Map(publishedRows.map((r) => [r.exam_id, r.version_id]))
   const versionIds = [...new Set(publishedVersionByExam.values())]
 
   // Load all version details in parallel (each detail query is already batched)
   const detailEntries = await Promise.all(
-    versionIds.map(async vId => {
+    versionIds.map(async (vId) => {
       const detail = await getVersionDetail(vId)
       return [vId, detail] as const
     }),
@@ -125,7 +125,7 @@ export async function getExamsWithPublishedVersions(): Promise<ExamWithVersion[]
     detailEntries.filter(([, d]) => d != null) as [string, ExamVersionDetail][],
   )
 
-  return exams.flatMap(exam => {
+  return exams.flatMap((exam) => {
     const vId = publishedVersionByExam.get(exam.examId)
     const detail = vId ? versionDetails.get(vId) : undefined
     return detail ? [{ ...exam, currentVersion: detail }] : []
@@ -187,7 +187,7 @@ export async function getVersionsByExamId(examId: string): Promise<ExamVersion[]
     .where('exam_id', '=', examId)
     .orderBy('version_number', 'desc')
     .execute()
-  return rows.map(r => ({
+  return rows.map((r) => ({
     versionId: r.version_id,
     examId: r.exam_id,
     versionNumber: r.version_number,
@@ -253,7 +253,7 @@ export async function getVersionDetail(versionId: string): Promise<ExamVersionDe
     return { ...version, translations, questions: [] }
   }
 
-  const questionIds = qRows.map(q => q.question_id)
+  const questionIds = qRows.map((q) => q.question_id)
 
   // Batch: all question_translations for this version's questions
   const qtRows = await db
@@ -271,7 +271,7 @@ export async function getVersionDetail(versionId: string): Promise<ExamVersionDe
     .execute()
 
   // Batch: all choice_translations for fetched choices (skip if no choices)
-  const choiceIds = cRows.map(c => c.choice_id)
+  const choiceIds = cRows.map((c) => c.choice_id)
   const ctRows =
     choiceIds.length > 0
       ? await db
@@ -306,7 +306,7 @@ export async function getVersionDetail(versionId: string): Promise<ExamVersionDe
     })
   }
 
-  const questions: ExamVersionDetail['questions'] = qRows.map(q => ({
+  const questions: ExamVersionDetail['questions'] = qRows.map((q) => ({
     questionId: q.question_id,
     versionId: q.version_id,
     sortOrder: q.sort_order,
@@ -324,7 +324,7 @@ export async function createVersion(
   cloneFromPublished = false,
 ): Promise<ExamVersion> {
   const existing = await getVersionsByExamId(examId)
-  const nextNumber = existing.length > 0 ? Math.max(...existing.map(v => v.versionNumber)) + 1 : 1
+  const nextNumber = existing.length > 0 ? Math.max(...existing.map((v) => v.versionNumber)) + 1 : 1
 
   const id = newId()
   const now = new Date()
@@ -332,11 +332,11 @@ export async function createVersion(
   // Fetch the published detail before opening the transaction (read-only, safe outside tx)
   let publishedVersionDetail: Awaited<ReturnType<typeof getVersionDetail>> | undefined
   if (cloneFromPublished) {
-    const published = existing.find(v => v.status === 'PUBLISHED')
+    const published = existing.find((v) => v.status === 'PUBLISHED')
     if (published) publishedVersionDetail = await getVersionDetail(published.versionId)
   }
 
-  await db.transaction().execute(async trx => {
+  await db.transaction().execute(async (trx) => {
     await trx
       .insertInto('exam.exam_versions')
       .values({
@@ -444,7 +444,7 @@ export async function publishVersion(versionId: string, user: JWTUser): Promise<
     return problem({ status: 409, detail: 'Only DRAFT versions can be published' })
 
   const now = new Date()
-  await db.transaction().execute(async trx => {
+  await db.transaction().execute(async (trx) => {
     // Retire the currently published version (if any)
     await trx
       .updateTable('exam.exam_versions')
@@ -556,7 +556,7 @@ export async function upsertVersionTranslation(
   await db
     .insertInto('exam.exam_version_translations')
     .values({ version_id: versionId, language, title, description })
-    .onConflict(oc => oc.columns(['version_id', 'language']).doUpdateSet({ title, description }))
+    .onConflict((oc) => oc.columns(['version_id', 'language']).doUpdateSet({ title, description }))
     .execute()
 }
 
@@ -585,7 +585,7 @@ export async function upsertQuestion(versionId: string, data: QuestionUpsert): P
     await db
       .insertInto('exam.question_translations')
       .values({ question_id: id, language: lang, prompt: t.prompt, reasoning: t.reasoning ?? null })
-      .onConflict(oc =>
+      .onConflict((oc) =>
         oc
           .columns(['question_id', 'language'])
           .doUpdateSet({ prompt: t.prompt, reasoning: t.reasoning ?? null }),
@@ -629,7 +629,7 @@ export async function deleteQuestion(questionId: string): Promise<void> {
 export async function upsertChoice(questionId: string, data: ChoiceUpsert): Promise<Choice> {
   const id = data.choiceId ?? newId()
 
-  await db.transaction().execute(async trx => {
+  await db.transaction().execute(async (trx) => {
     // If marking this choice as correct, clear any existing correct choice for the question
     // to avoid violating the partial unique index on (question_id) WHERE is_correct = true
     if (data.isCorrect) {
@@ -666,7 +666,7 @@ export async function upsertChoice(questionId: string, data: ChoiceUpsert): Prom
     await db
       .insertInto('exam.choice_translations')
       .values({ choice_id: id, language: lang, text: t.text })
-      .onConflict(oc => oc.columns(['choice_id', 'language']).doUpdateSet({ text: t.text }))
+      .onConflict((oc) => oc.columns(['choice_id', 'language']).doUpdateSet({ text: t.text }))
       .execute()
   }
 
@@ -766,11 +766,11 @@ export async function getAttempts(filters: AttemptFilters): Promise<AttemptListR
     q = q.where('versions.exam_id', '=', filters.examId)
   }
 
-  const countRow = await q.select(eb => [eb.fn.countAll<number>().as('total')]).executeTakeFirst()
+  const countRow = await q.select((eb) => [eb.fn.countAll<number>().as('total')]).executeTakeFirst()
   const total = Number(countRow?.total ?? 0)
 
   const rows = await q
-    .select(eb => [
+    .select((eb) => [
       'attempts.attempt_id',
       'attempts.version_id',
       'versions.exam_id',
@@ -792,7 +792,7 @@ export async function getAttempts(filters: AttemptFilters): Promise<AttemptListR
       'attempts.updated_at',
       eb
         .selectFrom('exam.exam_versions as published_versions')
-        .select(eb2 => [eb2.fn.max<number>('published_versions.version_number').as('latest')])
+        .select((eb2) => [eb2.fn.max<number>('published_versions.version_number').as('latest')])
         .whereRef('published_versions.exam_id', '=', 'versions.exam_id')
         .where('published_versions.status', '=', 'PUBLISHED')
         .as('latest_published_version_number'),
@@ -838,13 +838,13 @@ export async function createAttempt(
     .where('version_id', '=', versionId)
     .execute()
 
-  const shuffled = fisherYatesShuffle(allQuestions.map(q => q.question_id))
+  const shuffled = fisherYatesShuffle(allQuestions.map((q) => q.question_id))
   const selected =
     version.questionCount != null && version.questionCount < shuffled.length
       ? shuffled.slice(0, version.questionCount)
       : shuffled
 
-  await db.transaction().execute(async trx => {
+  await db.transaction().execute(async (trx) => {
     await trx
       .insertInto('exam.attempts')
       .values({
@@ -909,7 +909,7 @@ export async function getAttemptVersionDetail(
     return { ...version, translations, questions: [] }
   }
 
-  const questionIds = aqRows.map(r => r.question_id)
+  const questionIds = aqRows.map((r) => r.question_id)
 
   const qtRows = await db
     .selectFrom('exam.question_translations')
@@ -924,7 +924,7 @@ export async function getAttemptVersionDetail(
     .orderBy('sort_order')
     .execute()
 
-  const choiceIds = cRows.map(c => c.choice_id)
+  const choiceIds = cRows.map((c) => c.choice_id)
   const ctRows =
     choiceIds.length > 0
       ? await db
@@ -958,7 +958,7 @@ export async function getAttemptVersionDetail(
     })
   }
 
-  const questions: ExamVersionDetail['questions'] = aqRows.map(r => ({
+  const questions: ExamVersionDetail['questions'] = aqRows.map((r) => ({
     questionId: r.question_id,
     versionId: r.version_id,
     sortOrder: r.attempt_sort_order,
@@ -1011,7 +1011,7 @@ export async function upsertAttemptAnswer(
       created_at: now,
       updated_at: now,
     })
-    .onConflict(oc =>
+    .onConflict((oc) =>
       oc
         .columns(['attempt_id', 'question_id'])
         .doUpdateSet({ choice_id: data.choiceId ?? null, updated_at: now }),
@@ -1039,7 +1039,7 @@ export async function getAttemptAnswers(attemptId: string): Promise<AttemptAnswe
     .selectAll()
     .where('attempt_id', '=', attemptId)
     .execute()
-  return rows.map(r => ({
+  return rows.map((r) => ({
     attemptId: r.attempt_id,
     questionId: r.question_id,
     choiceId: r.choice_id,
@@ -1057,13 +1057,13 @@ export async function submitAttempt(attemptId: string): Promise<Attempt> {
   if (!detail) return problem({ status: 404, detail: 'Exam version not found' })
 
   const answers = await getAttemptAnswers(attemptId)
-  const answerMap = new Map(answers.map(a => [a.questionId, a.choiceId]))
+  const answerMap = new Map(answers.map((a) => [a.questionId, a.choiceId]))
 
   let correctCount = 0
   const totalCount = detail.questions.length
 
   for (const q of detail.questions) {
-    const correctChoice = q.choices.find(c => c.isCorrect)
+    const correctChoice = q.choices.find((c) => c.isCorrect)
     const selectedChoiceId = answerMap.get(q.questionId)
     if (correctChoice && selectedChoiceId === correctChoice.choiceId) {
       correctCount++

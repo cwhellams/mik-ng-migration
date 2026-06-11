@@ -80,9 +80,7 @@ function ProgramDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
-      <DialogTitle>
-        {program ? 'Edit Training Program' : 'New Training Program'}
-      </DialogTitle>
+      <DialogTitle>{program ? 'Edit Training Program' : 'New Training Program'}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity='error' sx={{ mb: 2 }}>
@@ -108,11 +106,7 @@ function ProgramDialog({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button
-          variant='contained'
-          onClick={handleSave}
-          disabled={saving || !name.trim()}
-        >
+        <Button variant='contained' onClick={handleSave} disabled={saving || !name.trim()}>
           {saving ? 'Saving…' : 'Save'}
         </Button>
       </DialogActions>
@@ -189,12 +183,7 @@ function SyllabiSection({
 
   return (
     <Box>
-      <Box
-        display='flex'
-        alignItems='center'
-        justifyContent='space-between'
-        mb={1}
-      >
+      <Box display='flex' alignItems='center' justifyContent='space-between' mb={1}>
         <Typography variant='subtitle1' fontWeight={600}>
           Syllabus Versions
         </Typography>
@@ -202,9 +191,7 @@ function SyllabiSection({
           <Button
             size='small'
             startIcon={<Icon icon='mdi:upload' />}
-            onClick={() =>
-              navigate(`/admin/dto/programs/${program.programId}/import`)
-            }
+            onClick={() => navigate(`/admin/dto/programs/${program.programId}/import`)}
           >
             Import JSON
           </Button>
@@ -250,9 +237,7 @@ function SyllabiSection({
                   />
                 </TableCell>
                 <TableCell>
-                  {s.publishedAt
-                    ? new Date(s.publishedAt).toLocaleDateString()
-                    : '—'}
+                  {s.publishedAt ? new Date(s.publishedAt).toLocaleDateString() : '—'}
                 </TableCell>
                 <TableCell align='right'>
                   <Box display='flex' gap={0.5} justifyContent='flex-end'>
@@ -265,9 +250,7 @@ function SyllabiSection({
                       disabled={exporting === s.syllabusId}
                       onClick={() => handleExport(s)}
                     >
-                      {exporting === s.syllabusId
-                        ? 'Exporting…'
-                        : 'Export JSON'}
+                      {exporting === s.syllabusId ? 'Exporting…' : 'Export JSON'}
                     </Button>
                     <Button
                       size='small'
@@ -277,17 +260,14 @@ function SyllabiSection({
                     >
                       {copying === s.syllabusId ? 'Copying…' : 'Copy as Draft'}
                     </Button>
-                    {(s.status === 'DRAFT' ||
-                      s.status === 'WAITING_FOR_APPROVAL') && (
+                    {(s.status === 'DRAFT' || s.status === 'WAITING_FOR_APPROVAL') && (
                       <Button
                         size='small'
                         color='success'
                         disabled={publishing === s.syllabusId}
                         onClick={() => handlePublish(s.syllabusId)}
                       >
-                        {publishing === s.syllabusId
-                          ? 'Publishing…'
-                          : 'Publish'}
+                        {publishing === s.syllabusId ? 'Publishing…' : 'Publish'}
                       </Button>
                     )}
                   </Box>
@@ -312,9 +292,7 @@ export default function DtoProgramsAdminPage() {
     url: 'v1/dto/programs',
   })
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingProgram, setEditingProgram] = useState<TrainingProgram | null>(
-    null
-  )
+  const [editingProgram, setEditingProgram] = useState<TrainingProgram | null>(null)
 
   const handleEdit = (program: TrainingProgram) => {
     setEditingProgram(program)
@@ -330,19 +308,13 @@ export default function DtoProgramsAdminPage() {
     <Box>
       <Title label='DTO Training Programs' />
       <Box display='flex' justifyContent='flex-end' mb={2}>
-        <Button
-          variant='contained'
-          startIcon={<Icon icon='mdi:plus' />}
-          onClick={handleCreate}
-        >
+        <Button variant='contained' startIcon={<Icon icon='mdi:plus' />} onClick={handleCreate}>
           New Program
         </Button>
       </Box>
       <RemoteContent isLoading={isLoading} error={error}>
         {(programs?.length ?? 0) === 0 ? (
-          <Typography color='text.secondary'>
-            No training programs yet.
-          </Typography>
+          <Typography color='text.secondary'>No training programs yet.</Typography>
         ) : (
           programs!.map((program) => (
             <Box
@@ -355,12 +327,7 @@ export default function DtoProgramsAdminPage() {
                 borderRadius: 2,
               }}
             >
-              <Box
-                display='flex'
-                alignItems='center'
-                justifyContent='space-between'
-                mb={2}
-              >
+              <Box display='flex' alignItems='center' justifyContent='space-between' mb={2}>
                 <Typography variant='h6'>{program.name}</Typography>
                 <IconButton size='small' onClick={() => handleEdit(program)}>
                   <Icon icon='mdi:pencil' />
@@ -373,9 +340,7 @@ export default function DtoProgramsAdminPage() {
               )}
               <SyllabiSection
                 program={program}
-                onViewSyllabus={(s) =>
-                  navigate(`/admin/dto/syllabi/${s.syllabusId}`)
-                }
+                onViewSyllabus={(s) => navigate(`/admin/dto/syllabi/${s.syllabusId}`)}
               />
             </Box>
           ))

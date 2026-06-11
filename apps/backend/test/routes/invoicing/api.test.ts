@@ -207,7 +207,7 @@ describe('POST /triggerAnnualMembershipBillingProcess', () => {
         created_by: 'k1mnimda',
         updated_by: 'k1mnimda',
       })
-      .onConflict(oc => oc.columns(['fee_type', 'year']).doNothing())
+      .onConflict((oc) => oc.columns(['fee_type', 'year']).doNothing())
       .execute()
   })
 

@@ -21,7 +21,7 @@ export async function getGdprFlightLogs(memberId: string) {
   return db
     .selectFrom('flight.logs')
     .selectAll()
-    .where(eb =>
+    .where((eb) =>
       eb.or([
         eb('billable_member_id', '=', memberId),
         eb('pic_member_id', '=', memberId),
@@ -79,7 +79,7 @@ export async function getGdprShopOrders(memberId: string) {
 
   if (orders.length === 0) return []
 
-  const orderIds = orders.map(o => o.order_id)
+  const orderIds = orders.map((o) => o.order_id)
   const items = await db
     .selectFrom('shop.order_items')
     .selectAll()
@@ -93,7 +93,7 @@ export async function getGdprShopOrders(memberId: string) {
     itemsByOrderId.set(item.order_id, list)
   }
 
-  return orders.map(o => ({
+  return orders.map((o) => ({
     ...o,
     items: itemsByOrderId.get(o.order_id) ?? [],
   }))
@@ -111,7 +111,7 @@ export async function getGdprPrepaidPackages(memberId: string) {
 
   if (packages.length === 0) return []
 
-  const packageIds = packages.map(p => p.member_package_id)
+  const packageIds = packages.map((p) => p.member_package_id)
   const usageLogs = await db
     .selectFrom('prepaid.usage_log')
     .selectAll()
@@ -126,7 +126,7 @@ export async function getGdprPrepaidPackages(memberId: string) {
     usageByPackageId.set(log.member_package_id, list)
   }
 
-  return packages.map(p => ({
+  return packages.map((p) => ({
     ...p,
     usageLog: usageByPackageId.get(p.member_package_id) ?? [],
   }))
@@ -218,7 +218,7 @@ export async function getGdprIncidentReports(memberId: string) {
   return db
     .selectFrom('flight.occurrences as o')
     .selectAll('o')
-    .where(eb =>
+    .where((eb) =>
       eb.or([
         eb('o.created_by', '=', memberId),
         eb.exists(
@@ -253,7 +253,7 @@ export async function getGdprFlightLogAuditTrail(memberId: string) {
     .selectFrom('flight.logs_audit as la')
     .selectAll('la')
     .innerJoin('flight.logs as fl', 'la.flight_id', 'fl.flight_id')
-    .where(eb =>
+    .where((eb) =>
       eb.or([
         eb('fl.billable_member_id', '=', memberId),
         eb('fl.pic_member_id', '=', memberId),

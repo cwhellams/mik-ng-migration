@@ -71,8 +71,7 @@ export default function ToolsPage() {
     }
   }
 
-  const hasCurrentYearRun =
-    billingRuns?.some((run) => run.year === currentYear) || false
+  const hasCurrentYearRun = billingRuns?.some((run) => run.year === currentYear) || false
   const displayRuns = billingRuns?.slice(0, 3) || []
 
   return (
@@ -95,19 +94,13 @@ export default function ToolsPage() {
             </Typography>
 
             {membershipStats && (
-              <Box
-                sx={{ mb: 3, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}
-              >
+              <Box sx={{ mb: 3, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
                 <Typography variant='body2' gutterBottom>
-                  <strong>
-                    {t('invoicing.toolsPage.annualBilling.eligibleMembers')}:
-                  </strong>{' '}
+                  <strong>{t('invoicing.toolsPage.annualBilling.eligibleMembers')}:</strong>{' '}
                   {membershipStats.totalAutoRenewMembers}
                 </Typography>
                 <Typography variant='body2'>
-                  <strong>
-                    {t('invoicing.toolsPage.annualBilling.withEquipmentFee')}:
-                  </strong>{' '}
+                  <strong>{t('invoicing.toolsPage.annualBilling.withEquipmentFee')}:</strong>{' '}
                   {membershipStats.totalAutoRenewEquipmentFee}
                 </Typography>
               </Box>
@@ -118,9 +111,7 @@ export default function ToolsPage() {
               color='primary'
               onClick={handleTriggerBilling}
               disabled={mutation.isMutating || hasCurrentYearRun}
-              startIcon={
-                mutation.isMutating ? <CircularProgress size={20} /> : null
-              }
+              startIcon={mutation.isMutating ? <CircularProgress size={20} /> : null}
             >
               {mutation.isMutating
                 ? t('invoicing.toolsPage.annualBilling.processing')
@@ -146,9 +137,7 @@ export default function ToolsPage() {
             {response && (
               <Alert severity='success' sx={{ mt: 2 }}>
                 <Typography variant='body1' gutterBottom>
-                  <strong>
-                    {t('invoicing.toolsPage.annualBilling.successMessage')}
-                  </strong>
+                  <strong>{t('invoicing.toolsPage.annualBilling.successMessage')}</strong>
                 </Typography>
                 <Typography variant='body2'>
                   {t('invoicing.toolsPage.annualBilling.processedCount')}:{' '}
@@ -166,33 +155,21 @@ export default function ToolsPage() {
                   {displayRuns.map((run, index) => (
                     <Card key={index} variant='outlined'>
                       <CardContent>
-                        <Stack
-                          direction='row'
-                          spacing={2}
-                          alignItems='center'
-                          flexWrap='wrap'
-                        >
+                        <Stack direction='row' spacing={2} alignItems='center' flexWrap='wrap'>
                           <Typography variant='h6' sx={{ minWidth: '80px' }}>
                             {run.year}
                           </Typography>
                           <Chip
                             label={
                               run.status === 'processed'
-                                ? t(
-                                    'invoicing.toolsPage.annualBilling.statusProcessed'
-                                  )
-                                : t(
-                                    'invoicing.toolsPage.annualBilling.statusInProgress'
-                                  )
+                                ? t('invoicing.toolsPage.annualBilling.statusProcessed')
+                                : t('invoicing.toolsPage.annualBilling.statusInProgress')
                             }
-                            color={
-                              run.status === 'processed' ? 'success' : 'warning'
-                            }
+                            color={run.status === 'processed' ? 'success' : 'warning'}
                             size='small'
                           />
                           <Typography variant='body2' color='text.secondary'>
-                            {t('invoicing.toolsPage.annualBilling.createdBy')}:{' '}
-                            {run.createdBy}
+                            {t('invoicing.toolsPage.annualBilling.createdBy')}: {run.createdBy}
                           </Typography>
                           <Typography variant='body2' color='text.secondary'>
                             {t('invoicing.toolsPage.annualBilling.createdAt')}:{' '}
@@ -200,10 +177,8 @@ export default function ToolsPage() {
                           </Typography>
                           {run.status === 'processed' && run.updatedAt && (
                             <Typography variant='body2' color='text.secondary'>
-                              {t(
-                                'invoicing.toolsPage.annualBilling.completedAt'
-                              )}
-                              : {new Date(run.updatedAt).toISOString()}
+                              {t('invoicing.toolsPage.annualBilling.completedAt')}:{' '}
+                              {new Date(run.updatedAt).toISOString()}
                             </Typography>
                           )}
                         </Stack>

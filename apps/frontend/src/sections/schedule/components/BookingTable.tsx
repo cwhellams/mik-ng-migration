@@ -50,13 +50,9 @@ export const BookingTable = ({
                 </TableCell>
                 <TableCell>
                   {start.format('HH:mm')} -{' '}
-                  {start.diff(end, 'day') == 0
-                    ? end.format('HH:mm')
-                    : end.format('DD.MM. HH:mm')}
+                  {start.diff(end, 'day') == 0 ? end.format('HH:mm') : end.format('DD.MM. HH:mm')}
                 </TableCell>
-                <TableCell>
-                  {formatDuration(end.diff(start, 'minutes'), true)}
-                </TableCell>
+                <TableCell>{formatDuration(end.diff(start, 'minutes'), true)}</TableCell>
                 <TableCell>{eventDescription(booking)}</TableCell>
               </TableRow>
             )

@@ -1,12 +1,6 @@
 import { AirfieldListResponse } from '@backend/routes/flight-log/models'
 import { Autocomplete, TextField } from '@mui/material'
-import {
-  Control,
-  Controller,
-  FieldPath,
-  FieldValues,
-  GlobalError,
-} from 'react-hook-form'
+import { Control, Controller, FieldPath, FieldValues, GlobalError } from 'react-hook-form'
 import useApi from '../hooks/useApi'
 
 interface AirfieldsProps<T extends FieldValues> {
@@ -35,7 +29,7 @@ export const Airfields = <T extends FieldValues>({
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   )
 
   const airfields = data?.airfields ?? []

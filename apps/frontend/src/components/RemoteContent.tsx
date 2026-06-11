@@ -15,9 +15,7 @@ export const RemoteContent = ({
   if (error) {
     return (
       <Alert severity='error'>
-        {error.status == 403
-          ? t('error.noAccess')
-          : (error.detail ?? error.title)}
+        {error.status == 403 ? t('error.noAccess') : (error.detail ?? error.title)}
       </Alert>
     )
   }

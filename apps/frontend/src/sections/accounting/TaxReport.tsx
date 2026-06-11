@@ -46,9 +46,7 @@ interface TaxReportResponse {
 
 export const TaxReport = () => {
   const { t } = useTranslation()
-  const [startDate, setStartDate] = useState<Dayjs | null>(
-    dayjs().startOf('year')
-  )
+  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().startOf('year'))
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs())
   const [shouldFetch, setShouldFetch] = useState(false)
 
@@ -108,7 +106,7 @@ export const TaxReport = () => {
     link.setAttribute('href', url)
     link.setAttribute(
       'download',
-      `tax-report-${startDate?.format('YYYY-MM-DD')}-${endDate?.format('YYYY-MM-DD')}.csv`
+      `tax-report-${startDate?.format('YYYY-MM-DD')}-${endDate?.format('YYYY-MM-DD')}.csv`,
     )
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
@@ -142,12 +140,7 @@ export const TaxReport = () => {
         <Typography variant='h5' gutterBottom>
           {t('invoicing.taxReport.title')}
         </Typography>
-        <Typography
-          variant='body2'
-          color='text.secondary'
-          gutterBottom
-          sx={{ mb: 3 }}
-        >
+        <Typography variant='body2' color='text.secondary' gutterBottom sx={{ mb: 3 }}>
           {t('invoicing.taxReport.description')}
         </Typography>
 
@@ -220,12 +213,8 @@ export const TaxReport = () => {
               <Table size='small' sx={{ minWidth: { xs: 600, md: 'auto' } }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell>
-                      {t('invoicing.taxReport.table.month')}
-                    </TableCell>
-                    <TableCell>
-                      {t('invoicing.taxReport.table.aircraft')}
-                    </TableCell>
+                    <TableCell>{t('invoicing.taxReport.table.month')}</TableCell>
+                    <TableCell>{t('invoicing.taxReport.table.aircraft')}</TableCell>
                     <TableCell align='right'>
                       {t('invoicing.taxReport.table.commercialBlock')}
                     </TableCell>
@@ -238,9 +227,7 @@ export const TaxReport = () => {
                     <TableCell align='right'>
                       {t('invoicing.taxReport.table.privateFlight')}
                     </TableCell>
-                    <TableCell align='right'>
-                      {t('invoicing.taxReport.table.totalBlock')}
-                    </TableCell>
+                    <TableCell align='right'>{t('invoicing.taxReport.table.totalBlock')}</TableCell>
                     <TableCell align='right'>
                       {t('invoicing.taxReport.table.totalFlight')}
                     </TableCell>
@@ -263,12 +250,8 @@ export const TaxReport = () => {
                       <TableCell align='right'>
                         {formatDecimalHours(row.privateFlightMins)}
                       </TableCell>
-                      <TableCell align='right'>
-                        {formatDecimalHours(row.totalBlockMins)}
-                      </TableCell>
-                      <TableCell align='right'>
-                        {formatDecimalHours(row.totalFlightMins)}
-                      </TableCell>
+                      <TableCell align='right'>{formatDecimalHours(row.totalBlockMins)}</TableCell>
+                      <TableCell align='right'>{formatDecimalHours(row.totalFlightMins)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

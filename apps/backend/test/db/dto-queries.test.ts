@@ -256,7 +256,7 @@ describe('copySyllabusAsDraft', () => {
   it('copy preserves recommendedBlockTimeMins on flights', async () => {
     const copy = await copySyllabusAsDraft(SYLLABUS_ID, USER_ID)
     copiedSyllabusId = copy!.syllabusId
-    const flight01 = (copy!.flights ?? []).find(f => f.code === '01')
+    const flight01 = (copy!.flights ?? []).find((f) => f.code === '01')
     expect(flight01).toBeDefined()
     expect(flight01!.recommendedBlockTimeMins).toBe(60)
   })

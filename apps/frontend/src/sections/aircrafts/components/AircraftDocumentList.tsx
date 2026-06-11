@@ -41,11 +41,7 @@ import {
   AircraftDocumentType,
 } from '@backend/routes/aircraft-documents/models'
 import { DownloadDocument } from '@backend/routes/documents/models'
-import {
-  DOCUMENT_CONSTANTS,
-  getFileIcon,
-  formatFileSize,
-} from '../../../utils/documentHelpers'
+import { DOCUMENT_CONSTANTS, getFileIcon, formatFileSize } from '../../../utils/documentHelpers'
 import { useTimezone } from '../../../hooks/useTimezone'
 
 const EXPIRING_DAYS_THRESHOLD = DOCUMENT_CONSTANTS.EXPIRING_DAYS_THRESHOLD
@@ -75,16 +71,13 @@ const getDocumentStatus = (doc: AircraftDocument): DocumentStatus => {
 }
 
 // Get status color
-const getStatusColor = (
-  status: string
-): 'success' | 'warning' | 'error' | 'default' => {
-  const colorMap: Record<string, 'success' | 'warning' | 'error' | 'default'> =
-    {
-      valid: 'success',
-      expiring: 'warning',
-      expired: 'error',
-      inactive: 'default',
-    }
+const getStatusColor = (status: string): 'success' | 'warning' | 'error' | 'default' => {
+  const colorMap: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
+    valid: 'success',
+    expiring: 'warning',
+    expired: 'error',
+    inactive: 'default',
+  }
   return colorMap[status] || 'default'
 }
 
@@ -172,12 +165,7 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
           <Icon icon={getFileIcon(document.mimeType)} width={24} height={24} />
         </ListItemIcon>
         <Box sx={{ flex: 1 }}>
-          <Stack
-            direction='row'
-            spacing={1}
-            alignItems='center'
-            sx={{ mb: 0.5 }}
-          >
+          <Stack direction='row' spacing={1} alignItems='center' sx={{ mb: 0.5 }}>
             <Typography variant='body2' fontWeight='medium'>
               {document.title}
             </Typography>
@@ -191,16 +179,10 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
             <Typography variant='caption' color='text.secondary'>
               {document.description}
             </Typography>
-            <Stack
-              direction='row'
-              spacing={2}
-              alignItems='center'
-              flexWrap='wrap'
-            >
+            <Stack direction='row' spacing={2} alignItems='center' flexWrap='wrap'>
               {document.validFrom && document.validTo && (
                 <Typography variant='caption' color='text.secondary'>
-                  {t('aircraft.document.validity')}: {document.validFrom} -{' '}
-                  {document.validTo}
+                  {t('aircraft.document.validity')}: {document.validFrom} - {document.validTo}
                 </Typography>
               )}
               {document.fileSize && (
@@ -210,8 +192,7 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
               )}
               {document.updatedAt && (
                 <Typography variant='caption' color='text.secondary'>
-                  {t('aircraft.document.lastUpdated')}:{' '}
-                  {formatISODate(document.updatedAt)}
+                  {t('aircraft.document.lastUpdated')}: {formatISODate(document.updatedAt)}
                 </Typography>
               )}
             </Stack>
@@ -247,11 +228,7 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
                 <Icon icon='mdi:dots-vertical' />
               </IconButton>
             </Tooltip>
-            <Menu
-              anchorEl={menuAnchor}
-              open={Boolean(menuAnchor)}
-              onClose={handleMenuClose}
-            >
+            <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
               <MenuItem onClick={handleEdit}>
                 <ListItemIcon>
                   <Icon icon='mdi:pencil' />
@@ -299,12 +276,10 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
     tinyUrl: string | null
     qrCode: string | null
   } | null>(null)
-  const [documentToEdit, setDocumentToEdit] = useState<
-    AircraftDocumentAuditable | undefined
-  >(undefined)
-  const [editFormData, setEditFormData] = useState<Partial<AircraftDocument>>(
-    {}
+  const [documentToEdit, setDocumentToEdit] = useState<AircraftDocumentAuditable | undefined>(
+    undefined,
   )
+  const [editFormData, setEditFormData] = useState<Partial<AircraftDocument>>({})
 
   // Create a map of all document types with their corresponding documents
   const documentMap = documents.reduce(
@@ -315,7 +290,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
       map[doc.documentType].push(doc)
       return map
     },
-    {} as Record<AircraftDocumentType, AircraftDocumentAuditable[]>
+    {} as Record<AircraftDocumentType, AircraftDocumentAuditable[]>,
   )
 
   // Ensure all document types are represented
@@ -338,11 +313,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
     if (!documentToDelete) return
 
     try {
-      await mutation.trigger(
-        'DELETE',
-        {},
-        `/v1/aircraft-documents/${documentToDelete}`
-      )
+      await mutation.trigger('DELETE', {}, `/v1/aircraft-documents/${documentToDelete}`)
 
       onDocumentUpdate?.()
       setDeleteConfirmOpen(false)
@@ -360,11 +331,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
         return
       }
 
-      const res = await mutation.trigger(
-        'GET',
-        { id: document.documentId },
-        undefined
-      )
+      const res = await mutation.trigger('GET', { id: document.documentId }, undefined)
 
       const tinyUrl = res.data?.tinyUrl ?? null
 
@@ -373,7 +340,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
         window.open(tinyUrl, '_blank')
       }
     },
-    [mutation]
+    [mutation],
   )
 
   // Handle showing tiny URL dialog
@@ -381,11 +348,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
     async (document: AircraftDocument) => {
       if (!document.documentId) return
 
-      const res = await mutation.trigger(
-        'GET',
-        { id: document.documentId },
-        undefined
-      )
+      const res = await mutation.trigger('GET', { id: document.documentId }, undefined)
 
       const tinyUrl = res.data?.tinyUrl ?? null
       const qrCodeBuffer = res.data?.qrCode
@@ -406,7 +369,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
       setDownloadData({ tinyUrl, qrCode })
       setDownloadDialogOpen(true)
     },
-    [mutation]
+    [mutation],
   )
 
   // Handle showing QR code dialog
@@ -414,7 +377,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
     async (document: AircraftDocument) => {
       await handleShowTinyUrl(document)
     },
-    [handleShowTinyUrl]
+    [handleShowTinyUrl],
   )
 
   const handleDirectDownload = useCallback(() => {
@@ -428,9 +391,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
     if (downloadData?.tinyUrl) {
       try {
         await navigator.clipboard.writeText(downloadData.tinyUrl)
-        setSnackbarMessage(
-          t('aircraft.document.tinyUrlCopied', 'Tiny URL copied to clipboard!')
-        )
+        setSnackbarMessage(t('aircraft.document.tinyUrlCopied', 'Tiny URL copied to clipboard!'))
         setSnackbarOpen(true)
       } catch (error) {
         console.error('Failed to copy tiny URL:', error)
@@ -458,7 +419,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
       await mutation.trigger(
         'PATCH',
         editFormData,
-        `/v1/aircraft-documents/${documentToEdit.documentId}`
+        `/v1/aircraft-documents/${documentToEdit.documentId}`,
       )
 
       onDocumentUpdate?.()
@@ -508,10 +469,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
         )}
         <FormControlLabel
           control={
-            <Switch
-              checked={showExpired}
-              onChange={() => setShowExpired((prev) => !prev)}
-            />
+            <Switch checked={showExpired} onChange={() => setShowExpired((prev) => !prev)} />
           }
           label={t('aircraft.document.showExpired')}
         />
@@ -531,14 +489,8 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
             </Button>
           ) : (
             <Stack spacing={2}>
-              <Stack
-                direction='row'
-                justifyContent='space-between'
-                alignItems='center'
-              >
-                <Typography variant='h6'>
-                  {t('aircraft.document.upload.title')}
-                </Typography>
+              <Stack direction='row' justifyContent='space-between' alignItems='center'>
+                <Typography variant='h6'>{t('aircraft.document.upload.title')}</Typography>
                 <IconButton onClick={() => setShowUploadArea(false)}>
                   <Icon icon='mdi:close' />
                 </IconButton>
@@ -591,28 +543,17 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
         ))}
 
       {/* Delete confirmation dialog */}
-      <Dialog
-        open={deleteConfirmOpen}
-        onClose={() => setDeleteConfirmOpen(false)}
-      >
+      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
         <DialogTitle>{t('aircraft.document.delete.confirm.title')}</DialogTitle>
         <DialogContent>
           <Alert severity='warning' sx={{ mb: 2 }}>
             {t('aircraft.document.delete.confirm.warning')}
           </Alert>
-          <Typography>
-            {t('aircraft.document.delete.confirm.message')}
-          </Typography>
+          <Typography>{t('aircraft.document.delete.confirm.message')}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteConfirmOpen(false)}>
-            {t('general.cancel')}
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            color='error'
-            variant='contained'
-          >
+          <Button onClick={() => setDeleteConfirmOpen(false)}>{t('general.cancel')}</Button>
+          <Button onClick={handleDeleteConfirm} color='error' variant='contained'>
             {t('aircraft.document.delete.confirm.action')}
           </Button>
         </DialogActions>
@@ -629,9 +570,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
         maxWidth='md'
         fullWidth
       >
-        <DialogTitle>
-          {t('aircraft.document.upload.metadata.title')}
-        </DialogTitle>
+        <DialogTitle>{t('aircraft.document.upload.metadata.title')}</DialogTitle>
         <DialogContent>
           {documentToEdit && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -642,9 +581,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
               </Typography>
 
               <FormControl fullWidth required>
-                <InputLabel>
-                  {t('aircraft.document.upload.metadata.documentType')}
-                </InputLabel>
+                <InputLabel>{t('aircraft.document.upload.metadata.documentType')}</InputLabel>
                 <Select
                   value={editFormData.documentType || ''}
                   onChange={(e) =>
@@ -692,11 +629,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
               <Stack direction='row' spacing={2}>
                 <DatePicker
                   label={t('aircraft.document.upload.metadata.validFrom')}
-                  value={
-                    editFormData.validFrom
-                      ? dayjs(editFormData.validFrom)
-                      : null
-                  }
+                  value={editFormData.validFrom ? dayjs(editFormData.validFrom) : null}
                   onChange={(date) =>
                     setEditFormData((prev) => ({
                       ...prev,
@@ -707,9 +640,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
                 />
                 <DatePicker
                   label={t('aircraft.document.upload.metadata.validTo')}
-                  value={
-                    editFormData.validTo ? dayjs(editFormData.validTo) : null
-                  }
+                  value={editFormData.validTo ? dayjs(editFormData.validTo) : null}
                   onChange={(date) =>
                     setEditFormData((prev) => ({
                       ...prev,
@@ -722,9 +653,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
 
               {editFormData.validFrom &&
                 editFormData.validTo &&
-                dayjs(editFormData.validFrom).isAfter(
-                  dayjs(editFormData.validTo)
-                ) && (
+                dayjs(editFormData.validFrom).isAfter(dayjs(editFormData.validTo)) && (
                   <Alert severity='error'>
                     {t('aircraft.document.upload.metadata.dateRangeError')}
                   </Alert>
@@ -745,11 +674,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           <Button
             onClick={handleEditSave}
             variant='contained'
-            disabled={
-              !editFormData.documentType ||
-              !editFormData.title ||
-              mutation.isMutating
-            }
+            disabled={!editFormData.documentType || !editFormData.title || mutation.isMutating}
           >
             {t('general.save')}
           </Button>
@@ -763,9 +688,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
         maxWidth='sm'
         fullWidth
       >
-        <DialogTitle>
-          {t('aircraft.document.downloadOptions', 'Download Options')}
-        </DialogTitle>
+        <DialogTitle>{t('aircraft.document.downloadOptions', 'Download Options')}</DialogTitle>
         <DialogContent>
           <Stack spacing={3} sx={{ mt: 1 }}>
             {downloadData?.tinyUrl && (
@@ -814,9 +737,7 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDownloadDialogOpen(false)}>
-            {t('common.close', 'Close')}
-          </Button>
+          <Button onClick={() => setDownloadDialogOpen(false)}>{t('common.close', 'Close')}</Button>
           <Button
             variant='contained'
             onClick={handleDirectDownload}

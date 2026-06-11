@@ -11,15 +11,15 @@ properties:
   name:
     type: string
     description: Name of the article
-    example: "Lead dancing shoes"
+    example: 'Lead dancing shoes'
   contents:
     type: string
     description: Contents of the article (various usage)
-    example: "Enhance the thump of your footsteps for more attention."
+    example: 'Enhance the thump of your footsteps for more attention.'
   unit:
     type: string
     description: Name of the unit of the article
-    example: "Pairs"
+    example: 'Pairs'
   amount:
     type: number
     description: Amount of the given article in the price offer

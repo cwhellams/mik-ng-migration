@@ -182,7 +182,7 @@ function buildItemsTableHtml(rows: TaskRow[], lang: string): string | undefined 
         : { description: 'Description', qty: 'Qty', unitPrice: 'Unit price', total: 'Total' }
 
   const rowsHtml = rows
-    .map(row => {
+    .map((row) => {
       const name = escapeHtml(row.name ?? '')
       const contents = row.contents
         ? `<br><small style="color:#666">${escapeHtml(row.contents)}</small>`

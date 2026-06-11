@@ -25,10 +25,7 @@ const NotFound = () => {
     >
       <Icon icon='mdi:airplane' fontSize={80} color='#1976d2' />
 
-      <Typography
-        variant='h1'
-        sx={{ mt: 4, mb: 2, fontSize: { xs: '3rem', md: '4rem' } }}
-      >
+      <Typography variant='h1' sx={{ mt: 4, mb: 2, fontSize: { xs: '3rem', md: '4rem' } }}>
         404
       </Typography>
 
@@ -36,11 +33,7 @@ const NotFound = () => {
         {t('error.pageNotFound')}
       </Typography>
 
-      <Typography
-        variant='body1'
-        color='text.secondary'
-        sx={{ mb: 4, maxWidth: 500 }}
-      >
+      <Typography variant='body1' color='text.secondary' sx={{ mb: 4, maxWidth: 500 }}>
         {t('error.pageNotFoundMessage')}
       </Typography>
 

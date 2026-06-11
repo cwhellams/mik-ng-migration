@@ -323,7 +323,7 @@ describe('Simplbooks Outbox Handler tests', () => {
 
     it('strips the id from each task', async () => {
       const result = await buildCreditNotePayload(baseInvoiceResponse, '42', 'reason')
-      result.Tasks.forEach(t => expect(t.Task.id).toBeUndefined())
+      result.Tasks.forEach((t) => expect(t.Task.id).toBeUndefined())
     })
 
     it('includes Projects from the original task', async () => {

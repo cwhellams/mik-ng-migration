@@ -20,10 +20,7 @@ import { Icon } from '@iconify/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useServerClock } from '../../../hooks/useServerClock'
 import { formatTimeInTz, getOffsetLabelInTz } from '../../../utils/date'
-import {
-  FlightLog,
-  FlightLogUpsertRequest,
-} from '@backend/routes/flight-log/models'
+import { FlightLog, FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
 import dayjs from 'dayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { getTimezoneDisplay } from '../utils/timezoneUtils'
@@ -52,9 +49,7 @@ export const FlightTime = ({
   const { t } = useTranslation()
 
   // date and text inputs for time entries
-  const [flightDate, setFlightDate] = useState<dayjs.Dayjs>(
-    dayjs().utc().startOf('day')
-  )
+  const [flightDate, setFlightDate] = useState<dayjs.Dayjs>(dayjs().utc().startOf('day'))
 
   const { timezone, setTimezone } = useTimezone()
 
@@ -71,11 +66,7 @@ export const FlightTime = ({
 
     const setTimeFromEpoch = (
       base: dayjs.Dayjs,
-      field:
-        | 'offBlockTimeEpoch'
-        | 'takeoffTimeEpoch'
-        | 'landingTimeEpoch'
-        | 'onBlockTimeEpoch'
+      field: 'offBlockTimeEpoch' | 'takeoffTimeEpoch' | 'landingTimeEpoch' | 'onBlockTimeEpoch',
     ) => {
       const epoch = getValues(field)
       if (!epoch) {
@@ -90,11 +81,9 @@ export const FlightTime = ({
     }
 
     const offBlockTime = setTimeFromEpoch(flightDate, 'offBlockTimeEpoch')
-    const takeOffTime =
-      offBlockTime && setTimeFromEpoch(offBlockTime, 'takeoffTimeEpoch')
+    const takeOffTime = offBlockTime && setTimeFromEpoch(offBlockTime, 'takeoffTimeEpoch')
 
-    const landingTime =
-      takeOffTime && setTimeFromEpoch(takeOffTime, 'landingTimeEpoch')
+    const landingTime = takeOffTime && setTimeFromEpoch(takeOffTime, 'landingTimeEpoch')
 
     if (landingTime) {
       setTimeFromEpoch(landingTime, 'onBlockTimeEpoch')
@@ -120,9 +109,7 @@ export const FlightTime = ({
     if (diffMins < 60) return `Takeoff ${diffMins}min ago`
     const hours = Math.floor(diffMins / 60)
     const mins = diffMins % 60
-    return mins === 0
-      ? `Takeoff ${hours}h ago`
-      : `Takeoff ${hours}h ${mins}min ago`
+    return mins === 0 ? `Takeoff ${hours}h ago` : `Takeoff ${hours}h ${mins}min ago`
   }, [utcMs, takeoffEpoch])
 
   return (
@@ -263,19 +250,12 @@ export const FlightTime = ({
           {/* Time zone helper text */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Icon
-              icon={
-                timezone === 'utc'
-                  ? 'mdi:clock-outline'
-                  : 'mdi:clock-time-eight-outline'
-              }
+              icon={timezone === 'utc' ? 'mdi:clock-outline' : 'mdi:clock-time-eight-outline'}
               style={{ marginRight: '8px' }}
             />
             <Typography variant='caption' color='text.secondary'>
-              {timezone === 'utc'
-                ? t('flightLog.usingUtcTime')
-                : t('flightLog.usingLocalTime')}{' '}
-              {timezone !== 'utc' &&
-                `(${getTimezoneDisplay(false, flightDate)})`}
+              {timezone === 'utc' ? t('flightLog.usingUtcTime') : t('flightLog.usingLocalTime')}{' '}
+              {timezone !== 'utc' && `(${getTimezoneDisplay(false, flightDate)})`}
             </Typography>
           </Box>
         </Box>
@@ -413,11 +393,7 @@ const TimeStringEditor = ({
                 trigger(dep)
               })
             }}
-            label={
-              useUtcTime
-                ? `${label} (UTC)`
-                : `${label} (${t('flightLog.local')})`
-            }
+            label={useUtcTime ? `${label} (UTC)` : `${label} (${t('flightLog.local')})`}
           />
           {error && <FormHelperText>{formatError(error)}</FormHelperText>}
         </FormControl>

@@ -137,9 +137,8 @@ describe('Simplbooks Invoice Payment Worker', () => {
   describe('Worker Initialization', () => {
     it('should schedule task when worker is enabled', async () => {
       // Import the worker module fresh
-      const { startSimplbooksInvoicePaymentWorker } = await import(
-        '../../src/workers/simplbooksInvoicePaymentWorker.ts'
-      )
+      const { startSimplbooksInvoicePaymentWorker } =
+        await import('../../src/workers/simplbooksInvoicePaymentWorker.ts')
 
       const worker = startSimplbooksInvoicePaymentWorker({
         getInvoice: mockGetInvoice,
@@ -157,9 +156,8 @@ describe('Simplbooks Invoice Payment Worker', () => {
 
       // Clear module cache to reload with new env var
       jest.resetModules()
-      const { startSimplbooksInvoicePaymentWorker } = await import(
-        '../../src/workers/simplbooksInvoicePaymentWorker.ts'
-      )
+      const { startSimplbooksInvoicePaymentWorker } =
+        await import('../../src/workers/simplbooksInvoicePaymentWorker.ts')
 
       const worker = startSimplbooksInvoicePaymentWorker({
         getInvoice: mockGetInvoice,
@@ -184,7 +182,7 @@ describe('Simplbooks Invoice Payment Worker', () => {
       expect(Array.isArray(unpaidInvoices)).toBe(true)
 
       // Should include our test invoice
-      const testInvoice = unpaidInvoices.find(inv => inv.id.toString() === testInvoiceId)
+      const testInvoice = unpaidInvoices.find((inv) => inv.id.toString() === testInvoiceId)
       expect(testInvoice).toBeDefined()
       expect(testInvoice?.is_paid).toBe(false)
       expect(testInvoice?.pmt_ref).toBe('12345')
@@ -222,7 +220,7 @@ describe('Simplbooks Invoice Payment Worker', () => {
       const unpaidInvoices = await getUnpaidInvoicesWithSimplbooksRef()
 
       // Should not include invoice without pmt_ref
-      const noRefInvoice = unpaidInvoices.find(inv => inv.id.toString() === noRefInvoiceId)
+      const noRefInvoice = unpaidInvoices.find((inv) => inv.id.toString() === noRefInvoiceId)
       expect(noRefInvoice).toBeUndefined()
 
       // Clean up
@@ -283,7 +281,7 @@ describe('Simplbooks Invoice Payment Worker', () => {
 
       // Manually trigger the sync logic (simulate worker execution)
       const unpaidInvoices = await getUnpaidInvoicesWithSimplbooksRef()
-      const testInvoice = unpaidInvoices.find(inv => inv.id.toString() === testInvoiceId)
+      const testInvoice = unpaidInvoices.find((inv) => inv.id.toString() === testInvoiceId)
 
       if (testInvoice) {
         const simplbooksInvoice = await mockGetInvoice(parseInt(testInvoice.pmt_ref, 10))
@@ -346,7 +344,7 @@ describe('Simplbooks Invoice Payment Worker', () => {
 
       // Manually trigger the sync logic
       const unpaidInvoices = await getUnpaidInvoicesWithSimplbooksRef()
-      const testInvoice = unpaidInvoices.find(inv => inv.id.toString() === testInvoiceId)
+      const testInvoice = unpaidInvoices.find((inv) => inv.id.toString() === testInvoiceId)
 
       if (testInvoice) {
         const simplbooksInvoice = await mockGetInvoice(parseInt(testInvoice.pmt_ref, 10))

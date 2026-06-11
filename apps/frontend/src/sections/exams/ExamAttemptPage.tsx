@@ -17,11 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
-import type {
-  Attempt,
-  AttemptAnswer,
-  ExamVersionDetail,
-} from '@backend/routes/exams/models'
+import type { Attempt, AttemptAnswer, ExamVersionDetail } from '@backend/routes/exams/models'
 import { saveAnswer, submitAttempt, abandonAttempt } from './examApi'
 import { useState, useEffect } from 'react'
 import { getPreferredExamLanguage } from './language'
@@ -50,11 +46,10 @@ export default function ExamAttemptPage() {
     skipFetch: !attemptId,
   })
 
-  const { data: versionDetail, isLoading: versionDetailLoading } =
-    useApi<ExamVersionDetail>({
-      url: `v1/exams/attempts/${attemptId}/version`,
-      skipFetch: !attemptId || !attempt,
-    })
+  const { data: versionDetail, isLoading: versionDetailLoading } = useApi<ExamVersionDetail>({
+    url: `v1/exams/attempts/${attemptId}/version`,
+    skipFetch: !attemptId || !attempt,
+  })
 
   // Load existing answers
   useEffect(() => {
@@ -74,7 +69,7 @@ export default function ExamAttemptPage() {
       ? getPreferredExamLanguage(
           i18n.language,
           versionDetail,
-          Object.keys(currentQuestion.translations)
+          Object.keys(currentQuestion.translations),
         )
       : undefined
 
@@ -113,8 +108,7 @@ export default function ExamAttemptPage() {
   }
 
   const isLoading = attemptLoading || versionDetailLoading
-  const progressValue =
-    questions.length > 0 ? ((currentIdx + 1) / questions.length) * 100 : 0
+  const progressValue = questions.length > 0 ? ((currentIdx + 1) / questions.length) * 100 : 0
 
   return (
     <Box>
@@ -146,11 +140,7 @@ export default function ExamAttemptPage() {
               value={progressValue}
               sx={{ mb: 2, height: 8, borderRadius: 4 }}
             />
-            <Typography
-              variant='caption'
-              color='text.secondary'
-              sx={{ mb: 2, display: 'block' }}
-            >
+            <Typography variant='caption' color='text.secondary' sx={{ mb: 2, display: 'block' }}>
               {t('exams.questionOf', {
                 current: currentIdx + 1,
                 total: questions.length,
@@ -162,8 +152,7 @@ export default function ExamAttemptPage() {
                 <CardContent>
                   <Typography variant='h6' gutterBottom>
                     {currentQuestionLanguage
-                      ? (currentQuestion.translations[currentQuestionLanguage]
-                          ?.prompt ?? '')
+                      ? (currentQuestion.translations[currentQuestionLanguage]?.prompt ?? '')
                       : ''}
                   </Typography>
 
@@ -171,17 +160,14 @@ export default function ExamAttemptPage() {
                     <RadioGroup
                       value={answers[currentQuestion.questionId] ?? ''}
                       onChange={(e) =>
-                        handleSelectChoice(
-                          currentQuestion.questionId,
-                          e.target.value
-                        )
+                        handleSelectChoice(currentQuestion.questionId, e.target.value)
                       }
                     >
                       {currentQuestion.choices.map((choice) => {
                         const choiceLanguage = getPreferredExamLanguage(
                           i18n.language,
                           versionDetail,
-                          Object.keys(choice.translations)
+                          Object.keys(choice.translations),
                         )
 
                         return (
@@ -191,15 +177,13 @@ export default function ExamAttemptPage() {
                             control={<Radio />}
                             label={
                               choiceLanguage
-                                ? (choice.translations[choiceLanguage]?.text ??
-                                  '')
+                                ? (choice.translations[choiceLanguage]?.text ?? '')
                                 : ''
                             }
                             sx={{
                               border: '1px solid',
                               borderColor:
-                                answers[currentQuestion.questionId] ===
-                                choice.choiceId
+                                answers[currentQuestion.questionId] === choice.choiceId
                                   ? 'primary.main'
                                   : 'divider',
                               borderRadius: 1,
@@ -221,9 +205,7 @@ export default function ExamAttemptPage() {
               </Alert>
             )}
 
-            <Box
-              sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}
-            >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
               <Button
                 variant='outlined'
                 onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
@@ -236,9 +218,7 @@ export default function ExamAttemptPage() {
               {currentIdx < questions.length - 1 ? (
                 <Button
                   variant='contained'
-                  onClick={() =>
-                    setCurrentIdx((i) => Math.min(questions.length - 1, i + 1))
-                  }
+                  onClick={() => setCurrentIdx((i) => Math.min(questions.length - 1, i + 1))}
                   endIcon={<Icon icon='mdi:arrow-right' />}
                   disabled={questions.length === 0}
                 >
@@ -251,11 +231,7 @@ export default function ExamAttemptPage() {
                   onClick={handleSubmit}
                   disabled={submitting || questions.length === 0}
                   startIcon={
-                    submitting ? (
-                      <CircularProgress size={18} />
-                    ) : (
-                      <Icon icon='mdi:check-circle' />
-                    )
+                    submitting ? <CircularProgress size={18} /> : <Icon icon='mdi:check-circle' />
                   }
                 >
                   {t('exams.submitExam')}

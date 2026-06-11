@@ -42,9 +42,7 @@ const FlipTile = ({ finalChar, delay, running }: FlipTileProps) => {
     const startTimer = setTimeout(() => {
       setSettled(false)
       interval = setInterval(() => {
-        setDisplayChar(
-          FLIP_CHARS[Math.floor(Math.random() * FLIP_CHARS.length)]
-        )
+        setDisplayChar(FLIP_CHARS[Math.floor(Math.random() * FLIP_CHARS.length)])
       }, 55)
 
       const settleTimer = setTimeout(() => {
@@ -123,24 +121,13 @@ const FlipRow = ({ text, baseDelay = 0, running, label }: FlipRowProps) => (
     </Typography>
     <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
       {text.split('').map((char, i) => (
-        <FlipTile
-          key={i}
-          finalChar={char}
-          delay={baseDelay + i * 75}
-          running={running}
-        />
+        <FlipTile key={i} finalChar={char} delay={baseDelay + i * 75} running={running} />
       ))}
     </Box>
   </Box>
 )
 
-const PrivacyModal = ({
-  open,
-  onClose,
-}: {
-  open: boolean
-  onClose: () => void
-}) => {
+const PrivacyModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
   const [animating, setAnimating] = useState(false)
 
   useEffect(() => {
@@ -207,18 +194,8 @@ const PrivacyModal = ({
 
         {/* Flip board content */}
         <Box sx={{ px: 3, pt: 3, pb: 2 }}>
-          <FlipRow
-            label='SUBJECT'
-            text='PRIVACY POLICY'
-            baseDelay={0}
-            running={animating}
-          />
-          <FlipRow
-            label='STATUS'
-            text='DELAYED'
-            baseDelay={600}
-            running={animating}
-          />
+          <FlipRow label='SUBJECT' text='PRIVACY POLICY' baseDelay={0} running={animating} />
+          <FlipRow label='STATUS' text='DELAYED' baseDelay={600} running={animating} />
         </Box>
 
         {/* Footer caption */}
@@ -280,9 +257,7 @@ const Footer = () => {
       sx={{
         py: 4,
         backgroundColor: (theme) =>
-          theme.palette.mode === 'dark'
-            ? 'rgba(30, 30, 30, 0.8)'
-            : 'rgba(245, 245, 245, 0.8)',
+          theme.palette.mode === 'dark' ? 'rgba(30, 30, 30, 0.8)' : 'rgba(245, 245, 245, 0.8)',
         backdropFilter: 'blur(8px)',
         borderTop: '1px solid',
         borderColor: 'divider',

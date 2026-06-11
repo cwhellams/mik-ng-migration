@@ -1,11 +1,4 @@
-import {
-  Box,
-  Grid,
-  Paper,
-  Typography,
-  IconButton,
-  Collapse,
-} from '@mui/material'
+import { Box, Grid, Paper, Typography, IconButton, Collapse } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
@@ -49,14 +42,9 @@ const FlightTimeline = ({
   }, [acTotalFlightTimeBefore])
 
   const hasEnoughData =
-    (offBlockTime && takeoffTime) ||
-    (takeoffTime && landingTime) ||
-    (landingTime && onBlockTime)
+    (offBlockTime && takeoffTime) || (takeoffTime && landingTime) || (landingTime && onBlockTime)
 
-  const calculateDuration = (
-    start: dayjs.Dayjs | null,
-    end: dayjs.Dayjs | null
-  ): number => {
+  const calculateDuration = (start: dayjs.Dayjs | null, end: dayjs.Dayjs | null): number => {
     if (!start || !end) return 0
     return end.diff(start, 'minute')
   }
@@ -231,11 +219,7 @@ const FlightTimeline = ({
           <Typography variant='body2' fontWeight='medium' color='primary.dark'>
             {t('flightLog.totalBlockTime')}
           </Typography>
-          <Typography
-            variant='h6'
-            color='primary.dark'
-            sx={{ mt: { xs: 0.5, sm: 0 } }}
-          >
+          <Typography variant='h6' color='primary.dark' sx={{ mt: { xs: 0.5, sm: 0 } }}>
             {formatDuration(calculateDuration(offBlockTime, onBlockTime))}
           </Typography>
         </Box>
@@ -273,20 +257,14 @@ const FlightTimeline = ({
                 height={20}
                 style={{ marginRight: theme.spacing(1) }}
               />
-              <Typography
-                variant='body2'
-                fontWeight='medium'
-                color='success.main'
-              >
+              <Typography variant='body2' fontWeight='medium' color='success.main'>
                 {t('flightLog.logbookCalculator')}
               </Typography>
             </Box>
             <IconButton
               size='small'
               sx={{
-                transform: calculatorExpanded
-                  ? 'rotate(180deg)'
-                  : 'rotate(0deg)',
+                transform: calculatorExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                 transition: 'transform 0.3s',
               }}
             >
@@ -333,16 +311,10 @@ const FlightTimeline = ({
                       height: '100%',
                     }}
                   >
-                    <Typography
-                      variant='body2'
-                      fontWeight='medium'
-                      color='primary.main'
-                    >
+                    <Typography variant='body2' fontWeight='medium' color='primary.main'>
                       {t('flightLog.thisFlightTime', 'This Flight Time')}
                     </Typography>
-                    <Typography variant='h6'>
-                      {formatDuration(flightTime)}
-                    </Typography>
+                    <Typography variant='h6'>{formatDuration(flightTime)}</Typography>
                     <Typography variant='caption' color='text.secondary'>
                       {t('flightLog.toBeAdded', 'To be added')}
                     </Typography>
@@ -358,11 +330,7 @@ const FlightTimeline = ({
                       height: '100%',
                     }}
                   >
-                    <Typography
-                      variant='body2'
-                      fontWeight='medium'
-                      color='success.main'
-                    >
+                    <Typography variant='body2' fontWeight='medium' color='success.main'>
                       {t('flightLog.newTotalTime', 'New Total Time')}
                     </Typography>
                     <Typography variant='h6' color='success.main'>
@@ -371,8 +339,7 @@ const FlightTimeline = ({
                           return '--'
                         }
 
-                        const totalMinutes =
-                          currentHours * 60 + currentMinutes + flightTime
+                        const totalMinutes = currentHours * 60 + currentMinutes + flightTime
 
                         const newHours = Math.floor(totalMinutes / 60)
                         const newMinutes = totalMinutes % 60
@@ -420,10 +387,8 @@ const TimeBlock = ({
           borderRadius: 1,
           height: '100%',
           bgcolor: alpha(
-            color == 'primary'
-              ? theme.palette.primary.main
-              : theme.palette.info.light,
-            0.1
+            color == 'primary' ? theme.palette.primary.main : theme.palette.info.light,
+            0.1,
           ),
         }}
       >
@@ -439,8 +404,7 @@ const TimeBlock = ({
           {from.utc().format('HH:mm')} - {to.utc().format('HH:mm')} (
           {getTimezoneDisplay(true, from)})
           <br />
-          {from.format('HH:mm')} - {to.format('HH:mm')} (
-          {getTimezoneDisplay(false, from)})
+          {from.format('HH:mm')} - {to.format('HH:mm')} ({getTimezoneDisplay(false, from)})
         </Typography>
       </Box>
     </Grid>

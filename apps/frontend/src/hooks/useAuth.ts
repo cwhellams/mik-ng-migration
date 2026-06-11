@@ -9,7 +9,7 @@ export const useAuth = <Input, Output>(
     | 'login/verify-code'
     | 'register'
     | 'register/verify'
-    | 'logout'
+    | 'logout',
 ): {
   isMutating: boolean
   trigger: (request?: Input) => Promise<APIResponse<Output>>

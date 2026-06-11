@@ -8,8 +8,6 @@ declare module 'react-big-calendar/lib/utils/layout-algorithms/no-overlap' {
 
   export type NoOverlapParams = Record<string, unknown>
 
-  const noOverlap: <TEvent = object>(
-    params: NoOverlapParams
-  ) => NoOverlapLayoutItem<TEvent>[]
+  const noOverlap: <TEvent = object>(params: NoOverlapParams) => NoOverlapLayoutItem<TEvent>[]
   export default noOverlap
 }

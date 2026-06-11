@@ -45,20 +45,15 @@ const FlightLogsList = () => {
 
   const [filters, setFilters] = useState<FlightLogFilters>({
     limit: 10,
-    page: searchParams.get('page')
-      ? Number(searchParams.get('page'))
-      : undefined,
+    page: searchParams.get('page') ? Number(searchParams.get('page')) : undefined,
     aircraftRegistration: searchParams.get('aircraftRegistration') ?? undefined,
   })
 
   const [exportOpen, setExportOpen] = useState(false)
 
   useEffect(() => {
-    const aircraftRegistration =
-      searchParams.get('aircraftRegistration') ?? undefined
-    const page = searchParams.get('page')
-      ? Number(searchParams.get('page'))
-      : undefined
+    const aircraftRegistration = searchParams.get('aircraftRegistration') ?? undefined
+    const page = searchParams.get('page') ? Number(searchParams.get('page')) : undefined
 
     setFilters((old) => ({
       ...old,
@@ -75,7 +70,7 @@ const FlightLogsList = () => {
     {
       // don't clear old data when searching
       keepPreviousData: true,
-    }
+    },
   )
 
   const theme = useTheme()
@@ -156,15 +151,9 @@ const FlightLogsList = () => {
                 <ViewFlightDate
                   flightId={log.flightId}
                   date={log.offBlockTimeUtc}
-                  link={
-                    isFlightLogAdmin || log.billableMemberId == me?.memberId
-                  }
+                  link={isFlightLogAdmin || log.billableMemberId == me?.memberId}
                   state={`?${searchParams.toString()}`}
-                  ref={
-                    location.hash == `#${log.flightId}`
-                      ? scrollToRef
-                      : undefined
-                  }
+                  ref={location.hash == `#${log.flightId}` ? scrollToRef : undefined}
                 />
               </Grid>
 
@@ -184,22 +173,14 @@ const FlightLogsList = () => {
 
                   <Grid size={1}>
                     <Box>{log.departureAirport}</Box>
-                    <Box color='text.secondary'>
-                      {formatTime(log.offBlockTimeUtc)}
-                    </Box>
-                    <Box color='text.secondary'>
-                      {formatTime(log.takeoffTimeUtc)}
-                    </Box>
+                    <Box color='text.secondary'>{formatTime(log.offBlockTimeUtc)}</Box>
+                    <Box color='text.secondary'>{formatTime(log.takeoffTimeUtc)}</Box>
                   </Grid>
 
                   <Grid size={1}>
                     <Box>{log.arrivalAirport}</Box>
-                    <Box color='text.secondary'>
-                      {formatTime(log.landingTimeUtc)}
-                    </Box>
-                    <Box color='text.secondary'>
-                      {formatTime(log.onBlockTimeUtc)}
-                    </Box>
+                    <Box color='text.secondary'>{formatTime(log.landingTimeUtc)}</Box>
+                    <Box color='text.secondary'>{formatTime(log.onBlockTimeUtc)}</Box>
                   </Grid>
 
                   <Grid size={1.1}>
@@ -209,9 +190,7 @@ const FlightLogsList = () => {
 
                   <Grid size={0.8}>{log.numberOfLandings}</Grid>
 
-                  <Grid size={1.5}>
-                    {t(`flightLog.flightTypes.${log.flightType}`)}
-                  </Grid>
+                  <Grid size={1.5}>{t(`flightLog.flightTypes.${log.flightType}`)}</Grid>
 
                   <Grid size={0.4} alignSelf='top' justifyItems='end'>
                     <StatusButton log={log} />

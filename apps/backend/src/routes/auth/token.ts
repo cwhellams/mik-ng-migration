@@ -28,7 +28,7 @@ export const generateJWTUser = (user: Member): JWTUser => ({
   memberId: user.memberId,
   lastName: user.lastName,
   email: user.email,
-  roles: user.roles.map(r => r.roleId),
+  roles: user.roles.map((r) => r.roleId),
   permissions: user.roles.reduce(
     (all, role) => (role.permissions ? [...all, ...role.permissions] : all),
     [] as MIKPermissions[],

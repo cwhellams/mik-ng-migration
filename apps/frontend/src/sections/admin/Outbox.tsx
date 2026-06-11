@@ -26,22 +26,12 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import dayjs, { type Dayjs } from 'dayjs'
 import useApi from '../../hooks/useApi'
-import type {
-  OutboxListResponse,
-  OutboxItem,
-  OutboxStatus,
-} from '@backend/routes/outbox/models'
+import type { OutboxListResponse, OutboxItem, OutboxStatus } from '@backend/routes/outbox/models'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
 import { useTimezone } from '../../hooks/useTimezone'
 
-const STATUS_OPTIONS: OutboxStatus[] = [
-  'PENDING',
-  'PROCESSING',
-  'SYNCED',
-  'FAILED',
-  'SKIPPED',
-]
+const STATUS_OPTIONS: OutboxStatus[] = ['PENDING', 'PROCESSING', 'SYNCED', 'FAILED', 'SKIPPED']
 
 const EVENT_TYPE_OPTIONS = [
   'addMember',
@@ -54,10 +44,7 @@ const EVENT_TYPE_OPTIONS = [
   'creditNote',
 ]
 
-const STATUS_COLORS: Record<
-  OutboxStatus,
-  'info' | 'warning' | 'success' | 'error' | 'default'
-> = {
+const STATUS_COLORS: Record<OutboxStatus, 'info' | 'warning' | 'success' | 'error' | 'default'> = {
   PENDING: 'info',
   PROCESSING: 'warning',
   SYNCED: 'success',
@@ -109,14 +96,11 @@ export default function Outbox() {
   const apiParams: Record<string, string> = {}
   if (filters.status) apiParams.status = filters.status
   if (filters.event_type) apiParams.event_type = filters.event_type
-  if (filters.created_from?.isValid())
-    apiParams.created_from = filters.created_from.toISOString()
-  if (filters.created_to?.isValid())
-    apiParams.created_to = filters.created_to.toISOString()
+  if (filters.created_from?.isValid()) apiParams.created_from = filters.created_from.toISOString()
+  if (filters.created_to?.isValid()) apiParams.created_to = filters.created_to.toISOString()
   if (filters.processed_from?.isValid())
     apiParams.processed_from = filters.processed_from.toISOString()
-  if (filters.processed_to?.isValid())
-    apiParams.processed_to = filters.processed_to.toISOString()
+  if (filters.processed_to?.isValid()) apiParams.processed_to = filters.processed_to.toISOString()
 
   const { data, isLoading, error, mutate } = useApi<OutboxListResponse>({
     url: 'v1/outbox',
@@ -181,9 +165,7 @@ export default function Outbox() {
               <Select
                 value={filters.status}
                 label={t('outbox.filter.status')}
-                onChange={({ target }) =>
-                  setFilters((f) => ({ ...f, status: target.value }))
-                }
+                onChange={({ target }) => setFilters((f) => ({ ...f, status: target.value }))}
               >
                 <MenuItem value=''>{t('outbox.filter.allStatuses')}</MenuItem>
                 {STATUS_OPTIONS.map((s) => (
@@ -202,9 +184,7 @@ export default function Outbox() {
               <Select
                 value={filters.event_type}
                 label={t('outbox.filter.eventType')}
-                onChange={({ target }) =>
-                  setFilters((f) => ({ ...f, event_type: target.value }))
-                }
+                onChange={({ target }) => setFilters((f) => ({ ...f, event_type: target.value }))}
               >
                 <MenuItem value=''>{t('outbox.filter.allEventTypes')}</MenuItem>
                 {EVENT_TYPE_OPTIONS.map((e) => (
@@ -258,13 +238,7 @@ export default function Outbox() {
 
           {/* Preset buttons + clear */}
           <Grid size={12}>
-            <Stack
-              direction='row'
-              spacing={1}
-              flexWrap='wrap'
-              gap={1}
-              alignItems='center'
-            >
+            <Stack direction='row' spacing={1} flexWrap='wrap' gap={1} alignItems='center'>
               <Typography variant='body2' color='text.secondary'>
                 {t('outbox.filter.presets')}:
               </Typography>
@@ -275,12 +249,7 @@ export default function Outbox() {
                   </Button>
                 ))}
               </ButtonGroup>
-              <Button
-                size='small'
-                variant='text'
-                color='inherit'
-                onClick={clearFilters}
-              >
+              <Button size='small' variant='text' color='inherit' onClick={clearFilters}>
                 {t('outbox.filter.clearFilters')}
               </Button>
             </Stack>
@@ -297,36 +266,22 @@ export default function Outbox() {
           <Table size='small'>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>
-                  {t('outbox.columns.id')}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>
-                  {t('outbox.columns.eventType')}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>
-                  {t('outbox.columns.status')}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>
-                  {t('outbox.columns.createdAt')}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>
-                  {t('outbox.columns.processedAt')}
-                </TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('outbox.columns.id')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('outbox.columns.eventType')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('outbox.columns.status')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('outbox.columns.createdAt')}</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('outbox.columns.processedAt')}</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>
                   {t('outbox.columns.errorMessage')}
                 </TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>
-                  {t('outbox.columns.actions')}
-                </TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>{t('outbox.columns.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} align='center' sx={{ py: 4 }}>
-                    <Typography color='text.secondary'>
-                      {t('outbox.noResults')}
-                    </Typography>
+                    <Typography color='text.secondary'>{t('outbox.noResults')}</Typography>
                   </TableCell>
                 </TableRow>
               ) : (

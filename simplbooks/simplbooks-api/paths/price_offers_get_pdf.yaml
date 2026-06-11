@@ -28,7 +28,7 @@ get:
               data:
                 type: string
                 description: file content in base64 encoding
-                example: "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGl..."
+                example: 'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGl...'
         application/pdf:
           schema:
             type: string

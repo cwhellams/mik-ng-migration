@@ -52,8 +52,7 @@ export default function CartPage() {
     skipFetch: true,
   })
 
-  const localName = (obj: Record<string, string>) =>
-    obj?.[lang] ?? obj?.['en'] ?? ''
+  const localName = (obj: Record<string, string>) => obj?.[lang] ?? obj?.['en'] ?? ''
 
   const handleQtyChange = async (itemId: number, qty: number) => {
     await cartMutation.trigger('PUT', { quantity: qty }, `items/${itemId}`)
@@ -71,11 +70,7 @@ export default function CartPage() {
   }
 
   const handleApplyDiscount = async () => {
-    const result = await cartMutation.trigger(
-      'POST',
-      { code: couponInput || null },
-      'discount'
-    )
+    const result = await cartMutation.trigger('POST', { code: couponInput || null }, 'discount')
     if (result.error) {
       setSnack({ msg: t('shop.discountInvalid'), sev: 'error' })
     } else {
@@ -98,10 +93,7 @@ export default function CartPage() {
   }
 
   const items = cart?.items ?? []
-  const subtotal = items.reduce(
-    (s, i) => s + (i.product?.price ?? 0) * i.quantity,
-    0
-  )
+  const subtotal = items.reduce((s, i) => s + (i.product?.price ?? 0) * i.quantity, 0)
 
   return (
     <Box>
@@ -119,11 +111,7 @@ export default function CartPage() {
             </Button>
           </Box>
         ) : (
-          <Stack
-            spacing={3}
-            direction={{ xs: 'column', md: 'row' }}
-            alignItems='flex-start'
-          >
+          <Stack spacing={3} direction={{ xs: 'column', md: 'row' }} alignItems='flex-start'>
             {/* Cart items table */}
             <Box sx={{ flexGrow: 1 }}>
               <TableContainer component={Paper} variant='outlined'>
@@ -143,40 +131,25 @@ export default function CartPage() {
                         <TableCell>
                           <Typography variant='body2' fontWeight={600}>
                             {item.product
-                              ? localName(
-                                  item.product.name as Record<string, string>
-                                )
+                              ? localName(item.product.name as Record<string, string>)
                               : item.productId}
                           </Typography>
-                          {item.selectedOptions &&
-                            Object.keys(item.selectedOptions).length > 0 && (
-                              <Box>
-                                {Object.entries(item.selectedOptions).map(
-                                  ([k, v]) => (
-                                    <Chip
-                                      key={k}
-                                      label={`${k}: ${v}`}
-                                      size='small'
-                                      sx={{ mr: 0.5 }}
-                                    />
-                                  )
-                                )}
-                              </Box>
-                            )}
+                          {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
+                            <Box>
+                              {Object.entries(item.selectedOptions).map(([k, v]) => (
+                                <Chip key={k} label={`${k}: ${v}`} size='small' sx={{ mr: 0.5 }} />
+                              ))}
+                            </Box>
+                          )}
                           {item.product?.maxOrderQuantity && (
-                            <Typography
-                              variant='caption'
-                              color='text.secondary'
-                            >
+                            <Typography variant='caption' color='text.secondary'>
                               {t('shop.maxPerMemberQty', {
                                 max: item.product.maxOrderQuantity,
                               })}
                             </Typography>
                           )}
                         </TableCell>
-                        <TableCell align='right'>
-                          €{item.product?.price.toFixed(2)}
-                        </TableCell>
+                        <TableCell align='right'>€{item.product?.price.toFixed(2)}</TableCell>
                         <TableCell align='center'>
                           <Box
                             sx={{
@@ -188,12 +161,7 @@ export default function CartPage() {
                           >
                             <IconButton
                               size='small'
-                              onClick={() =>
-                                handleQtyChange(
-                                  item.cartItemId,
-                                  item.quantity - 1
-                                )
-                              }
+                              onClick={() => handleQtyChange(item.cartItemId, item.quantity - 1)}
                             >
                               <Icon icon='mdi:minus' />
                             </IconButton>
@@ -206,28 +174,17 @@ export default function CartPage() {
                                   item.quantity >= item.product.maxOrderQuantity
                                 )
                               }
-                              onClick={() =>
-                                handleQtyChange(
-                                  item.cartItemId,
-                                  item.quantity + 1
-                                )
-                              }
+                              onClick={() => handleQtyChange(item.cartItemId, item.quantity + 1)}
                             >
                               <Icon icon='mdi:plus' />
                             </IconButton>
                           </Box>
                         </TableCell>
                         <TableCell align='right'>
-                          €
-                          {((item.product?.price ?? 0) * item.quantity).toFixed(
-                            2
-                          )}
+                          €{((item.product?.price ?? 0) * item.quantity).toFixed(2)}
                         </TableCell>
                         <TableCell align='right'>
-                          <IconButton
-                            size='small'
-                            onClick={() => handleRemove(item.cartItemId)}
-                          >
+                          <IconButton size='small' onClick={() => handleRemove(item.cartItemId)}>
                             <Icon icon='mdi:trash-can-outline' />
                           </IconButton>
                         </TableCell>
@@ -262,25 +219,15 @@ export default function CartPage() {
                   <Typography>€{subtotal.toFixed(2)}</Typography>
                 </Box>
                 {cart?.discountCodeId && (
-                  <Box
-                    sx={{ display: 'flex', justifyContent: 'space-between' }}
-                  >
-                    <Typography color='success.main'>
-                      {t('shop.discount')}
-                    </Typography>
-                    <Chip
-                      label={t('shop.discountApplied')}
-                      size='small'
-                      color='success'
-                    />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography color='success.main'>{t('shop.discount')}</Typography>
+                    <Chip label={t('shop.discountApplied')} size='small' color='success' />
                   </Box>
                 )}
                 <Divider />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography fontWeight={700}>{t('shop.total')}</Typography>
-                  <Typography fontWeight={700}>
-                    €{subtotal.toFixed(2)}
-                  </Typography>
+                  <Typography fontWeight={700}>€{subtotal.toFixed(2)}</Typography>
                 </Box>
               </Stack>
 
@@ -321,11 +268,7 @@ export default function CartPage() {
                 {t('shop.placeOrder')}
               </Button>
 
-              <Typography
-                variant='caption'
-                color='text.secondary'
-                sx={{ mt: 1, display: 'block' }}
-              >
+              <Typography variant='caption' color='text.secondary' sx={{ mt: 1, display: 'block' }}>
                 {t('shop.invoiceNote')}
               </Typography>
 

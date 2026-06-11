@@ -17,15 +17,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
-import type {
-  SyllabusWithFlights,
-  SyllabusFlight,
-} from '@backend/routes/dto/models'
-import {
-  updateSyllabus,
-  updateSyllabusFlights,
-  publishSyllabus,
-} from '../../dto/dtoApi'
+import type { SyllabusWithFlights, SyllabusFlight } from '@backend/routes/dto/models'
+import { updateSyllabus, updateSyllabusFlights, publishSyllabus } from '../../dto/dtoApi'
 
 type ItemDraft = { name: string; description: string; mandatory: boolean }
 type FlightDraft = {
@@ -83,8 +76,7 @@ export default function DtoSyllabusEditorPage() {
     }
   }, [syllabus?.syllabusId])
 
-  const isEditable =
-    syllabus?.status === 'DRAFT' || syllabus?.status === 'WAITING_FOR_APPROVAL'
+  const isEditable = syllabus?.status === 'DRAFT' || syllabus?.status === 'WAITING_FOR_APPROVAL'
 
   const handleSave = async () => {
     if (!syllabusId) return
@@ -92,9 +84,7 @@ export default function DtoSyllabusEditorPage() {
     setSaveError(null)
     setSaveSuccess(false)
     try {
-      const parsedMin = minBlockTimeMins.trim()
-        ? parseInt(minBlockTimeMins, 10)
-        : null
+      const parsedMin = minBlockTimeMins.trim() ? parseInt(minBlockTimeMins, 10) : null
       if (parsedMin !== null && (isNaN(parsedMin) || parsedMin <= 0)) {
         setSaveError('Minimum block time must be a positive whole number')
         setSaving(false)
@@ -114,14 +104,14 @@ export default function DtoSyllabusEditorPage() {
             ...f,
             recommendedBlockTimeMins: rec && rec > 0 ? rec : null,
           } as unknown as SyllabusFlight
-        })
+        }),
       )
       await mutation.trigger('GET')
       setSaveSuccess(true)
     } catch (e: unknown) {
       setSaveError(
-        (e as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail ?? 'Failed to save'
+        (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
+          'Failed to save',
       )
     } finally {
       setSaving(false)
@@ -162,9 +152,7 @@ export default function DtoSyllabusEditorPage() {
   }
 
   const updateFlight = (idx: number, patch: Partial<FlightDraft>) => {
-    setFlights((prev) =>
-      prev.map((f, i) => (i === idx ? { ...f, ...patch } : f))
-    )
+    setFlights((prev) => prev.map((f, i) => (i === idx ? { ...f, ...patch } : f)))
   }
 
   const addItem = (flightIdx: number) => {
@@ -173,48 +161,36 @@ export default function DtoSyllabusEditorPage() {
         i === flightIdx
           ? {
               ...f,
-              items: [
-                ...f.items,
-                { name: '', description: '', mandatory: false },
-              ],
+              items: [...f.items, { name: '', description: '', mandatory: false }],
             }
-          : f
-      )
+          : f,
+      ),
     )
   }
 
   const removeItem = (flightIdx: number, itemIdx: number) => {
     setFlights((prev) =>
       prev.map((f, i) =>
-        i === flightIdx
-          ? { ...f, items: f.items.filter((_, j) => j !== itemIdx) }
-          : f
-      )
+        i === flightIdx ? { ...f, items: f.items.filter((_, j) => j !== itemIdx) } : f,
+      ),
     )
   }
 
-  const updateItem = (
-    flightIdx: number,
-    itemIdx: number,
-    patch: Partial<ItemDraft>
-  ) => {
+  const updateItem = (flightIdx: number, itemIdx: number, patch: Partial<ItemDraft>) => {
     setFlights((prev) =>
       prev.map((f, i) =>
         i === flightIdx
           ? {
               ...f,
-              items: f.items.map((it, j) =>
-                j === itemIdx ? { ...it, ...patch } : it
-              ),
+              items: f.items.map((it, j) => (j === itemIdx ? { ...it, ...patch } : it)),
             }
-          : f
-      )
+          : f,
+      ),
     )
   }
 
   if (isLoading) return <CircularProgress />
-  if (error || !syllabus)
-    return <Alert severity='error'>Syllabus not found</Alert>
+  if (error || !syllabus) return <Alert severity='error'>Syllabus not found</Alert>
 
   return (
     <Box>
@@ -289,11 +265,7 @@ export default function DtoSyllabusEditorPage() {
               Flight {fi + 1}
             </Typography>
             {isEditable && (
-              <IconButton
-                size='small'
-                color='error'
-                onClick={() => removeFlight(fi)}
-              >
+              <IconButton size='small' color='error' onClick={() => removeFlight(fi)}>
                 <Icon icon='mdi:delete' />
               </IconButton>
             )}
@@ -320,9 +292,7 @@ export default function DtoSyllabusEditorPage() {
             <TextField
               label='Description'
               value={flight.description}
-              onChange={(e) =>
-                updateFlight(fi, { description: e.target.value })
-              }
+              onChange={(e) => updateFlight(fi, { description: e.target.value })}
               size='small'
               disabled={!isEditable}
               multiline
@@ -348,9 +318,7 @@ export default function DtoSyllabusEditorPage() {
               control={
                 <Checkbox
                   checked={flight.isInterimCheckpoint}
-                  onChange={(e) =>
-                    updateFlight(fi, { isInterimCheckpoint: e.target.checked })
-                  }
+                  onChange={(e) => updateFlight(fi, { isInterimCheckpoint: e.target.checked })}
                   disabled={!isEditable}
                 />
               }
@@ -359,9 +327,7 @@ export default function DtoSyllabusEditorPage() {
             <TextField
               label='Recommended block time (minutes)'
               value={flight.recommendedBlockTimeMins}
-              onChange={(e) =>
-                updateFlight(fi, { recommendedBlockTimeMins: e.target.value })
-              }
+              onChange={(e) => updateFlight(fi, { recommendedBlockTimeMins: e.target.value })}
               type='number'
               inputProps={{ min: 1 }}
               size='small'
@@ -388,9 +354,7 @@ export default function DtoSyllabusEditorPage() {
               <TextField
                 label='Description'
                 value={item.description}
-                onChange={(e) =>
-                  updateItem(fi, ii, { description: e.target.value })
-                }
+                onChange={(e) => updateItem(fi, ii, { description: e.target.value })}
                 size='small'
                 disabled={!isEditable}
                 sx={{ flex: 2 }}
@@ -399,9 +363,7 @@ export default function DtoSyllabusEditorPage() {
                 control={
                   <Checkbox
                     checked={item.mandatory}
-                    onChange={(e) =>
-                      updateItem(fi, ii, { mandatory: e.target.checked })
-                    }
+                    onChange={(e) => updateItem(fi, ii, { mandatory: e.target.checked })}
                     disabled={!isEditable}
                     size='small'
                   />
@@ -409,22 +371,14 @@ export default function DtoSyllabusEditorPage() {
                 label='Mandatory'
               />
               {isEditable && (
-                <IconButton
-                  size='small'
-                  color='error'
-                  onClick={() => removeItem(fi, ii)}
-                >
+                <IconButton size='small' color='error' onClick={() => removeItem(fi, ii)}>
                   <Icon icon='mdi:delete' />
                 </IconButton>
               )}
             </Box>
           ))}
           {isEditable && (
-            <Button
-              size='small'
-              startIcon={<Icon icon='mdi:plus' />}
-              onClick={() => addItem(fi)}
-            >
+            <Button size='small' startIcon={<Icon icon='mdi:plus' />} onClick={() => addItem(fi)}>
               Add Item
             </Button>
           )}

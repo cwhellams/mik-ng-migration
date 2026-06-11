@@ -38,34 +38,24 @@ export const migrateBookings = async (start: string, limit: number) => {
     LIMIT ${limit}
   `)
 
-  const currentMembers = await request<MemberListFilters, MemberListResponse>(
-    'GET',
-    `v1/members`
-  )
+  const currentMembers = await request<MemberListFilters, MemberListResponse>('GET', `v1/members`)
 
   const removedMembers = await request<MemberListFilters, MemberListResponse>(
     'GET',
-    `v1/members?showRemoved=true`
+    `v1/members?showRemoved=true`,
   )
 
-  const members = [
-    ...(currentMembers?.members ?? []),
-    ...(removedMembers?.members ?? []),
-  ]
+  const members = [...(currentMembers?.members ?? []), ...(removedMembers?.members ?? [])]
 
   for (const booking of bookings) {
     const member = members.find((m) => m.memberId === booking.memberId)
     if (!member) {
-      console.log(
-        `Skipping booking ID ${booking.id} by unknown member ${booking.create_by}`
-      )
+      console.log(`Skipping booking ID ${booking.id} by unknown member ${booking.create_by}`)
       //console.log(booking)
       continue
     }
     if (booking.start_time > booking.end_time) {
-      console.log(
-        `Skipping booking ID ${booking.id} because start time is after end time`
-      )
+      console.log(`Skipping booking ID ${booking.id} because start time is after end time`)
       //console.log(booking)
       continue
     }
@@ -85,9 +75,7 @@ export const migrateBookings = async (start: string, limit: number) => {
       await request('POST', 'v1/bookings', schedule)
       console.log(`${booking.id}, at ${time}`)
     } catch (e) {
-      console.log(
-        `Error migrating booking ${booking.id}, stopping migration to timestamp ${time}`
-      )
+      console.log(`Error migrating booking ${booking.id}, stopping migration to timestamp ${time}`)
       console.log(schedule)
       console.log(booking)
       throw e

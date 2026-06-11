@@ -4,50 +4,50 @@ properties:
     type: integer
   client_id:
     type: integer
-    example: "100"
+    example: '100'
   client_name:
     type: string
-    example: "Santa Claws"
+    example: 'Santa Claws'
   client_reg_no:
     type: string
-    example: "393254119302"
+    example: '393254119302'
   client_vat_no:
     type: string
-    example: ""
+    example: ''
   client_address_street:
     type: string
-    example: "South Pole Lane 15/a"
+    example: 'South Pole Lane 15/a'
   client_address_city:
     type: string
-    example: "Viljandi"
+    example: 'Viljandi'
   client_address_postal_code:
     type: string
-    example: "35004"
+    example: '35004'
   client_address_county:
     type: string
-    example: "Little Canada"
+    example: 'Little Canada'
   client_address_country:
     type: string
-    example: "EE"
+    example: 'EE'
   contact_reference:
     type: string
-    example: "Jaan Tamm"
+    example: 'Jaan Tamm'
   client_location_id:
     type: integer
     description: Delivery address ID
     example: 3
   created:
     type: string
-    example: "2000-01-01"
+    example: '2000-01-01'
   supply_date:
     type: string
-    example: "2010-05-01"
+    example: '2010-05-01'
   number:
     type: string
-    example: "888"
+    example: '888'
   sum:
     type: number
-    example: "99"
+    example: '99'
   vat:
     type: number
     example: 20
@@ -62,25 +62,25 @@ properties:
     example: false
   currency_name:
     type: string
-    example: "USD"
+    example: 'USD'
   currency_rate:
     type: number
     example: 1.01
   assembler_name:
     type: string
-    example: "OÜ Packit"
+    example: 'OÜ Packit'
   sent:
     type: string
-    example: "2000-01-02"
+    example: '2000-01-02'
   cancelled:
     type: string
-    example: "2005-01-01"
+    example: '2005-01-01'
   additional_info:
     type: string
-    example: "Send fast"
+    example: 'Send fast'
   language:
     type: string
-    example: "et_EE"
+    example: 'et_EE'
   document_template_id:
     type: integer
     example: 1

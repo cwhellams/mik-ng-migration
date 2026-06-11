@@ -109,11 +109,9 @@ export const DASHBOARD_COMPONENT_METADATA: DashboardComponentMetadata[] = [
 /**
  * Get metadata for customizable components only (excludes always-visible components)
  */
-export const getCustomizableComponentMetadata =
-  (): DashboardComponentMetadata[] => {
-    const alwaysVisibleComponentIds: readonly string[] =
-      ALWAYS_VISIBLE_COMPONENTS
-    return DASHBOARD_COMPONENT_METADATA.filter(
-      (metadata) => !alwaysVisibleComponentIds.includes(metadata.id)
-    )
-  }
+export const getCustomizableComponentMetadata = (): DashboardComponentMetadata[] => {
+  const alwaysVisibleComponentIds: readonly string[] = ALWAYS_VISIBLE_COMPONENTS
+  return DASHBOARD_COMPONENT_METADATA.filter(
+    (metadata) => !alwaysVisibleComponentIds.includes(metadata.id),
+  )
+}

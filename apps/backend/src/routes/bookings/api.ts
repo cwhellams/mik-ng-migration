@@ -170,7 +170,7 @@ const validateInstructor = async (
     return problem({ status: 400, detail: 'Instructor is required for training bookings' })
   }
   const roles = await getMemberRolesByMemberId(instructorMemberId)
-  const hasInstructorRole = roles.some(role => INSTRUCTOR_ROLES.includes(role.roleId))
+  const hasInstructorRole = roles.some((role) => INSTRUCTOR_ROLES.includes(role.roleId))
   if (!hasInstructorRole) {
     return problem({
       status: 400,

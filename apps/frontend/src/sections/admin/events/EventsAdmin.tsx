@@ -26,10 +26,7 @@ import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { useThemeMode } from '../../../theme/ThemeContext'
-import type {
-  ClubEvent,
-  EventListResponse,
-} from '@backend/routes/events/models'
+import type { ClubEvent, EventListResponse } from '@backend/routes/events/models'
 
 interface EventForm {
   title: string
@@ -69,18 +66,15 @@ const EventsAdmin = () => {
   const [deleting, setDeleting] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
-  const { data, isLoading, error, mutation, mutate } =
-    useApi<EventListResponse>({
-      url: 'v1/events',
-    })
+  const { data, isLoading, error, mutation, mutate } = useApi<EventListResponse>({
+    url: 'v1/events',
+  })
 
   // Only show admin features if in admin mode
   if (!sudo) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography sx={{ color: 'warning.main' }}>
-          {t('common.requiresAdminMode')}
-        </Typography>
+        <Typography sx={{ color: 'warning.main' }}>{t('common.requiresAdminMode')}</Typography>
       </Box>
     )
   }
@@ -135,11 +129,7 @@ const EventsAdmin = () => {
     if (!deleteTarget) return
     setDeleting(true)
     try {
-      const response = await mutation.trigger(
-        'DELETE',
-        undefined,
-        deleteTarget.eventId
-      )
+      const response = await mutation.trigger('DELETE', undefined, deleteTarget.eventId)
       if (response.error) {
         setDeleteError(t('events.deleteError'))
         return
@@ -181,20 +171,9 @@ const EventsAdmin = () => {
             <Stack direction='row' alignItems='center' gap={1} flexWrap='wrap'>
               <Typography fontWeight='medium'>{event.title}</Typography>
               {event.isPublic && (
-                <Chip
-                  label={t('events.public')}
-                  size='small'
-                  color='primary'
-                  variant='outlined'
-                />
+                <Chip label={t('events.public')} size='small' color='primary' variant='outlined' />
               )}
-              {isPast && (
-                <Chip
-                  label={t('events.past')}
-                  size='small'
-                  variant='outlined'
-                />
-              )}
+              {isPast && <Chip label={t('events.past')} size='small' variant='outlined' />}
             </Stack>
             <Stack direction='row' alignItems='center' gap={0.5} mt={0.5}>
               <Icon icon='mdi:clock-outline' width={14} />
@@ -219,11 +198,7 @@ const EventsAdmin = () => {
               </IconButton>
             </Tooltip>
             <Tooltip title={t('common.delete')}>
-              <IconButton
-                size='small'
-                color='error'
-                onClick={() => setDeleteTarget(event)}
-              >
+              <IconButton size='small' color='error' onClick={() => setDeleteTarget(event)}>
                 <Icon icon='mdi:delete' width={18} />
               </IconButton>
             </Tooltip>
@@ -246,11 +221,7 @@ const EventsAdmin = () => {
           >
             {t('events.viewAll')}
           </Button>
-          <Button
-            variant='contained'
-            startIcon={<Icon icon='mdi:plus' />}
-            onClick={openCreate}
-          >
+          <Button variant='contained' startIcon={<Icon icon='mdi:plus' />} onClick={openCreate}>
             {t('events.create')}
           </Button>
         </Stack>
@@ -283,24 +254,15 @@ const EventsAdmin = () => {
       </RemoteContent>
 
       {/* Create / Edit dialog */}
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        maxWidth='sm'
-        fullWidth
-      >
-        <DialogTitle>
-          {editingEvent ? t('events.editEvent') : t('events.createEvent')}
-        </DialogTitle>
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth='sm' fullWidth>
+        <DialogTitle>{editingEvent ? t('events.editEvent') : t('events.createEvent')}</DialogTitle>
         <DialogContent>
           <Stack gap={2} mt={1}>
             {saveError && <Alert severity='error'>{saveError}</Alert>}
             <TextField
               label={t('events.form.title')}
               value={form.title}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, title: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               required
               fullWidth
               inputProps={{ maxLength: 200 }}
@@ -324,18 +286,14 @@ const EventsAdmin = () => {
             <TextField
               label={t('events.form.location')}
               value={form.location}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, location: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
               fullWidth
             />
 
             <TextField
               label={t('events.form.description')}
               value={form.description}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               fullWidth
               multiline
               rows={4}
@@ -345,9 +303,7 @@ const EventsAdmin = () => {
               control={
                 <Switch
                   checked={form.isPublic}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, isPublic: e.target.checked }))
-                  }
+                  onChange={(e) => setForm((f) => ({ ...f, isPublic: e.target.checked }))}
                 />
               }
               label={t('events.form.isPublic')}
@@ -358,25 +314,15 @@ const EventsAdmin = () => {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>
-            {t('common.cancel')}
-          </Button>
-          <Button
-            variant='contained'
-            onClick={handleSave}
-            disabled={!isFormValid || saving}
-          >
+          <Button onClick={() => setDialogOpen(false)}>{t('common.cancel')}</Button>
+          <Button variant='contained' onClick={handleSave} disabled={!isFormValid || saving}>
             {saving ? t('common.saving') : t('common.save')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete confirmation dialog */}
-      <Dialog
-        open={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        maxWidth='xs'
-      >
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth='xs'>
         <DialogTitle>{t('events.deleteTitle')}</DialogTitle>
         <DialogContent>
           {deleteError && (
@@ -384,9 +330,7 @@ const EventsAdmin = () => {
               {deleteError}
             </Alert>
           )}
-          <Typography>
-            {t('events.deleteConfirm', { title: deleteTarget?.title ?? '' })}
-          </Typography>
+          <Typography>{t('events.deleteConfirm', { title: deleteTarget?.title ?? '' })}</Typography>
         </DialogContent>
         <DialogActions>
           <Button
@@ -397,12 +341,7 @@ const EventsAdmin = () => {
           >
             {t('common.cancel')}
           </Button>
-          <Button
-            variant='contained'
-            color='error'
-            onClick={handleDelete}
-            disabled={deleting}
-          >
+          <Button variant='contained' color='error' onClick={handleDelete} disabled={deleting}>
             {deleting ? t('common.deleting') : t('common.delete')}
           </Button>
         </DialogActions>

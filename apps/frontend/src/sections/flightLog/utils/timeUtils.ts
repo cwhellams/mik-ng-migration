@@ -8,9 +8,7 @@ export const formatDuration = (minutes: number, hideZeros = false): string => {
   const hrs = Math.floor(minutes / 60)
   const mins = minutes % 60
 
-  return [hrs > 0 && `${hrs}h`, (mins > 0 || !hideZeros) && `${mins}min`]
-    .filter(Boolean)
-    .join(' ')
+  return [hrs > 0 && `${hrs}h`, (mins > 0 || !hideZeros) && `${mins}min`].filter(Boolean).join(' ')
 }
 
 export const durationToDayjs = (minutes: number): dayjs.Dayjs => {

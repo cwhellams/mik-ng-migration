@@ -26,15 +26,15 @@ export const DocumentFiltersSchema = z.object({
   category: z
     .string()
     .optional()
-    .transform(val => (val === '' ? undefined : val)),
+    .transform((val) => (val === '' ? undefined : val)),
   search: z
     .string()
     .optional()
-    .transform(val => (val === '' ? undefined : val)),
+    .transform((val) => (val === '' ? undefined : val)),
   tags: z
     .string()
     .optional()
-    .transform(val => (val === '' ? undefined : val)),
+    .transform((val) => (val === '' ? undefined : val)),
   showArchived: BooleanSchema.optional().default('false'),
   limit: z.coerce.number().int().positive().optional(),
   offset: z.coerce.number().int().min(0).optional(),

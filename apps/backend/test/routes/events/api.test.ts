@@ -35,7 +35,7 @@ jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
 
       if (
         permissions.length === 0 ||
-        permissions.some(permission => mockUserPermissions.includes(permission))
+        permissions.some((permission) => mockUserPermissions.includes(permission))
       ) {
         return next()
       }

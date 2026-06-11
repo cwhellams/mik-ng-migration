@@ -14,7 +14,7 @@ export const useMe = () => {
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   )
 
   return {

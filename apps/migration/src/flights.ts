@@ -5,10 +5,7 @@ import {
 } from '../../backend/src/routes/flight-log/models.ts'
 import { request } from './services/api.ts'
 import dayjs from 'dayjs'
-import type {
-  AjlbFilter,
-  AjlbListResponse,
-} from '../../backend/src/routes/ajlb/model.ts'
+import type { AjlbFilter, AjlbListResponse } from '../../backend/src/routes/ajlb/model.ts'
 import type {
   MemberList,
   MemberListFilters,
@@ -58,9 +55,7 @@ export type Flight = {
 }
 
 // Skip instructors who are not in the members list
-const skippedInstructors = [
-  999, 30, 31, 32, 35, 36, 39, 41, 46, 79, 52, 53, 56, 71, 76,
-]
+const skippedInstructors = [999, 30, 31, 32, 35, 36, 39, 41, 46, 79, 52, 53, 56, 71, 76]
 
 const skipDuplicateFlights = [10860, 21750, 21241, 21242]
 
@@ -105,24 +100,16 @@ const airportMapping: Record<string, string> = {
 export const migrateFlights = async (start: string, limit: number) => {
   const books = await request<AjlbFilter, AjlbListResponse>('GET', `v1/ajlb`)
 
-  const currentMembers = await request<MemberListFilters, MemberListResponse>(
-    'GET',
-    `v1/members`
-  )
+  const currentMembers = await request<MemberListFilters, MemberListResponse>('GET', `v1/members`)
 
   const removedMembers = await request<MemberListFilters, MemberListResponse>(
     'GET',
-    `v1/members?showRemoved=true`
+    `v1/members?showRemoved=true`,
   )
 
-  const members = [
-    ...(currentMembers?.members ?? []),
-    ...(removedMembers?.members ?? []),
-  ]
+  const members = [...(currentMembers?.members ?? []), ...(removedMembers?.members ?? [])]
 
-  const instructors = await conn.query<Instructor[]>(
-    `SELECT * from kirja_opettajat`
-  )
+  const instructors = await conn.query<Instructor[]>(`SELECT * from kirja_opettajat`)
 
   if (!books || !members || !instructors) {
     console.error('No dependencies found, cannot migrate flights')
@@ -130,9 +117,7 @@ export const migrateFlights = async (start: string, limit: number) => {
   }
 
   const last = await migrateBatch(start, limit, books, members, instructors)
-  console.log(
-    `Migrated up to flight ID ${last?.lento_id} at ${last?.deptime.toISOString()}`
-  )
+  console.log(`Migrated up to flight ID ${last?.lento_id} at ${last?.deptime.toISOString()}`)
 }
 
 const migrateBatch = async (
@@ -140,7 +125,7 @@ const migrateBatch = async (
   limit: number,
   { books }: AjlbListResponse,
   members: MemberList[],
-  instructors: Instructor[]
+  instructors: Instructor[],
 ): Promise<Flight | undefined> => {
   const flights = await conn.query<Flight[]>(
     `SELECT 
@@ -156,7 +141,7 @@ const migrateBatch = async (
       AND f.deptime <= ?
       ORDER BY f.deptime ASC
       LIMIT ?`,
-    [dayjs(start).toDate(), dayjs(before).toDate(), limit]
+    [dayjs(start).toDate(), dayjs(before).toDate(), limit],
   )
 
   const ajlbBlankRowsBefore: Record<string, number> = {}
@@ -170,11 +155,11 @@ const migrateBatch = async (
       (b) =>
         b.aircraftRegistration == flight.registration &&
         dayjs(b.startDate).isBefore(flight.deptime) &&
-        (b.endDate == null || dayjs(b.endDate).isAfter(flight.arrtime))
+        (b.endDate == null || dayjs(b.endDate).isAfter(flight.arrtime)),
     )
     if (!book) {
       console.warn(
-        `No logbook found for flight ${flight.lento_id} with plane ${flight.registration}, deptime=${flight.deptime}, arrtime=${flight.arrtime}`
+        `No logbook found for flight ${flight.lento_id} with plane ${flight.registration}, deptime=${flight.deptime}, arrtime=${flight.arrtime}`,
       )
       continue
     }
@@ -186,14 +171,14 @@ const migrateBatch = async (
         flight.ajlbSeqNo ?? book.seqNo,
         members,
         instructors,
-        ajlbBlankRowsBefore
+        ajlbBlankRowsBefore,
       )
       if (success) {
         ajlbBlankRowsBefore[flight.registration] = 0
       }
     } catch (e) {
       console.log(
-        `Error migrating flight ${flight.lento_id}, stopping migration to timestamp ${flight.deptime.toISOString()}`
+        `Error migrating flight ${flight.lento_id}, stopping migration to timestamp ${flight.deptime.toISOString()}`,
       )
       console.log(flight)
       throw e
@@ -203,7 +188,7 @@ const migrateBatch = async (
   Object.entries(ajlbBlankRowsBefore).forEach(([reg, emptyRows]) => {
     if (emptyRows) {
       console.log(
-        `WARNING! Logbook ${reg} has ${emptyRows} empty rows that were not used by any flight`
+        `WARNING! Logbook ${reg} has ${emptyRows} empty rows that were not used by any flight`,
       )
     }
   })
@@ -216,10 +201,9 @@ const migrateFlight = async (
   ajlbSeqNo: number,
   members: MemberList[],
   instructors: Instructor[],
-  ajlbBlankRowsBefore: Record<string, number>
+  ajlbBlankRowsBefore: Record<string, number>,
 ): Promise<boolean> => {
-  const flightTimeMins =
-    (flight.arrtime.getTime() - flight.deptime.getTime()) / 60000
+  const flightTimeMins = (flight.arrtime.getTime() - flight.deptime.getTime()) / 60000
 
   const flightType = getFlightType(flight.tyyppi)
 
@@ -237,10 +221,9 @@ const migrateFlight = async (
     (flight.deptime.getTime() == flight.arrtime.getTime() &&
       flight.offblock.getTime() == flight.onblock.getTime())
   ) {
-    ajlbBlankRowsBefore[flight.registration] =
-      (ajlbBlankRowsBefore[flight.registration] ?? 0) + 1
+    ajlbBlankRowsBefore[flight.registration] = (ajlbBlankRowsBefore[flight.registration] ?? 0) + 1
     console.log(
-      `Adding empty row to register ${flight.registration}, total before flight is now ${ajlbBlankRowsBefore[flight.registration]}`
+      `Adding empty row to register ${flight.registration}, total before flight is now ${ajlbBlankRowsBefore[flight.registration]}`,
     )
     return false
   }
@@ -272,23 +255,17 @@ const migrateFlight = async (
 
     fuelRemainingLitres: Math.min(
       40,
-      Math.max(1, Math.round((flight.fuel_remaining ?? 1) * 3.78541))
+      Math.max(1, Math.round((flight.fuel_remaining ?? 1) * 3.78541)),
     ),
     fuelUpliftLitres: null,
     oilUpliftLitres: null,
 
     personsOnBoard: flight.henkilot,
     numberOfLandings: flight.landings,
-    numberOfNightLandings:
-      flight.yotiima_sel == TimeSelection.FULL ? flight.landings : 0,
+    numberOfNightLandings: flight.yotiima_sel == TimeSelection.FULL ? flight.landings : 0,
     instrumentFlyingMins:
-      flight.mittaritiima_sel == TimeSelection.FULL
-        ? flightTimeMins
-        : flight.mittaritiima,
-    nightFlyingMins:
-      flight.yotiima_sel == TimeSelection.FULL
-        ? flightTimeMins
-        : flight.yotiima,
+      flight.mittaritiima_sel == TimeSelection.FULL ? flightTimeMins : flight.mittaritiima,
+    nightFlyingMins: flight.yotiima_sel == TimeSelection.FULL ? flightTimeMins : flight.yotiima,
     totalTimeInService: flight.g100total,
 
     billingRemarks: flight.laskutuskentta,
@@ -413,8 +390,8 @@ const getOffBlockTime = (offblock: number, takeoff: number): number => {
 
     console.log(
       `Couldn't fix positive off-block time offset, setting to takeoff - 1 minute ${new Date(offblock * 1000).toISOString()} -> ${new Date(
-        (takeoff - minute) * 1000
-      ).toISOString()}`
+        (takeoff - minute) * 1000,
+      ).toISOString()}`,
     )
 
     // as last resort, set to takeoff - 1 minute, (e.g. lento_id 2232)
@@ -429,15 +406,15 @@ const getOffBlockTime = (offblock: number, takeoff: number): number => {
 
     console.log(
       `Couldn't fix negative off-block time offset, setting to takeoff - 1 minute ${new Date(offblock * 1000).toISOString()} -> ${new Date(
-        (takeoff - minute) * 1000
-      ).toISOString()}`
+        (takeoff - minute) * 1000,
+      ).toISOString()}`,
     )
     return takeoff - minute
   } else {
     console.log(
       `Not blocktime, setting to takeoff - 1 minute ${new Date(offblock * 1000).toISOString()} -> ${new Date(
-        (takeoff - minute) * 1000
-      ).toISOString()}`
+        (takeoff - minute) * 1000,
+      ).toISOString()}`,
     )
 
     // no blocktime, set to one minute before takeoff (e.g lento 790)
@@ -479,8 +456,8 @@ const getOnBlockTime = (onblock: number, landing: number): number => {
 
     console.log(
       `Couldn't fix positive on-block time offset, setting to landing + 1 minute ${new Date(onblock * 1000).toISOString()} -> ${new Date(
-        (landing + minute) * 1000
-      ).toISOString()}`
+        (landing + minute) * 1000,
+      ).toISOString()}`,
     )
 
     // as last resort, set to landing + 1 minute, (e.g. lento_id 1689)
@@ -500,15 +477,15 @@ const getOnBlockTime = (onblock: number, landing: number): number => {
     }
     console.log(
       `Couldn't fix negative on-block time offset, setting to landing + 1 minute ${new Date(onblock * 1000).toISOString()} -> ${new Date(
-        (landing + minute) * 1000
-      ).toISOString()}`
+        (landing + minute) * 1000,
+      ).toISOString()}`,
     )
     return landing + minute
   } else {
     console.log(
       `No onblock time, setting to landing + 1 minute ${new Date(onblock * 1000).toISOString()} -> ${new Date(
-        (landing + minute) * 1000
-      ).toISOString()}`
+        (landing + minute) * 1000,
+      ).toISOString()}`,
     )
 
     // no blocktime, add one minutes offset to on-block time (e.g lento 371)
@@ -519,30 +496,24 @@ const getOnBlockTime = (onblock: number, landing: number): number => {
 const getInstructorId = (
   ope_id: number,
   instructors: Instructor[],
-  members: MemberList[]
+  members: MemberList[],
 ): MemberList | undefined => {
   const instructor = instructors.find((i) => i.ope_id === ope_id)
   if (!instructor) {
     throw new Error(`Instructor ${ope_id} not found from instructors list`)
   }
-  const instructorMembers = members.filter((m) =>
-    m.roles.includes('INSTRUCTOR')
-  )
+  const instructorMembers = members.filter((m) => m.roles.includes('INSTRUCTOR'))
 
   const name = instructor.nimi.replaceAll('Käho', 'Kähö') // typo fix
 
   const fullMatch = instructorMembers.find(
-    (m) =>
-      m.roles.includes('INSTRUCTOR') &&
-      name.toLowerCase().includes(m.last.toLowerCase())
+    (m) => m.roles.includes('INSTRUCTOR') && name.toLowerCase().includes(m.last.toLowerCase()),
   )
   if (fullMatch) {
     return fullMatch
   }
 
-  console.log(
-    `Instructor ${JSON.stringify(instructor, null, 2)} not found from members list`
-  )
+  console.log(`Instructor ${JSON.stringify(instructor, null, 2)} not found from members list`)
 }
 
 const getFlightType = (type: number): FlightType => {

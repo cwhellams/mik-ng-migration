@@ -31,7 +31,7 @@ describe('Login Email template tests', () => {
     firstName: 'Tester1',
   }
 
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('loginEmailBodyHtml for lang: %s', lang => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('loginEmailBodyHtml for lang: %s', (lang) => {
     const result = loginEmailBodyHtml(lang, loginVars)
     expect(result).toMatchSnapshot()
   })
@@ -44,7 +44,7 @@ describe('Register Email template tests', () => {
     firstName: 'Tester1',
   }
 
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('registerEmailBodyHtml', lang => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('registerEmailBodyHtml', (lang) => {
     const result = registerEmailBodyHtml(lang, registerVars)
     expect(result).toMatchSnapshot()
   })
@@ -55,7 +55,7 @@ describe('Register approved template tests', () => {
     firstName: 'Tester1',
   }
 
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('membershipApprovedEmailBodyHtml', lang => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('membershipApprovedEmailBodyHtml', (lang) => {
     const result = membershipApprovedEmailBodyHtml(lang, welcomeVars)
     expect(result).toMatchSnapshot()
   })
@@ -81,7 +81,7 @@ describe('Booking cancellation template tests', () => {
     calendarSequence: 0,
   }
 
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingCancellationEmailBodyHtml', lang => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingCancellationEmailBodyHtml', (lang) => {
     const result = bookingCancelledEmailBodyHtml(lang, 'Tester', cancelledBooking)
     expect(result).toMatchSnapshot()
   })
@@ -106,12 +106,12 @@ describe('Booking confirmation template tests', () => {
     calendarSequence: 0,
   }
 
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingConfirmedEmailBodyHtml', lang => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingConfirmedEmailBodyHtml', (lang) => {
     const result = bookingConfirmedEmailBodyHtml(lang, 'Tester', confirmedBooking)
     expect(result).toMatchSnapshot()
   })
 
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingUpdatedEmailBodyHtml', lang => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingUpdatedEmailBodyHtml', (lang) => {
     const result = bookingUpdatedEmailBodyHtml(lang, 'Tester', confirmedBooking)
     expect(result).toMatchSnapshot()
   })
@@ -136,13 +136,13 @@ describe('Booking reminder template tests', () => {
     calendarSequence: 0,
   }
 
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingReminderEmailBodyHtml', lang => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('bookingReminderEmailBodyHtml', (lang) => {
     const result = bookingReminderEmailBodyHtml(lang, 'Tester', upcomingBooking)
     expect(result).toMatchSnapshot()
   })
 })
 describe('Overdue invoice template tests', () => {
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('overdueInvoiceEmailBodyHtml', lang => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('overdueInvoiceEmailBodyHtml', (lang) => {
     const result = overdueInvoiceEmailBodyHtml(lang, {
       firstName: 'Tester1',
       invoiceId: 'INV-12345',
@@ -154,7 +154,7 @@ describe('Overdue invoice template tests', () => {
 })
 
 describe('Reservation suspended template tests', () => {
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('reservationSuspendedEmailBodyHtml', lang => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('reservationSuspendedEmailBodyHtml', (lang) => {
     const result = reservationSuspendedEmailBodyHtml(lang, {
       firstName: 'Tester1',
       invoiceCount: 2,
@@ -188,7 +188,7 @@ describe('Occurrence Email template tests', () => {
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'occurrenceNotificationEmailBodyHtml for lang: %s',
-    lang => {
+    (lang) => {
       const result = occurrenceNotificationEmailBodyHtml(lang, occurrence)
       expect(result).toMatchSnapshot()
     },
@@ -196,7 +196,7 @@ describe('Occurrence Email template tests', () => {
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'occurrenceNotificationEmailBodyHtml with deadline for lang: %s',
-    lang => {
+    (lang) => {
       const result = occurrenceNotificationEmailBodyHtml(lang, {
         ...occurrence,
         deadLine: '2025-12-04T10:31:00.000Z',
@@ -207,7 +207,7 @@ describe('Occurrence Email template tests', () => {
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
     'occurrenceNotificationEmailBodyHtml anonymized for lang: %s',
-    lang => {
+    (lang) => {
       const result = occurrenceNotificationEmailBodyHtml(lang, {
         ...occurrence,
         status: OccurrenceStatus.ANONYMIZED,
@@ -219,7 +219,7 @@ describe('Occurrence Email template tests', () => {
 })
 
 describe('New member notification template tests', () => {
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('newMemberEmailBodyHtml for lang: %s', lang => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('newMemberEmailBodyHtml for lang: %s', (lang) => {
     const result = newMemberEmailBodyHtml(lang, {
       firstName: 'Tester1',
       href: 'http://localhost:5173/club/members',
@@ -235,12 +235,15 @@ describe('Email change verify template tests', () => {
     href: 'https://example.com/profile/email-change/verify?token=abc123',
   }
 
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('emailChangeVerifyBodyHtml for lang: %s', lang => {
-    const result = emailChangeVerifyBodyHtml(lang, emailChangeVars)
-    expect(result).toMatchSnapshot()
-  })
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
+    'emailChangeVerifyBodyHtml for lang: %s',
+    (lang) => {
+      const result = emailChangeVerifyBodyHtml(lang, emailChangeVars)
+      expect(result).toMatchSnapshot()
+    },
+  )
 
-  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('emailChangeVerifySubject for lang: %s', lang => {
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('emailChangeVerifySubject for lang: %s', (lang) => {
     const result = emailChangeVerifySubject(lang)
     expect(result).toMatchSnapshot()
   })

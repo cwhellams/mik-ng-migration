@@ -53,11 +53,7 @@ const FuelPrices = () => {
       <Title label={t('fuelPrices.title')}>
         {canEdit && (
           <EditButton
-            title={
-              editMode
-                ? t('fuelPrices.exitEditMode')
-                : t('fuelPrices.enterEditMode')
-            }
+            title={editMode ? t('fuelPrices.exitEditMode') : t('fuelPrices.enterEditMode')}
             onClick={() => {
               setSaveError(undefined)
               setEditMode((current) => !current)
@@ -81,11 +77,7 @@ const FuelPrices = () => {
             fullWidth
           />
           <Stack direction='row' spacing={1}>
-            <Button
-              variant='contained'
-              onClick={save}
-              disabled={updateMutation.isMutating}
-            >
+            <Button variant='contained' onClick={save} disabled={updateMutation.isMutating}>
               {t('general.save')}
             </Button>
             <Button
@@ -102,9 +94,7 @@ const FuelPrices = () => {
         </Stack>
       ) : (
         <Paper sx={{ p: 2 }}>
-          {!data?.markdown && (
-            <Alert severity='info'>{t('fuelPrices.empty')}</Alert>
-          )}
+          {!data?.markdown && <Alert severity='info'>{t('fuelPrices.empty')}</Alert>}
           {!!data?.renderedHtml && (
             <Box
               sx={{

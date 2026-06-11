@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: "Pre-release tag to promote (e.g. v1.4.0)"
+        description: 'Pre-release tag to promote (e.g. v1.4.0)'
         required: true
         type: string
 

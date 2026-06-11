@@ -20,11 +20,7 @@ import { Icon } from '@iconify/react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../components/Title'
-import type {
-  Category,
-  Order,
-  OrderListResponse,
-} from '@backend/routes/shop/models'
+import type { Category, Order, OrderListResponse } from '@backend/routes/shop/models'
 import { Link } from 'react-router-dom'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
@@ -39,15 +35,11 @@ function resolveLanguage(language: string): 'fi' | 'sv' | 'en' {
 }
 
 function parseDateRange(value: string): DateRange {
-  if (value === '1m' || value === '3m' || value === '6m' || value === '1y')
-    return value
+  if (value === '1m' || value === '3m' || value === '6m' || value === '1y') return value
   return '7d'
 }
 
-function mergeUniqueOrders(
-  previousOrders: Order[],
-  nextOrders: Order[]
-): Order[] {
+function mergeUniqueOrders(previousOrders: Order[], nextOrders: Order[]): Order[] {
   const seen = new Set(previousOrders.map((order) => order.orderId))
   const uniqueNew = nextOrders.filter((order) => !seen.has(order.orderId))
   return [...previousOrders, ...uniqueNew]
@@ -84,7 +76,7 @@ export default function OrdersPage() {
   useEffect(() => {
     if (!response) return
     setVisibleOrders((prev) =>
-      page === 1 ? response.items : mergeUniqueOrders(prev, response.items)
+      page === 1 ? response.items : mergeUniqueOrders(prev, response.items),
     )
   }, [response, page])
 
@@ -92,7 +84,7 @@ export default function OrdersPage() {
 
   const categoryLabel = useMemo(
     () => (c: Category) => c.name?.[lang] ?? c.name?.en ?? c.categoryId,
-    [lang]
+    [lang],
   )
 
   const handleCategoryChange = (value: string) => {
@@ -111,12 +103,7 @@ export default function OrdersPage() {
     <Box>
       <Title label={t('shop.myOrders')} />
 
-      <Button
-        component={Link}
-        to='/shop'
-        startIcon={<Icon icon='mdi:arrow-left' />}
-        sx={{ mb: 2 }}
-      >
+      <Button component={Link} to='/shop' startIcon={<Icon icon='mdi:arrow-left' />} sx={{ mb: 2 }}>
         {t('shop.continueShopping')}
       </Button>
 
@@ -142,9 +129,7 @@ export default function OrdersPage() {
           <Select
             value={dateRange}
             label={t('common.date')}
-            onChange={(e) =>
-              handleDateRangeChange(parseDateRange(e.target.value))
-            }
+            onChange={(e) => handleDateRangeChange(parseDateRange(e.target.value))}
           >
             <MenuItem value='7d'>Last 7 days</MenuItem>
             <MenuItem value='1m'>Last month</MenuItem>
@@ -178,9 +163,7 @@ export default function OrdersPage() {
                     <TableRow key={order.orderId} hover>
                       <TableCell>#{order.orderId}</TableCell>
                       <TableCell>
-                        {order.createdAt
-                          ? new Date(order.createdAt).toLocaleDateString()
-                          : '-'}
+                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '-'}
                       </TableCell>
                       <TableCell>
                         <Chip
@@ -189,9 +172,7 @@ export default function OrdersPage() {
                           color={ORDER_STATUS_COLOR[order.status] ?? 'default'}
                         />
                       </TableCell>
-                      <TableCell align='right'>
-                        €{(order.totalAmount ?? 0).toFixed(2)}
-                      </TableCell>
+                      <TableCell align='right'>€{(order.totalAmount ?? 0).toFixed(2)}</TableCell>
                       <TableCell>
                         <Button
                           size='small'

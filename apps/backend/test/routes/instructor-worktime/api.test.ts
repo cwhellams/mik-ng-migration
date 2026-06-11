@@ -248,7 +248,7 @@ describe('GET /instructor-worktime', () => {
         totalTimeMins: number
         workTimeMins: number
       }> = res.body.data
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         expect(entry.workTimeMins).toBe(entry.totalTimeMins + 90 * entry.flightCount)
       })
     })

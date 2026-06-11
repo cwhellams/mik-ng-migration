@@ -14,14 +14,14 @@ export function InstructorQualificationsBanner() {
   const { me } = useMe()
 
   const isInstructorOrExaminer = me?.roles?.some(
-    (r) => r.roleId === 'INSTRUCTOR' || r.roleId === 'EXAMINER'
+    (r) => r.roleId === 'INSTRUCTOR' || r.roleId === 'EXAMINER',
   )
 
   const { data, error, isLoading } = useApi<InstructorQualification>(
     {
       url: 'v1/instructor-qualifications/me',
     },
-    { shouldRetryOnError: false }
+    { shouldRetryOnError: false },
   )
 
   if (!isInstructorOrExaminer || isLoading) return null
@@ -41,9 +41,7 @@ export function InstructorQualificationsBanner() {
       ]
     : []
 
-  const hasExpired = expiryFields.some(
-    (d) => d && dayjs(d).isBefore(today, 'day')
-  )
+  const hasExpired = expiryFields.some((d) => d && dayjs(d).isBefore(today, 'day'))
   const hasExpiringSoon = expiryFields.some((d) => {
     if (!d) return false
     const daysLeft = dayjs(d).diff(today, 'day')
@@ -62,11 +60,7 @@ export function InstructorQualificationsBanner() {
       <Alert
         severity={severity}
         action={
-          <Button
-            color='inherit'
-            size='small'
-            onClick={() => navigate('/club/members/me')}
-          >
+          <Button color='inherit' size='small' onClick={() => navigate('/club/members/me')}>
             {t('dashboard.instructorQualificationsAlert.viewProfile')}
           </Button>
         }

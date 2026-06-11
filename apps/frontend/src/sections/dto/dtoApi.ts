@@ -17,8 +17,7 @@ const BASE = 'v1/dto'
 const get = <T>(path: string, params?: Record<string, unknown>): Promise<T> =>
   sharedApi.get<T>(`${BASE}/${path}`, { params }).then((r) => r.data)
 
-const getRaw = (path: string) =>
-  sharedApi.get(`${BASE}/${path}`, { responseType: 'blob' })
+const getRaw = (path: string) => sharedApi.get(`${BASE}/${path}`, { responseType: 'blob' })
 
 const post = <T>(path: string, data?: unknown): Promise<T> =>
   sharedApi.post<T>(`${BASE}/${path}`, data).then((r) => r.data)
@@ -30,8 +29,7 @@ const put = <T>(path: string, data?: unknown): Promise<T> =>
   sharedApi.put<T>(`${BASE}/${path}`, data).then((r) => r.data)
 
 // ── Training Programs ─────────────────────────────────────────────────────────
-export const getPrograms = (): Promise<TrainingProgram[]> =>
-  get<TrainingProgram[]>('programs')
+export const getPrograms = (): Promise<TrainingProgram[]> => get<TrainingProgram[]>('programs')
 
 export const getProgram = (programId: string): Promise<TrainingProgram> =>
   get<TrainingProgram>(`programs/${programId}`)
@@ -43,9 +41,8 @@ export const createProgram = (data: {
 
 export const updateProgram = (
   programId: string,
-  data: { name: string; description?: string }
-): Promise<TrainingProgram> =>
-  put<TrainingProgram>(`programs/${programId}`, data)
+  data: { name: string; description?: string },
+): Promise<TrainingProgram> => put<TrainingProgram>(`programs/${programId}`, data)
 
 // ── Syllabi ───────────────────────────────────────────────────────────────────
 export const getSyllabi = (programId: string): Promise<Syllabus[]> =>
@@ -59,21 +56,18 @@ export const getSyllabus = (syllabusId: string): Promise<SyllabusWithFlights> =>
 
 export const createSyllabus = (
   programId: string,
-  data: { description?: string }
+  data: { description?: string },
 ): Promise<Syllabus> => post<Syllabus>(`programs/${programId}/syllabi`, data)
 
 export const updateSyllabus = (
   syllabusId: string,
-  data: { description?: string; minBlockTimeMins?: number | null }
+  data: { description?: string; minBlockTimeMins?: number | null },
 ): Promise<Syllabus> => put<Syllabus>(`syllabi/${syllabusId}`, data)
 
 export const publishSyllabus = (syllabusId: string): Promise<Syllabus> =>
   post<Syllabus>(`syllabi/${syllabusId}/publish`)
 
-export const exportSyllabus = async (
-  syllabusId: string,
-  version: string
-): Promise<void> => {
+export const exportSyllabus = async (syllabusId: string, version: string): Promise<void> => {
   const response = await getRaw(`syllabi/${syllabusId}/export`)
   const blob = new Blob([response.data], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
@@ -84,37 +78,26 @@ export const exportSyllabus = async (
   URL.revokeObjectURL(url)
 }
 
-export const copySyllabusAsDraft = (
-  syllabusId: string
-): Promise<SyllabusWithFlights> =>
+export const copySyllabusAsDraft = (syllabusId: string): Promise<SyllabusWithFlights> =>
   post<SyllabusWithFlights>(`syllabi/${syllabusId}/copy`)
 
 export const updateSyllabusFlights = (
   syllabusId: string,
-  flights: SyllabusFlight[]
+  flights: SyllabusFlight[],
 ): Promise<SyllabusWithFlights> =>
   put<SyllabusWithFlights>(`syllabi/${syllabusId}/flights`, { flights })
 
-export const getSyllabusFlights = (
-  syllabusId: string
-): Promise<SyllabusFlight[]> =>
+export const getSyllabusFlights = (syllabusId: string): Promise<SyllabusFlight[]> =>
   get<SyllabusFlight[]>(`syllabi/${syllabusId}/flights`)
 
 // ── Import ────────────────────────────────────────────────────────────────────
-export const importSyllabus = (
-  programId: string,
-  file: File
-): Promise<SyllabusWithFlights> => {
+export const importSyllabus = (programId: string, file: File): Promise<SyllabusWithFlights> => {
   const form = new FormData()
   form.append('file', file)
   return sharedApi
-    .post<SyllabusWithFlights>(
-      `/api/${BASE}/programs/${programId}/syllabi/import`,
-      form,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      }
-    )
+    .post<SyllabusWithFlights>(`/api/${BASE}/programs/${programId}/syllabi/import`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     .then((r) => r.data)
 }
 
@@ -126,50 +109,43 @@ export type MemberSyllabusDetail = MemberSyllabus & {
 export const getMyActiveSyllabus = (): Promise<MemberSyllabusDetail | null> =>
   get<MemberSyllabusDetail | null>('me/syllabus')
 
-export const getMemberSyllabus = (
-  memberId: string
-): Promise<MemberSyllabusDetail | null> =>
+export const getMemberSyllabus = (memberId: string): Promise<MemberSyllabusDetail | null> =>
   get<MemberSyllabusDetail | null>(`members/${memberId}/syllabus`)
 
-export const assignSyllabus = (
-  memberId: string,
-  programId: string
-): Promise<MemberSyllabus> =>
+export const assignSyllabus = (memberId: string, programId: string): Promise<MemberSyllabus> =>
   post<MemberSyllabus>(`members/${memberId}/syllabus`, { programId })
 
 // ── Flight Attempts ───────────────────────────────────────────────────────────
-export const getFlightAttempt = (
-  flightLogId: string
-): Promise<SyllabusFlightAttempt | null> =>
+export const getFlightAttempt = (flightLogId: string): Promise<SyllabusFlightAttempt | null> =>
   get<SyllabusFlightAttempt | null>(`flight-logs/${flightLogId}/attempt`)
 
 export const createFlightAttempt = (
   flightLogId: string,
-  data: { syllabusFlightId: string; memberSyllabusId: string }
+  data: { syllabusFlightId: string; memberSyllabusId: string },
 ): Promise<SyllabusFlightAttempt> =>
   post<SyllabusFlightAttempt>(`flight-logs/${flightLogId}/attempt`, data)
 
 export const updateFlightAttempt = (
   flightLogId: string,
-  syllabusFlightId: string
+  syllabusFlightId: string,
 ): Promise<SyllabusFlightAttempt> =>
   patch<SyllabusFlightAttempt>(`flight-logs/${flightLogId}/attempt`, {
     syllabusFlightId,
   })
 
 export const getAttempt = (
-  attemptId: string
+  attemptId: string,
 ): Promise<SyllabusFlightAttempt & { itemOutcomes: FlightItemOutcome[] }> =>
   get(`attempts/${attemptId}`)
 
 export const verifyAttempt = (
   attemptId: string,
-  data: VerifyAttempt
+  data: VerifyAttempt,
 ): Promise<SyllabusFlightAttempt> =>
   post<SyllabusFlightAttempt>(`attempts/${attemptId}/verify`, data)
 
 export const getMemberSyllabusAttempts = (
-  memberSyllabusId: string
+  memberSyllabusId: string,
 ): Promise<SyllabusFlightAttempt[]> =>
   get<SyllabusFlightAttempt[]>(`member-syllabus/${memberSyllabusId}/attempts`)
 
@@ -191,8 +167,7 @@ export const getMemberHil = (memberId: string): Promise<HilEntry[]> =>
   get<HilEntry[]>(`members/${memberId}/hil`)
 
 // ── Progress ──────────────────────────────────────────────────────────────────
-export const getProgress = (): Promise<StudentProgress[]> =>
-  get<StudentProgress[]>('progress')
+export const getProgress = (): Promise<StudentProgress[]> => get<StudentProgress[]>('progress')
 
 // ── Student Progress Detail ────────────────────────────────────────────────────
 export type AttemptWithFlightLogData = SyllabusFlightAttempt & {
@@ -223,6 +198,6 @@ export type StudentProgressDetail = {
 }
 
 export const getStudentProgressDetail = (
-  memberSyllabusId: string
+  memberSyllabusId: string,
 ): Promise<StudentProgressDetail> =>
   get<StudentProgressDetail>(`member-syllabus/${memberSyllabusId}/detail`)

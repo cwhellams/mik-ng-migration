@@ -54,12 +54,7 @@ interface EditMemberModalProps {
   api: APIMutation<Member>
 }
 
-export const EditMemberModal = ({
-  onClose,
-  mode,
-  memberData,
-  api,
-}: EditMemberModalProps) => {
+export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberModalProps) => {
   const { t, i18n } = useTranslation()
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
@@ -147,13 +142,12 @@ export const EditMemberModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode])
 
-  const handleChange =
-    (field: keyof Member) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: e.target.value,
-      }))
-    }
+  const handleChange = (field: keyof Member) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: e.target.value,
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -183,16 +177,14 @@ export const EditMemberModal = ({
             value={formData.memberType}
             onChange={handleChange('memberType')}
           >
-            {['FLYING', 'NON-FLYING', 'JUNIOR', 'HONORARY', 'EXTERNAL'].map(
-              (id) => (
-                <FormControlLabel
-                  key={id}
-                  value={id}
-                  control={<Radio />}
-                  label={t(`member.types.${id.toLowerCase()}`)}
-                />
-              )
-            )}
+            {['FLYING', 'NON-FLYING', 'JUNIOR', 'HONORARY', 'EXTERNAL'].map((id) => (
+              <FormControlLabel
+                key={id}
+                value={id}
+                control={<Radio />}
+                label={t(`member.types.${id.toLowerCase()}`)}
+              />
+            ))}
           </RadioGroup>
         </FormControl>
       </Grid>
@@ -227,9 +219,7 @@ export const EditMemberModal = ({
         <PhoneNumberInput
           label={t('member.phone')}
           value={formData.phoneNumber || ''}
-          onChange={(value) =>
-            setFormData((prev) => ({ ...prev, phoneNumber: value }))
-          }
+          onChange={(value) => setFormData((prev) => ({ ...prev, phoneNumber: value }))}
         />
       </Grid>
       <Grid size={12}>
@@ -284,9 +274,7 @@ export const EditMemberModal = ({
         <PhoneNumberInput
           label={t('member.phone')}
           value={formData.phoneNumber || ''}
-          onChange={(value) =>
-            setFormData((prev) => ({ ...prev, phoneNumber: value }))
-          }
+          onChange={(value) => setFormData((prev) => ({ ...prev, phoneNumber: value }))}
         />
       </Grid>
       <Grid size={12}>
@@ -331,11 +319,7 @@ export const EditMemberModal = ({
       <Grid size={12}>
         <FormControl>
           <FormLabel>{t('member.lang')}</FormLabel>
-          <RadioGroup
-            row
-            value={formData.lang ?? MIKLang.FI}
-            onChange={handleChange('lang')}
-          >
+          <RadioGroup row value={formData.lang ?? MIKLang.FI} onChange={handleChange('lang')}>
             {([MIKLang.FI, MIKLang.SV, MIKLang.EN] as const).map((l) => (
               <FormControlLabel
                 key={l}
@@ -369,9 +353,7 @@ export const EditMemberModal = ({
         <PhoneNumberInput
           label={t('member.icePhone')}
           value={formData.iceContactPhoneNumber || ''}
-          onChange={(value) =>
-            setFormData((prev) => ({ ...prev, iceContactPhoneNumber: value }))
-          }
+          onChange={(value) => setFormData((prev) => ({ ...prev, iceContactPhoneNumber: value }))}
         />
       </Grid>
     </Grid>
@@ -449,9 +431,7 @@ export const EditMemberModal = ({
       <Grid size={{ xs: 12, sm: 6 }}>
         <DateField
           label={t('member.licenceInfo.licenceExpiry')}
-          value={
-            formData.licenceExpiry ? dayjs(formData.licenceExpiry) : undefined
-          }
+          value={formData.licenceExpiry ? dayjs(formData.licenceExpiry) : undefined}
           onChange={(value: Dayjs | null) => {
             setFormData({
               ...formData,
@@ -463,11 +443,7 @@ export const EditMemberModal = ({
       <Grid size={{ xs: 12, sm: 6 }}>
         <DateField
           label={t('member.licenceInfo.medicalClass1Expiry')}
-          value={
-            formData.medicalClass1Expiry
-              ? dayjs(formData.medicalClass1Expiry)
-              : undefined
-          }
+          value={formData.medicalClass1Expiry ? dayjs(formData.medicalClass1Expiry) : undefined}
           onChange={(value: Dayjs | null) => {
             setFormData({
               ...formData,
@@ -479,11 +455,7 @@ export const EditMemberModal = ({
       <Grid size={{ xs: 12, sm: 6 }}>
         <DateField
           label={t('member.licenceInfo.medicalClass2Expiry')}
-          value={
-            formData.medicalClass2Expiry
-              ? dayjs(formData.medicalClass2Expiry)
-              : undefined
-          }
+          value={formData.medicalClass2Expiry ? dayjs(formData.medicalClass2Expiry) : undefined}
           onChange={(value: Dayjs | null) => {
             setFormData({
               ...formData,
@@ -495,11 +467,7 @@ export const EditMemberModal = ({
       <Grid size={{ xs: 12, sm: 6 }}>
         <DateField
           label={t('member.licenceInfo.medicalLaplExpiry')}
-          value={
-            formData.medicalLaplExpiry
-              ? dayjs(formData.medicalLaplExpiry)
-              : undefined
-          }
+          value={formData.medicalLaplExpiry ? dayjs(formData.medicalLaplExpiry) : undefined}
           onChange={(value: Dayjs | null) => {
             setFormData({
               ...formData,
@@ -573,14 +541,7 @@ export const EditMemberModal = ({
             value={formData.memberType}
             onChange={handleChange('memberType')}
           >
-            {[
-              'FLYING',
-              'NON-FLYING',
-              'JUNIOR',
-              'HONORARY',
-              'EXTERNAL',
-              'REMOVED',
-            ].map((id) => (
+            {['FLYING', 'NON-FLYING', 'JUNIOR', 'HONORARY', 'EXTERNAL', 'REMOVED'].map((id) => (
               <FormControlLabel
                 key={id}
                 value={id}
@@ -615,9 +576,7 @@ export const EditMemberModal = ({
           fullWidth
           label={t('member.billingId')}
           value={formData.billingId || ''}
-          placeholder={
-            'Leave blank, value will be automatically assigned from Simplbooks'
-          }
+          placeholder={'Leave blank, value will be automatically assigned from Simplbooks'}
           onChange={handleChange('billingId')}
           slotProps={{
             inputLabel: {
@@ -643,9 +602,7 @@ export const EditMemberModal = ({
     </Grid>
   )
 
-  const handleChangeRole = ({
-    target,
-  }: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRole = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
     const oldRoles = formData.roles ?? []
     const role = target.name
 
@@ -675,9 +632,7 @@ export const EditMemberModal = ({
                 control={
                   <Checkbox
                     name={role.roleId}
-                    checked={formData.roles?.some(
-                      ({ roleId }) => roleId == role.roleId
-                    )}
+                    checked={formData.roles?.some(({ roleId }) => roleId == role.roleId)}
                     onChange={handleChangeRole}
                   />
                 }
@@ -727,10 +682,7 @@ export const EditMemberModal = ({
         },
       }}
     >
-      <EditDialogTitle
-        title={mode && `member.edit.${mode}`}
-        onClose={onClose}
-      />
+      <EditDialogTitle title={mode && `member.edit.${mode}`} onClose={onClose} />
       <DialogContent dividers>
         {getForm()}
 

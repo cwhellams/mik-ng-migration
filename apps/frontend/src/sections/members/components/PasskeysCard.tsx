@@ -55,10 +55,7 @@ interface PasskeysCardProps {
  */
 export const PasskeysCard = ({ memberId, isAdmin }: PasskeysCardProps) => {
   const { t } = useTranslation()
-  const apiPath =
-    memberId === 'me'
-      ? 'v1/members/me/passkeys'
-      : `v1/members/${memberId}/passkeys`
+  const apiPath = memberId === 'me' ? 'v1/members/me/passkeys' : `v1/members/${memberId}/passkeys`
 
   const { data, isLoading, mutation, mutate } = useApi<PasskeysResponse>({
     url: apiPath,
@@ -129,30 +126,20 @@ export const PasskeysCard = ({ memberId, isAdmin }: PasskeysCardProps) => {
                   primary={p.name || t('member.passkeys.unnamed')}
                   secondary={
                     <Box component='span' sx={{ display: 'block' }}>
-                      <Typography
-                        component='span'
-                        variant='caption'
-                        color='text.secondary'
-                      >
-                        {t('member.passkeys.added')}{' '}
-                        {new Date(p.createdAt).toLocaleDateString()}
+                      <Typography component='span' variant='caption' color='text.secondary'>
+                        {t('member.passkeys.added')} {new Date(p.createdAt).toLocaleDateString()}
                         {p.lastUsedAt &&
                           ` · ${t('member.passkeys.lastUsed')} ${new Date(
-                            p.lastUsedAt
+                            p.lastUsedAt,
                           ).toLocaleDateString()}`}
-                        {p.transports.length > 0 &&
-                          ` · ${p.transports.join(', ')}`}
+                        {p.transports.length > 0 && ` · ${p.transports.join(', ')}`}
                       </Typography>
                     </Box>
                   }
                 />
                 <ListItemSecondaryAction>
                   <Tooltip title={t('member.passkeys.remove')}>
-                    <IconButton
-                      edge='end'
-                      onClick={() => handleRemove(p.id, p.name)}
-                      size='small'
-                    >
+                    <IconButton edge='end' onClick={() => handleRemove(p.id, p.name)} size='small'>
                       <Icon icon='mdi:delete' />
                     </IconButton>
                   </Tooltip>

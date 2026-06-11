@@ -3,13 +3,7 @@ import MikLogo from '../../assets/mik-blue.svg'
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-export const LoginLayout = ({
-  title,
-  children,
-}: {
-  title: string
-  children: ReactNode
-}) => (
+export const LoginLayout = ({ title, children }: { title: string; children: ReactNode }) => (
   <Box
     sx={{
       display: 'flex',
@@ -31,8 +25,7 @@ export const LoginLayout = ({
           borderRadius: 2,
           transition: 'all 0.3s ease-in-out',
           '&:hover': {
-            boxShadow:
-              '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
+            boxShadow: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
           },
         }}
       >
@@ -49,12 +42,7 @@ export const LoginLayout = ({
               }}
             />
           </Link>
-          <Typography
-            variant='h4'
-            fontWeight='bold'
-            color='primary'
-            sx={{ mb: 1 }}
-          >
+          <Typography variant='h4' fontWeight='bold' color='primary' sx={{ mb: 1 }}>
             Intranet
           </Typography>
           <Typography variant='body2' color='text.secondary'>

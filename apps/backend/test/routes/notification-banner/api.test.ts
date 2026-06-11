@@ -29,7 +29,7 @@ jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
       if (permissions.length === 0) {
         return next()
       }
-      if (permissions.some(p => mockUserPermissions.includes(p))) {
+      if (permissions.some((p) => mockUserPermissions.includes(p))) {
         return next()
       }
       return _res.status(403).json({ status: 403, title: 'Forbidden', detail: 'Protected Content' })

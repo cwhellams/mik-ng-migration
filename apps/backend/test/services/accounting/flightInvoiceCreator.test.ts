@@ -17,9 +17,8 @@ jest.unstable_mockModule('../../../src/db/aircraft-pricing-queries.ts', () => ({
 }))
 
 const { getAircraftPriceForDate } = await import('../../../src/db/aircraft-pricing-queries.ts')
-const { createFlightInvoicePayload } = await import(
-  '../../../src/services/accounting/flightInvoiceCreator.ts'
-)
+const { createFlightInvoicePayload } =
+  await import('../../../src/services/accounting/flightInvoiceCreator.ts')
 
 describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
   const testMemberId = 'Matti1'
@@ -41,10 +40,10 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       .leftJoin('prepaid.packages as p', 'p.aircraft_registration', 'a.registration')
       .select('a.registration as registration')
       .groupBy('a.registration')
-      .having(eb => eb.fn.count('p.product_id'), '=', 0)
+      .having((eb) => eb.fn.count('p.product_id'), '=', 0)
       .orderBy('a.registration', 'asc')
       .executeTakeFirstOrThrow()
-      .then(row => {
+      .then((row) => {
         testAircraftRegistration = row.registration
       })
 
@@ -83,7 +82,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
           purchase_vat_type_id: 0,
         },
       })
-      .onConflict(oc => oc.column('id').doNothing())
+      .onConflict((oc) => oc.column('id').doNothing())
       .execute()
 
     equipmentFeeArticleId = testArticleIds[0]
@@ -112,7 +111,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
           purchase_vat_type_id: 0,
         },
       })
-      .onConflict(oc => oc.column('id').doNothing())
+      .onConflict((oc) => oc.column('id').doNothing())
       .execute()
 
     // Insert VIRHEMERKINTA (entry error fee) article
@@ -139,7 +138,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
           purchase_vat_type_id: 0,
         },
       })
-      .onConflict(oc => oc.column('id').doNothing())
+      .onConflict((oc) => oc.column('id').doNothing())
       .execute()
 
     // Insert dedicated package article (used to test simplbooksItemId path)
@@ -166,7 +165,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
           purchase_vat_type_id: 0,
         },
       })
-      .onConflict(oc => oc.column('id').doNothing())
+      .onConflict((oc) => oc.column('id').doNothing())
       .execute()
 
     // Mock aircraft pricing
@@ -182,7 +181,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
         created_by: 'Matti1',
         updated_by: 'Matti1',
       })
-      .onConflict(oc => oc.column('category_id').doNothing())
+      .onConflict((oc) => oc.column('category_id').doNothing())
       .execute()
   })
 
@@ -198,7 +197,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
         name: 'Flight log entry error fee',
         item: { amount: 1, price_per_unit: 10, sum_with_vat: 10, markup_value: 10 },
       })
-      .onConflict(oc => oc.column('id').doNothing())
+      .onConflict((oc) => oc.column('id').doNothing())
       .execute()
   })
 
@@ -689,7 +688,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       // flight task + credit task + equipment fee (reduced)
       expect(invoice.Tasks).toHaveLength(3)
-      const equipmentFeeTask = invoice.Tasks.find(t => t.Task.code === ART_EQUIP_USAGE_FEE_CODE)
+      const equipmentFeeTask = invoice.Tasks.find((t) => t.Task.code === ART_EQUIP_USAGE_FEE_CODE)
       expect(equipmentFeeTask?.Task.amount).toBe(80) // 90 - 10
     })
   })
@@ -789,7 +788,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       const invoice = await createFlightInvoicePayload(payload, testMemberId)
 
       expect(invoice.Tasks).toHaveLength(2)
-      const errorFeeTask = invoice.Tasks.find(t => t.Task.code === ART_ENTRY_ERROR_CODE)
+      const errorFeeTask = invoice.Tasks.find((t) => t.Task.code === ART_ENTRY_ERROR_CODE)
       expect(errorFeeTask).toBeDefined()
       expect(errorFeeTask?.Task.article_id).toBe(testArticleIds[2])
       expect(errorFeeTask?.Task.price_per_unit).toBe(50)
@@ -804,7 +803,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
 
       expect(invoice.Tasks).toHaveLength(1)
       expect(invoice.Tasks[0].Task.discount).toBe(100)
-      const errorFeeTask = invoice.Tasks.find(t => t.Task.code === ART_ENTRY_ERROR_CODE)
+      const errorFeeTask = invoice.Tasks.find((t) => t.Task.code === ART_ENTRY_ERROR_CODE)
       expect(errorFeeTask).toBeUndefined()
     })
 
@@ -841,7 +840,7 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
         const flight = createTestFlight({ entryErrorFee: true })
         const invoice = await createFlightInvoicePayload({ flights: [flight] }, testMemberId)
 
-        const errorFeeTask = invoice.Tasks.find(t => t.Task.code === ART_ENTRY_ERROR_CODE)
+        const errorFeeTask = invoice.Tasks.find((t) => t.Task.code === ART_ENTRY_ERROR_CODE)
         expect(errorFeeTask).toBeDefined()
         expect(errorFeeTask?.Task.price_per_unit).toBe(10)
         expect(errorFeeTask?.Task.amount).toBe(1)

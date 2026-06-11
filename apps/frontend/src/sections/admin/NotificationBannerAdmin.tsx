@@ -36,9 +36,7 @@ export default function NotificationBannerAdmin() {
   const [message, setMessage] = useState<string>('')
   const [severity, setSeverity] = useState<NotificationBannerSeverity>('info')
   const [enabled, setEnabled] = useState<boolean>(false)
-  const [saveStatus, setSaveStatus] = useState<
-    'idle' | 'saving' | 'saved' | 'error'
-  >('idle')
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
   useEffect(() => {
     if (data) {
@@ -96,16 +94,9 @@ export default function NotificationBannerAdmin() {
         </Alert>
       )}
 
-      <Box
-        sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 600 }}
-      >
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 600 }}>
         <FormControlLabel
-          control={
-            <Switch
-              checked={enabled}
-              onChange={(e) => setEnabled(e.target.checked)}
-            />
-          }
+          control={<Switch checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />}
           label={t('notificationBanner.admin.enabled')}
         />
 
@@ -114,22 +105,12 @@ export default function NotificationBannerAdmin() {
           <Select
             value={severity}
             label={t('notificationBanner.admin.severity')}
-            onChange={(e) =>
-              setSeverity(e.target.value as NotificationBannerSeverity)
-            }
+            onChange={(e) => setSeverity(e.target.value as NotificationBannerSeverity)}
           >
-            <MenuItem value='info'>
-              {t('notificationBanner.admin.severityInfo')}
-            </MenuItem>
-            <MenuItem value='warning'>
-              {t('notificationBanner.admin.severityWarning')}
-            </MenuItem>
-            <MenuItem value='error'>
-              {t('notificationBanner.admin.severityError')}
-            </MenuItem>
-            <MenuItem value='success'>
-              {t('notificationBanner.admin.severitySuccess')}
-            </MenuItem>
+            <MenuItem value='info'>{t('notificationBanner.admin.severityInfo')}</MenuItem>
+            <MenuItem value='warning'>{t('notificationBanner.admin.severityWarning')}</MenuItem>
+            <MenuItem value='error'>{t('notificationBanner.admin.severityError')}</MenuItem>
+            <MenuItem value='success'>{t('notificationBanner.admin.severitySuccess')}</MenuItem>
           </Select>
         </FormControl>
 
@@ -145,22 +126,14 @@ export default function NotificationBannerAdmin() {
         />
 
         {saveStatus === 'saved' && (
-          <Alert severity='success'>
-            {t('notificationBanner.admin.saved')}
-          </Alert>
+          <Alert severity='success'>{t('notificationBanner.admin.saved')}</Alert>
         )}
         {saveStatus === 'error' && (
-          <Alert severity='error'>
-            {t('notificationBanner.admin.saveError')}
-          </Alert>
+          <Alert severity='error'>{t('notificationBanner.admin.saveError')}</Alert>
         )}
 
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
-            variant='contained'
-            onClick={handleSave}
-            disabled={saveStatus === 'saving'}
-          >
+          <Button variant='contained' onClick={handleSave} disabled={saveStatus === 'saving'}>
             {t('notificationBanner.admin.save')}
           </Button>
           {(data?.message || data?.enabled) && (

@@ -103,8 +103,7 @@ const FlightLogEntry = () => {
     params: { activeOnly: true },
   })
   // make sure old aircrafts are shown in the list
-  const currentAircrafts =
-    aircraftData?.aircrafts.map((a) => a.registration) ?? []
+  const currentAircrafts = aircraftData?.aircrafts.map((a) => a.registration) ?? []
   const aircrafts =
     data && !currentAircrafts.includes(data.aircraftRegistration)
       ? [...currentAircrafts, data.aircraftRegistration]
@@ -118,9 +117,7 @@ const FlightLogEntry = () => {
   // (non-invoiced) flights, while regular members can only do so before
   // instructor verification.
   const syllabusEditable =
-    isEditable ||
-    ((hasAccess(MIKPermissions.DTO_INSTRUCTOR) || isFlightLogAdmin) &&
-      !isInvoiced)
+    isEditable || ((hasAccess(MIKPermissions.DTO_INSTRUCTOR) || isFlightLogAdmin) && !isInvoiced)
 
   // Fetch member list here so it can be used in the form resolver.
   // SWR deduplicates this request with the identical call in FlightCrew.
@@ -133,7 +130,7 @@ const FlightLogEntry = () => {
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   )
 
   // Custom resolver: wraps zodResolver and adds FI/FE member-role validation.
@@ -143,10 +140,7 @@ const FlightLogEntry = () => {
   // member dropdown itself also shows no qualified members until loaded, so
   // an unqualified selection cannot be made before the list arrives.
   const formResolver = useMemo(() => {
-    const baseResolver = zodResolver(
-      flightLogDateValidator(FlightLogUpsertSchema.strip()),
-      {}
-    )
+    const baseResolver = zodResolver(flightLogDateValidator(FlightLogUpsertSchema.strip()), {})
     return async (...args: Parameters<typeof baseResolver>) => {
       const [values] = args
       const result = await baseResolver(...args)
@@ -174,10 +168,7 @@ const FlightLogEntry = () => {
         },
       ]
 
-      const additionalErrors: Record<
-        string,
-        { type: string; message: string }
-      > = {}
+      const additionalErrors: Record<string, { type: string; message: string }> = {}
       for (const { memberId, role, field } of crewSlots) {
         if (!memberId || (role !== 'FI' && role !== 'FE')) continue
         const roleErrorMessage =
@@ -306,7 +297,7 @@ const FlightLogEntry = () => {
   const registration = watch('aircraftRegistration')
   const aircraft = useMemo(
     () => aircraftData?.aircrafts.find((a) => a.registration === registration),
-    [registration, aircraftData]
+    [registration, aircraftData],
   )
 
   const partiallyBillableFlight = watch('partiallyBillableFlight')
@@ -354,14 +345,7 @@ const FlightLogEntry = () => {
     } else if (errors.validationRemarks?.type === 'manual') {
       clearErrors('validationRemarks')
     }
-  }, [
-    entryErrorFee,
-    validationRemarks,
-    setError,
-    clearErrors,
-    errors.validationRemarks,
-    t,
-  ])
+  }, [entryErrorFee, validationRemarks, setError, clearErrors, errors.validationRemarks, t])
 
   useEffect(() => {
     if (isBillableFlight === false && !nonBillingReason?.trim()) {
@@ -372,14 +356,7 @@ const FlightLogEntry = () => {
     } else if (errors.nonBillingReason?.type === 'manual') {
       clearErrors('nonBillingReason')
     }
-  }, [
-    isBillableFlight,
-    nonBillingReason,
-    setError,
-    clearErrors,
-    errors.nonBillingReason,
-    t,
-  ])
+  }, [isBillableFlight, nonBillingReason, setError, clearErrors, errors.nonBillingReason, t])
 
   useEffect(() => {
     if (isBillableFlight === false && entryErrorFee) {
@@ -409,31 +386,21 @@ const FlightLogEntry = () => {
   ])
 
   const epochToDayjs = (
-    field:
-      | 'offBlockTimeEpoch'
-      | 'takeoffTimeEpoch'
-      | 'landingTimeEpoch'
-      | 'onBlockTimeEpoch'
+    field: 'offBlockTimeEpoch' | 'takeoffTimeEpoch' | 'landingTimeEpoch' | 'onBlockTimeEpoch',
   ) => (getValues(field) ? dayjs.unix(Number(watch(field))) : null)
 
   const [problem, setProblem] = useState<Problem | undefined>()
 
   // DTO syllabus integration
   const billableMemberIdWatched = watch('billableMemberId')
-  const [memberSyllabus, setMemberSyllabus] =
-    useState<MemberSyllabusDetail | null>(null)
-  const [selectedSyllabusFlightId, setSelectedSyllabusFlightId] =
-    useState<string>('')
-  const [existingAttemptId, setExistingAttemptId] = useState<string | null>(
-    null
-  )
+  const [memberSyllabus, setMemberSyllabus] = useState<MemberSyllabusDetail | null>(null)
+  const [selectedSyllabusFlightId, setSelectedSyllabusFlightId] = useState<string>('')
+  const [existingAttemptId, setExistingAttemptId] = useState<string | null>(null)
   const [existingAttemptVerified, setExistingAttemptVerified] = useState(false)
   // Track the original linked syllabus flight so we can detect changes by instructors/admins
-  const [originalSyllabusFlightId, setOriginalSyllabusFlightId] =
-    useState<string>('')
+  const [originalSyllabusFlightId, setOriginalSyllabusFlightId] = useState<string>('')
   const [showDtoWarning, setShowDtoWarning] = useState(false)
-  const [pendingSubmitData, setPendingSubmitData] =
-    useState<FlightLogUpsertRequest | null>(null)
+  const [pendingSubmitData, setPendingSubmitData] = useState<FlightLogUpsertRequest | null>(null)
 
   useEffect(() => {
     if (!billableMemberIdWatched) return
@@ -471,7 +438,7 @@ const FlightLogEntry = () => {
           // put returned payload to the cache
           revalidate: false,
           populateCache: (result) => result,
-        }
+        },
       )
 
       if (error) {
@@ -491,10 +458,7 @@ const FlightLogEntry = () => {
             /* non-fatal: attempt may already exist */
           })
         } else if (selectedSyllabusFlightId !== originalSyllabusFlightId) {
-          await updateFlightAttempt(
-            savedFlightId,
-            selectedSyllabusFlightId
-          ).catch(() => {
+          await updateFlightAttempt(savedFlightId, selectedSyllabusFlightId).catch(() => {
             /* non-fatal */
           })
         }
@@ -558,17 +522,11 @@ const FlightLogEntry = () => {
           <Grid container spacing={3}>
             {/* Aircraft Information */}
             <Grid size={12}>
-              <Typography variant='h6'>
-                {t('flightLog.aircraftInfo')}
-              </Typography>
+              <Typography variant='h6'>{t('flightLog.aircraftInfo')}</Typography>
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FormControl
-                required
-                fullWidth
-                error={!!errors.aircraftRegistration}
-              >
+              <FormControl required fullWidth error={!!errors.aircraftRegistration}>
                 <InputLabel>{t('flightLog.aircraft')}</InputLabel>
                 <Controller
                   name='aircraftRegistration'
@@ -579,26 +537,20 @@ const FlightLogEntry = () => {
                       required
                       onChange={({ target }) => {
                         const plane = aircraftData?.aircrafts.find(
-                          (plane) => plane.registration == target.value
+                          (plane) => plane.registration == target.value,
                         )
                         if (!getValues('departureAirport')) {
                           // set last known landing location as the default departure airport
 
                           if (plane?.status?.lastLandingAirport) {
-                            setValue(
-                              'departureAirport',
-                              plane.status.lastLandingAirport
-                            )
+                            setValue('departureAirport', plane.status.lastLandingAirport)
                             clearErrors('departureAirport')
                           }
                         }
                         if (!getValues('fuelRemainingLitres')) {
                           // set default fuel to 10% of usable fuel
                           if (plane?.usableFuelLitres) {
-                            setValue(
-                              'fuelRemainingLitres',
-                              plane?.usableFuelLitres * 0.1
-                            )
+                            setValue('fuelRemainingLitres', plane?.usableFuelLitres * 0.1)
                             clearErrors('fuelRemainingLitres')
                           }
                         }
@@ -617,9 +569,7 @@ const FlightLogEntry = () => {
                   )}
                 />
                 {errors.aircraftRegistration && (
-                  <FormHelperText>
-                    {errors.aircraftRegistration.message?.toString()}
-                  </FormHelperText>
+                  <FormHelperText>{errors.aircraftRegistration.message?.toString()}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -650,9 +600,7 @@ const FlightLogEntry = () => {
                   )}
                 />
                 {errors.flightType && (
-                  <FormHelperText>
-                    {errors.flightType.message?.toString()}
-                  </FormHelperText>
+                  <FormHelperText>{errors.flightType.message?.toString()}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -689,34 +637,25 @@ const FlightLogEntry = () => {
                     <Select
                       value={selectedSyllabusFlightId}
                       label='Syllabus Flight (optional)'
-                      onChange={(e) =>
-                        setSelectedSyllabusFlightId(e.target.value)
-                      }
+                      onChange={(e) => setSelectedSyllabusFlightId(e.target.value)}
                       disabled={!syllabusEditable}
                     >
                       <MenuItem value=''>— None —</MenuItem>
-                      {(memberSyllabus.syllabusDetail.flights ?? []).map(
-                        (f) => (
-                          <MenuItem key={f.flightId} value={f.flightId}>
-                            {f.code} – {f.name}
-                            {f.isInterimCheckpoint && (
-                              <Chip
-                                label='Interim'
-                                size='small'
-                                sx={{ ml: 1 }}
-                              />
-                            )}
-                          </MenuItem>
-                        )
-                      )}
+                      {(memberSyllabus.syllabusDetail.flights ?? []).map((f) => (
+                        <MenuItem key={f.flightId} value={f.flightId}>
+                          {f.code} – {f.name}
+                          {f.isInterimCheckpoint && (
+                            <Chip label='Interim' size='small' sx={{ ml: 1 }} />
+                          )}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                   {selectedSyllabusFlightId &&
                     (() => {
-                      const flight =
-                        memberSyllabus.syllabusDetail?.flights?.find(
-                          (f) => f.flightId === selectedSyllabusFlightId
-                        )
+                      const flight = memberSyllabus.syllabusDetail?.flights?.find(
+                        (f) => f.flightId === selectedSyllabusFlightId,
+                      )
                       return flight ? (
                         <Box
                           sx={{
@@ -726,9 +665,7 @@ const FlightLogEntry = () => {
                             borderRadius: 1,
                           }}
                         >
-                          <Typography variant='subtitle2'>
-                            {flight.name}
-                          </Typography>
+                          <Typography variant='subtitle2'>{flight.name}</Typography>
                           {flight.description && (
                             <Typography variant='body2' color='text.secondary'>
                               {flight.description}
@@ -750,11 +687,7 @@ const FlightLogEntry = () => {
                                 <Typography key={item.itemId} variant='body2'>
                                   • {item.name}
                                   {item.mandatory && (
-                                    <Chip
-                                      label='mandatory'
-                                      size='small'
-                                      sx={{ ml: 0.5 }}
-                                    />
+                                    <Chip label='mandatory' size='small' sx={{ ml: 0.5 }} />
                                   )}
                                 </Typography>
                               ))}
@@ -788,18 +721,14 @@ const FlightLogEntry = () => {
                 takeoffTime={epochToDayjs('takeoffTimeEpoch')}
                 landingTime={epochToDayjs('landingTimeEpoch')}
                 onBlockTime={epochToDayjs('onBlockTimeEpoch')}
-                acTotalFlightTimeBefore={
-                  isNew ? aircraft?.status?.totalTime : undefined
-                }
+                acTotalFlightTimeBefore={isNew ? aircraft?.status?.totalTime : undefined}
                 acTotalFlightTimeAfter={data?.acTotalFlightTime}
               />
             </Grid>
 
             {/* Additional flight info */}
             <Grid size={12}>
-              <Typography variant='h6'>
-                {t('flightLog.additionalInfo')}
-              </Typography>
+              <Typography variant='h6'>{t('flightLog.additionalInfo')}</Typography>
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -829,34 +758,20 @@ const FlightLogEntry = () => {
                 control={control}
                 seats={aircraft?.seats ?? 0}
                 disabled={!isEditable}
-                crew={watch([
-                  'crew2MemberId',
-                  'crew3MemberId',
-                  'crew4MemberId',
-                ])}
+                crew={watch(['crew2MemberId', 'crew3MemberId', 'crew4MemberId'])}
               />
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>
-              <NumberOfLandings
-                name='numberOfLandings'
-                control={control}
-                disabled={!isEditable}
-              />
+              <NumberOfLandings name='numberOfLandings' control={control} disabled={!isEditable} />
             </Grid>
 
             {/* Night and Instrument Flying    */}
             <Grid size={12}>
-              <Typography variant='h6'>
-                {t('flightLog.nightInstrumentFlying')}
-              </Typography>
+              <Typography variant='h6'>{t('flightLog.nightInstrumentFlying')}</Typography>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <MinutesField
-                name='nightFlyingMins'
-                control={control}
-                disabled={!isEditable}
-              />
+              <MinutesField name='nightFlyingMins' control={control} disabled={!isEditable} />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <NumberOfLandings
@@ -867,11 +782,7 @@ const FlightLogEntry = () => {
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <MinutesField
-                name='instrumentFlyingMins'
-                control={control}
-                disabled={!isEditable}
-              />
+              <MinutesField name='instrumentFlyingMins' control={control} disabled={!isEditable} />
             </Grid>
 
             {/* Fuel and Oil */}
@@ -982,9 +893,7 @@ const FlightLogEntry = () => {
                   label={
                     <Stack direction='row' spacing={0.5} alignItems='center'>
                       <span>{t('flightLog.partiallyBillableFlight')}</span>
-                      <Tooltip
-                        title={t('flightLog.partiallyBillableFlightTooltip')}
-                      >
+                      <Tooltip title={t('flightLog.partiallyBillableFlightTooltip')}>
                         <span>
                           <Icon icon='mdi:information-outline' width={16} />
                         </span>
@@ -1027,11 +936,7 @@ const FlightLogEntry = () => {
                 }}
               />
               {hasMandatoryBillingRemarksByFlightType && (
-                <Typography
-                  variant='body2'
-                  color='text.secondary'
-                  sx={{ mt: 1 }}
-                >
+                <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
                   {t('flightLog.billingRemarksTestOrFerryInstruction')}
                 </Typography>
               )}
@@ -1042,37 +947,20 @@ const FlightLogEntry = () => {
               <Paper variant='outlined' sx={{ p: 2, borderColor: 'divider' }}>
                 <Grid container spacing={2}>
                   <Grid size={12}>
-                    <Typography variant='h6'>
-                      {t('flightLog.adminUse')}
-                    </Typography>
+                    <Typography variant='h6'>{t('flightLog.adminUse')}</Typography>
                   </Grid>
 
                   <Grid size={12}>
                     {!isNew && (
                       <>
-                        <FormControl
-                          required
-                          fullWidth
-                          error={!!errors.flightType}
-                        >
+                        <FormControl required fullWidth error={!!errors.flightType}>
                           <FormControlLabel
                             label={
-                              <Stack
-                                direction='row'
-                                spacing={0.5}
-                                alignItems='center'
-                              >
+                              <Stack direction='row' spacing={0.5} alignItems='center'>
                                 <span>{t('invoicing.isFreeFlight')}</span>
-                                <Tooltip
-                                  title={t(
-                                    'flightLog.nonBillableFlightTooltip'
-                                  )}
-                                >
+                                <Tooltip title={t('flightLog.nonBillableFlightTooltip')}>
                                   <span>
-                                    <Icon
-                                      icon='mdi:information-outline'
-                                      width={16}
-                                    />
+                                    <Icon icon='mdi:information-outline' width={16} />
                                   </span>
                                 </Tooltip>
                               </Stack>
@@ -1091,23 +979,15 @@ const FlightLogEntry = () => {
                                       field.onChange(!isNonBillable)
 
                                       if (isNonBillable) {
-                                        setValue(
-                                          'partiallyBillableFlight',
-                                          false
-                                        )
-                                        if (
-                                          !watch('nonBillingApprovedByMemberId')
-                                        ) {
+                                        setValue('partiallyBillableFlight', false)
+                                        if (!watch('nonBillingApprovedByMemberId')) {
                                           setValue(
                                             'nonBillingApprovedByMemberId',
-                                            me?.memberId ?? null
+                                            me?.memberId ?? null,
                                           )
                                         }
                                       } else {
-                                        setValue(
-                                          'nonBillingApprovedByMemberId',
-                                          null
-                                        )
+                                        setValue('nonBillingApprovedByMemberId', null)
                                       }
                                     }}
                                   />
@@ -1117,11 +997,7 @@ const FlightLogEntry = () => {
                           />
                         </FormControl>
 
-                        <Typography
-                          variant='body2'
-                          color='text.secondary'
-                          sx={{ ml: 4, mt: -0.5 }}
-                        >
+                        <Typography variant='body2' color='text.secondary' sx={{ ml: 4, mt: -0.5 }}>
                           {`${t('flightLog.nonBillingApprovedByMemberId')}: ${nonBillingApprovedByMemberId ?? '-'}`}
                         </Typography>
 
@@ -1144,20 +1020,11 @@ const FlightLogEntry = () => {
                     <FormControl fullWidth>
                       <FormControlLabel
                         label={
-                          <Stack
-                            direction='row'
-                            spacing={0.5}
-                            alignItems='center'
-                          >
+                          <Stack direction='row' spacing={0.5} alignItems='center'>
                             <span>{t('flightLog.entryErrorFee')}</span>
-                            <Tooltip
-                              title={t('flightLog.entryErrorFeeTooltip')}
-                            >
+                            <Tooltip title={t('flightLog.entryErrorFeeTooltip')}>
                               <span>
-                                <Icon
-                                  icon='mdi:information-outline'
-                                  width={16}
-                                />
+                                <Icon icon='mdi:information-outline' width={16} />
                               </span>
                             </Tooltip>
                           </Stack>
@@ -1166,34 +1033,20 @@ const FlightLogEntry = () => {
                           <Controller
                             name='entryErrorFee'
                             control={control}
-                            disabled={
-                              !adminFieldsEditable || isBillableFlight === false
-                            }
+                            disabled={!adminFieldsEditable || isBillableFlight === false}
                             render={({ field }) => (
                               <Checkbox
                                 checked={field.value ?? false}
-                                disabled={
-                                  !adminFieldsEditable ||
-                                  isBillableFlight === false
-                                }
+                                disabled={!adminFieldsEditable || isBillableFlight === false}
                                 onChange={({ target }) => {
                                   const checked = target.checked
                                   field.onChange(checked)
 
-                                  if (
-                                    checked &&
-                                    !watch('entryErrorFeeAppliedByMemberId')
-                                  ) {
-                                    setValue(
-                                      'entryErrorFeeAppliedByMemberId',
-                                      me?.memberId ?? null
-                                    )
+                                  if (checked && !watch('entryErrorFeeAppliedByMemberId')) {
+                                    setValue('entryErrorFeeAppliedByMemberId', me?.memberId ?? null)
                                   }
                                   if (!checked) {
-                                    setValue(
-                                      'entryErrorFeeAppliedByMemberId',
-                                      null
-                                    )
+                                    setValue('entryErrorFeeAppliedByMemberId', null)
                                   }
                                 }}
                               />
@@ -1203,11 +1056,7 @@ const FlightLogEntry = () => {
                       />
                     </FormControl>
 
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                      sx={{ ml: 4, mt: -0.5 }}
-                    >
+                    <Typography variant='body2' color='text.secondary' sx={{ ml: 4, mt: -0.5 }}>
                       {`${t('flightLog.entryErrorFeeAppliedByMemberId')}: ${entryErrorFeeAppliedByMemberId ?? '-'}`}
                     </Typography>
                   </Grid>
@@ -1235,16 +1084,11 @@ const FlightLogEntry = () => {
                             const saved = await saveChanges()
                             if (!saved) return
                           }
-                          const { error } = await mutation.trigger(
-                            'POST',
-                            payload,
-                            'validate',
-                            {
-                              // put returned payload to the cache
-                              revalidate: false,
-                              populateCache: (result) => result,
-                            }
-                          )
+                          const { error } = await mutation.trigger('POST', payload, 'validate', {
+                            // put returned payload to the cache
+                            revalidate: false,
+                            populateCache: (result) => result,
+                          })
                           if (error) {
                             return setProblem(error)
                           }
@@ -1277,14 +1121,10 @@ const FlightLogEntry = () => {
       <Dialog open={showDtoWarning} onClose={() => setShowDtoWarning(false)}>
         <DialogTitle>{t('dto.flightLog.approvedDtoWarningTitle')}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            {t('dto.flightLog.approvedDtoWarningBody')}
-          </DialogContentText>
+          <DialogContentText>{t('dto.flightLog.approvedDtoWarningBody')}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowDtoWarning(false)}>
-            {t('general.cancel')}
-          </Button>
+          <Button onClick={() => setShowDtoWarning(false)}>{t('general.cancel')}</Button>
           <Button
             variant='contained'
             color='warning'

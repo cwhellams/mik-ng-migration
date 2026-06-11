@@ -35,19 +35,13 @@ interface FileWithPreview extends File {
   preview?: string
 }
 
-const UploadDocumentModal = ({
-  open,
-  onClose,
-  onSuccess,
-}: UploadDocumentModalProps) => {
+const UploadDocumentModal = ({ open, onClose, onSuccess }: UploadDocumentModalProps) => {
   const { t } = useTranslation()
   const [file, setFile] = useState<FileWithPreview | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('')
-  const [publishedDate, setPublishedDate] = useState(
-    dayjs().format('YYYY-MM-DD')
-  )
+  const [publishedDate, setPublishedDate] = useState(dayjs().format('YYYY-MM-DD'))
   const [isPublic, setIsPublic] = useState(true)
   const [tags, setTags] = useState('')
   const [isArchived, setIsArchived] = useState(false)
@@ -64,15 +58,12 @@ const UploadDocumentModal = ({
 
         // Auto-populate title from filename if not already set
         if (!title) {
-          const nameWithoutExtension = selectedFile.name.replace(
-            /\.[^/.]+$/,
-            ''
-          )
+          const nameWithoutExtension = selectedFile.name.replace(/\.[^/.]+$/, '')
           setTitle(nameWithoutExtension)
         }
       }
     },
-    [title]
+    [title],
   )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -80,15 +71,11 @@ const UploadDocumentModal = ({
     accept: {
       'application/pdf': ['.pdf'],
       'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-        ['.docx'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
       'application/vnd.ms-excel': ['.xls'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [
-        '.xlsx',
-      ],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
       'application/vnd.ms-powerpoint': ['.ppt'],
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation':
-        ['.pptx'],
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
       'text/plain': ['.txt'],
       'text/csv': ['.csv'],
       'image/jpeg': ['.jpg', '.jpeg'],
@@ -139,10 +126,7 @@ const UploadDocumentModal = ({
       handleClose()
     } catch (error: any) {
       console.error('Upload error:', error)
-      setUploadError(
-        error.response?.data?.detail ||
-          'Failed to upload document. Please try again.'
-      )
+      setUploadError(error.response?.data?.detail || 'Failed to upload document. Please try again.')
     } finally {
       setIsUploading(false)
     }
@@ -175,8 +159,7 @@ const UploadDocumentModal = ({
   const getFileIcon = (mimeType: string) => {
     if (mimeType.includes('pdf')) return 'mdi:file-pdf-box'
     if (mimeType.includes('word')) return 'mdi:file-word-box'
-    if (mimeType.includes('excel') || mimeType.includes('spreadsheet'))
-      return 'mdi:file-excel-box'
+    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'mdi:file-excel-box'
     if (mimeType.includes('powerpoint') || mimeType.includes('presentation'))
       return 'mdi:file-powerpoint-box'
     if (mimeType.includes('image')) return 'mdi:file-image-box'
@@ -186,9 +169,7 @@ const UploadDocumentModal = ({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
-      <DialogTitle>
-        {t('documents.upload.title', 'Upload Document')}
-      </DialogTitle>
+      <DialogTitle>{t('documents.upload.title', 'Upload Document')}</DialogTitle>
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 1 }}>
           {uploadError && (
@@ -245,24 +226,19 @@ const UploadDocumentModal = ({
                 </Stack>
               ) : (
                 <Stack alignItems='center' spacing={1}>
-                  <Icon
-                    icon='mdi:cloud-upload'
-                    width={48}
-                    height={48}
-                    color='grey'
-                  />
+                  <Icon icon='mdi:cloud-upload' width={48} height={48} color='grey' />
                   <Typography variant='body1'>
                     {isDragActive
                       ? t('documents.upload.dropHere', 'Drop the file here...')
                       : t(
                           'documents.upload.dragDrop',
-                          'Drag & drop a file here, or click to select'
+                          'Drag & drop a file here, or click to select',
                         )}
                   </Typography>
                   <Typography variant='body2' color='text.secondary'>
                     {t(
                       'documents.upload.supportedFormats',
-                      'Supported: PDF, Word, Excel, PowerPoint, Text, Images (Max 50MB)'
+                      'Supported: PDF, Word, Excel, PowerPoint, Text, Images (Max 50MB)',
                     )}
                   </Typography>
                 </Stack>
@@ -288,12 +264,7 @@ const UploadDocumentModal = ({
             fullWidth
           />
 
-          <DocumentCategorySelect
-            value={category}
-            onChange={setCategory}
-            required
-            fullWidth
-          />
+          <DocumentCategorySelect value={category} onChange={setCategory} required fullWidth />
 
           <TextField
             label={t('documents.form.publishedDate', 'Published Date')}
@@ -307,20 +278,14 @@ const UploadDocumentModal = ({
 
           <Stack direction={'row'} alignItems='center' spacing={2}>
             <FormControl fullWidth>
-              <InputLabel>
-                {t('documents.form.visibility', 'Visibility')}
-              </InputLabel>
+              <InputLabel>{t('documents.form.visibility', 'Visibility')}</InputLabel>
               <Select
                 value={isPublic ? 'public' : 'private'}
                 onChange={(e) => setIsPublic(e.target.value === 'public')}
                 label={t('documents.form.visibility', 'Visibility')}
               >
-                <MenuItem value='public'>
-                  {t('documents.form.public', 'Public')}
-                </MenuItem>
-                <MenuItem value='private'>
-                  {t('documents.form.private', 'Private')}
-                </MenuItem>
+                <MenuItem value='public'>{t('documents.form.public', 'Public')}</MenuItem>
+                <MenuItem value='private'>{t('documents.form.private', 'Private')}</MenuItem>
               </Select>
             </FormControl>
             <FormControlLabel
@@ -340,14 +305,8 @@ const UploadDocumentModal = ({
             label={t('documents.tags.label', 'Tags')}
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            placeholder={t(
-              'documents.tags.placeholder',
-              'Add tags (comma separated)...'
-            )}
-            helperText={t(
-              'documents.tags.placeholder',
-              'Add tags (comma separated)...'
-            )}
+            placeholder={t('documents.tags.placeholder', 'Add tags (comma separated)...')}
+            helperText={t('documents.tags.placeholder', 'Add tags (comma separated)...')}
             fullWidth
           />
 

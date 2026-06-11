@@ -107,35 +107,19 @@ export default function AttemptsAdminPage() {
                   {attempt.attemptId}
                 </TableCell>
                 <TableCell>{attempt.memberId}</TableCell>
+                <TableCell>{dayjs(attempt.createdAt).format('DD.MM.YYYY HH:mm')}</TableCell>
                 <TableCell>
-                  {dayjs(attempt.createdAt).format('DD.MM.YYYY HH:mm')}
+                  <Chip label={attempt.status} size='small' color={statusColor(attempt.status)} />
                 </TableCell>
                 <TableCell>
-                  <Chip
-                    label={attempt.status}
-                    size='small'
-                    color={statusColor(attempt.status)}
-                  />
-                </TableCell>
-                <TableCell>
-                  {attempt.scorePercent != null
-                    ? `${attempt.scorePercent.toFixed(1)}%`
-                    : '—'}
+                  {attempt.scorePercent != null ? `${attempt.scorePercent.toFixed(1)}%` : '—'}
                 </TableCell>
                 <TableCell>
                   {attempt.passed === true && (
-                    <Chip
-                      label={t('exams.passed')}
-                      color='success'
-                      size='small'
-                    />
+                    <Chip label={t('exams.passed')} color='success' size='small' />
                   )}
                   {attempt.passed === false && (
-                    <Chip
-                      label={t('exams.failed')}
-                      color='error'
-                      size='small'
-                    />
+                    <Chip label={t('exams.failed')} color='error' size='small' />
                   )}
                   {attempt.passed == null && '—'}
                 </TableCell>
@@ -156,16 +140,11 @@ export default function AttemptsAdminPage() {
           </TableBody>
         </Table>
         {data && data.total > pageSize && (
-          <Box
-            sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}
-          >
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}>
             <Button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
               <Icon icon='mdi:chevron-left' />
             </Button>
-            <Button
-              disabled={page * pageSize >= data.total}
-              onClick={() => setPage((p) => p + 1)}
-            >
+            <Button disabled={page * pageSize >= data.total} onClick={() => setPage((p) => p + 1)}>
               <Icon icon='mdi:chevron-right' />
             </Button>
           </Box>
