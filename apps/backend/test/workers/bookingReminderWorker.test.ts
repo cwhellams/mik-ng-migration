@@ -1,6 +1,10 @@
 import { jest } from '@jest/globals'
+import type { Selectable } from 'kysely'
 import { db } from '../../src/db/connection.ts'
+import type { ScheduleBookings } from '../../src/db/schema.d.ts'
 import dayjs from 'dayjs'
+
+type SavedBooking = Omit<Selectable<ScheduleBookings>, 'calendar_sequence' | 'start_time_utc' | 'end_time_utc'>
 
 // Mock the logger
 jest.mock('../../src/lib/logger.ts', () => ({
@@ -30,26 +34,7 @@ describe('Booking Reminder Worker', () => {
     (expression: string, func: string | TaskFn, options?: TaskOptions) => ScheduledTask
   >
   let bookingCounter = 0
-  let savedStlBookings: Array<{
-    booking_id: string
-    member_id: string
-    registration: string
-    booking_type: string
-    booking_status: string
-    start_time_epoch: unknown
-    end_time_epoch: unknown
-    instructor_member_id: string | null
-    cancellation_note: string | null
-    cancellation_reason: string | null
-    cancelled_at: unknown
-    cancelled_by: string | null
-    description: string | null
-    reminder_sent_at: unknown
-    created_by: string
-    created_at: unknown
-    updated_by: string
-    updated_at: unknown
-  }> = []
+  let savedStlBookings: SavedBooking[] = []
 
   beforeAll(async () => {
     process.env.BOOKING_REMINDER_WORKER_ENABLED = 'true'
@@ -71,7 +56,7 @@ describe('Booking Reminder Worker', () => {
 
     // Save any stl* test-data bookings that overlap with our window so we can
     // restore them in afterEach — prevents permanently corrupting shared test data.
-    savedStlBookings = (await db
+    savedStlBookings = await db
       .selectFrom('schedule.bookings')
       .select([
         'booking_id',
@@ -100,7 +85,7 @@ describe('Booking Reminder Worker', () => {
           eb('end_time_epoch', '>=', startEpoch),
         ]),
       )
-      .execute()) as typeof savedStlBookings
+      .execute()
 
     // Defensive cleanup before inserting:
     // 1. Remove any leftover rm* bookings from a previous interrupted test run.
