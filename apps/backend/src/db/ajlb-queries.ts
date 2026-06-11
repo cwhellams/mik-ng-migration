@@ -254,9 +254,9 @@ export async function setAircraftLandingsBaseline(
        (aircraft_registration, baseline_landings, created_by, created_at, updated_by, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT (aircraft_registration) DO UPDATE SET
-         baseline_landings = $2,
-         updated_by = $5,
-         updated_at = $6`,
+         baseline_landings = EXCLUDED.baseline_landings,
+         updated_by = EXCLUDED.updated_by,
+         updated_at = EXCLUDED.updated_at`,
       [aircraftRegistration, baselineLandings, jwt.memberId!, now, jwt.memberId!, now],
     )
 

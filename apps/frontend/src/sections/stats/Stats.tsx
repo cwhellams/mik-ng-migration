@@ -263,7 +263,7 @@ export const Stats = () => {
     },
     {
       refreshInterval: 0,
-    }
+    },
   )
 
   // Transform aircraft data for bar chart

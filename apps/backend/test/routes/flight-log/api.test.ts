@@ -700,7 +700,7 @@ describe('POST /flight-log/validate', () => {
       .orderBy('off_block_time_utc', 'asc')
       .execute()
 
-    const firstNewMassFlightIdx = massFlights.findIndex(flight => flight.status === 'NEW')
+    const firstNewMassFlightIdx = massFlights.findIndex((flight) => flight.status === 'NEW')
     assert(firstNewMassFlightIdx > 0)
     assert(firstNewMassFlightIdx + 1 < massFlights.length)
 

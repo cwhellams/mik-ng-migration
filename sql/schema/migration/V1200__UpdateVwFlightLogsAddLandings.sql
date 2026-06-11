@@ -37,7 +37,8 @@ FROM (
         (COALESCE(validated.ajlb_total_landings, ajlb.start_landings, 0) + SUM(l.number_of_landings)
             OVER (
                 PARTITION BY l.aircraft_registration, l.ajlb_seq_no
-                ORDER BY l.off_block_time_epoch)
+                ORDER BY l.off_block_time_epoch
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
             ) AS ac_total_landings,
 
         COALESCE(validated.ajlb_row_number - 1 + (validated.ajlb_page_number - ajlb.start_page) / 2 * ajlb.rows_per_page, 0)

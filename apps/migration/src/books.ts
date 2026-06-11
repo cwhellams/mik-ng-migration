@@ -81,6 +81,7 @@ export const migrateBooks = async () => {
         seqNo: book.kirja_id == 24 ? 25 : book.kirja_nro,
         aircraftRegistration: registration,
         startFlightMins,
+        startLandings: 0,
         noOfPages: 100,
         rowsPerPage: book.rivimaara,
         startPage: Number(book.avaussivu),

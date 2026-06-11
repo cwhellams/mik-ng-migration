@@ -238,10 +238,7 @@ export const AjlbEditor = ({
                 value={formData.startLandings ?? 0}
                 onChange={({ target }) => {
                   const num = Number(target.value)
-                  handleChange(
-                    'startLandings',
-                    Number.isFinite(num) ? Math.max(0, num) : 0
-                  )
+                  handleChange('startLandings', Number.isFinite(num) ? Math.max(0, num) : 0)
                 }}
                 slotProps={{ htmlInput: { min: 0 } }}
               />
@@ -261,10 +258,7 @@ export const AjlbEditor = ({
                   {book.view?.newFlightsTime}
                 </FormField>
 
-                <FormField
-                  label={t('flightLog.logbooks.totalLandings')}
-                  width={200}
-                >
+                <FormField label={t('flightLog.logbooks.totalLandings')} width={200}>
                   {book.view?.totalLandings}
                 </FormField>
               </Grid>
