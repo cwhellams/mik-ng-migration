@@ -95,8 +95,9 @@ describe('Booking Reminder Worker', () => {
 
   describe('Worker Initialization', () => {
     it('should schedule task when worker is enabled', async () => {
-      const { startBookingReminderWorker } =
-        await import('../../src/workers/bookingReminderWorker.ts')
+      const { startBookingReminderWorker } = await import(
+        '../../src/workers/bookingReminderWorker.ts'
+      )
 
       const worker = startBookingReminderWorker({
         sendEmailFn: mockSendEmail,
@@ -113,8 +114,9 @@ describe('Booking Reminder Worker', () => {
 
       jest.resetModules()
 
-      const { startBookingReminderWorker } =
-        await import('../../src/workers/bookingReminderWorker.ts')
+      const { startBookingReminderWorker } = await import(
+        '../../src/workers/bookingReminderWorker.ts'
+      )
 
       const worker = startBookingReminderWorker({
         sendEmailFn: mockSendEmail,
