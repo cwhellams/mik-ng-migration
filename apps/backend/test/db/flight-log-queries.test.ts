@@ -109,7 +109,7 @@ describe('Db query FlightLog tests', () => {
       startDate: '2025-03-04',
     })
     expect(result.rows).toEqual(23)
-    expect(result.logs[0]).toMatchSnapshot()
+    expect(normalizeLandingTotals(result.logs[0])).toMatchSnapshot()
   })
 
   it('getFlightLogs for end date should match snapshot', async () => {

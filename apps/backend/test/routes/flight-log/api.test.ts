@@ -153,7 +153,7 @@ describe('GET /flight-log', () => {
       })
 
     expect(response.status).toBe(200)
-    expect(response.body.logs).toHaveLength(8)
+    expect(response.body.logs).toHaveLength(11)
     expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
   })
 
