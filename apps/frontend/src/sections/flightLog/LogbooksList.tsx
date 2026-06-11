@@ -119,13 +119,13 @@ const Roles = () => {
           header={
             <>
               <Grid size={2}>{t('flightLog.logbooks.book')}</Grid>
-              <Grid size={2.5}>{t('flightLog.logbooks.validity')}</Grid>
+              <Grid size={2}>{t('flightLog.logbooks.validity')}</Grid>
               <Grid size={1}>{t('flightLog.logbooks.pagesInUse')}</Grid>
-              <Grid size={1.5}>{t('flightLog.logbooks.flightTimeAtStart')}</Grid>
+              <Grid size={1}>{t('flightLog.logbooks.flightTimeAtStart')}</Grid>
               <Grid size={1.5}>{t('flightLog.logbooks.verifiedTotalFlightTime')}</Grid>
               <Grid size={1.5}>{t('flightLog.logbooks.unverifiedFlights')}</Grid>
-              <Grid size={1}>{t('flightLog.logbooks.unverifiedTotalFlightTime')}</Grid>
-              <Grid size={1}>{t('flightLog.logbooks.totalLandings')}</Grid>
+              <Grid size={1.5}>{t('flightLog.logbooks.unverifiedTotalFlightTime')}</Grid>
+              <Grid size={1.5}>{t('flightLog.logbooks.totalLandings')}</Grid>
             </>
           }
           rows={logbooks?.books}
@@ -152,22 +152,22 @@ const Roles = () => {
                     // </Box>
                   )}
                 </Grid>
-                <Grid size={2.5}>
+                <Grid size={2}>
                   {formatDate(ajlb.startDate)}-
                   {ajlb.endDate ? formatDate(ajlb.endDate) : t('flightLog.logbooks.current')}
                 </Grid>
                 <Grid size={1}>
                   {lastPage} / {ajlb.noOfPages}
                 </Grid>
-                <Grid size={1.5}>{ajlb.startFlightTime}</Grid>
+                <Grid size={1}>{ajlb.startFlightTime}</Grid>
                 <Grid size={1.5}>{ajlb.view?.verifiedTotalFlightTime}</Grid>
                 <Grid size={1.5}>
                   <Link to={`${href}?page=${newFlightsPage}`}>
                     {ajlb.view?.newFlightsCount} - {ajlb.view?.newFlightsTime}
                   </Link>
                 </Grid>
-                <Grid size={1}>{ajlb.view?.unverifiedTotalFlightTime}</Grid>
-                <Grid size={1}>{ajlb.view?.totalLandings ?? '-'}</Grid>
+                <Grid size={1.5}>{ajlb.view?.unverifiedTotalFlightTime}</Grid>
+                <Grid size={1.5}>{ajlb.view?.totalLandings ?? '-'}</Grid>
               </>
             ) : (
               <>
