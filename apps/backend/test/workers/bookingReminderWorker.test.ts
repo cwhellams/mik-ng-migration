@@ -4,7 +4,10 @@ import { db } from '../../src/db/connection.ts'
 import type { ScheduleBookings } from '../../src/db/schema.d.ts'
 import dayjs from 'dayjs'
 
-type SavedBooking = Omit<Selectable<ScheduleBookings>, 'calendar_sequence' | 'start_time_utc' | 'end_time_utc'>
+type SavedBooking = Omit<
+  Selectable<ScheduleBookings>,
+  'calendar_sequence' | 'start_time_utc' | 'end_time_utc'
+>
 
 // Mock the logger
 jest.mock('../../src/lib/logger.ts', () => ({
