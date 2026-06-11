@@ -52,9 +52,7 @@ interface FileWithMetadata {
 }
 
 // Progress indicator component
-const UploadProgressItem: React.FC<{ progress: UploadProgress }> = ({
-  progress,
-}) => {
+const UploadProgressItem: React.FC<{ progress: UploadProgress }> = ({ progress }) => {
   const { t } = useTranslation()
 
   return (
@@ -75,14 +73,12 @@ const UploadProgressItem: React.FC<{ progress: UploadProgress }> = ({
               color={progress.status === 'error' ? 'error' : 'primary'}
             />
             <Typography variant='caption' color='text.secondary'>
-              {progress.status === 'pending' &&
-                t('aircraft.document.upload.status.pending')}
+              {progress.status === 'pending' && t('aircraft.document.upload.status.pending')}
               {progress.status === 'uploading' &&
                 t('aircraft.document.upload.status.uploading', {
                   progress: progress.progress,
                 })}
-              {progress.status === 'completed' &&
-                t('aircraft.document.upload.status.completed')}
+              {progress.status === 'completed' && t('aircraft.document.upload.status.completed')}
               {progress.status === 'error' && progress.error}
             </Typography>
           </Stack>
@@ -105,14 +101,13 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
   const [metadataDialogOpen, setMetadataDialogOpen] = useState(false)
   const [currentFileIndex, setCurrentFileIndex] = useState(0)
 
-  const { uploadFiles, progresses, isUploading, clearCompleted } =
-    useAircraftDocumentUpload({
-      aircraftRegistration,
-      onUploadComplete: () => {
-        onUploadComplete?.()
-        clearCompleted()
-      },
-    })
+  const { uploadFiles, progresses, isUploading, clearCompleted } = useAircraftDocumentUpload({
+    aircraftRegistration,
+    onUploadComplete: () => {
+      onUploadComplete?.()
+      clearCompleted()
+    },
+  })
 
   // Document type options - use the constant to ensure consistency
   const documentTypes = AircraftDocumentType
@@ -138,7 +133,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
         }
       }
     },
-    [selectedFiles.length, maxFiles]
+    [selectedFiles.length, maxFiles],
   )
 
   // Drag and drop handlers
@@ -158,7 +153,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
       setIsDragOver(false)
       handleFileSelect(e.dataTransfer.files)
     },
-    [handleFileSelect]
+    [handleFileSelect],
   )
 
   // File input click handler
@@ -175,10 +170,10 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
   const updateFileMetadata = useCallback(
     (index: number, updates: Partial<Omit<FileWithMetadata, 'file'>>) => {
       setSelectedFiles((prev) =>
-        prev.map((file, i) => (i === index ? { ...file, ...updates } : file))
+        prev.map((file, i) => (i === index ? { ...file, ...updates } : file)),
       )
     },
-    []
+    [],
   )
 
   // Start upload process
@@ -284,11 +279,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
                     >
                       <Icon icon='mdi:pencil' />
                     </IconButton>
-                    <IconButton
-                      edge='end'
-                      onClick={() => removeFile(index)}
-                      disabled={isUploading}
-                    >
+                    <IconButton edge='end' onClick={() => removeFile(index)} disabled={isUploading}>
                       <Icon icon='mdi:delete' />
                     </IconButton>
                   </>
@@ -305,11 +296,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
                         {formatFileSize(fileData.file.size)}
                       </Typography>
                       {fileData.documentType && (
-                        <Chip
-                          label={fileData.documentType}
-                          size='small'
-                          variant='outlined'
-                        />
+                        <Chip label={fileData.documentType} size='small' variant='outlined' />
                       )}
                       {!fileData.title && (
                         <Chip
@@ -343,9 +330,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
       {/* Upload progress */}
       {progresses.length > 0 && (
         <Stack spacing={2} sx={{ mt: 2 }}>
-          <Typography variant='subtitle2'>
-            {t('aircraft.document.upload.progress')}
-          </Typography>
+          <Typography variant='subtitle2'>{t('aircraft.document.upload.progress')}</Typography>
           <List dense>
             {progresses.map((progress: UploadProgress) => (
               <UploadProgressItem key={progress.fileId} progress={progress} />
@@ -355,15 +340,8 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
       )}
 
       {/* Metadata dialog */}
-      <Dialog
-        open={metadataDialogOpen}
-        onClose={handleMetadataDialogClose}
-        maxWidth='md'
-        fullWidth
-      >
-        <DialogTitle>
-          {t('aircraft.document.upload.metadata.title')}
-        </DialogTitle>
+      <Dialog open={metadataDialogOpen} onClose={handleMetadataDialogClose} maxWidth='md' fullWidth>
+        <DialogTitle>{t('aircraft.document.upload.metadata.title')}</DialogTitle>
         <DialogContent>
           {currentFile && (
             <Stack spacing={2} sx={{ mt: 1 }}>
@@ -374,9 +352,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
               </Typography>
 
               <FormControl fullWidth required>
-                <InputLabel>
-                  {t('aircraft.document.upload.metadata.documentType')}
-                </InputLabel>
+                <InputLabel>{t('aircraft.document.upload.metadata.documentType')}</InputLabel>
                 <Select
                   value={currentFile.documentType || ''}
                   onChange={(e) =>
@@ -421,9 +397,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
               <Stack direction='row' spacing={2}>
                 <DatePicker
                   label={t('aircraft.document.upload.metadata.validFrom')}
-                  value={
-                    currentFile.validFrom ? dayjs(currentFile.validFrom) : null
-                  }
+                  value={currentFile.validFrom ? dayjs(currentFile.validFrom) : null}
                   onChange={(date) =>
                     updateFileMetadata(currentFileIndex, {
                       validFrom: date?.format('YYYY-MM-DD'),
@@ -433,9 +407,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
                 />
                 <DatePicker
                   label={t('aircraft.document.upload.metadata.validTo')}
-                  value={
-                    currentFile.validTo ? dayjs(currentFile.validTo) : null
-                  }
+                  value={currentFile.validTo ? dayjs(currentFile.validTo) : null}
                   onChange={(date) =>
                     updateFileMetadata(currentFileIndex, {
                       validTo: date?.format('YYYY-MM-DD'),
@@ -447,9 +419,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
 
               {currentFile.validFrom &&
                 currentFile.validTo &&
-                dayjs(currentFile.validFrom).isAfter(
-                  dayjs(currentFile.validTo)
-                ) && (
+                dayjs(currentFile.validFrom).isAfter(dayjs(currentFile.validTo)) && (
                   <Alert severity='error'>
                     {t('aircraft.document.upload.metadata.dateRangeError')}
                   </Alert>
@@ -458,9 +428,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleMetadataDialogClose}>
-            {t('general.cancel')}
-          </Button>
+          <Button onClick={handleMetadataDialogClose}>{t('general.cancel')}</Button>
           <Button
             onClick={handleMetadataDialogClose}
             variant='contained'

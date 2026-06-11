@@ -9,11 +9,7 @@ interface InvoiceDatesCellProps {
   isPastDue: boolean
 }
 
-export const InvoiceDatesCell: React.FC<InvoiceDatesCellProps> = ({
-  sentAt,
-  dueAt,
-  isPastDue,
-}) => {
+export const InvoiceDatesCell: React.FC<InvoiceDatesCellProps> = ({ sentAt, dueAt, isPastDue }) => {
   const dueDate = new Date(dueAt)
   const { formatDate } = useTimezone()
 

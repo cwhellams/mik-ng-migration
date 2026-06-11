@@ -54,7 +54,7 @@ async function syncClients() {
   const simplBooksClient = new SimplBooksApiClient(
     config.simplBooksBaseUri,
     config.simplBooksApiKey,
-    config.simplBooksCompanyId
+    config.simplBooksCompanyId,
   )
 
   const certPath = join(__dirname, '..', 'ca-certificate.crt')
@@ -80,9 +80,7 @@ async function syncClients() {
     for (const client of clients) {
       // Skip clients without email
       if (!client.e_mail) {
-        console.log(
-          `⊘ Skipping client ${client.name} (ID: ${client.id}) - no email address`
-        )
+        console.log(`⊘ Skipping client ${client.name} (ID: ${client.id}) - no email address`)
         skipped++
         continue
       }
@@ -126,7 +124,7 @@ async function matchRemovedMembers() {
   const simplBooksClient = new SimplBooksApiClient(
     config.simplBooksBaseUri,
     config.simplBooksApiKey,
-    config.simplBooksCompanyId
+    config.simplBooksCompanyId,
   )
 
   const certPath = join(__dirname, '..', 'ca-certificate.crt')
@@ -151,31 +149,23 @@ async function matchRemovedMembers() {
 
       try {
         // Search SimplBooks by last name
-        const clients = await simplBooksClient.searchClientsByName(
-          member.last_name
-        )
+        const clients = await simplBooksClient.searchClientsByName(member.last_name)
 
         if (!clients || clients.length === 0) {
-          console.log(
-            `⊘ No SimplBooks clients found for: ${member.last_name} (${member.email})`
-          )
+          console.log(`⊘ No SimplBooks clients found for: ${member.last_name} (${member.email})`)
         } else if (clients.length === 1) {
           // Single match - assume this is correct
           const client = clients[0]
           if (!client?.id) {
-            console.log(
-              `⊘ Invalid client data for: ${member.last_name} (${member.email})`
-            )
+            console.log(`⊘ Invalid client data for: ${member.last_name} (${member.email})`)
           } else {
             console.log(
-              `✓ Single match for ${member.last_name}: SimplBooks ID=${client.id}, Email=${member.email}, Last Name=${member.last_name}`
+              `✓ Single match for ${member.last_name}: SimplBooks ID=${client.id}, Email=${member.email}, Last Name=${member.last_name}`,
             )
           }
         } else {
           // Multiple matches - check emails
-          console.log(
-            `⚠ Multiple matches (${clients.length}) for ${member.last_name}:`
-          )
+          console.log(`⚠ Multiple matches (${clients.length}) for ${member.last_name}:`)
 
           for (const client of clients) {
             if (!client?.e_mail) {
@@ -187,11 +177,11 @@ async function matchRemovedMembers() {
 
             if (isActive) {
               console.log(
-                `  → ${client.e_mail} is still an active member (SimplBooks ID=${client.id})`
+                `  → ${client.e_mail} is still an active member (SimplBooks ID=${client.id})`,
               )
             } else {
               console.log(
-                `  ✓ OLD MEMBER FOUND: ${client.e_mail} (SimplBooks ID=${client.id}, Last Name=${member.last_name})`
+                `  ✓ OLD MEMBER FOUND: ${client.e_mail} (SimplBooks ID=${client.id}, Last Name=${member.last_name})`,
               )
             }
           }
@@ -202,7 +192,7 @@ async function matchRemovedMembers() {
       } catch (error) {
         console.error(
           `Error processing removed member ${member.email}:`,
-          error instanceof Error ? error.message : String(error)
+          error instanceof Error ? error.message : String(error),
         )
       }
     }
@@ -239,9 +229,7 @@ if (operation === 'sync') {
 } else {
   console.error(`Unknown operation: ${operation}`)
   console.error('Usage: pnpm sync [sync|match|both]')
-  console.error(
-    '  sync  - Sync SimplBooks clients to member database (default)'
-  )
+  console.error('  sync  - Sync SimplBooks clients to member database (default)')
   console.error('  match - Match removed members to SimplBooks clients')
   console.error('  both  - Run both operations sequentially')
   process.exit(1)

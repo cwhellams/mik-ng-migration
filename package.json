@@ -11,8 +11,8 @@
     "start": "pnpm --recursive run start",
     "test": "pnpm --recursive --reporter append-only run test",
     "lint": "pnpm --recursive run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "clean": "pnpm --recursive run clean",
     "typecheck": "pnpm --recursive run typecheck",
     "version:major": "npm version major",
@@ -27,10 +27,10 @@
     "@stoplight/prism-cli": "^5.15.11",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.4",
-    "prettier": "^3.8.3",
+    "prettier": "^3.8.4",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "axios": "^1.16.1"
+    "axios": "^1.17.0"
   }
 }

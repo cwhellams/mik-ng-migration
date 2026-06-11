@@ -1,11 +1,7 @@
 import { conn } from './services/db.ts'
 import { type RegisterRequest } from '../../backend/src/routes/auth/schema.ts'
 import { request } from './services/api.ts'
-import {
-  MIKLang,
-  MIKMemberTypes,
-  type Member,
-} from '../../backend/src/routes/members/models.ts'
+import { MIKLang, MIKMemberTypes, type Member } from '../../backend/src/routes/members/models.ts'
 import dayjs from 'dayjs'
 import type { Flight } from './flights.ts'
 
@@ -83,7 +79,7 @@ export type Instructor = { ope_id: number; nimi: string }
 export const migrateMembers = async (start: string, limit: number) => {
   // add mapping table
   await conn.query<WPUser[]>(
-    `create table if not exists mik_ng (id bigint(20), username VARCHAR(60),ng_id VARCHAR(9))`
+    `create table if not exists mik_ng (id bigint(20), username VARCHAR(60),ng_id VARCHAR(9))`,
   )
 
   const members = await conn.query<WPUser[]>(
@@ -91,17 +87,15 @@ export const migrateMembers = async (start: string, limit: number) => {
     where u.ID >= ${start}
     AND NOT exists(select 1 from mik_ng where id = u.ID)
     order by u.ID asc
-    limit ${limit}`
+    limit ${limit}`,
   )
 
-  const official = await conn.query<Yhdistysavain[]>(
-    `SELECT * FROM Jasentiedot`
-  )
+  const official = await conn.query<Yhdistysavain[]>(`SELECT * FROM Jasentiedot`)
 
   for (const member of members) {
     const meta = await conn.query<MemberMeta[]>(
       `SELECT * FROM mikweb2_wp_usermeta m 
-      WHERE m.user_id = ${member.ID}`
+      WHERE m.user_id = ${member.ID}`,
     )
 
     const getMeta = (key: string): string | undefined => {
@@ -113,8 +107,7 @@ export const migrateMembers = async (start: string, limit: number) => {
       (o) =>
         o['Sähköpostiosoite'] === member.user_email ||
         `${o['Etunimi']} ${o['Sukunimi']}` === member.display_name ||
-        (getMeta('first_name') == o['Etunimi'] &&
-          getMeta('last_name') == o['Sukunimi'])
+        (getMeta('first_name') == o['Etunimi'] && getMeta('last_name') == o['Sukunimi']),
     )
 
     try {
@@ -124,20 +117,20 @@ export const migrateMembers = async (start: string, limit: number) => {
         const flights = await conn.query<{ count: number }[]>(
           `SELECT count(*) as count FROM kirja_lennot 
               WHERE username = ?`,
-          [member.user_login]
+          [member.user_login],
         )
 
         const lastName = getMeta('last_name') || member.user_login
 
         const instructors = await conn.query<{ count: number }[]>(
-          `SELECT count(*) as count from kirja_opettajat where nimi like '%${lastName}%'`
+          `SELECT count(*) as count from kirja_opettajat where nimi like '%${lastName}%'`,
         )
 
         if (flights[0].count > 0 || instructors[0].count > 0) {
           await migrateRemovedMember(member, lastName)
         } else {
           console.log(
-            `Skipping member ${member.ID}/${member.user_login}, no official data and no flights`
+            `Skipping member ${member.ID}/${member.user_login}, no official data and no flights`,
           )
         }
       }
@@ -151,7 +144,7 @@ export const migrateMembers = async (start: string, limit: number) => {
 const migrateMember = async (
   member: WPUser,
   officialData: Yhdistysavain,
-  getMeta: (key: string) => string | undefined
+  getMeta: (key: string) => string | undefined,
 ) => {
   // skip duplicate accounts
   if (
@@ -159,8 +152,7 @@ const migrateMember = async (
     getMeta('last_name') == 'User' ||
     getMeta('wpum_jasentyyppi') == 'PIK' ||
     member.user_login.includes('testi') ||
-    (getMeta('wpum_puhelinnumero') == '' &&
-      getMeta('wpum_jasennumero') == '99999')
+    (getMeta('wpum_puhelinnumero') == '' && getMeta('wpum_jasennumero') == '99999')
   ) {
     return console.log(`Skipping former user ${member.ID}/${member.user_login}`)
   }
@@ -172,11 +164,7 @@ const migrateMember = async (
     firstName: officialData['Etunimi'],
     lastName: officialData['Sukunimi'],
 
-    phoneNumber: getPhoneNumber(
-      member,
-      getMeta('wpum_puhelinnumero'),
-      officialData
-    ),
+    phoneNumber: getPhoneNumber(member, getMeta('wpum_puhelinnumero'), officialData),
     streetAddress: officialData?.['Lähiosoite'],
     postcode: officialData?.['Postinumero']?.toString(),
     townCity: officialData?.['Postitoimipaikka'],
@@ -187,11 +175,7 @@ const migrateMember = async (
     lang: MIKLang.FI,
   }
 
-  const res = await request<RegisterRequest, Member>(
-    'POST',
-    'v1/members',
-    payload
-  )
+  const res = await request<RegisterRequest, Member>('POST', 'v1/members', payload)
   if (!res?.memberId) {
     throw new Error(`Failed to create member ${member.ID}/${member.user_login}`)
   }
@@ -209,16 +193,11 @@ const migrateMember = async (
       isTrainingProgramPilot: !!getMeta('wpum_lupakirjaoppilas'),
     })
   } else {
-    console.log(
-      `Non approved member ${member.ID}/${member.user_login} -> ${res.memberId}`
-    )
+    console.log(`Non approved member ${member.ID}/${member.user_login} -> ${res.memberId}`)
   }
 }
 
-export const migrateRemovedMember = async (
-  member: WPUser,
-  lastName: string
-) => {
+export const migrateRemovedMember = async (member: WPUser, lastName: string) => {
   const payload: RegisterRequest = {
     email: `removed-${member.ID}@mik.fi`,
     firstName: '',
@@ -235,11 +214,7 @@ export const migrateRemovedMember = async (
     lang: MIKLang.FI,
   }
 
-  const res = await request<RegisterRequest, Member>(
-    'POST',
-    'v1/members',
-    payload
-  )
+  const res = await request<RegisterRequest, Member>('POST', 'v1/members', payload)
   if (!res?.memberId) {
     throw new Error(`Failed to create user ${member.ID}/${member.user_login}`)
   }
@@ -248,15 +223,11 @@ export const migrateRemovedMember = async (
   await request<Partial<Member>>('POST', `v1/members/${res.memberId}/approve`)
 
   await request<Partial<Member>>('PATCH', `v1/members/${res.memberId}`, {
-    roles: (await isInstructor(member.ID, res))
-      ? [{ roleId: 'INSTRUCTOR' }]
-      : [],
+    roles: (await isInstructor(member.ID, res)) ? [{ roleId: 'INSTRUCTOR' }] : [],
     memberSince: await getMemberSince(member),
   })
 
-  console.log(
-    `Created user ${member.ID}/${member.user_login} -> ${res.memberId}`
-  )
+  console.log(`Created user ${member.ID}/${member.user_login} -> ${res.memberId}`)
 }
 
 const getMemberSince = async (member: WPUser): Promise<string | undefined> => {
@@ -268,7 +239,7 @@ const getMemberSince = async (member: WPUser): Promise<string | undefined> => {
     `select login_date from mikweb2_wp_ft_lua_userlogins log
     where login_username = '${member.user_login}'
     ORDER BY login_date desc
-    LIMIT 1`
+    LIMIT 1`,
   )
   if (firstLogin.length > 0) {
     return dayjs(firstLogin[0].login_date).format('YYYY-MM-DD')
@@ -278,7 +249,7 @@ const getMemberSince = async (member: WPUser): Promise<string | undefined> => {
     `SELECT offblock FROM kirja_lennot
     where username = '${member.user_login}' and deptime > '2000-01-01'
     ORDER BY deptime ASC
-    LIMIT 1`
+    LIMIT 1`,
   )
   if (firstFlight.length > 0) {
     return dayjs(firstFlight[0].offblock).format('YYYY-MM-DD')
@@ -287,7 +258,7 @@ const getMemberSince = async (member: WPUser): Promise<string | undefined> => {
 
 const storeMapping = async (member: WPUser, memberId: string) => {
   await conn.query(
-    `insert into mik_ng (id, username, ng_id) values (${member.ID}, '${member.user_login}', '${memberId}')`
+    `insert into mik_ng (id, username, ng_id) values (${member.ID}, '${member.user_login}', '${memberId}')`,
   )
 }
 
@@ -313,7 +284,7 @@ const getMemberType = (officialData: Yhdistysavain): MIKMemberTypes => {
 const getPhoneNumber = (
   member: WPUser,
   phone?: string,
-  officialData?: Yhdistysavain
+  officialData?: Yhdistysavain,
 ): string | undefined => {
   const sanitize = (num?: string): string | undefined => {
     if (!num) {
@@ -334,21 +305,17 @@ const getPhoneNumber = (
 
   if (metaPhone && metaPhone != officialPhone) {
     console.log(
-      `Phone number conflict ${member.ID}/${member.user_login}, yhdistysavain ${officialPhone}, site ${metaPhone}`
+      `Phone number conflict ${member.ID}/${member.user_login}, yhdistysavain ${officialPhone}, site ${metaPhone}`,
     )
   }
   return officialPhone
 }
 
 const getEmail = (member: WPUser, officialData?: Yhdistysavain): string => {
-  const email =
-    officialData?.['Sähköpostiosoite'] ?? `removed-${member.ID}@mik.fi`
-  if (
-    !email ||
-    (officialData?.['Sähköpostiosoite'] && email != member.user_email)
-  ) {
+  const email = officialData?.['Sähköpostiosoite'] ?? `removed-${member.ID}@mik.fi`
+  if (!email || (officialData?.['Sähköpostiosoite'] && email != member.user_email)) {
     console.log(
-      `Email conflict ${member.ID}/${member.user_login}, yhdistysavain ${officialData?.['Sähköpostiosoite']}, site ${member.user_email}`
+      `Email conflict ${member.ID}/${member.user_login}, yhdistysavain ${officialData?.['Sähköpostiosoite']}, site ${member.user_email}`,
     )
   }
 
@@ -386,11 +353,7 @@ const getBirthDate = (dateString?: string): string | undefined => {
   }
 
   // 24121999
-  if (
-    parts.length == 1 &&
-    parts[0].length == 8 &&
-    parts[0].slice(4, 6) == '19'
-  ) {
+  if (parts.length == 1 && parts[0].length == 8 && parts[0].slice(4, 6) == '19') {
     return `${parts[0].slice(4, 8)}-${parts[0].slice(2, 4)}-${parts[0].slice(0, 2)}`
   }
 
@@ -401,14 +364,13 @@ const getBirthDate = (dateString?: string): string | undefined => {
 const getRoles = async (
   officialData: Yhdistysavain,
   userId: number,
-  member: Member
+  member: Member,
 ): Promise<string[]> => {
   return [
     ...new Set([
       ...(roles?.[userId] ? roles[userId] : []),
       ...(officialData['Hallitus'] == 'X' ? ['COMMITTEE'] : []),
-      ...(member.memberType === MIKMemberTypes.FLYING ||
-      member.memberType === MIKMemberTypes.JUNIOR
+      ...(member.memberType === MIKMemberTypes.FLYING || member.memberType === MIKMemberTypes.JUNIOR
         ? ['MEMBER', 'FLYING_MEMBER']
         : []),
       ...(member.memberType === MIKMemberTypes.NONFLYING ? ['MEMBER'] : []),
@@ -420,20 +382,17 @@ const getRoles = async (
 
 // Try to match all current and former instructors for flight migration.
 // Later leave INSTRUCTOR role only to current instructors.
-const isInstructor = async (
-  userId: number,
-  member: Member
-): Promise<boolean> => {
+const isInstructor = async (userId: number, member: Member): Promise<boolean> => {
   const hasInstructorRole = await conn.query<{ user_id: number }[]>(
     `SELECT user_id from mikweb2_wp_uam_accessgroup_to_user
-    WHERE user_id = ${userId} and group_id = 9`
+    WHERE user_id = ${userId} and group_id = 9`,
   )
   if (hasInstructorRole.length > 0) {
     return true
   }
 
   const instructors = await conn.query<Instructor[]>(
-    `SELECT * from kirja_opettajat where nimi like '%${member.lastName}%'`
+    `SELECT * from kirja_opettajat where nimi like '%${member.lastName}%'`,
   )
   return instructors.length > 0
 }

@@ -55,7 +55,7 @@ properties:
     example: Thank you for your business!
   credit_invoice_for:
     type: number
-    description: "ID of the credited invoice"
+    description: 'ID of the credited invoice'
     example: 0
   proforma:
     type: boolean
@@ -80,4 +80,4 @@ properties:
   copy:
     type: string
     description: Invoice copy in PDF format (base64 encoded), if created outside of SimplBooks
-    example: "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGl..."
+    example: 'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGl...'

@@ -28,15 +28,9 @@ export default function ExamDetailPage() {
     ? getPreferredExamLanguage(i18n.language, cv, Object.keys(cv.translations))
     : undefined
   const title =
-    (contentLanguage ? cv?.translations[contentLanguage]?.title : undefined) ??
-    exam?.name ??
-    ''
-  const description = contentLanguage
-    ? cv?.translations[contentLanguage]?.description
-    : undefined
-  const examTypeLabel = exam
-    ? t(`exams.examTypes.${exam.examType}`, exam.examType)
-    : ''
+    (contentLanguage ? cv?.translations[contentLanguage]?.title : undefined) ?? exam?.name ?? ''
+  const description = contentLanguage ? cv?.translations[contentLanguage]?.description : undefined
+  const examTypeLabel = exam ? t(`exams.examTypes.${exam.examType}`, exam.examType) : ''
 
   const handleStart = async () => {
     if (!examId) return
@@ -44,8 +38,7 @@ export default function ExamDetailPage() {
     setError(null)
     try {
       const attemptLanguage =
-        (cv &&
-          getPreferredExamLanguage(i18n.language, cv, cv.supportedLanguages)) ??
+        (cv && getPreferredExamLanguage(i18n.language, cv, cv.supportedLanguages)) ??
         resolveExamUiLanguage(i18n.language)
       const attempt = await startAttempt(examId, attemptLanguage)
       navigate(`/exams/attempt/${attempt.attemptId}`)

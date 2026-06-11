@@ -61,7 +61,7 @@ get:
                   type: object
                   properties:
                     FinancialAccount:
-                        $ref: '../schemas/FinancialAccount.yaml'
+                      $ref: '../schemas/FinancialAccount.yaml'
     400:
       $ref: '../schemas/error400.yaml'
     401:

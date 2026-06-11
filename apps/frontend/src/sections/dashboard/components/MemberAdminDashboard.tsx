@@ -1,8 +1,4 @@
-import {
-  MemberListFilters,
-  MemberListResponse,
-  Member,
-} from '@backend/routes/members/models'
+import { MemberListFilters, MemberListResponse, Member } from '@backend/routes/members/models'
 import {
   Accordion,
   AccordionSummary,
@@ -39,9 +35,7 @@ export const MemberAdminDashboard = () => {
   return (
     <Accordion defaultExpanded>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography variant='h5'>
-          {t('dashboard.pendingMemberApprovals')}
-        </Typography>
+        <Typography variant='h5'>{t('dashboard.pendingMemberApprovals')}</Typography>
       </AccordionSummary>
       <AccordionDetails>
         <RemoteContent isLoading={isLoading} error={error}>

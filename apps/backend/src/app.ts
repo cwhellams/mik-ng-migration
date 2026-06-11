@@ -65,7 +65,7 @@ logger.info('Bootstrapping mik-ng service on port %d', PORT)
 // Morgan logs HTTP requests
 app.use(
   morgan('combined', {
-    stream: { write: message => logger.info(message.trim()) },
+    stream: { write: (message) => logger.info(message.trim()) },
   }),
 )
 
@@ -77,8 +77,8 @@ app.use(helmet()) // Secure headers
 // (httpOnly cookies) as required by the CORS spec.
 const rawOrigins = process.env.CORS_ALLOWED_ORIGINS
   ? process.env.CORS_ALLOWED_ORIGINS.split(',')
-      .map(origin => origin.trim())
-      .filter(origin => origin.length > 0 && origin !== '*')
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0 && origin !== '*')
   : []
 
 let corsOrigins: string[]
@@ -218,9 +218,9 @@ const shutdown = async (): Promise<void> => {
 // Listen for termination signals
 process.on('SIGINT', shutdown) // Ctrl+C
 process.on('SIGTERM', shutdown) // Kill command (e.g., Docker stop)
-process.on('uncaughtException', err => {
+process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err)
-  shutdown().catch(err => {
+  shutdown().catch((err) => {
     console.error('Error during shutdown:', err)
     process.exit(1)
   })

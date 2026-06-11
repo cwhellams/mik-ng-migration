@@ -46,7 +46,7 @@ export function startJuniorMemberPromotionWorker(deps: JuniorMemberPromotionWork
   // Run immediately on startup if configured
   if (process.env.JUNIOR_PROMOTION_WORKER_RUN_ON_STARTUP === 'true') {
     logger.info('Running junior member promotion check immediately on startup')
-    processJuniorPromotions(sendEmailFn).catch(error => {
+    processJuniorPromotions(sendEmailFn).catch((error) => {
       logger.error('Error during startup junior member promotion check:', error)
     })
   }

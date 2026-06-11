@@ -15,19 +15,19 @@ properties:
   number:
     type: string
     description: Unique number for the order
-    example: "123"
+    example: '123'
   sent:
     type: string
     description: The date that the order was sent
-    example: "2020-01-01"
+    example: '2020-01-01'
   cancelled:
     type: string
     description: The date when the order was cancelled
-    example: "2022-01-05"
+    example: '2022-01-05'
   currency_name:
     type: string
     description: ISO 4217 currency code
-    example: "EUR"
+    example: 'EUR'
   currency_rate:
     type: number
     description: Ratio of chosen currency to the base currency
@@ -35,4 +35,4 @@ properties:
   language:
     type: string
     description: language code
-    example: "et_EE"
+    example: 'et_EE'

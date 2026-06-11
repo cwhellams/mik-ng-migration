@@ -50,22 +50,22 @@ get:
                   type: object
                   properties:
                     Warehouse:
-                        type: object
-                        properties:
-                          id:
-                            type: integer
-                            example: 1
-                          name:
-                            type: string
-                            example: Warehouse 1
-                          description:
-                            type: string
-                            example: Central warehouse
-                          address:
-                            type: string
-                            example: Sõpruse pst 151, Tallinn
-                          active:
-                            type: boolean
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: Warehouse 1
+                        description:
+                          type: string
+                          example: Central warehouse
+                        address:
+                          type: string
+                          example: Sõpruse pst 151, Tallinn
+                        active:
+                          type: boolean
     400:
       $ref: '../schemas/error400.yaml'
     401:

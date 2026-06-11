@@ -15,9 +15,7 @@ const RegistrationVerify = () => {
   const navigate = useNavigate()
   const { t } = useTranslation()
 
-  const { isMutating, trigger } = useAuth<VerifyRequest, VerifyResponse>(
-    'register/verify'
-  )
+  const { isMutating, trigger } = useAuth<VerifyRequest, VerifyResponse>('register/verify')
 
   useEffect(() => {
     const token = searchParams.get('token')
@@ -25,9 +23,7 @@ const RegistrationVerify = () => {
       trigger({ token }).then(({ error }) => {
         if (error) {
           console.log(error)
-          setVerificationError(
-            t('registrationVerify.verificationFailedMessage')
-          )
+          setVerificationError(t('registrationVerify.verificationFailedMessage'))
         } else {
           setIsVerified(true)
         }
@@ -55,23 +51,14 @@ const RegistrationVerify = () => {
     return (
       <LoginLayout title={t('registrationVerify.emailVerification')}>
         <Box sx={{ textAlign: 'center', mt: 2 }}>
-          <Icon
-            icon='mdi:alert-circle'
-            width={64}
-            height={64}
-            color='#f44336'
-          />
+          <Icon icon='mdi:alert-circle' width={64} height={64} color='#f44336' />
           <Typography variant='h6' sx={{ mt: 2, mb: 2 }}>
             {t('registrationVerify.verificationFailed')}
           </Typography>
           <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
             {verificationError}
           </Typography>
-          <Button
-            variant='outlined'
-            onClick={() => navigate('/register')}
-            sx={{ mr: 2 }}
-          >
+          <Button variant='outlined' onClick={() => navigate('/register')} sx={{ mr: 2 }}>
             {t('registrationVerify.registerAgain')}
           </Button>
           <Button variant='contained' onClick={() => navigate('/login')}>
@@ -86,12 +73,7 @@ const RegistrationVerify = () => {
     return (
       <LoginLayout title={t('registrationVerify.welcomeTitle')}>
         <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Icon
-            icon='mdi:check-circle'
-            width={64}
-            height={64}
-            color='#4caf50'
-          />
+          <Icon icon='mdi:check-circle' width={64} height={64} color='#4caf50' />
           <Typography variant='h5' sx={{ mt: 2, mb: 2, color: '#4caf50' }}>
             {t('registrationVerify.emailVerifiedSuccess')}
           </Typography>

@@ -21,7 +21,7 @@ router.get('/', async (req: Request, res: Response<UpliftReportResponse>) => {
   const parsed = UpliftReportFiltersSchema.safeParse(req.query)
 
   if (!parsed.success) {
-    const errors = parsed.error.issues.map(issue => ({
+    const errors = parsed.error.issues.map((issue) => ({
       path: issue.path.join('.'),
       message: issue.message,
       code: issue.code,

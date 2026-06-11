@@ -30,7 +30,7 @@ export async function getTaxReport(filters: TaxReportFilters): Promise<TaxReport
     .orderBy('aircraft_registration', 'asc')
     .execute()
 
-  return result.map(row => ({
+  return result.map((row) => ({
     month: row.month,
     aircraftRegistration: row.aircraft_registration,
     commercialBlockMins: Number(row.commercial_block_mins),

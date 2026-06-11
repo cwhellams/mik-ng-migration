@@ -47,12 +47,10 @@ const FlightLogsList = () => {
   const { me, isFlightLogAdmin } = useRoles()
 
   // selected aircraft journey log books
-  const { data: ajlb, mutate: mutateLogbooks } = useApi<AircraftJourneyLogBook>(
-    {
-      url: `v1/ajlb/${aircraftRegistration}/${ajlbSeqNo}`,
-      skipFetch: !aircraftRegistration || !ajlbSeqNo,
-    }
-  )
+  const { data: ajlb, mutate: mutateLogbooks } = useApi<AircraftJourneyLogBook>({
+    url: `v1/ajlb/${aircraftRegistration}/${ajlbSeqNo}`,
+    skipFetch: !aircraftRegistration || !ajlbSeqNo,
+  })
 
   const { formatTime } = useTimezone()
 
@@ -62,21 +60,16 @@ const FlightLogsList = () => {
   const scrollToRef = useScrollOnRender()
 
   const [page, setPage] = useState<number | undefined>(
-    searchParams.get('page') ? Number(searchParams.get('page')) : undefined
+    searchParams.get('page') ? Number(searchParams.get('page')) : undefined,
   )
 
   useEffect(() => {
-    const page = searchParams.get('page')
-      ? Number(searchParams.get('page'))
-      : undefined
+    const page = searchParams.get('page') ? Number(searchParams.get('page')) : undefined
 
     setPage(page)
   }, [searchParams, setPage])
 
-  const { data, isLoading, error, mutation } = useApi<
-    FlightLogListResponse,
-    FlightLog
-  >(
+  const { data, isLoading, error, mutation } = useApi<FlightLogListResponse, FlightLog>(
     {
       url: 'v1/flight-logs',
       params: {
@@ -89,7 +82,7 @@ const FlightLogsList = () => {
     {
       // don't clear old data when searching
       keepPreviousData: true,
-    }
+    },
   )
 
   const theme = useTheme()
@@ -102,14 +95,11 @@ const FlightLogsList = () => {
 
   const rowHeight = isMd ? 60 : 140
 
-  const updateEntry = async (
-    log: FlightLogListEntry,
-    patch: Partial<FlightLogUpsertRequest>
-  ) => {
+  const updateEntry = async (log: FlightLogListEntry, patch: Partial<FlightLogUpsertRequest>) => {
     const res = await mutation.trigger<Partial<FlightLogUpsertRequest>>(
       'PATCH',
       patch,
-      log.flightId
+      log.flightId,
     )
 
     setProblem(res.error ? res.error : { status: 200 })
@@ -125,7 +115,7 @@ const FlightLogsList = () => {
       `${log.flightId}/validate`,
       {
         revalidate: isLast,
-      }
+      },
     )
 
     if (res.error) {
@@ -179,7 +169,7 @@ const FlightLogsList = () => {
     const emptyRowCount = Math.min(
       log.ajlbBlankRowsBefore,
       // if blank rows are in the previous page, skip them
-      (log.ajlbRowNo ?? 0) - (index + 1)
+      (log.ajlbRowNo ?? 0) - (index + 1),
     )
 
     return Array.from({ length: emptyRowCount })
@@ -253,15 +243,9 @@ const FlightLogsList = () => {
                   <ViewFlightDate
                     flightId={log.flightId}
                     date={log.offBlockTimeUtc}
-                    link={
-                      isFlightLogAdmin || log.billableMemberId == me?.memberId
-                    }
+                    link={isFlightLogAdmin || log.billableMemberId == me?.memberId}
                     state={`/books/${log.aircraftRegistration}/${log.ajlbSeqNo}?page=${page}`}
-                    ref={
-                      location.hash == `#${log.flightId}`
-                        ? scrollToRef
-                        : undefined
-                    }
+                    ref={location.hash == `#${log.flightId}` ? scrollToRef : undefined}
                   />
                 </Grid>
 
@@ -279,16 +263,12 @@ const FlightLogsList = () => {
 
                     <Grid size={1}>
                       <Box>{log.departureAirport}</Box>
-                      <Box color='text.secondary'>
-                        {formatTime(log.takeoffTimeUtc)}
-                      </Box>
+                      <Box color='text.secondary'>{formatTime(log.takeoffTimeUtc)}</Box>
                     </Grid>
 
                     <Grid size={1}>
                       <Box>{log.arrivalAirport}</Box>
-                      <Box color='text.secondary'>
-                        {formatTime(log.landingTimeUtc)}
-                      </Box>
+                      <Box color='text.secondary'>{formatTime(log.landingTimeUtc)}</Box>
                     </Grid>
 
                     <Grid size={1.1}>{log.flightTime}</Grid>
@@ -297,9 +277,7 @@ const FlightLogsList = () => {
 
                     <Grid size={0.8}>{log.numberOfLandings}</Grid>
 
-                    <Grid size={1.2}>
-                      {t(`flightLog.flightTypes.${log.flightType}`)}
-                    </Grid>
+                    <Grid size={1.2}>{t(`flightLog.flightTypes.${log.flightType}`)}</Grid>
 
                     <Grid size={1} alignSelf='center' justifyItems='end'>
                       <Actions log={log} />
@@ -309,9 +287,7 @@ const FlightLogsList = () => {
                   <>
                     {
                       // give more room to action buttons by leaving registration out when synching
-                      !isFlightLogAdmin && (
-                        <Grid size={3}>{log.aircraftRegistration}</Grid>
-                      )
+                      !isFlightLogAdmin && <Grid size={3}>{log.aircraftRegistration}</Grid>
                     }
 
                     <ViewMobileFlightDetails
@@ -360,10 +336,7 @@ const FlightLogsList = () => {
           renderItem={(item) => {
             if (item.type === 'page' && item.page !== null) {
               return (
-                <PaginationItem
-                  {...item}
-                  page={(ajlb?.startPage ?? 1) + 2 * (item.page - 1)}
-                />
+                <PaginationItem {...item} page={(ajlb?.startPage ?? 1) + 2 * (item.page - 1)} />
               )
             }
             return <PaginationItem {...item} />

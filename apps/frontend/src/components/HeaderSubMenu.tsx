@@ -14,8 +14,7 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
   const { sudo } = useThemeMode()
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
 
-  const resolvePath = (path: string) =>
-    path.startsWith('/') ? path : `${parent.path}/${path}`
+  const resolvePath = (path: string) => (path.startsWith('/') ? path : `${parent.path}/${path}`)
 
   const subItems = parent.subItems?.filter((i) => {
     if (i.adminModeOnly === true && !sudo) {
@@ -39,8 +38,7 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
 
   const isUnderParent = location.pathname.startsWith(parent.path)
   const isUnderAbsoluteSubItem = subItems.some(
-    (item) =>
-      item.path.startsWith('/') && location.pathname.startsWith(item.path)
+    (item) => item.path.startsWith('/') && location.pathname.startsWith(item.path),
   )
 
   // Show nothing if not under the parent path or one of its absolute sub-items
@@ -51,13 +49,8 @@ export const HeaderSubMenu = ({ parent }: { parent: MenuItem }) => {
   const currentTab = subItems.findIndex((item) => {
     if (item.path === '') {
       // Index tab: exact match on parent path to avoid matching every nested route
-      const normalizedParent = parent.path.endsWith('/')
-        ? parent.path
-        : parent.path + '/'
-      return (
-        location.pathname === parent.path ||
-        location.pathname === normalizedParent
-      )
+      const normalizedParent = parent.path.endsWith('/') ? parent.path : parent.path + '/'
+      return location.pathname === parent.path || location.pathname === normalizedParent
     }
     const resolved = resolvePath(item.path)
     return resolved.length > 0 && location.pathname.startsWith(resolved)

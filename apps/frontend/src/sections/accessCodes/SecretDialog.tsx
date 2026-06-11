@@ -14,11 +14,7 @@ import {
   Radio,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import type {
-  Secret,
-  SecretsListResponse,
-  SecretClass,
-} from '@backend/routes/secrets/models'
+import type { Secret, SecretsListResponse, SecretClass } from '@backend/routes/secrets/models'
 import useApi from '../../hooks/useApi'
 import { SaveButton } from '../../components/SaveButton'
 import { Problem } from '@backend/routes/response'
@@ -32,12 +28,7 @@ interface SecretDialogProps {
   secret?: Secret | null
 }
 
-export const SecretDialog: React.FC<SecretDialogProps> = ({
-  open,
-  onClose,
-  onSuccess,
-  secret,
-}) => {
+export const SecretDialog: React.FC<SecretDialogProps> = ({ open, onClose, onSuccess, secret }) => {
   const { t } = useTranslation()
   const { isAccessCodesAdmin } = useRoles()
 
@@ -114,10 +105,7 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
       secretClass: formData.secretClass,
     }
 
-    const { error } = await mutation.trigger(
-      isEditMode && secret ? 'PATCH' : 'POST',
-      secretData
-    )
+    const { error } = await mutation.trigger(isEditMode && secret ? 'PATCH' : 'POST', secretData)
     if (error) {
       return setErrors((prev) => ({
         ...prev,
@@ -128,8 +116,7 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
   }
 
   const handleChange =
-    (field: keyof typeof formData) =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (field: keyof typeof formData) => (event: React.ChangeEvent<HTMLInputElement>) => {
       setFormData((prev) => ({
         ...prev,
         [field]: event.target.value,
@@ -190,11 +177,7 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({
             {isAccessCodesAdmin && (
               <FormControl>
                 <FormLabel>{t('accessCodes.secretClass')}</FormLabel>
-                <RadioGroup
-                  row
-                  value={formData.secretClass}
-                  onChange={handleChange('secretClass')}
-                >
+                <RadioGroup row value={formData.secretClass} onChange={handleChange('secretClass')}>
                   <FormControlLabel
                     value='MEMBER'
                     control={<Radio />}

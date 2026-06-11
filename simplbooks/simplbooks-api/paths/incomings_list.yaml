@@ -21,7 +21,7 @@ get:
             description:
               type: string
               description: search for receipts by description containing the given string
-              example: "sissetulek"
+              example: 'sissetulek'
             income_account_id:
               type: integer
               description: filter receipts to match a specific income account ID

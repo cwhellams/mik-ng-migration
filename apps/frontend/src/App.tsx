@@ -86,17 +86,14 @@ import { ServerClockProvider } from './hooks/useServerClock'
 
 function DtoIndexRedirect() {
   const { hasAccess } = useRoles()
-  const isElevated =
-    hasAccess(MIKPermissions.DTO_INSTRUCTOR) ||
-    hasAccess(MIKPermissions.DTO_ADMIN)
+  const isElevated = hasAccess(MIKPermissions.DTO_INSTRUCTOR) || hasAccess(MIKPermissions.DTO_ADMIN)
   return <Navigate to={isElevated ? 'verify' : 'my-training'} replace />
 }
 
 function App() {
   const [loading, setLoading] = useState(true)
   const { i18n, t } = useTranslation()
-  const { isUpdateAvailable, dismissUpdate, refreshApp } =
-    useServiceWorkerUpdate()
+  const { isUpdateAvailable, dismissUpdate, refreshApp } = useServiceWorkerUpdate()
 
   useEffect(() => {
     // Check if document fonts are loaded with a hard timeout to prevent infinite loading on mobile
@@ -107,9 +104,7 @@ function App() {
       try {
         await Promise.race([
           document.fonts?.ready || Promise.resolve(),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('timeout')), 3000)
-          ),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
         ])
         fontsReady = true
       } catch {
@@ -121,7 +116,7 @@ function App() {
         () => {
           setLoading(false)
         },
-        fontsReady ? 300 : 500
+        fontsReady ? 300 : 500,
       )
     }
 
@@ -169,19 +164,13 @@ function App() {
                 <Route index path='members/roles' element={<Roles />} />
                 <Route path='members/trash' element={<MemberTrash />} />
                 <Route path='members/:memberId' element={<Member />} />
-                <Route
-                  path='instructor-status'
-                  element={<InstructorStatus />}
-                />
+                <Route path='instructor-status' element={<InstructorStatus />} />
                 <Route path='billing' element={<Billing />} />
                 <Route path='documents' element={<Documents />} />
                 <Route path='stats' element={<Stats />} />
                 <Route path='events' element={<EventsList />} />
               </Route>
-              <Route
-                path='/profile/email-change/verify'
-                element={<EmailChangeVerify />}
-              />
+              <Route path='/profile/email-change/verify' element={<EmailChangeVerify />} />
               <Route path='/accounting'>
                 <Route index element={<InvoicingAdminDashboard />} />
                 <Route path='invoicing' element={<FlightInvoicing />} />
@@ -190,33 +179,21 @@ function App() {
                 <Route path='tax-report' element={<TaxReport />} />
                 <Route path='traficom-report' element={<TraficomReport />} />
                 <Route path='uplift-report' element={<UpliftReport />} />
-                <Route
-                  path='instructor-worktime'
-                  element={<InstructorWorktimeReport />}
-                />
-                <Route
-                  path='unpaid-overdue'
-                  element={<UnpaidOverdueInvoices />}
-                />
+                <Route path='instructor-worktime' element={<InstructorWorktimeReport />} />
+                <Route path='unpaid-overdue' element={<UnpaidOverdueInvoices />} />
               </Route>
               <Route path='/shop'>
                 <Route index element={<ShopPage />} />
                 <Route path='products/:id' element={<ProductPage />} />
                 <Route path='cart' element={<CartPage />} />
                 <Route path='orders' element={<OrdersPage />} />
-                <Route
-                  path='flight-packages'
-                  element={<MyFlightPackagesPage />}
-                />
+                <Route path='flight-packages' element={<MyFlightPackagesPage />} />
                 <Route path='orders/:orderId' element={<OrderDetailPage />} />
               </Route>
               <Route path='/exams'>
                 <Route index element={<ExamsPage />} />
                 <Route path=':examId' element={<ExamDetailPage />} />
-                <Route
-                  path='attempt/:attemptId'
-                  element={<ExamAttemptPage />}
-                />
+                <Route path='attempt/:attemptId' element={<ExamAttemptPage />} />
                 <Route path='review/:attemptId' element={<ExamReviewPage />} />
                 <Route path='history' element={<MyExamHistoryPage />} />
               </Route>
@@ -224,47 +201,26 @@ function App() {
                 <Route index element={<Navigate to='outbox' replace />} />
                 <Route path='outbox' element={<Outbox />} />
                 <Route path='non-renewals' element={<NonRenewals />} />
-                <Route
-                  path='notification-banner'
-                  element={<NotificationBannerAdmin />}
-                />
+                <Route path='notification-banner' element={<NotificationBannerAdmin />} />
                 <Route path='shop' element={<ShopAdminDashboard />} />
                 <Route path='shop/products' element={<ProductsAdmin />} />
                 <Route path='shop/categories' element={<CategoriesAdmin />} />
                 <Route path='shop/orders' element={<OrdersAdmin />} />
-                <Route
-                  path='shop/discount-codes'
-                  element={<DiscountCodesAdmin />}
-                />
-                <Route
-                  path='shop/flight-packages'
-                  element={<FlightPackagesAdmin />}
-                />
+                <Route path='shop/discount-codes' element={<DiscountCodesAdmin />} />
+                <Route path='shop/flight-packages' element={<FlightPackagesAdmin />} />
                 <Route path='events' element={<EventsAdmin />} />
                 <Route path='exams' element={<ExamsAdminPage />} />
-                <Route
-                  path='exams/versions/:versionId'
-                  element={<ExamVersionEditorPage />}
-                />
+                <Route path='exams/versions/:versionId' element={<ExamVersionEditorPage />} />
                 <Route path='exams/attempts' element={<AttemptsAdminPage />} />
                 <Route path='dto' element={<DtoProgramsAdminPage />} />
-                <Route
-                  path='dto/syllabi/:syllabusId'
-                  element={<DtoSyllabusEditorPage />}
-                />
-                <Route
-                  path='dto/programs/:programId/import'
-                  element={<DtoImportPage />}
-                />
+                <Route path='dto/syllabi/:syllabusId' element={<DtoSyllabusEditorPage />} />
+                <Route path='dto/programs/:programId/import' element={<DtoImportPage />} />
               </Route>
               <Route path='/dto'>
                 <Route index element={<DtoIndexRedirect />} />
                 <Route path='my-training' element={<DtoMyTrainingPage />} />
                 <Route path='progress' element={<DtoProgressPage />} />
-                <Route
-                  path='progress/:memberSyllabusId'
-                  element={<DtoStudentDetailPage />}
-                />
+                <Route path='progress/:memberSyllabusId' element={<DtoStudentDetailPage />} />
                 <Route path='verify' element={<DtoVerificationPage />} />
               </Route>
             </Route>

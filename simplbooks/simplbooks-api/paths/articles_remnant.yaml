@@ -50,11 +50,7 @@ post:
                     x-additionalPropertiesName: warehouse_id
                     type: number
                 example:
-                  52: {
-                    1: 557,
-                    2: 12,
-                    3: -22
-                  }
+                  52: { 1: 557, 2: 12, 3: -22 }
 
     400:
       $ref: '../schemas/error400.yaml'

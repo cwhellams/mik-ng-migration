@@ -25,13 +25,7 @@ import type { Order, OrderStatus } from '@backend/routes/shop/models'
 import { Link } from 'react-router-dom'
 import { ORDER_STATUS_COLOR } from '../../shop/orderStatusColor'
 
-const ALL_STATUSES: OrderStatus[] = [
-  'PENDING',
-  'PROCESSING',
-  'INVOICED',
-  'CANCELLED',
-  'REFUNDED',
-]
+const ALL_STATUSES: OrderStatus[] = ['PENDING', 'PROCESSING', 'INVOICED', 'CANCELLED', 'REFUNDED']
 type DateRange = '7d' | '1m' | '3m' | '6m' | '1y'
 
 const DATE_RANGE_OPTIONS: Array<{ value: DateRange; label: string }> = [
@@ -143,9 +137,7 @@ export default function OrdersAdmin() {
                     <TableCell>{formatMemberDisplay(order)}</TableCell>
                     <TableCell>{formatIsoDate(order.createdAt)}</TableCell>
                     <TableCell>{order.invoiceId ?? 'n/a'}</TableCell>
-                    <TableCell align='right'>
-                      €{order.totalAmount.toFixed(2)}
-                    </TableCell>
+                    <TableCell align='right'>€{order.totalAmount.toFixed(2)}</TableCell>
                     <TableCell>
                       <Chip
                         size='small'

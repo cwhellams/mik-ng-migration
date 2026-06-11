@@ -17,13 +17,13 @@ export const getAllAircraft = async (
   const rows = await connection.db
     .selectFrom('flight.aircraft')
     .selectAll()
-    .$if(onlyActive, qb => qb.where('active', '=', true))
-    .$if(visibleOnly, qb => qb.where('hidden', '=', false))
+    .$if(onlyActive, (qb) => qb.where('active', '=', true))
+    .$if(visibleOnly, (qb) => qb.where('hidden', '=', false))
     .orderBy('display_name')
     .execute()
 
   return Promise.all(
-    rows.map(async row => {
+    rows.map(async (row) => {
       const docs = (await getAllAircraftDocuments({
         aircraftRegistration: row.registration,
       })) as unknown as AircraftDocument[]
@@ -42,8 +42,8 @@ export const getAircraftByRegistration = async (
     .selectFrom('flight.aircraft')
     .selectAll()
     .where('registration', '=', registration)
-    .$if(onlyActive, qb => qb.where('active', '=', true))
-    .$if(visibleOnly, qb => qb.where('hidden', '=', false))
+    .$if(onlyActive, (qb) => qb.where('active', '=', true))
+    .$if(visibleOnly, (qb) => qb.where('hidden', '=', false))
     .executeTakeFirst()
   if (row) {
     return toAircraft(
@@ -189,7 +189,7 @@ export async function updateAircraft(
       updated_at: now,
       updated_by: jwt.memberId,
     })
-    .$if(!!patch.maintenance, qb =>
+    .$if(!!patch.maintenance, (qb) =>
       qb.set({
         maintenance_cycle: patch.maintenance!.maintenanceCycle,
         last_maintenance_date: patch.maintenance!.lastMaintenanceDate,
@@ -221,5 +221,5 @@ export async function getAllFuelTypes(): Promise<FuelTypeEntry[]> {
     .selectAll()
     .orderBy('sort_order')
     .execute()
-  return rows.map(row => ({ name: row.name, sortOrder: row.sort_order }))
+  return rows.map((row) => ({ name: row.name, sortOrder: row.sort_order }))
 }

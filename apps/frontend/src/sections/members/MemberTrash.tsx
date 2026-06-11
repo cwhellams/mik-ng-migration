@@ -1,11 +1,4 @@
-import {
-  Box,
-  TextField,
-  InputAdornment,
-  Stack,
-  Chip,
-  Button,
-} from '@mui/material'
+import { Box, TextField, InputAdornment, Stack, Chip, Button } from '@mui/material'
 import { Link } from 'react-router-dom'
 import useApi from '../../hooks/useApi'
 import { Member, MemberListResponse } from '@backend/routes/members/models'
@@ -25,16 +18,13 @@ const MemberTrash = () => {
   const [nameFilter, setNameFilter] = useState('')
   const [problem, setProblem] = useState<Problem | undefined>()
 
-  const { data, isLoading, error, mutate, mutation } = useApi<
-    MemberListResponse,
-    Member
-  >(
+  const { data, isLoading, error, mutate, mutation } = useApi<MemberListResponse, Member>(
     {
       url: 'v1/members/trash',
     },
     {
       keepPreviousData: true,
-    }
+    },
   )
 
   const { isMembersAdmin } = useRoles()
@@ -45,11 +35,7 @@ const MemberTrash = () => {
       return
     }
 
-    const { error } = await mutation.trigger(
-      'POST',
-      {},
-      `/v1/members/${memberId}/restore`
-    )
+    const { error } = await mutation.trigger('POST', {}, `/v1/members/${memberId}/restore`)
     if (error) {
       return setProblem(error)
     }
@@ -67,20 +53,13 @@ const MemberTrash = () => {
     return (
       <Box>
         <Title label={t('member.trash', 'Removed Members')} />
-        <p>
-          {t(
-            'member.noPermission',
-            'You do not have permission to view this page.'
-          )}
-        </p>
+        <p>{t('member.noPermission', 'You do not have permission to view this page.')}</p>
       </Box>
     )
   }
 
   const filteredMembers = data?.members?.filter((member) =>
-    `${member.first} ${member.last}`
-      .toLowerCase()
-      .includes(nameFilter.toLowerCase())
+    `${member.first} ${member.last}`.toLowerCase().includes(nameFilter.toLowerCase()),
   )
 
   return (
@@ -122,11 +101,7 @@ const MemberTrash = () => {
               }}
             >
               <Box display='flex' alignItems='center' gap={2} minWidth={0}>
-                <UserAvatar
-                  email={member.email}
-                  firstName={member.first}
-                  lastName={member.last}
-                />
+                <UserAvatar email={member.email} firstName={member.first} lastName={member.last} />
                 <Box minWidth={0}>
                   <Link
                     to={`/club/members/${member.memberId}`}
@@ -138,13 +113,9 @@ const MemberTrash = () => {
                   >
                     {member.first} {member.last}
                   </Link>
+                  <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>{member.email}</Box>
                   <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
-                    {member.email}
-                  </Box>
-                  <Box sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
-                    {member.phoneNumber
-                      ? formatPhoneNumber(member.phoneNumber)
-                      : 'N/A'}
+                    {member.phoneNumber ? formatPhoneNumber(member.phoneNumber) : 'N/A'}
                   </Box>
                 </Box>
                 {member.roles.length > 0 && (

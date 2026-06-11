@@ -47,17 +47,11 @@ const main = async () => {
     }
 
     if (op == 'members' || all) {
-      await migrateMembers(
-        process.argv[3] || '0',
-        parseInt(process.argv[4]) || 10000
-      )
+      await migrateMembers(process.argv[3] || '0', parseInt(process.argv[4]) || 10000)
     }
 
     if (op == 'flights') {
-      await migrateFlights(
-        process.argv[3] || '2000-01-01',
-        parseInt(process.argv[4]) || 100000
-      )
+      await migrateFlights(process.argv[3] || '2000-01-01', parseInt(process.argv[4]) || 100000)
     }
 
     if (op == 'verify') {
@@ -65,10 +59,7 @@ const main = async () => {
     }
 
     if (op == 'bookings') {
-      await migrateBookings(
-        process.argv[3] || '2000-01-01',
-        parseInt(process.argv[4]) || 100000
-      )
+      await migrateBookings(process.argv[3] || '2000-01-01', parseInt(process.argv[4]) || 100000)
     }
   } finally {
     conn?.end()

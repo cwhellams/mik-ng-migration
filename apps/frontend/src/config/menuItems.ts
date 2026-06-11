@@ -46,28 +46,19 @@ export const menuItems: MenuItem[] = [
       {
         path: 'access-codes',
         label: 'header.accessCodes',
-        requiredRoles: [
-          MIKPermissions.ACCESS_CODES_USER,
-          MIKPermissions.ACCESS_CODES_ADMIN,
-        ],
+        requiredRoles: [MIKPermissions.ACCESS_CODES_USER, MIKPermissions.ACCESS_CODES_ADMIN],
       },
       {
         path: 'fuel-prices',
         label: 'header.fuelPrices',
-        requiredRoles: [
-          MIKPermissions.FUEL_PRICES_USER,
-          MIKPermissions.FUEL_PRICES_ADMIN,
-        ],
+        requiredRoles: [MIKPermissions.FUEL_PRICES_USER, MIKPermissions.FUEL_PRICES_ADMIN],
       },
     ],
   },
   {
     path: '/logs',
     label: 'header.logs',
-    requiredRoles: [
-      MIKPermissions.FLIGHTLOG_USER,
-      MIKPermissions.FLIGHTLOG_ADMIN,
-    ],
+    requiredRoles: [MIKPermissions.FLIGHTLOG_USER, MIKPermissions.FLIGHTLOG_ADMIN],
     subItems: [
       {
         path: '',
@@ -141,10 +132,7 @@ export const menuItems: MenuItem[] = [
   {
     path: '/accounting',
     label: 'header.accounts',
-    requiredRoles: [
-      MIKPermissions.INVOICING_USER,
-      MIKPermissions.INVOICING_ADMIN,
-    ],
+    requiredRoles: [MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN],
     adminModeOnly: true,
     subItems: [
       {
@@ -190,10 +178,7 @@ export const menuItems: MenuItem[] = [
       {
         label: 'invoicing.tabs.unpaidOverdue',
         path: 'unpaid-overdue',
-        requiredRoles: [
-          MIKPermissions.INVOICING_USER,
-          MIKPermissions.INVOICING_ADMIN,
-        ],
+        requiredRoles: [MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN],
       },
     ],
   },
@@ -271,19 +256,13 @@ export const menuItems: MenuItem[] = [
       {
         path: 'verify',
         label: 'header.dtoVerify',
-        requiredRoles: [
-          MIKPermissions.DTO_INSTRUCTOR,
-          MIKPermissions.DTO_ADMIN,
-        ],
+        requiredRoles: [MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN],
         requiresDtoElevatedAccess: true,
       },
       {
         path: 'progress',
         label: 'header.dtoProgress',
-        requiredRoles: [
-          MIKPermissions.DTO_INSTRUCTOR,
-          MIKPermissions.DTO_ADMIN,
-        ],
+        requiredRoles: [MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN],
         requiresDtoElevatedAccess: true,
       },
     ],

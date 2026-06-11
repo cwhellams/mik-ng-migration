@@ -77,7 +77,7 @@ router.post('/', async (req: Request, res: Response) => {
     ).parse(req.body)
 
     const businessErrors: z.IssueData[] = []
-    validateFlightLogBusinessRules(data, issue => businessErrors.push(issue))
+    validateFlightLogBusinessRules(data, (issue) => businessErrors.push(issue))
     if (businessErrors.length > 0) {
       return problem({ status: 400, extensions: { errors: businessErrors } })
     }
@@ -89,7 +89,7 @@ router.post('/', async (req: Request, res: Response) => {
     const data = flightLogDateValidator(FlightLogMemberUpsertSchema.strip()).parse(req.body)
 
     const businessErrors: z.IssueData[] = []
-    validateFlightLogBusinessRules(data, issue => businessErrors.push(issue))
+    validateFlightLogBusinessRules(data, (issue) => businessErrors.push(issue))
     if (businessErrors.length > 0) {
       return problem({ status: 400, extensions: { errors: businessErrors } })
     }
@@ -116,7 +116,7 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
   // For non-admin users, clamp billing status to VALIDATED for other members' flights
   if (!isFlightLogAdmin(req.user)) {
     const userMemberId = req.user!.memberId
-    logs.logs = logs.logs.map(log => ({
+    logs.logs = logs.logs.map((log) => ({
       ...log,
       status: log.billableMemberId === userMemberId ? log.status : FlightLogStatus.VALIDATED,
       invoiceNumber: log.billableMemberId === userMemberId ? log.invoiceNumber : null,
@@ -290,7 +290,7 @@ const getValidPatchForUpdate = async (
         landingTimeEpoch: patch?.landingTimeEpoch ?? flight.landingTimeEpoch,
         onBlockTimeEpoch: patch?.onBlockTimeEpoch ?? flight.onBlockTimeEpoch,
       },
-      issue => errors.push(issue),
+      (issue) => errors.push(issue),
     )
     if (errors.length > 0) {
       return problem({ status: 400, extensions: { errors } })
@@ -328,7 +328,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
 
   const mergedState = { ...flight, ...patch }
   const patchBusinessErrors: z.IssueData[] = []
-  validateFlightLogBusinessRules(mergedState, issue => patchBusinessErrors.push(issue))
+  validateFlightLogBusinessRules(mergedState, (issue) => patchBusinessErrors.push(issue))
   if (patchBusinessErrors.length > 0) {
     return problem({ status: 400, extensions: { errors: patchBusinessErrors } })
   }

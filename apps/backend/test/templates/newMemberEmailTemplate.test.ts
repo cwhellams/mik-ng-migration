@@ -7,9 +7,8 @@ jest.unstable_mockModule('../../src/templates/emailTemplate.ts', () => ({
   markdownEmailTemplate: markdownEmailTemplateMock,
 }))
 
-const { newMemberEmailSubject, newMemberEmailBodyHtml } = await import(
-  '../../src/templates/newMemberEmailTemplate.ts'
-)
+const { newMemberEmailSubject, newMemberEmailBodyHtml } =
+  await import('../../src/templates/newMemberEmailTemplate.ts')
 
 describe('newMemberEmailTemplate', () => {
   const originalPublicUrl = process.env.PUBLIC_URL

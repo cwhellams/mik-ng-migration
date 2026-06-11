@@ -81,7 +81,7 @@ describe('Booking Reminder Worker', () => {
         'updated_by',
         'updated_at',
       ])
-      .where(eb =>
+      .where((eb) =>
         eb.and([
           eb('booking_id', 'like', 'stl%'),
           eb('start_time_epoch', '<=', endEpoch),
@@ -95,7 +95,7 @@ describe('Booking Reminder Worker', () => {
     // 2. Remove stl* bookings that overlap with our 24h window (saved above for restore).
     await db
       .deleteFrom('schedule.bookings')
-      .where(eb =>
+      .where((eb) =>
         eb.or([
           eb('booking_id', 'like', 'rm%'),
           eb.and([
@@ -139,9 +139,8 @@ describe('Booking Reminder Worker', () => {
 
   describe('Worker Initialization', () => {
     it('should schedule task when worker is enabled', async () => {
-      const { startBookingReminderWorker } = await import(
-        '../../src/workers/bookingReminderWorker.ts'
-      )
+      const { startBookingReminderWorker } =
+        await import('../../src/workers/bookingReminderWorker.ts')
 
       const worker = startBookingReminderWorker({
         sendEmailFn: mockSendEmail,
@@ -158,9 +157,8 @@ describe('Booking Reminder Worker', () => {
 
       jest.resetModules()
 
-      const { startBookingReminderWorker } = await import(
-        '../../src/workers/bookingReminderWorker.ts'
-      )
+      const { startBookingReminderWorker } =
+        await import('../../src/workers/bookingReminderWorker.ts')
 
       const worker = startBookingReminderWorker({
         sendEmailFn: mockSendEmail,
@@ -179,7 +177,7 @@ describe('Booking Reminder Worker', () => {
     it('should find and claim a booking starting in ~24 hours', async () => {
       const claimed = await claimUpcomingBookingsForReminder()
 
-      const testBooking = claimed.find(b => b.bookingId === testBookingId)
+      const testBooking = claimed.find((b) => b.bookingId === testBookingId)
       expect(testBooking).toBeDefined()
       expect(testBooking?.memberId).toBe(testMemberId)
       expect(testBooking?.status).toBe('CONFIRMED')
@@ -187,11 +185,11 @@ describe('Booking Reminder Worker', () => {
 
     it('should not return the same booking twice (atomic claim prevents duplicates)', async () => {
       const firstClaim = await claimUpcomingBookingsForReminder()
-      expect(firstClaim.find(b => b.bookingId === testBookingId)).toBeDefined()
+      expect(firstClaim.find((b) => b.bookingId === testBookingId)).toBeDefined()
 
       // Second call must not return the already-claimed booking
       const secondClaim = await claimUpcomingBookingsForReminder()
-      expect(secondClaim.find(b => b.bookingId === testBookingId)).toBeUndefined()
+      expect(secondClaim.find((b) => b.bookingId === testBookingId)).toBeUndefined()
     })
 
     it('should not claim bookings already having reminder_sent_at set', async () => {
@@ -203,7 +201,7 @@ describe('Booking Reminder Worker', () => {
         .execute()
 
       const claimed = await claimUpcomingBookingsForReminder()
-      expect(claimed.find(b => b.bookingId === testBookingId)).toBeUndefined()
+      expect(claimed.find((b) => b.bookingId === testBookingId)).toBeUndefined()
     })
 
     it('should not claim CANCELLED bookings', async () => {
@@ -218,7 +216,7 @@ describe('Booking Reminder Worker', () => {
         .execute()
 
       const claimed = await claimUpcomingBookingsForReminder()
-      expect(claimed.find(b => b.bookingId === testBookingId)).toBeUndefined()
+      expect(claimed.find((b) => b.bookingId === testBookingId)).toBeUndefined()
     })
 
     it('should not claim bookings starting outside the ±1h window', async () => {
@@ -232,7 +230,7 @@ describe('Booking Reminder Worker', () => {
         .execute()
 
       const claimed = await claimUpcomingBookingsForReminder()
-      expect(claimed.find(b => b.bookingId === testBookingId)).toBeUndefined()
+      expect(claimed.find((b) => b.bookingId === testBookingId)).toBeUndefined()
     })
 
     it('should claim a booking in the window when hoursBeforeBooking is customized', async () => {
@@ -247,11 +245,11 @@ describe('Booking Reminder Worker', () => {
 
       // With default 24h window, the 48h booking should not be found
       const defaultClaim = await claimUpcomingBookingsForReminder(24)
-      expect(defaultClaim.find(b => b.bookingId === testBookingId)).toBeUndefined()
+      expect(defaultClaim.find((b) => b.bookingId === testBookingId)).toBeUndefined()
 
       // With 48h window, it should be found
       const customClaim = await claimUpcomingBookingsForReminder(48)
-      expect(customClaim.find(b => b.bookingId === testBookingId)).toBeDefined()
+      expect(customClaim.find((b) => b.bookingId === testBookingId)).toBeDefined()
     })
   })
 })

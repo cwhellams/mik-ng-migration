@@ -45,18 +45,15 @@ export function useRoles(): {
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   )
 
-  const myPermissions =
-    me?.roles?.flatMap((r) => r.permissions).filter((r) => !!r) ?? []
+  const myPermissions = me?.roles?.flatMap((r) => r.permissions).filter((r) => !!r) ?? []
 
   const hasAccess = (...permissions: MIKPermissions[]) =>
-    permissions.length === 0 ||
-    permissions.some((p) => myPermissions.includes(p))
+    permissions.length === 0 || permissions.some((p) => myPermissions.includes(p))
 
-  const hasSudoAccess = (permission: MIKPermissions) =>
-    sudo ? hasAccess(permission) : false
+  const hasSudoAccess = (permission: MIKPermissions) => (sudo ? hasAccess(permission) : false)
 
   return {
     me,
@@ -73,10 +70,7 @@ export function useRoles(): {
     isSMSManager: hasSudoAccess(MIKPermissions.SMS_MANAGER),
     isOutboxAdmin: hasSudoAccess(MIKPermissions.OUTBOX_ADMIN),
     isStoreAdmin: hasSudoAccess(MIKPermissions.STORE_ADMIN),
-    isStoreUser: hasAccess(
-      MIKPermissions.STORE_USER,
-      MIKPermissions.STORE_ADMIN
-    ),
+    isStoreUser: hasAccess(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN),
     isExamAdmin: hasSudoAccess(MIKPermissions.EXAM_ADMIN),
     isExamUser: hasAccess(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
     roles: rolesData?.roles ?? [],

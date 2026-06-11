@@ -18,9 +18,9 @@ post:
                 type: object
                 properties:
                   Task:
-                    $ref:  '../schemas/InvoiceRowCreate.yaml'
+                    $ref: '../schemas/InvoiceRowCreate.yaml'
                   Projects:
-                    $ref:  '../schemas/Projects.yaml'
+                    $ref: '../schemas/Projects.yaml'
   responses:
     200:
       $ref: '../schemas/CreateSuccessResponse.yaml'

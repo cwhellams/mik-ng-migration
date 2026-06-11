@@ -4,19 +4,19 @@ properties:
     type: integer
   purchase_order_id:
     type: integer
-    example: "555"
+    example: '555'
   article_id:
     type: integer
-    example: "898"
+    example: '898'
   code:
     type: string
-    example: "AA1234"
+    example: 'AA1234'
   name:
     type: string
-    example: "Double ended plunger"
+    example: 'Double ended plunger'
   unit:
     type: string
-    example: "Pcs."
+    example: 'Pcs.'
   amount:
     type: number
     example: 1

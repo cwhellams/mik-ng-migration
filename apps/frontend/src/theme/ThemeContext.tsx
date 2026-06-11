@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useState,
-  useContext,
-  useEffect,
-  ReactNode,
-} from 'react'
+import { createContext, useState, useContext, useEffect, ReactNode } from 'react'
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles'
 import { lightTheme, darkTheme } from './theme'
 import { mutate } from 'swr'
@@ -61,9 +55,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const theme = mode === 'light' ? lightTheme : darkTheme
 
   return (
-    <ThemeContext.Provider
-      value={{ mode, sudo, toggleTheme, toggleSudo, timezone, setTimezone }}
-    >
+    <ThemeContext.Provider value={{ mode, sudo, toggleTheme, toggleSudo, timezone, setTimezone }}>
       <MuiThemeProvider theme={theme}>{children}</MuiThemeProvider>
     </ThemeContext.Provider>
   )

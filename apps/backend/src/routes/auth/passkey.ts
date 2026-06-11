@@ -64,7 +64,7 @@ function rpConfig(): { rpId: string; rpName: string; origin: string[] } {
   // Allow overriding the expected origin for development (e.g. allow both
   // http://localhost:5173 and http://127.0.0.1:5173). Comma-separated list.
   const origins = process.env.WEBAUTHN_ORIGIN
-    ? process.env.WEBAUTHN_ORIGIN.split(',').map(o => o.trim())
+    ? process.env.WEBAUTHN_ORIGIN.split(',').map((o) => o.trim())
     : [url.origin]
 
   return { rpId, rpName, origin: origins }
@@ -90,7 +90,7 @@ passkeyRouter.post('/registration/options', validateUser(), async (req: Request,
     userName: user.email,
     userDisplayName: `${user.email}`,
     attestationType: 'none',
-    excludeCredentials: existing.map(p => ({
+    excludeCredentials: existing.map((p) => ({
       id: p.credentialId,
       transports: p.transports as AuthenticatorTransportFuture[],
     })),
@@ -198,7 +198,7 @@ passkeyRouter.post('/authentication/options', async (req: Request, res: Response
     const member = await getMemberByEmail(email)
     if (member) {
       const passkeys = await getPasskeysByMemberId(member.memberId)
-      allowCredentials = passkeys.map(p => ({
+      allowCredentials = passkeys.map((p) => ({
         id: p.credentialId,
         transports: p.transports as AuthenticatorTransportFuture[],
       }))

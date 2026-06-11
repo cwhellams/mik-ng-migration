@@ -48,10 +48,7 @@ const WeightBalanceEnvelope: React.FC<WeightBalanceEnvelopeProps> = ({
   // Weight and CG ranges - calculate from envelope points if available, otherwise use limits
   let minWeight: number, maxWeight: number, minCG: number, maxCG: number
 
-  if (
-    aircraft.flightEnvelopePoints &&
-    aircraft.flightEnvelopePoints.length > 0
-  ) {
+  if (aircraft.flightEnvelopePoints && aircraft.flightEnvelopePoints.length > 0) {
     const weights = aircraft.flightEnvelopePoints.map((p) => p.weight)
     const cgs = aircraft.flightEnvelopePoints.map((p) => p.momentArm)
     minWeight = Math.min(...weights) - 50
@@ -61,8 +58,7 @@ const WeightBalanceEnvelope: React.FC<WeightBalanceEnvelopeProps> = ({
   } else {
     // Fallback to basic limits
     minWeight =
-      aircraft.weightLimits.minTakeoff ||
-      Math.max(0, aircraft.weightLimits.basicEmptyWeight - 50)
+      aircraft.weightLimits.minTakeoff || Math.max(0, aircraft.weightLimits.basicEmptyWeight - 50)
     maxWeight = aircraft.weightLimits.maxTakeoff + 50
     minCG = aircraft.cgLimits.forward - 5
     maxCG = aircraft.cgLimits.aft + 5
@@ -85,9 +81,7 @@ const WeightBalanceEnvelope: React.FC<WeightBalanceEnvelopeProps> = ({
         }))
       : [
           {
-            weight:
-              aircraft.weightLimits.minTakeoff ||
-              aircraft.weightLimits.basicEmptyWeight,
+            weight: aircraft.weightLimits.minTakeoff || aircraft.weightLimits.basicEmptyWeight,
             cg: aircraft.cgLimits.forward,
           },
           {
@@ -99,9 +93,7 @@ const WeightBalanceEnvelope: React.FC<WeightBalanceEnvelopeProps> = ({
             cg: aircraft.cgLimits.aft,
           },
           {
-            weight:
-              aircraft.weightLimits.minTakeoff ||
-              aircraft.weightLimits.basicEmptyWeight,
+            weight: aircraft.weightLimits.minTakeoff || aircraft.weightLimits.basicEmptyWeight,
             cg: aircraft.cgLimits.aft,
           },
         ]
@@ -118,11 +110,7 @@ const WeightBalanceEnvelope: React.FC<WeightBalanceEnvelopeProps> = ({
   // Create grid lines
   const weightGridLines = []
   const weightStep = 200
-  for (
-    let w = Math.ceil(minWeight / weightStep) * weightStep;
-    w <= maxWeight;
-    w += weightStep
-  ) {
+  for (let w = Math.ceil(minWeight / weightStep) * weightStep; w <= maxWeight; w += weightStep) {
     if (w >= minWeight && w <= maxWeight) {
       weightGridLines.push({
         y: yScale(w),
@@ -158,11 +146,7 @@ const WeightBalanceEnvelope: React.FC<WeightBalanceEnvelopeProps> = ({
       <Typography variant='h6' gutterBottom ref={chartContainerRef}>
         Weight & Balance Envelope - {aircraft.aircraftType}
       </Typography>
-      <Typography
-        variant='caption'
-        color='text.secondary'
-        sx={{ mb: 2, display: 'block' }}
-      >
+      <Typography variant='caption' color='text.secondary' sx={{ mb: 2, display: 'block' }}>
         Data Source: {aircraft.dataOrigin}
       </Typography>
 
@@ -343,36 +327,15 @@ const WeightBalanceEnvelope: React.FC<WeightBalanceEnvelopeProps> = ({
               <text x={10} y={15} fontSize='12' fontWeight='bold' fill='#333'>
                 Legend
               </text>
-              <circle
-                cx={15}
-                cy={30}
-                r={5}
-                fill='#4caf50'
-                stroke='#fff'
-                strokeWidth={2}
-              />
+              <circle cx={15} cy={30} r={5} fill='#4caf50' stroke='#fff' strokeWidth={2} />
               <text x={26} y={34} fontSize='10' fill='#333'>
                 Within Envelope
               </text>
-              <circle
-                cx={15}
-                cy={45}
-                r={5}
-                fill='#f44336'
-                stroke='#fff'
-                strokeWidth={2}
-              />
+              <circle cx={15} cy={45} r={5} fill='#f44336' stroke='#fff' strokeWidth={2} />
               <text x={26} y={49} fontSize='10' fill='#333'>
                 Outside Envelope
               </text>
-              <circle
-                cx={15}
-                cy={60}
-                r={5}
-                fill='#2196f3'
-                stroke='#fff'
-                strokeWidth={2}
-              />
+              <circle cx={15} cy={60} r={5} fill='#2196f3' stroke='#fff' strokeWidth={2} />
               <text x={26} y={64} fontSize='10' fill='#333'>
                 ● Takeoff Weight
               </text>

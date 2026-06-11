@@ -31,10 +31,7 @@ export const migrateBooks = async () => {
       AND p.nimi != 'OH-KAT'
       ORDER BY b.kone_id, b.alkutunnit`)
 
-  const existingBooks = await request<AjlbFilter, AjlbListResponse>(
-    'GET',
-    `v1/ajlb`
-  )
+  const existingBooks = await request<AjlbFilter, AjlbListResponse>('GET', `v1/ajlb`)
 
   const booksByPlane = groupBy(books, (b) => b.registration)
 
@@ -64,10 +61,7 @@ export const migrateBooks = async () => {
         }
 
         // enddate is mandatory, if not present, derive from next book's start date
-        return (
-          existingEndDate ??
-          toLocal(books[index + 1].avauspv).format('YYYY-MM-DD')
-        )
+        return existingEndDate ?? toLocal(books[index + 1].avauspv).format('YYYY-MM-DD')
       }
 
       const startDate = toLocal(book.avauspv.toISOString()).format('YYYY-MM-DD')
@@ -80,8 +74,7 @@ export const migrateBooks = async () => {
       // '243310' -> 2433.10h
       const str = book.alkutunnit.toString()
       const startFlightMins =
-        Number(str.substring(0, str.length - 2)) * 60 +
-        Number(str.substring(str.length - 2))
+        Number(str.substring(0, str.length - 2)) * 60 + Number(str.substring(str.length - 2))
 
       const ajlb: Upsert<AircraftJourneyLogBook> = {
         // fix duplicate sequence

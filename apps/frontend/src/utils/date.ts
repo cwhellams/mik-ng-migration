@@ -25,7 +25,7 @@ export const dayjs = dayJs
 export const formatDateInTz = (
   timestamp: string | Date | Dayjs | null | undefined,
   tz: 'local' | 'utc',
-  template: string
+  template: string,
 ) => {
   return timestamp
     ? tz === 'local'
@@ -43,7 +43,7 @@ export const formatTimeInTz = (
     showSeconds = false,
   }: {
     showSeconds?: boolean
-  } = {}
+  } = {},
 ) => {
   return new Date(timestamp).toLocaleTimeString([], {
     hour: '2-digit',
@@ -71,7 +71,7 @@ export const timezoneName = (tz: 'utc' | 'local' | 'helsinki') =>
 /** Returns the UTC offset label e.g. UTC, "UTC+2" or "UTC+3". */
 export const getOffsetLabelInTz = (
   timestamp?: string | Date | number,
-  tz: 'utc' | 'local' | 'helsinki' = 'local'
+  tz: 'utc' | 'local' | 'helsinki' = 'local',
 ): string => {
   // 'shortOffset' gives "GMT+3" — replace with UTC for aviation convention.
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -93,14 +93,9 @@ export const getEffectiveMedicalExpiry = (
   medicalClass1Expiry: string | null | undefined,
   medicalClass2Expiry: string | null | undefined,
   medicalLaplExpiry: string | null | undefined,
-  medicalExpiryLegacy?: string | null | undefined
+  medicalExpiryLegacy?: string | null | undefined,
 ): Dayjs | null => {
-  const dates = [
-    medicalClass1Expiry,
-    medicalClass2Expiry,
-    medicalLaplExpiry,
-    medicalExpiryLegacy,
-  ]
+  const dates = [medicalClass1Expiry, medicalClass2Expiry, medicalLaplExpiry, medicalExpiryLegacy]
     .filter((d): d is string => d != null && d !== '')
     .map((d) => dayJs(d))
     .filter((d) => d.isValid())

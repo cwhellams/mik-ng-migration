@@ -8,10 +8,10 @@ properties:
     example: 123
   client_name:
     type: string
-    example: "SimplBooks OÜ"
+    example: 'SimplBooks OÜ'
   client_reg_no:
     type: string
-    example: "12213296"
+    example: '12213296'
   client_vat_no:
     type: string
     example: EE101555357
@@ -32,7 +32,7 @@ properties:
     example: EE
   number:
     type: string
-    example: "12345"
+    example: '12345'
   created:
     type: string
     example: 2019-06-01
@@ -53,10 +53,10 @@ properties:
     example: 34.56
   sent:
     type: string
-    example: "2022-01-01"
+    example: '2022-01-01'
   cancelled:
     type: string
-    example: "0000-00-00"
+    example: '0000-00-00'
   language:
     type: string
-    example: "et_EE"
+    example: 'et_EE'

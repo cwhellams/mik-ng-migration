@@ -59,14 +59,10 @@ export const InvoicingFlights = ({
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
   // tracks locally-edited non-billing reasons before they are saved to the server
-  const [editingReasons, setEditingReasons] = useState<Record<string, string>>(
-    {}
-  )
+  const [editingReasons, setEditingReasons] = useState<Record<string, string>>({})
 
   // tracks locally-edited min-billable exception reasons before they are saved to the server
-  const [editingExceptionReasons, setEditingExceptionReasons] = useState<
-    Record<string, string>
-  >({})
+  const [editingExceptionReasons, setEditingExceptionReasons] = useState<Record<string, string>>({})
 
   const isMinBillableStep = filters.flights === InvoicableFlights.MIN_BILLABLE
 
@@ -96,9 +92,7 @@ export const InvoicingFlights = ({
     !!log.minBillableExceptionReason || log.flightId in editingExceptionReasons
 
   const getExceptionReasonValue = (log: InvoicableFlight) =>
-    editingExceptionReasons[log.flightId] ??
-    log.minBillableExceptionReason ??
-    ''
+    editingExceptionReasons[log.flightId] ?? log.minBillableExceptionReason ?? ''
 
   const handleExceptionReasonBlur = async (log: InvoicableFlight) => {
     const reason = getExceptionReasonValue(log)
@@ -128,14 +122,11 @@ export const InvoicingFlights = ({
 
   const scrollToRef = useScrollOnRender()
 
-  const updateEntry = async (
-    log: InvoicableFlight,
-    patch: Partial<FlightLogUpsertRequest>
-  ) => {
+  const updateEntry = async (log: InvoicableFlight, patch: Partial<FlightLogUpsertRequest>) => {
     const res = await mutation.trigger<Partial<FlightLogUpsertRequest>>(
       'PATCH',
       patch,
-      `/v1/flight-logs/${log.flightId}`
+      `/v1/flight-logs/${log.flightId}`,
     )
 
     setProblem(res.error ? res.error : { status: 200 })
@@ -217,17 +208,14 @@ export const InvoicingFlights = ({
                     <Box>{formatTime(log.landingTimeUtc)}</Box>
                   </Grid>
                   <Grid size={1}>{log.flightTime}</Grid>
-                  <Grid size={1.5}>
-                    {t(`flightLog.flightTypes.${log.flightType}`)}
-                  </Grid>
+                  <Grid size={1.5}>{t(`flightLog.flightTypes.${log.flightType}`)}</Grid>
                   <Grid size={{ xs: 12, md: 3.4 }}>{log.billingRemarks}</Grid>
                   <Grid size={'grow'} display={{ xs: 'none', md: 'flex' }}>
                     <Checkbox
                       checked={
                         isMinBillableStep
                           ? showExceptionField(log)
-                          : log.isBillableFlight !== true ||
-                            log.flightId in editingReasons
+                          : log.isBillableFlight !== true || log.flightId in editingReasons
                       }
                       onChange={async ({ target }) => {
                         if (isMinBillableStep) {
@@ -314,8 +302,7 @@ export const InvoicingFlights = ({
                       checked={
                         isMinBillableStep
                           ? showExceptionField(log)
-                          : log.isBillableFlight !== true ||
-                            log.flightId in editingReasons
+                          : log.isBillableFlight !== true || log.flightId in editingReasons
                       }
                       onChange={async ({ target }) => {
                         if (isMinBillableStep) {
@@ -425,12 +412,7 @@ export const InvoicingFlights = ({
       />
 
       <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-        <Button
-          color='secondary'
-          variant='outlined'
-          onClick={navigate.previous}
-          sx={{ mr: 1 }}
-        >
+        <Button color='secondary' variant='outlined' onClick={navigate.previous} sx={{ mr: 1 }}>
           {t('general.back')}
         </Button>
         <Box sx={{ flex: '1 1 auto' }} />

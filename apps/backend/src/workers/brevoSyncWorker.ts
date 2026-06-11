@@ -33,7 +33,7 @@ export function startBrevoSyncWorker() {
   // Run on startup if configured
   if (brevoClient.runBrevoSyncOnStartup) {
     logger.info('Running Brevo sync on startup')
-    syncMembersToBrevo().catch(error => {
+    syncMembersToBrevo().catch((error) => {
       logger.error('Error during startup Brevo sync:', error)
     })
   }
@@ -182,7 +182,7 @@ async function syncMemberToBrevo(member: MemberToSync): Promise<void> {
     // Check if member type changed (need to update lists)
     const currentListIds = existingContact.listIds || []
     const unlinkListIds = Object.values(MemberTypeToBrevoListId).filter(
-      listId => !listIds.includes(listId) && currentListIds.includes(listId),
+      (listId) => !listIds.includes(listId) && currentListIds.includes(listId),
     )
 
     await brevoClient.updateContact(existingContact.id, {

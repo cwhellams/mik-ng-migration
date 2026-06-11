@@ -19,10 +19,7 @@ import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Product, Cart, Category } from '@backend/routes/shop/models'
-import type {
-  MemberPackage,
-  PrepaidPackage,
-} from '@backend/routes/prepaid-hours/models'
+import type { MemberPackage, PrepaidPackage } from '@backend/routes/prepaid-hours/models'
 import { useParams, Link } from 'react-router-dom'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
@@ -39,9 +36,7 @@ export default function ProductPage() {
   const lang = resolveLanguage(i18n.language)
 
   const [quantity, setQuantity] = useState(1)
-  const [selectedOptions, setSelectedOptions] = useState<
-    Record<string, number>
-  >({})
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, number>>({})
   const [snack, setSnack] = useState<{
     msg: string
     sev: 'success' | 'error'
@@ -85,8 +80,7 @@ export default function ProductPage() {
       ? null
       : Math.max(0, product.maxOrderQuantity - alreadyOwned - inCart)
 
-  const localName = (obj?: Record<string, string> | null) =>
-    obj?.[lang] ?? obj?.['en'] ?? ''
+  const localName = (obj?: Record<string, string> | null) => obj?.[lang] ?? obj?.['en'] ?? ''
 
   const selectedOptionStockCaps = (product?.properties ?? [])
     .flatMap((property) =>
@@ -94,9 +88,8 @@ export default function ProductPage() {
         .filter(([propertyId]) => Number(propertyId) === property.propertyId)
         .map(
           ([, optionId]) =>
-            property.options?.find((option) => option.optionId === optionId)
-              ?.stockQuantity ?? null
-        )
+            property.options?.find((option) => option.optionId === optionId)?.stockQuantity ?? null,
+        ),
     )
     .filter((qty): qty is number => qty != null)
   const selectedOptionStockCap = selectedOptionStockCaps.length
@@ -109,7 +102,7 @@ export default function ProductPage() {
     const result = await cartMutation.trigger(
       'POST',
       { productId: id!, quantity, selectedOptions },
-      'items'
+      'items',
     )
     if (result.error) {
       setSnack({ msg: t('common.error'), sev: 'error' })
@@ -135,24 +128,17 @@ export default function ProductPage() {
     quantityCap > 0 &&
     quantity <= quantityCap &&
     (product.properties?.filter((p) => p.isRequired) ?? []).every(
-      (p) => selectedOptions[p.propertyId] !== undefined
+      (p) => selectedOptions[p.propertyId] !== undefined,
     )
 
   return (
     <Box>
-      <Button
-        component={Link}
-        to='/shop'
-        startIcon={<Icon icon='mdi:arrow-left' />}
-        sx={{ mb: 2 }}
-      >
+      <Button component={Link} to='/shop' startIcon={<Icon icon='mdi:arrow-left' />} sx={{ mb: 2 }}>
         {t('shop.backToShop')}
       </Button>
 
       <RemoteContent isLoading={isLoading} error={error}>
-        {!isLoading && !error && !product && (
-          <Alert severity='error'>{t('common.notFound')}</Alert>
-        )}
+        {!isLoading && !error && !product && <Alert severity='error'>{t('common.notFound')}</Alert>}
         {product && (
           <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             {/* Product image */}
@@ -227,12 +213,7 @@ export default function ProductPage() {
 
               <Typography variant='h5' color='primary' sx={{ mb: 2 }}>
                 €{(product.price * (1 + product.vatPercent / 100)).toFixed(2)}
-                <Typography
-                  component='span'
-                  variant='body2'
-                  color='text.secondary'
-                  sx={{ ml: 1 }}
-                >
+                <Typography component='span' variant='body2' color='text.secondary' sx={{ ml: 1 }}>
                   ({t('shop.vatIncluded', { pct: product.vatPercent })})
                 </Typography>
               </Typography>
@@ -243,13 +224,12 @@ export default function ProductPage() {
                 </Typography>
               )}
 
-              {product.productType === 'FLIGHT_HOURS_PACKAGE' &&
-                selectedFlightPackage && (
-                  <Typography variant='body1' sx={{ mb: 2 }}>
-                    Includes {selectedFlightPackage.minutesPerPackage} flight
-                    minutes at €{selectedFlightPackage.perMinRate}/min.
-                  </Typography>
-                )}
+              {product.productType === 'FLIGHT_HOURS_PACKAGE' && selectedFlightPackage && (
+                <Typography variant='body1' sx={{ mb: 2 }}>
+                  Includes {selectedFlightPackage.minutesPerPackage} flight minutes at €
+                  {selectedFlightPackage.perMinRate}/min.
+                </Typography>
+              )}
 
               {product.productType === 'FLIGHT_HOURS_PACKAGE' && (
                 <Alert severity='info' sx={{ mb: 2 }}>
@@ -259,29 +239,17 @@ export default function ProductPage() {
 
               {product.productType === 'FLIGHT_HOURS_PACKAGE' &&
                 selectedFlightPackage?.expiresAt && (
-                  <Typography
-                    variant='h6'
-                    color='text.secondary'
-                    sx={{ mb: 2, fontWeight: 600 }}
-                  >
+                  <Typography variant='h6' color='text.secondary' sx={{ mb: 2, fontWeight: 600 }}>
                     {t('shop.admin.expiresAt')}:{' '}
-                    {new Date(
-                      selectedFlightPackage.expiresAt
-                    ).toLocaleDateString()}
+                    {new Date(selectedFlightPackage.expiresAt).toLocaleDateString()}
                   </Typography>
                 )}
 
               {product.stockQuantity <= 0 ? (
-                <Chip
-                  label={t('shop.outOfStock')}
-                  color='error'
-                  sx={{ mb: 2 }}
-                />
+                <Chip label={t('shop.outOfStock')} color='error' sx={{ mb: 2 }} />
               ) : (
                 (() => {
-                  if (
-                    product.stockQuantity <= (product.lowStockThreshold ?? 5)
-                  ) {
+                  if (product.stockQuantity <= (product.lowStockThreshold ?? 5)) {
                     return (
                       <Chip
                         label={t('shop.lowStockLeft', {
@@ -301,9 +269,7 @@ export default function ProductPage() {
                 <Box key={prop.propertyId} sx={{ mb: 2 }}>
                   <Typography variant='subtitle2' sx={{ mb: 0.5 }}>
                     {localName(prop.name as Record<string, string>)}
-                    {prop.isRequired && (
-                      <span style={{ color: 'red' }}> *</span>
-                    )}
+                    {prop.isRequired && <span style={{ color: 'red' }}> *</span>}
                   </Typography>
                   <RadioGroup
                     row
@@ -327,9 +293,7 @@ export default function ProductPage() {
                               ? localName(opt.value as Record<string, string>)
                               : `${localName(opt.value as Record<string, string>)} (${opt.stockQuantity})`
                           }
-                          disabled={
-                            opt.stockQuantity != null && opt.stockQuantity <= 0
-                          }
+                          disabled={opt.stockQuantity != null && opt.stockQuantity <= 0}
                         />
                       ))}
                   </RadioGroup>
@@ -355,9 +319,7 @@ export default function ProductPage() {
               )}
 
               {/* Quantity */}
-              <Box
-                sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}
-              >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                 <FormControl
                   size='small'
                   sx={{ width: 100 }}
@@ -369,13 +331,11 @@ export default function ProductPage() {
                     label={t('shop.quantity')}
                     onChange={(e) => setQuantity(Number(e.target.value))}
                   >
-                    {Array.from({ length: Math.min(quantityCap, 10) }).map(
-                      (_, i) => (
-                        <MenuItem key={i + 1} value={i + 1}>
-                          {i + 1}
-                        </MenuItem>
-                      )
-                    )}
+                    {Array.from({ length: Math.min(quantityCap, 10) }).map((_, i) => (
+                      <MenuItem key={i + 1} value={i + 1}>
+                        {i + 1}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
                 {effectiveMax != null && effectiveMax > 0 && (
@@ -407,12 +367,7 @@ export default function ProductPage() {
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                     {product.tags.map((tag) => (
-                      <Chip
-                        key={tag}
-                        label={tag}
-                        size='small'
-                        variant='outlined'
-                      />
+                      <Chip key={tag} label={tag} size='small' variant='outlined' />
                     ))}
                   </Box>
                 </Box>

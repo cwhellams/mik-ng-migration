@@ -1,7 +1,4 @@
-import {
-  MemberListFilters,
-  MemberListResponse,
-} from '@backend/routes/members/models'
+import { MemberListFilters, MemberListResponse } from '@backend/routes/members/models'
 import useApi from '../hooks/useApi'
 import { Autocomplete, TextField } from '@mui/material'
 import { useMemo } from 'react'
@@ -48,7 +45,7 @@ export const SelectMember = ({
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   )
 
   const members: Member[] = useMemo(
@@ -56,19 +53,15 @@ export const SelectMember = ({
       [...(entries ?? [])].concat(
         memberList?.members
           .filter(
-            (m) =>
-              !exclude ||
-              exclude.every(
-                (excludedMemberId) => excludedMemberId !== m.memberId
-              )
+            (m) => !exclude || exclude.every((excludedMemberId) => excludedMemberId !== m.memberId),
           )
           .map((m) => ({
             id: m.memberId,
             label: `${m.first} ${m.last}`,
             group: 'Member',
-          })) ?? []
+          })) ?? [],
       ),
-    [memberList, entries, exclude]
+    [memberList, entries, exclude],
   )
 
   return (

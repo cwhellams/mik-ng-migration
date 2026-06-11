@@ -53,7 +53,7 @@ export async function markLoginAttemptUsed(id: string): Promise<void> {
 export async function incrementLoginAttemptFailures(id: string): Promise<number> {
   const result = await db
     .updateTable('member.login_attempts')
-    .set(eb => ({ failed_attempts: eb('failed_attempts', '+', 1) }))
+    .set((eb) => ({ failed_attempts: eb('failed_attempts', '+', 1) }))
     .where('id', '=', id)
     .returning('failed_attempts')
     .executeTakeFirstOrThrow()

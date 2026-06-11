@@ -9,44 +9,44 @@ allOf:
       bank_name:
         type: string
         description: Bank name
-        example: "Swedbank"
+        example: 'Swedbank'
       bank_account:
         type: string
         description: Bank account no. (IBAN)
-        example: "EE123243212123132"
+        example: 'EE123243212123132'
       swift_code:
         type: string
         description: SWIFT code (BIC)
-        example: "HABAEE2X"
+        example: 'HABAEE2X'
       birth_date:
         oneOf:
           - type: string
             format: date
           - type: string
-            enum: [ "0000-00-00" ]
+            enum: ['0000-00-00']
         description: Birthday
-        example: "1989-01-31"
+        example: '1989-01-31'
       address_street:
         type: string
         description: Street address
-        example: "Viru 3"
+        example: 'Viru 3'
       address_city:
         type: string
         description: City
-        example: "Tallinn"
+        example: 'Tallinn'
       address_county:
         type: string
         description: County
-        example: "Harjumaa"
+        example: 'Harjumaa'
       address_country:
         type: string
         description: Country code
-        example: "EE"
+        example: 'EE'
       address_postal_code:
         type: string
         description: Postal code
-        example: "13131"
+        example: '13131'
       e_mail:
         type: string
         description: E-mail
-        example: "john@company.com"
+        example: 'john@company.com'

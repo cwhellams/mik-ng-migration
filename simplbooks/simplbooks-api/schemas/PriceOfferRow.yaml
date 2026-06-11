@@ -13,13 +13,13 @@ properties:
     example: 15234
   name:
     type: string
-    example: "Concrete throw pillow"
+    example: 'Concrete throw pillow'
   contents:
     type: string
-    example: "Gluten free"
+    example: 'Gluten free'
   unit:
     type: string
-    example: "Kg."
+    example: 'Kg.'
   amount:
     type: number
     example: 9000.1
@@ -28,7 +28,7 @@ properties:
     example: 0.05
   worker:
     type: string
-    example: "Batman"
+    example: 'Batman'
   vat:
     type: number
     example: 20

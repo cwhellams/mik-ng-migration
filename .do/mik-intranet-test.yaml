@@ -187,10 +187,10 @@ services:
       - key: MEDICAL_CHECK_ENABLED
         value: ${MEDICAL_CHECK_ENABLED}
         type: GENERAL
-      - key: TINY_URL_CLEANUP_WORKER_ENABLED 
+      - key: TINY_URL_CLEANUP_WORKER_ENABLED
         value: ${TINY_URL_CLEANUP_WORKER_ENABLED }
         type: GENERAL
-      - key: TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP  
+      - key: TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP
         value: ${TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP  }
         type: GENERAL
       - key: NODE_ENV
@@ -233,7 +233,7 @@ static_sites:
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
       - key: DEPLOY_TIMESTAMP
-        value: "${DEPLOY_TIMESTAMP}"
+        value: '${DEPLOY_TIMESTAMP}'
         type: GENERAL
         scope: RUN_AND_BUILD_TIME
     catchall_document: index.html

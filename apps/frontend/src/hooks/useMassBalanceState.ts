@@ -80,63 +80,63 @@ export const useMassBalanceState = () => {
     (pilot: WeightPosition) => {
       saveState({ pilot })
     },
-    [saveState]
+    [saveState],
   )
 
   const updateCopilot = useCallback(
     (copilot: WeightPosition) => {
       saveState({ copilot })
     },
-    [saveState]
+    [saveState],
   )
 
   const updateRearSeat = useCallback(
     (rearSeats: WeightPosition) => {
       saveState({ rearSeats })
     },
-    [saveState]
+    [saveState],
   )
 
   const updateBaggage = useCallback(
     (baggage: WeightPosition) => {
       saveState({ baggage })
     },
-    [saveState]
+    [saveState],
   )
 
   const updateFuel = useCallback(
     (fuel: FuelState) => {
       saveState({ fuel })
     },
-    [saveState]
+    [saveState],
   )
 
   const updateTaxiFuel = useCallback(
     (taxiFuel: number) => {
       saveState({ taxiFuel })
     },
-    [saveState]
+    [saveState],
   )
 
   const updateFuelFlow = useCallback(
     (fuelFlow: number) => {
       saveState({ fuelFlow })
     },
-    [saveState]
+    [saveState],
   )
 
   const updateFlightTime = useCallback(
     (flightTime: number) => {
       saveState({ flightTime })
     },
-    [saveState]
+    [saveState],
   )
 
   const updateSelectedAircraftId = useCallback(
     (selectedAircraftId: string) => {
       saveState({ selectedAircraftId })
     },
-    [saveState]
+    [saveState],
   )
 
   return {

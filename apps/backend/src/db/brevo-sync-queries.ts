@@ -84,7 +84,7 @@ export async function getMembersToSync(lastSyncedAt?: Date): Promise<Selectable<
 
   if (lastSyncedAt) {
     // Get members updated since last sync OR never synced OR failed
-    query = query.where(eb =>
+    query = query.where((eb) =>
       eb.or([
         eb('updated_at', '>', lastSyncedAt),
         eb('brevo_synced_at', 'is', null),
@@ -93,7 +93,7 @@ export async function getMembersToSync(lastSyncedAt?: Date): Promise<Selectable<
     )
   } else {
     // First sync - get all approved and verified members
-    query = query.where(eb =>
+    query = query.where((eb) =>
       eb.or([eb('brevo_synced_at', 'is', null), eb('brevo_sync_status', '=', 'FAILED')]),
     )
   }
@@ -172,7 +172,7 @@ export async function getBrevoSyncStatusCounts(): Promise<{
   const results = await db
     .selectFrom('member.register')
     .select('brevo_sync_status')
-    .select(eb => eb.fn.count('member_id').as('count'))
+    .select((eb) => eb.fn.count('member_id').as('count'))
     .where('is_membership_approved', '=', true)
     .where('email_verified_at', 'is not', null)
     .groupBy('brevo_sync_status')
@@ -184,7 +184,7 @@ export async function getBrevoSyncStatusCounts(): Promise<{
     failed: 0,
   }
 
-  results.forEach(result => {
+  results.forEach((result) => {
     const count = Number(result.count)
     if (result.brevo_sync_status === 'PENDING') {
       counts.pending = count

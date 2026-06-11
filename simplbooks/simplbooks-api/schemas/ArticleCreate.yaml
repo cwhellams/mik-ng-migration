@@ -4,46 +4,46 @@ Article:
     code:
       type: string
       description: Code of the given item
-      example: "A-2565"
+      example: 'A-2565'
     ean:
       type: string
       description: EAN of the given item
-      example: "4740123456789"
+      example: '4740123456789'
     name:
       description: String or object containing ISO 639-1 language code keys with localized names as values
       oneOf:
         - type: string
-          example: "Ergonomic keyboard Dell X-56"
+          example: 'Ergonomic keyboard Dell X-56'
         - type: object
           additionalProperties:
             x-additionalPropertiesName: locale
             type: string
           example:
-            en_GB: "Ergonomic keyboard Dell X-56"
+            en_GB: 'Ergonomic keyboard Dell X-56'
     contents:
       description: String or object containing ISO 639-1 language code keys with localized contents as values
       oneOf:
         - type: string
-          example: "Model 2014, EN keyboard layout, black"
+          example: 'Model 2014, EN keyboard layout, black'
         - type: object
           additionalProperties:
             x-additionalPropertiesName: locale
             type: string
           example:
-            en_GB: "Model 2014, EN keyboard layout, black"
+            en_GB: 'Model 2014, EN keyboard layout, black'
     unit:
       description: String or object containing ISO 639-1 language code keys with localized unit names as values
       oneOf:
         - type: string
-          example: "pcs"
+          example: 'pcs'
         - type: object
           additionalProperties:
             x-additionalPropertiesName: locale
             type: string
           example:
-            et_EE: "tk"
-            en_GB: "pcs"
-            ru_RU: "шт"
+            et_EE: 'tk'
+            en_GB: 'pcs'
+            ru_RU: 'шт'
     amount:
       type: number
       description: Default amount of the given item
@@ -64,7 +64,7 @@ Article:
     markup_type:
       type: string
       description: Default markup type
-      example: "none"
+      example: 'none'
       enum: [percent, fixed, none]
       default: none
     is_inventory:

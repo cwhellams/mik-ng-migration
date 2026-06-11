@@ -44,19 +44,9 @@ const motivationKey: Record<PrimaryMotivation, string> = {
 }
 
 // Compact side-by-side row for short values
-const InfoRow = ({
-  label,
-  children,
-}: {
-  label: string
-  children: ReactNode
-}) => (
+const InfoRow = ({ label, children }: { label: string; children: ReactNode }) => (
   <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-    <Typography
-      variant='body2'
-      color='text.secondary'
-      sx={{ minWidth: 180, flexShrink: 0 }}
-    >
+    <Typography variant='body2' color='text.secondary' sx={{ minWidth: 180, flexShrink: 0 }}>
       {label}
     </Typography>
     <Box sx={{ flex: 1 }}>{children}</Box>
@@ -94,10 +84,7 @@ interface Props {
   isMembershipApproved: boolean
 }
 
-export const ApplicationDataCard = ({
-  applicationData,
-  isMembershipApproved,
-}: Props) => {
+export const ApplicationDataCard = ({ applicationData, isMembershipApproved }: Props) => {
   const { t } = useTranslation()
 
   const {
@@ -141,28 +128,23 @@ export const ApplicationDataCard = ({
 
             <InfoRow label={t('register.totalFlightHours')}>
               <Typography variant='body2'>
-                {totalFlightHours !== undefined
-                  ? String(totalFlightHours)
-                  : '—'}
+                {totalFlightHours !== undefined ? String(totalFlightHours) : '—'}
               </Typography>
             </InfoRow>
 
             <InfoRow label={t('register.aircraftTypesFlown')}>
-              <Typography variant='body2'>
-                {aircraftTypesFlown || '—'}
-              </Typography>
+              <Typography variant='body2'>{aircraftTypesFlown || '—'}</Typography>
             </InfoRow>
 
             <InfoRow label={t('register.pilotLicenceType')}>
               <Typography variant='body2'>
                 {pilotLicenceType ? t(pilotLicenceKey[pilotLicenceType]) : '—'}
-                {pilotLicenceType === PilotLicenceType.OTHER &&
-                  pilotLicenceTypeOther && (
-                    <Typography component='span' color='text.secondary'>
-                      {' '}
-                      ({pilotLicenceTypeOther})
-                    </Typography>
-                  )}
+                {pilotLicenceType === PilotLicenceType.OTHER && pilotLicenceTypeOther && (
+                  <Typography component='span' color='text.secondary'>
+                    {' '}
+                    ({pilotLicenceTypeOther})
+                  </Typography>
+                )}
               </Typography>
             </InfoRow>
 
@@ -173,11 +155,7 @@ export const ApplicationDataCard = ({
                     <Chip key={r} label={t(ratingKey[r])} size='small' />
                   ))}
                   {ratings.includes(AircraftRating.OTHER) && ratingsOther && (
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                      sx={{ alignSelf: 'center' }}
-                    >
+                    <Typography variant='body2' color='text.secondary' sx={{ alignSelf: 'center' }}>
                       ({ratingsOther})
                     </Typography>
                   )}
@@ -195,25 +173,18 @@ export const ApplicationDataCard = ({
             <InfoRow label={t('register.primaryMotivation')}>
               <Typography variant='body2'>
                 {t(motivationKey[primaryMotivation])}
-                {primaryMotivation === PrimaryMotivation.OTHER &&
-                  motivationOther && (
-                    <Typography component='span' color='text.secondary'>
-                      {' '}
-                      ({motivationOther})
-                    </Typography>
-                  )}
+                {primaryMotivation === PrimaryMotivation.OTHER && motivationOther && (
+                  <Typography component='span' color='text.secondary'>
+                    {' '}
+                    ({motivationOther})
+                  </Typography>
+                )}
               </Typography>
             </InfoRow>
 
-            <TextBlock
-              label={t('member.applicationData.coverLetter')}
-              value={coverLetter}
-            />
+            <TextBlock label={t('member.applicationData.coverLetter')} value={coverLetter} />
 
-            <TextBlock
-              label={t('member.applicationData.voluntaryWork')}
-              value={voluntaryWork}
-            />
+            <TextBlock label={t('member.applicationData.voluntaryWork')} value={voluntaryWork} />
 
             {otherAviationClubs && (
               <TextBlock
@@ -269,10 +240,7 @@ export const ApplicationDataCard = ({
 
             <InfoRow label={t('member.applicationData.gdprAccepted')}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <CheckCircleIcon
-                  fontSize='small'
-                  color={gdprAccepted ? 'success' : 'disabled'}
-                />
+                <CheckCircleIcon fontSize='small' color={gdprAccepted ? 'success' : 'disabled'} />
                 <Typography variant='body2'>
                   {gdprAccepted ? t('register.yes') : t('register.no')}
                 </Typography>

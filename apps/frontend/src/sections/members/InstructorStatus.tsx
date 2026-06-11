@@ -36,12 +36,7 @@ import { useRoles } from '../../hooks/useRoles'
 const EXPIRING_DAYS_THRESHOLD = 30
 
 // Fields that use the LICENSE proof category
-const LICENSE_FIELDS = new Set([
-  'fiExpiry',
-  'iriExpiry',
-  'criExpiry',
-  'sepExpiry',
-])
+const LICENSE_FIELDS = new Set(['fiExpiry', 'iriExpiry', 'criExpiry', 'sepExpiry'])
 
 type QualField = keyof Pick<
   InstructorStatusSummary,
@@ -56,11 +51,9 @@ type QualField = keyof Pick<
 
 function getProofId(
   instructor: InstructorStatusSummary,
-  field: QualField
+  field: QualField,
 ): number | null | undefined {
-  return LICENSE_FIELDS.has(field)
-    ? instructor.licenseProofId
-    : instructor.medicalProofId
+  return LICENSE_FIELDS.has(field) ? instructor.licenseProofId : instructor.medicalProofId
 }
 
 const InstructorStatus = () => {
@@ -69,9 +62,7 @@ const InstructorStatus = () => {
 
   // Audit date picker state
   const [auditDate, setAuditDate] = useState<Dayjs | null>(null)
-  const [auditData, setAuditData] = useState<InstructorStatusSummary[] | null>(
-    null
-  )
+  const [auditData, setAuditData] = useState<InstructorStatusSummary[] | null>(null)
   const [auditLoading, setAuditLoading] = useState(false)
   const [auditError, setAuditError] = useState<string | null>(null)
 
@@ -79,12 +70,8 @@ const InstructorStatus = () => {
   const [openingProof, setOpeningProof] = useState<string | null>(null)
 
   // History panel state
-  const [selectedInstructorId, setSelectedInstructorId] = useState<
-    string | null
-  >(null)
-  const [historyData, setHistoryData] = useState<
-    InstructorQualificationHistory[] | null
-  >(null)
+  const [selectedInstructorId, setSelectedInstructorId] = useState<string | null>(null)
+  const [historyData, setHistoryData] = useState<InstructorQualificationHistory[] | null>(null)
   const [historyLoading, setHistoryLoading] = useState(false)
   const [historyError, setHistoryError] = useState<string | null>(null)
 
@@ -94,9 +81,7 @@ const InstructorStatus = () => {
 
   const displayInstructors = auditData ?? data?.instructors
 
-  const handleSelectInstructor = async (
-    instructor: InstructorStatusSummary
-  ) => {
+  const handleSelectInstructor = async (instructor: InstructorStatusSummary) => {
     if (selectedInstructorId === instructor.memberId) {
       setSelectedInstructorId(null)
       setHistoryData(null)
@@ -108,7 +93,7 @@ const InstructorStatus = () => {
     setHistoryError(null)
     try {
       const res = await sharedApi.get<InstructorQualificationHistory[]>(
-        `v1/instructor-qualifications/${instructor.memberId}/history`
+        `v1/instructor-qualifications/${instructor.memberId}/history`,
       )
       setHistoryData(res.data)
     } catch {
@@ -118,10 +103,7 @@ const InstructorStatus = () => {
     }
   }
 
-  const handleProofClick = async (
-    instructor: InstructorStatusSummary,
-    field: QualField
-  ) => {
+  const handleProofClick = async (instructor: InstructorStatusSummary, field: QualField) => {
     const proofId = getProofId(instructor, field)
     if (!proofId) return
 
@@ -129,7 +111,7 @@ const InstructorStatus = () => {
     setOpeningProof(key)
     try {
       const res = await sharedApi.get<{ url: string }>(
-        `v1/instructor-qualifications/${instructor.memberId}/proof/${proofId}/download`
+        `v1/instructor-qualifications/${instructor.memberId}/proof/${proofId}/download`,
       )
       window.open(res.data.url, '_blank', 'noopener,noreferrer')
     } catch {
@@ -143,16 +125,14 @@ const InstructorStatus = () => {
     dateStr: string | null | undefined,
     instructor: InstructorStatusSummary,
     field: QualField,
-    referenceDate?: Dayjs
+    referenceDate?: Dayjs,
   ) => {
     const proofId = getProofId(instructor, field)
     const hasProof = Boolean(proofId)
     const key = `${instructor.memberId}:${field}`
     const isOpening = openingProof === key
 
-    const chipSx = hasProof
-      ? { cursor: 'pointer', textDecoration: 'underline dotted' }
-      : {}
+    const chipSx = hasProof ? { cursor: 'pointer', textDecoration: 'underline dotted' } : {}
 
     const wrapWithProof = (node: React.ReactNode) => {
       if (!hasProof) return <>{node}</>
@@ -185,8 +165,7 @@ const InstructorStatus = () => {
     const expiry = dayjs(dateStr)
     const now = referenceDate ?? dayjs()
     const isExpired = expiry.isBefore(now, 'day')
-    const isExpiring =
-      !isExpired && expiry.diff(now, 'day') <= EXPIRING_DAYS_THRESHOLD
+    const isExpiring = !isExpired && expiry.diff(now, 'day') <= EXPIRING_DAYS_THRESHOLD
 
     if (isExpired) {
       return wrapWithProof(
@@ -199,7 +178,7 @@ const InstructorStatus = () => {
             clickable={hasProof}
             sx={chipSx}
           />
-        </Tooltip>
+        </Tooltip>,
       )
     }
 
@@ -214,21 +193,17 @@ const InstructorStatus = () => {
             clickable={hasProof}
             sx={chipSx}
           />
-        </Tooltip>
+        </Tooltip>,
       )
     }
 
     return wrapWithProof(
       <Typography
         variant='body2'
-        sx={
-          hasProof
-            ? { textDecoration: 'underline dotted', cursor: 'pointer' }
-            : undefined
-        }
+        sx={hasProof ? { textDecoration: 'underline dotted', cursor: 'pointer' } : undefined}
       >
         {expiry.format('DD.MM.YYYY')}
-      </Typography>
+      </Typography>,
     )
   }
 
@@ -240,7 +215,7 @@ const InstructorStatus = () => {
     try {
       const dateStr = auditDate.format('YYYY-MM-DD')
       const response = await sharedApi.get<InstructorStatusListResponse>(
-        `v1/instructor-qualifications?date=${dateStr}`
+        `v1/instructor-qualifications?date=${dateStr}`,
       )
       setAuditData(response.data.instructors)
     } catch {
@@ -273,8 +248,7 @@ const InstructorStatus = () => {
       t('instructorStatus.medClass2'),
       t('instructorStatus.medLapl'),
     ]
-    const formatDate = (d: string | null | undefined) =>
-      d ? dayjs(d).format('DD.MM.YYYY') : '–'
+    const formatDate = (d: string | null | undefined) => (d ? dayjs(d).format('DD.MM.YYYY') : '–')
     const rows = historyData.map((h) => [
       dayjs(h.changedAt).format('DD.MM.YYYY HH:mm'),
       h.changedBy,
@@ -300,9 +274,7 @@ const InstructorStatus = () => {
     if (!displayInstructors) return
 
     const dateLabel =
-      auditData && auditDate
-        ? auditDate.format('YYYY-MM-DD')
-        : dayjs().format('YYYY-MM-DD')
+      auditData && auditDate ? auditDate.format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD')
 
     const headers = [
       t('instructorStatus.name'),
@@ -315,8 +287,7 @@ const InstructorStatus = () => {
       t('instructorStatus.medLapl'),
     ]
 
-    const formatDate = (d: string | null | undefined) =>
-      d ? dayjs(d).format('DD.MM.YYYY') : '–'
+    const formatDate = (d: string | null | undefined) => (d ? dayjs(d).format('DD.MM.YYYY') : '–')
 
     const rows = displayInstructors.map((i) => [
       `${i.lastName} ${i.firstName}`,
@@ -408,12 +379,7 @@ const InstructorStatus = () => {
           <Typography variant='body2' color='text.secondary' mb={2}>
             {t('instructorStatus.auditSubtitle')}
           </Typography>
-          <Stack
-            direction='row'
-            spacing={2}
-            alignItems='center'
-            flexWrap='wrap'
-          >
+          <Stack direction='row' spacing={2} alignItems='center' flexWrap='wrap'>
             <DatePicker
               label={t('instructorStatus.auditDate')}
               value={auditDate}
@@ -429,11 +395,7 @@ const InstructorStatus = () => {
               {t('instructorStatus.auditLookup')}
             </Button>
             {auditData && (
-              <Button
-                variant='outlined'
-                size='small'
-                onClick={handleClearAudit}
-              >
+              <Button variant='outlined' size='small' onClick={handleClearAudit}>
                 {t('instructorStatus.auditClear')}
               </Button>
             )}
@@ -469,15 +431,9 @@ const InstructorStatus = () => {
             <Table size='small'>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>
-                    {t('instructorStatus.name')}
-                  </TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>{t('instructorStatus.name')}</TableCell>
                   {columnHeaders.map((col) => (
-                    <TableCell
-                      key={col.key}
-                      align='center'
-                      sx={{ fontWeight: 600 }}
-                    >
+                    <TableCell key={col.key} align='center' sx={{ fontWeight: 600 }}>
                       <Tooltip title={col.tooltip} placement='top'>
                         <span>{col.label}</span>
                       </Tooltip>
@@ -490,11 +446,7 @@ const InstructorStatus = () => {
                   <TableRow key={instructor.memberId} hover>
                     <TableCell>
                       {isMembersAdmin ? (
-                        <Stack
-                          direction='row'
-                          alignItems='center'
-                          spacing={0.5}
-                        >
+                        <Stack direction='row' alignItems='center' spacing={0.5}>
                           <Button
                             variant='text'
                             size='small'
@@ -503,18 +455,12 @@ const InstructorStatus = () => {
                               p: 0,
                               minWidth: 0,
                               textTransform: 'none',
-                              fontWeight:
-                                selectedInstructorId === instructor.memberId
-                                  ? 700
-                                  : 400,
+                              fontWeight: selectedInstructorId === instructor.memberId ? 700 : 400,
                             }}
                           >
                             {instructor.lastName} {instructor.firstName}
                           </Button>
-                          <Tooltip
-                            title={t('instructorStatus.viewProfile')}
-                            placement='top'
-                          >
+                          <Tooltip title={t('instructorStatus.viewProfile')} placement='top'>
                             <IconButton
                               component={Link}
                               to={`/club/members/${instructor.memberId}`}
@@ -535,7 +481,7 @@ const InstructorStatus = () => {
                           instructor[col.key],
                           instructor,
                           col.key,
-                          auditDate ?? undefined
+                          auditDate ?? undefined,
                         )}
                       </TableCell>
                     ))}
@@ -550,12 +496,7 @@ const InstructorStatus = () => {
       {/* History panel — shown when an instructor row is selected */}
       {isMembersAdmin && selectedInstructorId && (
         <Box mt={3}>
-          <Stack
-            direction='row'
-            justifyContent='space-between'
-            alignItems='center'
-            mb={1}
-          >
+          <Stack direction='row' justifyContent='space-between' alignItems='center' mb={1}>
             <Typography variant='subtitle1' fontWeight={600}>
               {t('instructorStatus.history')} —{' '}
               {selectedInstructor
@@ -564,11 +505,7 @@ const InstructorStatus = () => {
             </Typography>
             <Stack direction='row' spacing={1}>
               {historyData && historyData.length > 0 && (
-                <Button
-                  variant='outlined'
-                  size='small'
-                  onClick={handleExportHistory}
-                >
+                <Button variant='outlined' size='small' onClick={handleExportHistory}>
                   {t('instructorStatus.export')}
                 </Button>
               )}
@@ -612,11 +549,7 @@ const InstructorStatus = () => {
                         {t('instructorStatus.changedBy')}
                       </TableCell>
                       {columnHeaders.map((col) => (
-                        <TableCell
-                          key={col.key}
-                          align='center'
-                          sx={{ fontWeight: 600 }}
-                        >
+                        <TableCell key={col.key} align='center' sx={{ fontWeight: 600 }}>
                           <Tooltip title={col.tooltip} placement='top'>
                             <span>{col.label}</span>
                           </Tooltip>
@@ -627,9 +560,7 @@ const InstructorStatus = () => {
                   <TableBody>
                     {historyData.map((h) => (
                       <TableRow key={h.historyId}>
-                        <TableCell>
-                          {dayjs(h.changedAt).format('DD.MM.YYYY HH:mm')}
-                        </TableCell>
+                        <TableCell>{dayjs(h.changedAt).format('DD.MM.YYYY HH:mm')}</TableCell>
                         <TableCell>{h.changedBy}</TableCell>
                         {columnHeaders.map((col) => (
                           <TableCell key={col.key} align='center'>

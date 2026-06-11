@@ -93,7 +93,7 @@ describe('Brevo sync queries', () => {
 
       // Verify the update by getting members again
       const updatedMembers = await getMembersToSync()
-      const updatedMember = updatedMembers.find(m => m.member_id === member.member_id)
+      const updatedMember = updatedMembers.find((m) => m.member_id === member.member_id)
 
       if (updatedMember) {
         expect(updatedMember.brevo_sync_status).toBe('SYNCED')
@@ -117,7 +117,7 @@ describe('Brevo sync queries', () => {
 
       // Verify the update
       const updatedMembers = await getMembersToSync()
-      const updatedMember = updatedMembers.find(m => m.member_id === member.member_id)
+      const updatedMember = updatedMembers.find((m) => m.member_id === member.member_id)
 
       if (updatedMember) {
         expect(updatedMember.brevo_sync_status).toBe('FAILED')

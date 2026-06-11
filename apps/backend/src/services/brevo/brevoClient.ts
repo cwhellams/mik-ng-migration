@@ -36,8 +36,8 @@ const MAX_RETRY_DELAY_MS = 10000
 
 // Add response interceptor for retry logic and logging
 brevoApiClient.interceptors.response.use(
-  response => response,
-  async error => {
+  (response) => response,
+  async (error) => {
     const config = error.config
 
     // Initialize retry count
@@ -65,7 +65,7 @@ brevoApiClient.interceptors.response.use(
       )
 
       // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, finalDelay))
+      await new Promise((resolve) => setTimeout(resolve, finalDelay))
 
       // Retry the request
       return brevoApiClient(config)

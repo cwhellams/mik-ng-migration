@@ -81,8 +81,8 @@ export async function createFlightInvoicePayload(
 
 function getBillingRemarks(flights: InvoicableFlight[], kalustonkayttoRemarks: string): string {
   const remarks = flights
-    .map(flight => flight.billingRemarks)
-    .filter(remark => remark && remark.trim() !== '')
+    .map((flight) => flight.billingRemarks)
+    .filter((remark) => remark && remark.trim() !== '')
 
   kalustonkayttoRemarks && remarks.push(kalustonkayttoRemarks)
 
@@ -137,19 +137,19 @@ async function fetchFlightFees(
     ...packageItemCodes,
   ])
 
-  const kalustonkayttoFee = fees.find(f => f.code === ART_EQUIP_USAGE_FEE_CODE)
+  const kalustonkayttoFee = fees.find((f) => f.code === ART_EQUIP_USAGE_FEE_CODE)
   if (!kalustonkayttoFee) {
     throw new Error('Kalustonkaytto fee article not found in the database')
   }
 
-  const virhemerkintaFee = fees.find(f => f.code === ART_ENTRY_ERROR_CODE)
+  const virhemerkintaFee = fees.find((f) => f.code === ART_ENTRY_ERROR_CODE)
   if (!virhemerkintaFee) {
     throw new Error('VIRHEMERKINTA fee article not found in the database')
   }
 
   const articleIdMap = new Map(
-    registrations.flatMap(reg => {
-      const fee = fees.find(f => f.code === reg)
+    registrations.flatMap((reg) => {
+      const fee = fees.find((f) => f.code === reg)
       return fee ? [[reg, fee.id] as [string, number]] : []
     }),
   )
@@ -162,7 +162,7 @@ async function fetchFlightFees(
 
   const packageArticleIdMap = new Map<string, number>()
   for (const code of packageItemCodes) {
-    const fee = fees.find(f => f.code === code)
+    const fee = fees.find((f) => f.code === code)
     if (fee) {
       packageArticleIdMap.set(code, fee.id)
     } else {
@@ -184,12 +184,12 @@ async function buildEquipmentFeeRequestedByYear(
   }
 
   const distinctTakeoffYears = new Set(
-    flights.map(f => new Date(f.takeoffTimeUtc).getUTCFullYear()),
+    flights.map((f) => new Date(f.takeoffTimeUtc).getUTCFullYear()),
   )
 
   const entries = await Promise.all(
     [...distinctTakeoffYears].map(
-      async year =>
+      async (year) =>
         [year, await hasRequestedEquipmentFee(year, billableMemberId)] as [number, boolean],
     ),
   )
@@ -404,14 +404,14 @@ const createTasksForFlights = async (
   flights: InvoicableFlight[],
   prepaidUsagePlan: PlannedPrepaidUsage,
 ): Promise<[InvoicePost['Tasks'], string]> => {
-  const uniqueRegistrations = [...new Set(flights.map(f => f.aircraftRegistration))]
+  const uniqueRegistrations = [...new Set(flights.map((f) => f.aircraftRegistration))]
 
   // Collect unique non-null SimplBooks item codes from packages used in this plan
   const packageItemCodes = [
     ...new Set(
-      prepaidUsagePlan.groups.flatMap(g =>
-        g.flights.flatMap(f =>
-          f.packageUsages.map(u => u.simplbooksItemId).filter((c): c is string => c !== null),
+      prepaidUsagePlan.groups.flatMap((g) =>
+        g.flights.flatMap((f) =>
+          f.packageUsages.map((u) => u.simplbooksItemId).filter((c): c is string => c !== null),
         ),
       ),
     ),
@@ -420,15 +420,15 @@ const createTasksForFlights = async (
   const { kalustonkayttoFee, virhemerkintaFee, articleIdMap, packageArticleIdMap } =
     await fetchFlightFees(uniqueRegistrations, packageItemCodes)
   const equipmentFeeRequestedByYear = await buildEquipmentFeeRequestedByYear(flights)
-  const applyKalustonkayttoRemarks = flights.some(f =>
+  const applyKalustonkayttoRemarks = flights.some((f) =>
     isEquipmentFeeApplicable(f, equipmentFeeRequestedByYear),
   )
   const minBillableMins = Number(process.env.MIN_BILLABLE_FLIGHT_MINS) || 20
 
   const tasks: InvoicePost['Tasks'] = []
   const plannedFlightsById = new Map(
-    prepaidUsagePlan.groups.flatMap(group =>
-      group.flights.map(flight => [flight.flightId, flight]),
+    prepaidUsagePlan.groups.flatMap((group) =>
+      group.flights.map((flight) => [flight.flightId, flight]),
     ),
   )
 

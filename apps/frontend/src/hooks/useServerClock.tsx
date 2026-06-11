@@ -1,11 +1,4 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import type { TimeResponse } from '@backend/routes/time/api'
 
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
@@ -36,11 +29,7 @@ const defaultState: ServerClockState = {
 
 const ServerClockContext = createContext<ServerClockState>(defaultState)
 
-export const ServerClockProvider = ({
-  children,
-}: {
-  children: React.ReactNode
-}) => {
+export const ServerClockProvider = ({ children }: { children: React.ReactNode }) => {
   // Offset stored in a ref so the 1-second tick closure always reads the latest
   // value without needing to re-create the interval.
   const offsetRef = useRef<number>(0)
@@ -90,13 +79,8 @@ export const ServerClockProvider = ({
     return () => clearInterval(id)
   }, [sync])
 
-  return (
-    <ServerClockContext.Provider value={state}>
-      {children}
-    </ServerClockContext.Provider>
-  )
+  return <ServerClockContext.Provider value={state}>{children}</ServerClockContext.Provider>
 }
 
 /** Returns the server-authoritative clock state. Must be within <ServerClockProvider>. */
-export const useServerClock = (): ServerClockState =>
-  useContext(ServerClockContext)
+export const useServerClock = (): ServerClockState => useContext(ServerClockContext)

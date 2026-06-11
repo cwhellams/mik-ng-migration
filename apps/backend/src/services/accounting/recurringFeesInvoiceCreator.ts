@@ -91,7 +91,7 @@ const createTasksFromArticleInputs = async (
 const createTasksFromArticleCodes = async (
   articleCodes: string[],
 ): Promise<InvoicePost['Tasks']> => {
-  return createTasksFromArticleInputs(articleCodes.map(code => ({ code })))
+  return createTasksFromArticleInputs(articleCodes.map((code) => ({ code })))
 }
 
 export const createNewMemberFeesInvoicePayload = async (

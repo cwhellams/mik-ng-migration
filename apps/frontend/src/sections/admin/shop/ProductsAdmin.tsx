@@ -73,11 +73,7 @@ function LocalisedField({
         p: 1.5,
       }}
     >
-      <Typography
-        variant='caption'
-        color='text.secondary'
-        sx={{ display: 'block', mb: 1 }}
-      >
+      <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mb: 1 }}>
         {label}
         {required && ' *'}
       </Typography>
@@ -91,11 +87,7 @@ function LocalisedField({
             mt: i > 0 ? 1 : 0,
           }}
         >
-          <Chip
-            label={lang.toUpperCase()}
-            size='small'
-            sx={{ width: 38, flexShrink: 0 }}
-          />
+          <Chip label={lang.toUpperCase()} size='small' sx={{ width: 38, flexShrink: 0 }} />
           <TextField
             size='small'
             fullWidth
@@ -165,7 +157,7 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
               },
             ],
           }
-        : f
+        : f,
     )
 
   const addQuickSizes = () =>
@@ -191,10 +183,10 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
                     ...o,
                     value: { ...(o.value as LocalisedValues), [lang]: val },
                   }
-                : o
+                : o,
             ),
           }
-        : f
+        : f,
     )
 
   const setOptionStockQuantity = (idx: number, value: string) => {
@@ -203,18 +195,14 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
       f
         ? {
             ...f,
-            options: f.options.map((o, i) =>
-              i === idx ? { ...o, stockQuantity } : o
-            ),
+            options: f.options.map((o, i) => (i === idx ? { ...o, stockQuantity } : o)),
           }
-        : f
+        : f,
     )
   }
 
   const removeOption = (idx: number) =>
-    setPropForm((f) =>
-      f ? { ...f, options: f.options.filter((_, i) => i !== idx) } : f
-    )
+    setPropForm((f) => (f ? { ...f, options: f.options.filter((_, i) => i !== idx) } : f))
 
   const handleSaveProperty = async () => {
     if (!propForm) return
@@ -271,34 +259,17 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
         {properties?.map((prop) => {
           const name = prop.name as LocalisedValues
           return (
-            <Paper
-              key={prop.propertyId}
-              variant='outlined'
-              sx={{ p: 1.5, mb: 1 }}
-            >
+            <Paper key={prop.propertyId} variant='outlined' sx={{ p: 1.5, mb: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography
-                  variant='body2'
-                  fontWeight='medium'
-                  sx={{ flex: 1 }}
-                >
+                <Typography variant='body2' fontWeight='medium' sx={{ flex: 1 }}>
                   {name?.en}
                   {prop.isRequired && (
-                    <Chip
-                      label={t('shop.required')}
-                      size='small'
-                      color='primary'
-                      sx={{ ml: 1 }}
-                    />
+                    <Chip label={t('shop.required')} size='small' color='primary' sx={{ ml: 1 }} />
                   )}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                   {(prop.options ?? []).map((o) => (
-                    <Chip
-                      key={o.optionId}
-                      label={(o.value as LocalisedValues)?.en}
-                      size='small'
-                    />
+                    <Chip key={o.optionId} label={(o.value as LocalisedValues)?.en} size='small' />
                   ))}
                 </Box>
                 <IconButton size='small' onClick={() => startEdit(prop)}>
@@ -320,9 +291,7 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
           <Button
             size='small'
             startIcon={<Icon icon='mdi:plus' />}
-            onClick={() =>
-              setPropForm(emptyPropertyForm(properties?.length ?? 0))
-            }
+            onClick={() => setPropForm(emptyPropertyForm(properties?.length ?? 0))}
           >
             {t('shop.addVariant')}
           </Button>
@@ -351,7 +320,7 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
                         ...f,
                         name: { ...(f.name as LocalisedValues), [lang]: val },
                       }
-                    : f
+                    : f,
                 )
               }
             />
@@ -362,9 +331,7 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
                 <Switch
                   checked={propForm.isRequired}
                   onChange={(e) =>
-                    setPropForm((f) =>
-                      f ? { ...f, isRequired: e.target.checked } : f
-                    )
+                    setPropForm((f) => (f ? { ...f, isRequired: e.target.checked } : f))
                   }
                 />
               }
@@ -388,11 +355,7 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
                 <Button size='small' onClick={addQuickSizes}>
                   {t('shop.quickSizes')}
                 </Button>
-                <Button
-                  size='small'
-                  startIcon={<Icon icon='mdi:plus' />}
-                  onClick={addOption}
-                >
+                <Button size='small' startIcon={<Icon icon='mdi:plus' />} onClick={addOption}>
                   {t('shop.addOption')}
                 </Button>
               </Box>
@@ -428,9 +391,7 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
                         size='small'
                         fullWidth
                         value={(opt.value as LocalisedValues)[lang]}
-                        onChange={(e) =>
-                          setOptionValue(idx, lang, e.target.value)
-                        }
+                        onChange={(e) => setOptionValue(idx, lang, e.target.value)}
                       />
                     </Box>
                   ))}
@@ -440,12 +401,8 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
                     fullWidth
                     type='number'
                     label={t('shop.stock')}
-                    value={
-                      opt.stockQuantity == null ? '' : String(opt.stockQuantity)
-                    }
-                    onChange={(e) =>
-                      setOptionStockQuantity(idx, e.target.value)
-                    }
+                    value={opt.stockQuantity == null ? '' : String(opt.stockQuantity)}
+                    onChange={(e) => setOptionStockQuantity(idx, e.target.value)}
                   />
                 </Box>
                 <IconButton
@@ -473,10 +430,7 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
               <Button
                 size='small'
                 variant='contained'
-                disabled={
-                  !(propForm.name as LocalisedValues).en.trim() ||
-                  mutation.isMutating
-                }
+                disabled={!(propForm.name as LocalisedValues).en.trim() || mutation.isMutating}
                 onClick={handleSaveProperty}
               >
                 {t('common.save')}
@@ -557,10 +511,8 @@ function productToForm(p: Product): ProductForm {
     price: String(p.price),
     vatPercent: String(p.vatPercent),
     stockQuantity: String(p.stockQuantity),
-    lowStockThreshold:
-      p.lowStockThreshold == null ? '' : String(p.lowStockThreshold),
-    maxPerMemberQty:
-      p.maxOrderQuantity == null ? '' : String(p.maxOrderQuantity),
+    lowStockThreshold: p.lowStockThreshold == null ? '' : String(p.lowStockThreshold),
+    maxPerMemberQty: p.maxOrderQuantity == null ? '' : String(p.maxOrderQuantity),
     imageUrl: p.imageUrl ?? '',
     tags: p.tags?.join(', ') ?? '',
     isActive: p.isActive,
@@ -577,12 +529,8 @@ function formToPayload(f: ProductForm) {
     price: Number.parseFloat(f.price) || 0,
     vatPercent: Number.parseFloat(f.vatPercent) || 24,
     stockQuantity: Number.parseInt(f.stockQuantity) || 0,
-    lowStockThreshold: f.lowStockThreshold
-      ? Number.parseInt(f.lowStockThreshold)
-      : null,
-    maxOrderQuantity: f.maxPerMemberQty
-      ? Number.parseInt(f.maxPerMemberQty)
-      : null,
+    lowStockThreshold: f.lowStockThreshold ? Number.parseInt(f.lowStockThreshold) : null,
+    maxOrderQuantity: f.maxPerMemberQty ? Number.parseInt(f.maxPerMemberQty) : null,
     imageUrl: f.imageUrl || null,
     tags: f.tags
       ? f.tags
@@ -610,9 +558,7 @@ export default function ProductsAdmin() {
     adminView: true,
     ...(filterCategory ? { categoryId: filterCategory } : {}),
     ...(filterActive === '' ? {} : { active: filterActive === 'true' }),
-    ...(filterPublished === ''
-      ? {}
-      : { published: filterPublished === 'true' }),
+    ...(filterPublished === '' ? {} : { published: filterPublished === 'true' }),
   }
   const {
     data: products,
@@ -650,9 +596,8 @@ export default function ProductsAdmin() {
   }
   const close = () => setDialogOpen(false)
 
-  const set =
-    (key: keyof ProductForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((f) => ({ ...f, [key]: e.target.value }))
+  const set = (key: keyof ProductForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const handleSave = async () => {
     const payload = {
@@ -697,11 +642,7 @@ export default function ProductsAdmin() {
         }}
       >
         <Title label={t('shop.admin.products')} />
-        <Button
-          variant='contained'
-          startIcon={<Icon icon='mdi:plus' />}
-          onClick={openCreate}
-        >
+        <Button variant='contained' startIcon={<Icon icon='mdi:plus' />} onClick={openCreate}>
           {t('shop.admin.addProduct')}
         </Button>
       </Box>
@@ -733,9 +674,7 @@ export default function ProductsAdmin() {
             <Select
               value={filterActive}
               label={t('common.active')}
-              onChange={(e) =>
-                setFilterActive(e.target.value as '' | 'true' | 'false')
-              }
+              onChange={(e) => setFilterActive(e.target.value as '' | 'true' | 'false')}
             >
               <MenuItem value=''>{t('common.all')}</MenuItem>
               <MenuItem value='true'>{t('common.active')}</MenuItem>
@@ -748,9 +687,7 @@ export default function ProductsAdmin() {
             <Select
               value={filterPublished}
               label={t('common.status')}
-              onChange={(e) =>
-                setFilterPublished(e.target.value as '' | 'true' | 'false')
-              }
+              onChange={(e) => setFilterPublished(e.target.value as '' | 'true' | 'false')}
             >
               <MenuItem value=''>{t('common.all')}</MenuItem>
               <MenuItem value='true'>{t('shop.published')}</MenuItem>
@@ -774,34 +711,13 @@ export default function ProductsAdmin() {
             <TableBody>
               {products?.map((p) => {
                 const n = p.name as Record<string, string>
-                const cat = categories?.find(
-                  (c) => c.categoryId === p.categoryId
-                )
-                const catName =
-                  (cat?.name as Record<string, string>)?.en ?? p.categoryId
-                let stockChip = (
-                  <Chip
-                    size='small'
-                    label={`${p.stockQuantity}`}
-                    color='success'
-                  />
-                )
+                const cat = categories?.find((c) => c.categoryId === p.categoryId)
+                const catName = (cat?.name as Record<string, string>)?.en ?? p.categoryId
+                let stockChip = <Chip size='small' label={`${p.stockQuantity}`} color='success' />
                 if (p.stockQuantity === 0) {
-                  stockChip = (
-                    <Chip
-                      size='small'
-                      label={t('shop.outOfStock')}
-                      color='error'
-                    />
-                  )
+                  stockChip = <Chip size='small' label={t('shop.outOfStock')} color='error' />
                 } else if (p.stockQuantity <= (p.lowStockThreshold ?? 5)) {
-                  stockChip = (
-                    <Chip
-                      size='small'
-                      label={`${p.stockQuantity}`}
-                      color='warning'
-                    />
-                  )
+                  stockChip = <Chip size='small' label={`${p.stockQuantity}`} color='warning' />
                 }
                 return (
                   <TableRow key={p.productId} hover>
@@ -811,11 +727,7 @@ export default function ProductsAdmin() {
                     <TableCell>{stockChip}</TableCell>
                     <TableCell>
                       {p.isPublished ? (
-                        <Chip
-                          size='small'
-                          label={t('shop.published')}
-                          color='success'
-                        />
+                        <Chip size='small' label={t('shop.published')} color='success' />
                       ) : (
                         <Chip size='small' label={t('shop.draft')} />
                       )}
@@ -829,11 +741,7 @@ export default function ProductsAdmin() {
                         color='error'
                         onClick={() => handleDelete(p.productId)}
                         disabled={!!p.hasOrders}
-                        title={
-                          p.hasOrders
-                            ? 'Cannot delete products that have orders'
-                            : undefined
-                        }
+                        title={p.hasOrders ? 'Cannot delete products that have orders' : undefined}
                       >
                         <Icon icon='mdi:delete' />
                       </IconButton>
@@ -883,17 +791,13 @@ export default function ProductsAdmin() {
                 }
               />
 
-              <Box
-                sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}
-              >
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                 <FormControl size='small' fullWidth>
                   <InputLabel>{t('shop.category')} *</InputLabel>
                   <Select
                     value={form.categoryId}
                     label={`${t('shop.category')} *`}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, categoryId: e.target.value }))
-                    }
+                    onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
                   >
                     {categories?.map((c) => (
                       <MenuItem key={c.categoryId} value={c.categoryId}>
@@ -989,9 +893,7 @@ export default function ProductsAdmin() {
                   control={
                     <Switch
                       checked={form.isActive}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, isActive: e.target.checked }))
-                      }
+                      onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
                     />
                   }
                   label={t('common.active')}
@@ -1036,10 +938,7 @@ export default function ProductsAdmin() {
               variant='contained'
               onClick={handleSave}
               disabled={
-                !form.nameEn.trim() ||
-                !form.categoryId ||
-                !form.price ||
-                mutation.isMutating
+                !form.nameEn.trim() || !form.categoryId || !form.price || mutation.isMutating
               }
             >
               {t('common.save')}

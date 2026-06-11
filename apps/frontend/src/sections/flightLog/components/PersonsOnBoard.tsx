@@ -1,11 +1,5 @@
 import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
-import {
-  Box,
-  Typography,
-  ToggleButtonGroup,
-  ToggleButton,
-  FormHelperText,
-} from '@mui/material'
+import { Box, Typography, ToggleButtonGroup, ToggleButton, FormHelperText } from '@mui/material'
 import { Control, Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -61,9 +55,7 @@ export const PersonsOnBoard = ({ control, seats, crew, disabled }: Props) => {
               </ToggleButton>
             )}
           </ToggleButtonGroup>
-          {error && (
-            <FormHelperText>{error.message?.toString()}</FormHelperText>
-          )}
+          {error && <FormHelperText>{error.message?.toString()}</FormHelperText>}
         </Box>
       )}
     />

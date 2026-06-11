@@ -10,16 +10,16 @@ properties:
     example: 1
   code:
     type: string
-    example: "A01"
+    example: 'A01'
   name:
     type: string
-    example: "Edible Politican Figurine"
+    example: 'Edible Politican Figurine'
   contents:
     type: string
-    example: "100% white chocolate"
+    example: '100% white chocolate'
   unit:
     type: string
-    example: "g"
+    example: 'g'
   amount:
     type: number
     example: 100

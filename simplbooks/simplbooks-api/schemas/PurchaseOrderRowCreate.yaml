@@ -7,11 +7,11 @@ properties:
   name:
     type: string
     description: Name of the associated article
-    example: "Bath salts"
+    example: 'Bath salts'
   unit:
     type: string
     description: Unit name of the associated article
-    example: "lbs."
+    example: 'lbs.'
   amount:
     type: number
     description: Number of units of the associated article within this order

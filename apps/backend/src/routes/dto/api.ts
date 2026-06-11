@@ -225,14 +225,14 @@ router.get(
       version: syllabus.version,
       description: syllabus.description ?? undefined,
       minBlockTimeMins: syllabus.minBlockTimeMins ?? undefined,
-      flights: (syllabus.flights ?? []).map(f => ({
+      flights: (syllabus.flights ?? []).map((f) => ({
         code: f.code,
         name: f.name,
         description: f.description ?? undefined,
         tags: f.tags,
         isInterimCheckpoint: f.isInterimCheckpoint,
         recommendedBlockTimeMins: f.recommendedBlockTimeMins ?? undefined,
-        items: (f.items ?? []).map(i => ({
+        items: (f.items ?? []).map((i) => ({
           name: i.name,
           description: i.description ?? undefined,
           mandatory: i.mandatory,
@@ -301,7 +301,7 @@ router.put(
     }
 
     // Validate: at most one interim checkpoint
-    const interimCheckpointCount = parsed.data.flights.filter(f => f.isInterimCheckpoint).length
+    const interimCheckpointCount = parsed.data.flights.filter((f) => f.isInterimCheckpoint).length
     if (interimCheckpointCount > 1) {
       return problem({
         status: HttpStatusCode.BadRequest,
@@ -310,7 +310,7 @@ router.put(
     }
 
     // Validate: unique codes
-    const codes = parsed.data.flights.map(f => f.code)
+    const codes = parsed.data.flights.map((f) => f.code)
     if (new Set(codes).size !== codes.length) {
       return problem({
         status: HttpStatusCode.BadRequest,
@@ -378,7 +378,7 @@ router.post(
     const data = parsed.data
 
     // Validate: at most one interim checkpoint
-    const interimCheckpointCount = data.flights.filter(f => f.isInterimCheckpoint).length
+    const interimCheckpointCount = data.flights.filter((f) => f.isInterimCheckpoint).length
     if (interimCheckpointCount > 1) {
       return problem({
         status: HttpStatusCode.BadRequest,
@@ -387,7 +387,7 @@ router.post(
     }
 
     // Validate unique flight codes
-    const codes = data.flights.map(f => f.code)
+    const codes = data.flights.map((f) => f.code)
     if (new Set(codes).size !== codes.length) {
       return problem({
         status: HttpStatusCode.BadRequest,
@@ -704,8 +704,8 @@ router.get(
       return problem({ status: 404, detail: 'Member syllabus not found' })
     }
     const attempts = await getAttemptsByMemberSyllabusWithFlightLog(memberSyllabusId)
-    const outcomesMap = await getItemOutcomesByAttempts(attempts.map(a => a.attemptId))
-    const attemptsWithOutcomes = attempts.map(attempt => ({
+    const outcomesMap = await getItemOutcomesByAttempts(attempts.map((a) => a.attemptId))
+    const attemptsWithOutcomes = attempts.map((attempt) => ({
       ...attempt,
       itemOutcomes: outcomesMap.get(attempt.attemptId) ?? [],
     }))

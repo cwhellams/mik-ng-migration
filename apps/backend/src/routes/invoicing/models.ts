@@ -12,12 +12,12 @@ export const InvoiceItemQuerySchema = z.object({
   type: z
     .string()
     .optional()
-    .transform(val => val?.toUpperCase())
+    .transform((val) => val?.toUpperCase())
     .pipe(InvoiceTypeEnum)
     .optional(),
   pastDue: z
     .enum(['true', 'false'])
-    .transform(val => val === 'true')
+    .transform((val) => val === 'true')
     .optional(),
   id: z.coerce.number().int().optional(),
   memberId: z.string().optional(),

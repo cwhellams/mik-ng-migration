@@ -11,10 +11,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
-import type {
-  UnbilledTimeByAircraft,
-  MemberPackage,
-} from '@backend/routes/prepaid-hours/models'
+import type { UnbilledTimeByAircraft, MemberPackage } from '@backend/routes/prepaid-hours/models'
 import type { EquipmentFeeStatus } from '@backend/routes/invoicing/models'
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router-dom'
@@ -82,31 +79,21 @@ export default function MyFlightPackagesPage() {
               <TableCell>{localPackageName(row.package)}</TableCell>
               <TableCell>{row.package?.aircraftRegistration ?? '-'}</TableCell>
               <TableCell>
-                {row.package?.perMinRate == null
-                  ? '-'
-                  : `€${row.package.perMinRate}/min`}
+                {row.package?.perMinRate == null ? '-' : `€${row.package.perMinRate}/min`}
               </TableCell>
               <TableCell>{`${formatMinutes(row.remainingMinutes)} / ${formatMinutes(row.totalMinutes)}`}</TableCell>
               <TableCell>
-                {row.unbilledMinutes == null
-                  ? '-'
-                  : formatMinutes(row.unbilledMinutes)}
+                {row.unbilledMinutes == null ? '-' : formatMinutes(row.unbilledMinutes)}
               </TableCell>
               <TableCell>
                 {row.unbilledMinutes == null
                   ? '-'
-                  : formatMinutes(
-                      Math.max(0, row.remainingMinutes - row.unbilledMinutes)
-                    )}
+                  : formatMinutes(Math.max(0, row.remainingMinutes - row.unbilledMinutes))}
               </TableCell>
               <TableCell>
-                {row.isExpired
-                  ? formatMinutes(row.remainingMinutes)
-                  : t('common.notApplicable')}
+                {row.isExpired ? formatMinutes(row.remainingMinutes) : t('common.notApplicable')}
               </TableCell>
-              <TableCell>
-                {new Date(row.expiresAt).toLocaleDateString()}
-              </TableCell>
+              <TableCell>{new Date(row.expiresAt).toLocaleDateString()}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -118,12 +105,7 @@ export default function MyFlightPackagesPage() {
     <Box>
       <Title label={t('shop.myFlightPackages')} />
 
-      <Button
-        component={Link}
-        to='/shop'
-        startIcon={<Icon icon='mdi:arrow-left' />}
-        sx={{ mb: 2 }}
-      >
+      <Button component={Link} to='/shop' startIcon={<Icon icon='mdi:arrow-left' />} sx={{ mb: 2 }}>
         {t('shop.continueShopping')}
       </Button>
 

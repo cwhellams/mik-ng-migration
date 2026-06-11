@@ -56,10 +56,7 @@ const Members = () => {
     showUnapproved: undefined,
   })
 
-  const { data, isLoading, error, mutate, mutation } = useApi<
-    MemberListResponse,
-    Member
-  >(
+  const { data, isLoading, error, mutate, mutation } = useApi<MemberListResponse, Member>(
     {
       url: 'v1/members',
       params: filters,
@@ -67,7 +64,7 @@ const Members = () => {
     {
       // don't clear old data when searching
       keepPreviousData: true,
-    }
+    },
   )
 
   const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
@@ -94,32 +91,15 @@ const Members = () => {
     return members.sort((a, b) => {
       switch (sortField) {
         case 'fullName':
-          return (
-            modifier *
-            getFullName(a).localeCompare(getFullName(b), i18n.language)
-          )
+          return modifier * getFullName(a).localeCompare(getFullName(b), i18n.language)
         case 'phone':
-          return (
-            modifier *
-            (a.phoneNumber ?? '').localeCompare(
-              b.phoneNumber ?? '',
-              i18n.language
-            )
-          )
+          return modifier * (a.phoneNumber ?? '').localeCompare(b.phoneNumber ?? '', i18n.language)
         case 'town':
-          return (
-            modifier *
-            (a.townCity ?? '').localeCompare(b.townCity ?? '', i18n.language)
-          )
+          return modifier * (a.townCity ?? '').localeCompare(b.townCity ?? '', i18n.language)
         case 'roles':
-          return (
-            modifier *
-            a.roles.join(',').localeCompare(b.roles.join(','), i18n.language)
-          )
+          return modifier * a.roles.join(',').localeCompare(b.roles.join(','), i18n.language)
         case 'memberSince':
-          return (
-            modifier * (a.memberSince ?? '').localeCompare(b.memberSince ?? '')
-          )
+          return modifier * (a.memberSince ?? '').localeCompare(b.memberSince ?? '')
         case 'isTrainingProgramPilot':
           return (
             modifier *
@@ -129,8 +109,7 @@ const Members = () => {
         case 'canMakeReservations':
           return (
             modifier *
-            (booleanSortValue(a.canMakeReservations) -
-              booleanSortValue(b.canMakeReservations))
+            (booleanSortValue(a.canMakeReservations) - booleanSortValue(b.canMakeReservations))
           )
         case 'autoRenewAnnualMembership':
           return (
@@ -141,8 +120,7 @@ const Members = () => {
         case 'autoRenewEquipmentFee':
           return (
             modifier *
-            (booleanSortValue(a.autoRenewEquipmentFee) -
-              booleanSortValue(b.autoRenewEquipmentFee))
+            (booleanSortValue(a.autoRenewEquipmentFee) - booleanSortValue(b.autoRenewEquipmentFee))
           )
         default:
           return 0
@@ -152,22 +130,11 @@ const Members = () => {
 
   // Returns a clickable, sortable header cell.
   // For compact boolean columns pass a tooltip with the full label.
-  const sortHeader = (
-    field: SortField,
-    label: string,
-    size: number | 'grow',
-    tooltip?: string
-  ) => {
+  const sortHeader = (field: SortField, label: string, size: number | 'grow', tooltip?: string) => {
     const isActive = sortField === field
-    const ariaSortValue = isActive
-      ? sortDirection === 'asc'
-        ? 'ascending'
-        : 'descending'
-      : 'none'
+    const ariaSortValue = isActive ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'
     const activeDirectionLabel =
-      sortDirection === 'asc'
-        ? t('member.sortAscending')
-        : t('member.sortDescending')
+      sortDirection === 'asc' ? t('member.sortAscending') : t('member.sortDescending')
     const clickBox = (
       <ButtonBase
         onClick={() => handleSort(field)}
@@ -203,12 +170,7 @@ const Members = () => {
       </ButtonBase>
     )
     return (
-      <Grid
-        key={field}
-        size={size}
-        role='columnheader'
-        aria-sort={ariaSortValue}
-      >
+      <Grid key={field} size={size} role='columnheader' aria-sort={ariaSortValue}>
         {tooltip ? (
           <Tooltip title={tooltip} placement='top'>
             {clickBox}
@@ -232,12 +194,7 @@ const Members = () => {
         )}
       </Title>
 
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        justifyContent='space-between'
-        gap={2}
-        mb={2}
-      >
+      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent='space-between' gap={2} mb={2}>
         <TextField
           label='Search field'
           type='search'
@@ -288,10 +245,7 @@ const Members = () => {
                 const showRemoved = target.value == 'showRemoved'
                 const showExternal = target.value == 'showExternal'
                 const showRole =
-                  !showUnapproved &&
-                  !showRemoved &&
-                  !showExternal &&
-                  target.value !== ''
+                  !showUnapproved && !showRemoved && !showExternal && target.value !== ''
                 setFilters({
                   showUnapproved,
                   showRemoved,
@@ -302,20 +256,12 @@ const Members = () => {
               }}
             >
               <MenuItem value=''>{t('roles.all')}</MenuItem>
+              {isMembersAdmin && <MenuItem value={'unapproved'}>{t('roles.unApproved')}</MenuItem>}
               {isMembersAdmin && (
-                <MenuItem value={'unapproved'}>
-                  {t('roles.unApproved')}
-                </MenuItem>
+                <MenuItem value={'showRemoved'}>{t('roles.showRemoved')}</MenuItem>
               )}
               {isMembersAdmin && (
-                <MenuItem value={'showRemoved'}>
-                  {t('roles.showRemoved')}
-                </MenuItem>
-              )}
-              {isMembersAdmin && (
-                <MenuItem value={'showExternal'}>
-                  {t('roles.showExternal')}
-                </MenuItem>
+                <MenuItem value={'showExternal'}>{t('roles.showExternal')}</MenuItem>
               )}
               {roles.map((role) => (
                 <MenuItem key={role.roleId} value={role.roleId}>
@@ -337,51 +283,38 @@ const Members = () => {
             <>
               <Grid size={1}></Grid>
               <Grid container size='grow'>
-                {sortHeader(
-                  'fullName',
-                  t('member.fullname'),
-                  isMembersAdmin ? 2 : 3
-                )}
-                {sortHeader(
-                  'phone',
-                  t('member.phone'),
-                  isMembersAdmin ? 1.5 : 2.5
-                )}
+                {sortHeader('fullName', t('member.fullname'), isMembersAdmin ? 2 : 3)}
+                {sortHeader('phone', t('member.phone'), isMembersAdmin ? 1.5 : 2.5)}
                 {sortHeader('town', t('member.town'), isMembersAdmin ? 1.5 : 2)}
-                {sortHeader(
-                  'roles',
-                  t('member.roles'),
-                  isMembersAdmin ? 2.3 : 'grow'
-                )}
-                {isMembersAdmin &&
-                  sortHeader('memberSince', t('member.memberSince'), 1.5)}
+                {sortHeader('roles', t('member.roles'), isMembersAdmin ? 2.3 : 'grow')}
+                {isMembersAdmin && sortHeader('memberSince', t('member.memberSince'), 1.5)}
                 {isMembersAdmin &&
                   sortHeader(
                     'isTrainingProgramPilot',
                     t('member.abbr.isTrainingProgramPilot'),
                     0.8,
-                    t('member.isTrainingProgramPilot')
+                    t('member.isTrainingProgramPilot'),
                   )}
                 {isMembersAdmin &&
                   sortHeader(
                     'canMakeReservations',
                     t('member.abbr.canMakeReservations'),
                     0.8,
-                    t('member.canMakeReservations')
+                    t('member.canMakeReservations'),
                   )}
                 {isMembersAdmin &&
                   sortHeader(
                     'autoRenewAnnualMembership',
                     t('member.abbr.autoRenewAnnualMembership'),
                     0.8,
-                    t('member.billingInfo.annualMembershipAutoRenew')
+                    t('member.billingInfo.annualMembershipAutoRenew'),
                   )}
                 {isMembersAdmin &&
                   sortHeader(
                     'autoRenewEquipmentFee',
                     t('member.abbr.autoRenewEquipmentFee'),
                     0.8,
-                    t('member.billingInfo.equipmentFeeAutoRenew')
+                    t('member.billingInfo.equipmentFeeAutoRenew'),
                   )}
               </Grid>
             </>
@@ -425,18 +358,14 @@ const Members = () => {
                   {formatPhoneNumber(row.phoneNumber ?? '')}
                 </Grid>
 
-                <Grid size={{ xs: 12, md: isMembersAdmin ? 1.5 : 2 }}>
-                  {row.townCity}
-                </Grid>
+                <Grid size={{ xs: 12, md: isMembersAdmin ? 1.5 : 2 }}>{row.townCity}</Grid>
 
                 <Grid size={{ xs: 12, md: isMembersAdmin ? 2.3 : 'grow' }}>
                   {renderRoles(row.roles, roles, i18n.language as MIKLang)}
                 </Grid>
 
                 {isMembersAdmin && (
-                  <Grid size={{ xs: 12, md: 1.5 }}>
-                    {formatDate(row.memberSince)}
-                  </Grid>
+                  <Grid size={{ xs: 12, md: 1.5 }}>{formatDate(row.memberSince)}</Grid>
                 )}
                 {isMembersAdmin && (
                   <Grid size={{ xs: 'auto', md: 0.8 }}>
@@ -464,20 +393,12 @@ const Members = () => {
         />
       </RemoteContent>
 
-      <EditMemberModal
-        mode={editMode}
-        onClose={() => setEditMode(undefined)}
-        api={mutation}
-      />
+      <EditMemberModal mode={editMode} onClose={() => setEditMode(undefined)} api={mutation} />
     </Box>
   )
 }
 
-const renderRoles = (
-  memberRoles: string[],
-  roles: MemberRole[],
-  language: MIKLang
-) => {
+const renderRoles = (memberRoles: string[], roles: MemberRole[], language: MIKLang) => {
   return (
     <Stack
       direction='row'
@@ -507,10 +428,7 @@ const getFullName = (member: MemberListResponse['members'][number]) =>
 const booleanSortValue = (value?: boolean | null) => (value ? 1 : 0)
 
 const renderBoolean = (value?: boolean | null) => (
-  <Icon
-    icon={value ? 'mdi:check' : 'mdi:close'}
-    color={value ? '#2e7d32' : '#d32f2f'}
-  />
+  <Icon icon={value ? 'mdi:check' : 'mdi:close'} color={value ? '#2e7d32' : '#d32f2f'} />
 )
 
 export default Members

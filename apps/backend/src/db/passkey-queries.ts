@@ -174,7 +174,7 @@ export async function storeChallenge(input: {
         challenge: input.challenge,
         expires_at: expiresAt,
       })
-      .onConflict(oc =>
+      .onConflict((oc) =>
         oc
           .columns(['member_id', 'purpose'])
           .where('member_id', 'is not', null)
@@ -196,7 +196,7 @@ export async function storeChallenge(input: {
         challenge: input.challenge,
         expires_at: expiresAt,
       })
-      .onConflict(oc =>
+      .onConflict((oc) =>
         oc.columns(['email', 'purpose']).where('email', 'is not', null).doUpdateSet({
           challenge: input.challenge,
           expires_at: expiresAt,

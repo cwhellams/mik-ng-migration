@@ -1,12 +1,4 @@
-import {
-  Box,
-  Button,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-} from '@mui/material'
+import { Box, Button, FormControl, Grid, InputLabel, MenuItem, Select } from '@mui/material'
 import useApi from '../../../hooks/useApi'
 import { InvoicableFlightFilters } from '@backend/routes/flight-log/models'
 import { dayjs } from '../../../utils/date'
@@ -36,11 +28,10 @@ export const InvoicingRange = ({
     params: { current: true },
   })
 
-  const aircrafts =
-    logbooksData?.books?.map((b) => b.aircraftRegistration) ?? []
+  const aircrafts = logbooksData?.books?.map((b) => b.aircraftRegistration) ?? []
 
   const ajlb = logbooksData?.books?.find(
-    (b) => b.aircraftRegistration === filters.aircraftRegistration
+    (b) => b.aircraftRegistration === filters.aircraftRegistration,
   )
 
   return (
@@ -83,9 +74,7 @@ export const InvoicingRange = ({
             format={t('general.dateFormat')}
             maxDate={
               ajlb?.view?.validatedBeforeUTC
-                ? dayjs(ajlb.view.validatedBeforeUTC)
-                    .startOf('day')
-                    .add(1, 'day')
+                ? dayjs(ajlb.view.validatedBeforeUTC).startOf('day').add(1, 'day')
                 : undefined
             }
           />

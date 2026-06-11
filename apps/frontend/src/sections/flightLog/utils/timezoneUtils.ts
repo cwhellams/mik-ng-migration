@@ -3,10 +3,7 @@ import dayjs from 'dayjs'
 /**
  * Returns current time example in either UTC or local time with DST consideration
  */
-export const getTimeExample = (
-  useUtcTime: boolean,
-  flightDate: dayjs.Dayjs | null
-): string => {
+export const getTimeExample = (useUtcTime: boolean, flightDate: dayjs.Dayjs | null): string => {
   const currentTime = dayjs()
   const currentHour = currentTime.hour()
   const currentMinute = currentTime.minute()
@@ -27,10 +24,7 @@ export const getTimeExample = (
 /**
  * Returns the timezone display string (e.g., "UTC+3")
  */
-export const getTimezoneDisplay = (
-  useUtcTime: boolean,
-  flightDate: dayjs.Dayjs | null
-): string => {
+export const getTimezoneDisplay = (useUtcTime: boolean, flightDate: dayjs.Dayjs | null): string => {
   if (useUtcTime) {
     return 'UTC'
   }

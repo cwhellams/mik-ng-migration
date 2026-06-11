@@ -66,7 +66,7 @@ const Billing = () => {
     {
       // don't clear old data when searching
       keepPreviousData: true,
-    }
+    },
   )
 
   const handleDownloadPdf = async (invoiceId: string) => {
@@ -74,13 +74,11 @@ const Billing = () => {
       const response = await mutation.trigger<undefined, string>(
         'GET',
         undefined,
-        `${invoiceId}/pdf`
+        `${invoiceId}/pdf`,
       )
 
       const byteCharacters = atob(response.data!)
-      const byteNumbers = Array.from(byteCharacters).map((char) =>
-        char.charCodeAt(0)
-      )
+      const byteNumbers = Array.from(byteCharacters).map((char) => char.charCodeAt(0))
       const byteArray = new Uint8Array(byteNumbers)
 
       const blob = new Blob([byteArray], { type: 'application/pdf' })
@@ -117,25 +115,13 @@ const Billing = () => {
       <Box sx={{ my: 4 }}>
         {/* Quick Select Buttons */}
         <Stack direction='row' spacing={2} sx={{ mb: 2 }}>
-          <Button
-            sx={{ textTransform: 'none' }}
-            variant='outlined'
-            onClick={() => setRange(1)}
-          >
+          <Button sx={{ textTransform: 'none' }} variant='outlined' onClick={() => setRange(1)}>
             {t('billing.filters.last1Month')}
           </Button>
-          <Button
-            sx={{ textTransform: 'none' }}
-            variant='outlined'
-            onClick={() => setRange(3)}
-          >
+          <Button sx={{ textTransform: 'none' }} variant='outlined' onClick={() => setRange(3)}>
             {t('billing.filters.last3Months')}
           </Button>
-          <Button
-            sx={{ textTransform: 'none' }}
-            variant='outlined'
-            onClick={() => setRange(6)}
-          >
+          <Button sx={{ textTransform: 'none' }} variant='outlined' onClick={() => setRange(6)}>
             {t('billing.filters.last6Months')}
           </Button>
         </Stack>
@@ -172,9 +158,7 @@ const Billing = () => {
               >
                 <MenuItem value='all'>{t('billing.filters.all')}</MenuItem>
                 <MenuItem value='paid'>{t('billing.filters.paid')}</MenuItem>
-                <MenuItem value='unpaid'>
-                  {t('billing.filters.unpaid')}
-                </MenuItem>
+                <MenuItem value='unpaid'>{t('billing.filters.unpaid')}</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -187,31 +171,18 @@ const Billing = () => {
                 onChange={(e) => setInvoiceType(e.target.value)}
               >
                 <MenuItem value='all'>{t('billing.filters.all')}</MenuItem>
-                <MenuItem value='ANNUAL_FEE'>
-                  {t('billing.invoiceTypes.annualFee')}
-                </MenuItem>
-                <MenuItem value='EQUIPMENT_FEE'>
-                  {t('billing.invoiceTypes.equipmentFee')}
-                </MenuItem>
-                <MenuItem value='FLIGHT'>
-                  {t('billing.invoiceTypes.flight')}
-                </MenuItem>
-                <MenuItem value='INSTRUCTION'>
-                  {t('billing.invoiceTypes.instruction')}
-                </MenuItem>
-                <MenuItem value='MISC'>
-                  {t('billing.invoiceTypes.misc')}
-                </MenuItem>
+                <MenuItem value='ANNUAL_FEE'>{t('billing.invoiceTypes.annualFee')}</MenuItem>
+                <MenuItem value='EQUIPMENT_FEE'>{t('billing.invoiceTypes.equipmentFee')}</MenuItem>
+                <MenuItem value='FLIGHT'>{t('billing.invoiceTypes.flight')}</MenuItem>
+                <MenuItem value='INSTRUCTION'>{t('billing.invoiceTypes.instruction')}</MenuItem>
+                <MenuItem value='MISC'>{t('billing.invoiceTypes.misc')}</MenuItem>
               </Select>
             </FormControl>
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <FormControlLabel
               control={
-                <Switch
-                  checked={pastDueOnly}
-                  onChange={(e) => setPastDueOnly(e.target.checked)}
-                />
+                <Switch checked={pastDueOnly} onChange={(e) => setPastDueOnly(e.target.checked)} />
               }
               label={t('billing.filters.pastDueOnly')}
             />
@@ -239,8 +210,7 @@ const Billing = () => {
             rows={data?.invoices}
             rowProps={(invoice) => {
               const isPastDue =
-                invoice.is_paid === false &&
-                dayjs(invoice.due_at).isBefore(dayjs(), 'day')
+                invoice.is_paid === false && dayjs(invoice.due_at).isBefore(dayjs(), 'day')
 
               return {
                 borderLeft: '4px solid transparent',
@@ -256,8 +226,7 @@ const Billing = () => {
             }}
             row={(invoice) => {
               const isPastDue =
-                invoice.is_paid === false &&
-                dayjs(invoice.due_at).isBefore(dayjs(), 'day')
+                invoice.is_paid === false && dayjs(invoice.due_at).isBefore(dayjs(), 'day')
               return (
                 <>
                   <Grid size={{ xs: 3, md: 2.5 }}>
@@ -274,9 +243,7 @@ const Billing = () => {
                       <Grid size={4}>{invoice.description || '—'}</Grid>
                       <Grid size={1.5}>
                         {invoice.total_sum
-                          ? currencyFormatter.format(
-                              parseFloat(invoice.total_sum)
-                            )
+                          ? currencyFormatter.format(parseFloat(invoice.total_sum))
                           : '—'}
                       </Grid>
                       <Grid size={1} textAlign='center'>
@@ -294,18 +261,10 @@ const Billing = () => {
                       </Grid>
                       <Grid size={3} alignSelf='start' textAlign='right'>
                         {invoice.total_sum
-                          ? currencyFormatter.format(
-                              parseFloat(invoice.total_sum)
-                            )
+                          ? currencyFormatter.format(parseFloat(invoice.total_sum))
                           : '—'}
 
-                        <Box
-                          display='flex'
-                          alignItems='center'
-                          justifyContent='end'
-                          mt={1}
-                          gap={2}
-                        >
+                        <Box display='flex' alignItems='center' justifyContent='end' mt={1} gap={2}>
                           {renderStatus(invoice.is_paid, isPastDue)}
                           {downloadIcon(() => handleDownloadPdf(invoice.id))}
                         </Box>

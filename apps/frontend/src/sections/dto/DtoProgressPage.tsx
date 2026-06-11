@@ -31,10 +31,7 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { SelectMember } from '../../components/SelectMember'
 import { useRoles } from '../../hooks/useRoles'
 import { MIKPermissions, MIKMemberTypes } from '@backend/routes/members/models'
-import type {
-  StudentProgress,
-  TrainingProgram,
-} from '@backend/routes/dto/models'
+import type { StudentProgress, TrainingProgram } from '@backend/routes/dto/models'
 import { assignSyllabus } from './dtoApi'
 
 function formatMins(mins: number): string {
@@ -98,11 +95,7 @@ function AssignSyllabusDialog({
             onChange={(m) => setMemberId(m?.id ?? null)}
             label='Student'
             placeholder='Select member…'
-            memberType={[
-              MIKMemberTypes.FLYING,
-              MIKMemberTypes.JUNIOR,
-              MIKMemberTypes.HONORARY,
-            ]}
+            memberType={[MIKMemberTypes.FLYING, MIKMemberTypes.JUNIOR, MIKMemberTypes.HONORARY]}
             exclude={excludeMembers}
           />
           <FormControl fullWidth>
@@ -152,12 +145,7 @@ export default function DtoProgressPage() {
 
   return (
     <Box>
-      <Box
-        display='flex'
-        justifyContent='space-between'
-        alignItems='center'
-        mb={1}
-      >
+      <Box display='flex' justifyContent='space-between' alignItems='center' mb={1}>
         <Title label='DTO Student Progress' />
         {isDtoAdmin && (
           <Button
@@ -171,9 +159,7 @@ export default function DtoProgressPage() {
       </Box>
       <RemoteContent isLoading={isLoading} error={error}>
         {(progress?.length ?? 0) === 0 ? (
-          <Alert severity='info'>
-            No DTO students with an active syllabus assignment.
-          </Alert>
+          <Alert severity='info'>No DTO students with an active syllabus assignment.</Alert>
         ) : (
           <Table>
             <TableHead>
@@ -189,17 +175,10 @@ export default function DtoProgressPage() {
             <TableBody>
               {progress!.map((p) => {
                 const pct =
-                  p.totalFlights > 0
-                    ? Math.round((p.completedFlights / p.totalFlights) * 100)
-                    : 0
+                  p.totalFlights > 0 ? Math.round((p.completedFlights / p.totalFlights) * 100) : 0
                 const hasTimeReq = p.minBlockTimeMins != null
                 const timePct = hasTimeReq
-                  ? Math.min(
-                      100,
-                      Math.round(
-                        (p.totalBlockTimeMins / p.minBlockTimeMins!) * 100
-                      )
-                    )
+                  ? Math.min(100, Math.round((p.totalBlockTimeMins / p.minBlockTimeMins!) * 100))
                   : null
 
                 return (
@@ -246,23 +225,18 @@ export default function DtoProgressPage() {
                             <LinearProgress
                               variant='determinate'
                               value={timePct!}
-                              color={
-                                p.meetsTimeRequirement ? 'success' : 'warning'
-                              }
+                              color={p.meetsTimeRequirement ? 'success' : 'warning'}
                               sx={{ flex: 1, borderRadius: 1, height: 8 }}
                             />
                             <Typography
                               variant='body2'
                               sx={{
                                 minWidth: 90,
-                                color: p.meetsTimeRequirement
-                                  ? 'success.main'
-                                  : 'warning.main',
+                                color: p.meetsTimeRequirement ? 'success.main' : 'warning.main',
                                 fontWeight: p.meetsTimeRequirement ? 600 : 400,
                               }}
                             >
-                              {formatMins(p.totalBlockTimeMins)} /{' '}
-                              {formatMins(p.minBlockTimeMins!)}
+                              {formatMins(p.totalBlockTimeMins)} / {formatMins(p.minBlockTimeMins!)}
                             </Typography>
                           </Box>
                         </Tooltip>

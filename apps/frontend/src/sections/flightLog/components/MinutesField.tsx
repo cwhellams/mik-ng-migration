@@ -11,11 +11,7 @@ interface MinutesFieldProps {
   disabled?: boolean
 }
 
-export const MinutesField = ({
-  name,
-  control,
-  disabled,
-}: MinutesFieldProps) => {
+export const MinutesField = ({ name, control, disabled }: MinutesFieldProps) => {
   return (
     <Controller
       name={name}
@@ -41,9 +37,7 @@ export const MinutesField = ({
               },
             }}
           />
-          {error && (
-            <FormHelperText>{error.message?.toString()}</FormHelperText>
-          )}
+          {error && <FormHelperText>{error.message?.toString()}</FormHelperText>}
         </FormControl>
       )}
     />

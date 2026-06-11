@@ -14,19 +14,19 @@ properties:
   code:
     type: string
     description: Code assigned to the inventory item
-    example: "A-5451"
+    example: 'A-5451'
   name:
     type: string
     description: Name of the item or service
-    example: "Keyboard Dell X-55"
+    example: 'Keyboard Dell X-55'
   contents:
     type: string
     description: Description or details
-    example: "Types good, nice, 15% off!"
+    example: 'Types good, nice, 15% off!'
   unit:
     type: string
     description: Unit of measurement
-    example: "pcs."
+    example: 'pcs.'
   amount:
     type: number
     description: Quantity
@@ -34,11 +34,11 @@ properties:
   price_per_unit:
     type: number
     description: Price per unit
-    example: "3.5"
+    example: '3.5'
   worker:
     type: string
     description: Name of the worker responsible
-    example: "Admin"
+    example: 'Admin'
   vat:
     type: number
     description: VAT rate

@@ -138,7 +138,7 @@ describe('GET /outbox', () => {
 
     expect(response.status).toBe(200)
     const body = response.body as OutboxListResponse
-    const item = body.items.find(i => i.id === id)
+    const item = body.items.find((i) => i.id === id)
     expect(item).toBeDefined()
     expect(typeof item!.created_at_utc).toBe('string')
     expect(typeof item!.updated_at_utc).toBe('string')
@@ -159,7 +159,7 @@ describe('GET /outbox', () => {
 
     expect(response.status).toBe(200)
     const body = response.body as OutboxListResponse
-    const ids = body.items.map(i => i.id)
+    const ids = body.items.map((i) => i.id)
     expect(ids).toContain(failedId)
     expect(ids).not.toContain(pendingId)
   })
@@ -175,7 +175,7 @@ describe('GET /outbox', () => {
 
     expect(response.status).toBe(200)
     const body = response.body as OutboxListResponse
-    const ids = body.items.map(i => i.id)
+    const ids = body.items.map((i) => i.id)
     expect(ids).toContain(invoiceId)
     expect(ids).not.toContain(memberId)
   })
@@ -194,7 +194,7 @@ describe('GET /outbox', () => {
 
     expect(response.status).toBe(200)
     const body = response.body as OutboxListResponse
-    const ids = body.items.map(i => i.id)
+    const ids = body.items.map((i) => i.id)
     expect(ids).toContain(newId)
     expect(ids).not.toContain(oldId)
   })
@@ -213,7 +213,7 @@ describe('GET /outbox', () => {
 
     expect(response.status).toBe(200)
     const body = response.body as OutboxListResponse
-    const ids = body.items.map(i => i.id)
+    const ids = body.items.map((i) => i.id)
     expect(ids).toContain(oldId)
     expect(ids).not.toContain(newId)
   })
@@ -265,7 +265,7 @@ describe('GET /outbox', () => {
 
     expect(response.status).toBe(200)
     const body = response.body as OutboxListResponse
-    const ids = body.items.map(i => i.id)
+    const ids = body.items.map((i) => i.id)
     expect(ids.indexOf(laterId)).toBeLessThan(ids.indexOf(earlierId))
   })
 })

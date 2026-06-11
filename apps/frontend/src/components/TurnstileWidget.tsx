@@ -11,11 +11,7 @@ interface TurnstileWidgetProps {
  * Cloudflare Turnstile widget wrapper component
  * For local development, uses test site key that always passes
  */
-export const TurnstileWidget = ({
-  onSuccess,
-  onError,
-  disabled = false,
-}: TurnstileWidgetProps) => {
+export const TurnstileWidget = ({ onSuccess, onError, disabled = false }: TurnstileWidgetProps) => {
   const turnstileRef = useRef<TurnstileInstance>(null)
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
 

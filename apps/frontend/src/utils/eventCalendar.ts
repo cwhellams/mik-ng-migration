@@ -4,14 +4,9 @@ const formatIcsDate = (iso: string): string =>
   new Date(iso).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 
 const escapeIcsText = (text: string): string =>
-  text
-    .replace(/\\/g, '\\\\')
-    .replace(/;/g, '\\;')
-    .replace(/,/g, '\\,')
-    .replace(/\n/g, '\\n')
+  text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
 
-const sanitizeFilenamePart = (value: string): string =>
-  value.replace(/[^A-Za-z0-9._-]/g, '_')
+const sanitizeFilenamePart = (value: string): string => value.replace(/[^A-Za-z0-9._-]/g, '_')
 
 export const generateEventGoogleCalendarLink = (event: ClubEvent): string => {
   const start = formatIcsDate(event.startTime)

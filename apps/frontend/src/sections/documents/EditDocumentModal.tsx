@@ -25,12 +25,7 @@ interface EditDocumentModalProps {
   onSuccess: () => void
 }
 
-const EditDocumentModal = ({
-  open,
-  document,
-  onClose,
-  onSuccess,
-}: EditDocumentModalProps) => {
+const EditDocumentModal = ({ open, document, onClose, onSuccess }: EditDocumentModalProps) => {
   const { t } = useTranslation()
 
   const [formData, setFormData] = useState<DocumentUpdate>({
@@ -115,9 +110,7 @@ const EditDocumentModal = ({
             fullWidth
             label={t('documents.edit.title', 'Title')}
             value={formData.title}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, title: e.target.value }))
-            }
+            onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
             required
           />
 
@@ -125,9 +118,7 @@ const EditDocumentModal = ({
             fullWidth
             label={t('documents.edit.description', 'Description')}
             value={formData.description}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, description: e.target.value }))
-            }
+            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
             multiline
             rows={3}
           />
@@ -145,23 +136,13 @@ const EditDocumentModal = ({
               label={t('documents.edit.tags', 'Tags')}
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              placeholder={t(
-                'documents.tags.placeholder',
-                'Add tags (comma separated)...'
-              )}
-              helperText={t(
-                'documents.tags.placeholder',
-                'Add tags (comma separated)...'
-              )}
+              placeholder={t('documents.tags.placeholder', 'Add tags (comma separated)...')}
+              helperText={t('documents.tags.placeholder', 'Add tags (comma separated)...')}
             />
 
             {currentTags.length > 0 && (
               <Box sx={{ mt: 1 }}>
-                <Typography
-                  variant='body2'
-                  color='text.secondary'
-                  sx={{ mb: 1 }}
-                >
+                <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
                   Current tags:
                 </Typography>
                 <Stack direction='row' spacing={1} flexWrap='wrap' gap={1}>

@@ -8,10 +8,7 @@ import {
   AircraftDocumentListResponse,
   AircraftDocumentType,
 } from '@backend/routes/aircraft-documents/models'
-import {
-  DOCUMENT_CONSTANTS,
-  DEFAULT_ALLOWED_FILE_TYPES,
-} from '../utils/documentHelpers'
+import { DOCUMENT_CONSTANTS, DEFAULT_ALLOWED_FILE_TYPES } from '../utils/documentHelpers'
 
 export interface AircraftDocumentFile extends File {
   documentType: AircraftDocumentType
@@ -46,9 +43,7 @@ export const useAircraftDocumentUpload = ({
   allowedFileTypes = DEFAULT_ALLOWED_FILE_TYPES as readonly string[],
 }: UseAircraftDocumentUploadOptions) => {
   const { t } = useTranslation()
-  const [uploadProgresses, setUploadProgresses] = useState<
-    Map<string, UploadProgress>
-  >(new Map())
+  const [uploadProgresses, setUploadProgresses] = useState<Map<string, UploadProgress>>(new Map())
   const [isUploading, setIsUploading] = useState(false)
 
   const filters = useMemo<AircraftDocumentFilters>(
@@ -57,7 +52,7 @@ export const useAircraftDocumentUpload = ({
       limit: DOCUMENT_CONSTANTS.DEFAULT_LIMIT,
       offset: DOCUMENT_CONSTANTS.DEFAULT_OFFSET,
     }),
-    [aircraftRegistration]
+    [aircraftRegistration],
   )
 
   const {
@@ -96,14 +91,14 @@ export const useAircraftDocumentUpload = ({
 
       return null
     },
-    [maxFileSize, allowedFileTypes, t]
+    [maxFileSize, allowedFileTypes, t],
   )
 
   // Check for validity date overlaps
   const validateDateOverlap = useCallback(
     async (
       docFilter: AircraftDocumentFilters,
-      excludeDocumentId?: number
+      excludeDocumentId?: number,
     ): Promise<string | null> => {
       const { validFrom, validTo, documentType } = docFilter
       if (!validFrom || !validTo) return null
@@ -114,13 +109,11 @@ export const useAircraftDocumentUpload = ({
 
       try {
         const existingDocs = (data?.documents ?? []).filter(
-          (doc: AircraftDocument) =>
-            doc.documentId !== excludeDocumentId && doc.isActive
+          (doc: AircraftDocument) => doc.documentId !== excludeDocumentId && doc.isActive,
         )
 
         for (const doc of existingDocs) {
-          const isOtherType =
-            documentType === 'Other' || doc.documentType === 'Other'
+          const isOtherType = documentType === 'Other' || doc.documentType === 'Other'
           const isSameType = doc.documentType === documentType
 
           if (isOtherType || !isSameType) continue
@@ -147,23 +140,20 @@ export const useAircraftDocumentUpload = ({
 
       return null
     },
-    [fetch, filters, t]
+    [fetch, filters, t],
   )
 
   // Update progress for a specific file
-  const updateProgress = useCallback(
-    (fileId: string, update: Partial<UploadProgress>) => {
-      setUploadProgresses((prev) => {
-        const newMap = new Map(prev)
-        const current = newMap.get(fileId)
-        if (current) {
-          newMap.set(fileId, { ...current, ...update })
-        }
-        return newMap
-      })
-    },
-    []
-  )
+  const updateProgress = useCallback((fileId: string, update: Partial<UploadProgress>) => {
+    setUploadProgresses((prev) => {
+      const newMap = new Map(prev)
+      const current = newMap.get(fileId)
+      if (current) {
+        newMap.set(fileId, { ...current, ...update })
+      }
+      return newMap
+    })
+  }, [])
 
   // Upload a single file
   const uploadFile = useCallback(
@@ -177,7 +167,7 @@ export const useAircraftDocumentUpload = ({
           fileName: file.name,
           progress: 0,
           status: 'pending',
-        })
+        }),
       )
 
       try {
@@ -230,9 +220,7 @@ export const useAircraftDocumentUpload = ({
         updateProgress(fileId, { progress: 80 })
 
         if (response.error) {
-          throw new Error(
-            response.error.detail || `HTTP ${response.error.status}`
-          )
+          throw new Error(response.error.detail || `HTTP ${response.error.status}`)
         }
 
         const document: AircraftDocumentAuditable | undefined = response.data
@@ -246,8 +234,7 @@ export const useAircraftDocumentUpload = ({
 
         return null
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Upload failed'
+        const errorMessage = error instanceof Error ? error.message : 'Upload failed'
         updateProgress(fileId, { status: 'error', error: errorMessage })
         onUploadError?.(errorMessage, file.name)
         return null
@@ -261,7 +248,7 @@ export const useAircraftDocumentUpload = ({
       onUploadError,
       validateDateOverlap,
       onUploadComplete,
-    ]
+    ],
   )
 
   // Upload multiple files
@@ -287,7 +274,7 @@ export const useAircraftDocumentUpload = ({
 
       return results
     },
-    [aircraftRegistration, uploadFile]
+    [aircraftRegistration, uploadFile],
   )
 
   // Clear completed uploads from progress tracking

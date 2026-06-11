@@ -27,10 +27,7 @@ import dayjs from 'dayjs'
 import { HoursAndMinutes } from './HoursAndMinutes'
 import { splitTime } from '../utils/timeUtils'
 import { FormField } from '../../../components/FormField'
-import {
-  FlightLogListResponse,
-  FlightLogStatus,
-} from '@backend/routes/flight-log/models'
+import { FlightLogListResponse, FlightLogStatus } from '@backend/routes/flight-log/models'
 import { FlightTable } from './FlightTable'
 import { Problem } from '@backend/routes/response'
 import { SnackAlert } from '../../../components/SnackAlert'
@@ -112,10 +109,7 @@ export const AjlbEditor = ({
     await trigger(isNewBook ? 'POST' : 'PATCH')
   }
 
-  const handleChange = (
-    field: keyof AircraftJourneyLogBook,
-    value: string | number | null
-  ) => {
+  const handleChange = (field: keyof AircraftJourneyLogBook, value: string | number | null) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -152,9 +146,7 @@ export const AjlbEditor = ({
               inputMode='numeric'
               label={t('flightLog.logbooks.noOfPages')}
               value={formData.noOfPages || ''}
-              onChange={({ target }) =>
-                handleChange('noOfPages', Number(target.value))
-              }
+              onChange={({ target }) => handleChange('noOfPages', Number(target.value))}
             />
           </Grid>
 
@@ -166,9 +158,7 @@ export const AjlbEditor = ({
               inputMode='numeric'
               label={t('flightLog.logbooks.rowsPerPage')}
               value={formData.rowsPerPage || ''}
-              onChange={({ target }) =>
-                handleChange('rowsPerPage', Number(target.value))
-              }
+              onChange={({ target }) => handleChange('rowsPerPage', Number(target.value))}
             />
           </Grid>
 
@@ -180,9 +170,7 @@ export const AjlbEditor = ({
               inputMode='numeric'
               label={t('flightLog.logbooks.startPage')}
               value={formData.startPage || ''}
-              onChange={({ target }) =>
-                handleChange('startPage', Number(target.value))
-              }
+              onChange={({ target }) => handleChange('startPage', Number(target.value))}
             />
           </Grid>
 
@@ -191,9 +179,7 @@ export const AjlbEditor = ({
               label={t('flightLog.logbooks.validFrom')}
               defaultValue={dayjs()}
               value={dayjs(formData.startDate)}
-              onChange={(value) =>
-                handleChange('startDate', value?.format('YYYY-MM-DD') ?? '')
-              }
+              onChange={(value) => handleChange('startDate', value?.format('YYYY-MM-DD') ?? '')}
             />
           </Grid>
 
@@ -208,9 +194,7 @@ export const AjlbEditor = ({
                   onClear: () => handleChange('endDate', null),
                 },
               }}
-              onChange={(value) =>
-                handleChange('endDate', value?.format('YYYY-MM-DD') ?? null)
-              }
+              onChange={(value) => handleChange('endDate', value?.format('YYYY-MM-DD') ?? null)}
             />
           </Grid>
         </Grid>
@@ -222,10 +206,7 @@ export const AjlbEditor = ({
     book && (
       <Card>
         <CardContent>
-          <FormTitle
-            title={t('flightLog.logbooks.flightTimeAtStart')}
-            icon='mdi:clock'
-          />
+          <FormTitle title={t('flightLog.logbooks.flightTimeAtStart')} icon='mdi:clock' />
 
           <Grid container spacing={2}>
             <Grid size={12}>
@@ -249,24 +230,15 @@ export const AjlbEditor = ({
 
             {!isNewBook && (
               <Grid size={12}>
-                <FormField
-                  label={t('flightLog.logbooks.verifiedTotalFlightTime')}
-                  width={200}
-                >
+                <FormField label={t('flightLog.logbooks.verifiedTotalFlightTime')} width={200}>
                   {book.view?.verifiedTotalFlightTime}
                 </FormField>
 
-                <FormField
-                  label={t('flightLog.logbooks.unverifiedFlights')}
-                  width={200}
-                >
+                <FormField label={t('flightLog.logbooks.unverifiedFlights')} width={200}>
                   {book.view?.newFlightsCount}
                 </FormField>
 
-                <FormField
-                  label={t('flightLog.logbooks.unverifiedFlightsTime')}
-                  width={200}
-                >
+                <FormField label={t('flightLog.logbooks.unverifiedFlightsTime')} width={200}>
                   {book.view?.newFlightsTime}
                 </FormField>
               </Grid>
@@ -274,11 +246,7 @@ export const AjlbEditor = ({
 
             {isNewBook && (
               <>
-                <Typography
-                  variant='subtitle1'
-                  gutterBottom
-                  fontWeight='medium'
-                >
+                <Typography variant='subtitle1' gutterBottom fontWeight='medium'>
                   {t('flightLog.logbooks.flightsToMove')}
                 </Typography>
                 <FlightTable flights={flightLogs?.logs ?? []} />
@@ -290,9 +258,7 @@ export const AjlbEditor = ({
           <CardActions sx={{ m: 1 }}>
             <Button
               onClick={() => {
-                const { hours, minutes } = splitTime(
-                  book.view?.validatedFlightsTime ?? '00:00'
-                )
+                const { hours, minutes } = splitTime(book.view?.validatedFlightsTime ?? '00:00')
 
                 onClose({
                   ...formData,
@@ -327,23 +293,12 @@ export const AjlbEditor = ({
     book && (
       <Card>
         <CardContent>
-          <FormTitle
-            title={t('flightLog.logbooks.details')}
-            icon='mdi:information'
-          />
+          <FormTitle title={t('flightLog.logbooks.details')} icon='mdi:information' />
 
           <Stack spacing={1.5}>
-            <AuditFormField
-              label={t('member.created')}
-              by={book.createdBy}
-              at={book.createdAt}
-            />
+            <AuditFormField label={t('member.created')} by={book.createdBy} at={book.createdAt} />
 
-            <AuditFormField
-              label={t('member.updated')}
-              by={book.updatedBy}
-              at={book.updatedAt}
-            />
+            <AuditFormField label={t('member.updated')} by={book.updatedBy} at={book.updatedAt} />
           </Stack>
         </CardContent>
       </Card>
@@ -364,11 +319,7 @@ export const AjlbEditor = ({
       }}
     >
       <EditDialogTitle
-        title={
-          isNewBook
-            ? 'flightLog.logbooks.newAjlb'
-            : 'flightLog.logbooks.editAjlb'
-        }
+        title={isNewBook ? 'flightLog.logbooks.newAjlb' : 'flightLog.logbooks.editAjlb'}
         onClose={() => onClose()}
       />
 
@@ -385,19 +336,9 @@ export const AjlbEditor = ({
       </DialogContent>
 
       <DialogActions>
-        <Grid
-          size={12}
-          justifyContent='space-between'
-          display='flex'
-          flexGrow={1}
-        >
+        <Grid size={12} justifyContent='space-between' display='flex' flexGrow={1}>
           <Grid>
-            {!isNewBook && (
-              <RemoveButton
-                onClick={handleRemove}
-                loading={mutation.isMutating}
-              />
-            )}
+            {!isNewBook && <RemoveButton onClick={handleRemove} loading={mutation.isMutating} />}
           </Grid>
 
           <Grid display='flex' gap={2}>

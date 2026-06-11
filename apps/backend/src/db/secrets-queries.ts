@@ -17,11 +17,11 @@ export const getAllSecrets = async (isAdmin: boolean): Promise<Secret[]> => {
       'created_by as createdBy',
       'updated_by as updatedBy',
     ])
-    .$if(!isAdmin, qb => qb.where('secret_class', '=', 'MEMBER'))
+    .$if(!isAdmin, (qb) => qb.where('secret_class', '=', 'MEMBER'))
     .orderBy('secret_key', 'asc')
     .execute()
 
-  return secrets.map(secret => ({
+  return secrets.map((secret) => ({
     ...secret,
     id: Number(secret.id),
     createdAt: secret.createdAt.toISOString(),

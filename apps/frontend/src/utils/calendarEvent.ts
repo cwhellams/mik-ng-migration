@@ -6,14 +6,9 @@ const formatIcsDate = (epoch: string): string => {
 }
 
 const escapeIcsText = (text: string): string =>
-  text
-    .replace(/\\/g, '\\\\')
-    .replace(/;/g, '\\;')
-    .replace(/,/g, '\\,')
-    .replace(/\n/g, '\\n')
+  text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
 
-const sanitizeFilenamePart = (value: string): string =>
-  value.replace(/[^A-Za-z0-9._-]/g, '_')
+const sanitizeFilenamePart = (value: string): string => value.replace(/[^A-Za-z0-9._-]/g, '_')
 
 export const generateGoogleCalendarLink = (booking: Booking): string => {
   const start = formatIcsDate(booking.startTimeEpoch)

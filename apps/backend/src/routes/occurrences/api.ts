@@ -54,7 +54,7 @@ const anonymize = (occurrence: Occurrence) => {
 
   return {
     ...occurrence,
-    access: occurrence.access.map(a => ({
+    access: occurrence.access.map((a) => ({
       ...a,
       memberId: anonymize && a.author ? '-' : a.memberId,
       lastName: anonymize && a.author ? 'Author' : a.lastName,
@@ -125,7 +125,7 @@ router.post('/', async (req: Request, res: Response<Occurrence>) => {
           manage: true,
         },
         // SMS processors can mark the report received but not modify it
-        ...smsProcessorRoles.map(role => ({
+        ...smsProcessorRoles.map((role) => ({
           author: false,
           roleId: role.roleId,
           write: false,
@@ -147,7 +147,7 @@ router.post('/', async (req: Request, res: Response<Occurrence>) => {
   const anonymized = anonymize(created)
   await sendOccurrenceNotification(
     sendEmail,
-    smsProcessorRoles.map(r => r.roleId),
+    smsProcessorRoles.map((r) => r.roleId),
     anonymized,
   )
 
@@ -347,7 +347,7 @@ router.post(
               status: OccurrenceStatus.ANONYMIZING,
             },
           ],
-          access: occurrence.access.map(access => ({
+          access: occurrence.access.map((access) => ({
             ...access,
             // SMS processors have now write access to the anonymizing report,
             // everyone (authors) else can only read
@@ -394,14 +394,14 @@ router.post(
 
       // Change manage roles from SMS processors to SMS managers
       const deletedAccessIds = occurrence.access
-        .filter(access => access.manage)
-        .map(access => access.accessId!)
+        .filter((access) => access.manage)
+        .map((access) => access.accessId!)
       await deleteOccurrenceAccess(occurrence.id, ...deletedAccessIds)
       const newAccesses = await addOccurrenceAccess(
         occurrence.id,
         req.user!,
         // add SMS managers with full access
-        ...smsManagerRoles.map(role => ({
+        ...smsManagerRoles.map((role) => ({
           roleId: role.roleId,
           author: false,
           write: true,
@@ -410,7 +410,7 @@ router.post(
       )
 
       const access = occurrence.access
-        .filter(access => !deletedAccessIds.includes(access.accessId!))
+        .filter((access) => !deletedAccessIds.includes(access.accessId!))
         .concat(newAccesses)
 
       const anonymized = anonymize({ ...updated, access: access })
@@ -418,7 +418,7 @@ router.post(
       // send email notifications to SMS managers
       await sendOccurrenceNotification(
         sendEmail,
-        smsManagerRoles.map(r => r.roleId),
+        smsManagerRoles.map((r) => r.roleId),
         anonymized,
       )
 

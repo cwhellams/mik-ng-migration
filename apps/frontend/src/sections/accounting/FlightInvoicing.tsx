@@ -11,10 +11,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
-import {
-  InvoicableFlights,
-  InvoicableFlightFilters,
-} from '@backend/routes/flight-log/models'
+import { InvoicableFlights, InvoicableFlightFilters } from '@backend/routes/flight-log/models'
 import { dayjs } from '../../utils/date'
 import { useState } from 'react'
 import { InvoicingRange } from './components/InvoicingRange'
@@ -62,9 +59,7 @@ export const FlightInvoicing = () => {
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const activeStep = searchParams.get('step')
-    ? Number(searchParams.get('step'))
-    : 0
+  const activeStep = searchParams.get('step') ? Number(searchParams.get('step')) : 0
 
   const navigate = {
     next: () =>
@@ -100,11 +95,7 @@ export const FlightInvoicing = () => {
       </Stepper>
 
       {activeStep === 0 && (
-        <InvoicingRange
-          filters={filters}
-          setFilters={setFilters}
-          navigate={navigate}
-        />
+        <InvoicingRange filters={filters} setFilters={setFilters} navigate={navigate} />
       )}
 
       {activeStep === 1 && (
@@ -146,11 +137,7 @@ export const FlightInvoicing = () => {
       )}
 
       {activeStep === 5 && (
-        <PartiallyBillableFlights
-          filters={filters}
-          setFilters={setFilters}
-          navigate={navigate}
-        />
+        <PartiallyBillableFlights filters={filters} setFilters={setFilters} navigate={navigate} />
       )}
 
       {activeStep === 6 && (
@@ -175,9 +162,7 @@ export const FlightInvoicing = () => {
         />
       )}
 
-      {activeStep === 8 && (
-        <PrepaidBalanceFlights filters={filters} navigate={navigate} />
-      )}
+      {activeStep === 8 && <PrepaidBalanceFlights filters={filters} navigate={navigate} />}
 
       {activeStep === steps.length && (
         <>

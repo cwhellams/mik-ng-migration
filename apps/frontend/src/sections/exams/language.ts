@@ -4,9 +4,7 @@ export const EXAM_LANGUAGES = ['en', 'fi', 'sv'] as const
 
 export type ExamLanguage = (typeof EXAM_LANGUAGES)[number]
 
-type VersionLanguageConfig = Partial<
-  Pick<ExamVersion, 'defaultLanguage' | 'supportedLanguages'>
->
+type VersionLanguageConfig = Partial<Pick<ExamVersion, 'defaultLanguage' | 'supportedLanguages'>>
 
 function isExamLanguage(language: string): language is ExamLanguage {
   return EXAM_LANGUAGES.includes(language as ExamLanguage)
@@ -20,16 +18,12 @@ export function resolveExamUiLanguage(language: string): ExamLanguage {
 
 export function getConfiguredExamLanguages(
   config: VersionLanguageConfig,
-  availableLanguages: readonly string[] = []
+  availableLanguages: readonly string[] = [],
 ): ExamLanguage[] {
-  const configuredLanguages =
-    config.supportedLanguages?.filter(isExamLanguage) ?? []
-  const fallbackLanguages = [
-    config.defaultLanguage,
-    ...availableLanguages,
-  ].filter(
+  const configuredLanguages = config.supportedLanguages?.filter(isExamLanguage) ?? []
+  const fallbackLanguages = [config.defaultLanguage, ...availableLanguages].filter(
     (language): language is ExamLanguage =>
-      typeof language === 'string' && isExamLanguage(language)
+      typeof language === 'string' && isExamLanguage(language),
   )
 
   return [...new Set([...configuredLanguages, ...fallbackLanguages])]
@@ -38,12 +32,9 @@ export function getConfiguredExamLanguages(
 export function getPreferredExamLanguage(
   preferredLanguage: string,
   config: VersionLanguageConfig,
-  availableLanguages: readonly string[] = []
+  availableLanguages: readonly string[] = [],
 ): ExamLanguage | undefined {
-  const configuredLanguages = getConfiguredExamLanguages(
-    config,
-    availableLanguages
-  )
+  const configuredLanguages = getConfiguredExamLanguages(config, availableLanguages)
   if (configuredLanguages.length === 0) return undefined
 
   const candidates = [
@@ -58,7 +49,7 @@ export function getPreferredExamLanguage(
       (language): language is ExamLanguage =>
         typeof language === 'string' &&
         isExamLanguage(language) &&
-        configuredLanguages.includes(language)
+        configuredLanguages.includes(language),
     ) ?? configuredLanguages[0]
   )
 }

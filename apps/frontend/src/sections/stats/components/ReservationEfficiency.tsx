@@ -59,7 +59,7 @@ export const ReservationEfficiency = () => {
 
   const { yrFrom, yrTo } = useMemo(
     () => (period === 'year' ? getYearRange() : getMonthlyRange()),
-    [period]
+    [period],
   )
 
   const nivoTheme = useMemo(
@@ -93,7 +93,7 @@ export const ReservationEfficiency = () => {
         text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
       },
     }),
-    [mode]
+    [mode],
   )
 
   // Overall by year
@@ -107,7 +107,7 @@ export const ReservationEfficiency = () => {
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'overall' || period !== 'year',
     },
-    { refreshInterval: 0 }
+    { refreshInterval: 0 },
   )
 
   // Overall by year/month
@@ -121,7 +121,7 @@ export const ReservationEfficiency = () => {
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'overall' || period !== 'month',
     },
-    { refreshInterval: 0 }
+    { refreshInterval: 0 },
   )
 
   // By aircraft, year
@@ -135,7 +135,7 @@ export const ReservationEfficiency = () => {
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'aircraft' || period !== 'year',
     },
-    { refreshInterval: 0 }
+    { refreshInterval: 0 },
   )
 
   // By aircraft, year/month
@@ -149,7 +149,7 @@ export const ReservationEfficiency = () => {
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'aircraft' || period !== 'month',
     },
-    { refreshInterval: 0 }
+    { refreshInterval: 0 },
   )
 
   // By member, year
@@ -163,7 +163,7 @@ export const ReservationEfficiency = () => {
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'member' || period !== 'year',
     },
-    { refreshInterval: 0 }
+    { refreshInterval: 0 },
   )
 
   // By member, year/month
@@ -177,7 +177,7 @@ export const ReservationEfficiency = () => {
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'member' || period !== 'month',
     },
-    { refreshInterval: 0 }
+    { refreshInterval: 0 },
   )
 
   // Build bar chart data for overall by year
@@ -201,9 +201,7 @@ export const ReservationEfficiency = () => {
     const last12Months: string[] = []
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      last12Months.push(
-        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      )
+      last12Months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
     }
     return overallByYrMth
       .filter((d) => d.yr != null && d.mth != null)
@@ -220,21 +218,16 @@ export const ReservationEfficiency = () => {
   // Build bar chart data for aircraft by year
   const aircraftYearBarData = useMemo(() => {
     if (!byAcYr) return []
-    const grouped = new Map<
-      string,
-      { period: string; [ac: string]: number | string }
-    >()
+    const grouped = new Map<string, { period: string; [ac: string]: number | string }>()
     byAcYr
       .filter((d) => d.yr != null && d.aircraft_registration != null)
       .forEach((d) => {
         const period = String(d.yr)
         if (!grouped.has(period)) grouped.set(period, { period })
-        grouped.get(period)![d.aircraft_registration!] = Number(
-          d.efficiency_pct ?? 0
-        )
+        grouped.get(period)![d.aircraft_registration!] = Number(d.efficiency_pct ?? 0)
       })
     return Array.from(grouped.values()).sort((a, b) =>
-      String(a.period).localeCompare(String(b.period))
+      String(a.period).localeCompare(String(b.period)),
     )
   }, [byAcYr])
 
@@ -245,31 +238,20 @@ export const ReservationEfficiency = () => {
     const last12Months: string[] = []
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      last12Months.push(
-        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      )
+      last12Months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
     }
-    const grouped = new Map<
-      string,
-      { period: string; [ac: string]: number | string }
-    >()
+    const grouped = new Map<string, { period: string; [ac: string]: number | string }>()
     byAcYrMth
-      .filter(
-        (d) => d.yr != null && d.mth != null && d.aircraft_registration != null
-      )
+      .filter((d) => d.yr != null && d.mth != null && d.aircraft_registration != null)
       .forEach((d) => {
         const period = `${d.yr}-${String(d.mth).padStart(2, '0')}`
         if (!last12Months.includes(period)) return
         if (!grouped.has(period)) grouped.set(period, { period })
-        grouped.get(period)![d.aircraft_registration!] = Number(
-          d.efficiency_pct ?? 0
-        )
+        grouped.get(period)![d.aircraft_registration!] = Number(d.efficiency_pct ?? 0)
       })
     return last12Months
       .map((p) => grouped.get(p) ?? { period: p })
-      .filter(
-        (d): d is { period: string; [ac: string]: number | string } => d != null
-      )
+      .filter((d): d is { period: string; [ac: string]: number | string } => d != null)
   }, [byAcYrMth])
 
   // Aircraft keys for bar chart
@@ -289,9 +271,7 @@ export const ReservationEfficiency = () => {
     const currentYear = new Date().getFullYear()
     return byMemberYr
       .filter((d) => d.yr === currentYear && d.member != null)
-      .sort(
-        (a, b) => Number(b.efficiency_pct ?? 0) - Number(a.efficiency_pct ?? 0)
-      )
+      .sort((a, b) => Number(b.efficiency_pct ?? 0) - Number(a.efficiency_pct ?? 0))
       .slice(0, 20)
       .map((d) => ({
         member: d.member!.substring(0, 8),
@@ -308,9 +288,7 @@ export const ReservationEfficiency = () => {
     const last12Months: string[] = []
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      last12Months.push(
-        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      )
+      last12Months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
     }
     // Aggregate all members into single overall efficiency per month
     const monthMap = new Map<string, { flight: number; reserved: number }>()
@@ -337,39 +315,31 @@ export const ReservationEfficiency = () => {
 
   // Determine current loading/error state
   const isLoading = (() => {
-    if (groupBy === 'overall')
-      return period === 'year' ? overallByYrLoading : overallByYrMthLoading
-    if (groupBy === 'aircraft')
-      return period === 'year' ? byAcYrLoading : byAcYrMthLoading
+    if (groupBy === 'overall') return period === 'year' ? overallByYrLoading : overallByYrMthLoading
+    if (groupBy === 'aircraft') return period === 'year' ? byAcYrLoading : byAcYrMthLoading
     return period === 'year' ? byMemberYrLoading : byMemberYrMthLoading
   })()
 
   const error = (() => {
-    if (groupBy === 'overall')
-      return period === 'year' ? overallByYrError : overallByYrMthError
-    if (groupBy === 'aircraft')
-      return period === 'year' ? byAcYrError : byAcYrMthError
+    if (groupBy === 'overall') return period === 'year' ? overallByYrError : overallByYrMthError
+    if (groupBy === 'aircraft') return period === 'year' ? byAcYrError : byAcYrMthError
     return period === 'year' ? byMemberYrError : byMemberYrMthError
   })()
 
   // Overall summary card data
   const allTimeEfficiency = useMemo(() => {
     if (!overallByYr || overallByYr.length === 0) return null
-    const totalFlight = overallByYr.reduce(
-      (sum, d) => sum + Number(d.total_flight_mins ?? 0),
-      0
-    )
+    const totalFlight = overallByYr.reduce((sum, d) => sum + Number(d.total_flight_mins ?? 0), 0)
     const totalReserved = overallByYr.reduce(
       (sum, d) => sum + Number(d.total_reserved_mins ?? 0),
-      0
+      0,
     )
     if (totalReserved === 0) return 0
     return Math.round((totalFlight / totalReserved) * 100 * 100) / 100
   }, [overallByYr])
 
   const barData = (() => {
-    if (groupBy === 'overall')
-      return period === 'year' ? overallYearBarData : overallMonthBarData
+    if (groupBy === 'overall') return period === 'year' ? overallYearBarData : overallMonthBarData
     if (groupBy === 'aircraft')
       return period === 'year' ? aircraftYearBarData : aircraftMonthBarData
     return period === 'year' ? [] : memberMonthBarData
@@ -428,9 +398,7 @@ export const ReservationEfficiency = () => {
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
                 <Typography variant='h3' color='primary'>
-                  {allTimeEfficiency != null
-                    ? `${Number(allTimeEfficiency).toFixed(1)}%`
-                    : '—'}
+                  {allTimeEfficiency != null ? `${Number(allTimeEfficiency).toFixed(1)}%` : '—'}
                 </Typography>
                 <Typography variant='subtitle1' color='text.secondary'>
                   All-time Reservation Efficiency
@@ -450,8 +418,7 @@ export const ReservationEfficiency = () => {
           <Card sx={{ mb: 3 }}>
             <CardContent>
               <Typography variant='h6' gutterBottom>
-                Reservation Efficiency{' '}
-                {groupBy === 'aircraft' ? 'by Aircraft' : ''} (
+                Reservation Efficiency {groupBy === 'aircraft' ? 'by Aircraft' : ''} (
                 {period === 'year' ? 'Yearly' : 'Last 12 Months'})
               </Typography>
               <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
@@ -508,8 +475,7 @@ export const ReservationEfficiency = () => {
                         })}
                       >
                         <strong>{indexValue}</strong>
-                        {groupBy === 'aircraft' && ` — ${id}`}:{' '}
-                        {Number(value ?? 0).toFixed(1)}%
+                        {groupBy === 'aircraft' && ` — ${id}`}: {Number(value ?? 0).toFixed(1)}%
                       </Box>
                     )}
                     theme={nivoTheme}
@@ -543,9 +509,7 @@ export const ReservationEfficiency = () => {
                       height: '100%',
                     }}
                   >
-                    <Typography color='text.secondary'>
-                      No data available
-                    </Typography>
+                    <Typography color='text.secondary'>No data available</Typography>
                   </Box>
                 )}
               </Box>
@@ -611,11 +575,7 @@ export const ReservationEfficiency = () => {
                     <tbody>
                       {memberYearTableData.map((row) => (
                         <tr key={row.member}>
-                          <td
-                            style={{ padding: '8px', fontFamily: 'monospace' }}
-                          >
-                            {row.member}…
-                          </td>
+                          <td style={{ padding: '8px', fontFamily: 'monospace' }}>{row.member}…</td>
                           <td style={{ padding: '8px', textAlign: 'right' }}>
                             {Math.round(row.flight_mins)}
                           </td>
@@ -635,9 +595,7 @@ export const ReservationEfficiency = () => {
                   </table>
                 </Box>
               ) : (
-                <Typography color='text.secondary'>
-                  No data available
-                </Typography>
+                <Typography color='text.secondary'>No data available</Typography>
               )}
             </CardContent>
           </Card>
@@ -645,10 +603,7 @@ export const ReservationEfficiency = () => {
       )}
 
       {groupBy === 'member' && period === 'month' && (
-        <RemoteContent
-          isLoading={byMemberYrMthLoading}
-          error={byMemberYrMthError}
-        >
+        <RemoteContent isLoading={byMemberYrMthLoading} error={byMemberYrMthError}>
           <Card sx={{ mb: 3 }}>
             <CardContent>
               <Typography variant='h6' gutterBottom>
@@ -707,9 +662,7 @@ export const ReservationEfficiency = () => {
                       height: '100%',
                     }}
                   >
-                    <Typography color='text.secondary'>
-                      No data available
-                    </Typography>
+                    <Typography color='text.secondary'>No data available</Typography>
                   </Box>
                 )}
               </Box>

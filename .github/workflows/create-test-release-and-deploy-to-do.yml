@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version_tag:
-        description: "Enter the version tag to deploy to test (e.g. v1.2.3)"
+        description: 'Enter the version tag to deploy to test (e.g. v1.2.3)'
         required: true
         type: string
 

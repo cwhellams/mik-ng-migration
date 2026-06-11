@@ -384,7 +384,7 @@ describe('POST /occurrences', () => {
     expect(created.body).toEqual({
       ...expected,
       // not returned when creating the occurrence
-      access: expected.access.map(a => ({ ...a, lastName: undefined })),
+      access: expected.access.map((a) => ({ ...a, lastName: undefined })),
     })
 
     const updated = await patch(created.body.id, { animalNumber: '1' }, userToken)
@@ -492,7 +492,7 @@ describe('POST /occurrences/status', () => {
 
     expect(created.body).toEqual({
       ...expected,
-      access: expected.access.map(a => ({ ...a, lastName: undefined })),
+      access: expected.access.map((a) => ({ ...a, lastName: undefined })),
     })
     expect((await query(originalId, userToken)).body).toEqual(expected)
     expect((await query(originalId, processorToken)).body).toEqual(expected)

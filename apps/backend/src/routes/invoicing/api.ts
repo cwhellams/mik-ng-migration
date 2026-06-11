@@ -63,7 +63,7 @@ router.get('/', async (req: Request, res: Response<InvoiceListResponse>) => {
   const parsed = InvoiceItemQuerySchema.safeParse(req.query)
 
   if (!parsed.success) {
-    const errors = parsed.error.issues.map(issue => ({
+    const errors = parsed.error.issues.map((issue) => ({
       path: issue.path.join('.'),
       message: issue.message,
       code: issue.code,
@@ -82,7 +82,7 @@ router.get('/', async (req: Request, res: Response<InvoiceListResponse>) => {
   const rawItems = await getInvoices(req.user?.memberId!, isAdmin, filters)
 
   logger.info(`Fetched ${rawItems.length} invoices with filters: ${JSON.stringify(filters)}`)
-  const invoices: Invoice[] = rawItems.map(row => ({
+  const invoices: Invoice[] = rawItems.map((row) => ({
     id: String(row.id),
     created_at: row.created_at ? new Date(row.created_at as any).toISOString() : '',
     created_by: row.created_by,
@@ -113,7 +113,7 @@ router.get(
     const invoices = await getUnpaidOverdueInvoicesWithMemberInfo()
 
     const totalSum = invoices
-      .filter(inv => inv.total_sum !== null)
+      .filter((inv) => inv.total_sum !== null)
       .reduce((sum, inv) => sum + parseFloat(inv.total_sum!), 0)
 
     const response: UnpaidOverdueInvoiceListResponse = {
@@ -151,7 +151,7 @@ router.get(
     const planned = await planPrepaidFlightUsage(response.logs)
 
     res.status(200).json({
-      groups: planned.groups.filter(group => group.availablePrepaidMinutes > 0),
+      groups: planned.groups.filter((group) => group.availablePrepaidMinutes > 0),
     })
   },
 )
@@ -295,7 +295,7 @@ router.post(
   async (req: Request, res: Response<AnnualBillingResponse>) => {
     logger.info('Annual membership processing triggered.')
 
-    const result = await createAnnualMemberFeesForMembers(req.user!.memberId).catch(error => {
+    const result = await createAnnualMemberFeesForMembers(req.user!.memberId).catch((error) => {
       logger.error('Error during annual membership processing:', error)
       return problem({
         status: HttpStatusCode.InternalServerError,
@@ -308,7 +308,7 @@ router.post(
 )
 
 router.post('/requestOwnEquipmentFeeInvoice', async (req: Request, res: Response) => {
-  const result = await createAnnualEquipmentFeeForMember(req.user!.memberId).catch(error => {
+  const result = await createAnnualEquipmentFeeForMember(req.user!.memberId).catch((error) => {
     logger.error('Error during equipment fee invoice processing:', error)
     res.status(HttpStatusCode.BadRequest).json({
       detail: error.message,
@@ -333,7 +333,7 @@ router.post('/sendEquipmentFeeInvoiceToMember', async (req: Request, res: Respon
   const { memberId } = req.body
 
   if (isAdmin) {
-    const result = await createAnnualEquipmentFeeForMember(memberId).catch(error => {
+    const result = await createAnnualEquipmentFeeForMember(memberId).catch((error) => {
       logger.error('Error during equipment fee invoice processing:', error)
       res.status(HttpStatusCode.BadRequest).json({
         detail: error.message,

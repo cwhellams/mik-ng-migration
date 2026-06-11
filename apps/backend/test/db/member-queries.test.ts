@@ -58,7 +58,7 @@ describe('Db query member tests', () => {
       memberSince: expect.any(String),
       updatedBy: expect.any(String),
       membershipApprovedAt: expect.any(String),
-      roles: result?.roles.map(r => ({
+      roles: result?.roles.map((r) => ({
         ...r,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -82,7 +82,7 @@ describe('Db query member tests', () => {
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
       membershipApprovedAt: expect.any(String),
-      roles: result?.roles.map(r => ({
+      roles: result?.roles.map((r) => ({
         ...r,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -101,7 +101,7 @@ describe('Db query member tests', () => {
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
       membershipApprovedAt: expect.any(String),
-      roles: result?.roles.map(r => ({
+      roles: result?.roles.map((r) => ({
         ...r,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -118,7 +118,7 @@ describe('Db query member tests', () => {
       updatedBy: expect.any(String),
       memberSince: expect.any(String),
       membershipApprovedAt: expect.any(String),
-      roles: result?.roles.map(r => ({
+      roles: result?.roles.map((r) => ({
         ...r,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -135,13 +135,13 @@ describe('Db query member tests', () => {
 
   it('getMemberRolesByPermission should return roles with given permission', async () => {
     const result = await getMemberRolesByPermission(MIKPermissions.BOOKING_ADMIN)
-    expect(result.map(r => r.roleId)).toEqual(['ADMIN', 'PLANE_CAPTAIN'])
+    expect(result.map((r) => r.roleId)).toEqual(['ADMIN', 'PLANE_CAPTAIN'])
   })
 
   it('getMemberRolesByMemberId should return roles for given valid member', async () => {
     const result = await getMemberRolesByMemberId('Matti1')
     expect(result).toMatchSnapshot(
-      result.map(r => ({
+      result.map((r) => ({
         ...r,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -161,7 +161,7 @@ describe('Db query member tests', () => {
     const sortedMembers = result.slice(0, 10).sort((a, b) => a.memberId.localeCompare(b.memberId))
     // test only first 10 items in the test data
     expect(sortedMembers).toMatchSnapshot(
-      sortedMembers.map(member => ({
+      sortedMembers.map((member) => ({
         ...member,
         ...(member.memberSince !== undefined ? { memberSince: expect.any(String) } : {}),
       })),
@@ -175,7 +175,7 @@ describe('Db query member tests', () => {
     const sortedMembers = result.slice(0, 10).sort((a, b) => a.memberId.localeCompare(b.memberId))
     // test only first 10 items in the test data
     expect(sortedMembers).toMatchSnapshot(
-      sortedMembers.map(member => ({
+      sortedMembers.map((member) => ({
         ...member,
         ...(member.memberSince !== undefined ? { memberSince: expect.any(String) } : {}),
       })),
@@ -207,7 +207,7 @@ describe('Db add member tests', () => {
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
       memberSince: expect.any(String),
-      roles: result?.roles.map(r => ({
+      roles: result?.roles.map((r) => ({
         ...r,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -694,7 +694,7 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
       .execute()
 
     const result = await getUnpaidMembershipFeesForYear(testMemberId, currentYear)
-    const joiningFee = result.find(r => r.invoice_type === MIKInvoiceType.JOINING_FEE)
+    const joiningFee = result.find((r) => r.invoice_type === MIKInvoiceType.JOINING_FEE)
     expect(joiningFee).toBeDefined()
     expect(joiningFee?.pmt_ref).toBe('REF-JOINING')
 
@@ -729,7 +729,7 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
       .execute()
 
     const result = await getUnpaidMembershipFeesForYear(testMemberId, currentYear)
-    expect(result.find(r => r.pmt_ref === 'REF-PAID')).toBeUndefined()
+    expect(result.find((r) => r.pmt_ref === 'REF-PAID')).toBeUndefined()
 
     await db.deleteFrom('member.annual_fees').where('invoice_id', '=', INV_PAID).execute()
     await db.deleteFrom('accts.invoice').where('id', '=', String(INV_PAID)).execute()
@@ -761,7 +761,7 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
       .execute()
 
     const result = await getUnpaidMembershipFeesForYear(testMemberId, currentYear)
-    expect(result.find(r => r.invoice_type === MIKInvoiceType.EQUIPMENT_FEE)).toBeUndefined()
+    expect(result.find((r) => r.invoice_type === MIKInvoiceType.EQUIPMENT_FEE)).toBeUndefined()
 
     await db.deleteFrom('member.annual_fees').where('invoice_id', '=', INV_EQUIP).execute()
     await db.deleteFrom('accts.invoice').where('id', '=', String(INV_EQUIP)).execute()

@@ -21,19 +21,19 @@ get:
             client_name:
               type: string
               description: search for price offers by client name containing the given string
-              example: "That guy"
+              example: 'That guy'
             client_reg_no:
               type: string
               description: search for price offers by client registration number containing the given string
-              example: "222"
+              example: '222'
             created_from:
               type: string
               description: filter invoices by creation date after and including
-              example: "01-01-2021"
+              example: '01-01-2021'
             created_until:
               type: string
               description: filter invoices by creation date before and including
-              example: "01-01-2022"
+              example: '01-01-2022'
             page:
               type: integer
               description: specifies from which page the list starts

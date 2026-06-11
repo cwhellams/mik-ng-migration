@@ -1,22 +1,10 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Typography,
-  Alert,
-} from '@mui/material'
+import { Box, Button, Card, CardContent, Chip, Typography, Alert } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
-import type {
-  Attempt,
-  AttemptAnswer,
-  ExamVersionDetail,
-} from '@backend/routes/exams/models'
+import type { Attempt, AttemptAnswer, ExamVersionDetail } from '@backend/routes/exams/models'
 import { getPreferredExamLanguage } from './language'
 
 export default function ExamReviewPage() {
@@ -40,9 +28,7 @@ export default function ExamReviewPage() {
     skipFetch: !attemptId || !attempt,
   })
 
-  const answerMap = new Map(
-    (answers ?? []).map((a) => [a.questionId, a.choiceId])
-  )
+  const answerMap = new Map((answers ?? []).map((a) => [a.questionId, a.choiceId]))
 
   return (
     <Box>
@@ -98,7 +84,7 @@ export default function ExamReviewPage() {
               const questionLanguage = getPreferredExamLanguage(
                 i18n.language,
                 versionDetail,
-                Object.keys(q.translations)
+                Object.keys(q.translations),
               )
 
               return (
@@ -113,9 +99,7 @@ export default function ExamReviewPage() {
                   <CardContent>
                     <Typography variant='subtitle1' gutterBottom>
                       {idx + 1}.{' '}
-                      {questionLanguage
-                        ? (q.translations[questionLanguage]?.prompt ?? '')
-                        : ''}
+                      {questionLanguage ? (q.translations[questionLanguage]?.prompt ?? '') : ''}
                     </Typography>
 
                     {q.choices.map((choice) => {
@@ -124,7 +108,7 @@ export default function ExamReviewPage() {
                       const choiceLanguage = getPreferredExamLanguage(
                         i18n.language,
                         versionDetail,
-                        Object.keys(choice.translations)
+                        Object.keys(choice.translations),
                       )
 
                       return (
@@ -145,31 +129,23 @@ export default function ExamReviewPage() {
                             gap: 1,
                           }}
                         >
-                          {isRight && (
-                            <Icon icon='mdi:check-circle' color='green' />
-                          )}
-                          {isSelected && !isRight && (
-                            <Icon icon='mdi:close-circle' color='red' />
-                          )}
-                          {!isRight && !isSelected && (
-                            <Icon icon='mdi:circle-outline' />
-                          )}
+                          {isRight && <Icon icon='mdi:check-circle' color='green' />}
+                          {isSelected && !isRight && <Icon icon='mdi:close-circle' color='red' />}
+                          {!isRight && !isSelected && <Icon icon='mdi:circle-outline' />}
                           <Typography variant='body2'>
                             {choiceLanguage
-                              ? (choice.translations[choiceLanguage]?.text ??
-                                '')
+                              ? (choice.translations[choiceLanguage]?.text ?? '')
                               : ''}
                           </Typography>
                         </Box>
                       )
                     })}
 
-                    {questionLanguage &&
-                      q.translations[questionLanguage]?.reasoning && (
-                        <Alert severity='info' sx={{ mt: 1 }}>
-                          {q.translations[questionLanguage]?.reasoning}
-                        </Alert>
-                      )}
+                    {questionLanguage && q.translations[questionLanguage]?.reasoning && (
+                      <Alert severity='info' sx={{ mt: 1 }}>
+                        {q.translations[questionLanguage]?.reasoning}
+                      </Alert>
+                    )}
                   </CardContent>
                 </Card>
               )

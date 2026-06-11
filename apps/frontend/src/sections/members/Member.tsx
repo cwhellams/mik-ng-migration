@@ -28,10 +28,7 @@ import dayjs from 'dayjs'
 import { Member, MIKLang, MIKMemberTypes } from '@backend/routes/members/models'
 import { InvoiceListResponse } from '@backend/routes/invoicing/models'
 import { FlightLogListResponse } from '@backend/routes/flight-log/models'
-import {
-  BookingListResponse,
-  BookingFilters,
-} from '@backend/routes/bookings/models'
+import { BookingListResponse, BookingFilters } from '@backend/routes/bookings/models'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import { useState, useEffect, useMemo } from 'react'
@@ -96,11 +93,7 @@ const MemberProfile = () => {
     }
     setEmailChangeError('')
     setEmailChangeSending(true)
-    const { error } = await mutation.trigger(
-      'POST',
-      { newEmail },
-      'email-change/request'
-    )
+    const { error } = await mutation.trigger('POST', { newEmail }, 'email-change/request')
     setEmailChangeSending(false)
 
     if (error) {
@@ -122,9 +115,7 @@ const MemberProfile = () => {
     setEmailChangeSent(false)
   }
 
-  const handlePreFlightCheckboxChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handlePreFlightCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIsPreFlightChecked(event.target.checked)
   }
 
@@ -159,11 +150,7 @@ const MemberProfile = () => {
       return
     }
 
-    const { error } = await mutation.trigger(
-      'POST',
-      {},
-      '/me/cancel-membership'
-    )
+    const { error } = await mutation.trigger('POST', {}, '/me/cancel-membership')
     if (error) {
       if (error.status === 400) {
         setProblem({
@@ -186,11 +173,7 @@ const MemberProfile = () => {
   }
 
   const handleApprove = async () => {
-    const { error } = await mutation.trigger<undefined, Member>(
-      'POST',
-      undefined,
-      'approve'
-    )
+    const { error } = await mutation.trigger<undefined, Member>('POST', undefined, 'approve')
     if (error) {
       return setProblem(error)
     }
@@ -287,11 +270,7 @@ const MemberProfile = () => {
           <Title label={firstName || t('member.profile')} />
         </Box>
 
-        <Stack
-          direction='row'
-          spacing={1}
-          sx={{ mb: 3, justifyContent: 'flex-end' }}
-        >
+        <Stack direction='row' spacing={1} sx={{ mb: 3, justifyContent: 'flex-end' }}>
           {data?.roles &&
             data?.roles.length > 0 &&
             data?.roles.map((role, index) => (
@@ -311,17 +290,14 @@ const MemberProfile = () => {
         </Stack>
 
         <Stack spacing={3}>
-          {isAdmin &&
-            !isMembershipApproved &&
-            !isRemoved &&
-            !isExternalUser && (
-              <Stack spacing={3}>
-                <Card sx={{ flex: 1, mb: 3 }}>
-                  <CardContent
-                    sx={{
-                      borderWidth: '8px',
-                      borderStyle: 'solid',
-                      borderImage: `
+          {isAdmin && !isMembershipApproved && !isRemoved && !isExternalUser && (
+            <Stack spacing={3}>
+              <Card sx={{ flex: 1, mb: 3 }}>
+                <CardContent
+                  sx={{
+                    borderWidth: '8px',
+                    borderStyle: 'solid',
+                    borderImage: `
           repeating-linear-gradient(
             45deg,
             #fdd835 0px,
@@ -330,43 +306,40 @@ const MemberProfile = () => {
             #000 20px
           ) 8
         `,
-                      borderRadius: 2,
-                      boxShadow: 1,
-                    }}
-                  >
-                    <FormTitle
-                      title={t('member.membershipPending')}
-                      icon='mdi:account-check'
+                    borderRadius: 2,
+                    boxShadow: 1,
+                  }}
+                >
+                  <FormTitle title={t('member.membershipPending')} icon='mdi:account-check' />
+                  <Stack>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={isPreFlightChecked}
+                          onChange={handlePreFlightCheckboxChange}
+                          size='medium'
+                        />
+                      }
+                      label={t('member.preFlightChkComplete')}
                     />
-                    <Stack>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={isPreFlightChecked}
-                            onChange={handlePreFlightCheckboxChange}
-                            size='medium'
-                          />
-                        }
-                        label={t('member.preFlightChkComplete')}
-                      />
 
-                      {!isPreFlightChecked && (
-                        <Typography sx={{ mb: 2, color: 'red' }} variant='h6'>
-                          {t('member.approvalDisabledMsg')}
-                        </Typography>
-                      )}
-                      <Button
-                        variant='contained'
-                        disabled={!isPreFlightChecked}
-                        onClick={async () => await handleApprove()}
-                      >
-                        {t('member.approveMembership')}
-                      </Button>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              </Stack>
-            )}
+                    {!isPreFlightChecked && (
+                      <Typography sx={{ mb: 2, color: 'red' }} variant='h6'>
+                        {t('member.approvalDisabledMsg')}
+                      </Typography>
+                    )}
+                    <Button
+                      variant='contained'
+                      disabled={!isPreFlightChecked}
+                      onClick={async () => await handleApprove()}
+                    >
+                      {t('member.approveMembership')}
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Stack>
+          )}
           {isAdmin && data?.applicationData && (
             <ApplicationDataCard
               applicationData={data.applicationData}
@@ -448,20 +421,13 @@ const MemberProfile = () => {
                 }}
               />
               <CardContent>
-                <FormTitle
-                  title={t('member.emergencyContact')}
-                  icon='mdi:phone-alert'
-                />
+                <FormTitle title={t('member.emergencyContact')} icon='mdi:phone-alert' />
 
                 <Stack spacing={1.5}>
-                  <FormField label={t('member.iceContact')}>
-                    {iceContactName || 'N/A'}
-                  </FormField>
+                  <FormField label={t('member.iceContact')}>{iceContactName || 'N/A'}</FormField>
 
                   <FormField label={t('member.icePhone')}>
-                    {iceContactPhoneNumber
-                      ? formatPhoneNumber(iceContactPhoneNumber)
-                      : 'N/A'}
+                    {iceContactPhoneNumber ? formatPhoneNumber(iceContactPhoneNumber) : 'N/A'}
                   </FormField>
                 </Stack>
               </CardContent>
@@ -485,9 +451,7 @@ const MemberProfile = () => {
                   icon='mdi:credit-card-outline'
                 />
                 <Stack spacing={1.5}>
-                  <FormField
-                    label={t('member.billingInfo.annualMembershipAutoRenew')}
-                  >
+                  <FormField label={t('member.billingInfo.annualMembershipAutoRenew')}>
                     <Checkbox
                       checked={Boolean(autoRenewAnnualMembership)}
                       disabled
@@ -495,9 +459,7 @@ const MemberProfile = () => {
                       sx={{ p: 0, pl: 0 }}
                     />
                   </FormField>
-                  <FormField
-                    label={t('member.billingInfo.equipmentFeeAutoRenew')}
-                  >
+                  <FormField label={t('member.billingInfo.equipmentFeeAutoRenew')}>
                     <Checkbox
                       checked={Boolean(autoRenewEquipmentFee)}
                       disabled
@@ -523,10 +485,7 @@ const MemberProfile = () => {
               />
             }
             <CardContent>
-              <FormTitle
-                title={t('member.licenceInfo.licenceInfo')}
-                icon='mdi:certificate'
-              />
+              <FormTitle title={t('member.licenceInfo.licenceInfo')} icon='mdi:certificate' />
               <Stack spacing={1.5}>
                 <FormField label={t('member.licenceInfo.licenceId')}>
                   {licenceId || 'N/A'}
@@ -551,9 +510,7 @@ const MemberProfile = () => {
           </Card>
 
           {(isAdmin || memberId === 'me') &&
-            data?.roles?.some(
-              (r) => r.roleId === 'INSTRUCTOR' || r.roleId === 'EXAMINER'
-            ) && (
+            data?.roles?.some((r) => r.roleId === 'INSTRUCTOR' || r.roleId === 'EXAMINER') && (
               <InstructorQualificationsCard
                 memberId={memberId!}
                 canEdit={isAdmin || memberId === 'me'}
@@ -568,9 +525,7 @@ const MemberProfile = () => {
             onSaved={() => mutate(() => true)}
           />
 
-          {!isExternalUser && (
-            <PasskeysCard memberId={memberId!} isAdmin={isAdmin} />
-          )}
+          {!isExternalUser && <PasskeysCard memberId={memberId!} isAdmin={isAdmin} />}
 
           {!isAdmin && memberId === 'me' && <GdprExportCard />}
 
@@ -588,10 +543,7 @@ const MemberProfile = () => {
                 />
               )}
               <CardContent>
-                <FormTitle
-                  title={t('member.trainingProgram')}
-                  icon='mdi:account-school'
-                />
+                <FormTitle title={t('member.trainingProgram')} icon='mdi:account-school' />
 
                 <FormField label={t('member.isTrainingProgramPilot')}>
                   <Checkbox
@@ -616,21 +568,14 @@ const MemberProfile = () => {
               }}
             />
             <CardContent>
-              <FormTitle
-                title={t('member.instantMessaging.title')}
-                icon='mdi:message-text'
-              />
+              <FormTitle title={t('member.instantMessaging.title')} icon='mdi:message-text' />
 
               <Stack spacing={1.5}>
                 <FormField label={t('member.instantMessaging.whatsapp')}>
                   {imWhatsapp ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon='mdi:whatsapp' style={{ color: '#25D366' }} />
-                      <a
-                        href={sanitizeUrl(imWhatsapp)}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                      >
+                      <a href={sanitizeUrl(imWhatsapp)} target='_blank' rel='noopener noreferrer'>
                         {imWhatsapp}
                       </a>
                     </Box>
@@ -643,11 +588,7 @@ const MemberProfile = () => {
                   {imTelegram ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon='mdi:telegram' style={{ color: '#0088cc' }} />
-                      <a
-                        href={sanitizeUrl(imTelegram)}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                      >
+                      <a href={sanitizeUrl(imTelegram)} target='_blank' rel='noopener noreferrer'>
                         {imTelegram}
                       </a>
                     </Box>
@@ -659,10 +600,7 @@ const MemberProfile = () => {
                 <FormField label={t('member.instantMessaging.messenger')}>
                   {imFacebookMessenger ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Icon
-                        icon='mdi:facebook-messenger'
-                        style={{ color: '#0084FF' }}
-                      />
+                      <Icon icon='mdi:facebook-messenger' style={{ color: '#0084FF' }} />
                       <a
                         href={sanitizeUrl(imFacebookMessenger)}
                         target='_blank'
@@ -680,11 +618,7 @@ const MemberProfile = () => {
                   {imDiscord ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon='mdi:discord' style={{ color: '#5865F2' }} />
-                      <a
-                        href={sanitizeUrl(imDiscord)}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                      >
+                      <a href={sanitizeUrl(imDiscord)} target='_blank' rel='noopener noreferrer'>
                         {imDiscord}
                       </a>
                     </Box>
@@ -696,15 +630,8 @@ const MemberProfile = () => {
                 <FormField label={t('member.instantMessaging.viber')}>
                   {imViber ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Icon
-                        icon='simple-icons:viber'
-                        style={{ color: '#7360F2' }}
-                      />
-                      <a
-                        href={sanitizeUrl(imViber)}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                      >
+                      <Icon icon='simple-icons:viber' style={{ color: '#7360F2' }} />
+                      <a href={sanitizeUrl(imViber)} target='_blank' rel='noopener noreferrer'>
                         {imViber}
                       </a>
                     </Box>
@@ -716,15 +643,8 @@ const MemberProfile = () => {
                 <FormField label={t('member.instantMessaging.signal')}>
                   {imSignal ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Icon
-                        icon='simple-icons:signal'
-                        style={{ color: '#3A76F0' }}
-                      />
-                      <a
-                        href={sanitizeUrl(imSignal)}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                      >
+                      <Icon icon='simple-icons:signal' style={{ color: '#3A76F0' }} />
+                      <a href={sanitizeUrl(imSignal)} target='_blank' rel='noopener noreferrer'>
                         {imSignal}
                       </a>
                     </Box>
@@ -750,15 +670,10 @@ const MemberProfile = () => {
             )}
 
             <CardContent>
-              <FormTitle
-                title={t('member.membership')}
-                icon='mdi:information'
-              />
+              <FormTitle title={t('member.membership')} icon='mdi:information' />
 
               <Stack spacing={1.5}>
-                <FormField label={t('member.memberId')}>
-                  {data?.memberId.toString()}
-                </FormField>
+                <FormField label={t('member.memberId')}>{data?.memberId.toString()}</FormField>
 
                 <FormField label={t('member.memberType')}>
                   {data && t(`member.types.${memberType?.toLowerCase()}`)}
@@ -784,17 +699,11 @@ const MemberProfile = () => {
                       />
                     </FormField>
 
-                    <FormField label={t('member.billingId')}>
-                      {billingId}
-                    </FormField>
+                    <FormField label={t('member.billingId')}>{billingId}</FormField>
 
-                    <FormField label='Brevo Id'>
-                      {brevoContactId?.toString()}
-                    </FormField>
+                    <FormField label='Brevo Id'>{brevoContactId?.toString()}</FormField>
 
-                    <FormField label={t('member.memberSince')}>
-                      {formatDate(memberSince)}
-                    </FormField>
+                    <FormField label={t('member.memberSince')}>{formatDate(memberSince)}</FormField>
                   </>
                 )}
 
@@ -838,9 +747,7 @@ const MemberProfile = () => {
 
           {isAdmin && memberId && <AdminFlightsCard memberId={memberId} />}
 
-          {isAdmin && roles.isBookingAdmin && memberId && (
-            <AdminBookingsCard memberId={memberId} />
-          )}
+          {isAdmin && roles.isBookingAdmin && memberId && <AdminBookingsCard memberId={memberId} />}
 
           <Grid>
             {isAdmin && (
@@ -880,9 +787,7 @@ const MemberProfile = () => {
           api={mutation}
         />
       </Box>
-      {!isMembershipApproved && (
-        <Watermark text={t('member.membershipPending')} />
-      )}
+      {!isMembershipApproved && <Watermark text={t('member.membershipPending')} />}
       {data?.memberType === MIKMemberTypes.REMOVED && (
         <Watermark text={t('member.types.removed')} color='red' />
       )}
@@ -901,12 +806,7 @@ const MemberProfile = () => {
         <DialogContent>
           {emailChangeSent ? (
             <Box sx={{ textAlign: 'center', py: 2 }}>
-              <Icon
-                icon='mdi:email-check'
-                width={48}
-                height={48}
-                color='#4caf50'
-              />
+              <Icon icon='mdi:email-check' width={48} height={48} color='#4caf50' />
               <Typography variant='body1' sx={{ mt: 2 }}>
                 {t('emailChange.verificationSent', { email: newEmail })}
               </Typography>
@@ -931,9 +831,7 @@ const MemberProfile = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleEmailChangeClose} color='inherit'>
-            {emailChangeSent
-              ? t('general.close', 'Close')
-              : t('general.cancel', 'Cancel')}
+            {emailChangeSent ? t('general.close', 'Close') : t('general.cancel', 'Cancel')}
           </Button>
           {!emailChangeSent && (
             <Button
@@ -987,9 +885,7 @@ const MailingListsCard = ({
 
   const handleToggle = async (id: string) => {
     const previous = selected
-    const updated = selected.includes(id)
-      ? selected.filter((l) => l !== id)
-      : [...selected, id]
+    const updated = selected.includes(id) ? selected.filter((l) => l !== id) : [...selected, id]
     setSelected(updated)
     setSaving(true)
     const { error } = await mutation.trigger('PATCH', { mailingLists: updated })
@@ -1006,10 +902,7 @@ const MailingListsCard = ({
     <Card>
       <CardContent>
         <SnackAlert problem={problem} />
-        <FormTitle
-          title={t('member.mailingLists.title')}
-          icon='mdi:email-newsletter'
-        />
+        <FormTitle title={t('member.mailingLists.title')} icon='mdi:email-newsletter' />
         <MailingListsContent
           isLoading={isLoading}
           availableLists={availableLists}
@@ -1088,13 +981,11 @@ const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
       const response = await pdfMutation.trigger<undefined, string>(
         'GET',
         undefined,
-        `${invoiceId}/pdf`
+        `${invoiceId}/pdf`,
       )
       if (!response.data) return
       const byteCharacters = atob(response.data)
-      const byteNumbers = Array.from(byteCharacters).map((char) =>
-        char.charCodeAt(0)
-      )
+      const byteNumbers = Array.from(byteCharacters).map((char) => char.charCodeAt(0))
       const byteArray = new Uint8Array(byteNumbers)
       const blob = new Blob([byteArray], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
@@ -1111,10 +1002,7 @@ const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
   return (
     <Card>
       <CardContent>
-        <FormTitle
-          title={t('member.adminInvoices.title')}
-          icon='mdi:receipt-text'
-        />
+        <FormTitle title={t('member.adminInvoices.title')} icon='mdi:receipt-text' />
         <RemoteContent isLoading={isLoading} error={error}>
           {!data?.invoices?.length ? (
             <Typography variant='body2' color='text.secondary'>
@@ -1127,19 +1015,14 @@ const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
                   <TableCell>{t('member.adminInvoices.date')}</TableCell>
                   <TableCell>{t('member.adminInvoices.type')}</TableCell>
                   <TableCell>{t('member.adminInvoices.description')}</TableCell>
-                  <TableCell align='right'>
-                    {t('member.adminInvoices.total')}
-                  </TableCell>
-                  <TableCell align='center'>
-                    {t('member.adminInvoices.status')}
-                  </TableCell>
+                  <TableCell align='right'>{t('member.adminInvoices.total')}</TableCell>
+                  <TableCell align='center'>{t('member.adminInvoices.status')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {data.invoices.slice(0, 10).map((invoice) => {
                   const isPastDue =
-                    invoice.is_paid === false &&
-                    dayjs(invoice.due_at).isBefore(dayjs(), 'day')
+                    invoice.is_paid === false && dayjs(invoice.due_at).isBefore(dayjs(), 'day')
                   return (
                     <TableRow key={invoice.id}>
                       <TableCell>{formatDate(invoice.sent_at)}</TableCell>
@@ -1158,9 +1041,7 @@ const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
                       </TableCell>
                       <TableCell align='right'>
                         {invoice.total_sum
-                          ? currencyFormatter.format(
-                              parseFloat(invoice.total_sum)
-                            )
+                          ? currencyFormatter.format(parseFloat(invoice.total_sum))
                           : '—'}
                       </TableCell>
                       <TableCell align='center'>
@@ -1222,12 +1103,8 @@ const AdminFlightsCard = ({ memberId }: { memberId: string }) => {
                   <TableCell>{t('member.adminFlights.date')}</TableCell>
                   <TableCell>{t('member.adminFlights.aircraft')}</TableCell>
                   <TableCell>{t('member.adminFlights.route')}</TableCell>
-                  <TableCell align='right'>
-                    {t('flightLog.offBlock', 'Off-block')}
-                  </TableCell>
-                  <TableCell align='right'>
-                    {t('flightLog.onBlock', 'On-block')}
-                  </TableCell>
+                  <TableCell align='right'>{t('flightLog.offBlock', 'Off-block')}</TableCell>
+                  <TableCell align='right'>{t('flightLog.onBlock', 'On-block')}</TableCell>
                   <TableCell>{t('member.adminFlights.duration')}</TableCell>
                   <TableCell>{t('member.adminFlights.type')}</TableCell>
                   <TableCell>{t('member.adminFlights.status')}</TableCell>
@@ -1245,22 +1122,13 @@ const AdminFlightsCard = ({ memberId }: { memberId: string }) => {
                     <TableCell>
                       {log.departureAirport} → {log.arrivalAirport}
                     </TableCell>
-                    <TableCell align='right'>
-                      {formatTime(log.offBlockTimeUtc)}
-                    </TableCell>
-                    <TableCell align='right'>
-                      {formatTime(log.onBlockTimeUtc)}
-                    </TableCell>
+                    <TableCell align='right'>{formatTime(log.offBlockTimeUtc)}</TableCell>
+                    <TableCell align='right'>{formatTime(log.onBlockTimeUtc)}</TableCell>
                     <TableCell>{log.flightTime}</TableCell>
                     <TableCell>
-                      {t(
-                        `flightLog.flightTypes.${log.flightType}`,
-                        log.flightType
-                      )}
+                      {t(`flightLog.flightTypes.${log.flightType}`, log.flightType)}
                     </TableCell>
-                    <TableCell>
-                      {t(`flightLog.status.${log.status}`, log.status)}
-                    </TableCell>
+                    <TableCell>{t(`flightLog.status.${log.status}`, log.status)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -1280,7 +1148,7 @@ const AdminBookingsCard = ({ memberId }: { memberId: string }) => {
       memberId,
       from: dayjs().toISOString(),
     }),
-    [memberId]
+    [memberId],
   )
   const { data, isLoading, error } = useApi<BookingListResponse>({
     url: 'v1/bookings',
@@ -1291,10 +1159,7 @@ const AdminBookingsCard = ({ memberId }: { memberId: string }) => {
   return (
     <Card>
       <CardContent>
-        <FormTitle
-          title={t('member.adminBookings.title')}
-          icon='mdi:calendar-clock'
-        />
+        <FormTitle title={t('member.adminBookings.title')} icon='mdi:calendar-clock' />
         <RemoteContent isLoading={isLoading} error={error}>
           {!data?.bookings?.length ? (
             <Typography variant='body2' color='text.secondary'>
@@ -1307,9 +1172,7 @@ const AdminBookingsCard = ({ memberId }: { memberId: string }) => {
                   <TableCell>{t('member.adminBookings.date')}</TableCell>
                   <TableCell>{t('member.adminBookings.startTime')}</TableCell>
                   <TableCell>{t('member.adminBookings.endTime')}</TableCell>
-                  <TableCell>
-                    {t('member.adminBookings.registration')}
-                  </TableCell>
+                  <TableCell>{t('member.adminBookings.registration')}</TableCell>
                   <TableCell>{t('member.adminBookings.type')}</TableCell>
                   <TableCell>{t('member.adminBookings.instructor')}</TableCell>
                 </TableRow>
@@ -1325,9 +1188,7 @@ const AdminBookingsCard = ({ memberId }: { memberId: string }) => {
                       <TableCell>{formatTime(booking.startTime)}</TableCell>
                       <TableCell>{formatTime(booking.endTime)}</TableCell>
                       <TableCell>{booking.registration}</TableCell>
-                      <TableCell>
-                        {t(`schedule.types.${booking.type}`, booking.type)}
-                      </TableCell>
+                      <TableCell>{t(`schedule.types.${booking.type}`, booking.type)}</TableCell>
                       <TableCell>{instructorName || '—'}</TableCell>
                     </TableRow>
                   )

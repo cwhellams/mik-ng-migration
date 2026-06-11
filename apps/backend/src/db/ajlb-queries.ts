@@ -52,7 +52,7 @@ const mapResultToAjlb = (
 export async function getAjlbs(filter: AjlbFilter): Promise<AircraftJourneyLogBook[]> {
   let query = connection.db
     .selectFrom('flight.aircraft_journey_log_book as ajlb')
-    .leftJoin('flight.vw_flight_time_totals as totals', join =>
+    .leftJoin('flight.vw_flight_time_totals as totals', (join) =>
       join
         .onRef('ajlb.aircraft_registration', '=', 'totals.aircraft_registration')
         .onRef('ajlb.seq_no', '=', 'totals.ajlb_seq_no'),
@@ -102,7 +102,7 @@ export async function getAjlb(
 ): Promise<AircraftJourneyLogBook | undefined> {
   const row = await connection.db
     .selectFrom('flight.aircraft_journey_log_book as ajlb')
-    .leftJoin('flight.vw_flight_time_totals as totals', join =>
+    .leftJoin('flight.vw_flight_time_totals as totals', (join) =>
       join
         .onRef('ajlb.aircraft_registration', '=', 'totals.aircraft_registration')
         .onRef('ajlb.seq_no', '=', 'totals.ajlb_seq_no'),

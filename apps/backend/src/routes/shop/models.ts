@@ -222,11 +222,11 @@ export const ProductFiltersSchema = z.object({
   search: z.string().optional(),
   published: z
     .enum(['true', 'false'])
-    .transform(v => v === 'true')
+    .transform((v) => v === 'true')
     .optional(),
   active: z
     .enum(['true', 'false'])
-    .transform(v => v === 'true')
+    .transform((v) => v === 'true')
     .optional(),
 })
 export type ProductFilters = z.infer<typeof ProductFiltersSchema>

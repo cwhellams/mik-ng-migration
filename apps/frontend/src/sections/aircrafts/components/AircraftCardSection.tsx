@@ -36,7 +36,7 @@ const useAircraftCards = (aircraftRegistration: string) => {
       limit: '100',
       offset: '0',
     }),
-    [aircraftRegistration]
+    [aircraftRegistration],
   )
 
   const {
@@ -78,9 +78,9 @@ export const AircraftCardSection: React.FC<AircraftCardSectionProps> = ({
   const { cards, isLoading, error } = useAircraftCards(aircraftRegistration)
 
   const [editMode, setEditMode] = useState<CardEditMode | undefined>(undefined)
-  const [editCard, setEditCard] = useState<
-    AircraftCardListResponse['cards'][number] | undefined
-  >(undefined)
+  const [editCard, setEditCard] = useState<AircraftCardListResponse['cards'][number] | undefined>(
+    undefined,
+  )
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [cardToDelete, setCardToDelete] = useState<
     AircraftCardListResponse['cards'][number] | undefined
@@ -98,63 +98,42 @@ export const AircraftCardSection: React.FC<AircraftCardSectionProps> = ({
     setEditMode('edit')
   }
 
-  const handleDeleteConfirm = (
-    card: AircraftCardListResponse['cards'][number]
-  ) => {
+  const handleDeleteConfirm = (card: AircraftCardListResponse['cards'][number]) => {
     setCardToDelete(card)
     setDeleteConfirmOpen(true)
   }
 
   const handleDelete = async () => {
     if (!cardToDelete) return
-    await deleteApi.mutation.trigger(
-      'DELETE',
-      undefined,
-      `${cardToDelete.cardId}`
-    )
+    await deleteApi.mutation.trigger('DELETE', undefined, `${cardToDelete.cardId}`)
     setDeleteConfirmOpen(false)
     setCardToDelete(undefined)
     await mutate(
       (key: unknown) =>
-        Array.isArray(key) &&
-        typeof key[0] === 'string' &&
-        key[0].includes('aircraft-cards')
+        Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('aircraft-cards'),
     )
   }
 
   const statusChip = (validFrom?: string | null, validTo?: string | null) => {
     const status = getCardStatus(validFrom, validTo)
-    const colors: Record<string, 'success' | 'warning' | 'error' | 'default'> =
-      {
-        valid: 'success',
-        expiring: 'warning',
-        expired: 'error',
-        future: 'default',
-      }
+    const colors: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
+      valid: 'success',
+      expiring: 'warning',
+      expired: 'error',
+      future: 'default',
+    }
     const labels: Record<string, string> = {
       valid: t('aircraft.cards.status.valid', 'Valid'),
       expiring: t('aircraft.cards.status.expiring', 'Expiring Soon'),
       expired: t('aircraft.cards.status.expired', 'Expired'),
       future: t('aircraft.cards.status.future', 'Not Yet Active'),
     }
-    return (
-      <Chip
-        label={labels[status]}
-        color={colors[status]}
-        size='small'
-        variant='outlined'
-      />
-    )
+    return <Chip label={labels[status]} color={colors[status]} size='small' variant='outlined' />
   }
 
   return (
     <Box sx={{ position: 'relative' }}>
-      <Stack
-        direction='row'
-        alignItems='center'
-        justifyContent='space-between'
-        mb={1}
-      >
+      <Stack direction='row' alignItems='center' justifyContent='space-between' mb={1}>
         <Typography variant='subtitle1' color='text.primary'>
           {t('aircraft.cards.title', 'Cards & Passes')}
         </Typography>
@@ -178,22 +157,12 @@ export const AircraftCardSection: React.FC<AircraftCardSectionProps> = ({
               <TableHead>
                 <TableRow>
                   <TableCell>{t('aircraft.cards.name', 'Name')}</TableCell>
-                  <TableCell>
-                    {t('aircraft.cards.description', 'Description')}
-                  </TableCell>
-                  <TableCell>
-                    {t('aircraft.cards.validFrom', 'Valid From')}
-                  </TableCell>
-                  <TableCell>
-                    {t('aircraft.cards.validTo', 'Valid To')}
-                  </TableCell>
-                  <TableCell>
-                    {t('aircraft.cards.status.label', 'Status')}
-                  </TableCell>
+                  <TableCell>{t('aircraft.cards.description', 'Description')}</TableCell>
+                  <TableCell>{t('aircraft.cards.validFrom', 'Valid From')}</TableCell>
+                  <TableCell>{t('aircraft.cards.validTo', 'Valid To')}</TableCell>
+                  <TableCell>{t('aircraft.cards.status.label', 'Status')}</TableCell>
                   {isAdmin && (
-                    <TableCell align='right'>
-                      {t('aircraft.cards.actions', 'Actions')}
-                    </TableCell>
+                    <TableCell align='right'>{t('aircraft.cards.actions', 'Actions')}</TableCell>
                   )}
                 </TableRow>
               </TableHead>
@@ -211,30 +180,17 @@ export const AircraftCardSection: React.FC<AircraftCardSectionProps> = ({
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant='body2'>
-                        {card.validFrom || '—'}
-                      </Typography>
+                      <Typography variant='body2'>{card.validFrom || '—'}</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant='body2'>
-                        {card.validTo || '—'}
-                      </Typography>
+                      <Typography variant='body2'>{card.validTo || '—'}</Typography>
                     </TableCell>
-                    <TableCell>
-                      {statusChip(card.validFrom, card.validTo)}
-                    </TableCell>
+                    <TableCell>{statusChip(card.validFrom, card.validTo)}</TableCell>
                     {isAdmin && (
                       <TableCell align='right'>
-                        <Stack
-                          direction='row'
-                          justifyContent='flex-end'
-                          spacing={0.5}
-                        >
+                        <Stack direction='row' justifyContent='flex-end' spacing={0.5}>
                           <Tooltip title={t('general.edit', 'Edit')}>
-                            <IconButton
-                              size='small'
-                              onClick={() => handleEdit(card)}
-                            >
+                            <IconButton size='small' onClick={() => handleEdit(card)}>
                               <Icon icon='mdi:pencil' />
                             </IconButton>
                           </Tooltip>
@@ -271,10 +227,7 @@ export const AircraftCardSection: React.FC<AircraftCardSectionProps> = ({
       <ConfirmDialog
         open={deleteConfirmOpen}
         title={t('aircraft.cards.delete.title', 'Delete Card')}
-        message={t(
-          'aircraft.cards.delete.confirm',
-          'Are you sure you want to delete this card?'
-        )}
+        message={t('aircraft.cards.delete.confirm', 'Are you sure you want to delete this card?')}
         confirmText={t('general.delete', 'Delete')}
         cancelText={t('general.cancel', 'Cancel')}
         onConfirm={handleDelete}

@@ -80,9 +80,7 @@ function formToPayload(f: CodeForm) {
     categoryIds: f.categoryIds,
     discountType: f.discountType,
     discountValue: Number.parseFloat(f.discountValue) || 0,
-    minOrderAmount: f.minOrderAmount
-      ? Number.parseFloat(f.minOrderAmount)
-      : null,
+    minOrderAmount: f.minOrderAmount ? Number.parseFloat(f.minOrderAmount) : null,
     maxUses: f.maxUses ? Number.parseInt(f.maxUses) : null,
     validFrom: new Date(f.validFrom).toISOString(),
     validUntil: f.validUntil ? new Date(f.validUntil).toISOString() : null,
@@ -131,9 +129,8 @@ export default function DiscountCodesAdmin() {
   }
   const close = () => setDialogOpen(false)
 
-  const set =
-    (key: keyof CodeForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((f) => ({ ...f, [key]: e.target.value }))
+  const set = (key: keyof CodeForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const handleSave = async () => {
     const payload = formToPayload(form) as Partial<DiscountCode>
@@ -161,11 +158,7 @@ export default function DiscountCodesAdmin() {
         }}
       >
         <Title label={t('shop.admin.discountCodes')} />
-        <Button
-          variant='contained'
-          startIcon={<Icon icon='mdi:plus' />}
-          onClick={openCreate}
-        >
+        <Button variant='contained' startIcon={<Icon icon='mdi:plus' />} onClick={openCreate}>
           {t('shop.admin.addCode')}
         </Button>
       </Box>
@@ -190,18 +183,14 @@ export default function DiscountCodesAdmin() {
                     <strong>{c.code}</strong>
                   </TableCell>
                   <TableCell>
-                    {c.discountType === 'percent'
-                      ? `${c.discountValue}%`
-                      : `€${c.discountValue}`}
+                    {c.discountType === 'percent' ? `${c.discountValue}%` : `€${c.discountValue}`}
                   </TableCell>
                   <TableCell>
                     {c.usesCount}
                     {c.maxUses == null ? '' : ` / ${c.maxUses}`}
                   </TableCell>
                   <TableCell>
-                    {c.validUntil
-                      ? new Date(c.validUntil).toLocaleDateString()
-                      : '–'}
+                    {c.validUntil ? new Date(c.validUntil).toLocaleDateString() : '–'}
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -223,9 +212,7 @@ export default function DiscountCodesAdmin() {
       </RemoteContent>
 
       <Dialog open={dialogOpen} onClose={close} maxWidth='sm' fullWidth>
-        <DialogTitle>
-          {editing ? t('shop.admin.editCode') : t('shop.admin.addCode')}
-        </DialogTitle>
+        <DialogTitle>{editing ? t('shop.admin.editCode') : t('shop.admin.addCode')}</DialogTitle>
         <DialogContent sx={{ pt: '8px !important' }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
             <TextField
@@ -243,9 +230,7 @@ export default function DiscountCodesAdmin() {
               <Select
                 value={form.discountType}
                 label={t('shop.discountType')}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, discountType: e.target.value }))
-                }
+                onChange={(e) => setForm((f) => ({ ...f, discountType: e.target.value }))}
               >
                 <MenuItem value='percent'>%</MenuItem>
                 <MenuItem value='fixed'>€ {t('shop.fixed')}</MenuItem>
@@ -291,13 +276,8 @@ export default function DiscountCodesAdmin() {
                 }
               >
                 {(categories ?? []).map((category) => (
-                  <MenuItem
-                    key={category.categoryId}
-                    value={category.categoryId}
-                  >
-                    {category.name?.[language] ??
-                      category.name?.en ??
-                      category.categoryId}
+                  <MenuItem key={category.categoryId} value={category.categoryId}>
+                    {category.name?.[language] ?? category.name?.en ?? category.categoryId}
                   </MenuItem>
                 ))}
               </Select>
@@ -340,9 +320,7 @@ export default function DiscountCodesAdmin() {
               control={
                 <Switch
                   checked={form.isActive}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, isActive: e.target.checked }))
-                  }
+                  onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
                 />
               }
               label={t('common.active')}
@@ -354,9 +332,7 @@ export default function DiscountCodesAdmin() {
           <Button
             variant='contained'
             onClick={handleSave}
-            disabled={
-              !form.code.trim() || !form.discountValue || mutation.isMutating
-            }
+            disabled={!form.code.trim() || !form.discountValue || mutation.isMutating}
           >
             {t('common.save')}
           </Button>

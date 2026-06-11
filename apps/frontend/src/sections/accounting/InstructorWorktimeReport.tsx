@@ -55,10 +55,7 @@ interface GroupedEntry {
   workTimeMins: number
 }
 
-const groupEntries = (
-  data: InstructorWorktimeEntry[],
-  groupBy: GroupBy
-): GroupedEntry[] => {
+const groupEntries = (data: InstructorWorktimeEntry[], groupBy: GroupBy): GroupedEntry[] => {
   const map = new Map<string, GroupedEntry>()
 
   for (const entry of data) {
@@ -105,9 +102,7 @@ const groupEntries = (
 
 export const InstructorWorktimeReport = () => {
   const { t } = useTranslation()
-  const [startDate, setStartDate] = useState<Dayjs | null>(
-    dayjs().startOf('year')
-  )
+  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().startOf('year'))
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs())
   const [timeType, setTimeType] = useState<'block' | 'air'>('block')
   const [groupBy, setGroupBy] = useState<GroupBy>('month')
@@ -147,9 +142,7 @@ export const InstructorWorktimeReport = () => {
       [t('instructorWorktime.table.instructor')]: entry.instructorName,
       [t('instructorWorktime.table.period')]: entry.period,
       [t('instructorWorktime.table.flights')]: entry.flightCount,
-      [t('instructorWorktime.table.totalTime')]: formatHHMM(
-        entry.totalTimeMins
-      ),
+      [t('instructorWorktime.table.totalTime')]: formatHHMM(entry.totalTimeMins),
       [t('instructorWorktime.table.workTime')]: formatHHMM(entry.workTimeMins),
     }))
 
@@ -161,7 +154,7 @@ export const InstructorWorktimeReport = () => {
     link.setAttribute('href', url)
     link.setAttribute(
       'download',
-      `instructor-worktime-${startDate?.format('YYYY-MM-DD')}-${endDate?.format('YYYY-MM-DD')}.csv`
+      `instructor-worktime-${startDate?.format('YYYY-MM-DD')}-${endDate?.format('YYYY-MM-DD')}.csv`,
     )
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
@@ -191,12 +184,7 @@ export const InstructorWorktimeReport = () => {
         <Typography variant='h5' gutterBottom>
           {t('instructorWorktime.title')}
         </Typography>
-        <Typography
-          variant='body2'
-          color='text.secondary'
-          gutterBottom
-          sx={{ mb: 3 }}
-        >
+        <Typography variant='body2' color='text.secondary' gutterBottom sx={{ mb: 3 }}>
           {t('instructorWorktime.description')}
         </Typography>
 
@@ -244,9 +232,7 @@ export const InstructorWorktimeReport = () => {
                 <ToggleButton value='block'>
                   {t('instructorWorktime.filters.blockTime')}
                 </ToggleButton>
-                <ToggleButton value='air'>
-                  {t('instructorWorktime.filters.airTime')}
-                </ToggleButton>
+                <ToggleButton value='air'>{t('instructorWorktime.filters.airTime')}</ToggleButton>
               </ToggleButtonGroup>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -290,18 +276,10 @@ export const InstructorWorktimeReport = () => {
                   }}
                   size='small'
                 >
-                  <ToggleButton value='day'>
-                    {t('instructorWorktime.groupBy.day')}
-                  </ToggleButton>
-                  <ToggleButton value='week'>
-                    {t('instructorWorktime.groupBy.week')}
-                  </ToggleButton>
-                  <ToggleButton value='month'>
-                    {t('instructorWorktime.groupBy.month')}
-                  </ToggleButton>
-                  <ToggleButton value='year'>
-                    {t('instructorWorktime.groupBy.year')}
-                  </ToggleButton>
+                  <ToggleButton value='day'>{t('instructorWorktime.groupBy.day')}</ToggleButton>
+                  <ToggleButton value='week'>{t('instructorWorktime.groupBy.week')}</ToggleButton>
+                  <ToggleButton value='month'>{t('instructorWorktime.groupBy.month')}</ToggleButton>
+                  <ToggleButton value='year'>{t('instructorWorktime.groupBy.year')}</ToggleButton>
                 </ToggleButtonGroup>
 
                 <Button
@@ -318,21 +296,11 @@ export const InstructorWorktimeReport = () => {
                 <Table size='small' sx={{ minWidth: { xs: 500, md: 'auto' } }}>
                   <TableHead>
                     <TableRow>
-                      <TableCell>
-                        {t('instructorWorktime.table.instructor')}
-                      </TableCell>
-                      <TableCell>
-                        {t('instructorWorktime.table.period')}
-                      </TableCell>
-                      <TableCell align='right'>
-                        {t('instructorWorktime.table.flights')}
-                      </TableCell>
-                      <TableCell align='right'>
-                        {t('instructorWorktime.table.totalTime')}
-                      </TableCell>
-                      <TableCell align='right'>
-                        {t('instructorWorktime.table.workTime')}
-                      </TableCell>
+                      <TableCell>{t('instructorWorktime.table.instructor')}</TableCell>
+                      <TableCell>{t('instructorWorktime.table.period')}</TableCell>
+                      <TableCell align='right'>{t('instructorWorktime.table.flights')}</TableCell>
+                      <TableCell align='right'>{t('instructorWorktime.table.totalTime')}</TableCell>
+                      <TableCell align='right'>{t('instructorWorktime.table.workTime')}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -341,12 +309,8 @@ export const InstructorWorktimeReport = () => {
                         <TableCell>{row.instructorName}</TableCell>
                         <TableCell>{row.period}</TableCell>
                         <TableCell align='right'>{row.flightCount}</TableCell>
-                        <TableCell align='right'>
-                          {formatHHMM(row.totalTimeMins)}
-                        </TableCell>
-                        <TableCell align='right'>
-                          {formatHHMM(row.workTimeMins)}
-                        </TableCell>
+                        <TableCell align='right'>{formatHHMM(row.totalTimeMins)}</TableCell>
+                        <TableCell align='right'>{formatHHMM(row.workTimeMins)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

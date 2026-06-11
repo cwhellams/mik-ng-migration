@@ -403,7 +403,7 @@ describe('PATCH /flight-log/', () => {
 
   test.each([mattiToken, adminToken])(
     'should update a flight log when billable member matches token member or user has elevated role',
-    async token => {
+    async (token) => {
       const payload: Partial<FlightLog> = {
         crew2MemberId: 'Antti1',
         billableMemberId: 'Antti1',

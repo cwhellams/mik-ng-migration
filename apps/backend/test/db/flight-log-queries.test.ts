@@ -133,7 +133,7 @@ describe('Db query FlightLog tests', () => {
       incidentsOrObservations: true,
     })
     expect(result.rows).toEqual(1)
-    expect(result.logs?.map(f => f.incidentOrObservations)).toEqual(['Engine stopped briefly'])
+    expect(result.logs?.map((f) => f.incidentOrObservations)).toEqual(['Engine stopped briefly'])
   })
 
   it('getFlightLogTotals returns totals for all ac', async () => {
@@ -544,7 +544,7 @@ describe('Db invoicable FlightLog tests', () => {
           endDate: '2030-01-01',
           flights: InvoicableFlights.MIN_BILLABLE,
         })
-        expect(result.logs.some(l => l.flightId === id)).toBe(true)
+        expect(result.logs.some((l) => l.flightId === id)).toBe(true)
       } finally {
         await revertAndDelete([id], 'Pekka1')
       }
@@ -562,7 +562,7 @@ describe('Db invoicable FlightLog tests', () => {
           endDate: '2030-01-01',
           flights: InvoicableFlights.MIN_BILLABLE,
         })
-        expect(result.logs.some(l => l.flightId === id)).toBe(true)
+        expect(result.logs.some((l) => l.flightId === id)).toBe(true)
       } finally {
         await revertAndDelete([id], 'Matti1')
       }
@@ -580,7 +580,7 @@ describe('Db invoicable FlightLog tests', () => {
           endDate: '2030-01-01',
           flights: InvoicableFlights.MIN_BILLABLE,
         })
-        expect(result.logs.some(l => l.flightId === id)).toBe(false)
+        expect(result.logs.some((l) => l.flightId === id)).toBe(false)
       } finally {
         await revertAndDelete([id], 'Matti1')
       }
@@ -597,7 +597,7 @@ describe('Db invoicable FlightLog tests', () => {
           endDate: '2030-01-01',
           flights: InvoicableFlights.MIN_BILLABLE,
         })
-        expect(result.logs.some(l => l.flightId === id)).toBe(false)
+        expect(result.logs.some((l) => l.flightId === id)).toBe(false)
       } finally {
         await revertAndDelete([id], 'Pekka1')
       }
@@ -710,7 +710,7 @@ describe('Db Flight statistics', () => {
         totalLandings: 2,
       },
     ])
-    expect(result.map(item => item.aircraftRegistration)).toEqual(['OH-P28', 'OH-IHQ'])
+    expect(result.map((item) => item.aircraftRegistration)).toEqual(['OH-P28', 'OH-IHQ'])
   })
 
   it.skip('get flights statistics with multiple planes where only one is active', async () => {

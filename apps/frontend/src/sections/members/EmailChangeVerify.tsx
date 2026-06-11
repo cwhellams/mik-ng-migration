@@ -26,15 +26,13 @@ const EmailChangeVerify = () => {
     const token = searchParams.get('token')
     if (token) {
       triggered.current = true
-      mutation
-        .trigger('POST', { token }, 'email-change/verify')
-        .then(({ error }) => {
-          if (error) {
-            setVerificationError(t('emailChange.verifyFailedMessage'))
-          } else {
-            setIsVerified(true)
-          }
-        })
+      mutation.trigger('POST', { token }, 'email-change/verify').then(({ error }) => {
+        if (error) {
+          setVerificationError(t('emailChange.verifyFailedMessage'))
+        } else {
+          setIsVerified(true)
+        }
+      })
     } else {
       setVerificationError(t('emailChange.verifyFailedMessage'))
     }
@@ -60,22 +58,14 @@ const EmailChangeVerify = () => {
       <Box sx={{ padding: 3, textAlign: 'center' }}>
         <Title label={t('emailChange.verifyTitle')} />
         <Box sx={{ mt: 2 }}>
-          <Icon
-            icon='mdi:alert-circle'
-            width={64}
-            height={64}
-            color='#f44336'
-          />
+          <Icon icon='mdi:alert-circle' width={64} height={64} color='#f44336' />
           <Typography variant='h6' sx={{ mt: 2, mb: 2 }}>
             {t('emailChange.verifyFailed')}
           </Typography>
           <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
             {verificationError}
           </Typography>
-          <Button
-            variant='contained'
-            onClick={() => navigate('/club/members/me')}
-          >
+          <Button variant='contained' onClick={() => navigate('/club/members/me')}>
             {t('emailChange.goToProfile')}
           </Button>
         </Box>
@@ -88,12 +78,7 @@ const EmailChangeVerify = () => {
       <Box sx={{ padding: 3, textAlign: 'center' }}>
         <Title label={t('emailChange.verifyTitle')} />
         <Box sx={{ mb: 4 }}>
-          <Icon
-            icon='mdi:check-circle'
-            width={64}
-            height={64}
-            color='#4caf50'
-          />
+          <Icon icon='mdi:check-circle' width={64} height={64} color='#4caf50' />
           <Typography variant='h5' sx={{ mt: 2, mb: 2, color: '#4caf50' }}>
             {t('emailChange.verifySuccess')}
           </Typography>

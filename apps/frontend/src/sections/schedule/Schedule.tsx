@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type CSSProperties,
-} from 'react'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import {
   Calendar,
   type DateRangeFormatFunction,
@@ -120,7 +114,7 @@ const Schedule = () => {
       revalidateOnReconnect: false,
       revalidateIfStale: false,
       revalidateOnMount: true,
-    }
+    },
   )
 
   // convert backend booking to event model used in calendar
@@ -153,7 +147,7 @@ const Schedule = () => {
         isCancelled: flags.isCancelled,
       }
     },
-    [me, isBookingAdmin, t]
+    [me, isBookingAdmin, t],
   )
 
   const [filters, setFilters] = useState<BookingFilters>({
@@ -172,12 +166,7 @@ const Schedule = () => {
   })
 
   const hasOverlap = useCallback(
-    async (
-      registration: string,
-      from: Dayjs,
-      to: Dayjs,
-      bookingId?: string
-    ): Promise<boolean> => {
+    async (registration: string, from: Dayjs, to: Dayjs, bookingId?: string): Promise<boolean> => {
       const payload: BookingFilters = {
         registration: [registration],
         from: from.toISOString(),
@@ -189,7 +178,7 @@ const Schedule = () => {
       const { data } = await fetch.trigger('GET', payload, undefined)
       return (data?.bookings.length ?? 0) > 0
     },
-    [fetch]
+    [fetch],
   )
 
   const [editMode, setEditMode] = useState<Upsert<Booking & BookingFlags>>()
@@ -197,27 +186,21 @@ const Schedule = () => {
   const { i18n } = useTranslation()
 
   const [currentView, setCurrentView] = useState<View>(
-    searchParams.has('day') ? Views.DAY : Views.WEEK
+    searchParams.has('day') ? Views.DAY : Views.WEEK,
   )
 
   // it's recommended to memoize callbacks and values passed to the calendar
   // https://jquense.github.io/react-big-calendar/examples/index.html?path=/docs/about-our-examples--page
-  const onView = useCallback(
-    (newView: View) => setCurrentView(newView),
-    [setCurrentView]
-  )
+  const onView = useCallback((newView: View) => setCurrentView(newView), [setCurrentView])
 
   const [currentDate, setCurrentDate] = useState<Date | undefined>(
     searchParams.has('day')
       ? new Date(searchParams.get('day')!)
       : searchParams.has('week')
         ? new Date(searchParams.get('week')!)
-        : new Date()
+        : new Date(),
   )
-  const onNavigate = useCallback(
-    (newDate: Date) => setCurrentDate(newDate),
-    [setCurrentDate]
-  )
+  const onNavigate = useCallback((newDate: Date) => setCurrentDate(newDate), [setCurrentDate])
 
   // memoize calendar options to avoid unnecessary rerenders
   const calendarOpts = useMemo(
@@ -228,7 +211,7 @@ const Schedule = () => {
       min: dayjs.tz('2000-01-01T07:00:00', HELSINKI_TIMEZONE).toDate(),
       max: dayjs.tz('2000-01-01T22:00:00', HELSINKI_TIMEZONE).toDate(),
     }),
-    [t]
+    [t],
   )
 
   // show calendar events always in Helsinki timezone
@@ -313,7 +296,7 @@ const Schedule = () => {
         minDate: bookingMinDate(),
       })
     },
-    [setEditMode, aircraftData, filters, me?.memberId]
+    [setEditMode, aircraftData, filters, me?.memberId],
   )
 
   // open the clicked event in modal
@@ -321,9 +304,7 @@ const Schedule = () => {
     async (data: Event) => {
       const reservation = data as BookingEvent
 
-      const booking = eventData?.bookings.find(
-        (b) => b.bookingId == reservation.id
-      )
+      const booking = eventData?.bookings.find((b) => b.bookingId == reservation.id)
       if (booking) {
         setEditMode({
           ...booking,
@@ -333,15 +314,11 @@ const Schedule = () => {
         })
       }
     },
-    [eventData?.bookings, setEditMode]
+    [eventData?.bookings, setEditMode],
   )
 
   // patch the resized or moved event
-  const moveEvent = async (
-    reservation: BookingEvent,
-    startDate: Dayjs,
-    endDate: Dayjs
-  ) => {
+  const moveEvent = async (reservation: BookingEvent, startDate: Dayjs, endDate: Dayjs) => {
     const min = bookingMinDate(dayjs(reservation.start))
     if (startDate.isBefore(min)) {
       return setProblem({
@@ -350,14 +327,7 @@ const Schedule = () => {
       })
     }
 
-    if (
-      await hasOverlap(
-        reservation.registration,
-        startDate,
-        endDate,
-        reservation.id
-      )
-    ) {
+    if (await hasOverlap(reservation.registration, startDate, endDate, reservation.id)) {
       return setProblem({
         status: 400,
         detail: t('schedule.bookingOverlapError'),
@@ -370,24 +340,18 @@ const Schedule = () => {
         startTimeEpoch: startDate.unix().toString(),
         endTimeEpoch: endDate.unix().toString(),
       },
-      reservation.id
+      reservation.id,
     )
     if (error) {
       setProblem(error)
     }
   }
 
-  const onEventResize: withDragAndDropProps['onEventResize'] = ({
-    start,
-    end,
-    event,
-  }) => moveEvent(event as BookingEvent, dayjs(start), dayjs(end))
+  const onEventResize: withDragAndDropProps['onEventResize'] = ({ start, end, event }) =>
+    moveEvent(event as BookingEvent, dayjs(start), dayjs(end))
 
-  const onEventDrop: withDragAndDropProps['onEventDrop'] = ({
-    start,
-    end,
-    event,
-  }) => moveEvent(event as BookingEvent, dayjs(start), dayjs(end))
+  const onEventDrop: withDragAndDropProps['onEventDrop'] = ({ start, end, event }) =>
+    moveEvent(event as BookingEvent, dayjs(start), dayjs(end))
 
   const eventStyle: EventPropGetter<object> = useCallback(
     (event) => {
@@ -395,16 +359,11 @@ const Schedule = () => {
         return {}
       }
       const reservation = event as BookingEvent
-      const backgroundColor =
-        colors[`${reservation.registration}-${reservation.type}`]
+      const backgroundColor = colors[`${reservation.registration}-${reservation.type}`]
       return {
         style: {
           border: reservation.isEditable ? '3px solid #00731d' : 'none',
-          opacity: reservation.isPastBooking
-            ? 0.75
-            : reservation.isCancelled
-              ? 0.5
-              : 1,
+          opacity: reservation.isPastBooking ? 0.75 : reservation.isCancelled ? 0.5 : 1,
           color: reservation.registration == 'OH-IHQ' ? '#000000ca' : '#ffffff',
           background: reservation.isCancelled
             ? `repeating-linear-gradient(45deg, grey, ${backgroundColor} 1%, ${backgroundColor} 2%)`
@@ -413,40 +372,19 @@ const Schedule = () => {
         },
       }
     },
-    [currentView]
+    [currentView],
   )
 
-  const eventTimeRangeFormat: DateRangeFormatFunction = (
-    { start, end },
-    culture,
-    localizer
-  ) =>
-    localizer?.format(
-      start,
-      start.getMinutes() == 0 ? 'HH' : 'HH:mm',
-      culture
-    ) +
+  const eventTimeRangeFormat: DateRangeFormatFunction = ({ start, end }, culture, localizer) =>
+    localizer?.format(start, start.getMinutes() == 0 ? 'HH' : 'HH:mm', culture) +
     '–' +
     localizer?.format(end, end.getMinutes() == 0 ? 'HH' : 'HH:mm', culture)
 
-  const eventTimeRangeStartFormat: DateRangeFormatFunction = (
-    { start },
-    culture,
-    localizer
-  ) =>
-    localizer?.format(
-      start,
-      start.getMinutes() == 0 ? 'HH' : 'HH:mm',
-      culture
-    ) + '–'
+  const eventTimeRangeStartFormat: DateRangeFormatFunction = ({ start }, culture, localizer) =>
+    localizer?.format(start, start.getMinutes() == 0 ? 'HH' : 'HH:mm', culture) + '–'
 
-  const eventTimeRangeEndFormat: DateRangeFormatFunction = (
-    { end },
-    culture,
-    localizer
-  ) =>
-    '–' +
-    localizer?.format(end, end.getMinutes() == 0 ? 'HH' : 'HH:mm', culture)
+  const eventTimeRangeEndFormat: DateRangeFormatFunction = ({ end }, culture, localizer) =>
+    '–' + localizer?.format(end, end.getMinutes() == 0 ? 'HH' : 'HH:mm', culture)
 
   const dayLayoutAlgorithm: DayLayoutFunction<BookingEvent> = (params) => {
     return noOverlap(params).map((item) => {
@@ -483,34 +421,22 @@ const Schedule = () => {
         </Button>
       </Title>
 
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        justifyContent='space-between'
-        mb={3}
-      >
+      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent='space-between' mb={3}>
         <Box display='flex' flexDirection='row' alignItems='center'>
           <Typography variant='body2'>{t('schedule.showPlanes')}</Typography>
           <ToggleButtonGroup
             value={filters['registration']}
             exclusive
-            onChange={(_, value) =>
-              setFilters((filters) => ({ ...filters, registration: value }))
-            }
+            onChange={(_, value) => setFilters((filters) => ({ ...filters, registration: value }))}
             aria-label='plane selection'
             size='small'
             sx={{ ml: 2 }}
           >
-            <ToggleButton
-              value={[]}
-              selected={filters['registration']?.length == 0}
-            >
+            <ToggleButton value={[]} selected={filters['registration']?.length == 0}>
               {t('schedule.ALL')}
             </ToggleButton>
             {aircraftData?.aircrafts.map((aircraft) => (
-              <ToggleButton
-                key={aircraft.registration}
-                value={aircraft.registration}
-              >
+              <ToggleButton key={aircraft.registration} value={aircraft.registration}>
                 {aircraft.registration}
               </ToggleButton>
             ))}
@@ -583,10 +509,7 @@ const Schedule = () => {
         )}
       </Box>
 
-      <BookingEditor
-        booking={editMode}
-        onClose={() => setEditMode(undefined)}
-      />
+      <BookingEditor booking={editMode} onClose={() => setEditMode(undefined)} />
     </RemoteContent>
   )
 }

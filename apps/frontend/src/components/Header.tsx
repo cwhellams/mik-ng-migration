@@ -40,10 +40,7 @@ interface HeaderProps {
 }
 
 const hostName =
-  import.meta.env.VITE_API_TARGET?.replace('https://', '').replace(
-    '.mik.fi',
-    ''
-  ) ?? 'local'
+  import.meta.env.VITE_API_TARGET?.replace('https://', '').replace('.mik.fi', '') ?? 'local'
 
 const Header = (props: HeaderProps) => {
   const { window } = props
@@ -62,12 +59,11 @@ const Header = (props: HeaderProps) => {
   // it when sudo mode is on — when sudo is off they are treated as students
   // and the syllabus check applies.
   const hasElevatedDtoRole =
-    hasAccess(MIKPermissions.DTO_INSTRUCTOR) ||
-    (sudo && hasAccess(MIKPermissions.DTO_ADMIN))
+    hasAccess(MIKPermissions.DTO_INSTRUCTOR) || (sudo && hasAccess(MIKPermissions.DTO_ADMIN))
   const { activeSyllabus } = useMyDtoSyllabus(
     // Skip the fetch when the user already has elevated access (always sees nav)
     // or when they have neither DTO_USER nor elevated access (nav never shows).
-    hasElevatedDtoRole || !hasAccess(MIKPermissions.DTO_USER)
+    hasElevatedDtoRole || !hasAccess(MIKPermissions.DTO_USER),
   )
 
   // Check if the page has been scrolled
@@ -129,10 +125,7 @@ const Header = (props: HeaderProps) => {
         style={{
           height: 40,
           width: 'auto',
-          filter:
-            hostName !== 'intra'
-              ? 'invert(24%) sepia(68%) saturate(5000%)'
-              : undefined,
+          filter: hostName !== 'intra' ? 'invert(24%) sepia(68%) saturate(5000%)' : undefined,
         }}
       />
       {hostName !== 'intra' && (
@@ -186,14 +179,10 @@ const Header = (props: HeaderProps) => {
       elevation={isScrolled ? 2 : 0}
       sx={{
         backgroundColor: (theme) =>
-          theme.palette.mode === 'dark'
-            ? 'rgba(30, 30, 30, 0.85)'
-            : 'rgba(255, 255, 255, 0.85)',
+          theme.palette.mode === 'dark' ? 'rgba(30, 30, 30, 0.85)' : 'rgba(255, 255, 255, 0.85)',
         backdropFilter: 'blur(8px)',
         transition: 'transform 0.3s, backdrop-filter 0.3s, box-shadow 0.3s',
-        borderBottom: isScrolled
-          ? 'none'
-          : `1px solid ${theme.palette.divider}`,
+        borderBottom: isScrolled ? 'none' : `1px solid ${theme.palette.divider}`,
         width: '100%',
         left: 0,
         right: 0,
@@ -201,10 +190,7 @@ const Header = (props: HeaderProps) => {
       }}
     >
       <Toolbar sx={{ height: 70 }}>
-        <Container
-          maxWidth='lg'
-          sx={{ display: 'flex', width: '100%', alignItems: 'center' }}
-        >
+        <Container maxWidth='lg' sx={{ display: 'flex', width: '100%', alignItems: 'center' }}>
           {/* Burger Menu for Mobile */}
           {isMobile && (
             <IconButton
@@ -251,9 +237,7 @@ const Header = (props: HeaderProps) => {
                   color='inherit'
                   sx={{
                     color: theme.palette.text.primary,
-                    fontWeight: location.pathname.startsWith(item.path)
-                      ? 'bold'
-                      : 'normal',
+                    fontWeight: location.pathname.startsWith(item.path) ? 'bold' : 'normal',
                   }}
                 >
                   {t(item.label)}

@@ -38,7 +38,7 @@ export default function MyExamHistoryPage() {
 
   const hasNewerPublishedVersion = (
     versionNumber?: number | null,
-    latestPublishedVersionNumber?: number | null
+    latestPublishedVersionNumber?: number | null,
   ) =>
     versionNumber != null &&
     latestPublishedVersionNumber != null &&
@@ -77,9 +77,7 @@ export default function MyExamHistoryPage() {
             <TableBody>
               {data.items.map((attempt) => (
                 <TableRow key={attempt.attemptId}>
-                  <TableCell>
-                    {dayjs(attempt.createdAt).format('DD.MM.YYYY HH:mm')}
-                  </TableCell>
+                  <TableCell>{dayjs(attempt.createdAt).format('DD.MM.YYYY HH:mm')}</TableCell>
                   <TableCell>{attempt.examName ?? '—'}</TableCell>
                   <TableCell>{getExamTypeLabel(attempt.examType)}</TableCell>
                   <TableCell>
@@ -99,7 +97,7 @@ export default function MyExamHistoryPage() {
                       </span>
                       {hasNewerPublishedVersion(
                         attempt.versionNumber,
-                        attempt.latestPublishedVersionNumber
+                        attempt.latestPublishedVersionNumber,
                       ) &&
                         attempt.examId && (
                           <Chip
@@ -118,31 +116,17 @@ export default function MyExamHistoryPage() {
                     </Box>
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={attempt.status}
-                      size='small'
-                      color={statusColor(attempt.status)}
-                    />
+                    <Chip label={attempt.status} size='small' color={statusColor(attempt.status)} />
                   </TableCell>
                   <TableCell>
-                    {attempt.scorePercent != null
-                      ? `${attempt.scorePercent.toFixed(1)}%`
-                      : '—'}
+                    {attempt.scorePercent != null ? `${attempt.scorePercent.toFixed(1)}%` : '—'}
                   </TableCell>
                   <TableCell>
                     {attempt.passed === true && (
-                      <Chip
-                        label={t('exams.passed')}
-                        color='success'
-                        size='small'
-                      />
+                      <Chip label={t('exams.passed')} color='success' size='small' />
                     )}
                     {attempt.passed === false && (
-                      <Chip
-                        label={t('exams.failed')}
-                        color='error'
-                        size='small'
-                      />
+                      <Chip label={t('exams.failed')} color='error' size='small' />
                     )}
                     {attempt.passed == null && '—'}
                   </TableCell>

@@ -63,7 +63,7 @@ export const getOccurrence = async (
   const result = await connection.db
     .selectFrom('flight.occurrences')
     .selectAll()
-    .select(eb =>
+    .select((eb) =>
       jsonArrayFrom(
         eb
           .selectFrom('flight.occurrence_access')
@@ -78,17 +78,17 @@ export const getOccurrence = async (
       ).as('access'),
     )
     .where('flight.occurrences.report_id', '=', reportId)
-    .where(eb =>
+    .where((eb) =>
       eb.exists(
         eb
           .selectFrom('flight.occurrence_access')
           .selectAll()
           .whereRef('flight.occurrence_access.report_id', '=', 'flight.occurrences.report_id')
-          .where(eb => hasAccess(eb, limitations))
-          .$if(access == 'write', qb =>
+          .where((eb) => hasAccess(eb, limitations))
+          .$if(access == 'write', (qb) =>
             qb.where('flight.occurrence_access.write_access', '=', true),
           )
-          .$if(access == 'manage', qb =>
+          .$if(access == 'manage', (qb) =>
             qb.where('flight.occurrence_access.manage_access', '=', true),
           ),
       ),
@@ -101,7 +101,7 @@ export const getOccurrence = async (
 
   return toOccurrence(
     result,
-    result.access.map(a => ({
+    result.access.map((a) => ({
       accessId: a.access_id,
       memberId: a.member_id,
       lastName: a.last_name,
@@ -160,10 +160,10 @@ export async function getOccurrences(
       'flight.occurrences.report_id',
       'flight.occurrence_access.report_id',
     )
-    .where(eb => hasAccess(eb, limitations))
-    .$if(filters.status !== undefined, qb => qb.where('status', '=', filters.status!))
-    .$if(filters.ignoreStatuses ? filters.ignoreStatuses.length > 0 : false, qb =>
-      qb.where(eb => eb('status', 'not in', filters.ignoreStatuses!)),
+    .where((eb) => hasAccess(eb, limitations))
+    .$if(filters.status !== undefined, (qb) => qb.where('status', '=', filters.status!))
+    .$if(filters.ignoreStatuses ? filters.ignoreStatuses.length > 0 : false, (qb) =>
+      qb.where((eb) => eb('status', 'not in', filters.ignoreStatuses!)),
     )
     .distinctOn('flight.occurrences.report_id')
     .orderBy('flight.occurrences.report_id')
@@ -172,7 +172,7 @@ export async function getOccurrences(
     .orderBy('created_at', 'desc')
     .execute()
 
-  return results.map(r => toOccurrence(r, []))
+  return results.map((r) => toOccurrence(r, []))
 }
 
 export async function createOccurrence(
@@ -293,7 +293,7 @@ export const addOccurrenceAccess = async (
   const inserted = await connection.db
     .insertInto('flight.occurrence_access')
     .values(
-      access.map(access => ({
+      access.map((access) => ({
         report_id: reportId,
         member_id: access.memberId,
         role_id: access.roleId,
@@ -307,7 +307,7 @@ export const addOccurrenceAccess = async (
     .returningAll()
     .execute()
 
-  return inserted.map(a => ({
+  return inserted.map((a) => ({
     accessId: a.access_id,
     memberId: a.member_id,
     roleId: a.role_id,

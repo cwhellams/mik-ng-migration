@@ -251,7 +251,7 @@ export async function getNextCreditNoteSequenceNumber(txn?: Transaction<DB>): Pr
   const executor = txn ?? db
 
   const result = await executor
-    .selectNoFrom(eb =>
+    .selectNoFrom((eb) =>
       eb
         .fn<bigint | number>('nextval', [eb.val('accts.credit_note_number_seq')])
         .as('next_sequence_number'),

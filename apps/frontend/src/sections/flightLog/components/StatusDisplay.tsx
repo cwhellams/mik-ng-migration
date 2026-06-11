@@ -20,11 +20,10 @@ export const StatusDisplay = ({
   showButton: boolean
   update: (payload: FlightLogValidationRequest) => void
 }) => {
-  const { canDownloadInvoice, handleDownloadPDF, loading } =
-    useInvoicePdfDownload({
-      invoiceNumber: log.invoiceNumber,
-      billableMemberId: log.billableMemberId,
-    })
+  const { canDownloadInvoice, handleDownloadPDF, loading } = useInvoicePdfDownload({
+    invoiceNumber: log.invoiceNumber,
+    billableMemberId: log.billableMemberId,
+  })
 
   return (
     <>

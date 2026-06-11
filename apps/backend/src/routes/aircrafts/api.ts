@@ -45,7 +45,7 @@ router.get('/', async (req: Request<AircraftFilters>, res: Response<AircraftList
 
   res.status(200).json({
     aircrafts: await Promise.all(
-      aircrafts.map(async aircraft => ({
+      aircrafts.map(async (aircraft) => ({
         ...aircraft,
         status: await aircraftStatus(aircraft),
       })),

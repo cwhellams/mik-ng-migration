@@ -135,7 +135,7 @@ export const getTotalFlightTimeByAcYr = async (filters?: {
   query = applyYearFilter(query, filters)
 
   const results = await query.execute()
-  return results.map(row => ({
+  return results.map((row) => ({
     ...row,
     total_flight_mins: row.total_flight_mins ? Number(row.total_flight_mins) : null,
   }))
@@ -446,7 +446,7 @@ const buildHistogram = (values: number[], binSize: number): PilotStatisticsHisto
     const binTo = (i + 1) * binSize
     const isLastBin = i === numBins - 1
     const pilotCount = values.filter(
-      v => v >= binFrom && (isLastBin ? v <= binTo : v < binTo),
+      (v) => v >= binFrom && (isLastBin ? v <= binTo : v < binTo),
     ).length
     bins.push({ binFrom, binTo, pilotCount })
   }
@@ -500,14 +500,14 @@ export const getPilotStatistics = async (filters: {
     LEFT JOIN pic_airports a ON t.pic_member_id = a.pic_member_id
   `.execute(db)
 
-  const picData = rows.rows.map(r => ({
+  const picData = rows.rows.map((r) => ({
     totalHours: Number(r.total_flight_mins) / 60,
     uniqueAirports: Number(r.unique_airports),
   }))
 
   const uniquePicCount = picData.length
-  const hoursValues = picData.map(r => r.totalHours)
-  const airportValues = picData.map(r => r.uniqueAirports)
+  const hoursValues = picData.map((r) => r.totalHours)
+  const airportValues = picData.map((r) => r.uniqueAirports)
 
   return {
     uniquePicCount,

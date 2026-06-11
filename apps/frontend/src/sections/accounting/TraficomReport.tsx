@@ -28,13 +28,7 @@ import Papa from 'papaparse'
 import { Download } from '@mui/icons-material'
 import { formatHHMM } from '../../utils/format'
 
-const FILTER_OPTIONS = [
-  'ALL',
-  'PRIVATE',
-  'SCHOOL',
-  'DTO_SCHOOL',
-  'NON_DTO_SCHOOL',
-] as const
+const FILTER_OPTIONS = ['ALL', 'PRIVATE', 'SCHOOL', 'DTO_SCHOOL', 'NON_DTO_SCHOOL'] as const
 type TraficomFilter = (typeof FILTER_OPTIONS)[number]
 
 interface TraficomReportEntry {
@@ -89,19 +83,15 @@ export const TraficomReport = () => {
     if (!reportData?.data) return
 
     const csvData = reportData.data.map((entry) => ({
-      [t('invoicing.traficomReport.table.aircraft')]:
-        entry.aircraftRegistration,
+      [t('invoicing.traficomReport.table.aircraft')]: entry.aircraftRegistration,
       [t('invoicing.traficomReport.table.flights')]: entry.flights,
       [t('invoicing.traficomReport.table.landings')]: entry.landings,
       [t('invoicing.traficomReport.table.zzzzLandings')]: entry.zzzzLandings,
-      [t('invoicing.traficomReport.table.yearHours')]: formatHHMM(
-        entry.yearTotalFlightMins
-      ),
+      [t('invoicing.traficomReport.table.yearHours')]: formatHHMM(entry.yearTotalFlightMins),
       [t('invoicing.traficomReport.table.lifetimeHours')]: formatHHMM(
-        entry.lifetimeTotalFlightMins
+        entry.lifetimeTotalFlightMins,
       ),
-      [t('invoicing.traficomReport.table.lifetimeLandings')]:
-        entry.lifetimeTotalLandings,
+      [t('invoicing.traficomReport.table.lifetimeLandings')]: entry.lifetimeTotalLandings,
     }))
 
     const csv = Papa.unparse(csvData)
@@ -113,8 +103,7 @@ export const TraficomReport = () => {
     // Generate filename
     const title = t('invoicing.traficomReport.title')
     const filterLabel = t(`invoicing.traficomReport.filterOptions.${filter}`)
-    const toFilenameCompatible = (s: string) =>
-      s.toLowerCase().replace(/[^a-z0-9-_]/g, '')
+    const toFilenameCompatible = (s: string) => s.toLowerCase().replace(/[^a-z0-9-_]/g, '')
 
     const filename = `${toFilenameCompatible(title)}-${year}-${toFilenameCompatible(filterLabel)}.csv`
 
@@ -132,12 +121,7 @@ export const TraficomReport = () => {
         <Typography variant='h5' gutterBottom>
           {t('invoicing.traficomReport.title')}
         </Typography>
-        <Typography
-          variant='body2'
-          color='text.secondary'
-          gutterBottom
-          sx={{ mb: 3 }}
-        >
+        <Typography variant='body2' color='text.secondary' gutterBottom sx={{ mb: 3 }}>
           {t('invoicing.traficomReport.description')}
         </Typography>
 
@@ -213,9 +197,7 @@ export const TraficomReport = () => {
               <Table size='small' sx={{ minWidth: { xs: 600, md: 'auto' } }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell>
-                      {t('invoicing.traficomReport.table.aircraft')}
-                    </TableCell>
+                    <TableCell>{t('invoicing.traficomReport.table.aircraft')}</TableCell>
                     <TableCell align='right'>
                       {t('invoicing.traficomReport.table.flights')}
                     </TableCell>
@@ -230,21 +212,13 @@ export const TraficomReport = () => {
                     </TableCell>
                     <TableCell align='right'>
                       {t('invoicing.traficomReport.table.lifetimeHours')}
-                      <Typography
-                        variant='caption'
-                        display='block'
-                        color='text.secondary'
-                      >
+                      <Typography variant='caption' display='block' color='text.secondary'>
                         {t('invoicing.traficomReport.table.lifetimeNote')}
                       </Typography>
                     </TableCell>
                     <TableCell align='right'>
                       {t('invoicing.traficomReport.table.lifetimeLandings')}
-                      <Typography
-                        variant='caption'
-                        display='block'
-                        color='text.secondary'
-                      >
+                      <Typography variant='caption' display='block' color='text.secondary'>
                         {t('invoicing.traficomReport.table.lifetimeNote')}
                       </Typography>
                     </TableCell>
@@ -257,24 +231,16 @@ export const TraficomReport = () => {
                       <TableCell align='right'>{row.flights}</TableCell>
                       <TableCell align='right'>{row.landings}</TableCell>
                       <TableCell align='right'>{row.zzzzLandings}</TableCell>
-                      <TableCell align='right'>
-                        {formatHHMM(row.yearTotalFlightMins)}
-                      </TableCell>
-                      <TableCell align='right'>
-                        {formatHHMM(row.lifetimeTotalFlightMins)}
-                      </TableCell>
-                      <TableCell align='right'>
-                        {row.lifetimeTotalLandings}
-                      </TableCell>
+                      <TableCell align='right'>{formatHHMM(row.yearTotalFlightMins)}</TableCell>
+                      <TableCell align='right'>{formatHHMM(row.lifetimeTotalFlightMins)}</TableCell>
+                      <TableCell align='right'>{row.lifetimeTotalLandings}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </TableContainer>
           ) : shouldFetch ? (
-            <Alert severity='info'>
-              {t('invoicing.traficomReport.noData')}
-            </Alert>
+            <Alert severity='info'>{t('invoicing.traficomReport.noData')}</Alert>
           ) : null}
         </RemoteContent>
       </CardContent>

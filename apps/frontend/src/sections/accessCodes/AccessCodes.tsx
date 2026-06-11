@@ -15,10 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { useRoles } from '../../hooks/useRoles'
 import { SecretDialog } from './SecretDialog'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
-import type {
-  Secret,
-  SecretsListResponse,
-} from '@backend/routes/secrets/models'
+import type { Secret, SecretsListResponse } from '@backend/routes/secrets/models'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
@@ -30,10 +27,7 @@ interface CountdownTimerProps {
   onComplete: () => void
 }
 
-const CountdownTimer: React.FC<CountdownTimerProps> = ({
-  duration,
-  onComplete,
-}) => {
+const CountdownTimer: React.FC<CountdownTimerProps> = ({ duration, onComplete }) => {
   const [timeLeft, setTimeLeft] = useState(duration)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -110,9 +104,7 @@ export const AccessCodes: React.FC = () => {
   })
 
   const [visibleSecrets, setVisibleSecrets] = useState<Set<number>>(new Set())
-  const [secretTimers, setSecretTimers] = useState<Map<number, NodeJS.Timeout>>(
-    new Map()
-  )
+  const [secretTimers, setSecretTimers] = useState<Map<number, NodeJS.Timeout>>(new Map())
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingSecret, setEditingSecret] = useState<Secret | null>(null)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
@@ -270,11 +262,7 @@ export const AccessCodes: React.FC = () => {
 
             <Chip
               size='small'
-              label={
-                isVisible
-                  ? t('accessCodes.hideValue')
-                  : t('accessCodes.showValue')
-              }
+              label={isVisible ? t('accessCodes.hideValue') : t('accessCodes.showValue')}
               variant='outlined'
               sx={{
                 fontSize: '0.75rem',
@@ -345,22 +333,15 @@ export const AccessCodes: React.FC = () => {
         )}
       </Title>
 
-      {isAccessCodesAdmin &&
-        data?.secrets.some((s) => s.secretClass === 'BOARD') && (
-          <Typography
-            variant='subtitle1'
-            fontWeight='bold'
-            sx={{ mt: 1, mb: 0.5 }}
-          >
-            {t('accessCodes.memberSecretsTitle')}
-          </Typography>
-        )}
+      {isAccessCodesAdmin && data?.secrets.some((s) => s.secretClass === 'BOARD') && (
+        <Typography variant='subtitle1' fontWeight='bold' sx={{ mt: 1, mb: 0.5 }}>
+          {t('accessCodes.memberSecretsTitle')}
+        </Typography>
+      )}
 
       <ResponsiveTable
         notFoundMsg={t('accessCodes.noSecrets')}
-        rows={data?.secrets.filter(
-          (s) => !isAccessCodesAdmin || s.secretClass === 'MEMBER'
-        )}
+        rows={data?.secrets.filter((s) => !isAccessCodesAdmin || s.secretClass === 'MEMBER')}
         rowProps={() => ({
           '&:hover': {
             backgroundColor: theme.palette.action.hover,
@@ -369,28 +350,23 @@ export const AccessCodes: React.FC = () => {
         row={renderSecretRow}
       />
 
-      {isAccessCodesAdmin &&
-        data?.secrets.some((s) => s.secretClass === 'BOARD') && (
-          <>
-            <Typography
-              variant='subtitle1'
-              fontWeight='bold'
-              sx={{ mt: 2, mb: 0.5 }}
-            >
-              {t('accessCodes.boardSecretsTitle')}
-            </Typography>
-            <ResponsiveTable
-              notFoundMsg={t('accessCodes.noSecrets')}
-              rows={data?.secrets.filter((s) => s.secretClass === 'BOARD')}
-              rowProps={() => ({
-                '&:hover': {
-                  backgroundColor: theme.palette.action.hover,
-                },
-              })}
-              row={renderSecretRow}
-            />
-          </>
-        )}
+      {isAccessCodesAdmin && data?.secrets.some((s) => s.secretClass === 'BOARD') && (
+        <>
+          <Typography variant='subtitle1' fontWeight='bold' sx={{ mt: 2, mb: 0.5 }}>
+            {t('accessCodes.boardSecretsTitle')}
+          </Typography>
+          <ResponsiveTable
+            notFoundMsg={t('accessCodes.noSecrets')}
+            rows={data?.secrets.filter((s) => s.secretClass === 'BOARD')}
+            rowProps={() => ({
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+              },
+            })}
+            row={renderSecretRow}
+          />
+        </>
+      )}
 
       <SecretDialog
         open={dialogOpen}

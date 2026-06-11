@@ -46,8 +46,8 @@
   position: absolute;
   background:
     linear-gradient(var(--yellow) 0 0) 50% 50% / 100% var(--thick) no-repeat,
-    linear-gradient(var(--yellow) 0 0) 50%
-      calc(50% + var(--thick) + var(--gap)) / 100% var(--thick) no-repeat;
+    linear-gradient(var(--yellow) 0 0) 50% calc(50% + var(--thick) + var(--gap)) / 100% var(--thick)
+      no-repeat;
 }
 
 .rbc-day-slot .rbc-events-container {

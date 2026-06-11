@@ -63,10 +63,7 @@ type FormApplicationData = Omit<
   gdprAccepted: boolean
 }
 
-type RegisterFormState = Omit<
-  RegisterRequest,
-  'memberType' | 'applicationData'
-> & {
+type RegisterFormState = Omit<RegisterRequest, 'memberType' | 'applicationData'> & {
   memberType?: MIKMemberTypes
   applicationData: FormApplicationData
 }
@@ -75,9 +72,7 @@ const Register = () => {
   const { t, i18n } = useTranslation()
 
   // Initialize selectedLanguage state based on current i18n language
-  const [selectedLanguage, setSelectedLanguage] = useState<MIKLang>(
-    i18n.language as MIKLang
-  )
+  const [selectedLanguage, setSelectedLanguage] = useState<MIKLang>(i18n.language as MIKLang)
 
   const [step, setStep] = useState<1 | 2>(1)
 
@@ -122,9 +117,7 @@ const Register = () => {
 
   const navigate = useNavigate()
 
-  const { isMutating, trigger } = useAuth<RegisterRequest, LoginResponse>(
-    'register'
-  )
+  const { isMutating, trigger } = useAuth<RegisterRequest, LoginResponse>('register')
 
   const { data: joiningFees } = useApi<{
     fullMemberFee: number | null
@@ -223,7 +216,7 @@ const Register = () => {
 
   const updateApplicationData = <K extends keyof FormApplicationData>(
     field: K,
-    value: FormApplicationData[K]
+    value: FormApplicationData[K],
   ) => {
     setMember((prev) => ({
       ...prev,
@@ -243,9 +236,7 @@ const Register = () => {
 
   const toggleRating = (rating: AircraftRating, checked: boolean) => {
     const current = member.applicationData?.ratings ?? []
-    const updated = checked
-      ? [...current, rating]
-      : current.filter((r) => r !== rating)
+    const updated = checked ? [...current, rating] : current.filter((r) => r !== rating)
     updateApplicationData('ratings', updated)
   }
 
@@ -262,11 +253,7 @@ const Register = () => {
 
       {/* Step indicator */}
       <Box sx={{ mb: 2 }}>
-        <Typography
-          variant='caption'
-          color='text.secondary'
-          sx={{ mb: 0.5, display: 'block' }}
-        >
+        <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
           {step === 1 ? t('register.page1of2') : t('register.page2of2')}
         </Typography>
         <LinearProgress
@@ -302,9 +289,7 @@ const Register = () => {
             label={t('member.firstName')}
             margin='normal'
             value={member.firstName}
-            onChange={(e) =>
-              setMember({ ...member, firstName: e.target.value })
-            }
+            onChange={(e) => setMember({ ...member, firstName: e.target.value })}
             required
           />
           <TextField
@@ -329,9 +314,7 @@ const Register = () => {
             label={t('member.street')}
             margin='normal'
             value={member.streetAddress}
-            onChange={(e) =>
-              setMember({ ...member, streetAddress: e.target.value })
-            }
+            onChange={(e) => setMember({ ...member, streetAddress: e.target.value })}
             required
           />
           <TextField
@@ -359,9 +342,7 @@ const Register = () => {
             required
           />
           <FormControl sx={{ mt: 1 }}>
-            <FormLabel id='member-type-label'>
-              {t('member.memberType')}
-            </FormLabel>
+            <FormLabel id='member-type-label'>{t('member.memberType')}</FormLabel>
             <RadioGroup
               aria-labelledby='member-type-label'
               name='memberType'
@@ -406,22 +387,14 @@ const Register = () => {
           />
           {(() => {
             const age = getAge(dateOfBirth)
-            if (
-              member.memberType === MIKMemberTypes.JUNIOR &&
-              age !== null &&
-              age >= 18
-            ) {
+            if (member.memberType === MIKMemberTypes.JUNIOR && age !== null && age >= 18) {
               return (
                 <Alert severity='error' sx={{ mt: 1 }}>
                   {t('register.juniorAgeError')}
                 </Alert>
               )
             }
-            if (
-              member.memberType !== MIKMemberTypes.JUNIOR &&
-              age !== null &&
-              age < 18
-            ) {
+            if (member.memberType !== MIKMemberTypes.JUNIOR && age !== null && age < 18) {
               return (
                 <Alert severity='info' sx={{ mt: 1 }}>
                   {t('register.juniorRecommended')}
@@ -501,9 +474,7 @@ const Register = () => {
             onChange={(e) =>
               updateApplicationData(
                 'totalFlightHours',
-                e.target.value === ''
-                  ? undefined
-                  : Math.max(0, Number(e.target.value))
+                e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)),
               )
             }
             slotProps={{
@@ -519,26 +490,18 @@ const Register = () => {
             margin='normal'
             value={member.applicationData?.aircraftTypesFlown ?? ''}
             onChange={(e) =>
-              updateApplicationData(
-                'aircraftTypesFlown',
-                e.target.value || undefined
-              )
+              updateApplicationData('aircraftTypesFlown', e.target.value || undefined)
             }
           />
 
           {/* Pilot Licence Type */}
           <FormControl sx={{ mt: 2, mb: 1 }}>
-            <FormLabel id='pilot-licence-type-label'>
-              {t('register.pilotLicenceType')}
-            </FormLabel>
+            <FormLabel id='pilot-licence-type-label'>{t('register.pilotLicenceType')}</FormLabel>
             <RadioGroup
               aria-labelledby='pilot-licence-type-label'
               value={member.applicationData?.pilotLicenceType ?? ''}
               onChange={({ target }) =>
-                updateApplicationData(
-                  'pilotLicenceType',
-                  target.value as PilotLicenceType
-                )
+                updateApplicationData('pilotLicenceType', target.value as PilotLicenceType)
               }
             >
               <FormControlLabel
@@ -569,16 +532,13 @@ const Register = () => {
             </RadioGroup>
           </FormControl>
 
-          {member.applicationData?.pilotLicenceType ===
-            PilotLicenceType.OTHER && (
+          {member.applicationData?.pilotLicenceType === PilotLicenceType.OTHER && (
             <TextField
               fullWidth
               label={t('register.pilotLicenceOtherText')}
               margin='normal'
               value={member.applicationData?.pilotLicenceTypeOther ?? ''}
-              onChange={(e) =>
-                updateApplicationData('pilotLicenceTypeOther', e.target.value)
-              }
+              onChange={(e) => updateApplicationData('pilotLicenceTypeOther', e.target.value)}
               required
             />
           )}
@@ -597,10 +557,7 @@ const Register = () => {
                   key={rating}
                   control={
                     <Checkbox
-                      checked={
-                        member.applicationData?.ratings?.includes(rating) ??
-                        false
-                      }
+                      checked={member.applicationData?.ratings?.includes(rating) ?? false}
                       onChange={(e) => toggleRating(rating, e.target.checked)}
                     />
                   }
@@ -616,9 +573,7 @@ const Register = () => {
               label={t('register.ratingsOtherText')}
               margin='normal'
               value={member.applicationData?.ratingsOther ?? ''}
-              onChange={(e) =>
-                updateApplicationData('ratingsOther', e.target.value)
-              }
+              onChange={(e) => updateApplicationData('ratingsOther', e.target.value)}
               required
             />
           )}
@@ -630,17 +585,12 @@ const Register = () => {
           </Typography>
 
           <FormControl sx={{ mt: 1, mb: 1 }}>
-            <FormLabel id='motivation-label'>
-              {t('register.primaryMotivation')}
-            </FormLabel>
+            <FormLabel id='motivation-label'>{t('register.primaryMotivation')}</FormLabel>
             <RadioGroup
               aria-labelledby='motivation-label'
               value={member.applicationData?.primaryMotivation ?? ''}
               onChange={({ target }) =>
-                updateApplicationData(
-                  'primaryMotivation',
-                  target.value as PrimaryMotivation
-                )
+                updateApplicationData('primaryMotivation', target.value as PrimaryMotivation)
               }
             >
               <FormControlLabel
@@ -666,16 +616,13 @@ const Register = () => {
             </RadioGroup>
           </FormControl>
 
-          {member.applicationData?.primaryMotivation ===
-            PrimaryMotivation.OTHER && (
+          {member.applicationData?.primaryMotivation === PrimaryMotivation.OTHER && (
             <TextField
               fullWidth
               label={t('register.motivationOtherText')}
               margin='normal'
               value={member.applicationData?.motivationOther ?? ''}
-              onChange={(e) =>
-                updateApplicationData('motivationOther', e.target.value)
-              }
+              onChange={(e) => updateApplicationData('motivationOther', e.target.value)}
               required
             />
           )}
@@ -685,9 +632,7 @@ const Register = () => {
             label={t('register.coverLetter')}
             margin='normal'
             value={member.applicationData?.coverLetter ?? ''}
-            onChange={(e) =>
-              updateApplicationData('coverLetter', e.target.value)
-            }
+            onChange={(e) => updateApplicationData('coverLetter', e.target.value)}
             required
             multiline
             minRows={3}
@@ -699,9 +644,7 @@ const Register = () => {
             label={t('register.voluntaryWork')}
             margin='normal'
             value={member.applicationData?.voluntaryWork ?? ''}
-            onChange={(e) =>
-              updateApplicationData('voluntaryWork', e.target.value)
-            }
+            onChange={(e) => updateApplicationData('voluntaryWork', e.target.value)}
             required
             multiline
             minRows={2}
@@ -713,9 +656,7 @@ const Register = () => {
             label={t('register.otherAviationClubs')}
             margin='normal'
             value={member.applicationData?.otherAviationClubs ?? ''}
-            onChange={(e) =>
-              updateApplicationData('otherAviationClubs', e.target.value)
-            }
+            onChange={(e) => updateApplicationData('otherAviationClubs', e.target.value)}
             multiline
             minRows={2}
             inputProps={{ maxLength: 500 }}
@@ -728,9 +669,7 @@ const Register = () => {
           </Typography>
 
           <FormControl sx={{ mt: 1, mb: 1 }}>
-            <FormLabel id='accident-history-label'>
-              {t('register.accidentHistory')}
-            </FormLabel>
+            <FormLabel id='accident-history-label'>{t('register.accidentHistory')}</FormLabel>
             <RadioGroup
               aria-labelledby='accident-history-label'
               value={
@@ -744,16 +683,8 @@ const Register = () => {
                 updateApplicationData('accidentHistory', target.value === 'yes')
               }
             >
-              <FormControlLabel
-                value='no'
-                control={<Radio />}
-                label={t('register.no')}
-              />
-              <FormControlLabel
-                value='yes'
-                control={<Radio />}
-                label={t('register.yes')}
-              />
+              <FormControlLabel value='no' control={<Radio />} label={t('register.no')} />
+              <FormControlLabel value='yes' control={<Radio />} label={t('register.yes')} />
             </RadioGroup>
           </FormControl>
 
@@ -763,9 +694,7 @@ const Register = () => {
               label={t('register.accidentHistoryDetails')}
               margin='normal'
               value={member.applicationData?.accidentHistoryDetails ?? ''}
-              onChange={(e) =>
-                updateApplicationData('accidentHistoryDetails', e.target.value)
-              }
+              onChange={(e) => updateApplicationData('accidentHistoryDetails', e.target.value)}
               required
               multiline
               minRows={2}
@@ -774,9 +703,7 @@ const Register = () => {
           )}
 
           <FormControl sx={{ mt: 1, mb: 1 }}>
-            <FormLabel id='criminal-record-label'>
-              {t('register.criminalRecord')}
-            </FormLabel>
+            <FormLabel id='criminal-record-label'>{t('register.criminalRecord')}</FormLabel>
             <RadioGroup
               aria-labelledby='criminal-record-label'
               value={
@@ -790,16 +717,8 @@ const Register = () => {
                 updateApplicationData('criminalRecord', target.value === 'yes')
               }
             >
-              <FormControlLabel
-                value='no'
-                control={<Radio />}
-                label={t('register.no')}
-              />
-              <FormControlLabel
-                value='yes'
-                control={<Radio />}
-                label={t('register.yes')}
-              />
+              <FormControlLabel value='no' control={<Radio />} label={t('register.no')} />
+              <FormControlLabel value='yes' control={<Radio />} label={t('register.yes')} />
             </RadioGroup>
           </FormControl>
 
@@ -809,9 +728,7 @@ const Register = () => {
               label={t('register.criminalRecordDetails')}
               margin='normal'
               value={member.applicationData?.criminalRecordDetails ?? ''}
-              onChange={(e) =>
-                updateApplicationData('criminalRecordDetails', e.target.value)
-              }
+              onChange={(e) => updateApplicationData('criminalRecordDetails', e.target.value)}
               required
               multiline
               minRows={2}
@@ -826,16 +743,10 @@ const Register = () => {
             control={
               <Checkbox
                 checked={member.applicationData?.gdprAccepted ?? false}
-                onChange={(e) =>
-                  updateApplicationData('gdprAccepted', e.target.checked)
-                }
+                onChange={(e) => updateApplicationData('gdprAccepted', e.target.checked)}
               />
             }
-            label={
-              <Typography variant='body2'>
-                {t('register.gdprAcceptance')}
-              </Typography>
-            }
+            label={<Typography variant='body2'>{t('register.gdprAcceptance')}</Typography>}
             sx={{ alignItems: 'flex-start', mt: 1 }}
           />
 
@@ -895,13 +806,11 @@ const Register = () => {
                 textTransform: 'none',
                 fontWeight: 'bold',
                 fontSize: '1rem',
-                boxShadow:
-                  '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)',
+                boxShadow: '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)',
                 transition: 'all 0.2s',
                 '&:hover': {
                   transform: 'translateY(-1px)',
-                  boxShadow:
-                    '0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08)',
+                  boxShadow: '0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08)',
                 },
               }}
             >

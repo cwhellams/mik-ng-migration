@@ -17,11 +17,7 @@ import { Title } from '../../components/Title'
 import { RemoteContent } from '../../components/RemoteContent'
 import useApi from '../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
-import type {
-  SyllabusFlight,
-  SyllabusFlightAttempt,
-  HilEntry,
-} from '@backend/routes/dto/models'
+import type { SyllabusFlight, SyllabusFlightAttempt, HilEntry } from '@backend/routes/dto/models'
 import type { MemberSyllabusDetail } from './dtoApi'
 
 export default function DtoMyTrainingPage() {
@@ -42,12 +38,10 @@ export default function DtoMyTrainingPage() {
     error: attemptsError,
   } = useApi<SyllabusFlightAttempt[]>(
     {
-      url: memberSyllabusId
-        ? `v1/dto/member-syllabus/${memberSyllabusId}/attempts`
-        : undefined,
+      url: memberSyllabusId ? `v1/dto/member-syllabus/${memberSyllabusId}/attempts` : undefined,
       skipFetch: !memberSyllabusId,
     },
-    {}
+    {},
   )
 
   const {
@@ -59,7 +53,7 @@ export default function DtoMyTrainingPage() {
       url: memberId ? `v1/dto/members/${memberId}/hil` : undefined,
       skipFetch: !memberId,
     },
-    {}
+    {},
   )
 
   const isLoading = assignmentLoading || attemptsLoading || hilLoading
@@ -84,16 +78,12 @@ export default function DtoMyTrainingPage() {
     }
   }
 
-  const completedFlights = flights.filter((f) =>
-    approvedByFlight.has(f.flightId)
-  ).length
+  const completedFlights = flights.filter((f) => approvedByFlight.has(f.flightId)).length
   const totalFlights = flights.length
-  const pct =
-    totalFlights > 0 ? Math.round((completedFlights / totalFlights) * 100) : 0
+  const pct = totalFlights > 0 ? Math.round((completedFlights / totalFlights) * 100) : 0
 
   const interimFlight = flights.find((f) => f.isInterimCheckpoint)
-  const interimCompleted =
-    interimFlight != null && approvedByFlight.has(interimFlight.flightId)
+  const interimCompleted = interimFlight != null && approvedByFlight.has(interimFlight.flightId)
 
   return (
     <Box>
@@ -109,16 +99,13 @@ export default function DtoMyTrainingPage() {
                   : t('dto.myTraining.activeSyllabus')}
               </Typography>
               <Typography variant='body2' color='text.secondary'>
-                {t('dto.myTraining.version')}: v
-                {assignment.syllabusDetail?.version}
+                {t('dto.myTraining.version')}: v{assignment.syllabusDetail?.version}
               </Typography>
 
               {/* Overall progress */}
               <Box mt={2}>
                 <Box display='flex' justifyContent='space-between' mb={0.5}>
-                  <Typography variant='body2'>
-                    {t('dto.myTraining.progress')}
-                  </Typography>
+                  <Typography variant='body2'>{t('dto.myTraining.progress')}</Typography>
                   <Typography variant='body2'>
                     {completedFlights}/{totalFlights}
                   </Typography>
@@ -162,20 +149,9 @@ export default function DtoMyTrainingPage() {
                       .flatMap((f) => f.items ?? [])
                       .find((i) => i.itemId === h.itemId)
                     return (
-                      <Box
-                        key={h.hilId}
-                        display='flex'
-                        alignItems='center'
-                        gap={1}
-                      >
-                        <Icon
-                          icon='mdi:alert-circle-outline'
-                          color='warning'
-                          width={18}
-                        />
-                        <Typography variant='body2'>
-                          {item?.name ?? h.itemId}
-                        </Typography>
+                      <Box key={h.hilId} display='flex' alignItems='center' gap={1}>
+                        <Icon icon='mdi:alert-circle-outline' color='warning' width={18} />
+                        <Typography variant='body2'>{item?.name ?? h.itemId}</Typography>
                       </Box>
                     )
                   })}
@@ -199,10 +175,9 @@ export default function DtoMyTrainingPage() {
                     const approvedAttempt = approvedByFlight.get(f.flightId)
                     const approved = approvedAttempt != null
                     const needsReverification =
-                      approved &&
-                      approvedAttempt?.requiresReverification === true
+                      approved && approvedAttempt?.requiresReverification === true
                     const attempted = (attempts ?? []).some(
-                      (a) => a.syllabusFlightId === f.flightId
+                      (a) => a.syllabusFlightId === f.flightId,
                     )
                     return (
                       <TableRow key={f.flightId}>
@@ -213,21 +188,14 @@ export default function DtoMyTrainingPage() {
                         </TableCell>
                         <TableCell>
                           <Box display='flex' alignItems='center' gap={0.5}>
-                            {f.isInterimCheckpoint && (
-                              <Icon icon='mdi:flag-checkered' width={16} />
-                            )}
+                            {f.isInterimCheckpoint && <Icon icon='mdi:flag-checkered' width={16} />}
                             {f.name}
                           </Box>
                         </TableCell>
                         <TableCell>
                           <Stack direction='row' spacing={0.5} flexWrap='wrap'>
                             {f.tags.map((tag) => (
-                              <Chip
-                                key={tag}
-                                label={tag}
-                                size='small'
-                                variant='outlined'
-                              />
+                              <Chip key={tag} label={tag} size='small' variant='outlined' />
                             ))}
                           </Stack>
                         </TableCell>
@@ -254,10 +222,7 @@ export default function DtoMyTrainingPage() {
                               color='warning'
                             />
                           ) : (
-                            <Chip
-                              size='small'
-                              label={t('dto.myTraining.statusNotStarted')}
-                            />
+                            <Chip size='small' label={t('dto.myTraining.statusNotStarted')} />
                           )}
                         </TableCell>
                       </TableRow>

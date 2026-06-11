@@ -80,7 +80,7 @@ export const Stats = () => {
         text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
       },
     }),
-    [mode]
+    [mode],
   )
 
   const arcLinkLabelsTextColor = mode === 'dark' ? '#cccccc' : '#333333'
@@ -92,7 +92,7 @@ export const Stats = () => {
     hasAdminAccess(
       MIKPermissions.FLIGHTLOG_ADMIN,
       MIKPermissions.AIRCRAFT_ADMIN,
-      MIKPermissions.INVOICING_ADMIN
+      MIKPermissions.INVOICING_ADMIN,
     )
 
   // Get year range from env var (default 5 years)
@@ -130,7 +130,7 @@ export const Stats = () => {
     },
     {
       refreshInterval: 0,
-    }
+    },
   )
 
   // Fetch pilot data
@@ -148,7 +148,7 @@ export const Stats = () => {
     },
     {
       refreshInterval: 0,
-    }
+    },
   )
   // Fetch member count by type
   const {
@@ -161,7 +161,7 @@ export const Stats = () => {
     },
     {
       refreshInterval: 0,
-    }
+    },
   )
 
   // Fetch calendar data
@@ -179,7 +179,7 @@ export const Stats = () => {
     },
     {
       refreshInterval: 0,
-    }
+    },
   )
 
   // Fetch visited airfields data for OH-STL and OH-IHQ (last 2 years)
@@ -197,7 +197,7 @@ export const Stats = () => {
     },
     {
       refreshInterval: 0,
-    }
+    },
   )
 
   // Fetch monthly data for last 12 months
@@ -223,7 +223,7 @@ export const Stats = () => {
     },
     {
       refreshInterval: 0,
-    }
+    },
   )
 
   // Fetch commercial flight time data (admin only)
@@ -242,7 +242,7 @@ export const Stats = () => {
     },
     {
       refreshInterval: 0,
-    }
+    },
   )
 
   // Transform aircraft data for bar chart
@@ -252,11 +252,7 @@ export const Stats = () => {
     const grouped = new Map<number, { [key: string]: number }>()
 
     aircraftYearlyData.forEach((item) => {
-      if (
-        item.yr == null ||
-        item.aircraft_registration == null ||
-        item.total_flight_mins == null
-      )
+      if (item.yr == null || item.aircraft_registration == null || item.total_flight_mins == null)
         return
 
       if (!grouped.has(item.yr)) {
@@ -264,8 +260,7 @@ export const Stats = () => {
       }
       const yearData = grouped.get(item.yr)!
       yearData[item.aircraft_registration] =
-        (yearData[item.aircraft_registration] || 0) +
-        Math.round(item.total_flight_mins / 60) // Convert to hours and accumulate across flight types
+        (yearData[item.aircraft_registration] || 0) + Math.round(item.total_flight_mins / 60) // Convert to hours and accumulate across flight types
     })
 
     return Array.from(grouped.entries())
@@ -330,9 +325,7 @@ export const Stats = () => {
     const last12Months: string[] = []
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      last12Months.push(
-        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      )
+      last12Months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
     }
 
     const aircraftMap = new Map<string, any[]>()
@@ -351,7 +344,7 @@ export const Stats = () => {
 
       if (existingMonth) {
         existingMonth[item.flight_type] = Math.round(
-          (existingMonth[item.flight_type] || 0) + item.total_flight_mins / 60
+          (existingMonth[item.flight_type] || 0) + item.total_flight_mins / 60,
         )
       } else {
         aircraftMap.get(item.aircraft_registration)!.push({
@@ -389,9 +382,7 @@ export const Stats = () => {
     const last12Months: string[] = []
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      last12Months.push(
-        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      )
+      last12Months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
     }
 
     const aircraftMap = new Map<string, any[]>()
@@ -585,9 +576,7 @@ export const Stats = () => {
                 <ToggleButton value='aircraft'>Aircraft</ToggleButton>
                 <ToggleButton value='pilot'>Members</ToggleButton>
                 <ToggleButton value='pilots'>Pilots</ToggleButton>
-                <ToggleButton value='efficiency'>
-                  Reservation Efficiency
-                </ToggleButton>
+                <ToggleButton value='efficiency'>Reservation Efficiency</ToggleButton>
               </ToggleButtonGroup>
             </Grid>
           </Grid>
@@ -616,13 +605,9 @@ export const Stats = () => {
                         <Typography variant='h4'>{stats.ytd}</Typography>
                         <Box sx={{ mt: 2 }}>
                           {stats.previousYears.map((yearData) => (
-                            <Typography
-                              key={yearData.year}
-                              variant='body2'
-                              color='text.secondary'
-                            >
-                              {yearData.year}: {yearData.hours} hrs (NF:{' '}
-                              {yearData.nf}, IFR: {yearData.ifr})
+                            <Typography key={yearData.year} variant='body2' color='text.secondary'>
+                              {yearData.year}: {yearData.hours} hrs (NF: {yearData.nf}, IFR:{' '}
+                              {yearData.ifr})
                             </Typography>
                           ))}
                         </Box>
@@ -633,10 +618,7 @@ export const Stats = () => {
               </Grid>
             </RemoteContent>
           ) : (
-            <RemoteContent
-              isLoading={memberCountLoading}
-              error={memberCountError}
-            >
+            <RemoteContent isLoading={memberCountLoading} error={memberCountError}>
               <Card sx={{ mb: 3 }}>
                 <CardContent>
                   <Typography variant='h6' gutterBottom>
@@ -705,8 +687,7 @@ export const Stats = () => {
                   <Card key={aircraftCalendar.aircraft} sx={{ mb: 3 }}>
                     <CardContent>
                       <Typography variant='h6' gutterBottom>
-                        Flight Time Calendar - {aircraftCalendar.aircraft} (Last
-                        2 Years)
+                        Flight Time Calendar - {aircraftCalendar.aircraft} (Last 2 Years)
                       </Typography>
                       <Box sx={{ height: 400 }}>
                         <ResponsiveCalendar
@@ -717,13 +698,9 @@ export const Stats = () => {
                           colors={['#61cdbb', '#97e3d5', '#e8c1a0', '#f47560']}
                           margin={{ top: 40, right: 40, bottom: 40, left: 40 }}
                           yearSpacing={40}
-                          monthBorderColor={
-                            mode === 'dark' ? '#555555' : '#ffffff'
-                          }
+                          monthBorderColor={mode === 'dark' ? '#555555' : '#ffffff'}
                           dayBorderWidth={2}
-                          dayBorderColor={
-                            mode === 'dark' ? '#555555' : '#ffffff'
-                          }
+                          dayBorderColor={mode === 'dark' ? '#555555' : '#ffffff'}
                           tooltip={CalendarTooltip}
                           theme={nivoTheme}
                           legends={[
@@ -758,11 +735,7 @@ export const Stats = () => {
                   <Box>
                     {monthlyDataByAircraft.map((aircraftData) => (
                       <Box key={aircraftData.aircraft} sx={{ mb: 4 }}>
-                        <Typography
-                          variant='subtitle1'
-                          gutterBottom
-                          fontWeight='bold'
-                        >
+                        <Typography variant='subtitle1' gutterBottom fontWeight='bold'>
                           {aircraftData.aircraft}
                         </Typography>
                         <Box sx={{ height: 300 }}>
@@ -844,10 +817,7 @@ export const Stats = () => {
 
           {/* Commercial Flight Time by Aircraft (Admin Only) */}
           {viewMode === 'aircraft' && hasCommercialAccess && (
-            <RemoteContent
-              isLoading={commercialLoading}
-              error={commercialError}
-            >
+            <RemoteContent isLoading={commercialLoading} error={commercialError}>
               <Card sx={{ mb: 3 }}>
                 <CardContent>
                   <Typography variant='h6' gutterBottom>
@@ -856,11 +826,7 @@ export const Stats = () => {
                   <Box>
                     {commercialBarData.map((aircraftData) => (
                       <Box key={aircraftData.aircraft} sx={{ mb: 4 }}>
-                        <Typography
-                          variant='subtitle1'
-                          gutterBottom
-                          fontWeight='bold'
-                        >
+                        <Typography variant='subtitle1' gutterBottom fontWeight='bold'>
                           {aircraftData.aircraft}
                         </Typography>
                         <Box sx={{ height: 300 }}>
@@ -973,17 +939,13 @@ export const Stats = () => {
 
           {/* Visited Airfields Pie Chart */}
           {viewMode === 'aircraft' && visitedAirfieldsPieData.length > 0 && (
-            <RemoteContent
-              isLoading={visitedAirfieldsLoading}
-              error={visitedAirfieldsError}
-            >
+            <RemoteContent isLoading={visitedAirfieldsLoading} error={visitedAirfieldsError}>
               <Box>
                 {visitedAirfieldsPieData.map((aircraftPie) => (
                   <Card key={aircraftPie.aircraft} sx={{ mb: 3 }}>
                     <CardContent>
                       <Typography variant='h6' gutterBottom>
-                        Visited Airfields - {aircraftPie.aircraft} (Last 2
-                        Years)
+                        Visited Airfields - {aircraftPie.aircraft} (Last 2 Years)
                       </Typography>
                       <Box sx={{ height: 500 }}>
                         <ResponsivePie

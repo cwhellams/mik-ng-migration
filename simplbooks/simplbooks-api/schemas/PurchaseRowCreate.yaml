@@ -11,15 +11,15 @@ properties:
   code:
     type: string
     description: Code of the associated item
-    example: "939"
+    example: '939'
   name:
     type: string
     description: Name of the item or service
-    example: "Inedible fruit and vegetables"
+    example: 'Inedible fruit and vegetables'
   unit:
     type: string
     description: Name of the unit
-    example: "Kg."
+    example: 'Kg.'
   amount:
     type: number
     description: Quantity

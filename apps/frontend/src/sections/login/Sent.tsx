@@ -1,14 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LoginLayout } from './LoginLayout'
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  CircularProgress,
-  Alert,
-} from '@mui/material'
+import { Box, Typography, TextField, Button, CircularProgress, Alert } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import { VerifyCodeRequest, VerifyResponse } from '@backend/routes/auth/schema'
@@ -27,9 +20,7 @@ const LoginSent = () => {
   const [codeError, setCodeError] = useState('')
 
   // Call the server-side verify-code endpoint; the JWT is never held client-side
-  const { isMutating, trigger } = useAuth<VerifyCodeRequest, VerifyResponse>(
-    'login/verify-code'
-  )
+  const { isMutating, trigger } = useAuth<VerifyCodeRequest, VerifyResponse>('login/verify-code')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,9 +60,7 @@ const LoginSent = () => {
         <TextField
           label={t('login.verificationCode')}
           value={code}
-          onChange={(e) =>
-            setCode(e.target.value.replace(/\D/g, '').slice(0, 5))
-          }
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
           inputProps={{ inputMode: 'numeric', maxLength: 5 }}
           fullWidth
           autoFocus
@@ -94,18 +83,13 @@ const LoginSent = () => {
             fontWeight: 'bold',
           }}
         >
-          {isMutating ? (
-            <CircularProgress size={24} color='inherit' />
-          ) : (
-            t('login.submitCode')
-          )}
+          {isMutating ? <CircularProgress size={24} color='inherit' /> : t('login.submitCode')}
         </Button>
       </Box>
 
       <Box sx={{ textAlign: 'center', mt: 3 }}>
         <Typography variant='body2' color='text.secondary'>
-          {t('login.emailNotReceived')}{' '}
-          <Link to='/login'>{t('login.tryAgain')}</Link>
+          {t('login.emailNotReceived')} <Link to='/login'>{t('login.tryAgain')}</Link>
         </Typography>
       </Box>
     </LoginLayout>

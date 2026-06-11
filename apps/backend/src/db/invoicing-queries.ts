@@ -133,8 +133,8 @@ export async function getArticleFees(codes: string[]): Promise<ArticleFee[]> {
     .execute()
 
   return results
-    .filter(result => result.item)
-    .map(result => {
+    .filter((result) => result.item)
+    .map((result) => {
       const rawItem = result.item as Record<string, unknown>
       return ArticleFeeSchema.parse({
         id: result.id,
@@ -163,8 +163,8 @@ export async function hasRequestedEquipmentFee(year: number, memberId: string): 
 
 export async function upsertInvoiceItems(items: ItemListArticle[]): Promise<void> {
   const validItems = items
-    .filter(item => item.id !== undefined && item.code !== undefined && item.name !== undefined)
-    .map(item => ({
+    .filter((item) => item.id !== undefined && item.code !== undefined && item.name !== undefined)
+    .map((item) => ({
       id: item.id!,
       code: item.code!,
       name: item.name!,
@@ -179,11 +179,11 @@ export async function upsertInvoiceItems(items: ItemListArticle[]): Promise<void
   await db
     .insertInto('accts.items')
     .values(validItems)
-    .onConflict(oc =>
+    .onConflict((oc) =>
       oc.column('id').doUpdateSet({
-        code: eb => eb.ref('excluded.code'),
-        name: eb => eb.ref('excluded.name'),
-        item: eb => eb.ref('excluded.item'),
+        code: (eb) => eb.ref('excluded.code'),
+        name: (eb) => eb.ref('excluded.name'),
+        item: (eb) => eb.ref('excluded.item'),
       }),
     )
     .execute()
@@ -212,7 +212,7 @@ export async function getArticleIdsByCode(codes: string[]): Promise<Map<string, 
     .where('code', 'in', codes)
     .execute()
 
-  return new Map(results.map(row => [row.code, row.id]))
+  return new Map(results.map((row) => [row.code, row.id]))
 }
 
 export async function getRecurringFeesProcessing(
@@ -225,7 +225,7 @@ export async function getRecurringFeesProcessing(
     .orderBy('year', 'desc')
     .execute()
 
-  return result.map(row => ({
+  return result.map((row) => ({
     fee_type: row.fee_type,
     status: row.status,
     year: row.year,
@@ -258,7 +258,7 @@ export async function getUnpaidInvoicesWithSimplbooksRef(): Promise<Invoice[]> {
  */
 export async function markInvoiceAsPaid(invoiceId: string, paidAt: string): Promise<void> {
   const now = new Date().toISOString()
-  await db.transaction().execute(async trx => {
+  await db.transaction().execute(async (trx) => {
     await trx
       .updateTable('accts.invoice')
       .set({
@@ -356,7 +356,7 @@ export async function getMembersWithSuspendedReservations(): Promise<string[]> {
     .where('can_make_reservations', '=', false)
     .execute()
 
-  return members.map(m => m.member_id)
+  return members.map((m) => m.member_id)
 }
 
 /**
@@ -387,7 +387,7 @@ export async function getOverdueFlightInvoicesPastDays(daysOverdue: number): Pro
     .where('due_at', '<', cutoffDate.toISOString())
     .execute()
 
-  return rows.map(row => ({
+  return rows.map((row) => ({
     member_id: row.member_id,
     id: String(row.id),
     total_sum: row.total_sum ? String(row.total_sum) : null,
@@ -431,7 +431,7 @@ export async function getUnpaidOverdueInvoicesWithMemberInfo(): Promise<UnpaidOv
     .orderBy('inv.due_at', 'asc')
     .execute()
 
-  return rows.map(row => {
+  return rows.map((row) => {
     const dueDate = new Date(row.due_at as string)
     const now = new Date()
     const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))

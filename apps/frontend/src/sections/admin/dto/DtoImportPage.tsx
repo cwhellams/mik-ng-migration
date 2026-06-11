@@ -34,14 +34,11 @@ export default function DtoImportPage() {
     try {
       const result = await importSyllabus(programId, file)
       setSuccess(true)
-      setTimeout(
-        () => navigate(`/admin/dto/syllabi/${result.syllabusId}`),
-        1500
-      )
+      setTimeout(() => navigate(`/admin/dto/syllabi/${result.syllabusId}`), 1500)
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail ?? 'Import failed'
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
+        'Import failed'
       setError(msg)
     } finally {
       setImporting(false)
@@ -50,13 +47,10 @@ export default function DtoImportPage() {
 
   return (
     <Box>
-      <Title
-        label={`Import Syllabus JSON${program ? ` — ${program.name}` : ''}`}
-      />
+      <Title label={`Import Syllabus JSON${program ? ` — ${program.name}` : ''}`} />
       <Typography variant='body1' color='text.secondary' mb={3}>
-        Upload a JSON file to create a new <strong>Draft</strong> syllabus
-        version. The file is validated before import — no partial data will be
-        created.
+        Upload a JSON file to create a new <strong>Draft</strong> syllabus version. The file is
+        validated before import — no partial data will be created.
       </Typography>
 
       <Box mb={2}>
@@ -134,11 +128,7 @@ export default function DtoImportPage() {
       </Box>
 
       {error && <Alert severity='error'>{error}</Alert>}
-      {success && (
-        <Alert severity='success'>
-          Import successful! Redirecting to editor…
-        </Alert>
-      )}
+      {success && <Alert severity='success'>Import successful! Redirecting to editor…</Alert>}
 
       <Button
         startIcon={<Icon icon='mdi:arrow-left' />}

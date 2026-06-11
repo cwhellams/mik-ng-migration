@@ -44,10 +44,7 @@ export const PartiallyBillableFlights = ({
     previous: () => void
   }
 }) => {
-  const { data, isLoading, error, mutation } = useApi<
-    InvoicableFlightListResponse,
-    FlightCredit
-  >({
+  const { data, isLoading, error, mutation } = useApi<InvoicableFlightListResponse, FlightCredit>({
     url: 'v1/invoices/flights',
     params: { ...filters, flights: InvoicableFlights.PARTIALLY_BILLABLE },
   })
@@ -57,27 +54,16 @@ export const PartiallyBillableFlights = ({
   const { formatTime } = useTimezone()
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
-  const [creditedMinsMap, setCreditedMinsMap] = useState<
-    Record<string, string>
-  >({})
-  const [creditedNoteMap, setCreditedNoteMap] = useState<
-    Record<string, string>
-  >({})
+  const [creditedMinsMap, setCreditedMinsMap] = useState<Record<string, string>>({})
+  const [creditedNoteMap, setCreditedNoteMap] = useState<Record<string, string>>({})
 
   const scrollToRef = useScrollOnRender()
 
   const saveCreditedMins = async (log: InvoicableFlight) => {
     const raw = creditedMinsMap[log.flightId]
     // Fall back to the existing saved value when the user hasn't modified the minutes field
-    const mins =
-      raw === undefined
-        ? (log.creditedMins ?? Number.NaN)
-        : Number.parseInt(raw, 10)
-    const note = (
-      creditedNoteMap[log.flightId] ??
-      log.creditedNote ??
-      ''
-    ).trim()
+    const mins = raw === undefined ? (log.creditedMins ?? Number.NaN) : Number.parseInt(raw, 10)
+    const note = (creditedNoteMap[log.flightId] ?? log.creditedNote ?? '').trim()
     if (Number.isNaN(mins) || mins < 1) {
       setProblem({
         status: 400,
@@ -89,11 +75,7 @@ export const PartiallyBillableFlights = ({
     const res = await mutation.trigger<{
       creditedMins: number
       note: string | null
-    }>(
-      'PUT',
-      { creditedMins: mins, note: note.length > 0 ? note : null },
-      `${log.flightId}/credit`
-    )
+    }>('PUT', { creditedMins: mins, note: note.length > 0 ? note : null }, `${log.flightId}/credit`)
     setProblem(res.error ?? { status: 200 })
   }
 
@@ -101,8 +83,7 @@ export const PartiallyBillableFlights = ({
     // Auto-save any pending credited mins/notes the user hasn't explicitly saved
     const pendingFlights = (data?.logs ?? []).filter(
       (log) =>
-        creditedMinsMap[log.flightId] !== undefined ||
-        creditedNoteMap[log.flightId] !== undefined
+        creditedMinsMap[log.flightId] !== undefined || creditedNoteMap[log.flightId] !== undefined,
     )
     for (const log of pendingFlights) {
       await saveCreditedMins(log)
@@ -157,14 +138,8 @@ export const PartiallyBillableFlights = ({
                   </Grid>
                   <Grid size={1}>{log.flightTime}</Grid>
                   <Grid size={3}>
-                    <Typography variant='body2'>
-                      {log.billingRemarks}
-                    </Typography>
-                    <Link
-                      href={`/flight-logs/${log.flightId}`}
-                      variant='caption'
-                      underline='hover'
-                    >
+                    <Typography variant='body2'>{log.billingRemarks}</Typography>
+                    <Link href={`/flight-logs/${log.flightId}`} variant='caption' underline='hover'>
                       {t('invoicing.viewFlightLog')}
                     </Link>
                   </Grid>
@@ -174,27 +149,16 @@ export const PartiallyBillableFlights = ({
                     alignItems='center'
                     gap={1}
                   >
-                    <Box
-                      display='flex'
-                      flexDirection='column'
-                      gap={1}
-                      width='100%'
-                    >
+                    <Box display='flex' flexDirection='column' gap={1} width='100%'>
                       <Box display='flex' alignItems='center' gap={1}>
                         <TextField
                           size='small'
                           type='number'
                           inputProps={{ min: 1, max: log.flightMins }}
-                          placeholder={
-                            log.creditedMins == null
-                              ? ''
-                              : String(log.creditedMins)
-                          }
+                          placeholder={log.creditedMins == null ? '' : String(log.creditedMins)}
                           value={
                             creditedMinsMap[log.flightId] ??
-                            (log.creditedMins == null
-                              ? ''
-                              : String(log.creditedMins))
+                            (log.creditedMins == null ? '' : String(log.creditedMins))
                           }
                           onChange={({ target }) =>
                             setCreditedMinsMap((prev) => ({
@@ -214,11 +178,7 @@ export const PartiallyBillableFlights = ({
                       </Box>
                       <TextField
                         size='small'
-                        value={
-                          creditedNoteMap[log.flightId] ??
-                          log.creditedNote ??
-                          ''
-                        }
+                        value={creditedNoteMap[log.flightId] ?? log.creditedNote ?? ''}
                         onChange={({ target }) =>
                           setCreditedNoteMap((prev) => ({
                             ...prev,
@@ -257,40 +217,23 @@ export const PartiallyBillableFlights = ({
                   />
 
                   <Grid size={12}>
-                    <Typography variant='body2'>
-                      {log.billingRemarks}
-                    </Typography>
-                    <Link
-                      href={`/flight-logs/${log.flightId}`}
-                      variant='caption'
-                      underline='hover'
-                    >
+                    <Typography variant='body2'>{log.billingRemarks}</Typography>
+                    <Link href={`/flight-logs/${log.flightId}`} variant='caption' underline='hover'>
                       {t('invoicing.viewFlightLog')}
                     </Link>
                   </Grid>
 
                   <Grid size={12} display='flex' alignItems='center' gap={1}>
-                    <Box
-                      display='flex'
-                      flexDirection='column'
-                      gap={1}
-                      width='100%'
-                    >
+                    <Box display='flex' flexDirection='column' gap={1} width='100%'>
                       <Box display='flex' alignItems='center' gap={1}>
                         <TextField
                           size='small'
                           type='number'
                           inputProps={{ min: 1, max: log.flightMins }}
-                          placeholder={
-                            log.creditedMins == null
-                              ? ''
-                              : String(log.creditedMins)
-                          }
+                          placeholder={log.creditedMins == null ? '' : String(log.creditedMins)}
                           value={
                             creditedMinsMap[log.flightId] ??
-                            (log.creditedMins == null
-                              ? ''
-                              : String(log.creditedMins))
+                            (log.creditedMins == null ? '' : String(log.creditedMins))
                           }
                           onChange={({ target }) =>
                             setCreditedMinsMap((prev) => ({
@@ -310,11 +253,7 @@ export const PartiallyBillableFlights = ({
                       </Box>
                       <TextField
                         size='small'
-                        value={
-                          creditedNoteMap[log.flightId] ??
-                          log.creditedNote ??
-                          ''
-                        }
+                        value={creditedNoteMap[log.flightId] ?? log.creditedNote ?? ''}
                         onChange={({ target }) =>
                           setCreditedNoteMap((prev) => ({
                             ...prev,
@@ -345,12 +284,7 @@ export const PartiallyBillableFlights = ({
       />
 
       <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-        <Button
-          color='secondary'
-          variant='outlined'
-          onClick={navigate.previous}
-          sx={{ mr: 1 }}
-        >
+        <Button color='secondary' variant='outlined' onClick={navigate.previous} sx={{ mr: 1 }}>
           {t('general.back')}
         </Button>
         <Box sx={{ flex: '1 1 auto' }} />

@@ -15,14 +15,8 @@ import {
 } from '@backend/routes/occurrences/models'
 import { useTimezone } from '../../hooks/useTimezone'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
-import {
-  OccurrenceStatusChip,
-  OccurrenceStatusFilter,
-} from './components/OccurrenceStatusChip'
-import {
-  formatDuration,
-  getDurationInMinutes,
-} from '../flightLog/utils/timeUtils'
+import { OccurrenceStatusChip, OccurrenceStatusFilter } from './components/OccurrenceStatusChip'
+import { formatDuration, getDurationInMinutes } from '../flightLog/utils/timeUtils'
 
 export const Occurrences = () => {
   const { t } = useTranslation()
@@ -34,10 +28,7 @@ export const Occurrences = () => {
 
   const scrollToRef = useScrollOnRender()
 
-  const { data, isLoading, error } = useApi<
-    OccurrencesListResponse,
-    Occurrence
-  >(
+  const { data, isLoading, error } = useApi<OccurrencesListResponse, Occurrence>(
     {
       url: 'v1/occurrences',
       params: filters,
@@ -45,7 +36,7 @@ export const Occurrences = () => {
     {
       // don't clear old data when searching
       keepPreviousData: true,
-    }
+    },
   )
 
   return (
@@ -103,11 +94,7 @@ export const Occurrences = () => {
               <Grid size={{ xs: 6, sm: 3, md: 2 }}>
                 <Link
                   to={`/logs/occurrences/${occurrence.id}`}
-                  ref={
-                    location.hash == `#${occurrence.id}`
-                      ? scrollToRef
-                      : undefined
-                  }
+                  ref={location.hash == `#${occurrence.id}` ? scrollToRef : undefined}
                 >
                   {formatDateTime(occurrence.reportDate)}
                 </Link>
@@ -122,17 +109,13 @@ export const Occurrences = () => {
                   occurrence.status !== OccurrenceStatus.CLOSED && (
                     <Box fontSize='0.8em' color='text.secondary'>
                       {t('occurrences.age', {
-                        duration: formatDuration(
-                          getDurationInMinutes(occurrence.reportDate)
-                        ),
+                        duration: formatDuration(getDurationInMinutes(occurrence.reportDate)),
                       })}
                     </Box>
                   )}
               </Grid>
 
-              <Grid size={{ xs: 6, sm: 3, md: 1 }}>
-                {occurrence.aircraftRegistration}
-              </Grid>
+              <Grid size={{ xs: 6, sm: 3, md: 1 }}>{occurrence.aircraftRegistration}</Grid>
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Box>{occurrence.headline}</Box>
               </Grid>

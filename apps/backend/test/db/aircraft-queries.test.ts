@@ -23,7 +23,7 @@ describe('Db query fuel types tests', () => {
   it('getAllFuelTypes returns all 8 reference fuel types in order', async () => {
     const result = await getAllFuelTypes()
     expect(result.length).toEqual(8)
-    expect(result.map(ft => ft.name)).toEqual([
+    expect(result.map((ft) => ft.name)).toEqual([
       'JET A',
       'JET A-1',
       'JP-8',
@@ -41,10 +41,10 @@ describe('Db query Get aircrafts tests', () => {
     const result = await getAllAircraft(false, false)
     expect(result.length).toEqual(3)
     expect(result).toMatchSnapshot(
-      result.map(res => ({
+      result.map((res) => ({
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
-        documents: res?.documents.map(doc => ({
+        documents: res?.documents.map((doc) => ({
           ...doc,
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
@@ -57,10 +57,10 @@ describe('Db query Get aircrafts tests', () => {
     const result = await getAllAircraft(true, false)
     expect(result.length).toEqual(2)
     expect(result).toMatchSnapshot(
-      result.map(res => ({
+      result.map((res) => ({
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
-        documents: res?.documents.map(doc => ({
+        documents: res?.documents.map((doc) => ({
           ...doc,
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
@@ -74,7 +74,7 @@ describe('Db query Get aircrafts tests', () => {
     expect(result).toMatchSnapshot({
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
-      documents: result?.documents.map(doc => ({
+      documents: result?.documents.map((doc) => ({
         ...doc,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),

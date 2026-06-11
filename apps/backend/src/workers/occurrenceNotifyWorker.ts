@@ -75,7 +75,7 @@ async function sendOccurrenceNotifications(sendEmailFn: typeof sendEmail): Promi
         ],
       },
       {
-        roles: [...smsProcessorRoles.map(r => r.roleId), ...smsManagerRoles.map(r => r.roleId)],
+        roles: [...smsProcessorRoles.map((r) => r.roleId), ...smsManagerRoles.map((r) => r.roleId)],
       },
     )
 
@@ -91,8 +91,8 @@ async function sendOccurrenceNotifications(sendEmailFn: typeof sendEmail): Promi
         const rolesToNotify =
           occurrence.status === OccurrenceStatus.NEW ||
           occurrence.status === OccurrenceStatus.ANONYMIZING
-            ? smsProcessorRoles.map(r => r.roleId)
-            : smsManagerRoles.map(r => r.roleId)
+            ? smsProcessorRoles.map((r) => r.roleId)
+            : smsManagerRoles.map((r) => r.roleId)
 
         await sendOccurrenceNotification(sendEmailFn, rolesToNotify, occurrence)
       } catch (error) {

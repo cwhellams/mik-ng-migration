@@ -10,10 +10,7 @@ export const FormTitle = ({
   icon?: string
   sx?: SxProps<Theme>
 }) => (
-  <Typography
-    variant='h6'
-    sx={{ mb: 2, display: 'flex', alignItems: 'center', ...sx }}
-  >
+  <Typography variant='h6' sx={{ mb: 2, display: 'flex', alignItems: 'center', ...sx }}>
     {icon && <Icon icon={icon} style={{ marginRight: 8 }} />}
     {title}
   </Typography>

@@ -78,9 +78,7 @@ export const UpliftReport = () => {
   const { t } = useTranslation()
   const { formatDateTime } = useTimezone()
   const [aircraftRegistration, setAircraftRegistration] = useState<string>('')
-  const [startDate, setStartDate] = useState<Dayjs | null>(
-    dayjs().subtract(1, 'month')
-  )
+  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().subtract(1, 'month'))
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs())
   const [shouldFetch, setShouldFetch] = useState(false)
 
@@ -137,7 +135,7 @@ export const UpliftReport = () => {
     link.setAttribute('href', url)
     link.setAttribute(
       'download',
-      `uplift-report-${aircraftRegistration}-${startDate?.format('YYYY-MM-DD')}-${endDate?.format('YYYY-MM-DD')}.csv`
+      `uplift-report-${aircraftRegistration}-${startDate?.format('YYYY-MM-DD')}-${endDate?.format('YYYY-MM-DD')}.csv`,
     )
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
@@ -149,10 +147,8 @@ export const UpliftReport = () => {
   const getValidationError = (): string | null => {
     if (!aircraftRegistration) return t('upliftReport.errors.aircraftRequired')
     if (!startDate || !endDate) return t('upliftReport.errors.datesRequired')
-    if (endDate.isAfter(dayjs(), 'day'))
-      return t('upliftReport.errors.endDateFuture')
-    if (startDate.isAfter(endDate))
-      return t('upliftReport.errors.startAfterEnd')
+    if (endDate.isAfter(dayjs(), 'day')) return t('upliftReport.errors.endDateFuture')
+    if (startDate.isAfter(endDate)) return t('upliftReport.errors.startAfterEnd')
     return null
   }
 
@@ -164,12 +160,7 @@ export const UpliftReport = () => {
         <Typography variant='h5' gutterBottom>
           {t('upliftReport.title')}
         </Typography>
-        <Typography
-          variant='body2'
-          color='text.secondary'
-          gutterBottom
-          sx={{ mb: 3 }}
-        >
+        <Typography variant='body2' color='text.secondary' gutterBottom sx={{ mb: 3 }}>
           {t('upliftReport.description')}
         </Typography>
 
@@ -177,9 +168,7 @@ export const UpliftReport = () => {
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth>
-                <InputLabel id='aircraft-label'>
-                  {t('upliftReport.filters.aircraft')}
-                </InputLabel>
+                <InputLabel id='aircraft-label'>{t('upliftReport.filters.aircraft')}</InputLabel>
                 <Select
                   labelId='aircraft-label'
                   value={aircraftRegistration}
@@ -272,14 +261,12 @@ export const UpliftReport = () => {
                   >
                     <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
                       {t('upliftReport.summary.totalFuel', {
-                        value:
-                          reportData.summary.totalFuelUpliftLitres.toFixed(1),
+                        value: reportData.summary.totalFuelUpliftLitres.toFixed(1),
                       })}
                     </Typography>
                     <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
                       {t('upliftReport.summary.totalOil', {
-                        value:
-                          reportData.summary.totalOilUpliftLitres.toFixed(1),
+                        value: reportData.summary.totalOilUpliftLitres.toFixed(1),
                       })}
                     </Typography>
                     {reportData.summary.fuelTypes.length > 0 && (
@@ -312,33 +299,20 @@ export const UpliftReport = () => {
                   </Box>
 
                   <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-                    <Table
-                      size='small'
-                      sx={{ minWidth: { xs: 500, md: 'auto' } }}
-                    >
+                    <Table size='small' sx={{ minWidth: { xs: 500, md: 'auto' } }}>
                       <TableHead>
                         <TableRow>
-                          <TableCell>
-                            {t('upliftReport.table.dateTime')}
-                          </TableCell>
+                          <TableCell>{t('upliftReport.table.dateTime')}</TableCell>
                           <TableCell>{t('upliftReport.table.pic')}</TableCell>
-                          <TableCell align='right'>
-                            {t('upliftReport.table.fuelUplift')}
-                          </TableCell>
-                          <TableCell align='right'>
-                            {t('upliftReport.table.oilUplift')}
-                          </TableCell>
-                          <TableCell align='center'>
-                            {t('upliftReport.table.details')}
-                          </TableCell>
+                          <TableCell align='right'>{t('upliftReport.table.fuelUplift')}</TableCell>
+                          <TableCell align='right'>{t('upliftReport.table.oilUplift')}</TableCell>
+                          <TableCell align='center'>{t('upliftReport.table.details')}</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {reportData.data.map((row) => (
                           <TableRow key={row.flightId}>
-                            <TableCell>
-                              {formatDateTime(row.offBlockTimeUtc)}
-                            </TableCell>
+                            <TableCell>{formatDateTime(row.offBlockTimeUtc)}</TableCell>
                             <TableCell>{row.picName}</TableCell>
                             <TableCell align='right'>
                               {row.fuelUpliftLitres != null

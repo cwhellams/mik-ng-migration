@@ -341,7 +341,7 @@ export const claimUpcomingBookingsForReminder = async (
     .set({ reminder_sent_at: now })
     .where('start_time_epoch', '>=', windowStart)
     .where('start_time_epoch', '<=', windowEnd)
-    .where(eb =>
+    .where((eb) =>
       eb.or([
         eb('booking_status', '=', BookingStatus.CONFIRMED),
         eb('booking_status', '=', BookingStatus.TENTATIVE),
@@ -356,7 +356,7 @@ export const claimUpcomingBookingsForReminder = async (
   }
 
   // Fetch full booking data (including member info) for the claimed booking IDs
-  const claimedIds = claimed.map(r => r.booking_id)
+  const claimedIds = claimed.map((r) => r.booking_id)
   const results = await connection.db
     .selectFrom('schedule.bookings')
     .selectAll(['schedule.bookings'])
@@ -425,7 +425,7 @@ export const cancelAllFutureBookingsForMember = async (
     })
     .where('member_id', '=', memberId)
     .where('start_time_epoch', '>=', currentEpoch)
-    .where(eb =>
+    .where((eb) =>
       eb.or([
         eb('booking_status', '=', BookingStatus.TENTATIVE),
         eb('booking_status', '=', BookingStatus.CONFIRMED),

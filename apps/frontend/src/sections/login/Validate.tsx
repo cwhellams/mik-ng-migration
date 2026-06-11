@@ -14,9 +14,7 @@ const LoginValidate = () => {
 
   const navigate = useNavigate()
 
-  const { isMutating, trigger } = useAuth<VerifyRequest, VerifyResponse>(
-    'login/validate'
-  )
+  const { isMutating, trigger } = useAuth<VerifyRequest, VerifyResponse>('login/validate')
 
   useEffect(() => {
     if (triggered.current) return

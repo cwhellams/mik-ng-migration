@@ -85,25 +85,16 @@ export const CONVERSIONS = {
  * @returns Promise<AircraftSpecs> - Parsed aircraft specifications
  * @throws Error if specification file cannot be loaded or parsed
  */
-export async function loadAircraftSpecs(
-  registration: string
-): Promise<AircraftSpecs> {
+export async function loadAircraftSpecs(registration: string): Promise<AircraftSpecs> {
   try {
     const response = await fetch(`/specs/${registration.toLowerCase()}.json`)
     if (!response.ok) {
-      throw new Error(
-        `HTTP ${response.status}: Failed to load specs for ${registration}`
-      )
+      throw new Error(`HTTP ${response.status}: Failed to load specs for ${registration}`)
     }
     const specs: AircraftSpecs = await response.json()
 
     // Basic validation of required fields
-    if (
-      !specs.registration ||
-      !specs.aircraftType ||
-      !specs.weightLimits ||
-      !specs.loadPoints
-    ) {
+    if (!specs.registration || !specs.aircraftType || !specs.weightLimits || !specs.loadPoints) {
       throw new Error(`Invalid specification format for ${registration}`)
     }
 
@@ -111,12 +102,10 @@ export async function loadAircraftSpecs(
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(
-        `Failed to load aircraft specifications for ${registration}: ${error.message}`
+        `Failed to load aircraft specifications for ${registration}: ${error.message}`,
       )
     }
-    throw new Error(
-      `Unknown error loading aircraft specifications for ${registration}`
-    )
+    throw new Error(`Unknown error loading aircraft specifications for ${registration}`)
   }
 }
 
@@ -131,12 +120,9 @@ export async function loadAircraftSpecs(
 export const isPointInFlightEnvelope = (
   aircraft: AircraftSpecs,
   weight: number,
-  cg: number
+  cg: number,
 ): boolean => {
-  if (
-    !aircraft.flightEnvelopePoints ||
-    aircraft.flightEnvelopePoints.length === 0
-  ) {
+  if (!aircraft.flightEnvelopePoints || aircraft.flightEnvelopePoints.length === 0) {
     // Fallback to basic rectangle check using CG limits
     const minWeightLimit =
       aircraft.weightLimits.minTakeoff || aircraft.weightLimits.basicEmptyWeight
@@ -158,10 +144,7 @@ export const isPointInFlightEnvelope = (
     const xj = vertices[j].momentArm,
       yj = vertices[j].weight
 
-    if (
-      yi > weight !== yj > weight &&
-      cg < ((xj - xi) * (weight - yi)) / (yj - yi) + xi
-    ) {
+    if (yi > weight !== yj > weight && cg < ((xj - xi) * (weight - yi)) / (yj - yi) + xi) {
       inside = !inside
     }
   }

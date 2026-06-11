@@ -13,11 +13,11 @@ get:
             first_name:
               type: string
               description: search for an employee whose name matches given string
-              example: "John"
+              example: 'John'
             starting_date_from:
               type: string
               description: ...
-              example: "2022-01-01"
+              example: '2022-01-01'
             page:
               type: integer
               description: specifies from which page the list starts

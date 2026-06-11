@@ -77,7 +77,7 @@ api.interceptors.response.use(
       return api(originalRequest)
     }
     throw error
-  }
+  },
 )
 
 // API responses are either payload or problem
@@ -96,10 +96,7 @@ export type APIMutation<Data> = {
     method: MutateMethods,
     payload?: Payload,
     id?: string,
-    options?: SWRMutationConfiguration<
-      AxiosResponse<ResponseData>,
-      AxiosError<Problem>
-    >
+    options?: SWRMutationConfiguration<AxiosResponse<ResponseData>, AxiosError<Problem>>,
   ) => Promise<APIResponse<ResponseData>>
 }
 
@@ -139,7 +136,7 @@ export default function useApi<
     // if true, always use sudo mode for the request
     alwaysSudo?: boolean
   },
-  config: SWRConfiguration<AxiosResponse<Data>, AxiosError<Problem>> = {}
+  config: SWRConfiguration<AxiosResponse<Data>, AxiosError<Problem>> = {},
 ): Omit<
   // remove Axios wrappers from data and error
   SWRResponse<AxiosResponse<Data>, AxiosError<Problem>>,
@@ -188,24 +185,18 @@ export default function useApi<
         onErrorRetry(
           err,
           key,
-          config as Readonly<
-            PublicConfiguration<AxiosResponse<Data>, AxiosError<Problem>>
-          >,
-          ...args
+          config as Readonly<PublicConfiguration<AxiosResponse<Data>, AxiosError<Problem>>>,
+          ...args,
         )
       },
-    }
+    },
   )
 
   // A 401 that survived the refresh-retry cycle means the session is gone.
   // Only redirect when SWR has settled (isValidating = false) to avoid
   // redirecting during a transient re-validation.
   const isLoggedOut = error?.response?.status === 401 && !rest.isValidating
-  if (
-    isLoggedOut &&
-    !request.allowUnauthenticated &&
-    !request.skipRedirectOnUnauthorized
-  ) {
+  if (isLoggedOut && !request.allowUnauthenticated && !request.skipRedirectOnUnauthorized) {
     // authentication is required
     navigate('/login', {
       state: { target: location.pathname },
@@ -247,7 +238,7 @@ export default function useApi<
     method: MutateMethods,
     payload: P,
     path?: string,
-    options?: SWRMutationConfiguration<AxiosResponse<R>, AxiosError<Problem>>
+    options?: SWRMutationConfiguration<AxiosResponse<R>, AxiosError<Problem>>,
   ) =>
     mutation
       .trigger({ method, payload, path }, options)
@@ -269,7 +260,7 @@ export default function useApi<
                 status: 0,
                 detail: err.message,
               },
-            }
+            },
       )
 
   return {

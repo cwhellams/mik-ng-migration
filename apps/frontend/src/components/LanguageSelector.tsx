@@ -1,11 +1,4 @@
-import {
-  Box,
-  Button,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  Typography,
-} from '@mui/material'
+import { Box, Button, Menu, MenuItem, ListItemIcon, Typography } from '@mui/material'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
@@ -111,11 +104,7 @@ const LanguageSelector = ({
             </ListItemIcon>
             {config.label}
             {selectedLanguage === lang && (
-              <Icon
-                icon='mdi:check'
-                fontSize={20}
-                style={{ marginLeft: 'auto' }}
-              />
+              <Icon icon='mdi:check' fontSize={20} style={{ marginLeft: 'auto' }} />
             )}
           </MenuItem>
         ))}

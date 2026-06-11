@@ -33,10 +33,7 @@ import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { mutate } from 'swr'
 import dayjs, { Dayjs } from 'dayjs'
-import type {
-  Navdata,
-  NavdataListResponse,
-} from '@backend/routes/aircraft-navdata/models'
+import type { Navdata, NavdataListResponse } from '@backend/routes/aircraft-navdata/models'
 import type { MemberListResponse } from '@backend/routes/members/models'
 import type { Problem } from '@backend/routes/response'
 
@@ -52,7 +49,7 @@ const useNavdata = (aircraftRegistration: string) => {
       limit: '100',
       offset: '0',
     }),
-    [aircraftRegistration]
+    [aircraftRegistration],
   )
 
   const { isLoading, data, error } = useApi<NavdataListResponse>({
@@ -72,14 +69,13 @@ const useNavdata = (aircraftRegistration: string) => {
 const NAVDATA_EXPIRING_THRESHOLD_DAYS = 5
 
 export const getNavdataStatus = (
-  expires?: string | null
+  expires?: string | null,
 ): 'expired' | 'expiring' | 'valid' | 'unknown' => {
   if (!expires) return 'unknown'
   const today = dayjs().startOf('day')
   const expiryDate = dayjs(expires)
   if (expiryDate.isBefore(today, 'day')) return 'expired'
-  if (expiryDate.diff(today, 'day') <= NAVDATA_EXPIRING_THRESHOLD_DAYS)
-    return 'expiring'
+  if (expiryDate.diff(today, 'day') <= NAVDATA_EXPIRING_THRESHOLD_DAYS) return 'expiring'
   return 'valid'
 }
 
@@ -119,15 +115,11 @@ export const NavdataStatusChip = ({ expires }: { expires?: string | null }) => {
   )
 }
 
-export const NavdataInfoStatus = ({
-  aircraftRegistration,
-}: {
-  aircraftRegistration: string
-}) => {
+export const NavdataInfoStatus = ({ aircraftRegistration }: { aircraftRegistration: string }) => {
   const { t } = useTranslation()
   const params = useMemo(
     () => ({ aircraftRegistration, limit: '1', offset: '0' }),
-    [aircraftRegistration]
+    [aircraftRegistration],
   )
   const { data } = useApi<NavdataListResponse>({
     url: 'v1/aircraft-navdata',
@@ -152,11 +144,7 @@ interface AddNavdataModalProps {
   onClose: () => void
 }
 
-const AddNavdataModal = ({
-  open,
-  aircraftRegistration,
-  onClose,
-}: AddNavdataModalProps) => {
+const AddNavdataModal = ({ open, aircraftRegistration, onClose }: AddNavdataModalProps) => {
   const { t } = useTranslation()
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
@@ -176,8 +164,7 @@ const AddNavdataModal = ({
 
   const members = membersData?.members ?? []
 
-  const selectedMember =
-    members.find((m) => m.memberId === updaterMemberId) ?? null
+  const selectedMember = members.find((m) => m.memberId === updaterMemberId) ?? null
 
   const handleClose = () => {
     setUpdaterMemberId('')
@@ -202,10 +189,7 @@ const AddNavdataModal = ({
       setProblem({
         type: 'validation-error',
         title: 'Validation Error',
-        detail: t(
-          'aircraft.navdata.updateDateRequired',
-          'Update date is required'
-        ),
+        detail: t('aircraft.navdata.updateDateRequired', 'Update date is required'),
         status: 400,
       })
       return
@@ -223,10 +207,7 @@ const AddNavdataModal = ({
       setProblem({
         type: 'validation-error',
         title: 'Validation Error',
-        detail: t(
-          'aircraft.navdata.expiresRequired',
-          'Expiry date is required'
-        ),
+        detail: t('aircraft.navdata.expiresRequired', 'Expiry date is required'),
         status: 400,
       })
       return
@@ -249,21 +230,13 @@ const AddNavdataModal = ({
 
     await mutate(
       (key: unknown) =>
-        Array.isArray(key) &&
-        typeof key[0] === 'string' &&
-        key[0].includes('aircraft-navdata')
+        Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('aircraft-navdata'),
     )
     handleClose()
   }
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth='sm'
-      fullWidth
-      fullScreen={isXs}
-    >
+    <Dialog open={open} onClose={handleClose} maxWidth='sm' fullWidth fullScreen={isXs}>
       <EditDialogTitle
         title={t('aircraft.navdata.add', 'Add Navdata Update')}
         onClose={handleClose}
@@ -284,7 +257,7 @@ const AddNavdataModal = ({
                 required
                 helperText={t(
                   'aircraft.navdata.updaterHelp',
-                  'Member who performed the navdata update'
+                  'Member who performed the navdata update',
                 )}
               />
             )}
@@ -342,39 +315,24 @@ export const NavdataSection: React.FC<NavdataSectionProps> = ({
 
   const handleDelete = async () => {
     if (!recordToDelete) return
-    await deleteApi.mutation.trigger(
-      'DELETE',
-      undefined,
-      `${recordToDelete.navdataId}`
-    )
+    await deleteApi.mutation.trigger('DELETE', undefined, `${recordToDelete.navdataId}`)
     setDeleteConfirmOpen(false)
     setRecordToDelete(undefined)
     await mutate(
       (key: unknown) =>
-        Array.isArray(key) &&
-        typeof key[0] === 'string' &&
-        key[0].includes('aircraft-navdata')
+        Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('aircraft-navdata'),
     )
   }
 
   return (
     <Box sx={{ position: 'relative' }}>
-      <Stack
-        direction='row'
-        alignItems='center'
-        justifyContent='space-between'
-        mb={1}
-      >
+      <Stack direction='row' alignItems='center' justifyContent='space-between' mb={1}>
         <Typography variant='subtitle1' color='text.primary'>
           {t('aircraft.navdata.title', 'Navdata')}
         </Typography>
         {isAdmin && (
           <Tooltip title={t('aircraft.navdata.add', 'Add Navdata Update')}>
-            <IconButton
-              size='small'
-              color='primary'
-              onClick={() => setAddModalOpen(true)}
-            >
+            <IconButton size='small' color='primary' onClick={() => setAddModalOpen(true)}>
               <Icon icon='mdi:plus-circle' />
             </IconButton>
           </Tooltip>
@@ -391,23 +349,13 @@ export const NavdataSection: React.FC<NavdataSectionProps> = ({
             <Table size='small'>
               <TableHead>
                 <TableRow>
-                  <TableCell>
-                    {t('aircraft.navdata.updater', 'Updated By')}
-                  </TableCell>
-                  <TableCell>
-                    {t('aircraft.navdata.updateDate', 'Update Date')}
-                  </TableCell>
+                  <TableCell>{t('aircraft.navdata.updater', 'Updated By')}</TableCell>
+                  <TableCell>{t('aircraft.navdata.updateDate', 'Update Date')}</TableCell>
                   <TableCell>{t('aircraft.navdata.cycle', 'Cycle')}</TableCell>
-                  <TableCell>
-                    {t('aircraft.navdata.expires', 'Expires')}
-                  </TableCell>
-                  <TableCell>
-                    {t('aircraft.navdata.status.label', 'Status')}
-                  </TableCell>
+                  <TableCell>{t('aircraft.navdata.expires', 'Expires')}</TableCell>
+                  <TableCell>{t('aircraft.navdata.status.label', 'Status')}</TableCell>
                   {isAdmin && (
-                    <TableCell align='right'>
-                      {t('aircraft.cards.actions', 'Actions')}
-                    </TableCell>
+                    <TableCell align='right'>{t('aircraft.cards.actions', 'Actions')}</TableCell>
                   )}
                 </TableRow>
               </TableHead>
@@ -415,14 +363,10 @@ export const NavdataSection: React.FC<NavdataSectionProps> = ({
                 {records.map((record) => (
                   <TableRow key={record.navdataId} hover>
                     <TableCell>
-                      <Typography variant='body2'>
-                        {record.updaterName}
-                      </Typography>
+                      <Typography variant='body2'>{record.updaterName}</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant='body2'>
-                        {record.updateDate}
-                      </Typography>
+                      <Typography variant='body2'>{record.updateDate}</Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant='body2' fontWeight='medium'>
@@ -467,7 +411,7 @@ export const NavdataSection: React.FC<NavdataSectionProps> = ({
         title={t('aircraft.navdata.delete.title', 'Delete Navdata Record')}
         message={t(
           'aircraft.navdata.delete.confirm',
-          'Are you sure you want to delete this navdata record?'
+          'Are you sure you want to delete this navdata record?',
         )}
         confirmText={t('general.delete', 'Delete')}
         cancelText={t('general.cancel', 'Cancel')}

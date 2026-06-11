@@ -18,15 +18,14 @@ const useAircraftDocuments = (aircraftRegistration: string) => {
       limit: '100',
       offset: '0',
     }),
-    [aircraftRegistration]
+    [aircraftRegistration],
   )
 
-  const { isLoading, data, error, mutate } =
-    useApi<AircraftDocumentListResponse>({
-      url: `/v1/aircraft-documents`,
-      method: 'GET',
-      params,
-    })
+  const { isLoading, data, error, mutate } = useApi<AircraftDocumentListResponse>({
+    url: `/v1/aircraft-documents`,
+    method: 'GET',
+    params,
+  })
 
   return {
     documents: data?.documents || [],
@@ -37,12 +36,12 @@ const useAircraftDocuments = (aircraftRegistration: string) => {
   }
 }
 
-export const AircraftDocumentSection: React.FC<
-  AircraftDocumentSectionProps
-> = ({ aircraftRegistration, isAdmin }) => {
+export const AircraftDocumentSection: React.FC<AircraftDocumentSectionProps> = ({
+  aircraftRegistration,
+  isAdmin,
+}) => {
   const { t } = useTranslation()
-  const { documents, isLoading, error, mutate } =
-    useAircraftDocuments(aircraftRegistration)
+  const { documents, isLoading, error, mutate } = useAircraftDocuments(aircraftRegistration)
 
   const handleDocumentUpdate = () => {
     mutate() // Refresh the document list

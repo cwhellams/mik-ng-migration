@@ -7,23 +7,23 @@ Article:
     code:
       type: string
       description: Code of the given item
-      example: "A-2565"
+      example: 'A-2565'
     ean:
       type: string
       description: EAN of the given item
-      example: "4740123456789"
+      example: '4740123456789'
     name:
       type: string
       description: Name of the item
-      example: "Ergonomic keyboard Dell X-56"
+      example: 'Ergonomic keyboard Dell X-56'
     contents:
       type: string
       description: Description
-      example: "Model 2014, EN keyboard layout, black"
+      example: 'Model 2014, EN keyboard layout, black'
     unit:
       type: string
       description: Unit of measurement
-      example: "pcs"
+      example: 'pcs'
     amount:
       type: number
       description: Default amount of the given item
@@ -44,7 +44,7 @@ Article:
     markup_type:
       type: string
       description: Default markup type
-      example: "none"
+      example: 'none'
       enum: [percent, fixed, none]
       default: none
     is_inventory:

@@ -627,7 +627,7 @@ describe('getItems', () => {
 
     // Should have 25 active items from page 1 + 10 from page 2 = 35 total
     expect(result).toHaveLength(35)
-    expect(result.every(item => item.active === true)).toBe(true)
+    expect(result.every((item) => item.active === true)).toBe(true)
     expect(callCount).toBe(2) // Should have made 2 API calls
   })
 })

@@ -20,27 +20,14 @@ const getColor = (status: OccurrenceStatus) => {
   }
 }
 
-export const OccurrenceStatusChip = ({
-  status,
-}: {
-  status: OccurrenceStatus
-}) => {
+export const OccurrenceStatusChip = ({ status }: { status: OccurrenceStatus }) => {
   return (
     <Box display='flex' alignItems='center'>
-      <Chip
-        label={t(`occurrences.statuses.${status}`)}
-        color={getColor(status)}
-        size='small'
-      />
+      <Chip label={t(`occurrences.statuses.${status}`)} color={getColor(status)} size='small' />
 
-      {status != OccurrenceStatus.RECEIVED &&
-        status != OccurrenceStatus.CLOSED && (
-          <Icon
-            icon='mdi:bell-ring'
-            color='red'
-            style={{ marginLeft: '0.5em' }}
-          />
-        )}
+      {status != OccurrenceStatus.RECEIVED && status != OccurrenceStatus.CLOSED && (
+        <Icon icon='mdi:bell-ring' color='red' style={{ marginLeft: '0.5em' }} />
+      )}
     </Box>
   )
 }
@@ -53,13 +40,7 @@ export const OccurrenceStatusFilter = ({
   onChange: (status: OccurrenceStatus) => void
 }) => {
   return (
-    <Stack
-      direction='row'
-      spacing={1}
-      display='inline-flex'
-      flexWrap='wrap'
-      mb={2}
-    >
+    <Stack direction='row' spacing={1} display='inline-flex' flexWrap='wrap' mb={2}>
       {[
         OccurrenceStatus.NEW,
         OccurrenceStatus.ANONYMIZING,

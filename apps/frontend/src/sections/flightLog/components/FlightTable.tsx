@@ -41,9 +41,7 @@ export const FlightTable = ({ flights }: { flights: FlightLogListEntry[] }) => {
                 <TableCell>
                   {formatTime(start.toDate())} - {formatTime(end.toDate())}
                 </TableCell>
-                <TableCell>
-                  {formatDuration(end.diff(start, 'minutes'), true)}
-                </TableCell>
+                <TableCell>{formatDuration(end.diff(start, 'minutes'), true)}</TableCell>
                 <TableCell>{flight.picLastName}</TableCell>
               </TableRow>
             )

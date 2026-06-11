@@ -13,22 +13,22 @@ post:
             ClientNote:
               type: object
               properties:
-                  note:
-                    type: string
-                    description: The string content of the note
-                    example: This is a test note for client
-                  client_id:
-                    type: integer
-                    description: The ID of the client
-                    example: 5
-                  object_type:
-                    type: string
-                    description: Object type. Leave empty to not bind note with a specific document.
-                    example: Invoice
-                  object_id:
-                    type: integer
-                    description: Object ID, e.g related invoice ID. Required only if object type is set.
-                    example: 123
+                note:
+                  type: string
+                  description: The string content of the note
+                  example: This is a test note for client
+                client_id:
+                  type: integer
+                  description: The ID of the client
+                  example: 5
+                object_type:
+                  type: string
+                  description: Object type. Leave empty to not bind note with a specific document.
+                  example: Invoice
+                object_id:
+                  type: integer
+                  description: Object ID, e.g related invoice ID. Required only if object type is set.
+                  example: 123
   responses:
     200:
       $ref: '../schemas/CreateSuccessResponse.yaml'

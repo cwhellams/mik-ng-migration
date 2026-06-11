@@ -97,7 +97,7 @@ export const WeatherWidget = () => {
     },
     {
       refreshInterval: 60000, // Refresh every minute
-    }
+    },
   )
 
   // API for fetching audio on demand
@@ -138,10 +138,9 @@ export const WeatherWidget = () => {
 
     try {
       // Fetch audio with auth via useApi
-      const response = await audioApi.fetch.trigger<{ filename: string }, Blob>(
-        'GET',
-        { filename: state.mp3 }
-      )
+      const response = await audioApi.fetch.trigger<{ filename: string }, Blob>('GET', {
+        filename: state.mp3,
+      })
 
       if (response.error || !response.data) {
         console.error('Failed to fetch audio:', response.error)
@@ -218,16 +217,10 @@ export const WeatherWidget = () => {
                   size='small'
                   color='primary'
                   onClick={handleToggleAudio}
-                  aria-label={
-                    isPlaying ? 'Stop ATIS audio' : 'Listen to ATIS audio'
-                  }
+                  aria-label={isPlaying ? 'Stop ATIS audio' : 'Listen to ATIS audio'}
                   sx={{ ml: 0.5 }}
                 >
-                  {isPlaying ? (
-                    <StopIcon fontSize='small' />
-                  ) : (
-                    <VolumeUpIcon fontSize='small' />
-                  )}
+                  {isPlaying ? <StopIcon fontSize='small' /> : <VolumeUpIcon fontSize='small' />}
                 </IconButton>
                 <Box sx={{ display: 'none' }}>
                   <audio ref={audioRef} preload='none'>
@@ -238,12 +231,7 @@ export const WeatherWidget = () => {
                 {report?.features && report.features.length > 0 && (
                   <>
                     {report.features.map((feature) => (
-                      <Chip
-                        key={feature}
-                        label={feature}
-                        size='small'
-                        color='success'
-                      />
+                      <Chip key={feature} label={feature} size='small' color='success' />
                     ))}
                   </>
                 )}
@@ -318,9 +306,7 @@ export const WeatherWidget = () => {
                   <Grid container spacing={2}>
                     {/* Wind */}
                     <Grid size={{ xs: 6, sm: 6 }}>
-                      <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
-                      >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <AirIcon sx={{ fontSize: 32, color: 'primary.main' }} />
                         <Box>
                           <Typography variant='caption' color='text.secondary'>
@@ -329,18 +315,12 @@ export const WeatherWidget = () => {
                           <Typography variant='body1' fontWeight='bold'>
                             {report?.wind_dir}° {report?.wind_kt.toFixed(0)} kt
                             {report?.wind_gust_kt && (
-                              <span>
-                                , gust {report.wind_gust_kt.toFixed(0)} kt
-                              </span>
+                              <span>, gust {report.wind_gust_kt.toFixed(0)} kt</span>
                             )}
                           </Typography>
                           {report?.wind_dir_min && (
-                            <Typography
-                              variant='caption'
-                              color='text.secondary'
-                            >
-                              Variable between {report.wind_dir_min}-
-                              {report.wind_dir_max}°
+                            <Typography variant='caption' color='text.secondary'>
+                              Variable between {report.wind_dir_min}-{report.wind_dir_max}°
                             </Typography>
                           )}
                         </Box>
@@ -349,19 +329,14 @@ export const WeatherWidget = () => {
 
                     {/* Temperature & Dew Point */}
                     <Grid size={{ xs: 6, sm: 6 }}>
-                      <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
-                      >
-                        <ThermostatIcon
-                          sx={{ fontSize: 32, color: 'info.main' }}
-                        />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <ThermostatIcon sx={{ fontSize: 32, color: 'info.main' }} />
                         <Box>
                           <Typography variant='caption' color='text.secondary'>
                             Temp / Dew Point
                           </Typography>
                           <Typography variant='body1' fontWeight='bold'>
-                            {report?.temperature.toFixed(1)}°C /{' '}
-                            {report?.dewpoint.toFixed(1)}°C
+                            {report?.temperature.toFixed(1)}°C / {report?.dewpoint.toFixed(1)}°C
                           </Typography>
                         </Box>
                       </Box>
@@ -369,27 +344,17 @@ export const WeatherWidget = () => {
 
                     {/* Visibility */}
                     <Grid size={{ xs: 6, sm: 6 }}>
-                      <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
-                      >
-                        <VisibilityIcon
-                          sx={{ fontSize: 32, color: 'success.main' }}
-                        />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <VisibilityIcon sx={{ fontSize: 32, color: 'success.main' }} />
                         <Box>
                           <Typography variant='caption' color='text.secondary'>
                             Visibility
                           </Typography>
                           <Typography variant='body1' fontWeight='bold'>
-                            {(report?.vis_km_full ?? report?.vis_km)?.toFixed(
-                              1
-                            )}{' '}
-                            km
+                            {(report?.vis_km_full ?? report?.vis_km)?.toFixed(1)} km
                           </Typography>
                           {report?.vis_m && (
-                            <Typography
-                              variant='caption'
-                              color='text.secondary'
-                            >
+                            <Typography variant='caption' color='text.secondary'>
                               {report.vis_m} m
                             </Typography>
                           )}
@@ -407,24 +372,16 @@ export const WeatherWidget = () => {
                             gap: 1.5,
                           }}
                         >
-                          <VisibilityIcon
-                            sx={{ fontSize: 32, color: 'warning.main' }}
-                          />
+                          <VisibilityIcon sx={{ fontSize: 32, color: 'warning.main' }} />
                           <Box>
-                            <Typography
-                              variant='caption'
-                              color='text.secondary'
-                            >
+                            <Typography variant='caption' color='text.secondary'>
                               Vertical Visibility
                             </Typography>
                             <Typography variant='body1' fontWeight='bold'>
                               {report.vvis_ft} ft
                             </Typography>
                             {report.vvis && (
-                              <Typography
-                                variant='caption'
-                                color='text.secondary'
-                              >
+                              <Typography variant='caption' color='text.secondary'>
                                 {report.vvis.toFixed(1)} m
                               </Typography>
                             )}
@@ -435,12 +392,8 @@ export const WeatherWidget = () => {
 
                     {/* QNH */}
                     <Grid size={{ xs: 6, sm: 6 }}>
-                      <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
-                      >
-                        <SpeedIcon
-                          sx={{ fontSize: 32, color: 'warning.main' }}
-                        />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <SpeedIcon sx={{ fontSize: 32, color: 'warning.main' }} />
                         <Box>
                           <Typography variant='caption' color='text.secondary'>
                             QNH
@@ -454,12 +407,8 @@ export const WeatherWidget = () => {
 
                     {/* Humidity */}
                     <Grid size={{ xs: 6, sm: 6 }}>
-                      <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
-                      >
-                        <WaterDropIcon
-                          sx={{ fontSize: 32, color: 'info.light' }}
-                        />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <WaterDropIcon sx={{ fontSize: 32, color: 'info.light' }} />
                         <Box>
                           <Typography variant='caption' color='text.secondary'>
                             Humidity
@@ -484,16 +433,10 @@ export const WeatherWidget = () => {
                       height: '100%',
                     }}
                   >
-                    <Typography
-                      variant='caption'
-                      color='text.secondary'
-                      sx={{ mb: 0.5 }}
-                    >
+                    <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5 }}>
                       Wind Rose - 10 min
                     </Typography>
-                    {report?.wind_rose && (
-                      <WindRose windRoseData={report.wind_rose} size={220} />
-                    )}
+                    {report?.wind_rose && <WindRose windRoseData={report.wind_rose} size={220} />}
                   </Box>
                 </Grid>
               </Grid>

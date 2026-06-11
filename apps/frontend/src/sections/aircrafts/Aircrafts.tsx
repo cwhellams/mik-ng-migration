@@ -39,14 +39,8 @@ import { AircraftCardSection } from './components/AircraftCardSection'
 import { NavdataSection, NavdataInfoStatus } from './components/NavdataSection'
 import { useRoles } from '../../hooks/useRoles'
 import { useState } from 'react'
-import {
-  AircraftEditMode,
-  EditAircraftModal,
-} from './components/EditAircraftModal'
-import {
-  PricingEditMode,
-  EditPricingModal,
-} from './components/EditPricingModal'
+import { AircraftEditMode, EditAircraftModal } from './components/EditAircraftModal'
+import { PricingEditMode, EditPricingModal } from './components/EditPricingModal'
 import dayjs from 'dayjs'
 import MIKLogo from '../../assets/mik-logo-blue.png'
 import ProgressLine from './components/Progress'
@@ -68,25 +62,17 @@ const Aircrafts = () => {
 
   const pricingDelete = useApi({ url: 'v1/aircraft-pricing', skipFetch: true })
 
-  const [editMode, setEditMode] = useState<AircraftEditMode | undefined>(
-    undefined
-  )
+  const [editMode, setEditMode] = useState<AircraftEditMode | undefined>(undefined)
   const [editData, setEditData] = useState<Aircraft | undefined>(undefined)
 
   // State for pricing edit modal
-  const [pricingEditMode, setPricingEditMode] = useState<
-    PricingEditMode | undefined
-  >(undefined)
-  const [selectedPricing, setSelectedPricing] = useState<
-    AircraftPricing | undefined
-  >(undefined)
+  const [pricingEditMode, setPricingEditMode] = useState<PricingEditMode | undefined>(undefined)
+  const [selectedPricing, setSelectedPricing] = useState<AircraftPricing | undefined>(undefined)
   const [pricingRegistration, setPricingRegistration] = useState<string>('')
 
   // State for delete confirmation
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
-  const [pricingToDelete, setPricingToDelete] = useState<
-    AircraftPricing | undefined
-  >(undefined)
+  const [pricingToDelete, setPricingToDelete] = useState<AircraftPricing | undefined>(undefined)
 
   const { formatISODateTime } = useTimezone()
 
@@ -105,9 +91,7 @@ const Aircrafts = () => {
       ...alert,
       description: t(alert.description, {
         ...alert,
-        documentId: alert.documentId
-          ? t(`aircraft.document.${alert.documentId}`)
-          : undefined,
+        documentId: alert.documentId ? t(`aircraft.document.${alert.documentId}`) : undefined,
       }),
     }
   }
@@ -144,14 +128,12 @@ const Aircrafts = () => {
       await pricingDelete.mutation.trigger(
         'DELETE',
         undefined,
-        `${pricingToDelete.registration}/${pricingToDelete.valid_from}`
+        `${pricingToDelete.registration}/${pricingToDelete.valid_from}`,
       )
 
       await mutate(
         (key: unknown) =>
-          Array.isArray(key) &&
-          typeof key[0] === 'string' &&
-          key[0].includes('aircraft-pricing')
+          Array.isArray(key) && typeof key[0] === 'string' && key[0].includes('aircraft-pricing'),
       )
     } catch (error) {
       console.error('Error deleting pricing:', error)
@@ -162,15 +144,10 @@ const Aircrafts = () => {
   }
 
   // Component to display historical pricing for an aircraft
-  const AircraftPricingHistory = ({
-    registration,
-  }: {
-    registration: string
-  }) => {
-    const { data: pricingData, isLoading } =
-      useApi<AircraftPricingListResponse>({
-        url: `v1/aircraft-pricing?registration=${registration}`,
-      })
+  const AircraftPricingHistory = ({ registration }: { registration: string }) => {
+    const { data: pricingData, isLoading } = useApi<AircraftPricingListResponse>({
+      url: `v1/aircraft-pricing?registration=${registration}`,
+    })
 
     if (isLoading) {
       return <Typography>{t('common.loading', 'Loading...')}</Typography>
@@ -186,10 +163,7 @@ const Aircrafts = () => {
 
     // Sort by valid_from descending and limit to 10 rows
     const sortedPricing = [...pricingData.pricing]
-      .sort(
-        (a, b) =>
-          new Date(b.valid_from).getTime() - new Date(a.valid_from).getTime()
-      )
+      .sort((a, b) => new Date(b.valid_from).getTime() - new Date(a.valid_from).getTime())
       .slice(0, 10)
 
     return (
@@ -213,9 +187,7 @@ const Aircrafts = () => {
               <TableRow>
                 <TableCell>{t('aircraft.pricing.from', 'From')}</TableCell>
                 <TableCell>{t('aircraft.pricing.to', 'To')}</TableCell>
-                <TableCell align='right'>
-                  {t('aircraft.pricing.rate', 'Rate')}
-                </TableCell>
+                <TableCell align='right'>{t('aircraft.pricing.rate', 'Rate')}</TableCell>
                 <TableCell align='center' sx={{ width: 48 }}></TableCell>
                 {canEditPricing && (
                   <TableCell align='center' sx={{ width: 96 }}>
@@ -227,17 +199,13 @@ const Aircrafts = () => {
             <TableBody>
               {sortedPricing.map((price) => (
                 <TableRow key={`${price.registration}-${price.valid_from}`}>
-                  <TableCell>
-                    {dayjs(price.valid_from).format('YYYY-MM-DD')}
-                  </TableCell>
+                  <TableCell>{dayjs(price.valid_from).format('YYYY-MM-DD')}</TableCell>
                   <TableCell>
                     {price.valid_to
                       ? dayjs(price.valid_to).format('YYYY-MM-DD')
                       : t('aircraft.pricing.current', 'Current')}
                   </TableCell>
-                  <TableCell align='right'>
-                    €{(price.price_per_min * 60).toFixed(2)}/h
-                  </TableCell>
+                  <TableCell align='right'>€{(price.price_per_min * 60).toFixed(2)}/h</TableCell>
                   <TableCell align='center'>
                     {price.notes && (
                       <Tooltip title={price.notes} arrow>
@@ -249,11 +217,7 @@ const Aircrafts = () => {
                   </TableCell>
                   {canEditPricing && (
                     <TableCell align='center'>
-                      <Stack
-                        direction='row'
-                        spacing={0.5}
-                        justifyContent='center'
-                      >
+                      <Stack direction='row' spacing={0.5} justifyContent='center'>
                         <EditButton
                           title={t('aircraft.pricing.edit', 'Edit')}
                           icon='mdi:pencil'
@@ -307,12 +271,7 @@ const Aircrafts = () => {
           €{pricePerHour}/h (€{pricePerMin}/min)
         </Typography>
         {currentPricing.notes && (
-          <Typography
-            variant='caption'
-            color='text.secondary'
-            display='block'
-            sx={{ mt: 0.5 }}
-          >
+          <Typography variant='caption' color='text.secondary' display='block' sx={{ mt: 0.5 }}>
             {currentPricing.notes}
           </Typography>
         )}
@@ -442,27 +401,17 @@ const Aircrafts = () => {
 
                         {cautions.map((caution, index) => {
                           return (
-                            <Alert
-                              key={index}
-                              severity='warning'
-                              sx={{ mb: 2 }}
-                            >
+                            <Alert key={index} severity='warning' sx={{ mb: 2 }}>
                               {caution.description}
                             </Alert>
                           )
                         })}
-                        <FormField
-                          label={t('aircraft.location')}
-                          sx={{ display: 'block' }}
-                        >
+                        <FormField label={t('aircraft.location')} sx={{ display: 'block' }}>
                           {aircraft.location}
                         </FormField>
 
                         {aircraft.fuelTypes.length > 0 && (
-                          <FormField
-                            label={t('aircraft.fuelTypes')}
-                            sx={{ display: 'block' }}
-                          >
+                          <FormField label={t('aircraft.fuelTypes')} sx={{ display: 'block' }}>
                             <Box
                               sx={{
                                 display: 'flex',
@@ -471,30 +420,21 @@ const Aircrafts = () => {
                               }}
                             >
                               {aircraft.fuelTypes.map((fuelType) => {
-                                const isPreferred =
-                                  fuelType === aircraft.preferredFuelType
+                                const isPreferred = fuelType === aircraft.preferredFuelType
                                 const chip = (
                                   <Chip
                                     key={fuelType}
                                     label={fuelType}
                                     size='small'
                                     color={isPreferred ? 'primary' : 'default'}
-                                    variant={
-                                      isPreferred ? 'filled' : 'outlined'
-                                    }
-                                    icon={
-                                      isPreferred ? (
-                                        <Icon icon='mdi:star' />
-                                      ) : undefined
-                                    }
+                                    variant={isPreferred ? 'filled' : 'outlined'}
+                                    icon={isPreferred ? <Icon icon='mdi:star' /> : undefined}
                                   />
                                 )
                                 return isPreferred ? (
                                   <Tooltip
                                     key={fuelType}
-                                    title={t(
-                                      'aircraft.preferredFuelTypeTooltip'
-                                    )}
+                                    title={t('aircraft.preferredFuelTypeTooltip')}
                                   >
                                     {chip}
                                   </Tooltip>
@@ -507,10 +447,7 @@ const Aircrafts = () => {
                         )}
 
                         {notes.length > 0 && (
-                          <FormField
-                            label={t('aircraft.notes.title')}
-                            sx={{ display: 'block' }}
-                          >
+                          <FormField label={t('aircraft.notes.title')} sx={{ display: 'block' }}>
                             {notes.map((note) => {
                               return (
                                 <span key={note.description}>
@@ -533,12 +470,9 @@ const Aircrafts = () => {
                             {t('aircraft.totalTime', {
                               ...aircraft.status,
                               remainingFuelGallons: Math.round(
-                                (aircraft.status?.remainingFuelLitres ?? 0) /
-                                  3.785
+                                (aircraft.status?.remainingFuelLitres ?? 0) / 3.785,
                               ),
-                              lastLanding: formatISODateTime(
-                                aircraft.status?.lastLandingTimeUtc
-                              ),
+                              lastLanding: formatISODateTime(aircraft.status?.lastLandingTimeUtc),
                             })}
                           </Typography>
                         </Box>
@@ -548,31 +482,25 @@ const Aircrafts = () => {
                             ...aircraft.maintenance,
                             ...aircraft.status,
                             nextMaintenanceTime: formatHHMM(
-                              aircraft.maintenance.nextMaintenanceMins
+                              aircraft.maintenance.nextMaintenanceMins,
                             ),
                             usableTime: aircraft.status
                               ? formatHHMM(aircraft.status?.usableMins)
                               : undefined,
                           })}
 
-                          {aircraft.status?.daysUntilNextMaintenance !==
-                            undefined &&
+                          {aircraft.status?.daysUntilNextMaintenance !== undefined &&
                             t('aircraft.maintenanceDays', aircraft.status)}
                         </Typography>
 
                         <ProgressLine
                           limit={-aircraft.maintenance.totalPercentageHours}
                           reserved={aircraft.maintenance.reservedHours}
-                          current={
-                            (aircraft.status?.minsUntilNextMaintenance ?? 0) /
-                            60
-                          }
+                          current={(aircraft.status?.minsUntilNextMaintenance ?? 0) / 60}
                           max={aircraft.maintenance.maintenanceCycle}
                         />
 
-                        <NavdataInfoStatus
-                          aircraftRegistration={aircraft.registration}
-                        />
+                        <NavdataInfoStatus aircraftRegistration={aircraft.registration} />
                       </>
                     )}
 
@@ -589,9 +517,7 @@ const Aircrafts = () => {
                     {/* Pricing History Tab Content */}
                     {currentTab === 2 && (
                       <Box sx={{ flex: 1 }}>
-                        <AircraftPricingHistory
-                          registration={aircraft.registration}
-                        />
+                        <AircraftPricingHistory registration={aircraft.registration} />
                       </Box>
                     )}
 
@@ -620,9 +546,7 @@ const Aircrafts = () => {
                 {/* Bottom Navigation */}
                 <BottomNavigation
                   value={currentTab}
-                  onChange={(_, newValue) =>
-                    handleTabChange(aircraft.registration, newValue)
-                  }
+                  onChange={(_, newValue) => handleTabChange(aircraft.registration, newValue)}
                   sx={{
                     borderTop: 1,
                     borderColor: 'divider',
@@ -677,7 +601,7 @@ const Aircrafts = () => {
           title={t('aircraft.pricing.delete', 'Delete Pricing')}
           message={t(
             'aircraft.pricing.deleteConfirm',
-            'Are you sure you want to delete this pricing entry?'
+            'Are you sure you want to delete this pricing entry?',
           )}
           confirmText={t('general.delete', 'Delete')}
           cancelText={t('general.cancel', 'Cancel')}

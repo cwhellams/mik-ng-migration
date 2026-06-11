@@ -66,7 +66,7 @@ const RATE_LIMIT_DELAY = 1000 // ms
 
 let rateLimitChain = Promise.resolve()
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export async function enqueueRateLimitedRequest<T>(fn: () => Promise<T>): Promise<T> {
   let result!: T
@@ -107,7 +107,7 @@ export const simplbooksApiClient: AxiosInstance = axios.create({
   },
 })
 
-simplbooksApiClient.interceptors.response.use(response => {
+simplbooksApiClient.interceptors.response.use((response) => {
   logger.info(
     `[SimplBooks] ${response.status} ${response.config.method?.toUpperCase()} ${response.config.url}`,
   )
@@ -272,11 +272,11 @@ export async function getOverdueInvoices(
 
   return invoices.data
     .filter(
-      i =>
+      (i) =>
         i.invoices.paid == ZERO_DATE &&
         dayjs(i.invoices.due).startOf('day').isBefore(dayjs().startOf('day')),
     )
-    .map(i => i.invoices)
+    .map((i) => i.invoices)
 }
 
 export async function searchInvoices(filter: InvoiceFilter): Promise<InvoiceListResponse> {
@@ -380,7 +380,7 @@ export async function getItemByCode(code: string): Promise<ItemListArticle | und
   const items = await getItems(code)
 
   // Find exact match by code
-  return items.find(item => item.code === code)
+  return items.find((item) => item.code === code)
 }
 
 export async function getItems(code?: string): Promise<ItemListArticle[]> {
@@ -413,7 +413,7 @@ export async function getItems(code?: string): Promise<ItemListArticle[]> {
 
       const listItems: ItemListPayload = parsed.data
       allListItems.push(
-        ...listItems.data.map(item => item.Article).filter(item => item.active === true),
+        ...listItems.data.map((item) => item.Article).filter((item) => item.active === true),
       )
       page++
       getNextPage = listItems.data.length > 0 && listItems.data.length === 50
@@ -430,5 +430,5 @@ export async function getItems(code?: string): Promise<ItemListArticle[]> {
     })
   }
 
-  return allListItems.map(item => item)
+  return allListItems.map((item) => item)
 }

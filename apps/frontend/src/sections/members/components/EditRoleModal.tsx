@@ -16,11 +16,7 @@ import {
   useTheme,
 } from '@mui/material'
 import useApi, { MutateMethods } from '../../../hooks/useApi'
-import {
-  MemberRole,
-  MIKPermissions,
-  MIKLang,
-} from '@backend/routes/members/models'
+import { MemberRole, MIKPermissions, MIKLang } from '@backend/routes/members/models'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { AuditFormField } from '../../../components/AuditFormField'
@@ -99,17 +95,14 @@ export const MemberRoleEditor = ({
     await trigger(isNewRole ? 'POST' : 'PATCH')
   }
 
-  const handleChange =
-    (field: keyof MemberRole) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: e.target.value,
-      }))
-    }
+  const handleChange = (field: keyof MemberRole) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: e.target.value,
+    }))
+  }
 
-  const handleChangeRole = ({
-    target,
-  }: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRole = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
     const oldPermissions = formData.permissions ?? []
     const permission = target.name as MIKPermissions
 
@@ -126,16 +119,15 @@ export const MemberRoleEditor = ({
     }
   }
 
-  const handleChangeName =
-    (lang: MIKLang) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({
-        ...prev,
-        ['name']: {
-          ...prev.name,
-          [lang]: e.target.value,
-        },
-      }))
-    }
+  const handleChangeName = (lang: MIKLang) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      ['name']: {
+        ...prev.name,
+        [lang]: e.target.value,
+      },
+    }))
+  }
 
   const editorCard = () => (
     <Card sx={{ flex: 1, position: 'relative' }}>
@@ -179,11 +171,7 @@ export const MemberRoleEditor = ({
         </Grid>
 
         <Grid size={12} display='flex' alignItems='center'>
-          <Typography
-            variant='body2'
-            color='text.secondary'
-            sx={{ width: 250 }}
-          >
+          <Typography variant='body2' color='text.secondary' sx={{ width: 250 }}>
             {t('roles.isPublic')}
           </Typography>
           <Checkbox
@@ -203,10 +191,7 @@ export const MemberRoleEditor = ({
   const permissionsCard = () => (
     <Card>
       <CardContent>
-        <FormTitle
-          title={t('roles.permissions')}
-          icon='mdi:user-access-control'
-        />
+        <FormTitle title={t('roles.permissions')} icon='mdi:user-access-control' />
 
         <Grid size={12}>
           <FormGroup>
@@ -216,9 +201,7 @@ export const MemberRoleEditor = ({
                 control={
                   <Checkbox
                     name={permission}
-                    checked={
-                      formData.permissions?.includes(permission) ?? false
-                    }
+                    checked={formData.permissions?.includes(permission) ?? false}
                     onChange={handleChangeRole}
                   />
                 }
@@ -238,17 +221,9 @@ export const MemberRoleEditor = ({
           <FormTitle title={t('roles.details')} icon='mdi:information' />
 
           <Stack spacing={1.5}>
-            <AuditFormField
-              label={t('member.created')}
-              by={role.createdBy}
-              at={role.createdAt}
-            />
+            <AuditFormField label={t('member.created')} by={role.createdBy} at={role.createdAt} />
 
-            <AuditFormField
-              label={t('member.updated')}
-              by={role.updatedBy}
-              at={role.updatedAt}
-            />
+            <AuditFormField label={t('member.updated')} by={role.updatedBy} at={role.updatedAt} />
           </Stack>
         </CardContent>
       </Card>
@@ -268,10 +243,7 @@ export const MemberRoleEditor = ({
         },
       }}
     >
-      <EditDialogTitle
-        title={isNewRole ? 'roles.newRole' : 'roles.editRole'}
-        onClose={onClose}
-      />
+      <EditDialogTitle title={isNewRole ? 'roles.newRole' : 'roles.editRole'} onClose={onClose} />
 
       <DialogContent dividers>
         <Stack spacing={3}>
@@ -286,19 +258,9 @@ export const MemberRoleEditor = ({
       </DialogContent>
 
       <DialogActions>
-        <Grid
-          size={12}
-          justifyContent='space-between'
-          display='flex'
-          flexGrow={1}
-        >
+        <Grid size={12} justifyContent='space-between' display='flex' flexGrow={1}>
           <Grid>
-            {!isNewRole && (
-              <RemoveButton
-                onClick={handleRemove}
-                loading={mutation.isMutating}
-              />
-            )}
+            {!isNewRole && <RemoveButton onClick={handleRemove} loading={mutation.isMutating} />}
           </Grid>
 
           <Grid display='flex' gap={2}>

@@ -1,7 +1,4 @@
-import {
-  BookingListResponse,
-  BookingStatus,
-} from '@backend/routes/bookings/models'
+import { BookingListResponse, BookingStatus } from '@backend/routes/bookings/models'
 import dayjs, { Dayjs } from 'dayjs'
 import { useMe } from '../../hooks/useMe'
 
@@ -19,12 +16,11 @@ export const bookingMinDate = (startTime?: Dayjs) => {
 export const bookingFlags = (
   booking: BookingListResponse['bookings'][0],
   me: ReturnType<typeof useMe>['me'],
-  isBookingAdmin: boolean
+  isBookingAdmin: boolean,
 ) => {
   const editPermissions =
     booking.memberId === me?.memberId ||
-    (!!booking.instructorMemberId &&
-      booking.instructorMemberId === me?.memberId) ||
+    (!!booking.instructorMemberId && booking.instructorMemberId === me?.memberId) ||
     isBookingAdmin
 
   const isCancelled = booking.status === BookingStatus.CANCELLED

@@ -70,7 +70,7 @@ function genericCsv(logs: FlightLogExportEntry[]): Buffer {
     'Night Landings',
     'Remarks',
   ]
-  const rows = logs.map(l => ({
+  const rows = logs.map((l) => ({
     Date: dayjs.utc(l.offBlockTimeUtc).format('YYYY-MM-DD'),
     Aircraft: l.aircraftRegistration,
     Departure: l.departureAirport,
@@ -110,7 +110,7 @@ function foreflightCsv(logs: FlightLogExportEntry[]): Buffer {
     'NightLdg',
     'Remarks',
   ]
-  const rows = logs.map(l => ({
+  const rows = logs.map((l) => ({
     Date: dayjs.utc(l.offBlockTimeUtc).format('YYYY-MM-DD'),
     AircraftID: l.aircraftRegistration,
     From: l.departureAirport,
@@ -153,7 +153,7 @@ function myflightbookCsv(logs: FlightLogExportEntry[]): Buffer {
     'Flight End',
     'Engine End',
   ]
-  const rows = logs.map(l => {
+  const rows = logs.map((l) => {
     const isPIC = l.picRole === 'PIC' || l.picRole === 'FI'
     const isDual = l.picRole === 'STU'
     return {
@@ -200,7 +200,7 @@ function crewloungeCsv(logs: FlightLogExportEntry[]): Buffer {
     'landings_night',
     'remarks',
   ]
-  const rows = logs.map(l => ({
+  const rows = logs.map((l) => ({
     date: dayjs.utc(l.offBlockTimeUtc).format('YYYY-MM-DD'),
     dep: l.departureAirport,
     dest: l.arrivalAirport,
@@ -238,7 +238,7 @@ function logbookAeroCsv(logs: FlightLogExportEntry[]): Buffer {
     'landings_night',
     'remarks',
   ]
-  const rows = logs.map(l => {
+  const rows = logs.map((l) => {
     const isPIC = l.picRole === 'PIC' || l.picRole === 'FI'
     const isDual = l.picRole === 'STU'
     return {
@@ -277,7 +277,7 @@ function logtenCsv(logs: FlightLogExportEntry[]): Buffer {
     'PIC Name',
     'Remarks',
   ]
-  const rows = logs.map(l => ({
+  const rows = logs.map((l) => ({
     Date: dayjs.utc(l.offBlockTimeUtc).format('YYYY-MM-DD'),
     'Aircraft Ident': l.aircraftRegistration,
     'Aircraft Type': l.aircraftModel ?? '',
@@ -311,7 +311,7 @@ function flylogCsv(logs: FlightLogExportEntry[]): Buffer {
     'night_landings',
     'remarks',
   ]
-  const rows = logs.map(l => ({
+  const rows = logs.map((l) => ({
     date: dayjs.utc(l.offBlockTimeUtc).format('YYYY-MM-DD'),
     aircraft_reg: l.aircraftRegistration,
     aircraft_type: l.aircraftModel ?? '',

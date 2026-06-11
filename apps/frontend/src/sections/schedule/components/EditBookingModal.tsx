@@ -54,10 +54,7 @@ import {
   HELSINKI_TIMEZONE,
   getEffectiveMedicalExpiry,
 } from '../../../utils/date'
-import {
-  generateGoogleCalendarLink,
-  downloadIcs,
-} from '../../../utils/calendarEvent'
+import { generateGoogleCalendarLink, downloadIcs } from '../../../utils/calendarEvent'
 
 export type BookingFlags = {
   isNewBooking: boolean
@@ -100,7 +97,7 @@ export const BookingEditor = ({
       revalidateOnReconnect: false,
       revalidateIfStale: false,
       revalidateOnMount: true,
-    }
+    },
   )
 
   const { data: instructorData } = useApi<MemberListResponse>(
@@ -114,7 +111,7 @@ export const BookingEditor = ({
       revalidateOnReconnect: false,
       revalidateIfStale: false,
       revalidateOnMount: true,
-    }
+    },
   )
 
   const [formData, setFormData] = useState<
@@ -140,17 +137,12 @@ export const BookingEditor = ({
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
 
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
-  const [cancellationReason, setCancellationReason] = useState<
-    CancellationReason | ''
-  >('')
+  const [cancellationReason, setCancellationReason] = useState<CancellationReason | ''>('')
   const [cancellationNote, setCancellationNote] = useState('')
   const [cancellationReasonError, setCancellationReasonError] = useState(false)
 
   const datesAreValid =
-    startDate?.date.isValid() &&
-    endDate?.date.isValid() &&
-    !startDate.error &&
-    !endDate.error
+    startDate?.date.isValid() && endDate?.date.isValid() && !startDate.error && !endDate.error
 
   const { data: overlaps } = useApi<BookingListResponse>({
     url: 'v1/bookings',
@@ -158,9 +150,7 @@ export const BookingEditor = ({
     params: {
       registration: [formData.registration],
       exclusiveStartEnd: true,
-      from: startDate?.date.isValid()
-        ? startDate.date.toISOString()
-        : undefined,
+      from: startDate?.date.isValid() ? startDate.date.toISOString() : undefined,
       to: endDate?.date.isValid() ? endDate.date.toISOString() : undefined,
       excludeBookingId: booking?.bookingId,
     },
@@ -206,10 +196,7 @@ export const BookingEditor = ({
   const validateDateRange = (start: dayjs.Dayjs, end: dayjs.Dayjs) => {
     const validRange = end?.isAfter(start) === true
     if (!validRange) {
-      return t(
-        'schedule.validation.endAfterStart',
-        'End time must be after start time'
-      )
+      return t('schedule.validation.endAfterStart', 'End time must be after start time')
     }
   }
 
@@ -250,11 +237,7 @@ export const BookingEditor = ({
       reason: cancellationReason,
       note: cancellationNote || undefined,
     }
-    const { error } = await mutation.trigger<CancellationRequest>(
-      'POST',
-      body,
-      'cancel'
-    )
+    const { error } = await mutation.trigger<CancellationRequest>('POST', body, 'cancel')
     if (error) {
       return setProblem(error)
     }
@@ -268,10 +251,7 @@ export const BookingEditor = ({
     await trigger(isNewBooking ? 'POST' : 'PATCH')
   }
 
-  const handleChange = (
-    field: keyof Booking,
-    value: string | number | null
-  ) => {
+  const handleChange = (field: keyof Booking, value: string | number | null) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -286,7 +266,7 @@ export const BookingEditor = ({
     me?.medicalClass1Expiry,
     me?.medicalClass2Expiry,
     me?.medicalLaplExpiry,
-    me?.medicalExpiry
+    me?.medicalExpiry,
   )
 
   const licenceExpiresBeforeBooking =
@@ -342,9 +322,7 @@ export const BookingEditor = ({
                   })
                   setEndDate((prev) => ({
                     ...prev,
-                    error:
-                      validateDateRange(date, endDate.date) ??
-                      validateDate(endDate.date),
+                    error: validateDateRange(date, endDate.date) ?? validateDate(endDate.date),
                   }))
                 }
               }}
@@ -381,9 +359,7 @@ export const BookingEditor = ({
                 if (date) {
                   setEndDate({
                     date,
-                    error:
-                      validateDateRange(startDate.date, date) ??
-                      validateDate(date),
+                    error: validateDateRange(startDate.date, date) ?? validateDate(date),
                   })
                 }
               }}
@@ -401,19 +377,12 @@ export const BookingEditor = ({
 
           <Grid size={12} display={'flex'} direction={'row'} gap={2}>
             <BookingTimeline
-              previousEndDate={
-                overlaps?.previous
-                  ? dayjs(overlaps.previous?.endTime)
-                  : undefined
-              }
+              previousEndDate={overlaps?.previous ? dayjs(overlaps.previous?.endTime) : undefined}
               startDate={startDate.date}
               endDate={endDate.date}
               nextStartDate={
                 overlappingBookings.length > 0 || overlaps?.next
-                  ? dayjs(
-                      overlappingBookings?.[0]?.startTime ??
-                        overlaps?.next?.startTime
-                    )
+                  ? dayjs(overlappingBookings?.[0]?.startTime ?? overlaps?.next?.startTime)
                   : undefined
               }
             />
@@ -421,18 +390,14 @@ export const BookingEditor = ({
 
           {aircraftData?.aircrafts && (
             <FormControl fullWidth>
-              <InputLabel id='registration-label'>
-                {t('schedule.registration')}
-              </InputLabel>
+              <InputLabel id='registration-label'>{t('schedule.registration')}</InputLabel>
 
               <Select
                 labelId='registration-label'
                 disabled={isReadonly}
                 value={formData.registration ?? ''}
                 label={t('schedule.registration')}
-                onChange={({ target }) =>
-                  handleChange('registration', target.value)
-                }
+                onChange={({ target }) => handleChange('registration', target.value)}
               >
                 {aircraftData?.aircrafts.map((plane) => (
                   <MenuItem key={plane.registration} value={plane.registration}>
@@ -457,9 +422,7 @@ export const BookingEditor = ({
                   type: target.value as BookingType,
                   // clear instructor when leaving training so we don't persist
                   // a stale instructor on non-training bookings
-                  ...(target.value !== BookingType.TRAINING
-                    ? { instructorMemberId: null }
-                    : {}),
+                  ...(target.value !== BookingType.TRAINING ? { instructorMemberId: null } : {}),
                 }))
               }
             >
@@ -481,9 +444,7 @@ export const BookingEditor = ({
               disabled={isReadonly}
               options={instructors}
               getOptionLabel={(option) => `${option.first} ${option.last}`}
-              isOptionEqualToValue={(option, value) =>
-                option.memberId === value.memberId
-              }
+              isOptionEqualToValue={(option, value) => option.memberId === value.memberId}
               value={selectedInstructor}
               onChange={(_event, newValue) => {
                 handleChange('instructorMemberId', newValue?.memberId ?? null)
@@ -546,9 +507,7 @@ export const BookingEditor = ({
               {`${booking.member?.firstName} ${booking.member?.lastName}`}
             </FormField>
             <FormField label={t('member.phone')}>
-              <a href={`tel:${booking.member?.phoneNumber}`}>
-                {booking.member?.phoneNumber}
-              </a>
+              <a href={`tel:${booking.member?.phoneNumber}`}>{booking.member?.phoneNumber}</a>
             </FormField>
 
             {booking.instructorMemberId && (
@@ -587,9 +546,7 @@ export const BookingEditor = ({
               isBookingAdmin &&
               booking.cancellationReason && (
                 <FormField label={t('schedule.cancellationReason')}>
-                  {t(
-                    `schedule.cancellationReasons.${booking.cancellationReason}`
-                  )}
+                  {t(`schedule.cancellationReasons.${booking.cancellationReason}`)}
                 </FormField>
               )}
 
@@ -616,10 +573,7 @@ export const BookingEditor = ({
                   variant='outlined'
                   size='small'
                   onClick={async () => {
-                    const { data: fresh } = await mutation.trigger<
-                      undefined,
-                      Booking
-                    >('GET')
+                    const { data: fresh } = await mutation.trigger<undefined, Booking>('GET')
                     downloadIcs((fresh ?? booking) as Booking)
                   }}
                 >
@@ -690,18 +644,10 @@ export const BookingEditor = ({
       </DialogContent>
 
       <DialogActions>
-        <Grid
-          size={12}
-          justifyContent='space-between'
-          display='flex'
-          flexGrow={1}
-        >
+        <Grid size={12} justifyContent='space-between' display='flex' flexGrow={1}>
           <Grid>
             {!isNewBooking && !isReadonly && (
-              <RemoveButton
-                onClick={handleRemove}
-                loading={mutation.isMutating}
-              />
+              <RemoveButton onClick={handleRemove} loading={mutation.isMutating} />
             )}
           </Grid>
 
@@ -740,9 +686,7 @@ export const BookingEditor = ({
         <DialogContent dividers>
           <Stack spacing={2}>
             <FormControl fullWidth error={cancellationReasonError}>
-              <InputLabel id='cancel-reason-label'>
-                {t('schedule.cancellationReason')} *
-              </InputLabel>
+              <InputLabel id='cancel-reason-label'>{t('schedule.cancellationReason')} *</InputLabel>
               <Select
                 labelId='cancel-reason-label'
                 value={cancellationReason}
@@ -759,9 +703,7 @@ export const BookingEditor = ({
                 ))}
               </Select>
               {cancellationReasonError && (
-                <FormHelperText>
-                  {t('schedule.cancellationReasonRequired')}
-                </FormHelperText>
+                <FormHelperText>{t('schedule.cancellationReasonRequired')}</FormHelperText>
               )}
             </FormControl>
 

@@ -56,8 +56,7 @@ export const Fuel = ({ control, usableFuelLitres, disabled }: Props) => {
     },
   ].filter((m) => !!m)
 
-  const label = (value: number) =>
-    `${Math.round(value)}L = ${Math.round(value / 3.785)}USG`
+  const label = (value: number) => `${Math.round(value)}L = ${Math.round(value / 3.785)}USG`
 
   const { t } = useTranslation()
   return (

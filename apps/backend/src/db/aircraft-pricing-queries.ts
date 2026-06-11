@@ -48,7 +48,7 @@ export const getAircraftPricing = async (
 
   const results = await query.execute()
 
-  return results.map(row => ({
+  return results.map((row) => ({
     registration: row.registration,
     valid_from: row.valid_from,
     valid_to: row.valid_to,
@@ -210,7 +210,7 @@ export const getAircraftPricingHistory = async (
     .orderBy('valid_from', 'desc')
     .execute()
 
-  return results.map(row => ({
+  return results.map((row) => ({
     registration: row.registration,
     valid_from: row.valid_from,
     valid_to: row.valid_to,

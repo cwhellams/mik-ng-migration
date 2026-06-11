@@ -24,9 +24,7 @@ export const FlightLogQuery = ({ registration, setFilters }: Props) => {
         id='role'
         value={registration ?? ''}
         label={t('flightLog.aircraft')}
-        onChange={({ target }) =>
-          setFilters({ aircraftRegistration: target.value })
-        }
+        onChange={({ target }) => setFilters({ aircraftRegistration: target.value })}
       >
         <MenuItem value={''}>{t('flightLog.logbooks.showAll')}</MenuItem>
         {data?.aircrafts.map((plane) => (

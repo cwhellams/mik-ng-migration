@@ -80,9 +80,8 @@ describe('Junior Member Promotion Worker', () => {
 
   describe('Worker Initialization', () => {
     it('should schedule task when worker is enabled', async () => {
-      const { startJuniorMemberPromotionWorker } = await import(
-        '../../src/workers/juniorMemberPromotionWorker.ts'
-      )
+      const { startJuniorMemberPromotionWorker } =
+        await import('../../src/workers/juniorMemberPromotionWorker.ts')
 
       const worker = startJuniorMemberPromotionWorker({
         sendEmailFn: mockSendEmail,
@@ -100,9 +99,8 @@ describe('Junior Member Promotion Worker', () => {
       // Clear module cache to re-import with new env var
       jest.resetModules()
 
-      const { startJuniorMemberPromotionWorker } = await import(
-        '../../src/workers/juniorMemberPromotionWorker.ts'
-      )
+      const { startJuniorMemberPromotionWorker } =
+        await import('../../src/workers/juniorMemberPromotionWorker.ts')
 
       const worker = startJuniorMemberPromotionWorker({
         sendEmailFn: mockSendEmail,
@@ -133,7 +131,7 @@ describe('Junior Member Promotion Worker', () => {
 
       const members = await getJuniorMembersTurning18Today()
 
-      const found = members.find(m => m.member_id === testMemberId)
+      const found = members.find((m) => m.member_id === testMemberId)
       expect(found).toBeDefined()
       expect(found?.member_id).toBe(testMemberId)
     })
@@ -153,7 +151,7 @@ describe('Junior Member Promotion Worker', () => {
 
       const members = await getJuniorMembersTurning18Today()
 
-      const found = members.find(m => m.member_id === testMemberId)
+      const found = members.find((m) => m.member_id === testMemberId)
       expect(found).toBeUndefined()
     })
 
@@ -175,7 +173,7 @@ describe('Junior Member Promotion Worker', () => {
 
       const members = await getJuniorMembersTurning18Today()
 
-      const found = members.find(m => m.member_id === testMemberId)
+      const found = members.find((m) => m.member_id === testMemberId)
       expect(found).toBeUndefined()
     })
 
@@ -193,7 +191,7 @@ describe('Junior Member Promotion Worker', () => {
 
       const members = await getJuniorMembersTurning18Today()
 
-      const found = members.find(m => m.member_id === testMemberId)
+      const found = members.find((m) => m.member_id === testMemberId)
       expect(found).toBeUndefined()
     })
 
@@ -226,7 +224,7 @@ describe('Junior Member Promotion Worker', () => {
 
         const members = await getJuniorMembersTurning18Today()
 
-        const found = members.find(m => m.member_id === unapprovedMemberId)
+        const found = members.find((m) => m.member_id === unapprovedMemberId)
         expect(found).toBeUndefined()
       } finally {
         // Restore original state so subsequent tests are not affected
@@ -260,7 +258,7 @@ describe('Junior Member Promotion Worker', () => {
 
       const members = await getJuniorMembersTurning18Today()
 
-      const found = members.find(m => m.member_id === testMemberId)
+      const found = members.find((m) => m.member_id === testMemberId)
       expect(found).toBeUndefined()
     })
   })

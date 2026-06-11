@@ -15,4 +15,4 @@ content:
           example: 3
         response:
           type: string
-          example: "OK"
+          example: 'OK'

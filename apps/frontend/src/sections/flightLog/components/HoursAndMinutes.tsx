@@ -21,9 +21,7 @@ export const HoursAndMinutes = ({
         label={t('flightLog.hours')}
         type='number'
         value={currentHours ?? ''}
-        onChange={(e) =>
-          setCurrentHours(e.target.value === '' ? null : Number(e.target.value))
-        }
+        onChange={(e) => setCurrentHours(e.target.value === '' ? null : Number(e.target.value))}
         slotProps={{
           htmlInput: { min: 0 },
           inputLabel: { shrink: true },

@@ -16,14 +16,11 @@ if (
   process.env.NODE_ENV !== 'production'
 ) {
   throw new Error(
-    `Invalid NODE_ENV ${process.env.NODE_ENV}, must be 'dev' or 'test' or 'production'`
+    `Invalid NODE_ENV ${process.env.NODE_ENV}, must be 'dev' or 'test' or 'production'`,
   )
 }
 
-const cookieFile = path.join(
-  os.homedir(),
-  `.mik-cookies-${process.env.NODE_ENV}`
-)
+const cookieFile = path.join(os.homedir(), `.mik-cookies-${process.env.NODE_ENV}`)
 const tokenFile = path.join(os.homedir(), `.mik-token-${process.env.NODE_ENV}`)
 
 const readFileAsync = promisify(readFile)
@@ -36,7 +33,7 @@ const api = axios.create({
 export const request = async <Req, Res = Req>(
   method: string,
   url: string,
-  data: Req | undefined = undefined
+  data: Req | undefined = undefined,
 ): Promise<Res | undefined> => {
   const token = await readFileAsync(tokenFile, 'utf-8')
 
@@ -63,9 +60,7 @@ export const request = async <Req, Res = Req>(
           ? JSON.stringify(err.response?.data, null, 2)
           : err.message
 
-        throw new Error(
-          `${method} ${url} returned ${err.response?.status || 0}: ${msg}`
-        )
+        throw new Error(`${method} ${url} returned ${err.response?.status || 0}: ${msg}`)
       })
 
   return await call(token, true)
@@ -103,7 +98,7 @@ export const refresh = async (): Promise<string> => {
         headers: {
           Cookie: cookie.split(';')[0],
         },
-      }
+      },
     )
     .then((res) => {
       writeFileSync(tokenFile, res.data.accessToken, 'utf-8')

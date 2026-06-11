@@ -53,11 +53,7 @@ interface EditAircraftModalProps {
   aircraft?: Aircraft
 }
 
-export const EditAircraftModal = ({
-  onClose,
-  mode,
-  aircraft,
-}: EditAircraftModalProps) => {
+export const EditAircraftModal = ({ onClose, mode, aircraft }: EditAircraftModalProps) => {
   const { t } = useTranslation()
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
@@ -65,9 +61,7 @@ export const EditAircraftModal = ({
   const isNewAircraft = !aircraft?.registration
 
   const { mutation } = useApi<Aircraft>({
-    url: isNewAircraft
-      ? 'v1/aircrafts'
-      : `v1/aircrafts/${aircraft?.registration}`,
+    url: isNewAircraft ? 'v1/aircrafts' : `v1/aircrafts/${aircraft?.registration}`,
     skipFetch: true,
   })
 
@@ -143,14 +137,11 @@ export const EditAircraftModal = ({
       [field]: value,
     }))
 
-  const handleFuelTypesChange = (
-    event: SelectChangeEvent<typeof formData.fuelTypes>
-  ) => {
+  const handleFuelTypesChange = (event: SelectChangeEvent<typeof formData.fuelTypes>) => {
     const {
       target: { value },
     } = event
-    const newFuelTypes =
-      typeof value === 'string' ? value.split(',') : (value as string[])
+    const newFuelTypes = typeof value === 'string' ? value.split(',') : (value as string[])
     setFormData((prev) => ({
       ...prev,
       fuelTypes: newFuelTypes,
@@ -172,7 +163,7 @@ export const EditAircraftModal = ({
 
   const handleMaintenanceChange = (
     field: keyof Aircraft['maintenance'],
-    value: string | number | null
+    value: string | number | null,
   ) =>
     setFormData((prev) => ({
       ...prev,
@@ -185,7 +176,7 @@ export const EditAircraftModal = ({
   const handleNoteChange = (
     index: number,
     field: keyof AircraftNote,
-    value: string | number | boolean | null
+    value: string | number | boolean | null,
   ) =>
     setFormData((prev) => ({
       ...prev,
@@ -215,8 +206,7 @@ export const EditAircraftModal = ({
         ...prev,
         maintenance: {
           ...m,
-          lastMaintenanceDate:
-            m.nextMaintenanceDate ?? dayjs().format('YYYY-MM-DD'),
+          lastMaintenanceDate: m.nextMaintenanceDate ?? dayjs().format('YYYY-MM-DD'),
           lastMaintenanceType: m.nextMaintenanceType,
           lastMaintenanceMins: m.nextMaintenanceMins,
           nextMaintenanceDate: null,
@@ -296,9 +286,7 @@ export const EditAircraftModal = ({
           inputMode='numeric'
           label={t('aircraft.edit.yearOfManufacture')}
           value={formData.yearOfManufacture || ''}
-          onChange={({ target }) =>
-            handleChange('yearOfManufacture', Number(target.value))
-          }
+          onChange={({ target }) => handleChange('yearOfManufacture', Number(target.value))}
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 4 }}>
@@ -328,16 +316,12 @@ export const EditAircraftModal = ({
           inputMode='numeric'
           label={t('aircraft.edit.usableFuelLitres')}
           value={formData.usableFuelLitres || ''}
-          onChange={({ target }) =>
-            handleChange('usableFuelLitres', Number(target.value))
-          }
+          onChange={({ target }) => handleChange('usableFuelLitres', Number(target.value))}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>
         <FormControl fullWidth required>
-          <InputLabel id='fuel-types-label'>
-            {t('aircraft.edit.fuelTypes')}
-          </InputLabel>
+          <InputLabel id='fuel-types-label'>{t('aircraft.edit.fuelTypes')}</InputLabel>
           <Select
             labelId='fuel-types-label'
             id='fuel-types'
@@ -362,10 +346,7 @@ export const EditAircraftModal = ({
         </FormControl>
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>
-        <FormControl
-          fullWidth
-          disabled={!formData.fuelTypes || formData.fuelTypes.length === 0}
-        >
+        <FormControl fullWidth disabled={!formData.fuelTypes || formData.fuelTypes.length === 0}>
           <InputLabel id='preferred-fuel-type-label'>
             {t('aircraft.edit.preferredFuelType')}
           </InputLabel>
@@ -374,9 +355,7 @@ export const EditAircraftModal = ({
             id='preferred-fuel-type'
             value={formData.preferredFuelType ?? ''}
             onChange={handlePreferredFuelTypeChange}
-            input={
-              <OutlinedInput label={t('aircraft.edit.preferredFuelType')} />
-            }
+            input={<OutlinedInput label={t('aircraft.edit.preferredFuelType')} />}
           >
             <MenuItem value=''>
               <em>{t('aircraft.edit.preferredFuelTypeNone')}</em>
@@ -395,19 +374,12 @@ export const EditAircraftModal = ({
   const operationsCard = () => (
     <Card>
       <CardContent>
-        <FormTitle
-          title={t('aircraft.edit.operations')}
-          icon='mdi:airplane-takeoff'
-        />
+        <FormTitle title={t('aircraft.edit.operations')} icon='mdi:airplane-takeoff' />
 
         <Stack spacing={1.5}>
           <Grid container spacing={2}>
             <Grid size={12} display='flex' alignItems='center'>
-              <Typography
-                variant='body2'
-                color='text.secondary'
-                sx={{ width: 150 }}
-              >
+              <Typography variant='body2' color='text.secondary' sx={{ width: 150 }}>
                 {t('aircraft.edit.active')}
               </Typography>
               <Checkbox
@@ -421,11 +393,7 @@ export const EditAircraftModal = ({
               />
             </Grid>
             <Grid size={12} display='flex' alignItems='center'>
-              <Typography
-                variant='body2'
-                color='text.secondary'
-                sx={{ width: 150 }}
-              >
+              <Typography variant='body2' color='text.secondary' sx={{ width: 150 }}>
                 {t('aircraft.edit.hidden')}
               </Typography>
               <Checkbox
@@ -468,16 +436,12 @@ export const EditAircraftModal = ({
               slotProps={{
                 input: {
                   inputMode: 'decimal',
-                  endAdornment: (
-                    <InputAdornment position='start'>€</InputAdornment>
-                  ),
+                  endAdornment: <InputAdornment position='start'>€</InputAdornment>,
                 },
               }}
               label={t('aircraft.edit.hourlyRateEur')}
               value={formData.hourlyRateEur || ''}
-              onChange={({ target }) =>
-                handleChange('hourlyRateEur', Number(target.value))
-              }
+              onChange={({ target }) => handleChange('hourlyRateEur', Number(target.value))}
             />
           </Grid>
         </Stack>
@@ -509,10 +473,7 @@ export const EditAircraftModal = ({
           label={t('aircraft.maintenance.totalPercentageHours')}
           value={formData.maintenance?.totalPercentageHours ?? ''}
           onChange={({ target }) =>
-            handleMaintenanceChange(
-              'totalPercentageHours',
-              Math.max(0, Number(target.value))
-            )
+            handleMaintenanceChange('totalPercentageHours', Math.max(0, Number(target.value)))
           }
         />
       </Grid>
@@ -525,10 +486,7 @@ export const EditAircraftModal = ({
           label={t('aircraft.maintenance.reservedHours')}
           value={formData.maintenance?.reservedHours ?? ''}
           onChange={({ target }) =>
-            handleMaintenanceChange(
-              'reservedHours',
-              Math.max(0, Number(target.value))
-            )
+            handleMaintenanceChange('reservedHours', Math.max(0, Number(target.value)))
           }
         />
       </Grid>
@@ -568,10 +526,7 @@ export const EditAircraftModal = ({
                   : dayjs(formData.maintenance?.[dateKey])
               }
               onChange={(value) =>
-                handleMaintenanceChange(
-                  dateKey,
-                  value?.format('YYYY-MM-DD') ?? null
-                )
+                handleMaintenanceChange(dateKey, value?.format('YYYY-MM-DD') ?? null)
               }
               slotProps={{
                 field: {
@@ -585,9 +540,7 @@ export const EditAircraftModal = ({
               required
               label={t('aircraft.maintenance.type')}
               value={formData.maintenance?.[typeKey] ?? ''}
-              onChange={({ target }) =>
-                handleMaintenanceChange(typeKey, target.value)
-              }
+              onChange={({ target }) => handleMaintenanceChange(typeKey, target.value)}
             />
             <HoursAndMinutes
               currentHours={currentHours}
@@ -595,19 +548,13 @@ export const EditAircraftModal = ({
               setCurrentHours={(hours) => {
                 if (hours !== null) {
                   setCurrentHours(hours)
-                  handleMaintenanceChange(
-                    minutesKey,
-                    hours * 60 + currentMinutes
-                  )
+                  handleMaintenanceChange(minutesKey, hours * 60 + currentMinutes)
                 }
               }}
               setCurrentMinutes={(minutes) => {
                 if (minutes !== null) {
                   setCurrentMinutes(minutes)
-                  handleMaintenanceChange(
-                    minutesKey,
-                    Number(currentHours * 60 + minutes)
-                  )
+                  handleMaintenanceChange(minutesKey, Number(currentHours * 60 + minutes))
                 }
               }}
             />
@@ -615,11 +562,7 @@ export const EditAircraftModal = ({
         </CardContent>
         {next && (
           <CardActions>
-            <Button
-              onClick={startNextCycle}
-              color='primary'
-              variant='contained'
-            >
+            <Button onClick={startNextCycle} color='primary' variant='contained'>
               {t('aircraft.maintenance.nextCycle')}
             </Button>
           </CardActions>
@@ -635,27 +578,19 @@ export const EditAircraftModal = ({
           <Grid container size={'grow'} spacing={1.5} mr={2}>
             <Grid size={{ xs: 12, sm: 2 }} minWidth={150}>
               <FormControl fullWidth>
-                <InputLabel id='severity-label'>
-                  {t('aircraft.notes.severity')}
-                </InputLabel>
+                <InputLabel id='severity-label'>{t('aircraft.notes.severity')}</InputLabel>
 
                 <Select
                   labelId='severity-label'
                   id='severity'
                   value={note.severity ?? ''}
                   label={t('aircraft.notes.severity')}
-                  onChange={({ target }) =>
-                    handleNoteChange(index, 'severity', target.value)
-                  }
+                  onChange={({ target }) => handleNoteChange(index, 'severity', target.value)}
                 >
                   <MenuItem value='off'>{t('aircraft.notes.off')}</MenuItem>
                   <MenuItem value='note'>{t('aircraft.notes.note')}</MenuItem>
-                  <MenuItem value='caution'>
-                    {t('aircraft.notes.caution')}
-                  </MenuItem>
-                  <MenuItem value='warning'>
-                    {t('aircraft.notes.warning')}
-                  </MenuItem>
+                  <MenuItem value='caution'>{t('aircraft.notes.caution')}</MenuItem>
+                  <MenuItem value='warning'>{t('aircraft.notes.warning')}</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -665,9 +600,7 @@ export const EditAircraftModal = ({
                 fullWidth
                 label={t('aircraft.notes.text')}
                 value={note.text ?? ''}
-                onChange={({ target }) =>
-                  handleNoteChange(index, 'text', target.value)
-                }
+                onChange={({ target }) => handleNoteChange(index, 'text', target.value)}
               />
             </Grid>
           </Grid>
@@ -686,11 +619,7 @@ export const EditAircraftModal = ({
         </Grid>
       ))}
       <Grid size={12} display='flex' justifyContent='center'>
-        <EditButton
-          title={t('aircraft.notes.new')}
-          onClick={handleNoteCreate}
-          icon='mdi:plus'
-        />
+        <EditButton title={t('aircraft.notes.new')} onClick={handleNoteCreate} icon='mdi:plus' />
       </Grid>
     </Stack>
   )
@@ -734,10 +663,7 @@ export const EditAircraftModal = ({
         },
       }}
     >
-      <EditDialogTitle
-        title={mode && `aircraft.edit.${mode}`}
-        onClose={onClose}
-      />
+      <EditDialogTitle title={mode && `aircraft.edit.${mode}`} onClose={onClose} />
       <DialogContent dividers>
         <SnackAlert problem={problem} />
         <Stack spacing={3}>

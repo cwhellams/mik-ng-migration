@@ -10,19 +10,15 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../../hooks/useApi'
-import {
-  EquipmentFee,
-  EquipmentFeeStatus,
-} from '@backend/routes/invoicing/models'
+import { EquipmentFee, EquipmentFeeStatus } from '@backend/routes/invoicing/models'
 import { useState } from 'react'
 import { RemoteContent } from '../../../components/RemoteContent'
 
 export const EquipmentFeeBanner = () => {
   const { t } = useTranslation()
-  const { data, isLoading, error, mutate, mutation } =
-    useApi<EquipmentFeeStatus>({
-      url: 'v1/invoices/equipmentFeeStatus',
-    })
+  const { data, isLoading, error, mutate, mutation } = useApi<EquipmentFeeStatus>({
+    url: 'v1/invoices/equipmentFeeStatus',
+  })
 
   const { data: feeData } = useApi<EquipmentFee | undefined>(
     {
@@ -31,7 +27,7 @@ export const EquipmentFeeBanner = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   )
 
   const [requestSuccess, setRequestSuccess] = useState(false)
@@ -43,7 +39,7 @@ export const EquipmentFeeBanner = () => {
       const response = await mutation.trigger(
         'POST',
         {},
-        '/v1/invoices/requestOwnEquipmentFeeInvoice'
+        '/v1/invoices/requestOwnEquipmentFeeInvoice',
       )
 
       if (response.data) {
@@ -59,8 +55,7 @@ export const EquipmentFeeBanner = () => {
 
   const fullAmount = feeData?.markup_value ?? 0
   const seasonalDiscountPercent = feeData?.seasonal_discount_percent
-  const hasSeasonalDiscount =
-    seasonalDiscountPercent !== undefined && seasonalDiscountPercent > 0
+  const hasSeasonalDiscount = seasonalDiscountPercent !== undefined && seasonalDiscountPercent > 0
   const discountedAmount = hasSeasonalDiscount
     ? Math.round(fullAmount * (1 - seasonalDiscountPercent / 100) * 100) / 100
     : fullAmount
@@ -101,13 +96,8 @@ export const EquipmentFeeBanner = () => {
             )}
           </Alert>
 
-          <Dialog
-            open={confirmDialogOpen}
-            onClose={() => setConfirmDialogOpen(false)}
-          >
-            <DialogTitle>
-              {t('dashboard.confirmEquipmentFee.title')}
-            </DialogTitle>
+          <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
+            <DialogTitle>{t('dashboard.confirmEquipmentFee.title')}</DialogTitle>
             <DialogContent>
               <DialogContentText>
                 {hasSeasonalDiscount
@@ -129,12 +119,7 @@ export const EquipmentFeeBanner = () => {
               <Button onClick={() => setConfirmDialogOpen(false)}>
                 {t('dashboard.confirmEquipmentFee.cancel')}
               </Button>
-              <Button
-                onClick={handleRequestInvoice}
-                variant='contained'
-                color='warning'
-                autoFocus
-              >
+              <Button onClick={handleRequestInvoice} variant='contained' color='warning' autoFocus>
                 {t('dashboard.confirmEquipmentFee.accept')}
               </Button>
             </DialogActions>

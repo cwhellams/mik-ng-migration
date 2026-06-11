@@ -39,7 +39,7 @@ export async function getCategories(activeOnly = true): Promise<Category[]> {
   let q = db.selectFrom('shop.categories').selectAll()
   if (activeOnly) q = q.where('is_active', '=', true)
   const rows = await q.orderBy('sort_order').execute()
-  return rows.map(r => ({
+  return rows.map((r) => ({
     categoryId: r.category_id,
     name: r.name as Category['name'],
     description: r.description as Category['description'],
@@ -117,10 +117,10 @@ export async function getProducts(filters?: ProductFilters): Promise<Product[]> 
   if (filters?.published !== undefined) q = q.where('is_published', '=', filters.published)
   if (filters?.active !== undefined) q = q.where('is_active', '=', filters.active)
   if (filters?.tag)
-    q = q.where(eb => eb(sql`${eb.ref('tags')}`, '@>', sql`ARRAY[${filters.tag}]::TEXT[]`))
+    q = q.where((eb) => eb(sql`${eb.ref('tags')}`, '@>', sql`ARRAY[${filters.tag}]::TEXT[]`))
   if (filters?.search) {
     const term = `%${filters.search}%`
-    q = q.where(eb =>
+    q = q.where((eb) =>
       eb.or([
         eb(sql`${eb.ref('name')}::text`, 'like', term),
         eb(sql`${eb.ref('description')}::text`, 'like', term),
@@ -153,7 +153,7 @@ export async function getProductById(id: string): Promise<Product | undefined> {
 async function fillProductOrderFlags(products: Product[]): Promise<void> {
   if (products.length === 0) return
 
-  const productIds = products.map(product => product.productId)
+  const productIds = products.map((product) => product.productId)
   const rows = await db
     .selectFrom('shop.order_items')
     .select('product_id')
@@ -161,7 +161,7 @@ async function fillProductOrderFlags(products: Product[]): Promise<void> {
     .groupBy('product_id')
     .execute()
 
-  const orderedProductIds = new Set(rows.map(row => row.product_id))
+  const orderedProductIds = new Set(rows.map((row) => row.product_id))
   for (const product of products) {
     product.hasOrders = orderedProductIds.has(product.productId)
   }
@@ -169,16 +169,16 @@ async function fillProductOrderFlags(products: Product[]): Promise<void> {
 
 /** Recompute stockQuantity for flight packages from prepaid.packages (source of truth). */
 async function fillFlightPackageStock(products: Product[]): Promise<void> {
-  const pkgProducts = products.filter(p => p.productType === 'FLIGHT_HOURS_PACKAGE')
+  const pkgProducts = products.filter((p) => p.productType === 'FLIGHT_HOURS_PACKAGE')
   if (pkgProducts.length === 0) return
-  const ids = pkgProducts.map(p => p.productId)
+  const ids = pkgProducts.map((p) => p.productId)
   const pkgs = await db
     .selectFrom('prepaid.packages')
     .select(['product_id', 'total_packages_available', 'sold_count'])
     .where('product_id', 'in', ids)
     .execute()
   const stockByProductId = new Map(
-    pkgs.map(p => [p.product_id, Math.max(0, p.total_packages_available - p.sold_count)]),
+    pkgs.map((p) => [p.product_id, Math.max(0, p.total_packages_available - p.sold_count)]),
   )
   for (const product of pkgProducts) {
     const remaining = stockByProductId.get(product.productId)
@@ -188,23 +188,25 @@ async function fillFlightPackageStock(products: Product[]): Promise<void> {
 
 /** For FLIGHT_HOURS_PACKAGE products with no imageUrl, populate it from the linked aircraft. */
 async function fillAircraftImages(products: Product[]): Promise<void> {
-  const pkgProducts = products.filter(p => p.productType === 'FLIGHT_HOURS_PACKAGE' && !p.imageUrl)
+  const pkgProducts = products.filter(
+    (p) => p.productType === 'FLIGHT_HOURS_PACKAGE' && !p.imageUrl,
+  )
   if (pkgProducts.length === 0) return
-  const ids = pkgProducts.map(p => p.productId)
+  const ids = pkgProducts.map((p) => p.productId)
   const pkgs = await db
     .selectFrom('prepaid.packages')
     .select(['product_id', 'aircraft_registration'])
     .where('product_id', 'in', ids)
     .execute()
-  const regByProductId = new Map(pkgs.map(p => [p.product_id, p.aircraft_registration]))
-  const registrations = [...new Set(pkgs.map(p => p.aircraft_registration))]
+  const regByProductId = new Map(pkgs.map((p) => [p.product_id, p.aircraft_registration]))
+  const registrations = [...new Set(pkgs.map((p) => p.aircraft_registration))]
   if (registrations.length === 0) return
   const aircrafts = await db
     .selectFrom('flight.aircraft')
     .select(['registration', 'image_url'])
     .where('registration', 'in', registrations)
     .execute()
-  const imgByRegistration = new Map(aircrafts.map(a => [a.registration, a.image_url]))
+  const imgByRegistration = new Map(aircrafts.map((a) => [a.registration, a.image_url]))
   for (const product of pkgProducts) {
     const reg = regByProductId.get(product.productId)
     if (reg) product.imageUrl = imgByRegistration.get(reg) ?? null
@@ -303,7 +305,7 @@ export async function deleteProduct(id: string): Promise<void> {
 export async function hasProductOrders(productId: string): Promise<boolean> {
   const row = await db
     .selectFrom('shop.order_items')
-    .select(eb => [eb.fn.countAll<number>().as('count')])
+    .select((eb) => [eb.fn.countAll<number>().as('count')])
     .where('product_id', '=', productId)
     .executeTakeFirst()
 
@@ -330,20 +332,20 @@ export async function getProductProperties(productId: string) {
     .where(
       'property_id',
       'in',
-      props.map(p => p.property_id),
+      props.map((p) => p.property_id),
     )
     .orderBy('sort_order')
     .execute()
 
-  return props.map(p => ({
+  return props.map((p) => ({
     propertyId: p.property_id,
     productId: p.product_id,
     name: p.name as Product['name'],
     isRequired: p.is_required,
     sortOrder: p.sort_order,
     options: opts
-      .filter(o => o.property_id === p.property_id)
-      .map(o => ({
+      .filter((o) => o.property_id === p.property_id)
+      .map((o) => ({
         optionId: o.option_id,
         propertyId: o.property_id,
         value: o.value as Product['name'],
@@ -440,7 +442,7 @@ async function validateSelectedOptionsStock(
   const properties = await getProductProperties(productId)
   const normalized = normalizeSelectedOptions(selectedOptions)
 
-  for (const property of properties.filter(p => p.isRequired)) {
+  for (const property of properties.filter((p) => p.isRequired)) {
     const selectedOptionId = normalized[String(property.propertyId)]
     if (!selectedOptionId) {
       throw new Error('Please select all required product options')
@@ -449,10 +451,10 @@ async function validateSelectedOptionsStock(
 
   for (const [propertyIdStr, selectedOptionId] of Object.entries(normalized)) {
     const propertyId = Number(propertyIdStr)
-    const property = properties.find(p => p.propertyId === propertyId)
+    const property = properties.find((p) => p.propertyId === propertyId)
     if (!property) throw new Error('Invalid product option selection')
 
-    const option = property.options?.find(o => o.optionId === selectedOptionId)
+    const option = property.options?.find((o) => o.optionId === selectedOptionId)
     if (!option || !option.isActive) throw new Error('Invalid product option selection')
     if (option.stockQuantity != null && quantity > option.stockQuantity) {
       throw new Error('Selected option does not have enough stock')
@@ -470,8 +472,8 @@ export async function deleteProductProperty(propertyId: number): Promise<void> {
 
 export async function getDiscountCodes(): Promise<DiscountCode[]> {
   const rows = await db.selectFrom('shop.discount_codes').selectAll().execute()
-  const categoryMap = await getDiscountCodeCategoryMap(rows.map(row => row.code_id))
-  return rows.map(row =>
+  const categoryMap = await getDiscountCodeCategoryMap(rows.map((row) => row.code_id))
+  return rows.map((row) =>
     mapDiscountCode({ ...row, category_ids: categoryMap.get(row.code_id) ?? [] }),
   )
 }
@@ -551,7 +553,7 @@ async function replaceDiscountCodeCategories(codeId: number, categoryIds: string
 
   await db
     .insertInto('shop.discount_code_categories')
-    .values(uniqueCategoryIds.map(categoryId => ({ code_id: codeId, category_id: categoryId })))
+    .values(uniqueCategoryIds.map((categoryId) => ({ code_id: codeId, category_id: categoryId })))
     .execute()
 }
 
@@ -559,16 +561,16 @@ async function ensureDiscountCodeCategoryTable(): Promise<void> {
   await db.schema
     .createTable('shop.discount_code_categories')
     .ifNotExists()
-    .addColumn('code_id', 'integer', col => col.notNull())
-    .addColumn('category_id', 'varchar(9)', col => col.notNull())
-    .addColumn('created_at', 'timestamptz', col => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn('code_id', 'integer', (col) => col.notNull())
+    .addColumn('category_id', 'varchar(9)', (col) => col.notNull())
+    .addColumn('created_at', 'timestamptz', (col) => col.notNull().defaultTo(sql`NOW()`))
     .addPrimaryKeyConstraint('pk_shop_discount_code_categories', ['code_id', 'category_id'])
     .addForeignKeyConstraint(
       'fk_shop_discount_code_categories_code_id',
       ['code_id'],
       'shop.discount_codes',
       ['code_id'],
-      cb => cb.onDelete('cascade'),
+      (cb) => cb.onDelete('cascade'),
     )
     .addForeignKeyConstraint(
       'fk_shop_discount_code_categories_category_id',
@@ -588,7 +590,7 @@ function isMissingDiscountCodeCategoryTableError(error: unknown): boolean {
 function isDiscountCodeApplicableToCart(code: DiscountCode, cart: Cart): boolean {
   if (!code.categoryIds.length) return true
   const allowed = new Set(code.categoryIds)
-  return cart.items.some(item => {
+  return cart.items.some((item) => {
     const categoryId = item.product?.categoryId
     return !!categoryId && allowed.has(categoryId)
   })
@@ -716,7 +718,7 @@ export async function getCart(memberId: string): Promise<Cart> {
     .orderBy('created_at')
     .execute()
 
-  const productIds = [...new Set(items.map(i => i.product_id))]
+  const productIds = [...new Set(items.map((i) => i.product_id))]
   const products = productIds.length
     ? await db
         .selectFrom('shop.products')
@@ -731,7 +733,7 @@ export async function getCart(memberId: string): Promise<Cart> {
     discountCodeId: cart.discount_code_id,
     createdAt: cart.created_at instanceof Date ? cart.created_at.toISOString() : cart.created_at,
     updatedAt: cart.updated_at instanceof Date ? cart.updated_at.toISOString() : cart.updated_at,
-    items: items.map(i => ({
+    items: items.map((i) => ({
       cartItemId: i.cart_item_id,
       cartId: i.cart_id,
       productId: i.product_id,
@@ -745,8 +747,8 @@ export async function getCart(memberId: string): Promise<Cart> {
         ? i.updated_at
         : new Date(i.updated_at as string)
       ).toISOString(),
-      product: products.find(p => p.product_id === i.product_id)
-        ? mapProduct(products.find(p => p.product_id === i.product_id)!)
+      product: products.find((p) => p.product_id === i.product_id)
+        ? mapProduct(products.find((p) => p.product_id === i.product_id)!)
         : undefined,
     })),
   }
@@ -767,7 +769,7 @@ export async function addCartItem(memberId: string, data: CartItemUpsert): Promi
 
   const incomingKey = selectedOptionsKey(selectedOptions)
   const existing = existingRows.find(
-    row =>
+    (row) =>
       selectedOptionsKey((row.selected_options as Record<string, number> | null) ?? null) ===
       incomingKey,
   )
@@ -801,7 +803,7 @@ export async function addCartItem(memberId: string, data: CartItemUpsert): Promi
   if (product?.productType === 'FLIGHT_HOURS_PACKAGE' && product.maxOrderQuantity != null) {
     const row = await db
       .selectFrom('prepaid.member_packages')
-      .select(eb => [eb.fn.countAll<number>().as('count')])
+      .select((eb) => [eb.fn.countAll<number>().as('count')])
       .where('member_id', '=', memberId)
       .where('product_id', '=', data.productId)
       .executeTakeFirst()
@@ -889,7 +891,7 @@ export async function updateCartItem(
       if (product?.productType === 'FLIGHT_HOURS_PACKAGE' && product.maxOrderQuantity != null) {
         const row = await db
           .selectFrom('prepaid.member_packages')
-          .select(eb => [eb.fn.countAll<number>().as('count')])
+          .select((eb) => [eb.fn.countAll<number>().as('count')])
           .where('member_id', '=', memberId)
           .where('product_id', '=', item.product_id)
           .executeTakeFirst()
@@ -996,7 +998,7 @@ export async function getOrders(filters?: OrderFilters): Promise<OrderListRespon
     ])
   let countQuery = db
     .selectFrom('shop.orders as o')
-    .select(eb => [eb.fn.countAll<number>().as('count')])
+    .select((eb) => [eb.fn.countAll<number>().as('count')])
 
   if (filters?.memberId) {
     dataQuery = dataQuery.where('o.member_id', '=', filters.memberId)
@@ -1007,7 +1009,7 @@ export async function getOrders(filters?: OrderFilters): Promise<OrderListRespon
     countQuery = countQuery.where('o.status', '=', filters.status)
   }
   if (filters?.categoryId) {
-    dataQuery = dataQuery.where(eb =>
+    dataQuery = dataQuery.where((eb) =>
       eb.exists(
         eb
           .selectFrom('shop.order_items as oi')
@@ -1017,7 +1019,7 @@ export async function getOrders(filters?: OrderFilters): Promise<OrderListRespon
           .where('p.category_id', '=', filters.categoryId!),
       ),
     )
-    countQuery = countQuery.where(eb =>
+    countQuery = countQuery.where((eb) =>
       eb.exists(
         eb
           .selectFrom('shop.order_items as oi')
@@ -1089,8 +1091,8 @@ export async function getOrderById(id: string): Promise<Order | undefined> {
     .selectAll()
     .where('order_id', '=', id)
     .execute()
-    .then(rows =>
-      rows.map(i => ({
+    .then((rows) =>
+      rows.map((i) => ({
         orderItemId: i.order_item_id,
         orderId: i.order_id,
         productId: i.product_id,
@@ -1163,7 +1165,7 @@ export async function createOrderFromCart(
     if (product.productType === 'FLIGHT_HOURS_PACKAGE' && product.maxOrderQuantity != null) {
       const row = await db
         .selectFrom('prepaid.member_packages')
-        .select(eb => [eb.fn.countAll<number>().as('count')])
+        .select((eb) => [eb.fn.countAll<number>().as('count')])
         .where('member_id', '=', memberId)
         .where('product_id', '=', item.productId)
         .executeTakeFirst()
@@ -1228,7 +1230,7 @@ export async function createOrderFromCart(
 
   // Build order items and compute total
   let totalAmount = 0
-  const orderItems = cart.items.map(item => {
+  const orderItems = cart.items.map((item) => {
     const unitPrice = item.product?.price ?? 0
     const totalPrice = unitPrice * item.quantity
     totalAmount += totalPrice
@@ -1250,7 +1252,7 @@ export async function createOrderFromCart(
   if (discountAmount) totalAmount -= discountAmount
 
   const orderId = newId()
-  await db.transaction().execute(async trx => {
+  await db.transaction().execute(async (trx) => {
     await trx
       .insertInto('shop.orders')
       .values({
@@ -1269,13 +1271,13 @@ export async function createOrderFromCart(
     for (const item of orderItems) {
       const stockUpdateResult = await trx
         .updateTable('shop.products')
-        .set(eb => ({ stock_quantity: eb('stock_quantity', '-', item.quantity) }))
+        .set((eb) => ({ stock_quantity: eb('stock_quantity', '-', item.quantity) }))
         .where('product_id', '=', item.product_id)
         .where('stock_quantity', '>=', item.quantity)
         .executeTakeFirst()
 
       if (!stockUpdateResult || stockUpdateResult.numUpdatedRows !== BigInt(1)) {
-        const product = cart.items.find(ci => ci.productId === item.product_id)?.product
+        const product = cart.items.find((ci) => ci.productId === item.product_id)?.product
         const name = (product?.name as Record<string, string> | undefined)?.en ?? item.product_id
         throw new Error(`"${name}": not enough stock available`)
       }
@@ -1285,7 +1287,7 @@ export async function createOrderFromCart(
         .values({ order_id: orderId, ...item })
         .execute()
 
-      const product = cart.items.find(ci => ci.productId === item.product_id)?.product
+      const product = cart.items.find((ci) => ci.productId === item.product_id)?.product
       if (product?.productType === 'FLIGHT_HOURS_PACKAGE') {
         const pkg = await trx
           .selectFrom('prepaid.packages')
@@ -1314,7 +1316,7 @@ export async function createOrderFromCart(
 
         await trx
           .updateTable('prepaid.packages')
-          .set(eb => ({ sold_count: eb('sold_count', '+', item.quantity) }))
+          .set((eb) => ({ sold_count: eb('sold_count', '+', item.quantity) }))
           .where('product_id', '=', item.product_id)
           .execute()
       }
@@ -1348,7 +1350,7 @@ export async function createOrderFromCart(
     if (discountCodeId) {
       await trx
         .updateTable('shop.discount_codes')
-        .set(eb => ({ uses_count: eb('uses_count', '+', 1) }))
+        .set((eb) => ({ uses_count: eb('uses_count', '+', 1) }))
         .where('code_id', '=', discountCodeId)
         .execute()
     }

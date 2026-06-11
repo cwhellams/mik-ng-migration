@@ -261,7 +261,7 @@ export async function getSyllabusWithFlights(
     return { ...syllabus, flights: [] }
   }
 
-  const flightIds = flightRows.map(f => f.flight_id)
+  const flightIds = flightRows.map((f) => f.flight_id)
   const itemRows = await db
     .selectFrom('dto.syllabus_flight_items')
     .selectAll()
@@ -277,7 +277,7 @@ export async function getSyllabusWithFlights(
     itemsByFlight.set(item.syllabus_flight_id, list)
   }
 
-  const flights: SyllabusFlight[] = flightRows.map(f => ({
+  const flights: SyllabusFlight[] = flightRows.map((f) => ({
     ...mapFlight(f),
     items: itemsByFlight.get(f.flight_id) ?? [],
   }))
@@ -509,7 +509,7 @@ export async function importSyllabusFromJson(
 
   await upsertSyllabusFlights(
     syllabus.syllabusId,
-    importData.flights.map(f => ({
+    importData.flights.map((f) => ({
       code: f.code,
       name: f.name,
       description: f.description,
@@ -740,14 +740,14 @@ export async function copySyllabusAsDraft(
 
   await upsertSyllabusFlights(
     newSyllabus.syllabusId,
-    (source.flights ?? []).map(f => ({
+    (source.flights ?? []).map((f) => ({
       code: f.code,
       name: f.name,
       description: f.description,
       tags: f.tags,
       isInterimCheckpoint: f.isInterimCheckpoint,
       recommendedBlockTimeMins: f.recommendedBlockTimeMins,
-      items: (f.items ?? []).map(i => ({
+      items: (f.items ?? []).map((i) => ({
         name: i.name,
         description: i.description,
         mandatory: i.mandatory,
@@ -806,7 +806,7 @@ export async function getAttemptsByMemberSyllabusWithFlightLog(
     .orderBy('dto.syllabus_flight_attempts.created_at', 'desc')
     .execute()
 
-  return rows.map(r => ({
+  return rows.map((r) => ({
     ...mapAttempt(r),
     flightDate: toIso(r.off_block_time_utc).substring(0, 10),
     offBlockTimeUtc: toIso(r.off_block_time_utc),
@@ -854,7 +854,7 @@ export async function getPendingVerifications(): Promise<PendingVerificationItem
       'dto.syllabus_flights.code as flight_code',
       'dto.syllabus_flights.name as flight_name',
     ])
-    .where(eb =>
+    .where((eb) =>
       eb.or([
         eb('dto.syllabus_flight_attempts.verification_result', 'is', null),
         eb('dto.syllabus_flight_attempts.requires_reverification', '=', true),
@@ -863,7 +863,7 @@ export async function getPendingVerifications(): Promise<PendingVerificationItem
     .orderBy('dto.syllabus_flight_attempts.created_at')
     .execute()
 
-  return rows.map(r => ({
+  return rows.map((r) => ({
     ...mapAttempt(r),
     memberName: `${r.first_name} ${r.last_name}`,
     syllabusFlightCode: r.flight_code,
@@ -874,8 +874,8 @@ export async function getPendingVerifications(): Promise<PendingVerificationItem
 export async function getPendingVerificationsCount(): Promise<number> {
   const r = await db
     .selectFrom('dto.syllabus_flight_attempts')
-    .select(eb => eb.fn.count('attempt_id').as('count'))
-    .where(eb =>
+    .select((eb) => eb.fn.count('attempt_id').as('count'))
+    .where((eb) =>
       eb.or([eb('verification_result', 'is', null), eb('requires_reverification', '=', true)]),
     )
     .executeTakeFirstOrThrow()
@@ -941,7 +941,7 @@ export async function verifyAttempt(
       updated_at: now,
     })
     .where('attempt_id', '=', attemptId)
-    .where(eb =>
+    .where((eb) =>
       eb.or([eb('verification_result', 'is', null), eb('requires_reverification', '=', true)]),
     )
     .returningAll()
@@ -960,7 +960,7 @@ export async function verifyAttempt(
           outcome: o.outcome,
           remarks: o.remarks ?? null,
         })
-        .onConflict(oc =>
+        .onConflict((oc) =>
           oc.columns(['attempt_id', 'item_id']).doUpdateSet({
             outcome: o.outcome,
             remarks: o.remarks ?? null,
@@ -1059,7 +1059,7 @@ export async function getItemOutcomesByAttempt(attemptId: string): Promise<Fligh
     .selectAll()
     .where('attempt_id', '=', attemptId)
     .execute()
-  return rows.map(r => ({
+  return rows.map((r) => ({
     attemptId: r.attempt_id,
     itemId: r.item_id,
     outcome: r.outcome as FlightItemOutcome['outcome'],
@@ -1106,7 +1106,7 @@ export async function getOpenHilForMember(memberId: string): Promise<HilEntry[]>
     .where('resolved_at', 'is', null)
     .orderBy('opened_at')
     .execute()
-  return rows.map(r => ({
+  return rows.map((r) => ({
     hilId: r.hil_id,
     memberId: r.member_id,
     syllabusId: r.syllabus_id,
@@ -1149,7 +1149,7 @@ export async function getStudentProgress(): Promise<StudentProgress[]> {
     // Get syllabus flights count
     const flightCountRow = await db
       .selectFrom('dto.syllabus_flights')
-      .select(eb => eb.fn.count('flight_id').as('count'))
+      .select((eb) => eb.fn.count('flight_id').as('count'))
       .where('syllabus_id', '=', row.syllabus_id)
       .executeTakeFirstOrThrow()
     const totalFlights = Number(flightCountRow.count)
@@ -1163,7 +1163,7 @@ export async function getStudentProgress(): Promise<StudentProgress[]> {
       .execute()
 
     // Count distinct syllabus flights that have been approved
-    const completedFlightIds = new Set(completedRows.map(r => r.syllabus_flight_id))
+    const completedFlightIds = new Set(completedRows.map((r) => r.syllabus_flight_id))
     const completedFlights = completedFlightIds.size
 
     // Sum block minutes from all approved attempts
@@ -1174,7 +1174,7 @@ export async function getStudentProgress(): Promise<StudentProgress[]> {
         'flight.logs.flight_id',
         'dto.syllabus_flight_attempts.flight_log_id',
       )
-      .select(eb => eb.fn.sum<number>('flight.logs.block_mins').as('total_block_mins'))
+      .select((eb) => eb.fn.sum<number>('flight.logs.block_mins').as('total_block_mins'))
       .where('dto.syllabus_flight_attempts.member_syllabus_id', '=', row.member_syllabus_id)
       .where('dto.syllabus_flight_attempts.verification_result', '=', 'APPROVED')
       .executeTakeFirst()

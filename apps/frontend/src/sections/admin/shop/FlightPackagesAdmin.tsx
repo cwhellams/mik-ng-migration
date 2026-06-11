@@ -32,10 +32,7 @@ import { useTranslation } from 'react-i18next'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
-import type {
-  PrepaidPackage,
-  MemberPackage,
-} from '@backend/routes/prepaid-hours/models'
+import type { PrepaidPackage, MemberPackage } from '@backend/routes/prepaid-hours/models'
 import type { AircraftListResponse } from '@backend/routes/aircrafts/models'
 import type { ItemListResponse } from '@backend/routes/invoicing/models'
 
@@ -104,8 +101,7 @@ function packageToForm(p: PrepaidPackage): PackageForm {
     maxPerMember: p.maxPerMember == null ? '' : String(p.maxPerMember),
     simplbooksItemId: p.simplbooksItemId ?? '',
     vatPercent: String(p.vatPercent ?? 0),
-    lowStockThreshold:
-      p.lowStockThreshold == null ? '' : String(p.lowStockThreshold),
+    lowStockThreshold: p.lowStockThreshold == null ? '' : String(p.lowStockThreshold),
     expiresAt: p.expiresAt.slice(0, 10),
     isActive: p.isActive,
   }
@@ -126,9 +122,7 @@ function formToPayload(f: PackageForm) {
     maxPerMember: f.maxPerMember ? Number.parseInt(f.maxPerMember) : null,
     simplbooksItemId: f.simplbooksItemId || null,
     vatPercent: Number.parseFloat(f.vatPercent) || 0,
-    lowStockThreshold: f.lowStockThreshold
-      ? Number.parseInt(f.lowStockThreshold)
-      : null,
+    lowStockThreshold: f.lowStockThreshold ? Number.parseInt(f.lowStockThreshold) : null,
     expiresAt: f.expiresAt,
     isActive: f.isActive,
   }
@@ -186,22 +180,13 @@ export default function FlightPackagesAdmin() {
     ...new Set((packages ?? []).map((p) => p.aircraftRegistration)),
   ].sort((a, b) => a.localeCompare(b))
   const expiryYears = [
-    ...new Set(
-      (packages ?? []).map((p) =>
-        new Date(p.expiresAt).getFullYear().toString()
-      )
-    ),
+    ...new Set((packages ?? []).map((p) => new Date(p.expiresAt).getFullYear().toString())),
   ].sort((a, b) => a.localeCompare(b))
   const filteredPackages = (packages ?? []).filter((p) => {
-    if (filterAircraft && p.aircraftRegistration !== filterAircraft)
-      return false
+    if (filterAircraft && p.aircraftRegistration !== filterAircraft) return false
     if (filterActive === 'active' && !p.isActive) return false
     if (filterActive === 'inactive' && p.isActive) return false
-    if (
-      filterYear &&
-      new Date(p.expiresAt).getFullYear().toString() !== filterYear
-    )
-      return false
+    if (filterYear && new Date(p.expiresAt).getFullYear().toString() !== filterYear) return false
     return true
   })
 
@@ -230,12 +215,8 @@ export default function FlightPackagesAdmin() {
       current.totalMinutes += mp.totalMinutes
       acc[key] = current
       return acc
-    }, {})
-  ).sort(
-    (a, b) =>
-      a.aircraft.localeCompare(b.aircraft) ||
-      Number(b.active) - Number(a.active)
-  )
+    }, {}),
+  ).sort((a, b) => a.aircraft.localeCompare(b.aircraft) || Number(b.active) - Number(a.active))
 
   const openCreate = () => {
     setEditingPkg(null)
@@ -249,17 +230,12 @@ export default function FlightPackagesAdmin() {
   }
   const closePkg = () => setPkgDialogOpen(false)
 
-  const set =
-    (key: keyof PackageForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((f) => ({ ...f, [key]: e.target.value }))
+  const set = (key: keyof PackageForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }))
 
   const handleSave = async () => {
     const result = editingPkg
-      ? await packagesMutation.trigger(
-          'PUT',
-          formToPayload(form),
-          editingPkg.productId
-        )
+      ? await packagesMutation.trigger('PUT', formToPayload(form), editingPkg.productId)
       : await packagesMutation.trigger('POST', formToPayload(form))
     if (result.error) {
       setSnack({ msg: t('common.error'), sev: 'error' })
@@ -308,11 +284,7 @@ export default function FlightPackagesAdmin() {
           >
             {t('shop.admin.extendExpiry')}
           </Button>
-          <Button
-            variant='contained'
-            startIcon={<Icon icon='mdi:plus' />}
-            onClick={openCreate}
-          >
+          <Button variant='contained' startIcon={<Icon icon='mdi:plus' />} onClick={openCreate}>
             {t('shop.admin.addPackage')}
           </Button>
         </Box>
@@ -436,12 +408,8 @@ export default function FlightPackagesAdmin() {
                     <TableCell>
                       {p.soldCount} / {p.totalPackagesAvailable}
                     </TableCell>
-                    <TableCell>
-                      {new Date(p.expiresAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      {p.simplbooksItemId ?? t('shop.admin.noSimplbooksItem')}
-                    </TableCell>
+                    <TableCell>{new Date(p.expiresAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{p.simplbooksItemId ?? t('shop.admin.noSimplbooksItem')}</TableCell>
                     <TableCell>{p.lowStockThreshold ?? '–'}</TableCell>
                     <TableCell>
                       <Chip
@@ -468,10 +436,7 @@ export default function FlightPackagesAdmin() {
       <Typography variant='h6' sx={{ mb: 1 }}>
         {t('shop.admin.memberPackages')}
       </Typography>
-      <RemoteContent
-        isLoading={memberPackagesLoading}
-        error={memberPackagesError}
-      >
+      <RemoteContent isLoading={memberPackagesLoading} error={memberPackagesError}>
         <TableContainer component={Paper}>
           <Table size='small'>
             <TableHead>
@@ -487,23 +452,15 @@ export default function FlightPackagesAdmin() {
               {memberPackages?.map((mp) => (
                 <TableRow key={mp.memberPackageId} hover>
                   <TableCell>{formatMemberDisplay(mp)}</TableCell>
-                  <TableCell>
-                    {mp.package?.aircraftRegistration ?? '–'}
-                  </TableCell>
+                  <TableCell>{mp.package?.aircraftRegistration ?? '–'}</TableCell>
                   <TableCell>
                     {`${formatMinutes(mp.remainingMinutes)} / ${formatMinutes(mp.totalMinutes)}`}
                   </TableCell>
-                  <TableCell>
-                    {new Date(mp.expiresAt).toLocaleDateString()}
-                  </TableCell>
+                  <TableCell>{new Date(mp.expiresAt).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <Chip
                       size='small'
-                      label={
-                        mp.isExpired
-                          ? t('shop.admin.expired')
-                          : t('shop.admin.active')
-                      }
+                      label={mp.isExpired ? t('shop.admin.expired') : t('shop.admin.active')}
                       color={mp.isExpired ? 'error' : 'success'}
                     />
                   </TableCell>
@@ -517,10 +474,7 @@ export default function FlightPackagesAdmin() {
       <Typography variant='h6' sx={{ mt: 3, mb: 1 }}>
         {t('shop.admin.totalsByAircraft')}
       </Typography>
-      <RemoteContent
-        isLoading={memberPackagesLoading}
-        error={memberPackagesError}
-      >
+      <RemoteContent isLoading={memberPackagesLoading} error={memberPackagesError}>
         <TableContainer component={Paper} sx={{ mb: 4 }}>
           <Table size='small'>
             <TableHead>
@@ -532,10 +486,7 @@ export default function FlightPackagesAdmin() {
             </TableHead>
             <TableBody>
               {memberPackageTotals.map((row) => (
-                <TableRow
-                  key={`${row.aircraft}-${row.active ? 'active' : 'inactive'}`}
-                  hover
-                >
+                <TableRow key={`${row.aircraft}-${row.active ? 'active' : 'inactive'}`} hover>
                   <TableCell>{row.aircraft}</TableCell>
                   <TableCell>{`${formatMinutes(row.remainingMinutes)} / ${formatMinutes(row.totalMinutes)}`}</TableCell>
                   <TableCell>
@@ -555,9 +506,7 @@ export default function FlightPackagesAdmin() {
       {/* Package create / edit dialog */}
       <Dialog open={pkgDialogOpen} onClose={closePkg} maxWidth='sm' fullWidth>
         <DialogTitle>
-          {editingPkg
-            ? t('shop.admin.editPackage')
-            : t('shop.admin.addPackage')}
+          {editingPkg ? t('shop.admin.editPackage') : t('shop.admin.addPackage')}
         </DialogTitle>
         <DialogContent sx={{ pt: '8px !important' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -570,11 +519,7 @@ export default function FlightPackagesAdmin() {
                 p: 1.5,
               }}
             >
-              <Typography
-                variant='caption'
-                color='text.secondary'
-                sx={{ display: 'block', mb: 1 }}
-              >
+              <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mb: 1 }}>
                 {t('common.name')} *
               </Typography>
               {(['en', 'fi', 'sv'] as const).map((lang, i) => (
@@ -587,11 +532,7 @@ export default function FlightPackagesAdmin() {
                     mt: i > 0 ? 1 : 0,
                   }}
                 >
-                  <Chip
-                    label={lang.toUpperCase()}
-                    size='small'
-                    sx={{ width: 38, flexShrink: 0 }}
-                  />
+                  <Chip label={lang.toUpperCase()} size='small' sx={{ width: 38, flexShrink: 0 }} />
                   <TextField
                     size='small'
                     fullWidth
@@ -606,8 +547,7 @@ export default function FlightPackagesAdmin() {
                     onChange={(e) =>
                       setForm((f) => ({
                         ...f,
-                        [`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`]:
-                          e.target.value,
+                        [`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`]: e.target.value,
                       }))
                     }
                   />
@@ -624,11 +564,7 @@ export default function FlightPackagesAdmin() {
                 p: 1.5,
               }}
             >
-              <Typography
-                variant='caption'
-                color='text.secondary'
-                sx={{ display: 'block', mb: 1 }}
-              >
+              <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mb: 1 }}>
                 {t('common.description')}
               </Typography>
               {(['en', 'fi', 'sv'] as const).map((lang, i) => (
@@ -641,11 +577,7 @@ export default function FlightPackagesAdmin() {
                     mt: i > 0 ? 1 : 0,
                   }}
                 >
-                  <Chip
-                    label={lang.toUpperCase()}
-                    size='small'
-                    sx={{ width: 38, flexShrink: 0 }}
-                  />
+                  <Chip label={lang.toUpperCase()} size='small' sx={{ width: 38, flexShrink: 0 }} />
                   <TextField
                     size='small'
                     fullWidth
@@ -671,9 +603,7 @@ export default function FlightPackagesAdmin() {
               ))}
             </Box>
 
-            <Box
-              sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}
-            >
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
               <FormControl size='small' fullWidth required>
                 <InputLabel>{t('shop.admin.aircraft')}</InputLabel>
                 <Select
@@ -807,9 +737,7 @@ export default function FlightPackagesAdmin() {
                 control={
                   <Switch
                     checked={form.isActive}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, isActive: e.target.checked }))
-                    }
+                    onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
                   />
                 }
                 label={t('common.active')}
@@ -870,15 +798,11 @@ export default function FlightPackagesAdmin() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setExtendDialogOpen(false)}>
-            {t('common.cancel')}
-          </Button>
+          <Button onClick={() => setExtendDialogOpen(false)}>{t('common.cancel')}</Button>
           <Button
             variant='contained'
             onClick={handleExtend}
-            disabled={
-              !extendAircraft || !extendDays || extendMutation.isMutating
-            }
+            disabled={!extendAircraft || !extendDays || extendMutation.isMutating}
           >
             {t('shop.admin.extend')}
           </Button>

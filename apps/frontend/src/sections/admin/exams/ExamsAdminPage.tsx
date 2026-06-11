@@ -49,17 +49,10 @@ interface ExamDialogProps {
   onSaved: () => void
 }
 
-function ExamDialog({
-  open,
-  exam,
-  onClose,
-  onSaved,
-}: Readonly<ExamDialogProps>) {
+function ExamDialog({ open, exam, onClose, onSaved }: Readonly<ExamDialogProps>) {
   const { t } = useTranslation()
   const [name, setName] = useState(exam?.name ?? '')
-  const [examType, setExamType] = useState<ExamType>(
-    (exam?.examType as ExamType) ?? 'OTHER'
-  )
+  const [examType, setExamType] = useState<ExamType>((exam?.examType as ExamType) ?? 'OTHER')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -90,9 +83,7 @@ function ExamDialog({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
-      <DialogTitle>
-        {exam ? t('exams.admin.editExam') : t('exams.admin.createExam')}
-      </DialogTitle>
+      <DialogTitle>{exam ? t('exams.admin.editExam') : t('exams.admin.createExam')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity='error' sx={{ mb: 2 }}>
@@ -124,11 +115,7 @@ function ExamDialog({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('common.cancel')}</Button>
-        <Button
-          onClick={handleSave}
-          disabled={saving || !name}
-          variant='contained'
-        >
+        <Button onClick={handleSave} disabled={saving || !name} variant='contained'>
           {t('common.save')}
         </Button>
       </DialogActions>
@@ -143,17 +130,10 @@ interface NewVersionDialogProps {
   onCreated: (v: ExamVersion) => void
 }
 
-function NewVersionDialog({
-  open,
-  examId,
-  onClose,
-  onCreated,
-}: Readonly<NewVersionDialogProps>) {
+function NewVersionDialog({ open, examId, onClose, onCreated }: Readonly<NewVersionDialogProps>) {
   const { t } = useTranslation()
   const [defaultLanguage, setDefaultLanguage] = useState<ExamLanguage>('en')
-  const [supportedLanguages, setSupportedLanguages] = useState<ExamLanguage[]>([
-    'en',
-  ])
+  const [supportedLanguages, setSupportedLanguages] = useState<ExamLanguage[]>(['en'])
   const [passPercent, setPassPercent] = useState(75)
   const [cloneFromPublished, setCloneFromPublished] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -193,21 +173,14 @@ function NewVersionDialog({
             value={supportedLanguages}
             label={t('exams.admin.supportedLanguages')}
             renderValue={(selected) =>
-              (selected as string[])
-                .map((lang) => t(`exams.languages.${lang}`))
-                .join(', ')
+              (selected as string[]).map((lang) => t(`exams.languages.${lang}`)).join(', ')
             }
             onChange={(e) => {
               const nextLanguages = (
-                typeof e.target.value === 'string'
-                  ? e.target.value.split(',')
-                  : e.target.value
+                typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value
               ) as ExamLanguage[]
               setSupportedLanguages(nextLanguages)
-              if (
-                !nextLanguages.includes(defaultLanguage) &&
-                nextLanguages[0]
-              ) {
+              if (!nextLanguages.includes(defaultLanguage) && nextLanguages[0]) {
                 setDefaultLanguage(nextLanguages[0])
               }
             }}
@@ -276,11 +249,7 @@ interface VersionsRowProps {
   onEditVersion: (versionId: string) => void
 }
 
-function VersionsRow({
-  exam,
-  onEditExam,
-  onEditVersion,
-}: Readonly<VersionsRowProps>) {
+function VersionsRow({ exam, onEditExam, onEditVersion }: Readonly<VersionsRowProps>) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [versions, setVersions] = useState<ExamVersion[]>([])
@@ -383,9 +352,7 @@ function VersionsRow({
                   <Chip
                     label={v.status}
                     size='small'
-                    color={
-                      statusColor(v.status) as 'success' | 'warning' | 'default'
-                    }
+                    color={statusColor(v.status) as 'success' | 'warning' | 'default'}
                   />
                   <Typography variant='body2'>
                     v{v.versionNumber} — {v.defaultLanguage} — {v.passPercent}%
@@ -443,12 +410,7 @@ function VersionsRow({
 export default function ExamsAdminPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const {
-    data: exams,
-    isLoading,
-    error,
-    mutate,
-  } = useApi<Exam[]>({ url: 'v1/exams/admin/exams' })
+  const { data: exams, isLoading, error, mutate } = useApi<Exam[]>({ url: 'v1/exams/admin/exams' })
 
   const [examDialogOpen, setExamDialogOpen] = useState(false)
   const [editingExam, setEditingExam] = useState<Exam | null>(null)

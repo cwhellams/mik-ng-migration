@@ -30,13 +30,9 @@ export const SnackAlert = ({ problem }: { problem?: Problem }) => {
       }}
     >
       {sbProblem?.status == 200 ? (
-        <Alert severity='success'>
-          {sbProblem?.detail || sbProblem?.title || 'Success'}
-        </Alert>
+        <Alert severity='success'>{sbProblem?.detail || sbProblem?.title || 'Success'}</Alert>
       ) : (
-        <Alert severity={'error'}>
-          {sbProblem?.detail || sbProblem?.title || 'Error'}
-        </Alert>
+        <Alert severity={'error'}>{sbProblem?.detail || sbProblem?.title || 'Error'}</Alert>
       )}
     </Snackbar>
   )

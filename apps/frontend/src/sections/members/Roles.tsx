@@ -16,9 +16,7 @@ const Roles = () => {
   const { t } = useTranslation()
   const { roles, error } = useRoles()
 
-  const [editMode, setEditMode] = useState<Upsert<MemberRole> | undefined>(
-    undefined
-  )
+  const [editMode, setEditMode] = useState<Upsert<MemberRole> | undefined>(undefined)
 
   const handleNewRole = () => {
     setEditMode({
@@ -41,11 +39,7 @@ const Roles = () => {
   return (
     <Box>
       <Title label={t('header.roles')}>
-        <EditButton
-          title={t('roles.newRole')}
-          onClick={handleNewRole}
-          icon='mdi:plus'
-        />
+        <EditButton title={t('roles.newRole')} onClick={handleNewRole} icon='mdi:plus' />
       </Title>
 
       <RemoteContent error={error}>
@@ -73,9 +67,7 @@ const Roles = () => {
                 </Stack>
               </Grid>
               <Grid size={{ xs: 6, md: 2 }}>
-                {row.isPublic && (
-                  <Icon icon='mdi:check' color='green' fontSize={20} />
-                )}
+                {row.isPublic && <Icon icon='mdi:check' color='green' fontSize={20} />}
               </Grid>
               <Grid size={{ xs: 12, md: 5 }} textAlign='right'>
                 {row.permissions?.map((perm) => (
@@ -89,10 +81,7 @@ const Roles = () => {
         />
       </RemoteContent>
 
-      <MemberRoleEditor
-        role={editMode}
-        onClose={() => setEditMode(undefined)}
-      />
+      <MemberRoleEditor role={editMode} onClose={() => setEditMode(undefined)} />
     </Box>
   )
 }

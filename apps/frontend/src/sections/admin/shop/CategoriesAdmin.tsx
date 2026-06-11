@@ -145,11 +145,7 @@ export default function CategoriesAdmin() {
         }}
       >
         <Title label={t('shop.admin.categories')} />
-        <Button
-          variant='contained'
-          startIcon={<Icon icon='mdi:plus' />}
-          onClick={openCreate}
-        >
+        <Button variant='contained' startIcon={<Icon icon='mdi:plus' />} onClick={openCreate}>
           {t('shop.admin.addCategory')}
         </Button>
       </Box>

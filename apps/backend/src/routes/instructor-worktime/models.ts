@@ -7,7 +7,7 @@ dayjs.extend(customParseFormat)
 const strictDate = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/)
-  .refine(val => dayjs(val, 'YYYY-MM-DD', true).isValid(), {
+  .refine((val) => dayjs(val, 'YYYY-MM-DD', true).isValid(), {
     message: 'Invalid calendar date',
   })
 

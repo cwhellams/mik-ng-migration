@@ -60,32 +60,11 @@ const Propeller = () => (
     <circle cx='50' cy='50' r='7' fill={PRIMARY} />
 
     {/* Blade 1 – pointing up */}
-    <ellipse
-      cx='50'
-      cy='28'
-      rx='7'
-      ry='22'
-      fill={PRIMARY}
-      transform='rotate(0 50 50)'
-    />
+    <ellipse cx='50' cy='28' rx='7' ry='22' fill={PRIMARY} transform='rotate(0 50 50)' />
     {/* Blade 2 – 120° */}
-    <ellipse
-      cx='50'
-      cy='28'
-      rx='7'
-      ry='22'
-      fill={PRIMARY}
-      transform='rotate(120 50 50)'
-    />
+    <ellipse cx='50' cy='28' rx='7' ry='22' fill={PRIMARY} transform='rotate(120 50 50)' />
     {/* Blade 3 – 240° */}
-    <ellipse
-      cx='50'
-      cy='28'
-      rx='7'
-      ry='22'
-      fill={PRIMARY}
-      transform='rotate(240 50 50)'
-    />
+    <ellipse cx='50' cy='28' rx='7' ry='22' fill={PRIMARY} transform='rotate(240 50 50)' />
 
     {/* Spinner cap */}
     <circle cx='50' cy='50' r='5' fill='white' opacity='0.85' />
@@ -141,13 +120,11 @@ const LogoutSuccess = () => {
             fontWeight: 'bold',
             fontSize: '1rem',
             animation: `${fadeSlideIn} 0.6s ease 3.5s both`,
-            boxShadow:
-              '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)',
+            boxShadow: '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)',
             transition: 'all 0.2s',
             '&:hover': {
               transform: 'translateY(-1px)',
-              boxShadow:
-                '0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08)',
+              boxShadow: '0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08)',
             },
           }}
         >
@@ -158,10 +135,7 @@ const LogoutSuccess = () => {
         <Box sx={{ textAlign: 'center', mt: 3 }}>
           <Typography variant='body2' color='text.secondary'>
             {t('logout.needHelp')}{' '}
-            <Link
-              to='/register'
-              style={{ color: 'inherit', textDecoration: 'underline' }}
-            >
+            <Link to='/register' style={{ color: 'inherit', textDecoration: 'underline' }}>
               {t('logout.contact')}
             </Link>
           </Typography>

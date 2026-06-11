@@ -15,19 +15,19 @@ properties:
   code:
     type: string
     description: Code of the associated item
-    example: "13132"
+    example: '13132'
   name:
     type: string
     description: Name of the associated item
-    example: "Suspicious ice cream cone"
+    example: 'Suspicious ice cream cone'
   contents:
     type: string
     description: Contents of the associated item (varied usage)
-    example: "Unmeltable ice cream, gag-gift, latex-free, mothers day"
+    example: 'Unmeltable ice cream, gag-gift, latex-free, mothers day'
   unit:
     type: string
     description: Name of the unit of the associated item
-    example: "Pcs"
+    example: 'Pcs'
   amount:
     type: number
     description: Number of units of the associated item
@@ -39,11 +39,11 @@ properties:
   date_of_doing:
     type: string
     description: Date for the taks to be fulfilled
-    example: "2022-01-01"
+    example: '2022-01-01'
   worker:
     type: string
     description: Identification of the party responsible for the task
-    example: "Samwise Solomon"
+    example: 'Samwise Solomon'
   vat:
     type: number
     description: Percentage value of VAT

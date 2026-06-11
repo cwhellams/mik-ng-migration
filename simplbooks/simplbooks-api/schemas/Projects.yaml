@@ -5,4 +5,4 @@ items:
     code:
       type: string
       description: Code of the project
-      example: "1234"
+      example: '1234'

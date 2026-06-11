@@ -46,7 +46,7 @@ async function loadProductData(productIds: string[]): Promise<Map<string, Produc
     .where('product_id', 'in', productIds)
     .execute()
   return new Map(
-    products.map(p => [
+    products.map((p) => [
       p.product_id,
       {
         name: p.name as unknown as Localised,
@@ -98,8 +98,8 @@ export async function getPrepaidPackages(aircraftRegistration?: string): Promise
   let q = db.selectFrom('prepaid.packages').selectAll()
   if (aircraftRegistration) q = q.where('aircraft_registration', '=', aircraftRegistration)
   const rows = await q.orderBy('expires_at').execute()
-  const productMap = await loadProductData(rows.map(r => r.product_id))
-  return rows.map(r =>
+  const productMap = await loadProductData(rows.map((r) => r.product_id))
+  return rows.map((r) =>
     mapPackage(r as unknown as Record<string, unknown>, productMap.get(r.product_id)),
   )
 }
@@ -353,15 +353,15 @@ export async function getMemberPackages(
 }
 
 async function attachUnbilledMinutes(packages: MemberPackage[]): Promise<MemberPackage[]> {
-  const memberIds = [...new Set(packages.map(p => p.memberId))]
+  const memberIds = [...new Set(packages.map((p) => p.memberId))]
   const aircraftRegs = [
     ...new Set(
-      packages.map(p => p.package?.aircraftRegistration).filter((r): r is string => r != null),
+      packages.map((p) => p.package?.aircraftRegistration).filter((r): r is string => r != null),
     ),
   ]
 
   if (memberIds.length === 0 || aircraftRegs.length === 0) {
-    return packages.map(p => ({ ...p, unbilledMinutes: 0 }))
+    return packages.map((p) => ({ ...p, unbilledMinutes: 0 }))
   }
 
   // Sum unbilled (billable but not yet billed) flight minutes per member+aircraft
@@ -400,7 +400,7 @@ async function attachUnbilledMinutes(packages: MemberPackage[]): Promise<MemberP
     processedKeys.add(key)
 
     const pkgsForGroup = packages.filter(
-      p => p.package?.aircraftRegistration === aircraft && p.memberId === pkg.memberId,
+      (p) => p.package?.aircraftRegistration === aircraft && p.memberId === pkg.memberId,
     )
     let remaining = unbilledMap.get(key) ?? 0
     for (const p of pkgsForGroup) {
@@ -410,7 +410,7 @@ async function attachUnbilledMinutes(packages: MemberPackage[]): Promise<MemberP
     }
   }
 
-  return packages.map(p => ({ ...p, unbilledMinutes: allocMap.get(p.memberPackageId) ?? 0 }))
+  return packages.map((p) => ({ ...p, unbilledMinutes: allocMap.get(p.memberPackageId) ?? 0 }))
 }
 
 export async function getMemberPackageById(id: number): Promise<MemberPackage | undefined> {
@@ -470,7 +470,7 @@ export async function createMemberPackage(
   // Increment sold_count on the package
   await db
     .updateTable('prepaid.packages')
-    .set(eb => ({ sold_count: eb('sold_count', '+', 1) }))
+    .set((eb) => ({ sold_count: eb('sold_count', '+', 1) }))
     .where('product_id', '=', productId)
     .execute()
 
@@ -542,11 +542,11 @@ export async function extendExpiryForAircraft(
 
   if (productIds.length === 0) return 0
 
-  const ids = productIds.map(p => p.product_id)
+  const ids = productIds.map((p) => p.product_id)
 
   const result = await db
     .updateTable('prepaid.member_packages')
-    .set(eb => ({
+    .set((eb) => ({
       expires_at: sql<string>`(expires_at + make_interval(days => ${sql.lit(daysToAdd)}))::date`,
       updated_at: new Date(),
     }))
@@ -557,7 +557,7 @@ export async function extendExpiryForAircraft(
   // Also extend the package definitions themselves
   await db
     .updateTable('prepaid.packages')
-    .set(eb => ({
+    .set((eb) => ({
       expires_at: sql<string>`(expires_at + make_interval(days => ${sql.lit(daysToAdd)}))::date`,
       updated_at: new Date(),
       updated_by: user.memberId,
@@ -580,7 +580,7 @@ export async function getUsageLog(memberPackageId: number): Promise<UsageLog[]> 
     .where('member_package_id', '=', memberPackageId)
     .orderBy('applied_at', 'desc')
     .execute()
-  return rows.map(r => ({
+  return rows.map((r) => ({
     usageId: r.usage_id,
     memberPackageId: r.member_package_id,
     flightId: r.flight_id as string | null,
@@ -615,7 +615,7 @@ export async function getUnbilledTimeByAircraft(
     .orderBy('aircraft_registration' as any)
     .execute()
 
-  return (rows as any[]).map(row => ({
+  return (rows as any[]).map((row) => ({
     aircraftRegistration: row.aircraft_registration as string,
     airborneMinutes: Number(row.airborne_mins),
     blockMinutes: Number(row.block_mins_sum),

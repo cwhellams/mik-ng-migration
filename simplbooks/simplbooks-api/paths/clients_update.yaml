@@ -12,11 +12,11 @@ post:
           properties:
             Client:
               allOf:
-              - type: object
-                properties:
-                  id:
-                    type: integer
-              - $ref: '../schemas/ClientData.yaml'
+                - type: object
+                  properties:
+                    id:
+                      type: integer
+                - $ref: '../schemas/ClientData.yaml'
   responses:
     200:
       $ref: '../schemas/UpdateSuccessResponse.yaml'

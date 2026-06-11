@@ -148,8 +148,8 @@ async function captureMailingListSyncData(
 async function applyMailingListSync(syncData: MailingListSyncData): Promise<void> {
   if (!syncData) return
   const { brevoContactId, oldLists, newLists } = syncData
-  const added = newLists.filter(id => !oldLists.includes(id))
-  const removed = oldLists.filter(id => !newLists.includes(id))
+  const added = newLists.filter((id) => !oldLists.includes(id))
+  const removed = oldLists.filter((id) => !newLists.includes(id))
 
   const toNumericListIds = (ids: string[]): number[] => {
     const numericIds: number[] = []
@@ -169,8 +169,8 @@ async function applyMailingListSync(syncData: MailingListSyncData): Promise<void
 
   try {
     await Promise.all([
-      ...addedNumeric.map(id => addContactToMailingList(brevoContactId, id)),
-      ...removedNumeric.map(id => removeContactFromMailingList(brevoContactId, id)),
+      ...addedNumeric.map((id) => addContactToMailingList(brevoContactId, id)),
+      ...removedNumeric.map((id) => removeContactFromMailingList(brevoContactId, id)),
     ])
   } catch (err) {
     logger.error('Failed to sync mailing list changes to Brevo', err)
@@ -188,7 +188,7 @@ router.get(
 
     const stats: AnnualMembershipStats = {
       totalAutoRenewMembers: members.length,
-      totalAutoRenewEquipmentFee: members.filter(m => m.autoRenewEquipmentFee === true).length,
+      totalAutoRenewEquipmentFee: members.filter((m) => m.autoRenewEquipmentFee === true).length,
       year,
     }
 
@@ -389,9 +389,9 @@ router.get(
     const raw = process.env.AIRCRAFT_MAILING_LISTS ?? ''
     const lists = raw
       .split(',')
-      .map(s => s.trim())
+      .map((s) => s.trim())
       .filter(Boolean)
-      .map(entry => {
+      .map((entry) => {
         const [id, ...rest] = entry.split(':')
         return { id: id.trim(), name: rest.length ? rest.join(':').trim() : id.trim() }
       })
@@ -414,7 +414,7 @@ router.get(
       // normal users can see only public roles without permissions
       const roles = await getAllMemberRoles(true)
       res.status(200).json({
-        roles: roles.map(role => ({ ...role, permissions: [] })),
+        roles: roles.map((role) => ({ ...role, permissions: [] })),
         permissions: [],
       })
     }
@@ -580,7 +580,7 @@ router.get(
     }
 
     const rawItems = await getInvoices(req.user!.memberId, true, { memberId })
-    const invoices = rawItems.map(row => ({
+    const invoices = rawItems.map((row) => ({
       id: String(row.id),
       created_at: row.created_at ? new Date(row.created_at as any).toISOString() : '',
       created_by: row.created_by,

@@ -73,16 +73,8 @@ const ClockDisplay = ({ showSeconds = false }: ClockDisplayProps) => {
     >
       {skewed && (
         <Tooltip title={warningText} arrow>
-          <Box
-            component='span'
-            sx={{ display: 'flex', alignItems: 'center', cursor: 'help' }}
-          >
-            <Icon
-              icon='mdi:clock-alert-outline'
-              width={16}
-              height={16}
-              color='#ed6c02'
-            />
+          <Box component='span' sx={{ display: 'flex', alignItems: 'center', cursor: 'help' }}>
+            <Icon icon='mdi:clock-alert-outline' width={16} height={16} color='#ed6c02' />
           </Box>
         </Tooltip>
       )}
@@ -100,17 +92,9 @@ const ClockDisplay = ({ showSeconds = false }: ClockDisplayProps) => {
 
         {/* Local time — shown only when not in Helsinki timezone */}
         {helOffset != localOffset &&
-          renderTime(
-            localOffset,
-            timezone === 'local' && !localIsHelsinki,
-            localTime
-          )}
+          renderTime(localOffset, timezone === 'local' && !localIsHelsinki, localTime)}
 
-        {renderTime(
-          helOffset,
-          timezone === 'local' && localIsHelsinki,
-          helTime
-        )}
+        {renderTime(helOffset, timezone === 'local' && localIsHelsinki, helTime)}
 
         {/* "Helsinki" label — desktop only when at helsinki zone */}
 

@@ -42,8 +42,7 @@ import { useTimezone } from '../../hooks/useTimezone'
 // Express serializes Buffer as { type: 'Buffer', data: number[] }
 const bufferToDataUrl = (buf: any): string | null => {
   if (!buf) return null
-  const bytes =
-    buf.type === 'Buffer' && Array.isArray(buf.data) ? buf.data : buf
+  const bytes = buf.type === 'Buffer' && Array.isArray(buf.data) ? buf.data : buf
   return `data:image/png;base64,${btoa(String.fromCharCode(...bytes))}`
 }
 
@@ -87,9 +86,7 @@ const Documents = () => {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingDocument, setEditingDocument] = useState<Document | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deletingDocument, setDeletingDocument] = useState<Document | null>(
-    null
-  )
+  const [deletingDocument, setDeletingDocument] = useState<Document | null>(null)
 
   const { mutation: downloadMutation } = useApi<DownloadDocument>(
     {
@@ -97,7 +94,7 @@ const Documents = () => {
       url: 'v1/documents/download',
       skipFetch: true,
     },
-    { keepPreviousData: false }
+    { keepPreviousData: false },
   )
 
   const { data, isLoading, error, mutate } = useApi<DocumentListResponse>(
@@ -108,7 +105,7 @@ const Documents = () => {
     },
     {
       keepPreviousData: true,
-    }
+    },
   )
 
   const { mutation: deleteMutation } = useApi<DocumentListResponse>({
@@ -127,7 +124,7 @@ const Documents = () => {
         }
         return prev
       },
-      { replace: true }
+      { replace: true },
     )
   }
 
@@ -139,9 +136,7 @@ const Documents = () => {
     setParam('tags', event.target.value)
   }
 
-  const handleShowArchivedChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleShowArchivedChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setParam('showArchived', event.target.checked ? 'true' : '')
   }
 
@@ -202,9 +197,7 @@ const Documents = () => {
   const handleCopyFilterLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href)
-      setSnackbarMessage(
-        t('documents.filterLinkCopied', 'Filter link copied to clipboard!')
-      )
+      setSnackbarMessage(t('documents.filterLinkCopied', 'Filter link copied to clipboard!'))
       setSnackbarOpen(true)
     } catch (error) {
       console.error('Failed to copy filter link:', error)
@@ -215,9 +208,7 @@ const Documents = () => {
     if (downloadData?.tinyUrl) {
       try {
         await navigator.clipboard.writeText(downloadData.tinyUrl)
-        setSnackbarMessage(
-          t('documents.tinyUrlCopied', 'Tiny URL copied to clipboard!')
-        )
+        setSnackbarMessage(t('documents.tinyUrlCopied', 'Tiny URL copied to clipboard!'))
         setSnackbarOpen(true)
       } catch (error) {
         console.error('Failed to copy tiny URL:', error)
@@ -290,7 +281,7 @@ const Documents = () => {
       <Typography variant='body1' color='text.secondary' mb={4}>
         {t(
           'documents.description',
-          'Access historical club documents including financial statements, audit reports, meeting minutes, and other administrative documents.'
+          'Access historical club documents including financial statements, audit reports, meeting minutes, and other administrative documents.',
         )}
       </Typography>
 
@@ -306,10 +297,7 @@ const Documents = () => {
         >
           <TextField
             fullWidth
-            placeholder={t(
-              'documents.search.placeholder',
-              'Search documents...'
-            )}
+            placeholder={t('documents.search.placeholder', 'Search documents...')}
             value={search}
             onChange={handleSearchChange}
             slotProps={{
@@ -371,9 +359,7 @@ const Documents = () => {
                 key={cat}
                 label={getCategoryLabel(cat)}
                 color={selectedCategories.includes(cat) ? 'primary' : 'default'}
-                variant={
-                  selectedCategories.includes(cat) ? 'filled' : 'outlined'
-                }
+                variant={selectedCategories.includes(cat) ? 'filled' : 'outlined'}
                 onClick={() => handleCategoryToggle(cat)}
                 sx={{ cursor: 'pointer', fontWeight: 500 }}
               />
@@ -415,10 +401,7 @@ const Documents = () => {
           }
           notFoundMsg={
             search || categoryString || tags || showArchived
-              ? t(
-                  'documents.noResults',
-                  'No documents found matching your criteria.'
-                )
+              ? t('documents.noResults', 'No documents found matching your criteria.')
               : t('documents.empty', 'No documents available.')
           }
           rows={data?.documents}
@@ -449,13 +432,7 @@ const Documents = () => {
               <Grid size={{ xs: 6, sm: 2 }}>
                 <Stack direction='row' spacing={0.5} flexWrap='wrap' gap={0.5}>
                   {document.tags?.map((tag, index) => (
-                    <Chip
-                      key={index}
-                      label={tag}
-                      size='small'
-                      variant='outlined'
-                      color='primary'
-                    />
+                    <Chip key={index} label={tag} size='small' variant='outlined' color='primary' />
                   ))}
                   {(!document.tags || document.tags.length === 0) && (
                     <Typography variant='body2' color='text.secondary'>
@@ -542,9 +519,7 @@ const Documents = () => {
         maxWidth='sm'
         fullWidth
       >
-        <DialogTitle>
-          {t('documents.downloadOptions', 'Download Options')}
-        </DialogTitle>
+        <DialogTitle>{t('documents.downloadOptions', 'Download Options')}</DialogTitle>
         <DialogContent>
           <Stack spacing={3} sx={{ mt: 1 }}>
             {downloadData?.tinyUrl && (
@@ -593,9 +568,7 @@ const Documents = () => {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDownloadDialogOpen(false)}>
-            {t('common.close', 'Close')}
-          </Button>
+          <Button onClick={() => setDownloadDialogOpen(false)}>{t('common.close', 'Close')}</Button>
           <Button
             variant='contained'
             onClick={handleDirectDownload}
@@ -649,7 +622,7 @@ const Documents = () => {
           <DialogContentText id='delete-dialog-description'>
             {t(
               'documents.delete.confirmText',
-              'This action cannot be undone. The document will be permanently removed from the archive.'
+              'This action cannot be undone. The document will be permanently removed from the archive.',
             )}
           </DialogContentText>
           {deletingDocument && (
@@ -662,12 +635,7 @@ const Documents = () => {
           <Button onClick={() => setDeleteDialogOpen(false)} color='inherit'>
             {t('documents.delete.cancel', 'Cancel')}
           </Button>
-          <Button
-            onClick={confirmDelete}
-            color='error'
-            variant='contained'
-            autoFocus
-          >
+          <Button onClick={confirmDelete} color='error' variant='contained' autoFocus>
             {t('documents.delete.delete', 'Delete')}
           </Button>
         </DialogActions>

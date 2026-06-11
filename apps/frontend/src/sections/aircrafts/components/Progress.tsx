@@ -10,11 +10,7 @@ const Marker = () => {
   return (
     <svg width={marketWidth} height='100' xmlns='http://www.w3.org/2000/svg'>
       <path
-        fill={
-          theme.palette.mode == 'dark'
-            ? theme.palette.grey[200]
-            : theme.palette.grey[800]
-        }
+        fill={theme.palette.mode == 'dark' ? theme.palette.grey[200] : theme.palette.grey[800]}
         stroke={'#000'}
         strokeWidth='2px'
         d={`M 1 0 L ${marketWidth - 1} 0 L ${marketWidth - 1} ${marketHeight} L ${marketWidth / 2} ${marketHeight + 10} L 1 ${marketHeight} Z`}

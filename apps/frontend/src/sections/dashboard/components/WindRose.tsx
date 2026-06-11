@@ -7,11 +7,7 @@ interface WindRoseProps {
   showRunways?: boolean
 }
 
-export const WindRose = ({
-  windRoseData,
-  size = 200,
-  showRunways = true,
-}: WindRoseProps) => {
+export const WindRose = ({ windRoseData, size = 200, showRunways = true }: WindRoseProps) => {
   const theme = useTheme()
 
   const processedData = useMemo(() => {
@@ -32,8 +28,7 @@ export const WindRose = ({
       const segments = []
       if (percentage > 0) {
         const baseLength = innerRadius
-        const totalLength =
-          baseLength + (percentage / maxPercentage) * maxBarLength
+        const totalLength = baseLength + (percentage / maxPercentage) * maxBarLength
 
         segments.push({
           startRadius: baseLength,
@@ -243,13 +238,7 @@ export const WindRose = ({
 
           return (
             <g key={`scale-${value}`}>
-              <circle
-                cx={x}
-                cy={y}
-                r={2}
-                fill={theme.palette.text.secondary}
-                opacity={0.5}
-              />
+              <circle cx={x} cy={y} r={2} fill={theme.palette.text.secondary} opacity={0.5} />
               <text
                 x={x}
                 y={y + size / 30}
