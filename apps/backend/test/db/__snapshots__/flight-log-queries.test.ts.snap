@@ -9,7 +9,7 @@ exports[`Db Get FlightLog tests getFlightLog return existing flight 1`] = `
   "ajlbPageNo": 1,
   "ajlbRowNo": 1,
   "ajlbSeqNo": 4,
-  "ajlbTotalLandings": null,
+  "ajlbTotalLandings": 3,
   "arrivalAirport": "EFHK",
   "billableMemberId": "Jukka1",
   "billingRemarks": "N/A",

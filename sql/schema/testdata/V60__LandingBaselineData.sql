@@ -8,10 +8,11 @@ VALUES
     ('OH-IHQ', 1000, 'k1mnimda', 'k1mnimda');
 
 -- V55 mass data leaves the last few OH-STL book 1 flights as NEW (epoch cutoff).
--- Book 1 is a closed logbook so those flights should be validated — otherwise the
--- chain from book 1 → book 2 would be missing their landings.
--- The check_verified_values constraint requires ajlb_total_flight_mins/page/row to be
--- NOT NULL for non-NEW rows, so we read them from vw_flight_logs while still NEW.
+-- Book 1 is a closed logbook so those should be validated to minimise the chain gap.
+-- We leave the last 2 (mass199, mass200) as NEW so the validate-endpoint tests still
+-- have NEW mass flights to work with. The check_verified_values constraint requires
+-- ajlb_total_flight_mins/page/row to be NOT NULL for non-NEW rows, so we read them
+-- from vw_flight_logs while still NEW.
 ALTER TABLE flight.logs DISABLE TRIGGER USER;
 UPDATE flight.logs
 SET status = 'VALIDATED',
@@ -26,7 +27,8 @@ SET status = 'VALIDATED',
     )
 WHERE aircraft_registration = 'OH-STL'
   AND ajlb_seq_no = 1
-  AND status = 'NEW';
+  AND status = 'NEW'
+  AND off_block_time_epoch < 1276632000;  -- leaves mass199, mass200 as NEW test fixtures
 ALTER TABLE flight.logs ENABLE TRIGGER USER;
 
 -- Step 1: Set first logbook start_landings to baseline
@@ -74,3 +76,4 @@ UPDATE flight.logs
 SET ajlb_total_landings = c.total_landings
 FROM cumulative c
 WHERE flight.logs.flight_id = c.flight_id;
+

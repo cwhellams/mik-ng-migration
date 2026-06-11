@@ -329,7 +329,7 @@ exports[`GET /flight-log/flightid should return flight for admin with sudo right
   "ajlbPageNo": 81,
   "ajlbRowNo": 1,
   "ajlbSeqNo": 2,
-  "ajlbTotalLandings": null,
+  "ajlbTotalLandings": 1002,
   "arrivalAirport": "EFTP",
   "billableMemberId": "Jukka1",
   "billingRemarks": "N/A",
