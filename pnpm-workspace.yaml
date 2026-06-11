@@ -39,3 +39,8 @@ overrides:
   "axios@<1.15.0": ">=1.15.0"
   "multer@<2.1.1": ">=2.1.1"
   "test-exclude@6.0.0>minimatch": "3.1.4"
+
+packageExtensions:
+  '@event-driven-io/emmett-postgresql@*':
+    dependencies:
+      uuid: ^14.0.0
