@@ -10,9 +10,20 @@ VALUES
 -- V55 mass data leaves the last few OH-STL book 1 flights as NEW (epoch cutoff).
 -- Book 1 is a closed logbook so those flights should be validated — otherwise the
 -- chain from book 1 → book 2 would be missing their landings.
+-- The check_verified_values constraint requires ajlb_total_flight_mins/page/row to be
+-- NOT NULL for non-NEW rows, so we read them from vw_flight_logs while still NEW.
 ALTER TABLE flight.logs DISABLE TRIGGER USER;
 UPDATE flight.logs
-SET status = 'VALIDATED'
+SET status = 'VALIDATED',
+    ajlb_total_flight_mins = (
+        SELECT ac_total_flight_mins FROM flight.vw_flight_logs WHERE flight_id = flight.logs.flight_id
+    ),
+    ajlb_page_number = (
+        SELECT page_number FROM flight.vw_flight_logs WHERE flight_id = flight.logs.flight_id
+    ),
+    ajlb_row_number = (
+        SELECT row_number FROM flight.vw_flight_logs WHERE flight_id = flight.logs.flight_id
+    )
 WHERE aircraft_registration = 'OH-STL'
   AND ajlb_seq_no = 1
   AND status = 'NEW';
