@@ -59,9 +59,11 @@ export const buildLogbookRows = (
 
   const rows: LogbookTableRow[] = []
 
+  let prevRowNo = 0
   logs.forEach((log) => {
+    const blankRowsOnPage = log.ajlbRowNo - 1 - prevRowNo
     rows.push(
-      ...Array.from({ length: log.ajlbBlankRowsBefore }, () => ({
+      ...Array.from({ length: blankRowsOnPage }, () => ({
         log,
         isEmptyRow: true,
         hasEditActions: true,
@@ -73,6 +75,8 @@ export const buildLogbookRows = (
       isEmptyRow: false,
       hasEditActions: false,
     })
+
+    prevRowNo = log.ajlbRowNo
   })
 
   const trailingEmptyRows = Math.max(0, pageSize - rows.length)

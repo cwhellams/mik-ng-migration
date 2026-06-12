@@ -16,7 +16,7 @@ exports[`GET /ajlb should get all ajlbs for an admin user 1`] = `
     "startLandings": 0,
     "startPage": 600,
     "updatedAt": Any<String>,
-    "updatedBy": "k1mnimda",
+    "updatedBy": "John1",
     "view": {
       "lastPage": 602,
       "newFlightsCount": 0,
@@ -134,9 +134,9 @@ exports[`GET /ajlb should get all ajlbs for an admin user 1`] = `
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
     "view": {
-      "lastPage": 81,
+      "lastPage": 83,
       "newFlightsCount": 19,
-      "newFlightsPage": 1,
+      "newFlightsPage": 81,
       "newFlightsTime": "35:25",
       "totalLandings": 0,
       "unverifiedTotalFlightTime": "5265:35",
@@ -219,7 +219,7 @@ exports[`GET /ajlb should get all ajlbs for an admin user 1`] = `
     "startLandings": 0,
     "startPage": 1,
     "updatedAt": Any<String>,
-    "updatedBy": "k1mnimda",
+    "updatedBy": "John1",
     "view": {
       "lastPage": 33,
       "newFlightsCount": 2,
@@ -284,9 +284,9 @@ exports[`GET /ajlb should get filtered ajlbs for an admin user 1`] = `
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
     "view": {
-      "lastPage": 81,
+      "lastPage": 83,
       "newFlightsCount": 19,
-      "newFlightsPage": 1,
+      "newFlightsPage": 81,
       "newFlightsTime": "35:25",
       "totalLandings": 0,
       "unverifiedTotalFlightTime": "5265:35",
