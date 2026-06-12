@@ -1,15 +1,19 @@
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
+import { Icon } from '@iconify/react/dist/iconify.js'
 import { Problem } from '@backend/routes/response'
 import useApi from '../../../hooks/useApi'
 import { SaveButton } from '../../../components/SaveButton'
@@ -30,6 +34,10 @@ export const BaselineDialog = ({
   const [baseline, setBaseline] = useState(currentBaseline)
   const [problem, setProblem] = useState<Problem | undefined>()
 
+  useEffect(() => {
+    setBaseline(currentBaseline)
+  }, [currentBaseline])
+
   const { mutation } = useApi({
     url: `v1/ajlb/${registration}/baseline`,
     skipFetch: true,
@@ -44,7 +52,12 @@ export const BaselineDialog = ({
       return setProblem(error)
     }
 
-    mutate((key) => Array.isArray(key) && key[0] === 'v1/ajlb')
+    mutate(
+      (key) =>
+        Array.isArray(key) &&
+        key[0] === 'v1/ajlb' &&
+        (!key[1]?.aircraftRegistration || key[1]?.aircraftRegistration === registration),
+    )
     onClose()
   }
 
@@ -57,7 +70,14 @@ export const BaselineDialog = ({
       slotProps={{ paper: { component: 'form', onSubmit: handleSubmit } }}
     >
       <DialogTitle>
-        {t('flightLog.logbooks.setBaseline')} — {registration}
+        <Box display='flex' alignItems='center' justifyContent='space-between'>
+          <Typography variant='h6'>
+            {t('flightLog.logbooks.setBaseline')} — {registration}
+          </Typography>
+          <IconButton onClick={onClose} aria-label='close'>
+            <Icon icon='mdi:close' />
+          </IconButton>
+        </Box>
       </DialogTitle>
 
       <DialogContent dividers>

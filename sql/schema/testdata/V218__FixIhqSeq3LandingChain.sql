@@ -21,7 +21,7 @@ WHERE aircraft_registration = 'OH-IHQ' AND seq_no = 3;
 
 -- Step 2: backfill ajlb_total_landings for book 3 validated flights
 -- (trigger protects non-NEW flights; disable for this data correction)
-ALTER TABLE flight.logs DISABLE TRIGGER ALL;
+ALTER TABLE flight.logs DISABLE TRIGGER USER;
 
 WITH cumulative AS (
     SELECT
@@ -42,4 +42,4 @@ SET ajlb_total_landings = c.total_landings
 FROM cumulative c
 WHERE flight.logs.flight_id = c.flight_id;
 
-ALTER TABLE flight.logs ENABLE TRIGGER ALL;
+ALTER TABLE flight.logs ENABLE TRIGGER USER;

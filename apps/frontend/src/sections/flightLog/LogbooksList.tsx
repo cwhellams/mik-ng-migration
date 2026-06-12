@@ -54,9 +54,6 @@ const Roles = () => {
       params: filters,
     },
     {
-      revalidateIfStale: true,
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
       keepPreviousData: true,
     },
   )
@@ -69,6 +66,19 @@ const Roles = () => {
     if (!books.length) return 0
     return books.sort((a, b) => a.seqNo - b.seqNo)[0].startLandings
   }, [filters.aircraftRegistration, logbooks])
+
+  const aircraftRegistrations = useMemo(
+    () =>
+      logbooks?.books
+        .reduce(
+          (planes, book) =>
+            planes.includes(book.aircraftRegistration)
+              ? planes
+              : [...planes, book.aircraftRegistration].sort(),
+          [] as string[],
+        ) ?? [],
+    [logbooks],
+  )
 
   const handleEditMode = (role: AircraftJourneyLogBook) => {
     setEditMode(role)
@@ -97,19 +107,11 @@ const Roles = () => {
             onChange={({ target }) => setFilters({ aircraftRegistration: target.value })}
           >
             <MenuItem value={''}>{t('flightLog.logbooks.showAll')}</MenuItem>
-            {logbooks?.books
-              .reduce(
-                (planes, book) =>
-                  planes.includes(book.aircraftRegistration)
-                    ? planes
-                    : [...planes, book.aircraftRegistration].sort(),
-                [] as string[],
-              )
-              .map((plane) => (
-                <MenuItem key={plane} value={plane}>
-                  {plane}
-                </MenuItem>
-              ))}
+            {aircraftRegistrations.map((plane) => (
+              <MenuItem key={plane} value={plane}>
+                {plane}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 

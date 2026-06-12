@@ -61,7 +61,7 @@ export const buildLogbookRows = (
 
   let prevRowNo = 0
   logs.forEach((log) => {
-    const blankRowsOnPage = log.ajlbRowNo - 1 - prevRowNo
+    const blankRowsOnPage = Math.max(0, log.ajlbRowNo - 1 - prevRowNo)
     rows.push(
       ...Array.from({ length: blankRowsOnPage }, () => ({
         log,
