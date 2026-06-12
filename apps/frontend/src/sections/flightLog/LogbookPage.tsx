@@ -47,7 +47,7 @@ type LogbookTableRow = {
 
 export const buildLogbookRows = (
   logs: FlightLogListEntry[] | undefined,
-  pageSize = 0
+  pageSize = 0,
 ): LogbookTableRow[] => {
   if (!logs?.length) {
     return Array.from({ length: pageSize }, () => ({
@@ -65,7 +65,7 @@ export const buildLogbookRows = (
         log,
         isEmptyRow: true,
         hasEditActions: true,
-      }))
+      })),
     )
 
     rows.push({
@@ -81,7 +81,7 @@ export const buildLogbookRows = (
       log: null,
       isEmptyRow: true,
       hasEditActions: false,
-    }))
+    })),
   )
 
   return rows
@@ -254,12 +254,7 @@ const FlightLogsList = () => {
           })}
           row={({ log, isEmptyRow, hasEditActions }) => {
             if (isEmptyRow) {
-              if (
-                hasEditActions &&
-                log &&
-                isFlightLogAdmin &&
-                log.status === FlightLogStatus.NEW
-              ) {
+              if (hasEditActions && log && isFlightLogAdmin && log.status === FlightLogStatus.NEW) {
                 return (
                   <Stack direction='row-reverse' spacing={1} width='100%'>
                     <EditButton

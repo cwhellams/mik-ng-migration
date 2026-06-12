@@ -135,8 +135,8 @@ describe('Landing baseline endpoints', () => {
       .set('Cookie', `accessToken=${adminToken}`)
       .query({ aircraftRegistration: 'OH-STL' })
     const originalBaselineLandings =
-      initialAjlbResponse.body.books.find((b: { seqNo: number }) => b.seqNo === 1)
-        ?.startLandings ?? baselineLandings
+      initialAjlbResponse.body.books.find((b: { seqNo: number }) => b.seqNo === 1)?.startLandings ??
+      baselineLandings
 
     const baselineResponse = await request(app)
       .post('/ajlb/OH-STL/baseline')
