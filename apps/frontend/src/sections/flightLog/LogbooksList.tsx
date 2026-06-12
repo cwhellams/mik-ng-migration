@@ -69,14 +69,13 @@ const Roles = () => {
 
   const aircraftRegistrations = useMemo(
     () =>
-      logbooks?.books
-        .reduce(
-          (planes, book) =>
-            planes.includes(book.aircraftRegistration)
-              ? planes
-              : [...planes, book.aircraftRegistration].sort(),
-          [] as string[],
-        ) ?? [],
+      logbooks?.books.reduce(
+        (planes, book) =>
+          planes.includes(book.aircraftRegistration)
+            ? planes
+            : [...planes, book.aircraftRegistration].sort(),
+        [] as string[],
+      ) ?? [],
     [logbooks],
   )
 
