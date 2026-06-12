@@ -60,15 +60,6 @@ describe('Booking Reminder Worker', () => {
     const farStartEpoch = (Math.floor(dayjs().add(47, 'hour').unix() / 60) * 60).toString()
     const farEndEpoch = (Math.floor(dayjs().add(49, 'hour').unix() / 60) * 60).toString()
 
-    const stlOverlapsWindow = (eb: Parameters<Parameters<typeof db.selectFrom>[0]>[0]) =>
-      eb.or([
-        eb.and([eb('start_time_epoch', '<', endEpoch), eb('end_time_epoch', '>', startEpoch)]),
-        eb.and([
-          eb('start_time_epoch', '<', farEndEpoch),
-          eb('end_time_epoch', '>', farStartEpoch),
-        ]),
-      ])
-
     // Save any stl* test-data bookings that overlap with our windows so we can
     // restore them in afterEach — prevents permanently corrupting shared test data.
     savedStlBookings = await db
@@ -93,7 +84,18 @@ describe('Booking Reminder Worker', () => {
         'updated_by',
         'updated_at',
       ])
-      .where((eb) => eb.and([eb('booking_id', 'like', 'stl%'), stlOverlapsWindow(eb as any)]))
+      .where((eb) =>
+        eb.and([
+          eb('booking_id', 'like', 'stl%'),
+          eb.or([
+            eb.and([eb('start_time_epoch', '<', endEpoch), eb('end_time_epoch', '>', startEpoch)]),
+            eb.and([
+              eb('start_time_epoch', '<', farEndEpoch),
+              eb('end_time_epoch', '>', farStartEpoch),
+            ]),
+          ]),
+        ]),
+      )
       .execute()
 
     // Defensive cleanup before inserting:
@@ -104,7 +106,19 @@ describe('Booking Reminder Worker', () => {
       .where((eb) =>
         eb.or([
           eb('booking_id', 'like', 'rm%'),
-          eb.and([eb('booking_id', 'like', 'stl%'), stlOverlapsWindow(eb as any)]),
+          eb.and([
+            eb('booking_id', 'like', 'stl%'),
+            eb.or([
+              eb.and([
+                eb('start_time_epoch', '<', endEpoch),
+                eb('end_time_epoch', '>', startEpoch),
+              ]),
+              eb.and([
+                eb('start_time_epoch', '<', farEndEpoch),
+                eb('end_time_epoch', '>', farStartEpoch),
+              ]),
+            ]),
+          ]),
         ]),
       )
       .execute()
