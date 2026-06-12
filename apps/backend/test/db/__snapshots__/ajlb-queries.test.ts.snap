@@ -76,7 +76,7 @@ exports[`Db query ajlb get tests from date should return expected ajlbs 1`] = `
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
     "view": {
-      "lastPage": 504,
+      "lastPage": 502,
       "newFlightsCount": 3,
       "newFlightsPage": 500,
       "newFlightsTime": "3:00",
@@ -144,7 +144,7 @@ exports[`Db query ajlb get tests should return STL ajlbs 1`] = `
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
     "view": {
-      "lastPage": 504,
+      "lastPage": 502,
       "newFlightsCount": 3,
       "newFlightsPage": 500,
       "newFlightsTime": "3:00",
@@ -352,7 +352,7 @@ exports[`Db query ajlb get tests should return all ajlbs 1`] = `
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
     "view": {
-      "lastPage": 3,
+      "lastPage": 81,
       "newFlightsCount": 19,
       "newFlightsPage": 1,
       "newFlightsTime": "35:25",
@@ -381,7 +381,7 @@ exports[`Db query ajlb get tests should return all ajlbs 1`] = `
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
     "view": {
-      "lastPage": 504,
+      "lastPage": 502,
       "newFlightsCount": 3,
       "newFlightsPage": 500,
       "newFlightsTime": "3:00",
@@ -502,7 +502,7 @@ exports[`Db query ajlb get tests should return all current ajlbs 1`] = `
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
     "view": {
-      "lastPage": 3,
+      "lastPage": 81,
       "newFlightsCount": 19,
       "newFlightsPage": 1,
       "newFlightsTime": "35:25",
@@ -531,7 +531,7 @@ exports[`Db query ajlb get tests should return all current ajlbs 1`] = `
     "updatedAt": Any<String>,
     "updatedBy": "k1mnimda",
     "view": {
-      "lastPage": 504,
+      "lastPage": 502,
       "newFlightsCount": 3,
       "newFlightsPage": 500,
       "newFlightsTime": "3:00",
