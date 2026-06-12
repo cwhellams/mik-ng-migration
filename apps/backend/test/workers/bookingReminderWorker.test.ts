@@ -56,8 +56,11 @@ describe('Booking Reminder Worker', () => {
     // Epoch must be divisible by 60 (check_all_times_in_mins constraint)
     const startEpoch = (Math.floor(dayjs().add(24, 'hour').unix() / 60) * 60).toString()
     const endEpoch = (Math.floor(dayjs().add(25, 'hour').unix() / 60) * 60).toString()
+    // Some tests move the booking to ~48h from now; pre-clear that window too.
+    const farStartEpoch = (Math.floor(dayjs().add(47, 'hour').unix() / 60) * 60).toString()
+    const farEndEpoch = (Math.floor(dayjs().add(49, 'hour').unix() / 60) * 60).toString()
 
-    // Save any stl* test-data bookings that overlap with our window so we can
+    // Save any stl* test-data bookings that overlap with our windows so we can
     // restore them in afterEach — prevents permanently corrupting shared test data.
     savedStlBookings = await db
       .selectFrom('schedule.bookings')
@@ -84,15 +87,20 @@ describe('Booking Reminder Worker', () => {
       .where((eb) =>
         eb.and([
           eb('booking_id', 'like', 'stl%'),
-          eb('start_time_epoch', '<=', endEpoch),
-          eb('end_time_epoch', '>=', startEpoch),
+          eb.or([
+            eb.and([eb('start_time_epoch', '<', endEpoch), eb('end_time_epoch', '>', startEpoch)]),
+            eb.and([
+              eb('start_time_epoch', '<', farEndEpoch),
+              eb('end_time_epoch', '>', farStartEpoch),
+            ]),
+          ]),
         ]),
       )
       .execute()
 
     // Defensive cleanup before inserting:
     // 1. Remove any leftover rm* bookings from a previous interrupted test run.
-    // 2. Remove stl* bookings that overlap with our 24h window (saved above for restore).
+    // 2. Remove stl* bookings overlapping either the 24h or 48h windows (saved above).
     await db
       .deleteFrom('schedule.bookings')
       .where((eb) =>
@@ -100,8 +108,16 @@ describe('Booking Reminder Worker', () => {
           eb('booking_id', 'like', 'rm%'),
           eb.and([
             eb('booking_id', 'like', 'stl%'),
-            eb('start_time_epoch', '<=', endEpoch),
-            eb('end_time_epoch', '>=', startEpoch),
+            eb.or([
+              eb.and([
+                eb('start_time_epoch', '<', endEpoch),
+                eb('end_time_epoch', '>', startEpoch),
+              ]),
+              eb.and([
+                eb('start_time_epoch', '<', farEndEpoch),
+                eb('end_time_epoch', '>', farStartEpoch),
+              ]),
+            ]),
           ]),
         ]),
       )

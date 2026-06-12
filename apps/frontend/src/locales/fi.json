@@ -915,7 +915,10 @@
       "nextSequence": "Aloita seuraava matkapäiväkirja",
       "flightsToMove": "Vahvistamattomat lennot, jotka siirretään uuteen matkapäiväkirjaan",
       "oldBookMustBeEnded": "Vanha lokikirja on ensin päätettävä.",
-      "showOldBooks": "Näytä vanhat lokikirjat"
+      "showOldBooks": "Näytä vanhat lokikirjat",
+      "setBaseline": "Aseta laskeutumisten perusarvo",
+      "baselineLandings": "Laskeutumisten perusarvo",
+      "baselineHelperText": "Asettaa ensimmäisen matkapäiväkirjan aloituslaskeutumiset ja laskee yhteismäärät uudelleen kaikille tämän ilma-aluksen matkapäiväkirjoille."
     },
     "export": {
       "button": "Vie",

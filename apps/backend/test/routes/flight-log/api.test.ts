@@ -81,7 +81,7 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(200)
 
-    expect(response.body.logs).toHaveLength(2)
+    expect(response.body.logs).toHaveLength(5)
     expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
   })
 
@@ -93,7 +93,7 @@ describe('GET /flight-log', () => {
       .query({ aircraftRegistration: 'OH-STL' })
 
     expect(response.status).toBe(200)
-    expect(response.body.logs).toHaveLength(2)
+    expect(response.body.logs).toHaveLength(5)
   })
 
   it('should return all data for ac when user is admin', async () => {
@@ -103,7 +103,7 @@ describe('GET /flight-log', () => {
       .query({ aircraftRegistration: 'OH-STL' })
 
     expect(response.status).toBe(200)
-    expect(response.body.logs).toHaveLength(3)
+    expect(response.body.logs).toHaveLength(6)
     expect(response.body.logs.map(maskLandingTotals)).toMatchSnapshot()
   })
 
@@ -153,7 +153,7 @@ describe('GET /flight-log', () => {
       })
 
     expect(response.status).toBe(200)
-    expect(response.body.logs).toHaveLength(8)
+    expect(response.body.logs).toHaveLength(17)
     expect(maskLandingTotals(response.body.logs[0])).toMatchSnapshot()
   })
 

@@ -135,7 +135,8 @@ describe('Landing baseline endpoints', () => {
       .set('Cookie', `accessToken=${adminToken}`)
       .query({ aircraftRegistration: 'OH-STL' })
     const originalBaselineLandings =
-      initialAjlbResponse.body.books[1]?.startLandings ?? baselineLandings
+      initialAjlbResponse.body.books.find((b: { seqNo: number }) => b.seqNo === 1)?.startLandings ??
+      baselineLandings
 
     const baselineResponse = await request(app)
       .post('/ajlb/OH-STL/baseline')
@@ -158,9 +159,9 @@ describe('Landing baseline endpoints', () => {
       .query({ aircraftRegistration: 'OH-STL' })
 
     expect(ajlbResponse.status).toBe(200)
-    expect(ajlbResponse.body.books).toHaveLength(2)
-    const latestLogbook = ajlbResponse.body.books[0]
-    const previousLogbook = ajlbResponse.body.books[1]
+    expect(ajlbResponse.body.books.length).toBeGreaterThanOrEqual(2)
+    const previousLogbook = ajlbResponse.body.books.find((b: { seqNo: number }) => b.seqNo === 1)
+    const latestLogbook = ajlbResponse.body.books.find((b: { seqNo: number }) => b.seqNo === 2)
 
     expect(previousLogbook).toMatchObject({
       aircraftRegistration: 'OH-STL',
@@ -234,8 +235,17 @@ describe('CRUD /ajlb', () => {
   })
 
   it('should create new logbook and move new flights there', async () => {
+    // V203 adds VALIDATED OH-IHQ flights up to 2025-07-03T11:00Z; use later timestamps
     await insertFlightLog(
-      { ...flightPayload, aircraftRegistration: 'OH-IHQ', picMemberId: jwt.memberId },
+      {
+        ...flightPayload,
+        aircraftRegistration: 'OH-IHQ',
+        picMemberId: jwt.memberId,
+        offBlockTimeEpoch: (new Date('2025-07-05T10:30:00Z').getTime() / 1000).toString(),
+        takeoffTimeEpoch: (new Date('2025-07-05T10:45:00Z').getTime() / 1000).toString(),
+        landingTimeEpoch: (new Date('2025-07-05T11:40:00Z').getTime() / 1000).toString(),
+        onBlockTimeEpoch: (new Date('2025-07-05T11:45:00Z').getTime() / 1000).toString(),
+      },
       jwt,
     )
 

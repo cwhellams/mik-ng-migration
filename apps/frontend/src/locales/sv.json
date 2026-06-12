@@ -916,7 +916,10 @@
       "nextSequence": "Starta nästa loggbok",
       "flightsToMove": "Obekräftade flyg att flytta till ny loggbok",
       "oldBookMustBeEnded": "Den gamla loggboken måste avslutas först.",
-      "showOldBooks": "Visa gamla loggböcker"
+      "showOldBooks": "Visa gamla loggböcker",
+      "setBaseline": "Ange landningsbaslinje",
+      "baselineLandings": "Baslinjevärde för landningar",
+      "baselineHelperText": "Anger startantalet landningar för den första loggboken och räknar om totaler för alla loggböcker för detta flygplan."
     },
     "export": {
       "button": "Exportera",

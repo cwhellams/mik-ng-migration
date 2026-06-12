@@ -39,6 +39,58 @@ import {
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { useTimezone } from '../../hooks/useTimezone'
 
+type LogbookTableRow = {
+  log: FlightLogListEntry | null
+  isEmptyRow: boolean
+  hasEditActions: boolean
+}
+
+export const buildLogbookRows = (
+  logs: FlightLogListEntry[] | undefined,
+  pageSize = 0,
+): LogbookTableRow[] => {
+  if (!logs?.length) {
+    return Array.from({ length: pageSize }, () => ({
+      log: null,
+      isEmptyRow: true,
+      hasEditActions: false,
+    }))
+  }
+
+  const rows: LogbookTableRow[] = []
+
+  let prevRowNo = 0
+  logs.forEach((log) => {
+    const blankRowsOnPage = Math.max(0, log.ajlbRowNo - 1 - prevRowNo)
+    rows.push(
+      ...Array.from({ length: blankRowsOnPage }, () => ({
+        log,
+        isEmptyRow: true,
+        hasEditActions: true,
+      })),
+    )
+
+    rows.push({
+      log,
+      isEmptyRow: false,
+      hasEditActions: false,
+    })
+
+    prevRowNo = log.ajlbRowNo
+  })
+
+  const trailingEmptyRows = Math.max(0, pageSize - rows.length)
+  rows.push(
+    ...Array.from({ length: trailingEmptyRows }, () => ({
+      log: null,
+      isEmptyRow: true,
+      hasEditActions: false,
+    })),
+  )
+
+  return rows
+}
+
 const FlightLogsList = () => {
   const { t } = useTranslation()
 
@@ -139,7 +191,7 @@ const FlightLogsList = () => {
 
       {isFlightLogAdmin && log.status == FlightLogStatus.NEW && (
         <>
-          {log.ajlbRowNo == 1 && log.ajlbBlankRowsBefore > 0 && (
+          {log.ajlbBlankRowsBefore > 0 && (
             <EditButton
               title={t('flightLog.logbooks.deleteBlankRow')}
               onClick={() =>
@@ -165,20 +217,7 @@ const FlightLogsList = () => {
     </Stack>
   )
 
-  const logsWithEmptyRows = data?.logs.flatMap((log, index) => {
-    const emptyRowCount = Math.min(
-      log.ajlbBlankRowsBefore,
-      // if blank rows are in the previous page, skip them
-      (log.ajlbRowNo ?? 0) - (index + 1),
-    )
-
-    return Array.from({ length: emptyRowCount })
-      .map(() => ({
-        log,
-        isEmptyRow: true,
-      }))
-      .concat({ log, isEmptyRow: false })
-  })
+  const logsWithEmptyRows = buildLogbookRows(data?.logs, ajlb?.rowsPerPage ?? 0)
 
   return (
     <Box>
@@ -217,9 +256,9 @@ const FlightLogsList = () => {
           rowProps={() => ({
             minHeight: rowHeight,
           })}
-          row={({ log, isEmptyRow }) => {
+          row={({ log, isEmptyRow, hasEditActions }) => {
             if (isEmptyRow) {
-              if (isFlightLogAdmin && log.status === FlightLogStatus.NEW) {
+              if (hasEditActions && log && isFlightLogAdmin && log.status === FlightLogStatus.NEW) {
                 return (
                   <Stack direction='row-reverse' spacing={1} width='100%'>
                     <EditButton
@@ -234,6 +273,9 @@ const FlightLogsList = () => {
                   </Stack>
                 )
               }
+              return <></>
+            }
+            if (!log) {
               return <></>
             }
 
