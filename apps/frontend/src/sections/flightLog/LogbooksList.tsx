@@ -3,17 +3,20 @@ import {
   FormControl,
   FormControlLabel,
   Grid,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
   Switch,
+  Tooltip,
   useMediaQuery,
   useTheme,
 } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AjlbEditor } from './components/AjlbModal'
+import { BaselineDialog } from './components/BaselineDialog'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Upsert } from '@backend/types/schema'
 import { AircraftJourneyLogBook, AjlbFilter, AjlbListResponse } from '@backend/routes/ajlb/model'
@@ -39,6 +42,7 @@ const Roles = () => {
   })
 
   const [editMode, setEditMode] = useState<Upsert<AircraftJourneyLogBook> | undefined>(undefined)
+  const [baselineOpen, setBaselineOpen] = useState(false)
 
   const {
     data: logbooks,
@@ -56,6 +60,15 @@ const Roles = () => {
       keepPreviousData: true,
     },
   )
+
+  const currentBaseline = useMemo(() => {
+    if (!filters.aircraftRegistration || !logbooks) return 0
+    const books = logbooks.books.filter(
+      (b) => b.aircraftRegistration === filters.aircraftRegistration,
+    )
+    if (!books.length) return 0
+    return books.sort((a, b) => a.seqNo - b.seqNo)[0].startLandings
+  }, [filters.aircraftRegistration, logbooks])
 
   const handleEditMode = (role: AircraftJourneyLogBook) => {
     setEditMode(role)
@@ -99,6 +112,14 @@ const Roles = () => {
               ))}
           </Select>
         </FormControl>
+
+        {isFlightLogAdmin && filters.aircraftRegistration && (
+          <Tooltip title={t('flightLog.logbooks.setBaseline')}>
+            <IconButton onClick={() => setBaselineOpen(true)} color='primary' sx={{ m: 1 }}>
+              <Icon icon='mdi:counter' fontSize={24} />
+            </IconButton>
+          </Tooltip>
+        )}
 
         <Grid size={5} alignSelf='center'>
           <FormControlLabel
@@ -219,6 +240,16 @@ const Roles = () => {
         />
       </RemoteContent>
       <AjlbEditor book={editMode} onClose={(newBook) => setEditMode(newBook)} />
+
+      {filters.aircraftRegistration && (
+        <BaselineDialog
+          key={filters.aircraftRegistration}
+          registration={filters.aircraftRegistration}
+          currentBaseline={currentBaseline}
+          open={baselineOpen}
+          onClose={() => setBaselineOpen(false)}
+        />
+      )}
     </Box>
   )
 }

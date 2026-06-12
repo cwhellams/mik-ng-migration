@@ -908,7 +908,10 @@
       "nextSequence": "Start Next Logbook",
       "flightsToMove": "Unconfirmed flights to move to new logbook",
       "oldBookMustBeEnded": "Old logbook must be ended first.",
-      "showOldBooks": "Show old logbooks"
+      "showOldBooks": "Show old logbooks",
+      "setBaseline": "Set Landing Baseline",
+      "baselineLandings": "Baseline Landings",
+      "baselineHelperText": "Sets the starting landing count for the first logbook and recalculates totals across all logbooks for this aircraft."
     },
     "export": {
       "button": "Export",
