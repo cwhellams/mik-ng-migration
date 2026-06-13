@@ -431,6 +431,7 @@ export const FlightLogListResponseSchema = z.object({
   limit: z.number().int().optional(),
   pages: z.number().int().optional(),
   rows: z.number().int().optional(),
+  pageStartFlightMins: z.number().int().nullable().optional(),
 })
 
 export type FlightLogListResponse = z.infer<typeof FlightLogListResponseSchema>

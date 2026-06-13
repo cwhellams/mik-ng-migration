@@ -90,6 +90,7 @@ describe('Db query FlightLog tests', () => {
       page: 0,
       pages: 0,
       rows: 0,
+      pageStartFlightMins: null,
     })
   })
 
@@ -133,6 +134,7 @@ describe('Db query FlightLog tests', () => {
       page: 0,
       pages: 0,
       rows: 0,
+      pageStartFlightMins: null,
     })
   })
 

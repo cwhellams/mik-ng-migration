@@ -296,6 +296,7 @@ exports[`Db query FlightLog tests getFlightLogs for specific member id should ma
     },
   ],
   "page": 1,
+  "pageStartFlightMins": null,
   "pages": 1,
   "rows": 1,
 }

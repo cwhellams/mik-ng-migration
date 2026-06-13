@@ -275,6 +275,9 @@ const FlightLogsList = () => {
     const result: MergedItem[] = []
     const notesToInsert = [...maintenanceNotes].sort((a, b) => a.flightMins - b.flightMins)
     let noteIdx = 0
+    // Initialise to the last flight total of the previous page so notes from
+    // earlier pages are not re-inserted here (cross-page bleed prevention).
+    let prevLogMins = data?.pageStartFlightMins ?? -1
 
     for (let i = 0; i < logsWithEmptyRows.length; i++) {
       const row = logsWithEmptyRows[i]
@@ -282,8 +285,13 @@ const FlightLogsList = () => {
 
       if (!row.isEmptyRow) {
         const logMins = row.log.acTotalFlightMins ?? 0
-        // Insert all notes whose flightMins falls at or before this flight's total
-        while (noteIdx < notesToInsert.length && notesToInsert[noteIdx].flightMins <= logMins) {
+        // Insert notes whose flightMins falls in (prevLogMins, logMins].
+        // The prevLogMins guard prevents notes from earlier pages bleeding in.
+        while (
+          noteIdx < notesToInsert.length &&
+          notesToInsert[noteIdx].flightMins <= logMins &&
+          notesToInsert[noteIdx].flightMins > prevLogMins
+        ) {
           const note = notesToInsert[noteIdx]
           result.push({
             log: row.log,
@@ -305,6 +313,7 @@ const FlightLogsList = () => {
           }
           noteIdx++
         }
+        prevLogMins = logMins
       }
     }
 

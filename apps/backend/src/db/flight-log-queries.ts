@@ -238,6 +238,28 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     .limit(pageSize)
     .execute()
 
+  let pageStartFlightMins: number | null = null
+  if (ajlbPaging && filters.page! > 1) {
+    const prevPageLastFlight = await db
+      .selectFrom('flight.logs')
+      .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
+      .where('ajlb_seq_no', '=', filters.ajlbSeqNo!)
+      .where((eb) =>
+        eb('flight.logs.ajlb_page_number', '=', filters.page! - 1).or(
+          'totals.page_number',
+          '=',
+          filters.page! - 1,
+        ),
+      )
+      .select(['flight.logs.ajlb_total_flight_mins', 'totals.ac_total_flight_mins'])
+      .orderBy('off_block_time_epoch', 'desc')
+      .limit(1)
+      .executeTakeFirst()
+
+    pageStartFlightMins =
+      prevPageLastFlight?.ajlb_total_flight_mins ?? prevPageLastFlight?.ac_total_flight_mins ?? null
+  }
+
   return {
     logs: results.map((row) => {
       const res: FlightLogListEntry = {
@@ -280,6 +302,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     pages,
     rows: Number(rows),
     limit: pageSize,
+    pageStartFlightMins,
   }
 }
 
