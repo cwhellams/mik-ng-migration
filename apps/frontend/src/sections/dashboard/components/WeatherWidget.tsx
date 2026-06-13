@@ -484,7 +484,7 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                     </Typography>
                     {(report?.wind_rose?.length ?? 0) > 0 && (
                       <WindRose
-                        windRoseData={report.wind_rose}
+                        windRoseData={report!.wind_rose}
                         size={220}
                         runways={SITE_RUNWAYS[site] ?? SITE_RUNWAYS.efnu}
                       />
