@@ -397,6 +397,9 @@ export interface ExamExamVersions {
   default_language: Generated<string>
   exam_id: string
   pass_percent: Generated<Numeric>
+  /**
+   * When set, each attempt draws this many randomly-selected questions from the version pool. NULL means all questions are used.
+   */
   question_count: number | null
   status: Generated<ExamExamVersionStatus>
   supported_languages: Generated<string[]>
@@ -612,6 +615,19 @@ export interface FlightLogsAudit {
   operation_type: string
 }
 
+export interface FlightMaintenanceNote {
+  aircraft_registration: string
+  ajlb_seq_no: number
+  blank_rows_after: Generated<number>
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: string
+  flight_mins: number
+  hil_id: string | null
+  note_id: Generated<string>
+  performed_by: string
+}
+
 export interface FlightOccurrenceAccess {
   access_id: Generated<number>
   author: Generated<boolean>
@@ -768,20 +784,6 @@ export interface MemberDocuments {
   updated_by: string
 }
 
-export interface MemberEvents {
-  event_id: Generated<string>
-  title: string
-  description: string | null
-  location: string | null
-  start_time: Timestamp
-  end_time: Timestamp
-  is_public: Generated<boolean>
-  created_at: Generated<Timestamp>
-  created_by: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
-}
-
 export interface MemberDocumentTinyUrls {
   access_count: Generated<number>
   aircraft_document_id: number | null
@@ -793,6 +795,20 @@ export interface MemberDocumentTinyUrls {
   last_accessed_at: Timestamp | null
   short_code: string
   url: string
+}
+
+export interface MemberEvents {
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: string | null
+  end_time: Timestamp
+  event_id: Generated<string>
+  is_public: Generated<boolean>
+  location: string | null
+  start_time: Timestamp
+  title: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface MemberLoginAttempts {
@@ -1453,6 +1469,7 @@ export interface DB {
   'flight.fuel_types': FlightFuelTypes
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit
+  'flight.maintenance_note': FlightMaintenanceNote
   'flight.occurrence_access': FlightOccurrenceAccess
   'flight.occurrences': FlightOccurrences
   'flight.vw_flight_logs': FlightVwFlightLogs

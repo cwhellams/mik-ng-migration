@@ -698,7 +698,8 @@
     "delete": "Poista",
     "back": "Takaisin",
     "view": "Näytä",
-    "dateFormat": "YYYY-MM-DD"
+    "dateFormat": "YYYY-MM-DD",
+    "close": "Sulje"
   },
   "billing": {
     "title": "Omat laskuni",
@@ -975,6 +976,23 @@
           "platforms": "EASA Part-FCL -yhteensopiva lentopäiväkirja"
         }
       }
+    },
+    "maintenanceNotes": {
+      "addButton": "Lisää huoltomerkintä",
+      "addTitle": "Uusi huoltomerkintä",
+      "viewTitle": "Huoltomerkintä",
+      "description": "Kuvaus",
+      "performedBy": "Suorittaja",
+      "flightTime": "Lentokoneen kokonaislentoaika",
+      "hours": "Tunnit",
+      "minutes": "Minuutit",
+      "blankRowsAfter": "Tyhjiä rivejä jälkeen",
+      "blankRowsAfterHelp": "Fyysiseen matkapäiväkirjaan lisättävät tyhjät rivit merkinnän jälkeen",
+      "hilId": "Linkitetty HIL",
+      "recordedBy": "Kirjaaja",
+      "clickToView": "Avaa tiedot napsauttamalla",
+      "deleteTitle": "Poista huoltomerkintä",
+      "deleteMessage": "Haluatko varmasti poistaa tämän huoltomerkinnän? Toimintoa ei voi kumota."
     }
   },
   "invoicing": {

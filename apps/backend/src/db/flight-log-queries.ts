@@ -224,12 +224,13 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'flight.logs.pic_last_name',
       'flight.logs.status',
       'flight.logs.total_time_in_service',
+      'flight.logs.ajlb_total_flight_mins',
     ])
     .select([
       'totals.ac_total_flight_time',
-      'totals.ac_total_landings',
       'totals.row_number',
       'totals.page_number',
+      'totals.ac_total_flight_mins',
     ])
     .orderBy('off_block_time_epoch', filters.orderLatestFirst ? 'desc' : 'asc')
     // offset only valid with dynamic paging
@@ -237,11 +238,33 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     .limit(pageSize)
     .execute()
 
+  let pageStartFlightMins: number | null = null
+  if (ajlbPaging && filters.page! > 1) {
+    const prevPageLastFlight = await db
+      .selectFrom('flight.logs')
+      .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
+      .where('ajlb_seq_no', '=', filters.ajlbSeqNo!)
+      .where((eb) =>
+        eb('flight.logs.ajlb_page_number', '=', filters.page! - 1).or(
+          'totals.page_number',
+          '=',
+          filters.page! - 1,
+        ),
+      )
+      .select(['flight.logs.ajlb_total_flight_mins', 'totals.ac_total_flight_mins'])
+      .orderBy('off_block_time_epoch', 'desc')
+      .limit(1)
+      .executeTakeFirst()
+
+    pageStartFlightMins =
+      prevPageLastFlight?.ajlb_total_flight_mins ?? prevPageLastFlight?.ac_total_flight_mins ?? null
+  }
+
   return {
     logs: results.map((row) => {
       const res: FlightLogListEntry = {
         acTotalFlightTime: row.ajlb_total_flight_time ?? row.ac_total_flight_time ?? '00:00',
-        acTotalLandings: row.ajlb_total_landings ?? row.ac_total_landings ?? null,
+        acTotalLandings: row.ajlb_total_landings ?? null,
         aircraftRegistration: row.aircraft_registration,
         ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
         ajlbSeqNo: row.ajlb_seq_no,
@@ -271,6 +294,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         picLastName: row.pic_last_name,
         status: row.status as FlightLogStatus,
         totalTimeInService: row.total_time_in_service,
+        acTotalFlightMins: row.ajlb_total_flight_mins ?? row.ac_total_flight_mins ?? null,
       }
       return res
     }),
@@ -278,6 +302,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     pages,
     rows: Number(rows),
     limit: pageSize,
+    pageStartFlightMins,
   }
 }
 
@@ -1020,6 +1045,7 @@ export async function getFlightLogsForExport(
       picLastName: row.pic_last_name,
       status: row.status as FlightLogStatus,
       totalTimeInService: row.total_time_in_service,
+      acTotalFlightMins: null,
     }
     return {
       ...listEntry,
