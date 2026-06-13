@@ -25,7 +25,7 @@ router.get('/', async (req: Request, res: Response<MaintenanceNote[]>) => {
   res.status(200).json(notes)
 })
 
-router.post('/', async (req: Request, res: Response<MaintenanceNote>) => {
+router.post('/', validateUser(MIKPermissions.FLIGHTLOG_ADMIN), async (req: Request, res: Response<MaintenanceNote>) => {
   const data = CreateMaintenanceNoteSchema.parse(req.body)
   const note = await createMaintenanceNote(data, req.user!.memberId!)
   res.status(201).json(note)

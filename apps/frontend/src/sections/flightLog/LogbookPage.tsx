@@ -333,7 +333,7 @@ const FlightLogsList = () => {
 
       <Title label={t('flightLog.logbooks.title')} />
 
-      {hasAccess(MIKPermissions.FLIGHTLOG_USER) && ajlb && (
+      {hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) && ajlb && (
         <Stack direction='row' spacing={1} sx={{ mb: 2 }}>
           <Button
             variant='outlined'
