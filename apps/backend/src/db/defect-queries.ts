@@ -1,0 +1,144 @@
+import * as connection from './connection.ts'
+import type {
+  Defect,
+  DefectStatus,
+  CreateDefectRequest,
+  UpdateDefectRequest,
+} from '../routes/defects/models.ts'
+
+function mapRowToDefect(row: {
+  defect_id: string
+  aircraft_registration: string
+  ajlb_seq_no: number
+  flight_id: string | null
+  description: string
+  flight_mins: number
+  blank_rows_after: number
+  status: DefectStatus
+  hil_id: string | null
+  resolved_note_id: string | null
+  created_at: Date
+  created_by: string
+  updated_at: Date
+  updated_by: string
+}): Defect {
+  return {
+    defectId: row.defect_id,
+    aircraftRegistration: row.aircraft_registration,
+    ajlbSeqNo: row.ajlb_seq_no,
+    flightId: row.flight_id,
+    description: row.description,
+    flightMins: row.flight_mins,
+    blankRowsAfter: row.blank_rows_after,
+    status: row.status,
+    hilId: row.hil_id,
+    resolvedNoteId: row.resolved_note_id,
+    createdAt: row.created_at.toISOString(),
+    createdBy: row.created_by,
+    updatedAt: row.updated_at.toISOString(),
+    updatedBy: row.updated_by,
+  }
+}
+
+export async function getDefects(
+  aircraftRegistration: string,
+  ajlbSeqNo: number,
+): Promise<Defect[]> {
+  const rows = await connection.db
+    .selectFrom('flight.defect')
+    .selectAll()
+    .where('aircraft_registration', '=', aircraftRegistration)
+    .where('ajlb_seq_no', '=', ajlbSeqNo)
+    .orderBy('flight_mins', 'asc')
+    .execute()
+
+  return rows.map(mapRowToDefect)
+}
+
+export async function getDefect(defectId: string): Promise<Defect | undefined> {
+  const row = await connection.db
+    .selectFrom('flight.defect')
+    .selectAll()
+    .where('defect_id', '=', defectId)
+    .executeTakeFirst()
+
+  return row ? mapRowToDefect(row) : undefined
+}
+
+export async function createDefect(
+  data: CreateDefectRequest,
+  createdBy: string,
+): Promise<Defect> {
+  const now = new Date()
+  const row = await connection.db
+    .insertInto('flight.defect')
+    .values({
+      aircraft_registration: data.aircraftRegistration,
+      ajlb_seq_no: data.ajlbSeqNo,
+      flight_id: data.flightId ?? null,
+      description: data.description,
+      flight_mins: data.flightMins,
+      blank_rows_after: data.blankRowsAfter,
+      status: 'ACTIVE',
+      hil_id: null,
+      resolved_note_id: null,
+      created_at: now,
+      created_by: createdBy,
+      updated_at: now,
+      updated_by: createdBy,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow()
+
+  return mapRowToDefect(row)
+}
+
+export async function updateDefect(
+  defectId: string,
+  data: UpdateDefectRequest,
+  updatedBy: string,
+  createdByFilter?: string,
+): Promise<Defect | undefined> {
+  let query = connection.db
+    .updateTable('flight.defect')
+    .set({
+      ...(data.description !== undefined && { description: data.description }),
+      ...(data.blankRowsAfter !== undefined && { blank_rows_after: data.blankRowsAfter }),
+      ...(data.hilId !== undefined && {
+        hil_id: data.hilId,
+        status: data.hilId !== null ? 'MOVED_TO_HIL' : 'ACTIVE',
+      }),
+      ...(data.resolvedNoteId !== undefined && {
+        resolved_note_id: data.resolvedNoteId,
+        status: data.resolvedNoteId !== null ? 'RESOLVED' : 'MOVED_TO_HIL',
+      }),
+      updated_at: new Date(),
+      updated_by: updatedBy,
+    })
+    .where('defect_id', '=', defectId)
+
+  if (createdByFilter !== undefined) {
+    query = query.where('created_by', '=', createdByFilter)
+  }
+
+  const row = await query.returningAll().executeTakeFirst()
+  return row ? mapRowToDefect(row) : undefined
+}
+
+export async function resolveDefectsByHil(
+  hilId: string,
+  resolvedNoteId: string,
+  updatedBy: string,
+): Promise<void> {
+  await connection.db
+    .updateTable('flight.defect')
+    .set({
+      status: 'RESOLVED',
+      resolved_note_id: resolvedNoteId,
+      updated_at: new Date(),
+      updated_by: updatedBy,
+    })
+    .where('hil_id', '=', hilId)
+    .where('status', '!=', 'RESOLVED')
+    .execute()
+}
