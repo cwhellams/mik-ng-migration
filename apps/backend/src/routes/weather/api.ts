@@ -31,7 +31,7 @@ interface MetarCentralDecoded {
   dewpoint: number
   pressure: number
   wind_gust: number | null
-  visibility: string
+  visibility: string | null
   wind_speed: number
   temperature: number
   flight_rules: string
@@ -48,7 +48,8 @@ interface MetarCentralResponse {
   flight_rules: string
 }
 
-function parseVisibility(visStr: string): { vis_m?: number; vis_km: number } {
+function parseVisibility(visStr: string | null): { vis_m?: number; vis_km: number } {
+  if (!visStr) return { vis_km: 10 }
   const kmMatch = visStr.match(/^([\d.]+)\+?\s*km$/i)
   if (kmMatch) return { vis_km: parseFloat(kmMatch[1]) }
   const mMatch = visStr.match(/^(\d+)\s*m$/i)
@@ -64,9 +65,22 @@ function calcHumidity(temp: number, dewpoint: number): number {
   return Math.min(100, Math.round((100 * magnus(dewpoint)) / magnus(temp)))
 }
 
+function buildWindRose(windDir: number, windKt: number): number[][] {
+  const bins = 16
+  const rose: number[][] = Array.from({ length: bins }, () => [0, 0, 0])
+  if (windKt > 0) {
+    const idx = Math.round(windDir / (360 / bins)) % bins
+    rose[idx] = [windKt, windKt, 100]
+  }
+  return rose
+}
+
 function mapMetarToWeatherResponse(data: MetarCentralResponse): WeatherResponse {
   const decoded = data.metar.decoded
   const obsTime = new Date(data.metar.observation_time)
+  if (isNaN(obsTime.getTime())) {
+    throw new Error(`Invalid observation_time from METAR Central: ${data.metar.observation_time}`)
+  }
   const datetime_unix = Math.floor(obsTime.getTime() / 1000)
 
   const { vis_m, vis_km } = parseVisibility(decoded.visibility)
@@ -89,7 +103,7 @@ function mapMetarToWeatherResponse(data: MetarCentralResponse): WeatherResponse 
     dewpoint: decoded.dewpoint,
     datetime_unix,
     clouds,
-    wind_rose: [],
+    wind_rose: buildWindRose(windDir, windKt),
     repid: '',
     features,
     wind_ms: windKt * 0.514444,
@@ -269,7 +283,11 @@ router.get(
           })
         }
         // Network/connection errors
-        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+        if (
+          error.code === 'ECONNREFUSED' ||
+          error.code === 'ENOTFOUND' ||
+          error.code === 'EAI_AGAIN'
+        ) {
           return problem({
             status: 503,
             title: 'Audio Service Unavailable',

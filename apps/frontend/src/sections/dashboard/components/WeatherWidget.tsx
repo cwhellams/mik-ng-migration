@@ -24,7 +24,7 @@ import type { WeatherResponse } from '../../../../../backend/src/routes/weather/
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { useState, useEffect, useRef } from 'react'
-import { WindRose } from './WindRose'
+import { WindRose, type RunwaySpec } from './WindRose'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { useTimezone } from '../../../hooks/useTimezone'
 
@@ -81,17 +81,36 @@ const formatCloudCoverage = (type: string): string => {
   return CLOUD_COVERAGE[type.toUpperCase()] || type
 }
 
-const SITE_RUNWAYS: Record<
-  string,
-  { heading: number; oppositeHeading: number; length: number; width: number }[]
-> = {
+const SITE_RUNWAYS: Record<string, RunwaySpec[]> = {
   efnu: [
     { heading: 40, oppositeHeading: 220, length: 0.7, width: 0.015 }, // 04/22
     { heading: 90, oppositeHeading: 270, length: 0.5, width: 0.01 }, // 09/27
   ],
   efhk: [
-    { heading: 40, oppositeHeading: 220, length: 0.7, width: 0.015 }, // 04/22
-    { heading: 150, oppositeHeading: 330, length: 0.7, width: 0.015 }, // 15/33
+    {
+      heading: 44,
+      oppositeHeading: 224,
+      length: 0.55,
+      width: 0.015,
+      offsetX: -0.38,
+      offsetY: 0.15,
+    }, // 04L/22R (SW)
+    {
+      heading: 44,
+      oppositeHeading: 224,
+      length: 0.55,
+      width: 0.015,
+      offsetX: 0.1,
+      offsetY: 0.05,
+    }, // 04R/22L (near center)
+    {
+      heading: 150,
+      oppositeHeading: 330,
+      length: 0.55,
+      width: 0.015,
+      offsetX: 0.5,
+      offsetY: 0.08,
+    }, // 15/33 (SE)
   ],
 }
 
@@ -228,10 +247,16 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography variant='h5' component='h2'>
-                  {site.toUpperCase()} ATIS -{' '}
-                  <Box component='span' fontWeight='bold'>
-                    {reportIdPhonetic}
-                  </Box>
+                  {site === 'efnu' ? (
+                    <>
+                      {site.toUpperCase()} ATIS -{' '}
+                      <Box component='span' fontWeight='bold'>
+                        {reportIdPhonetic}
+                      </Box>
+                    </>
+                  ) : (
+                    <>{site.toUpperCase()} METAR</>
+                  )}
                 </Typography>
                 {state?.mp3 && (
                   <IconButton
@@ -461,10 +486,16 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                       height: '100%',
                     }}
                   >
-                    <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5 }}>
-                      Wind Rose - 10 min
+                    <Typography
+                      variant='caption'
+                      color='text.secondary'
+                      sx={{ mb: 0.5 }}
+                    >
+                      {site === 'efnu'
+                        ? 'Wind Rose - 10 min'
+                        : 'Current Wind Direction'}
                     </Typography>
-                    {report?.wind_rose && (
+                    {(report?.wind_rose?.length ?? 0) > 0 && (
                       <WindRose
                         windRoseData={report.wind_rose}
                         size={220}
