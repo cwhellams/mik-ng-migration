@@ -1,13 +1,33 @@
 import { Box, useTheme } from '@mui/material'
 import { useMemo } from 'react'
 
+export interface RunwaySpec {
+  heading: number
+  oppositeHeading: number
+  length: number
+  width: number
+  offsetX?: number // horizontal offset as fraction of radius (positive = east)
+  offsetY?: number // vertical offset as fraction of radius (positive = south)
+}
+
 interface WindRoseProps {
   windRoseData: number[][]
   size?: number
   showRunways?: boolean
+  runways?: RunwaySpec[]
 }
 
-export const WindRose = ({ windRoseData, size = 200, showRunways = true }: WindRoseProps) => {
+const EFNU_RUNWAYS: RunwaySpec[] = [
+  { heading: 40, oppositeHeading: 220, length: 0.7, width: 0.015 }, // 04/22
+  { heading: 90, oppositeHeading: 270, length: 0.5, width: 0.01 }, // 09/27
+]
+
+export const WindRose = ({
+  windRoseData,
+  size = 200,
+  showRunways = true,
+  runways = EFNU_RUNWAYS,
+}: WindRoseProps) => {
   const theme = useTheme()
 
   const processedData = useMemo(() => {
@@ -48,12 +68,6 @@ export const WindRose = ({ windRoseData, size = 200, showRunways = true }: WindR
 
   const center = size / 2
   const radius = size / 2
-
-  // Runway specifications: heading, length, width (relative to size)
-  const runways = [
-    { heading: 40, oppositeHeading: 220, length: 0.7, width: 0.015 }, // 04/22
-    { heading: 90, oppositeHeading: 270, length: 0.5, width: 0.01 }, // 09/27
-  ]
 
   return (
     <Box
@@ -151,12 +165,14 @@ export const WindRose = ({ windRoseData, size = 200, showRunways = true }: WindR
             const runwayLength = radius * runway.length
             const runwayWidth = size * runway.width
 
-            // Draw runway at specified heading
+            // Draw runway at specified heading with optional x/y offset from center
             const rad = (runway.heading * Math.PI) / 180
-            const x1 = center - Math.sin(rad) * runwayLength
-            const y1 = center + Math.cos(rad) * runwayLength
-            const x2 = center + Math.sin(rad) * runwayLength
-            const y2 = center - Math.cos(rad) * runwayLength
+            const ox = (runway.offsetX ?? 0) * radius
+            const oy = (runway.offsetY ?? 0) * radius
+            const x1 = center - Math.sin(rad) * runwayLength + ox
+            const y1 = center + Math.cos(rad) * runwayLength + oy
+            const x2 = center + Math.sin(rad) * runwayLength + ox
+            const y2 = center - Math.cos(rad) * runwayLength + oy
 
             return (
               <g key={`runway-${runway.heading}-${runway.oppositeHeading}`}>

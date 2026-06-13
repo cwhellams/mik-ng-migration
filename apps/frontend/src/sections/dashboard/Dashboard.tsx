@@ -8,7 +8,7 @@ import { BookingUserDashboard } from './components/BookingUserDashboard'
 import { EquipmentFeeBanner } from './components/EquipmentFeeBanner'
 import { OverdueInvoiceBanner } from './components/OverdueInvoiceBanner'
 import { ReservationsSuspendedBanner } from './components/ReservationsSuspendedBanner'
-import { WeatherWidget } from './components/WeatherWidget'
+import { WeatherTabs } from './components/WeatherTabs'
 import { MIKMemberTypes, MIKPermissions } from '@backend/routes/members/models'
 import { Title } from '../../components/Title'
 import { t } from 'i18next'
@@ -42,7 +42,7 @@ const createComponentMap = (
       <PendingReviewBanner />
     ) : null,
   expiryWarning: () => <ExpiryWarningBanner />,
-  weather: () => (bookingUser ? <WeatherWidget /> : null),
+  weather: () => (bookingUser ? <WeatherTabs /> : null),
   events: () => (isMember ? <EventsDashboard /> : null),
   bookingUser: () => (bookingUser ? <BookingUserDashboard /> : null),
   flightLogUser: () => (flyingUser ? <FlightLogUserDashboard /> : null),
@@ -186,7 +186,7 @@ const Dashboard = () => {
           <>
             {isMember && flyingUser && <EquipmentFeeBanner />}
 
-            {bookingUser && <WeatherWidget />}
+            {bookingUser && <WeatherTabs />}
 
             {isMember && <EventsDashboard />}
 

@@ -24,13 +24,13 @@ import type { WeatherResponse } from '../../../../../backend/src/routes/weather/
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { useState, useEffect, useRef } from 'react'
-import { WindRose } from './WindRose'
+import { WindRose, type RunwaySpec } from './WindRose'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { useTimezone } from '../../../hooks/useTimezone'
 
 dayjs.extend(utc)
 
-const WEATHER_WIDGET_STORAGE_KEY = 'weatherWidget.expanded'
+const WEATHER_WIDGET_STORAGE_KEY = (site: string) => `weatherWidget.${site}.expanded`
 
 const PHONETIC_ALPHABET: Record<string, string> = {
   A: 'Alpha',
@@ -80,9 +80,47 @@ const formatCloudCoverage = (type: string): string => {
   return CLOUD_COVERAGE[type.toUpperCase()] || type
 }
 
-export const WeatherWidget = () => {
+const SITE_RUNWAYS: Record<string, RunwaySpec[]> = {
+  efnu: [
+    { heading: 40, oppositeHeading: 220, length: 0.7, width: 0.015 }, // 04/22
+    { heading: 90, oppositeHeading: 270, length: 0.5, width: 0.01 }, // 09/27
+  ],
+  efhk: [
+    {
+      heading: 44,
+      oppositeHeading: 224,
+      length: 0.55,
+      width: 0.015,
+      offsetX: -0.38,
+      offsetY: 0.15,
+    }, // 04L/22R (SW)
+    {
+      heading: 44,
+      oppositeHeading: 224,
+      length: 0.55,
+      width: 0.015,
+      offsetX: 0.1,
+      offsetY: 0.05,
+    }, // 04R/22L (near center)
+    {
+      heading: 150,
+      oppositeHeading: 330,
+      length: 0.55,
+      width: 0.015,
+      offsetX: 0.5,
+      offsetY: 0.08,
+    }, // 15/33 (SE)
+  ],
+}
+
+interface WeatherWidgetProps {
+  site?: string
+}
+
+export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
+  const storageKey = WEATHER_WIDGET_STORAGE_KEY(site)
   const [expanded, setExpanded] = useState(() => {
-    const stored = localStorage.getItem(WEATHER_WIDGET_STORAGE_KEY)
+    const stored = localStorage.getItem(storageKey)
     return stored === null ? true : stored === 'true'
   })
   const [isPlaying, setIsPlaying] = useState(false)
@@ -93,7 +131,7 @@ export const WeatherWidget = () => {
 
   const { data, error, isLoading } = useApi<WeatherResponse>(
     {
-      url: 'v1/weather?site=efnu',
+      url: `v1/weather?site=${site}`,
     },
     {
       refreshInterval: 60000, // Refresh every minute
@@ -108,8 +146,8 @@ export const WeatherWidget = () => {
   })
 
   useEffect(() => {
-    localStorage.setItem(WEATHER_WIDGET_STORAGE_KEY, String(expanded))
-  }, [expanded])
+    localStorage.setItem(storageKey, String(expanded))
+  }, [expanded, storageKey])
 
   const handleToggle = () => {
     setExpanded((prev) => !prev)
@@ -208,20 +246,28 @@ export const WeatherWidget = () => {
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography variant='h5' component='h2'>
-                  EFNU ATIS -{' '}
-                  <Box component='span' fontWeight='bold'>
-                    {reportIdPhonetic}
-                  </Box>
+                  {site === 'efnu' ? (
+                    <>
+                      {site.toUpperCase()} ATIS -{' '}
+                      <Box component='span' fontWeight='bold'>
+                        {reportIdPhonetic}
+                      </Box>
+                    </>
+                  ) : (
+                    <>{site.toUpperCase()} METAR</>
+                  )}
                 </Typography>
-                <IconButton
-                  size='small'
-                  color='primary'
-                  onClick={handleToggleAudio}
-                  aria-label={isPlaying ? 'Stop ATIS audio' : 'Listen to ATIS audio'}
-                  sx={{ ml: 0.5 }}
-                >
-                  {isPlaying ? <StopIcon fontSize='small' /> : <VolumeUpIcon fontSize='small' />}
-                </IconButton>
+                {state?.mp3 && (
+                  <IconButton
+                    size='small'
+                    color='primary'
+                    onClick={handleToggleAudio}
+                    aria-label={isPlaying ? 'Stop ATIS audio' : 'Listen to ATIS audio'}
+                    sx={{ ml: 0.5 }}
+                  >
+                    {isPlaying ? <StopIcon fontSize='small' /> : <VolumeUpIcon fontSize='small' />}
+                  </IconButton>
+                )}
                 <Box sx={{ display: 'none' }}>
                   <audio ref={audioRef} preload='none'>
                     <track kind='captions' />
@@ -434,9 +480,15 @@ export const WeatherWidget = () => {
                     }}
                   >
                     <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5 }}>
-                      Wind Rose - 10 min
+                      {site === 'efnu' ? 'Wind Rose - 10 min' : 'Current Wind Direction'}
                     </Typography>
-                    {report?.wind_rose && <WindRose windRoseData={report.wind_rose} size={220} />}
+                    {(report?.wind_rose?.length ?? 0) > 0 && (
+                      <WindRose
+                        windRoseData={report!.wind_rose}
+                        size={220}
+                        runways={SITE_RUNWAYS[site] ?? SITE_RUNWAYS.efnu}
+                      />
+                    )}
                   </Box>
                 </Grid>
               </Grid>
