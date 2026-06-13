@@ -283,7 +283,7 @@ const FlightLogsList = () => {
       const row = logsWithEmptyRows[i]
       result.push(row as MergedItem)
 
-      if (!row.isEmptyRow) {
+      if (!row.isEmptyRow && row.log) {
         const logMins = row.log.acTotalFlightMins ?? 0
         // Insert notes whose flightMins falls in (prevLogMins, logMins].
         // The prevLogMins guard prevents notes from earlier pages bleeding in.
