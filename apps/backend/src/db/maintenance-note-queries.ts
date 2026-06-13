@@ -100,10 +100,7 @@ export async function updateMaintenanceNote(
 }
 
 export async function deleteMaintenanceNote(noteId: string): Promise<void> {
-  await connection.db
-    .deleteFrom('flight.maintenance_note')
-    .where('note_id', '=', noteId)
-    .execute()
+  await connection.db.deleteFrom('flight.maintenance_note').where('note_id', '=', noteId).execute()
 }
 
 export async function getMaintenanceNote(noteId: string): Promise<MaintenanceNote | undefined> {

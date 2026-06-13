@@ -20,7 +20,7 @@ CREATE TABLE flight.defect (
   CONSTRAINT defect_ajlb_fk   FOREIGN KEY (aircraft_registration, ajlb_seq_no)
     REFERENCES flight.aircraft_journey_log_book (aircraft_registration, seq_no),
   CONSTRAINT defect_flight_fk FOREIGN KEY (flight_id)
-    REFERENCES flight.flight_log (flight_id),
+    REFERENCES flight.logs (flight_id),
   CONSTRAINT defect_hil_fk    FOREIGN KEY (hil_id)
     REFERENCES flight.aircraft_hil (hil_id),
   CONSTRAINT defect_note_fk   FOREIGN KEY (resolved_note_id)

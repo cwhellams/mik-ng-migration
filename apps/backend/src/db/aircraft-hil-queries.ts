@@ -61,9 +61,7 @@ function mapRowToExtension(row: {
   }
 }
 
-export async function getAircraftHilEntries(
-  aircraftRegistration: string,
-): Promise<AircraftHil[]> {
+export async function getAircraftHilEntries(aircraftRegistration: string): Promise<AircraftHil[]> {
   const rows = await connection.db
     .selectFrom('flight.aircraft_hil')
     .selectAll()

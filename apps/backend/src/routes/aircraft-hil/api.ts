@@ -53,13 +53,16 @@ router.patch(
   },
 )
 
-router.get('/:id/extensions', async (req: Request<{ id: string }>, res: Response<AircraftHilExtension[]>) => {
-  const { id } = req.params
-  const hil = await getAircraftHilEntry(id)
-  if (!hil) return problem({ status: 404, detail: 'HIL entry not found' })
-  const extensions = await getAircraftHilExtensions(id)
-  res.status(200).json(extensions)
-})
+router.get(
+  '/:id/extensions',
+  async (req: Request<{ id: string }>, res: Response<AircraftHilExtension[]>) => {
+    const { id } = req.params
+    const hil = await getAircraftHilEntry(id)
+    if (!hil) return problem({ status: 404, detail: 'HIL entry not found' })
+    const extensions = await getAircraftHilExtensions(id)
+    res.status(200).json(extensions)
+  },
+)
 
 router.post(
   '/:id/extensions',

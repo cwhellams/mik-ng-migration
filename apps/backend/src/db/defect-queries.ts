@@ -65,10 +65,7 @@ export async function getDefect(defectId: string): Promise<Defect | undefined> {
   return row ? mapRowToDefect(row) : undefined
 }
 
-export async function createDefect(
-  data: CreateDefectRequest,
-  createdBy: string,
-): Promise<Defect> {
+export async function createDefect(data: CreateDefectRequest, createdBy: string): Promise<Defect> {
   const now = new Date()
   const row = await connection.db
     .insertInto('flight.defect')
