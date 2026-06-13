@@ -32,9 +32,7 @@ interface AddMaintenanceNoteDialogProps {
   defaultFlightMins?: number
 }
 
-export const AddMaintenanceNoteDialog: React.FC<
-  AddMaintenanceNoteDialogProps
-> = ({
+export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> = ({
   open,
   onClose,
   onSuccess,
@@ -60,12 +58,8 @@ export const AddMaintenanceNoteDialog: React.FC<
     defaultValues: {
       description: '',
       performedBy: '',
-      flightHours:
-        defaultFlightMins !== undefined
-          ? Math.floor(defaultFlightMins / 60)
-          : 0,
-      flightMinutes:
-        defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
+      flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
+      flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
       blankRowsAfter: 0,
     },
   })
@@ -76,12 +70,8 @@ export const AddMaintenanceNoteDialog: React.FC<
       reset({
         description: '',
         performedBy: '',
-        flightHours:
-          defaultFlightMins !== undefined
-            ? Math.floor(defaultFlightMins / 60)
-            : 0,
-        flightMinutes:
-          defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
+        flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,
+        flightMinutes: defaultFlightMins !== undefined ? defaultFlightMins % 60 : 0,
         blankRowsAfter: 0,
       })
     }
@@ -160,9 +150,7 @@ export const AddMaintenanceNoteDialog: React.FC<
                       error={!!errors.flightHours}
                       helperText={errors.flightHours?.message}
                       InputProps={{
-                        endAdornment: (
-                          <InputAdornment position='end'>h</InputAdornment>
-                        ),
+                        endAdornment: <InputAdornment position='end'>h</InputAdornment>,
                       }}
                       inputProps={{ min: 0 }}
                       sx={{ flex: 1 }}
@@ -180,9 +168,7 @@ export const AddMaintenanceNoteDialog: React.FC<
                       error={!!errors.flightMinutes}
                       helperText={errors.flightMinutes?.message}
                       InputProps={{
-                        endAdornment: (
-                          <InputAdornment position='end'>min</InputAdornment>
-                        ),
+                        endAdornment: <InputAdornment position='end'>min</InputAdornment>,
                       }}
                       inputProps={{ min: 0, max: 59 }}
                       sx={{ flex: 1 }}

@@ -65,14 +65,9 @@ export const UnpaidOverdueInvoices = () => {
                 <Typography variant='body2'>{invoice.invoice_type}</Typography>
               </Grid>
               <Grid size={{ xs: 12, md: 3 }}>
-                <Typography variant='body2'>
-                  {invoice.description || '—'}
-                </Typography>
+                <Typography variant='body2'>{invoice.description || '—'}</Typography>
               </Grid>
-              <Grid
-                size={{ xs: 6, md: 1 }}
-                textAlign={{ xs: 'left', md: 'right' }}
-              >
+              <Grid size={{ xs: 6, md: 1 }} textAlign={{ xs: 'left', md: 'right' }}>
                 <Typography variant='body2'>
                   {invoice.total_sum
                     ? currencyFormatter.format(parseFloat(invoice.total_sum))
@@ -93,8 +88,7 @@ export const UnpaidOverdueInvoices = () => {
         {totalSum !== null && (
           <Box sx={{ mt: 2, textAlign: 'right' }}>
             <Typography variant='h6'>
-              {t('unpaidOverdueInvoices.totalSum')}:{' '}
-              {currencyFormatter.format(totalSum)}
+              {t('unpaidOverdueInvoices.totalSum')}: {currencyFormatter.format(totalSum)}
             </Typography>
           </Box>
         )}

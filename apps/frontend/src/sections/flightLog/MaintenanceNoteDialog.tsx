@@ -116,14 +116,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Icon icon='mdi:wrench' width={20} />
           {t('flightLog.maintenanceNotes.viewTitle')}
-          {note.hilId && (
-            <Chip
-              size='small'
-              label='HIL'
-              color='warning'
-              sx={{ ml: 'auto' }}
-            />
-          )}
+          {note.hilId && <Chip size='small' label='HIL' color='warning' sx={{ ml: 'auto' }} />}
         </DialogTitle>
 
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -131,9 +124,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
             <SnackAlert problem={problem} />
 
             {isEditing ? (
-              <Box
-                sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}
-              >
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
                 <Controller
                   name='description'
                   control={control}
@@ -166,11 +157,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                 />
 
                 <Box>
-                  <Typography
-                    variant='body2'
-                    color='text.secondary'
-                    gutterBottom
-                  >
+                  <Typography variant='body2' color='text.secondary' gutterBottom>
                     {t('flightLog.maintenanceNotes.flightTime')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
@@ -185,9 +172,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                           error={!!errors.flightHours}
                           helperText={errors.flightHours?.message}
                           InputProps={{
-                            endAdornment: (
-                              <InputAdornment position='end'>h</InputAdornment>
-                            ),
+                            endAdornment: <InputAdornment position='end'>h</InputAdornment>,
                           }}
                           inputProps={{ min: 0 }}
                           sx={{ flex: 1 }}
@@ -205,11 +190,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                           error={!!errors.flightMinutes}
                           helperText={errors.flightMinutes?.message}
                           InputProps={{
-                            endAdornment: (
-                              <InputAdornment position='end'>
-                                min
-                              </InputAdornment>
-                            ),
+                            endAdornment: <InputAdornment position='end'>min</InputAdornment>,
                           }}
                           inputProps={{ min: 0, max: 59 }}
                           sx={{ flex: 1 }}
@@ -282,10 +263,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                     <Typography variant='caption' color='text.secondary'>
                       {t('flightLog.maintenanceNotes.hilId')}
                     </Typography>
-                    <Typography
-                      variant='body2'
-                      sx={{ fontFamily: 'monospace' }}
-                    >
+                    <Typography variant='body2' sx={{ fontFamily: 'monospace' }}>
                       {note.hilId}
                     </Typography>
                   </Box>
@@ -313,10 +291,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
               </Button>
             )}
 
-            <Button
-              onClick={isEditing ? handleEditToggle : onClose}
-              variant='outlined'
-            >
+            <Button onClick={isEditing ? handleEditToggle : onClose} variant='outlined'>
               {isEditing ? t('general.cancel') : t('general.close')}
             </Button>
 

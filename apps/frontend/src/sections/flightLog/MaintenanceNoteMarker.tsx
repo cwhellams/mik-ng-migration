@@ -21,10 +21,7 @@ export const MaintenanceNoteMarker: React.FC<MaintenanceNoteMarkerProps> = ({
 
   return (
     <>
-      <Tooltip
-        title={t('flightLog.maintenanceNotes.clickToView')}
-        placement='top'
-      >
+      <Tooltip title={t('flightLog.maintenanceNotes.clickToView')} placement='top'>
         <Chip
           icon={<Icon icon='mdi:wrench' width={16} />}
           label={label}

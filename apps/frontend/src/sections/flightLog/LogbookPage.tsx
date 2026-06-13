@@ -59,7 +59,11 @@ export const buildLogbookRows = (
   logs: FlightLogListEntry[] | undefined,
   pageSize = 0,
 ): LogbookTableRow[] => {
-  const noteDefaults = { note: undefined, isNoteRow: false as const, isNoteBlankRow: false as const }
+  const noteDefaults = {
+    note: undefined,
+    isNoteRow: false as const,
+    isNoteBlankRow: false as const,
+  }
 
   if (!logs?.length) {
     return Array.from({ length: pageSize }, () => ({
@@ -156,7 +160,7 @@ const FlightLogsList = () => {
 
   const { data: maintenanceNotes, mutate: mutateNotes } = useMaintenanceNotes(
     ajlb?.aircraftRegistration,
-    ajlb?.seqNo
+    ajlb?.seqNo,
   )
 
   const theme = useTheme()
@@ -269,9 +273,7 @@ const FlightLogsList = () => {
         }
 
     const result: MergedItem[] = []
-    const notesToInsert = [...maintenanceNotes].sort(
-      (a, b) => a.flightMins - b.flightMins
-    )
+    const notesToInsert = [...maintenanceNotes].sort((a, b) => a.flightMins - b.flightMins)
     let noteIdx = 0
 
     for (let i = 0; i < logsWithEmptyRows.length; i++) {
@@ -281,10 +283,7 @@ const FlightLogsList = () => {
       if (!row.isEmptyRow) {
         const logMins = row.log.acTotalFlightMins ?? 0
         // Insert all notes whose flightMins falls at or before this flight's total
-        while (
-          noteIdx < notesToInsert.length &&
-          notesToInsert[noteIdx].flightMins <= logMins
-        ) {
+        while (noteIdx < notesToInsert.length && notesToInsert[noteIdx].flightMins <= logMins) {
           const note = notesToInsert[noteIdx]
           result.push({
             log: row.log,
@@ -366,10 +365,7 @@ const FlightLogsList = () => {
             if (isNoteRow && note) {
               return (
                 <Box sx={{ gridColumn: '1 / -1', width: '100%', py: 0.25 }}>
-                  <MaintenanceNoteMarker
-                    note={note}
-                    onChanged={() => mutateNotes()}
-                  />
+                  <MaintenanceNoteMarker note={note} onChanged={() => mutateNotes()} />
                 </Box>
               )
             }
@@ -377,7 +373,6 @@ const FlightLogsList = () => {
             if (isNoteBlankRow) {
               return <></>
             }
-
 
             if (isEmptyRow) {
               if (hasEditActions && log && isFlightLogAdmin && log.status === FlightLogStatus.NEW) {
@@ -539,9 +534,7 @@ const FlightLogsList = () => {
           }}
           aircraftRegistration={ajlb.aircraftRegistration}
           ajlbSeqNo={ajlb.seqNo}
-          defaultFlightMins={
-            data?.logs[data.logs.length - 1]?.acTotalFlightMins ?? undefined
-          }
+          defaultFlightMins={data?.logs[data.logs.length - 1]?.acTotalFlightMins ?? undefined}
         />
       )}
     </Box>

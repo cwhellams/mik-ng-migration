@@ -8,6 +8,4 @@ export const MaintenanceNoteFormSchema = z.object({
   blankRowsAfter: z.coerce.number().int().min(0),
 })
 
-export type MaintenanceNoteFormValues = z.infer<
-  typeof MaintenanceNoteFormSchema
->
+export type MaintenanceNoteFormValues = z.infer<typeof MaintenanceNoteFormSchema>

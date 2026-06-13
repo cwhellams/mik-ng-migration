@@ -132,10 +132,7 @@ export const menuItems: MenuItem[] = [
   {
     path: '/accounting',
     label: 'header.accounts',
-    requiredRoles: [
-      MIKPermissions.INVOICING_USER,
-      MIKPermissions.INVOICING_ADMIN,
-    ],
+    requiredRoles: [MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN],
     adminModeOnly: true,
     subItems: [
       {
@@ -181,10 +178,7 @@ export const menuItems: MenuItem[] = [
       {
         label: 'invoicing.tabs.unpaidOverdue',
         path: 'unpaid-overdue',
-        requiredRoles: [
-          MIKPermissions.INVOICING_USER,
-          MIKPermissions.INVOICING_ADMIN,
-        ],
+        requiredRoles: [MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN],
       },
     ],
   },

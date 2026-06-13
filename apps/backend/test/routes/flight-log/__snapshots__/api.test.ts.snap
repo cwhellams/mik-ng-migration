@@ -74,7 +74,7 @@ exports[`GET /flight-log Get flight log with Id should return a single row when 
 
 exports[`GET /flight-log should allow query parameters to be optional 1`] = `
 {
-  "acTotalFlightMins": null,
+  "acTotalFlightMins": 286910,
   "acTotalFlightTime": "4781:50",
   "acTotalLandings": 0,
   "aircraftRegistration": "OH-STL",
@@ -111,7 +111,7 @@ exports[`GET /flight-log should allow query parameters to be optional 1`] = `
 
 exports[`GET /flight-log should only return data for the logged in user when not admin 1`] = `
 {
-  "acTotalFlightMins": null,
+  "acTotalFlightMins": 286910,
   "acTotalFlightTime": "4781:50",
   "acTotalLandings": 0,
   "aircraftRegistration": "OH-STL",
@@ -148,7 +148,7 @@ exports[`GET /flight-log should only return data for the logged in user when not
 
 exports[`GET /flight-log should return 200 for Start Date with time offset 1`] = `
 {
-  "acTotalFlightMins": null,
+  "acTotalFlightMins": 286910,
   "acTotalFlightTime": "4781:50",
   "acTotalLandings": 0,
   "aircraftRegistration": "OH-STL",
@@ -185,7 +185,7 @@ exports[`GET /flight-log should return 200 for Start Date with time offset 1`] =
 
 exports[`GET /flight-log should return 200 with valid query params 1`] = `
 {
-  "acTotalFlightMins": null,
+  "acTotalFlightMins": 286910,
   "acTotalFlightTime": "4781:50",
   "acTotalLandings": 0,
   "aircraftRegistration": "OH-STL",
@@ -223,7 +223,7 @@ exports[`GET /flight-log should return 200 with valid query params 1`] = `
 exports[`GET /flight-log should return all data for ac when user is admin 1`] = `
 [
   {
-    "acTotalFlightMins": null,
+    "acTotalFlightMins": 286805,
     "acTotalFlightTime": "4780:05",
     "acTotalLandings": 0,
     "aircraftRegistration": "OH-STL",
@@ -257,7 +257,7 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
     "totalTimeInService": 1.92,
   },
   {
-    "acTotalFlightMins": null,
+    "acTotalFlightMins": 286910,
     "acTotalFlightTime": "4781:50",
     "acTotalLandings": 0,
     "aircraftRegistration": "OH-STL",
@@ -291,7 +291,7 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
     "totalTimeInService": 2,
   },
   {
-    "acTotalFlightMins": null,
+    "acTotalFlightMins": 287000,
     "acTotalFlightTime": "4783:20",
     "acTotalLandings": 0,
     "aircraftRegistration": "OH-STL",
@@ -325,6 +325,7 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
     "totalTimeInService": 1.5,
   },
   {
+    "acTotalFlightMins": 700060,
     "acTotalFlightTime": "11667:40",
     "acTotalLandings": 0,
     "aircraftRegistration": "OH-STL",
@@ -358,6 +359,7 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
     "totalTimeInService": 1,
   },
   {
+    "acTotalFlightMins": 700120,
     "acTotalFlightTime": "11668:40",
     "acTotalLandings": 0,
     "aircraftRegistration": "OH-STL",
@@ -391,6 +393,7 @@ exports[`GET /flight-log should return all data for ac when user is admin 1`] = 
     "totalTimeInService": 1,
   },
   {
+    "acTotalFlightMins": 700180,
     "acTotalFlightTime": "11669:40",
     "acTotalLandings": 0,
     "aircraftRegistration": "OH-STL",

@@ -35,7 +35,7 @@ export const UpdateMaintenanceNoteSchema = z
     blankRowsAfter: z.number().int().min(0).optional(),
     hilId: z.string().uuid().nullable().optional(),
   })
-  .refine(data => Object.keys(data).length > 0, {
+  .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided',
   })
 

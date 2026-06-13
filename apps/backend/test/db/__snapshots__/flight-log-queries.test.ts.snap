@@ -221,7 +221,7 @@ exports[`Db query FlightLog tests getFlightLogs between start and end date shoul
 
 exports[`Db query FlightLog tests getFlightLogs for end date should match snapshot 1`] = `
 {
-  "acTotalFlightMins": null,
+  "acTotalFlightMins": 286805,
   "acTotalFlightTime": "4780:05",
   "acTotalLandings": 0,
   "aircraftRegistration": "OH-STL",
@@ -261,7 +261,7 @@ exports[`Db query FlightLog tests getFlightLogs for specific member id should ma
   "limit": 50,
   "logs": [
     {
-      "acTotalFlightMins": null,
+      "acTotalFlightMins": 286805,
       "acTotalFlightTime": "4780:05",
       "acTotalLandings": 0,
       "aircraftRegistration": "OH-STL",
@@ -340,7 +340,7 @@ exports[`Db query FlightLog tests getFlightLogs for start date should match snap
 
 exports[`Db query FlightLog tests getFlightLogs with Captain and copilot should return filtered logs 1`] = `
 {
-  "acTotalFlightMins": null,
+  "acTotalFlightMins": 286910,
   "acTotalFlightTime": "4781:50",
   "acTotalLandings": 0,
   "aircraftRegistration": "OH-STL",
