@@ -205,7 +205,7 @@ router.get(
         // Strip 'mp3/' prefix and normalize visibility
         const modifiedData = {
           ...response.data,
-          states: response.data.states.map(state => {
+          states: response.data.states.map((state) => {
             const report = state.report
             let vis_km = report.vis_km
             let vis_km_full = report.vis_km_full

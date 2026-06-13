@@ -30,8 +30,7 @@ import { useTimezone } from '../../../hooks/useTimezone'
 
 dayjs.extend(utc)
 
-const WEATHER_WIDGET_STORAGE_KEY = (site: string) =>
-  `weatherWidget.${site}.expanded`
+const WEATHER_WIDGET_STORAGE_KEY = (site: string) => `weatherWidget.${site}.expanded`
 
 const PHONETIC_ALPHABET: Record<string, string> = {
   A: 'Alpha',
@@ -263,16 +262,10 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                     size='small'
                     color='primary'
                     onClick={handleToggleAudio}
-                    aria-label={
-                      isPlaying ? 'Stop ATIS audio' : 'Listen to ATIS audio'
-                    }
+                    aria-label={isPlaying ? 'Stop ATIS audio' : 'Listen to ATIS audio'}
                     sx={{ ml: 0.5 }}
                   >
-                    {isPlaying ? (
-                      <StopIcon fontSize='small' />
-                    ) : (
-                      <VolumeUpIcon fontSize='small' />
-                    )}
+                    {isPlaying ? <StopIcon fontSize='small' /> : <VolumeUpIcon fontSize='small' />}
                   </IconButton>
                 )}
                 <Box sx={{ display: 'none' }}>
@@ -486,14 +479,8 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                       height: '100%',
                     }}
                   >
-                    <Typography
-                      variant='caption'
-                      color='text.secondary'
-                      sx={{ mb: 0.5 }}
-                    >
-                      {site === 'efnu'
-                        ? 'Wind Rose - 10 min'
-                        : 'Current Wind Direction'}
+                    <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5 }}>
+                      {site === 'efnu' ? 'Wind Rose - 10 min' : 'Current Wind Direction'}
                     </Typography>
                     {(report?.wind_rose?.length ?? 0) > 0 && (
                       <WindRose
