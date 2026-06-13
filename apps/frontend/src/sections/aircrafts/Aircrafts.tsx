@@ -19,6 +19,8 @@ import {
   Paper,
   IconButton,
   Tooltip,
+  FormControlLabel,
+  Switch,
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
 import {
@@ -53,8 +55,11 @@ import { formatHHMM } from '../../utils/format'
 import { useTimezone } from '../../hooks/useTimezone'
 
 const Aircrafts = () => {
+  const [showInactive, setShowInactive] = useState(false)
+
   const { data, isLoading, error } = useApi<AircraftListResponse, Aircraft>({
     url: 'v1/aircrafts',
+    params: { activeOnly: !showInactive },
   })
 
   const { isAircraftAdmin, isInvoicingAdmin } = useRoles()
@@ -283,14 +288,25 @@ const Aircrafts = () => {
     <Box>
       <Title label={t('header.aircrafts')}>
         {isAircraftAdmin && (
-          <EditButton
-            title={t('aircraft.edit.new')}
-            onClick={() => {
-              setEditData(undefined)
-              setEditMode('new')
-            }}
-            icon='mdi:plus'
-          />
+          <>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showInactive}
+                  onChange={(e) => setShowInactive(e.target.checked)}
+                />
+              }
+              label={t('aircraft.showActive')}
+            />
+            <EditButton
+              title={t('aircraft.edit.new')}
+              onClick={() => {
+                setEditData(undefined)
+                setEditMode('new')
+              }}
+              icon='mdi:plus'
+            />
+          </>
         )}
       </Title>
 
