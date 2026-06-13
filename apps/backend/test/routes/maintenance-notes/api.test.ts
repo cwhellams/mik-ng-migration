@@ -139,7 +139,7 @@ describe('POST /maintenance-notes', () => {
     expect(res.status).toBe(401)
   })
 
-  it('returns 403 when user lacks permission', async () => {
+  it('returns 403 when user lacks FLIGHTLOG_USER permission', async () => {
     const res = await request(app)
       .post('/maintenance-notes')
       .set('Cookie', `accessToken=${noAccessToken}`)
@@ -154,10 +154,25 @@ describe('POST /maintenance-notes', () => {
     expect(res.status).toBe(403)
   })
 
-  it('returns 400 for missing required fields', async () => {
+  it('returns 403 when user has FLIGHTLOG_USER but not FLIGHTLOG_ADMIN', async () => {
     const res = await request(app)
       .post('/maintenance-notes')
       .set('Cookie', `accessToken=${ownerToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'test',
+        performedBy: 'Matti',
+        flightMins: 100,
+      })
+
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 400 for missing required fields', async () => {
+    const res = await request(app)
+      .post('/maintenance-notes')
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({ aircraftRegistration: AIRCRAFT })
 
     expect(res.status).toBe(400)
@@ -166,7 +181,7 @@ describe('POST /maintenance-notes', () => {
   it('returns 201 with created note', async () => {
     const res = await request(app)
       .post('/maintenance-notes')
-      .set('Cookie', `accessToken=${ownerToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .send({
         aircraftRegistration: AIRCRAFT,
         ajlbSeqNo: AJLB_SEQ_NO,
