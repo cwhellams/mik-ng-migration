@@ -264,7 +264,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     logs: results.map((row) => {
       const res: FlightLogListEntry = {
         acTotalFlightTime: row.ajlb_total_flight_time ?? row.ac_total_flight_time ?? '00:00',
-        acTotalLandings: row.ajlb_total_landings ?? row.ac_total_landings ?? null,
+        acTotalLandings: row.ajlb_total_landings ?? null,
         aircraftRegistration: row.aircraft_registration,
         ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
         ajlbSeqNo: row.ajlb_seq_no,
