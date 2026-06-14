@@ -16,6 +16,8 @@ function mapRowToNote(row: {
   hil_id: string | null
   created_at: Date
   created_by: string
+  updated_at?: Date
+  updated_by?: string
 }): MaintenanceNote {
   return {
     noteId: row.note_id,
@@ -50,6 +52,7 @@ export async function createMaintenanceNote(
   data: CreateMaintenanceNoteRequest,
   createdBy: string,
 ): Promise<MaintenanceNote> {
+  const now = new Date()
   const row = await connection.db
     .insertInto('flight.maintenance_note')
     .values({
@@ -60,8 +63,10 @@ export async function createMaintenanceNote(
       flight_mins: data.flightMins,
       blank_rows_after: data.blankRowsAfter,
       hil_id: data.hilId ?? null,
-      created_at: new Date(),
+      created_at: now,
       created_by: createdBy,
+      updated_at: now,
+      updated_by: createdBy,
     })
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -72,6 +77,7 @@ export async function createMaintenanceNote(
 export async function updateMaintenanceNote(
   noteId: string,
   data: UpdateMaintenanceNoteRequest,
+  updatedBy: string,
   createdByFilter?: string,
 ): Promise<MaintenanceNote | undefined> {
   let query = connection.db
@@ -82,6 +88,8 @@ export async function updateMaintenanceNote(
       ...(data.flightMins !== undefined && { flight_mins: data.flightMins }),
       ...(data.blankRowsAfter !== undefined && { blank_rows_after: data.blankRowsAfter }),
       ...(data.hilId !== undefined && { hil_id: data.hilId }),
+      updated_at: new Date(),
+      updated_by: updatedBy,
     })
     .where('note_id', '=', noteId)
   if (createdByFilter !== undefined) {
@@ -91,16 +99,8 @@ export async function updateMaintenanceNote(
   return row ? mapRowToNote(row) : undefined
 }
 
-export async function deleteMaintenanceNote(
-  noteId: string,
-  createdByFilter?: string,
-): Promise<MaintenanceNote | undefined> {
-  let query = connection.db.deleteFrom('flight.maintenance_note').where('note_id', '=', noteId)
-  if (createdByFilter !== undefined) {
-    query = query.where('created_by', '=', createdByFilter)
-  }
-  const row = await query.returningAll().executeTakeFirst()
-  return row ? mapRowToNote(row) : undefined
+export async function deleteMaintenanceNote(noteId: string): Promise<void> {
+  await connection.db.deleteFrom('flight.maintenance_note').where('note_id', '=', noteId).execute()
 }
 
 export async function getMaintenanceNote(noteId: string): Promise<MaintenanceNote | undefined> {
