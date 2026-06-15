@@ -1,5 +1,5 @@
-# Use Node.js 23 as the base image for building
-FROM node:23-alpine AS builder
+# Use Node.js 24 as the base image for building
+FROM node:24-alpine AS builder
 
 # Install corepack and enable pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -17,7 +17,7 @@ COPY apps/backend/package.json ./apps/backend/
 RUN pnpm install --frozen-lockfile
 
 # Create minimal production image
-FROM node:23-alpine AS production
+FROM node:24-alpine AS production
 
 # Install corepack and enable pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
