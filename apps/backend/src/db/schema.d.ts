@@ -35,6 +35,8 @@ export type CancellationReason =
 
 export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
 
+export type DefectStatus = 'ACTIVE' | 'MOVED_TO_HIL' | 'RESOLVED'
+
 export type DtoItemOutcome = 'COMPLETED' | 'FAILED' | 'MOVED_TO_HIL'
 
 export type DtoSyllabusStatus = 'ARCHIVED' | 'DRAFT' | 'PUBLISHED' | 'WAITING_FOR_APPROVAL'
@@ -605,6 +607,80 @@ export interface FlightLogs {
   validation_remarks: string | null
 }
 
+export interface FlightAircraftHil {
+  aircraft_registration: string
+  created_at: Generated<Timestamp>
+  created_by: string
+  defect_cat: string
+  description: string
+  due_date: Timestamp
+  hil_id: Generated<string>
+  hil_number: number
+  name: string
+  open_date: Timestamp
+  resolved_note_id: string | null
+  source_ref: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface FlightAircraftHilAudit {
+  audit_id: Generated<number>
+  changed_at: Generated<Timestamp>
+  changed_by: string
+  changed_data: Json | null
+  hil_id: string
+  new_data: Json | null
+  operation_type: string
+}
+
+export interface FlightAircraftHilExtension {
+  created_at: Generated<Timestamp>
+  created_by: string
+  extension_date: Timestamp
+  extension_due: Timestamp
+  extension_id: Generated<string>
+  hil_id: string
+  name: string
+}
+
+export interface FlightAircraftHilExtensionAudit {
+  audit_id: Generated<number>
+  changed_at: Generated<Timestamp>
+  changed_by: string
+  changed_data: Json | null
+  extension_id: string
+  new_data: Json | null
+  operation_type: string
+}
+
+export interface FlightDefect {
+  aircraft_registration: string
+  ajlb_seq_no: number
+  blank_rows_after: Generated<number>
+  created_at: Generated<Timestamp>
+  created_by: string
+  defect_id: Generated<string>
+  description: string
+  flight_id: string | null
+  flight_mins: number
+  hil_id: string | null
+  resolved_note_id: string | null
+  status: Generated<DefectStatus>
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface FlightDefectAudit {
+  audit_id: Generated<number>
+  changed_at: Generated<Timestamp>
+  changed_by: string
+  changed_data: Json | null
+  defect_id: string
+  new_data: Json | null
+  operation_type: string
+}
+
 export interface FlightLogsAudit {
   audit_id: Generated<number>
   changed_at: Generated<Timestamp>
@@ -626,6 +702,18 @@ export interface FlightMaintenanceNote {
   hil_id: string | null
   note_id: Generated<string>
   performed_by: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface FlightMaintenanceNoteAudit {
+  audit_id: Generated<number>
+  changed_at: Generated<Timestamp>
+  changed_by: string
+  changed_data: Json | null
+  new_data: Json | null
+  note_id: string
+  operation_type: string
 }
 
 export interface FlightOccurrenceAccess {
@@ -1463,13 +1551,20 @@ export interface DB {
   'flight.aircraft': FlightAircraft
   'flight.aircraft_cards': FlightAircraftCards
   'flight.aircraft_documents_files': FlightAircraftDocumentsFiles
+  'flight.aircraft_hil': FlightAircraftHil
+  'flight.aircraft_hil_audit': FlightAircraftHilAudit
+  'flight.aircraft_hil_extension': FlightAircraftHilExtension
+  'flight.aircraft_hil_extension_audit': FlightAircraftHilExtensionAudit
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
   'flight.aircraft_navdata': FlightAircraftNavdata
+  'flight.defect': FlightDefect
+  'flight.defect_audit': FlightDefectAudit
   'flight.flight_credits': FlightFlightCredits
   'flight.fuel_types': FlightFuelTypes
   'flight.logs': FlightLogs
   'flight.logs_audit': FlightLogsAudit
   'flight.maintenance_note': FlightMaintenanceNote
+  'flight.maintenance_note_audit': FlightMaintenanceNoteAudit
   'flight.occurrence_access': FlightOccurrenceAccess
   'flight.occurrences': FlightOccurrences
   'flight.vw_flight_logs': FlightVwFlightLogs
