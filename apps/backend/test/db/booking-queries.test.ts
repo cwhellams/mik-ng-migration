@@ -61,13 +61,21 @@ describe('Db Get Booking by id', () => {
 
 describe('Db Get Bookings', () => {
   it('get test data bookings from single plane', async () => {
+    const todayStart = dayjs().startOf('day')
     const result = await bookingQueries.getBookings({
       registration: ['OH-STL'],
-      from: dayjs().startOf('day').toISOString(),
+      from: todayStart.toISOString(),
       showCancelled: true,
     })
-    expect(result.length).toBeGreaterThanOrEqual(20)
-    expect(result[0].bookingId).toEqual('stl1')
+    expect(result.length).toBeGreaterThan(0)
+    // All returned bookings must be for OH-STL
+    expect(result.every((b) => b.registration === 'OH-STL')).toBe(true)
+    // All returned bookings must start on or after today (from filter works)
+    expect(result.every((b) => dayjs(b.startTime) >= todayStart)).toBe(true)
+    // Results must be ordered by start time ascending
+    for (let i = 1; i < result.length; i++) {
+      expect(result[i - 1].startTime <= result[i].startTime).toBe(true)
+    }
   })
 
   it('getBookings in reverse order with limit', async () => {

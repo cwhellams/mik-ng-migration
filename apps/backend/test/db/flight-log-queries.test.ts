@@ -677,24 +677,42 @@ describe('Db Flight statistics', () => {
     const result = await getFlightStats('k1mnimda', true)
     expect(result).toEqual([])
   })
-  it.skip('get flights statistics with single plane', async () => {
+  it('get flights statistics with single plane', async () => {
     const result = await getFlightStats('Matti1', true)
+    // V203 added stl3fn1/fn2/fn3 (OH-STL) and ihq3fn1/fn2/fn3 (OH-IHQ) for Matti1.
+    // Rolling-window fields use expect.any(Number) because they depend on current date.
     expect(result).toEqual([
       {
         aircraftRegistration: 'OH-STL',
-        landings12month: 1,
-        landings1month: 0,
-        landings3month: 0,
-        landings6month: 0,
-        lastFlightId: 'bLwnAstr0',
-        lastTakeoffTimeUtc: '2025-03-03T10:30:00.000Z',
-        time12month: 90,
-        time1month: 0,
-        time3month: 0,
-        time6month: 0,
-        totalFlightMins: 195,
-        totalFlights: 2,
-        totalLandings: 2,
+        landings12month: expect.any(Number),
+        landings1month: expect.any(Number),
+        landings3month: expect.any(Number),
+        landings6month: expect.any(Number),
+        lastFlightId: 'stl3fn3',
+        lastTakeoffTimeUtc: '2025-06-03T10:10:00.000Z',
+        time12month: expect.any(Number),
+        time1month: expect.any(Number),
+        time3month: expect.any(Number),
+        time6month: expect.any(Number),
+        totalFlightMins: 375,
+        totalFlights: 5,
+        totalLandings: 5,
+      },
+      {
+        aircraftRegistration: 'OH-IHQ',
+        landings12month: expect.any(Number),
+        landings1month: expect.any(Number),
+        landings3month: expect.any(Number),
+        landings6month: expect.any(Number),
+        lastFlightId: 'ihq3fn3',
+        lastTakeoffTimeUtc: '2025-05-03T10:10:00.000Z',
+        time12month: expect.any(Number),
+        time1month: expect.any(Number),
+        time3month: expect.any(Number),
+        time6month: expect.any(Number),
+        totalFlightMins: 180,
+        totalFlights: 3,
+        totalLandings: 3,
       },
     ])
   })
@@ -738,21 +756,21 @@ describe('Db Flight statistics', () => {
     expect(result.map((item) => item.aircraftRegistration)).toEqual(['OH-P28', 'OH-IHQ'])
   })
 
-  it.skip('get flights statistics with multiple planes where only one is active', async () => {
+  it('get flights statistics with multiple planes where only one is active', async () => {
     const result = await getFlightStats('Jukka1', true)
     expect(result).toEqual([
       {
         aircraftRegistration: 'OH-IHQ',
-        landings12month: 2,
-        landings1month: 0,
-        landings3month: 0,
-        landings6month: 0,
+        landings12month: expect.any(Number),
+        landings1month: expect.any(Number),
+        landings3month: expect.any(Number),
+        landings6month: expect.any(Number),
         lastFlightId: 'efnu4evr',
         lastTakeoffTimeUtc: '2025-03-02T09:20:00.000Z',
-        time12month: 120,
-        time1month: 0,
-        time3month: 0,
-        time6month: 0,
+        time12month: expect.any(Number),
+        time1month: expect.any(Number),
+        time3month: expect.any(Number),
+        time6month: expect.any(Number),
         totalFlightMins: 120,
         totalFlights: 1,
         totalLandings: 2,
