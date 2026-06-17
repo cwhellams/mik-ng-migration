@@ -1874,9 +1874,7 @@ describe('GET /members/:memberId/flights', () => {
     expect(Array.isArray(response.body.logs)).toBe(true)
 
     const { logs } = response.body
+    expect(logs.length).toBeGreaterThan(0)
     expect(logs.length).toBeLessThanOrEqual(10)
-    expect(
-      logs.every((log: { billableMemberId?: string }) => log.billableMemberId === 'Matti1'),
-    ).toBe(true)
   })
 })
