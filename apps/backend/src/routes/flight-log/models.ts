@@ -54,6 +54,7 @@ export const FlightLogFiltersSchema = z
   .object({
     flightId: z.string().optional(),
     billableMemberId: z.string().optional(),
+    anyCrewMemberId: z.string().optional(),
     aircraftRegistration: z.string().optional(),
     ajlbSeqNo: z.coerce.number().int().optional(),
     pic: z.string().optional(),

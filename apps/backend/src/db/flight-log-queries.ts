@@ -148,6 +148,15 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     .$if(!!filters.billableMemberId, (qb) =>
       qb.where('billable_member_id', '=', filters.billableMemberId!),
     )
+    .$if(!!filters.anyCrewMemberId, (qb) =>
+      qb.where((eb) =>
+        eb('billable_member_id', '=', filters.anyCrewMemberId!)
+          .or('pic_member_id', '=', filters.anyCrewMemberId!)
+          .or('crew2_member_id', '=', filters.anyCrewMemberId!)
+          .or('crew3_member_id', '=', filters.anyCrewMemberId!)
+          .or('crew4_member_id', '=', filters.anyCrewMemberId!),
+      ),
+    )
     .$if(!!filters.pic, (qb) => qb.where('pic_member_id', '=', filters.pic!))
     .$if(!!filters.crew2, (qb) => qb.where('crew2_member_id', '=', filters.crew2!))
     .$if(!!filters.crew3, (qb) => qb.where('crew3_member_id', '=', filters.crew3!))

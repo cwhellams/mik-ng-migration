@@ -107,7 +107,7 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
   const filters: FlightLogFilters = {
     ...data,
     ...(!isFlightLogAdmin(req.user) && data.ajlbSeqNo == undefined
-      ? { billableMemberId: req.user!.memberId }
+      ? { billableMemberId: req.user!.memberId, anyCrewMemberId: undefined }
       : {}),
   }
 

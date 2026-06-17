@@ -614,7 +614,7 @@ router.get(
     }
 
     const result = await getFlightLogs({
-      billableMemberId: memberId,
+      anyCrewMemberId: memberId,
       limit: 10,
       orderLatestFirst: true,
     })
