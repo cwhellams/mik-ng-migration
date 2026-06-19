@@ -1,12 +1,12 @@
-FROM alpine:edge
+FROM alpine:3.22
 
 # Install dependencies
-# postgresql18-client: for pg_dump (matches your DB version)
+# postgresql17-client: for pg_dump
 # aws-cli: for uploading to R2
 # openssl: for encryption
 # bash: for the backup script
 RUN apk add --no-cache \
-    postgresql18-client \
+    postgresql17-client \
     openssl \
     aws-cli \
     bash
