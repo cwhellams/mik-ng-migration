@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import cron from 'node-cron'
+import cron, { type ScheduledTask } from 'node-cron'
 import {
   getOverdueInvoicesWithoutReminder,
   markOverdueEmailSent,
@@ -27,7 +27,7 @@ import {
   reservationSuspendedEmailBodyHtml,
 } from '../templates/reservationSuspendedEmailTemplate.ts'
 
-let scheduledTask: cron.ScheduledTask | null = null
+let scheduledTask: ScheduledTask | null = null
 
 export interface OverdueInvoiceWorkerDeps {
   sendEmailFn?: typeof sendEmail

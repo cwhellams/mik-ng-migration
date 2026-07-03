@@ -1,10 +1,10 @@
 import 'dotenv/config'
 
-import cron from 'node-cron'
+import cron, { type ScheduledTask } from 'node-cron'
 import { deleteExpiredTinyUrls } from '../db/tiny-url-queries.ts'
 import logger from '../lib/logger.ts'
 
-let scheduledTask: cron.ScheduledTask | null = null
+let scheduledTask: ScheduledTask | null = null
 
 export interface TinyUrlCleanupWorkerDeps {
   cronSchedule?: typeof cron.schedule

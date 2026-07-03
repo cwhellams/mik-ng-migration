@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import cron from 'node-cron'
+import cron, { type ScheduledTask } from 'node-cron'
 import dayjs from 'dayjs'
 import {
   getQualificationsByExpiryDate,
@@ -19,7 +19,7 @@ import {
   TRAINING_EMAIL,
 } from '../templates/qualificationExpiryEmailTemplate.ts'
 
-let scheduledTask: cron.ScheduledTask | null = null
+let scheduledTask: ScheduledTask | null = null
 
 export interface QualificationExpiryWorkerDeps {
   sendEmailFn?: typeof sendEmail

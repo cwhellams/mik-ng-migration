@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import cron from 'node-cron'
+import cron, { type ScheduledTask } from 'node-cron'
 import { claimUpcomingBookingsForReminder } from '../db/booking-queries.ts'
 import { getMemberById } from '../db/member-queries.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
@@ -10,7 +10,7 @@ import {
   bookingReminderEmailBodyHtml,
 } from '../templates/bookingReminderEmailTemplate.ts'
 
-let scheduledTask: cron.ScheduledTask | null = null
+let scheduledTask: ScheduledTask | null = null
 
 export interface BookingReminderWorkerDeps {
   sendEmailFn?: typeof sendEmail

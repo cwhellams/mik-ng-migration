@@ -28,7 +28,7 @@ import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   FlightLog,
@@ -139,7 +139,7 @@ const FlightLogEntry = () => {
   // Note: if memberList is still loading, role checks are skipped — but the
   // member dropdown itself also shows no qualified members until loaded, so
   // an unqualified selection cannot be made before the list arrives.
-  const formResolver = useMemo(() => {
+  const formResolver = useMemo((): Resolver<FlightLogUpsertRequest> => {
     const baseResolver = zodResolver(flightLogDateValidator(FlightLogUpsertSchema.strip()), {})
     return async (...args: Parameters<typeof baseResolver>) => {
       const [values] = args
@@ -211,7 +211,7 @@ const FlightLogEntry = () => {
       }
 
       return {
-        values: result.values,
+        values: {},
         errors: { ...result.errors, ...additionalErrors },
       }
     }

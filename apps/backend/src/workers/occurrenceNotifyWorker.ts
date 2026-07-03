@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import cron from 'node-cron'
+import cron, { type ScheduledTask } from 'node-cron'
 import logger from '../lib/logger.ts'
 import { getOccurrences } from '../db/occurrence-queries.ts'
 import { OccurrenceStatus } from '../routes/occurrences/models.ts'
@@ -9,7 +9,7 @@ import { sendEmail } from '../lib/sendGmail.ts'
 import { MIKPermissions } from '../routes/members/models.ts'
 import { getMemberRolesByPermission } from '../db/member-queries.ts'
 
-let scheduledTask: cron.ScheduledTask | null = null
+let scheduledTask: ScheduledTask | null = null
 
 export interface NotificationWorkerDeps {
   sendEmailFn?: typeof sendEmail

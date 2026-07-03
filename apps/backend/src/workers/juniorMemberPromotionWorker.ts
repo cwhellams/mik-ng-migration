@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import cron from 'node-cron'
+import cron, { type ScheduledTask } from 'node-cron'
 import { getJuniorMembersTurning18Today, promoteMemberToFlying } from '../db/member-queries.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
 import logger from '../lib/logger.ts'
@@ -9,7 +9,7 @@ import {
   juniorPromotionEmailBodyHtml,
 } from '../templates/juniorPromotionEmailTemplate.ts'
 
-let scheduledTask: cron.ScheduledTask | null = null
+let scheduledTask: ScheduledTask | null = null
 
 export interface JuniorMemberPromotionWorkerDeps {
   sendEmailFn?: typeof sendEmail

@@ -1,6 +1,6 @@
 import 'dotenv/config'
 
-import cron from 'node-cron'
+import cron, { type ScheduledTask } from 'node-cron'
 import Bottleneck from 'bottleneck'
 import { getUnpaidInvoicesWithSimplbooksRef, markInvoiceAsPaid } from '../db/invoicing-queries.ts'
 import { getInvoice } from '../services/simplbooks/simplbooksApiClient.ts'
@@ -14,7 +14,7 @@ const limiter = new Bottleneck({
   maxConcurrent: 1, // Only 1 concurrent request at a time
 })
 
-let scheduledTask: cron.ScheduledTask | null = null
+let scheduledTask: ScheduledTask | null = null
 
 export interface SimplbooksInvoicePaymentWorkerDeps {
   getInvoice?: (id: number) => Promise<InvoiceResponse>

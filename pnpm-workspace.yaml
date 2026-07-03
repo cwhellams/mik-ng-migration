@@ -44,3 +44,6 @@ packageExtensions:
   '@event-driven-io/emmett-postgresql@*':
     dependencies:
       uuid: ^14.0.0
+
+minimumReleaseAgeExclude:
+  - '@types/node@26.0.0'
