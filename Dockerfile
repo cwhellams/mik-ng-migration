@@ -1,8 +1,8 @@
 # Use Node.js 26 as the base image for building
 FROM node:26-alpine AS builder
 
-# Install corepack and enable pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm
+RUN npm install -g pnpm@11.3.0
 
 # Set working directory in the container
 WORKDIR /usr/src/app
@@ -19,8 +19,8 @@ RUN pnpm install --frozen-lockfile
 # Create minimal production image
 FROM node:26-alpine AS production
 
-# Install corepack and enable pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm 
+RUN npm install -g pnpm@11.3.0
 
 # Create app directory and non-root user
 RUN mkdir -p /home/node/app && chown -R node:node /home/node/app
