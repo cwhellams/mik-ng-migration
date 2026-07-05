@@ -47,7 +47,13 @@
     "dtoVerify": "Verifiera flygningar",
     "dtoProgress": "Elevens framsteg",
     "events": "Händelser",
-    "eventsAdmin": "Händelseadmin"
+    "eventsAdmin": "Händelseadmin",
+    "expenses": "Utgifter",
+    "myExpenses": "Mina utgifter",
+    "newExpense": "Nytt utgiftsanspråk",
+    "expenseClaims": "Utgiftsanspråk",
+    "mileageAllowances": "Kilometetersättning",
+    "costCentres": "Kostnadsställen"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -194,7 +200,11 @@
       "refreshToken": "Uppdatera de senaste behörigheterna för omedelbar användning",
       "roles": "Redigera medlemsroller",
       "licence": "Redigera licensinformation",
-      "billing": "Redigera inställningar för automatisk förnyelse av fakturering"
+      "billing": "Redigera inställningar för automatisk förnyelse av fakturering",
+      "bankDetails": "Redigera bankuppgifter"
+    },
+    "bankDetails": {
+      "title": "Bankuppgifter för ersättningar"
     },
     "isMembershipExpired": "Medlemskap har gått ut",
     "billingInfo": {
@@ -226,6 +236,9 @@
       "insecureContext": "Passnycklar kräver en säker HTTPS-anslutning."
     },
     "lang": "Språk",
+    "iban": "IBAN (för utgiftsersättningar)",
+    "ibanHelper": "Spara ditt bankkonto IBAN här så att det fylls i automatiskt i utgiftsanspråk.",
+    "ibanAccountName": "Kontoinnehavarens namn",
     "memberType": "Medlemstyp",
     "types": {
       "flying": "Fullständig medlem",
@@ -702,6 +715,28 @@
     "dateFormat": "YYYY-MM-DD",
     "close": "Stäng"
   },
+  "mileageAllowances": {
+    "title": "Kilometetersättning",
+    "formTitle": "Ställ in kilometetersättning",
+    "taxYear": "Skatteår",
+    "ratePerKm": "Ersättning (€/km)",
+    "ratePerKmHint": "Skatteverktes officiella km-ersättning",
+    "discountPct": "Klubbrabatt (%)",
+    "discountPctHint": "Andel av officiell ersättning som klubben betalar",
+    "effectiveRate": "Effektiv ersättning",
+    "updatedAt": "Senast uppdaterad",
+    "updatedBy": "Uppdaterad av",
+    "saveSuccess": "Kilometetersättning sparad."
+  },
+  "costCentres": {
+    "title": "Kostnadsställen",
+    "formTitle": "Lägg till eller redigera kostnadsställe",
+    "code": "Kod",
+    "description": "Beskrivning",
+    "history": "Konfigurerade kostnadsställen",
+    "saveSuccess": "Kostnadsställe sparat.",
+    "deleteConfirm": "Ta bort kostnadsställe {{code}}?"
+  },
   "billing": {
     "title": "Mina fakturor",
     "filters": {
@@ -738,7 +773,7 @@
   },
   "invoiceItems": {
     "title": "Fakturaposter",
-    "infoText": "Dessa är Simplbooks faktura-'poster' som hålls i vårt redovisningssystem. När poster läggs till eller ändras i Simplbooks bör du ladda om från Simplbooks. Denna data är endast för informationssyfte och kan inte redigeras här.",
+    "infoText": "Dessa är Simplbooks faktura-'poster' som hålls i vårt redovisningssystem. När poster läggs till eller ändras i Simplbooks bör du ladda om från Simplbooks. Du kan markera vilka poster som får användas på utgiftsrader i utläggsansökningar.",
     "reloadFromSimplbooksTooltip": "Detta kommer att anropa Simplbooks för att uppdatera alla redovisningsposter",
     "reloadFromSimplbooks": "Ladda om från Simplbooks",
     "failedToLoad": "Misslyckades med att ladda poster",
@@ -749,6 +784,7 @@
     "markup": "Påslag",
     "type": "Typ",
     "unit": "Enhet",
+    "expenseClaimItem": "Utläggspost",
     "dates": {
       "sent": "Skickad:",
       "due": "Förfaller:"
@@ -813,6 +849,12 @@
     "fuelUpliftLitres": "Bränslepåfyllning (liter)",
     "fuelRemainingLitres": "Bränsle kvar",
     "oilUpliftLitres": "Oljepåfyllning (liter)",
+    "createFuelExpenseClaim": "Skapa bränsleersättning",
+    "copyFlightId": "Kopiera flyg-ID",
+    "fuelTypeUnknown": "Okänd / ej angiven",
+    "fuelClaimCreated": "Utkast för bränsleanspråk skapat.",
+    "fuelClaimCreateError": "Det gick inte att skapa utgiftsanspråket.",
+    "openExpenseClaim": "Öppna anspråk",
     "billingInfo": "Faktureringsinformation",
     "adminUse": "Adminanvandning",
     "billableMemberId": "Fakturerbart medlems-ID",
@@ -2047,6 +2089,159 @@
       "description": "Beskrivning",
       "isPublic": "Offentlig händelse",
       "isPublicHint": "Offentliga händelser visas på MIK.fi-webbplatsen och är tillgängliga utan inloggning."
+    }
+  },
+  "expenses": {
+    "title": "Utgiftsanspråk",
+    "new": "Nytt utgiftsanspråk",
+    "pendingInfoEditNotice": "Administratören har begärt ytterligare information. Gör dina ändringar och skicka in anspråket igen.",
+    "mileage": {
+      "sectionTitle": "Resänuppgifter (krävs för skattemässiga ändamål)",
+      "route": "Rutt",
+      "routeHint": "t.ex. Helsingfors – Tammerfors – Helsingfors",
+      "journeyDate": "Resedatum",
+      "distanceKm": "Avstånd (km)",
+      "passengers": "Passagerare",
+      "passengerName": "Passagerarens namn",
+      "addPassenger": "Lägg till",
+      "estimatedAmount": "Beräknad ersättning",
+      "lineItemDescription": "Kilometetersättning",
+      "hetu": "Personnummer (HETU)",
+      "hetuHint": "Krävs för skattemässiga ändamål. Lagras krypterat och syns inte efter sparande.",
+      "boardApprovalRequired": "Denna resa överskrider gränsen på {{maxKm}} km och kräver styrelsens godkännande.",
+      "boardApprovedLabel": "Jag bekräftar att styrelsen har godkänt denna resa"
+    },
+    "status": {
+      "DRAFT": "Utkast",
+      "SUBMITTED": "Inskickad",
+      "PENDING_INFO": "Väntar på info",
+      "APPROVED": "Godkänd",
+      "REJECTED": "Avvisad",
+      "SYNCED": "Behandlad"
+    },
+    "category": {
+      "fuel": "Bränsle",
+      "mileage": "Kilometerersättning",
+      "travel": "Resa",
+      "misc": "Övrigt",
+      "aircraft_supplies": "Flygplansinköp",
+      "web": "Webb/Hosting"
+    },
+    "fields": {
+      "title": "Titel",
+      "description": "Beskrivning",
+      "category": "Kategori",
+      "aircraft": "Flygplan",
+      "aircraftOptional": "— Inget flygplan —",
+      "fuelLitres": "Bränsle (liter)",
+      "fuelType": "Bränsletyp",
+      "lineItems": "Rader",
+      "receipt": "Kvitto",
+      "totalAmount": "Totalt",
+      "submittedAt": "Inskickad",
+      "approvedAt": "Godkänd",
+      "status": "Status",
+      "bankDetails": "Bankuppgifter för ersättning",
+      "iban": "IBAN",
+      "ibanHelper": "Valfritt: hämtat från din profil. Används för att behandla ersättningen.",
+      "ibanAccountName": "Kontoinnehavarens namn",
+      "currency": "Valuta",
+      "fxRate": "Valutakurs (till EUR)",
+      "fxRatePlaceholder": "t.ex. 0.0930",
+      "fxRateHelper": "Admin kan fylla i detta",
+      "fxRateLookingUp": "Söker ECB-kurs…",
+      "expenseDate": "Utgiftsdatum",
+      "flightLogIdNA": "Ej tillämpligt för denna kategori"
+    },
+    "actions": {
+      "submit": "Skicka anspråk",
+      "saveDraft": "Spara utkast",
+      "resubmit": "Skicka in igen",
+      "approve": "Godkänn",
+      "reject": "Avvisa",
+      "requestInfo": "Begär mer information",
+      "setToDraft": "Återför till utkast",
+      "delete": "Ta bort",
+      "addLineItem": "Lägg till rad",
+      "removeLineItem": "Ta bort",
+      "uploadReceipt": "Ladda upp kvitto"
+    },
+    "deleteDialog": {
+      "title": "Ta bort utkastet?",
+      "body": "Detta tar permanent bort utkastet och alla uppladdade kvitton. Det går inte att ångra."
+    },
+    "submitDialog": {
+      "title": "Skicka in utgiftsanspråk?",
+      "body": "När ansökan skickats in kan den inte redigeras. Administratören granskar den och kontaktar dig om ytterligare information behövs.",
+      "confirm": "Skicka in"
+    },
+    "wizard": {
+      "step": {
+        "welcome": "Kvittopolicy",
+        "details": "Utgiftsinformation",
+        "fuelFlight": "Flygning",
+        "mileage": "Reseuppgifter",
+        "bankDetails": "Bankuppgifter",
+        "lineItems": "Rader",
+        "receipt": "Kvitto",
+        "review": "Granska & Skicka"
+      },
+      "receiptPolicyTitle": "Viktigt: endast ett kvittodokument tillåtet per anspråk",
+      "receiptPolicyBody": "Vårt redovisningssystem stöder bara en bilaga per utgiftsanspråk. Du kan ladda upp en bild eller ett PDF-dokument som kvitto.\n\nAlla anspråk måste vara i samma valuta — blanda INTE valutor (t.ex. EUR och SEK) i ett och samma anspråk.\n\nVäxelkurser baseras på kurser från ett tredjeparts-API (frankfurter.app), med användning av det utgiftsdatum du anger.\n\nKilometerersättning använder 50 % av Skatteförvaltningens (Vero) officiella sats.",
+      "fuelFlightQuestion": "Köptes detta bränsle för en specifik flygning?",
+      "recentFlights": "Välj från senaste flygningar",
+      "enterFlightId": "Ange flyglogg-ID manuellt",
+      "selectFlight": "Välj flygning",
+      "flightLogId": "Flyglogg-ID",
+      "ibanFromProfile": "Bankuppgifter hämtade från din profil.",
+      "ibanInvalid": "Ogiltigt IBAN — kontrollera numret",
+      "lineItemsHint": "Ange varje utgiftspost. För bränsle ska mängden anges i liter. Använd €-knappen för att automatiskt hämta valutakursen för ett visst datum.",
+      "lineItemsHintFx": "Ange varje utgiftspost. Använd €-knappen för att automatiskt hämta valutakursen för ett visst datum.",
+      "fetchFxRate": "Hämta valutakurs från Frankfurter för detta datum",
+      "receiptUploadInfo": "Ladda upp ditt kvitto som en enskild bild (JPG, PNG osv.) eller ett PDF-dokument. Maximal filstorlek: 10 MB. Bilder komprimeras till ≤1 MB; PDF max 5 MB.",
+      "dropOrClick": "Klicka eller dra en fil hit för att ladda upp",
+      "receiptFileTypes": "Godkänt: bilder (JPG, PNG, HEIC…) eller PDF",
+      "receiptUploaded": "Kvitto uppladdat",
+      "receiptSkipWarning": "Du kan hoppa över kvittouppladdningen nu och lägga till det senare innan inlämning.",
+      "saveDraftBeforeReceipt": "Spara utkastet innan du laddar upp kvitton.",
+      "noBankDetails": "Inte angett — ersättning kräver bankuppgifter före betalning",
+      "noReceipt": "Inget kvitto uppladdat",
+      "col": {
+        "description": "Beskrivning",
+        "itemId": "Post-ID",
+        "date": "Datum",
+        "qty": "Antal",
+        "unit": "Enhet",
+        "currency": "Valuta",
+        "costCentre": "Kostnadsställe",
+        "unitPrice": "Á-pris",
+        "vat": "Moms %",
+        "fxRate": "Valutakurs"
+      },
+      "review": {
+        "claim": "Anspråksinformation"
+      }
+    },
+    "messages": {
+      "selfApproval": "Du kan inte godkänna ditt eget utgiftsanspråk",
+      "approveConfirm": "Är du säker på att du vill godkänna detta anspråk?",
+      "rejectionReason": "Orsak till avslag",
+      "infoRequest": "Skriv din fråga eller begäran till medlemmen",
+      "setToDraftConfirm": "Återföra anspråket till utkast? Medlemmen får ett meddelande och kan redigera och skicka in det igen.",
+      "claimApproved": "Anspråk godkänt",
+      "claimRejected": "Anspråk avvisat",
+      "infoRequested": "Information begärd från medlemmen",
+      "claimReturnedToDraft": "Anspråk återfört till utkast",
+      "fileTooLarge": "Filen är för stor (max 1 MB för bilder, 5 MB för PDF-filer)",
+      "ibanRequired": "IBAN krävs för utbetalning",
+      "zeroTotal": "Totalbeloppet måste vara större än noll",
+      "ibanAccountNameRequired": "Kontoinnehavarens namn krävs",
+      "expenseDateRequired": "Utgiftsdatum krävs"
+    },
+    "validation": {
+      "descriptionRequired": "Beskrivning krävs",
+      "quantityMin": "Antal måste vara minst 1",
+      "unitPriceRequired": "Enhetspriset måste vara större än noll"
     }
   }
 }

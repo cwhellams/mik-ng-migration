@@ -67,6 +67,12 @@ export enum MIKPermissions {
 
   // can create, edit and delete club events
   EVENTS_ADMIN = 'events.admin',
+
+  // can submit expense claims
+  EXPENSE_USER = 'expense.user',
+
+  // can view and approve/reject expense claims (treasurer / committee)
+  EXPENSE_ADMIN = 'expense.admin',
 }
 
 // admins can be downgraded to user permissions when not in sudo mode
@@ -98,6 +104,8 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
     // no separate user role for events – all members can read events
     case MIKPermissions.EVENTS_ADMIN:
       return undefined
+    case MIKPermissions.EXPENSE_ADMIN:
+      return MIKPermissions.EXPENSE_USER
 
     // no separate user roles for SMS or outbox permissions
     case MIKPermissions.SMS_PROCESSOR:
@@ -310,6 +318,8 @@ export const MemberSchema = AuditableSchema.extend({
   brevoContactId: z.number().nullish(),
   dateOfBirth: z.string().date().nullish(),
   memberSince: z.string().date(),
+  iban: z.string().nullish(),
+  ibanAccountName: z.string().nullish(),
   membershipApprovedAt: z.string().datetime().optional(),
   membershipApprovedBy: z.string().optional(),
   emailVerifiedAt: z.string().datetime().optional(),
@@ -369,6 +379,8 @@ export const MemberProfileSchema = MemberSchema.pick({
   autoRenewEquipmentFee: true,
   lang: true,
   mailingLists: true,
+  iban: true,
+  ibanAccountName: true,
 }).extend({
   streetAddress: z.string().min(1),
   postcode: z.string().min(1).regex(/^\d+$/, 'member.postcodeDigitsOnly'),

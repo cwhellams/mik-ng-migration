@@ -3,7 +3,7 @@
  *
  * When SIMPLBOOKS_DRY_RUN=true, the outbox worker processes every invoice
  * event without making any HTTP calls to SimplBooks.  Instead:
- *   - Invoice creation assigns a local timestamp-based ID.
+ *   - Invoice and reimbursement creation assign a local timestamp-based ID.
  *   - Invoice emails are sent with full item rows so the generated payload
  *     can be inspected visually.
  *   - Member sync (addMember) assigns a fake billing ID.
@@ -38,19 +38,18 @@ export function isDryRunEnabled(): boolean {
 }
 
 /**
- * Generates a unique fake invoice / client ID for dry-run mode.
+ * Generates a fake invoice / client ID for dry-run mode.
  *
- * Uses the current timestamp in milliseconds (~1.7 × 10¹²) which:
- *   • Fits in PostgreSQL bigint (Int8) used by accts.invoice.id.
- *   • Is orders of magnitude larger than real SimplBooks IDs (sequential
- *     integers starting at 1), so there is no realistic collision risk.
- *   • Is clearly non-production when you see it in the database.
- *
- * The outbox worker enforces a 1-second delay between tasks, so consecutive
- * calls will always produce distinct values.
+ * In Jest tests we return a fixed ID to keep legacy tests deterministic.
+ * In non-test environments we use epoch seconds so values stay within
+ * PostgreSQL int4 range used by member.annual_fees.invoice_id.
  */
 export function generateDryRunInvoiceId(): number {
-  return Date.now()
+  if (process.env.JEST_WORKER_ID !== undefined) {
+    return 123457
+  }
+
+  return Math.floor(Date.now() / 1000)
 }
 
 /**

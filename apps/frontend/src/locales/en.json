@@ -47,7 +47,13 @@
     "dtoVerify": "Verify Flights",
     "dtoProgress": "Student Progress",
     "events": "Events",
-    "eventsAdmin": "Events Admin"
+    "eventsAdmin": "Events Admin",
+    "expenses": "Expenses",
+    "myExpenses": "My Expenses",
+    "newExpense": "New Expense Claim",
+    "expenseClaims": "Expense Claims",
+    "mileageAllowances": "Mileage Allowances",
+    "costCentres": "Cost Centres"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
@@ -194,7 +200,11 @@
       "refreshToken": "Refresh the latest permission into use immediately",
       "roles": "Edit Member Roles",
       "licence": "Edit Licence Information",
-      "billing": "Edit Billing Auto-renew Settings"
+      "billing": "Edit Billing Auto-renew Settings",
+      "bankDetails": "Edit Bank Details"
+    },
+    "bankDetails": {
+      "title": "Bank Details for Reimbursements"
     },
     "isMembershipExpired": "Membership Expired",
     "billingInfo": {
@@ -226,6 +236,9 @@
       "insecureContext": "Passkeys require a secure HTTPS connection."
     },
     "lang": "Language",
+    "iban": "IBAN (for expense reimbursements)",
+    "ibanHelper": "Save your bank account IBAN here so it can be auto-filled in expense claims.",
+    "ibanAccountName": "Account holder name",
     "memberType": "Member Type",
     "types": {
       "flying": "Full Member",
@@ -694,6 +707,28 @@
     "dateFormat": "YYYY-MM-DD",
     "close": "Close"
   },
+  "mileageAllowances": {
+    "title": "Mileage Allowances",
+    "formTitle": "Set Mileage Allowance",
+    "taxYear": "Tax year",
+    "ratePerKm": "Rate (€/km)",
+    "ratePerKmHint": "Official Finnish Tax Administration rate",
+    "discountPct": "Club discount (%)",
+    "discountPctHint": "Percentage of official rate the club pays",
+    "effectiveRate": "Effective rate",
+    "updatedAt": "Last updated",
+    "updatedBy": "Updated by",
+    "saveSuccess": "Mileage allowance saved."
+  },
+  "costCentres": {
+    "title": "Cost Centres",
+    "formTitle": "Add or edit cost centre",
+    "code": "Code",
+    "description": "Description",
+    "history": "Configured cost centres",
+    "saveSuccess": "Cost centre saved.",
+    "deleteConfirm": "Delete cost centre {{code}}?"
+  },
   "billing": {
     "title": "My Invoices",
     "filters": {
@@ -730,7 +765,7 @@
   },
   "invoiceItems": {
     "title": "Invoice Items",
-    "infoText": "These are Simplbooks invoice 'items' held in our accounting system. When items are added or changed in Simplbooks you should reload from Simplbooks. This data is for information purposes only and cannot be edited here.",
+    "infoText": "These are Simplbooks invoice 'items' held in our accounting system. When items are added or changed in Simplbooks you should reload from Simplbooks. You can mark items that are allowed in expense claim line items.",
     "reloadFromSimplbooksTooltip": "This will call Simplbooks to update all accounting items",
     "reloadFromSimplbooks": "Reload from Simplbooks",
     "failedToLoad": "Failed to load items",
@@ -741,6 +776,7 @@
     "markup": "Markup",
     "type": "Type",
     "unit": "Unit",
+    "expenseClaimItem": "Expense claim item",
     "dates": {
       "sent": "Sent:",
       "due": "Due:"
@@ -805,6 +841,12 @@
     "fuelUpliftLitres": "Fuel Uplift (litres)",
     "fuelRemainingLitres": "Fuel remaining",
     "oilUpliftLitres": "Oil Uplift (litres)",
+    "createFuelExpenseClaim": "Create fuel expense claim",
+    "copyFlightId": "Copy flight ID",
+    "fuelTypeUnknown": "Unknown / not set",
+    "fuelClaimCreated": "Draft fuel expense claim created.",
+    "fuelClaimCreateError": "Failed to create expense claim.",
+    "openExpenseClaim": "Open claim",
     "billingInfo": "Billing Information",
     "adminUse": "For Admin use",
     "billableMemberId": "Billable Member ID",
@@ -2074,6 +2116,159 @@
       "description": "Description",
       "isPublic": "Public event",
       "isPublicHint": "Public events are visible on the MIK.fi website and accessible without login."
+    }
+  },
+  "expenses": {
+    "title": "Expense Claims",
+    "new": "New Expense Claim",
+    "pendingInfoEditNotice": "The admin has requested additional information. Make your changes and re-submit the claim.",
+    "mileage": {
+      "sectionTitle": "Journey details (required for tax records)",
+      "route": "Route",
+      "routeHint": "e.g. Helsinki – Tampere – Helsinki",
+      "journeyDate": "Date of journey",
+      "distanceKm": "Distance (km)",
+      "passengers": "Passengers",
+      "passengerName": "Passenger name",
+      "addPassenger": "Add",
+      "estimatedAmount": "Estimated reimbursement",
+      "lineItemDescription": "Mileage claim",
+      "hetu": "Finnish Social Security Number (HETU)",
+      "hetuHint": "Required for tax records. Stored encrypted and not visible after saving.",
+      "boardApprovalRequired": "This journey exceeds the {{maxKm}} km limit and requires board approval.",
+      "boardApprovedLabel": "I confirm this journey has been approved by the board"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "SUBMITTED": "Submitted",
+      "PENDING_INFO": "Pending Info",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "SYNCED": "Processed"
+    },
+    "category": {
+      "fuel": "Fuel",
+      "mileage": "Mileage",
+      "travel": "Travel",
+      "misc": "Miscellaneous",
+      "aircraft_supplies": "Aircraft Supplies",
+      "web": "Web/Hosting"
+    },
+    "fields": {
+      "title": "Title",
+      "description": "Description",
+      "category": "Category",
+      "aircraft": "Aircraft",
+      "aircraftOptional": "— No aircraft —",
+      "fuelLitres": "Fuel (litres)",
+      "fuelType": "Fuel type",
+      "lineItems": "Line items",
+      "receipt": "Receipt",
+      "totalAmount": "Total",
+      "submittedAt": "Submitted",
+      "approvedAt": "Approved",
+      "status": "Status",
+      "bankDetails": "Bank details for reimbursement",
+      "iban": "IBAN",
+      "ibanHelper": "Optional: saved from your profile. Will be used to process the reimbursement.",
+      "ibanAccountName": "Account holder name",
+      "currency": "Currency",
+      "fxRate": "FX rate (to EUR)",
+      "fxRatePlaceholder": "e.g. 0.0930",
+      "fxRateHelper": "Admin can fill this in",
+      "fxRateLookingUp": "Looking up ECB rate…",
+      "expenseDate": "Expense date",
+      "flightLogIdNA": "Not applicable for this category"
+    },
+    "actions": {
+      "submit": "Submit claim",
+      "saveDraft": "Save draft",
+      "resubmit": "Re-submit claim",
+      "approve": "Approve",
+      "reject": "Reject",
+      "requestInfo": "Request further details",
+      "setToDraft": "Return to draft",
+      "delete": "Delete",
+      "addLineItem": "Add item",
+      "removeLineItem": "Remove",
+      "uploadReceipt": "Upload receipt"
+    },
+    "deleteDialog": {
+      "title": "Delete draft claim?",
+      "body": "This will permanently delete the draft expense claim and any uploaded receipts. This cannot be undone."
+    },
+    "submitDialog": {
+      "title": "Submit expense claim?",
+      "body": "Once submitted you cannot edit this claim. The administrator will review it and contact you if further information is needed.",
+      "confirm": "Submit"
+    },
+    "wizard": {
+      "step": {
+        "welcome": "Receipt Policy",
+        "details": "Expense Details",
+        "fuelFlight": "Flight",
+        "mileage": "Journey Details",
+        "bankDetails": "Bank Details",
+        "lineItems": "Line Items",
+        "receipt": "Receipt",
+        "review": "Review & Submit"
+      },
+      "receiptPolicyTitle": "Important: only one receipt document allowed per claim",
+      "receiptPolicyBody": "Our accounting system only supports a single attachment per expense claim. You may upload only one image or PDF document as your receipt.\n\nAll claims must be in the same currency — do NOT mix currencies (e.g. EUR and SEK) within a single claim.\n\nFX rates are based on the rates supplied by a 3rd-party API (frankfurter.app), using the expense date you provide.\n\nMileage claims use 50% of the Finnish Tax Administration (Vero) official rate.",
+      "fuelFlightQuestion": "Was this fuel purchased for a specific flight?",
+      "recentFlights": "Select from recent flights",
+      "enterFlightId": "Enter flight log ID manually",
+      "selectFlight": "Select flight",
+      "flightLogId": "Flight log ID",
+      "ibanFromProfile": "Bank details pre-filled from your profile.",
+      "ibanInvalid": "Invalid IBAN — please check the number",
+      "lineItemsHint": "Enter each expense item. For fuel, quantity should be in litres. Use the € button to auto-fetch the FX rate for a given date.",
+      "lineItemsHintFx": "Enter each expense item. Use the € button to auto-fetch the FX rate for a given date.",
+      "fetchFxRate": "Fetch FX rate from Frankfurter for this date",
+      "receiptUploadInfo": "Upload your receipt as a single image (JPG, PNG, etc.) or a PDF document. Upload limit: 10 MB. Images are compressed to ≤1 MB; PDFs max 5 MB.",
+      "dropOrClick": "Click or drag a file here to upload",
+      "receiptFileTypes": "Accepted: images (JPG, PNG, HEIC…) or PDF",
+      "receiptUploaded": "Receipt uploaded",
+      "receiptSkipWarning": "You can skip receipt upload now and add it later before submitting.",
+      "saveDraftBeforeReceipt": "Save the draft first before uploading receipts.",
+      "noBankDetails": "Not provided — reimbursement will require bank details before payment",
+      "noReceipt": "No receipt uploaded",
+      "col": {
+        "description": "Description",
+        "itemId": "Item Id",
+        "date": "Date",
+        "qty": "Qty",
+        "unit": "Unit",
+        "currency": "Currency",
+        "costCentre": "Cost centre",
+        "unitPrice": "Unit price",
+        "vat": "VAT %",
+        "fxRate": "FX rate"
+      },
+      "review": {
+        "claim": "Claim details"
+      }
+    },
+    "messages": {
+      "selfApproval": "You cannot approve your own expense claim",
+      "approveConfirm": "Are you sure you want to approve this claim?",
+      "rejectionReason": "Reason for rejection",
+      "infoRequest": "Enter your question or request for the member",
+      "setToDraftConfirm": "Return this claim to draft? The member will be notified and can edit and re-submit.",
+      "claimApproved": "Claim approved",
+      "claimRejected": "Claim rejected",
+      "infoRequested": "Information requested from member",
+      "claimReturnedToDraft": "Claim returned to draft",
+      "fileTooLarge": "File is too large (max 1 MB for images, 5 MB for PDFs)",
+      "ibanRequired": "IBAN is required for reimbursement",
+      "zeroTotal": "Total amount must be greater than zero",
+      "ibanAccountNameRequired": "Account holder name is required",
+      "expenseDateRequired": "Expense date is required"
+    },
+    "validation": {
+      "descriptionRequired": "Description is required",
+      "quantityMin": "Quantity must be at least 1",
+      "unitPriceRequired": "Unit price must be greater than zero"
     }
   }
 }

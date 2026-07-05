@@ -59,6 +59,7 @@ export const clientSchema = z.object({
     address_country: z.string().optional(),
     e_mail: z.string().email(),
     phone: z.string(),
+    account_no: z.string().optional(),
     client_settings_language: z.string().optional(),
   }),
 })
@@ -137,7 +138,8 @@ export const invoiceFilterSchema = z
 
 export type InvoiceFilter = z.infer<typeof invoiceFilterSchema>
 
-export function mapMemberToClient(member: Member): ClientData {
+export function mapMemberToClient(member: Member, ibanOverride?: string | null): ClientData {
+  const iban = ibanOverride ?? member.iban ?? undefined
   return {
     Client: {
       name: `${member.firstName} ${member.lastName}`,
@@ -147,6 +149,7 @@ export function mapMemberToClient(member: Member): ClientData {
       address_country: 'FI',
       e_mail: member.email,
       phone: member.phoneNumber ?? '',
+      ...(iban ? { account_no: iban } : {}),
       client_settings_language: mapMIKLangToSimplbooksLanguage(member.lang),
     },
   }
@@ -387,6 +390,57 @@ export const ReceiptPostSchema = z.object({
   Projects: z.array(ProjectSchema).optional(),
   invoice_id: z.number().int().optional(),
 })
+
+// Purchase row as required by the SimplBooks purchases/create API
+// - name:    line item description
+// - amount:  quantity
+// - sum:     total row amount (amount * unit_price), no unit_price field available
+// - vat:     VAT percentage
+// - Projects: optional cost-centre codes, placed inside each row (not at top level)
+export const PurchaseRowProjectSchema = z.object({
+  code: z.string(), // cost centre code
+})
+
+export const PurchaseRowSchema = z.object({
+  name: z.string(),
+  amount: z.number(),
+  sum: z.number(), // row total = amount * unit_price (ex-VAT)
+  vat: z.number(),
+  article_id: z.number().optional(),
+  code: z.string().optional(),
+  unit: z.string().optional(),
+  vat_type_id: z.number().optional(),
+  discount: z.number().optional(),
+  expense_account_id: z.number().optional(),
+  Projects: z.array(PurchaseRowProjectSchema).optional(),
+})
+export type PurchaseRow = z.infer<typeof PurchaseRowSchema>
+
+export const PurchaseRowWrapperSchema = z.object({
+  PurchaseRow: PurchaseRowSchema,
+  Projects: z.array(PurchaseRowProjectSchema).default([]),
+})
+export type PurchaseRowWrapper = z.infer<typeof PurchaseRowWrapperSchema>
+
+// Top-level Purchase object for purchases/create
+// comments replaces description; file_type + file_contents attach the receipt document
+export const PurchaseObjectSchema = z.object({
+  client_id: z.number().optional(),
+  created: z.string(), // yyyy-MM-dd
+  transaction_date: z.string().optional(),
+  due: z.string().optional(),
+  currency_name: z.string().default('EUR'),
+  currency_rate: z.number().optional(), // required when currency_name != 'EUR'
+  comments: z.string().optional(),
+  file_type: z.enum(['pdf', 'png', 'jpg', 'jpeg']).optional(), // attached receipt document
+  file_contents: z.string().optional(), // base64-encoded file
+})
+
+export const PurchasePostSchema = z.object({
+  Purchase: PurchaseObjectSchema,
+  PurchaseRows: z.array(PurchaseRowWrapperSchema),
+})
+export type PurchasePost = z.infer<typeof PurchasePostSchema>
 
 export type ReceiptIncoming = z.infer<typeof ReceiptIncomingSchema>
 export type ReceiptPost = z.infer<typeof ReceiptPostSchema>

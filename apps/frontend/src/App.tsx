@@ -83,6 +83,14 @@ import DtoStudentDetailPage from './sections/dto/DtoStudentDetailPage'
 import EventsList from './sections/events/EventsList'
 import EventsAdmin from './sections/admin/events/EventsAdmin'
 import { ServerClockProvider } from './hooks/useServerClock'
+import ExpensesList from './sections/expenses/ExpensesList'
+import ExpenseClaimForm from './sections/expenses/ExpenseClaimForm'
+import ExpenseClaimWizard from './sections/expenses/ExpenseClaimWizard'
+import ExpenseClaimDetail from './sections/expenses/ExpenseClaimDetail'
+import { ExpenseApproval } from './sections/accounting/ExpenseApproval'
+import { ExpenseClaimAdminDetail } from './sections/accounting/ExpenseClaimAdminDetail'
+import { MileageAllowancesPage } from './sections/accounting/MileageAllowancesPage'
+import { CostCentresPage } from './sections/accounting/CostCentresPage'
 
 function DtoIndexRedirect() {
   const { hasAccess } = useRoles()
@@ -171,6 +179,12 @@ function App() {
                 <Route path='events' element={<EventsList />} />
               </Route>
               <Route path='/profile/email-change/verify' element={<EmailChangeVerify />} />
+              <Route path='/expenses'>
+                <Route index element={<ExpensesList />} />
+                <Route path='new' element={<ExpenseClaimWizard />} />
+                <Route path=':id' element={<ExpenseClaimDetail />} />
+                <Route path=':id/edit' element={<ExpenseClaimForm />} />
+              </Route>
               <Route path='/accounting'>
                 <Route index element={<InvoicingAdminDashboard />} />
                 <Route path='invoicing' element={<FlightInvoicing />} />
@@ -181,6 +195,10 @@ function App() {
                 <Route path='uplift-report' element={<UpliftReport />} />
                 <Route path='instructor-worktime' element={<InstructorWorktimeReport />} />
                 <Route path='unpaid-overdue' element={<UnpaidOverdueInvoices />} />
+                <Route path='expenses' element={<ExpenseApproval />} />
+                <Route path='expenses/:id' element={<ExpenseClaimAdminDetail />} />
+                <Route path='mileage-allowances' element={<MileageAllowancesPage />} />
+                <Route path='cost-centres' element={<CostCentresPage />} />
               </Route>
               <Route path='/shop'>
                 <Route index element={<ShopPage />} />

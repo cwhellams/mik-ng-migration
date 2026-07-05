@@ -223,6 +223,8 @@ const MemberProfile = () => {
     autoRenewAnnualMembership,
     autoRenewEquipmentFee,
     lang,
+    iban,
+    ibanAccountName,
   } = data || {}
 
   const isRemoved = memberType == MIKMemberTypes.REMOVED
@@ -471,6 +473,27 @@ const MemberProfile = () => {
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <EditButton
+              title={t('member.edit.bankDetails')}
+              onClick={() => handleOpenEditModal('bankDetails')}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+              }}
+            />
+            <CardContent>
+              <FormTitle title={t('member.bankDetails.title')} icon='mdi:bank-outline' />
+              <Stack spacing={1.5}>
+                <FormField label={t('member.iban')}>{iban || 'N/A'}</FormField>
+                <FormField label={t('member.ibanAccountName')}>
+                  {ibanAccountName || 'N/A'}
+                </FormField>
+              </Stack>
+            </CardContent>
+          </Card>
 
           <Card>
             {

@@ -35,8 +35,6 @@ export type CancellationReason =
 
 export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
 
-export type DefectStatus = 'ACTIVE' | 'MOVED_TO_HIL' | 'RESOLVED'
-
 export type DtoItemOutcome = 'COMPLETED' | 'FAILED' | 'MOVED_TO_HIL'
 
 export type DtoSyllabusStatus = 'ARCHIVED' | 'DRAFT' | 'PUBLISHED' | 'WAITING_FOR_APPROVAL'
@@ -67,6 +65,8 @@ export type FlightAircraftDocumentType =
   | 'Registration'
   | 'Transponder Mode S certificate'
   | 'Weight Report'
+
+export type FlightDefectStatus = 'ACTIVE' | 'MOVED_TO_HIL' | 'RESOLVED'
 
 export type FlightLogStatus = 'INVOICED' | 'NEW' | 'PAID' | 'QUEUED_FOR_INVOICING' | 'VALIDATED'
 
@@ -145,6 +145,108 @@ export interface AcctsAircraftPricing {
   valid_to: string | null
 }
 
+export interface AcctsCostCentre {
+  code: string
+  description: string
+}
+
+export interface AcctsExpenseCategory {
+  active: Generated<boolean>
+  code: string
+  id: Generated<number>
+  label_en: string
+  label_fi: string
+  label_sv: string
+  requires_aircraft: Generated<boolean>
+  requires_flight: Generated<boolean>
+}
+
+export interface AcctsExpenseClaim {
+  aircraft_id: string | null
+  approved_at: Timestamp | null
+  approved_by: string | null
+  category_id: number
+  ccy: Generated<string>
+  created_at: Generated<Timestamp>
+  description: string | null
+  expense_date: string | null
+  flight_log_id: string | null
+  fuel_litres: Numeric | null
+  fuel_type: string | null
+  fx_rate: Numeric | null
+  iban: string | null
+  iban_account_name: string | null
+  id: Generated<string>
+  member_id: string
+  receipt_file_name: string | null
+  receipt_file_size: Int8 | null
+  receipt_mime_type: string | null
+  receipt_storage_key: string | null
+  receipt_uploaded_at: Timestamp | null
+  rejected_at: Timestamp | null
+  rejected_by: string | null
+  rejection_reason: string | null
+  simplbooks_purchase_id: Int8 | null
+  status: Generated<string>
+  submitted_at: Timestamp | null
+  title: string
+  updated_at: Generated<Timestamp>
+}
+
+export interface AcctsExpenseClaimLineItem {
+  claim_id: string
+  cost_centre_code: string | null
+  description: string
+  id: Generated<number>
+  item_id: number | null
+  quantity: Generated<Numeric>
+  sort_order: Generated<number>
+  unit: Generated<string>
+  unit_price: Numeric
+  vat_percent: Generated<Numeric>
+}
+
+export interface AcctsExpenseClaimMessage {
+  body: string
+  claim_id: string
+  id: Generated<number>
+  message_type: string
+  sender_id: string
+  sent_at: Generated<Timestamp>
+}
+
+export interface AcctsExpenseMileageDetail {
+  /**
+   * True when the journey exceeded the km soft-limit and board approval has been confirmed
+   */
+  board_approved: Generated<boolean>
+  claim_id: string
+  created_at: Generated<Timestamp>
+  distance_km: Numeric
+  /**
+   * AES-256-GCM encrypted Finnish social security number (HETU) — GDPR sensitive
+   */
+  hetu_encrypted: string | null
+  id: Generated<number>
+  /**
+   * Date of the journey
+   */
+  journey_date: string
+  /**
+   * Names of passengers carried during the journey
+   */
+  passengers: Generated<string[]>
+  /**
+   * Effective rate at time of claim creation (rate_per_km * (1 - discount_pct/100))
+   */
+  rate_per_km: Numeric
+  /**
+   * Free-text route description, e.g. "Helsinki - Tampere - Helsinki"
+   */
+  route: string
+  updated_at: Generated<Timestamp>
+}
+
 export interface AcctsInvoice {
   created_at: Generated<Timestamp>
   created_by: string
@@ -166,9 +268,27 @@ export interface AcctsInvoice {
 
 export interface AcctsItems {
   code: string
+  expense_claim_item: Generated<boolean>
   id: number
   item: Json | null
   name: string
+}
+
+export interface AcctsMileageAllowance {
+  created_at: Generated<Timestamp>
+  created_by: string
+  /**
+   * Percentage of the official rate that the club actually pays (default 50%)
+   */
+  discount_pct: Generated<Numeric>
+  id: Generated<number>
+  /**
+   * Official rate €/km as published by the Finnish Tax Administration
+   */
+  rate_per_km: Numeric
+  tax_year: number
+  updated_at: Generated<Timestamp>
+  updated_by: string
 }
 
 export interface AcctsOutboxSimplbooks {
@@ -495,6 +615,53 @@ export interface FlightAircraftDocumentsFiles {
   valid_to: string | null
 }
 
+export interface FlightAircraftHil {
+  aircraft_registration: string
+  created_at: Generated<Timestamp>
+  created_by: string
+  defect_cat: string
+  description: string
+  due_date: Timestamp
+  hil_id: Generated<string>
+  hil_number: number
+  name: string
+  open_date: Timestamp
+  resolved_note_id: string | null
+  source_ref: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface FlightAircraftHilAudit {
+  audit_id: Generated<number>
+  changed_at: Generated<Timestamp>
+  changed_by: string
+  changed_data: Json | null
+  hil_id: string
+  new_data: Json | null
+  operation_type: string
+}
+
+export interface FlightAircraftHilExtension {
+  created_at: Generated<Timestamp>
+  created_by: string
+  extension_date: Timestamp
+  extension_due: Timestamp
+  extension_id: Generated<string>
+  hil_id: string
+  name: string
+}
+
+export interface FlightAircraftHilExtensionAudit {
+  audit_id: Generated<number>
+  changed_at: Generated<Timestamp>
+  changed_by: string
+  changed_data: Json | null
+  extension_id: string
+  new_data: Json | null
+  operation_type: string
+}
+
 export interface FlightAircraftJourneyLogBook {
   aircraft_registration: string
   created_at: Generated<Timestamp>
@@ -512,6 +679,15 @@ export interface FlightAircraftJourneyLogBook {
   updated_by: string
 }
 
+export interface FlightAircraftLandingsBaseline {
+  aircraft_registration: string
+  baseline_landings: number
+  created_at: Generated<Timestamp>
+  created_by: string | null
+  updated_at: Generated<Timestamp>
+  updated_by: string | null
+}
+
 export interface FlightAircraftNavdata {
   aircraft_registration: string
   created_at: Generated<Timestamp>
@@ -521,6 +697,33 @@ export interface FlightAircraftNavdata {
   navdata_id: Generated<string>
   update_date: string
   updater_member_id: string
+}
+
+export interface FlightDefect {
+  aircraft_registration: string
+  ajlb_seq_no: number
+  blank_rows_after: Generated<number>
+  created_at: Generated<Timestamp>
+  created_by: string
+  defect_id: Generated<string>
+  description: string
+  flight_id: string | null
+  flight_mins: number
+  hil_id: string | null
+  resolved_note_id: string | null
+  status: Generated<FlightDefectStatus>
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface FlightDefectAudit {
+  audit_id: Generated<number>
+  changed_at: Generated<Timestamp>
+  changed_by: string
+  changed_data: Json | null
+  defect_id: string
+  new_data: Json | null
+  operation_type: string
 }
 
 export interface FlightFlightCredits {
@@ -607,80 +810,6 @@ export interface FlightLogs {
   validation_remarks: string | null
 }
 
-export interface FlightAircraftHil {
-  aircraft_registration: string
-  created_at: Generated<Timestamp>
-  created_by: string
-  defect_cat: string
-  description: string
-  due_date: Timestamp
-  hil_id: Generated<string>
-  hil_number: number
-  name: string
-  open_date: Timestamp
-  resolved_note_id: string | null
-  source_ref: string
-  updated_at: Generated<Timestamp>
-  updated_by: string
-}
-
-export interface FlightAircraftHilAudit {
-  audit_id: Generated<number>
-  changed_at: Generated<Timestamp>
-  changed_by: string
-  changed_data: Json | null
-  hil_id: string
-  new_data: Json | null
-  operation_type: string
-}
-
-export interface FlightAircraftHilExtension {
-  created_at: Generated<Timestamp>
-  created_by: string
-  extension_date: Timestamp
-  extension_due: Timestamp
-  extension_id: Generated<string>
-  hil_id: string
-  name: string
-}
-
-export interface FlightAircraftHilExtensionAudit {
-  audit_id: Generated<number>
-  changed_at: Generated<Timestamp>
-  changed_by: string
-  changed_data: Json | null
-  extension_id: string
-  new_data: Json | null
-  operation_type: string
-}
-
-export interface FlightDefect {
-  aircraft_registration: string
-  ajlb_seq_no: number
-  blank_rows_after: Generated<number>
-  created_at: Generated<Timestamp>
-  created_by: string
-  defect_id: Generated<string>
-  description: string
-  flight_id: string | null
-  flight_mins: number
-  hil_id: string | null
-  resolved_note_id: string | null
-  status: Generated<DefectStatus>
-  updated_at: Generated<Timestamp>
-  updated_by: string
-}
-
-export interface FlightDefectAudit {
-  audit_id: Generated<number>
-  changed_at: Generated<Timestamp>
-  changed_by: string
-  changed_data: Json | null
-  defect_id: string
-  new_data: Json | null
-  operation_type: string
-}
-
 export interface FlightLogsAudit {
   audit_id: Generated<number>
   changed_at: Generated<Timestamp>
@@ -703,7 +832,7 @@ export interface FlightMaintenanceNote {
   note_id: Generated<string>
   performed_by: string
   updated_at: Generated<Timestamp>
-  updated_by: string
+  updated_by: Generated<string>
 }
 
 export interface FlightMaintenanceNoteAudit {
@@ -755,6 +884,11 @@ export interface FlightOccurrences {
   technical_faults: boolean | null
   updated_at: Generated<Timestamp>
   updated_by: string
+}
+
+export interface FlightVwAircraftGroundingStatus {
+  open_defect_count: Int8 | null
+  registration: string | null
 }
 
 export interface FlightVwFlightLogs {
@@ -997,6 +1131,8 @@ export interface MemberRegister {
   email: string
   email_verified_at: Timestamp | null
   first_name: string
+  iban: string | null
+  iban_account_name: string | null
   ice_contact_name: string | null
   ice_contact_phone_number: string | null
   im_discord: string | null
@@ -1522,8 +1658,15 @@ export interface StatsVisitedAirfieldsByAc {
 
 export interface DB {
   'accts.aircraft_pricing': AcctsAircraftPricing
+  'accts.cost_centre': AcctsCostCentre
+  'accts.expense_category': AcctsExpenseCategory
+  'accts.expense_claim': AcctsExpenseClaim
+  'accts.expense_claim_line_item': AcctsExpenseClaimLineItem
+  'accts.expense_claim_message': AcctsExpenseClaimMessage
+  'accts.expense_mileage_detail': AcctsExpenseMileageDetail
   'accts.invoice': AcctsInvoice
   'accts.items': AcctsItems
+  'accts.mileage_allowance': AcctsMileageAllowance
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks
   'accts.recurring_fees_processing': AcctsRecurringFeesProcessing
   'dto.flight_item_outcomes': DtoFlightItemOutcomes
@@ -1556,6 +1699,7 @@ export interface DB {
   'flight.aircraft_hil_extension': FlightAircraftHilExtension
   'flight.aircraft_hil_extension_audit': FlightAircraftHilExtensionAudit
   'flight.aircraft_journey_log_book': FlightAircraftJourneyLogBook
+  'flight.aircraft_landings_baseline': FlightAircraftLandingsBaseline
   'flight.aircraft_navdata': FlightAircraftNavdata
   'flight.defect': FlightDefect
   'flight.defect_audit': FlightDefectAudit
@@ -1567,6 +1711,7 @@ export interface DB {
   'flight.maintenance_note_audit': FlightMaintenanceNoteAudit
   'flight.occurrence_access': FlightOccurrenceAccess
   'flight.occurrences': FlightOccurrences
+  'flight.vw_aircraft_grounding_status': FlightVwAircraftGroundingStatus
   'flight.vw_flight_logs': FlightVwFlightLogs
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
   flyway_data_history: FlywayDataHistory

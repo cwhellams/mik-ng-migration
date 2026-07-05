@@ -1,5 +1,8 @@
 import { db } from '../../db/connection.ts'
+import { updateExpenseSimplbooksId, getExpenseClaimById } from '../../db/expense-queries.ts'
+import { getMemberById } from '../../db/member-queries.ts'
 import logger from '../../lib/logger.ts'
+import { storageService } from '../storage.ts'
 import { InvoiceMemberSchema, MemberSchema } from '../../routes/members/models.ts'
 import {
   FeeTypeEnum,
@@ -21,6 +24,7 @@ import {
   findClientByEmail,
   getItemByCode,
   createSimplbooksInvoice,
+  createSimplbooksPurchase,
   getInvoice,
   markInvoiceAsSentInSimplbooks,
   createSimplbooksReceipt,
@@ -82,6 +86,9 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
       case SimplbooksEventType.CREDIT_NOTE:
         await createCreditNote(msg)
         break
+      case SimplbooksEventType.REIMBURSEMENT:
+        await createExpenseReimbursement(msg)
+        break
       default:
         throw new Error(`Unsupported outbox event type: ${msg.event_type}`)
     }
@@ -95,6 +102,34 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
     throw error
   }
 }
+
+const ExpenseReimbursementPayloadSchema = z.object({
+  claimId: z.string().uuid(),
+  number: z.string(),
+  memberId: z.string(),
+  categoryCode: z.string(),
+  aircraftRegistration: z.string().optional(),
+  currency: z.string().default('EUR'),
+  fxRate: z.number().nullable().optional(),
+  transactionDate: z.string().optional(),
+  due: z.string().optional(),
+  claimIban: z.string().optional(),
+  claimTitle: z.string().optional(),
+  lineItems: z.array(
+    z.object({
+      description: z.string(),
+      quantity: z.number(),
+      unitPrice: z.number(),
+      vatPercent: z.number(),
+      articleId: z.number().nullable().optional(),
+      code: z.string().optional(),
+      unit: z.string().optional(),
+      costCentreCode: z.string().nullable().optional(),
+    }),
+  ),
+})
+
+const formatSimplbooksDate = (value: Date): string => value.toISOString().slice(0, 10)
 
 export const getCurrentYear = () => new Date().getFullYear()
 
@@ -783,6 +818,128 @@ export function buildReceiptPayload(invoice: InvoiceBase): ReceiptPost {
 // creates a new invoice with negative amounts, and links it to the original invoice as a credit note.
 // For Simplbooks to handle the credit note correctly we must also generate receipts for both invoices,
 // and bind those to the invoices , the invoices must also be marked as sent in Simplbooks.
+async function createExpenseReimbursement(outboxMsg: AcctsOutboxSimplbooks) {
+  const payload = ExpenseReimbursementPayloadSchema.parse(outboxMsg.payload)
+
+  try {
+    if (isDryRunEnabled()) {
+      logger.info(`DRY RUN: Would create SimplBooks purchase for claim ${payload.claimId}`)
+      await db.transaction().execute(async (txn) => {
+        await updateExpenseSimplbooksId(payload.claimId, generateDryRunInvoiceId(), txn)
+        await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
+      })
+      return
+    }
+
+    const member = await getMemberById(payload.memberId)
+    const today = formatSimplbooksDate(new Date())
+
+    // Sync bank account to SimplBooks client when the claim's IBAN differs from
+    // the member's profile IBAN (or when the member has no profile IBAN).
+    if (payload.claimIban && member?.billingId && /^\d+$/.test(member.billingId)) {
+      const profileIban = member.iban ?? null
+      if (payload.claimIban !== profileIban) {
+        logger.info(
+          `Updating SimplBooks client ${member.billingId} account_no for member ${payload.memberId} (claim IBAN differs from profile)`,
+        )
+        const clientData = mapMemberToClient(member, payload.claimIban)
+        await updateClient(Number(member.billingId), clientData)
+      }
+    }
+
+    // Fetch first receipt for this claim to attach to the purchase
+    const receiptBucket = process.env.EXPENSE_RECEIPT_BUCKET ?? 'mik-expense-receipts'
+    let fileType: 'pdf' | 'png' | 'jpg' | 'jpeg' | undefined
+    let fileContents: string | undefined
+    try {
+      const claim = await getExpenseClaimById(payload.claimId)
+      const receipt = claim?.receipt
+      if (receipt) {
+        const fileBuffer = await storageService.downloadFile(receipt.storageKey, receiptBucket)
+        fileType =
+          receipt.mimeType === 'application/pdf'
+            ? 'pdf'
+            : receipt.mimeType === 'image/png'
+              ? 'png'
+              : receipt.mimeType === 'image/jpeg'
+                ? 'jpg'
+                : undefined
+        fileContents = fileBuffer.toString('base64')
+      }
+    } catch (receiptError) {
+      logger.warn(`Could not attach receipt to purchase for claim ${payload.claimId}`, receiptError)
+    }
+
+    // SimplBooks only supports EUR — always send EUR amounts.
+    // If the claim was in a foreign currency, convert each line item sum using the stored FX rate.
+    const isNonEur = payload.currency && payload.currency !== 'EUR'
+    const fxRate = isNonEur ? payload.fxRate : 1
+    if (isNonEur && fxRate == null) {
+      throw new Error(`Missing fxRate for non-EUR claim currency ${payload.currency}`)
+    }
+
+    const fxComment = isNonEur
+      ? ` [Original currency: ${payload.currency}, FX rate: 1 ${payload.currency} = ${fxRate} EUR]`
+      : ''
+
+    const purchasePayload = {
+      Purchase: {
+        client_id:
+          member?.billingId && /^\d+$/.test(member.billingId)
+            ? Number(member.billingId)
+            : undefined,
+        number: payload.number,
+        created: today,
+        transaction_date: payload.transactionDate
+          ? formatSimplbooksDate(new Date(payload.transactionDate))
+          : today,
+        due: payload.due ? formatSimplbooksDate(new Date(payload.due)) : undefined,
+        currency_name: 'EUR',
+        comments: `${payload.claimTitle ? `${payload.claimTitle} — ` : ''}Expense reimbursement: ${payload.categoryCode} (claim ${payload.claimId})${fxComment}`,
+        ...(fileType && fileContents ? { file_type: fileType, file_contents: fileContents } : {}),
+      },
+      PurchaseRows: payload.lineItems.map((item) => {
+        // Convert to EUR if claim was in a foreign currency
+        const rawSum = item.quantity * item.unitPrice
+        const eurSum = Math.round(rawSum * fxRate! * 100) / 100
+        return {
+          PurchaseRow: {
+            name: item.description ?? 'Digitaalisten palvelujen osto',
+            amount: item.quantity,
+            sum: eurSum,
+            vat: item.vatPercent,
+            ...(item.articleId != null ? { article_id: item.articleId } : {}),
+            //...(item.code ? { code: item.code } : {}),
+            ...(item.unit ? { unit: item.unit } : {}),
+          },
+          Projects:
+            (item.costCentreCode ?? payload.aircraftRegistration)
+              ? [{ code: (item.costCentreCode ?? payload.aircraftRegistration)! }]
+              : [],
+        }
+      }),
+    }
+
+    const result = await createSimplbooksPurchase(purchasePayload)
+
+    await db.transaction().execute(async (txn) => {
+      await updateExpenseSimplbooksId(payload.claimId, result.inserted_id, txn)
+      await setOutboxStatus(txn, outboxMsg.id, SimplbooksStatus.SYNCED)
+    })
+  } catch (error) {
+    logger.error(`Failed to create expense reimbursement for claim ${payload.claimId}`, error)
+    await db.transaction().execute(async (txn) => {
+      await setOutboxStatus(
+        txn,
+        outboxMsg.id,
+        SimplbooksStatus.FAILED,
+        `Failed to create reimbursement: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
+    })
+    throw error
+  }
+}
+
 async function createCreditNote(outboxMsg: AcctsOutboxSimplbooks) {
   const payload = outboxMsg.payload as {
     memberId: string

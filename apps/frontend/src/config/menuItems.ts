@@ -180,6 +180,24 @@ export const menuItems: MenuItem[] = [
         path: 'unpaid-overdue',
         requiredRoles: [MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN],
       },
+      {
+        label: 'header.expenseClaims',
+        path: 'expenses',
+        requiredRoles: [MIKPermissions.EXPENSE_ADMIN],
+        adminModeOnly: true,
+      },
+      {
+        label: 'header.mileageAllowances',
+        path: 'mileage-allowances',
+        requiredRoles: [MIKPermissions.EXPENSE_ADMIN],
+        adminModeOnly: true,
+      },
+      {
+        label: 'header.costCentres',
+        path: 'cost-centres',
+        requiredRoles: [MIKPermissions.EXPENSE_ADMIN],
+        adminModeOnly: true,
+      },
     ],
   },
   {

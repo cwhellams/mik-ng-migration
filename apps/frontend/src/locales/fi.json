@@ -46,7 +46,13 @@
     "dtoVerify": "Vahvista lennot",
     "dtoProgress": "Oppilaan edistyminen",
     "events": "Tapahtumat",
-    "eventsAdmin": "Tapahtumahallinta"
+    "eventsAdmin": "Tapahtumahallinta",
+    "expenses": "Kulut",
+    "myExpenses": "Omat kulut",
+    "newExpense": "Uusi kulukorvaus",
+    "expenseClaims": "Kulukorvaukset",
+    "mileageAllowances": "Kilometrikorvaukset",
+    "costCentres": "Kustannuspaikat"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -193,7 +199,11 @@
       "refreshToken": "Päivitä uusimmat käyttöoikeudet voimaan välittömästi",
       "roles": "Muokkaa jäsenen rooleja",
       "licence": "Muokkaa lupatietoja",
-      "billing": "Muokkaa laskutuksen automaattisen uusimisen asetuksia"
+      "billing": "Muokkaa laskutuksen automaattisen uusimisen asetuksia",
+      "bankDetails": "Muokkaa pankkitietoja"
+    },
+    "bankDetails": {
+      "title": "Pankkitiedot korvauksia varten"
     },
     "isMembershipExpired": "Jäsenyys vanhentunut",
     "billingInfo": {
@@ -226,6 +236,9 @@
     },
     "isTrainingProgramPilot": "Koulutusohjelmaoppilas",
     "lang": "Kieli",
+    "iban": "IBAN (kulukorvauksia varten)",
+    "ibanHelper": "Tallenna pankkitilin IBAN-numero tähän, jotta se täytetään automaattisesti kuluhakemuksiin.",
+    "ibanAccountName": "Tilinomistajan nimi",
     "memberType": "Jäsentyyppi",
     "types": {
       "flying": "Täysijäsen",
@@ -701,6 +714,28 @@
     "dateFormat": "YYYY-MM-DD",
     "close": "Sulje"
   },
+  "mileageAllowances": {
+    "title": "Kilometrikorvaukset",
+    "formTitle": "Aseta kilometrikorvaus",
+    "taxYear": "Verovuosi",
+    "ratePerKm": "Korvaus (€/km)",
+    "ratePerKmHint": "Verohallinnon virallinen km-korvaus",
+    "discountPct": "Kerhon alennus (%)",
+    "discountPctHint": "Osuus virallisesta korvauksesta, jonka kerho maksaa",
+    "effectiveRate": "Maksettava korvaus",
+    "updatedAt": "Päivitetty",
+    "updatedBy": "Päivittäjä",
+    "saveSuccess": "Kilometrikorvaus tallennettu."
+  },
+  "costCentres": {
+    "title": "Kustannuspaikat",
+    "formTitle": "Lisää tai muokkaa kustannuspaikkaa",
+    "code": "Koodi",
+    "description": "Kuvaus",
+    "history": "Määritetyt kustannuspaikat",
+    "saveSuccess": "Kustannuspaikka tallennettu.",
+    "deleteConfirm": "Poistetaanko kustannuspaikka {{code}}?"
+  },
   "billing": {
     "title": "Omat laskuni",
     "filters": {
@@ -737,7 +772,7 @@
   },
   "invoiceItems": {
     "title": "Tuotteet",
-    "infoText": "Nämä ovat Simplbooksin tuotteet, joita säilytetään kirjanpitojärjestelmässämme. Kun tuotteisiin tehdään muutoksia tai lisäyksiä Simplbooksissa, ne tulee päivittää manuaalisesti napsauttamalla 'Lataa uudelleen'. Nämä tiedot ovat vain informatiivisia eikä niitä voi muokata tässä näkymässä.",
+    "infoText": "Nämä ovat Simplbooksin tuotteet, joita säilytetään kirjanpitojärjestelmässämme. Kun tuotteisiin tehdään muutoksia tai lisäyksiä Simplbooksissa, ne tulee päivittää manuaalisesti napsauttamalla 'Lataa uudelleen'. Voit merkitä, mitkä tuotteet ovat valittavissa kulukorvauksen riveille.",
     "reloadFromSimplbooksTooltip": "Tämä hakee Simplbooksista päivitetyt tuotteet",
     "reloadFromSimplbooks": "Lataa uudelleen Simplbooksista",
     "failedToLoad": "Tuotteiden lataus epäonnistui",
@@ -748,6 +783,7 @@
     "markup": "Kate",
     "type": "Tyyppi",
     "unit": "Yksikkö",
+    "expenseClaimItem": "Kulukorvauksen tuote",
     "dates": {
       "sent": "Lähetetty:",
       "due": "Eräpäivä:"
@@ -812,6 +848,12 @@
     "fuelUpliftLitres": "Polttoainetäydennys (litraa)",
     "fuelRemainingLitres": "Polttoainetta jäljellä",
     "oilUpliftLitres": "Öljytäydennys (litraa)",
+    "createFuelExpenseClaim": "Luo polttoainekulukorvaus",
+    "copyFlightId": "Kopioi lento-ID",
+    "fuelTypeUnknown": "Tuntematon / ei asetettu",
+    "fuelClaimCreated": "Polttoainekululuonnos luotu.",
+    "fuelClaimCreateError": "Kulukorvauksen luominen epäonnistui.",
+    "openExpenseClaim": "Avaa hakemus",
     "billingInfo": "Laskutustiedot",
     "adminUse": "Ylläpidon käyttö",
     "billableMemberId": "Laskutettavan jäsennumero",
@@ -2080,6 +2122,159 @@
       "description": "Kuvaus",
       "isPublic": "Julkinen tapahtuma",
       "isPublicHint": "Julkiset tapahtumat näkyvät MIK.fi-sivustolla eikä niihin vaadita kirjautumista."
+    }
+  },
+  "expenses": {
+    "title": "Kulukorvaukset",
+    "new": "Uusi kulukorvaus",
+    "pendingInfoEditNotice": "Ylläpitäjä on pyytänyt lisätietoja. Tee muutokset ja lähetä hakemus uudelleen.",
+    "mileage": {
+      "sectionTitle": "Matkan tiedot (vaaditaan verotusta varten)",
+      "route": "Reitti",
+      "routeHint": "esim. Helsinki – Tampere – Helsinki",
+      "journeyDate": "Matkan päivämäärä",
+      "distanceKm": "Matka (km)",
+      "passengers": "Matkustajat",
+      "passengerName": "Matkustajan nimi",
+      "addPassenger": "Lisää",
+      "estimatedAmount": "Arvioitu korvaus",
+      "lineItemDescription": "Kilometrikorvaus",
+      "hetu": "Henkilötunnus (HETU)",
+      "hetuHint": "Vaaditaan verotusta varten. Tallennetaan salattuna eikä näy tallennuksen jälkeen.",
+      "boardApprovalRequired": "Tämä matka ylittää {{maxKm}} km rajan ja vaatii hallituksen hyväksynnän.",
+      "boardApprovedLabel": "Vahvistan, että hallitus on hyväksynyt tämän matkan"
+    },
+    "status": {
+      "DRAFT": "Luonnos",
+      "SUBMITTED": "Lähetetty",
+      "PENDING_INFO": "Lisätietoja pyydetty",
+      "APPROVED": "Hyväksytty",
+      "REJECTED": "Hylätty",
+      "SYNCED": "Käsitelty"
+    },
+    "category": {
+      "fuel": "Polttoaine",
+      "mileage": "Kilometrikorvaus",
+      "travel": "Matkakulut",
+      "misc": "Muut kulut",
+      "aircraft_supplies": "Konehankinnat",
+      "web": "Web/Hosting"
+    },
+    "fields": {
+      "title": "Otsikko",
+      "description": "Kuvaus",
+      "category": "Kategoria",
+      "aircraft": "Ilma-alus",
+      "aircraftOptional": "— Ei ilma-alusta —",
+      "fuelLitres": "Polttoaine (litraa)",
+      "fuelType": "Polttoainetyyppi",
+      "lineItems": "Rivit",
+      "receipt": "Kuitti",
+      "totalAmount": "Yhteensä",
+      "submittedAt": "Lähetetty",
+      "approvedAt": "Hyväksytty",
+      "status": "Tila",
+      "bankDetails": "Pankkitiedot korvausta varten",
+      "iban": "IBAN",
+      "ibanHelper": "Valinnainen: tallennettu profiilista. Käytetään korvauksen käsittelyssä.",
+      "ibanAccountName": "Tilinomistajan nimi",
+      "currency": "Valuutta",
+      "fxRate": "Valuuttakurssi (EUR:ksi)",
+      "fxRatePlaceholder": "esim. 0.0930",
+      "fxRateHelper": "Admin voi täyttää tämän",
+      "fxRateLookingUp": "Haetaan EKP-kurssia…",
+      "expenseDate": "Kulupäivämäärä",
+      "flightLogIdNA": "Ei sovellu tähän kategoriaan"
+    },
+    "actions": {
+      "submit": "Lähetä hakemus",
+      "saveDraft": "Tallenna luonnos",
+      "resubmit": "Lähetä uudelleen",
+      "approve": "Hyväksy",
+      "reject": "Hylkää",
+      "requestInfo": "Pyydä lisätietoja",
+      "setToDraft": "Palauta luonnokseksi",
+      "delete": "Poista",
+      "addLineItem": "Lisää rivi",
+      "removeLineItem": "Poista",
+      "uploadReceipt": "Lataa kuitti"
+    },
+    "deleteDialog": {
+      "title": "Poistetaanko luonnos?",
+      "body": "Tämä poistaa kulukorvausluonnoksen ja kaikki ladatut kuitit pysyvästi. Tätä ei voi peruuttaa."
+    },
+    "submitDialog": {
+      "title": "Lähetetäänkö kulukorvaus?",
+      "body": "Lähetyksen jälkeen et voi muokata hakemusta. Ylläpitäjä tarkistaa sen ja ottaa yhteyttä jos lisätietoja tarvitaan.",
+      "confirm": "Lähetä"
+    },
+    "wizard": {
+      "step": {
+        "welcome": "Kuittikäytäntö",
+        "details": "Kulukorvauksen tiedot",
+        "fuelFlight": "Lento",
+        "mileage": "Matkan tiedot",
+        "bankDetails": "Pankkitiedot",
+        "lineItems": "Kulurivit",
+        "receipt": "Kuitti",
+        "review": "Tarkistus ja lähetys"
+      },
+      "receiptPolicyTitle": "Tärkeää: vain yksi kuittiasiakirja per hakemus",
+      "receiptPolicyBody": "Kirjanpitojärjestelmämme tukee vain yhtä liitettä per kulukorvaus. Voit ladata yhden kuvan tai PDF-dokumentin kuittina.\n\nKaikkien hakemuksen rivien on oltava samassa valuutassa — ÄLÄ sekoita valuuttoja (esim. EUR ja SEK) samassa hakemuksessa.\n\nVaihtokurssit perustuvat kolmannen osapuolen API:n (frankfurter.app) tarjoamiin kursseihin ilmoittamasi kulupäivän mukaan.\n\nKilometrikorvaukset käyttävät 50 % Verohallinnon virallisesta kilometrikorvauksesta.",
+      "fuelFlightQuestion": "Ostettiinko tämä polttoaine tiettyä lentoa varten?",
+      "recentFlights": "Valitse viimeisimmistä lennoista",
+      "enterFlightId": "Syötä lentolokin tunnus manuaalisesti",
+      "selectFlight": "Valitse lento",
+      "flightLogId": "Lentolokin tunnus",
+      "ibanFromProfile": "Pankkitiedot haettu profiilista.",
+      "ibanInvalid": "Virheellinen IBAN — tarkista numero",
+      "lineItemsHint": "Syötä kukin kuluerä. Polttoaineelle määrän yksikkö on litraa. Käytä €-nappia hakeaksesi automaattisesti valuuttakurssin valitulle päivämäärälle.",
+      "lineItemsHintFx": "Syötä kukin kuluerä. Käytä €-nappia hakeaksesi automaattisesti valuuttakurssin valitulle päivämäärälle.",
+      "fetchFxRate": "Hae valuuttakurssi Frankfurterista tälle päivämäärälle",
+      "receiptUploadInfo": "Lataa kuittisi yksittäisenä kuvana (JPG, PNG jne.) tai PDF-dokumenttina. Tiedoston enimmäiskoko: 10 Mt. Kuvat pakataan ≤1 Mt:iin; PDF max 5 Mt.",
+      "dropOrClick": "Napsauta tai vedä tiedosto tähän ladataksesi",
+      "receiptFileTypes": "Hyväksytyt: kuvat (JPG, PNG, HEIC…) tai PDF",
+      "receiptUploaded": "Kuitti ladattu",
+      "receiptSkipWarning": "Voit ohittaa kuitin lataamisen nyt ja lisätä sen myöhemmin ennen lähettämistä.",
+      "saveDraftBeforeReceipt": "Tallenna luonnos ennen kuitin lataamista.",
+      "noBankDetails": "Ei annettu — korvaus vaatii pankkitiedot ennen maksua",
+      "noReceipt": "Kuittia ei ladattu",
+      "col": {
+        "description": "Kuvaus",
+        "itemId": "Tuote-ID",
+        "date": "Päivämäärä",
+        "qty": "Määrä",
+        "unit": "Yksikkö",
+        "currency": "Valuutta",
+        "costCentre": "Kustannuspaikka",
+        "unitPrice": "Yksikköhinta",
+        "vat": "ALV %",
+        "fxRate": "Valuuttakurssi"
+      },
+      "review": {
+        "claim": "Hakemuksen tiedot"
+      }
+    },
+    "messages": {
+      "selfApproval": "Et voi hyväksyä omaa kulukorvaustasi",
+      "approveConfirm": "Haluatko varmasti hyväksyä tämän hakemuksen?",
+      "rejectionReason": "Hylkäyksen syy",
+      "infoRequest": "Kirjoita kysymys tai lisätietopyyntö jäsenelle",
+      "setToDraftConfirm": "Palautetaanko hakemus luonnokseksi? Jäsenelle lähetetään ilmoitus, ja hän voi muokata ja lähettää hakemuksen uudelleen.",
+      "claimApproved": "Hakemus hyväksytty",
+      "claimRejected": "Hakemus hylätty",
+      "infoRequested": "Lisätietoja pyydetty jäseneltä",
+      "claimReturnedToDraft": "Hakemus palautettu luonnokseksi",
+      "fileTooLarge": "Tiedosto on liian suuri (max 1 Mt kuville, 5 Mt PDF-tiedostoille)",
+      "ibanRequired": "IBAN on pakollinen korvauksen maksamiseksi",
+      "zeroTotal": "Kokonaissumman on oltava suurempi kuin nolla",
+      "ibanAccountNameRequired": "Tilinomistajan nimi on pakollinen",
+      "expenseDateRequired": "Kulupäivämäärä on pakollinen"
+    },
+    "validation": {
+      "descriptionRequired": "Kuvaus on pakollinen",
+      "quantityMin": "Määrän on oltava vähintään 1",
+      "unitPriceRequired": "Yksikköhinnan on oltava suurempi kuin nolla"
     }
   }
 }

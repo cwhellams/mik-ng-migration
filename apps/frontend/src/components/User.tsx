@@ -107,9 +107,15 @@ const User = () => {
               </ListItemIcon>
               {t('header.profile')}
             </MenuItem>
+            <MenuItem component={Link} to='/expenses'>
+              <ListItemIcon>
+                <Icon icon='mdi:currency-eur' fontSize={20} />
+              </ListItemIcon>
+              {t('header.myExpenses')}
+            </MenuItem>
             <MenuItem component={Link} to='/shop/flight-packages'>
               <ListItemIcon>
-                <Icon icon='mdi:clock-time-four' fontSize={20} />
+                <Icon icon='mdi:airplane' fontSize={20} />
               </ListItemIcon>
               {t('header.myFlightPackages')}
             </MenuItem>

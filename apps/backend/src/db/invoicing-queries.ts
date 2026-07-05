@@ -95,7 +95,7 @@ const toInvoice = (row: Selectable<AcctsInvoice>): Invoice => ({
   updated_by: row.updated_by,
 })
 
-export async function getInvoiceItems(): Promise<AcctsItems[]> {
+export async function getInvoiceItems(): Promise<Array<Selectable<AcctsItems>>> {
   return await db.selectFrom('accts.items').selectAll().execute()
 }
 
@@ -194,6 +194,21 @@ export async function deleteInvoiceItem(id: number): Promise<void> {
 
   if (result.length === 0) {
     throw new Error(`Failed to delete invoice item with id ${id}`)
+  }
+}
+
+export async function updateExpenseClaimItemFlag(
+  id: number,
+  expenseClaimItem: boolean,
+): Promise<void> {
+  const result = await db
+    .updateTable('accts.items')
+    .set({ expense_claim_item: expenseClaimItem })
+    .where('id', '=', id)
+    .executeTakeFirstOrThrow()
+
+  if (result.numUpdatedRows < BigInt(1)) {
+    throw new Error(`Failed to update invoice item with id ${id}`)
   }
 }
 

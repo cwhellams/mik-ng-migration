@@ -10,7 +10,7 @@ import { validateApiPath } from '@backend/util/sanitizers'
 const API_BASE = import.meta.env.VITE_API_TARGET ?? ''
 
 // withCredentials ensures the browser sends httpOnly cookies on every request.
-const api = axios.create({
+export const api = axios.create({
   baseURL: `${API_BASE}/api/`,
   withCredentials: true,
   // Serialize array params as repeated bare keys (e.g. registration=A&registration=B)

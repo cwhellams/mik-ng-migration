@@ -32,6 +32,11 @@ const s3Client = new S3Client({
     accessKeyId: accessKey,
     secretAccessKey: secretKey,
   },
+  // AWS SDK v3 ≥ 3.758 defaults requestChecksumCalculation to 'WHEN_SUPPORTED',
+  // which adds x-amz-checksum-* headers that Digital Ocean Spaces does not
+  // include in its V4 signature verification, causing SignatureDoesNotMatch.
+  requestChecksumCalculation: 'WHEN_REQUIRED',
+  responseChecksumValidation: 'WHEN_REQUIRED',
 })
 
 export async function uploadFile(
@@ -49,7 +54,10 @@ export async function uploadFile(
     Key: key,
     Body: file,
     ContentType: mimeType,
-    ACL: 'private',
+    // ACL is intentionally omitted: new DO Spaces buckets disable per-object ACLs by default
+    // (changed April 2024). Including x-amz-acl on an ACL-disabled bucket causes
+    // SignatureDoesNotMatch because the server excludes that header when computing its
+    // own signature. Privacy is enforced at bucket level (Space set to "Restricted").
   })
   await s3Client.send(command)
   const url = `${endpoint}/${bucket}/${key}`
@@ -77,6 +85,18 @@ export async function getPresignedUrl(
     Key: key,
   })
   return await getSignedUrl(s3Client, command, { expiresIn })
+}
+
+export async function downloadFile(key: string, bucketName?: string): Promise<Buffer> {
+  const bucket = bucketName || MIK_MEMBER_PUBLIC_BUCKET
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key })
+  const response = await s3Client.send(command)
+  if (!response.Body) throw new Error(`No body in GetObject response for key ${key}`)
+  const chunks: Uint8Array[] = []
+  for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+    chunks.push(chunk)
+  }
+  return Buffer.concat(chunks)
 }
 
 export function getAircraftBucketName(registration: string): string {
@@ -115,6 +135,10 @@ export async function mockGetPresignedUrl(
   return `https://mock-spaces.com/${bucket}/${key}?expires=${Date.now() + expiresIn * 1000}`
 }
 
+export async function mockDownloadFile(_key: string, _bucketName?: string): Promise<Buffer> {
+  return Buffer.from('mock-file-contents')
+}
+
 export function mockGetAircraftBucketName(registration: string): string {
   const suffix = registration.slice(-3).toLowerCase()
   return `mik-ac-${suffix}`
@@ -130,12 +154,14 @@ export const storageService = isTest
       uploadFile: mockUploadFile,
       deleteFile: mockDeleteFile,
       getPresignedUrl: mockGetPresignedUrl,
+      downloadFile: mockDownloadFile,
       getAircraftBucketName: mockGetAircraftBucketName,
     }
   : {
       uploadFile,
       deleteFile,
       getPresignedUrl,
+      downloadFile,
       getAircraftBucketName,
     }
 

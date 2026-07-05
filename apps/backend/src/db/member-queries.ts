@@ -96,6 +96,9 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     medicalClass2Expiry: member.medical_class2_expiry_date,
     medicalLaplExpiry: member.medical_lapl_expiry_date,
 
+    iban: member.iban,
+    ibanAccountName: member.iban_account_name,
+
     isMembershipApproved: member.is_membership_approved,
     membershipApprovedAt: member.membership_approved_at?.toISOString(),
     membershipApprovedBy: member.membership_approved_by ?? undefined,
@@ -412,6 +415,9 @@ export async function updateMember(
       medical_class1_expiry_date: patch.medicalClass1Expiry,
       medical_class2_expiry_date: patch.medicalClass2Expiry,
       medical_lapl_expiry_date: patch.medicalLaplExpiry,
+
+      iban: patch.iban,
+      iban_account_name: patch.ibanAccountName,
 
       updated_at: now,
       updated_by: jwt.memberId,

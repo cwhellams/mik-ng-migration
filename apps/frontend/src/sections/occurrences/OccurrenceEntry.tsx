@@ -124,7 +124,7 @@ export const OccurrenceEntry = () => {
     reset,
   } = useForm<OccurrenceUpsert>({
     mode: 'onChange',
-    resolver: zodResolver(OccurrenceUpsertSchema.strip(), {}),
+    resolver: zodResolver(OccurrenceUpsertSchema.strip() as any, {}),
 
     // defaults for new report
     defaultValues: {

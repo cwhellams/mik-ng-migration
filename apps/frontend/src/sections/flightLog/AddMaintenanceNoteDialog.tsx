@@ -54,7 +54,7 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
     reset,
     formState: { errors },
   } = useForm<MaintenanceNoteFormValues>({
-    resolver: zodResolver(MaintenanceNoteFormSchema),
+    resolver: zodResolver(MaintenanceNoteFormSchema as any),
     defaultValues: {
       description: '',
       performedBy: '',

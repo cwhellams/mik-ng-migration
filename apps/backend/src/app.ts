@@ -43,6 +43,9 @@ import { router as notificationBannerRoutes } from './routes/notification-banner
 import { router as configRoutes } from './routes/config/api.ts'
 import { router as dtoRoutes } from './routes/dto/api.ts'
 import { router as eventRoutes } from './routes/events/api.ts'
+import { router as expenseRoutes } from './routes/expenses/api.ts'
+import { router as costCentreRoutes } from './routes/cost-centres/api.ts'
+import { mileageAllowanceRouter } from './routes/expenses/mileageApi.ts'
 import maintenanceNoteRoutes from './routes/maintenance-notes/api.ts'
 import aircraftHilRoutes from './routes/aircraft-hil/api.ts'
 import defectRoutes from './routes/defects/api.ts'
@@ -172,6 +175,9 @@ app.use('/api/v1/instructor-qualifications', instructorQualificationRoutes)
 app.use('/api/v1/config', configRoutes)
 app.use('/api/v1/dto', dtoRoutes)
 app.use('/api/v1/events', eventRoutes)
+app.use('/api/v1/expenses', expenseRoutes)
+app.use('/api/v1/cost-centres', costCentreRoutes)
+app.use('/api/v1/mileage-allowances', mileageAllowanceRouter)
 app.use('/api/v1/maintenance-notes', maintenanceNoteRoutes)
 app.use('/api/v1/aircraft-hil', aircraftHilRoutes)
 app.use('/api/v1/defects', defectRoutes)

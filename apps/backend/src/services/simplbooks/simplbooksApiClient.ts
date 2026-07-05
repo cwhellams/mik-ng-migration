@@ -17,6 +17,7 @@ import {
   type InvoiceResponse,
   type ItemListArticle,
   type ItemListPayload,
+  type PurchasePost,
   type ReceiptPost,
   type SimplBooksInsertResponse,
 } from './models.ts'
@@ -312,6 +313,27 @@ export async function createSimplbooksInvoice(
         endpoint: '/invoices/create',
         method: 'POST',
         payload: invoice,
+      })
+    }
+  })
+}
+
+export async function createSimplbooksPurchase(
+  purchase: PurchasePost,
+): Promise<SimplBooksInsertResponse> {
+  return enqueueRateLimitedRequest(async () => {
+    try {
+      const response = await simplbooksApiClient.post(`/purchases/create`, purchase)
+      if (response.status !== 200) {
+        throw new Error(`Failed to create purchase: ${response.statusText}`)
+      }
+      return response.data
+    } catch (error) {
+      logAndThrowSimplbooksError(error, {
+        operation: 'createSimplbooksPurchase',
+        endpoint: '/purchases/create',
+        method: 'POST',
+        payload: purchase,
       })
     }
   })

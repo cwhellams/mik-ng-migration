@@ -30,6 +30,7 @@ export const ItemSchema = z.object({
   code: z.string(),
   ean: z.string(),
   name: z.string(),
+  expense_claim_item: z.boolean().optional().default(false),
   contents: z.string(),
   unit: z.string(),
   amount: z.number(),
@@ -48,6 +49,10 @@ export const ItemSchema = z.object({
 })
 
 export type Item = z.infer<typeof ItemSchema>
+
+export const UpdateExpenseClaimItemSchema = z.object({
+  expenseClaimItem: z.boolean(),
+})
 
 export const ItemListResponseSchema = z.object({
   items: z.array(ItemSchema),

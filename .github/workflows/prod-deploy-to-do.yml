@@ -90,6 +90,9 @@ jobs:
           echo "DIGITAL_OCEAN_SPACES_SECRET=${{ secrets.DIGITAL_OCEAN_SPACES_SECRET }}" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_REGION=fra1" >> $GITHUB_ENV
           echo "DIGITAL_OCEAN_SPACES_ENDPOINT=https://fra1.digitaloceanspaces.com" >> $GITHUB_ENV
+          echo "EXPENSE_RECEIPT_BUCKET=${{ vars.EXPENSE_RECEIPT_BUCKET_PROD }}" >> $GITHUB_ENV
+          echo "FIELD_ENCRYPTION_KEY=${{ secrets.FIELD_ENCRYPTION_KEY }}" >> $GITHUB_ENV
+          echo "MILEAGE_MAX_KM=${{ vars.MILEAGE_MAX_KM }}" >> $GITHUB_ENV
           echo "BREVO_API_URL=https://api.brevo.com/v3" >> $GITHUB_ENV
           echo "BREVO_API_KEY=${{ secrets.BREVO_API_KEY_PROD }}" >> $GITHUB_ENV
           echo "AIRCRAFT_MAILING_LISTS=${{ vars.AIRCRAFT_MAILING_LISTS_PROD }}" >> $GITHUB_ENV

@@ -1,7 +1,16 @@
-import React from 'react'
-import { Box, Typography, Button, useTheme, Tooltip } from '@mui/material'
+import React, { useMemo, useState } from 'react'
+import {
+  Box,
+  Typography,
+  Button,
+  useTheme,
+  Tooltip,
+  TableSortLabel,
+  Switch,
+  FormControlLabel,
+} from '@mui/material'
 import RefreshIcon from '@mui/icons-material/Refresh'
-import { ItemListResponse } from '@backend/routes/invoicing/models'
+import type { Item, ItemListResponse } from '@backend/routes/invoicing/models'
 import useApi from '../../hooks/useApi'
 import { eurFormatter } from '../../utils/format'
 import { RemoteContent } from '../../components/RemoteContent'
@@ -10,8 +19,32 @@ import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import Grid from '@mui/system/Grid'
 
+type SortKey =
+  | 'id'
+  | 'code'
+  | 'name'
+  | 'markup_value'
+  | 'markup_type'
+  | 'unit'
+  | 'expense_claim_item'
+type SortDir = 'asc' | 'desc'
+
+function sortItems(items: Item[], key: SortKey, dir: SortDir): Item[] {
+  return [...items].sort((a, b) => {
+    const av = a[key] ?? ''
+    const bv = b[key] ?? ''
+    const cmp =
+      typeof av === 'number' && typeof bv === 'number'
+        ? av - bv
+        : String(av).localeCompare(String(bv))
+    return dir === 'asc' ? cmp : -cmp
+  })
+}
+
 export const InvoiceItemsPage: React.FC = () => {
   const theme = useTheme()
+  const [sortKey, setSortKey] = useState<SortKey>('code')
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
 
   const { data, isLoading, error, mutate, mutation } = useApi<ItemListResponse>(
     { url: 'v1/invoices/items' },
@@ -22,6 +55,40 @@ export const InvoiceItemsPage: React.FC = () => {
     const res = await mutation.trigger('PATCH', {}, 'refresh')
     if (res.data) mutate()
   }
+
+  const handleSort = (key: SortKey) => {
+    if (key === sortKey) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
+
+  const handleExpenseClaimItemToggle = async (itemId: number, checked: boolean) => {
+    const res = await mutation.trigger(
+      'PATCH',
+      { expenseClaimItem: checked },
+      `${itemId}/expense-claim-item`,
+    )
+    if (res.data) mutate()
+  }
+
+  const sortedItems = useMemo(
+    () => (data?.items ? sortItems(data.items, sortKey, sortDir) : undefined),
+    [data?.items, sortKey, sortDir],
+  )
+
+  const col = (key: SortKey, label: string) => (
+    <TableSortLabel
+      active={sortKey === key}
+      direction={sortKey === key ? sortDir : 'asc'}
+      onClick={() => handleSort(key)}
+      sx={{ fontWeight: 'inherit', fontSize: 'inherit' }}
+    >
+      {label}
+    </TableSortLabel>
+  )
 
   return (
     <RemoteContent isLoading={isLoading} error={error}>
@@ -60,19 +127,22 @@ export const InvoiceItemsPage: React.FC = () => {
         notFoundMsg={t('invoiceItems.noItemsFound')}
         header={
           <>
-            <Grid size={{ xs: 3, md: 1 }}>{t('invoiceItems.id')}</Grid>
-            <Grid size={{ xs: 9, md: 3 }}>{t('invoiceItems.code')}</Grid>
-            <Grid size={{ xs: 12, md: 4 }}>{t('invoiceItems.name')}</Grid>
-            <Grid size={{ xs: 4, md: 1 }}>{t('invoiceItems.markup')}</Grid>
-            <Grid size={{ xs: 4, md: 1 }}>{t('invoiceItems.type')}</Grid>
-            <Grid size={{ xs: 4, md: 1 }}>{t('invoiceItems.unit')}</Grid>
+            <Grid size={{ xs: 3, md: 1 }}>{col('id', t('invoiceItems.id'))}</Grid>
+            <Grid size={{ xs: 9, md: 2 }}>{col('code', t('invoiceItems.code'))}</Grid>
+            <Grid size={{ xs: 12, md: 4 }}>{col('name', t('invoiceItems.name'))}</Grid>
+            <Grid size={{ xs: 4, md: 1 }}>{col('markup_value', t('invoiceItems.markup'))}</Grid>
+            <Grid size={{ xs: 4, md: 1 }}>{col('markup_type', t('invoiceItems.type'))}</Grid>
+            <Grid size={{ xs: 4, md: 1 }}>{col('unit', t('invoiceItems.unit'))}</Grid>
+            <Grid size={{ xs: 12, md: 2 }} sx={{ textAlign: 'right' }}>
+              {col('expense_claim_item', t('invoiceItems.expenseClaimItem'))}
+            </Grid>
           </>
         }
-        rows={data?.items}
+        rows={sortedItems}
         row={(item) => (
           <>
             <Grid size={{ xs: 3, md: 1 }}>{item.id}</Grid>
-            <Grid size={{ xs: 9, md: 3 }}>{item.code}</Grid>
+            <Grid size={{ xs: 9, md: 2 }}>{item.code}</Grid>
             <Grid
               size={{ xs: 12, md: 4 }}
               sx={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
@@ -82,6 +152,21 @@ export const InvoiceItemsPage: React.FC = () => {
             <Grid size={{ xs: 4, md: 1 }}>{eurFormatter.format(item.markup_value ?? 0)}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{item.markup_type ?? 'N/A'}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{item.unit ?? 'N/A'}</Grid>
+            <Grid size={{ xs: 12, md: 2 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <FormControlLabel
+                sx={{ ml: 0, mr: 0 }}
+                labelPlacement='start'
+                control={
+                  <Switch
+                    checked={Boolean(item.expense_claim_item)}
+                    onChange={(e) =>
+                      void handleExpenseClaimItemToggle(item.id, e.currentTarget.checked)
+                    }
+                  />
+                }
+                label=''
+              />
+            </Grid>
           </>
         )}
       />

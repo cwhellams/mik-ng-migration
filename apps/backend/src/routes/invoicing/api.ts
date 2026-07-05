@@ -10,6 +10,7 @@ import {
   getUnpaidOverdueInvoicesWithMemberInfo,
   hasRequestedEquipmentFee,
   upsertInvoiceItems,
+  updateExpenseClaimItemFlag,
 } from '../../db/invoicing-queries.ts'
 import {
   InvoiceItemQuerySchema,
@@ -23,6 +24,7 @@ import {
   type EquipmentFee,
   type Invoice,
   type UnpaidOverdueInvoiceListResponse,
+  UpdateExpenseClaimItemSchema,
 } from './models.ts'
 
 import { getInvoicePdf, getItems } from '../../services/simplbooks/simplbooksApiClient.ts'
@@ -261,6 +263,30 @@ router.get('/items', async (req: Request, res: Response<ItemListResponse>) => {
   res.status(HttpStatusCode.Ok).json({ items })
 })
 
+router.patch(
+  '/items/:id/expense-claim-item',
+  validateUser(MIKPermissions.INVOICING_ADMIN),
+  async (req: Request, res: Response<ItemListResponse>) => {
+    const id = Number(req.params.id)
+    if (!Number.isInteger(id) || id < 1) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Invalid item id.',
+      })
+    }
+
+    const { expenseClaimItem } = UpdateExpenseClaimItemSchema.parse(req.body)
+    await updateExpenseClaimItemFlag(id, expenseClaimItem)
+
+    const invoiceItems = await getInvoiceItems()
+    const items = invoiceItems
+      .map(mapInvoiceItemRowToItem)
+      .filter((item): item is Item => item !== null)
+
+    res.status(HttpStatusCode.Ok).json({ items })
+  },
+)
+
 router.get(
   '/annualMembershipBillingRuns',
   async (req: Request, res: Response<RecurringFeesProcessing[]>) => {
@@ -394,6 +420,7 @@ function mapInvoiceItemRowToItem(row: any): Item | null {
     id: row.id,
     code: row.code,
     name: row.name,
+    expense_claim_item: Boolean(row.expense_claim_item),
   }
 
   const parsed = ItemSchema.partial().safeParse(flat)

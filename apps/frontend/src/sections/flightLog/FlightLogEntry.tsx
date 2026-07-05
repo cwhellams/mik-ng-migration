@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  Snackbar,
+  Alert as MuiAlert,
   Paper,
   Typography,
   Button,
@@ -22,6 +24,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  TextField,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
@@ -38,7 +41,7 @@ import {
   FlightLogStatus,
   FlightType,
 } from '@backend/routes/flight-log/models'
-import useApi from '../../hooks/useApi'
+import useApi, { api } from '../../hooks/useApi'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
 import { MemberListResponse } from '@backend/routes/members/models'
 import FlightTimeline from './components/FlightTimeline'
@@ -140,10 +143,12 @@ const FlightLogEntry = () => {
   // member dropdown itself also shows no qualified members until loaded, so
   // an unqualified selection cannot be made before the list arrives.
   const formResolver = useMemo((): Resolver<FlightLogUpsertRequest> => {
-    const baseResolver = zodResolver(flightLogDateValidator(FlightLogUpsertSchema.strip()), {})
-    return async (...args: Parameters<typeof baseResolver>) => {
-      const [values] = args
-      const result = await baseResolver(...args)
+    const baseResolver: Resolver<FlightLogUpsertRequest> = zodResolver(
+      flightLogDateValidator(FlightLogUpsertSchema.strip()) as any,
+      {},
+    ) as Resolver<FlightLogUpsertRequest>
+    return async (values, context, options) => {
+      const result = await baseResolver(values, context, options)
 
       const crewSlots = [
         {
@@ -401,6 +406,60 @@ const FlightLogEntry = () => {
   const [originalSyllabusFlightId, setOriginalSyllabusFlightId] = useState<string>('')
   const [showDtoWarning, setShowDtoWarning] = useState(false)
   const [pendingSubmitData, setPendingSubmitData] = useState<FlightLogUpsertRequest | null>(null)
+  // Local-only state for fuel type — not stored in the flight log, used only for expense prefill
+  const [fuelUpliftType, setFuelUpliftType] = useState<'98' | '100LL' | 'JetA1' | ''>('')
+  const [fuelClaimCreating, setFuelClaimCreating] = useState(false)
+  const [fuelClaimSnack, setFuelClaimSnack] = useState<{
+    open: boolean
+    claimId?: string
+    error?: string
+  }>({
+    open: false,
+  })
+
+  const createFuelDraft = async () => {
+    setFuelClaimCreating(true)
+    try {
+      // Fetch categories to resolve the fuel category ID
+      const catRes = await api.get<{ id: number; code: string }[]>('v1/expenses/categories')
+      const fuelCat = catRes.data.find((c) => c.code === 'fuel')
+      if (!fuelCat) throw new Error('Fuel category not found')
+
+      const payload = {
+        categoryId: fuelCat.id,
+        title: `Fuel – ${watch('aircraftRegistration')}`,
+        aircraftId: watch('aircraftRegistration'),
+        flightLogId: data?.flightId ?? undefined,
+        expenseDate: data?.takeoffTimeUtc
+          ? new Date(data.takeoffTimeUtc).toISOString().substring(0, 10)
+          : new Date().toISOString().substring(0, 10),
+        fuelLitres: watch('fuelUpliftLitres') ?? undefined,
+        fuelType: fuelUpliftType || undefined,
+        iban: me?.iban ?? undefined,
+        ibanAccountName: me?.ibanAccountName ?? undefined,
+        lineItems: [
+          {
+            description: `Fuel uplift ${watch('aircraftRegistration')}`,
+            date: new Date().toISOString().substring(0, 10),
+            quantity: watch('fuelUpliftLitres') ?? 1,
+            unit: 'l',
+            unitPrice: 0,
+            vatPercent: 0,
+            sortOrder: 0,
+            currency: 'EUR',
+            fxRate: null,
+          },
+        ],
+      }
+
+      const res = await api.post<{ id: string }>('v1/expenses', payload)
+      setFuelClaimSnack({ open: true, claimId: res.data.id })
+    } catch {
+      setFuelClaimSnack({ open: true, error: t('flightLog.fuelClaimCreateError') })
+    } finally {
+      setFuelClaimCreating(false)
+    }
+  }
 
   useEffect(() => {
     if (!billableMemberIdWatched) return
@@ -508,6 +567,31 @@ const FlightLogEntry = () => {
   return (
     <RemoteContent isLoading={isLoading} error={error}>
       <SnackAlert problem={problem} />
+
+      {/* Fuel draft creation snackbar */}
+      <Snackbar
+        open={fuelClaimSnack.open}
+        autoHideDuration={6000}
+        onClose={() => setFuelClaimSnack((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <MuiAlert
+          severity={fuelClaimSnack.error ? 'error' : 'success'}
+          action={
+            !fuelClaimSnack.error && fuelClaimSnack.claimId ? (
+              <Button
+                color='inherit'
+                size='small'
+                onClick={() => navigate(`/expenses/${fuelClaimSnack.claimId}/edit`)}
+              >
+                {t('flightLog.openExpenseClaim')}
+              </Button>
+            ) : undefined
+          }
+        >
+          {fuelClaimSnack.error ?? t('flightLog.fuelClaimCreated')}
+        </MuiAlert>
+      </Snackbar>
 
       {/* Breadcrumb navigation */}
       <Breadcrumbs sx={{ my: 2 }}>
@@ -813,6 +897,46 @@ const FlightLogEntry = () => {
                 }}
               />
             </Grid>
+
+            {/* Fuel expense shortcut — shown whenever a fuel uplift has been entered */}
+            {(watch('fuelUpliftLitres') ?? 0) > 0 && !isNew && flightId && (
+              <Grid size={12}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems='center'>
+                  <TextField
+                    select
+                    size='small'
+                    label={t('expenses.fields.fuelType')}
+                    value={fuelUpliftType}
+                    onChange={(e) => setFuelUpliftType(e.target.value as typeof fuelUpliftType)}
+                    sx={{ minWidth: 140 }}
+                  >
+                    <MenuItem value=''>{t('flightLog.fuelTypeUnknown')}</MenuItem>
+                    {(['98', '100LL', 'JetA1'] as const).map((ft) => (
+                      <MenuItem key={ft} value={ft}>
+                        {ft}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <Button
+                    variant='outlined'
+                    size='small'
+                    disabled={fuelClaimCreating || !fuelUpliftType}
+                    startIcon={<Icon icon='mdi:receipt-text-plus-outline' />}
+                    onClick={() => void createFuelDraft()}
+                  >
+                    {t('flightLog.createFuelExpenseClaim')}
+                  </Button>
+                  <Button
+                    variant='outlined'
+                    size='small'
+                    startIcon={<Icon icon='mdi:content-copy' />}
+                    onClick={() => void navigator.clipboard.writeText(String(flightId))}
+                  >
+                    {t('flightLog.copyFlightId')}
+                  </Button>
+                </Stack>
+              </Grid>
+            )}
 
             <Grid size={{ xs: 12, sm: 6 }}>
               <TxtField

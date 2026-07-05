@@ -44,6 +44,7 @@ export type MemberEditMode =
   | 'roles'
   | 'licence'
   | 'billing'
+  | 'bankDetails'
 
 interface EditMemberModalProps {
   onClose: () => void
@@ -93,6 +94,8 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           townCity: memberData.townCity || '',
           dateOfBirth: memberData.dateOfBirth,
           lang: memberData.lang,
+          iban: memberData.iban ?? undefined,
+          ibanAccountName: memberData.ibanAccountName ?? undefined,
         })
       } else if (mode === 'emergencyContact') {
         setFormData({
@@ -136,6 +139,11 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
         setFormData({
           autoRenewAnnualMembership: memberData.autoRenewAnnualMembership,
           autoRenewEquipmentFee: memberData.autoRenewEquipmentFee,
+        })
+      } else if (mode == 'bankDetails') {
+        setFormData({
+          iban: memberData.iban ?? undefined,
+          ibanAccountName: memberData.ibanAccountName ?? undefined,
         })
       }
     }
@@ -645,6 +653,42 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
     )
   }
 
+  const renderBankDetailsForm = () => (
+    <Grid container spacing={2}>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          label={t('member.iban')}
+          value={formData.iban || ''}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              iban: e.target.value.replace(/\s+/g, '').toUpperCase() || undefined,
+            }))
+          }
+          placeholder='FI12 3456 7890 1234 56'
+          helperText={t('member.ibanHelper')}
+          inputProps={{ style: { textTransform: 'uppercase' } }}
+          onBlur={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              iban: e.target.value.trim().toUpperCase() || undefined,
+            }))
+          }
+          slotProps={{ inputLabel: { shrink: true } }}
+        />
+      </Grid>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          label={t('member.ibanAccountName')}
+          value={formData.ibanAccountName || ''}
+          onChange={handleChange('ibanAccountName')}
+        />
+      </Grid>
+    </Grid>
+  )
+
   const getForm = () => {
     switch (mode) {
       case 'register':
@@ -665,6 +709,8 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
         return <RenderRolesForm />
       case 'billing':
         return renderBillingForm()
+      case 'bankDetails':
+        return renderBankDetailsForm()
     }
   }
 
