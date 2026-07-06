@@ -557,7 +557,6 @@ router.post(
             description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
-            vatPercent: item.vatPercent,
             articleId: item.itemId ?? null,
             unit: item.unit,
             costCentreCode: item.costCentreCode ?? undefined,

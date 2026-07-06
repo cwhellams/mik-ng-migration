@@ -65,7 +65,6 @@ export const ExpenseLineItemSchema = z.object({
   quantity: z.number().positive(),
   unit: z.enum(['pcs', 'km', 'l', 'h']).default('pcs'),
   unitPrice: z.number().min(0),
-  vatPercent: z.number().min(0).max(100).default(0),
   sortOrder: z.number().int().default(0),
   costCentreCode: z.string().max(50).nullable().optional(),
 })

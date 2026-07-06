@@ -136,7 +136,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
         quantity: item.quantity,
         unit: item.unit,
         unitPrice: item.unitPrice,
-        vatPercent: item.vatPercent,
         sortOrder: item.sortOrder,
         costCentreCode: item.costCentreCode ?? null,
       })) ?? [makeDefaultLineItem()],
@@ -175,12 +174,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
   const currentClaimId = claimApi.data?.id ?? claimId
   const isClaimNonEur = claimCurrency !== 'EUR'
   const totalAmount = form.lineItems.reduce(
-    (sum, item) =>
-      sum +
-      item.quantity *
-        item.unitPrice *
-        (isClaimNonEur ? (claimFxRate ?? 1) : 1) *
-        (1 + item.vatPercent / 100),
+    (sum, item) => sum + item.quantity * item.unitPrice * (isClaimNonEur ? (claimFxRate ?? 1) : 1),
     0,
   )
 

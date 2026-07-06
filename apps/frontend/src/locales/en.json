@@ -2216,6 +2216,7 @@
       "receiptPolicyTitle": "Important: only one receipt document allowed per claim",
       "receiptPolicyBody": "Our accounting system only supports a single attachment per expense claim. You may upload only one image or PDF document as your receipt.\n\nAll claims must be in the same currency — do NOT mix currencies (e.g. EUR and SEK) within a single claim.\n\nFX rates are based on the rates supplied by a 3rd-party API (frankfurter.app), using the expense date you provide.\n\nMileage claims use 50% of the Finnish Tax Administration (Vero) official rate.",
       "fuelFlightQuestion": "Was this fuel purchased for a specific flight?",
+      "aircraftSelectorTooltip": "Select an aircraft if all expenses are related to one specific aircraft.",
       "recentFlights": "Select from recent flights",
       "enterFlightId": "Enter flight log ID manually",
       "selectFlight": "Select flight",
@@ -2242,7 +2243,6 @@
         "currency": "Currency",
         "costCentre": "Cost centre",
         "unitPrice": "Unit price",
-        "vat": "VAT %",
         "fxRate": "FX rate"
       },
       "review": {

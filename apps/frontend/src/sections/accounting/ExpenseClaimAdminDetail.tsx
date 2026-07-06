@@ -184,7 +184,6 @@ export function ExpenseClaimAdminDetail() {
                     <TableCell>Qty</TableCell>
                     <TableCell>Unit</TableCell>
                     <TableCell>Unit price</TableCell>
-                    <TableCell>VAT %</TableCell>
                     <TableCell align='right'>
                       {claim.currency && claim.currency !== 'EUR' ? 'Total (EUR)' : 'Total'}
                     </TableCell>
@@ -194,7 +193,7 @@ export function ExpenseClaimAdminDetail() {
                   {claim.lineItems?.map((item) => {
                     const claimFxRate = claim.fxRate
                     const isNonEur = claim.currency && claim.currency !== 'EUR'
-                    const lineTotal = item.quantity * item.unitPrice * (1 + item.vatPercent / 100)
+                    const lineTotal = item.quantity * item.unitPrice
                     const eurTotal = isNonEur
                       ? claimFxRate != null
                         ? lineTotal * claimFxRate
@@ -212,7 +211,6 @@ export function ExpenseClaimAdminDetail() {
                             ? `${item.unitPrice} ${claim.currency}`
                             : formatExpenseAmount(item.unitPrice)}
                         </TableCell>
-                        <TableCell>{item.vatPercent}</TableCell>
                         <TableCell align='right'>
                           {eurTotal != null ? formatExpenseAmount(eurTotal) : '—'}
                         </TableCell>

@@ -203,7 +203,6 @@ export interface AcctsExpenseClaimLineItem {
   sort_order: Generated<number>
   unit: Generated<string>
   unit_price: Numeric
-  vat_percent: Generated<Numeric>
 }
 
 export interface AcctsExpenseClaimMessage {

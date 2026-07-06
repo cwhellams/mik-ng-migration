@@ -5,8 +5,8 @@
   "main": "src/migrate.ts",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=dev node --experimental-transform-types src/migrate.ts",
-    "test": "NODE_ENV=test node --experimental-transform-types src/migrate.ts"
+    "dev": "node --experimental-transform-types --input-type=module -e \"process.env.NODE_ENV='dev'; await import('./src/migrate.ts')\"",
+    "test": "node --experimental-transform-types --input-type=module -e \"process.env.NODE_ENV='test'; await import('./src/services/api.ts')\""
   },
   "keywords": [],
   "author": "",

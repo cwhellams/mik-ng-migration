@@ -114,7 +114,6 @@ const mapLineItem = (row: {
   quantity: unknown
   unit: string
   unit_price: unknown
-  vat_percent: unknown
   sort_order: number
   cost_centre_code?: string | null
 }): ExpenseLineItem => ({
@@ -125,7 +124,6 @@ const mapLineItem = (row: {
   quantity: Number(row.quantity),
   unit: row.unit as ExpenseLineItem['unit'],
   unitPrice: Number(row.unit_price),
-  vatPercent: Number(row.vat_percent),
   sortOrder: row.sort_order,
   costCentreCode: row.cost_centre_code ?? undefined,
 })
@@ -233,7 +231,7 @@ const claimSelect = (executor: Executor) =>
         'member_name',
       ),
       sql<number>`coalesce((
-        select sum(li.quantity * li.unit_price * (1 + li.vat_percent / 100.0)) * coalesce(claim.fx_rate, 1.0)
+        select sum(li.quantity * li.unit_price) * coalesce(claim.fx_rate, 1.0)
         from accts.expense_claim_line_item li
         where li.claim_id = claim.id
       ), 0)`.as('total_amount'),
@@ -258,7 +256,6 @@ async function insertLineItems(
         quantity: item.quantity,
         unit: item.unit,
         unit_price: item.unitPrice,
-        vat_percent: item.vatPercent,
         sort_order: item.sortOrder,
         cost_centre_code: item.costCentreCode ?? null,
       })),
@@ -351,7 +348,6 @@ export async function getExpenseClaimById(id: string): Promise<ExpenseClaim | un
         'li.quantity',
         'li.unit',
         'li.unit_price',
-        'li.vat_percent',
         'li.sort_order',
         'li.cost_centre_code',
       ])

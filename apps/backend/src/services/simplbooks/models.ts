@@ -395,7 +395,6 @@ export const ReceiptPostSchema = z.object({
 // - name:    line item description
 // - amount:  quantity
 // - sum:     total row amount (amount * unit_price), no unit_price field available
-// - vat:     VAT percentage
 // - Projects: optional cost-centre codes, placed inside each row (not at top level)
 export const PurchaseRowProjectSchema = z.object({
   code: z.string(), // cost centre code
@@ -405,7 +404,7 @@ export const PurchaseRowSchema = z.object({
   name: z.string(),
   amount: z.number(),
   sum: z.number(), // row total = amount * unit_price (ex-VAT)
-  vat: z.number(),
+  vat: z.number().optional(),
   article_id: z.number().optional(),
   code: z.string().optional(),
   unit: z.string().optional(),

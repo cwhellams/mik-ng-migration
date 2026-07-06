@@ -2189,6 +2189,7 @@
       "receiptPolicyTitle": "Viktigt: endast ett kvittodokument tillåtet per anspråk",
       "receiptPolicyBody": "Vårt redovisningssystem stöder bara en bilaga per utgiftsanspråk. Du kan ladda upp en bild eller ett PDF-dokument som kvitto.\n\nAlla anspråk måste vara i samma valuta — blanda INTE valutor (t.ex. EUR och SEK) i ett och samma anspråk.\n\nVäxelkurser baseras på kurser från ett tredjeparts-API (frankfurter.app), med användning av det utgiftsdatum du anger.\n\nKilometerersättning använder 50 % av Skatteförvaltningens (Vero) officiella sats.",
       "fuelFlightQuestion": "Köptes detta bränsle för en specifik flygning?",
+      "aircraftSelectorTooltip": "Välj ett flygplan om alla utgifter gäller ett och samma specifika flygplan.",
       "recentFlights": "Välj från senaste flygningar",
       "enterFlightId": "Ange flyglogg-ID manuellt",
       "selectFlight": "Välj flygning",
@@ -2215,7 +2216,6 @@
         "currency": "Valuta",
         "costCentre": "Kostnadsställe",
         "unitPrice": "Á-pris",
-        "vat": "Moms %",
         "fxRate": "Valutakurs"
       },
       "review": {

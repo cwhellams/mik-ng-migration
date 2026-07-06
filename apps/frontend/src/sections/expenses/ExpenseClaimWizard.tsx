@@ -332,7 +332,6 @@ export default function ExpenseClaimWizard() {
               quantity: Number(mileageDetail.distanceKm) || 1,
               unit: 'km',
               unitPrice: mileageAllowance?.effectiveRatePerKm ?? 0,
-              vatPercent: 0,
               sortOrder: 0,
             },
           ]
@@ -447,34 +446,36 @@ export default function ExpenseClaimWizard() {
           </TextField>
 
           {selectedCategory && (
-            <TextField
-              select
-              label={t('expenses.fields.aircraft')}
-              value={form.aircraftId ?? ''}
-              fullWidth
-              required={selectedCategory.code === 'fuel'}
-              onChange={(e) => {
-                const reg = e.target.value || undefined
-                setForm((c) => ({
-                  ...c,
-                  aircraftId: reg,
-                  // Default all line items' cost centre to the selected aircraft registration
-                  lineItems: c.lineItems.map((li) => ({
-                    ...li,
-                    costCentreCode: reg ?? li.costCentreCode ?? null,
-                  })),
-                }))
-              }}
-            >
-              {!selectedCategory.requiresAircraft && (
-                <MenuItem value=''>{t('expenses.fields.aircraftOptional')}</MenuItem>
-              )}
-              {aircraftApi.data?.aircrafts.map((a) => (
-                <MenuItem key={a.registration} value={a.registration}>
-                  {a.registration} – {a.displayName}
-                </MenuItem>
-              ))}
-            </TextField>
+            <Tooltip title={t('expenses.wizard.aircraftSelectorTooltip')}>
+              <TextField
+                select
+                label={t('expenses.fields.aircraft')}
+                value={form.aircraftId ?? ''}
+                fullWidth
+                required={selectedCategory.code === 'fuel'}
+                onChange={(e) => {
+                  const reg = e.target.value || undefined
+                  setForm((c) => ({
+                    ...c,
+                    aircraftId: reg,
+                    // Default all line items' cost centre to the selected aircraft registration
+                    lineItems: c.lineItems.map((li) => ({
+                      ...li,
+                      costCentreCode: reg ?? li.costCentreCode ?? null,
+                    })),
+                  }))
+                }}
+              >
+                {!selectedCategory.requiresAircraft && (
+                  <MenuItem value=''>{t('expenses.fields.aircraftOptional')}</MenuItem>
+                )}
+                {aircraftApi.data?.aircrafts.map((a) => (
+                  <MenuItem key={a.registration} value={a.registration}>
+                    {a.registration} – {a.displayName}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Tooltip>
           )}
 
           <TextField

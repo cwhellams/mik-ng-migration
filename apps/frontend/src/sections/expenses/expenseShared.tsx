@@ -73,7 +73,6 @@ export const makeDefaultLineItem = (
   quantity: 1,
   unit,
   unitPrice: 0,
-  vatPercent: 0,
   sortOrder: 0,
   costCentreCode: costCentreCode ?? null,
 })
@@ -203,7 +202,6 @@ export function LineItemsTable({
               {t('expenses.wizard.col.qty')} / {t('expenses.wizard.col.unit')}
             </TableCell>
             <TableCell sx={{ minWidth: 120 }}>{t('expenses.wizard.col.unitPrice')}</TableCell>
-            <TableCell sx={{ minWidth: 70 }}>{t('expenses.wizard.col.vat')}</TableCell>
             {expenseClaimItems && (
               <TableCell sx={{ minWidth: 180 }}>{t('expenses.wizard.col.itemId')}</TableCell>
             )}
@@ -220,7 +218,7 @@ export function LineItemsTable({
         </TableHead>
         <TableBody>
           {items.map((item, idx) => {
-            const lineTotal = item.quantity * item.unitPrice * (1 + item.vatPercent / 100)
+            const lineTotal = item.quantity * item.unitPrice
             const eurTotal = isNonEur
               ? claimFxRate != null
                 ? lineTotal * claimFxRate
@@ -299,17 +297,6 @@ export function LineItemsTable({
                         : undefined
                     }
                     sx={{ width: 120 }}
-                  />
-                </TableCell>
-                <TableCell sx={{ verticalAlign: 'top' }}>
-                  <TextField
-                    size='small'
-                    type='number'
-                    value={item.vatPercent}
-                    disabled={disabled}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(e) => update(idx, { vatPercent: Number(e.target.value) || 0 })}
-                    sx={{ width: 70 }}
                   />
                 </TableCell>
                 {expenseClaimItems && (
