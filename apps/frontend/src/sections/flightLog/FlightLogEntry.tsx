@@ -54,6 +54,7 @@ import { Airfields } from '../../components/Airfields'
 import { PersonsOnBoard } from './components/PersonsOnBoard'
 import { NumberOfLandings } from './components/NumberOfLandings'
 import { Fuel } from './components/Fuel'
+import { OilUplift } from './components/OilUplift'
 import { StatusDisplay } from './components/StatusDisplay'
 import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
@@ -211,6 +212,13 @@ const FlightLogEntry = () => {
         }
       }
 
+      if (isEditable && (values.oilUpliftLitres === null || values.oilUpliftLitres === undefined)) {
+        additionalErrors['oilUpliftLitres'] = {
+          type: 'custom',
+          message: t('flightLog.error.oilUpliftRequired'),
+        }
+      }
+
       if (Object.keys(additionalErrors).length === 0) {
         return result
       }
@@ -220,7 +228,7 @@ const FlightLogEntry = () => {
         errors: { ...result.errors, ...additionalErrors },
       }
     }
-  }, [memberList, t])
+  }, [memberList, t, isEditable])
 
   const {
     register,
@@ -254,13 +262,11 @@ const FlightLogEntry = () => {
       totalTimeInService: 0,
       incidentOrObservations: null,
 
-      personsOnBoard: 1,
-      numberOfLandings: 1,
       numberOfNightLandings: 0,
       nightFlyingMins: 0,
       instrumentFlyingMins: 0,
 
-      fuelRemainingLitres: undefined,
+      fuelRemainingLitres: 0,
       fuelUpliftLitres: null,
       oilUpliftLitres: null,
 
@@ -631,13 +637,6 @@ const FlightLogEntry = () => {
                             clearErrors('departureAirport')
                           }
                         }
-                        if (!getValues('fuelRemainingLitres')) {
-                          // set default fuel to 10% of usable fuel
-                          if (plane?.usableFuelLitres) {
-                            setValue('fuelRemainingLitres', plane?.usableFuelLitres * 0.1)
-                            clearErrors('fuelRemainingLitres')
-                          }
-                        }
 
                         field.onChange(target.value)
                       }}
@@ -939,15 +938,7 @@ const FlightLogEntry = () => {
             )}
 
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TxtField
-                name='oilUpliftLitres'
-                control={control}
-                props={{
-                  type: 'number',
-                  disabled: !isEditable,
-                  slotProps: { htmlInput: { step: '0.1', min: 0, max: 10 } },
-                }}
-              />
+              <OilUplift control={control} disabled={!isEditable} />
             </Grid>
 
             {/* Notes */}

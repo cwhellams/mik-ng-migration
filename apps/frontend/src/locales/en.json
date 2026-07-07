@@ -825,7 +825,8 @@
     "addCrew": "Add Crew Member",
     "error": {
       "memberNotInstructor": "Selected member must have the Flight Instructor role for FI duty",
-      "memberNotExaminer": "Selected member must have the Flight Examiner role for FE duty"
+      "memberNotExaminer": "Selected member must have the Flight Examiner role for FE duty",
+      "oilUpliftRequired": "Please enter oil uplift amount or check 'No oil added'"
     },
     "aircraftInfo": "Aircraft Information",
     "additionalInfo": "Additional Information",
@@ -840,7 +841,9 @@
     "fuelInfo": "Fuel and Oil Information",
     "fuelUpliftLitres": "Fuel Uplift (litres)",
     "fuelRemainingLitres": "Fuel remaining",
+    "fuelRemainingZeroWarning": "Warning: Fuel remaining is set to 0. Please verify this is correct.",
     "oilUpliftLitres": "Oil Uplift (litres)",
+    "noOilAdded": "No oil added",
     "createFuelExpenseClaim": "Create fuel expense claim",
     "copyFlightId": "Copy flight ID",
     "fuelTypeUnknown": "Unknown / not set",

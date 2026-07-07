@@ -119,7 +119,7 @@ export const FlightLogSchema = AuditableSchema.extend({
   minBillableExceptionReason: z.string().nullable(),
   minBillableExceptionApprovedByMemberId: z.string().nullable(),
   validationRemarks: z.string().nullable(),
-  numberOfLandings: z.number().int().min(0),
+  numberOfLandings: z.number().int().min(1),
   numberOfNightLandings: z.number().int().min(0),
   oilUpliftLitres: z.number().min(0).nullable(),
   offBlockTimeEpoch: BigintAsString,

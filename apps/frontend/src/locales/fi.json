@@ -832,7 +832,8 @@
     "addCrew": "Lisää miehistön jäsen",
     "error": {
       "memberNotInstructor": "Valitulla jäsenellä tulee olla lentokouluttajan rooli FI-tehtävään",
-      "memberNotExaminer": "Valitulla jäsenellä tulee olla tarkastuslentäjän rooli FE-tehtävään"
+      "memberNotExaminer": "Valitulla jäsenellä tulee olla tarkastuslentäjän rooli FE-tehtävään",
+      "oilUpliftRequired": "Syötä öljytäydennyksen määrä tai valitse 'Ei öljytäydennystä'"
     },
     "aircraftInfo": "Ilma-aluksen tiedot",
     "additionalInfo": "Lisätiedot",
@@ -847,7 +848,9 @@
     "fuelInfo": "Polttoaineen tiedot",
     "fuelUpliftLitres": "Polttoainetäydennys (litraa)",
     "fuelRemainingLitres": "Polttoainetta jäljellä",
+    "fuelRemainingZeroWarning": "Varoitus: Polttoainetta jäljellä on asetettu 0:aan. Varmista, että tämä on oikein.",
     "oilUpliftLitres": "Öljytäydennys (litraa)",
+    "noOilAdded": "Ei öljytäydennystä",
     "createFuelExpenseClaim": "Luo polttoainekulukorvaus",
     "copyFlightId": "Kopioi lento-ID",
     "fuelTypeUnknown": "Tuntematon / ei asetettu",

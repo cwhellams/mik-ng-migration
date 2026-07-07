@@ -833,7 +833,8 @@
     "addCrew": "Lägg till besättningsmedlem",
     "error": {
       "memberNotInstructor": "Den valda medlemmen måste ha rollen flyginstruktör för FI-tjänst",
-      "memberNotExaminer": "Den valda medlemmen måste ha rollen flygkontrollant för FE-tjänst"
+      "memberNotExaminer": "Den valda medlemmen måste ha rollen flygkontrollant för FE-tjänst",
+      "oilUpliftRequired": "Ange mängden oljepåfyllning eller välj 'Ingen oljepåfyllning'"
     },
     "aircraftInfo": "Flygplansinformation",
     "additionalInfo": "Ytterligare information",
@@ -848,7 +849,9 @@
     "fuelInfo": "Bränsle- och oljeinformation",
     "fuelUpliftLitres": "Bränslepåfyllning (liter)",
     "fuelRemainingLitres": "Bränsle kvar",
+    "fuelRemainingZeroWarning": "Varning: Bränsle kvar är inställt på 0. Kontrollera att detta är korrekt.",
     "oilUpliftLitres": "Oljepåfyllning (liter)",
+    "noOilAdded": "Ingen oljepåfyllning",
     "createFuelExpenseClaim": "Skapa bränsleersättning",
     "copyFlightId": "Kopiera flyg-ID",
     "fuelTypeUnknown": "Okänd / ej angiven",

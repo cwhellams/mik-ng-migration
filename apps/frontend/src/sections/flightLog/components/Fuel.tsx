@@ -1,4 +1,12 @@
-import { Box, Slider, Typography, useMediaQuery, useTheme } from '@mui/material'
+import {
+  Alert,
+  Box,
+  FormHelperText,
+  Slider,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material'
 import { Control, Controller } from 'react-hook-form'
 import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
 import { useTranslation } from 'react-i18next'
@@ -64,7 +72,7 @@ export const Fuel = ({ control, usableFuelLitres, disabled }: Props) => {
       name={'fuelRemainingLitres'}
       control={control}
       disabled={disabled}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <Box>
           <Typography
             variant='body2'
@@ -82,12 +90,20 @@ export const Fuel = ({ control, usableFuelLitres, disabled }: Props) => {
               field.onChange(value as number)
             }}
             valueLabelFormat={label}
-            min={3.785}
+            min={0}
             step={3.785}
             max={usableFuelLitres}
             valueLabelDisplay='on'
             marks={marks}
           />
+
+          {!disabled && (field.value ?? 0) === 0 && (
+            <Alert severity='warning' sx={{ mt: 1 }}>
+              {t('flightLog.fuelRemainingZeroWarning')}
+            </Alert>
+          )}
+
+          <FormHelperText error>{fieldState.error?.message}</FormHelperText>
         </Box>
       )}
     />
