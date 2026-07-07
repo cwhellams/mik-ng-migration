@@ -5,7 +5,7 @@ Bästa {{firstName}},
 Din möjlighet att göra flygplansreservationer har <strong>upphävts</strong> på grund av obetalda flygfakturor.
 
 <div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;">
-  
+
 **Utestående flygfakturor:**
 
 Antal: **{{invoiceCount}}**

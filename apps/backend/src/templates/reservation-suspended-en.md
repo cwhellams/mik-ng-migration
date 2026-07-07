@@ -5,9 +5,9 @@ Dear {{firstName}},
 Your ability to make aircraft reservations has been **suspended** due to unpaid flight invoices.
 
 <div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;">
-  
+
 **Outstanding Flight Invoices:**
-  
+
 Count: **{{invoiceCount}}**
 
 Total Amount: **{{totalAmount}} €**
@@ -22,6 +22,7 @@ Total Amount: **{{totalAmount}} €**
   {{/if}}
 - This suspension only affects flight booking privileges
 - Your reservation privileges will be automatically restored once all flight invoices are paid
+
 </ul>
 
 ## Action Required

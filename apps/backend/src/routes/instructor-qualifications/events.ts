@@ -38,9 +38,7 @@ export type QualificationExpiryNotificationSent = Event<
 >
 
 export type InstructorQualificationEvent =
-  | InstructorQualificationSet
-  | QualificationProofUploaded
-  | QualificationExpiryNotificationSent
+  InstructorQualificationSet | QualificationProofUploaded | QualificationExpiryNotificationSent
 
 export const instructorQualificationStreamId = (memberId: string): string =>
   `instructor-qualification:${memberId}`

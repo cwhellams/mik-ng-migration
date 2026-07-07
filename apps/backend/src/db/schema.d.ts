@@ -100,13 +100,7 @@ export type JsonPrimitive = boolean | number | string | null
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive
 
 export type MemberType =
-  | 'EXTERNAL'
-  | 'FLYING'
-  | 'HONORARY'
-  | 'JUNIOR'
-  | 'NON-FLYING'
-  | 'REMOVED'
-  | 'SYSTEM'
+  'EXTERNAL' | 'FLYING' | 'HONORARY' | 'JUNIOR' | 'NON-FLYING' | 'REMOVED' | 'SYSTEM'
 
 export type MikLang = 'en' | 'fi' | 'sv'
 
@@ -115,13 +109,7 @@ export type NonRenewalActionType = 'MEMBERSHIP_CANCELLED' | 'REMINDER_SENT'
 export type Numeric = ColumnType<number, number | string, number | string>
 
 export type Occurrencestatus =
-  | 'ANONYMIZED'
-  | 'ANONYMIZING'
-  | 'CLOSED'
-  | 'DELETED'
-  | 'NEW'
-  | 'PROCESSED'
-  | 'RECEIVED'
+  'ANONYMIZED' | 'ANONYMIZING' | 'CLOSED' | 'DELETED' | 'NEW' | 'PROCESSED' | 'RECEIVED'
 
 export type SecretClassType = 'BOARD' | 'MEMBER'
 
