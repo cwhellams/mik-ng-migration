@@ -1039,6 +1039,30 @@
       "clickToView": "Klicka för att visa detaljer",
       "deleteTitle": "Ta bort underhållsanteckning",
       "deleteMessage": "Är du säker på att du vill ta bort denna underhållsanteckning? Åtgärden kan inte ångras."
+    },
+    "defects": {
+      "addPreFlightButton": "Rapportera fel",
+      "addPreFlightTitle": "Nytt fel (före flygning)",
+      "addInFlightButton": "Rapportera fel under flygning",
+      "addInFlightTitle": "Nytt fel (under flygning)",
+      "viewTitle": "Fel",
+      "description": "Beskrivning",
+      "flightTime": "Flygplanets totala flygtid",
+      "linkedHil": "Länkad HIL",
+      "resolvedBy": "Åtgärdad via underhållsanteckning",
+      "resolvedNoteId": "Underhållsanteckningens ID",
+      "resolvedNoteHelp": "Ange UUID för underhållsanteckningen som löste detta fel",
+      "clickToView": "Klicka för att visa detaljer",
+      "selectHil": "Välj HIL",
+      "noHil": "Ingen HIL",
+      "linkHil": "Länka till HIL",
+      "changeHil": "Byt HIL",
+      "markResolved": "Markera som åtgärdad",
+      "status": {
+        "ACTIVE": "Aktiv",
+        "MOVED_TO_HIL": "Överförd till HIL",
+        "RESOLVED": "Åtgärdad"
+      }
     }
   },
   "invoicing": {

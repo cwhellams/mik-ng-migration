@@ -1038,6 +1038,30 @@
       "clickToView": "Avaa tiedot napsauttamalla",
       "deleteTitle": "Poista huoltomerkintä",
       "deleteMessage": "Haluatko varmasti poistaa tämän huoltomerkinnän? Toimintoa ei voi kumota."
+    },
+    "defects": {
+      "addPreFlightButton": "Kirjaa vika",
+      "addPreFlightTitle": "Uusi vikamerkintä (ennen lentoa)",
+      "addInFlightButton": "Kirjaa lennon aikainen vika",
+      "addInFlightTitle": "Uusi vikamerkintä (lennon aikainen)",
+      "viewTitle": "Vikamerkintä",
+      "description": "Kuvaus",
+      "flightTime": "Lentokoneen kokonaislentoaika",
+      "linkedHil": "Linkitetty HIL",
+      "resolvedBy": "Huollon kirjausnumero",
+      "resolvedNoteId": "Huoltomerkinnän tunnus",
+      "resolvedNoteHelp": "Syötä sen huoltomerkinnän tunnus (UUID), jolla vika on korjattu",
+      "clickToView": "Avaa tiedot napsauttamalla",
+      "selectHil": "Valitse HIL",
+      "noHil": "Ei HIL:iä",
+      "linkHil": "Linkitä HIL",
+      "changeHil": "Vaihda HIL",
+      "markResolved": "Merkitse korjatuksi",
+      "status": {
+        "ACTIVE": "Aktiivinen",
+        "MOVED_TO_HIL": "Siirretty HIL:iin",
+        "RESOLVED": "Korjattu"
+      }
     }
   },
   "invoicing": {

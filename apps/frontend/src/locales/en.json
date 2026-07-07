@@ -1031,6 +1031,30 @@
       "clickToView": "Click to view details",
       "deleteTitle": "Delete maintenance note",
       "deleteMessage": "Are you sure you want to delete this maintenance note? This action cannot be undone."
+    },
+    "defects": {
+      "addPreFlightButton": "Report defect",
+      "addPreFlightTitle": "Report Defect (Pre-flight)",
+      "addInFlightButton": "Report in-flight defect",
+      "addInFlightTitle": "Report Defect (In-flight)",
+      "viewTitle": "Defect",
+      "description": "Description",
+      "flightTime": "Aircraft total flight time",
+      "linkedHil": "Linked HIL",
+      "resolvedBy": "Resolved by maintenance note",
+      "resolvedNoteId": "Maintenance note ID",
+      "resolvedNoteHelp": "Enter the UUID of the maintenance note that resolved this defect",
+      "clickToView": "Click to view details",
+      "selectHil": "Select HIL",
+      "noHil": "No HIL",
+      "linkHil": "Link to HIL",
+      "changeHil": "Change HIL",
+      "markResolved": "Mark as Resolved",
+      "status": {
+        "ACTIVE": "Active",
+        "MOVED_TO_HIL": "Moved to HIL",
+        "RESOLVED": "Resolved"
+      }
     }
   },
   "invoicing": {
