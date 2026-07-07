@@ -1,3 +1,4 @@
+import { sql } from 'kysely'
 import * as connection from './connection.ts'
 import type {
   AircraftDocument,
@@ -233,4 +234,89 @@ export const getAircraftRegistrations = async (): Promise<string[]> => {
     .execute()
 
   return records.map((record: any) => record.registration)
+}
+
+export interface ExpiringAircraftDocument {
+  documentId: number
+  aircraftRegistration: string
+  documentType: string
+  title: string
+  validTo: string
+}
+
+/**
+ * Find active documents with valid_to = targetDate that have no newer successor
+ * document of the same type+aircraft (valid_from > this doc's valid_to).
+ */
+export const getAircraftDocumentsExpiringOn = async (
+  targetDate: string,
+): Promise<ExpiringAircraftDocument[]> => {
+  const records = await connection.db
+    .selectFrom('flight.aircraft_documents_files as d')
+    .select([
+      'd.document_id',
+      'd.aircraft_registration',
+      'd.document_type',
+      'd.title',
+      'd.valid_to',
+    ])
+    .where('d.is_active', '=', true)
+    .where('d.valid_to', '=', targetDate)
+    .where((eb) =>
+      eb.not(
+        eb.exists(
+          eb
+            .selectFrom('flight.aircraft_documents_files as newer')
+            .select(sql`1`.as('one'))
+            .where('newer.aircraft_registration', '=', eb.ref('d.aircraft_registration'))
+            .where('newer.document_type', '=', eb.ref('d.document_type') as any)
+            .where('newer.is_active', '=', true)
+            .where('newer.document_id', '!=', eb.ref('d.document_id'))
+            .where(sql`newer.valid_from`, '>', sql`d.valid_to`),
+        ),
+      ),
+    )
+    .execute()
+
+  return records.map((r: any) => ({
+    documentId: r.document_id,
+    aircraftRegistration: r.aircraft_registration,
+    documentType: r.document_type,
+    title: r.title,
+    validTo: r.valid_to,
+  }))
+}
+
+export const hasAircraftDocumentNotificationBeenSent = async (
+  documentId: number,
+  notificationType: 'REMINDER' | 'EXPIRED',
+  daysThreshold: number = 0,
+): Promise<boolean> => {
+  const result = await connection.db
+    .selectFrom('flight.aircraft_document_expiry_notifications')
+    .select('id')
+    .where('document_id', '=', documentId)
+    .where('notification_type', '=', notificationType)
+    .where('days_threshold', '=', daysThreshold)
+    .executeTakeFirst()
+
+  return result != null
+}
+
+export const recordAircraftDocumentNotificationSent = async (
+  documentId: number,
+  notificationType: 'REMINDER' | 'EXPIRED',
+  daysThreshold: number = 0,
+): Promise<void> => {
+  await connection.db
+    .insertInto('flight.aircraft_document_expiry_notifications')
+    .values({
+      document_id: documentId,
+      notification_type: notificationType,
+      days_threshold: daysThreshold,
+    })
+    .onConflict((oc) =>
+      oc.columns(['document_id', 'notification_type', 'days_threshold']).doNothing(),
+    )
+    .execute()
 }

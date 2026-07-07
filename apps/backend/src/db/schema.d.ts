@@ -582,6 +582,14 @@ export interface FlightAircraftCards {
   valid_to: string | null
 }
 
+export interface FlightAircraftDocumentExpiryNotifications {
+  days_threshold: Generated<number>
+  document_id: number
+  id: Generated<number>
+  notification_type: string
+  sent_at: Generated<Timestamp>
+}
+
 export interface FlightAircraftDocumentsFiles {
   aircraft_registration: string
   created_at: Generated<Timestamp>
@@ -1724,6 +1732,7 @@ export interface DB {
   'exam.questions': ExamQuestions
   'flight.aircraft': FlightAircraft
   'flight.aircraft_cards': FlightAircraftCards
+  'flight.aircraft_document_expiry_notifications': FlightAircraftDocumentExpiryNotifications
   'flight.aircraft_documents_files': FlightAircraftDocumentsFiles
   'flight.aircraft_hil': FlightAircraftHil
   'flight.aircraft_hil_audit': FlightAircraftHilAudit
