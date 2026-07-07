@@ -139,3 +139,129 @@ describe('RegisterRequestSchema – junior membership age validation', () => {
     expect(result.success).toBe(true)
   })
 })
+
+const baseExternalMember = {
+  email: 'external@example.com',
+  firstName: 'External',
+  lastName: 'User',
+  memberType: MIKMemberTypes.EXTERNAL,
+  lang: MIKLang.FI,
+}
+
+describe('RegisterRequestSchema – EXTERNAL member address fields', () => {
+  it('accepts EXTERNAL member without any address fields', () => {
+    const result = RegisterRequestSchema.safeParse(baseExternalMember)
+    expect(result.success).toBe(true)
+  })
+
+  it('accepts EXTERNAL member with empty-string address fields (preprocessed to undefined)', () => {
+    const result = RegisterRequestSchema.safeParse({
+      ...baseExternalMember,
+      streetAddress: '',
+      postcode: '',
+      townCity: '',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('accepts EXTERNAL member with partial address fields', () => {
+    const result = RegisterRequestSchema.safeParse({
+      ...baseExternalMember,
+      streetAddress: 'Some Street 1',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects non-EXTERNAL member without address fields', () => {
+    const result = RegisterRequestSchema.safeParse({
+      email: 'flying@example.com',
+      firstName: 'Flying',
+      lastName: 'User',
+      memberType: MIKMemberTypes.FLYING,
+      lang: MIKLang.FI,
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects non-EXTERNAL member with empty-string address fields', () => {
+    const result = RegisterRequestSchema.safeParse({
+      email: 'flying@example.com',
+      firstName: 'Flying',
+      lastName: 'User',
+      memberType: MIKMemberTypes.FLYING,
+      lang: MIKLang.FI,
+      streetAddress: '',
+      postcode: '',
+      townCity: '',
+    })
+    expect(result.success).toBe(false)
+  })
+})
+
+describe('RegisterRequestSchema – postcode format validation', () => {
+  it('rejects EXTERNAL member with non-digits-only postcode', () => {
+    const result = RegisterRequestSchema.safeParse({
+      ...baseExternalMember,
+      postcode: 'ABC',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].path).toContain('postcode')
+    }
+  })
+
+  it('accepts EXTERNAL member with digits-only postcode', () => {
+    const result = RegisterRequestSchema.safeParse({
+      ...baseExternalMember,
+      postcode: '00100',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects non-EXTERNAL member with non-digits-only postcode', () => {
+    const result = RegisterRequestSchema.safeParse({
+      ...baseValidMember,
+      postcode: 'ABCDE',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      const postcodeIssue = result.error.issues.find((i) => i.path.includes('postcode'))
+      expect(postcodeIssue).toBeDefined()
+    }
+  })
+})
+
+describe('RegisterRequestSchema – phone number preprocessing', () => {
+  it('converts empty-string phoneNumber to null', () => {
+    const result = RegisterRequestSchema.safeParse({
+      ...baseValidMember,
+      phoneNumber: '',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.phoneNumber).toBeNull()
+    }
+  })
+
+  it('accepts a valid phone number', () => {
+    const result = RegisterRequestSchema.safeParse({
+      ...baseValidMember,
+      phoneNumber: '+358401234567',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.phoneNumber).toBe('+358401234567')
+    }
+  })
+
+  it('accepts null phoneNumber', () => {
+    const result = RegisterRequestSchema.safeParse({
+      ...baseValidMember,
+      phoneNumber: null,
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.phoneNumber).toBeNull()
+    }
+  })
+})

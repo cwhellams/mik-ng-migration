@@ -20,13 +20,7 @@ import { ResponsiveTable } from '../../components/ResponsiveTable'
 import Grid from '@mui/system/Grid'
 
 type SortKey =
-  | 'id'
-  | 'code'
-  | 'name'
-  | 'markup_value'
-  | 'markup_type'
-  | 'unit'
-  | 'expense_claim_item'
+  'id' | 'code' | 'name' | 'markup_value' | 'markup_type' | 'unit' | 'expense_claim_item'
 type SortDir = 'asc' | 'desc'
 
 function sortItems(items: Item[], key: SortKey, dir: SortDir): Item[] {

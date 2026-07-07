@@ -4,12 +4,7 @@ import useApi, { APIResponse } from './useApi'
 
 export const useAuth = <Input, Output>(
   endpoint:
-    | 'login'
-    | 'login/validate'
-    | 'login/verify-code'
-    | 'register'
-    | 'register/verify'
-    | 'logout',
+    'login' | 'login/validate' | 'login/verify-code' | 'register' | 'register/verify' | 'logout',
 ): {
   isMutating: boolean
   trigger: (request?: Input) => Promise<APIResponse<Output>>

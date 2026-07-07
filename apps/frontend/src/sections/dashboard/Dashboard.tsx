@@ -114,13 +114,11 @@ const Dashboard = () => {
       ...dashboardSettings.components,
       ...customizableComponentIds
         .filter((id) => !knownComponentIds.has(id))
-        .map(
-          (id): DashboardComponent => ({
-            id,
-            visible: true,
-            order: nextOrder++,
-          }),
-        ),
+        .map((id): DashboardComponent => ({
+          id,
+          visible: true,
+          order: nextOrder++,
+        })),
     ]
   }, [customizableComponentIds, dashboardSettings?.components])
 

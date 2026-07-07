@@ -230,33 +230,37 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           onChange={(value) => setFormData((prev) => ({ ...prev, phoneNumber: value }))}
         />
       </Grid>
-      <Grid size={12}>
-        <TextField
-          fullWidth
-          required
-          label={t('member.streetAddress')}
-          value={formData.streetAddress || ''}
-          onChange={handleChange('streetAddress')}
-        />
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <TextField
-          fullWidth
-          required
-          label={t('member.postcode')}
-          value={formData.postcode || ''}
-          onChange={handleChange('postcode')}
-        />
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <TextField
-          fullWidth
-          required
-          label={t('member.town')}
-          value={formData.townCity || ''}
-          onChange={handleChange('townCity')}
-        />
-      </Grid>
+      {formData.memberType !== MIKMemberTypes.EXTERNAL && (
+        <>
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              required
+              label={t('member.streetAddress')}
+              value={formData.streetAddress || ''}
+              onChange={handleChange('streetAddress')}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              required
+              label={t('member.postcode')}
+              value={formData.postcode || ''}
+              onChange={handleChange('postcode')}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              required
+              label={t('member.town')}
+              value={formData.townCity || ''}
+              onChange={handleChange('townCity')}
+            />
+          </Grid>
+        </>
+      )}
     </Grid>
   )
 

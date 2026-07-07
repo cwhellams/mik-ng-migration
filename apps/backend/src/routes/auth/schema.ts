@@ -56,6 +56,20 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
 
   // application data for membership review
   applicationData: ApplicationDataSchema.optional(),
+
+  // Address fields are optional at schema level; conditionally required below for non-EXTERNAL types
+  streetAddress: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().optional(),
+  ),
+  postcode: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().optional(),
+  ),
+  townCity: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+    z.string().optional(),
+  ),
 }).superRefine((data, ctx) => {
   if (data.memberType === MIKMemberTypes.JUNIOR) {
     if (!data.dateOfBirth) {
@@ -88,6 +102,40 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
         code: z.ZodIssueCode.custom,
         message: 'Junior membership is only available for members under 18 years old',
         path: ['dateOfBirth'],
+      })
+    }
+  }
+
+  // Postcode must be digits-only whenever provided (all member types)
+  if (data.postcode && !/^\d+$/.test(data.postcode)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'member.postcodeDigitsOnly',
+      path: ['postcode'],
+    })
+  }
+
+  // Address fields are required for all non-EXTERNAL member types
+  if (data.memberType !== MIKMemberTypes.EXTERNAL) {
+    if (!data.streetAddress?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Street address is required',
+        path: ['streetAddress'],
+      })
+    }
+    if (!data.postcode) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'member.postcodeDigitsOnly',
+        path: ['postcode'],
+      })
+    }
+    if (!data.townCity?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Town/city is required',
+        path: ['townCity'],
       })
     }
   }

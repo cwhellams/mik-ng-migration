@@ -539,9 +539,7 @@ export default function FlightPackagesAdmin() {
                     value={
                       form[
                         `name${lang.charAt(0).toUpperCase() + lang.slice(1)}` as
-                          | 'nameEn'
-                          | 'nameFi'
-                          | 'nameSv'
+                          'nameEn' | 'nameFi' | 'nameSv'
                       ]
                     }
                     onChange={(e) =>
@@ -586,9 +584,7 @@ export default function FlightPackagesAdmin() {
                     value={
                       form[
                         `description${lang.charAt(0).toUpperCase() + lang.slice(1)}` as
-                          | 'descriptionEn'
-                          | 'descriptionFi'
-                          | 'descriptionSv'
+                          'descriptionEn' | 'descriptionFi' | 'descriptionSv'
                       ]
                     }
                     onChange={(e) =>

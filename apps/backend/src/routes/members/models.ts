@@ -385,10 +385,13 @@ export const MemberProfileSchema = MemberSchema.pick({
   streetAddress: z.string().min(1),
   postcode: z.string().min(1).regex(/^\d+$/, 'member.postcodeDigitsOnly'),
   townCity: z.string().min(1),
-  phoneNumber: z
-    .string()
-    .regex(/^\+[0-9\s\-()]+$/, 'member.phoneRequiresCorrectFormatting')
-    .nullish(),
+  phoneNumber: z.preprocess(
+    (v) => (v === '' ? null : v),
+    z
+      .string()
+      .regex(/^\+[0-9\s\-()]+$/, 'member.phoneRequiresCorrectFormatting')
+      .nullish(),
+  ),
 })
 
 export type MemberProfile = z.infer<typeof MemberProfileSchema>
