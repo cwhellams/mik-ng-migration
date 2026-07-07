@@ -1425,6 +1425,50 @@ export interface StaticAirfields {
   name: string | null
 }
 
+export interface StatsAirfieldEfficiencyByAcYr {
+  aircraft_registration: string | null
+  away_mins: Numeric | null
+  efficiency_pct: Numeric | null
+  efnu_efnu_mins: Numeric | null
+  inbound_outbound_mins: Numeric | null
+  total_flight_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsAirfieldEfficiencyByAcYrMth {
+  aircraft_registration: string | null
+  away_mins: Numeric | null
+  efficiency_pct: Numeric | null
+  efnu_efnu_mins: Numeric | null
+  inbound_outbound_mins: Numeric | null
+  mth: Numeric | null
+  total_flight_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsAirfieldEfficiencyByYr {
+  away_mins: Numeric | null
+  efficiency_pct: Numeric | null
+  efnu_efnu_mins: Numeric | null
+  inbound_outbound_mins: Numeric | null
+  total_flight_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsAirfieldEfficiencyByYrMth {
+  away_mins: Numeric | null
+  efficiency_pct: Numeric | null
+  efnu_efnu_mins: Numeric | null
+  inbound_outbound_mins: Numeric | null
+  mth: Numeric | null
+  total_flight_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
 export interface StatsDtoTotalFlightTimeByAc {
   aircraft_registration: string
   date: string
@@ -1738,6 +1782,10 @@ export interface DB {
   'shop.product_property_options': ShopProductPropertyOptions
   'shop.products': ShopProducts
   'static.airfields': StaticAirfields
+  'stats.airfield_efficiency_by_ac_yr': StatsAirfieldEfficiencyByAcYr
+  'stats.airfield_efficiency_by_ac_yr_mth': StatsAirfieldEfficiencyByAcYrMth
+  'stats.airfield_efficiency_by_yr': StatsAirfieldEfficiencyByYr
+  'stats.airfield_efficiency_by_yr_mth': StatsAirfieldEfficiencyByYrMth
   'stats.dto_total_flight_time_by_ac': StatsDtoTotalFlightTimeByAc
   'stats.dto_total_flight_time_by_ac_yr': StatsDtoTotalFlightTimeByAcYr
   'stats.dto_total_flight_time_by_ac_yr_mth': StatsDtoTotalFlightTimeByAcYrMth

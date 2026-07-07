@@ -29,6 +29,10 @@ import {
   getReservationEfficiencyByAcYrMth,
   getReservationEfficiencyByMemberYr,
   getReservationEfficiencyByMemberYrMth,
+  getAirfieldEfficiencyByYr,
+  getAirfieldEfficiencyByYrMth,
+  getAirfieldEfficiencyByAcYr,
+  getAirfieldEfficiencyByAcYrMth,
 } from '../../db/stats-queries.ts'
 import type {
   TotalFlightTimeByAc,
@@ -58,6 +62,10 @@ import type {
   ReservationEfficiencyByAcYrMth,
   ReservationEfficiencyByMemberYr,
   ReservationEfficiencyByMemberYrMth,
+  AirfieldEfficiencyByYr,
+  AirfieldEfficiencyByYrMth,
+  AirfieldEfficiencyByAcYr,
+  AirfieldEfficiencyByAcYrMth,
 } from './models.ts'
 
 export const router = Router()
@@ -365,6 +373,62 @@ router.get(
     const { member, yr, yr_from, yr_to, mth } = req.query
     const data = await getReservationEfficiencyByMemberYrMth({
       member: member as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+      mth: mth ? Number(mth) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/airfield-efficiency/year',
+  async (req: Request, res: Response<AirfieldEfficiencyByYr[]>) => {
+    const { yr, yr_from, yr_to } = req.query
+    const data = await getAirfieldEfficiencyByYr({
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/airfield-efficiency/year/month',
+  async (req: Request, res: Response<AirfieldEfficiencyByYrMth[]>) => {
+    const { yr, yr_from, yr_to, mth } = req.query
+    const data = await getAirfieldEfficiencyByYrMth({
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+      mth: mth ? Number(mth) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/airfield-efficiency/aircraft/year',
+  async (req: Request, res: Response<AirfieldEfficiencyByAcYr[]>) => {
+    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const data = await getAirfieldEfficiencyByAcYr({
+      aircraft_registration: aircraft_registration as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/airfield-efficiency/aircraft/year/month',
+  async (req: Request, res: Response<AirfieldEfficiencyByAcYrMth[]>) => {
+    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const data = await getAirfieldEfficiencyByAcYrMth({
+      aircraft_registration: aircraft_registration as string | undefined,
       yr: yr ? Number(yr) : undefined,
       yr_from: yr_from ? Number(yr_from) : undefined,
       yr_to: yr_to ? Number(yr_to) : undefined,

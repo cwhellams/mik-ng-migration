@@ -31,6 +31,10 @@ import type {
   ReservationEfficiencyByAcYrMth,
   ReservationEfficiencyByMemberYr,
   ReservationEfficiencyByMemberYrMth,
+  AirfieldEfficiencyByYr,
+  AirfieldEfficiencyByYrMth,
+  AirfieldEfficiencyByAcYr,
+  AirfieldEfficiencyByAcYrMth,
 } from '../routes/stats/models.ts'
 
 // Helper function to apply year filters
@@ -597,6 +601,62 @@ export const getReservationEfficiencyByMemberYrMth = async (filters?: {
   let query = db.selectFrom('stats.reservation_efficiency_by_member_yr_mth').selectAll()
   if (filters?.member) {
     query = query.where('member', '=', filters.member)
+  }
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+  return await query.execute()
+}
+
+export const getAirfieldEfficiencyByYr = async (filters?: {
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<AirfieldEfficiencyByYr[]> => {
+  let query = db.selectFrom('stats.airfield_efficiency_by_yr').selectAll()
+  query = applyYearFilter(query, filters)
+  return await query.execute()
+}
+
+export const getAirfieldEfficiencyByYrMth = async (filters?: {
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<AirfieldEfficiencyByYrMth[]> => {
+  let query = db.selectFrom('stats.airfield_efficiency_by_yr_mth').selectAll()
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+  return await query.execute()
+}
+
+export const getAirfieldEfficiencyByAcYr = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<AirfieldEfficiencyByAcYr[]> => {
+  let query = db.selectFrom('stats.airfield_efficiency_by_ac_yr').selectAll()
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+  return await query.execute()
+}
+
+export const getAirfieldEfficiencyByAcYrMth = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<AirfieldEfficiencyByAcYrMth[]> => {
+  let query = db.selectFrom('stats.airfield_efficiency_by_ac_yr_mth').selectAll()
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {

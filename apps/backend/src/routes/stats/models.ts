@@ -224,6 +224,50 @@ export const ReservationEfficiencyByMemberYrMthSchema = z.object({
   efficiency_pct: z.number().nullable(),
 })
 
+export const AirfieldEfficiencyByYrSchema = z.object({
+  yr: z.number().nullable(),
+  efnu_efnu_mins: z.number().nullable(),
+  inbound_outbound_mins: z.number().nullable(),
+  away_mins: z.number().nullable(),
+  total_flight_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const AirfieldEfficiencyByYrMthSchema = z.object({
+  yr: z.number().nullable(),
+  mth: z.number().nullable(),
+  efnu_efnu_mins: z.number().nullable(),
+  inbound_outbound_mins: z.number().nullable(),
+  away_mins: z.number().nullable(),
+  total_flight_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const AirfieldEfficiencyByAcYrSchema = z.object({
+  aircraft_registration: z.string().nullable(),
+  yr: z.number().nullable(),
+  efnu_efnu_mins: z.number().nullable(),
+  inbound_outbound_mins: z.number().nullable(),
+  away_mins: z.number().nullable(),
+  total_flight_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const AirfieldEfficiencyByAcYrMthSchema = z.object({
+  aircraft_registration: z.string().nullable(),
+  yr: z.number().nullable(),
+  mth: z.number().nullable(),
+  efnu_efnu_mins: z.number().nullable(),
+  inbound_outbound_mins: z.number().nullable(),
+  away_mins: z.number().nullable(),
+  total_flight_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
 // Pilot Statistics
 export const PilotStatisticsHistogramBinSchema = z.object({
   binFrom: z.number(),
@@ -269,3 +313,7 @@ export type ReservationEfficiencyByMemberYr = z.infer<typeof ReservationEfficien
 export type ReservationEfficiencyByMemberYrMth = z.infer<
   typeof ReservationEfficiencyByMemberYrMthSchema
 >
+export type AirfieldEfficiencyByYr = z.infer<typeof AirfieldEfficiencyByYrSchema>
+export type AirfieldEfficiencyByYrMth = z.infer<typeof AirfieldEfficiencyByYrMthSchema>
+export type AirfieldEfficiencyByAcYr = z.infer<typeof AirfieldEfficiencyByAcYrSchema>
+export type AirfieldEfficiencyByAcYrMth = z.infer<typeof AirfieldEfficiencyByAcYrMthSchema>

@@ -29,8 +29,9 @@ import {
 import { RemoteContent } from '../../components/RemoteContent'
 import { PilotStatistics as PilotStatisticsView } from './components/PilotStatistics'
 import { ReservationEfficiency as ReservationEfficiencyView } from './components/ReservationEfficiency'
+import { AirfieldEfficiency as AirfieldEfficiencyView } from './components/AirfieldEfficiency'
 
-type ViewMode = 'aircraft' | 'pilot' | 'pilots' | 'efficiency'
+type ViewMode = 'aircraft' | 'pilot' | 'pilots' | 'efficiency' | 'airfield'
 
 const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
   <Box
@@ -628,6 +629,7 @@ export const Stats = () => {
                 <ToggleButton value='pilot'>Members</ToggleButton>
                 <ToggleButton value='pilots'>Pilots</ToggleButton>
                 <ToggleButton value='efficiency'>Reservation Efficiency</ToggleButton>
+                <ToggleButton value='airfield'>Airfield Efficiency</ToggleButton>
               </ToggleButtonGroup>
             </Grid>
           </Grid>
@@ -640,7 +642,10 @@ export const Stats = () => {
       {/* Reservation Efficiency view */}
       {viewMode === 'efficiency' && <ReservationEfficiencyView />}
 
-      {viewMode !== 'pilots' && viewMode !== 'efficiency' && (
+      {/* Airfield Efficiency view */}
+      {viewMode === 'airfield' && <AirfieldEfficiencyView />}
+
+      {viewMode !== 'pilots' && viewMode !== 'efficiency' && viewMode !== 'airfield' && (
         <>
           {/* Summary Stats */}
           {viewMode === 'aircraft' ? (

@@ -30,6 +30,10 @@ const mockGetReservationEfficiencyByAcYr = jest.fn<() => Promise<any>>()
 const mockGetReservationEfficiencyByAcYrMth = jest.fn<() => Promise<any>>()
 const mockGetReservationEfficiencyByMemberYr = jest.fn<() => Promise<any>>()
 const mockGetReservationEfficiencyByMemberYrMth = jest.fn<() => Promise<any>>()
+const mockGetAirfieldEfficiencyByYr = jest.fn<() => Promise<any>>()
+const mockGetAirfieldEfficiencyByYrMth = jest.fn<() => Promise<any>>()
+const mockGetAirfieldEfficiencyByAcYr = jest.fn<() => Promise<any>>()
+const mockGetAirfieldEfficiencyByAcYrMth = jest.fn<() => Promise<any>>()
 
 jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getTotalFlightTimeByAc: mockGetTotalFlightTimeByAc,
@@ -59,6 +63,10 @@ jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getReservationEfficiencyByAcYrMth: mockGetReservationEfficiencyByAcYrMth,
   getReservationEfficiencyByMemberYr: mockGetReservationEfficiencyByMemberYr,
   getReservationEfficiencyByMemberYrMth: mockGetReservationEfficiencyByMemberYrMth,
+  getAirfieldEfficiencyByYr: mockGetAirfieldEfficiencyByYr,
+  getAirfieldEfficiencyByYrMth: mockGetAirfieldEfficiencyByYrMth,
+  getAirfieldEfficiencyByAcYr: mockGetAirfieldEfficiencyByAcYr,
+  getAirfieldEfficiencyByAcYrMth: mockGetAirfieldEfficiencyByAcYrMth,
 }))
 
 jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
@@ -798,6 +806,94 @@ describe('Stats API', () => {
           yr_from: undefined,
           yr_to: undefined,
           mth: 8,
+        })
+      })
+    })
+  })
+
+  describe('Airfield Efficiency Endpoints (accessible by any authenticated member)', () => {
+    const mockAirfieldEfficiencyData = {
+      yr: 2024,
+      total_flight_mins: 1200,
+      total_airfields_visited: 8,
+      airfield_efficiency: 6.67,
+    }
+
+    describe('GET /api/stats/airfield-efficiency/year', () => {
+      it('should return airfield efficiency by year for any authenticated member (no admin required)', async () => {
+        mockGetAirfieldEfficiencyByYr.mockResolvedValue([mockAirfieldEfficiencyData])
+
+        const response = await request(app)
+          .get('/api/stats/airfield-efficiency/year')
+          .query({ yr_from: '2024', yr_to: '2024' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockAirfieldEfficiencyData])
+        expect(mockGetAirfieldEfficiencyByYr).toHaveBeenCalledWith({
+          yr: undefined,
+          yr_from: 2024,
+          yr_to: 2024,
+        })
+      })
+    })
+
+    describe('GET /api/stats/airfield-efficiency/year/month', () => {
+      it('should return airfield efficiency by year and month for any authenticated member (no admin required)', async () => {
+        const mockData = { ...mockAirfieldEfficiencyData, mth: 6 }
+        mockGetAirfieldEfficiencyByYrMth.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/airfield-efficiency/year/month')
+          .query({ yr: '2024', mth: '6' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetAirfieldEfficiencyByYrMth).toHaveBeenCalledWith({
+          yr: 2024,
+          yr_from: undefined,
+          yr_to: undefined,
+          mth: 6,
+        })
+      })
+    })
+
+    describe('GET /api/stats/airfield-efficiency/aircraft/year', () => {
+      it('should return airfield efficiency by aircraft and year for any authenticated member (no admin required)', async () => {
+        const mockData = { ...mockAirfieldEfficiencyData, aircraft_registration: 'OH-STL' }
+        mockGetAirfieldEfficiencyByAcYr.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/airfield-efficiency/aircraft/year')
+          .query({ aircraft_registration: 'OH-STL', yr: '2024' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetAirfieldEfficiencyByAcYr).toHaveBeenCalledWith({
+          aircraft_registration: 'OH-STL',
+          yr: 2024,
+          yr_from: undefined,
+          yr_to: undefined,
+        })
+      })
+    })
+
+    describe('GET /api/stats/airfield-efficiency/aircraft/year/month', () => {
+      it('should return airfield efficiency by aircraft, year, and month for any authenticated member (no admin required)', async () => {
+        const mockData = { ...mockAirfieldEfficiencyData, aircraft_registration: 'OH-STL', mth: 7 }
+        mockGetAirfieldEfficiencyByAcYrMth.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/airfield-efficiency/aircraft/year/month')
+          .query({ aircraft_registration: 'OH-STL', yr_from: '2024', yr_to: '2024', mth: '7' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetAirfieldEfficiencyByAcYrMth).toHaveBeenCalledWith({
+          aircraft_registration: 'OH-STL',
+          yr: undefined,
+          yr_from: 2024,
+          yr_to: 2024,
+          mth: 7,
         })
       })
     })
