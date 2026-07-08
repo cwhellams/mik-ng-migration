@@ -243,10 +243,16 @@ static_sites:
     github:
       repo: MIK-dev-team/mik-ng
       branch: ${DEPLOY_BRANCH} # dynamic per release
-    source_dir: /apps/frontend
-    output_dir: /dist
-    build_command: npx tsc && npm install -g pnpm && pnpm install --frozen-lockfile && pnpm build
+    source_dir: /
+    output_dir: /apps/frontend/dist
+    
+    build_command: |
+      corepack enable
+      pnpm install --frozen-lockfile
+      pnpm --filter frontend build
+
     environment_slug: node-js
+    
     envs:
       - key: VITE_API_TARGET
         value: ${VITE_API_TARGET}
