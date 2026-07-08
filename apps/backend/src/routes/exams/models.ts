@@ -177,6 +177,60 @@ export const StartAttemptSchema = z.object({
 })
 export type StartAttempt = z.infer<typeof StartAttemptSchema>
 
+// ── Bulk import ───────────────────────────────────────────────────────────────
+
+export const ExamImportChoiceSchema = z.object({
+  sortOrder: z.number().int(),
+  isCorrect: z.boolean(),
+  translations: z.record(z.string().max(5), ChoiceTranslationSchema),
+})
+
+export const ExamImportQuestionSchema = z.object({
+  sortOrder: z.number().int(),
+  translations: z.record(z.string().max(5), QuestionTranslationSchema),
+  choices: z.array(ExamImportChoiceSchema),
+})
+
+export const ExamImportVersionSchema = z.object({
+  defaultLanguage: z.string().max(5).default('fi'),
+  supportedLanguages: z.array(z.string().max(5)).default([]),
+  passPercent: z.number().nonnegative().default(75),
+  translations: z.record(
+    z.string().max(5),
+    z.object({ title: z.string(), description: z.string().nullable().optional() }),
+  ),
+  questions: z.array(ExamImportQuestionSchema),
+})
+
+export const ExamImportSchema = z
+  .object({
+    name: z.string(),
+    examType: ExamTypeEnum.default('OTHER'),
+    version: ExamImportVersionSchema,
+  })
+  .superRefine((data, ctx) => {
+    for (const [qi, q] of data.version.questions.entries()) {
+      const correctCount = q.choices.filter((c) => c.isCorrect).length
+      if (correctCount !== 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Question at index ${qi} must have exactly one correct choice, found ${correctCount}`,
+          path: ['version', 'questions', qi, 'choices'],
+        })
+      }
+    }
+  })
+
+export type ExamImport = z.infer<typeof ExamImportSchema>
+
+// ── Bulk import result ────────────────────────────────────────────────────────
+
+export const ExamImportResultSchema = z.object({
+  examId: z.string().max(9),
+  versionId: z.string().max(9),
+})
+export type ExamImportResult = z.infer<typeof ExamImportResultSchema>
+
 // ── Filter schemas ────────────────────────────────────────────────────────────
 export const AttemptFiltersSchema = z.object({
   examId: z.string().max(9).optional(),

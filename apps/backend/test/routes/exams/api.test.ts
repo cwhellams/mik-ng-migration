@@ -33,6 +33,7 @@ const mockUpsertQuestion = jest.fn<() => Promise<unknown>>()
 const mockDeleteQuestion = jest.fn<() => Promise<void>>()
 const mockUpsertChoice = jest.fn<() => Promise<unknown>>()
 const mockDeleteChoice = jest.fn<() => Promise<void>>()
+const mockImportExam = jest.fn<() => Promise<unknown>>()
 const mockCreateAttempt = jest.fn<() => Promise<unknown>>()
 const mockGetAttemptById = jest.fn<() => Promise<unknown>>()
 const mockGetAttempts = jest.fn<() => Promise<unknown>>()
@@ -65,6 +66,7 @@ jest.unstable_mockModule('../../../src/db/exam-queries.ts', () => ({
   deleteQuestion: mockDeleteQuestion,
   upsertChoice: mockUpsertChoice,
   deleteChoice: mockDeleteChoice,
+  importExam: mockImportExam,
   createAttempt: mockCreateAttempt,
   getAttemptById: mockGetAttemptById,
   getAttempts: mockGetAttempts,
@@ -521,5 +523,140 @@ describe('PUT /exams/attempts/:attemptId/answers — question not in attempt', (
       .send({ questionId: 'QOTHER01', choiceId: null })
     expect(res.status).toBe(400)
     expect(mockValidateAnswerInputs).toHaveBeenCalledWith('ATT00001', 'QOTHER01', null)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin: POST /exams/admin/exams/import
+// ─────────────────────────────────────────────────────────────────────────────
+
+const validImportBody = {
+  name: '010 Air Law',
+  examType: 'OTHER',
+  version: {
+    defaultLanguage: 'fi',
+    supportedLanguages: ['fi', 'en'],
+    passPercent: 75,
+    translations: {
+      fi: { title: '010 Ilmailulainsäädäntö', description: null },
+      en: { title: '010 Air Law', description: null },
+    },
+    questions: [
+      {
+        sortOrder: 1,
+        translations: {
+          fi: { prompt: 'Kysymys?', reasoning: null },
+          en: { prompt: 'Question?', reasoning: null },
+        },
+        choices: [
+          {
+            sortOrder: 0,
+            isCorrect: true,
+            translations: { fi: { text: 'A fi' }, en: { text: 'A en' } },
+          },
+          {
+            sortOrder: 1,
+            isCorrect: false,
+            translations: { fi: { text: 'B fi' }, en: { text: 'B en' } },
+          },
+          {
+            sortOrder: 2,
+            isCorrect: false,
+            translations: { fi: { text: 'C fi' }, en: { text: 'C en' } },
+          },
+          {
+            sortOrder: 3,
+            isCorrect: false,
+            translations: { fi: { text: 'D fi' }, en: { text: 'D en' } },
+          },
+        ],
+      },
+    ],
+  },
+}
+
+describe('POST /exams/admin/exams/import', () => {
+  beforeEach(() => {
+    mockImportExam.mockResolvedValue({ examId: 'EXAM00001', versionId: 'VER00001' })
+  })
+
+  it('returns 201 with examId and versionId for exam admin', async () => {
+    const res = await request(app)
+      .post('/exams/admin/exams/import')
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send(validImportBody)
+    expect(res.status).toBe(201)
+    expect(res.body).toMatchObject({ examId: 'EXAM00001', versionId: 'VER00001' })
+    expect(mockImportExam).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns 403 for exam user without admin permission', async () => {
+    const res = await request(app)
+      .post('/exams/admin/exams/import')
+      .set('Cookie', `accessToken=${examUserToken}`)
+      .send(validImportBody)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 403 for plain member', async () => {
+    const res = await request(app)
+      .post('/exams/admin/exams/import')
+      .set('Cookie', `accessToken=${plainMemberToken}`)
+      .send(validImportBody)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 400 when a question has zero correct choices', async () => {
+    const invalidBody = {
+      ...validImportBody,
+      version: {
+        ...validImportBody.version,
+        questions: [
+          {
+            ...validImportBody.version.questions[0],
+            choices: validImportBody.version.questions[0].choices.map((c) => ({
+              ...c,
+              isCorrect: false,
+            })),
+          },
+        ],
+      },
+    }
+    const res = await request(app)
+      .post('/exams/admin/exams/import')
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send(invalidBody)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when a question has multiple correct choices', async () => {
+    const invalidBody = {
+      ...validImportBody,
+      version: {
+        ...validImportBody.version,
+        questions: [
+          {
+            ...validImportBody.version.questions[0],
+            choices: validImportBody.version.questions[0].choices.map((c) => ({
+              ...c,
+              isCorrect: true,
+            })),
+          },
+        ],
+      },
+    }
+    const res = await request(app)
+      .post('/exams/admin/exams/import')
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send(invalidBody)
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for missing required fields', async () => {
+    const res = await request(app)
+      .post('/exams/admin/exams/import')
+      .set('Cookie', `accessToken=${examAdminToken}`)
+      .send({ name: 'Missing version' })
+    expect(res.status).toBe(400)
   })
 })

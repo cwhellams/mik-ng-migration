@@ -5,6 +5,7 @@ import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
 import {
   ExamUpsertSchema,
+  ExamImportSchema,
   ExamVersionCreateSchema,
   ExamVersionUpsertSchema,
   ExamVersionTranslationSchema,
@@ -36,6 +37,7 @@ import {
   deleteQuestion,
   upsertChoice,
   deleteChoice,
+  importExam,
   createAttempt,
   getAttemptById,
   getAttempts,
@@ -235,6 +237,16 @@ router.post(
     const data = ExamUpsertSchema.parse(req.body)
     const exam = await insertExam(data, req.user!)
     res.status(HttpStatusCode.Created).json(exam)
+  },
+)
+
+router.post(
+  '/admin/exams/import',
+  validateUser(MIKPermissions.EXAM_ADMIN),
+  async (req: Request, res: Response) => {
+    const data = ExamImportSchema.parse(req.body)
+    const result = await importExam(data, req.user!)
+    res.status(HttpStatusCode.Created).json(result)
   },
 )
 

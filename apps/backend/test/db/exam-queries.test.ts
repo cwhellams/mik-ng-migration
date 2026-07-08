@@ -9,6 +9,8 @@ import {
   getAttemptVersionDetail,
   validateAnswerInputs,
   submitAttempt,
+  importExam,
+  getVersionDetail,
 } from '../../src/db/exam-queries.ts'
 
 describe('Db exam attempt tests', () => {
@@ -305,5 +307,149 @@ describe('Randomised question selection', () => {
     const graded = await submitAttempt(attempt.attemptId)
 
     expect(graded.totalCount).toBe(3)
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// importExam
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('importExam', () => {
+  const importedExamIds: string[] = []
+
+  afterEach(async () => {
+    for (const examId of importedExamIds) {
+      await db.deleteFrom('exam.exams').where('exam_id', '=', examId).execute()
+    }
+    importedExamIds.length = 0
+  })
+
+  const testUser = {
+    memberId: 'k1mnimda',
+    email: 'test@mik.fi',
+    lastName: 'Test',
+    roles: [],
+    permissions: [],
+    canMakeReservations: false,
+  }
+
+  const sampleImport = {
+    name: '010 Air Law Test',
+    examType: 'OTHER' as const,
+    version: {
+      defaultLanguage: 'fi',
+      supportedLanguages: ['fi', 'en'],
+      passPercent: 75,
+      translations: {
+        fi: { title: '010 Ilmailulainsäädäntö', description: null },
+        en: { title: '010 Air Law Test', description: null },
+      },
+      questions: [
+        {
+          sortOrder: 1,
+          translations: {
+            fi: { prompt: 'Kysymys 1?', reasoning: null },
+            en: { prompt: 'Question 1?', reasoning: null },
+          },
+          choices: [
+            {
+              sortOrder: 0,
+              isCorrect: true,
+              translations: { fi: { text: 'A fi' }, en: { text: 'A en' } },
+            },
+            {
+              sortOrder: 1,
+              isCorrect: false,
+              translations: { fi: { text: 'B fi' }, en: { text: 'B en' } },
+            },
+            {
+              sortOrder: 2,
+              isCorrect: false,
+              translations: { fi: { text: 'C fi' }, en: { text: 'C en' } },
+            },
+            {
+              sortOrder: 3,
+              isCorrect: false,
+              translations: { fi: { text: 'D fi' }, en: { text: 'D en' } },
+            },
+          ],
+        },
+        {
+          sortOrder: 2,
+          translations: {
+            fi: { prompt: 'Kysymys 2?', reasoning: null },
+            en: { prompt: 'Question 2?', reasoning: null },
+          },
+          choices: [
+            {
+              sortOrder: 0,
+              isCorrect: false,
+              translations: { fi: { text: 'A fi' }, en: { text: 'A en' } },
+            },
+            {
+              sortOrder: 1,
+              isCorrect: true,
+              translations: { fi: { text: 'B fi' }, en: { text: 'B en' } },
+            },
+            {
+              sortOrder: 2,
+              isCorrect: false,
+              translations: { fi: { text: 'C fi' }, en: { text: 'C en' } },
+            },
+            {
+              sortOrder: 3,
+              isCorrect: false,
+              translations: { fi: { text: 'D fi' }, en: { text: 'D en' } },
+            },
+          ],
+        },
+      ],
+    },
+  }
+
+  it('creates exam, version, questions, and choices in a single transaction', async () => {
+    const result = await importExam(sampleImport, testUser)
+    importedExamIds.push(result.examId)
+
+    expect(result.examId).toBeTruthy()
+    expect(result.versionId).toBeTruthy()
+
+    const detail = await getVersionDetail(result.versionId)
+    expect(detail).toBeDefined()
+    expect(detail!.status).toBe('DRAFT')
+    expect(detail!.defaultLanguage).toBe('fi')
+    expect(detail!.supportedLanguages).toEqual(['fi', 'en'])
+    expect(detail!.passPercent).toBe(75)
+    expect(detail!.translations['fi'].title).toBe('010 Ilmailulainsäädäntö')
+    expect(detail!.translations['en'].title).toBe('010 Air Law Test')
+    expect(detail!.questions).toHaveLength(2)
+  })
+
+  it('sets question prompts and choice translations correctly', async () => {
+    const result = await importExam(sampleImport, testUser)
+    importedExamIds.push(result.examId)
+
+    const detail = await getVersionDetail(result.versionId)
+    const q1 = detail!.questions[0]
+
+    expect(q1.translations['fi'].prompt).toBe('Kysymys 1?')
+    expect(q1.translations['en'].prompt).toBe('Question 1?')
+    expect(q1.choices).toHaveLength(4)
+
+    const correctChoice = q1.choices.find((c) => c.isCorrect)
+    expect(correctChoice).toBeDefined()
+    expect(correctChoice!.translations['fi'].text).toBe('A fi')
+    expect(correctChoice!.translations['en'].text).toBe('A en')
+  })
+
+  it('preserves isCorrect flag per choice', async () => {
+    const result = await importExam(sampleImport, testUser)
+    importedExamIds.push(result.examId)
+
+    const detail = await getVersionDetail(result.versionId)
+    const q2 = detail!.questions[1]
+    const correctChoice = q2.choices.find((c) => c.isCorrect)
+
+    expect(correctChoice!.sortOrder).toBe(1) // B is correct in question 2
   })
 })

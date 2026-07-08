@@ -18,6 +18,8 @@ import type {
   AttemptAnswerUpsert,
   AttemptFilters,
   AttemptListResponse,
+  ExamImport,
+  ExamImportResult,
 } from '../routes/exams/models.ts'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -468,6 +470,99 @@ export async function publishVersion(versionId: string, user: JWTUser): Promise<
 
 export async function deleteVersion(versionId: string): Promise<void> {
   await db.deleteFrom('exam.exam_versions').where('version_id', '=', versionId).execute()
+}
+
+export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamImportResult> {
+  const examId = newId()
+  const versionId = newId()
+  const now = new Date()
+
+  await db.transaction().execute(async (trx) => {
+    await trx
+      .insertInto('exam.exams')
+      .values({
+        exam_id: examId,
+        exam_type: data.examType ?? 'OTHER',
+        name: data.name,
+        created_at: now,
+        created_by: user.memberId,
+        updated_at: now,
+        updated_by: user.memberId,
+      })
+      .execute()
+
+    await trx
+      .insertInto('exam.exam_versions')
+      .values({
+        version_id: versionId,
+        exam_id: examId,
+        version_number: 1,
+        status: 'DRAFT',
+        default_language: data.version.defaultLanguage ?? 'fi',
+        supported_languages: data.version.supportedLanguages ?? [],
+        pass_percent: data.version.passPercent ?? 75,
+        question_count: null,
+        created_at: now,
+        created_by: user.memberId,
+        updated_at: now,
+        updated_by: user.memberId,
+      })
+      .execute()
+
+    for (const [lang, t] of Object.entries(data.version.translations)) {
+      await trx
+        .insertInto('exam.exam_version_translations')
+        .values({
+          version_id: versionId,
+          language: lang,
+          title: t.title,
+          description: t.description ?? null,
+        })
+        .execute()
+    }
+
+    for (const q of data.version.questions) {
+      const questionId = newId()
+      await trx
+        .insertInto('exam.questions')
+        .values({ question_id: questionId, version_id: versionId, sort_order: q.sortOrder })
+        .execute()
+
+      for (const [lang, qt] of Object.entries(q.translations)) {
+        await trx
+          .insertInto('exam.question_translations')
+          .values({
+            question_id: questionId,
+            language: lang,
+            prompt: qt.prompt,
+            reasoning: qt.reasoning ?? null,
+          })
+          .execute()
+      }
+
+      for (const c of q.choices) {
+        const choiceId = newId()
+        await trx
+          .insertInto('exam.choices')
+          .values({
+            choice_id: choiceId,
+            question_id: questionId,
+            is_correct: c.isCorrect,
+            sort_order: c.sortOrder,
+          })
+          .execute()
+
+        for (const [lang, ct] of Object.entries(c.translations)) {
+          await trx
+            .insertInto('exam.choice_translations')
+            .values({ choice_id: choiceId, language: lang, text: ct.text })
+            .execute()
+        }
+      }
+    }
+  })
+
+  return { examId, versionId }
 }
 
 export async function getVersionByQuestionId(questionId: string): Promise<ExamVersion | undefined> {
