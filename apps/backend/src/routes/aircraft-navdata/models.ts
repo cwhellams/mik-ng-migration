@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 // Aircraft navdata entry schema
 export const NavdataSchema = z.object({
-  navdataId: z.string().uuid().optional(),
+  navdataId: z.string().guid().optional(),
   aircraftRegistration: z.string().min(1).max(10),
   updaterMemberId: z.string().min(1).max(9),
   updaterName: z.string().optional(), // joined from member register

@@ -258,11 +258,12 @@ export const validateFlightLogTimes = (
       // check the correct order
       if (next <= prev) {
         addIssue({
-          code: z.ZodIssueCode.too_small,
+          code: 'too_small',
           minimum: prev,
           inclusive: false,
+          origin: 'number',
+          input: next,
           message: prev.toString(),
-          type: 'bigint',
           path: [nextKey],
         })
       }
@@ -271,11 +272,12 @@ export const validateFlightLogTimes = (
       const maximum = prev + minutes * 60
       if (next > maximum) {
         addIssue({
-          code: z.ZodIssueCode.too_big,
+          code: 'too_big',
           maximum,
-          message: maximum.toString(),
           inclusive: true,
-          type: 'bigint',
+          origin: 'number',
+          input: next,
+          message: maximum.toString(),
           path: [nextKey],
         })
       }
@@ -306,7 +308,8 @@ export const validateFlightLogBusinessRules = (
 ) => {
   if (data.entryErrorFee && !data.validationRemarks?.trim()) {
     addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
+      input: data.validationRemarks,
       message: 'Validation remarks are required when entry error fee is applied',
       path: ['validationRemarks'],
     })
@@ -314,7 +317,8 @@ export const validateFlightLogBusinessRules = (
 
   if (data.isBillableFlight === false && !data.nonBillingReason?.trim()) {
     addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
+      input: data.nonBillingReason,
       message: 'Non-billing reason is required when flight is marked as non-billable',
       path: ['nonBillingReason'],
     })
@@ -328,7 +332,8 @@ export const validateFlightLogBusinessRules = (
     !data.billingRemarks?.trim()
   ) {
     addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
+      input: data.billingRemarks,
       message: requiresBillingRemarksByFlightType
         ? 'Billing remarks are required for test and ferry flights'
         : 'Billing remarks are required for partially billable flights',
@@ -338,7 +343,8 @@ export const validateFlightLogBusinessRules = (
 
   if (data.partiallyBillableFlight && data.isBillableFlight === false) {
     addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
+      input: data.partiallyBillableFlight,
       message: 'A flight cannot be both partially billable and non-billable',
       path: ['partiallyBillableFlight'],
     })
@@ -346,7 +352,8 @@ export const validateFlightLogBusinessRules = (
 
   if (data.isBillableFlight === false && data.entryErrorFee) {
     addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
+      input: data.entryErrorFee,
       message: 'A non-billable flight cannot have an entry error fee',
       path: ['entryErrorFee'],
     })

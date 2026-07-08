@@ -85,14 +85,13 @@ describe('GET /bookings', () => {
       title: 'Bad Request',
       instance: '/bookings',
       timestamp: expect.any(String),
-      errors: [
-        {
-          code: 'invalid_string',
-          validation: 'datetime',
-          message: 'Invalid datetime',
+      errors: expect.arrayContaining([
+        expect.objectContaining({
+          code: 'invalid_format',
+          format: 'datetime',
           path: ['from'],
-        },
-      ],
+        }),
+      ]),
     })
   })
 })
@@ -316,7 +315,9 @@ describe('POST /bookings', () => {
 
     expect(response.status).toBe(400)
     expect(response.body.errors).toBeDefined()
-    expect(response.body.errors[0].message).toMatch(/Required/)
+    expect(
+      response.body.errors.some((e: { message: string }) => /received undefined/.test(e.message)),
+    ).toBe(true)
   })
 
   it('should return 400 when creating TRAINING booking without instructor', async () => {

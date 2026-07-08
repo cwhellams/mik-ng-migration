@@ -4,7 +4,7 @@ export const DefectStatusSchema = z.enum(['ACTIVE', 'MOVED_TO_HIL', 'RESOLVED'])
 export type DefectStatus = z.infer<typeof DefectStatusSchema>
 
 export const DefectSchema = z.object({
-  defectId: z.string().uuid(),
+  defectId: z.string().guid(),
   aircraftRegistration: z.string(),
   ajlbSeqNo: z.number().int(),
   flightId: z.string().nullable(),
@@ -12,8 +12,8 @@ export const DefectSchema = z.object({
   flightMins: z.number().int(),
   blankRowsAfter: z.number().int().min(0),
   status: DefectStatusSchema,
-  hilId: z.string().uuid().nullable(),
-  resolvedNoteId: z.string().uuid().nullable(),
+  hilId: z.string().guid().nullable(),
+  resolvedNoteId: z.string().guid().nullable(),
   createdAt: z.string().datetime(),
   createdBy: z.string(),
   updatedAt: z.string().datetime(),
@@ -37,8 +37,8 @@ export const UpdateDefectSchema = z
   .object({
     description: z.string().min(1).optional(),
     blankRowsAfter: z.number().int().min(0).optional(),
-    hilId: z.string().uuid().nullable().optional(),
-    resolvedNoteId: z.string().uuid().nullable().optional(),
+    hilId: z.string().guid().nullable().optional(),
+    resolvedNoteId: z.string().guid().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided',

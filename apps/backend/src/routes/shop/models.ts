@@ -66,7 +66,7 @@ export const ProductSchema = AuditableSchema.extend({
   isActive: z.boolean().default(true),
   isPublished: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
-  metadata: z.record(z.unknown()).nullable().optional(),
+  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
   imageUrl: z.string().url().nullable().optional(),
   hasOrders: z.boolean().default(false),
   properties: z.array(ProductPropertySchema).optional(),
@@ -138,7 +138,7 @@ export const CartItemSchema = z.object({
   cartId: z.string().max(9),
   productId: z.string().max(9),
   quantity: z.number().int().positive(),
-  selectedOptions: z.record(z.number().int()).nullable().optional(),
+  selectedOptions: z.record(z.string(), z.number().int()).nullable().optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   product: ProductSchema.optional(),
@@ -148,7 +148,7 @@ export type CartItem = z.infer<typeof CartItemSchema>
 export const CartItemUpsertSchema = z.object({
   productId: z.string().max(9),
   quantity: z.number().int().positive(),
-  selectedOptions: z.record(z.number().int()).nullable().optional(),
+  selectedOptions: z.record(z.string(), z.number().int()).nullable().optional(),
 })
 export type CartItemUpsert = z.infer<typeof CartItemUpsertSchema>
 
@@ -181,8 +181,8 @@ export const OrderItemSchema = z.object({
   quantity: z.number().int().positive(),
   unitPrice: z.number().nonnegative(),
   totalPrice: z.number().nonnegative(),
-  selectedOptions: z.record(z.number().int()).nullable().optional(),
-  productSnapshot: z.record(z.unknown()),
+  selectedOptions: z.record(z.string(), z.number().int()).nullable().optional(),
+  productSnapshot: z.record(z.string(), z.unknown()),
 })
 export type OrderItem = z.infer<typeof OrderItemSchema>
 

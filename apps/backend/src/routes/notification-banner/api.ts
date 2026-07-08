@@ -36,7 +36,7 @@ router.put(
       return problem({
         status: HttpStatusCode.BadRequest,
         detail: 'Invalid notification banner data',
-        extensions: { errors: parsed.error.errors },
+        extensions: { errors: parsed.error.issues },
       })
     }
 

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const AircraftHilSchema = z.object({
-  hilId: z.string().uuid(),
+  hilId: z.string().guid(),
   aircraftRegistration: z.string(),
   hilNumber: z.number().int(),
   sourceRef: z.string(),
@@ -10,7 +10,7 @@ export const AircraftHilSchema = z.object({
   openDate: z.string().datetime(),
   name: z.string(),
   dueDate: z.string().datetime(),
-  resolvedNoteId: z.string().uuid().nullable(),
+  resolvedNoteId: z.string().guid().nullable(),
   createdAt: z.string().datetime(),
   createdBy: z.string(),
   updatedAt: z.string().datetime(),
@@ -40,7 +40,7 @@ export const UpdateAircraftHilSchema = z
     openDate: z.string().datetime().optional(),
     name: z.string().min(1).optional(),
     dueDate: z.string().datetime().optional(),
-    resolvedNoteId: z.string().uuid().nullable().optional(),
+    resolvedNoteId: z.string().guid().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided',
@@ -55,8 +55,8 @@ export const AircraftHilFilterSchema = z.object({
 export type AircraftHilFilter = z.infer<typeof AircraftHilFilterSchema>
 
 export const AircraftHilExtensionSchema = z.object({
-  extensionId: z.string().uuid(),
-  hilId: z.string().uuid(),
+  extensionId: z.string().guid(),
+  hilId: z.string().guid(),
   extensionDate: z.string().datetime(),
   name: z.string(),
   extensionDue: z.string().datetime(),

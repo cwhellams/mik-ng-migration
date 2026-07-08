@@ -11,7 +11,7 @@ import {
   InputAdornment,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import useApi from '../../hooks/useApi'
@@ -63,7 +63,7 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
     reset,
     formState: { errors },
   } = useForm<AddDefectFormValues>({
-    resolver: zodResolver(AddDefectFormSchema),
+    resolver: zodResolver(AddDefectFormSchema) as Resolver<AddDefectFormValues>,
     defaultValues: {
       description: '',
       flightHours: defaultFlightMins !== undefined ? Math.floor(defaultFlightMins / 60) : 0,

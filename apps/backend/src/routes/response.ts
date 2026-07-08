@@ -74,7 +74,7 @@ export const problemErrorHandler = (
     return sendProblem({
       status: 400,
       extensions: {
-        errors: err.errors,
+        errors: err.issues,
       },
     })
   }

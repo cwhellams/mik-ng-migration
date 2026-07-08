@@ -1,14 +1,14 @@
 import { z } from 'zod'
 
 export const MaintenanceNoteSchema = z.object({
-  noteId: z.string().uuid(),
+  noteId: z.string().guid(),
   aircraftRegistration: z.string(),
   ajlbSeqNo: z.number().int(),
   description: z.string(),
   performedBy: z.string(),
   flightMins: z.number().int(),
   blankRowsAfter: z.number().int().min(0),
-  hilId: z.string().uuid().nullable(),
+  hilId: z.string().guid().nullable(),
   createdAt: z.string().datetime(),
   createdBy: z.string(),
 })
@@ -22,7 +22,7 @@ export const CreateMaintenanceNoteSchema = z.object({
   performedBy: z.string().min(1),
   flightMins: z.number().int().min(0),
   blankRowsAfter: z.number().int().min(0).default(0),
-  hilId: z.string().uuid().nullable().optional(),
+  hilId: z.string().guid().nullable().optional(),
 })
 
 export type CreateMaintenanceNoteRequest = z.infer<typeof CreateMaintenanceNoteSchema>
@@ -33,7 +33,7 @@ export const UpdateMaintenanceNoteSchema = z
     performedBy: z.string().min(1).optional(),
     flightMins: z.number().int().min(0).optional(),
     blankRowsAfter: z.number().int().min(0).optional(),
-    hilId: z.string().uuid().nullable().optional(),
+    hilId: z.string().guid().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided',

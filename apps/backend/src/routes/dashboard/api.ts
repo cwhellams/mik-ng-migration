@@ -47,7 +47,7 @@ router.put('/settings', async (req: Request, res: Response) => {
       status: HttpStatusCode.BadRequest,
       detail: 'Invalid dashboard settings',
       extensions: {
-        errors: validationResult.error.errors,
+        errors: validationResult.error.issues,
       },
     })
   }

@@ -444,7 +444,7 @@ router.post(
   '/members/:memberId/syllabus',
   validateUser(MIKPermissions.DTO_ADMIN),
   async (req: Request, res: Response) => {
-    const schema = z.object({ programId: z.string().uuid() })
+    const schema = z.object({ programId: z.string().guid() })
     const parsed = schema.safeParse(req.body)
     if (!parsed.success) {
       return problem({
@@ -501,8 +501,8 @@ router.post(
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
   async (req: Request, res: Response) => {
     const schema = z.object({
-      syllabusFlightId: z.string().uuid(),
-      memberSyllabusId: z.string().uuid(),
+      syllabusFlightId: z.string().guid(),
+      memberSyllabusId: z.string().guid(),
     })
     const parsed = schema.safeParse(req.body)
     if (!parsed.success) {
@@ -547,7 +547,7 @@ router.patch(
   '/flight-logs/:flightLogId/attempt',
   validateUser(MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
   async (req: Request, res: Response) => {
-    const schema = z.object({ syllabusFlightId: z.string().uuid() })
+    const schema = z.object({ syllabusFlightId: z.string().guid() })
     const parsed = schema.safeParse(req.body)
     if (!parsed.success) {
       return problem({

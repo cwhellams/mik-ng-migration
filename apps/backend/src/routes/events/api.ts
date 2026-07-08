@@ -29,7 +29,7 @@ const parseEventFilters = (query: Request['query']) => {
     return problem({
       status: HttpStatusCode.BadRequest,
       detail: 'Invalid event filters',
-      extensions: { errors: parsed.error.errors },
+      extensions: { errors: parsed.error.issues },
     })
   }
 
@@ -87,7 +87,7 @@ router.post(
       return problem({
         status: HttpStatusCode.BadRequest,
         detail: 'Invalid event data',
-        extensions: { errors: parsed.error.errors },
+        extensions: { errors: parsed.error.issues },
       })
     }
 
@@ -117,7 +117,7 @@ router.put(
       return problem({
         status: HttpStatusCode.BadRequest,
         detail: 'Invalid event data',
-        extensions: { errors: parsed.error.errors },
+        extensions: { errors: parsed.error.issues },
       })
     }
 

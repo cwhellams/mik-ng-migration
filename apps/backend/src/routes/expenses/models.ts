@@ -81,7 +81,7 @@ export type ExpenseClaimReceipt = z.infer<typeof ExpenseClaimReceiptSchema>
 
 export const ExpenseClaimMessageSchema = z.object({
   id: z.number(),
-  claimId: z.string().uuid(),
+  claimId: z.string().guid(),
   senderId: z.string(),
   messageType: z.nativeEnum(ExpenseMessageType),
   body: z.string(),
@@ -111,7 +111,7 @@ export const UpdateExpenseClaimSchema = CreateExpenseClaimSchema.partial()
 export type UpdateExpenseClaim = z.infer<typeof UpdateExpenseClaimSchema>
 
 export const ExpenseClaimSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().guid(),
   memberId: z.string(),
   categoryId: z.number(),
   categoryCode: z.string().optional(),

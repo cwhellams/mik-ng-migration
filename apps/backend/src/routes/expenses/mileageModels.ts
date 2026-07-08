@@ -24,7 +24,7 @@ export type UpsertMileageAllowance = z.infer<typeof UpsertMileageAllowanceSchema
 
 export const MileageDetailSchema = z.object({
   id: z.number().int().optional(),
-  claimId: z.string().uuid().optional(),
+  claimId: z.string().guid().optional(),
   route: z.string().min(1).max(500),
   journeyDate: z.string().date(),
   distanceKm: z.number().positive(),

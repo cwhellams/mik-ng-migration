@@ -12,7 +12,7 @@ export type VerificationResult = z.infer<typeof VerificationResultEnum>
 
 // ── Training Program ──────────────────────────────────────────────────────────
 export const TrainingProgramSchema = z.object({
-  programId: z.string().uuid(),
+  programId: z.string().guid(),
   name: z.string(),
   description: z.string().nullable().optional(),
   createdAt: z.string(),
@@ -30,8 +30,8 @@ export type TrainingProgramUpsert = z.infer<typeof TrainingProgramUpsertSchema>
 
 // ── Syllabus Flight Item ───────────────────────────────────────────────────────
 export const SyllabusFlightItemSchema = z.object({
-  itemId: z.string().uuid(),
-  syllabusFlightId: z.string().uuid(),
+  itemId: z.string().guid(),
+  syllabusFlightId: z.string().guid(),
   sortOrder: z.number().int(),
   name: z.string(),
   description: z.string().nullable().optional(),
@@ -48,8 +48,8 @@ export type SyllabusFlightItemUpsert = z.infer<typeof SyllabusFlightItemUpsertSc
 
 // ── Syllabus Flight ────────────────────────────────────────────────────────────
 export const SyllabusFlightSchema = z.object({
-  flightId: z.string().uuid(),
-  syllabusId: z.string().uuid(),
+  flightId: z.string().guid(),
+  syllabusId: z.string().guid(),
   sortOrder: z.number().int(),
   code: z.string(),
   name: z.string(),
@@ -76,8 +76,8 @@ export type SyllabusFlightUpsert = z.infer<typeof SyllabusFlightUpsertSchema>
 
 // ── Syllabus ───────────────────────────────────────────────────────────────────
 export const SyllabusSchema = z.object({
-  syllabusId: z.string().uuid(),
-  programId: z.string().uuid(),
+  syllabusId: z.string().guid(),
+  programId: z.string().guid(),
   majorVersion: z.number().int(),
   minorVersion: z.number().int(),
   patchVersion: z.number().int(),
@@ -127,9 +127,9 @@ export type SyllabusImport = z.infer<typeof SyllabusImportSchema>
 
 // ── Member Syllabus Assignment ─────────────────────────────────────────────────
 export const MemberSyllabusSchema = z.object({
-  memberSyllabusId: z.string().uuid(),
+  memberSyllabusId: z.string().guid(),
   memberId: z.string(),
-  syllabusId: z.string().uuid(),
+  syllabusId: z.string().guid(),
   isActive: z.boolean(),
   assignedAt: z.string(),
   assignedBy: z.string(),
@@ -139,10 +139,10 @@ export type MemberSyllabus = z.infer<typeof MemberSyllabusSchema>
 
 // ── Syllabus Flight Attempt ────────────────────────────────────────────────────
 export const SyllabusFlightAttemptSchema = z.object({
-  attemptId: z.string().uuid(),
+  attemptId: z.string().guid(),
   flightLogId: z.string(),
-  syllabusFlightId: z.string().uuid(),
-  memberSyllabusId: z.string().uuid(),
+  syllabusFlightId: z.string().guid(),
+  memberSyllabusId: z.string().guid(),
   instructorMemberId: z.string(),
   instructorComments: z.string().nullable().optional(),
   verificationResult: VerificationResultEnum.nullable().optional(),
@@ -156,14 +156,14 @@ export const SyllabusFlightAttemptSchema = z.object({
 export type SyllabusFlightAttempt = z.infer<typeof SyllabusFlightAttemptSchema>
 
 export const AttemptUpsertSchema = z.object({
-  syllabusFlightId: z.string().uuid(),
+  syllabusFlightId: z.string().guid(),
 })
 export type AttemptUpsert = z.infer<typeof AttemptUpsertSchema>
 
 // ── Item Outcomes ──────────────────────────────────────────────────────────────
 export const FlightItemOutcomeSchema = z.object({
-  attemptId: z.string().uuid(),
-  itemId: z.string().uuid(),
+  attemptId: z.string().guid(),
+  itemId: z.string().guid(),
   outcome: ItemOutcomeEnum,
   remarks: z.string().nullable().optional(),
   createdAt: z.string(),
@@ -172,7 +172,7 @@ export const FlightItemOutcomeSchema = z.object({
 export type FlightItemOutcome = z.infer<typeof FlightItemOutcomeSchema>
 
 export const ItemOutcomeUpsertSchema = z.object({
-  itemId: z.string().uuid(),
+  itemId: z.string().guid(),
   outcome: ItemOutcomeEnum,
   remarks: z.string().nullable().optional(),
 })
@@ -188,13 +188,13 @@ export type VerifyAttempt = z.infer<typeof VerifyAttemptSchema>
 
 // ── HIL Queue ─────────────────────────────────────────────────────────────────
 export const HilEntrySchema = z.object({
-  hilId: z.string().uuid(),
+  hilId: z.string().guid(),
   memberId: z.string(),
-  syllabusId: z.string().uuid(),
-  itemId: z.string().uuid(),
-  openedOnAttemptId: z.string().uuid(),
+  syllabusId: z.string().guid(),
+  itemId: z.string().guid(),
+  openedOnAttemptId: z.string().guid(),
   openedAt: z.string(),
-  resolvedOnAttemptId: z.string().uuid().nullable().optional(),
+  resolvedOnAttemptId: z.string().guid().nullable().optional(),
   resolvedAt: z.string().nullable().optional(),
   resolutionOutcome: ItemOutcomeEnum.nullable().optional(),
   notes: z.string().nullable().optional(),
@@ -205,8 +205,8 @@ export type HilEntry = z.infer<typeof HilEntrySchema>
 export const StudentProgressSchema = z.object({
   memberId: z.string(),
   memberName: z.string(),
-  memberSyllabusId: z.string().uuid().nullable().optional(),
-  syllabusId: z.string().uuid().nullable().optional(),
+  memberSyllabusId: z.string().guid().nullable().optional(),
+  syllabusId: z.string().guid().nullable().optional(),
   syllabusTitle: z.string().nullable().optional(),
   syllabusVersion: z.string().nullable().optional(),
   totalFlights: z.number().int(),

@@ -104,7 +104,7 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
 }
 
 const ExpenseReimbursementPayloadSchema = z.object({
-  claimId: z.string().uuid(),
+  claimId: z.string().guid(),
   number: z.string(),
   memberId: z.string(),
   categoryCode: z.string(),
@@ -197,7 +197,7 @@ async function createNewMemberFeesInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     // member is deactivated before paying.
     await insertMemberAnnualFees(txn, {
       memberId: member.memberId,
-      feeType: FeeTypeEnum.Values.annual_fee,
+      feeType: FeeTypeEnum.enum.annual_fee,
       year: year,
       invoiceId: invoiceId,
       createdAt: new Date().toISOString(),
@@ -259,7 +259,7 @@ async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     //Insert annual fee record
     await insertMemberAnnualFees(txn, {
       memberId: member.memberId,
-      feeType: FeeTypeEnum.Values.annual_fee,
+      feeType: FeeTypeEnum.enum.annual_fee,
       year: year,
       invoiceId: invoiceId,
       createdAt: new Date().toISOString(),
@@ -272,7 +272,7 @@ async function createAnnualMemberFeeInvoice(outboxMsg: AcctsOutboxSimplbooks) {
     includeEquipmentFee &&
       (await insertMemberAnnualFees(txn, {
         memberId: member.memberId,
-        feeType: FeeTypeEnum.Values.equipment_fee,
+        feeType: FeeTypeEnum.enum.equipment_fee,
         year: year,
         invoiceId: invoiceId,
         createdAt: new Date().toISOString(),
@@ -345,7 +345,7 @@ async function createAnnualEquipmentFeeInvoice(outboxMsg: AcctsOutboxSimplbooks)
     //Insert equipment fee record
     await insertMemberAnnualFees(txn, {
       memberId: member.memberId,
-      feeType: FeeTypeEnum.Values.equipment_fee,
+      feeType: FeeTypeEnum.enum.equipment_fee,
       year: year,
       invoiceId: invoiceId,
       createdAt: new Date().toISOString(),

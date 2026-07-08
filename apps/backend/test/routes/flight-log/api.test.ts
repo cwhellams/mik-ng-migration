@@ -133,14 +133,13 @@ describe('GET /flight-log', () => {
       title: 'Bad Request',
       instance: '/flight-log',
       timestamp: expect.any(String),
-      errors: [
-        {
+      errors: expect.arrayContaining([
+        expect.objectContaining({
           code: 'unrecognized_keys',
           keys: ['billable_member_id2'],
-          message: "Unrecognized key(s) in object: 'billable_member_id2'",
           path: [],
-        },
-      ],
+        }),
+      ]),
     })
   })
 
@@ -167,7 +166,7 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(400)
     expect(response.body.errors).toBeDefined()
-    expect(response.body.errors[0].message).toMatch('Invalid date')
+    expect(response.body.errors[0].message).toMatch('Invalid ISO datetime')
   })
 
   it('should return 400 for invalid startDate format', async () => {
@@ -180,7 +179,7 @@ describe('GET /flight-log', () => {
 
     expect(response.status).toBe(400)
     expect(response.body.errors).toBeDefined()
-    expect(response.body.errors[0].message).toMatch('Invalid date')
+    expect(response.body.errors[0].message).toMatch('Invalid ISO datetime')
   })
 
   it('should allow query parameters to be optional', async () => {
@@ -331,7 +330,9 @@ describe('POST /flight-log', () => {
 
     expect(response.status).toBe(400)
     expect(response.body.errors).toBeDefined()
-    expect(response.body.errors[0].message).toMatch(/Required/)
+    expect(
+      response.body.errors.some((e: { message: string }) => /received undefined/.test(e.message)),
+    ).toBe(true)
   })
 
   it('should return 400 for missing required fields', async () => {
@@ -346,7 +347,9 @@ describe('POST /flight-log', () => {
 
     expect(response.status).toBe(400)
     expect(response.body.errors).toBeDefined()
-    expect(response.body.errors[0].message).toMatch(/Required/)
+    expect(
+      response.body.errors.some((e: { message: string }) => /received undefined/.test(e.message)),
+    ).toBe(true)
   })
 
   it('should return 400 for invalid flight times', async () => {
@@ -361,16 +364,15 @@ describe('POST /flight-log', () => {
       title: 'Bad Request',
       instance: '/flight-log',
       timestamp: expect.any(String),
-      errors: [
-        {
+      errors: expect.arrayContaining([
+        expect.objectContaining({
           code: 'too_big',
           inclusive: true,
           maximum: 3600,
           message: '3600',
           path: ['takeoffTimeEpoch'],
-          type: 'bigint',
-        },
-      ],
+        }),
+      ]),
     })
   })
 
@@ -516,16 +518,15 @@ describe('PATCH /flight-log/', () => {
       title: 'Bad Request',
       instance: '/flight-log/bLwnAstr0',
       timestamp: expect.any(String),
-      errors: [
-        {
+      errors: expect.arrayContaining([
+        expect.objectContaining({
           code: 'too_big',
           inclusive: true,
           maximum: 3600,
           message: '3600',
           path: ['takeoffTimeEpoch'],
-          type: 'bigint',
-        },
-      ],
+        }),
+      ]),
     })
   })
 

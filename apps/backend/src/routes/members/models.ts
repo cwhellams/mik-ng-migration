@@ -241,7 +241,7 @@ export const ApplicationDataSchema = z
     accidentHistoryDetails: z.string().max(1000).optional(),
     criminalRecord: z.boolean(),
     criminalRecordDetails: z.string().max(1000).optional(),
-    gdprAccepted: z.literal(true, { errorMap: () => ({ message: 'GDPR acceptance is required' }) }),
+    gdprAccepted: z.literal(true, { error: () => 'GDPR acceptance is required' }),
   })
   .superRefine((data, ctx) => {
     if (data.pilotLicenceType === PilotLicenceType.OTHER && !data.pilotLicenceTypeOther) {

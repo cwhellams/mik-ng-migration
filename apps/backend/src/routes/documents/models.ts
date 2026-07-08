@@ -25,17 +25,17 @@ export type Document = z.infer<typeof DocumentSchema>
 export const DocumentFiltersSchema = z.object({
   category: z
     .string()
-    .optional()
-    .transform((val) => (val === '' ? undefined : val)),
+    .transform((val) => (val === '' ? undefined : val))
+    .optional(),
   search: z
     .string()
-    .optional()
-    .transform((val) => (val === '' ? undefined : val)),
+    .transform((val) => (val === '' ? undefined : val))
+    .optional(),
   tags: z
     .string()
-    .optional()
-    .transform((val) => (val === '' ? undefined : val)),
-  showArchived: BooleanSchema.optional().default('false'),
+    .transform((val) => (val === '' ? undefined : val))
+    .optional(),
+  showArchived: BooleanSchema.optional().default(false),
   limit: z.coerce.number().int().positive().optional(),
   offset: z.coerce.number().int().min(0).optional(),
 })

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const EventSchema = z.object({
-  eventId: z.string().uuid(),
+  eventId: z.string().guid(),
   title: z.string().min(1).max(200),
   description: z.string().nullable(),
   location: z.string().nullable(),
