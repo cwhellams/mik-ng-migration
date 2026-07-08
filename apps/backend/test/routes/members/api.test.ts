@@ -884,7 +884,7 @@ describe('PATCH /members/id', () => {
         code: 'unrecognized_keys',
         keys: ['mustUpdateProfile'],
         path: [],
-        message: "Unrecognized key(s) in object: 'mustUpdateProfile'",
+        message: 'Unrecognized key: "mustUpdateProfile"',
       },
     ])
   })

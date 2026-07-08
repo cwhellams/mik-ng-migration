@@ -114,8 +114,8 @@ export const InventoryAuditLogEntrySchema = z.object({
   itemId: z.string().max(9),
   memberId: z.string().max(9),
   changeType: z.string(),
-  oldValue: z.record(z.unknown()).nullable().optional(),
-  newValue: z.record(z.unknown()).nullable().optional(),
+  oldValue: z.record(z.string(), z.unknown()).nullable().optional(),
+  newValue: z.record(z.string(), z.unknown()).nullable().optional(),
   notes: z.string().nullable().optional(),
   createdAt: z.string().datetime(),
 })

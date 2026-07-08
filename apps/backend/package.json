@@ -1,6 +1,6 @@
 {
   "name": "mik_ng-backend-service",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "mik_ng backend service to support new MIK website and intranet",
   "main": "src/app.ts",
   "type": "module",
