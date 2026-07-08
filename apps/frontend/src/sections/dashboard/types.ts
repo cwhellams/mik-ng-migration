@@ -20,7 +20,6 @@ export interface DashboardComponentMetadata {
  * These are critical alerts/banners that should always be shown
  */
 export const ALWAYS_VISIBLE_COMPONENTS = [
-  'profileUpdateRequired',
   'reservationsSuspended',
   'overdueInvoice',
   'pendingReview',
@@ -31,12 +30,6 @@ export const ALWAYS_VISIBLE_COMPONENTS = [
  * Metadata for all available dashboard components
  */
 export const DASHBOARD_COMPONENT_METADATA: DashboardComponentMetadata[] = [
-  {
-    id: 'profileUpdateRequired',
-    label: 'Profile Update Required',
-    description: 'Alert when profile information needs updating',
-    icon: '⚠️',
-  },
   {
     id: 'reservationsSuspended',
     label: 'Reservations Suspended',

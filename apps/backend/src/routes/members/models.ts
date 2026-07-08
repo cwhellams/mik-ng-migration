@@ -175,6 +175,7 @@ const MemberListSchema = z.object({
   automaticBillingStatus: z.boolean().optional(),
   autoRenewAnnualMembership: z.boolean().nullable().optional(),
   autoRenewEquipmentFee: z.boolean().nullable().optional(),
+  mustUpdateProfile: z.boolean().optional(),
 })
 
 export type MemberList = z.infer<typeof MemberListSchema>
@@ -339,6 +340,7 @@ export const MemberSchema = AuditableSchema.extend({
   autoRenewAnnualMembership: z.boolean().nullable().optional(),
   autoRenewEquipmentFee: z.boolean().nullable().optional(),
   isMembershipExpired: z.boolean().nullable().optional(),
+  mustUpdateProfile: z.boolean().optional(),
   mailingLists: z.array(z.string()).nullish(),
   applicationData: ApplicationDataSchema.nullish(),
 })
@@ -392,6 +394,10 @@ export const MemberProfileSchema = MemberSchema.pick({
       .regex(/^\+[0-9\s\-()]+$/, 'member.phoneRequiresCorrectFormatting')
       .nullish(),
   ),
+})
+
+export const MemberAdminPatchSchema = MemberSchema.omit({
+  mustUpdateProfile: true,
 })
 
 export type MemberProfile = z.infer<typeof MemberProfileSchema>

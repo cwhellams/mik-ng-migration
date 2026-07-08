@@ -21,6 +21,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
+import { useMultiSelect } from '../../hooks/useMultiSelect'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
 import { SnackAlert } from '../../components/SnackAlert'
@@ -36,7 +37,6 @@ export default function NonRenewals() {
 
   const [problem, setProblem] = useState<Problem | undefined>()
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
-  const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkLoading, setBulkLoading] = useState(false)
 
   const { data, isLoading, error, mutate } = useApi<NonRenewalListResponse>({
@@ -49,27 +49,10 @@ export default function NonRenewals() {
   const members = data?.members ?? []
 
   // ── selection helpers ──────────────────────────────────────────────────────
+  // Only members with no billable flights this year may be selected.
   const selectableIds = members.filter((m) => m.billableFlightCount === 0).map((m) => m.memberId)
-  const isAllSelected = selectableIds.length > 0 && selectableIds.every((id) => selected.has(id))
-  const isIndeterminate = selected.size > 0 && !isAllSelected
-
-  const toggleSelectAll = () => {
-    if (isAllSelected) {
-      setSelected(new Set())
-    } else {
-      setSelected(new Set(selectableIds))
-    }
-  }
-
-  const toggleSelect = (memberId: string, hasFlights: boolean) => {
-    if (hasFlights) return
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(memberId)) next.delete(memberId)
-      else next.add(memberId)
-      return next
-    })
-  }
+  const { selectedIds, isSelected, isAllSelected, isIndeterminate, toggle, toggleAll, clear } =
+    useMultiSelect(selectableIds)
 
   // ── single-row handlers ────────────────────────────────────────────────────
   const handleCopyEmail = async (email: string) => {
@@ -135,13 +118,13 @@ export default function NonRenewals() {
 
   // ── bulk handlers ──────────────────────────────────────────────────────────
   const handleBulkSendReminder = async () => {
-    const count = selected.size
+    const count = selectedIds.length
     if (!globalThis.confirm(t('member.nonRenewalsBulkSendReminderConfirm', { count }))) {
       return
     }
 
     setBulkLoading(true)
-    const ids = [...selected]
+    const ids = selectedIds
     let successCount = 0
     let firstError: Problem | undefined
 
@@ -159,7 +142,7 @@ export default function NonRenewals() {
     }
 
     setBulkLoading(false)
-    setSelected(new Set())
+    clear()
     mutate()
 
     if (firstError && successCount === 0) {
@@ -175,8 +158,9 @@ export default function NonRenewals() {
   }
 
   const handleBulkRemove = async () => {
-    // Safety net: never deactivate members who have flights this year
-    const ids = [...selected].filter((id) => {
+    // Safety net: never deactivate members who have flights this year (selectedIds
+    // is already restricted to selectable members, but keep the guard explicit).
+    const ids = selectedIds.filter((id) => {
       const member = members.find((m) => m.memberId === id)
       return member && member.billableFlightCount === 0
     })
@@ -204,7 +188,7 @@ export default function NonRenewals() {
     }
 
     setBulkLoading(false)
-    setSelected(new Set())
+    clear()
     mutate()
 
     if (firstError && successCount === 0) {
@@ -247,7 +231,7 @@ export default function NonRenewals() {
         ) : (
           <>
             {/* Bulk action toolbar — visible only when rows are selected */}
-            {selected.size > 0 && (
+            {selectedIds.length > 0 && (
               <Stack
                 direction='row'
                 spacing={1}
@@ -259,7 +243,7 @@ export default function NonRenewals() {
               >
                 <Typography variant='body2' sx={{ flexGrow: 1 }}>
                   {t('member.nonRenewalsBulkSelected', {
-                    count: selected.size,
+                    count: selectedIds.length,
                   })}
                 </Typography>
 
@@ -272,7 +256,7 @@ export default function NonRenewals() {
                   onClick={handleBulkSendReminder}
                 >
                   {t('member.nonRenewalsBulkSendReminder', 'Send Reminders ({{count}})', {
-                    count: selected.size,
+                    count: selectedIds.length,
                   })}
                 </Button>
 
@@ -285,7 +269,7 @@ export default function NonRenewals() {
                   onClick={handleBulkRemove}
                 >
                   {t('member.nonRenewalsBulkRemove', 'Remove Members ({{count}})', {
-                    count: selected.size,
+                    count: selectedIds.length,
                   })}
                 </Button>
               </Stack>
@@ -302,7 +286,7 @@ export default function NonRenewals() {
                         size='small'
                         checked={isAllSelected}
                         indeterminate={isIndeterminate}
-                        onChange={toggleSelectAll}
+                        onChange={toggleAll}
                         disabled={isBusy}
                         slotProps={{
                           input: { 'aria-label': 'select all members' },
@@ -324,7 +308,7 @@ export default function NonRenewals() {
                     const fullName = `${member.firstName} ${member.lastName}`
                     const isReminderLoading = actionLoadingId === `reminder-${member.memberId}`
                     const isRemoveLoading = actionLoadingId === `remove-${member.memberId}`
-                    const isChecked = selected.has(member.memberId)
+                    const isChecked = isSelected(member.memberId)
                     const hasFlightsThisYear = member.billableFlightCount > 0
                     const lastReminderDate = formatDateTime(member.lastReminderSentAt)
 
@@ -333,7 +317,7 @@ export default function NonRenewals() {
                         key={member.memberId}
                         hover
                         selected={isChecked}
-                        onClick={() => !isBusy && toggleSelect(member.memberId, hasFlightsThisYear)}
+                        onClick={() => !isBusy && toggle(member.memberId)}
                         sx={{
                           cursor: isBusy || hasFlightsThisYear ? 'default' : 'pointer',
                         }}
@@ -342,7 +326,7 @@ export default function NonRenewals() {
                           <Checkbox
                             size='small'
                             checked={isChecked}
-                            onChange={() => toggleSelect(member.memberId, hasFlightsThisYear)}
+                            onChange={() => toggle(member.memberId)}
                             disabled={isBusy || hasFlightsThisYear}
                             slotProps={{
                               input: { 'aria-label': `select ${fullName}` },

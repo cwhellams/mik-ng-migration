@@ -62,6 +62,7 @@ exports[`Db add member tests add member and update member 1`] = `
   "memberType": "FLYING",
   "membershipApprovedAt": undefined,
   "membershipApprovedBy": undefined,
+  "mustUpdateProfile": false,
   "phoneNumber": null,
   "postcode": "00100",
   "roles": [],
@@ -113,6 +114,7 @@ exports[`Db add member tests add member and update member 2`] = `
   "memberType": "FLYING",
   "membershipApprovedAt": undefined,
   "membershipApprovedBy": undefined,
+  "mustUpdateProfile": false,
   "phoneNumber": null,
   "postcode": "00100",
   "roles": [
@@ -187,6 +189,7 @@ exports[`Db query member tests getMemberByEmail should return member data for a 
   "memberType": "JUNIOR",
   "membershipApprovedAt": Any<String>,
   "membershipApprovedBy": "Matti1",
+  "mustUpdateProfile": false,
   "phoneNumber": "0445678901",
   "postcode": "20100",
   "roles": [
@@ -291,6 +294,7 @@ exports[`Db query member tests getMemberByEmail should return member data regard
   "memberType": "JUNIOR",
   "membershipApprovedAt": Any<String>,
   "membershipApprovedBy": "Matti1",
+  "mustUpdateProfile": false,
   "phoneNumber": "0445678901",
   "postcode": "20100",
   "roles": [
@@ -395,6 +399,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "memberType": "FLYING",
   "membershipApprovedAt": Any<String>,
   "membershipApprovedBy": "Matti1",
+  "mustUpdateProfile": false,
   "phoneNumber": "0401234567",
   "postcode": "00100",
   "roles": [
@@ -527,6 +532,7 @@ exports[`Db query member tests getMemberById should return member data for a val
   "memberType": "FLYING",
   "membershipApprovedAt": Any<String>,
   "membershipApprovedBy": "Matti1",
+  "mustUpdateProfile": false,
   "phoneNumber": "0401234567",
   "postcode": "00100",
   "roles": [
@@ -876,6 +882,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
     "last": "Mäkinen",
     "memberId": "Anna1",
     "memberSince": Any<String>,
+    "mustUpdateProfile": false,
     "phoneNumber": "0434567890",
     "roles": [
       "COMMITTEE",
@@ -894,6 +901,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
     "last": "Seppälä",
     "memberId": "Juha1",
     "memberSince": Any<String>,
+    "mustUpdateProfile": false,
     "phoneNumber": "0489012345",
     "roles": [
       "MEMBER",
@@ -912,6 +920,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
     "last": "Laine",
     "memberId": "Kaisa1",
     "memberSince": Any<String>,
+    "mustUpdateProfile": false,
     "phoneNumber": "0456789012",
     "roles": [
       "ADMIN",
@@ -930,6 +939,7 @@ exports[`Db query member tests getMembers should return unapproved members for a
     "last": "Salminen",
     "memberId": "Marja1",
     "memberSince": Any<String>,
+    "mustUpdateProfile": false,
     "phoneNumber": "0490123456",
     "roles": [],
     "townCity": "Pori",

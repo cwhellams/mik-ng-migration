@@ -1156,6 +1156,7 @@ export interface MemberRegister {
   member_type: MemberType
   membership_approved_at: Timestamp | null
   membership_approved_by: string | null
+  must_update_profile: Generated<boolean>
   phone_number: string | null
   postcode: string | null
   removal_reason: string | null

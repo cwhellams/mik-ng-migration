@@ -407,6 +407,62 @@ describe('PATCH /members/me', () => {
     await patch(memberToken, { firstName: 'Matti' })
   })
 
+  it('should clear mustUpdateProfile when saving own profile', async () => {
+    await db
+      .updateTable('member.register')
+      .set({ must_update_profile: true })
+      .where('member_id', '=', 'Matti1')
+      .execute()
+
+    const response = await patch(memberToken, { firstName: 'Matti' })
+
+    expect(response.status).toBe(200)
+    expect((response.body as Member).mustUpdateProfile).toBe(false)
+
+    const member = await db
+      .selectFrom('member.register')
+      .select('must_update_profile')
+      .where('member_id', '=', 'Matti1')
+      .executeTakeFirstOrThrow()
+
+    expect(member.must_update_profile).toBe(false)
+  })
+
+  it('should NOT clear mustUpdateProfile when saving only non-identity fields', async () => {
+    const original = await db
+      .selectFrom('member.register')
+      .select('ice_contact_name')
+      .where('member_id', '=', 'Matti1')
+      .executeTakeFirstOrThrow()
+
+    await db
+      .updateTable('member.register')
+      .set({ must_update_profile: true })
+      .where('member_id', '=', 'Matti1')
+      .execute()
+
+    // iceContactName is editable via PATCH /me but is not one of the profile
+    // identity/contact fields that count as reviewing the profile.
+    const response = await patch(memberToken, { iceContactName: 'Emergency Contact' })
+
+    expect(response.status).toBe(200)
+    expect((response.body as Member).mustUpdateProfile).toBe(true)
+
+    const member = await db
+      .selectFrom('member.register')
+      .select('must_update_profile')
+      .where('member_id', '=', 'Matti1')
+      .executeTakeFirstOrThrow()
+    expect(member.must_update_profile).toBe(true)
+
+    // cleanup — restore the flag and the mutated field so shared-DB snapshots elsewhere are unaffected
+    await db
+      .updateTable('member.register')
+      .set({ must_update_profile: false, ice_contact_name: original.ice_contact_name })
+      .where('member_id', '=', 'Matti1')
+      .execute()
+  })
+
   it('should not update priviledged fields', async () => {
     const response = await patch(memberToken, {
       canMakeReservations: false,
@@ -814,6 +870,20 @@ describe('PATCH /members/id', () => {
     expect(revertedRole.isTrainingProgramPilot).toBe(false)
   })
 
+  it('should reject mustUpdateProfile in admin member patch payload', async () => {
+    const response = await patch('Matti1', { mustUpdateProfile: true }, adminToken)
+
+    expect(response.status).toBe(400)
+    expect(response.body.errors).toEqual([
+      {
+        code: 'unrecognized_keys',
+        keys: ['mustUpdateProfile'],
+        path: [],
+        message: "Unrecognized key(s) in object: 'mustUpdateProfile'",
+      },
+    ])
+  })
+
   describe('canMakeReservations revocation cancels future bookings', () => {
     // Matti1 has canMakeReservations=true in test data (V30__MemberData.sql)
     const testMemberId = 'Matti1'
@@ -928,6 +998,87 @@ describe('PATCH /members/id', () => {
           .execute()
       }
     })
+  })
+})
+
+describe('POST /members/must-update-profile', () => {
+  const memberIds = ['Matti1', 'Liisa1']
+
+  const postBulk = async (
+    body: { memberIds?: string[]; mustUpdateProfile?: boolean },
+    token?: string,
+  ) => {
+    const req = request(app).post('/members/must-update-profile').send(body)
+    return token ? req.set('Cookie', `accessToken=${token}`) : req
+  }
+
+  const flags = async () =>
+    db
+      .selectFrom('member.register')
+      .select(['member_id', 'must_update_profile'])
+      .where('member_id', 'in', memberIds)
+      .execute()
+
+  afterEach(async () => {
+    await db
+      .updateTable('member.register')
+      .set({ must_update_profile: false })
+      .where('member_id', 'in', memberIds)
+      .execute()
+  })
+
+  it('should return 401 without auth', async () => {
+    const response = await postBulk({ memberIds, mustUpdateProfile: true })
+    expect(response.status).toBe(401)
+  })
+
+  it('should return 403 for a regular member', async () => {
+    const response = await postBulk({ memberIds, mustUpdateProfile: true }, memberToken)
+    expect(response.status).toBe(403)
+  })
+
+  it('should return 400 for an empty memberIds array', async () => {
+    const response = await postBulk({ memberIds: [], mustUpdateProfile: true }, adminToken)
+    expect(response.status).toBe(400)
+  })
+
+  it('should let an admin set and clear mustUpdateProfile for many members', async () => {
+    const setResponse = await postBulk({ memberIds, mustUpdateProfile: true }, adminToken)
+    expect(setResponse.status).toBe(200)
+    expect(setResponse.body).toEqual({ updated: memberIds.length })
+
+    const afterSet = await flags()
+    expect(afterSet.every((m) => m.must_update_profile === true)).toBe(true)
+
+    const clearResponse = await postBulk({ memberIds, mustUpdateProfile: false }, adminToken)
+    expect(clearResponse.status).toBe(200)
+    expect(clearResponse.body).toEqual({ updated: memberIds.length })
+
+    const afterClear = await flags()
+    expect(afterClear.every((m) => m.must_update_profile === false)).toBe(true)
+  })
+
+  it('should set the flag for a single member (one-element array)', async () => {
+    const response = await postBulk({ memberIds: ['Matti1'], mustUpdateProfile: true }, adminToken)
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({ updated: 1 })
+
+    const member = await db
+      .selectFrom('member.register')
+      .select('must_update_profile')
+      .where('member_id', '=', 'Matti1')
+      .executeTakeFirstOrThrow()
+    expect(member.must_update_profile).toBe(true)
+  })
+
+  it('should report only the count of members that actually exist', async () => {
+    const response = await postBulk(
+      { memberIds: ['Matti1', 'NonExistent99'], mustUpdateProfile: true },
+      adminToken,
+    )
+    expect(response.status).toBe(200)
+    // NonExistent99 is silently skipped; the caller can detect the shortfall.
+    expect(response.body).toEqual({ updated: 1 })
   })
 })
 

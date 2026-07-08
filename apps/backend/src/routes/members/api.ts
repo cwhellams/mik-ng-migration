@@ -4,9 +4,9 @@ import type { Request, Response } from 'express'
 import {
   type MemberListResponse,
   type Member,
+  MemberAdminPatchSchema,
   MIKPermissions,
   MemberProfileSchema,
-  MemberSchema,
   type MemberListFilters,
   type MemberRolesResponse,
   type MemberRole,
@@ -42,6 +42,8 @@ import {
   getMembersWithNoOrUnpaidAnnualFee,
   insertNonRenewalAction,
   canMemberBeDeleted,
+  setMustUpdateProfileBulk,
+  clearMustUpdateProfile,
 } from '../../db/member-queries.ts'
 import { getInvoices } from '../../db/invoicing-queries.ts'
 import { getFlightLogs } from '../../db/flight-log-queries.ts'
@@ -270,6 +272,17 @@ router.get(
   },
 )
 
+// Saving any of these identity/contact fields counts as the member reviewing
+// their profile, which clears an admin-set must_update_profile flag.
+const MUST_UPDATE_PROFILE_REVIEW_FIELDS = [
+  'firstName',
+  'lastName',
+  'phoneNumber',
+  'streetAddress',
+  'postcode',
+  'townCity',
+]
+
 router.patch(
   '/me',
   // anyone can update their own (limited) details
@@ -281,6 +294,14 @@ router.patch(
     const mailingListSync = await captureMailingListSyncData(req.user!.memberId, patch.mailingLists)
 
     await updateMember(req.user?.memberId!, patch, req.user!)
+
+    // Clear the must_update_profile flag only when the user actually saved their
+    // profile identity/contact details — not when they merely toggled a mailing
+    // list or another incidental field via PATCH /me.
+    const reviewedProfile = MUST_UPDATE_PROFILE_REVIEW_FIELDS.some((field) => field in patch)
+    if (reviewedProfile) {
+      await clearMustUpdateProfile(req.user!.memberId, req.user!)
+    }
 
     await applyMailingListSync(mailingListSync)
 
@@ -642,7 +663,7 @@ router.patch(
   async (req: Request<{ memberId: string }>, res: Response<Member>) => {
     const memberId = req.params.memberId
 
-    const patch = MemberSchema.partial().parse(req.body)
+    const patch = MemberAdminPatchSchema.partial().parse(req.body)
 
     // Capture current canMakeReservations before update to detect access revocation
     const existingMember = await getMemberById(memberId)
@@ -673,6 +694,23 @@ router.patch(
 
     const member = await getMemberById(memberId)
     res.status(200).json(member)
+  },
+)
+
+// Set/clear the must-update-profile flag for one or more members. The single
+// admin toggle sends a one-element memberIds array, so this one endpoint covers
+// both the per-member and bulk cases. `updated` is the number of rows actually
+// changed, letting the client detect ids that no longer exist.
+router.post(
+  '/must-update-profile',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request, res: Response<{ updated: number }>): Promise<void> => {
+    const { memberIds, mustUpdateProfile } = z
+      .object({ memberIds: z.array(z.string()).min(1), mustUpdateProfile: z.boolean() })
+      .parse(req.body)
+
+    const updated = await setMustUpdateProfileBulk(memberIds, mustUpdateProfile, req.user!)
+    res.status(200).json({ updated })
   },
 )
 

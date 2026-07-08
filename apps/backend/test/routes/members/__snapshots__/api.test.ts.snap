@@ -156,6 +156,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "last": "Heikkinen",
       "memberId": "Antti1",
       "memberSince": Any<String>,
+      "mustUpdateProfile": false,
       "phoneNumber": "0467890123",
       "roles": [
         "INSTRUCTOR",
@@ -175,6 +176,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "last": "McExaminerface",
       "memberId": "Examiner1",
       "memberSince": Any<String>,
+      "mustUpdateProfile": false,
       "phoneNumber": "3584400012345",
       "roles": [
         "EXAMINER",
@@ -193,6 +195,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "last": "McDoe",
       "memberId": "John1",
       "memberSince": Any<String>,
+      "mustUpdateProfile": false,
       "phoneNumber": "0401234567",
       "roles": [
         "ADMIN",
@@ -212,6 +215,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "last": "Nieminen",
       "memberId": "Jukka1",
       "memberSince": Any<String>,
+      "mustUpdateProfile": false,
       "phoneNumber": "0423456789",
       "roles": [
         "INSTRUCTOR",
@@ -230,6 +234,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "last": "Korhonen",
       "memberId": "Liisa1",
       "memberSince": Any<String>,
+      "mustUpdateProfile": false,
       "phoneNumber": "0412345678",
       "roles": [
         "ADMIN",
@@ -250,6 +255,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "last": "Virtanen",
       "memberId": "Matti1",
       "memberSince": Any<String>,
+      "mustUpdateProfile": false,
       "phoneNumber": "0401234567",
       "roles": [
         "FLYING_MEMBER",
@@ -271,6 +277,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "last": "Hämäläinen",
       "memberId": "Pekka1",
       "memberSince": Any<String>,
+      "mustUpdateProfile": false,
       "phoneNumber": "0445678901",
       "roles": [
         "ADMIN",
@@ -290,6 +297,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "last": "Mäkelä",
       "memberId": "Pirjo1",
       "memberSince": Any<String>,
+      "mustUpdateProfile": false,
       "phoneNumber": "0451234002",
       "roles": [
         "MEMBER",
@@ -308,6 +316,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "last": "Järvinen",
       "memberId": "Risto1",
       "memberSince": Any<String>,
+      "mustUpdateProfile": false,
       "phoneNumber": "0451234001",
       "roles": [
         "MEMBER",
@@ -326,6 +335,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "last": "Koskinen",
       "memberId": "Sanna1",
       "memberSince": Any<String>,
+      "mustUpdateProfile": false,
       "phoneNumber": "0478901234",
       "roles": [
         "COMMITTEE",
@@ -345,6 +355,7 @@ exports[`GET /members should return 200 without search filters for user id 2 1`]
       "last": "Kinnunen",
       "memberId": "Teemu1",
       "memberSince": Any<String>,
+      "mustUpdateProfile": false,
       "phoneNumber": "0451234003",
       "roles": [
         "MEMBER",
@@ -369,6 +380,7 @@ exports[`GET /members should search by unapproved roles as an admin 1`] = `
     "last": "Salminen",
     "memberId": "Marja1",
     "memberSince": Any<String>,
+    "mustUpdateProfile": false,
     "phoneNumber": "0490123456",
     "roles": [],
     "townCity": "Pori",
@@ -410,6 +422,7 @@ exports[`GET /members/id Get member details as an admin 1`] = `
   "memberId": "k1mnimda",
   "memberSince": Any<String>,
   "memberType": "SYSTEM",
+  "mustUpdateProfile": false,
   "phoneNumber": null,
   "postcode": null,
   "roles": [
@@ -489,6 +502,7 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
   "memberType": "FLYING",
   "membershipApprovedAt": Any<String>,
   "membershipApprovedBy": "Matti1",
+  "mustUpdateProfile": false,
   "phoneNumber": "0401234567",
   "postcode": "00100",
   "roles": [
@@ -614,6 +628,7 @@ exports[`GET /members/me should return 200 with valid token for user 2`] = `
   "memberId": "k1mnimda",
   "memberSince": Any<String>,
   "memberType": "SYSTEM",
+  "mustUpdateProfile": false,
   "phoneNumber": null,
   "postcode": null,
   "roles": [
@@ -693,6 +708,7 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
   "memberType": "JUNIOR",
   "membershipApprovedAt": Any<String>,
   "membershipApprovedBy": "Matti1",
+  "mustUpdateProfile": false,
   "phoneNumber": "0412345678",
   "postcode": "02100",
   "roles": [
@@ -782,6 +798,7 @@ exports[`Membership approval tests Get unapproved members should return list of 
     "last": "Mäkinen",
     "memberId": "Anna1",
     "memberSince": Any<String>,
+    "mustUpdateProfile": false,
     "phoneNumber": "0434567890",
     "roles": [
       "COMMITTEE",
@@ -800,6 +817,7 @@ exports[`Membership approval tests Get unapproved members should return list of 
     "last": "Seppälä",
     "memberId": "Juha1",
     "memberSince": Any<String>,
+    "mustUpdateProfile": false,
     "phoneNumber": "0489012345",
     "roles": [
       "MEMBER",
@@ -818,6 +836,7 @@ exports[`Membership approval tests Get unapproved members should return list of 
     "last": "Laine",
     "memberId": "Kaisa1",
     "memberSince": Any<String>,
+    "mustUpdateProfile": false,
     "phoneNumber": "0456789012",
     "roles": [
       "ADMIN",
@@ -836,6 +855,7 @@ exports[`Membership approval tests Get unapproved members should return list of 
     "last": "Salminen",
     "memberId": "Marja1",
     "memberSince": Any<String>,
+    "mustUpdateProfile": false,
     "phoneNumber": "0490123456",
     "roles": [],
     "townCity": "Pori",

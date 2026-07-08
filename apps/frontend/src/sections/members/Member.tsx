@@ -1,4 +1,6 @@
 import {
+  Alert,
+  AlertTitle,
   Card,
   CardContent,
   Typography,
@@ -70,6 +72,14 @@ const MemberProfile = () => {
 
   const { data, isLoading, error, mutation } = useApi<Member>({
     url: `v1/members/${memberId}`,
+  })
+
+  // Dedicated mutation for the must-update-profile flag. It posts to the shared
+  // /v1/members/must-update-profile endpoint with a one-element id array, so the
+  // per-member toggle and the bulk list action go through the same backend path.
+  const { mutation: mustUpdateMutation } = useApi<{ updated: number }>({
+    url: 'v1/members',
+    skipFetch: true,
   })
 
   const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
@@ -234,6 +244,13 @@ const MemberProfile = () => {
     <RemoteContent isLoading={isLoading} error={error}>
       <Box sx={{ padding: 3 }}>
         <SnackAlert problem={problem} />
+
+        {memberId === 'me' && data?.mustUpdateProfile && (
+          <Alert severity='warning' sx={{ mb: 2 }}>
+            <AlertTitle>{t('member.mustUpdateProfileBannerTitle')}</AlertTitle>
+            {t('member.mustUpdateProfileBannerMessage')}
+          </Alert>
+        )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <Badge
@@ -760,6 +777,44 @@ const MemberProfile = () => {
                         memberId={data.memberId}
                       />
                     )}
+
+                    <FormField label={t('member.mustUpdateProfile')}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Checkbox
+                          checked={Boolean(data.mustUpdateProfile)}
+                          disabled
+                          size='large'
+                          sx={{ p: 0, pl: 0 }}
+                        />
+                        <Button
+                          size='small'
+                          variant='outlined'
+                          color={data.mustUpdateProfile ? 'success' : 'warning'}
+                          loading={mustUpdateMutation.isMutating}
+                          onClick={async () => {
+                            const newValue = !data.mustUpdateProfile
+                            const { data: result, error } = await mustUpdateMutation.trigger(
+                              'POST',
+                              { memberIds: [data.memberId], mustUpdateProfile: newValue },
+                              'must-update-profile',
+                            )
+                            if (error) {
+                              setProblem(error)
+                            } else if (!result?.updated) {
+                              setProblem({ status: 404, detail: t('member.noMembersFound') })
+                            } else {
+                              mutate(
+                                (key) => Array.isArray(key) && key[0] === `v1/members/${memberId}`,
+                              )
+                            }
+                          }}
+                        >
+                          {data.mustUpdateProfile
+                            ? t('member.clearMustUpdateProfile')
+                            : t('member.setMustUpdateProfile')}
+                        </Button>
+                      </Box>
+                    </FormField>
                   </>
                 )}
               </Stack>

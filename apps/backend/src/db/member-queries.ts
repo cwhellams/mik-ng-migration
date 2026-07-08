@@ -106,6 +106,7 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     autoRenewAnnualMembership: member.auto_renew_annual_membership,
     autoRenewEquipmentFee: member.auto_renew_equipment_fee,
     isMembershipExpired: member.is_membership_expired,
+    mustUpdateProfile: member.must_update_profile,
 
     lang: member.lang_iso639 as MIKLang,
     mailingLists: (member.mailing_lists as string[] | null) ?? undefined,
@@ -165,6 +166,7 @@ export async function getMembers(
       'billing_id',
       'auto_renew_annual_membership',
       'auto_renew_equipment_fee',
+      'must_update_profile',
       jsonArrayFrom(
         eb
           .selectFrom('member.member_to_roles')
@@ -249,6 +251,7 @@ export async function getMembers(
           automaticBillingStatus: member.billing_id !== null,
           autoRenewAnnualMembership: member.auto_renew_annual_membership ?? true,
           autoRenewEquipmentFee: member.auto_renew_equipment_fee ?? false,
+          mustUpdateProfile: member.must_update_profile,
         }
       : {}),
   }))
@@ -438,6 +441,29 @@ export async function updateMember(
   }
 
   return true
+}
+
+export async function setMustUpdateProfileBulk(
+  memberIds: string[],
+  value: boolean,
+  jwt: JWTUser,
+): Promise<number> {
+  if (memberIds.length === 0) return 0
+  const result = await db
+    .updateTable('member.register')
+    .set({ must_update_profile: value, updated_at: new Date(), updated_by: jwt.memberId })
+    .where('member_id', 'in', memberIds)
+    .executeTakeFirst()
+  return Number(result.numUpdatedRows)
+}
+
+export async function clearMustUpdateProfile(memberId: string, jwt: JWTUser): Promise<void> {
+  await db
+    .updateTable('member.register')
+    .set({ must_update_profile: false, updated_at: new Date(), updated_by: jwt.memberId })
+    .where('member_id', '=', memberId)
+    .where('must_update_profile', '=', true)
+    .execute()
 }
 
 export async function removeMember(memberId: string): Promise<boolean> {

@@ -12,6 +12,9 @@ import {
   ButtonBase,
   Tooltip,
   Typography,
+  Checkbox,
+  Button,
+  Paper,
 } from '@mui/material'
 import { Link } from 'react-router-dom'
 import useApi from '../../hooks/useApi'
@@ -22,6 +25,8 @@ import {
   MemberRole,
   MIKLang,
 } from '@backend/routes/members/models'
+import { Problem } from '@backend/routes/response'
+import { SnackAlert } from '../../components/SnackAlert'
 import { Icon } from '@iconify/react'
 import { useRoles } from '../../hooks/useRoles'
 import { t } from 'i18next'
@@ -36,6 +41,7 @@ import { langFlagIcon } from '../../utils/lang'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { useTimezone } from '../../hooks/useTimezone'
+import { useMultiSelect } from '../../hooks/useMultiSelect'
 
 type SortDirection = 'asc' | 'desc'
 type SortField =
@@ -48,6 +54,7 @@ type SortField =
   | 'canMakeReservations'
   | 'autoRenewAnnualMembership'
   | 'autoRenewEquipmentFee'
+  | 'mustUpdateProfile'
 
 const Members = () => {
   const [filters, setFilters] = useState<MemberListFilters>({
@@ -70,8 +77,9 @@ const Members = () => {
   const [editMode, setEditMode] = useState<MemberEditMode | undefined>()
   const [sortField, setSortField] = useState<SortField>('fullName')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+  const [problem, setProblem] = useState<Problem | undefined>()
 
-  const { isMembersAdmin, roles } = useRoles()
+  const { isMembersAdmin, roles, me } = useRoles()
   const { i18n } = useTranslation()
   const { formatDate } = useTimezone()
 
@@ -122,11 +130,54 @@ const Members = () => {
             modifier *
             (booleanSortValue(a.autoRenewEquipmentFee) - booleanSortValue(b.autoRenewEquipmentFee))
           )
+        case 'mustUpdateProfile':
+          return (
+            modifier *
+            (booleanSortValue(a.mustUpdateProfile) - booleanSortValue(b.mustUpdateProfile))
+          )
         default:
           return 0
       }
     })
   }, [data?.members, i18n.language, sortDirection, sortField])
+
+  // Selectable rows are those currently visible under the active filter/search,
+  // excluding the admin's own record — flagging yourself would redirect you to
+  // your own profile and lock you out of the member admin view.
+  const selectableIds = useMemo(
+    () => sortedMembers.map((m) => m.memberId).filter((id) => id !== me?.memberId),
+    [sortedMembers, me?.memberId],
+  )
+  const { selectedIds, isSelected, isAllSelected, isIndeterminate, toggle, toggleAll, clear } =
+    useMultiSelect(selectableIds)
+
+  const applyBulkMustUpdateProfile = async (mustUpdateProfile: boolean) => {
+    const memberIds = selectedIds
+    if (memberIds.length === 0) return
+
+    const { data: result, error } = await mutation.trigger<
+      { memberIds: string[]; mustUpdateProfile: boolean },
+      { updated: number }
+    >('POST', { memberIds, mustUpdateProfile }, 'must-update-profile')
+    if (error) {
+      setProblem(error)
+    } else if ((result?.updated ?? 0) < memberIds.length) {
+      // Some selected members no longer exist; surface the shortfall instead of
+      // silently reporting success.
+      setProblem({
+        status: 200,
+        detail: t('member.bulkMustUpdatePartial', {
+          updated: result?.updated ?? 0,
+          count: memberIds.length,
+        }),
+      })
+      clear()
+      mutate()
+    } else {
+      clear()
+      mutate()
+    }
+  }
 
   // Returns a clickable, sortable header cell.
   // For compact boolean columns pass a tooltip with the full label.
@@ -184,6 +235,7 @@ const Members = () => {
 
   return (
     <Box>
+      <SnackAlert problem={problem} />
       <Title label={t('header.members')}>
         {isMembersAdmin && (
           <EditButton
@@ -277,16 +329,67 @@ const Members = () => {
         {t('member.count', { count: sortedMembers.length })}
       </Typography>
 
+      {isMembersAdmin && selectedIds.length > 0 && (
+        <Paper
+          sx={{
+            p: 1.5,
+            mb: 2,
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <Typography variant='body2' sx={{ fontWeight: 600 }}>
+            {t('member.selectedCount', { count: selectedIds.length })}
+          </Typography>
+          <Stack direction='row' gap={1} sx={{ ml: 'auto' }}>
+            <Button
+              size='small'
+              variant='contained'
+              color='warning'
+              disabled={mutation.isMutating}
+              onClick={() => applyBulkMustUpdateProfile(true)}
+            >
+              {t('member.setMustUpdateProfile')}
+            </Button>
+            <Button
+              size='small'
+              variant='outlined'
+              color='success'
+              disabled={mutation.isMutating}
+              onClick={() => applyBulkMustUpdateProfile(false)}
+            >
+              {t('member.clearMustUpdateProfile')}
+            </Button>
+            <Button size='small' variant='text' onClick={clear}>
+              {t('member.clearSelection')}
+            </Button>
+          </Stack>
+        </Paper>
+      )}
+
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
           header={
             <>
-              <Grid size={1}></Grid>
+              <Grid size={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                {isMembersAdmin && (
+                  <Checkbox
+                    size='small'
+                    sx={{ p: 0 }}
+                    checked={isAllSelected}
+                    indeterminate={isIndeterminate}
+                    onChange={toggleAll}
+                    inputProps={{ 'aria-label': t('member.selectAll') }}
+                  />
+                )}
+              </Grid>
               <Grid container size='grow'>
                 {sortHeader('fullName', t('member.fullname'), isMembersAdmin ? 2 : 3)}
                 {sortHeader('phone', t('member.phone'), isMembersAdmin ? 1.5 : 2.5)}
                 {sortHeader('town', t('member.town'), isMembersAdmin ? 1.5 : 2)}
-                {sortHeader('roles', t('member.roles'), isMembersAdmin ? 2.3 : 'grow')}
+                {sortHeader('roles', t('member.roles'), isMembersAdmin ? 1.5 : 'grow')}
                 {isMembersAdmin && sortHeader('memberSince', t('member.memberSince'), 1.5)}
                 {isMembersAdmin &&
                   sortHeader(
@@ -316,6 +419,13 @@ const Members = () => {
                     0.8,
                     t('member.billingInfo.equipmentFeeAutoRenew'),
                   )}
+                {isMembersAdmin &&
+                  sortHeader(
+                    'mustUpdateProfile',
+                    t('member.abbr.mustUpdateProfile'),
+                    0.8,
+                    t('member.mustUpdateProfile'),
+                  )}
               </Grid>
             </>
           }
@@ -323,7 +433,21 @@ const Members = () => {
           rows={sortedMembers}
           row={(row) => (
             <>
-              <Grid size={{ xs: 2, md: 1 }}>
+              <Grid
+                size={{ xs: 2, md: 1 }}
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+              >
+                {isMembersAdmin && row.memberId !== me?.memberId && (
+                  <Checkbox
+                    size='small'
+                    sx={{ p: 0 }}
+                    checked={isSelected(row.memberId)}
+                    onChange={() => toggle(row.memberId)}
+                    inputProps={{
+                      'aria-label': t('member.selectMember', { name: `${row.first} ${row.last}` }),
+                    }}
+                  />
+                )}
                 <Box sx={{ position: 'relative', display: 'inline-flex' }}>
                   <UserAvatar
                     email={row.email}
@@ -360,7 +484,7 @@ const Members = () => {
 
                 <Grid size={{ xs: 12, md: isMembersAdmin ? 1.5 : 2 }}>{row.townCity}</Grid>
 
-                <Grid size={{ xs: 12, md: isMembersAdmin ? 2.3 : 'grow' }}>
+                <Grid size={{ xs: 12, md: isMembersAdmin ? 1.5 : 'grow' }}>
                   {renderRoles(row.roles, roles, i18n.language as MIKLang)}
                 </Grid>
 
@@ -386,6 +510,9 @@ const Members = () => {
                   <Grid size={{ xs: 'auto', md: 0.8 }}>
                     {renderBoolean(row.autoRenewEquipmentFee)}
                   </Grid>
+                )}
+                {isMembersAdmin && (
+                  <Grid size={{ xs: 'auto', md: 0.8 }}>{renderBoolean(row.mustUpdateProfile)}</Grid>
                 )}
               </Grid>
             </>

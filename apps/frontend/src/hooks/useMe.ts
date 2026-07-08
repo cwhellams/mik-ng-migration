@@ -10,9 +10,11 @@ export const useMe = () => {
       skipRedirectOnUnauthorized: true,
     },
     {
-      // profile data do not change often, no need for automatic revalidations
+      // Profile data rarely changes, so skip stale/reconnect revalidation — but
+      // revalidate on focus so an admin-set must-update-profile flag engages when
+      // the user returns to the tab, instead of only after a full page reload.
       revalidateIfStale: false,
-      revalidateOnFocus: false,
+      revalidateOnFocus: true,
       revalidateOnReconnect: false,
     },
   )

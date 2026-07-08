@@ -14,7 +14,6 @@ import { Title } from '../../components/Title'
 import { t } from 'i18next'
 import { FlightLogUserDashboard } from './components/FlightLogUserDashboard'
 import { PendingReviewBanner } from './components/PendingReviewBanner'
-import { ProfileUpdateRequiredBanner } from './components/ProfileUpdateRequiredBanner'
 import { ExpiryWarningBanner } from './components/ExpiryWarningBanner'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { InstructorQualificationsBanner } from './components/InstructorQualificationsBanner'
@@ -33,7 +32,6 @@ const createComponentMap = (
   me: ReturnType<typeof useRoles>['me'],
   hasAccess: ReturnType<typeof useRoles>['hasAccess'],
 ): Record<string, () => JSX.Element | null> => ({
-  profileUpdateRequired: () => <ProfileUpdateRequiredBanner />,
   reservationsSuspended: () => (isMember ? <ReservationsSuspendedBanner /> : null),
   overdueInvoice: () => (isMember ? <OverdueInvoiceBanner /> : null),
   equipmentFee: () => (isMember && flyingUser ? <EquipmentFeeBanner /> : null),
