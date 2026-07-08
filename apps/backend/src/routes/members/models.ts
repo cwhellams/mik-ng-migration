@@ -73,6 +73,12 @@ export enum MIKPermissions {
 
   // can view and approve/reject expense claims (treasurer / committee)
   EXPENSE_ADMIN = 'expense.admin',
+
+  // can browse the club inventory
+  INVENTORY_USER = 'inventory.user',
+
+  // can create/edit/delete inventory items, locations and categories
+  INVENTORY_ADMIN = 'inventory.admin',
 }
 
 // admins can be downgraded to user permissions when not in sudo mode
@@ -100,6 +106,9 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
       return MIKPermissions.EXAM_USER
     case MIKPermissions.DTO_ADMIN:
       return MIKPermissions.DTO_USER
+
+    case MIKPermissions.INVENTORY_ADMIN:
+      return MIKPermissions.INVENTORY_USER
 
     // no separate user role for events – all members can read events
     case MIKPermissions.EVENTS_ADMIN:

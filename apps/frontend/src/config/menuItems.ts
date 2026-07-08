@@ -130,6 +130,11 @@ export const menuItems: MenuItem[] = [
     ],
   },
   {
+    path: '/inventory',
+    label: 'header.inventory',
+    requiredRoles: [MIKPermissions.INVENTORY_USER, MIKPermissions.INVENTORY_ADMIN],
+  },
+  {
     path: '/accounting',
     label: 'header.accounts',
     requiredRoles: [MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN],
@@ -209,6 +214,7 @@ export const menuItems: MenuItem[] = [
       MIKPermissions.EXAM_ADMIN,
       MIKPermissions.DTO_ADMIN,
       MIKPermissions.EVENTS_ADMIN,
+      MIKPermissions.INVENTORY_ADMIN,
     ],
     adminModeOnly: true,
     subItems: [
@@ -252,6 +258,12 @@ export const menuItems: MenuItem[] = [
         label: 'header.eventsAdmin',
         path: 'events',
         requiredRoles: [MIKPermissions.EVENTS_ADMIN],
+        adminModeOnly: true,
+      },
+      {
+        label: 'header.inventoryAdmin',
+        path: 'inventory',
+        requiredRoles: [MIKPermissions.INVENTORY_ADMIN],
         adminModeOnly: true,
       },
     ],

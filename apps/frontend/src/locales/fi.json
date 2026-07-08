@@ -52,7 +52,9 @@
     "newExpense": "Uusi kulukorvaus",
     "expenseClaims": "Kulukorvaukset",
     "mileageAllowances": "Kilometrikorvaukset",
-    "costCentres": "Kustannuspaikat"
+    "costCentres": "Kustannuspaikat",
+    "inventory": "Varasto",
+    "inventoryAdmin": "Varasto-hallinta"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -1793,7 +1795,8 @@
     "delete": "Poista",
     "saving": "Tallennetaan...",
     "deleting": "Poistetaan...",
-    "requiresAdminMode": "Ylläpitotila vaaditaan"
+    "requiresAdminMode": "Ylläpitotila vaaditaan",
+    "none": "Ei mitään"
   },
   "exams": {
     "title": "Kokeet",
@@ -2322,6 +2325,61 @@
       "descriptionRequired": "Kuvaus on pakollinen",
       "quantityMin": "Määrän on oltava vähintään 1",
       "unitPriceRequired": "Yksikköhinnan on oltava suurempi kuin nolla"
+    }
+  },
+  "inventory": {
+    "title": "Varasto",
+    "category": "Kategoria",
+    "location": "Sijainti",
+    "itemType": "Tyyppi",
+    "asset": "Laite",
+    "consumable": "Kulutustarvike",
+    "qty": "Määrä",
+    "lowStock": "Vähissä",
+    "lowStockThreshold": "Vähimmäistaso",
+    "serialNumber": "Sarjanumero",
+    "notes": "Muistiinpanot",
+    "imageUrl": "Kuvan URL",
+    "tags": "Tagit",
+    "tagsHint": "Tagit (pilkulla erotettuna)",
+    "status": "Tila",
+    "auditLog": "Muutosloki",
+    "noAuditLog": "Muutoslokimerkintöjä ei löydy.",
+    "noItems": "Varastonimikkeitä ei löydy.",
+    "changeType": "Muutostyyppi",
+    "changedBy": "Muuttaja",
+    "condition": {
+      "label": "Kunto",
+      "GOOD": "Hyvä",
+      "FAIR": "Tyydyttävä",
+      "POOR": "Huono",
+      "UNKNOWN": "Tuntematon"
+    },
+    "type": {
+      "ASSET": "Laite",
+      "CONSUMABLE": "Kulutustarvike"
+    },
+    "changeTypes": {
+      "CREATED": "Luotu",
+      "UPDATED": "Päivitetty",
+      "QUANTITY_CHANGE": "Määrä muuttunut",
+      "CONDITION_CHANGE": "Kunto muuttunut",
+      "DEACTIVATED": "Deaktivoitu"
+    },
+    "admin": {
+      "title": "Varasto-hallinta",
+      "tabItems": "Nimikkeet",
+      "tabCategories": "Kategoriat",
+      "tabLocations": "Sijainnit",
+      "addItem": "Lisää nimike",
+      "editItem": "Muokkaa nimikettä",
+      "addCategory": "Lisää kategoria",
+      "editCategory": "Muokkaa kategoriaa",
+      "addLocation": "Lisää sijainti",
+      "editLocation": "Muokkaa sijaintia",
+      "adjustQuantity": "Säädä määrää",
+      "delta": "Muutos (+ tai -)",
+      "deltaHint": "Positiivinen lisää, negatiivinen vähentää"
     }
   }
 }

@@ -77,6 +77,10 @@ export type Generated<T> =
 
 export type Int8 = ColumnType<string, bigint | number | string, bigint | number | string>
 
+export type InventoryItemCondition = 'FAIR' | 'GOOD' | 'POOR' | 'UNKNOWN'
+
+export type InventoryItemType = 'ASSET' | 'CONSUMABLE'
+
 export type InvoiceType =
   | 'ANNUAL_FEE'
   | 'CREDIT_NOTE'
@@ -949,6 +953,62 @@ export interface FuelPricesContent {
   updated_by: string
 }
 
+export interface InventoryAuditLog {
+  change_type: string
+  created_at: Generated<Timestamp>
+  item_id: string
+  log_id: Generated<number>
+  member_id: string
+  new_value: Json | null
+  notes: string | null
+  old_value: Json | null
+}
+
+export interface InventoryCategories {
+  category_id: string
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: Json | null
+  is_active: Generated<boolean>
+  name: Json
+  sort_order: Generated<number>
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface InventoryItems {
+  category_id: string
+  condition: Generated<InventoryItemCondition>
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: Json | null
+  image_url: string | null
+  is_active: Generated<boolean>
+  item_id: string
+  item_type: Generated<InventoryItemType>
+  location_id: string | null
+  low_stock_threshold: number | null
+  name: Json
+  notes: string | null
+  quantity: Generated<number>
+  serial_number: string | null
+  tags: Generated<string[]>
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
+export interface InventoryLocations {
+  created_at: Generated<Timestamp>
+  created_by: string
+  description: Json | null
+  is_active: Generated<boolean>
+  location_id: string
+  name: Json
+  sort_order: Generated<number>
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
 export interface MemberAnnualFees {
   created_at: Generated<Timestamp>
   created_by: string
@@ -1758,6 +1818,10 @@ export interface DB {
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory
   fuel_prices_content: FuelPricesContent
+  'inventory.audit_log': InventoryAuditLog
+  'inventory.categories': InventoryCategories
+  'inventory.items': InventoryItems
+  'inventory.locations': InventoryLocations
   'member.annual_fees': MemberAnnualFees
   'member.brevo_sync_state': MemberBrevoSyncState
   'member.document_tiny_urls': MemberDocumentTinyUrls

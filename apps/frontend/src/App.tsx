@@ -82,6 +82,9 @@ import DtoMyTrainingPage from './sections/dto/DtoMyTrainingPage'
 import DtoStudentDetailPage from './sections/dto/DtoStudentDetailPage'
 import EventsList from './sections/events/EventsList'
 import EventsAdmin from './sections/admin/events/EventsAdmin'
+import InventoryPage from './sections/inventory/InventoryPage'
+import InventoryItemPage from './sections/inventory/InventoryItemPage'
+import InventoryAdminPage from './sections/admin/inventory/InventoryAdminPage'
 import { ServerClockProvider } from './hooks/useServerClock'
 import ExpensesList from './sections/expenses/ExpensesList'
 import ExpenseClaimForm from './sections/expenses/ExpenseClaimForm'
@@ -233,6 +236,7 @@ function App() {
                 <Route path='dto' element={<DtoProgramsAdminPage />} />
                 <Route path='dto/syllabi/:syllabusId' element={<DtoSyllabusEditorPage />} />
                 <Route path='dto/programs/:programId/import' element={<DtoImportPage />} />
+                <Route path='inventory' element={<InventoryAdminPage />} />
               </Route>
               <Route path='/dto'>
                 <Route index element={<DtoIndexRedirect />} />
@@ -240,6 +244,10 @@ function App() {
                 <Route path='progress' element={<DtoProgressPage />} />
                 <Route path='progress/:memberSyllabusId' element={<DtoStudentDetailPage />} />
                 <Route path='verify' element={<DtoVerificationPage />} />
+              </Route>
+              <Route path='/inventory'>
+                <Route index element={<InventoryPage />} />
+                <Route path=':id' element={<InventoryItemPage />} />
               </Route>
             </Route>
 

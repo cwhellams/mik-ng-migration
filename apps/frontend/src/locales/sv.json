@@ -53,7 +53,9 @@
     "newExpense": "Nytt utgiftsanspråk",
     "expenseClaims": "Utgiftsanspråk",
     "mileageAllowances": "Kilometetersättning",
-    "costCentres": "Kostnadsställen"
+    "costCentres": "Kostnadsställen",
+    "inventory": "Inventarie",
+    "inventoryAdmin": "Inventarieadmin"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -1760,7 +1762,8 @@
     "delete": "Ta bort",
     "saving": "Sparar...",
     "deleting": "Tar bort...",
-    "requiresAdminMode": "Administratörsläge krävs"
+    "requiresAdminMode": "Administratörsläge krävs",
+    "none": "Ingen"
   },
   "exams": {
     "title": "Prov",
@@ -2289,6 +2292,61 @@
       "descriptionRequired": "Beskrivning krävs",
       "quantityMin": "Antal måste vara minst 1",
       "unitPriceRequired": "Enhetspriset måste vara större än noll"
+    }
+  },
+  "inventory": {
+    "title": "Inventarie",
+    "category": "Kategori",
+    "location": "Plats",
+    "itemType": "Typ",
+    "asset": "Tillgång",
+    "consumable": "Förbrukningsartikel",
+    "qty": "Antal",
+    "lowStock": "Lågt lager",
+    "lowStockThreshold": "Lagerminimum",
+    "serialNumber": "Serienummer",
+    "notes": "Anteckningar",
+    "imageUrl": "Bild-URL",
+    "tags": "Taggar",
+    "tagsHint": "Taggar (kommaseparerade)",
+    "status": "Status",
+    "auditLog": "Ändringslogg",
+    "noAuditLog": "Inga ändringsloggar hittades.",
+    "noItems": "Inga lagerartiklar hittades.",
+    "changeType": "Ändringstyp",
+    "changedBy": "Ändrad av",
+    "condition": {
+      "label": "Skick",
+      "GOOD": "Bra",
+      "FAIR": "Acceptabelt",
+      "POOR": "Dåligt",
+      "UNKNOWN": "Okänt"
+    },
+    "type": {
+      "ASSET": "Tillgång",
+      "CONSUMABLE": "Förbrukningsartikel"
+    },
+    "changeTypes": {
+      "CREATED": "Skapad",
+      "UPDATED": "Uppdaterad",
+      "QUANTITY_CHANGE": "Antal ändrat",
+      "CONDITION_CHANGE": "Skick ändrat",
+      "DEACTIVATED": "Inaktiverad"
+    },
+    "admin": {
+      "title": "Inventarieadmin",
+      "tabItems": "Artiklar",
+      "tabCategories": "Kategorier",
+      "tabLocations": "Platser",
+      "addItem": "Lägg till artikel",
+      "editItem": "Redigera artikel",
+      "addCategory": "Lägg till kategori",
+      "editCategory": "Redigera kategori",
+      "addLocation": "Lägg till plats",
+      "editLocation": "Redigera plats",
+      "adjustQuantity": "Justera antal",
+      "delta": "Förändring (+ eller -)",
+      "deltaHint": "Positivt för att lägga till, negativt för att ta bort"
     }
   }
 }

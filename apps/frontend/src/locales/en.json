@@ -53,7 +53,9 @@
     "newExpense": "New Expense Claim",
     "expenseClaims": "Expense Claims",
     "mileageAllowances": "Mileage Allowances",
-    "costCentres": "Cost Centres"
+    "costCentres": "Cost Centres",
+    "inventory": "Inventory",
+    "inventoryAdmin": "Inventory Admin"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
@@ -1787,7 +1789,8 @@
     "delete": "Delete",
     "saving": "Saving...",
     "deleting": "Deleting...",
-    "requiresAdminMode": "Admin mode required"
+    "requiresAdminMode": "Admin mode required",
+    "none": "None"
   },
   "exams": {
     "title": "Exams",
@@ -2316,6 +2319,61 @@
       "descriptionRequired": "Description is required",
       "quantityMin": "Quantity must be at least 1",
       "unitPriceRequired": "Unit price must be greater than zero"
+    }
+  },
+  "inventory": {
+    "title": "Inventory",
+    "category": "Category",
+    "location": "Location",
+    "itemType": "Type",
+    "asset": "Asset",
+    "consumable": "Consumable",
+    "qty": "Qty",
+    "lowStock": "Low Stock",
+    "lowStockThreshold": "Low Stock Threshold",
+    "serialNumber": "Serial Number",
+    "notes": "Notes",
+    "imageUrl": "Image URL",
+    "tags": "Tags",
+    "tagsHint": "Tags (comma-separated)",
+    "status": "Status",
+    "auditLog": "Audit Log",
+    "noAuditLog": "No audit log entries found.",
+    "noItems": "No inventory items found.",
+    "changeType": "Change Type",
+    "changedBy": "Changed By",
+    "condition": {
+      "label": "Condition",
+      "GOOD": "Good",
+      "FAIR": "Fair",
+      "POOR": "Poor",
+      "UNKNOWN": "Unknown"
+    },
+    "type": {
+      "ASSET": "Asset",
+      "CONSUMABLE": "Consumable"
+    },
+    "changeTypes": {
+      "CREATED": "Created",
+      "UPDATED": "Updated",
+      "QUANTITY_CHANGE": "Quantity Changed",
+      "CONDITION_CHANGE": "Condition Changed",
+      "DEACTIVATED": "Deactivated"
+    },
+    "admin": {
+      "title": "Inventory Admin",
+      "tabItems": "Items",
+      "tabCategories": "Categories",
+      "tabLocations": "Locations",
+      "addItem": "Add Item",
+      "editItem": "Edit Item",
+      "addCategory": "Add Category",
+      "editCategory": "Edit Category",
+      "addLocation": "Add Location",
+      "editLocation": "Edit Location",
+      "adjustQuantity": "Adjust Quantity",
+      "delta": "Change (+ or -)",
+      "deltaHint": "Positive to add stock, negative to remove"
     }
   }
 }

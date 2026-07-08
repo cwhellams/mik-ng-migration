@@ -46,6 +46,7 @@ import { router as eventRoutes } from './routes/events/api.ts'
 import { router as expenseRoutes } from './routes/expenses/api.ts'
 import { router as costCentreRoutes } from './routes/cost-centres/api.ts'
 import { mileageAllowanceRouter } from './routes/expenses/mileageApi.ts'
+import { router as inventoryRoutes } from './routes/inventory/api.ts'
 import maintenanceNoteRoutes from './routes/maintenance-notes/api.ts'
 import aircraftHilRoutes from './routes/aircraft-hil/api.ts'
 import defectRoutes from './routes/defects/api.ts'
@@ -179,6 +180,7 @@ app.use('/api/v1/events', eventRoutes)
 app.use('/api/v1/expenses', expenseRoutes)
 app.use('/api/v1/cost-centres', costCentreRoutes)
 app.use('/api/v1/mileage-allowances', mileageAllowanceRouter)
+app.use('/api/v1/inventory', inventoryRoutes)
 app.use('/api/v1/maintenance-notes', maintenanceNoteRoutes)
 app.use('/api/v1/aircraft-hil', aircraftHilRoutes)
 app.use('/api/v1/defects', defectRoutes)

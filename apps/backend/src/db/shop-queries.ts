@@ -1,5 +1,5 @@
 import { db } from './connection.ts'
-import { randomUUID } from 'node:crypto'
+import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
   Category,
@@ -26,10 +26,6 @@ import { problem } from '../routes/response.ts'
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
-
-function newId(): string {
-  return randomUUID().replace(/-/g, '').slice(0, 9).toUpperCase()
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Categories
@@ -73,7 +69,7 @@ export async function getCategoryById(id: string): Promise<Category | undefined>
 }
 
 export async function insertCategory(data: CategoryUpsert, user: JWTUser): Promise<Category> {
-  const id = newId()
+  const id = generateShortId()
   await db
     .insertInto('shop.categories')
     .values({
@@ -246,7 +242,7 @@ function mapProduct(r: Record<string, unknown>): Product {
 }
 
 export async function insertProduct(data: ProductUpsert, user: JWTUser): Promise<Product> {
-  const id = newId()
+  const id = generateShortId()
   await db
     .insertInto('shop.products')
     .values({
@@ -699,7 +695,7 @@ async function getOrCreateCart(memberId: string): Promise<string> {
     .executeTakeFirst()
   if (existing) return existing.cart_id
 
-  const cartId = newId()
+  const cartId = generateShortId()
   await db.insertInto('shop.carts').values({ cart_id: cartId, member_id: memberId }).execute()
   return cartId
 }
@@ -1251,7 +1247,7 @@ export async function createOrderFromCart(
 
   if (discountAmount) totalAmount -= discountAmount
 
-  const orderId = newId()
+  const orderId = generateShortId()
   await db.transaction().execute(async (trx) => {
     await trx
       .insertInto('shop.orders')

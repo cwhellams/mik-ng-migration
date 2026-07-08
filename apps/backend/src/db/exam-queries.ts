@@ -1,5 +1,5 @@
 import { db } from './connection.ts'
-import { randomUUID } from 'node:crypto'
+import { generateShortId } from '../util/nanoId.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import { problem } from '../routes/response.ts'
 import type {
@@ -25,10 +25,6 @@ import type {
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
-
-function newId(): string {
-  return randomUUID().replace(/-/g, '').slice(0, 9).toUpperCase()
-}
 
 function toIso(d: Date | string | null | undefined): string {
   if (d == null) throw new Error('toIso: unexpected null/undefined timestamp')
@@ -135,7 +131,7 @@ export async function getExamsWithPublishedVersions(): Promise<ExamWithVersion[]
 }
 
 export async function insertExam(data: ExamUpsert, user: JWTUser): Promise<Exam> {
-  const id = data.examId ?? newId()
+  const id = data.examId ?? generateShortId()
   const now = new Date()
   await db
     .insertInto('exam.exams')
@@ -328,7 +324,7 @@ export async function createVersion(
   const existing = await getVersionsByExamId(examId)
   const nextNumber = existing.length > 0 ? Math.max(...existing.map((v) => v.versionNumber)) + 1 : 1
 
-  const id = newId()
+  const id = generateShortId()
   const now = new Date()
 
   // Fetch the published detail before opening the transaction (read-only, safe outside tx)
@@ -372,7 +368,7 @@ export async function createVersion(
       }
       // clone questions and choices
       for (const q of publishedVersionDetail.questions) {
-        const newQId = newId()
+        const newQId = generateShortId()
         await trx
           .insertInto('exam.questions')
           .values({ question_id: newQId, version_id: id, sort_order: q.sortOrder })
@@ -389,7 +385,7 @@ export async function createVersion(
             .execute()
         }
         for (const c of q.choices) {
-          const newCId = newId()
+          const newCId = generateShortId()
           await trx
             .insertInto('exam.choices')
             .values({
@@ -473,8 +469,8 @@ export async function deleteVersion(versionId: string): Promise<void> {
 }
 
 export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamImportResult> {
-  const examId = newId()
-  const versionId = newId()
+  const examId = generateShortId()
+  const versionId = generateShortId()
   const now = new Date()
 
   await db.transaction().execute(async (trx) => {
@@ -522,7 +518,7 @@ export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamI
     }
 
     for (const q of data.version.questions) {
-      const questionId = newId()
+      const questionId = generateShortId()
       await trx
         .insertInto('exam.questions')
         .values({ question_id: questionId, version_id: versionId, sort_order: q.sortOrder })
@@ -541,7 +537,7 @@ export async function importExam(data: ExamImport, user: JWTUser): Promise<ExamI
       }
 
       for (const c of q.choices) {
-        const choiceId = newId()
+        const choiceId = generateShortId()
         await trx
           .insertInto('exam.choices')
           .values({
@@ -660,7 +656,7 @@ export async function upsertVersionTranslation(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function upsertQuestion(versionId: string, data: QuestionUpsert): Promise<Question> {
-  const id = data.questionId ?? newId()
+  const id = data.questionId ?? generateShortId()
 
   if (data.questionId) {
     await db
@@ -722,7 +718,7 @@ export async function deleteQuestion(questionId: string): Promise<void> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function upsertChoice(questionId: string, data: ChoiceUpsert): Promise<Choice> {
-  const id = data.choiceId ?? newId()
+  const id = data.choiceId ?? generateShortId()
 
   await db.transaction().execute(async (trx) => {
     // If marking this choice as correct, clear any existing correct choice for the question
@@ -921,7 +917,7 @@ export async function createAttempt(
   memberId: string,
   language: string,
 ): Promise<Attempt> {
-  const id = newId()
+  const id = generateShortId()
   const now = new Date()
 
   const version = await getVersionById(versionId)
