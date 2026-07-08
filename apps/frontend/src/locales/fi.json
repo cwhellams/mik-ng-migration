@@ -1895,6 +1895,15 @@
     "totalLandingsByYear": "Laskeutumiset koneittain (vuosittain)",
     "yearAxis": "Vuosi",
     "landingsAxis": "Laskeutumiset",
+    "yearOnYear": {
+      "title": "Vuosi vuodelta lentoajat",
+      "viewMode": "Vuosi vuodelta",
+      "aircraft": "Kone",
+      "allAircraft": "Kaikki koneet",
+      "flightType": "Lentolaji",
+      "monthAxis": "Kuukausi",
+      "hoursAxis": "Tunnit"
+    },
     "pilots": {
       "dateRange": "Aikajakso",
       "from": "Alkaen",

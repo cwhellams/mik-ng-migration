@@ -60,8 +60,8 @@ describe('Db Get FlightLog tests', () => {
 describe('Db query FlightLog tests', () => {
   it('getFlightLogs with no params should return all logs', async () => {
     const result = await getFlightLogs({})
-    expect(result.rows).toEqual(233)
-    expect(result.logs.length).toEqual(33)
+    expect(result.rows).toEqual(243)
+    expect(result.logs.length).toEqual(43)
   })
 
   it('getFlightLogs with Captain and copilot should return filtered logs', async () => {
@@ -117,7 +117,7 @@ describe('Db query FlightLog tests', () => {
     const result = await getFlightLogs({
       endDate: '2025-03-06',
     })
-    expect(result.rows).toEqual(205)
+    expect(result.rows).toEqual(215)
     expect(result.pages).toEqual(5)
     expect(result.page).toEqual(5)
     expect(normalizeLandingTotals(result.logs[0])).toMatchSnapshot()
@@ -710,9 +710,12 @@ describe('Db Flight statistics', () => {
         time1month: expect.any(Number),
         time3month: expect.any(Number),
         time6month: expect.any(Number),
-        totalFlightMins: 180,
-        totalFlights: 3,
-        totalLandings: 3,
+        // V220 added 10 VALIDATED OH-IHQ flights for Matti1 (yoy_001..yoy_010,
+        // 855 min total) on top of the original ihq3fn1/fn2/fn3 (180 min).
+        // All V220 flights predate 2025-05-03, so lastFlightId stays ihq3fn3.
+        totalFlightMins: 1035,
+        totalFlights: 13,
+        totalLandings: 13,
       },
     ])
   })

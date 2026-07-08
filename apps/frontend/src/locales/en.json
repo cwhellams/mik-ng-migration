@@ -1889,6 +1889,15 @@
     "totalLandingsByYear": "Landings by Aircraft (Yearly)",
     "yearAxis": "Year",
     "landingsAxis": "Landings",
+    "yearOnYear": {
+      "title": "Year on Year Flight Time",
+      "viewMode": "Year on Year",
+      "aircraft": "Aircraft",
+      "allAircraft": "All Aircraft",
+      "flightType": "Flight Type",
+      "monthAxis": "Month",
+      "hoursAxis": "Hours"
+    },
     "pilots": {
       "dateRange": "Time Period",
       "from": "From",

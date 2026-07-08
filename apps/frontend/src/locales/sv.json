@@ -1862,6 +1862,15 @@
     "totalLandingsByYear": "Landningar per flygplan (årsvis)",
     "yearAxis": "År",
     "landingsAxis": "Landningar",
+    "yearOnYear": {
+      "title": "År för år flygtid",
+      "viewMode": "År för år",
+      "aircraft": "Flygplan",
+      "allAircraft": "Alla flygplan",
+      "flightType": "Flygtyp",
+      "monthAxis": "Månad",
+      "hoursAxis": "Timmar"
+    },
     "pilots": {
       "dateRange": "Tidsperiod",
       "from": "Från",
