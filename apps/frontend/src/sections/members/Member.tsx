@@ -388,6 +388,12 @@ const MemberProfile = () => {
                   <FormField label={t('member.email')} width={100}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {email}
+                      {isAdmin && (
+                        <EditButton
+                          title={t('member.edit.email')}
+                          onClick={() => handleOpenEditModal('email')}
+                        />
+                      )}
                       {memberId === 'me' && (
                         <Button
                           size='small'

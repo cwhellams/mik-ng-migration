@@ -195,6 +195,7 @@
     "edit": {
       "register": "Add new user",
       "personalInfo": "Edit your information",
+      "email": "Edit Email",
       "emergencyContact": "Edit Emergency Contact",
       "instantMessaging": "Edit Instant Messaging Contacts",
       "training": "Edit Training Programs",

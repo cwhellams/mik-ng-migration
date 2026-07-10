@@ -37,6 +37,7 @@ import { useNavigate } from 'react-router-dom'
 export type MemberEditMode =
   | 'register'
   | 'personalInfo'
+  | 'email'
   | 'emergencyContact'
   | 'instantMessaging'
   | 'training'
@@ -96,6 +97,10 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           lang: memberData.lang,
           iban: memberData.iban ?? undefined,
           ibanAccountName: memberData.ibanAccountName ?? undefined,
+        })
+      } else if (mode === 'email') {
+        setFormData({
+          email: memberData.email || '',
         })
       } else if (mode === 'emergencyContact') {
         setFormData({
@@ -347,6 +352,21 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
             ))}
           </RadioGroup>
         </FormControl>
+      </Grid>
+    </Grid>
+  )
+
+  const renderEmailForm = () => (
+    <Grid container spacing={2}>
+      <Grid size={12}>
+        <TextField
+          fullWidth
+          required
+          type='email'
+          label={t('member.email')}
+          value={formData.email || ''}
+          onChange={handleChange('email')}
+        />
       </Grid>
     </Grid>
   )
@@ -699,6 +719,8 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
         return renderRegisterForm()
       case 'personalInfo':
         return renderPersonalInfoForm()
+      case 'email':
+        return renderEmailForm()
       case 'emergencyContact':
         return renderEmergencyContactForm()
       case 'instantMessaging':

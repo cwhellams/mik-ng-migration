@@ -194,6 +194,7 @@
     "edit": {
       "register": "Lisää uusi käyttäjä",
       "personalInfo": "Muokkaa omia tietojasi",
+      "email": "Muokkaa sähköpostia",
       "emergencyContact": "Muokkaa hätäyhteyshenkilön tietoja",
       "instantMessaging": "Muokkaa pikaviestintäyhteystietoja",
       "training": "Muokkaa koulutusohjelmia",

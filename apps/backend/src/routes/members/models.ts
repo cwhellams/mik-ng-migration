@@ -407,6 +407,8 @@ export const MemberProfileSchema = MemberSchema.pick({
 
 export const MemberAdminPatchSchema = MemberSchema.omit({
   mustUpdateProfile: true,
+}).extend({
+  email: z.string().email(),
 })
 
 export type MemberProfile = z.infer<typeof MemberProfileSchema>

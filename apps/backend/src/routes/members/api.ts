@@ -671,6 +671,16 @@ router.patch(
       return problem({ status: 404 })
     }
 
+    if (patch.email) {
+      const normalizedEmail = patch.email.toLowerCase()
+      if (normalizedEmail !== existingMember.email) {
+        const existingByEmail = await getMemberByEmail(normalizedEmail)
+        if (existingByEmail && existingByEmail.memberId !== memberId) {
+          return problem({ status: 409, detail: 'Email already in use' })
+        }
+      }
+    }
+
     const mailingListSync = await captureMailingListSyncData(memberId, patch.mailingLists)
 
     const updated = await updateMember(memberId, patch, req.user!)

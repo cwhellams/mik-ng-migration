@@ -195,6 +195,7 @@
     "edit": {
       "register": "Lägg till ny användare",
       "personalInfo": "Redigera din information",
+      "email": "Redigera e-post",
       "emergencyContact": "Redigera nödkontakt",
       "instantMessaging": "Redigera snabbmeddelandekontakter",
       "training": "Redigera utbildningsprogram",
