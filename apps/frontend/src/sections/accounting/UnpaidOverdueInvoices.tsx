@@ -6,6 +6,7 @@ import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
+import { OverdueInvoiceLink } from './components/OverdueInvoiceLink'
 import type { UnpaidOverdueInvoiceListResponse } from '@backend/routes/invoicing/models'
 
 export const UnpaidOverdueInvoices = () => {
@@ -38,12 +39,15 @@ export const UnpaidOverdueInvoices = () => {
               <Grid size={3}>{t('unpaidOverdueInvoices.columns.member')}</Grid>
               <Grid size={2}>{t('unpaidOverdueInvoices.columns.dueDate')}</Grid>
               <Grid size={2}>{t('unpaidOverdueInvoices.columns.type')}</Grid>
-              <Grid size={3}>{t('unpaidOverdueInvoices.columns.description')}</Grid>
+              <Grid size={2}>{t('unpaidOverdueInvoices.columns.description')}</Grid>
               <Grid size={1} textAlign='right'>
                 {t('unpaidOverdueInvoices.columns.sum')}
               </Grid>
               <Grid size={1} textAlign='right'>
                 {t('unpaidOverdueInvoices.columns.daysOverdue')}
+              </Grid>
+              <Grid size={1} textAlign='center'>
+                {t('unpaidOverdueInvoices.columns.invoice')}
               </Grid>
             </>
           }
@@ -64,7 +68,7 @@ export const UnpaidOverdueInvoices = () => {
               <Grid size={{ xs: 6, md: 2 }}>
                 <Typography variant='body2'>{invoice.invoice_type}</Typography>
               </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
+              <Grid size={{ xs: 12, md: 2 }}>
                 <Typography variant='body2'>{invoice.description || '—'}</Typography>
               </Grid>
               <Grid size={{ xs: 6, md: 1 }} textAlign={{ xs: 'left', md: 'right' }}>
@@ -80,6 +84,9 @@ export const UnpaidOverdueInvoices = () => {
                     count: invoice.days_overdue,
                   })}
                 </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, md: 1 }} textAlign='center'>
+                <OverdueInvoiceLink invoiceId={invoice.id} billableMemberId={invoice.member_id} />
               </Grid>
             </>
           )}

@@ -2088,12 +2088,14 @@
       "type": "Tyyppi",
       "description": "Kuvaus",
       "sum": "Summa",
-      "daysOverdue": "Myöhässä"
+      "daysOverdue": "Myöhässä",
+      "invoice": "Lasku"
     },
     "daysLate_one": "{{count}} pv",
     "daysLate_other": "{{count}} pv",
     "totalSum": "Yhteensä",
-    "noInvoicesFound": "Maksamattomia erääntyniä laskuja ei löytynyt"
+    "noInvoicesFound": "Maksamattomia erääntyniä laskuja ei löytynyt",
+    "viewInvoice": "Näytä lasku"
   },
   "dto": {
     "myTraining": {

@@ -2082,12 +2082,14 @@
       "type": "Type",
       "description": "Description",
       "sum": "Sum",
-      "daysOverdue": "Days Overdue"
+      "daysOverdue": "Days Overdue",
+      "invoice": "Invoice"
     },
     "daysLate_one": "{{count}} day",
     "daysLate_other": "{{count}} days",
     "totalSum": "Total",
-    "noInvoicesFound": "No unpaid overdue invoices found"
+    "noInvoicesFound": "No unpaid overdue invoices found",
+    "viewInvoice": "View invoice"
   },
   "dto": {
     "myTraining": {
