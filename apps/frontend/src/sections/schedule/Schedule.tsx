@@ -15,7 +15,7 @@ import { dayjsLocalizerTz } from './dayjsLocalizerTz'
 
 import withDragAndDropImport from 'react-big-calendar/lib/addons/dragAndDrop'
 import type { withDragAndDropProps } from 'react-big-calendar/lib/addons/dragAndDrop'
-import noOverlap from 'react-big-calendar/lib/utils/layout-algorithms/no-overlap'
+import noOverlapImport from 'react-big-calendar/lib/utils/layout-algorithms/no-overlap'
 
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
@@ -61,6 +61,9 @@ dayjs.locale('fi')
 const withDragAndDrop = ((
   withDragAndDropImport as unknown as { default?: typeof withDragAndDropImport }
 ).default ?? withDragAndDropImport) as typeof withDragAndDropImport
+
+const noOverlap = ((noOverlapImport as unknown as { default?: typeof noOverlapImport }).default ??
+  noOverlapImport) as typeof noOverlapImport
 
 interface BookingEvent extends Event {
   id: string

@@ -883,7 +883,7 @@ const FlightLogEntry = () => {
               />
             </Grid>
 
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={12}>
               <TxtField
                 name='fuelUpliftLitres'
                 control={control}
@@ -937,7 +937,7 @@ const FlightLogEntry = () => {
               </Grid>
             )}
 
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={12}>
               <OilUplift control={control} disabled={!isEditable} />
             </Grid>
 

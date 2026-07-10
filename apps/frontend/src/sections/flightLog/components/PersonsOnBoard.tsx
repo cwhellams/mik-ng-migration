@@ -16,48 +16,70 @@ export const PersonsOnBoard = ({ control, seats, crew, disabled }: Props) => {
   // number of crew members (pic not included)
   const crewCount = crew.filter(Boolean).length
 
+  // seats is 0 until an aircraft is selected (or aircraft data is still loading) —
+  // no real aircraft has 0 seats, so this reliably signals "no aircraft yet"
+  const noAircraftSelected = seats === 0
+
   return (
     <Controller
       name='personsOnBoard'
       control={control}
-      render={({ field, fieldState: { error } }) => (
-        <Box m=''>
-          <Typography variant='body2' gutterBottom>
-            {t('flightLog.personsOnBoard')}
-          </Typography>
-          <ToggleButtonGroup
-            {...field}
-            disabled={disabled}
-            value={field.value?.toString() ?? ''}
-            exclusive
-            onChange={(_, value) => field.onChange(Number(value))}
-            aria-label='time format'
-            size='small'
-            fullWidth
-            sx={{ mb: 1 }}
-          >
-            <ToggleButton value='1' fullWidth disabled={crewCount > 0}>
-              1
-            </ToggleButton>
-            {seats >= 2 && (
-              <ToggleButton value='2' fullWidth disabled={crewCount > 1}>
-                2
-              </ToggleButton>
+      render={({ field, fieldState: { error } }) => {
+        const isUnset = field.value === undefined || field.value === null
+
+        return (
+          <Box m=''>
+            <Typography variant='body2' gutterBottom>
+              {t('flightLog.personsOnBoard')}
+            </Typography>
+            {noAircraftSelected ? (
+              <FormHelperText sx={{ mx: 0, mb: 1 }}>
+                {t('flightLog.selectAircraftFirst')}
+              </FormHelperText>
+            ) : (
+              <ToggleButtonGroup
+                {...field}
+                disabled={disabled}
+                value={field.value?.toString() ?? ''}
+                exclusive
+                onChange={(_, value) => field.onChange(Number(value))}
+                aria-label='time format'
+                size='small'
+                fullWidth
+                sx={{
+                  mb: 1,
+                  ...(isUnset &&
+                    !disabled && {
+                      '& .MuiToggleButton-root': {
+                        borderColor: 'warning.main',
+                      },
+                    }),
+                }}
+              >
+                <ToggleButton value='1' fullWidth disabled={crewCount > 0}>
+                  1
+                </ToggleButton>
+                {seats >= 2 && (
+                  <ToggleButton value='2' fullWidth disabled={crewCount > 1}>
+                    2
+                  </ToggleButton>
+                )}
+                {seats >= 3 && (
+                  <ToggleButton value='3' fullWidth disabled={crewCount > 2}>
+                    3
+                  </ToggleButton>
+                )}
+                {seats >= 4 && (
+                  <ToggleButton value='4' fullWidth>
+                    4
+                  </ToggleButton>
+                )}
+              </ToggleButtonGroup>
             )}
-            {seats >= 3 && (
-              <ToggleButton value='3' fullWidth disabled={crewCount > 2}>
-                3
-              </ToggleButton>
-            )}
-            {seats >= 4 && (
-              <ToggleButton value='4' fullWidth>
-                4
-              </ToggleButton>
-            )}
-          </ToggleButtonGroup>
-          {error && <FormHelperText>{error.message?.toString()}</FormHelperText>}
-        </Box>
-      )}
+            {error && <FormHelperText error>{error.message?.toString()}</FormHelperText>}
+          </Box>
+        )
+      }}
     />
   )
 }

@@ -3,6 +3,7 @@ import {
   Checkbox,
   FormControlLabel,
   FormHelperText,
+  Stack,
   TextField,
   Typography,
 } from '@mui/material'
@@ -26,26 +27,35 @@ export const OilUplift = ({ control, disabled }: Props) => {
 
         return (
           <Box>
-            <Typography
-              variant='body2'
-              color={disabled ? 'text.disabled' : 'text.primary'}
-              gutterBottom
+            <Stack
+              direction='row'
+              alignItems='center'
+              justifyContent='space-between'
+              flexWrap='wrap'
             >
-              {t('flightLog.oilUpliftLitres')}
-            </Typography>
+              <Typography
+                variant='body2'
+                color={disabled ? 'text.disabled' : 'text.primary'}
+                gutterBottom
+              >
+                {t('flightLog.oilUpliftLitres')}
+              </Typography>
 
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={isNoOilAdded}
-                  disabled={disabled}
-                  onChange={(e) => {
-                    field.onChange(e.target.checked ? 0 : null)
-                  }}
-                />
-              }
-              label={t('flightLog.noOilAdded')}
-            />
+              <FormControlLabel
+                sx={{ mr: 0 }}
+                control={
+                  <Checkbox
+                    size='small'
+                    checked={isNoOilAdded}
+                    disabled={disabled}
+                    onChange={(e) => {
+                      field.onChange(e.target.checked ? 0 : null)
+                    }}
+                  />
+                }
+                label={t('flightLog.noOilAdded')}
+              />
+            </Stack>
 
             {!isNoOilAdded && (
               <TextField

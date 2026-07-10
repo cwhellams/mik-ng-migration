@@ -854,6 +854,7 @@
     "departureAirport": "Avgångsflygplats",
     "arrivalAirport": "Ankomstflygplats",
     "personsOnBoard": "Personer ombord",
+    "selectAircraftFirst": "Välj ett flygplan innan du anger antal personer ombord",
     "numberOfLandings": "Antal landningar",
     "nightInstrumentFlying": "Natt- och instrumentflyg",
     "nightFlyingMins": "Natttimmar (TT:MM)",
@@ -2346,7 +2347,9 @@
       "editLocation": "Redigera plats",
       "adjustQuantity": "Justera antal",
       "delta": "Förändring (+ eller -)",
-      "deltaHint": "Positivt för att lägga till, negativt för att ta bort"
+      "deltaHint": "Positivt för att lägga till, negativt för att ta bort",
+      "fieldRequired": "Detta fält är obligatoriskt",
+      "invalidImageUrl": "Ange en giltig http(s)-URL"
     }
   }
 }

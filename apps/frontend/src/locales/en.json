@@ -846,6 +846,7 @@
     "departureAirport": "Departure Airport",
     "arrivalAirport": "Arrival Airport",
     "personsOnBoard": "Persons on Board",
+    "selectAircraftFirst": "Select an aircraft before entering persons on board",
     "numberOfLandings": "Number of Landings",
     "nightInstrumentFlying": "Night and Instrument Flying",
     "nightFlyingMins": "Night Hours (HH:MM)",
@@ -2373,7 +2374,9 @@
       "editLocation": "Edit Location",
       "adjustQuantity": "Adjust Quantity",
       "delta": "Change (+ or -)",
-      "deltaHint": "Positive to add stock, negative to remove"
+      "deltaHint": "Positive to add stock, negative to remove",
+      "fieldRequired": "This field is required",
+      "invalidImageUrl": "Enter a valid http(s) URL"
     }
   }
 }

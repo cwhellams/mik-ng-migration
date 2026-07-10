@@ -853,6 +853,7 @@
     "departureAirport": "Lähtökenttä",
     "arrivalAirport": "Saapumiskenttä",
     "personsOnBoard": "Henkilöitä kyydissä",
+    "selectAircraftFirst": "Valitse ilma-alus ennen henkilöiden määrän syöttämistä",
     "numberOfLandings": "Laskujen määrä",
     "nightInstrumentFlying": "Yö- ja mittarilento",
     "nightFlyingMins": "Yölentotunnit (HH:MM)",
@@ -2379,7 +2380,9 @@
       "editLocation": "Muokkaa sijaintia",
       "adjustQuantity": "Säädä määrää",
       "delta": "Muutos (+ tai -)",
-      "deltaHint": "Positiivinen lisää, negatiivinen vähentää"
+      "deltaHint": "Positiivinen lisää, negatiivinen vähentää",
+      "fieldRequired": "Tämä kenttä on pakollinen",
+      "invalidImageUrl": "Anna kelvollinen http(s)-osoite"
     }
   }
 }

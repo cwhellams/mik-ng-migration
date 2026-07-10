@@ -10,6 +10,7 @@ import {
   DialogTitle,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   IconButton,
   InputLabel,
   MenuItem,
@@ -265,7 +266,7 @@ interface ItemFormState {
   categoryId: string
   locationId: string
   itemType: 'ASSET' | 'CONSUMABLE'
-  quantity: number
+  quantity: string
   lowStockThreshold: string
   condition: string
   serialNumber: string
@@ -285,7 +286,7 @@ const emptyItemForm: ItemFormState = {
   categoryId: '',
   locationId: '',
   itemType: 'CONSUMABLE',
-  quantity: 0,
+  quantity: '0',
   lowStockThreshold: '',
   condition: 'UNKNOWN',
   serialNumber: '',
@@ -308,7 +309,7 @@ function itemToForm(item: InventoryItem): ItemFormState {
     categoryId: item.categoryId,
     locationId: item.locationId ?? '',
     itemType: item.itemType as 'ASSET' | 'CONSUMABLE',
-    quantity: item.quantity,
+    quantity: String(item.quantity),
     lowStockThreshold: item.lowStockThreshold != null ? String(item.lowStockThreshold) : '',
     condition: item.condition,
     serialNumber: item.serialNumber ?? '',
@@ -329,6 +330,18 @@ function parseNonNegativeInt(value: string): number | null {
   return Math.floor(n)
 }
 
+// Empty is allowed (imageUrl is optional); otherwise must be a valid http(s) URL,
+// matching the backend's InventoryItemUpsertSchema validation.
+function isValidImageUrl(value: string): boolean {
+  const trimmed = value.trim()
+  if (trimmed === '') return true
+  try {
+    return /^https?:\/\//i.test(trimmed) && !!new URL(trimmed)
+  } catch {
+    return false
+  }
+}
+
 function formToItemPayload(f: ItemFormState) {
   return {
     name: { en: f.nameEn, fi: f.nameFi, sv: f.nameSv },
@@ -336,7 +349,7 @@ function formToItemPayload(f: ItemFormState) {
     categoryId: f.categoryId,
     locationId: f.locationId || undefined,
     itemType: f.itemType,
-    quantity: f.quantity,
+    quantity: parseNonNegativeInt(f.quantity) ?? 0,
     lowStockThreshold: parseNonNegativeInt(f.lowStockThreshold),
     condition: f.condition,
     serialNumber: f.serialNumber || null,
@@ -380,6 +393,7 @@ function ItemsTab() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<InventoryItem | null>(null)
   const [form, setForm] = useState<ItemFormState>(emptyItemForm)
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false)
   const [snack, setSnack] = useState<{ msg: string; sev: 'success' | 'error' } | null>(null)
 
   // quantity adjustment dialog
@@ -388,25 +402,39 @@ function ItemsTab() {
   const [adjustNotes, setAdjustNotes] = useState('')
   const { mutation: adjustMutation } = useApi<InventoryItem>({ url: '' })
 
+  const nameError = attemptedSubmit && !form.nameEn.trim()
+  const categoryError = attemptedSubmit && !form.categoryId
+  const imageUrlError = !isValidImageUrl(form.imageUrl)
+  const formHasErrors = !form.nameEn.trim() || !form.categoryId || imageUrlError
+
   const openCreate = () => {
     setEditing(null)
     setForm(emptyItemForm)
+    setAttemptedSubmit(false)
     setDialogOpen(true)
   }
   const openEdit = (item: InventoryItem) => {
     setEditing(item)
     setForm(itemToForm(item))
+    setAttemptedSubmit(false)
     setDialogOpen(true)
   }
   const close = () => setDialogOpen(false)
 
   const handleSave = async () => {
+    if (formHasErrors) {
+      setAttemptedSubmit(true)
+      return
+    }
     const payload = formToItemPayload(form)
     const result = editing
       ? await mutation.trigger('PUT', payload, editing.itemId)
       : await mutation.trigger('POST', payload)
     if (result.error) {
-      setSnack({ msg: t('common.error'), sev: 'error' })
+      setSnack({
+        msg: result.error.detail ?? result.error.title ?? t('common.error'),
+        sev: 'error',
+      })
     } else {
       await mutate()
       setSnack({ msg: t('common.saved'), sev: 'success' })
@@ -445,7 +473,12 @@ function ItemsTab() {
     }
   }
 
-  const field = (key: keyof ItemFormState, label: string, type: 'text' | 'number' = 'text') => (
+  const field = (
+    key: keyof ItemFormState,
+    label: string,
+    type: 'text' | 'number' = 'text',
+    opts?: { error?: boolean; helperText?: string },
+  ) => (
     <TextField
       key={key}
       label={label}
@@ -454,12 +487,9 @@ function ItemsTab() {
       type={type}
       slotProps={type === 'number' ? { htmlInput: { min: 0, step: 1 } } : undefined}
       value={form[key]}
-      onChange={(e) =>
-        setForm((f) => ({
-          ...f,
-          [key]: type === 'number' ? Number(e.target.value) : e.target.value,
-        }))
-      }
+      onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+      error={opts?.error}
+      helperText={opts?.error ? opts.helperText : undefined}
       sx={{ mb: 2 }}
     />
   )
@@ -567,14 +597,17 @@ function ItemsTab() {
           {editing ? t('inventory.admin.editItem') : t('inventory.admin.addItem')}
         </DialogTitle>
         <DialogContent sx={{ pt: '8px !important' }}>
-          {field('nameEn', `${t('common.name')} (EN) *`)}
+          {field('nameEn', `${t('common.name')} (EN) *`, 'text', {
+            error: nameError,
+            helperText: t('inventory.admin.fieldRequired'),
+          })}
           {field('nameFi', `${t('common.name')} (FI)`)}
           {field('nameSv', `${t('common.name')} (SV)`)}
           {field('descEn', `${t('common.description')} (EN)`)}
           {field('descFi', `${t('common.description')} (FI)`)}
           {field('descSv', `${t('common.description')} (SV)`)}
 
-          <FormControl size='small' fullWidth sx={{ mb: 2 }}>
+          <FormControl size='small' fullWidth error={categoryError} sx={{ mb: 2 }}>
             <InputLabel>{t('inventory.category')} *</InputLabel>
             <Select
               value={form.categoryId}
@@ -587,6 +620,7 @@ function ItemsTab() {
                 </MenuItem>
               ))}
             </Select>
+            {categoryError && <FormHelperText>{t('inventory.admin.fieldRequired')}</FormHelperText>}
           </FormControl>
 
           <FormControl size='small' fullWidth sx={{ mb: 2 }}>
@@ -648,7 +682,10 @@ function ItemsTab() {
             </>
           )}
 
-          {field('imageUrl', t('inventory.imageUrl'))}
+          {field('imageUrl', t('inventory.imageUrl'), 'text', {
+            error: imageUrlError,
+            helperText: t('inventory.admin.invalidImageUrl'),
+          })}
           {field('notes', t('inventory.notes'))}
           {field('tags', t('inventory.tagsHint'))}
 
@@ -667,7 +704,7 @@ function ItemsTab() {
           <Button
             variant='contained'
             onClick={handleSave}
-            disabled={!form.nameEn.trim() || !form.categoryId || mutation.isMutating}
+            disabled={mutation.isMutating || (attemptedSubmit && formHasErrors)}
           >
             {t('common.save')}
           </Button>

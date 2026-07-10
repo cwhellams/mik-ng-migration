@@ -132,7 +132,8 @@ export const menuItems: MenuItem[] = [
   {
     path: '/inventory',
     label: 'header.inventory',
-    requiredRoles: [MIKPermissions.INVENTORY_USER, MIKPermissions.INVENTORY_ADMIN],
+    requiredRoles: [MIKPermissions.INVENTORY_ADMIN],
+    adminModeOnly: true,
   },
   {
     path: '/accounting',
