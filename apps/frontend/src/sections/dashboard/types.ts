@@ -97,6 +97,12 @@ export const DASHBOARD_COMPONENT_METADATA: DashboardComponentMetadata[] = [
     description: 'DTO flights awaiting instructor verification',
     icon: '🛩️',
   },
+  {
+    id: 'expenseAdmin',
+    label: 'Expense Claims',
+    description: 'Expense claims awaiting treasurer/chairman review',
+    icon: '🧾',
+  },
 ]
 
 /**

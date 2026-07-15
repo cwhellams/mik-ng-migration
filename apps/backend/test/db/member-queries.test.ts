@@ -135,7 +135,7 @@ describe('Db query member tests', () => {
 
   it('getMemberRolesByPermission should return roles with given permission', async () => {
     const result = await getMemberRolesByPermission(MIKPermissions.BOOKING_ADMIN)
-    expect(result.map((r) => r.roleId)).toEqual(['ADMIN', 'PLANE_CAPTAIN'])
+    expect(result.map((r) => r.roleId)).toEqual(['ADMIN', 'CHAIRMAN', 'PLANE_CAPTAIN'])
   })
 
   it('getMemberRolesByMemberId should return roles for given valid member', async () => {

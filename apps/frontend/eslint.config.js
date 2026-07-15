@@ -19,6 +19,14 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // New rules introduced in react-hooks v7 — warn only until codebase is updated
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/static-components': 'warn',
+      'react-hooks/preserve-manual-memoization': 'warn',
+      'react-hooks/immutability': 'warn',
+      // New rules introduced in ESLint 10 / @eslint/js v10 — warn only for now
+      'preserve-caught-error': 'warn',
+      'no-useless-assignment': 'warn',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },

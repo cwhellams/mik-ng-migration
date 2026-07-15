@@ -15,6 +15,7 @@ import {
   getExpenseCategories,
   getExpenseClaimById,
   getExpenseClaimsByMember,
+  getPendingExpenseClaimsCount,
   markExpenseClaimPendingInfo,
   rejectExpenseClaim,
   retractExpenseClaim,
@@ -276,6 +277,14 @@ router.get(
   async (req: Request, res: Response) => {
     const filters = ExpenseClaimFiltersSchema.parse(req.query)
     res.status(HttpStatusCode.Ok).json(await getAllExpenseClaims(filters))
+  },
+)
+
+router.get(
+  '/admin/pending/count',
+  validateUser(MIKPermissions.EXPENSE_ADMIN),
+  async (_req: Request, res: Response) => {
+    res.status(HttpStatusCode.Ok).json({ count: await getPendingExpenseClaimsCount() })
   },
 )
 

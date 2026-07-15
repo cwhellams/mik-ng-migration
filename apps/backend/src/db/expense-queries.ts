@@ -303,6 +303,16 @@ export async function getExpenseClaimsByMember(
   }
 }
 
+export async function getPendingExpenseClaimsCount(): Promise<number> {
+  const row = await db
+    .selectFrom('accts.expense_claim')
+    .select((eb) => eb.fn.countAll<number>().as('count'))
+    .where('status', 'in', [ExpenseClaimStatus.SUBMITTED, ExpenseClaimStatus.PENDING_INFO])
+    .executeTakeFirstOrThrow()
+
+  return Number(row.count)
+}
+
 export async function getAllExpenseClaims(
   filters: ExpenseClaimFilters,
 ): Promise<ExpenseClaimListResponse> {

@@ -172,6 +172,8 @@ If a correction to existing data or logic is needed, create a new, higher-versio
 
 **NEVER insert a migration with a version number that falls between already-deployed versions.** Flyway processes migrations in strict version order. Any new migration must use a version number _higher than the highest already-deployed version_ — it must be appended at the end of the sequence. Inserting an out-of-order version (e.g. V436 when V440 is already deployed) causes an out-of-order error and breaks all deployments.
 
+**New migration version numbers must increment by 10 from the current highest version** (e.g. V2000, V2010, V2020, V2030, V2040 ...). This leaves room to insert files later if needed without renumbering anything already deployed. To pick the next version: find the highest existing version in `sql/schema/migration/V*.sql` and add 10 to it — do not just add 1.
+
 **NEVER use `CREATE SCHEMA` in Flyway migration SQL files.** PostgreSQL schemas (e.g. `dto`, `member`, `flight`) are created automatically by Flyway based on the `flyway.schemas` property in the Flyway configuration files (`sql/migration.conf`, `sql/migration_prod.conf`). To add a new schema:
 
 1. Add the schema name to the `flyway.schemas` list in `sql/migration.conf` (and `sql/migration_prod.conf` if needed).

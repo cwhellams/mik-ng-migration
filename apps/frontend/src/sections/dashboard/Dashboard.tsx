@@ -18,6 +18,7 @@ import { ExpiryWarningBanner } from './components/ExpiryWarningBanner'
 import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { InstructorQualificationsBanner } from './components/InstructorQualificationsBanner'
 import { DtoInstructorWidget } from './components/DtoInstructorWidget'
+import { ExpenseAdminWidget } from './components/ExpenseAdminWidget'
 import { EventsDashboard } from './components/EventsDashboard'
 import useApi from '../../hooks/useApi'
 import type { DashboardSettings, DashboardComponent } from './types'
@@ -51,6 +52,7 @@ const createComponentMap = (
     hasAccess(MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN) ? (
       <DtoInstructorWidget />
     ) : null,
+  expenseAdmin: () => (hasAccess(MIKPermissions.EXPENSE_ADMIN) ? <ExpenseAdminWidget /> : null),
 })
 
 const Dashboard = () => {
