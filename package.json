@@ -1,6 +1,6 @@
 {
   "name": "mik-ng",
-  "version": "1.1.96",
+  "version": "1.1.97",
   "private": true,
   "description": "",
   "main": "index.js",
@@ -22,7 +22,7 @@
   "keywords": [],
   "author": "Malmin Ilmailukerho ry",
   "engines": {
-    "node": "26.4.x"
+    "node": "26.x"
   },
   "packageManager": "pnpm@11.10.0",
   "devDependencies": {
