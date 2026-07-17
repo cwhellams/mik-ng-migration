@@ -139,9 +139,7 @@ async function requireClaimForUser(req: Request, claimId: string) {
 async function validateCategoryRequirements(data: {
   categoryId?: number
   flightLogId?: string | null
-  fuelLitres?: number | null
-  fuelType?: string | null
-  lineItems?: { costCentreCode?: string | null }[]
+  lineItems?: { fuelType?: string | null; costCentreCode?: string | null }[]
 }) {
   const categories = await getExpenseCategories()
   const category = categories.find((item) => item.id === data.categoryId)
@@ -150,10 +148,12 @@ async function validateCategoryRequirements(data: {
   }
 
   if (category.code === 'fuel') {
-    if (!data.fuelLitres || !data.fuelType) {
+    // Fuel quantity and type now live on each line item (not once at claim level), so
+    // they're enforced here instead of the old claim-level fuelLitres/fuelType requirement.
+    if ((data.lineItems ?? []).some((item) => !item.fuelType)) {
       return problem({
         status: HttpStatusCode.BadRequest,
-        detail: 'Fuel claims require both fuel litres and fuel type.',
+        detail: 'Each fuel line item requires a quantity and fuel type.',
       })
     }
 
@@ -170,24 +170,40 @@ async function validateCategoryRequirements(data: {
   return category
 }
 
-// The EFNU cap is denominated in EUR/litre; unitPrice is stored in the claim's own
-// currency, so the cap must be converted before it can be enforced. This mirrors the
+// The EFNU (Nummela) cap is denominated in EUR/litre; unitPrice is stored in the claim's
+// own currency, so the cap must be converted before it can be enforced. This mirrors the
 // frontend clamp in expenseShared.tsx and guards against a modified/replayed request
 // bypassing it.
 function capFuelLineItemPrices(
   lineItems: ExpenseLineItem[],
   currency: string | null | undefined,
   fxRate: number | null | undefined,
-): ExpenseLineItem[] {
+): { lineItems: ExpenseLineItem[]; capped: boolean } {
   const isNonEur = !!currency && currency !== 'EUR'
-  return lineItems.map((item) => {
+  let capped = false
+  const cappedLineItems = lineItems.map((item) => {
     if (!item.fuelType) {
       return item
     }
     const capEur = EFNU_FUEL_PRICE_PER_LITRE[item.fuelType]
     const cap = isNonEur && fxRate ? capEur / fxRate : capEur
-    return item.unitPrice > cap ? { ...item, unitPrice: cap } : item
+    if (item.unitPrice > cap) {
+      capped = true
+      return { ...item, unitPrice: cap }
+    }
+    return item
   })
+  return { lineItems: cappedLineItems, capped }
+}
+
+const FUEL_CAP_NOTE =
+  'Note: the fuel total exceeded the EFNU (Nummela) reference price and was capped; any excess is the member’s own responsibility.'
+
+function withFuelCapNote(description: string | undefined, capped: boolean): string | undefined {
+  if (!capped || description?.includes(FUEL_CAP_NOTE)) {
+    return description
+  }
+  return description?.trim() ? `${description}\n\n${FUEL_CAP_NOTE}` : FUEL_CAP_NOTE
 }
 
 async function syncMemberIbanFromClaim(
@@ -275,18 +291,18 @@ router.post(
     await validateCategoryRequirements({
       categoryId: data.categoryId,
       flightLogId: data.flightLogId ?? null,
-      fuelLitres: data.fuelLitres ?? null,
-      fuelType: data.fuelType ?? null,
       lineItems: data.lineItems,
     })
 
     // Auto-populate IBAN from member profile if not supplied in request
     const claimData = { ...data }
-    claimData.lineItems = capFuelLineItemPrices(
+    const { lineItems: cappedLineItems, capped } = capFuelLineItemPrices(
       claimData.lineItems,
       claimData.currency,
       claimData.fxRate,
     )
+    claimData.lineItems = cappedLineItems
+    claimData.description = withFuelCapNote(claimData.description, capped)
     if (!claimData.iban) {
       const member = await getMemberById(req.user!.memberId)
       if (member?.iban) {
@@ -346,15 +362,18 @@ router.put(
     await validateCategoryRequirements({
       categoryId: patch.categoryId ?? existing.categoryId,
       flightLogId: patch.flightLogId ?? existing.flightLogId ?? undefined,
-      fuelLitres: patch.fuelLitres ?? existing.fuelLitres ?? undefined,
-      fuelType: patch.fuelType ?? existing.fuelType ?? undefined,
       lineItems: patch.lineItems ?? existing.lineItems,
     })
     if (patch.lineItems) {
-      patch.lineItems = capFuelLineItemPrices(
+      const { lineItems: cappedLineItems, capped } = capFuelLineItemPrices(
         patch.lineItems,
         patch.currency ?? existing.currency,
         patch.fxRate ?? existing.fxRate,
+      )
+      patch.lineItems = cappedLineItems
+      patch.description = withFuelCapNote(
+        patch.description ?? existing.description ?? undefined,
+        capped,
       )
     }
 
@@ -400,8 +419,6 @@ router.post(
     await validateCategoryRequirements({
       categoryId: claim.categoryId,
       flightLogId: claim.flightLogId ?? undefined,
-      fuelLitres: claim.fuelLitres ?? undefined,
-      fuelType: claim.fuelType ?? undefined,
       lineItems: claim.lineItems,
     })
 

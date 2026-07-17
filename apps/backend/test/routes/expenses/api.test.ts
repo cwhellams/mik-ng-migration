@@ -306,17 +306,18 @@ describe('POST /expenses (fuel price cap)', () => {
     expect(res.body.lineItems[0].unitPrice).toBeCloseTo(10, 2)
   })
 
-  it('does not clamp line items without a fuelType', async () => {
+  it('adds a note to the description when the fuel total is capped', async () => {
     const res = await postFuelClaim({
       currency: 'EUR',
       lineItems: [
         {
           itemId: null,
-          description: 'Oil top-up',
+          description: '100 l JetA1',
           date: '2026-07-16',
-          quantity: 1,
-          unit: 'pcs',
-          unitPrice: 25,
+          quantity: 100,
+          unit: 'l',
+          unitPrice: 5, // above the cap
+          fuelType: 'JetA1',
           costCentreCode: 'OH-STL',
           sortOrder: 0,
         },
@@ -325,7 +326,30 @@ describe('POST /expenses (fuel price cap)', () => {
 
     expect(res.status).toBe(201)
     insertedClaimIds.push(res.body.id)
-    expect(res.body.lineItems[0].unitPrice).toBeCloseTo(25, 2)
+    expect(res.body.description).toContain('capped')
+  })
+
+  it('does not add a cap note when the fuel total is not capped', async () => {
+    const res = await postFuelClaim({
+      currency: 'EUR',
+      lineItems: [
+        {
+          itemId: null,
+          description: '100 l JetA1',
+          date: '2026-07-16',
+          quantity: 100,
+          unit: 'l',
+          unitPrice: 1.5, // under the cap
+          fuelType: 'JetA1',
+          costCentreCode: 'OH-STL',
+          sortOrder: 0,
+        },
+      ],
+    })
+
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    expect(res.body.description ?? '').not.toContain('capped')
   })
 })
 
@@ -458,5 +482,95 @@ describe('POST /expenses (fuel)', () => {
 
     expect(submit.status).toBe(200)
     expect(submit.body.status).toBe('SUBMITTED')
+  })
+})
+
+// ── Tests: POST /expenses (fuel claims) — per-line-item quantity/type requirement ─
+// Fuel quantity and type now live on each line item (not once at claim level via the
+// legacy fuelLitres/fuelType fields), so the API must no longer require those
+// claim-level fields, but must still require a fuel type on every fuel line item.
+
+describe('POST /expenses (fuel litres/type)', () => {
+  const insertedClaimIds: string[] = []
+
+  afterEach(async () => {
+    if (insertedClaimIds.length > 0) {
+      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      insertedClaimIds.length = 0
+    }
+  })
+
+  async function fuelCategoryId(): Promise<number> {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', 'fuel')
+      .executeTakeFirstOrThrow()
+    return category.id
+  }
+
+  it('creates a fuel claim with no claim-level fuelLitres/fuelType, as long as line items have them', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Fuel test',
+        currency: 'EUR',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: '100 l JetA1',
+            date: '2026-07-16',
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
+            fuelType: 'JetA1',
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    expect(res.body.fuelLitres).toBeFalsy()
+    expect(res.body.fuelType).toBeFalsy()
+    expect(res.body.lineItems[0].quantity).toBe(100)
+    expect(res.body.lineItems[0].fuelType).toBe('JetA1')
+  })
+
+  it('rejects a fuel claim when a line item has no fuel type', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Fuel test',
+        currency: 'EUR',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: 'Oil top-up',
+            date: '2026-07-16',
+            quantity: 1,
+            unit: 'pcs',
+            unitPrice: 25,
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(400)
+    if (res.status === 201) {
+      insertedClaimIds.push(res.body.id)
+    }
   })
 })
