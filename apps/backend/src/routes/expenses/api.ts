@@ -33,9 +33,11 @@ import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
 import {
   CreateExpenseClaimSchema,
+  EFNU_FUEL_PRICE_PER_LITRE,
   ExpenseClaimFiltersSchema,
   ExpenseClaimStatus,
   ExpenseMessageType,
+  type ExpenseLineItem,
   RejectExpenseClaimSchema,
   RequestInfoSchema,
   UpdateExpenseClaimSchema,
@@ -164,6 +166,26 @@ async function validateCategoryRequirements(data: {
   return category
 }
 
+// The EFNU cap is denominated in EUR/litre; unitPrice is stored in the claim's own
+// currency, so the cap must be converted before it can be enforced. This mirrors the
+// frontend clamp in expenseShared.tsx and guards against a modified/replayed request
+// bypassing it.
+function capFuelLineItemPrices(
+  lineItems: ExpenseLineItem[],
+  currency: string | null | undefined,
+  fxRate: number | null | undefined,
+): ExpenseLineItem[] {
+  const isNonEur = !!currency && currency !== 'EUR'
+  return lineItems.map((item) => {
+    if (!item.fuelType) {
+      return item
+    }
+    const capEur = EFNU_FUEL_PRICE_PER_LITRE[item.fuelType]
+    const cap = isNonEur && fxRate ? capEur / fxRate : capEur
+    return item.unitPrice > cap ? { ...item, unitPrice: cap } : item
+  })
+}
+
 async function syncMemberIbanFromClaim(
   user: JWTUser,
   iban?: string | null,
@@ -256,6 +278,11 @@ router.post(
 
     // Auto-populate IBAN from member profile if not supplied in request
     const claimData = { ...data }
+    claimData.lineItems = capFuelLineItemPrices(
+      claimData.lineItems,
+      claimData.currency,
+      claimData.fxRate,
+    )
     if (!claimData.iban) {
       const member = await getMemberById(req.user!.memberId)
       if (member?.iban) {
@@ -319,6 +346,13 @@ router.put(
       fuelLitres: patch.fuelLitres ?? existing.fuelLitres ?? undefined,
       fuelType: patch.fuelType ?? existing.fuelType ?? undefined,
     })
+    if (patch.lineItems) {
+      patch.lineItems = capFuelLineItemPrices(
+        patch.lineItems,
+        patch.currency ?? existing.currency,
+        patch.fxRate ?? existing.fxRate,
+      )
+    }
 
     const claim = await updateExpenseClaim(req.params.id, patch, req.user!)
     await syncMemberIbanFromClaim(req.user!, claim?.iban, claim?.ibanAccountName)

@@ -207,11 +207,16 @@ export function LineItemsTable({
   const efnuCapFor = (item: EditableLineItem): number | null =>
     item.fuelType ? EFNU_FUEL_PRICE_PER_LITRE[item.fuelType] : null
 
+  // The EFNU cap is denominated in EUR/litre; unitPrice is kept in the claim's own
+  // currency, so the cap must be converted before it can be compared/clamped against it.
+  const capInClaimCurrency = (cap: number): number =>
+    isNonEur && claimFxRate ? cap / claimFxRate : cap
+
   const applyTotalCost = (idx: number, item: EditableLineItem, totalCost: number) => {
     setRawTotals((prev) => ({ ...prev, [idx]: totalCost }))
     const cap = efnuCapFor(item)
     const rawUnitPrice = item.quantity > 0 ? totalCost / item.quantity : 0
-    const unitPrice = cap != null ? Math.min(rawUnitPrice, cap) : rawUnitPrice
+    const unitPrice = cap != null ? Math.min(rawUnitPrice, capInClaimCurrency(cap)) : rawUnitPrice
     update(idx, { unitPrice })
   }
 
@@ -294,7 +299,10 @@ export function LineItemsTable({
                       if (isFuel) {
                         const cap2 = efnuCapFor(item)
                         const rawUnitPrice = quantity > 0 ? displayedTotalCost / quantity : 0
-                        const unitPrice = cap2 != null ? Math.min(rawUnitPrice, cap2) : rawUnitPrice
+                        const unitPrice =
+                          cap2 != null
+                            ? Math.min(rawUnitPrice, capInClaimCurrency(cap2))
+                            : rawUnitPrice
                         update(idx, { quantity, unitPrice })
                       } else {
                         update(idx, { quantity })
@@ -324,7 +332,9 @@ export function LineItemsTable({
                         const rawUnitPrice =
                           item.quantity > 0 ? displayedTotalCost / item.quantity : 0
                         const unitPrice =
-                          newCap != null ? Math.min(rawUnitPrice, newCap) : rawUnitPrice
+                          newCap != null
+                            ? Math.min(rawUnitPrice, capInClaimCurrency(newCap))
+                            : rawUnitPrice
                         update(idx, { fuelType, unitPrice })
                       }}
                       sx={{ width: 110 }}
