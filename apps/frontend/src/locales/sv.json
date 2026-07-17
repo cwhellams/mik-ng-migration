@@ -2155,9 +2155,6 @@
       "routeHint": "t.ex. Helsingfors – Tammerfors – Helsingfors",
       "journeyDate": "Resedatum",
       "distanceKm": "Avstånd (km)",
-      "passengers": "Passagerare",
-      "passengerName": "Passagerarens namn",
-      "addPassenger": "Lägg till",
       "estimatedAmount": "Beräknad ersättning",
       "lineItemDescription": "Kilometetersättning",
       "hetu": "Personnummer (HETU)",
@@ -2202,7 +2199,6 @@
       "currency": "Valuta",
       "fxRate": "Valutakurs (till EUR)",
       "fxRatePlaceholder": "t.ex. 0.0930",
-      "fxRateHelper": "Admin kan fylla i detta",
       "fxRateLookingUp": "Söker ECB-kurs…",
       "expenseDate": "Utgiftsdatum",
       "flightLogIdNA": "Ej tillämpligt för denna kategori"
@@ -2241,9 +2237,9 @@
         "review": "Granska & Skicka"
       },
       "receiptPolicyTitle": "Viktigt: endast ett kvittodokument tillåtet per anspråk",
-      "receiptPolicyBody": "Vårt redovisningssystem stöder bara en bilaga per utgiftsanspråk. Du kan ladda upp en bild eller ett PDF-dokument som kvitto.\n\nAlla anspråk måste vara i samma valuta — blanda INTE valutor (t.ex. EUR och SEK) i ett och samma anspråk.\n\nVäxelkurser baseras på kurser från ett tredjeparts-API (frankfurter.app), med användning av det utgiftsdatum du anger.\n\nKilometerersättning använder 50 % av Skatteförvaltningens (Vero) officiella sats.",
+      "receiptPolicyBody": "Vårt redovisningssystem stöder bara en bilaga per utgiftsanspråk. Du kan ladda upp en bild eller ett PDF-dokument som kvitto.\n\nAlla anspråk måste vara i samma valuta — blanda INTE valutor (t.ex. EUR och SEK) i ett och samma anspråk.\n\nVäxelkurser baseras på kurser från ett tredjeparts-API (frankfurter.app), med användning av det utgiftsdatum du anger.\n\nKilometerersättning använder 50 % av Skatteförvaltningens (Vero) officiella sats.\n\nBränsleersättningen är begränsad till EFNU-priset — ange totalt antal tankade liter och det totala beloppet du betalat (inklusive eventuella hanteringsavgifter). Om beloppet överstiger EFNU-priset ansvarar du själv för mellanskillnaden.",
       "fuelFlightQuestion": "Köptes detta bränsle för en specifik flygning?",
-      "aircraftSelectorTooltip": "Välj ett flygplan om alla utgifter gäller ett och samma specifika flygplan.",
+      "aircraftSelectorTooltip": "Välj det flygplan denna rad gäller, om tillämpligt.",
       "recentFlights": "Välj från senaste flygningar",
       "enterFlightId": "Ange flyglogg-ID manuellt",
       "selectFlight": "Välj flygning",
@@ -2266,12 +2262,16 @@
         "itemId": "Post-ID",
         "date": "Datum",
         "qty": "Antal",
+        "litres": "Liter",
+        "fuelType": "Bränsletyp",
         "unit": "Enhet",
         "currency": "Valuta",
-        "costCentre": "Kostnadsställe",
+        "costCentre": "Flygplan",
         "unitPrice": "Á-pris",
+        "totalCost": "Totalkostnad",
         "fxRate": "Valutakurs"
       },
+      "fuelCapWarning": "Begränsat till EFNU-priset ({{cap}}) — du ansvarar själv för eventuell överskjutande kostnad.",
       "review": {
         "claim": "Anspråksinformation"
       }
@@ -2295,7 +2295,8 @@
     "validation": {
       "descriptionRequired": "Beskrivning krävs",
       "quantityMin": "Antal måste vara minst 1",
-      "unitPriceRequired": "Enhetspriset måste vara större än noll"
+      "unitPriceRequired": "Enhetspriset måste vara större än noll",
+      "aircraftRequired": "Flygplan krävs för bränsleanspråk"
     }
   },
   "inventory": {

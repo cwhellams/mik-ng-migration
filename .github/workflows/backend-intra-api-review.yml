@@ -130,6 +130,7 @@ jobs:
           SIMPLBOOKS_API_KEY: ${{ secrets.SIMPLBOOKS_API_KEY }}
           SIMPLBOOKS_BASE_URI: ${{ vars.SIMPLBOOKS_BASE_URI }}
           SIMPLBOOKS_COMPANY_ID: ${{ vars.SIMPLBOOKS_COMPANY_ID }}
+          FIELD_ENCRYPTION_KEY: ${{ secrets.FIELD_ENCRYPTION_KEY }}
           DATABASE_URL: postgres://mik_app_test:test_pwd@localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
           BREVO_API_URL: https://api.brevo.com/v3
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}

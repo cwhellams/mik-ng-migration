@@ -19,7 +19,6 @@ import {
 import { Icon } from '@iconify/react'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs, { type Dayjs } from 'dayjs'
-import type { AircraftListResponse } from '@backend/routes/aircrafts/models'
 import type { ItemListResponse } from '@backend/routes/invoicing/models'
 import {
   MIK_SUPPORTED_CURRENCIES,
@@ -93,10 +92,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
   const [fxRateLoading, setFxRateLoading] = useState(false)
 
   const categoryApi = useApi<ExpenseCategory[]>({ url: 'v1/expenses/categories' })
-  const aircraftApi = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
-    params: { activeOnly: true },
-  })
   const { data: mileageAllowance } = useApi<{ effectiveRatePerKm: number }>({
     url: 'v1/mileage-allowances/current',
   })
@@ -122,8 +117,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
       title: claimApi.data.title,
       description: claimApi.data.description ?? undefined,
       expenseDate: (claimApi.data.expenseDate as string | null | undefined) ?? undefined,
-      fuelLitres: claimApi.data.fuelLitres ?? undefined,
-      fuelType: (claimApi.data.fuelType as CreateExpenseClaim['fuelType']) ?? undefined,
       currency: (claimApi.data.currency ?? 'EUR') as CreateExpenseClaim['currency'],
       fxRate: claimApi.data.fxRate ?? null,
       iban: claimApi.data.iban ?? '',
@@ -138,6 +131,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
         unitPrice: item.unitPrice,
         sortOrder: item.sortOrder,
         costCentreCode: item.costCentreCode ?? null,
+        fuelType: item.fuelType,
       })) ?? [makeDefaultLineItem()],
     })
     setClaimCurrency(claimApi.data.currency ?? 'EUR')
@@ -149,7 +143,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
         route: md.route ?? '',
         journeyDate: md.journeyDate ?? new Date().toISOString().substring(0, 10),
         distanceKm: String(md.distanceKm),
-        passengers: md.passengers ?? [],
         hetu: '', // never pre-fill HETU from API (returned masked)
         boardApproved: md.boardApproved ?? false,
       })
@@ -162,6 +155,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     [categories, form.categoryId],
   )
   const isMileage = selectedCategory?.code === 'mileage'
+  const isFuel = selectedCategory?.code === 'fuel'
   const expenseClaimItems = useMemo(
     () =>
       (invoiceItemsData?.items ?? [])
@@ -177,6 +171,15 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     (sum, item) => sum + item.quantity * item.unitPrice * (isClaimNonEur ? (claimFxRate ?? 1) : 1),
     0,
   )
+
+  // Mileage claims are always EUR — no currency selector needed
+  useEffect(() => {
+    if (isMileage && claimCurrency !== 'EUR') {
+      setClaimCurrency('EUR')
+      setClaimFxRate(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMileage])
 
   // Auto-compute the mileage line item whenever distance or effective rate changes
   useEffect(() => {
@@ -234,6 +237,9 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     } = {}
     const lineTotal = form.lineItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
     if (lineTotal <= 0) errors.lineItems = t('expenses.messages.zeroTotal')
+    if (isFuel && form.lineItems.some((item) => !item.costCentreCode)) {
+      errors.lineItems = t('expenses.validation.aircraftRequired')
+    }
     if (!form.iban.trim()) errors.iban = t('expenses.messages.ibanRequired')
     if (!form.ibanAccountName.trim())
       errors.ibanAccountName = t('expenses.messages.ibanAccountNameRequired')
@@ -250,8 +256,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
       description: form.description || undefined,
       aircraftId: form.aircraftId || undefined,
       flightLogId: form.flightLogId || undefined,
-      fuelLitres: form.fuelLitres || undefined,
-      fuelType: form.fuelType || undefined,
       iban: form.iban || undefined,
       ibanAccountName: form.ibanAccountName || undefined,
       currency: claimCurrency as CreateExpenseClaim['currency'],
@@ -362,8 +366,8 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     <Box>
       <Title label={claimId ? form.title || t('expenses.title') : t('expenses.new')} />
       <RemoteContent
-        isLoading={categoryApi.isLoading || aircraftApi.isLoading || claimApi.isLoading}
-        error={categoryApi.error ?? aircraftApi.error ?? claimApi.error}
+        isLoading={categoryApi.isLoading || claimApi.isLoading}
+        error={categoryApi.error ?? claimApi.error}
       >
         {!editable && (
           <Alert severity='info' sx={{ mb: 2 }}>
@@ -419,26 +423,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
               </TextField>
 
               <TextField
-                select
-                label={t('expenses.fields.aircraft')}
-                value={form.aircraftId ?? ''}
-                disabled={!editable}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    aircraftId: event.target.value || undefined,
-                  }))
-                }
-              >
-                {!selectedCategory?.requiresAircraft && <MenuItem value=''>N/A</MenuItem>}
-                {aircraftApi.data?.aircrafts.map((aircraft) => (
-                  <MenuItem key={aircraft.registration} value={aircraft.registration}>
-                    {aircraft.registration} – {aircraft.displayName}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <TextField
                 label={t('expenses.fields.title')}
                 value={form.title}
                 disabled={!editable}
@@ -482,50 +466,52 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                 }}
               />
 
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems='flex-start'>
-                <TextField
-                  select
-                  label={t('expenses.fields.currency')}
-                  value={claimCurrency}
-                  disabled={!editable}
-                  onChange={(event) => {
-                    const newCur = event.target.value
-                    setClaimCurrency(newCur)
-                    setClaimFxRate(null)
-                    if (newCur !== 'EUR' && form.expenseDate) {
-                      void fetchAndApplyEcbRate(newCur, form.expenseDate)
-                    }
-                  }}
-                  sx={{ minWidth: 120 }}
-                >
-                  {MIK_SUPPORTED_CURRENCIES.map((cur) => (
-                    <MenuItem key={cur} value={cur}>
-                      {cur}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                {claimCurrency !== 'EUR' && (
+              {!isMileage && (
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems='flex-start'>
                   <TextField
-                    type='number'
-                    label={t('expenses.fields.fxRate')}
-                    placeholder={t('expenses.fields.fxRatePlaceholder')}
-                    value={claimFxRate ?? ''}
+                    select
+                    label={t('expenses.fields.currency')}
+                    value={claimCurrency}
                     disabled={!editable}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(event) =>
-                      setClaimFxRate(event.target.value ? Number(event.target.value) : null)
-                    }
-                    helperText={
-                      fxRateLoading
-                        ? t('expenses.fields.fxRateLookingUp')
-                        : claimFxRate
-                          ? `1 ${claimCurrency} = ${claimFxRate} EUR`
-                          : t('expenses.fields.fxRateHelper')
-                    }
-                    sx={{ minWidth: 200 }}
-                  />
-                )}
-              </Stack>
+                    onChange={(event) => {
+                      const newCur = event.target.value
+                      setClaimCurrency(newCur)
+                      setClaimFxRate(null)
+                      if (newCur !== 'EUR' && form.expenseDate) {
+                        void fetchAndApplyEcbRate(newCur, form.expenseDate)
+                      }
+                    }}
+                    sx={{ minWidth: 120 }}
+                  >
+                    {MIK_SUPPORTED_CURRENCIES.map((cur) => (
+                      <MenuItem key={cur} value={cur}>
+                        {cur}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  {claimCurrency !== 'EUR' && (
+                    <TextField
+                      type='number'
+                      label={t('expenses.fields.fxRate')}
+                      placeholder={t('expenses.fields.fxRatePlaceholder')}
+                      value={claimFxRate ?? ''}
+                      disabled={!editable}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(event) =>
+                        setClaimFxRate(event.target.value ? Number(event.target.value) : null)
+                      }
+                      helperText={
+                        fxRateLoading
+                          ? t('expenses.fields.fxRateLookingUp')
+                          : claimFxRate
+                            ? `1 ${claimCurrency} = ${claimFxRate} EUR`
+                            : undefined
+                      }
+                      sx={{ minWidth: 200 }}
+                    />
+                  )}
+                </Stack>
+              )}
 
               <TextField
                 label={t('expenses.wizard.flightLogId')}
@@ -538,42 +524,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                   }))
                 }
               />
-
-              {selectedCategory?.code === 'fuel' && (
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                  <TextField
-                    label={t('expenses.fields.fuelLitres')}
-                    type='number'
-                    value={form.fuelLitres ?? ''}
-                    disabled={!editable}
-                    onChange={(e) =>
-                      setForm((c) => ({
-                        ...c,
-                        fuelLitres: e.target.value ? Number(e.target.value) : undefined,
-                      }))
-                    }
-                  />
-                  <TextField
-                    select
-                    label={t('expenses.fields.fuelType')}
-                    value={form.fuelType ?? ''}
-                    disabled={!editable}
-                    sx={{ minWidth: 140 }}
-                    onChange={(e) =>
-                      setForm((c) => ({
-                        ...c,
-                        fuelType: (e.target.value as CreateExpenseClaim['fuelType']) || undefined,
-                      }))
-                    }
-                  >
-                    {['98', '100LL', 'JetA1'].map((type) => (
-                      <MenuItem key={type} value={type}>
-                        {type}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Stack>
-              )}
             </Stack>
           </Paper>
 
@@ -643,6 +593,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                 showErrors={Object.keys(fieldErrors).length > 0}
                 expenseClaimItems={expenseClaimItems}
                 costCentres={costCentres ?? []}
+                isFuel={isFuel}
                 onChange={(lineItems) => {
                   setForm((c) => ({ ...c, lineItems }))
                   const total = lineItems.reduce((s, li) => s + li.quantity * li.unitPrice, 0)

@@ -189,6 +189,7 @@ export interface AcctsExpenseClaimLineItem {
   claim_id: string
   cost_centre_code: string | null
   description: string
+  fuel_type: string | null
   id: Generated<number>
   item_id: number | null
   quantity: Generated<Numeric>
@@ -223,10 +224,6 @@ export interface AcctsExpenseMileageDetail {
    * Date of the journey
    */
   journey_date: string
-  /**
-   * Names of passengers carried during the journey
-   */
-  passengers: Generated<string[]>
   /**
    * Effective rate at time of claim creation (rate_per_km * (1 - discount_pct/100))
    */

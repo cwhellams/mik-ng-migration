@@ -122,7 +122,6 @@ const ExpenseReimbursementPayloadSchema = z.object({
       unitPrice: z.number(),
       articleId: z.number().nullable().optional(),
       code: z.string().optional(),
-      unit: z.string().optional(),
       costCentreCode: z.string().nullable().optional(),
     }),
   ),
@@ -908,7 +907,6 @@ async function createExpenseReimbursement(outboxMsg: AcctsOutboxSimplbooks) {
             sum: eurSum,
             ...(item.articleId != null ? { article_id: item.articleId } : {}),
             //...(item.code ? { code: item.code } : {}),
-            ...(item.unit ? { unit: item.unit } : {}),
           },
           Projects:
             (item.costCentreCode ?? payload.aircraftRegistration)

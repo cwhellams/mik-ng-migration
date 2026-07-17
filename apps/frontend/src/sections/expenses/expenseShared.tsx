@@ -20,10 +20,16 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { type ExpenseLineItem, type ExpenseClaimReceipt } from '@backend/routes/expenses/models'
+import {
+  EFNU_FUEL_PRICE_PER_LITRE,
+  FUEL_TYPES,
+  type ExpenseLineItem,
+  type ExpenseClaimReceipt,
+} from '@backend/routes/expenses/models'
 
 // ─── IBAN validation (MOD-97 algorithm) ──────────────────────────────────────
 
@@ -170,6 +176,8 @@ interface LineItemsTableProps {
   showErrors?: boolean
   /** Available cost centre codes for the dropdown */
   costCentres?: { code: string; description: string }[]
+  /** Fuel claims: ask for litres of uplift + total cost paid (capped at the EFNU price) instead of a per-unit price */
+  isFuel?: boolean
 }
 
 export function LineItemsTable({
@@ -181,16 +189,31 @@ export function LineItemsTable({
   expenseClaimItems,
   showErrors,
   costCentres,
+  isFuel,
 }: LineItemsTableProps) {
   const { t } = useTranslation()
   const isNonEur = (claimCurrency ?? 'EUR') !== 'EUR'
   const [touched, setTouched] = useState<Set<string>>(new Set())
+  // Total cost as typed by the member for fuel lines — kept separate from the (possibly
+  // capped) persisted unitPrice so the cap warning stays visible after entry.
+  const [rawTotals, setRawTotals] = useState<Record<number, number>>({})
 
   const touch = (key: string) => setTouched((prev) => new Set(prev).add(key))
   const shouldShow = (key: string) => showErrors || touched.has(key)
 
   const update = (idx: number, patch: Partial<EditableLineItem>) =>
     onChange(items.map((li, i) => (i === idx ? { ...li, ...patch } : li)))
+
+  const efnuCapFor = (item: EditableLineItem): number | null =>
+    item.fuelType ? EFNU_FUEL_PRICE_PER_LITRE[item.fuelType] : null
+
+  const applyTotalCost = (idx: number, item: EditableLineItem, totalCost: number) => {
+    setRawTotals((prev) => ({ ...prev, [idx]: totalCost }))
+    const cap = efnuCapFor(item)
+    const rawUnitPrice = item.quantity > 0 ? totalCost / item.quantity : 0
+    const unitPrice = cap != null ? Math.min(rawUnitPrice, cap) : rawUnitPrice
+    update(idx, { unitPrice })
+  }
 
   return (
     <Box sx={{ overflowX: 'auto', width: '100%' }}>
@@ -199,14 +222,26 @@ export function LineItemsTable({
           <TableRow>
             <TableCell sx={{ minWidth: 200 }}>{t('expenses.wizard.col.description')}</TableCell>
             <TableCell sx={{ minWidth: 90 }}>
-              {t('expenses.wizard.col.qty')} / {t('expenses.wizard.col.unit')}
+              {isFuel ? t('expenses.wizard.col.litres') : t('expenses.wizard.col.qty')}
             </TableCell>
-            <TableCell sx={{ minWidth: 120 }}>{t('expenses.wizard.col.unitPrice')}</TableCell>
+            {isFuel && (
+              <TableCell sx={{ minWidth: 110 }}>{t('expenses.wizard.col.fuelType')}</TableCell>
+            )}
+            <TableCell sx={{ minWidth: 120 }}>
+              {isFuel ? t('expenses.wizard.col.totalCost') : t('expenses.wizard.col.unitPrice')}
+            </TableCell>
             {expenseClaimItems && (
               <TableCell sx={{ minWidth: 180 }}>{t('expenses.wizard.col.itemId')}</TableCell>
             )}
             {costCentres && (
-              <TableCell sx={{ minWidth: 130 }}>{t('expenses.wizard.col.costCentre')}</TableCell>
+              <TableCell sx={{ minWidth: 130 }}>
+                <Stack direction='row' spacing={0.5} alignItems='center'>
+                  <span>{t('expenses.wizard.col.costCentre')}</span>
+                  <Tooltip title={t('expenses.wizard.aircraftSelectorTooltip')}>
+                    <Icon icon='mdi:help-circle-outline' width={16} />
+                  </Tooltip>
+                </Stack>
+              </TableCell>
             )}
             <TableCell align='right'>
               {isNonEur
@@ -224,6 +259,8 @@ export function LineItemsTable({
                 ? lineTotal * claimFxRate
                 : null
               : lineTotal
+            const cap = efnuCapFor(item)
+            const displayedTotalCost = rawTotals[idx] ?? lineTotal
 
             return (
               <TableRow key={idx}>
@@ -246,58 +283,100 @@ export function LineItemsTable({
                   />
                 </TableCell>
                 <TableCell sx={{ verticalAlign: 'top' }}>
-                  <Stack direction='column' spacing={1}>
-                    <TextField
-                      size='small'
-                      type='number'
-                      value={item.quantity}
-                      disabled={disabled}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) => update(idx, { quantity: Number(e.target.value) || 0 })}
-                      onBlur={() => touch(`${idx}-quantity`)}
-                      error={shouldShow(`${idx}-quantity`) && item.quantity < 1}
-                      helperText={
-                        shouldShow(`${idx}-quantity`) && item.quantity < 1
-                          ? t('expenses.validation.quantityMin')
-                          : undefined
-                      }
-                      sx={{ width: 90 }}
-                    />
-                    <TextField
-                      size='small'
-                      select
-                      value={item.unit}
-                      disabled={disabled}
-                      onChange={(e) =>
-                        update(idx, { unit: e.target.value as EditableLineItem['unit'] })
-                      }
-                      sx={{ width: 90 }}
-                    >
-                      {['pcs', 'km', 'l', 'h'].map((u) => (
-                        <MenuItem key={u} value={u}>
-                          {u}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Stack>
-                </TableCell>
-                <TableCell sx={{ verticalAlign: 'top' }}>
                   <TextField
                     size='small'
                     type='number'
-                    value={item.unitPrice}
+                    value={item.quantity}
                     disabled={disabled}
                     onFocus={(e) => e.target.select()}
-                    onChange={(e) => update(idx, { unitPrice: Number(e.target.value) || 0 })}
-                    onBlur={() => touch(`${idx}-unitPrice`)}
-                    error={shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0}
+                    onChange={(e) => {
+                      const quantity = Number(e.target.value) || 0
+                      if (isFuel) {
+                        const cap2 = efnuCapFor(item)
+                        const rawUnitPrice = quantity > 0 ? displayedTotalCost / quantity : 0
+                        const unitPrice = cap2 != null ? Math.min(rawUnitPrice, cap2) : rawUnitPrice
+                        update(idx, { quantity, unitPrice })
+                      } else {
+                        update(idx, { quantity })
+                      }
+                    }}
+                    onBlur={() => touch(`${idx}-quantity`)}
+                    error={shouldShow(`${idx}-quantity`) && item.quantity < 1}
                     helperText={
-                      shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0
-                        ? t('expenses.validation.unitPriceRequired')
+                      shouldShow(`${idx}-quantity`) && item.quantity < 1
+                        ? t('expenses.validation.quantityMin')
                         : undefined
                     }
-                    sx={{ width: 120 }}
+                    sx={{ width: 90 }}
                   />
+                </TableCell>
+                {isFuel && (
+                  <TableCell sx={{ verticalAlign: 'top' }}>
+                    <TextField
+                      size='small'
+                      select
+                      value={item.fuelType ?? ''}
+                      disabled={disabled}
+                      onChange={(e) => {
+                        const fuelType = (e.target.value || undefined) as
+                          EditableLineItem['fuelType'] | undefined
+                        const newCap = fuelType ? EFNU_FUEL_PRICE_PER_LITRE[fuelType] : null
+                        const rawUnitPrice =
+                          item.quantity > 0 ? displayedTotalCost / item.quantity : 0
+                        const unitPrice =
+                          newCap != null ? Math.min(rawUnitPrice, newCap) : rawUnitPrice
+                        update(idx, { fuelType, unitPrice })
+                      }}
+                      sx={{ width: 110 }}
+                    >
+                      {FUEL_TYPES.map((ft) => (
+                        <MenuItem key={ft} value={ft}>
+                          {ft}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </TableCell>
+                )}
+                <TableCell sx={{ verticalAlign: 'top' }}>
+                  {isFuel ? (
+                    <TextField
+                      size='small'
+                      type='number'
+                      value={displayedTotalCost || ''}
+                      disabled={disabled}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => applyTotalCost(idx, item, Number(e.target.value) || 0)}
+                      onBlur={() => touch(`${idx}-unitPrice`)}
+                      error={shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0}
+                      helperText={
+                        shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0
+                          ? t('expenses.validation.unitPriceRequired')
+                          : cap != null && displayedTotalCost > lineTotal + 0.001
+                            ? t('expenses.wizard.fuelCapWarning', {
+                                cap: eurFormatter.format(cap),
+                              })
+                            : undefined
+                      }
+                      sx={{ width: 120 }}
+                    />
+                  ) : (
+                    <TextField
+                      size='small'
+                      type='number'
+                      value={item.unitPrice}
+                      disabled={disabled}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => update(idx, { unitPrice: Number(e.target.value) || 0 })}
+                      onBlur={() => touch(`${idx}-unitPrice`)}
+                      error={shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0}
+                      helperText={
+                        shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0
+                          ? t('expenses.validation.unitPriceRequired')
+                          : undefined
+                      }
+                      sx={{ width: 120 }}
+                    />
+                  )}
                 </TableCell>
                 {expenseClaimItems && (
                   <TableCell sx={{ verticalAlign: 'top' }}>
@@ -329,14 +408,24 @@ export function LineItemsTable({
                     <TextField
                       size='small'
                       select
+                      required={isFuel}
                       value={item.costCentreCode ?? ''}
                       disabled={disabled}
                       onChange={(e) => update(idx, { costCentreCode: e.target.value || null })}
+                      onBlur={() => touch(`${idx}-costCentreCode`)}
+                      error={isFuel && shouldShow(`${idx}-costCentreCode`) && !item.costCentreCode}
+                      helperText={
+                        isFuel && shouldShow(`${idx}-costCentreCode`) && !item.costCentreCode
+                          ? t('expenses.validation.aircraftRequired')
+                          : undefined
+                      }
                       sx={{ width: 130 }}
                     >
-                      <MenuItem value=''>
-                        <em>—</em>
-                      </MenuItem>
+                      {!isFuel && (
+                        <MenuItem value=''>
+                          <em>—</em>
+                        </MenuItem>
+                      )}
                       {costCentres.map((cc) => (
                         <MenuItem key={cc.code} value={cc.code}>
                           {cc.code}

@@ -105,3 +105,69 @@ describe('GET /expenses/admin/pending/count', () => {
     expect(after.body.count).toBe(baseline + 1)
   })
 })
+
+// ── Tests: POST /expenses (mileage claims) ──────────────────────────────────────
+
+describe('POST /expenses (mileage)', () => {
+  const insertedClaimIds: string[] = []
+
+  afterEach(async () => {
+    if (insertedClaimIds.length > 0) {
+      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      insertedClaimIds.length = 0
+    }
+  })
+
+  async function mileageCategoryId(): Promise<number> {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', 'mileage')
+      .executeTakeFirstOrThrow()
+    return category.id
+  }
+
+  it('creates a mileage claim, ignoring a legacy passengers field', async () => {
+    const categoryId = await mileageCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Mileage test',
+        currency: 'EUR',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: 'HOME - ROS - HOME',
+            date: '2026-07-16',
+            quantity: 99,
+            unit: 'km',
+            unitPrice: 0.275,
+            sortOrder: 0,
+          },
+        ],
+        mileageDetail: {
+          route: 'HOME - ROS - HOME',
+          journeyDate: '2026-07-16',
+          distanceKm: 99,
+          // Legacy clients may still send this — the API must silently ignore it.
+          passengers: ['Someone'],
+          boardApproved: false,
+          hetu: '010101-123A',
+        },
+      })
+
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+
+    expect(res.body.mileageDetail).toBeDefined()
+    expect(res.body.mileageDetail.route).toBe('HOME - ROS - HOME')
+    expect(res.body.mileageDetail.distanceKm).toBe(99)
+    expect(res.body.mileageDetail).not.toHaveProperty('passengers')
+  })
+})

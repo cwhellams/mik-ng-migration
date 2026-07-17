@@ -4,25 +4,12 @@
  * Includes HETU (encrypted server-side) and board approval checkbox above km limit.
  */
 import { useTranslation } from 'react-i18next'
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  IconButton,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
-import { Icon } from '@iconify/react'
-import { useState } from 'react'
+import { Alert, Box, Checkbox, FormControlLabel, Stack, TextField, Typography } from '@mui/material'
 
 export interface MileageDetailForm {
   route: string
   journeyDate: string
   distanceKm: string
-  passengers: string[]
   hetu: string
   boardApproved: boolean
 }
@@ -32,7 +19,6 @@ export function makeMileageDetailForm(): MileageDetailForm {
     route: '',
     journeyDate: new Date().toISOString().substring(0, 10),
     distanceKm: '',
-    passengers: [],
     hetu: '',
     boardApproved: false,
   }
@@ -54,20 +40,9 @@ export function MileageDetailFields({
   maxKm = 100,
 }: Props) {
   const { t } = useTranslation()
-  const [newPassenger, setNewPassenger] = useState('')
 
   const set = <K extends keyof MileageDetailForm>(field: K, val: MileageDetailForm[K]) =>
     onChange({ ...value, [field]: val })
-
-  const addPassenger = () => {
-    const trimmed = newPassenger.trim()
-    if (!trimmed) return
-    onChange({ ...value, passengers: [...value.passengers, trimmed] })
-    setNewPassenger('')
-  }
-
-  const removePassenger = (idx: number) =>
-    onChange({ ...value, passengers: value.passengers.filter((_, i) => i !== idx) })
 
   const km = Number(value.distanceKm) || 0
   const totalEur = effectiveRatePerKm && km > 0 ? (effectiveRatePerKm * km).toFixed(2) : null
@@ -158,43 +133,6 @@ export function MileageDetailFields({
         helperText={t('expenses.mileage.hetuHint')}
         onChange={(e) => set('hetu', e.target.value)}
       />
-
-      {/* Passengers */}
-      <Box>
-        <Typography variant='body2' gutterBottom>
-          {t('expenses.mileage.passengers')}
-        </Typography>
-        {value.passengers.map((p, i) => (
-          <Stack key={i} direction='row' spacing={1} alignItems='center' sx={{ mb: 0.5 }}>
-            <Typography variant='body2'>{p}</Typography>
-            {!disabled && (
-              <IconButton size='small' color='error' onClick={() => removePassenger(i)}>
-                <Icon icon='mdi:close' width={16} />
-              </IconButton>
-            )}
-          </Stack>
-        ))}
-        {!disabled && (
-          <Stack direction='row' spacing={1} sx={{ mt: 1 }}>
-            <TextField
-              size='small'
-              placeholder={t('expenses.mileage.passengerName')}
-              value={newPassenger}
-              onChange={(e) => setNewPassenger(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  addPassenger()
-                }
-              }}
-              inputProps={{ maxLength: 100 }}
-            />
-            <Button size='small' onClick={addPassenger} disabled={!newPassenger.trim()}>
-              {t('expenses.mileage.addPassenger')}
-            </Button>
-          </Stack>
-        )}
-      </Box>
     </Stack>
   )
 }

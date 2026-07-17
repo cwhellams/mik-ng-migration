@@ -245,14 +245,14 @@ static_sites:
       branch: ${DEPLOY_BRANCH} # dynamic per release
     source_dir: /
     output_dir: /apps/frontend/dist
-    
+
     build_command: |
       corepack enable
       pnpm install --frozen-lockfile
       pnpm --filter frontend build
 
     environment_slug: node-js
-    
+
     envs:
       - key: VITE_API_TARGET
         value: ${VITE_API_TARGET}

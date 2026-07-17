@@ -25,7 +25,6 @@ import {
 import { Icon } from '@iconify/react'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs, { type Dayjs } from 'dayjs'
-import type { AircraftListResponse } from '@backend/routes/aircrafts/models'
 import type { ItemListResponse } from '@backend/routes/invoicing/models'
 import {
   MIK_SUPPORTED_CURRENCIES,
@@ -64,8 +63,6 @@ type WizardForm = {
   description: string
   expenseDate?: string
   currency: string
-  fuelLitres?: number
-  fuelType?: CreateExpenseClaim['fuelType']
   iban: string
   ibanAccountName: string
   lineItems: EditableLineItem[]
@@ -125,10 +122,6 @@ export default function ExpenseClaimWizard() {
   const [fxRateLoading, setFxRateLoading] = useState(false)
 
   const categoryApi = useApi<ExpenseCategory[]>({ url: 'v1/expenses/categories' })
-  const aircraftApi = useApi<AircraftListResponse>({
-    url: 'v1/aircrafts',
-    params: { activeOnly: true },
-  })
   const { data: mileageAllowance } = useApi<{ effectiveRatePerKm: number }>({
     url: 'v1/mileage-allowances/current',
   })
@@ -181,13 +174,12 @@ export default function ExpenseClaimWizard() {
       title: `Fuel – ${prefill.aircraftRegistration}`,
       aircraftId: prefill.aircraftRegistration,
       flightLogId: prefill.flightLogId,
-      fuelLitres: prefill.fuelUpliftLitres,
-      fuelType: (prefill.fuelType as CreateExpenseClaim['fuelType']) ?? undefined,
       lineItems: [
         {
-          ...makeDefaultLineItem('l'),
+          ...makeDefaultLineItem('l', prefill.aircraftRegistration),
           description: `Fuel uplift ${prefill.aircraftRegistration}`,
           quantity: prefill.fuelUpliftLitres,
+          fuelType: (prefill.fuelType as CreateExpenseClaim['fuelType']) ?? undefined,
         },
       ],
     }))
@@ -221,6 +213,15 @@ export default function ExpenseClaimWizard() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFuel])
+
+  // Mileage claims are always EUR — no currency selector needed
+  useEffect(() => {
+    if (isMileage && form.currency !== 'EUR') {
+      setForm((c) => ({ ...c, currency: 'EUR' }))
+      setClaimFxRate(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMileage])
 
   // Auto-compute mileage line item when distance or effective rate changes
   useEffect(() => {
@@ -275,8 +276,7 @@ export default function ExpenseClaimWizard() {
           form.categoryId > 0 &&
           form.title.trim().length > 0 &&
           !!form.expenseDate &&
-          new Date(form.expenseDate) <= new Date() &&
-          (!selectedCategory?.requiresAircraft || !!form.aircraftId)
+          new Date(form.expenseDate) <= new Date()
         )
       case STEP_FUEL_FLIGHT:
         return true
@@ -297,7 +297,11 @@ export default function ExpenseClaimWizard() {
         return (
           form.lineItems.length > 0 &&
           form.lineItems.every(
-            (li) => li.description.trim().length > 0 && li.quantity > 0 && li.unitPrice > 0,
+            (li) =>
+              li.description.trim().length > 0 &&
+              li.quantity > 0 &&
+              li.unitPrice > 0 &&
+              (!isFuel || !!li.costCentreCode),
           )
         )
       default:
@@ -317,8 +321,6 @@ export default function ExpenseClaimWizard() {
       description: form.description || undefined,
       aircraftId: form.aircraftId || undefined,
       flightLogId: isFuel && fuelForFlight ? form.flightLogId : undefined,
-      fuelLitres: isFuel ? form.fuelLitres : undefined,
-      fuelType: isFuel ? form.fuelType : undefined,
       iban: form.iban || undefined,
       ibanAccountName: form.ibanAccountName || undefined,
       expenseDate: form.expenseDate || undefined,
@@ -345,7 +347,6 @@ export default function ExpenseClaimWizard() {
               route: mileageDetail.route,
               journeyDate: mileageDetail.journeyDate,
               distanceKm: Number(mileageDetail.distanceKm),
-              passengers: mileageDetail.passengers,
               boardApproved: mileageDetail.boardApproved,
               hetu: mileageDetail.hetu || undefined,
             }
@@ -445,39 +446,6 @@ export default function ExpenseClaimWizard() {
             ))}
           </TextField>
 
-          {selectedCategory && (
-            <Tooltip title={t('expenses.wizard.aircraftSelectorTooltip')}>
-              <TextField
-                select
-                label={t('expenses.fields.aircraft')}
-                value={form.aircraftId ?? ''}
-                fullWidth
-                required={selectedCategory.code === 'fuel'}
-                onChange={(e) => {
-                  const reg = e.target.value || undefined
-                  setForm((c) => ({
-                    ...c,
-                    aircraftId: reg,
-                    // Default all line items' cost centre to the selected aircraft registration
-                    lineItems: c.lineItems.map((li) => ({
-                      ...li,
-                      costCentreCode: reg ?? li.costCentreCode ?? null,
-                    })),
-                  }))
-                }}
-              >
-                {!selectedCategory.requiresAircraft && (
-                  <MenuItem value=''>{t('expenses.fields.aircraftOptional')}</MenuItem>
-                )}
-                {aircraftApi.data?.aircrafts.map((a) => (
-                  <MenuItem key={a.registration} value={a.registration}>
-                    {a.registration} – {a.displayName}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Tooltip>
-          )}
-
           <TextField
             label={t('expenses.fields.title')}
             value={form.title}
@@ -511,35 +479,35 @@ export default function ExpenseClaimWizard() {
             slotProps={{ textField: { sx: { maxWidth: 200 } } }}
           />
 
-          <TextField
-            select
-            label={t('expenses.fields.currency')}
-            value={form.currency}
-            sx={{ minWidth: 120 }}
-            onChange={(e) => {
-              const newCur = e.target.value
-              setForm((c) => ({ ...c, currency: newCur }))
-              setClaimFxRate(null)
-              if (newCur !== 'EUR' && form.expenseDate) {
-                void fetchClaimFxRate(newCur, form.expenseDate)
-              }
-            }}
-          >
-            {MIK_SUPPORTED_CURRENCIES.map((cur) => (
-              <MenuItem key={cur} value={cur}>
-                {cur}
-              </MenuItem>
-            ))}
-          </TextField>
+          {!isMileage && (
+            <TextField
+              select
+              label={t('expenses.fields.currency')}
+              value={form.currency}
+              sx={{ minWidth: 120 }}
+              onChange={(e) => {
+                const newCur = e.target.value
+                setForm((c) => ({ ...c, currency: newCur }))
+                setClaimFxRate(null)
+                if (newCur !== 'EUR' && form.expenseDate) {
+                  void fetchClaimFxRate(newCur, form.expenseDate)
+                }
+              }}
+            >
+              {MIK_SUPPORTED_CURRENCIES.map((cur) => (
+                <MenuItem key={cur} value={cur}>
+                  {cur}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
 
-          {form.currency !== 'EUR' && (
+          {!isMileage && form.currency !== 'EUR' && (fxRateLoading || claimFxRate) && (
             <Stack direction='row' spacing={0.5} alignItems='center'>
               <Typography variant='body2' color='text.secondary'>
                 {fxRateLoading
                   ? t('expenses.fields.fxRateLookingUp')
-                  : claimFxRate
-                    ? `1 ${form.currency} = ${claimFxRate} EUR`
-                    : t('expenses.fields.fxRateHelper')}
+                  : `1 ${form.currency} = ${claimFxRate} EUR`}
               </Typography>
               {!fxRateLoading && (
                 <Tooltip
@@ -559,40 +527,6 @@ export default function ExpenseClaimWizard() {
                   </IconButton>
                 </Tooltip>
               )}
-            </Stack>
-          )}
-
-          {isFuel && (
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField
-                label={t('expenses.fields.fuelLitres')}
-                type='number'
-                value={form.fuelLitres ?? ''}
-                onChange={(e) =>
-                  setForm((c) => ({
-                    ...c,
-                    fuelLitres: e.target.value ? Number(e.target.value) : undefined,
-                  }))
-                }
-              />
-              <TextField
-                select
-                label={t('expenses.fields.fuelType')}
-                value={form.fuelType ?? ''}
-                sx={{ minWidth: 140 }}
-                onChange={(e) =>
-                  setForm((c) => ({
-                    ...c,
-                    fuelType: (e.target.value as CreateExpenseClaim['fuelType']) || undefined,
-                  }))
-                }
-              >
-                {['98', '100LL', 'JetA1'].map((ft) => (
-                  <MenuItem key={ft} value={ft}>
-                    {ft}
-                  </MenuItem>
-                ))}
-              </TextField>
             </Stack>
           )}
         </Stack>
@@ -710,6 +644,7 @@ export default function ExpenseClaimWizard() {
             claimFxRate={claimFxRate}
             expenseClaimItems={expenseClaimItems}
             costCentres={costCentres ?? []}
+            isFuel={isFuel}
           />
           <Button
             startIcon={<Icon icon='mdi:plus' />}
@@ -773,11 +708,6 @@ export default function ExpenseClaimWizard() {
                   <b>{t('expenses.fields.fxRate')}:</b> 1 {form.currency} = {claimFxRate} EUR
                 </Typography>
               )}
-              {isFuel && form.fuelLitres && (
-                <Typography variant='body2'>
-                  <b>{t('expenses.fields.fuelLitres')}:</b> {form.fuelLitres} L ({form.fuelType})
-                </Typography>
-              )}
               {isFuel && fuelForFlight && form.flightLogId && (
                 <Typography variant='body2'>
                   <b>{t('expenses.wizard.flightLogId')}:</b> #{form.flightLogId}
@@ -808,12 +738,6 @@ export default function ExpenseClaimWizard() {
                       ✓ {t('expenses.mileage.boardApprovedLabel')}
                     </Typography>
                   )}
-                  {mileageDetail.passengers.length > 0 && (
-                    <Typography variant='body2'>
-                      <b>{t('expenses.mileage.passengers')}:</b>{' '}
-                      {mileageDetail.passengers.join(', ')}
-                    </Typography>
-                  )}
                 </>
               )}
             </Stack>
@@ -832,6 +756,7 @@ export default function ExpenseClaimWizard() {
                 claimFxRate={claimFxRate}
                 expenseClaimItems={expenseClaimItems}
                 costCentres={costCentres ?? []}
+                isFuel={isFuel}
               />
             </Paper>
           )}

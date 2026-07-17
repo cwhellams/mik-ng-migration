@@ -28,7 +28,6 @@ export const MileageDetailSchema = z.object({
   route: z.string().min(1).max(500),
   journeyDate: z.string().date(),
   distanceKm: z.number().positive(),
-  passengers: z.array(z.string()).default([]),
   boardApproved: z.boolean().default(false),
   /** HETU is returned masked from the API; full value only goes in on write */
   hetu: z.string().optional(),

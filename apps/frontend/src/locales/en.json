@@ -2182,9 +2182,6 @@
       "routeHint": "e.g. Helsinki – Tampere – Helsinki",
       "journeyDate": "Date of journey",
       "distanceKm": "Distance (km)",
-      "passengers": "Passengers",
-      "passengerName": "Passenger name",
-      "addPassenger": "Add",
       "estimatedAmount": "Estimated reimbursement",
       "lineItemDescription": "Mileage claim",
       "hetu": "Finnish Social Security Number (HETU)",
@@ -2204,7 +2201,7 @@
       "fuel": "Fuel",
       "mileage": "Mileage",
       "travel": "Travel",
-      "misc": "Miscellaneous",
+      "misc": "Other",
       "aircraft_supplies": "Aircraft Supplies",
       "web": "Web/Hosting"
     },
@@ -2229,7 +2226,6 @@
       "currency": "Currency",
       "fxRate": "FX rate (to EUR)",
       "fxRatePlaceholder": "e.g. 0.0930",
-      "fxRateHelper": "Admin can fill this in",
       "fxRateLookingUp": "Looking up ECB rate…",
       "expenseDate": "Expense date",
       "flightLogIdNA": "Not applicable for this category"
@@ -2268,9 +2264,9 @@
         "review": "Review & Submit"
       },
       "receiptPolicyTitle": "Important: only one receipt document allowed per claim",
-      "receiptPolicyBody": "Our accounting system only supports a single attachment per expense claim. You may upload only one image or PDF document as your receipt.\n\nAll claims must be in the same currency — do NOT mix currencies (e.g. EUR and SEK) within a single claim.\n\nFX rates are based on the rates supplied by a 3rd-party API (frankfurter.app), using the expense date you provide.\n\nMileage claims use 50% of the Finnish Tax Administration (Vero) official rate.",
+      "receiptPolicyBody": "Our accounting system only supports a single attachment per expense claim. You may upload only one image or PDF document as your receipt.\n\nAll claims must be in the same currency — do NOT mix currencies (e.g. EUR and SEK) within a single claim.\n\nFX rates are based on the rates supplied by a 3rd-party API (frankfurter.app), using the expense date you provide.\n\nMileage claims use 50% of the Finnish Tax Administration (Vero) official rate.\n\nFuel re-imbursement price is capped at the EFNU price — enter the total litres of uplift and the total paid (including any handling fees). If the total exceeds the cost at EFNU, you are responsible for the excess.",
       "fuelFlightQuestion": "Was this fuel purchased for a specific flight?",
-      "aircraftSelectorTooltip": "Select an aircraft if all expenses are related to one specific aircraft.",
+      "aircraftSelectorTooltip": "Select the aircraft this line item relates to, if any.",
       "recentFlights": "Select from recent flights",
       "enterFlightId": "Enter flight log ID manually",
       "selectFlight": "Select flight",
@@ -2293,12 +2289,16 @@
         "itemId": "Item Id",
         "date": "Date",
         "qty": "Qty",
+        "litres": "Litres",
+        "fuelType": "Fuel type",
         "unit": "Unit",
         "currency": "Currency",
-        "costCentre": "Cost centre",
+        "costCentre": "Aircraft",
         "unitPrice": "Unit price",
+        "totalCost": "Total cost",
         "fxRate": "FX rate"
       },
+      "fuelCapWarning": "Capped at the EFNU price ({{cap}}) — you are responsible for any excess paid.",
       "review": {
         "claim": "Claim details"
       }
@@ -2322,7 +2322,8 @@
     "validation": {
       "descriptionRequired": "Description is required",
       "quantityMin": "Quantity must be at least 1",
-      "unitPriceRequired": "Unit price must be greater than zero"
+      "unitPriceRequired": "Unit price must be greater than zero",
+      "aircraftRequired": "Aircraft is required for fuel claims"
     }
   },
   "inventory": {

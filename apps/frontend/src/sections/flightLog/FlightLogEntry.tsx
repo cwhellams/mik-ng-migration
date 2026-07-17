@@ -43,6 +43,7 @@ import {
 } from '@backend/routes/flight-log/models'
 import useApi, { api } from '../../hooks/useApi'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
+import { FUEL_TYPES } from '@backend/routes/expenses/models'
 import { MemberListResponse } from '@backend/routes/members/models'
 import FlightTimeline from './components/FlightTimeline'
 import FlightCrew from './components/FlightCrew'
@@ -413,7 +414,7 @@ const FlightLogEntry = () => {
   const [showDtoWarning, setShowDtoWarning] = useState(false)
   const [pendingSubmitData, setPendingSubmitData] = useState<FlightLogUpsertRequest | null>(null)
   // Local-only state for fuel type — not stored in the flight log, used only for expense prefill
-  const [fuelUpliftType, setFuelUpliftType] = useState<'98' | '100LL' | 'JetA1' | ''>('')
+  const [fuelUpliftType, setFuelUpliftType] = useState<(typeof FUEL_TYPES)[number] | ''>('')
   const [fuelClaimCreating, setFuelClaimCreating] = useState(false)
   const [fuelClaimSnack, setFuelClaimSnack] = useState<{
     open: boolean
@@ -439,8 +440,6 @@ const FlightLogEntry = () => {
         expenseDate: data?.takeoffTimeUtc
           ? new Date(data.takeoffTimeUtc).toISOString().substring(0, 10)
           : new Date().toISOString().substring(0, 10),
-        fuelLitres: watch('fuelUpliftLitres') ?? undefined,
-        fuelType: fuelUpliftType || undefined,
         iban: me?.iban ?? undefined,
         ibanAccountName: me?.ibanAccountName ?? undefined,
         lineItems: [
@@ -450,10 +449,9 @@ const FlightLogEntry = () => {
             quantity: watch('fuelUpliftLitres') ?? 1,
             unit: 'l',
             unitPrice: 0,
-            vatPercent: 0,
             sortOrder: 0,
-            currency: 'EUR',
-            fxRate: null,
+            costCentreCode: watch('aircraftRegistration') || null,
+            fuelType: fuelUpliftType || undefined,
           },
         ],
       }
@@ -910,7 +908,7 @@ const FlightLogEntry = () => {
                     sx={{ minWidth: 140 }}
                   >
                     <MenuItem value=''>{t('flightLog.fuelTypeUnknown')}</MenuItem>
-                    {(['98', '100LL', 'JetA1'] as const).map((ft) => (
+                    {FUEL_TYPES.map((ft) => (
                       <MenuItem key={ft} value={ft}>
                         {ft}
                       </MenuItem>
