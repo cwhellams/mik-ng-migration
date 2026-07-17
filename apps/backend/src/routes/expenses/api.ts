@@ -138,10 +138,10 @@ async function requireClaimForUser(req: Request, claimId: string) {
 
 async function validateCategoryRequirements(data: {
   categoryId?: number
-  aircraftId?: string | null
   flightLogId?: string | null
   fuelLitres?: number | null
   fuelType?: string | null
+  lineItems?: { costCentreCode?: string | null }[]
 }) {
   const categories = await getExpenseCategories()
   const category = categories.find((item) => item.id === data.categoryId)
@@ -149,18 +149,22 @@ async function validateCategoryRequirements(data: {
     return problem({ status: HttpStatusCode.BadRequest, detail: 'Expense category not found' })
   }
 
-  if (category.requiresAircraft && !data.aircraftId) {
-    return problem({
-      status: HttpStatusCode.BadRequest,
-      detail: 'This expense category requires an aircraft registration.',
-    })
-  }
+  if (category.code === 'fuel') {
+    if (!data.fuelLitres || !data.fuelType) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Fuel claims require both fuel litres and fuel type.',
+      })
+    }
 
-  if (category.code === 'fuel' && (!data.fuelLitres || !data.fuelType)) {
-    return problem({
-      status: HttpStatusCode.BadRequest,
-      detail: 'Fuel claims require both fuel litres and fuel type.',
-    })
+    // Aircraft selection moved from claim-level to per-line-item (see V1360 migration),
+    // so it's enforced here instead of the old claim-level aircraftId requirement.
+    if ((data.lineItems ?? []).some((item) => !item.costCentreCode)) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Each fuel line item requires an aircraft to be selected.',
+      })
+    }
   }
 
   return category
@@ -270,10 +274,10 @@ router.post(
     const data = CreateExpenseClaimSchema.parse(req.body)
     await validateCategoryRequirements({
       categoryId: data.categoryId,
-      aircraftId: data.aircraftId ?? null,
       flightLogId: data.flightLogId ?? null,
       fuelLitres: data.fuelLitres ?? null,
       fuelType: data.fuelType ?? null,
+      lineItems: data.lineItems,
     })
 
     // Auto-populate IBAN from member profile if not supplied in request
@@ -341,10 +345,10 @@ router.put(
     const patch = UpdateExpenseClaimSchema.parse(req.body)
     await validateCategoryRequirements({
       categoryId: patch.categoryId ?? existing.categoryId,
-      aircraftId: patch.aircraftId ?? existing.aircraftId ?? undefined,
       flightLogId: patch.flightLogId ?? existing.flightLogId ?? undefined,
       fuelLitres: patch.fuelLitres ?? existing.fuelLitres ?? undefined,
       fuelType: patch.fuelType ?? existing.fuelType ?? undefined,
+      lineItems: patch.lineItems ?? existing.lineItems,
     })
     if (patch.lineItems) {
       patch.lineItems = capFuelLineItemPrices(
@@ -395,10 +399,10 @@ router.post(
 
     await validateCategoryRequirements({
       categoryId: claim.categoryId,
-      aircraftId: claim.aircraftId ?? undefined,
       flightLogId: claim.flightLogId ?? undefined,
       fuelLitres: claim.fuelLitres ?? undefined,
       fuelType: claim.fuelType ?? undefined,
+      lineItems: claim.lineItems,
     })
 
     if (!claim.iban?.trim()) {

@@ -201,7 +201,6 @@ describe('POST /expenses (fuel price cap)', () => {
       .set('Cookie', `accessToken=${memberToken}`)
       .send({
         categoryId,
-        aircraftId: 'OH-STL',
         title: 'Fuel test',
         fuelLitres: 100,
         fuelType: 'JetA1',
@@ -222,6 +221,7 @@ describe('POST /expenses (fuel price cap)', () => {
           unit: 'l',
           unitPrice: 5, // way above the 1.91 EUR/litre cap
           fuelType: 'JetA1',
+          costCentreCode: 'OH-STL',
           sortOrder: 0,
         },
       ],
@@ -244,6 +244,7 @@ describe('POST /expenses (fuel price cap)', () => {
           unit: 'l',
           unitPrice: 1.5,
           fuelType: 'JetA1',
+          costCentreCode: 'OH-STL',
           sortOrder: 0,
         },
       ],
@@ -269,6 +270,7 @@ describe('POST /expenses (fuel price cap)', () => {
           unit: 'l',
           unitPrice: 50,
           fuelType: 'JetA1',
+          costCentreCode: 'OH-STL',
           sortOrder: 0,
         },
       ],
@@ -293,6 +295,7 @@ describe('POST /expenses (fuel price cap)', () => {
           unit: 'l',
           unitPrice: 10, // well under the ≈46.6 CZK/litre converted cap
           fuelType: 'JetA1',
+          costCentreCode: 'OH-STL',
           sortOrder: 0,
         },
       ],
@@ -314,6 +317,7 @@ describe('POST /expenses (fuel price cap)', () => {
           quantity: 1,
           unit: 'pcs',
           unitPrice: 25,
+          costCentreCode: 'OH-STL',
           sortOrder: 0,
         },
       ],
@@ -322,5 +326,137 @@ describe('POST /expenses (fuel price cap)', () => {
     expect(res.status).toBe(201)
     insertedClaimIds.push(res.body.id)
     expect(res.body.lineItems[0].unitPrice).toBeCloseTo(25, 2)
+  })
+})
+
+// ── Tests: POST /expenses (fuel claims) — per-line-item aircraft requirement ────
+// Aircraft selection for fuel claims moved from the claim-level `aircraftId` field to
+// a per-line-item `costCentreCode` (see V1360 migration). The API must no longer
+// require the claim-level field, but must still require an aircraft per fuel line item.
+
+describe('POST /expenses (fuel)', () => {
+  const insertedClaimIds: string[] = []
+
+  afterEach(async () => {
+    if (insertedClaimIds.length > 0) {
+      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      insertedClaimIds.length = 0
+    }
+  })
+
+  async function fuelCategoryId(): Promise<number> {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', 'fuel')
+      .executeTakeFirstOrThrow()
+    return category.id
+  }
+
+  it('creates a fuel claim with no claim-level aircraftId, as long as line items have one', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Fuel test',
+        currency: 'EUR',
+        fuelLitres: 100,
+        fuelType: 'JetA1',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: '100 l JetA1',
+            date: '2026-07-16',
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
+            fuelType: 'JetA1',
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    expect(res.body.aircraftId).toBeFalsy()
+    expect(res.body.lineItems[0].costCentreCode).toBe('OH-STL')
+  })
+
+  it('rejects a fuel claim when a line item has no aircraft selected', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Fuel test',
+        currency: 'EUR',
+        fuelLitres: 100,
+        fuelType: 'JetA1',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: '100 l JetA1',
+            date: '2026-07-16',
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
+            fuelType: 'JetA1',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(400)
+    if (res.status === 201) {
+      insertedClaimIds.push(res.body.id)
+    }
+  })
+
+  it('submits a fuel claim with no claim-level aircraftId', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const create = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Fuel test',
+        currency: 'EUR',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        fuelLitres: 100,
+        fuelType: 'JetA1',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: '100 l JetA1',
+            date: '2026-07-16',
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
+            fuelType: 'JetA1',
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+    expect(create.status).toBe(201)
+    insertedClaimIds.push(create.body.id)
+
+    const submit = await request(app)
+      .post(`/expenses/${create.body.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(submit.status).toBe(200)
+    expect(submit.body.status).toBe('SUBMITTED')
   })
 })
