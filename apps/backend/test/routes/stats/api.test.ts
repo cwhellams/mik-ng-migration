@@ -34,6 +34,8 @@ const mockGetAirfieldEfficiencyByYr = jest.fn<() => Promise<any>>()
 const mockGetAirfieldEfficiencyByYrMth = jest.fn<() => Promise<any>>()
 const mockGetAirfieldEfficiencyByAcYr = jest.fn<() => Promise<any>>()
 const mockGetAirfieldEfficiencyByAcYrMth = jest.fn<() => Promise<any>>()
+const mockGetAogDaysByAcYr = jest.fn<() => Promise<any>>()
+const mockGetAogDaysByAcYrMth = jest.fn<() => Promise<any>>()
 
 jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getTotalFlightTimeByAc: mockGetTotalFlightTimeByAc,
@@ -67,6 +69,8 @@ jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getAirfieldEfficiencyByYrMth: mockGetAirfieldEfficiencyByYrMth,
   getAirfieldEfficiencyByAcYr: mockGetAirfieldEfficiencyByAcYr,
   getAirfieldEfficiencyByAcYrMth: mockGetAirfieldEfficiencyByAcYrMth,
+  getAogDaysByAcYr: mockGetAogDaysByAcYr,
+  getAogDaysByAcYrMth: mockGetAogDaysByAcYrMth,
 }))
 
 jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
@@ -893,6 +897,62 @@ describe('Stats API', () => {
           yr: undefined,
           yr_from: 2024,
           yr_to: 2024,
+          mth: 7,
+        })
+      })
+    })
+  })
+
+  describe('V1380: AOG (Aircraft On Ground) Days Endpoints', () => {
+    describe('GET /api/stats/aog/aircraft/year', () => {
+      it('should return AOG days by aircraft and year', async () => {
+        const mockData = {
+          aircraft_registration: 'OH-STL',
+          yr: 2024,
+          maintenance_days: 5,
+          unserviceable_days: 3,
+          total_aog_days: 8,
+        }
+        mockGetAogDaysByAcYr.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/aog/aircraft/year')
+          .query({ aircraft_registration: 'OH-STL', yr_from: '2024', yr_to: '2024' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetAogDaysByAcYr).toHaveBeenCalledWith({
+          aircraft_registration: 'OH-STL',
+          yr: undefined,
+          yr_from: 2024,
+          yr_to: 2024,
+        })
+      })
+    })
+
+    describe('GET /api/stats/aog/aircraft/year/month', () => {
+      it('should return AOG days by aircraft, year, and month', async () => {
+        const mockData = {
+          aircraft_registration: 'OH-STL',
+          yr: 2024,
+          mth: 7,
+          maintenance_days: 2,
+          unserviceable_days: 1,
+          total_aog_days: 3,
+        }
+        mockGetAogDaysByAcYrMth.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/aog/aircraft/year/month')
+          .query({ aircraft_registration: 'OH-STL', yr: '2024', mth: '7' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetAogDaysByAcYrMth).toHaveBeenCalledWith({
+          aircraft_registration: 'OH-STL',
+          yr: 2024,
+          yr_from: undefined,
+          yr_to: undefined,
           mth: 7,
         })
       })

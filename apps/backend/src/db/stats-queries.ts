@@ -35,6 +35,8 @@ import type {
   AirfieldEfficiencyByYrMth,
   AirfieldEfficiencyByAcYr,
   AirfieldEfficiencyByAcYrMth,
+  AogDaysByAcYrMth,
+  AogDaysByAcYr,
 } from '../routes/stats/models.ts'
 
 // Helper function to apply year filters
@@ -379,6 +381,55 @@ export const getDtoFlightTimeByAc = async (filters?: {
   }
 
   return await query.execute()
+}
+
+// V1380: AOG (Aircraft On Ground) days — maintenance bookings + outstanding defects
+export const getAogDaysByAcYrMth = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<AogDaysByAcYrMth[]> => {
+  let query = db.selectFrom('stats.aog_days_by_ac_yr_mth').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+
+  const results = await query.execute()
+  return results.map((row) => ({
+    ...row,
+    maintenance_days: Number(row.maintenance_days),
+    unserviceable_days: Number(row.unserviceable_days),
+    total_aog_days: Number(row.total_aog_days),
+  }))
+}
+
+export const getAogDaysByAcYr = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<AogDaysByAcYr[]> => {
+  let query = db.selectFrom('stats.aog_days_by_ac_yr').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+
+  const results = await query.execute()
+  return results.map((row) => ({
+    ...row,
+    maintenance_days: Number(row.maintenance_days),
+    unserviceable_days: Number(row.unserviceable_days),
+    total_aog_days: Number(row.total_aog_days),
+  }))
 }
 
 export const getDtoFlightTimeByAcYr = async (filters?: {

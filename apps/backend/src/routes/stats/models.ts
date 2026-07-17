@@ -268,6 +268,24 @@ export const AirfieldEfficiencyByAcYrMthSchema = z.object({
   efficiency_pct: z.number().nullable(),
 })
 
+// AOG (Aircraft On Ground) days — maintenance bookings + outstanding defects
+export const AogDaysByAcYrMthSchema = z.object({
+  aircraft_registration: z.string().nullable(),
+  yr: z.number().nullable(),
+  mth: z.number().nullable(),
+  maintenance_days: z.number(),
+  unserviceable_days: z.number(),
+  total_aog_days: z.number(),
+})
+
+export const AogDaysByAcYrSchema = z.object({
+  aircraft_registration: z.string().nullable(),
+  yr: z.number().nullable(),
+  maintenance_days: z.number(),
+  unserviceable_days: z.number(),
+  total_aog_days: z.number(),
+})
+
 // Pilot Statistics
 export const PilotStatisticsHistogramBinSchema = z.object({
   binFrom: z.number(),
@@ -317,3 +335,5 @@ export type AirfieldEfficiencyByYr = z.infer<typeof AirfieldEfficiencyByYrSchema
 export type AirfieldEfficiencyByYrMth = z.infer<typeof AirfieldEfficiencyByYrMthSchema>
 export type AirfieldEfficiencyByAcYr = z.infer<typeof AirfieldEfficiencyByAcYrSchema>
 export type AirfieldEfficiencyByAcYrMth = z.infer<typeof AirfieldEfficiencyByAcYrMthSchema>
+export type AogDaysByAcYrMth = z.infer<typeof AogDaysByAcYrMthSchema>
+export type AogDaysByAcYr = z.infer<typeof AogDaysByAcYrSchema>

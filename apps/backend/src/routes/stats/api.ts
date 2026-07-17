@@ -33,6 +33,8 @@ import {
   getAirfieldEfficiencyByYrMth,
   getAirfieldEfficiencyByAcYr,
   getAirfieldEfficiencyByAcYrMth,
+  getAogDaysByAcYrMth,
+  getAogDaysByAcYr,
 } from '../../db/stats-queries.ts'
 import type {
   TotalFlightTimeByAc,
@@ -66,6 +68,8 @@ import type {
   AirfieldEfficiencyByYrMth,
   AirfieldEfficiencyByAcYr,
   AirfieldEfficiencyByAcYrMth,
+  AogDaysByAcYrMth,
+  AogDaysByAcYr,
 } from './models.ts'
 
 export const router = Router()
@@ -438,6 +442,32 @@ router.get(
   },
 )
 
+router.get('/aog/aircraft/year', async (req: Request, res: Response<AogDaysByAcYr[]>) => {
+  const { aircraft_registration, yr, yr_from, yr_to } = req.query
+  const data = await getAogDaysByAcYr({
+    aircraft_registration: aircraft_registration as string | undefined,
+    yr: yr ? Number(yr) : undefined,
+    yr_from: yr_from ? Number(yr_from) : undefined,
+    yr_to: yr_to ? Number(yr_to) : undefined,
+  })
+  res.status(200).json(data)
+})
+
+router.get('/aog/aircraft/year/month', async (req: Request, res: Response<AogDaysByAcYrMth[]>) => {
+  const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+  const data = await getAogDaysByAcYrMth({
+    aircraft_registration: aircraft_registration as string | undefined,
+    yr: yr ? Number(yr) : undefined,
+    yr_from: yr_from ? Number(yr_from) : undefined,
+    yr_to: yr_to ? Number(yr_to) : undefined,
+    mth: mth ? Number(mth) : undefined,
+  })
+  res.status(200).json(data)
+})
+
+// NOTE: routes registered after this point require an admin-tier permission — this
+// stricter gate applies to every route below it (Express router.use has no path scoping
+// here), so any new MEMBER-accessible endpoint must be registered ABOVE this line.
 router.use(
   validateUser(
     MIKPermissions.FLIGHTLOG_ADMIN,

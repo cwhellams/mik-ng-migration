@@ -1535,6 +1535,36 @@ export interface StatsAirfieldEfficiencyByYrMth {
   yr: Numeric | null
 }
 
+export interface StatsAogDaysByAcDt {
+  aircraft_registration: string | null
+  date: string | null
+  reason: string | null
+}
+
+export interface StatsAogDaysByAcYr {
+  aircraft_registration: string | null
+  maintenance_days: Numeric | null
+  total_aog_days: Numeric | null
+  unserviceable_days: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsAogDaysByAcYrMth {
+  aircraft_registration: string | null
+  maintenance_days: Int8 | null
+  mth: Numeric | null
+  total_aog_days: Int8 | null
+  unserviceable_days: Int8 | null
+  yr: Numeric | null
+}
+
+export interface StatsAogIntervals {
+  aircraft_registration: string | null
+  from_ts: Timestamp | null
+  reason: string | null
+  to_ts: Timestamp | null
+}
+
 export interface StatsDtoTotalFlightTimeByAc {
   aircraft_registration: string
   date: string
@@ -1857,6 +1887,10 @@ export interface DB {
   'stats.airfield_efficiency_by_ac_yr_mth': StatsAirfieldEfficiencyByAcYrMth
   'stats.airfield_efficiency_by_yr': StatsAirfieldEfficiencyByYr
   'stats.airfield_efficiency_by_yr_mth': StatsAirfieldEfficiencyByYrMth
+  'stats.aog_days_by_ac_dt': StatsAogDaysByAcDt
+  'stats.aog_days_by_ac_yr': StatsAogDaysByAcYr
+  'stats.aog_days_by_ac_yr_mth': StatsAogDaysByAcYrMth
+  'stats.aog_intervals': StatsAogIntervals
   'stats.dto_total_flight_time_by_ac': StatsDtoTotalFlightTimeByAc
   'stats.dto_total_flight_time_by_ac_yr': StatsDtoTotalFlightTimeByAcYr
   'stats.dto_total_flight_time_by_ac_yr_mth': StatsDtoTotalFlightTimeByAcYrMth

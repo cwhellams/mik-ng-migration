@@ -31,8 +31,9 @@ import { PilotStatistics as PilotStatisticsView } from './components/PilotStatis
 import { ReservationEfficiency as ReservationEfficiencyView } from './components/ReservationEfficiency'
 import { YearOnYearReport } from './components/YearOnYearReport'
 
-type ViewMode = 'aircraft' | 'pilot' | 'pilots' | 'efficiency' | 'yoy' | 'airfield'
+type ViewMode = 'aircraft' | 'pilot' | 'pilots' | 'efficiency' | 'yoy' | 'airfield' | 'aog'
 import { AirfieldEfficiency as AirfieldEfficiencyView } from './components/AirfieldEfficiency'
+import { AogStatistics as AogStatisticsView } from './components/AogStatistics'
 
 const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
   <Box
@@ -632,6 +633,7 @@ export const Stats = () => {
                 <ToggleButton value='efficiency'>Reservation Efficiency</ToggleButton>
                 <ToggleButton value='yoy'>{t('stats.yearOnYear.viewMode')}</ToggleButton>
                 <ToggleButton value='airfield'>Airfield Efficiency</ToggleButton>
+                <ToggleButton value='aog'>AOG</ToggleButton>
               </ToggleButtonGroup>
             </Grid>
           </Grid>
@@ -650,10 +652,14 @@ export const Stats = () => {
       {/* Airfield Efficiency view */}
       {viewMode === 'airfield' && <AirfieldEfficiencyView />}
 
+      {/* AOG (Aircraft On Ground) view */}
+      {viewMode === 'aog' && <AogStatisticsView />}
+
       {viewMode !== 'pilots' &&
         viewMode !== 'efficiency' &&
         viewMode !== 'yoy' &&
-        viewMode !== 'airfield' && (
+        viewMode !== 'airfield' &&
+        viewMode !== 'aog' && (
           <>
             {/* Summary Stats */}
             {viewMode === 'aircraft' ? (
