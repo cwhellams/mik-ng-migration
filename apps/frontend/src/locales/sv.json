@@ -799,6 +799,9 @@
     "type": "Typ",
     "unit": "Enhet",
     "expenseClaimItem": "Utläggspost",
+    "isFuelItem": "Bränsle",
+    "isKmItem": "Km/Milersättning",
+    "isOtherItem": "Övrigt",
     "dates": {
       "sent": "Skickad:",
       "due": "Förfaller:"
@@ -2186,6 +2189,7 @@
       "aircraftOptional": "— Inget flygplan —",
       "fuelLitres": "Bränsle (liter)",
       "fuelType": "Bränsletyp",
+      "refuelOutsideFinland": "Tankat utanför Finland",
       "lineItems": "Rader",
       "receipt": "Kvitto",
       "totalAmount": "Totalt",
@@ -2214,7 +2218,8 @@
       "delete": "Ta bort",
       "addLineItem": "Lägg till rad",
       "removeLineItem": "Ta bort",
-      "uploadReceipt": "Ladda upp kvitto"
+      "uploadReceipt": "Ladda upp kvitto",
+      "overrideFuelPrice": "Åsidosätt bränslepris"
     },
     "deleteDialog": {
       "title": "Ta bort utkastet?",
@@ -2263,7 +2268,6 @@
         "date": "Datum",
         "qty": "Antal",
         "litres": "Liter",
-        "fuelType": "Bränsletyp",
         "unit": "Enhet",
         "currency": "Valuta",
         "costCentre": "Flygplan",
@@ -2271,7 +2275,6 @@
         "totalCost": "Totalkostnad",
         "fxRate": "Valutakurs"
       },
-      "fuelCapWarning": "Begränsat till EFNU-priset ({{cap}}) — du ansvarar själv för eventuell överskjutande kostnad.",
       "review": {
         "claim": "Anspråksinformation"
       }
@@ -2290,7 +2293,9 @@
       "ibanRequired": "IBAN krävs för utbetalning",
       "zeroTotal": "Totalbeloppet måste vara större än noll",
       "ibanAccountNameRequired": "Kontoinnehavarens namn krävs",
-      "expenseDateRequired": "Utgiftsdatum krävs"
+      "expenseDateRequired": "Utgiftsdatum krävs",
+      "efnuPriceLabel": "EFNU-bränslepris (EUR/liter)",
+      "efnuPriceOverridden": "EFNU-bränsleprisgräns tillämpad"
     },
     "validation": {
       "descriptionRequired": "Beskrivning krävs",

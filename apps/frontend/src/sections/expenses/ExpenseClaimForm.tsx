@@ -10,9 +10,11 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControlLabel,
   MenuItem,
   Paper,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material'
@@ -63,6 +65,7 @@ const defaultForm: FormState = {
   iban: '',
   ibanAccountName: '',
   lineItems: [makeDefaultLineItem()],
+  refuelOutsideFinland: false,
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -121,6 +124,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
       fxRate: claimApi.data.fxRate ?? null,
       iban: claimApi.data.iban ?? '',
       ibanAccountName: claimApi.data.ibanAccountName ?? '',
+      refuelOutsideFinland: claimApi.data.refuelOutsideFinland ?? false,
       lineItems: claimApi.data.lineItems?.map((item) => ({
         id: item.id,
         itemId: item.itemId ?? null,
@@ -159,9 +163,14 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
   const expenseClaimItems = useMemo(
     () =>
       (invoiceItemsData?.items ?? [])
-        .filter((item) => item.expense_claim_item)
+        .filter((item) => {
+          if (!item.expense_claim_item) return false
+          if (isFuel) return item.is_fuel_item
+          if (isMileage) return item.is_km_item
+          return item.is_other_item
+        })
         .map((item) => ({ id: item.id, code: item.code, name: item.name })),
-    [invoiceItemsData?.items],
+    [invoiceItemsData?.items, isFuel, isMileage],
   )
 
   const editable = !claimApi.data || isExpenseEditable(claimApi.data.status)
@@ -524,6 +533,21 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                   }))
                 }
               />
+
+              {isFuel && (
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={form.refuelOutsideFinland}
+                      disabled={!editable}
+                      onChange={(e) =>
+                        setForm((c) => ({ ...c, refuelOutsideFinland: e.target.checked }))
+                      }
+                    />
+                  }
+                  label={t('expenses.fields.refuelOutsideFinland')}
+                />
+              )}
             </Stack>
           </Paper>
 

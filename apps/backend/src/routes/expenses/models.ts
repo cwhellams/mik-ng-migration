@@ -56,16 +56,9 @@ export const MIK_SUPPORTED_CURRENCIES = [
 
 export type EuropeanCurrency = (typeof MIK_SUPPORTED_CURRENCIES)[number]
 
-// Fuel types available at EFNU, and the hard-coded EFNU price (EUR/litre) used to
-// cap fuel reimbursement — members are responsible for any excess paid above this price.
+// Fuel types available at EFNU.
 export const FUEL_TYPES = ['100LL', 'JetA1', 'mogas'] as const
 export type FuelType = (typeof FUEL_TYPES)[number]
-
-export const EFNU_FUEL_PRICE_PER_LITRE: Record<FuelType, number> = {
-  '100LL': 3.7,
-  JetA1: 1.91,
-  mogas: 2.5,
-}
 
 export const ExpenseLineItemSchema = z.object({
   id: z.number().optional(),
@@ -110,6 +103,7 @@ export const CreateExpenseClaimSchema = z.object({
   expenseDate: z.string().date().optional(),
   fuelLitres: z.number().positive().optional(),
   fuelType: z.enum(FUEL_TYPES).optional(),
+  refuelOutsideFinland: z.boolean().optional().default(false),
   currency: z.enum(MIK_SUPPORTED_CURRENCIES).optional(),
   fxRate: z.number().positive().nullable().optional(),
   lineItems: z.array(ExpenseLineItemSchema).min(1),
@@ -134,6 +128,7 @@ export const ExpenseClaimSchema = z.object({
   status: z.nativeEnum(ExpenseClaimStatus),
   fuelLitres: z.number().nullable().optional(),
   fuelType: z.string().nullable().optional(),
+  refuelOutsideFinland: z.boolean().optional().default(false),
   expenseDate: z.string().nullable().optional(),
   iban: z.string().nullable().optional(),
   ibanAccountName: z.string().nullable().optional(),
@@ -179,4 +174,8 @@ export const RejectExpenseClaimSchema = z.object({
 
 export const RequestInfoSchema = z.object({
   message: z.string().min(1).max(2000),
+})
+
+export const OverrideFuelPriceSchema = z.object({
+  efnuPrice: z.number().positive(),
 })

@@ -175,6 +175,7 @@ export interface AcctsExpenseClaim {
   receipt_mime_type: string | null
   receipt_storage_key: string | null
   receipt_uploaded_at: Timestamp | null
+  refuel_outside_finland: Generated<boolean>
   rejected_at: Timestamp | null
   rejected_by: string | null
   rejection_reason: string | null
@@ -258,6 +259,9 @@ export interface AcctsItems {
   code: string
   expense_claim_item: Generated<boolean>
   id: number
+  is_fuel_item: Generated<boolean>
+  is_km_item: Generated<boolean>
+  is_other_item: Generated<boolean>
   item: Json | null
   name: string
 }

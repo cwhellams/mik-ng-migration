@@ -791,6 +791,9 @@
     "type": "Type",
     "unit": "Unit",
     "expenseClaimItem": "Expense claim item",
+    "isFuelItem": "Fuel",
+    "isKmItem": "Km/Mileage",
+    "isOtherItem": "Other",
     "dates": {
       "sent": "Sent:",
       "due": "Due:"
@@ -2213,6 +2216,7 @@
       "aircraftOptional": "— No aircraft —",
       "fuelLitres": "Fuel (litres)",
       "fuelType": "Fuel type",
+      "refuelOutsideFinland": "Refuel outside Finland",
       "lineItems": "Line items",
       "receipt": "Receipt",
       "totalAmount": "Total",
@@ -2241,7 +2245,8 @@
       "delete": "Delete",
       "addLineItem": "Add item",
       "removeLineItem": "Remove",
-      "uploadReceipt": "Upload receipt"
+      "uploadReceipt": "Upload receipt",
+      "overrideFuelPrice": "Override fuel price"
     },
     "deleteDialog": {
       "title": "Delete draft claim?",
@@ -2290,7 +2295,6 @@
         "date": "Date",
         "qty": "Qty",
         "litres": "Litres",
-        "fuelType": "Fuel type",
         "unit": "Unit",
         "currency": "Currency",
         "costCentre": "Aircraft",
@@ -2298,7 +2302,6 @@
         "totalCost": "Total cost",
         "fxRate": "FX rate"
       },
-      "fuelCapWarning": "Capped at the EFNU price ({{cap}}) — you are responsible for any excess paid.",
       "review": {
         "claim": "Claim details"
       }
@@ -2317,7 +2320,9 @@
       "ibanRequired": "IBAN is required for reimbursement",
       "zeroTotal": "Total amount must be greater than zero",
       "ibanAccountNameRequired": "Account holder name is required",
-      "expenseDateRequired": "Expense date is required"
+      "expenseDateRequired": "Expense date is required",
+      "efnuPriceLabel": "EFNU fuel price (EUR/litre)",
+      "efnuPriceOverridden": "EFNU fuel price cap applied"
     },
     "validation": {
       "descriptionRequired": "Description is required",

@@ -11,6 +11,9 @@ import {
   hasRequestedEquipmentFee,
   upsertInvoiceItems,
   updateExpenseClaimItemFlag,
+  updateIsFuelItemFlag,
+  updateIsKmItemFlag,
+  updateIsOtherItemFlag,
 } from '../../db/invoicing-queries.ts'
 import {
   InvoiceItemQuerySchema,
@@ -25,6 +28,9 @@ import {
   type Invoice,
   type UnpaidOverdueInvoiceListResponse,
   UpdateExpenseClaimItemSchema,
+  UpdateIsFuelItemSchema,
+  UpdateIsKmItemSchema,
+  UpdateIsOtherItemSchema,
 } from './models.ts'
 
 import { getInvoicePdf, getItems } from '../../services/simplbooks/simplbooksApiClient.ts'
@@ -287,6 +293,78 @@ router.patch(
   },
 )
 
+router.patch(
+  '/items/:id/is-fuel-item',
+  validateUser(MIKPermissions.INVOICING_ADMIN),
+  async (req: Request, res: Response<ItemListResponse>) => {
+    const id = Number(req.params.id)
+    if (!Number.isInteger(id) || id < 1) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Invalid item id.',
+      })
+    }
+
+    const { isFuelItem } = UpdateIsFuelItemSchema.parse(req.body)
+    await updateIsFuelItemFlag(id, isFuelItem)
+
+    const invoiceItems = await getInvoiceItems()
+    const items = invoiceItems
+      .map(mapInvoiceItemRowToItem)
+      .filter((item): item is Item => item !== null)
+
+    res.status(HttpStatusCode.Ok).json({ items })
+  },
+)
+
+router.patch(
+  '/items/:id/is-km-item',
+  validateUser(MIKPermissions.INVOICING_ADMIN),
+  async (req: Request, res: Response<ItemListResponse>) => {
+    const id = Number(req.params.id)
+    if (!Number.isInteger(id) || id < 1) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Invalid item id.',
+      })
+    }
+
+    const { isKmItem } = UpdateIsKmItemSchema.parse(req.body)
+    await updateIsKmItemFlag(id, isKmItem)
+
+    const invoiceItems = await getInvoiceItems()
+    const items = invoiceItems
+      .map(mapInvoiceItemRowToItem)
+      .filter((item): item is Item => item !== null)
+
+    res.status(HttpStatusCode.Ok).json({ items })
+  },
+)
+
+router.patch(
+  '/items/:id/is-other-item',
+  validateUser(MIKPermissions.INVOICING_ADMIN),
+  async (req: Request, res: Response<ItemListResponse>) => {
+    const id = Number(req.params.id)
+    if (!Number.isInteger(id) || id < 1) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Invalid item id.',
+      })
+    }
+
+    const { isOtherItem } = UpdateIsOtherItemSchema.parse(req.body)
+    await updateIsOtherItemFlag(id, isOtherItem)
+
+    const invoiceItems = await getInvoiceItems()
+    const items = invoiceItems
+      .map(mapInvoiceItemRowToItem)
+      .filter((item): item is Item => item !== null)
+
+    res.status(HttpStatusCode.Ok).json({ items })
+  },
+)
+
 router.get(
   '/annualMembershipBillingRuns',
   async (req: Request, res: Response<RecurringFeesProcessing[]>) => {
@@ -421,6 +499,9 @@ function mapInvoiceItemRowToItem(row: any): Item | null {
     code: row.code,
     name: row.name,
     expense_claim_item: Boolean(row.expense_claim_item),
+    is_fuel_item: Boolean(row.is_fuel_item),
+    is_km_item: Boolean(row.is_km_item),
+    is_other_item: Boolean(row.is_other_item),
   }
 
   const parsed = ItemSchema.partial().safeParse(flat)

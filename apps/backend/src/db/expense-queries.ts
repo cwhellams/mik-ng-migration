@@ -59,6 +59,7 @@ type ClaimRow = {
   status: string
   fuel_litres: unknown
   fuel_type: string | null
+  refuel_outside_finland: boolean
   expense_date: string | null
   iban: string | null
   iban_account_name: string | null
@@ -161,6 +162,7 @@ const mapClaim = (
   status: row.status as ExpenseClaimStatus,
   fuelLitres: toNullableNumber(row.fuel_litres),
   fuelType: row.fuel_type,
+  refuelOutsideFinland: row.refuel_outside_finland,
   expenseDate: row.expense_date ?? undefined,
   iban: row.iban,
   ibanAccountName: row.iban_account_name,
@@ -209,6 +211,7 @@ const claimSelect = (executor: Executor) =>
       'claim.status',
       'claim.fuel_litres',
       'claim.fuel_type',
+      'claim.refuel_outside_finland',
       'claim.expense_date',
       'claim.iban',
       'claim.iban_account_name',
@@ -402,6 +405,7 @@ export async function createExpenseClaim(
         status: ExpenseClaimStatus.DRAFT,
         fuel_litres: data.fuelLitres ?? null,
         fuel_type: data.fuelType ?? null,
+        refuel_outside_finland: data.refuelOutsideFinland ?? false,
         expense_date: data.expenseDate,
         iban: data.iban,
         iban_account_name: data.ibanAccountName,
@@ -451,6 +455,8 @@ export async function updateExpenseClaim(
     if (hasOwn(data, 'description')) patch.description = data.description ?? null
     if (hasOwn(data, 'fuelLitres')) patch.fuel_litres = data.fuelLitres ?? null
     if (hasOwn(data, 'fuelType')) patch.fuel_type = data.fuelType ?? null
+    if (hasOwn(data, 'refuelOutsideFinland'))
+      patch.refuel_outside_finland = data.refuelOutsideFinland ?? false
     if (hasOwn(data, 'expenseDate')) patch.expense_date = data.expenseDate ?? null
     if (hasOwn(data, 'iban')) patch.iban = data.iban ?? null
     if (hasOwn(data, 'ibanAccountName')) patch.iban_account_name = data.ibanAccountName ?? null
@@ -567,6 +573,30 @@ export async function rejectExpenseClaim(
       rejected_at: new Date(),
       rejected_by: rejectorId,
       rejection_reason: reason,
+      updated_at: new Date(),
+    })
+    .where('id', '=', id)
+    .executeTakeFirstOrThrow()
+
+  return result.numUpdatedRows > BigInt(0)
+}
+
+export async function overrideFuelPrice(
+  id: string,
+  efnuPrice: number,
+  executor: Executor = db,
+): Promise<boolean> {
+  await executor
+    .updateTable('accts.expense_claim_line_item')
+    .set({ unit_price: sql<number>`LEAST(unit_price, ${efnuPrice})` })
+    .where('claim_id', '=', id)
+    .execute()
+
+  const note = `EFNU fuel price cap of ${efnuPrice.toFixed(2)} EUR/L has been applied to this claim.`
+  const result = await executor
+    .updateTable('accts.expense_claim')
+    .set({
+      description: sql<string>`coalesce(description, '') || ${'\n\n' + note}`,
       updated_at: new Date(),
     })
     .where('id', '=', id)

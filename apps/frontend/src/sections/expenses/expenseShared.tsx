@@ -24,12 +24,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
-import {
-  EFNU_FUEL_PRICE_PER_LITRE,
-  FUEL_TYPES,
-  type ExpenseLineItem,
-  type ExpenseClaimReceipt,
-} from '@backend/routes/expenses/models'
+import type { ExpenseLineItem, ExpenseClaimReceipt } from '@backend/routes/expenses/models'
 
 // ─── IBAN validation (MOD-97 algorithm) ──────────────────────────────────────
 
@@ -82,6 +77,23 @@ export const makeDefaultLineItem = (
   sortOrder: 0,
   costCentreCode: costCentreCode ?? null,
 })
+
+// ─── Item code → aircraft (cost centre) matching ───────────────────────────────
+
+/**
+ * Fuel invoice item codes end with the aircraft registration's last 3 letters
+ * (e.g. an item code ending in "IHQ" is fuel for OH-IHQ). Cost centre codes are
+ * the aircraft registrations themselves, so matching on that suffix lets us
+ * pre-select the aircraft cost centre once a fuel item is chosen.
+ */
+export function matchAircraftCostCentre(
+  itemCode: string,
+  costCentres: { code: string; description: string }[],
+): string | undefined {
+  const suffix = itemCode.slice(-3).toUpperCase()
+  if (suffix.length < 3) return undefined
+  return costCentres.find((cc) => cc.code.slice(-3).toUpperCase() === suffix)?.code
+}
 
 // ─── EUR formatter ────────────────────────────────────────────────────────────
 
@@ -194,8 +206,8 @@ export function LineItemsTable({
   const { t } = useTranslation()
   const isNonEur = (claimCurrency ?? 'EUR') !== 'EUR'
   const [touched, setTouched] = useState<Set<string>>(new Set())
-  // Total cost as typed by the member for fuel lines — kept separate from the (possibly
-  // capped) persisted unitPrice so the cap warning stays visible after entry.
+  // Total cost as typed by the member for fuel lines — kept separate from the
+  // derived unitPrice so the field doesn't jump around while typing.
   const [rawTotals, setRawTotals] = useState<Record<number, number>>({})
 
   const touch = (key: string) => setTouched((prev) => new Set(prev).add(key))
@@ -204,19 +216,9 @@ export function LineItemsTable({
   const update = (idx: number, patch: Partial<EditableLineItem>) =>
     onChange(items.map((li, i) => (i === idx ? { ...li, ...patch } : li)))
 
-  const efnuCapFor = (item: EditableLineItem): number | null =>
-    item.fuelType ? EFNU_FUEL_PRICE_PER_LITRE[item.fuelType] : null
-
-  // The EFNU cap is denominated in EUR/litre; unitPrice is kept in the claim's own
-  // currency, so the cap must be converted before it can be compared/clamped against it.
-  const capInClaimCurrency = (cap: number): number =>
-    isNonEur && claimFxRate ? cap / claimFxRate : cap
-
-  const applyTotalCost = (idx: number, item: EditableLineItem, totalCost: number) => {
+  const applyTotalCost = (idx: number, totalCost: number, quantity: number) => {
     setRawTotals((prev) => ({ ...prev, [idx]: totalCost }))
-    const cap = efnuCapFor(item)
-    const rawUnitPrice = item.quantity > 0 ? totalCost / item.quantity : 0
-    const unitPrice = cap != null ? Math.min(rawUnitPrice, capInClaimCurrency(cap)) : rawUnitPrice
+    const unitPrice = quantity > 0 ? totalCost / quantity : 0
     update(idx, { unitPrice })
   }
 
@@ -229,9 +231,6 @@ export function LineItemsTable({
             <TableCell sx={{ minWidth: 90 }}>
               {isFuel ? t('expenses.wizard.col.litres') : t('expenses.wizard.col.qty')}
             </TableCell>
-            {isFuel && (
-              <TableCell sx={{ minWidth: 110 }}>{t('expenses.wizard.col.fuelType')}</TableCell>
-            )}
             <TableCell sx={{ minWidth: 120 }}>
               {isFuel ? t('expenses.wizard.col.totalCost') : t('expenses.wizard.col.unitPrice')}
             </TableCell>
@@ -264,7 +263,6 @@ export function LineItemsTable({
                 ? lineTotal * claimFxRate
                 : null
               : lineTotal
-            const cap = efnuCapFor(item)
             const displayedTotalCost = rawTotals[idx] ?? lineTotal
 
             return (
@@ -297,13 +295,10 @@ export function LineItemsTable({
                     onChange={(e) => {
                       const quantity = Number(e.target.value) || 0
                       if (isFuel) {
-                        const cap2 = efnuCapFor(item)
-                        const rawUnitPrice = quantity > 0 ? displayedTotalCost / quantity : 0
-                        const unitPrice =
-                          cap2 != null
-                            ? Math.min(rawUnitPrice, capInClaimCurrency(cap2))
-                            : rawUnitPrice
-                        update(idx, { quantity, unitPrice })
+                        update(idx, {
+                          quantity,
+                          unitPrice: quantity > 0 ? displayedTotalCost / quantity : 0,
+                        })
                       } else {
                         update(idx, { quantity })
                       }
@@ -318,35 +313,6 @@ export function LineItemsTable({
                     sx={{ width: 90 }}
                   />
                 </TableCell>
-                {isFuel && (
-                  <TableCell sx={{ verticalAlign: 'top' }}>
-                    <TextField
-                      size='small'
-                      select
-                      value={item.fuelType ?? ''}
-                      disabled={disabled}
-                      onChange={(e) => {
-                        const fuelType = (e.target.value || undefined) as
-                          EditableLineItem['fuelType'] | undefined
-                        const newCap = fuelType ? EFNU_FUEL_PRICE_PER_LITRE[fuelType] : null
-                        const rawUnitPrice =
-                          item.quantity > 0 ? displayedTotalCost / item.quantity : 0
-                        const unitPrice =
-                          newCap != null
-                            ? Math.min(rawUnitPrice, capInClaimCurrency(newCap))
-                            : rawUnitPrice
-                        update(idx, { fuelType, unitPrice })
-                      }}
-                      sx={{ width: 110 }}
-                    >
-                      {FUEL_TYPES.map((ft) => (
-                        <MenuItem key={ft} value={ft}>
-                          {ft}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </TableCell>
-                )}
                 <TableCell sx={{ verticalAlign: 'top' }}>
                   {isFuel ? (
                     <TextField
@@ -355,17 +321,15 @@ export function LineItemsTable({
                       value={displayedTotalCost || ''}
                       disabled={disabled}
                       onFocus={(e) => e.target.select()}
-                      onChange={(e) => applyTotalCost(idx, item, Number(e.target.value) || 0)}
+                      onChange={(e) =>
+                        applyTotalCost(idx, Number(e.target.value) || 0, item.quantity)
+                      }
                       onBlur={() => touch(`${idx}-unitPrice`)}
                       error={shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0}
                       helperText={
                         shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0
                           ? t('expenses.validation.unitPriceRequired')
-                          : cap != null && displayedTotalCost > lineTotal + 0.001
-                            ? t('expenses.wizard.fuelCapWarning', {
-                                cap: eurFormatter.format(cap),
-                              })
-                            : undefined
+                          : undefined
                       }
                       sx={{ width: 120 }}
                     />
@@ -395,11 +359,17 @@ export function LineItemsTable({
                       select
                       value={item.itemId ?? ''}
                       disabled={disabled}
-                      onChange={(e) =>
-                        update(idx, {
-                          itemId: e.target.value === '' ? null : Number(e.target.value),
-                        })
-                      }
+                      onChange={(e) => {
+                        const itemId = e.target.value === '' ? null : Number(e.target.value)
+                        const patch: Partial<EditableLineItem> = { itemId }
+                        if (isFuel && itemId != null && costCentres?.length) {
+                          const selected = expenseClaimItems?.find((i) => i.id === itemId)
+                          const matched =
+                            selected && matchAircraftCostCentre(selected.code, costCentres)
+                          if (matched) patch.costCentreCode = matched
+                        }
+                        update(idx, patch)
+                      }}
                       sx={{ width: 180 }}
                     >
                       <MenuItem value=''>

@@ -37,9 +37,11 @@ export function ExpenseClaimAdminDetail() {
   const { me } = useMe()
   const [rejectReason, setRejectReason] = useState('')
   const [infoRequest, setInfoRequest] = useState('')
+  const [efnuPrice, setEfnuPrice] = useState('')
   const [rejectOpen, setRejectOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
   const [setDraftOpen, setSetDraftOpen] = useState(false)
+  const [overrideFuelPriceOpen, setOverrideFuelPriceOpen] = useState(false)
   const [actionError, setActionError] = useState<string>()
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null)
 
@@ -115,6 +117,26 @@ export function ExpenseClaimAdminDetail() {
     await claimApi.mutate()
   }
 
+  const overrideFuelPrice = async () => {
+    if (!claim) {
+      return
+    }
+
+    setActionError(undefined)
+    const response = await mutation.trigger(
+      'POST',
+      { efnuPrice: Number(efnuPrice) },
+      `${claim.id}/override-fuel-price`,
+    )
+    if (response.error) {
+      setActionError(response.error.detail)
+      return
+    }
+    setOverrideFuelPriceOpen(false)
+    setEfnuPrice('')
+    await claimApi.mutate()
+  }
+
   const setToDraft = async () => {
     if (!claim) {
       return
@@ -166,6 +188,12 @@ export function ExpenseClaimAdminDetail() {
                 {claim.aircraftId && (
                   <Typography variant='body2'>
                     {t('expenses.fields.aircraft')}: {claim.aircraftId}
+                  </Typography>
+                )}
+                {claim.categoryCode === 'fuel' && (
+                  <Typography variant='body2'>
+                    {t('expenses.fields.refuelOutsideFinland')}:{' '}
+                    {claim.refuelOutsideFinland ? t('common.yes') : t('common.no')}
                   </Typography>
                 )}
               </Stack>
@@ -328,6 +356,11 @@ export function ExpenseClaimAdminDetail() {
                   <Button variant='outlined' color='warning' onClick={() => setSetDraftOpen(true)}>
                     {t('expenses.actions.setToDraft')}
                   </Button>
+                  {claim.categoryCode === 'fuel' && (
+                    <Button variant='outlined' onClick={() => setOverrideFuelPriceOpen(true)}>
+                      {t('expenses.actions.overrideFuelPrice')}
+                    </Button>
+                  )}
                 </>
               )}
               <Button component={Link} to='/accounting/expenses' variant='text'>
@@ -398,6 +431,37 @@ export function ExpenseClaimAdminDetail() {
           <Button onClick={() => setSetDraftOpen(false)}>{t('general.cancel')}</Button>
           <Button variant='contained' color='warning' onClick={() => void setToDraft()}>
             {t('expenses.actions.setToDraft')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={overrideFuelPriceOpen}
+        onClose={() => setOverrideFuelPriceOpen(false)}
+        fullWidth
+        maxWidth='sm'
+      >
+        <DialogTitle>{t('expenses.actions.overrideFuelPrice')}</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            type='number'
+            label={t('expenses.messages.efnuPriceLabel')}
+            value={efnuPrice}
+            onChange={(event) => setEfnuPrice(event.target.value)}
+            onFocus={(event) => event.target.select()}
+            inputProps={{ step: '0.01', min: 0 }}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOverrideFuelPriceOpen(false)}>{t('general.cancel')}</Button>
+          <Button
+            variant='contained'
+            onClick={() => void overrideFuelPrice()}
+            disabled={!efnuPrice || Number(efnuPrice) <= 0}
+          >
+            {t('expenses.actions.overrideFuelPrice')}
           </Button>
         </DialogActions>
       </Dialog>

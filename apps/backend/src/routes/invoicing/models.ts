@@ -31,6 +31,9 @@ export const ItemSchema = z.object({
   ean: z.string(),
   name: z.string(),
   expense_claim_item: z.boolean().optional().default(false),
+  is_fuel_item: z.boolean().optional().default(false),
+  is_km_item: z.boolean().optional().default(false),
+  is_other_item: z.boolean().optional().default(false),
   contents: z.string(),
   unit: z.string(),
   amount: z.number(),
@@ -52,6 +55,18 @@ export type Item = z.infer<typeof ItemSchema>
 
 export const UpdateExpenseClaimItemSchema = z.object({
   expenseClaimItem: z.boolean(),
+})
+
+export const UpdateIsFuelItemSchema = z.object({
+  isFuelItem: z.boolean(),
+})
+
+export const UpdateIsKmItemSchema = z.object({
+  isKmItem: z.boolean(),
+})
+
+export const UpdateIsOtherItemSchema = z.object({
+  isOtherItem: z.boolean(),
 })
 
 export const ItemListResponseSchema = z.object({

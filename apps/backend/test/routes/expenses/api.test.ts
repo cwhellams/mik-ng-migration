@@ -172,187 +172,6 @@ describe('POST /expenses (mileage)', () => {
   })
 })
 
-// ── Tests: POST /expenses (fuel claims) — EFNU price cap enforcement ────────────
-
-describe('POST /expenses (fuel price cap)', () => {
-  const insertedClaimIds: string[] = []
-  const JET_A1_CAP_EUR = 1.91 // keep in sync with EFNU_FUEL_PRICE_PER_LITRE.JetA1
-
-  afterEach(async () => {
-    if (insertedClaimIds.length > 0) {
-      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
-      insertedClaimIds.length = 0
-    }
-  })
-
-  async function fuelCategoryId(): Promise<number> {
-    const category = await db
-      .selectFrom('accts.expense_category')
-      .select('id')
-      .where('code', '=', 'fuel')
-      .executeTakeFirstOrThrow()
-    return category.id
-  }
-
-  async function postFuelClaim(body: Record<string, unknown>) {
-    const categoryId = await fuelCategoryId()
-    return request(app)
-      .post('/expenses')
-      .set('Cookie', `accessToken=${memberToken}`)
-      .send({
-        categoryId,
-        title: 'Fuel test',
-        fuelLitres: 100,
-        fuelType: 'JetA1',
-        expenseDate: '2026-07-15',
-        ...body,
-      })
-  }
-
-  it('clamps an EUR unit price above the EFNU cap down to the cap', async () => {
-    const res = await postFuelClaim({
-      currency: 'EUR',
-      lineItems: [
-        {
-          itemId: null,
-          description: '100 l JetA1',
-          date: '2026-07-16',
-          quantity: 100,
-          unit: 'l',
-          unitPrice: 5, // way above the 1.91 EUR/litre cap
-          fuelType: 'JetA1',
-          costCentreCode: 'OH-STL',
-          sortOrder: 0,
-        },
-      ],
-    })
-
-    expect(res.status).toBe(201)
-    insertedClaimIds.push(res.body.id)
-    expect(res.body.lineItems[0].unitPrice).toBeCloseTo(JET_A1_CAP_EUR, 2)
-  })
-
-  it('leaves an EUR unit price at or below the cap untouched', async () => {
-    const res = await postFuelClaim({
-      currency: 'EUR',
-      lineItems: [
-        {
-          itemId: null,
-          description: '100 l JetA1',
-          date: '2026-07-16',
-          quantity: 100,
-          unit: 'l',
-          unitPrice: 1.5,
-          fuelType: 'JetA1',
-          costCentreCode: 'OH-STL',
-          sortOrder: 0,
-        },
-      ],
-    })
-
-    expect(res.status).toBe(201)
-    insertedClaimIds.push(res.body.id)
-    expect(res.body.lineItems[0].unitPrice).toBeCloseTo(1.5, 2)
-  })
-
-  it('converts the cap into the claim currency before clamping a non-EUR unit price', async () => {
-    const fxRate = 0.041 // 1 CZK ≈ 0.041 EUR
-    // 50 CZK/litre is well above the cap once converted (cap ≈ 46.6 CZK/litre)
-    const res = await postFuelClaim({
-      currency: 'CZK',
-      fxRate,
-      lineItems: [
-        {
-          itemId: null,
-          description: '100 l JetA1',
-          date: '2026-07-16',
-          quantity: 100,
-          unit: 'l',
-          unitPrice: 50,
-          fuelType: 'JetA1',
-          costCentreCode: 'OH-STL',
-          sortOrder: 0,
-        },
-      ],
-    })
-
-    expect(res.status).toBe(201)
-    insertedClaimIds.push(res.body.id)
-    expect(res.body.lineItems[0].unitPrice).toBeCloseTo(JET_A1_CAP_EUR / fxRate, 2)
-  })
-
-  it('leaves a non-EUR unit price below the converted cap untouched', async () => {
-    const fxRate = 0.041
-    const res = await postFuelClaim({
-      currency: 'CZK',
-      fxRate,
-      lineItems: [
-        {
-          itemId: null,
-          description: '100 l JetA1',
-          date: '2026-07-16',
-          quantity: 100,
-          unit: 'l',
-          unitPrice: 10, // well under the ≈46.6 CZK/litre converted cap
-          fuelType: 'JetA1',
-          costCentreCode: 'OH-STL',
-          sortOrder: 0,
-        },
-      ],
-    })
-
-    expect(res.status).toBe(201)
-    insertedClaimIds.push(res.body.id)
-    expect(res.body.lineItems[0].unitPrice).toBeCloseTo(10, 2)
-  })
-
-  it('adds a note to the description when the fuel total is capped', async () => {
-    const res = await postFuelClaim({
-      currency: 'EUR',
-      lineItems: [
-        {
-          itemId: null,
-          description: '100 l JetA1',
-          date: '2026-07-16',
-          quantity: 100,
-          unit: 'l',
-          unitPrice: 5, // above the cap
-          fuelType: 'JetA1',
-          costCentreCode: 'OH-STL',
-          sortOrder: 0,
-        },
-      ],
-    })
-
-    expect(res.status).toBe(201)
-    insertedClaimIds.push(res.body.id)
-    expect(res.body.description).toContain('capped')
-  })
-
-  it('does not add a cap note when the fuel total is not capped', async () => {
-    const res = await postFuelClaim({
-      currency: 'EUR',
-      lineItems: [
-        {
-          itemId: null,
-          description: '100 l JetA1',
-          date: '2026-07-16',
-          quantity: 100,
-          unit: 'l',
-          unitPrice: 1.5, // under the cap
-          fuelType: 'JetA1',
-          costCentreCode: 'OH-STL',
-          sortOrder: 0,
-        },
-      ],
-    })
-
-    expect(res.status).toBe(201)
-    insertedClaimIds.push(res.body.id)
-    expect(res.body.description ?? '').not.toContain('capped')
-  })
-})
-
 // ── Tests: POST /expenses (fuel claims) — per-line-item aircraft requirement ────
 // Aircraft selection for fuel claims moved from the claim-level `aircraftId` field to
 // a per-line-item `costCentreCode` (see V1360 migration). The API must no longer
@@ -486,9 +305,10 @@ describe('POST /expenses (fuel)', () => {
 })
 
 // ── Tests: POST /expenses (fuel claims) — per-line-item quantity/type requirement ─
-// Fuel quantity and type now live on each line item (not once at claim level via the
-// legacy fuelLitres/fuelType fields), so the API must no longer require those
-// claim-level fields, but must still require a fuel type on every fuel line item.
+// Fuel quantity now lives on each line item (not once at claim level via the legacy
+// fuelLitres field), so the API must no longer require that claim-level field. The
+// per-line-item fuelType is optional and no longer enforced (the selected invoice
+// item identifies the fuel instead).
 
 describe('POST /expenses (fuel litres/type)', () => {
   const insertedClaimIds: string[] = []
@@ -543,7 +363,7 @@ describe('POST /expenses (fuel litres/type)', () => {
     expect(res.body.lineItems[0].fuelType).toBe('JetA1')
   })
 
-  it('rejects a fuel claim when a line item has no fuel type', async () => {
+  it('defaults refuelOutsideFinland to false and persists true when set', async () => {
     const categoryId = await fuelCategoryId()
 
     const res = await request(app)
@@ -554,23 +374,112 @@ describe('POST /expenses (fuel litres/type)', () => {
         title: 'Fuel test',
         currency: 'EUR',
         expenseDate: '2026-07-15',
+        refuelOutsideFinland: true,
         lineItems: [
           {
             itemId: null,
-            description: 'Oil top-up',
+            description: '100 l JetA1',
             date: '2026-07-16',
-            quantity: 1,
-            unit: 'pcs',
-            unitPrice: 25,
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
             costCentreCode: 'OH-STL',
             sortOrder: 0,
           },
         ],
       })
 
-    expect(res.status).toBe(400)
-    if (res.status === 201) {
-      insertedClaimIds.push(res.body.id)
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    expect(res.body.refuelOutsideFinland).toBe(true)
+  })
+})
+
+// ── Tests: POST /expenses/:id/override-fuel-price — admin EFNU price override ───
+
+describe('POST /expenses/:id/override-fuel-price', () => {
+  const insertedClaimIds: string[] = []
+
+  afterEach(async () => {
+    if (insertedClaimIds.length > 0) {
+      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      insertedClaimIds.length = 0
     }
+  })
+
+  async function createSubmittedFuelClaim(unitPrice: number): Promise<string> {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', 'fuel')
+      .executeTakeFirstOrThrow()
+
+    const create = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId: category.id,
+        title: 'Fuel test',
+        currency: 'EUR',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: '100 l JetA1',
+            date: '2026-07-16',
+            quantity: 100,
+            unit: 'l',
+            unitPrice,
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+    expect(create.status).toBe(201)
+    insertedClaimIds.push(create.body.id)
+
+    const submit = await request(app)
+      .post(`/expenses/${create.body.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+    expect(submit.status).toBe(200)
+
+    return create.body.id
+  }
+
+  it('caps the line item unit price and notes the cap in the description', async () => {
+    const claimId = await createSubmittedFuelClaim(5)
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/override-fuel-price`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ efnuPrice: 1.91 })
+
+    expect(res.status).toBe(200)
+    expect(res.body.lineItems[0].unitPrice).toBeCloseTo(1.91, 2)
+    expect(res.body.description ?? '').toContain('EFNU fuel price cap')
+  })
+
+  it('rejects the override for a non-fuel claim', async () => {
+    const claimId = await insertClaim(ExpenseClaimStatus.SUBMITTED)
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/override-fuel-price`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ efnuPrice: 1.91 })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects the override for a member without EXPENSE_ADMIN', async () => {
+    const claimId = await createSubmittedFuelClaim(5)
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/override-fuel-price`)
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({ efnuPrice: 1.91 })
+
+    expect(res.status).toBe(403)
   })
 })

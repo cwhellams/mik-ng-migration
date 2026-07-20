@@ -201,9 +201,29 @@ export async function updateExpenseClaimItemFlag(
   id: number,
   expenseClaimItem: boolean,
 ): Promise<void> {
+  await updateItemBooleanFlag(id, 'expense_claim_item', expenseClaimItem)
+}
+
+export async function updateIsFuelItemFlag(id: number, isFuelItem: boolean): Promise<void> {
+  await updateItemBooleanFlag(id, 'is_fuel_item', isFuelItem)
+}
+
+export async function updateIsKmItemFlag(id: number, isKmItem: boolean): Promise<void> {
+  await updateItemBooleanFlag(id, 'is_km_item', isKmItem)
+}
+
+export async function updateIsOtherItemFlag(id: number, isOtherItem: boolean): Promise<void> {
+  await updateItemBooleanFlag(id, 'is_other_item', isOtherItem)
+}
+
+async function updateItemBooleanFlag(
+  id: number,
+  column: 'expense_claim_item' | 'is_fuel_item' | 'is_km_item' | 'is_other_item',
+  value: boolean,
+): Promise<void> {
   const result = await db
     .updateTable('accts.items')
-    .set({ expense_claim_item: expenseClaimItem })
+    .set({ [column]: value })
     .where('id', '=', id)
     .executeTakeFirstOrThrow()
 

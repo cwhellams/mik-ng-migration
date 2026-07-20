@@ -17,6 +17,7 @@ import {
   getExpenseClaimsByMember,
   getPendingExpenseClaimsCount,
   markExpenseClaimPendingInfo,
+  overrideFuelPrice,
   rejectExpenseClaim,
   retractExpenseClaim,
   setExpenseClaimToDraft,
@@ -33,11 +34,10 @@ import type { JWTUser } from '../auth/token.ts'
 import { problem } from '../response.ts'
 import {
   CreateExpenseClaimSchema,
-  EFNU_FUEL_PRICE_PER_LITRE,
   ExpenseClaimFiltersSchema,
   ExpenseClaimStatus,
   ExpenseMessageType,
-  type ExpenseLineItem,
+  OverrideFuelPriceSchema,
   RejectExpenseClaimSchema,
   RequestInfoSchema,
   UpdateExpenseClaimSchema,
@@ -139,7 +139,7 @@ async function requireClaimForUser(req: Request, claimId: string) {
 async function validateCategoryRequirements(data: {
   categoryId?: number
   flightLogId?: string | null
-  lineItems?: { fuelType?: string | null; costCentreCode?: string | null }[]
+  lineItems?: { costCentreCode?: string | null }[]
 }) {
   const categories = await getExpenseCategories()
   const category = categories.find((item) => item.id === data.categoryId)
@@ -148,15 +148,6 @@ async function validateCategoryRequirements(data: {
   }
 
   if (category.code === 'fuel') {
-    // Fuel quantity and type now live on each line item (not once at claim level), so
-    // they're enforced here instead of the old claim-level fuelLitres/fuelType requirement.
-    if ((data.lineItems ?? []).some((item) => !item.fuelType)) {
-      return problem({
-        status: HttpStatusCode.BadRequest,
-        detail: 'Each fuel line item requires a quantity and fuel type.',
-      })
-    }
-
     // Aircraft selection moved from claim-level to per-line-item (see V1360 migration),
     // so it's enforced here instead of the old claim-level aircraftId requirement.
     if ((data.lineItems ?? []).some((item) => !item.costCentreCode)) {
@@ -168,42 +159,6 @@ async function validateCategoryRequirements(data: {
   }
 
   return category
-}
-
-// The EFNU (Nummela) cap is denominated in EUR/litre; unitPrice is stored in the claim's
-// own currency, so the cap must be converted before it can be enforced. This mirrors the
-// frontend clamp in expenseShared.tsx and guards against a modified/replayed request
-// bypassing it.
-function capFuelLineItemPrices(
-  lineItems: ExpenseLineItem[],
-  currency: string | null | undefined,
-  fxRate: number | null | undefined,
-): { lineItems: ExpenseLineItem[]; capped: boolean } {
-  const isNonEur = !!currency && currency !== 'EUR'
-  let capped = false
-  const cappedLineItems = lineItems.map((item) => {
-    if (!item.fuelType) {
-      return item
-    }
-    const capEur = EFNU_FUEL_PRICE_PER_LITRE[item.fuelType]
-    const cap = isNonEur && fxRate ? capEur / fxRate : capEur
-    if (item.unitPrice > cap) {
-      capped = true
-      return { ...item, unitPrice: cap }
-    }
-    return item
-  })
-  return { lineItems: cappedLineItems, capped }
-}
-
-const FUEL_CAP_NOTE =
-  'Note: the fuel total exceeded the EFNU (Nummela) reference price and was capped; any excess is the member’s own responsibility.'
-
-function withFuelCapNote(description: string | undefined, capped: boolean): string | undefined {
-  if (!capped || description?.includes(FUEL_CAP_NOTE)) {
-    return description
-  }
-  return description?.trim() ? `${description}\n\n${FUEL_CAP_NOTE}` : FUEL_CAP_NOTE
 }
 
 async function syncMemberIbanFromClaim(
@@ -296,13 +251,6 @@ router.post(
 
     // Auto-populate IBAN from member profile if not supplied in request
     const claimData = { ...data }
-    const { lineItems: cappedLineItems, capped } = capFuelLineItemPrices(
-      claimData.lineItems,
-      claimData.currency,
-      claimData.fxRate,
-    )
-    claimData.lineItems = cappedLineItems
-    claimData.description = withFuelCapNote(claimData.description, capped)
     if (!claimData.iban) {
       const member = await getMemberById(req.user!.memberId)
       if (member?.iban) {
@@ -364,18 +312,6 @@ router.put(
       flightLogId: patch.flightLogId ?? existing.flightLogId ?? undefined,
       lineItems: patch.lineItems ?? existing.lineItems,
     })
-    if (patch.lineItems) {
-      const { lineItems: cappedLineItems, capped } = capFuelLineItemPrices(
-        patch.lineItems,
-        patch.currency ?? existing.currency,
-        patch.fxRate ?? existing.fxRate,
-      )
-      patch.lineItems = cappedLineItems
-      patch.description = withFuelCapNote(
-        patch.description ?? existing.description ?? undefined,
-        capped,
-      )
-    }
 
     const claim = await updateExpenseClaim(req.params.id, patch, req.user!)
     await syncMemberIbanFromClaim(req.user!, claim?.iban, claim?.ibanAccountName)
@@ -669,6 +605,34 @@ router.post(
         logger.error('Failed to send expense rejection email', error)
       })
     }
+
+    res.status(HttpStatusCode.Ok).json(await getExpenseClaimById(req.params.id))
+  },
+)
+
+router.post(
+  '/:id/override-fuel-price',
+  validateUser(MIKPermissions.EXPENSE_ADMIN),
+  async (req: Request, res: Response) => {
+    const claim = await requireClaimForUser(req, req.params.id)
+    if (claim.categoryCode !== 'fuel') {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'EFNU fuel price override only applies to fuel claims.',
+      })
+    }
+    if (![ExpenseClaimStatus.SUBMITTED, ExpenseClaimStatus.PENDING_INFO].includes(claim.status)) {
+      return problem({ status: HttpStatusCode.Conflict, detail: 'Claim is not awaiting approval.' })
+    }
+
+    const { efnuPrice } = OverrideFuelPriceSchema.parse(req.body)
+    await overrideFuelPrice(req.params.id, efnuPrice)
+    await addExpenseMessage(
+      claim.id,
+      req.user!.memberId,
+      ExpenseMessageType.SYSTEM,
+      `EFNU fuel price cap of ${efnuPrice.toFixed(2)} EUR/L applied by administrator.`,
+    )
 
     res.status(HttpStatusCode.Ok).json(await getExpenseClaimById(req.params.id))
   },

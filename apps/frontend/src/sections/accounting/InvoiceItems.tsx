@@ -20,7 +20,16 @@ import { ResponsiveTable } from '../../components/ResponsiveTable'
 import Grid from '@mui/system/Grid'
 
 type SortKey =
-  'id' | 'code' | 'name' | 'markup_value' | 'markup_type' | 'unit' | 'expense_claim_item'
+  | 'id'
+  | 'code'
+  | 'name'
+  | 'markup_value'
+  | 'markup_type'
+  | 'unit'
+  | 'expense_claim_item'
+  | 'is_fuel_item'
+  | 'is_km_item'
+  | 'is_other_item'
 type SortDir = 'asc' | 'desc'
 
 function sortItems(items: Item[], key: SortKey, dir: SortDir): Item[] {
@@ -68,6 +77,21 @@ export const InvoiceItemsPage: React.FC = () => {
     if (res.data) mutate()
   }
 
+  const handleIsFuelItemToggle = async (itemId: number, checked: boolean) => {
+    const res = await mutation.trigger('PATCH', { isFuelItem: checked }, `${itemId}/is-fuel-item`)
+    if (res.data) mutate()
+  }
+
+  const handleIsKmItemToggle = async (itemId: number, checked: boolean) => {
+    const res = await mutation.trigger('PATCH', { isKmItem: checked }, `${itemId}/is-km-item`)
+    if (res.data) mutate()
+  }
+
+  const handleIsOtherItemToggle = async (itemId: number, checked: boolean) => {
+    const res = await mutation.trigger('PATCH', { isOtherItem: checked }, `${itemId}/is-other-item`)
+    if (res.data) mutate()
+  }
+
   const sortedItems = useMemo(
     () => (data?.items ? sortItems(data.items, sortKey, sortDir) : undefined),
     [data?.items, sortKey, sortDir],
@@ -78,7 +102,12 @@ export const InvoiceItemsPage: React.FC = () => {
       active={sortKey === key}
       direction={sortKey === key ? sortDir : 'asc'}
       onClick={() => handleSort(key)}
-      sx={{ fontWeight: 'inherit', fontSize: 'inherit' }}
+      sx={{
+        fontWeight: 'inherit',
+        fontSize: 'inherit',
+        whiteSpace: 'normal',
+        textAlign: 'inherit',
+      }}
     >
       {label}
     </TableSortLabel>
@@ -123,12 +152,21 @@ export const InvoiceItemsPage: React.FC = () => {
           <>
             <Grid size={{ xs: 3, md: 1 }}>{col('id', t('invoiceItems.id'))}</Grid>
             <Grid size={{ xs: 9, md: 2 }}>{col('code', t('invoiceItems.code'))}</Grid>
-            <Grid size={{ xs: 12, md: 4 }}>{col('name', t('invoiceItems.name'))}</Grid>
+            <Grid size={{ xs: 12, md: 2 }}>{col('name', t('invoiceItems.name'))}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{col('markup_value', t('invoiceItems.markup'))}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{col('markup_type', t('invoiceItems.type'))}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{col('unit', t('invoiceItems.unit'))}</Grid>
-            <Grid size={{ xs: 12, md: 2 }} sx={{ textAlign: 'right' }}>
+            <Grid size={{ xs: 12, md: 1 }} sx={{ textAlign: 'right' }}>
               {col('expense_claim_item', t('invoiceItems.expenseClaimItem'))}
+            </Grid>
+            <Grid size={{ xs: 4, md: 1 }} sx={{ textAlign: 'right' }}>
+              {col('is_fuel_item', t('invoiceItems.isFuelItem'))}
+            </Grid>
+            <Grid size={{ xs: 4, md: 1 }} sx={{ textAlign: 'right' }}>
+              {col('is_km_item', t('invoiceItems.isKmItem'))}
+            </Grid>
+            <Grid size={{ xs: 4, md: 1 }} sx={{ textAlign: 'right' }}>
+              {col('is_other_item', t('invoiceItems.isOtherItem'))}
             </Grid>
           </>
         }
@@ -138,7 +176,7 @@ export const InvoiceItemsPage: React.FC = () => {
             <Grid size={{ xs: 3, md: 1 }}>{item.id}</Grid>
             <Grid size={{ xs: 9, md: 2 }}>{item.code}</Grid>
             <Grid
-              size={{ xs: 12, md: 4 }}
+              size={{ xs: 12, md: 2 }}
               sx={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
             >
               {item.name}
@@ -146,7 +184,7 @@ export const InvoiceItemsPage: React.FC = () => {
             <Grid size={{ xs: 4, md: 1 }}>{eurFormatter.format(item.markup_value ?? 0)}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{item.markup_type ?? 'N/A'}</Grid>
             <Grid size={{ xs: 4, md: 1 }}>{item.unit ?? 'N/A'}</Grid>
-            <Grid size={{ xs: 12, md: 2 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Grid size={{ xs: 12, md: 1 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               <FormControlLabel
                 sx={{ ml: 0, mr: 0 }}
                 labelPlacement='start'
@@ -156,6 +194,45 @@ export const InvoiceItemsPage: React.FC = () => {
                     onChange={(e) =>
                       void handleExpenseClaimItemToggle(item.id, e.currentTarget.checked)
                     }
+                  />
+                }
+                label=''
+              />
+            </Grid>
+            <Grid size={{ xs: 4, md: 1 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <FormControlLabel
+                sx={{ ml: 0, mr: 0 }}
+                labelPlacement='start'
+                control={
+                  <Switch
+                    checked={Boolean(item.is_fuel_item)}
+                    onChange={(e) => void handleIsFuelItemToggle(item.id, e.currentTarget.checked)}
+                  />
+                }
+                label=''
+              />
+            </Grid>
+            <Grid size={{ xs: 4, md: 1 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <FormControlLabel
+                sx={{ ml: 0, mr: 0 }}
+                labelPlacement='start'
+                control={
+                  <Switch
+                    checked={Boolean(item.is_km_item)}
+                    onChange={(e) => void handleIsKmItemToggle(item.id, e.currentTarget.checked)}
+                  />
+                }
+                label=''
+              />
+            </Grid>
+            <Grid size={{ xs: 4, md: 1 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <FormControlLabel
+                sx={{ ml: 0, mr: 0 }}
+                labelPlacement='start'
+                control={
+                  <Switch
+                    checked={Boolean(item.is_other_item)}
+                    onChange={(e) => void handleIsOtherItemToggle(item.id, e.currentTarget.checked)}
                   />
                 }
                 label=''

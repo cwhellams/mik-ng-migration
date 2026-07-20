@@ -18,6 +18,7 @@ import {
   Step,
   StepLabel,
   Stepper,
+  Switch,
   TextField,
   Tooltip,
   Typography,
@@ -66,6 +67,7 @@ type WizardForm = {
   iban: string
   ibanAccountName: string
   lineItems: EditableLineItem[]
+  refuelOutsideFinland: boolean
 }
 
 const defaultForm: WizardForm = {
@@ -76,6 +78,7 @@ const defaultForm: WizardForm = {
   iban: '',
   ibanAccountName: '',
   lineItems: [makeDefaultLineItem()],
+  refuelOutsideFinland: false,
 }
 
 // ─── Step keys ────────────────────────────────────────────────────────────────
@@ -147,9 +150,14 @@ export default function ExpenseClaimWizard() {
   const expenseClaimItems = useMemo(
     () =>
       (invoiceItemsData?.items ?? [])
-        .filter((item) => item.expense_claim_item)
+        .filter((item) => {
+          if (!item.expense_claim_item) return false
+          if (isFuel) return item.is_fuel_item
+          if (isMileage) return item.is_km_item
+          return item.is_other_item
+        })
         .map((item) => ({ id: item.id, code: item.code, name: item.name })),
-    [invoiceItemsData?.items],
+    [invoiceItemsData?.items, isFuel, isMileage],
   )
   const stepLabels = useWizardSteps(isFuel, isMileage)
 
@@ -607,6 +615,16 @@ export default function ExpenseClaimWizard() {
               )}
             </Stack>
           )}
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={form.refuelOutsideFinland}
+                onChange={(e) => setForm((c) => ({ ...c, refuelOutsideFinland: e.target.checked }))}
+              />
+            }
+            label={t('expenses.fields.refuelOutsideFinland')}
+          />
         </Stack>
       )
     }
@@ -711,6 +729,12 @@ export default function ExpenseClaimWizard() {
               {isFuel && fuelForFlight && form.flightLogId && (
                 <Typography variant='body2'>
                   <b>{t('expenses.wizard.flightLogId')}:</b> #{form.flightLogId}
+                </Typography>
+              )}
+              {isFuel && (
+                <Typography variant='body2'>
+                  <b>{t('expenses.fields.refuelOutsideFinland')}:</b>{' '}
+                  {form.refuelOutsideFinland ? t('common.yes') : t('common.no')}
                 </Typography>
               )}
               {isMileage && mileageDetail.distanceKm && (

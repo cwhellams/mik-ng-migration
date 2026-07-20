@@ -798,6 +798,9 @@
     "type": "Tyyppi",
     "unit": "Yksikkö",
     "expenseClaimItem": "Kulukorvauksen tuote",
+    "isFuelItem": "Polttoaine",
+    "isKmItem": "Km/Kilometrikorvaus",
+    "isOtherItem": "Muu",
     "dates": {
       "sent": "Lähetetty:",
       "due": "Eräpäivä:"
@@ -2219,6 +2222,7 @@
       "aircraftOptional": "— Ei ilma-alusta —",
       "fuelLitres": "Polttoaine (litraa)",
       "fuelType": "Polttoainetyyppi",
+      "refuelOutsideFinland": "Tankattu Suomen ulkopuolella",
       "lineItems": "Rivit",
       "receipt": "Kuitti",
       "totalAmount": "Yhteensä",
@@ -2247,7 +2251,8 @@
       "delete": "Poista",
       "addLineItem": "Lisää rivi",
       "removeLineItem": "Poista",
-      "uploadReceipt": "Lataa kuitti"
+      "uploadReceipt": "Lataa kuitti",
+      "overrideFuelPrice": "Ohita polttoaineen hinta"
     },
     "deleteDialog": {
       "title": "Poistetaanko luonnos?",
@@ -2296,7 +2301,6 @@
         "date": "Päivämäärä",
         "qty": "Määrä",
         "litres": "Litraa",
-        "fuelType": "Polttoainetyyppi",
         "unit": "Yksikkö",
         "currency": "Valuutta",
         "costCentre": "Ilma-alus",
@@ -2304,7 +2308,6 @@
         "totalCost": "Kokonaishinta",
         "fxRate": "Valuuttakurssi"
       },
-      "fuelCapWarning": "Rajattu EFNU-hintaan ({{cap}}) — vastaat itse ylittävästä osasta.",
       "review": {
         "claim": "Hakemuksen tiedot"
       }
@@ -2323,7 +2326,9 @@
       "ibanRequired": "IBAN on pakollinen korvauksen maksamiseksi",
       "zeroTotal": "Kokonaissumman on oltava suurempi kuin nolla",
       "ibanAccountNameRequired": "Tilinomistajan nimi on pakollinen",
-      "expenseDateRequired": "Kulupäivämäärä on pakollinen"
+      "expenseDateRequired": "Kulupäivämäärä on pakollinen",
+      "efnuPriceLabel": "EFNU-polttoainehinta (EUR/litra)",
+      "efnuPriceOverridden": "EFNU-polttoainehintakatto sovellettu"
     },
     "validation": {
       "descriptionRequired": "Kuvaus on pakollinen",
