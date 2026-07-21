@@ -7,14 +7,13 @@
  * Configuration for individual load points (weight stations) in the aircraft
  */
 export interface LoadPointConfig {
-  name: string
-  translationFi: string
   unit: string
   defaultValue?: number
   value?: number
   minValue?: number
   maxValue?: number
-  momentArm: number
+  /** Absent for fuel-planning inputs (fuelFlow, flightTime, endurance) that aren't physical stations. */
+  momentArm?: number
   step?: number
   editable: boolean
 }

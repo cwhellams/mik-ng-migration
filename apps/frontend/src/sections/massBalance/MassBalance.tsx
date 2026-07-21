@@ -17,31 +17,23 @@ import {
 } from '@mui/material'
 import WarningIcon from '@mui/icons-material/Warning'
 import { useTranslation } from 'react-i18next'
-import {
-  loadAircraftSpecs,
-  AircraftSpecs,
-  CONVERSIONS,
-  isPointInFlightEnvelope,
-} from './components/specsParser'
+import { loadAircraftSpecs, AircraftSpecs, CONVERSIONS } from './components/specsParser'
 import WeightBalanceEnvelope from './components/WeightBalanceEnvelope'
 import WeightSlider from './components/WeightSlider'
-import { useMassBalanceState, type WeightPosition } from '../../hooks/useMassBalanceState'
+import { useMassBalanceState } from '../../hooks/useMassBalanceState'
 import { Title } from '../../components/Title'
+import {
+  calculateMassBalance,
+  getWeightBalanceStatus,
+  type CalculationResults,
+  type WeightBalanceStatus,
+} from './lib/massBalanceCalculations'
 
-interface CalculationResults {
-  zeroFuelWeight: number
-  zeroFuelMoment: number
-  zeroFuelCG: number
-  rampWeight: number
-  takeoffWeight: number
-  takeoffMoment: number
-  takeoffCG: number
-  landingWeight: number
-  landingMoment: number
-  landingCG: number
-  endurance: number
-  isValid: boolean
-  warnings: string[]
+const STATUS_DISPLAY: Record<WeightBalanceStatus, { message: string; color: string }> = {
+  unknown: { message: 'Calculating...', color: 'grey.500' },
+  over: { message: 'Over Limits', color: 'error.main' },
+  near: { message: 'Near Limits', color: 'warning.main' },
+  within: { message: 'Within Limits', color: 'success.main' },
 }
 
 /**
@@ -90,66 +82,7 @@ const MassBalance: React.FC = () => {
   const [selectedAircraft, setSelectedAircraft] = useState<AircraftSpecs | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  // Aggregated values for calculations
-  const [frontSeats, setFrontSeats] = useState<WeightPosition>({
-    weight: 0,
-    arm: 0,
-  })
-  const [totalFuelBurn, setTotalFuelBurn] = useState<number>(0)
-  const [totalFuelBurnWeight, setTotalFuelBurnWeight] = useState<number>(0)
-
   const [results, setResults] = useState<CalculationResults | null>(null)
-
-  // Function to get W&B validation status
-  const getWeightBalanceStatus = () => {
-    if (!results || !selectedAircraft) {
-      return { status: 'unknown', message: 'Calculating...', color: 'grey.500' }
-    }
-
-    // Check if takeoff weight exceeds maximum
-    if (results.takeoffWeight > selectedAircraft.weightLimits.maxTakeoff) {
-      return { status: 'over', message: 'Over Limits', color: 'error.main' }
-    }
-
-    // Check if landing weight exceeds maximum
-    const maxLanding =
-      selectedAircraft.weightLimits.maxLanding || selectedAircraft.weightLimits.maxTakeoff
-    if (results.landingWeight > maxLanding) {
-      return { status: 'over', message: 'Over Limits', color: 'error.main' }
-    }
-
-    // Check if CG is outside envelope
-    const takeoffInEnvelope = isPointInFlightEnvelope(
-      selectedAircraft,
-      results.takeoffWeight,
-      results.takeoffCG,
-    )
-    const landingInEnvelope = isPointInFlightEnvelope(
-      selectedAircraft,
-      results.landingWeight,
-      results.landingCG,
-    )
-
-    if (!takeoffInEnvelope || !landingInEnvelope) {
-      return {
-        status: 'over',
-        message: 'CG Outside Limits',
-        color: 'error.main',
-      }
-    }
-
-    // Check if near limits (configurable threshold)
-    const nearLimitThreshold = selectedAircraft.warningThresholds.nearLimitPercent
-    if (
-      results.takeoffWeight >= selectedAircraft.weightLimits.maxTakeoff * nearLimitThreshold ||
-      results.landingWeight >= maxLanding * nearLimitThreshold
-    ) {
-      return { status: 'near', message: 'Near Limits', color: 'warning.main' }
-    }
-
-    // All good
-    return { status: 'within', message: 'Within Limits', color: 'success.main' }
-  }
 
   // Load aircraft specifications and initialize/update values
   useEffect(() => {
@@ -175,19 +108,19 @@ const MassBalance: React.FC = () => {
         // load even when there is no saved state in localStorage.
         updatePilot({
           weight: currentState?.pilot?.weight || specs.loadPoints.pilot.defaultValue || 80,
-          arm: specs.loadPoints.pilot.momentArm,
+          arm: specs.loadPoints.pilot.momentArm ?? 0,
         })
 
         updateCopilot({
           weight: currentState?.copilot?.weight || specs.loadPoints.copilot.defaultValue || 0,
-          arm: specs.loadPoints.copilot.momentArm,
+          arm: specs.loadPoints.copilot.momentArm ?? 0,
         })
 
         // Handle rear seats
         if (specs.loadPoints.rearSeat) {
           updateRearSeat({
             weight: currentState?.rearSeats?.weight || specs.loadPoints.rearSeat.defaultValue || 0,
-            arm: specs.loadPoints.rearSeat.momentArm,
+            arm: specs.loadPoints.rearSeat.momentArm ?? 0,
           })
         } else {
           // Reset rear seat weight to 0 if aircraft doesn't have rear seats
@@ -199,13 +132,13 @@ const MassBalance: React.FC = () => {
 
         updateBaggage({
           weight: currentState?.baggage?.weight || specs.loadPoints.baggage.defaultValue || 10,
-          arm: specs.loadPoints.baggage.momentArm,
+          arm: specs.loadPoints.baggage.momentArm ?? 0,
         })
 
         updateFuel({
           litres: currentState?.fuel?.litres || specs.loadPoints.fuel.defaultValue || 30,
           weight: currentState?.fuel?.weight || 0,
-          arm: specs.loadPoints.fuel.momentArm,
+          arm: specs.loadPoints.fuel.momentArm ?? 0,
         })
 
         // Update fuel parameters only if they haven't been changed from defaults
@@ -247,143 +180,26 @@ const MassBalance: React.FC = () => {
     }
   }, [fuel.litres, selectedAircraft, updateFuel, fuel.arm])
 
-  // Calculate aggregated front seats
+  // Recalculate weight & balance whenever any load or fuel-planning input changes
   useEffect(() => {
-    const totalWeight = pilot.weight + copilot.weight
-    const totalMoment = pilot.weight * pilot.arm + copilot.weight * copilot.arm
-    const avgArm = totalWeight > 0 ? totalMoment / totalWeight : pilot.arm
-    setFrontSeats({ weight: totalWeight, arm: avgArm })
-  }, [pilot, copilot])
-
-  // Calculate total fuel burn and weight
-  useEffect(() => {
-    const calculatedFuelBurn = taxiFuel + (flightTime / 60) * fuelFlow
-    setTotalFuelBurn(calculatedFuelBurn)
-
-    if (selectedAircraft) {
-      const fuelWeight = calculatedFuelBurn * selectedAircraft.fuelConversion.litre2Kilo
-      setTotalFuelBurnWeight(fuelWeight)
-    }
-  }, [taxiFuel, flightTime, fuelFlow, selectedAircraft])
-
-  useEffect(() => {
-    if (!selectedAircraft) return
-
-    const calculateResults = () => {
-      const warnings: string[] = []
-
-      // Check individual load limits
-      if (pilot.weight > selectedAircraft.loadPoints.pilot.maxValue!) {
-        warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
-      }
-      if (copilot.weight > selectedAircraft.loadPoints.copilot.maxValue!) {
-        warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
-      }
-      if (
-        selectedAircraft.loadPoints.rearSeat &&
-        rearSeats.weight > selectedAircraft.loadPoints.rearSeat.maxValue!
-      ) {
-        warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
-      }
-      if (
-        fuel.weight >
-        selectedAircraft.loadPoints.fuel.maxValue! * selectedAircraft.fuelConversion.litre2Kilo
-      ) {
-        warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
-      }
-      if (baggage.weight > selectedAircraft.loadPoints.baggage.maxValue!) {
-        warnings.push(t('massBalance.warnings.loadExceedsMaximum'))
-      }
-
-      // Calculate zero fuel weight and moment
-      const zeroFuelWeight =
-        selectedAircraft.weightLimits.basicEmptyWeight +
-        frontSeats.weight +
-        rearSeats.weight +
-        baggage.weight
-      const basicArm = selectedAircraft.loadPoints.basicEmptyWeight.momentArm
-      const zeroFuelMoment =
-        selectedAircraft.weightLimits.basicEmptyWeight * basicArm +
-        frontSeats.weight * frontSeats.arm +
-        rearSeats.weight * rearSeats.arm +
-        baggage.weight * baggage.arm
-
-      const zeroFuelCG = zeroFuelWeight > 0 ? zeroFuelMoment / zeroFuelWeight : 0
-
-      // Calculate takeoff weight and moment (subtract taxi fuel used on ground)
-      const taxiFuelWeight = taxiFuel * selectedAircraft.fuelConversion.litre2Kilo
-      const rampWeight = zeroFuelWeight + fuel.weight
-      const takeoffWeight = rampWeight - taxiFuelWeight
-      const takeoffMoment = zeroFuelMoment + fuel.weight * fuel.arm - taxiFuelWeight * fuel.arm
-      const takeoffCG = takeoffWeight > 0 ? takeoffMoment / takeoffWeight : 0
-
-      // Calculate landing weight and moment
-      const landingWeight = rampWeight - totalFuelBurn * selectedAircraft.fuelConversion.litre2Kilo
-      const landingMoment =
-        takeoffMoment - totalFuelBurn * selectedAircraft.fuelConversion.litre2Kilo * fuel.arm
-      const landingCG = landingWeight > 0 ? landingMoment / landingWeight : 0
-
-      // Calculate endurance
-      const availableFuel = fuel.litres - taxiFuel
-      const endurance = fuelFlow > 0 ? availableFuel / fuelFlow : 0
-
-      // Validation checks
-      let isValid = true
-
-      if (takeoffWeight > selectedAircraft.weightLimits.maxTakeoff) {
-        warnings.push(t('massBalance.warnings.takeoffWeightExceeded'))
-        isValid = false
-      }
-
-      if (landingWeight > selectedAircraft.weightLimits.maxLanding) {
-        warnings.push(t('massBalance.warnings.landingWeightExceeded'))
-        isValid = false
-      }
-
-      // Use flight envelope validation instead of simple CG limits
-      if (!isPointInFlightEnvelope(selectedAircraft, takeoffWeight, takeoffCG)) {
-        warnings.push(t('massBalance.warnings.takeoffCGOutOfLimits'))
-        isValid = false
-      }
-
-      if (!isPointInFlightEnvelope(selectedAircraft, landingWeight, landingCG)) {
-        warnings.push(t('massBalance.warnings.landingCGOutOfLimits'))
-        isValid = false
-      }
-
-      setResults({
-        rampWeight,
-        zeroFuelWeight,
-        zeroFuelMoment,
-        zeroFuelCG,
-        takeoffWeight,
-        takeoffMoment,
-        takeoffCG,
-        landingWeight,
-        landingMoment,
-        landingCG,
-        endurance,
-        isValid,
-        warnings,
-      })
+    if (!selectedAircraft) {
+      setResults(null)
+      return
     }
 
-    calculateResults()
-  }, [
-    selectedAircraft,
-    frontSeats,
-    rearSeats,
-    baggage,
-    fuel,
-    totalFuelBurn,
-    taxiFuel,
-    fuelFlow,
-    flightTime,
-    t,
-    pilot.weight,
-    copilot.weight,
-    rearSeats.weight,
-  ])
+    setResults(
+      calculateMassBalance(selectedAircraft, {
+        pilot,
+        copilot,
+        rearSeats,
+        baggage,
+        fuel,
+        taxiFuel,
+        fuelFlow,
+        flightTime,
+      }),
+    )
+  }, [selectedAircraft, pilot, copilot, rearSeats, baggage, fuel, taxiFuel, fuelFlow, flightTime])
 
   const handleInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     event.target.select()
@@ -659,10 +475,10 @@ const MassBalance: React.FC = () => {
                   <Typography variant='h6' component='div'>
                     Total Fuel Burn
                   </Typography>
-                  <Typography variant='h4'>{totalFuelBurn.toFixed(1)} L</Typography>
+                  <Typography variant='h4'>{results.totalFuelBurnLitres.toFixed(1)} L</Typography>
                   <Typography variant='body2'>
-                    ({(totalFuelBurn * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG) -{' '}
-                    {totalFuelBurnWeight.toFixed(1)} kg
+                    ({(results.totalFuelBurnLitres * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG) -{' '}
+                    {results.totalFuelBurnWeight.toFixed(1)} kg
                   </Typography>
                 </CardContent>
               </Card>
@@ -1075,9 +891,9 @@ const MassBalance: React.FC = () => {
             {/* Consumed Fuel */}
             <Box sx={{ mb: 2 }}>
               <Typography variant='caption' sx={{ mb: 1, display: 'block', fontWeight: 'bold' }}>
-                Consumed Fuel: {totalFuelBurn.toFixed(1)} L (
-                {(totalFuelBurn * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG) -{' '}
-                {totalFuelBurnWeight.toFixed(1)} kg
+                Consumed Fuel: {(results?.totalFuelBurnLitres ?? 0).toFixed(1)} L (
+                {((results?.totalFuelBurnLitres ?? 0) * CONVERSIONS.LTR_TO_USG).toFixed(1)} USG) -{' '}
+                {(results?.totalFuelBurnWeight ?? 0).toFixed(1)} kg
               </Typography>
               <Typography
                 variant='caption'
@@ -1087,7 +903,7 @@ const MassBalance: React.FC = () => {
                   fontStyle: 'italic',
                 }}
               >
-                Taxi: {taxiFuel} L + Flight: {((flightTime / 60) * fuelFlow).toFixed(1)} L
+                Taxi: {taxiFuel} L + Flight: {(results?.flightFuelLitres ?? 0).toFixed(1)} L
               </Typography>
             </Box>
           </Paper>
@@ -1100,7 +916,7 @@ const MassBalance: React.FC = () => {
               Weight & Balance Status
             </Typography>
             {(() => {
-              const status = getWeightBalanceStatus()
+              const status = STATUS_DISPLAY[getWeightBalanceStatus(results, selectedAircraft)]
               return (
                 <Card
                   sx={{

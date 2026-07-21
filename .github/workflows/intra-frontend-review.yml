@@ -66,6 +66,10 @@ jobs:
         working-directory: apps/frontend
         run: pnpm run build
 
+      - name: Run tests
+        working-directory: apps/frontend
+        run: pnpm run test
+
       - name: Check for Security Vulnerabilities
         working-directory: apps/frontend
         run: pnpm audit --audit-level=high || echo "Security issues found with NPM packages"
