@@ -2304,10 +2304,12 @@
         "unit": "Yksikkö",
         "currency": "Valuutta",
         "costCentre": "Ilma-alus",
-        "unitPrice": "Yksikköhinta",
-        "totalCost": "Kokonaishinta",
+        "unitPrice": "Yksikköhinta ({{currency}})",
+        "totalCost": "Kokonaishinta ({{currency}})",
         "fxRate": "Valuuttakurssi"
       },
+      "totalCostTooltip": "Syötä kokonaishinta valuutassa {{currency}}",
+      "unitPriceTooltip": "Syötä yksikköhinta valuutassa {{currency}}",
       "review": {
         "claim": "Hakemuksen tiedot"
       }

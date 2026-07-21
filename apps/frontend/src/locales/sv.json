@@ -2271,10 +2271,12 @@
         "unit": "Enhet",
         "currency": "Valuta",
         "costCentre": "Flygplan",
-        "unitPrice": "Á-pris",
-        "totalCost": "Totalkostnad",
+        "unitPrice": "Á-pris ({{currency}})",
+        "totalCost": "Totalkostnad ({{currency}})",
         "fxRate": "Valutakurs"
       },
+      "totalCostTooltip": "Ange totalkostnad i {{currency}}",
+      "unitPriceTooltip": "Ange á-pris i {{currency}}",
       "review": {
         "claim": "Anspråksinformation"
       }

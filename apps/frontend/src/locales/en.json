@@ -2298,10 +2298,12 @@
         "unit": "Unit",
         "currency": "Currency",
         "costCentre": "Aircraft",
-        "unitPrice": "Unit price",
-        "totalCost": "Total cost",
+        "unitPrice": "Unit price ({{currency}})",
+        "totalCost": "Total cost ({{currency}})",
         "fxRate": "FX rate"
       },
+      "totalCostTooltip": "Enter total cost in {{currency}}",
+      "unitPriceTooltip": "Enter unit price in {{currency}}",
       "review": {
         "claim": "Claim details"
       }

@@ -232,7 +232,33 @@ export function LineItemsTable({
               {isFuel ? t('expenses.wizard.col.litres') : t('expenses.wizard.col.qty')}
             </TableCell>
             <TableCell sx={{ minWidth: 120 }}>
-              {isFuel ? t('expenses.wizard.col.totalCost') : t('expenses.wizard.col.unitPrice')}
+              {isFuel ? (
+                <Stack direction='row' spacing={0.5} alignItems='center'>
+                  <span>
+                    {t('expenses.wizard.col.totalCost', { currency: claimCurrency ?? 'EUR' })}
+                  </span>
+                  <Tooltip
+                    title={t('expenses.wizard.totalCostTooltip', {
+                      currency: claimCurrency ?? 'EUR',
+                    })}
+                  >
+                    <Icon icon='mdi:help-circle-outline' width={16} />
+                  </Tooltip>
+                </Stack>
+              ) : (
+                <Stack direction='row' spacing={0.5} alignItems='center'>
+                  <span>
+                    {t('expenses.wizard.col.unitPrice', { currency: claimCurrency ?? 'EUR' })}
+                  </span>
+                  <Tooltip
+                    title={t('expenses.wizard.unitPriceTooltip', {
+                      currency: claimCurrency ?? 'EUR',
+                    })}
+                  >
+                    <Icon icon='mdi:help-circle-outline' width={16} />
+                  </Tooltip>
+                </Stack>
+              )}
             </TableCell>
             {expenseClaimItems && (
               <TableCell sx={{ minWidth: 180 }}>{t('expenses.wizard.col.itemId')}</TableCell>
