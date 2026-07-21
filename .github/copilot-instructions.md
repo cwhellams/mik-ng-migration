@@ -198,6 +198,28 @@ When a browser opens and shows the login screen, test both users:
 4. After login, use the admin/sudo toggle in the header (the admin/user icon; check its tooltip text if needed) to activate admin privileges
 5. Verify admin features are accessible at http://localhost:5173/
 
+## Changelogs
+
+Changelog files live in `changelogs/` at the repo root, one file per comparison, named:
+
+```
+changelogs/CHANGELOG-<from-version>-to-<to-version>.md
+```
+
+e.g. `changelogs/CHANGELOG-v1.1.70-to-v1.1.112.md`. Never overwrite an existing changelog file — each comparison gets its own file. Do not maintain a single running `CHANGELOG.md`.
+
+When asked to generate a changelog:
+
+1. Determine the version range: default the "from" version to the latest production release tag (`git tag -l` sorted by version, e.g. `vX.Y.Z`) unless the user specifies otherwise. The "to" version is the current `version` in the root `package.json` (or the version being released, if generating as part of a version bump).
+2. Gather the changes with `git log <from-tag>..HEAD --oneline --no-merges`, focusing on commits/PR titles matching `(#NNN)` — these correspond to merged PRs and are the unit of a changelog entry. Ignore version-bump-only commits (e.g. `V1 1 78 (#885)`).
+3. Group the output into three sections, most important first:
+   - **Major features** — new user-facing capabilities or modules. One bullet per feature, succinct (what it does, not implementation detail).
+   - **Notable fixes & security** — bug fixes or security fixes with real user/operational impact (data integrity, incorrect calculations, security leaks, broken workflows). Skip cosmetic or trivial fixes here.
+   - **Minor changes** — a sub-list (not full bullets) for everything else worth mentioning but not important enough for the sections above: small bug fixes, validation tweaks, dependency bumps, CI/deploy fixes, minor UX tweaks.
+4. Skip pure chores with no user-visible effect (formatting-only commits, routine Dependabot bumps beyond one summary line, individual iterative "fix: address review feedback" commits that are part of an already-listed PR).
+5. If unsure whether something is major or minor, put it in the minor changes sub-list rather than omitting it or inflating the major list.
+6. Save the result to `changelogs/CHANGELOG-<from-version>-to-<to-version>.md` using the same structure as existing changelog files in that folder.
+
 ## CI/CD Requirements
 
 The GitHub Actions workflows require:
