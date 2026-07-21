@@ -17,12 +17,14 @@ import {
   Autocomplete,
   FormHelperText,
   Alert,
+  Typography,
 } from '@mui/material'
 import useApi, { MutateMethods } from '../../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { mutate } from 'swr'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
+import { ConfirmDialog } from '../../../components/ConfirmDialog'
 import { Upsert } from '@backend/types/schema'
 import {
   Booking,
@@ -32,6 +34,7 @@ import {
   BookingUpsertRequest,
   CancellationReason,
   CancellationRequest,
+  TransferBookingRequest,
 } from '@backend/routes/bookings/models'
 import dayjs from 'dayjs'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker/DateTimePicker'
@@ -55,6 +58,7 @@ import {
   getEffectiveMedicalExpiry,
 } from '../../../utils/date'
 import { generateGoogleCalendarLink, downloadIcs } from '../../../utils/calendarEvent'
+import { SelectMember } from '../../../components/SelectMember'
 
 export type BookingFlags = {
   isNewBooking: boolean
@@ -140,6 +144,12 @@ export const BookingEditor = ({
   const [cancellationReason, setCancellationReason] = useState<CancellationReason | ''>('')
   const [cancellationNote, setCancellationNote] = useState('')
   const [cancellationReasonError, setCancellationReasonError] = useState(false)
+
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false)
+  const [transferTargetMemberId, setTransferTargetMemberId] = useState<string | null>(null)
+  const [transferTargetMemberLabel, setTransferTargetMemberLabel] = useState<string>('')
+  const [transferTargetError, setTransferTargetError] = useState(false)
+  const [transferConfirmOpen, setTransferConfirmOpen] = useState(false)
 
   const datesAreValid =
     startDate?.date.isValid() && endDate?.date.isValid() && !startDate.error && !endDate.error
@@ -238,6 +248,39 @@ export const BookingEditor = ({
       note: cancellationNote || undefined,
     }
     const { error } = await mutation.trigger<CancellationRequest>('POST', body, 'cancel')
+    if (error) {
+      return setProblem(error)
+    }
+
+    mutate((key) => Array.isArray(key) && key[0] == 'v1/bookings')
+    onClose()
+  }
+
+  const handleTransfer = () => {
+    setTransferTargetMemberId(null)
+    setTransferTargetMemberLabel('')
+    setTransferTargetError(false)
+    setTransferDialogOpen(true)
+  }
+
+  const handleTransferSubmit = () => {
+    if (!transferTargetMemberId) {
+      setTransferTargetError(true)
+      return
+    }
+    setTransferDialogOpen(false)
+    setTransferConfirmOpen(true)
+  }
+
+  const handleTransferConfirm = async () => {
+    if (!transferTargetMemberId) {
+      return
+    }
+    setTransferConfirmOpen(false)
+    setProblem(undefined)
+
+    const body: TransferBookingRequest = { newMemberId: transferTargetMemberId }
+    const { error } = await mutation.trigger<TransferBookingRequest>('POST', body, 'transfer')
     if (error) {
       return setProblem(error)
     }
@@ -559,7 +602,7 @@ export const BookingEditor = ({
               )}
 
             {booking.status !== BookingStatus.CANCELLED && (
-              <Stack direction='row' spacing={1} flexWrap='wrap'>
+              <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
                 <Button
                   variant='outlined'
                   size='small'
@@ -579,6 +622,11 @@ export const BookingEditor = ({
                 >
                   {t('schedule.downloadIcs')}
                 </Button>
+                {!isReadonly && (booking.memberId === me?.memberId || isBookingAdmin) && (
+                  <Button variant='outlined' size='small' onClick={handleTransfer}>
+                    {t('schedule.transferBooking')}
+                  </Button>
+                )}
               </Stack>
             )}
           </Stack>
@@ -733,6 +781,56 @@ export const BookingEditor = ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Transfer booking dialog */}
+      <Dialog
+        open={transferDialogOpen}
+        onClose={() => setTransferDialogOpen(false)}
+        maxWidth='xs'
+        fullWidth
+      >
+        <EditDialogTitle
+          title='schedule.transferBooking'
+          onClose={() => setTransferDialogOpen(false)}
+        />
+        <DialogContent dividers>
+          <Stack spacing={2}>
+            <Typography variant='body2'>{t('schedule.transferBookingMessage')}</Typography>
+            <SelectMember
+              label={t('schedule.transferTo')}
+              value={transferTargetMemberId}
+              exclude={booking ? [booking.memberId] : undefined}
+              onChange={(member) => {
+                setTransferTargetMemberId(member?.id ?? null)
+                setTransferTargetMemberLabel(member?.label ?? '')
+                setTransferTargetError(false)
+              }}
+            />
+            {transferTargetError && (
+              <FormHelperText error>{t('schedule.transferTargetRequired')}</FormHelperText>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setTransferDialogOpen(false)} color='inherit'>
+            {t('general.back')}
+          </Button>
+          <Button onClick={handleTransferSubmit} color='primary' variant='contained'>
+            {t('schedule.confirmTransfer')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <ConfirmDialog
+        open={transferConfirmOpen}
+        onClose={() => setTransferConfirmOpen(false)}
+        onConfirm={handleTransferConfirm}
+        title={t('schedule.transferConfirmTitle')}
+        message={t('schedule.transferConfirmMessage', { memberName: transferTargetMemberLabel })}
+        confirmText={t('schedule.confirmTransferOfBooking')}
+        cancelText={t('general.back')}
+        severity='warning'
+      />
     </Dialog>
   )
 }

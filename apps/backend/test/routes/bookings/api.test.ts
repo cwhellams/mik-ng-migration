@@ -655,3 +655,168 @@ describe('POST /bookings/:id/cancel', () => {
     expect(cancelResponse.status).toBe(401)
   })
 })
+
+describe('POST /bookings/:id/transfer', () => {
+  const startTime = dayjs().startOf('day').add(4, 'day')
+  const createPayload: BookingUpsertRequest = {
+    memberId: userId,
+    registration: 'OH-IHQ',
+    status: BookingStatus.CONFIRMED,
+    type: BookingType.PRIVATE,
+    description: 'Transfer test booking',
+    startTimeEpoch: startTime.unix().toString(),
+    endTimeEpoch: startTime.add(30, 'minutes').unix().toString(),
+  }
+
+  it('should transfer a booking to another member and return 200 with the updated booking', async () => {
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
+    const transferResponse = await request(app)
+      .post(`/bookings/${bookingId}/transfer`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ newMemberId: 'Antti1' })
+
+    expect(transferResponse.status).toBe(200)
+    expect(transferResponse.body.memberId).toBe('Antti1')
+    expect(transferResponse.body.calendarSequence).toBeGreaterThan(0)
+
+    // Cleanup: cancel as the new owner (or admin) since the requesting user no longer owns it
+    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${adminToken}`)
+  })
+
+  it('should return 400 when transferring to the current owner', async () => {
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
+    const transferResponse = await request(app)
+      .post(`/bookings/${bookingId}/transfer`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ newMemberId: userId })
+
+    expect(transferResponse.status).toBe(400)
+    expect(transferResponse.body.detail).toBe('Booking is already owned by this member')
+
+    // Cleanup
+    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${userToken}`)
+  })
+
+  it('should return 400 when the target member does not exist', async () => {
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
+    const transferResponse = await request(app)
+      .post(`/bookings/${bookingId}/transfer`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ newMemberId: 'does-not-exist' })
+
+    expect(transferResponse.status).toBe(400)
+    expect(transferResponse.body.detail).toBe('Member not found')
+
+    // Cleanup
+    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${userToken}`)
+  })
+
+  it('should return 403 when the requester does not own the booking', async () => {
+    const otherUserToken = generateAccessToken({
+      memberId: 'Kaisa1',
+      lastName: 'Laine',
+      email: 'kaisa@mik.fi',
+      roles: [],
+      permissions: [MIKPermissions.BOOKING_USER],
+      canMakeReservations: true,
+    })
+
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
+    const transferResponse = await request(app)
+      .post(`/bookings/${bookingId}/transfer`)
+      .set('Cookie', `accessToken=${otherUserToken}`)
+      .send({ newMemberId: 'Antti1' })
+
+    expect(transferResponse.status).toBe(403)
+    expect(transferResponse.body.detail).toBe(
+      'Booking not owned by user or user has no admin rights',
+    )
+
+    // Cleanup
+    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${userToken}`)
+  })
+
+  it('should allow an admin to transfer another members booking', async () => {
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
+    const transferResponse = await request(app)
+      .post(`/bookings/${bookingId}/transfer`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ newMemberId: 'Antti1' })
+
+    expect(transferResponse.status).toBe(200)
+    expect(transferResponse.body.memberId).toBe('Antti1')
+
+    // Cleanup
+    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${adminToken}`)
+  })
+
+  it('should return 409 when the booking is already cancelled', async () => {
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(createPayload)
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
+    await request(app)
+      .post(`/bookings/${bookingId}/cancel`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ reason: CancellationReason.OTHER })
+
+    const transferResponse = await request(app)
+      .post(`/bookings/${bookingId}/transfer`)
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ newMemberId: 'Antti1' })
+
+    expect(transferResponse.status).toBe(409)
+    expect(transferResponse.body.detail).toBe('Cannot transfer a cancelled booking')
+  })
+
+  it('should return 404 when the booking does not exist', async () => {
+    const transferResponse = await request(app)
+      .post('/bookings/does-not-exist/transfer')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send({ newMemberId: 'Antti1' })
+
+    expect(transferResponse.status).toBe(404)
+    expect(transferResponse.body.detail).toBe('Booking not found')
+  })
+
+  it('should return 401 when called without a valid token', async () => {
+    const transferResponse = await request(app)
+      .post('/bookings/stl2/transfer')
+      .send({ newMemberId: 'Antti1' })
+
+    expect(transferResponse.status).toBe(401)
+  })
+})

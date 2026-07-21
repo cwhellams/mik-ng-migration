@@ -6,6 +6,7 @@ import {
   BookingType,
   BookingUpsertSchema,
   CancellationRequestSchema,
+  TransferBookingSchema,
   type Booking,
   type BookingFilters,
   type BookingListResponse,
@@ -36,6 +37,12 @@ import {
   bookingUpdatedEmailBodyHtml,
   bookingUpdatedEmailSubject,
 } from '../../templates/bookingConfirmedEmailTemplate.ts'
+import {
+  bookingTransferredFromEmailBodyHtml,
+  bookingTransferredFromEmailSubject,
+  bookingTransferredToEmailBodyHtml,
+  bookingTransferredToEmailSubject,
+} from '../../templates/bookingTransferredEmailTemplate.ts'
 import { generateIcsContent, generateCancelIcsContent } from '../../lib/calendarEvent.ts'
 
 // all scheduling routes are protected by booking permissions
@@ -380,6 +387,90 @@ router.post('/:id/cancel', async (req: Request, res: Response) => {
   }
 
   res.status(200).json(cancelled)
+})
+
+// Transfer a booking to another member
+router.post('/:id/transfer', async (req: Request, res: Response) => {
+  const bookingId = req.params.id
+
+  const { newMemberId } = TransferBookingSchema.parse(req.body)
+
+  const booking = await getBookingById(bookingId)
+  if (!booking) {
+    return problem({ status: 404, detail: 'Booking not found' })
+  }
+  if (booking.status === BookingStatus.CANCELLED) {
+    return problem({ status: 409, detail: 'Cannot transfer a cancelled booking' })
+  }
+  if (Number(booking.startTimeEpoch) <= dayjs().unix()) {
+    return problem({ status: 409, detail: 'Cannot transfer a booking that has already started' })
+  }
+
+  const isOwner = booking.memberId === req.user?.memberId
+  if (!isOwner && !isBookingAdmin(req.user)) {
+    return problem({
+      status: 403,
+      detail: 'Booking not owned by user or user has no admin rights',
+    })
+  }
+
+  if (newMemberId === booking.memberId) {
+    return problem({ status: 400, detail: 'Booking is already owned by this member' })
+  }
+
+  const newMember = await getMemberById(newMemberId)
+  if (!newMember) {
+    return problem({ status: 400, detail: 'Member not found' })
+  }
+  if (!isBookingAdmin(req.user) && newMember.canMakeReservations !== true) {
+    return problem({ status: 400, detail: 'This member cannot currently make reservations' })
+  }
+
+  const previousMember = await getMemberById(booking.memberId)
+
+  logger.info(
+    `Transferring booking ${bookingId} from ${booking.memberId} to ${newMemberId}. Requested by: ${req.user?.memberId}`,
+  )
+
+  const updated = await updateBooking(bookingId, { memberId: newMemberId }, req.user!)
+  if (!updated) {
+    return problem({ status: 500, detail: 'Booking transfer failed' })
+  }
+
+  if (previousMember?.email) {
+    sendEmail(
+      previousMember.email,
+      bookingTransferredFromEmailSubject(previousMember.lang),
+      bookingTransferredFromEmailBodyHtml(
+        previousMember.lang,
+        previousMember.firstName,
+        booking,
+        `${newMember.firstName} ${newMember.lastName}`,
+      ),
+    )
+  }
+
+  if (newMember.email) {
+    sendEmail(
+      newMember.email,
+      bookingTransferredToEmailSubject(newMember.lang),
+      bookingTransferredToEmailBodyHtml(
+        newMember.lang,
+        newMember.firstName,
+        updated,
+        `${previousMember?.firstName ?? ''} ${previousMember?.lastName ?? ''}`.trim(),
+      ),
+      [
+        {
+          filename: 'booking.ics',
+          content: generateIcsContent(updated, newMember.email),
+          contentType: 'text/calendar',
+        },
+      ],
+    )
+  }
+
+  res.status(200).json(updated)
 })
 
 export default router

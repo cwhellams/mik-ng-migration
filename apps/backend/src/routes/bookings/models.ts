@@ -113,3 +113,9 @@ export const CancellationRequestSchema = z.object({
 })
 
 export type CancellationRequest = z.infer<typeof CancellationRequestSchema>
+
+export const TransferBookingSchema = z.object({
+  newMemberId: z.string().min(1),
+})
+
+export type TransferBookingRequest = z.infer<typeof TransferBookingSchema>
