@@ -249,7 +249,12 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                   {site === 'efnu' ? (
                     <>
                       {site.toUpperCase()} ATIS -{' '}
-                      <Box component='span' fontWeight='bold'>
+                      <Box
+                        component='span'
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         {reportIdPhonetic}
                       </Box>
                     </>
@@ -283,7 +288,12 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                 )}
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {formatISODateTime(weatherTime)}{' '}
                   {weatherTime ? timezoneOffset(weatherTime.toDate()) : ''}
                 </Typography>
@@ -317,7 +327,12 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                         }}
                       />
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant='caption' color='text.secondary'>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           Cloud Layers
                         </Typography>
                         <Box
@@ -355,17 +370,32 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <AirIcon sx={{ fontSize: 32, color: 'primary.main' }} />
                         <Box>
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             Wind
                           </Typography>
-                          <Typography variant='body1' fontWeight='bold'>
+                          <Typography
+                            variant='body1'
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {report?.wind_dir}° {report?.wind_kt.toFixed(0)} kt
                             {report?.wind_gust_kt && (
                               <span>, gust {report.wind_gust_kt.toFixed(0)} kt</span>
                             )}
                           </Typography>
                           {report?.wind_dir_min && (
-                            <Typography variant='caption' color='text.secondary'>
+                            <Typography
+                              variant='caption'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               Variable between {report.wind_dir_min}-{report.wind_dir_max}°
                             </Typography>
                           )}
@@ -378,10 +408,20 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <ThermostatIcon sx={{ fontSize: 32, color: 'info.main' }} />
                         <Box>
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             Temp / Dew Point
                           </Typography>
-                          <Typography variant='body1' fontWeight='bold'>
+                          <Typography
+                            variant='body1'
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {report?.temperature.toFixed(1)}°C / {report?.dewpoint.toFixed(1)}°C
                           </Typography>
                         </Box>
@@ -393,14 +433,29 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <VisibilityIcon sx={{ fontSize: 32, color: 'success.main' }} />
                         <Box>
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             Visibility
                           </Typography>
-                          <Typography variant='body1' fontWeight='bold'>
+                          <Typography
+                            variant='body1'
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {(report?.vis_km_full ?? report?.vis_km)?.toFixed(1)} km
                           </Typography>
                           {report?.vis_m && (
-                            <Typography variant='caption' color='text.secondary'>
+                            <Typography
+                              variant='caption'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {report.vis_m} m
                             </Typography>
                           )}
@@ -420,14 +475,29 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                         >
                           <VisibilityIcon sx={{ fontSize: 32, color: 'warning.main' }} />
                           <Box>
-                            <Typography variant='caption' color='text.secondary'>
+                            <Typography
+                              variant='caption'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               Vertical Visibility
                             </Typography>
-                            <Typography variant='body1' fontWeight='bold'>
+                            <Typography
+                              variant='body1'
+                              sx={{
+                                fontWeight: 'bold',
+                              }}
+                            >
                               {report.vvis_ft} ft
                             </Typography>
                             {report.vvis && (
-                              <Typography variant='caption' color='text.secondary'>
+                              <Typography
+                                variant='caption'
+                                sx={{
+                                  color: 'text.secondary',
+                                }}
+                              >
                                 {report.vvis.toFixed(1)} m
                               </Typography>
                             )}
@@ -441,10 +511,20 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <SpeedIcon sx={{ fontSize: 32, color: 'warning.main' }} />
                         <Box>
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             QNH
                           </Typography>
-                          <Typography variant='body1' fontWeight='bold'>
+                          <Typography
+                            variant='body1'
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {report?.qnh.toFixed(1)}
                           </Typography>
                         </Box>
@@ -456,10 +536,20 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <WaterDropIcon sx={{ fontSize: 32, color: 'info.light' }} />
                         <Box>
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             Humidity
                           </Typography>
-                          <Typography variant='body1' fontWeight='bold'>
+                          <Typography
+                            variant='body1'
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {report?.humidity.toFixed(1)}%
                           </Typography>
                         </Box>
@@ -479,7 +569,13 @@ export const WeatherWidget = ({ site = 'efnu' }: WeatherWidgetProps) => {
                       height: '100%',
                     }}
                   >
-                    <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5 }}>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                        mb: 0.5,
+                      }}
+                    >
                       {site === 'efnu' ? 'Wind Rose - 10 min' : 'Current Wind Direction'}
                     </Typography>
                     {(report?.wind_rose?.length ?? 0) > 0 && (

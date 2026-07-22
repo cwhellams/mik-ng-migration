@@ -102,11 +102,9 @@ export default function OrdersPage() {
   return (
     <Box>
       <Title label={t('shop.myOrders')} />
-
       <Button component={Link} to='/shop' startIcon={<Icon icon='mdi:arrow-left' />} sx={{ mb: 2 }}>
         {t('shop.continueShopping')}
       </Button>
-
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
         <FormControl size='small' sx={{ minWidth: 220 }}>
           <InputLabel>{t('shop.category')}</InputLabel>
@@ -139,10 +137,15 @@ export default function OrdersPage() {
           </Select>
         </FormControl>
       </Stack>
-
       <RemoteContent isLoading={isLoading} error={error}>
         {!isLoading && visibleOrders.length === 0 && (
-          <Typography color='text.secondary'>{t('shop.noOrders')}</Typography>
+          <Typography
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
+            {t('shop.noOrders')}
+          </Typography>
         )}
 
         {visibleOrders.length > 0 && (

@@ -411,7 +411,6 @@ const Schedule = () => {
   return (
     <RemoteContent error={eventError}>
       <SnackAlert problem={problem} />
-
       <Title label={t('header.schedule')}>
         <Button
           variant='contained'
@@ -423,9 +422,20 @@ const Schedule = () => {
           {t('schedule.newBooking')}
         </Button>
       </Title>
-
-      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent='space-between' mb={3}>
-        <Box display='flex' flexDirection='row' alignItems='center'>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        sx={{
+          justifyContent: 'space-between',
+          mb: 3,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}
+        >
           <Typography variant='body2'>{t('schedule.showPlanes')}</Typography>
           <ToggleButtonGroup
             value={filters['registration']}
@@ -461,8 +471,11 @@ const Schedule = () => {
           label={t('schedule.showCancelled')}
         ></FormControlLabel>
       </Stack>
-
-      <Box position='relative'>
+      <Box
+        sx={{
+          position: 'relative',
+        }}
+      >
         <DnDCalendar
           onView={onView}
           view={currentView}
@@ -511,7 +524,6 @@ const Schedule = () => {
           />
         )}
       </Box>
-
       <BookingEditor booking={editMode} onClose={() => setEditMode(undefined)} />
     </RemoteContent>
   )

@@ -145,7 +145,14 @@ export default function DtoProgressPage() {
 
   return (
     <Box>
-      <Box display='flex' justifyContent='space-between' alignItems='center' mb={1}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 1,
+        }}
+      >
         <Title label='DTO Student Progress' />
         {isDtoAdmin && (
           <Button
@@ -201,7 +208,13 @@ export default function DtoProgressPage() {
                       )}
                     </TableCell>
                     <TableCell sx={{ minWidth: 180 }}>
-                      <Box display='flex' alignItems='center' gap={1}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
                         <LinearProgress
                           variant='determinate'
                           value={pct}
@@ -221,7 +234,13 @@ export default function DtoProgressPage() {
                               : `Requires ${formatMins(p.minBlockTimeMins!)} total`
                           }
                         >
-                          <Box display='flex' alignItems='center' gap={1}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                            }}
+                          >
                             <LinearProgress
                               variant='determinate'
                               value={timePct!}
@@ -241,7 +260,12 @@ export default function DtoProgressPage() {
                           </Box>
                         </Tooltip>
                       ) : (
-                        <Typography variant='body2' color='text.secondary'>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           {formatMins(p.totalBlockTimeMins)}
                         </Typography>
                       )}

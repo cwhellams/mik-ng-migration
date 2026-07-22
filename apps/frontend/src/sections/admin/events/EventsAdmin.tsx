@@ -167,31 +167,78 @@ const EventsAdmin = () => {
             opacity: isPast ? 0.65 : 1,
           }}
         >
-          <Box flex={1} minWidth={0}>
-            <Stack direction='row' alignItems='center' gap={1} flexWrap='wrap'>
-              <Typography fontWeight='medium'>{event.title}</Typography>
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
+            <Stack
+              direction='row'
+              sx={{
+                alignItems: 'center',
+                gap: 1,
+                flexWrap: 'wrap',
+              }}
+            >
+              <Typography
+                sx={{
+                  fontWeight: 'medium',
+                }}
+              >
+                {event.title}
+              </Typography>
               {event.isPublic && (
                 <Chip label={t('events.public')} size='small' color='primary' variant='outlined' />
               )}
               {isPast && <Chip label={t('events.past')} size='small' variant='outlined' />}
             </Stack>
-            <Stack direction='row' alignItems='center' gap={0.5} mt={0.5}>
+            <Stack
+              direction='row'
+              sx={{
+                alignItems: 'center',
+                gap: 0.5,
+                mt: 0.5,
+              }}
+            >
               <Icon icon='mdi:clock-outline' width={14} />
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {dateLabel}
               </Typography>
             </Stack>
             {event.location && (
-              <Stack direction='row' alignItems='center' gap={0.5} mt={0.25}>
+              <Stack
+                direction='row'
+                sx={{
+                  alignItems: 'center',
+                  gap: 0.5,
+                  mt: 0.25,
+                }}
+              >
                 <Icon icon='mdi:map-marker-outline' width={14} />
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {event.location}
                 </Typography>
               </Stack>
             )}
           </Box>
 
-          <Stack direction='row' gap={0.5}>
+          <Stack
+            direction='row'
+            sx={{
+              gap: 0.5,
+            }}
+          >
             <Tooltip title={t('common.edit')}>
               <IconButton size='small' onClick={() => openEdit(event)}>
                 <Icon icon='mdi:pencil' width={18} />
@@ -212,7 +259,12 @@ const EventsAdmin = () => {
   return (
     <>
       <Title label={t('events.adminTitle')}>
-        <Stack direction='row' gap={1}>
+        <Stack
+          direction='row'
+          sx={{
+            gap: 1,
+          }}
+        >
           <Button
             component={Link}
             to='/club/events'
@@ -226,15 +278,26 @@ const EventsAdmin = () => {
           </Button>
         </Stack>
       </Title>
-
       <RemoteContent isLoading={isLoading} error={error}>
         {events.length === 0 ? (
-          <Typography color='text.secondary'>{t('events.noEvents')}</Typography>
+          <Typography
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
+            {t('events.noEvents')}
+          </Typography>
         ) : (
           <>
             {upcomingEvents.length > 0 && (
               <>
-                <Typography variant='subtitle1' fontWeight='bold' mb={1}>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'bold',
+                    mb: 1,
+                  }}
+                >
                   {t('events.upcoming')}
                 </Typography>
                 {upcomingEvents.map(renderEventRow)}
@@ -243,7 +306,14 @@ const EventsAdmin = () => {
 
             {pastEvents.length > 0 && (
               <>
-                <Typography variant='subtitle1' fontWeight='bold' mt={3} mb={1}>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'bold',
+                    mt: 3,
+                    mb: 1,
+                  }}
+                >
                   {t('events.past_section')}
                 </Typography>
                 {[...pastEvents].reverse().map(renderEventRow)}
@@ -252,12 +322,16 @@ const EventsAdmin = () => {
           </>
         )}
       </RemoteContent>
-
       {/* Create / Edit dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth='sm' fullWidth>
         <DialogTitle>{editingEvent ? t('events.editEvent') : t('events.createEvent')}</DialogTitle>
         <DialogContent>
-          <Stack gap={2} mt={1}>
+          <Stack
+            sx={{
+              gap: 2,
+              mt: 1,
+            }}
+          >
             {saveError && <Alert severity='error'>{saveError}</Alert>}
             <TextField
               label={t('events.form.title')}
@@ -265,7 +339,9 @@ const EventsAdmin = () => {
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               required
               fullWidth
-              inputProps={{ maxLength: 200 }}
+              slotProps={{
+                htmlInput: { maxLength: 200 },
+              }}
             />
 
             <DateTimePicker
@@ -308,7 +384,13 @@ const EventsAdmin = () => {
               }
               label={t('events.form.isPublic')}
             />
-            <Typography variant='caption' color='text.secondary' mt={-1.5}>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+                mt: -1.5,
+              }}
+            >
               {t('events.form.isPublicHint')}
             </Typography>
           </Stack>
@@ -320,7 +402,6 @@ const EventsAdmin = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Delete confirmation dialog */}
       <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth='xs'>
         <DialogTitle>{t('events.deleteTitle')}</DialogTitle>

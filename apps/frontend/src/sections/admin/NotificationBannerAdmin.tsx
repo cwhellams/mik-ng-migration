@@ -83,17 +83,20 @@ export default function NotificationBannerAdmin() {
   return (
     <Box>
       <Title label={t('notificationBanner.admin.title')} />
-
-      <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 3,
+        }}
+      >
         {t('notificationBanner.admin.description')}
       </Typography>
-
       {enabled && message && (
         <Alert severity={severity} sx={{ mb: 3 }}>
           {message}
         </Alert>
       )}
-
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 600 }}>
         <FormControlLabel
           control={<Switch checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />}
@@ -120,9 +123,11 @@ export default function NotificationBannerAdmin() {
           rows={3}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          inputProps={{ maxLength: 500 }}
           helperText={`${message.length}/500`}
           fullWidth
+          slotProps={{
+            htmlInput: { maxLength: 500 },
+          }}
         />
 
         {saveStatus === 'saved' && (

@@ -80,7 +80,6 @@ export default function ShopPage() {
   return (
     <Box>
       <Title label={t('shop.title')} />
-
       {/* Filters + Cart Actions */}
       <Box
         sx={{
@@ -131,7 +130,6 @@ export default function ShopPage() {
           )}
         </Box>
       </Box>
-
       {/* Product grid */}
       <RemoteContent isLoading={productsLoading} error={productsError}>
         {!productsLoading && !products?.length ? (
@@ -203,7 +201,13 @@ export default function ShopPage() {
                   </Box>
 
                   <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography variant='subtitle2' color='text.secondary' gutterBottom>
+                    <Typography
+                      variant='subtitle2'
+                      gutterBottom
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {categories?.find((c) => c.categoryId === product.categoryId)
                         ? localName(
                             categories.find((c) => c.categoryId === product.categoryId)!
@@ -217,7 +221,13 @@ export default function ShopPage() {
                     </Typography>
 
                     {product.description && (
-                      <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                          mb: 1,
+                        }}
+                      >
                         {localName(product.description as Record<string, string>)}
                       </Typography>
                     )}
@@ -244,7 +254,13 @@ export default function ShopPage() {
                         />
                       )}
                     {product.maxOrderQuantity && (
-                      <Typography variant='caption' display='block' sx={{ mt: 0.5 }}>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          display: 'block',
+                          mt: 0.5,
+                        }}
+                      >
                         {t('shop.maxPerMemberQty', {
                           max: product.maxOrderQuantity,
                         })}
@@ -294,7 +310,6 @@ export default function ShopPage() {
           </Grid>
         )}
       </RemoteContent>
-
       <Snackbar
         open={!!snack}
         autoHideDuration={3000}

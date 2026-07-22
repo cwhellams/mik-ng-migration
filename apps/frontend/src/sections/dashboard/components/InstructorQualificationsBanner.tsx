@@ -56,7 +56,11 @@ export function InstructorQualificationsBanner() {
     : t('dashboard.instructorQualificationsAlert.expiredOrExpiring')
 
   return (
-    <Box mb={2}>
+    <Box
+      sx={{
+        mb: 2,
+      }}
+    >
       <Alert
         severity={severity}
         action={

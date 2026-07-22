@@ -1023,7 +1023,12 @@ const MailingListsContent = ({
   if (isLoading) return <CircularProgress size={20} />
   if (!availableLists?.length) {
     return (
-      <Typography variant='body2' color='text.secondary'>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         {t('member.mailingLists.noLists')}
       </Typography>
     )
@@ -1096,7 +1101,12 @@ const AdminInvoicesCard = ({ memberId }: { memberId: string }) => {
         <FormTitle title={t('member.adminInvoices.title')} icon='mdi:receipt-text' />
         <RemoteContent isLoading={isLoading} error={error}>
           {!data?.invoices?.length ? (
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {t('member.adminInvoices.noInvoices')}
             </Typography>
           ) : (
@@ -1184,7 +1194,12 @@ const AdminFlightsCard = ({ memberId }: { memberId: string }) => {
         <FormTitle title={t('member.adminFlights.title')} icon='mdi:airplane' />
         <RemoteContent isLoading={isLoading} error={error}>
           {!data?.logs?.length ? (
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {t('member.adminFlights.noFlights')}
             </Typography>
           ) : (
@@ -1253,7 +1268,12 @@ const AdminBookingsCard = ({ memberId }: { memberId: string }) => {
         <FormTitle title={t('member.adminBookings.title')} icon='mdi:calendar-clock' />
         <RemoteContent isLoading={isLoading} error={error}>
           {!data?.bookings?.length ? (
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {t('member.adminBookings.noBookings')}
             </Typography>
           ) : (

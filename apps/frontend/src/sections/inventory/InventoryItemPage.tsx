@@ -58,13 +58,21 @@ export default function InventoryItemPage() {
                 component={Link}
                 to='/inventory'
                 variant='body2'
-                color='text.secondary'
-                sx={{ textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+                sx={{
+                  color: 'text.secondary',
+                  textDecoration: 'none',
+                  '&:hover': { textDecoration: 'underline' },
+                }}
               >
                 {t('inventory.title')}
               </Typography>
               <Icon icon='mdi:chevron-right' width={16} />
-              <Typography variant='body2' color='text.primary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.primary',
+                }}
+              >
                 {name}
               </Typography>
             </Box>
@@ -74,7 +82,13 @@ export default function InventoryItemPage() {
             </Typography>
 
             {description && (
-              <Typography variant='body1' color='text.secondary' gutterBottom>
+              <Typography
+                variant='body1'
+                gutterBottom
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {description}
               </Typography>
             )}
@@ -112,7 +126,12 @@ export default function InventoryItemPage() {
             >
               {categoryName && (
                 <>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('inventory.category')}
                   </Typography>
                   <Typography variant='body2'>{categoryName}</Typography>
@@ -120,7 +139,12 @@ export default function InventoryItemPage() {
               )}
               {locationName && (
                 <>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('inventory.location')}
                   </Typography>
                   <Typography variant='body2'>{locationName}</Typography>
@@ -128,7 +152,12 @@ export default function InventoryItemPage() {
               )}
               {item.serialNumber && (
                 <>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('inventory.serialNumber')}
                   </Typography>
                   <Typography variant='body2'>{item.serialNumber}</Typography>
@@ -136,7 +165,12 @@ export default function InventoryItemPage() {
               )}
               {item.notes && (
                 <>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('inventory.notes')}
                   </Typography>
                   <Typography variant='body2'>{item.notes}</Typography>
@@ -144,7 +178,12 @@ export default function InventoryItemPage() {
               )}
               {item.tags.length > 0 && (
                 <>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('inventory.tags')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>

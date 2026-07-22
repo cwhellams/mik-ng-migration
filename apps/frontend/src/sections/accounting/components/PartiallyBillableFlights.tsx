@@ -94,7 +94,6 @@ export const PartiallyBillableFlights = ({
   return (
     <>
       <SnackAlert problem={problem} />
-
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
           header={
@@ -145,16 +144,30 @@ export const PartiallyBillableFlights = ({
                   </Grid>
                   <Grid
                     size={'grow'}
-                    display={{ xs: 'none', md: 'flex' }}
-                    alignItems='center'
-                    gap={1}
+                    sx={{
+                      display: { xs: 'none', md: 'flex' },
+                      alignItems: 'center',
+                      gap: 1,
+                    }}
                   >
-                    <Box display='flex' flexDirection='column' gap={1} width='100%'>
-                      <Box display='flex' alignItems='center' gap={1}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        width: '100%',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
                         <TextField
                           size='small'
                           type='number'
-                          inputProps={{ min: 1, max: log.flightMins }}
                           placeholder={log.creditedMins == null ? '' : String(log.creditedMins)}
                           value={
                             creditedMinsMap[log.flightId] ??
@@ -167,6 +180,9 @@ export const PartiallyBillableFlights = ({
                             }))
                           }
                           sx={{ width: 80 }}
+                          slotProps={{
+                            htmlInput: { min: 1, max: log.flightMins },
+                          }}
                         />
                         <Button
                           size='small'
@@ -223,13 +239,32 @@ export const PartiallyBillableFlights = ({
                     </Link>
                   </Grid>
 
-                  <Grid size={12} display='flex' alignItems='center' gap={1}>
-                    <Box display='flex' flexDirection='column' gap={1} width='100%'>
-                      <Box display='flex' alignItems='center' gap={1}>
+                  <Grid
+                    size={12}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        width: '100%',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
                         <TextField
                           size='small'
                           type='number'
-                          inputProps={{ min: 1, max: log.flightMins }}
                           placeholder={log.creditedMins == null ? '' : String(log.creditedMins)}
                           value={
                             creditedMinsMap[log.flightId] ??
@@ -242,6 +277,9 @@ export const PartiallyBillableFlights = ({
                             }))
                           }
                           sx={{ width: 80 }}
+                          slotProps={{
+                            htmlInput: { min: 1, max: log.flightMins },
+                          }}
                         />
                         <Button
                           size='small'
@@ -271,7 +309,6 @@ export const PartiallyBillableFlights = ({
           )}
         />
       </RemoteContent>
-
       <Pagination
         count={data?.pages ?? 1}
         size='large'
@@ -282,7 +319,6 @@ export const PartiallyBillableFlights = ({
         siblingCount={2}
         sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}
       />
-
       <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
         <Button color='secondary' variant='outlined' onClick={navigate.previous} sx={{ mr: 1 }}>
           {t('general.back')}

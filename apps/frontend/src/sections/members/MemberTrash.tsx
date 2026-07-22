@@ -66,23 +66,30 @@ const MemberTrash = () => {
     <Box>
       <SnackAlert problem={problem} />
       <Title label={t('member.trash', 'Removed Members')} />
-
-      <Stack direction='row' justifyContent='space-between' gap={2} mb={3}>
+      <Stack
+        direction='row'
+        sx={{
+          justifyContent: 'space-between',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <TextField
           label={t('member.search', 'Search')}
           value={nameFilter}
           onChange={(e) => setNameFilter(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position='start'>
-                <Icon icon='mdi:magnify' />
-              </InputAdornment>
-            ),
-          }}
           fullWidth
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <Icon icon='mdi:magnify' />
+                </InputAdornment>
+              ),
+            },
+          }}
         />
       </Stack>
-
       <RemoteContent error={error} isLoading={isLoading}>
         <ResponsiveTable
           notFoundMsg={t('member.noRemovedMembers', 'No removed members found')}
@@ -100,9 +107,20 @@ const MemberTrash = () => {
                 width: '100%',
               }}
             >
-              <Box display='flex' alignItems='center' gap={2} minWidth={0}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  minWidth: 0,
+                }}
+              >
                 <UserAvatar email={member.email} firstName={member.first} lastName={member.last} />
-                <Box minWidth={0}>
+                <Box
+                  sx={{
+                    minWidth: 0,
+                  }}
+                >
                   <Link
                     to={`/club/members/${member.memberId}`}
                     style={{
@@ -119,7 +137,13 @@ const MemberTrash = () => {
                   </Box>
                 </Box>
                 {member.roles.length > 0 && (
-                  <Stack direction='row' spacing={1} alignItems='center'>
+                  <Stack
+                    direction='row'
+                    spacing={1}
+                    sx={{
+                      alignItems: 'center',
+                    }}
+                  >
                     {member.roles.map((role) => (
                       <Chip key={role} label={role} size='small' />
                     ))}

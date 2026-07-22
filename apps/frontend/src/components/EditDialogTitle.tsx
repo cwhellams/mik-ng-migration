@@ -12,7 +12,13 @@ export const EditDialogTitle = ({ title, onClose }: EditDialogProps) => {
 
   return (
     <DialogTitle>
-      <Box display='flex' alignItems='center' justifyContent='space-between'>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <Typography variant='h6'>{title && t(title)}</Typography>
         <IconButton onClick={onClose} aria-label='close'>
           <Icon icon='mdi:close' />

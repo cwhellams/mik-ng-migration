@@ -154,7 +154,6 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
           sx={{ ml: 'auto' }}
         />
       </DialogTitle>
-
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
           <SnackAlert problem={problem} />
@@ -182,14 +181,24 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
               <Box>
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {t('flightLog.defects.description')}
                 </Typography>
                 <Typography>{defect.description}</Typography>
               </Box>
 
               <Box>
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {t('flightLog.defects.flightTime')}
                 </Typography>
                 <Typography>{flightTimeLabel}</Typography>
@@ -197,7 +206,12 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
 
               {defect.hilId && (
                 <Box>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('flightLog.defects.linkedHil')}
                   </Typography>
                   <Typography variant='body2'>
@@ -210,7 +224,12 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
 
               {defect.resolvedNoteId && (
                 <Box>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('flightLog.defects.resolvedBy')}
                   </Typography>
                   <Typography variant='body2' sx={{ fontFamily: 'monospace' }}>
@@ -220,7 +239,12 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
               )}
 
               <Box>
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {t('flightLog.maintenanceNotes.recordedBy')}
                 </Typography>
                 <Typography variant='body2'>{defect.createdBy}</Typography>

@@ -223,7 +223,6 @@ export const PilotStatistics = () => {
           </Box>
         </CardContent>
       </Card>
-
       <RemoteContent isLoading={isLoading && !skipFetch} error={error}>
         {/* KPI Card */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -233,7 +232,12 @@ export const PilotStatistics = () => {
                 <Typography variant='h3' color='primary'>
                   {pilotStats?.uniquePicCount ?? 0}
                 </Typography>
-                <Typography variant='subtitle1' color='text.secondary'>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {t('stats.pilots.uniquePics')}
                 </Typography>
               </CardContent>
@@ -297,7 +301,13 @@ export const PilotStatistics = () => {
                     height: '100%',
                   }}
                 >
-                  <Typography color='text.secondary'>{t('stats.pilots.noData')}</Typography>
+                  <Typography
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
+                    {t('stats.pilots.noData')}
+                  </Typography>
                 </Box>
               )}
             </Box>
@@ -360,7 +370,13 @@ export const PilotStatistics = () => {
                     height: '100%',
                   }}
                 >
-                  <Typography color='text.secondary'>{t('stats.pilots.noData')}</Typography>
+                  <Typography
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
+                    {t('stats.pilots.noData')}
+                  </Typography>
                 </Box>
               )}
             </Box>

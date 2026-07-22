@@ -436,8 +436,10 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                 value={form.title}
                 disabled={!editable}
                 fullWidth
-                inputProps={{ maxLength: 200 }}
                 onChange={(e) => setForm((c) => ({ ...c, title: e.target.value }))}
+                slotProps={{
+                  htmlInput: { maxLength: 200 },
+                }}
               />
 
               <TextField
@@ -447,10 +449,12 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                 value={form.description ?? ''}
                 disabled={!editable}
                 fullWidth
-                inputProps={{ maxLength: 2000 }}
                 onChange={(e) =>
                   setForm((c) => ({ ...c, description: e.target.value || undefined }))
                 }
+                slotProps={{
+                  htmlInput: { maxLength: 2000 },
+                }}
               />
 
               <DatePicker
@@ -476,7 +480,13 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
               />
 
               {!isMileage && (
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems='flex-start'>
+                <Stack
+                  direction={{ xs: 'column', md: 'row' }}
+                  spacing={2}
+                  sx={{
+                    alignItems: 'flex-start',
+                  }}
+                >
                   <TextField
                     select
                     label={t('expenses.fields.currency')}
@@ -589,9 +599,11 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
             <Paper sx={{ p: 3 }}>
               <Stack
                 direction='row'
-                justifyContent='space-between'
-                alignItems='center'
-                sx={{ mb: 2 }}
+                sx={{
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 2,
+                }}
               >
                 <Typography variant='h6'>{t('expenses.fields.lineItems')}</Typography>
                 {editable && (
@@ -658,7 +670,13 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
           )}
 
           {/* ── Actions ── */}
-          <Stack direction='row' spacing={2} flexWrap='wrap'>
+          <Stack
+            direction='row'
+            spacing={2}
+            sx={{
+              flexWrap: 'wrap',
+            }}
+          >
             <Button
               variant='outlined'
               component={Link}

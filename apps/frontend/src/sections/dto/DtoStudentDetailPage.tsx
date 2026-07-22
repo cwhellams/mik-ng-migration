@@ -98,17 +98,26 @@ export default function DtoStudentDetailPage() {
         <Link to='/dto/progress' style={{ color: 'inherit', textDecoration: 'underline' }}>
           {t('dto.progress.title')}
         </Link>
-        <Typography color='text.primary'>{data?.memberSyllabus?.memberName ?? '…'}</Typography>
+        <Typography
+          sx={{
+            color: 'text.primary',
+          }}
+        >
+          {data?.memberSyllabus?.memberName ?? '…'}
+        </Typography>
       </Breadcrumbs>
-
       <Title label={data?.memberSyllabus?.memberName ?? t('dto.detail.title')} />
-
       <RemoteContent isLoading={isLoading} error={error}>
         {data && (
           <Stack spacing={3}>
             {/* Syllabus info */}
             <Paper variant='outlined' sx={{ p: 2 }}>
-              <Typography variant='subtitle2' color='text.secondary'>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {data.memberSyllabus.syllabusDetail?.description} v
                 {data.memberSyllabus.syllabusDetail?.version}
               </Typography>
@@ -117,7 +126,13 @@ export default function DtoStudentDetailPage() {
             {/* HIL items */}
             {hilItems.length > 0 && (
               <Paper variant='outlined' sx={{ p: 2 }}>
-                <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+                <Typography
+                  variant='subtitle1'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
                   {t('dto.detail.hilItems')}
                 </Typography>
                 <Stack spacing={0.5}>
@@ -126,7 +141,14 @@ export default function DtoStudentDetailPage() {
                       .flatMap((f) => f.items ?? [])
                       .find((i) => i.itemId === h.itemId)
                     return (
-                      <Box key={h.hilId} display='flex' alignItems='center' gap={1}>
+                      <Box
+                        key={h.hilId}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
                         <Icon icon='mdi:alert-circle-outline' width={18} color='orange' />
                         <Typography variant='body2'>{item?.name ?? h.itemId}</Typography>
                       </Box>
@@ -152,18 +174,35 @@ export default function DtoStudentDetailPage() {
 
                   return (
                     <Paper key={flight.flightId} variant='outlined' sx={{ p: 2 }}>
-                      <Box display='flex' justifyContent='space-between' alignItems='center' mb={1}>
-                        <Box display='flex' alignItems='center' gap={1}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          mb: 1,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                          }}
+                        >
                           {flight.isInterimCheckpoint && (
                             <Icon icon='mdi:flag-checkered' width={18} color='primary' />
                           )}
-                          <Typography variant='subtitle2' fontWeight='bold'>
+                          <Typography
+                            variant='subtitle2'
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {flight.code} — {flight.name}
                           </Typography>
                         </Box>
                         <StatusChip status={status} />
                       </Box>
-
                       {displayAttempt && displayAttempt.itemOutcomes.length > 0 && (
                         <>
                           <Divider sx={{ my: 1 }} />
@@ -213,19 +252,25 @@ export default function DtoStudentDetailPage() {
                           </Table>
                         </>
                       )}
-
                       {displayAttempt?.instructorComments && (
-                        <Typography variant='body2' color='text.secondary' mt={1}>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                            mt: 1,
+                          }}
+                        >
                           {t('dto.detail.comments')}: {displayAttempt.instructorComments}
                         </Typography>
                       )}
-
                       {displayAttempt?.verifiedAt && (
                         <Typography
                           variant='caption'
-                          color='text.secondary'
-                          display='block'
-                          mt={0.5}
+                          sx={{
+                            color: 'text.secondary',
+                            display: 'block',
+                            mt: 0.5,
+                          }}
                         >
                           {t('dto.detail.verifiedBy', {
                             name: displayAttempt.verifierName ?? displayAttempt.verifiedBy,
@@ -233,22 +278,44 @@ export default function DtoStudentDetailPage() {
                           })}
                         </Typography>
                       )}
-
                       {displayAttempt && (
-                        <Box display='flex' gap={2} flexWrap='wrap' mt={1} alignItems='center'>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            gap: 2,
+                            flexWrap: 'wrap',
+                            mt: 1,
+                            alignItems: 'center',
+                          }}
+                        >
                           {displayAttempt.flightDate && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {t('dto.detail.date')}: <strong>{displayAttempt.flightDate}</strong>
                             </Typography>
                           )}
                           {displayAttempt.blockTime && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {t('dto.detail.blockTime')}:{' '}
                               <strong>{displayAttempt.blockTime}</strong>
                             </Typography>
                           )}
                           {displayAttempt.flightTime && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {t('dto.detail.flightTime')}:{' '}
                               <strong>{displayAttempt.flightTime}</strong>
                             </Typography>

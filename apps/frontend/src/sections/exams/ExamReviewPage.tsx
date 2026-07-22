@@ -40,7 +40,6 @@ export default function ExamReviewPage() {
       >
         {t('exams.myHistory')}
       </Button>
-
       <RemoteContent isLoading={attemptLoading} error={attemptError}>
         {attempt && (
           <>
@@ -68,7 +67,12 @@ export default function ExamReviewPage() {
                     percent: attempt.scorePercent?.toFixed(1) ?? '—',
                   })}
                 </Typography>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {t('exams.correctCount', {
                     correct: attempt.correctCount ?? 0,
                     total: attempt.totalCount ?? 0,

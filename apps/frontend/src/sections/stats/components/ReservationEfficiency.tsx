@@ -390,7 +390,6 @@ export const ReservationEfficiency = () => {
           </Grid>
         </CardContent>
       </Card>
-
       {/* All-time summary (overall only) */}
       {groupBy === 'overall' && period === 'year' && (
         <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -400,10 +399,20 @@ export const ReservationEfficiency = () => {
                 <Typography variant='h3' color='primary'>
                   {allTimeEfficiency != null ? `${Number(allTimeEfficiency).toFixed(1)}%` : '—'}
                 </Typography>
-                <Typography variant='subtitle1' color='text.secondary'>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   All-time Reservation Efficiency
                 </Typography>
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Logged airtime / Reserved time
                 </Typography>
               </CardContent>
@@ -411,7 +420,6 @@ export const ReservationEfficiency = () => {
           </Grid>
         </Grid>
       )}
-
       {/* Bar chart for overall and aircraft groupings */}
       {groupBy !== 'member' && (
         <RemoteContent isLoading={isLoading} error={error}>
@@ -421,7 +429,13 @@ export const ReservationEfficiency = () => {
                 Reservation Efficiency {groupBy === 'aircraft' ? 'by Aircraft' : ''} (
                 {period === 'year' ? 'Yearly' : 'Last 12 Months'})
               </Typography>
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
                 Efficiency % = logged airtime / reserved time × 100
               </Typography>
               <Box sx={{ height: 400 }}>
@@ -509,7 +523,13 @@ export const ReservationEfficiency = () => {
                       height: '100%',
                     }}
                   >
-                    <Typography color='text.secondary'>No data available</Typography>
+                    <Typography
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      No data available
+                    </Typography>
                   </Box>
                 )}
               </Box>
@@ -517,7 +537,6 @@ export const ReservationEfficiency = () => {
           </Card>
         </RemoteContent>
       )}
-
       {/* Member view */}
       {groupBy === 'member' && period === 'year' && (
         <RemoteContent isLoading={byMemberYrLoading} error={byMemberYrError}>
@@ -526,7 +545,13 @@ export const ReservationEfficiency = () => {
               <Typography variant='h6' gutterBottom>
                 Reservation Efficiency by Member — Current Year (Top 20)
               </Typography>
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
                 Members are anonymized. Sorted by efficiency descending.
               </Typography>
               {memberYearTableData.length > 0 ? (
@@ -595,13 +620,18 @@ export const ReservationEfficiency = () => {
                   </table>
                 </Box>
               ) : (
-                <Typography color='text.secondary'>No data available</Typography>
+                <Typography
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
+                  No data available
+                </Typography>
               )}
             </CardContent>
           </Card>
         </RemoteContent>
       )}
-
       {groupBy === 'member' && period === 'month' && (
         <RemoteContent isLoading={byMemberYrMthLoading} error={byMemberYrMthError}>
           <Card sx={{ mb: 3 }}>
@@ -609,7 +639,13 @@ export const ReservationEfficiency = () => {
               <Typography variant='h6' gutterBottom>
                 Reservation Efficiency by Member — Monthly (Last 12 Months)
               </Typography>
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
                 Aggregated across all members per month.
               </Typography>
               <Box sx={{ height: 400 }}>
@@ -662,7 +698,13 @@ export const ReservationEfficiency = () => {
                       height: '100%',
                     }}
                   >
-                    <Typography color='text.secondary'>No data available</Typography>
+                    <Typography
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      No data available
+                    </Typography>
                   </Box>
                 )}
               </Box>

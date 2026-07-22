@@ -16,7 +16,13 @@ export const FormField = ({
   sx?: SxProps<Theme>
 }) => (
   <Box sx={{ display: 'flex', alignItems: 'center', ...sx }}>
-    <Typography variant='body2' color='text.secondary' sx={{ width: width ?? 150 }}>
+    <Typography
+      variant='body2'
+      sx={{
+        color: 'text.secondary',
+        width: width ?? 150,
+      }}
+    >
       {label}:
     </Typography>
     {icon && <Icon icon={icon} />}

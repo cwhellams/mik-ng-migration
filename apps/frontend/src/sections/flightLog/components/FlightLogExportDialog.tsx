@@ -195,9 +195,20 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
           {/* Count display */}
           <Box sx={{ minHeight: 24 }}>
             {isCountLoading ? (
-              <Stack direction='row' spacing={1} alignItems='center'>
+              <Stack
+                direction='row'
+                spacing={1}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <CircularProgress size={16} />
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {t('flightLog.export.countLoading')}
                 </Typography>
               </Stack>
@@ -237,14 +248,35 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
                       value={fmt}
                       control={<Radio size='small' />}
                       label={
-                        <Stack direction='row' spacing={1} alignItems='center'>
-                          <Typography variant='body2' fontWeight={500}>
+                        <Stack
+                          direction='row'
+                          spacing={1}
+                          sx={{
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              fontWeight: 500,
+                            }}
+                          >
                             {label}
                           </Typography>
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {extension}
                           </Typography>
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             — {platforms}
                           </Typography>
                         </Stack>
@@ -258,7 +290,6 @@ export const FlightLogExportDialog = ({ open, onClose, defaultAircraftRegistrati
           </Box>
         </Stack>
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose}>{t('common.cancel', 'Cancel')}</Button>
         <Button

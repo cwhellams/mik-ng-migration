@@ -107,13 +107,18 @@ export function CostCentresPage() {
   return (
     <Box>
       <Title label={t('costCentres.title')} />
-
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant='h6' sx={{ mb: 2 }}>
           {t('costCentres.formTitle')}
         </Typography>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems='flex-start'>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          sx={{
+            alignItems: 'flex-start',
+          }}
+        >
           <TextField
             label={t('costCentres.code')}
             value={form.code}
@@ -160,7 +165,6 @@ export function CostCentresPage() {
           </Alert>
         )}
       </Paper>
-
       <Paper>
         <Typography variant='h6' sx={{ px: 3, pt: 3 }}>
           {t('costCentres.history')}

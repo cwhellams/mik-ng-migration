@@ -160,7 +160,14 @@ export const UpliftReport = () => {
         <Typography variant='h5' gutterBottom>
           {t('upliftReport.title')}
         </Typography>
-        <Typography variant='body2' color='text.secondary' gutterBottom sx={{ mb: 3 }}>
+        <Typography
+          variant='body2'
+          gutterBottom
+          sx={{
+            color: 'text.secondary',
+            mb: 3,
+          }}
+        >
           {t('upliftReport.description')}
         </Typography>
 
@@ -278,7 +285,12 @@ export const UpliftReport = () => {
                           alignItems: 'center',
                         }}
                       >
-                        <Typography variant='body2' color='text.secondary'>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           {t('upliftReport.summary.fuelTypes')}:
                         </Typography>
                         {reportData.summary.fuelTypes.map((ft) => (

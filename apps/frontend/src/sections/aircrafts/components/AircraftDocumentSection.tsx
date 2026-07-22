@@ -49,11 +49,16 @@ export const AircraftDocumentSection: React.FC<AircraftDocumentSectionProps> = (
 
   return (
     <Box sx={{ position: 'relative' }}>
-      <Typography variant='subtitle1' color='text.primary' gutterBottom>
+      <Typography
+        variant='subtitle1'
+        gutterBottom
+        sx={{
+          color: 'text.primary',
+        }}
+      >
         {t('aircraft.documents')}
       </Typography>
       <br />
-
       <RemoteContent isLoading={isLoading} error={error}>
         <Box>
           <AircraftDocumentList

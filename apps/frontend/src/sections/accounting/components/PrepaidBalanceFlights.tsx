@@ -62,7 +62,6 @@ export const PrepaidBalanceFlights = ({
   return (
     <>
       <SnackAlert problem={problem} />
-
       <RemoteContent isLoading={isLoading} error={error}>
         {(data?.groups.length ?? 0) === 0 && (
           <Alert severity='info' sx={{ mb: 3 }}>
@@ -80,7 +79,13 @@ export const PrepaidBalanceFlights = ({
               {group.billableMemberLastName} · {group.aircraftRegistration}
             </Typography>
 
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               {t('invoicing.prepaidSummary', {
                 available: formatMinutes(group.availablePrepaidMinutes),
                 used: formatMinutes(group.prepaidMinutesUsed),
@@ -107,7 +112,12 @@ export const PrepaidBalanceFlights = ({
                 <>
                   <Grid size={{ xs: 12, md: 1.8 }}>
                     <Box>{formatISODate(flight.takeoffTimeUtc)}</Box>
-                    <Typography variant='caption' color='text.secondary'>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {flight.billableMemberLastName}
                     </Typography>
                   </Grid>
@@ -128,7 +138,6 @@ export const PrepaidBalanceFlights = ({
           </Paper>
         ))}
       </RemoteContent>
-
       <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
         <Button color='secondary' variant='outlined' onClick={navigate.previous} sx={{ mr: 1 }}>
           {t('general.back')}

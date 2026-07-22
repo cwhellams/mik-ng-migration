@@ -52,9 +52,7 @@ export default function OrderDetailPage() {
       >
         {t('shop.myOrders')}
       </Button>
-
       <Title label={t('shop.orderDetail')} />
-
       <RemoteContent isLoading={isLoading} error={error}>
         {!isLoading && !error && !order && <Alert severity='error'>{t('common.notFound')}</Alert>}
         {order && (
@@ -62,13 +60,23 @@ export default function OrderDetailPage() {
             <Paper sx={{ p: 3, mb: 3 }}>
               <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', mb: 2 }}>
                 <Box>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('shop.orderId')}
                   </Typography>
                   <Typography variant='h6'>#{order.orderId}</Typography>
                 </Box>
                 <Box>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('shop.status')}
                   </Typography>
                   <Box>
@@ -81,7 +89,12 @@ export default function OrderDetailPage() {
                 </Box>
                 {order.createdAt && (
                   <Box>
-                    <Typography variant='caption' color='text.secondary'>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {t('shop.orderDate')}
                     </Typography>
                     <Typography>{new Date(order.createdAt).toLocaleDateString()}</Typography>
@@ -153,8 +166,20 @@ export default function OrderDetailPage() {
                       mb: 1,
                     }}
                   >
-                    <Typography color='success.main'>{t('shop.discount')}</Typography>
-                    <Typography color='success.main'>-€{discountAmount.toFixed(2)}</Typography>
+                    <Typography
+                      sx={{
+                        color: 'success.main',
+                      }}
+                    >
+                      {t('shop.discount')}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        color: 'success.main',
+                      }}
+                    >
+                      -€{discountAmount.toFixed(2)}
+                    </Typography>
                   </Box>
                 )}
                 <Divider sx={{ my: 1 }} />

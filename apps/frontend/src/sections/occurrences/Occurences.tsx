@@ -52,7 +52,6 @@ export const Occurrences = () => {
           {t('occurrences.newReport')}
         </Button>
       </Title>
-
       <Box
         sx={{
           mb: 2,
@@ -64,7 +63,6 @@ export const Occurrences = () => {
       >
         <Typography variant='body1'>{t('occurrences.infoText')}</Typography>
       </Box>
-
       <OccurrenceStatusFilter
         selected={filters.status!}
         onChange={(status) =>
@@ -74,7 +72,6 @@ export const Occurrences = () => {
           }))
         }
       />
-
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
           header={
@@ -107,7 +104,12 @@ export const Occurrences = () => {
 
                 {occurrence.status !== OccurrenceStatus.RECEIVED &&
                   occurrence.status !== OccurrenceStatus.CLOSED && (
-                    <Box fontSize='0.8em' color='text.secondary'>
+                    <Box
+                      sx={{
+                        fontSize: '0.8em',
+                        color: 'text.secondary',
+                      }}
+                    >
                       {t('occurrences.age', {
                         duration: formatDuration(getDurationInMinutes(occurrence.reportDate)),
                       })}

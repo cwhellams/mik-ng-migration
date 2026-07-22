@@ -14,20 +14,38 @@ export const InvoiceDatesCell: React.FC<InvoiceDatesCellProps> = ({ sentAt, dueA
   const { formatDate } = useTimezone()
 
   return (
-    <Box display='flex' flexDirection='column' gap={0.5}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.5,
+      }}
+    >
       <Typography
         variant='subtitle2'
-        fontWeight='bold'
         color={isPastDue ? 'error.main' : 'text.primary'}
+        sx={{
+          fontWeight: 'bold',
+        }}
       >
         {t('invoiceItems.dates.due')} {formatDate(dueDate)}
       </Typography>
       {sentAt ? (
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {t('invoiceItems.dates.sent')} {formatDate(sentAt)}
         </Typography>
       ) : (
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {t('invoiceItems.dates.notSent', '—')}
         </Typography>
       )}

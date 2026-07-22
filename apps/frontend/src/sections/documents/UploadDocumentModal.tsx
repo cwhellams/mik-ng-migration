@@ -201,13 +201,29 @@ const UploadDocumentModal = ({ open, onClose, onSuccess }: UploadDocumentModalPr
             >
               <input {...getInputProps()} />
               {file ? (
-                <Stack direction='row' alignItems='center' spacing={2}>
+                <Stack
+                  direction='row'
+                  spacing={2}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <Icon icon={getFileIcon(file.type)} width={32} height={32} />
                   <Box sx={{ flexGrow: 1, textAlign: 'left' }}>
-                    <Typography variant='body1' fontWeight='medium'>
+                    <Typography
+                      variant='body1'
+                      sx={{
+                        fontWeight: 'medium',
+                      }}
+                    >
                       {file.name}
                     </Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {formatFileSize(file.size)}
                     </Typography>
                   </Box>
@@ -225,7 +241,12 @@ const UploadDocumentModal = ({ open, onClose, onSuccess }: UploadDocumentModalPr
                   </Button>
                 </Stack>
               ) : (
-                <Stack alignItems='center' spacing={1}>
+                <Stack
+                  spacing={1}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <Icon icon='mdi:cloud-upload' width={48} height={48} color='grey' />
                   <Typography variant='body1'>
                     {isDragActive
@@ -235,7 +256,12 @@ const UploadDocumentModal = ({ open, onClose, onSuccess }: UploadDocumentModalPr
                           'Drag & drop a file here, or click to select',
                         )}
                   </Typography>
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t(
                       'documents.upload.supportedFormats',
                       'Supported: PDF, Word, Excel, PowerPoint, Text, Images (Max 50MB)',
@@ -271,12 +297,20 @@ const UploadDocumentModal = ({ open, onClose, onSuccess }: UploadDocumentModalPr
             value={publishedDate}
             onChange={(e) => setPublishedDate(e.target.value)}
             type='date'
-            InputLabelProps={{ shrink: true }}
             required
             fullWidth
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
           />
 
-          <Stack direction={'row'} alignItems='center' spacing={2}>
+          <Stack
+            direction={'row'}
+            spacing={2}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <FormControl fullWidth>
               <InputLabel>{t('documents.form.visibility', 'Visibility')}</InputLabel>
               <Select
@@ -312,7 +346,13 @@ const UploadDocumentModal = ({ open, onClose, onSuccess }: UploadDocumentModalPr
 
           {isUploading && (
             <Box>
-              <Typography variant='body2' color='text.secondary' gutterBottom>
+              <Typography
+                variant='body2'
+                gutterBottom
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('documents.upload.uploading', 'Uploading...')}
               </Typography>
               <LinearProgress />

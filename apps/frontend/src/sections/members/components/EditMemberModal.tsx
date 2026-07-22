@@ -541,8 +541,20 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
 
   const renderBillingForm = () => (
     <Grid container spacing={2}>
-      <Grid size={12} display='flex' alignItems='center'>
-        <Typography variant='body2' color='text.secondary' sx={{ width: 200 }}>
+      <Grid
+        size={12}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            width: 200,
+          }}
+        >
           {t('member.billingInfo.annualMembershipAutoRenew')}
         </Typography>
         <Checkbox
@@ -555,8 +567,20 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           }}
         />
       </Grid>
-      <Grid size={{ xs: 12, sm: 6 }} display='flex' alignItems='center'>
-        <Typography variant='body2' color='text.secondary' sx={{ width: 200 }}>
+      <Grid
+        size={{ xs: 12, sm: 6 }}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            width: 200,
+          }}
+        >
           {t('member.billingInfo.equipmentFeeAutoRenew')}
         </Typography>
         <Checkbox
@@ -574,8 +598,20 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
 
   const renderTrainingForm = () => (
     <Grid container spacing={2}>
-      <Grid size={12} display='flex' alignItems='center'>
-        <Typography variant='body2' color='text.secondary' sx={{ width: 150 }}>
+      <Grid
+        size={12}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            width: 150,
+          }}
+        >
           {t('member.isTrainingProgramPilot')}
         </Typography>
         <Checkbox
@@ -612,7 +648,13 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           </RadioGroup>
         </FormControl>
       </Grid>
-      <Box mb={3} display={'flex'} flexDirection={'column'}>
+      <Box
+        sx={{
+          mb: 3,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         <FormControlLabel
           control={
             <Checkbox
@@ -720,14 +762,16 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           }
           placeholder='FI12 3456 7890 1234 56'
           helperText={t('member.ibanHelper')}
-          inputProps={{ style: { textTransform: 'uppercase' } }}
           onBlur={(e) =>
             setFormData((prev) => ({
               ...prev,
               iban: e.target.value.trim().toUpperCase() || undefined,
             }))
           }
-          slotProps={{ inputLabel: { shrink: true } }}
+          slotProps={{
+            inputLabel: { shrink: true },
+            htmlInput: { style: { textTransform: 'uppercase' } },
+          }}
         />
       </Grid>
       <Grid size={12}>

@@ -42,7 +42,7 @@ import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../components/SaveButton'
 import { Title } from '../../components/Title'
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker/DateTimePicker'
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { Airfields } from '../../components/Airfields'
 import { FormField } from '../../components/FormField'
 import { formatDuration, getDurationInMinutes } from '../flightLog/utils/timeUtils'
@@ -235,7 +235,13 @@ export const OccurrenceEntry = () => {
   const title = isNew ? t('occurrences.newReport') : t('occurrences.existingReport')
 
   const SummaryForm = () => (
-    <Grid container spacing={3} mb={3}>
+    <Grid
+      container
+      spacing={3}
+      sx={{
+        mb: 3,
+      }}
+    >
       <Grid size={12}>
         <Typography variant='h6'>{t('occurrences.summary')}</Typography>
       </Grid>
@@ -381,11 +387,16 @@ export const OccurrenceEntry = () => {
     const animals = watch('animalNumber')
 
     return (
-      <Grid container spacing={3} mb={3}>
+      <Grid
+        container
+        spacing={3}
+        sx={{
+          mb: 3,
+        }}
+      >
         <Grid size={12}>
           <Typography variant='h6'>{t('occurrences.eventType')}</Typography>
         </Grid>
-
         <Grid size={{ xs: 12, sm: 6 }}>
           <FormControl required fullWidth error={!!errors.categories}>
             <InputLabel>{t('occurrences.categories')}</InputLabel>
@@ -414,7 +425,6 @@ export const OccurrenceEntry = () => {
             )}
           </FormControl>
         </Grid>
-
         <Grid size={12}>
           <FormControl required error={!!errors.isWeatherRelevant}>
             <FormControlLabel
@@ -437,7 +447,6 @@ export const OccurrenceEntry = () => {
             />
           </FormControl>
         </Grid>
-
         <Grid size={12}>
           <FormControl required error={!!errors.animalNumber}>
             <FormControlLabel
@@ -453,7 +462,6 @@ export const OccurrenceEntry = () => {
             />
           </FormControl>
         </Grid>
-
         {animals !== '0' && (
           <Grid size={12} container spacing={3}>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -534,11 +542,16 @@ export const OccurrenceEntry = () => {
     const aircraft = watch('aircraftRegistration')
 
     return (
-      <Grid container spacing={3} mb={3}>
+      <Grid
+        container
+        spacing={3}
+        sx={{
+          mb: 3,
+        }}
+      >
         <Grid size={12}>
           <Typography variant='h6'>{t('occurrences.details')}</Typography>
         </Grid>
-
         <Grid size={{ xs: 12, sm: aircraft ? 6 : 12 }}>
           <FormControl
             fullWidth
@@ -565,7 +578,6 @@ export const OccurrenceEntry = () => {
             <FormHelperText>{t('occurrences.aircraftNote')}</FormHelperText>
           </FormControl>
         </Grid>
-
         {aircraft && (
           <Grid size={{ xs: 12, sm: 6 }}>
             <FormControl required error={!!errors.aircraftTechnicalFault}>
@@ -595,7 +607,6 @@ export const OccurrenceEntry = () => {
             </FormControl>
           </Grid>
         )}
-
         <Grid size={{ xs: 12, sm: 6 }}>
           <Airfields
             name='departureAirport'
@@ -605,7 +616,6 @@ export const OccurrenceEntry = () => {
             error={errors.departureAirport}
           />
         </Grid>
-
         <Grid size={{ xs: 12, sm: 6 }}>
           <Airfields
             name='arrivalAirport'
@@ -615,7 +625,6 @@ export const OccurrenceEntry = () => {
             error={errors.arrivalAirport}
           />
         </Grid>
-
         <Grid size={12}>
           <Controller
             name={'description'}
@@ -790,11 +799,16 @@ export const OccurrenceEntry = () => {
     const isEditable = access?.manage && data?.status == OccurrenceStatus.ANONYMIZED
 
     return (
-      <Grid container spacing={3} mb={3}>
+      <Grid
+        container
+        spacing={3}
+        sx={{
+          mb: 3,
+        }}
+      >
         <Grid size={12}>
           <Typography variant='h6'>{t('occurrences.handling.before')}</Typography>
         </Grid>
-
         <Grid size={6}>
           <FormControl fullWidth required>
             <InputLabel>{t('occurrences.handling.adversity')}</InputLabel>
@@ -841,9 +855,20 @@ export const OccurrenceEntry = () => {
             </Select>
           </FormControl>
         </Grid>
-
-        <Grid size={12} display='flex' alignItems='center'>
-          <Typography variant='body2' color='text.secondary' sx={{ width: 200 }}>
+        <Grid
+          size={12}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              width: 200,
+            }}
+          >
             {t('occurrences.handling.forwardedToTraficom')}
           </Typography>
           <Checkbox
@@ -857,9 +882,15 @@ export const OccurrenceEntry = () => {
             }}
           />
         </Grid>
-
         {isEditable && (
-          <Grid size={12} display='flex' justifyContent='center' mt={2}>
+          <Grid
+            size={12}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              mt: 2,
+            }}
+          >
             <ConfirmButton
               onConfirm={() => handleStateChange(OccurrenceStatus.PROCESSED, handling)}
               title={t('occurrences.actions.processed')}
@@ -890,12 +921,23 @@ export const OccurrenceEntry = () => {
     const isEditable = access?.manage && data?.status == OccurrenceStatus.PROCESSED
 
     return (
-      <Grid container spacing={3} mb={3}>
+      <Grid
+        container
+        spacing={3}
+        sx={{
+          mb: 3,
+        }}
+      >
         <Grid size={12}>
           <Typography variant='h6'>{t('occurrences.handling.after')}</Typography>
         </Grid>
-
-        <Grid size={12} display='flex' alignItems='center'>
+        <Grid
+          size={12}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
           <TextField
             value={handling?.mitigatingAction ?? ''}
             onChange={({ target }) =>
@@ -909,7 +951,6 @@ export const OccurrenceEntry = () => {
             fullWidth
           />
         </Grid>
-
         <Grid size={6}>
           <FormControl fullWidth required>
             <InputLabel>{t('occurrences.handling.adversity')}</InputLabel>
@@ -956,9 +997,15 @@ export const OccurrenceEntry = () => {
             </Select>
           </FormControl>
         </Grid>
-
         {isEditable && (
-          <Grid size={12} display='flex' justifyContent='center' mt={2}>
+          <Grid
+            size={12}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              mt: 2,
+            }}
+          >
             <ConfirmButton
               onConfirm={() => handleStateChange(OccurrenceStatus.CLOSED, handling)}
               title={t('occurrences.actions.close')}
@@ -1034,7 +1081,13 @@ export const OccurrenceEntry = () => {
         {/* Breadcrumb navigation */}
         <Breadcrumbs sx={{ my: 2 }}>
           <Link to='/logs/occurrences'>{t('occurrences.title')}</Link>
-          <Typography color='text.primary'>{title}</Typography>
+          <Typography
+            sx={{
+              color: 'text.primary',
+            }}
+          >
+            {title}
+          </Typography>
         </Breadcrumbs>
 
         <Title label={title} />
@@ -1048,8 +1101,10 @@ export const OccurrenceEntry = () => {
             <Stack
               direction={{ xs: 'column-reverse', sm: 'row' }}
               spacing={2}
-              justifyContent='flex-end'
-              mt={3}
+              sx={{
+                justifyContent: 'flex-end',
+                mt: 3,
+              }}
             >
               <Button
                 variant='outlined'

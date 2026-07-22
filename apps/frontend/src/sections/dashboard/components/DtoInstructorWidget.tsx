@@ -23,9 +23,21 @@ export function DtoInstructorWidget() {
         mb: 2,
       }}
     >
-      <Box display='flex' alignItems='center' gap={1} mb={1}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          mb: 1,
+        }}
+      >
         <Icon icon='mdi:airplane-check' width={24} />
-        <Typography variant='subtitle1' fontWeight={600}>
+        <Typography
+          variant='subtitle1'
+          sx={{
+            fontWeight: 600,
+          }}
+        >
           DTO Verification
         </Typography>
         {count > 0 && (
@@ -51,7 +63,12 @@ export function DtoInstructorWidget() {
           </Button>
         </>
       ) : (
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           No flights awaiting verification.
         </Typography>
       )}

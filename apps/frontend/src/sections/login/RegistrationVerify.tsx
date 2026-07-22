@@ -55,7 +55,13 @@ const RegistrationVerify = () => {
           <Typography variant='h6' sx={{ mt: 2, mb: 2 }}>
             {t('registrationVerify.verificationFailed')}
           </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mb: 3,
+            }}
+          >
             {verificationError}
           </Typography>
           <Button variant='outlined' onClick={() => navigate('/register')} sx={{ mr: 2 }}>
@@ -81,9 +87,14 @@ const RegistrationVerify = () => {
             {t('registrationVerify.thankYouMessage')}
           </Typography>
         </Box>
-
         <Box sx={{ textAlign: 'center' }}>
-          <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mb: 2,
+            }}
+          >
             {t('registrationVerify.dashboardAccessMessage')}
           </Typography>
           <Button

@@ -69,19 +69,20 @@ const LanguageSelector = ({
       >
         {showLabel && currentConfig.label}
       </Button>
-
       <Menu
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        PaperProps={{
-          elevation: 3,
-          sx: {
-            minWidth: 150,
-            mt: 1,
-            '& .MuiMenuItem-root': {
-              px: 2,
-              py: 1,
+        slotProps={{
+          paper: {
+            elevation: 3,
+            sx: {
+              minWidth: 150,
+              mt: 1,
+              '& .MuiMenuItem-root': {
+                px: 2,
+                py: 1,
+              },
             },
           },
         }}
@@ -89,7 +90,12 @@ const LanguageSelector = ({
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         <Box sx={{ px: 2, py: 1 }}>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {t('languageSelector.selectLanguage')}
           </Typography>
         </Box>

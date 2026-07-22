@@ -48,13 +48,27 @@ export default function DtoImportPage() {
   return (
     <Box>
       <Title label={`Import Syllabus JSON${program ? ` — ${program.name}` : ''}`} />
-      <Typography variant='body1' color='text.secondary' mb={3}>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+          mb: 3,
+        }}
+      >
         Upload a JSON file to create a new <strong>Draft</strong> syllabus version. The file is
         validated before import — no partial data will be created.
       </Typography>
-
-      <Box mb={2}>
-        <Typography variant='subtitle2' mb={1}>
+      <Box
+        sx={{
+          mb: 2,
+        }}
+      >
+        <Typography
+          variant='subtitle2'
+          sx={{
+            mb: 1,
+          }}
+        >
           Expected JSON format:
         </Typography>
         <Box
@@ -98,7 +112,6 @@ export default function DtoImportPage() {
 }`}
         </Box>
       </Box>
-
       <input
         type='file'
         accept='.json,application/json'
@@ -106,8 +119,14 @@ export default function DtoImportPage() {
         style={{ display: 'none' }}
         onChange={handleFileChange}
       />
-
-      <Box display='flex' alignItems='center' gap={2} mb={2}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          mb: 2,
+        }}
+      >
         <Button
           variant='outlined'
           startIcon={<Icon icon='mdi:file-upload' />}
@@ -126,10 +145,8 @@ export default function DtoImportPage() {
           </Button>
         )}
       </Box>
-
       {error && <Alert severity='error'>{error}</Alert>}
       {success && <Alert severity='success'>Import successful! Redirecting to editor…</Alert>}
-
       <Button
         startIcon={<Icon icon='mdi:arrow-left' />}
         onClick={() => navigate('/admin/dto')}

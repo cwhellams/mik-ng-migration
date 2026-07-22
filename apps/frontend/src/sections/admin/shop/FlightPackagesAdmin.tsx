@@ -289,7 +289,6 @@ export default function FlightPackagesAdmin() {
           </Button>
         </Box>
       </Box>
-
       <Typography variant='h6' sx={{ mb: 1 }}>
         {t('shop.admin.availablePackages')}
       </Typography>
@@ -378,7 +377,12 @@ export default function FlightPackagesAdmin() {
                     <TableCell sx={{ position: 'relative' }}>
                       <span>{p.nameFi ?? p.nameEn ?? '–'}</span>
                       <br />
-                      <Typography variant='caption' color='text.secondary'>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {p.descriptionFi ?? p.descriptionEn ?? ''}
                       </Typography>
                       {isSoldOut && (
@@ -430,9 +434,7 @@ export default function FlightPackagesAdmin() {
           </Table>
         </TableContainer>
       </RemoteContent>
-
       <Divider sx={{ mb: 3 }} />
-
       <Typography variant='h6' sx={{ mb: 1 }}>
         {t('shop.admin.memberPackages')}
       </Typography>
@@ -470,7 +472,6 @@ export default function FlightPackagesAdmin() {
           </Table>
         </TableContainer>
       </RemoteContent>
-
       <Typography variant='h6' sx={{ mt: 3, mb: 1 }}>
         {t('shop.admin.totalsByAircraft')}
       </Typography>
@@ -502,7 +503,6 @@ export default function FlightPackagesAdmin() {
           </Table>
         </TableContainer>
       </RemoteContent>
-
       {/* Package create / edit dialog */}
       <Dialog open={pkgDialogOpen} onClose={closePkg} maxWidth='sm' fullWidth>
         <DialogTitle>
@@ -519,7 +519,14 @@ export default function FlightPackagesAdmin() {
                 p: 1.5,
               }}
             >
-              <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mb: 1 }}>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                  display: 'block',
+                  mb: 1,
+                }}
+              >
                 {t('common.name')} *
               </Typography>
               {(['en', 'fi', 'sv'] as const).map((lang, i) => (
@@ -562,7 +569,14 @@ export default function FlightPackagesAdmin() {
                 p: 1.5,
               }}
             >
-              <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mb: 1 }}>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                  display: 'block',
+                  mb: 1,
+                }}
+              >
                 {t('common.description')}
               </Typography>
               {(['en', 'fi', 'sv'] as const).map((lang, i) => (
@@ -627,7 +641,9 @@ export default function FlightPackagesAdmin() {
                 type='number'
                 value={form.minutesPerPackage}
                 onChange={set('minutesPerPackage')}
-                inputProps={{ step: '1', min: '1' }}
+                slotProps={{
+                  htmlInput: { step: '1', min: '1' },
+                }}
               />
 
               <TextField
@@ -637,7 +653,9 @@ export default function FlightPackagesAdmin() {
                 type='number'
                 value={form.perMinRate}
                 onChange={set('perMinRate')}
-                inputProps={{ step: '0.001', min: '0' }}
+                slotProps={{
+                  htmlInput: { step: '0.001', min: '0' },
+                }}
               />
 
               <TextField
@@ -647,7 +665,9 @@ export default function FlightPackagesAdmin() {
                 type='number'
                 value={form.vatPercent}
                 onChange={set('vatPercent')}
-                inputProps={{ step: '1', min: '0' }}
+                slotProps={{
+                  htmlInput: { step: '1', min: '0' },
+                }}
               />
 
               <TextField
@@ -659,8 +679,10 @@ export default function FlightPackagesAdmin() {
                     ? `€${(Number.parseFloat(form.perMinRate) * Number.parseInt(form.minutesPerPackage)).toFixed(2)}`
                     : '–'
                 }
-                InputProps={{ readOnly: true }}
                 sx={{ '& .MuiInputBase-input': { color: 'text.secondary' } }}
+                slotProps={{
+                  input: { readOnly: true },
+                }}
               />
 
               <TextField
@@ -670,7 +692,9 @@ export default function FlightPackagesAdmin() {
                 type='number'
                 value={form.totalPackagesAvailable}
                 onChange={set('totalPackagesAvailable')}
-                inputProps={{ min: '1' }}
+                slotProps={{
+                  htmlInput: { min: '1' },
+                }}
               />
 
               <TextField
@@ -680,7 +704,9 @@ export default function FlightPackagesAdmin() {
                 type='number'
                 value={form.maxPerMember}
                 onChange={set('maxPerMember')}
-                inputProps={{ min: '1' }}
+                slotProps={{
+                  htmlInput: { min: '1' },
+                }}
               />
 
               <TextField
@@ -690,7 +716,9 @@ export default function FlightPackagesAdmin() {
                 type='date'
                 value={form.expiresAt}
                 onChange={set('expiresAt')}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                }}
               />
 
               <FormControl size='small' fullWidth sx={{ gridColumn: '1 / -1' }}>
@@ -726,7 +754,9 @@ export default function FlightPackagesAdmin() {
                 type='number'
                 value={form.lowStockThreshold}
                 onChange={set('lowStockThreshold')}
-                inputProps={{ step: '1', min: '0' }}
+                slotProps={{
+                  htmlInput: { step: '1', min: '0' },
+                }}
               />
 
               <FormControlLabel
@@ -759,7 +789,6 @@ export default function FlightPackagesAdmin() {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Extend expiry dialog */}
       <Dialog
         open={extendDialogOpen}
@@ -790,7 +819,9 @@ export default function FlightPackagesAdmin() {
             type='number'
             value={extendDays}
             onChange={(e) => setExtendDays(e.target.value)}
-            inputProps={{ min: 1 }}
+            slotProps={{
+              htmlInput: { min: 1 },
+            }}
           />
         </DialogContent>
         <DialogActions>
@@ -804,7 +835,6 @@ export default function FlightPackagesAdmin() {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Snackbar
         open={!!snack}
         autoHideDuration={3000}

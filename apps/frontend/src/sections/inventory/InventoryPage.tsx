@@ -59,7 +59,6 @@ export default function InventoryPage() {
   return (
     <Box>
       <Title label={t('inventory.title')} />
-
       {/* Filters */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         <TextField
@@ -115,7 +114,6 @@ export default function InventoryPage() {
           </Select>
         </FormControl>
       </Box>
-
       <RemoteContent isLoading={isLoading} error={error}>
         {items?.length === 0 ? (
           <Alert severity='info'>{t('inventory.noItems')}</Alert>
@@ -178,16 +176,35 @@ export default function InventoryPage() {
                       </Box>
                     )}
                     <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant='subtitle1' fontWeight='bold' gutterBottom noWrap>
+                      <Typography
+                        variant='subtitle1'
+                        gutterBottom
+                        noWrap
+                        sx={{
+                          fontWeight: 'bold',
+                        }}
+                      >
                         {name}
                       </Typography>
                       {categoryName && (
-                        <Typography variant='caption' color='text.secondary' display='block'>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary',
+                            display: 'block',
+                          }}
+                        >
                           {categoryName}
                         </Typography>
                       )}
                       {locationName && (
-                        <Typography variant='caption' color='text.secondary' display='block'>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary',
+                            display: 'block',
+                          }}
+                        >
                           <Icon icon='mdi:map-marker' width={12} style={{ marginRight: 2 }} />
                           {locationName}
                         </Typography>

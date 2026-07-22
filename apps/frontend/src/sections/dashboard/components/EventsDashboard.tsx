@@ -40,26 +40,74 @@ const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
 
   return (
     <Box sx={{ opacity: isPast ? 0.65 : 1 }}>
-      <Stack direction='row' alignItems='flex-start' justifyContent='space-between' gap={1}>
-        <Box flex={1} minWidth={0}>
-          <Stack direction='row' alignItems='center' gap={1} flexWrap='wrap'>
-            <Typography variant='body1' fontWeight='medium'>
+      <Stack
+        direction='row'
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 1,
+        }}
+      >
+        <Box
+          sx={{
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          <Stack
+            direction='row'
+            sx={{
+              alignItems: 'center',
+              gap: 1,
+              flexWrap: 'wrap',
+            }}
+          >
+            <Typography
+              variant='body1'
+              sx={{
+                fontWeight: 'medium',
+              }}
+            >
               {event.title}
             </Typography>
             {isPast && <Chip label={t('events.past')} size='small' variant='outlined' />}
           </Stack>
 
-          <Stack direction='row' alignItems='center' gap={0.5} mt={0.25}>
+          <Stack
+            direction='row'
+            sx={{
+              alignItems: 'center',
+              gap: 0.5,
+              mt: 0.25,
+            }}
+          >
             <Icon icon='mdi:clock-outline' width={13} />
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {dateLabel}
             </Typography>
           </Stack>
 
           {event.location && (
-            <Stack direction='row' alignItems='center' gap={0.5} mt={0.1}>
+            <Stack
+              direction='row'
+              sx={{
+                alignItems: 'center',
+                gap: 0.5,
+                mt: 0.1,
+              }}
+            >
               <Icon icon='mdi:map-marker-outline' width={13} />
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {event.location}
               </Typography>
             </Stack>
@@ -76,7 +124,6 @@ const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
           </IconButton>
         </Tooltip>
       </Stack>
-
       <Menu
         anchorEl={anchorEl}
         open={menuOpen}
@@ -130,9 +177,19 @@ export const EventsDashboard = () => {
       <AccordionDetails>
         <RemoteContent isLoading={isLoading} error={error}>
           {displayEvents.length === 0 ? (
-            <Typography color='text.secondary'>{t('events.noEvents')}</Typography>
+            <Typography
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
+              {t('events.noEvents')}
+            </Typography>
           ) : (
-            <Stack gap={0}>
+            <Stack
+              sx={{
+                gap: 0,
+              }}
+            >
               {displayEvents.map((event, i) => (
                 <Box key={event.eventId}>
                   <DashboardEventItem event={event} />
@@ -142,7 +199,11 @@ export const EventsDashboard = () => {
             </Stack>
           )}
 
-          <Box mt={2}>
+          <Box
+            sx={{
+              mt: 2,
+            }}
+          >
             <Button
               component={Link}
               to='/club/events'

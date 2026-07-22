@@ -52,6 +52,8 @@ export const Airfields = <T extends FieldValues>({
               placeholder='ICAO'
               margin='normal'
               slotProps={{
+                ...params.slotProps,
+
                 inputLabel: {
                   shrink: true,
                 },

@@ -165,8 +165,20 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
           <Icon icon={getFileIcon(document.mimeType)} width={24} height={24} />
         </ListItemIcon>
         <Box sx={{ flex: 1 }}>
-          <Stack direction='row' spacing={1} alignItems='center' sx={{ mb: 0.5 }}>
-            <Typography variant='body2' fontWeight='medium'>
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+              mb: 0.5,
+            }}
+          >
+            <Typography
+              variant='body2'
+              sx={{
+                fontWeight: 'medium',
+              }}
+            >
               {document.title}
             </Typography>
             <Chip
@@ -176,22 +188,49 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
             />
           </Stack>
           <Stack spacing={0.5}>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {document.description}
             </Typography>
-            <Stack direction='row' spacing={2} alignItems='center' flexWrap='wrap'>
+            <Stack
+              direction='row'
+              spacing={2}
+              sx={{
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
               {document.validFrom && document.validTo && (
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {t('aircraft.document.validity')}: {document.validFrom} - {document.validTo}
                 </Typography>
               )}
               {document.fileSize && (
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {formatFileSize(document.fileSize)}
                 </Typography>
               )}
               {document.updatedAt && (
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {t('aircraft.document.lastUpdated')}: {formatISODate(document.updatedAt)}
                 </Typography>
               )}
@@ -199,7 +238,6 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
           </Stack>
         </Box>
       </Stack>
-
       {/* Action buttons row */}
       <Stack direction='row' spacing={1} sx={{ pl: 5 }}>
         {document.documentUrl && (
@@ -445,7 +483,14 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
   return (
     <Box>
       {/* Header with title and status */}
-      <Stack direction='row' spacing={3} alignItems='center' sx={{ mb: 2 }}>
+      <Stack
+        direction='row'
+        spacing={3}
+        sx={{
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
         {documents.length > 0 ? (
           acDocStatus
             .filter(({ count }) => count > 0)
@@ -474,7 +519,6 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           label={t('aircraft.document.showExpired')}
         />
       </Stack>
-
       {/* Upload area */}
       {showUpload && isAdmin && (
         <Box sx={{ mb: 3 }}>
@@ -489,7 +533,13 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
             </Button>
           ) : (
             <Stack spacing={2}>
-              <Stack direction='row' justifyContent='space-between' alignItems='center'>
+              <Stack
+                direction='row'
+                sx={{
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
                 <Typography variant='h6'>{t('aircraft.document.upload.title')}</Typography>
                 <IconButton onClick={() => setShowUploadArea(false)}>
                   <Icon icon='mdi:close' />
@@ -503,7 +553,6 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           )}
         </Box>
       )}
-
       {/* Document types grouped by type */}
       {allDocumentTypes
         .map(({ type, documents: docs }) => ({
@@ -517,8 +566,11 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           <Box key={type} sx={{ mb: 2 }}>
             <Typography
               variant='subtitle2'
-              color='text.secondary'
-              sx={{ mb: 1, fontWeight: 'medium' }}
+              sx={{
+                color: 'text.secondary',
+                mb: 1,
+                fontWeight: 'medium',
+              }}
             >
               {type}
             </Typography>
@@ -541,7 +593,6 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
             </List>
           </Box>
         ))}
-
       {/* Delete confirmation dialog */}
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
         <DialogTitle>{t('aircraft.document.delete.confirm.title')}</DialogTitle>
@@ -558,7 +609,6 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Edit metadata dialog */}
       <Dialog
         open={editDialogOpen}
@@ -574,7 +624,12 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
         <DialogContent>
           {documentToEdit && (
             <Stack spacing={2} sx={{ mt: 1 }}>
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('aircraft.document.upload.metadata.fileName', {
                   fileName: documentToEdit.title,
                 })}
@@ -680,7 +735,6 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Download Options Dialog */}
       <Dialog
         open={downloadDialogOpen}
@@ -699,17 +753,19 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
                 <TextField
                   fullWidth
                   value={downloadData.tinyUrl}
-                  InputProps={{
-                    readOnly: true,
-                    endAdornment: (
-                      <InputAdornment position='end'>
-                        <IconButton onClick={handleCopyTinyUrl} edge='end'>
-                          <Icon icon='mdi:content-copy' />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
                   size='small'
+                  slotProps={{
+                    input: {
+                      readOnly: true,
+                      endAdornment: (
+                        <InputAdornment position='end'>
+                          <IconButton onClick={handleCopyTinyUrl} edge='end'>
+                            <Icon icon='mdi:content-copy' />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
                 />
               </Box>
             )}
@@ -747,7 +803,6 @@ export const AircraftDocumentList: React.FC<AircraftDocumentListProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Tiny URL copied notification */}
       <Snackbar
         open={snackbarOpen}

@@ -92,16 +92,23 @@ export default function ExamsPage() {
                         {getTitle(exam)}
                       </Typography>
                       {getDescription(exam) && (
-                        <Typography variant='body2' color='text.secondary'>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
                           {getDescription(exam)}
                         </Typography>
                       )}
                       {exam.currentVersion && (
                         <Typography
                           variant='caption'
-                          color='text.secondary'
-                          display='block'
-                          sx={{ mt: 1 }}
+                          sx={{
+                            color: 'text.secondary',
+                            display: 'block',
+                            mt: 1,
+                          }}
                         >
                           {t('exams.questions', {
                             count: exam.currentVersion.questions.length,

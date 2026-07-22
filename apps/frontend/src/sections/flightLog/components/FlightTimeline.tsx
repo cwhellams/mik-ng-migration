@@ -83,10 +83,15 @@ const FlightTimeline = ({
         borderRadius: 2,
       }}
     >
-      <Typography variant='subtitle1' gutterBottom fontWeight='medium'>
+      <Typography
+        variant='subtitle1'
+        gutterBottom
+        sx={{
+          fontWeight: 'medium',
+        }}
+      >
         {t('flightLog.flightTimeline')}
       </Typography>
-
       <Box
         sx={{
           position: 'relative',
@@ -176,7 +181,6 @@ const FlightTimeline = ({
           )}
         </Box>
       </Box>
-
       <Grid container spacing={2}>
         <TimeBlock
           from={offBlockTime}
@@ -202,7 +206,6 @@ const FlightTimeline = ({
           color='info'
         />
       </Grid>
-
       {offBlockTime && onBlockTime && (
         <Box
           sx={{
@@ -216,15 +219,26 @@ const FlightTimeline = ({
             alignItems: { xs: 'flex-start', sm: 'center' },
           }}
         >
-          <Typography variant='body2' fontWeight='medium' color='primary.dark'>
+          <Typography
+            variant='body2'
+            sx={{
+              fontWeight: 'medium',
+              color: 'primary.dark',
+            }}
+          >
             {t('flightLog.totalBlockTime')}
           </Typography>
-          <Typography variant='h6' color='primary.dark' sx={{ mt: { xs: 0.5, sm: 0 } }}>
+          <Typography
+            variant='h6'
+            sx={{
+              color: 'primary.dark',
+              mt: { xs: 0.5, sm: 0 },
+            }}
+          >
             {formatDuration(calculateDuration(offBlockTime, onBlockTime))}
           </Typography>
         </Box>
       )}
-
       {flightTime > 0 && (
         <Box
           sx={{
@@ -257,7 +271,13 @@ const FlightTimeline = ({
                 height={20}
                 style={{ marginRight: theme.spacing(1) }}
               />
-              <Typography variant='body2' fontWeight='medium' color='success.main'>
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: 'medium',
+                  color: 'success.main',
+                }}
+              >
                 {t('flightLog.logbookCalculator')}
               </Typography>
             </Box>
@@ -286,9 +306,11 @@ const FlightTimeline = ({
                   >
                     <Typography
                       variant='caption'
-                      color='text.secondary'
                       gutterBottom
-                      display='block'
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                      }}
                     >
                       {t('flightLog.currentLogbookTime')}
                     </Typography>
@@ -311,11 +333,22 @@ const FlightTimeline = ({
                       height: '100%',
                     }}
                   >
-                    <Typography variant='body2' fontWeight='medium' color='primary.main'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 'medium',
+                        color: 'primary.main',
+                      }}
+                    >
                       {t('flightLog.thisFlightTime', 'This Flight Time')}
                     </Typography>
                     <Typography variant='h6'>{formatDuration(flightTime)}</Typography>
-                    <Typography variant='caption' color='text.secondary'>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {t('flightLog.toBeAdded', 'To be added')}
                     </Typography>
                   </Box>
@@ -330,10 +363,21 @@ const FlightTimeline = ({
                       height: '100%',
                     }}
                   >
-                    <Typography variant='body2' fontWeight='medium' color='success.main'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 'medium',
+                        color: 'success.main',
+                      }}
+                    >
                       {t('flightLog.newTotalTime', 'New Total Time')}
                     </Typography>
-                    <Typography variant='h6' color='success.main'>
+                    <Typography
+                      variant='h6'
+                      sx={{
+                        color: 'success.main',
+                      }}
+                    >
                       {(() => {
                         if (currentHours == null || currentMinutes == null) {
                           return '--'
@@ -347,7 +391,12 @@ const FlightTimeline = ({
                         return `${newHours}h ${newMinutes}min`
                       })()}
                     </Typography>
-                    <Typography variant='caption' color='text.secondary'>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {!currentHours || !currentMinutes
                         ? t('flightLog.enterCurrentTime')
                         : t('flightLog.calculatedTotal')}
@@ -394,13 +443,20 @@ const TimeBlock = ({
       >
         <Typography
           variant='body2'
-          fontWeight='medium'
           color={color == 'primary' ? 'primary.main' : 'info.main'}
+          sx={{
+            fontWeight: 'medium',
+          }}
         >
           {label}
         </Typography>
         <Typography variant='h6'>{formatDuration(duration)}</Typography>
-        <Typography variant='caption' color='text.secondary'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {from.utc().format('HH:mm')} - {to.utc().format('HH:mm')} (
           {getTimezoneDisplay(true, from)})
           <br />

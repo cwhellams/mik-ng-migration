@@ -56,18 +56,28 @@ export function PendingReviewBanner() {
   ]
 
   return (
-    <Stack spacing={2} mb={4}>
+    <Stack
+      spacing={2}
+      sx={{
+        mb: 4,
+      }}
+    >
       <Alert severity='info' sx={{ mt: 2 }}>
         {t('registrationVerify.pendingReview', {})}
       </Alert>
-
       <Card elevation={2} sx={{ mb: 4 }}>
         <CardContent>
           <Typography variant='h6' sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
             <Icon icon='mdi:timeline' style={{ marginRight: 8 }} />
             {t('registrationVerify.nextStepsTitle')}
           </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mb: 3,
+            }}
+          >
             {t('registrationVerify.nextStepsDescription')}
           </Typography>
 
@@ -104,13 +114,23 @@ export function PendingReviewBanner() {
                         }}
                       >
                         <Icon icon={step.icon} style={{ marginRight: 8 }} />
-                        <Typography variant='subtitle1' fontWeight='medium'>
+                        <Typography
+                          variant='subtitle1'
+                          sx={{
+                            fontWeight: 'medium',
+                          }}
+                        >
                           {step.title}
                         </Typography>
                       </Box>
                     }
                     secondary={
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {step.description}
                       </Typography>
                     }

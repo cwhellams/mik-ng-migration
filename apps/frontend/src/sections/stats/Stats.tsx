@@ -611,11 +611,16 @@ export const Stats = () => {
       <Typography variant='h4' gutterBottom>
         Flight Statistics
       </Typography>
-
       {/* Controls */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Grid container spacing={2} alignItems='center'>
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <Grid size={{ xs: 12 }}>
               <Typography variant='subtitle2' gutterBottom>
                 View Mode
@@ -639,22 +644,16 @@ export const Stats = () => {
           </Grid>
         </CardContent>
       </Card>
-
       {/* Pilot Statistics view */}
       {viewMode === 'pilots' && <PilotStatisticsView />}
-
       {/* Reservation Efficiency view */}
       {viewMode === 'efficiency' && <ReservationEfficiencyView />}
-
       {/* Year on Year view */}
       {viewMode === 'yoy' && <YearOnYearReport />}
-
       {/* Airfield Efficiency view */}
       {viewMode === 'airfield' && <AirfieldEfficiencyView />}
-
       {/* AOG (Aircraft On Ground) view */}
       {viewMode === 'aog' && <AogStatisticsView />}
-
       {viewMode !== 'pilots' &&
         viewMode !== 'efficiency' &&
         viewMode !== 'yoy' &&
@@ -669,7 +668,12 @@ export const Stats = () => {
                     <Grid key={stats.aircraft} size={{ xs: 12, sm: 6 }}>
                       <Card>
                         <CardContent>
-                          <Typography color='text.secondary' gutterBottom>
+                          <Typography
+                            gutterBottom
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {stats.aircraft} - Flight Hours YTD
                           </Typography>
                           <Typography variant='h4'>{stats.ytd}</Typography>
@@ -678,7 +682,9 @@ export const Stats = () => {
                               <Typography
                                 key={yearData.year}
                                 variant='body2'
-                                color='text.secondary'
+                                sx={{
+                                  color: 'text.secondary',
+                                }}
                               >
                                 {yearData.year}: {yearData.hours} hrs (NF: {yearData.nf}, IFR:{' '}
                                 {yearData.ifr})
@@ -809,7 +815,13 @@ export const Stats = () => {
                     <Box>
                       {monthlyDataByAircraft.map((aircraftData) => (
                         <Box key={aircraftData.aircraft} sx={{ mb: 4 }}>
-                          <Typography variant='subtitle1' gutterBottom fontWeight='bold'>
+                          <Typography
+                            variant='subtitle1'
+                            gutterBottom
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {aircraftData.aircraft}
                           </Typography>
                           <Box sx={{ height: 300 }}>
@@ -900,7 +912,13 @@ export const Stats = () => {
                     <Box>
                       {commercialBarData.map((aircraftData) => (
                         <Box key={aircraftData.aircraft} sx={{ mb: 4 }}>
-                          <Typography variant='subtitle1' gutterBottom fontWeight='bold'>
+                          <Typography
+                            variant='subtitle1'
+                            gutterBottom
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {aircraftData.aircraft}
                           </Typography>
                           <Box sx={{ height: 300 }}>

@@ -182,7 +182,13 @@ export const AogStatistics = () => {
             <Typography variant='h6' gutterBottom>
               AOG Days per Month (Last 12 Months)
             </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Days each aircraft was in maintenance or had an outstanding defect
             </Typography>
             <Box sx={{ height: 400 }}>
@@ -241,21 +247,32 @@ export const AogStatistics = () => {
                     justifyContent: 'center',
                   }}
                 >
-                  <Typography color='text.secondary'>No data available</Typography>
+                  <Typography
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
+                    No data available
+                  </Typography>
                 </Box>
               )}
             </Box>
           </CardContent>
         </Card>
       </RemoteContent>
-
       <RemoteContent isLoading={yearlyLoading} error={yearlyError}>
         <Card>
           <CardContent>
             <Typography variant='h6' gutterBottom>
               AOG Days — Year to Date &amp; Previous Years
             </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Per aircraft; YTD breaks down maintenance vs. unserviceable days
             </Typography>
             <Table size='small'>
@@ -292,7 +309,13 @@ export const AogStatistics = () => {
                 {aircraftRegistrations.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={2 + previousYears.length}>
-                      <Typography color='text.secondary'>No data available</Typography>
+                      <Typography
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
+                        No data available
+                      </Typography>
                     </TableCell>
                   </TableRow>
                 )}

@@ -140,7 +140,14 @@ export default function ExamAttemptPage() {
               value={progressValue}
               sx={{ mb: 2, height: 8, borderRadius: 4 }}
             />
-            <Typography variant='caption' color='text.secondary' sx={{ mb: 2, display: 'block' }}>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+                display: 'block',
+              }}
+            >
               {t('exams.questionOf', {
                 current: currentIdx + 1,
                 total: questions.length,

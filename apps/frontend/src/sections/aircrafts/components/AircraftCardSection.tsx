@@ -133,8 +133,20 @@ export const AircraftCardSection: React.FC<AircraftCardSectionProps> = ({
 
   return (
     <Box sx={{ position: 'relative' }}>
-      <Stack direction='row' alignItems='center' justifyContent='space-between' mb={1}>
-        <Typography variant='subtitle1' color='text.primary'>
+      <Stack
+        direction='row'
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 1,
+        }}
+      >
+        <Typography
+          variant='subtitle1'
+          sx={{
+            color: 'text.primary',
+          }}
+        >
           {t('aircraft.cards.title', 'Cards & Passes')}
         </Typography>
         {isAdmin && (
@@ -145,10 +157,14 @@ export const AircraftCardSection: React.FC<AircraftCardSectionProps> = ({
           </Tooltip>
         )}
       </Stack>
-
       <RemoteContent isLoading={isLoading} error={error}>
         {cards.length === 0 ? (
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {t('aircraft.cards.noCards', 'No cards or passes registered')}
           </Typography>
         ) : (
@@ -170,12 +186,22 @@ export const AircraftCardSection: React.FC<AircraftCardSectionProps> = ({
                 {cards.map((card) => (
                   <TableRow key={card.cardId} hover>
                     <TableCell>
-                      <Typography variant='body2' fontWeight='medium'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          fontWeight: 'medium',
+                        }}
+                      >
                         {card.name}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {card.description || '—'}
                       </Typography>
                     </TableCell>
@@ -188,7 +214,13 @@ export const AircraftCardSection: React.FC<AircraftCardSectionProps> = ({
                     <TableCell>{statusChip(card.validFrom, card.validTo)}</TableCell>
                     {isAdmin && (
                       <TableCell align='right'>
-                        <Stack direction='row' justifyContent='flex-end' spacing={0.5}>
+                        <Stack
+                          direction='row'
+                          spacing={0.5}
+                          sx={{
+                            justifyContent: 'flex-end',
+                          }}
+                        >
                           <Tooltip title={t('general.edit', 'Edit')}>
                             <IconButton size='small' onClick={() => handleEdit(card)}>
                               <Icon icon='mdi:pencil' />
@@ -213,7 +245,6 @@ export const AircraftCardSection: React.FC<AircraftCardSectionProps> = ({
           </TableContainer>
         )}
       </RemoteContent>
-
       <EditCardModal
         mode={editMode}
         aircraftRegistration={aircraftRegistration}
@@ -223,7 +254,6 @@ export const AircraftCardSection: React.FC<AircraftCardSectionProps> = ({
           setEditCard(undefined)
         }}
       />
-
       <ConfirmDialog
         open={deleteConfirmOpen}
         title={t('aircraft.cards.delete.title', 'Delete Card')}

@@ -121,7 +121,14 @@ export const TraficomReport = () => {
         <Typography variant='h5' gutterBottom>
           {t('invoicing.traficomReport.title')}
         </Typography>
-        <Typography variant='body2' color='text.secondary' gutterBottom sx={{ mb: 3 }}>
+        <Typography
+          variant='body2'
+          gutterBottom
+          sx={{
+            color: 'text.secondary',
+            mb: 3,
+          }}
+        >
           {t('invoicing.traficomReport.description')}
         </Typography>
 
@@ -212,13 +219,25 @@ export const TraficomReport = () => {
                     </TableCell>
                     <TableCell align='right'>
                       {t('invoicing.traficomReport.table.lifetimeHours')}
-                      <Typography variant='caption' display='block' color='text.secondary'>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          display: 'block',
+                          color: 'text.secondary',
+                        }}
+                      >
                         {t('invoicing.traficomReport.table.lifetimeNote')}
                       </Typography>
                     </TableCell>
                     <TableCell align='right'>
                       {t('invoicing.traficomReport.table.lifetimeLandings')}
-                      <Typography variant='caption' display='block' color='text.secondary'>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          display: 'block',
+                          color: 'text.secondary',
+                        }}
+                      >
                         {t('invoicing.traficomReport.table.lifetimeNote')}
                       </Typography>
                     </TableCell>

@@ -146,10 +146,16 @@ const WeightBalanceEnvelope: React.FC<WeightBalanceEnvelopeProps> = ({
       <Typography variant='h6' gutterBottom ref={chartContainerRef}>
         Weight & Balance Envelope - {aircraft.aircraftType}
       </Typography>
-      <Typography variant='caption' color='text.secondary' sx={{ mb: 2, display: 'block' }}>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+          mb: 2,
+          display: 'block',
+        }}
+      >
         Data Source: {aircraft.dataOrigin}
       </Typography>
-
       <Box sx={{ position: 'relative', width: '100%', height: chartHeight }}>
         <Box
           sx={{

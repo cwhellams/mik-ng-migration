@@ -16,15 +16,16 @@ export const Title = ({
   return (
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
-      justifyContent='space-between'
-      alignItems='center'
-      mb={!subtitle ? 3 : 0}
-      width='100%'
+      sx={{
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: !subtitle ? 3 : 0,
+        width: '100%',
+      }}
     >
       <Typography variant={subtitle ? 'h5' : isXs ? 'h4' : 'h2'} gutterBottom>
         {label}
       </Typography>
-
       {children}
     </Stack>
   )

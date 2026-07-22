@@ -150,7 +150,14 @@ const Dashboard = () => {
   return (
     <RemoteContent isLoading={isLoading} error={error}>
       <Box>
-        <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
           <Title label={t('header.dashboard')} />
           <Tooltip title='Dashboard Settings'>
             <IconButton
@@ -183,17 +190,11 @@ const Dashboard = () => {
           // Fallback to default order if no settings for customizable components
           <>
             {isMember && flyingUser && <EquipmentFeeBanner />}
-
             {bookingUser && <WeatherTabs />}
-
             {isMember && <EventsDashboard />}
-
             {bookingUser && <BookingUserDashboard />}
-
             {flyingUser && <FlightLogUserDashboard />}
-
             {hasAccess(MIKPermissions.MEMBER_ADMIN) && <MemberAdminDashboard />}
-
             {hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) && <FlightLogAdminDashboard />}
           </>
         )}

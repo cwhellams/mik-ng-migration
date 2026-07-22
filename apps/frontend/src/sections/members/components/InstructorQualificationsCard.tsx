@@ -59,7 +59,12 @@ type QualField = keyof Pick<
 const renderDateCell = (dateStr: string | null | undefined, t: (key: string) => string) => {
   if (!dateStr) {
     return (
-      <Typography variant='body2' color='text.disabled'>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.disabled',
+        }}
+      >
         {'–'}
       </Typography>
     )
@@ -323,8 +328,19 @@ export const InstructorQualificationsCard = ({
 
           {/* Date picker for point-in-time snapshot — admins only */}
           {canViewHistory && (
-            <Box mb={2}>
-              <Stack direction='row' spacing={2} alignItems='center' flexWrap='wrap'>
+            <Box
+              sx={{
+                mb: 2,
+              }}
+            >
+              <Stack
+                direction='row'
+                spacing={2}
+                sx={{
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                }}
+              >
                 <DatePicker
                   label={t('instructorStatus.snapshotDate')}
                   value={snapshotDate}
@@ -401,7 +417,6 @@ export const InstructorQualificationsCard = ({
           </TableContainer>
         </CardContent>
       </Card>
-
       <Dialog open={editOpen} onClose={handleCloseDialog} fullWidth maxWidth='sm'>
         {!showProofUpload ? (
           <form onSubmit={handleSave}>
@@ -441,7 +456,13 @@ export const InstructorQualificationsCard = ({
                   {proofError}
                 </Alert>
               )}
-              <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  mb: 2,
+                }}
+              >
                 {t('instructorStatus.proofUploadMessage')}
               </Typography>
               <Stack spacing={3}>
@@ -450,7 +471,12 @@ export const InstructorQualificationsCard = ({
                   <Typography variant='subtitle2'>
                     {t('instructorStatus.proofLicenseLabel')}
                   </Typography>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('instructorStatus.proofLicenseHint')}
                   </Typography>
                   {licenseSuccess ? (
@@ -480,7 +506,12 @@ export const InstructorQualificationsCard = ({
                   <Typography variant='subtitle2'>
                     {t('instructorStatus.proofMedicalLabel')}
                   </Typography>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('instructorStatus.proofMedicalHint')}
                   </Typography>
                   {medicalSuccess ? (

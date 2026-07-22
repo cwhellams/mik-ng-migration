@@ -169,8 +169,11 @@ export const YearOnYearReport = () => {
             <Box>
               <Typography
                 variant='caption'
-                color='text.secondary'
-                sx={{ mb: 0.5, display: 'block' }}
+                sx={{
+                  color: 'text.secondary',
+                  mb: 0.5,
+                  display: 'block',
+                }}
               >
                 {t('stats.yearOnYear.flightType')}
               </Typography>

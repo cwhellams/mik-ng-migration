@@ -153,7 +153,6 @@ const Login = () => {
           showLabel={true}
         />
       </Box>
-
       <form onSubmit={handleSubmit}>
         <TextField
           fullWidth
@@ -214,7 +213,13 @@ const Login = () => {
         {passkeySupported() && (
           <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>
             <Divider sx={{ flex: 1 }} />
-            <Typography variant='body2' color='text.secondary' sx={{ mx: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mx: 2,
+              }}
+            >
               {t('login.or')}
             </Typography>
             <Divider sx={{ flex: 1 }} />
@@ -252,7 +257,12 @@ const Login = () => {
         />
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {t('login.withoutAccount')}{' '}
             <Link to='/register' color='primary'>
               {t('login.join')}

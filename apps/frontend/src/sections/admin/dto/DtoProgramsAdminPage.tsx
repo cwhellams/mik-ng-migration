@@ -183,11 +183,28 @@ function SyllabiSection({
 
   return (
     <Box>
-      <Box display='flex' alignItems='center' justifyContent='space-between' mb={1}>
-        <Typography variant='subtitle1' fontWeight={600}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 1,
+        }}
+      >
+        <Typography
+          variant='subtitle1'
+          sx={{
+            fontWeight: 600,
+          }}
+        >
           Syllabus Versions
         </Typography>
-        <Box display='flex' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 1,
+          }}
+        >
           <Button
             size='small'
             startIcon={<Icon icon='mdi:upload' />}
@@ -212,7 +229,12 @@ function SyllabiSection({
         </Alert>
       )}
       {(syllabi?.length ?? 0) === 0 ? (
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           No syllabus versions yet.
         </Typography>
       ) : (
@@ -240,7 +262,13 @@ function SyllabiSection({
                   {s.publishedAt ? new Date(s.publishedAt).toLocaleDateString() : '—'}
                 </TableCell>
                 <TableCell align='right'>
-                  <Box display='flex' gap={0.5} justifyContent='flex-end'>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      gap: 0.5,
+                      justifyContent: 'flex-end',
+                    }}
+                  >
                     <Button size='small' onClick={() => onViewSyllabus(s)}>
                       Edit
                     </Button>
@@ -307,14 +335,26 @@ export default function DtoProgramsAdminPage() {
   return (
     <Box>
       <Title label='DTO Training Programs' />
-      <Box display='flex' justifyContent='flex-end' mb={2}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          mb: 2,
+        }}
+      >
         <Button variant='contained' startIcon={<Icon icon='mdi:plus' />} onClick={handleCreate}>
           New Program
         </Button>
       </Box>
       <RemoteContent isLoading={isLoading} error={error}>
         {(programs?.length ?? 0) === 0 ? (
-          <Typography color='text.secondary'>No training programs yet.</Typography>
+          <Typography
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
+            No training programs yet.
+          </Typography>
         ) : (
           programs!.map((program) => (
             <Box
@@ -327,14 +367,27 @@ export default function DtoProgramsAdminPage() {
                 borderRadius: 2,
               }}
             >
-              <Box display='flex' alignItems='center' justifyContent='space-between' mb={2}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  mb: 2,
+                }}
+              >
                 <Typography variant='h6'>{program.name}</Typography>
                 <IconButton size='small' onClick={() => handleEdit(program)}>
                   <Icon icon='mdi:pencil' />
                 </IconButton>
               </Box>
               {program.description && (
-                <Typography variant='body2' color='text.secondary' mb={2}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 2,
+                  }}
+                >
                   {program.description}
                 </Typography>
               )}

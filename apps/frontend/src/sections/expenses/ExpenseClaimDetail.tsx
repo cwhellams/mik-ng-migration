@@ -85,16 +85,26 @@ export default function ExpenseClaimDetail() {
           </Button>
         )}
       </Title>
-
       <RemoteContent isLoading={isLoading} error={error}>
         {data && (
           <Stack spacing={3}>
             {!!retractError && <Alert severity='error'>{retractError}</Alert>}
             <Paper sx={{ p: 3 }}>
               <Stack spacing={1}>
-                <Stack direction='row' spacing={1} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <ExpenseStatusChip status={data.status} t={t} />
-                  <Typography variant='body2' color='text.secondary'>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {getExpenseCategoryLabel(data, t)}
                   </Typography>
                 </Stack>
@@ -177,7 +187,13 @@ export default function ExpenseClaimDetail() {
               {!data.receipt ? (
                 <Alert severity='info'>No receipt uploaded.</Alert>
               ) : (
-                <Stack direction='row' justifyContent='space-between' alignItems='center'>
+                <Stack
+                  direction='row'
+                  sx={{
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
                   <Typography variant='body2'>
                     {data.receipt.fileName} · {Math.round(data.receipt.fileSize / 1024)} kB
                   </Typography>
@@ -196,7 +212,12 @@ export default function ExpenseClaimDetail() {
                 <Stack spacing={2}>
                   {data.messages.map((message) => (
                     <Paper key={message.id} variant='outlined' sx={{ p: 2 }}>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {message.messageType} · {new Date(message.sentAt).toLocaleString()}
                       </Typography>
                       <Typography variant='body1'>{message.body}</Typography>

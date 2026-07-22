@@ -42,10 +42,22 @@ export const LoginLayout = ({ title, children }: { title: string; children: Reac
               }}
             />
           </Link>
-          <Typography variant='h4' fontWeight='bold' color='primary' sx={{ mb: 1 }}>
+          <Typography
+            variant='h4'
+            color='primary'
+            sx={{
+              fontWeight: 'bold',
+              mb: 1,
+            }}
+          >
             Intranet
           </Typography>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {title}
           </Typography>
         </Box>

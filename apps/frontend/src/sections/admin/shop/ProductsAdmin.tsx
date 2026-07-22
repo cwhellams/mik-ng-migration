@@ -73,7 +73,14 @@ function LocalisedField({
         p: 1.5,
       }}
     >
-      <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mb: 1 }}>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+          display: 'block',
+          mb: 1,
+        }}
+      >
         {label}
         {required && ' *'}
       </Typography>
@@ -251,7 +258,13 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
     <Box sx={{ mt: 1 }}>
       <RemoteContent isLoading={isLoading} error={error}>
         {properties?.length === 0 && !propForm && (
-          <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mb: 2,
+            }}
+          >
             {t('shop.noVariants')}
           </Typography>
         )}
@@ -261,7 +274,13 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
           return (
             <Paper key={prop.propertyId} variant='outlined' sx={{ p: 1.5, mb: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant='body2' fontWeight='medium' sx={{ flex: 1 }}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontWeight: 'medium',
+                    flex: 1,
+                  }}
+                >
                   {name?.en}
                   {prop.isRequired && (
                     <Chip label={t('shop.required')} size='small' color='primary' sx={{ ml: 1 }} />
@@ -348,7 +367,12 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
                 mb: 1,
               }}
             >
-              <Typography variant='caption' color='text.secondary'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('shop.optionValues')}
               </Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
@@ -439,7 +463,6 @@ function VariantsTab({ productId }: Readonly<{ productId: string }>) {
           </Box>
         )}
       </RemoteContent>
-
       <Snackbar
         open={!!snack}
         autoHideDuration={3000}

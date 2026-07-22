@@ -140,7 +140,14 @@ export const TaxReport = () => {
         <Typography variant='h5' gutterBottom>
           {t('invoicing.taxReport.title')}
         </Typography>
-        <Typography variant='body2' color='text.secondary' gutterBottom sx={{ mb: 3 }}>
+        <Typography
+          variant='body2'
+          gutterBottom
+          sx={{
+            color: 'text.secondary',
+            mb: 3,
+          }}
+        >
           {t('invoicing.taxReport.description')}
         </Typography>
 

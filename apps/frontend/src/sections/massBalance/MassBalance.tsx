@@ -216,11 +216,15 @@ const MassBalance: React.FC = () => {
   return (
     <Box sx={{ py: 4 }}>
       <Title label={t('massBalance.title')} />
-
-      <Typography variant='body1' color='text.secondary' sx={{ mb: 4 }}>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+          mb: 4,
+        }}
+      >
         {t('massBalance.description')}
       </Typography>
-
       {/* Disclaimer */}
       <Alert
         severity='warning'
@@ -232,7 +236,6 @@ const MassBalance: React.FC = () => {
         </Typography>
         <Typography variant='body2'>{t('massBalance.disclaimer.text')}</Typography>
       </Alert>
-
       {/* Aircraft Selection */}
       <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
         <Typography variant='h6' gutterBottom>
@@ -271,7 +274,6 @@ const MassBalance: React.FC = () => {
           />
         )}
       </Paper>
-
       {/* Weight Summary Section */}
       {selectedAircraft && results && (
         <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
@@ -289,13 +291,24 @@ const MassBalance: React.FC = () => {
               }}
             >
               <CardContent>
-                <Typography variant='subtitle2' component='div' color='text.secondary'>
+                <Typography
+                  variant='subtitle2'
+                  component='div'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   Basic Empty Weight
                 </Typography>
                 <Typography variant='h5' sx={{ fontWeight: 'bold', mt: 0.5 }}>
                   {selectedAircraft.weightLimits.basicEmptyWeight} kg
                 </Typography>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   (
                   {(selectedAircraft.weightLimits.basicEmptyWeight * CONVERSIONS.KG_TO_LBS).toFixed(
                     1,
@@ -499,7 +512,6 @@ const MassBalance: React.FC = () => {
           </Grid>
         </Paper>
       )}
-
       <Grid container spacing={3}>
         {/* Loading Section */}
         <Grid size={{ xs: 12, lg: 6 }}>
@@ -528,9 +540,11 @@ const MassBalance: React.FC = () => {
                         })
                       }
                       onFocus={handleInputFocus}
-                      InputProps={{ endAdornment: 'kg' }}
-                      inputProps={{ min: 0 }}
                       size='small'
+                      slotProps={{
+                        input: { endAdornment: 'kg' },
+                        htmlInput: { min: 0 },
+                      }}
                     />
                   </Grid>
                 </Grid>
@@ -586,9 +600,11 @@ const MassBalance: React.FC = () => {
                         })
                       }
                       onFocus={handleInputFocus}
-                      InputProps={{ endAdornment: 'kg' }}
-                      inputProps={{ min: 0 }}
                       size='small'
+                      slotProps={{
+                        input: { endAdornment: 'kg' },
+                        htmlInput: { min: 0 },
+                      }}
                     />
                   </Grid>
                 </Grid>
@@ -648,9 +664,11 @@ const MassBalance: React.FC = () => {
                               })
                             }
                             onFocus={handleInputFocus}
-                            InputProps={{ endAdornment: 'kg' }}
-                            inputProps={{ min: 0 }}
                             size='small'
+                            slotProps={{
+                              input: { endAdornment: 'kg' },
+                              htmlInput: { min: 0 },
+                            }}
                           />
                         </Grid>
                       </Grid>
@@ -707,9 +725,11 @@ const MassBalance: React.FC = () => {
                         })
                       }
                       onFocus={handleInputFocus}
-                      InputProps={{ endAdornment: 'kg' }}
-                      inputProps={{ min: 0 }}
                       size='small'
+                      slotProps={{
+                        input: { endAdornment: 'kg' },
+                        htmlInput: { min: 0 },
+                      }}
                     />
                   </Grid>
                 </Grid>
@@ -765,9 +785,11 @@ const MassBalance: React.FC = () => {
                         })
                       }
                       onFocus={handleInputFocus}
-                      InputProps={{ endAdornment: 'L' }}
-                      inputProps={{ min: 0 }}
                       size='small'
+                      slotProps={{
+                        input: { endAdornment: 'L' },
+                        htmlInput: { min: 0 },
+                      }}
                     />
                   </Grid>
                   <Grid size={{ xs: 6 }}>
@@ -776,13 +798,15 @@ const MassBalance: React.FC = () => {
                       label='Fuel Weight'
                       type='number'
                       value={fuel.weight.toFixed(1)}
-                      InputProps={{ endAdornment: 'kg', readOnly: true }}
                       size='small'
                       disabled
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           bgcolor: 'background.paper',
                         },
+                      }}
+                      slotProps={{
+                        input: { endAdornment: 'kg', readOnly: true },
                       }}
                     />
                   </Grid>
@@ -954,7 +978,6 @@ const MassBalance: React.FC = () => {
           </Paper>
         </Grid>
       </Grid>
-
       {/* Weight & Balance Envelope Chart - Full Width */}
       <Box sx={{ mt: 4 }}>
         {results && selectedAircraft && (
@@ -967,7 +990,6 @@ const MassBalance: React.FC = () => {
           />
         )}
       </Box>
-
       {/* Aircraft Base Data Grid - Moved to Bottom */}
       <Box sx={{ mt: 4 }}>
         {selectedAircraft && (
@@ -975,7 +997,14 @@ const MassBalance: React.FC = () => {
             <Typography variant='h6' gutterBottom>
               Aircraft Specifications - {selectedAircraft.registration}
             </Typography>
-            <Typography variant='caption' color='text.secondary' sx={{ mb: 2, display: 'block' }}>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+                display: 'block',
+              }}
+            >
               Data Source: {selectedAircraft.dataOrigin}
             </Typography>
 
@@ -1083,7 +1112,6 @@ const MassBalance: React.FC = () => {
           </Paper>
         )}
       </Box>
-
       {/* Conversion Factors */}
       <Box sx={{ mt: 3 }}>
         {selectedAircraft && (
@@ -1091,7 +1119,14 @@ const MassBalance: React.FC = () => {
             <Typography variant='h6' gutterBottom>
               Conversion Factors
             </Typography>
-            <Typography variant='caption' color='text.secondary' sx={{ mb: 2, display: 'block' }}>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+                display: 'block',
+              }}
+            >
               Unit conversion factors used in calculations
             </Typography>
 

@@ -191,8 +191,8 @@ export const FlightTime = ({
                 >
                   <Typography
                     variant='caption'
-                    color='text.secondary'
                     sx={{
+                      color: 'text.secondary',
                       fontWeight: 600,
                       letterSpacing: '0.05em',
                       lineHeight: 1.3,
@@ -222,8 +222,8 @@ export const FlightTime = ({
                 >
                   <Typography
                     variant='caption'
-                    color='text.secondary'
                     sx={{
+                      color: 'text.secondary',
                       fontWeight: 600,
                       letterSpacing: '0.05em',
                       lineHeight: 1.3,
@@ -253,7 +253,12 @@ export const FlightTime = ({
               icon={timezone === 'utc' ? 'mdi:clock-outline' : 'mdi:clock-time-eight-outline'}
               style={{ marginRight: '8px' }}
             />
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {timezone === 'utc' ? t('flightLog.usingUtcTime') : t('flightLog.usingLocalTime')}{' '}
               {timezone !== 'utc' && `(${getTimezoneDisplay(false, flightDate)})`}
             </Typography>
@@ -261,7 +266,13 @@ export const FlightTime = ({
         </Box>
       </Grid>
       <Grid size={{ xs: 12 }}>
-        <Typography variant='subtitle2' gutterBottom color='text.secondary'>
+        <Typography
+          variant='subtitle2'
+          gutterBottom
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {t('flightLog.timeInputFormat')}
         </Typography>
       </Grid>
@@ -291,8 +302,12 @@ export const FlightTime = ({
         {takeoffDeltaText && (
           <Typography
             variant='caption'
-            color='text.secondary'
-            sx={{ mt: 0.5, display: 'block', pl: 0.5 }}
+            sx={{
+              color: 'text.secondary',
+              mt: 0.5,
+              display: 'block',
+              pl: 0.5,
+            }}
           >
             {takeoffDeltaText}
           </Typography>

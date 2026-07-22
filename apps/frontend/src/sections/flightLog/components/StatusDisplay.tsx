@@ -30,7 +30,13 @@ export const StatusDisplay = ({
       <FormField label={t('flightLog.status.title')} sx={{ mb: 2 }}>
         {log.status === FlightLogStatus.NEW && (
           <Stack direction={{ xs: 'column', sm: 'row' }}>
-            <Box component='span' display='flex' alignItems='center'>
+            <Box
+              component='span'
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
               <Icon
                 icon='mdi:schedule'
                 color='orange'
@@ -56,7 +62,13 @@ export const StatusDisplay = ({
 
         {log.status === FlightLogStatus.VALIDATED && (
           <Stack direction={{ xs: 'column', sm: 'row' }}>
-            <Box component='span' display='flex' alignItems='center'>
+            <Box
+              component='span'
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
               <Icon
                 icon='mdi:check'
                 color='green'
@@ -142,7 +154,6 @@ export const StatusDisplay = ({
           </Button>
         )}
       </FormField>
-
       <FormField label={t('flightLog.logbooks.ajlb')}>
         <Link
           to={`/logs/books/${log.aircraftRegistration}/${log.ajlbSeqNo}?page=${log.ajlbPageNo}#${log.flightId}`}

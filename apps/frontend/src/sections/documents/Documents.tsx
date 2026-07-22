@@ -277,23 +277,35 @@ const Documents = () => {
           />
         )}
       </Title>
-
-      <Typography variant='body1' color='text.secondary' mb={4}>
+      <Typography
+        variant='body1'
+        sx={{
+          color: 'text.secondary',
+          mb: 4,
+        }}
+      >
         {t(
           'documents.description',
           'Access historical club documents including financial statements, audit reports, meeting minutes, and other administrative documents.',
         )}
       </Typography>
-
       {/* Filters */}
-      <Stack spacing={2} mb={3} alignItems='center'>
+      <Stack
+        spacing={2}
+        sx={{
+          mb: 3,
+          alignItems: 'center',
+        }}
+      >
         {/* Search row */}
         <Stack
           direction={{ xs: 'column', md: 'row' }}
           spacing={2}
-          width='100%'
-          alignItems='center'
-          justifyContent='center'
+          sx={{
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
           <TextField
             fullWidth
@@ -333,15 +345,17 @@ const Documents = () => {
         <Stack
           direction='row'
           spacing={2}
-          alignItems='center'
-          justifyContent='space-between'
-          width='100%'
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+          }}
         >
           <Stack
             direction='row'
             spacing={1}
-            display='inline-flex'
             sx={{
+              display: 'inline-flex',
               flexWrap: 'wrap',
             }}
           >
@@ -365,7 +379,13 @@ const Documents = () => {
               />
             ))}
           </Stack>
-          <Stack direction='row' alignItems='center' spacing={1}>
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <FormControlLabel
               control={
                 <Switch
@@ -386,7 +406,6 @@ const Documents = () => {
           </Stack>
         </Stack>
       </Stack>
-
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
           header={
@@ -408,8 +427,19 @@ const Documents = () => {
           row={(document) => (
             <>
               <Grid size={{ xs: 6, sm: 1.5 }}>
-                <Stack direction='row' spacing={1} alignItems='center'>
-                  <Typography variant='body2' fontWeight='medium'>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      fontWeight: 'medium',
+                    }}
+                  >
                     {document.title}
                   </Typography>
                   {document.isArchived && (
@@ -430,12 +460,24 @@ const Documents = () => {
                 />
               </Grid>
               <Grid size={{ xs: 6, sm: 2 }}>
-                <Stack direction='row' spacing={0.5} flexWrap='wrap' gap={0.5}>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{
+                    flexWrap: 'wrap',
+                    gap: 0.5,
+                  }}
+                >
                   {document.tags?.map((tag, index) => (
                     <Chip key={index} label={tag} size='small' variant='outlined' color='primary' />
                   ))}
                   {(!document.tags || document.tags.length === 0) && (
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       -
                     </Typography>
                   )}
@@ -443,17 +485,37 @@ const Documents = () => {
               </Grid>
 
               <Grid size={{ xs: 6, sm: 2 }}>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {formatDate(document.publishedDate)}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 6, sm: 3.3 }}>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {document.description || '-'}
                 </Typography>
               </Grid>
-              <Grid textAlign='center'>
-                <Stack direction='row' spacing={1} justifyContent='center'>
+              <Grid
+                sx={{
+                  textAlign: 'center',
+                }}
+              >
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    justifyContent: 'center',
+                  }}
+                >
                   <IconButton
                     size='small'
                     onClick={() => handleDownloadDocument(document)}
@@ -502,8 +564,17 @@ const Documents = () => {
         />
 
         {data?.total !== undefined && data.total > 0 && (
-          <Box mt={2}>
-            <Typography variant='body2' color='text.secondary'>
+          <Box
+            sx={{
+              mt: 2,
+            }}
+          >
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {t('documents.totalCount', 'Showing {{count}} documents', {
                 count: data.total,
               })}
@@ -511,7 +582,6 @@ const Documents = () => {
           </Box>
         )}
       </RemoteContent>
-
       {/* Download Options Dialog */}
       <Dialog
         open={downloadDialogOpen}
@@ -530,17 +600,19 @@ const Documents = () => {
                 <TextField
                   fullWidth
                   value={downloadData.tinyUrl}
-                  InputProps={{
-                    readOnly: true,
-                    endAdornment: (
-                      <InputAdornment position='end'>
-                        <IconButton onClick={handleCopyTinyUrl} edge='end'>
-                          <Icon icon='mdi:content-copy' />
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
                   size='small'
+                  slotProps={{
+                    input: {
+                      readOnly: true,
+                      endAdornment: (
+                        <InputAdornment position='end'>
+                          <IconButton onClick={handleCopyTinyUrl} edge='end'>
+                            <Icon icon='mdi:content-copy' />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
                 />
               </Box>
             )}
@@ -578,14 +650,12 @@ const Documents = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Upload Modal */}
       <UploadDocumentModal
         open={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
         onSuccess={() => mutate()}
       />
-
       {/* Snackbar for notifications */}
       <Snackbar
         open={snackbarOpen}
@@ -594,7 +664,6 @@ const Documents = () => {
         message={snackbarMessage}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       />
-
       {/* Edit Modal */}
       {editingDocument && (
         <EditDocumentModal
@@ -607,7 +676,6 @@ const Documents = () => {
           onSuccess={() => mutate()}
         />
       )}
-
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}

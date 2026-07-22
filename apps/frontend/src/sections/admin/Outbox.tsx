@@ -154,10 +154,15 @@ export default function Outbox() {
   return (
     <Box>
       <Title label={t('outbox.title')} />
-
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Grid container spacing={2} alignItems='flex-start'>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            alignItems: 'flex-start',
+          }}
+        >
           {/* Status filter */}
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <FormControl fullWidth size='small'>
@@ -238,8 +243,21 @@ export default function Outbox() {
 
           {/* Preset buttons + clear */}
           <Grid size={12}>
-            <Stack direction='row' spacing={1} flexWrap='wrap' gap={1} alignItems='center'>
-              <Typography variant='body2' color='text.secondary'>
+            <Stack
+              direction='row'
+              spacing={1}
+              sx={{
+                flexWrap: 'wrap',
+                gap: 1,
+                alignItems: 'center',
+              }}
+            >
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('outbox.filter.presets')}:
               </Typography>
               <ButtonGroup size='small' variant='outlined'>
@@ -256,10 +274,15 @@ export default function Outbox() {
           </Grid>
         </Grid>
       </Paper>
-
       {/* Results */}
       <RemoteContent isLoading={isLoading} error={error}>
-        <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            mb: 1,
+          }}
+        >
           {t('outbox.showing', { count: items.length })}
         </Typography>
         <TableContainer component={Paper}>
@@ -281,7 +304,13 @@ export default function Outbox() {
               {items.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} align='center' sx={{ py: 4 }}>
-                    <Typography color='text.secondary'>{t('outbox.noResults')}</Typography>
+                    <Typography
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {t('outbox.noResults')}
+                    </Typography>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -367,7 +396,6 @@ export default function Outbox() {
           </Table>
         </TableContainer>
       </RemoteContent>
-
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}

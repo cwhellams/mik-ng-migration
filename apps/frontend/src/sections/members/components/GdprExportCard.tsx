@@ -51,7 +51,13 @@ export const GdprExportCard = () => {
       <CardContent>
         <SnackAlert problem={problem} />
         <FormTitle title={t('gdprExport.title')} icon='mdi:download-circle' />
-        <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            mb: 2,
+          }}
+        >
           {t('gdprExport.description')}
         </Typography>
         <Box>

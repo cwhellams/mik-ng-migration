@@ -161,7 +161,12 @@ export const EditPricingModal = ({
         <Stack spacing={3} sx={{ mt: 1 }}>
           <SnackAlert problem={problem} />
 
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {t('aircraft.pricing.aircraft', 'Aircraft')}: {registration}
           </Typography>
 
@@ -201,19 +206,22 @@ export const EditPricingModal = ({
             onChange={(e) => setPricePerHour(e.target.value)}
             required
             fullWidth
-            InputProps={{
-              startAdornment: <InputAdornment position='start'>€</InputAdornment>,
-              endAdornment: <InputAdornment position='end'>/h</InputAdornment>,
-            }}
-            inputProps={{
-              step: '0.01',
-              min: '0',
-            }}
             helperText={
               pricePerHour
                 ? `${t('aircraft.pricing.perMinute', 'Per minute')}: €${(parseFloat(pricePerHour) / 60).toFixed(4)}`
                 : undefined
             }
+            slotProps={{
+              input: {
+                startAdornment: <InputAdornment position='start'>€</InputAdornment>,
+                endAdornment: <InputAdornment position='end'>/h</InputAdornment>,
+              },
+
+              htmlInput: {
+                step: '0.01',
+                min: '0',
+              },
+            }}
           />
 
           <TextField

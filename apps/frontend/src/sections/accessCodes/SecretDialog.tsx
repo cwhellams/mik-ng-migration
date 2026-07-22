@@ -137,14 +137,15 @@ export const SecretDialog: React.FC<SecretDialogProps> = ({ open, onClose, onSuc
       onClose={onClose}
       maxWidth='sm'
       fullWidth
-      PaperProps={{
-        sx: { minHeight: '300px' },
+      slotProps={{
+        paper: {
+          sx: { minHeight: '300px' },
+        },
       }}
     >
       <DialogTitle>
         {isEditMode ? t('accessCodes.editSecret') : t('accessCodes.addSecret')}
       </DialogTitle>
-
       <form onSubmit={handleSubmit}>
         <DialogContent>
           <SnackAlert problem={errors.problem} />

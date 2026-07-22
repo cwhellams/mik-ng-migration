@@ -22,7 +22,7 @@ import { mutate } from 'swr'
 import { EditDialogTitle } from '../../../components/EditDialogTitle'
 import { Upsert } from '@backend/types/schema'
 import { AircraftJourneyLogBook } from '@backend/routes/ajlb/model'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker/DatePicker'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs from 'dayjs'
 import { HoursAndMinutes } from './HoursAndMinutes'
 import { splitTime } from '../utils/timeUtils'
@@ -266,7 +266,13 @@ export const AjlbEditor = ({
 
             {isNewBook && (
               <>
-                <Typography variant='subtitle1' gutterBottom fontWeight='medium'>
+                <Typography
+                  variant='subtitle1'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'medium',
+                  }}
+                >
                   {t('flightLog.logbooks.flightsToMove')}
                 </Typography>
                 <FlightTable flights={flightLogs?.logs ?? []} />
@@ -301,7 +307,12 @@ export const AjlbEditor = ({
               {t('flightLog.logbooks.nextSequence')}
             </Button>
             {book.endDate === null && (
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('flightLog.logbooks.oldBookMustBeEnded')}
               </Typography>
             )}
@@ -343,7 +354,6 @@ export const AjlbEditor = ({
         title={isNewBook ? 'flightLog.logbooks.newAjlb' : 'flightLog.logbooks.editAjlb'}
         onClose={() => onClose()}
       />
-
       <DialogContent dividers>
         <Stack spacing={3}>
           {editorCard()}
@@ -355,14 +365,25 @@ export const AjlbEditor = ({
           <SnackAlert problem={problem} />
         </Stack>
       </DialogContent>
-
       <DialogActions>
-        <Grid size={12} justifyContent='space-between' display='flex' flexGrow={1}>
+        <Grid
+          size={12}
+          sx={{
+            justifyContent: 'space-between',
+            display: 'flex',
+            flexGrow: 1,
+          }}
+        >
           <Grid>
             {!isNewBook && <RemoveButton onClick={handleRemove} loading={mutation.isMutating} />}
           </Grid>
 
-          <Grid display='flex' gap={2}>
+          <Grid
+            sx={{
+              display: 'flex',
+              gap: 2,
+            }}
+          >
             <Button onClick={() => onClose()} color='inherit'>
               {t('general.cancel', 'Cancel')}
             </Button>

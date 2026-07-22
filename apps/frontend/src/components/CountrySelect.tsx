@@ -51,8 +51,10 @@ export const CountrySelect = ({
           required={required}
           margin={margin}
           slotProps={{
+            ...params.slotProps,
+
             input: {
-              ...params.InputProps,
+              ...params.slotProps.input,
               startAdornment: selected ? (
                 <Box component='span' sx={{ ml: '2px', mr: '-4px' }}>
                   {countryCodeToFlagEmoji(selected.code)}

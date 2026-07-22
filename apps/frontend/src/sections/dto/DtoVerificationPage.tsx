@@ -57,8 +57,20 @@ function formatTime(utc: string): string {
 
 function FlightInfoRow({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
   return (
-    <Box display='flex' gap={1} alignItems='baseline'>
-      <Typography variant='caption' color='text.secondary' minWidth={110}>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 1,
+        alignItems: 'baseline',
+      }}
+    >
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+          minWidth: 110,
+        }}
+      >
         {label}
       </Typography>
       <Typography variant='body2'>{value}</Typography>
@@ -89,8 +101,22 @@ function TrainingItemCard({
         borderWidth: missing ? 2 : 1,
       }}
     >
-      <Box display='flex' justifyContent='space-between' alignItems='flex-start' mb={1}>
-        <Typography variant='body2' fontWeight={500} sx={{ flex: 1, mr: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          mb: 1,
+        }}
+      >
+        <Typography
+          variant='body2'
+          sx={{
+            fontWeight: 500,
+            flex: 1,
+            mr: 1,
+          }}
+        >
           {item.name}
         </Typography>
         {item.mandatory && (
@@ -103,7 +129,6 @@ function TrainingItemCard({
           />
         )}
       </Box>
-
       <ToggleButtonGroup
         value={outcome ?? null}
         exclusive
@@ -127,7 +152,6 @@ function TrainingItemCard({
           HIL
         </ToggleButton>
       </ToggleButtonGroup>
-
       {outcome && (
         <TextField
           size='small'
@@ -201,7 +225,12 @@ function VerifyPanel({ attemptId, onDone }: Readonly<{ attemptId: string; onDone
     <Stack spacing={2}>
       {attempt.requiresReverification && (
         <Alert severity='warning'>
-          <Typography variant='body2' fontWeight='bold'>
+          <Typography
+            variant='body2'
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             Flight data was edited after the previous verification. Please re-verify.
           </Typography>
           {attempt.verifiedAt && (
@@ -212,9 +241,7 @@ function VerifyPanel({ attemptId, onDone }: Readonly<{ attemptId: string; onDone
           )}
         </Alert>
       )}
-
       {saveError && <Alert severity='error'>{saveError}</Alert>}
-
       {/* Flight log summary */}
       <Paper
         variant='outlined'
@@ -227,7 +254,13 @@ function VerifyPanel({ attemptId, onDone }: Readonly<{ attemptId: string; onDone
           justifyContent: 'space-between',
         }}
       >
-        <Box display='flex' flexDirection='column' gap={0.5}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.5,
+          }}
+        >
           <FlightInfoRow label='Date' value={attempt.flightDate} />
           <FlightInfoRow
             label='Route'
@@ -260,17 +293,25 @@ function VerifyPanel({ attemptId, onDone }: Readonly<{ attemptId: string; onDone
           Open Book Entry
         </Button>
       </Paper>
-
       {flightDetail && (
-        <Typography variant='subtitle1' fontWeight={600}>
+        <Typography
+          variant='subtitle1'
+          sx={{
+            fontWeight: 600,
+          }}
+        >
           {flightDetail.code} — {flightDetail.name}
         </Typography>
       )}
-
       {/* Training items */}
       {flightDetail && (flightDetail.items ?? []).length > 0 && (
         <>
-          <Typography variant='subtitle2' color='text.secondary'>
+          <Typography
+            variant='subtitle2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Training Items
           </Typography>
           <Stack spacing={1.5}>
@@ -296,7 +337,6 @@ function VerifyPanel({ attemptId, onDone }: Readonly<{ attemptId: string; onDone
           <Divider />
         </>
       )}
-
       {/* Verification result */}
       <FormControl fullWidth>
         <InputLabel>Verification result</InputLabel>
@@ -309,7 +349,6 @@ function VerifyPanel({ attemptId, onDone }: Readonly<{ attemptId: string; onDone
           <MenuItem value='FAILED'>Failed</MenuItem>
         </Select>
       </FormControl>
-
       <TextField
         label='Instructor remarks'
         value={comments}
@@ -318,7 +357,6 @@ function VerifyPanel({ attemptId, onDone }: Readonly<{ attemptId: string; onDone
         multiline
         rows={3}
       />
-
       <Button
         variant='contained'
         size='large'
@@ -363,7 +401,13 @@ export default function DtoVerificationPage() {
           Back to list
         </Button>
         <Title label='Verify Flight' />
-        <Typography variant='subtitle2' color='text.secondary' mb={2}>
+        <Typography
+          variant='subtitle2'
+          sx={{
+            color: 'text.secondary',
+            mb: 2,
+          }}
+        >
           Student: <strong>{selected.memberName}</strong>
         </Typography>
         <VerifyPanel
@@ -385,7 +429,12 @@ export default function DtoVerificationPage() {
           <Alert severity='success'>No flights awaiting verification. 🎉</Alert>
         ) : (
           <Stack spacing={1.5}>
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {pending!.length} flight{pending!.length !== 1 ? 's' : ''} awaiting verification
             </Typography>
             {pending!.map((a) => (
@@ -393,12 +442,20 @@ export default function DtoVerificationPage() {
                 <CardActionArea onClick={() => setSelected(a)}>
                   <CardContent>
                     <Box
-                      display='flex'
-                      justifyContent='space-between'
-                      alignItems='flex-start'
-                      mb={0.5}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        mb: 0.5,
+                      }}
                     >
-                      <Typography fontWeight={600}>{a.memberName}</Typography>
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                        }}
+                      >
+                        {a.memberName}
+                      </Typography>
                       {a.requiresReverification ? (
                         <Chip
                           label='Re-verification'
@@ -410,10 +467,20 @@ export default function DtoVerificationPage() {
                         <Chip label='Pending' color='warning' size='small' />
                       )}
                     </Box>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {a.syllabusFlightCode} — {a.syllabusFlightName}
                     </Typography>
-                    <Typography variant='caption' color='text.secondary'>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Submitted: {new Date(a.createdAt).toLocaleDateString()}
                     </Typography>
                   </CardContent>

@@ -138,7 +138,6 @@ export function BankDetailsFields({
           {t('expenses.wizard.ibanFromProfile')}
         </Alert>
       )}
-
       <TextField
         label={t('expenses.fields.iban')}
         value={iban}
@@ -149,27 +148,30 @@ export function BankDetailsFields({
         }
         error={showError}
         helperText={helperMsg}
-        InputProps={{
-          endAdornment: ibanEntered ? (
-            <InputAdornment position='end'>
-              <Icon
-                icon={ibanOk ? 'mdi:check-circle' : 'mdi:alert-circle'}
-                color={ibanOk ? 'green' : 'red'}
-                width={22}
-              />
-            </InputAdornment>
-          ) : undefined,
+        slotProps={{
+          input: {
+            endAdornment: ibanEntered ? (
+              <InputAdornment position='end'>
+                <Icon
+                  icon={ibanOk ? 'mdi:check-circle' : 'mdi:alert-circle'}
+                  color={ibanOk ? 'green' : 'red'}
+                  width={22}
+                />
+              </InputAdornment>
+            ) : undefined,
+          },
         }}
       />
-
       <TextField
         label={t('expenses.fields.ibanAccountName')}
         value={ibanAccountName}
         disabled={disabled}
         onChange={(e) => onChange(iban, e.target.value)}
-        inputProps={{ maxLength: 200 }}
         error={!!ibanAccountNameError}
         helperText={ibanAccountNameError}
+        slotProps={{
+          htmlInput: { maxLength: 200 },
+        }}
       />
     </Stack>
   )
@@ -233,7 +235,13 @@ export function LineItemsTable({
             </TableCell>
             <TableCell sx={{ minWidth: 120 }}>
               {isFuel ? (
-                <Stack direction='row' spacing={0.5} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <span>
                     {t('expenses.wizard.col.totalCost', { currency: claimCurrency ?? 'EUR' })}
                   </span>
@@ -246,7 +254,13 @@ export function LineItemsTable({
                   </Tooltip>
                 </Stack>
               ) : (
-                <Stack direction='row' spacing={0.5} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <span>
                     {t('expenses.wizard.col.unitPrice', { currency: claimCurrency ?? 'EUR' })}
                   </span>
@@ -265,7 +279,13 @@ export function LineItemsTable({
             )}
             {costCentres && (
               <TableCell sx={{ minWidth: 130 }}>
-                <Stack direction='row' spacing={0.5} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <span>{t('expenses.wizard.col.costCentre')}</span>
                   <Tooltip title={t('expenses.wizard.aircraftSelectorTooltip')}>
                     <Icon icon='mdi:help-circle-outline' width={16} />
@@ -501,21 +521,36 @@ export function ReceiptUploadZone({
   return (
     <Stack spacing={2}>
       <Alert severity='info'>{t('expenses.wizard.receiptUploadInfo')}</Alert>
-
       {requireSaveDraftFirst && (
         <Alert severity='warning'>{t('expenses.wizard.saveDraftBeforeReceipt')}</Alert>
       )}
-
       {receipt ? (
         <Paper variant='outlined' sx={{ p: 2 }}>
-          <Stack direction='row' justifyContent='space-between' alignItems='center'>
+          <Stack
+            direction='row'
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
             <Box>
               <Typography variant='body2'>{receipt.fileName}</Typography>
-              <Typography variant='caption' color='text.secondary'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {Math.round(receipt.fileSize / 1024)} kB
               </Typography>
             </Box>
-            <Stack direction='row' spacing={1} alignItems='center'>
+            <Stack
+              direction='row'
+              spacing={1}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               {onOpen && (
                 <Button size='small' onClick={() => void onOpen()}>
                   Open
@@ -565,7 +600,12 @@ export function ReceiptUploadZone({
             <Typography variant='body1' sx={{ mt: 1 }}>
               {t('expenses.wizard.dropOrClick')}
             </Typography>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {t('expenses.wizard.receiptFileTypes')}
             </Typography>
             <input
@@ -581,7 +621,6 @@ export function ReceiptUploadZone({
           </Paper>
         )
       )}
-
       {!!error && <Alert severity='error'>{error}</Alert>}
       {!receipt && !requireSaveDraftFirst && (
         <Alert severity='warning'>{t('expenses.wizard.receiptSkipWarning')}</Alert>

@@ -155,7 +155,6 @@ export function ExpenseClaimAdminDetail() {
   return (
     <Box>
       <Title label={claim?.title ?? t('header.expenseClaims')} />
-
       <RemoteContent isLoading={claimApi.isLoading} error={claimApi.error}>
         {claim && (
           <Stack spacing={3}>
@@ -177,7 +176,13 @@ export function ExpenseClaimAdminDetail() {
 
             <Paper sx={{ p: 3 }}>
               <Stack spacing={1}>
-                <Stack direction='row' spacing={1} alignItems='center'>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <ExpenseStatusChip status={claim.status} t={t} />
                   <Typography variant='body2'>{getExpenseCategoryLabel(claim, t)}</Typography>
                 </Stack>
@@ -259,11 +264,18 @@ export function ExpenseClaimAdminDetail() {
                 <Box>
                   <Stack
                     direction='row'
-                    justifyContent='space-between'
-                    alignItems='center'
-                    sx={{ mb: 1 }}
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 1,
+                    }}
                   >
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {claim.receipt.fileName} · {Math.round(claim.receipt.fileSize / 1024)} kB
                     </Typography>
                     {receiptUrl && (
@@ -276,7 +288,12 @@ export function ExpenseClaimAdminDetail() {
                     )}
                   </Stack>
                   {!receiptUrl && (
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       Loading…
                     </Typography>
                   )}
@@ -321,7 +338,12 @@ export function ExpenseClaimAdminDetail() {
                 <Stack spacing={2}>
                   {claim.messages.map((message) => (
                     <Paper key={message.id} variant='outlined' sx={{ p: 2 }}>
-                      <Typography variant='body2' color='text.secondary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {message.messageType} · {new Date(message.sentAt).toLocaleString()}
                       </Typography>
                       <Typography variant='body1'>{message.body}</Typography>
@@ -331,7 +353,13 @@ export function ExpenseClaimAdminDetail() {
               )}
             </Paper>
 
-            <Stack direction='row' spacing={2} flexWrap='wrap'>
+            <Stack
+              direction='row'
+              spacing={2}
+              sx={{
+                flexWrap: 'wrap',
+              }}
+            >
               {[ExpenseClaimStatus.SUBMITTED, ExpenseClaimStatus.PENDING_INFO].includes(
                 claim.status,
               ) && (
@@ -370,7 +398,6 @@ export function ExpenseClaimAdminDetail() {
           </Stack>
         )}
       </RemoteContent>
-
       <Dialog open={rejectOpen} onClose={() => setRejectOpen(false)} fullWidth maxWidth='sm'>
         <DialogTitle>{t('expenses.actions.reject')}</DialogTitle>
         <DialogContent>
@@ -396,7 +423,6 @@ export function ExpenseClaimAdminDetail() {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} fullWidth maxWidth='sm'>
         <DialogTitle>{t('expenses.actions.requestInfo')}</DialogTitle>
         <DialogContent>
@@ -421,7 +447,6 @@ export function ExpenseClaimAdminDetail() {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Dialog open={setDraftOpen} onClose={() => setSetDraftOpen(false)} fullWidth maxWidth='sm'>
         <DialogTitle>{t('expenses.actions.setToDraft')}</DialogTitle>
         <DialogContent>
@@ -434,7 +459,6 @@ export function ExpenseClaimAdminDetail() {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Dialog
         open={overrideFuelPriceOpen}
         onClose={() => setOverrideFuelPriceOpen(false)}
@@ -450,8 +474,10 @@ export function ExpenseClaimAdminDetail() {
             value={efnuPrice}
             onChange={(event) => setEfnuPrice(event.target.value)}
             onFocus={(event) => event.target.select()}
-            inputProps={{ step: '0.01', min: 0 }}
             sx={{ mt: 1 }}
+            slotProps={{
+              htmlInput: { step: '0.01', min: 0 },
+            }}
           />
         </DialogContent>
         <DialogActions>

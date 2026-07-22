@@ -31,7 +31,6 @@ export const UnpaidOverdueInvoices = () => {
   return (
     <Box>
       <Title label={t('unpaidOverdueInvoices.title')} />
-
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
           header={
@@ -40,13 +39,28 @@ export const UnpaidOverdueInvoices = () => {
               <Grid size={2}>{t('unpaidOverdueInvoices.columns.dueDate')}</Grid>
               <Grid size={2}>{t('unpaidOverdueInvoices.columns.type')}</Grid>
               <Grid size={2}>{t('unpaidOverdueInvoices.columns.description')}</Grid>
-              <Grid size={1} textAlign='right'>
+              <Grid
+                size={1}
+                sx={{
+                  textAlign: 'right',
+                }}
+              >
                 {t('unpaidOverdueInvoices.columns.sum')}
               </Grid>
-              <Grid size={1} textAlign='right'>
+              <Grid
+                size={1}
+                sx={{
+                  textAlign: 'right',
+                }}
+              >
                 {t('unpaidOverdueInvoices.columns.daysOverdue')}
               </Grid>
-              <Grid size={1} textAlign='center'>
+              <Grid
+                size={1}
+                sx={{
+                  textAlign: 'center',
+                }}
+              >
                 {t('unpaidOverdueInvoices.columns.invoice')}
               </Grid>
             </>
@@ -71,21 +85,36 @@ export const UnpaidOverdueInvoices = () => {
               <Grid size={{ xs: 12, md: 2 }}>
                 <Typography variant='body2'>{invoice.description || '—'}</Typography>
               </Grid>
-              <Grid size={{ xs: 6, md: 1 }} textAlign={{ xs: 'left', md: 'right' }}>
+              <Grid
+                size={{ xs: 6, md: 1 }}
+                sx={{
+                  textAlign: { xs: 'left', md: 'right' },
+                }}
+              >
                 <Typography variant='body2'>
                   {invoice.total_sum
                     ? currencyFormatter.format(parseFloat(invoice.total_sum))
                     : '—'}
                 </Typography>
               </Grid>
-              <Grid size={{ xs: 6, md: 1 }} textAlign='right'>
+              <Grid
+                size={{ xs: 6, md: 1 }}
+                sx={{
+                  textAlign: 'right',
+                }}
+              >
                 <Typography variant='body2' color='error'>
                   {t('unpaidOverdueInvoices.daysLate', {
                     count: invoice.days_overdue,
                   })}
                 </Typography>
               </Grid>
-              <Grid size={{ xs: 12, md: 1 }} textAlign='center'>
+              <Grid
+                size={{ xs: 12, md: 1 }}
+                sx={{
+                  textAlign: 'center',
+                }}
+              >
                 <OverdueInvoiceLink invoiceId={invoice.id} billableMemberId={invoice.member_id} />
               </Grid>
             </>

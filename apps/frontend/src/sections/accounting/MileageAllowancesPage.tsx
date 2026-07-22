@@ -75,13 +75,18 @@ export function MileageAllowancesPage() {
   return (
     <Box>
       <Title label={t('mileageAllowances.title')} />
-
       {/* ── Edit / add form ── */}
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant='h6' sx={{ mb: 2 }}>
           {t('mileageAllowances.formTitle')}
         </Typography>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems='flex-start'>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          sx={{
+            alignItems: 'flex-start',
+          }}
+        >
           <TextField
             label={t('mileageAllowances.taxYear')}
             type='number'
@@ -113,10 +118,20 @@ export function MileageAllowancesPage() {
           />
           {form.ratePerKm && form.discountPct && (
             <Box sx={{ pt: 0.5 }}>
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('mileageAllowances.effectiveRate')}:
               </Typography>
-              <Typography variant='body1' fontWeight='bold'>
+              <Typography
+                variant='body1'
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 €{(Number(form.ratePerKm) * (1 - Number(form.discountPct) / 100)).toFixed(4)}/km
               </Typography>
             </Box>
@@ -142,7 +157,6 @@ export function MileageAllowancesPage() {
           </Alert>
         )}
       </Paper>
-
       {/* ── List ── */}
       <Paper>
         <RemoteContent isLoading={isLoading} error={error}>

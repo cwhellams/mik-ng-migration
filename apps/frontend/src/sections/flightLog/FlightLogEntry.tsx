@@ -571,7 +571,6 @@ const FlightLogEntry = () => {
   return (
     <RemoteContent isLoading={isLoading} error={error}>
       <SnackAlert problem={problem} />
-
       {/* Fuel draft creation snackbar */}
       <Snackbar
         open={fuelClaimSnack.open}
@@ -596,15 +595,18 @@ const FlightLogEntry = () => {
           {fuelClaimSnack.error ?? t('flightLog.fuelClaimCreated')}
         </MuiAlert>
       </Snackbar>
-
       {/* Breadcrumb navigation */}
       <Breadcrumbs sx={{ my: 2 }}>
         <Link to={backLink}>{source}</Link>
-        <Typography color='text.primary'>{title}</Typography>
+        <Typography
+          sx={{
+            color: 'text.primary',
+          }}
+        >
+          {title}
+        </Typography>
       </Breadcrumbs>
-
       <Title label={title} />
-
       <Paper sx={{ p: 3, mt: 2 }}>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Grid container spacing={3}>
@@ -748,20 +750,40 @@ const FlightLogEntry = () => {
                         >
                           <Typography variant='subtitle2'>{flight.name}</Typography>
                           {flight.description && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {flight.description}
                             </Typography>
                           )}
                           {(flight.tags?.length ?? 0) > 0 && (
-                            <Box display='flex' gap={0.5} mt={0.5}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                gap: 0.5,
+                                mt: 0.5,
+                              }}
+                            >
                               {flight.tags.map((tag) => (
                                 <Chip key={tag} label={tag} size='small' />
                               ))}
                             </Box>
                           )}
                           {(flight.items?.length ?? 0) > 0 && (
-                            <Box mt={1}>
-                              <Typography variant='caption' fontWeight={600}>
+                            <Box
+                              sx={{
+                                mt: 1,
+                              }}
+                            >
+                              <Typography
+                                variant='caption'
+                                sx={{
+                                  fontWeight: 600,
+                                }}
+                              >
                                 Training items:
                               </Typography>
                               {flight.items!.map((item) => (
@@ -898,7 +920,13 @@ const FlightLogEntry = () => {
             {/* Fuel expense shortcut — shown whenever a fuel uplift has been entered */}
             {(watch('fuelUpliftLitres') ?? 0) > 0 && !isNew && flightId && (
               <Grid size={12}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems='center'>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  sx={{
+                    alignItems: 'center',
+                  }}
+                >
                   <TextField
                     select
                     size='small'
@@ -1004,7 +1032,13 @@ const FlightLogEntry = () => {
               <FormControl fullWidth>
                 <FormControlLabel
                   label={
-                    <Stack direction='row' spacing={0.5} alignItems='center'>
+                    <Stack
+                      direction='row'
+                      spacing={0.5}
+                      sx={{
+                        alignItems: 'center',
+                      }}
+                    >
                       <span>{t('flightLog.partiallyBillableFlight')}</span>
                       <Tooltip title={t('flightLog.partiallyBillableFlightTooltip')}>
                         <span>
@@ -1049,7 +1083,13 @@ const FlightLogEntry = () => {
                 }}
               />
               {hasMandatoryBillingRemarksByFlightType && (
-                <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mt: 1,
+                  }}
+                >
                   {t('flightLog.billingRemarksTestOrFerryInstruction')}
                 </Typography>
               )}
@@ -1069,7 +1109,13 @@ const FlightLogEntry = () => {
                         <FormControl required fullWidth error={!!errors.flightType}>
                           <FormControlLabel
                             label={
-                              <Stack direction='row' spacing={0.5} alignItems='center'>
+                              <Stack
+                                direction='row'
+                                spacing={0.5}
+                                sx={{
+                                  alignItems: 'center',
+                                }}
+                              >
                                 <span>{t('invoicing.isFreeFlight')}</span>
                                 <Tooltip title={t('flightLog.nonBillableFlightTooltip')}>
                                   <span>
@@ -1110,7 +1156,14 @@ const FlightLogEntry = () => {
                           />
                         </FormControl>
 
-                        <Typography variant='body2' color='text.secondary' sx={{ ml: 4, mt: -0.5 }}>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                            ml: 4,
+                            mt: -0.5,
+                          }}
+                        >
                           {`${t('flightLog.nonBillingApprovedByMemberId')}: ${nonBillingApprovedByMemberId ?? '-'}`}
                         </Typography>
 
@@ -1133,7 +1186,13 @@ const FlightLogEntry = () => {
                     <FormControl fullWidth>
                       <FormControlLabel
                         label={
-                          <Stack direction='row' spacing={0.5} alignItems='center'>
+                          <Stack
+                            direction='row'
+                            spacing={0.5}
+                            sx={{
+                              alignItems: 'center',
+                            }}
+                          >
                             <span>{t('flightLog.entryErrorFee')}</span>
                             <Tooltip title={t('flightLog.entryErrorFeeTooltip')}>
                               <span>
@@ -1169,7 +1228,14 @@ const FlightLogEntry = () => {
                       />
                     </FormControl>
 
-                    <Typography variant='body2' color='text.secondary' sx={{ ml: 4, mt: -0.5 }}>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                        ml: 4,
+                        mt: -0.5,
+                      }}
+                    >
                       {`${t('flightLog.entryErrorFeeAppliedByMemberId')}: ${entryErrorFeeAppliedByMemberId ?? '-'}`}
                     </Typography>
                   </Grid>
@@ -1215,7 +1281,14 @@ const FlightLogEntry = () => {
           </Grid>
 
           {/* Action buttons */}
-          <Stack direction='row' spacing={2} justifyContent='flex-end' mt={3}>
+          <Stack
+            direction='row'
+            spacing={2}
+            sx={{
+              justifyContent: 'flex-end',
+              mt: 3,
+            }}
+          >
             <Button
               variant='outlined'
               onClick={() => navigate(backLink)}
@@ -1230,7 +1303,6 @@ const FlightLogEntry = () => {
           </Stack>
         </form>
       </Paper>
-
       <Dialog open={showDtoWarning} onClose={() => setShowDtoWarning(false)}>
         <DialogTitle>{t('dto.flightLog.approvedDtoWarningTitle')}</DialogTitle>
         <DialogContent>

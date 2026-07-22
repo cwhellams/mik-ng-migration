@@ -28,7 +28,11 @@ export const PersonsOnBoard = ({ control, seats, crew, disabled }: Props) => {
         const isUnset = field.value === undefined || field.value === null
 
         return (
-          <Box m=''>
+          <Box
+            sx={{
+              m: '',
+            }}
+          >
             <Typography variant='body2' gutterBottom>
               {t('flightLog.personsOnBoard')}
             </Typography>

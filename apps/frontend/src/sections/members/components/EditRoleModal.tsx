@@ -170,8 +170,20 @@ export const MemberRoleEditor = ({
           />
         </Grid>
 
-        <Grid size={12} display='flex' alignItems='center'>
-          <Typography variant='body2' color='text.secondary' sx={{ width: 250 }}>
+        <Grid
+          size={12}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              width: 250,
+            }}
+          >
             {t('roles.isPublic')}
           </Typography>
           <Checkbox
@@ -244,7 +256,6 @@ export const MemberRoleEditor = ({
       }}
     >
       <EditDialogTitle title={isNewRole ? 'roles.newRole' : 'roles.editRole'} onClose={onClose} />
-
       <DialogContent dividers>
         <Stack spacing={3}>
           {editorCard()}
@@ -256,14 +267,25 @@ export const MemberRoleEditor = ({
           <SnackAlert problem={problem} />
         </Stack>
       </DialogContent>
-
       <DialogActions>
-        <Grid size={12} justifyContent='space-between' display='flex' flexGrow={1}>
+        <Grid
+          size={12}
+          sx={{
+            justifyContent: 'space-between',
+            display: 'flex',
+            flexGrow: 1,
+          }}
+        >
           <Grid>
             {!isNewRole && <RemoveButton onClick={handleRemove} loading={mutation.isMutating} />}
           </Grid>
 
-          <Grid display='flex' gap={2}>
+          <Grid
+            sx={{
+              display: 'flex',
+              gap: 2,
+            }}
+          >
             <Button onClick={onClose} color='inherit'>
               {t('general.cancel', 'Cancel')}
             </Button>

@@ -38,13 +38,12 @@ export function ResponsiveTable<T>({
           {header}
         </Grid>
       )}
-
       {rows?.map((row, idx) => (
         <Grid
           key={`row-${idx}`}
           container
-          alignItems='flex-start'
           sx={{
+            alignItems: 'flex-start',
             px: 1,
             py: 1,
             borderTop: idx > 0 ? '1px solid' : 'none',
@@ -55,9 +54,14 @@ export function ResponsiveTable<T>({
           {rowMapper(row)}
         </Grid>
       ))}
-
       {(!rows || rows.length === 0) && (
-        <Typography variant='body1' textAlign='center' py={3}>
+        <Typography
+          variant='body1'
+          sx={{
+            textAlign: 'center',
+            py: 3,
+          }}
+        >
           {notFoundMsg}
         </Typography>
       )}

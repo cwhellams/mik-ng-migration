@@ -268,7 +268,11 @@ const FlightCrew = ({
             icon='mdi:account-question'
             style={{ fontSize: 40, opacity: 0.5, marginBottom: 8 }}
           />
-          <Typography color='text.secondary'>
+          <Typography
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {t(
               'flightLog.selectFlightTypeCrew',
               'Please select a flight type to continue with crew information',
@@ -318,6 +322,8 @@ const FlightCrew = ({
                           error={!!error}
                           helperText={error?.message?.toString()}
                           slotProps={{
+                            ...params.slotProps,
+
                             inputLabel: {
                               shrink: true,
                             },
@@ -398,7 +404,6 @@ const FlightCrew = ({
                 </Grid>
               )}
             </Grid>
-
             {index >= minimumCrewCount && index == length - 1 && isEditable && (
               // only last crew slot can be removed
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -414,7 +419,6 @@ const FlightCrew = ({
           </Grid>
         )
       })}
-
       {!isSinglePilotFlight && crewCount < maximumCrewCount && isEditable && (
         <Grid size={{ xs: 12 }}>
           <Box>

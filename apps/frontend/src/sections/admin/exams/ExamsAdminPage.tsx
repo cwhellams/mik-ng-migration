@@ -215,7 +215,9 @@ function NewVersionDialog({ open, examId, onClose, onCreated }: Readonly<NewVers
           onChange={(e) => setPassPercent(Number(e.target.value))}
           fullWidth
           sx={{ mb: 2 }}
-          inputProps={{ min: 0, max: 100 }}
+          slotProps={{
+            htmlInput: { min: 0, max: 100 },
+          }}
         />
         <FormControl fullWidth>
           <InputLabel>{t('exams.admin.cloneFromPublished')}</InputLabel>

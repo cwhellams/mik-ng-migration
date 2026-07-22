@@ -98,13 +98,28 @@ export default function DtoMyTrainingPage() {
                   ? assignment.syllabusDetail.description
                   : t('dto.myTraining.activeSyllabus')}
               </Typography>
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('dto.myTraining.version')}: v{assignment.syllabusDetail?.version}
               </Typography>
 
               {/* Overall progress */}
-              <Box mt={2}>
-                <Box display='flex' justifyContent='space-between' mb={0.5}>
+              <Box
+                sx={{
+                  mt: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    mb: 0.5,
+                  }}
+                >
                   <Typography variant='body2'>{t('dto.myTraining.progress')}</Typography>
                   <Typography variant='body2'>
                     {completedFlights}/{totalFlights}
@@ -118,7 +133,11 @@ export default function DtoMyTrainingPage() {
               </Box>
 
               {interimFlight && (
-                <Box mt={1.5}>
+                <Box
+                  sx={{
+                    mt: 1.5,
+                  }}
+                >
                   {interimCompleted ? (
                     <Chip
                       size='small'
@@ -140,7 +159,13 @@ export default function DtoMyTrainingPage() {
             {/* HIL items */}
             {(hilItems?.length ?? 0) > 0 && (
               <Paper variant='outlined' sx={{ p: 2 }}>
-                <Typography variant='subtitle1' gutterBottom fontWeight='bold'>
+                <Typography
+                  variant='subtitle1'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 'bold',
+                  }}
+                >
                   {t('dto.myTraining.hilItems')}
                 </Typography>
                 <Stack spacing={1}>
@@ -149,7 +174,14 @@ export default function DtoMyTrainingPage() {
                       .flatMap((f) => f.items ?? [])
                       .find((i) => i.itemId === h.itemId)
                     return (
-                      <Box key={h.hilId} display='flex' alignItems='center' gap={1}>
+                      <Box
+                        key={h.hilId}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                        }}
+                      >
                         <Icon icon='mdi:alert-circle-outline' color='warning' width={18} />
                         <Typography variant='body2'>{item?.name ?? h.itemId}</Typography>
                       </Box>
@@ -182,18 +214,35 @@ export default function DtoMyTrainingPage() {
                     return (
                       <TableRow key={f.flightId}>
                         <TableCell>
-                          <Typography variant='body2' fontWeight='bold'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {f.code}
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Box display='flex' alignItems='center' gap={0.5}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                            }}
+                          >
                             {f.isInterimCheckpoint && <Icon icon='mdi:flag-checkered' width={16} />}
                             {f.name}
                           </Box>
                         </TableCell>
                         <TableCell>
-                          <Stack direction='row' spacing={0.5} flexWrap='wrap'>
+                          <Stack
+                            direction='row'
+                            spacing={0.5}
+                            sx={{
+                              flexWrap: 'wrap',
+                            }}
+                          >
                             {f.tags.map((tag) => (
                               <Chip key={tag} label={tag} size='small' variant='outlined' />
                             ))}

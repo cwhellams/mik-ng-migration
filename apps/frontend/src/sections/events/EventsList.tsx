@@ -57,22 +57,62 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
           pt: 0.5,
         }}
       >
-        <Typography variant='h5' fontWeight='bold' lineHeight={1}>
+        <Typography
+          variant='h5'
+          sx={{
+            fontWeight: 'bold',
+            lineHeight: 1,
+          }}
+        >
           {start.format('D')}
         </Typography>
-        <Typography variant='caption' color='text.secondary' textTransform='uppercase'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+            textTransform: 'uppercase',
+          }}
+        >
           {start.format('MMM')}
         </Typography>
-        <Typography variant='caption' color='text.secondary'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {start.format('YYYY')}
         </Typography>
       </Box>
-
       {/* Content column */}
-      <Box flex={1} minWidth={0}>
-        <Stack direction='row' alignItems='flex-start' justifyContent='space-between' gap={1}>
-          <Box flex={1} minWidth={0}>
-            <Stack direction='row' alignItems='center' gap={1} flexWrap='wrap'>
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+        }}
+      >
+        <Stack
+          direction='row'
+          sx={{
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: 1,
+          }}
+        >
+          <Box
+            sx={{
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
+            <Stack
+              direction='row'
+              sx={{
+                alignItems: 'center',
+                gap: 1,
+                flexWrap: 'wrap',
+              }}
+            >
               <Typography variant='h6' component='span'>
                 {event.title}
               </Typography>
@@ -82,24 +122,54 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
               {isPast && <Chip label={t('events.past')} size='small' variant='outlined' />}
             </Stack>
 
-            <Stack direction='row' alignItems='center' gap={0.5} mt={0.5}>
+            <Stack
+              direction='row'
+              sx={{
+                alignItems: 'center',
+                gap: 0.5,
+                mt: 0.5,
+              }}
+            >
               <Icon icon='mdi:clock-outline' width={14} />
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {dateLabel}
               </Typography>
             </Stack>
 
             {event.location && (
-              <Stack direction='row' alignItems='center' gap={0.5} mt={0.25}>
+              <Stack
+                direction='row'
+                sx={{
+                  alignItems: 'center',
+                  gap: 0.5,
+                  mt: 0.25,
+                }}
+              >
                 <Icon icon='mdi:map-marker-outline' width={14} />
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {event.location}
                 </Typography>
               </Stack>
             )}
 
             {event.description && (
-              <Typography variant='body2' mt={1} sx={{ whiteSpace: 'pre-line' }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  mt: 1,
+                  whiteSpace: 'pre-line',
+                }}
+              >
                 {event.description}
               </Typography>
             )}
@@ -117,7 +187,6 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
           </Tooltip>
         </Stack>
       </Box>
-
       {/* Calendar add menu */}
       <Menu
         anchorEl={anchorEl}
@@ -173,15 +242,26 @@ const EventsList = () => {
           </Button>
         )}
       </Title>
-
       <RemoteContent isLoading={isLoading} error={error}>
         {events.length === 0 ? (
-          <Typography color='text.secondary'>{t('events.noEvents')}</Typography>
+          <Typography
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
+            {t('events.noEvents')}
+          </Typography>
         ) : (
           <>
             {upcomingEvents.length > 0 && (
               <>
-                <Typography variant='subtitle1' fontWeight='bold' mb={1}>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'bold',
+                    mb: 1,
+                  }}
+                >
                   {t('events.upcoming')}
                 </Typography>
                 <Box>
@@ -197,7 +277,14 @@ const EventsList = () => {
 
             {pastEvents.length > 0 && (
               <>
-                <Typography variant='subtitle1' fontWeight='bold' mt={3} mb={1}>
+                <Typography
+                  variant='subtitle1'
+                  sx={{
+                    fontWeight: 'bold',
+                    mt: 3,
+                    mb: 1,
+                  }}
+                >
                   {t('events.past_section')}
                 </Typography>
                 <Box>

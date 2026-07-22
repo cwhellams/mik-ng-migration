@@ -86,14 +86,14 @@ const Roles = () => {
   return (
     <Box>
       <Title label={t('flightLog.logbooks.title')} />
-
       <Grid
         size={12}
-        direction='column'
-        display='flex'
-        justifyContent={'flex-start'}
-        flexDirection={{ xs: 'column', sm: 'row' }}
-        sx={{ mb: 3 }}
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-start',
+          flexDirection: { xs: 'column', sm: 'row' },
+          mb: 3,
+        }}
       >
         <FormControl sx={{ m: 1, minWidth: 250 }}>
           <InputLabel id='role-label'>{t('flightLog.aircraft')}</InputLabel>
@@ -122,7 +122,12 @@ const Roles = () => {
           </Tooltip>
         )}
 
-        <Grid size={5} alignSelf='center'>
+        <Grid
+          size={5}
+          sx={{
+            alignSelf: 'center',
+          }}
+        >
           <FormControlLabel
             control={
               <Switch
@@ -134,7 +139,6 @@ const Roles = () => {
           />
         </Grid>
       </Grid>
-
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
           notFoundMsg={t('error.noRows')}
@@ -158,7 +162,12 @@ const Roles = () => {
 
             return isMd ? (
               <>
-                <Grid size={2} display='flex'>
+                <Grid
+                  size={2}
+                  sx={{
+                    display: 'flex',
+                  }}
+                >
                   <Link to={`${href}?page=${lastPage}`}>
                     {ajlb.aircraftRegistration} / {ajlb.seqNo}
                   </Link>
@@ -193,7 +202,12 @@ const Roles = () => {
               </>
             ) : (
               <>
-                <Grid size={12} display='flex'>
+                <Grid
+                  size={12}
+                  sx={{
+                    display: 'flex',
+                  }}
+                >
                   <Link to={`${href}?page=${lastPage}`}>
                     {ajlb.aircraftRegistration} / {ajlb.seqNo}
                   </Link>
@@ -241,7 +255,6 @@ const Roles = () => {
         />
       </RemoteContent>
       <AjlbEditor book={editMode} onClose={(newBook) => setEditMode(newBook)} />
-
       {filters.aircraftRegistration && (
         <BaselineDialog
           key={filters.aircraftRegistration}

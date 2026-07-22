@@ -72,7 +72,12 @@ const UploadProgressItem: React.FC<{ progress: UploadProgress }> = ({ progress }
               value={progress.progress}
               color={progress.status === 'error' ? 'error' : 'primary'}
             />
-            <Typography variant='caption' color='text.secondary'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {progress.status === 'pending' && t('aircraft.document.upload.status.pending')}
               {progress.status === 'uploading' &&
                 t('aircraft.document.upload.status.uploading', {
@@ -240,7 +245,13 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
         <Typography variant='h6' gutterBottom>
           {t('aircraft.document.upload.dropZone.title')}
         </Typography>
-        <Typography variant='body2' color='text.secondary' gutterBottom>
+        <Typography
+          variant='body2'
+          gutterBottom
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {t('aircraft.document.upload.dropZone.subtitle')}
         </Typography>
         <Button
@@ -252,7 +263,6 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
           {t('aircraft.document.upload.selectFiles')}
         </Button>
       </Paper>
-
       {/* Selected files */}
       {selectedFiles.length > 0 && (
         <Stack spacing={2} sx={{ mt: 2 }}>
@@ -291,7 +301,13 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
                 <ListItemText
                   primary={fileData.file.name}
                   secondary={
-                    <Stack direction='row' spacing={1} alignItems='center'>
+                    <Stack
+                      direction='row'
+                      spacing={1}
+                      sx={{
+                        alignItems: 'center',
+                      }}
+                    >
                       <Typography variant='caption'>
                         {formatFileSize(fileData.file.size)}
                       </Typography>
@@ -326,7 +342,6 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
           </Button>
         </Stack>
       )}
-
       {/* Upload progress */}
       {progresses.length > 0 && (
         <Stack spacing={2} sx={{ mt: 2 }}>
@@ -338,14 +353,18 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
           </List>
         </Stack>
       )}
-
       {/* Metadata dialog */}
       <Dialog open={metadataDialogOpen} onClose={handleMetadataDialogClose} maxWidth='md' fullWidth>
         <DialogTitle>{t('aircraft.document.upload.metadata.title')}</DialogTitle>
         <DialogContent>
           {currentFile && (
             <Stack spacing={2} sx={{ mt: 1 }}>
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('aircraft.document.upload.metadata.fileName', {
                   fileName: currentFile.file.name,
                 })}

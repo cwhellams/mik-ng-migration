@@ -41,14 +41,18 @@ const Roles = () => {
       <Title label={t('header.roles')}>
         <EditButton title={t('roles.newRole')} onClick={handleNewRole} icon='mdi:plus' />
       </Title>
-
       <RemoteContent error={error}>
         <ResponsiveTable
           header={
             <>
               <Grid size={5}>{t('roles.roleId')}</Grid>
               <Grid size={2}>{t('roles.isPublic')}</Grid>
-              <Grid size={5} textAlign='right'>
+              <Grid
+                size={5}
+                sx={{
+                  textAlign: 'right',
+                }}
+              >
                 {t('roles.permissions')}
               </Grid>
             </>
@@ -58,7 +62,12 @@ const Roles = () => {
           row={(row) => (
             <>
               <Grid size={{ xs: 6, md: 5 }}>
-                <Stack direction='column' display='flex'>
+                <Stack
+                  direction='column'
+                  sx={{
+                    display: 'flex',
+                  }}
+                >
                   <Link to={'#'} onClick={() => handleEditMode(row)}>
                     {row.roleId}
                   </Link>
@@ -69,7 +78,12 @@ const Roles = () => {
               <Grid size={{ xs: 6, md: 2 }}>
                 {row.isPublic && <Icon icon='mdi:check' color='green' fontSize={20} />}
               </Grid>
-              <Grid size={{ xs: 12, md: 5 }} textAlign='right'>
+              <Grid
+                size={{ xs: 12, md: 5 }}
+                sx={{
+                  textAlign: 'right',
+                }}
+              >
                 {row.permissions?.map((perm) => (
                   <Typography variant='body2' key={perm}>
                     {perm}
@@ -80,7 +94,6 @@ const Roles = () => {
           )}
         />
       </RemoteContent>
-
       <MemberRoleEditor role={editMode} onClose={() => setEditMode(undefined)} />
     </Box>
   )

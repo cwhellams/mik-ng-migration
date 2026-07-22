@@ -77,6 +77,8 @@ export const SelectMember = ({
           placeholder={placeholder}
           margin='normal'
           slotProps={{
+            ...params.slotProps,
+
             inputLabel: {
               shrink: true,
             },

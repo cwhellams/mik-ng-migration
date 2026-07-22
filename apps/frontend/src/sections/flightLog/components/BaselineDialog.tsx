@@ -70,7 +70,13 @@ export const BaselineDialog = ({
       slotProps={{ paper: { component: 'form', onSubmit: handleSubmit } }}
     >
       <DialogTitle>
-        <Box display='flex' alignItems='center' justifyContent='space-between'>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <Typography variant='h6'>
             {t('flightLog.logbooks.setBaseline')} — {registration}
           </Typography>
@@ -79,7 +85,6 @@ export const BaselineDialog = ({
           </IconButton>
         </Box>
       </DialogTitle>
-
       <DialogContent dividers>
         <Stack spacing={2}>
           <TextField
@@ -100,7 +105,6 @@ export const BaselineDialog = ({
           <SnackAlert problem={problem} />
         </Stack>
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose} color='inherit'>
           {t('general.cancel', 'Cancel')}

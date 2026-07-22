@@ -111,7 +111,6 @@ const Billing = () => {
   return (
     <Box>
       <Title label={t('billing.title')} />
-
       <Box sx={{ my: 4 }}>
         {/* Quick Select Buttons */}
         <Stack direction='row' spacing={2} sx={{ mb: 2 }}>
@@ -198,10 +197,20 @@ const Billing = () => {
                 <Grid size={2}>{t('billing.columns.type')}</Grid>
                 <Grid size={4}>{t('billing.columns.description')}</Grid>
                 <Grid size={1.5}>{t('billing.columns.total')}</Grid>
-                <Grid size={1} textAlign='center'>
+                <Grid
+                  size={1}
+                  sx={{
+                    textAlign: 'center',
+                  }}
+                >
                   {t('billing.columns.status')}
                 </Grid>
-                <Grid size={1} textAlign='center'>
+                <Grid
+                  size={1}
+                  sx={{
+                    textAlign: 'center',
+                  }}
+                >
                   PDF
                 </Grid>
               </>
@@ -236,7 +245,6 @@ const Billing = () => {
                       isPastDue={isPastDue}
                     />
                   </Grid>
-
                   {isMd ? (
                     <>
                       <Grid size={2}>{invoice.invoice_type}</Grid>
@@ -246,10 +254,20 @@ const Billing = () => {
                           ? currencyFormatter.format(parseFloat(invoice.total_sum))
                           : '—'}
                       </Grid>
-                      <Grid size={1} textAlign='center'>
+                      <Grid
+                        size={1}
+                        sx={{
+                          textAlign: 'center',
+                        }}
+                      >
                         {renderStatus(invoice.is_paid, isPastDue)}
                       </Grid>
-                      <Grid size={1} textAlign='center'>
+                      <Grid
+                        size={1}
+                        sx={{
+                          textAlign: 'center',
+                        }}
+                      >
                         {downloadIcon(() => handleDownloadPdf(invoice.id))}
                       </Grid>
                     </>
@@ -259,12 +277,26 @@ const Billing = () => {
                         <Box>{invoice.invoice_type}</Box>
                         <Box>{invoice.description || '—'}</Box>
                       </Grid>
-                      <Grid size={3} alignSelf='start' textAlign='right'>
+                      <Grid
+                        size={3}
+                        sx={{
+                          alignSelf: 'start',
+                          textAlign: 'right',
+                        }}
+                      >
                         {invoice.total_sum
                           ? currencyFormatter.format(parseFloat(invoice.total_sum))
                           : '—'}
 
-                        <Box display='flex' alignItems='center' justifyContent='end' mt={1} gap={2}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'end',
+                            mt: 1,
+                            gap: 2,
+                          }}
+                        >
                           {renderStatus(invoice.is_paid, isPastDue)}
                           {downloadIcon(() => handleDownloadPdf(invoice.id))}
                         </Box>

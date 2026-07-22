@@ -29,9 +29,11 @@ export const OilUplift = ({ control, disabled }: Props) => {
           <Box>
             <Stack
               direction='row'
-              alignItems='center'
-              justifyContent='space-between'
-              flexWrap='wrap'
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+              }}
             >
               <Typography
                 variant='body2'
@@ -56,7 +58,6 @@ export const OilUplift = ({ control, disabled }: Props) => {
                 label={t('flightLog.noOilAdded')}
               />
             </Stack>
-
             {!isNoOilAdded && (
               <TextField
                 type='number'
@@ -71,7 +72,6 @@ export const OilUplift = ({ control, disabled }: Props) => {
                 error={!!error}
               />
             )}
-
             {error && <FormHelperText error>{error.message}</FormHelperText>}
           </Box>
         )

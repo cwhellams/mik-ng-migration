@@ -245,8 +245,14 @@ const Members = () => {
           />
         )}
       </Title>
-
-      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent='space-between' gap={2} mb={2}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        sx={{
+          justifyContent: 'space-between',
+          gap: 2,
+          mb: 2,
+        }}
+      >
         <TextField
           label='Search field'
           type='search'
@@ -268,7 +274,13 @@ const Members = () => {
 
         <Stack direction='row'>
           {isMembersAdmin && (
-            <Box alignItems='center' display='flex' sx={{ mr: 1 }}>
+            <Box
+              sx={{
+                alignItems: 'center',
+                display: 'flex',
+                mr: 1,
+              }}
+            >
               <Link to='members/roles'>
                 <Icon icon='mdi:gear' color='#646cff' fontSize={24} />
               </Link>
@@ -324,11 +336,14 @@ const Members = () => {
           </FormControl>
         </Stack>
       </Stack>
-
-      <Typography variant='body2' mb={2}>
+      <Typography
+        variant='body2'
+        sx={{
+          mb: 2,
+        }}
+      >
         {t('member.count', { count: sortedMembers.length })}
       </Typography>
-
       {isMembersAdmin && selectedIds.length > 0 && (
         <Paper
           sx={{
@@ -343,7 +358,13 @@ const Members = () => {
           <Typography variant='body2' sx={{ fontWeight: 600 }}>
             {t('member.selectedCount', { count: selectedIds.length })}
           </Typography>
-          <Stack direction='row' gap={1} sx={{ ml: 'auto' }}>
+          <Stack
+            direction='row'
+            sx={{
+              gap: 1,
+              ml: 'auto',
+            }}
+          >
             <Button
               size='small'
               variant='contained'
@@ -368,7 +389,6 @@ const Members = () => {
           </Stack>
         </Paper>
       )}
-
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
           header={
@@ -381,7 +401,9 @@ const Members = () => {
                     checked={isAllSelected}
                     indeterminate={isIndeterminate}
                     onChange={toggleAll}
-                    inputProps={{ 'aria-label': t('member.selectAll') }}
+                    slotProps={{
+                      input: { 'aria-label': t('member.selectAll') },
+                    }}
                   />
                 )}
               </Grid>
@@ -443,8 +465,12 @@ const Members = () => {
                     sx={{ p: 0 }}
                     checked={isSelected(row.memberId)}
                     onChange={() => toggle(row.memberId)}
-                    inputProps={{
-                      'aria-label': t('member.selectMember', { name: `${row.first} ${row.last}` }),
+                    slotProps={{
+                      input: {
+                        'aria-label': t('member.selectMember', {
+                          name: `${row.first} ${row.last}`,
+                        }),
+                      },
                     }}
                   />
                 )}
@@ -467,7 +493,14 @@ const Members = () => {
                   </Box>
                 </Box>
               </Grid>
-              <Grid container size='grow' spacing={0} alignItems='center'>
+              <Grid
+                container
+                size='grow'
+                spacing={0}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <Grid size={{ xs: 12, md: isMembersAdmin ? 2 : 3 }}>
                   {isMembersAdmin ? (
                     <Link to={`members/${row.memberId}`}>
@@ -519,7 +552,6 @@ const Members = () => {
           )}
         />
       </RemoteContent>
-
       <EditMemberModal mode={editMode} onClose={() => setEditMode(undefined)} api={mutation} />
     </Box>
   )
@@ -529,8 +561,8 @@ const renderRoles = (memberRoles: string[], roles: MemberRole[], language: MIKLa
   return (
     <Stack
       direction='row'
-      display='flex'
       sx={{
+        display: 'flex',
         flexWrap: 'wrap',
         gap: '4px',
       }}

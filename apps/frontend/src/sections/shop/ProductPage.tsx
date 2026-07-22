@@ -136,7 +136,6 @@ export default function ProductPage() {
       <Button component={Link} to='/shop' startIcon={<Icon icon='mdi:arrow-left' />} sx={{ mb: 2 }}>
         {t('shop.backToShop')}
       </Button>
-
       <RemoteContent isLoading={isLoading} error={error}>
         {!isLoading && !error && !product && <Alert severity='error'>{t('common.notFound')}</Alert>}
         {product && (
@@ -202,7 +201,12 @@ export default function ProductPage() {
             {/* Product details */}
             <Box sx={{ flexGrow: 1, minWidth: 280 }}>
               {category && (
-                <Typography variant='subtitle2' color='text.secondary'>
+                <Typography
+                  variant='subtitle2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {localName(category.name as Record<string, string>)}
                 </Typography>
               )}
@@ -213,7 +217,14 @@ export default function ProductPage() {
 
               <Typography variant='h5' color='primary' sx={{ mb: 2 }}>
                 €{(product.price * (1 + product.vatPercent / 100)).toFixed(2)}
-                <Typography component='span' variant='body2' color='text.secondary' sx={{ ml: 1 }}>
+                <Typography
+                  component='span'
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    ml: 1,
+                  }}
+                >
                   ({t('shop.vatIncluded', { pct: product.vatPercent })})
                 </Typography>
               </Typography>
@@ -239,7 +250,14 @@ export default function ProductPage() {
 
               {product.productType === 'FLIGHT_HOURS_PACKAGE' &&
                 selectedFlightPackage?.expiresAt && (
-                  <Typography variant='h6' color='text.secondary' sx={{ mb: 2, fontWeight: 600 }}>
+                  <Typography
+                    variant='h6'
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 2,
+                      fontWeight: 600,
+                    }}
+                  >
                     {t('shop.admin.expiresAt')}:{' '}
                     {new Date(selectedFlightPackage.expiresAt).toLocaleDateString()}
                   </Typography>
@@ -339,7 +357,12 @@ export default function ProductPage() {
                   </Select>
                 </FormControl>
                 {effectiveMax != null && effectiveMax > 0 && (
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {isFlightPackage && alreadyOwned > 0
                       ? t('shop.maxRemainingQty', { max: effectiveMax })
                       : t('shop.maxPerMemberQty', { max: effectiveMax })}
@@ -376,7 +399,6 @@ export default function ProductPage() {
           </Box>
         )}
       </RemoteContent>
-
       <Snackbar
         open={!!snack}
         autoHideDuration={3000}

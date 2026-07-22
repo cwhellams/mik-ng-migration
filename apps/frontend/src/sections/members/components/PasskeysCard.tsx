@@ -115,7 +115,13 @@ export const PasskeysCard = ({ memberId, isAdmin }: PasskeysCardProps) => {
         {isLoading ? (
           <CircularProgress size={20} />
         ) : passkeys.length === 0 ? (
-          <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mb: 2,
+            }}
+          >
             {t('member.passkeys.empty')}
           </Typography>
         ) : (
@@ -126,7 +132,13 @@ export const PasskeysCard = ({ memberId, isAdmin }: PasskeysCardProps) => {
                   primary={p.name || t('member.passkeys.unnamed')}
                   secondary={
                     <Box component='span' sx={{ display: 'block' }}>
-                      <Typography component='span' variant='caption' color='text.secondary'>
+                      <Typography
+                        component='span'
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
                         {t('member.passkeys.added')} {new Date(p.createdAt).toLocaleDateString()}
                         {p.lastUsedAt &&
                           ` · ${t('member.passkeys.lastUsed')} ${new Date(
@@ -163,7 +175,12 @@ export const PasskeysCard = ({ memberId, isAdmin }: PasskeysCardProps) => {
           </Box>
         )}
         {!isAdmin && !passkeySupported() && (
-          <Typography variant='caption' color='text.secondary'>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {!isSecureContextForPasskeys()
               ? t('member.passkeys.insecureContext')
               : t('member.passkeys.unsupportedBrowser')}

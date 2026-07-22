@@ -147,8 +147,10 @@ export const PhoneNumberInput = ({
                 label='Code'
                 size='medium'
                 slotProps={{
+                  ...params.slotProps,
+
                   input: {
-                    ...params.InputProps,
+                    ...params.slotProps.input,
                     startAdornment: (
                       <Box component='span' sx={{ ml: '2px' }}>
                         {countryCodeToFlagEmoji(country.code)}
@@ -177,8 +179,10 @@ export const PhoneNumberInput = ({
                   ? '555 123 4567'
                   : '12 345 6789'
             }
-            inputProps={{
-              inputMode: 'tel',
+            slotProps={{
+              htmlInput: {
+                inputMode: 'tel',
+              },
             }}
           />
         </Grid>

@@ -103,7 +103,6 @@ const EditDocumentModal = ({ open, document, onClose, onSuccess }: EditDocumentM
   return (
     <Dialog open={open} onClose={onClose} maxWidth='md' fullWidth>
       <DialogTitle>{t('documents.upload.edit', 'Edit Document')}</DialogTitle>
-
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 1 }}>
           <TextField
@@ -142,10 +141,23 @@ const EditDocumentModal = ({ open, document, onClose, onSuccess }: EditDocumentM
 
             {currentTags.length > 0 && (
               <Box sx={{ mt: 1 }}>
-                <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                    mb: 1,
+                  }}
+                >
                   Current tags:
                 </Typography>
-                <Stack direction='row' spacing={1} flexWrap='wrap' gap={1}>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{
+                    flexWrap: 'wrap',
+                    gap: 1,
+                  }}
+                >
                   {currentTags.map((tag, index) => (
                     <Chip
                       key={index}
@@ -178,7 +190,6 @@ const EditDocumentModal = ({ open, document, onClose, onSuccess }: EditDocumentM
           />
         </Stack>
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose} color='inherit'>
           {t('documents.edit.cancel', 'Cancel')}

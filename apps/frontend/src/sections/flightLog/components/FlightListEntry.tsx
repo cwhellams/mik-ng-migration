@@ -28,10 +28,21 @@ export const ViewFlightDate = ({
     formatDate(date)
   ) : (
     <>
-      <Typography fontSize={25} lineHeight={0.75}>
+      <Typography
+        sx={{
+          fontSize: 25,
+          lineHeight: 0.75,
+        }}
+      >
         {formatDateCustom(date, 'DD.MM.')}
       </Typography>
-      <Typography fontSize={16}>{formatDateCustom(date, 'YYYY')}</Typography>
+      <Typography
+        sx={{
+          fontSize: 16,
+        }}
+      >
+        {formatDateCustom(date, 'YYYY')}
+      </Typography>
     </>
   )
 
@@ -70,23 +81,50 @@ export const ViewMobileFlightTime = ({
   const { formatTime } = useTimezone()
 
   return (
-    <Grid size={size} container alignItems='center'>
+    <Grid
+      size={size}
+      container
+      sx={{
+        alignItems: 'center',
+      }}
+    >
       <Grid size={12} sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box>{departureAirport}</Box>
 
         <Box>{arrivalAirport}</Box>
       </Grid>
-      <Grid size={3} alignContent='start' alignSelf='start'>
-        {offBlockTimeUtc && <Box color='text.secondary'>{formatTime(offBlockTimeUtc)}</Box>}
-        <Box color='text.secondary'>{formatTime(takeoffTimeUtc)}</Box>
+      <Grid
+        size={3}
+        sx={{
+          alignContent: 'start',
+          alignSelf: 'start',
+        }}
+      >
+        {offBlockTimeUtc && (
+          <Box
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
+            {formatTime(offBlockTimeUtc)}
+          </Box>
+        )}
+        <Box
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
+          {formatTime(takeoffTimeUtc)}
+        </Box>
       </Grid>
       <Grid size={6}>
         <Box
-          display='flex'
-          alignItems='center'
-          textAlign='center'
-          flexWrap='wrap'
           sx={{
+            display: 'flex',
+            alignItems: 'center',
+            textAlign: 'center',
+            flexWrap: 'wrap',
+
             ':before': {
               content: '""',
               flex: 1,
@@ -104,11 +142,39 @@ export const ViewMobileFlightTime = ({
         >
           {flightTime}
         </Box>
-        {secondaryTime && <Box textAlign='center'>{secondaryTime}</Box>}
+        {secondaryTime && (
+          <Box
+            sx={{
+              textAlign: 'center',
+            }}
+          >
+            {secondaryTime}
+          </Box>
+        )}
       </Grid>
-      <Grid size={3} textAlign='end' alignSelf='start'>
-        <Box color='text.secondary'>{formatTime(landingTimeUtc)}</Box>
-        {onBlockTimeUtc && <Box color='text.secondary'>{formatTime(onBlockTimeUtc)}</Box>}
+      <Grid
+        size={3}
+        sx={{
+          textAlign: 'end',
+          alignSelf: 'start',
+        }}
+      >
+        <Box
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
+          {formatTime(landingTimeUtc)}
+        </Box>
+        {onBlockTimeUtc && (
+          <Box
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
+            {formatTime(onBlockTimeUtc)}
+          </Box>
+        )}
       </Grid>
     </Grid>
   )
@@ -127,9 +193,22 @@ export const ViewMobileFlightDetails = ({
 }) => {
   const { t } = useTranslation()
   return (
-    <Grid size={size} justifyContent='flex-end' display='flex' alignItems='center'>
+    <Grid
+      size={size}
+      sx={{
+        justifyContent: 'flex-end',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
       {numberOfLandings} <Icon icon='mdi:airplane-landing' style={{ verticalAlign: 'middle' }} />
-      <Box mx={1}>{t(`flightLog.flightTypes.${flightType}`)}</Box>
+      <Box
+        sx={{
+          mx: 1,
+        }}
+      >
+        {t(`flightLog.flightTypes.${flightType}`)}
+      </Box>
       {children}
     </Grid>
   )

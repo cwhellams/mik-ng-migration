@@ -160,7 +160,6 @@ export const InvoicingFlights = ({
   return (
     <>
       <SnackAlert problem={problem} />
-
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
           header={
@@ -210,7 +209,12 @@ export const InvoicingFlights = ({
                   <Grid size={1}>{log.flightTime}</Grid>
                   <Grid size={1.5}>{t(`flightLog.flightTypes.${log.flightType}`)}</Grid>
                   <Grid size={{ xs: 12, md: 3.4 }}>{log.billingRemarks}</Grid>
-                  <Grid size={'grow'} display={{ xs: 'none', md: 'flex' }}>
+                  <Grid
+                    size={'grow'}
+                    sx={{
+                      display: { xs: 'none', md: 'flex' },
+                    }}
+                  >
                     <Checkbox
                       checked={
                         isMinBillableStep
@@ -257,7 +261,12 @@ export const InvoicingFlights = ({
                     />
                   </Grid>
                   {isMinBillableStep && showExceptionField(log) && (
-                    <Grid size={12} display={{ xs: 'none', md: 'block' }}>
+                    <Grid
+                      size={12}
+                      sx={{
+                        display: { xs: 'none', md: 'block' },
+                      }}
+                    >
                       <TextField
                         size='small'
                         placeholder={t('flightLog.minBillableExceptionReason')}
@@ -274,7 +283,12 @@ export const InvoicingFlights = ({
                     </Grid>
                   )}
                   {!isMinBillableStep && showReasonField(log) && (
-                    <Grid size={12} display={{ xs: 'none', md: 'block' }}>
+                    <Grid
+                      size={12}
+                      sx={{
+                        display: { xs: 'none', md: 'block' },
+                      }}
+                    >
                       <TextField
                         size='small'
                         placeholder={t('flightLog.nonBillingReason')}
@@ -399,7 +413,6 @@ export const InvoicingFlights = ({
           )}
         />
       </RemoteContent>
-
       <Pagination
         count={data?.pages ?? 1}
         size='large'
@@ -410,7 +423,6 @@ export const InvoicingFlights = ({
         siblingCount={2}
         sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}
       />
-
       <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
         <Button color='secondary' variant='outlined' onClick={navigate.previous} sx={{ mr: 1 }}>
           {t('general.back')}

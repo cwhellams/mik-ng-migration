@@ -160,7 +160,11 @@ const Aircrafts = () => {
 
     if (!pricingData?.pricing || pricingData.pricing.length === 0) {
       return (
-        <Typography color='text.secondary'>
+        <Typography
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {t('aircraft.pricing.noHistory', 'No pricing history available')}
         </Typography>
       )
@@ -222,7 +226,13 @@ const Aircrafts = () => {
                   </TableCell>
                   {canEditPricing && (
                     <TableCell align='center'>
-                      <Stack direction='row' spacing={0.5} justifyContent='center'>
+                      <Stack
+                        direction='row'
+                        spacing={0.5}
+                        sx={{
+                          justifyContent: 'center',
+                        }}
+                      >
                         <EditButton
                           title={t('aircraft.pricing.edit', 'Edit')}
                           icon='mdi:pencil'
@@ -269,14 +279,32 @@ const Aircrafts = () => {
 
     return (
       <Box sx={{ mt: 2 }}>
-        <Typography variant='subtitle1' color='text.primary' gutterBottom>
+        <Typography
+          variant='subtitle1'
+          gutterBottom
+          sx={{
+            color: 'text.primary',
+          }}
+        >
           {t('aircraft.pricing.title')}
         </Typography>
-        <Typography variant='body1' color='text.secondary'>
+        <Typography
+          variant='body1'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           €{pricePerHour}/h (€{pricePerMin}/min)
         </Typography>
         {currentPricing.notes && (
-          <Typography variant='caption' color='text.secondary' display='block' sx={{ mt: 0.5 }}>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+              display: 'block',
+              mt: 0.5,
+            }}
+          >
             {currentPricing.notes}
           </Typography>
         )}
@@ -309,13 +337,14 @@ const Aircrafts = () => {
           </>
         )}
       </Title>
-
       <RemoteContent isLoading={isLoading} error={error}>
         <Stack
           direction={{ sm: 'column', md: 'row' }}
           useFlexGap
-          flexWrap={'wrap'}
           spacing={{ xs: 2, sm: 3 }}
+          sx={{
+            flexWrap: 'wrap',
+          }}
         >
           {data?.aircrafts.map((aircraft) => {
             const warnings = getMsg(aircraft, Severity.warning)
@@ -353,7 +382,12 @@ const Aircrafts = () => {
                   <Stack spacing={2} sx={{ flex: 1 }}>
                     <Box>
                       <FormTitle title={aircraft.registration} sx={{ mb: 0 }} />
-                      <Typography variant='body2' color='text.primary'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.primary',
+                        }}
+                      >
                         {aircraft.displayName}
                       </Typography>
 
@@ -482,7 +516,12 @@ const Aircrafts = () => {
                         <Divider sx={{ my: 3 }} />
 
                         <Box>
-                          <Typography variant='subtitle1' color='text.primary'>
+                          <Typography
+                            variant='subtitle1'
+                            sx={{
+                              color: 'text.primary',
+                            }}
+                          >
                             {t('aircraft.totalTime', {
                               ...aircraft.status,
                               remainingFuelGallons: Math.round(
@@ -558,7 +597,6 @@ const Aircrafts = () => {
                     )}
                   </Stack>
                 </CardContent>
-
                 {/* Bottom Navigation */}
                 <BottomNavigation
                   value={currentTab}

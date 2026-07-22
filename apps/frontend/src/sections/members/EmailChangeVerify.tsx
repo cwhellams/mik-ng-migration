@@ -62,7 +62,13 @@ const EmailChangeVerify = () => {
           <Typography variant='h6' sx={{ mt: 2, mb: 2 }}>
             {t('emailChange.verifyFailed')}
           </Typography>
-          <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mb: 3,
+            }}
+          >
             {verificationError}
           </Typography>
           <Button variant='contained' onClick={() => navigate('/club/members/me')}>

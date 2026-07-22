@@ -86,7 +86,6 @@ export function MileageAllowancesAdmin() {
   return (
     <Box>
       <Title label={t('accounting.mileageAllowances.title')} />
-
       <Stack spacing={3}>
         {/* ── Edit / Add form ── */}
         <Paper sx={{ p: 3 }}>
@@ -103,7 +102,13 @@ export function MileageAllowancesAdmin() {
               {t('accounting.mileageAllowances.saved')}
             </Alert>
           )}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems='flex-start'>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            sx={{
+              alignItems: 'flex-start',
+            }}
+          >
             <TextField
               label={t('accounting.mileageAllowances.taxYear')}
               type='number'
@@ -132,10 +137,20 @@ export function MileageAllowancesAdmin() {
             />
             {form.ratePerKm && form.discountPct && (
               <Box sx={{ pt: 1 }}>
-                <Typography variant='body2' color='text.secondary'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {t('accounting.mileageAllowances.effectiveRate')}
                 </Typography>
-                <Typography variant='body1' fontWeight={600}>
+                <Typography
+                  variant='body1'
+                  sx={{
+                    fontWeight: 600,
+                  }}
+                >
                   €{(Number(form.ratePerKm) * (1 - Number(form.discountPct) / 100)).toFixed(4)}/km
                 </Typography>
               </Box>

@@ -253,10 +253,16 @@ const Register = () => {
           showLabel={true}
         />
       </Box>
-
       {/* Step indicator */}
       <Box sx={{ mb: 2 }}>
-        <Typography variant='caption' color='text.secondary' sx={{ mb: 0.5, display: 'block' }}>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+            mb: 0.5,
+            display: 'block',
+          }}
+        >
           {step === 1 ? t('register.page1of2') : t('register.page2of2')}
         </Typography>
         <LinearProgress
@@ -265,7 +271,6 @@ const Register = () => {
           sx={{ borderRadius: 1, height: 6 }}
         />
       </Box>
-
       {/* ── PAGE 1: Basic details ───────────────────────────────────────── */}
       {step === 1 && (
         <form onSubmit={handleNextStep}>
@@ -415,7 +420,13 @@ const Register = () => {
             return null
           })()}
 
-          <Typography variant='body2' color='text.secondary' sx={{ mt: 2 }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mt: 2,
+            }}
+          >
             {t('register.prices', {
               fullMemberFee: joiningFees?.fullMemberFee ?? '–',
               reducedMemberFee: joiningFees?.reducedMemberFee ?? '–',
@@ -458,7 +469,12 @@ const Register = () => {
           </Button>
 
           <Box sx={{ textAlign: 'center', mt: 2 }}>
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {t('register.withAccount')}{' '}
               <Link to='/login' color='primary'>
                 {t('register.login')}
@@ -467,7 +483,6 @@ const Register = () => {
           </Box>
         </form>
       )}
-
       {/* ── PAGE 2: Flight experience + application details ─────────────── */}
       {step === 2 && (
         <form onSubmit={handleSubmit}>
@@ -647,7 +662,9 @@ const Register = () => {
             required
             multiline
             minRows={3}
-            inputProps={{ maxLength: 2000 }}
+            slotProps={{
+              htmlInput: { maxLength: 2000 },
+            }}
           />
 
           <TextField
@@ -659,7 +676,9 @@ const Register = () => {
             required
             multiline
             minRows={2}
-            inputProps={{ maxLength: 1000 }}
+            slotProps={{
+              htmlInput: { maxLength: 1000 },
+            }}
           />
 
           <TextField
@@ -670,7 +689,9 @@ const Register = () => {
             onChange={(e) => updateApplicationData('otherAviationClubs', e.target.value)}
             multiline
             minRows={2}
-            inputProps={{ maxLength: 500 }}
+            slotProps={{
+              htmlInput: { maxLength: 500 },
+            }}
           />
 
           {/* Declarations Section */}
@@ -709,7 +730,9 @@ const Register = () => {
               required
               multiline
               minRows={2}
-              inputProps={{ maxLength: 1000 }}
+              slotProps={{
+                htmlInput: { maxLength: 1000 },
+              }}
             />
           )}
 
@@ -743,7 +766,9 @@ const Register = () => {
               required
               multiline
               minRows={2}
-              inputProps={{ maxLength: 1000 }}
+              slotProps={{
+                htmlInput: { maxLength: 1000 },
+              }}
             />
           )}
 

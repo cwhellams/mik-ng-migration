@@ -112,10 +112,15 @@ export default function OrdersAdmin() {
           </FormControl>
         </Box>
       </Box>
-
       <RemoteContent isLoading={isLoading} error={error}>
         {!isLoading && (!orders || orders.length === 0) ? (
-          <Typography color='text.secondary'>{t('shop.noOrders')}</Typography>
+          <Typography
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
+            {t('shop.noOrders')}
+          </Typography>
         ) : (
           <TableContainer component={Paper}>
             <Table size='small'>

@@ -341,7 +341,6 @@ export const AirfieldEfficiency = () => {
           </Grid>
         </CardContent>
       </Card>
-
       {/* All-time split summary */}
       {groupBy === 'overall' && period === 'year' && allTimeSummary && (
         <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -352,7 +351,12 @@ export const AirfieldEfficiency = () => {
                   {allTimeSummary.efnu_pct}%
                 </Typography>
                 <Typography variant='subtitle1'>EFNU–EFNU</Typography>
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {allTimeSummary.efnu_hrs} hrs
                 </Typography>
               </CardContent>
@@ -365,7 +369,12 @@ export const AirfieldEfficiency = () => {
                   {allTimeSummary.io_pct}%
                 </Typography>
                 <Typography variant='subtitle1'>Inbound / Outbound</Typography>
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {allTimeSummary.io_hrs} hrs
                 </Typography>
               </CardContent>
@@ -378,7 +387,12 @@ export const AirfieldEfficiency = () => {
                   {allTimeSummary.away_pct}%
                 </Typography>
                 <Typography variant='subtitle1'>Away</Typography>
-                <Typography variant='caption' color='text.secondary'>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {allTimeSummary.away_hrs} hrs
                 </Typography>
               </CardContent>
@@ -386,7 +400,6 @@ export const AirfieldEfficiency = () => {
           </Grid>
         </Grid>
       )}
-
       {/* Legend chips */}
       <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
         {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
@@ -398,7 +411,6 @@ export const AirfieldEfficiency = () => {
           />
         ))}
       </Box>
-
       {/* Stacked bar chart */}
       <RemoteContent isLoading={isLoading} error={error}>
         <Card sx={{ mb: 3 }}>
@@ -407,7 +419,13 @@ export const AirfieldEfficiency = () => {
               Airfield Efficiency {groupBy === 'aircraft' ? 'by Aircraft' : ''} (
               {period === 'year' ? 'Yearly' : 'Last 12 Months'})
             </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               Flight hours split by departure/arrival airport category
             </Typography>
             <Box sx={{ height: 400 }}>
@@ -505,7 +523,13 @@ export const AirfieldEfficiency = () => {
                     justifyContent: 'center',
                   }}
                 >
-                  <Typography color='text.secondary'>No data available</Typography>
+                  <Typography
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
+                    No data available
+                  </Typography>
                 </Box>
               )}
             </Box>

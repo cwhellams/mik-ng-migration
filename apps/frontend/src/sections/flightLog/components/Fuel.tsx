@@ -78,7 +78,9 @@ export const Fuel = ({ control, usableFuelLitres, disabled }: Props) => {
             variant='body2'
             color={disabled ? 'text.disabled' : 'text.primary'}
             gutterBottom
-            mb={4}
+            sx={{
+              mb: 4,
+            }}
           >
             {t('flightLog.fuelRemainingLitres')}
           </Typography>

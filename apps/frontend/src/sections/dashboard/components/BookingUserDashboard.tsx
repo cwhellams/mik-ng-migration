@@ -55,7 +55,13 @@ export const BookingUserDashboard = () => {
             <BookingTable
               bookings={scheduleData?.bookings || []}
               eventDescription={(booking) => (
-                <Box display='flex' justifyContent='space-between' alignItems='center'>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
                   <Typography variant='body1'>{`${booking.registration}`}</Typography>
 
                   <EditButton

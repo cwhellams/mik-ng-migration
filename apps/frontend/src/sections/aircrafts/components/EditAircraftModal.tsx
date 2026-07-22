@@ -378,8 +378,20 @@ export const EditAircraftModal = ({ onClose, mode, aircraft }: EditAircraftModal
 
         <Stack spacing={1.5}>
           <Grid container spacing={2}>
-            <Grid size={12} display='flex' alignItems='center'>
-              <Typography variant='body2' color='text.secondary' sx={{ width: 150 }}>
+            <Grid
+              size={12}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  width: 150,
+                }}
+              >
                 {t('aircraft.edit.active')}
               </Typography>
               <Checkbox
@@ -392,8 +404,20 @@ export const EditAircraftModal = ({ onClose, mode, aircraft }: EditAircraftModal
                 }}
               />
             </Grid>
-            <Grid size={12} display='flex' alignItems='center'>
-              <Typography variant='body2' color='text.secondary' sx={{ width: 150 }}>
+            <Grid
+              size={12}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                  width: 150,
+                }}
+              >
                 {t('aircraft.edit.hidden')}
               </Typography>
               <Checkbox
@@ -575,8 +599,20 @@ export const EditAircraftModal = ({ onClose, mode, aircraft }: EditAircraftModal
     <Stack spacing={3}>
       {(formData.notes ?? []).map((note, index) => (
         <Grid container key={index}>
-          <Grid container size={'grow'} spacing={1.5} mr={2}>
-            <Grid size={{ xs: 12, sm: 2 }} minWidth={150}>
+          <Grid
+            container
+            size={'grow'}
+            spacing={1.5}
+            sx={{
+              mr: 2,
+            }}
+          >
+            <Grid
+              size={{ xs: 12, sm: 2 }}
+              sx={{
+                minWidth: 150,
+              }}
+            >
               <FormControl fullWidth>
                 <InputLabel id='severity-label'>{t('aircraft.notes.severity')}</InputLabel>
 
@@ -604,7 +640,12 @@ export const EditAircraftModal = ({ onClose, mode, aircraft }: EditAircraftModal
               />
             </Grid>
           </Grid>
-          <Grid size={'auto'} display={'flex'}>
+          <Grid
+            size={'auto'}
+            sx={{
+              display: 'flex',
+            }}
+          >
             <EditButton
               title={t('aircraft.notes.delete')}
               icon='mdi:delete'
@@ -613,12 +654,24 @@ export const EditAircraftModal = ({ onClose, mode, aircraft }: EditAircraftModal
             />
           </Grid>
 
-          <Grid size={12} mt={4} mb={4}>
+          <Grid
+            size={12}
+            sx={{
+              mt: 4,
+              mb: 4,
+            }}
+          >
             <Divider variant='middle' />
           </Grid>
         </Grid>
       ))}
-      <Grid size={12} display='flex' justifyContent='center'>
+      <Grid
+        size={12}
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
         <EditButton title={t('aircraft.notes.new')} onClick={handleNoteCreate} icon='mdi:plus' />
       </Grid>
     </Stack>

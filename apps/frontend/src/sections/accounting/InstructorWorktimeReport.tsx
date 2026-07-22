@@ -184,12 +184,25 @@ export const InstructorWorktimeReport = () => {
         <Typography variant='h5' gutterBottom>
           {t('instructorWorktime.title')}
         </Typography>
-        <Typography variant='body2' color='text.secondary' gutterBottom sx={{ mb: 3 }}>
+        <Typography
+          variant='body2'
+          gutterBottom
+          sx={{
+            color: 'text.secondary',
+            mb: 3,
+          }}
+        >
           {t('instructorWorktime.description')}
         </Typography>
 
         <Box sx={{ mb: 4 }}>
-          <Grid container spacing={2} alignItems='center'>
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <DatePicker
                 label={t('instructorWorktime.filters.startDate')}

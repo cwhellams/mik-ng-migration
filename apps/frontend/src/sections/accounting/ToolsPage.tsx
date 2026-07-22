@@ -79,7 +79,6 @@ export default function ToolsPage() {
       <Typography variant='h4' component='h1' gutterBottom>
         {t('invoicing.toolsPage.title')}
       </Typography>
-
       <RemoteContent
         isLoading={isLoadingBillingRuns || isLoadingStats}
         error={billingRunsError || statsError}
@@ -89,7 +88,13 @@ export default function ToolsPage() {
             <Typography variant='h6' gutterBottom>
               {t('invoicing.toolsPage.annualBilling.title')}
             </Typography>
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 2 }}>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+                mb: 2,
+              }}
+            >
               {t('invoicing.toolsPage.annualBilling.description')}
             </Typography>
 
@@ -155,7 +160,14 @@ export default function ToolsPage() {
                   {displayRuns.map((run, index) => (
                     <Card key={index} variant='outlined'>
                       <CardContent>
-                        <Stack direction='row' spacing={2} alignItems='center' flexWrap='wrap'>
+                        <Stack
+                          direction='row'
+                          spacing={2}
+                          sx={{
+                            alignItems: 'center',
+                            flexWrap: 'wrap',
+                          }}
+                        >
                           <Typography variant='h6' sx={{ minWidth: '80px' }}>
                             {run.year}
                           </Typography>
@@ -168,15 +180,30 @@ export default function ToolsPage() {
                             color={run.status === 'processed' ? 'success' : 'warning'}
                             size='small'
                           />
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {t('invoicing.toolsPage.annualBilling.createdBy')}: {run.createdBy}
                           </Typography>
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {t('invoicing.toolsPage.annualBilling.createdAt')}:{' '}
                             {new Date(run.createdAt).toISOString()}
                           </Typography>
                           {run.status === 'processed' && run.updatedAt && (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {t('invoicing.toolsPage.annualBilling.completedAt')}:{' '}
                               {new Date(run.updatedAt).toISOString()}
                             </Typography>

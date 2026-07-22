@@ -96,20 +96,19 @@ const FlightLogsList = () => {
           {t('flightLog.newEntry', 'New Entry')}
         </Button>
       </Title>
-
       <FlightLogExportDialog
         open={exportOpen}
         onClose={() => setExportOpen(false)}
         defaultAircraftRegistration={filters.aircraftRegistration}
       />
-
       <Grid
         size={12}
-        direction='column'
-        display='flex'
-        justifyContent={'flex-start'}
-        flexDirection={{ xs: 'column', sm: 'row' }}
-        sx={{ mb: 3 }}
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-start',
+          flexDirection: { xs: 'column', sm: 'row' },
+          mb: 3,
+        }}
       >
         <FlightLogQuery
           registration={filters.aircraftRegistration}
@@ -120,7 +119,6 @@ const FlightLogsList = () => {
           }}
         />
       </Grid>
-
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
           header={
@@ -173,14 +171,38 @@ const FlightLogsList = () => {
 
                   <Grid size={1}>
                     <Box>{log.departureAirport}</Box>
-                    <Box color='text.secondary'>{formatTime(log.offBlockTimeUtc)}</Box>
-                    <Box color='text.secondary'>{formatTime(log.takeoffTimeUtc)}</Box>
+                    <Box
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {formatTime(log.offBlockTimeUtc)}
+                    </Box>
+                    <Box
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {formatTime(log.takeoffTimeUtc)}
+                    </Box>
                   </Grid>
 
                   <Grid size={1}>
                     <Box>{log.arrivalAirport}</Box>
-                    <Box color='text.secondary'>{formatTime(log.landingTimeUtc)}</Box>
-                    <Box color='text.secondary'>{formatTime(log.onBlockTimeUtc)}</Box>
+                    <Box
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {formatTime(log.landingTimeUtc)}
+                    </Box>
+                    <Box
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {formatTime(log.onBlockTimeUtc)}
+                    </Box>
                   </Grid>
 
                   <Grid size={1.1}>
@@ -192,7 +214,13 @@ const FlightLogsList = () => {
 
                   <Grid size={1.5}>{t(`flightLog.flightTypes.${log.flightType}`)}</Grid>
 
-                  <Grid size={0.4} alignSelf='top' justifyItems='end'>
+                  <Grid
+                    size={0.4}
+                    sx={{
+                      alignSelf: 'top',
+                      justifyItems: 'end',
+                    }}
+                  >
                     <StatusButton log={log} />
                   </Grid>
                 </>
@@ -233,7 +261,6 @@ const FlightLogsList = () => {
           )}
         />
       </RemoteContent>
-
       <Pagination
         count={data?.pages ?? 1}
         size='large'

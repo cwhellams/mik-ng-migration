@@ -157,7 +157,13 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                 />
 
                 <Box>
-                  <Typography variant='body2' color='text.secondary' gutterBottom>
+                  <Typography
+                    variant='body2'
+                    gutterBottom
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('flightLog.maintenanceNotes.flightTime')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
@@ -171,11 +177,14 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                           type='number'
                           error={!!errors.flightHours}
                           helperText={errors.flightHours?.message}
-                          InputProps={{
-                            endAdornment: <InputAdornment position='end'>h</InputAdornment>,
-                          }}
-                          inputProps={{ min: 0 }}
                           sx={{ flex: 1 }}
+                          slotProps={{
+                            input: {
+                              endAdornment: <InputAdornment position='end'>h</InputAdornment>,
+                            },
+
+                            htmlInput: { min: 0 },
+                          }}
                         />
                       )}
                     />
@@ -189,11 +198,14 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                           type='number'
                           error={!!errors.flightMinutes}
                           helperText={errors.flightMinutes?.message}
-                          InputProps={{
-                            endAdornment: <InputAdornment position='end'>min</InputAdornment>,
-                          }}
-                          inputProps={{ min: 0, max: 59 }}
                           sx={{ flex: 1 }}
+                          slotProps={{
+                            input: {
+                              endAdornment: <InputAdornment position='end'>min</InputAdornment>,
+                            },
+
+                            htmlInput: { min: 0, max: 59 },
+                          }}
                         />
                       )}
                     />
@@ -214,7 +226,9 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                         t('flightLog.maintenanceNotes.blankRowsAfterHelp')
                       }
                       fullWidth
-                      inputProps={{ min: 0 }}
+                      slotProps={{
+                        htmlInput: { min: 0 },
+                      }}
                     />
                   )}
                 />
@@ -229,21 +243,36 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                 }}
               >
                 <Box>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('flightLog.maintenanceNotes.description')}
                   </Typography>
                   <Typography>{note.description}</Typography>
                 </Box>
 
                 <Box>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('flightLog.maintenanceNotes.performedBy')}
                   </Typography>
                   <Typography>{note.performedBy}</Typography>
                 </Box>
 
                 <Box>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('flightLog.maintenanceNotes.flightTime')}
                   </Typography>
                   <Typography>{flightTimeLabel}</Typography>
@@ -251,7 +280,12 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
 
                 {note.blankRowsAfter > 0 && (
                   <Box>
-                    <Typography variant='caption' color='text.secondary'>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {t('flightLog.maintenanceNotes.blankRowsAfter')}
                     </Typography>
                     <Typography>{note.blankRowsAfter}</Typography>
@@ -260,7 +294,12 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
 
                 {note.hilId && (
                   <Box>
-                    <Typography variant='caption' color='text.secondary'>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {t('flightLog.maintenanceNotes.hilId')}
                     </Typography>
                     <Typography variant='body2' sx={{ fontFamily: 'monospace' }}>
@@ -270,7 +309,12 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                 )}
 
                 <Box>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t('flightLog.maintenanceNotes.recordedBy')}
                   </Typography>
                   <Typography variant='body2'>{note.createdBy}</Typography>
@@ -309,7 +353,6 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
           </DialogActions>
         </form>
       </Dialog>
-
       <ConfirmDialog
         open={confirmDeleteOpen}
         onClose={() => setConfirmDeleteOpen(false)}

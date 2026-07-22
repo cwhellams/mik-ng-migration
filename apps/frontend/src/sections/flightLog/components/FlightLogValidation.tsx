@@ -59,13 +59,28 @@ export const FlightLogValidation = ({
         <FormTitle title={t('flightLog.logbooks.validateTitle')} icon='mdi:check' />
 
         <Stack spacing={2}>
-          <Stack direction={'row'} alignItems='center'>
-            <Typography variant='body1' mr={2}>
+          <Stack
+            direction={'row'}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
+            <Typography
+              variant='body1'
+              sx={{
+                mr: 2,
+              }}
+            >
               {data?.page == view.lastPage
                 ? t('flightLog.logbooks.lastAirborneTime')
                 : t('flightLog.logbooks.carriedForward')}
             </Typography>
-            <Typography variant='h3' mr={2}>
+            <Typography
+              variant='h3'
+              sx={{
+                mr: 2,
+              }}
+            >
               {data?.logs.at(-1)?.acTotalFlightTime}
             </Typography>
           </Stack>
@@ -109,7 +124,12 @@ export const FlightLogValidation = ({
           )}
           {hasNewFlights && (
             <>
-              <Typography variant='h6' mb={2}>
+              <Typography
+                variant='h6'
+                sx={{
+                  mb: 2,
+                }}
+              >
                 {t('flightLog.logbooks.newFlightsSince', {
                   date: formatDate(view.validatedBeforeUTC),
                 })}

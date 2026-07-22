@@ -145,13 +145,15 @@ const PrivacyModal = ({ open, onClose }: { open: boolean; onClose: () => void })
       onClose={onClose}
       maxWidth='sm'
       fullWidth
-      PaperProps={{
-        sx: {
-          backgroundColor: '#0a0a0a',
-          backgroundImage: 'none',
-          border: '2px solid #1e1e1e',
-          borderRadius: 2,
-          overflow: 'hidden',
+      slotProps={{
+        paper: {
+          sx: {
+            backgroundColor: '#0a0a0a',
+            backgroundImage: 'none',
+            border: '2px solid #1e1e1e',
+            borderRadius: 2,
+            overflow: 'hidden',
+          },
         },
       }}
     >
@@ -252,12 +254,14 @@ const Footer = () => {
   return (
     <Box
       component='footer'
-      mt={6}
-      px={5}
       sx={{
+        mt: 6,
+        px: 5,
         py: 4,
+
         backgroundColor: (theme) =>
           theme.palette.mode === 'dark' ? 'rgba(30, 30, 30, 0.8)' : 'rgba(245, 245, 245, 0.8)',
+
         backdropFilter: 'blur(8px)',
         borderTop: '1px solid',
         borderColor: 'divider',
@@ -290,14 +294,25 @@ const Footer = () => {
                 style={{ height: 30, width: 'auto', marginRight: '8px' }}
               />
             </Box>
-            <Typography variant='body2' color='text.secondary'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               Malmin Ilmailukerho ry
             </Typography>
           </Box>
 
           {/* Quick links */}
           <Stack spacing={1} sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-            <Typography variant='subtitle2' color='text.primary' gutterBottom>
+            <Typography
+              variant='subtitle2'
+              gutterBottom
+              sx={{
+                color: 'text.primary',
+              }}
+            >
               {t('footer.quickLinks')}
             </Typography>
             <Link
@@ -342,17 +357,26 @@ const Footer = () => {
 
         {/* Copyright */}
         <Box sx={{ textAlign: 'center' }}>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             © {currentYear} Malmin Ilmailukerho ry.
           </Typography>
           {versionData?.version && (
-            <Typography variant='caption' color='text.disabled'>
+            <Typography
+              variant='caption'
+              sx={{
+                color: 'text.disabled',
+              }}
+            >
               {t('footer.version')} {versionData.version}
             </Typography>
           )}
         </Box>
       </Container>
-
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </Box>
   )

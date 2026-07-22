@@ -37,7 +37,7 @@ import {
   TransferBookingRequest,
 } from '@backend/routes/bookings/models'
 import dayjs from 'dayjs'
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker/DateTimePicker'
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { BookingTimeline } from './BookingTimeline'
 import { AuditFormField } from '../../../components/AuditFormField'
 import { FormTitle } from '../../../components/FormTitle'
@@ -418,7 +418,14 @@ export const BookingEditor = ({
             />
           </Grid>
 
-          <Grid size={12} display={'flex'} direction={'row'} gap={2}>
+          <Grid
+            size={12}
+            direction={'row'}
+            sx={{
+              display: 'flex',
+              gap: 2,
+            }}
+          >
             <BookingTimeline
               previousEndDate={overlaps?.previous ? dayjs(overlaps.previous?.endTime) : undefined}
               startDate={startDate.date}
@@ -602,7 +609,14 @@ export const BookingEditor = ({
               )}
 
             {booking.status !== BookingStatus.CANCELLED && (
-              <Stack direction='row' spacing={1} flexWrap='wrap' useFlexGap>
+              <Stack
+                direction='row'
+                spacing={1}
+                useFlexGap
+                sx={{
+                  flexWrap: 'wrap',
+                }}
+              >
                 <Button
                   variant='outlined'
                   size='small'
@@ -652,7 +666,6 @@ export const BookingEditor = ({
         title={isNewBooking ? 'schedule.newBooking' : 'schedule.editBooking'}
         onClose={onClose}
       />
-
       <DialogContent dividers>
         <Stack spacing={3}>
           {medicalCurrentlyInvalid && (
@@ -690,16 +703,27 @@ export const BookingEditor = ({
           <SnackAlert problem={problem} />
         </Stack>
       </DialogContent>
-
       <DialogActions>
-        <Grid size={12} justifyContent='space-between' display='flex' flexGrow={1}>
+        <Grid
+          size={12}
+          sx={{
+            justifyContent: 'space-between',
+            display: 'flex',
+            flexGrow: 1,
+          }}
+        >
           <Grid>
             {!isNewBooking && !isReadonly && (
               <RemoveButton onClick={handleRemove} loading={mutation.isMutating} />
             )}
           </Grid>
 
-          <Grid display='flex' gap={2}>
+          <Grid
+            sx={{
+              display: 'flex',
+              gap: 2,
+            }}
+          >
             <Button onClick={onClose} color='inherit'>
               {t('general.back')}
             </Button>
@@ -719,7 +743,6 @@ export const BookingEditor = ({
           </Grid>
         </Grid>
       </DialogActions>
-
       {/* Cancellation reason dialog */}
       <Dialog
         open={cancelDialogOpen}
@@ -763,7 +786,9 @@ export const BookingEditor = ({
               placeholder={t('schedule.cancellationNoteHint')}
               value={cancellationNote}
               onChange={({ target }) => setCancellationNote(target.value)}
-              inputProps={{ maxLength: 500 }}
+              slotProps={{
+                htmlInput: { maxLength: 500 },
+              }}
             />
           </Stack>
         </DialogContent>
@@ -781,7 +806,6 @@ export const BookingEditor = ({
           </Button>
         </DialogActions>
       </Dialog>
-
       {/* Transfer booking dialog */}
       <Dialog
         open={transferDialogOpen}
@@ -820,7 +844,6 @@ export const BookingEditor = ({
           </Button>
         </DialogActions>
       </Dialog>
-
       <ConfirmDialog
         open={transferConfirmOpen}
         onClose={() => setTransferConfirmOpen(false)}

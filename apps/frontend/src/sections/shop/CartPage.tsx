@@ -98,7 +98,6 @@ export default function CartPage() {
   return (
     <Box>
       <Title label={t('shop.cart')} />
-
       <RemoteContent isLoading={isLoading} error={error}>
         {!isLoading && items.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 6 }}>
@@ -111,7 +110,13 @@ export default function CartPage() {
             </Button>
           </Box>
         ) : (
-          <Stack spacing={3} direction={{ xs: 'column', md: 'row' }} alignItems='flex-start'>
+          <Stack
+            spacing={3}
+            direction={{ xs: 'column', md: 'row' }}
+            sx={{
+              alignItems: 'flex-start',
+            }}
+          >
             {/* Cart items table */}
             <Box sx={{ flexGrow: 1 }}>
               <TableContainer component={Paper} variant='outlined'>
@@ -129,7 +134,12 @@ export default function CartPage() {
                     {items.map((item) => (
                       <TableRow key={item.cartItemId}>
                         <TableCell>
-                          <Typography variant='body2' fontWeight={600}>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              fontWeight: 600,
+                            }}
+                          >
                             {item.product
                               ? localName(item.product.name as Record<string, string>)
                               : item.productId}
@@ -142,7 +152,12 @@ export default function CartPage() {
                             </Box>
                           )}
                           {item.product?.maxOrderQuantity && (
-                            <Typography variant='caption' color='text.secondary'>
+                            <Typography
+                              variant='caption'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               {t('shop.maxPerMemberQty', {
                                 max: item.product.maxOrderQuantity,
                               })}
@@ -220,14 +235,32 @@ export default function CartPage() {
                 </Box>
                 {cart?.discountCodeId && (
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography color='success.main'>{t('shop.discount')}</Typography>
+                    <Typography
+                      sx={{
+                        color: 'success.main',
+                      }}
+                    >
+                      {t('shop.discount')}
+                    </Typography>
                     <Chip label={t('shop.discountApplied')} size='small' color='success' />
                   </Box>
                 )}
                 <Divider />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography fontWeight={700}>{t('shop.total')}</Typography>
-                  <Typography fontWeight={700}>€{subtotal.toFixed(2)}</Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                    }}
+                  >
+                    {t('shop.total')}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                    }}
+                  >
+                    €{subtotal.toFixed(2)}
+                  </Typography>
                 </Box>
               </Stack>
 
@@ -268,7 +301,14 @@ export default function CartPage() {
                 {t('shop.placeOrder')}
               </Button>
 
-              <Typography variant='caption' color='text.secondary' sx={{ mt: 1, display: 'block' }}>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                  mt: 1,
+                  display: 'block',
+                }}
+              >
                 {t('shop.invoiceNote')}
               </Typography>
 
@@ -279,7 +319,6 @@ export default function CartPage() {
           </Stack>
         )}
       </RemoteContent>
-
       <Snackbar
         open={!!snack}
         autoHideDuration={4000}

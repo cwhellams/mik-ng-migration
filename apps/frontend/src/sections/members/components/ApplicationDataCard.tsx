@@ -46,7 +46,14 @@ const motivationKey: Record<PrimaryMotivation, string> = {
 // Compact side-by-side row for short values
 const InfoRow = ({ label, children }: { label: string; children: ReactNode }) => (
   <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-    <Typography variant='body2' color='text.secondary' sx={{ minWidth: 180, flexShrink: 0 }}>
+    <Typography
+      variant='body2'
+      sx={{
+        color: 'text.secondary',
+        minWidth: 180,
+        flexShrink: 0,
+      }}
+    >
       {label}
     </Typography>
     <Box sx={{ flex: 1 }}>{children}</Box>
@@ -56,7 +63,13 @@ const InfoRow = ({ label, children }: { label: string; children: ReactNode }) =>
 // Stacked label-above-text layout for long answers
 const TextBlock = ({ label, value }: { label: string; value: string }) => (
   <Box>
-    <Typography variant='body2' color='text.secondary' sx={{ mb: 0.5 }}>
+    <Typography
+      variant='body2'
+      sx={{
+        color: 'text.secondary',
+        mb: 0.5,
+      }}
+    >
       {label}
     </Typography>
     <Typography
@@ -74,7 +87,13 @@ const TextBlock = ({ label, value }: { label: string; value: string }) => (
 )
 
 const SectionHeader = ({ label }: { label: string }) => (
-  <Typography variant='subtitle2' color='text.secondary' sx={{ mt: 1 }}>
+  <Typography
+    variant='subtitle2'
+    sx={{
+      color: 'text.secondary',
+      mt: 1,
+    }}
+  >
     {label}
   </Typography>
 )
@@ -119,7 +138,6 @@ export const ApplicationDataCard = ({ applicationData, isMembershipApproved }: P
           sx={{ mb: 0 }}
         />
       </AccordionSummary>
-
       <AccordionDetails sx={{ px: 2, pb: 3 }}>
         <Stack spacing={2} divider={<Divider />}>
           {/* Flight experience */}
@@ -140,7 +158,12 @@ export const ApplicationDataCard = ({ applicationData, isMembershipApproved }: P
               <Typography variant='body2'>
                 {pilotLicenceType ? t(pilotLicenceKey[pilotLicenceType]) : '—'}
                 {pilotLicenceType === PilotLicenceType.OTHER && pilotLicenceTypeOther && (
-                  <Typography component='span' color='text.secondary'>
+                  <Typography
+                    component='span'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {' '}
                     ({pilotLicenceTypeOther})
                   </Typography>
@@ -150,12 +173,25 @@ export const ApplicationDataCard = ({ applicationData, isMembershipApproved }: P
 
             <InfoRow label={t('register.ratings')}>
               {ratings && ratings.length > 0 ? (
-                <Stack direction='row' spacing={0.5} flexWrap='wrap' useFlexGap>
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  useFlexGap
+                  sx={{
+                    flexWrap: 'wrap',
+                  }}
+                >
                   {ratings.map((r) => (
                     <Chip key={r} label={t(ratingKey[r])} size='small' />
                   ))}
                   {ratings.includes(AircraftRating.OTHER) && ratingsOther && (
-                    <Typography variant='body2' color='text.secondary' sx={{ alignSelf: 'center' }}>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                        alignSelf: 'center',
+                      }}
+                    >
                       ({ratingsOther})
                     </Typography>
                   )}
@@ -174,7 +210,12 @@ export const ApplicationDataCard = ({ applicationData, isMembershipApproved }: P
               <Typography variant='body2'>
                 {t(motivationKey[primaryMotivation])}
                 {primaryMotivation === PrimaryMotivation.OTHER && motivationOther && (
-                  <Typography component='span' color='text.secondary'>
+                  <Typography
+                    component='span'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {' '}
                     ({motivationOther})
                   </Typography>

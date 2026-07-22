@@ -43,17 +43,27 @@ const LoginSent = () => {
   return (
     <LoginLayout title={t('login.checkYouEmail')}>
       <Box sx={{ textAlign: 'center', mt: 2 }}>
-        <Typography variant='body2' color='text.primary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+          }}
+        >
           {t('login.linkSentTo', { email })}
         </Typography>
       </Box>
-
       <Box
         component='form'
         onSubmit={handleSubmit}
         sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
       >
-        <Typography variant='body2' color='text.secondary' textAlign='center'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+            textAlign: 'center',
+          }}
+        >
           {t('login.enterCodePrompt')}
         </Typography>
 
@@ -61,10 +71,12 @@ const LoginSent = () => {
           label={t('login.verificationCode')}
           value={code}
           onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
-          inputProps={{ inputMode: 'numeric', maxLength: 5 }}
           fullWidth
           autoFocus
           error={!!codeError}
+          slotProps={{
+            htmlInput: { inputMode: 'numeric', maxLength: 5 },
+          }}
         />
 
         {codeError && <Alert severity='error'>{codeError}</Alert>}
@@ -86,9 +98,13 @@ const LoginSent = () => {
           {isMutating ? <CircularProgress size={24} color='inherit' /> : t('login.submitCode')}
         </Button>
       </Box>
-
       <Box sx={{ textAlign: 'center', mt: 3 }}>
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {t('login.emailNotReceived')} <Link to='/login'>{t('login.tryAgain')}</Link>
         </Typography>
       </Box>

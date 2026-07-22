@@ -41,14 +41,23 @@ const LoginValidate = () => {
   return (
     <LoginLayout title='Login'>
       <Box sx={{ textAlign: 'center', mt: 2 }}>
-        <Typography variant='body2' color='text.primary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+          }}
+        >
           {isMutating && <CircularProgress size={24} color='inherit' />}
         </Typography>
       </Box>
-
       {codeError && (
         <Box sx={{ textAlign: 'center', mt: 2 }}>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Login failed <Link to='/login'>Try again</Link>
           </Typography>
         </Box>

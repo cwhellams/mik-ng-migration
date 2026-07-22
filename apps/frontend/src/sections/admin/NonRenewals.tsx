@@ -220,14 +220,24 @@ export default function NonRenewals() {
       <Title
         label={t('member.nonRenewalsTitle', 'Members Without Annual Fee {{year}}', { year })}
       />
-
-      <Typography variant='body2' color='text.secondary' mb={3}>
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+          mb: 3,
+        }}
+      >
         {t('member.nonRenewalsSubtitle')}
       </Typography>
-
       <RemoteContent error={error} isLoading={isLoading}>
         {members.length === 0 ? (
-          <Typography color='text.secondary'>{t('member.nonRenewalsEmpty', { year })}</Typography>
+          <Typography
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
+            {t('member.nonRenewalsEmpty', { year })}
+          </Typography>
         ) : (
           <>
             {/* Bulk action toolbar — visible only when rows are selected */}
@@ -235,11 +245,14 @@ export default function NonRenewals() {
               <Stack
                 direction='row'
                 spacing={1}
-                alignItems='center'
-                mb={1}
-                px={2}
-                py={1}
-                sx={{ bgcolor: 'action.selected', borderRadius: 1 }}
+                sx={{
+                  alignItems: 'center',
+                  mb: 1,
+                  px: 2,
+                  py: 1,
+                  bgcolor: 'action.selected',
+                  borderRadius: 1,
+                }}
               >
                 <Typography variant='body2' sx={{ flexGrow: 1 }}>
                   {t('member.nonRenewalsBulkSelected', {
@@ -333,18 +346,32 @@ export default function NonRenewals() {
                             }}
                           />
                         </TableCell>
-
                         <TableCell>
-                          <Typography variant='body2' fontWeight='medium'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              fontWeight: 'medium',
+                            }}
+                          >
                             {fullName}
                           </Typography>
-                          <Typography variant='caption' color='text.secondary'>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {member.memberId}
                           </Typography>
                         </TableCell>
-
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Stack direction='row' alignItems='center' spacing={0.5}>
+                          <Stack
+                            direction='row'
+                            spacing={0.5}
+                            sx={{
+                              alignItems: 'center',
+                            }}
+                          >
                             <Typography variant='body2'>{member.email}</Typography>
                             <Tooltip title={t('member.nonRenewalsEmailCopied', 'Copy email')}>
                               <IconButton
@@ -356,11 +383,15 @@ export default function NonRenewals() {
                               </IconButton>
                             </Tooltip>
                           </Stack>
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              color: 'text.secondary',
+                            }}
+                          >
                             {member.phoneNumber ? formatPhoneNumber(member.phoneNumber) : '—'}
                           </Typography>
                         </TableCell>
-
                         <TableCell>
                           {member.autoRenewAnnualMembership === false ? (
                             <Chip
@@ -378,7 +409,6 @@ export default function NonRenewals() {
                             />
                           )}
                         </TableCell>
-
                         <TableCell>
                           {member.feeStatus === 'unpaid' ? (
                             <Stack spacing={0.25}>
@@ -389,7 +419,12 @@ export default function NonRenewals() {
                                 variant='filled'
                               />
                               {member.invoiceSentAt && (
-                                <Typography variant='caption' color='text.secondary'>
+                                <Typography
+                                  variant='caption'
+                                  sx={{
+                                    color: 'text.secondary',
+                                  }}
+                                >
                                   {t('member.nonRenewalsInvoicedOn', 'Invoiced: {{date}}', {
                                     date: formatDate(member.invoiceSentAt),
                                   })}
@@ -419,7 +454,6 @@ export default function NonRenewals() {
                             />
                           )}
                         </TableCell>
-
                         <TableCell align='center' onClick={(e) => e.stopPropagation()}>
                           {hasFlightsThisYear ? (
                             <Chip
@@ -429,20 +463,31 @@ export default function NonRenewals() {
                               variant='filled'
                             />
                           ) : (
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
                               0
                             </Typography>
                           )}
                         </TableCell>
-
                         <TableCell align='right' onClick={(e) => e.stopPropagation()}>
                           <Stack
                             direction='row'
                             spacing={1}
-                            justifyContent='flex-end'
-                            alignItems='flex-start'
+                            sx={{
+                              justifyContent: 'flex-end',
+                              alignItems: 'flex-start',
+                            }}
                           >
-                            <Stack alignItems='center' spacing={0.25}>
+                            <Stack
+                              spacing={0.25}
+                              sx={{
+                                alignItems: 'center',
+                              }}
+                            >
                               <Button
                                 size='small'
                                 variant='outlined'
@@ -462,7 +507,12 @@ export default function NonRenewals() {
                                   : t('member.nonRenewalsSendReminder', 'Send Reminder')}
                               </Button>
                               {lastReminderDate && (
-                                <Typography variant='caption' color='text.secondary'>
+                                <Typography
+                                  variant='caption'
+                                  sx={{
+                                    color: 'text.secondary',
+                                  }}
+                                >
                                   {t('member.nonRenewalsReminderSentOn', 'Sent: {{date}}', {
                                     date: lastReminderDate,
                                   })}

@@ -93,10 +93,20 @@ const User = () => {
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
             <Box sx={{ px: 2, py: 1 }}>
-              <Typography variant='subtitle1' fontWeight='bold'>
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 {me.firstName} {me.lastName}
               </Typography>
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {me.email}
               </Typography>
             </Box>
@@ -121,7 +131,12 @@ const User = () => {
             </MenuItem>
             <Divider />
             <Box sx={{ px: 2, py: 1 }}>
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('header.language')}
               </Typography>
             </Box>
@@ -155,7 +170,12 @@ const User = () => {
             <Divider />
 
             <Box sx={{ px: 2, py: 1 }}>
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('flightLog.timeZone')}
               </Typography>
             </Box>
@@ -179,7 +199,12 @@ const User = () => {
             </MenuItem>
 
             <Box sx={{ px: 2, py: 1 }}>
-              <Typography variant='caption' color='text.secondary'>
+              <Typography
+                variant='caption'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('header.timezoneInfo')}
               </Typography>
             </Box>
@@ -190,7 +215,13 @@ const User = () => {
               <ListItemIcon>
                 <Icon icon='mdi:logout' fontSize={20} color='#f44336' />
               </ListItemIcon>
-              <Typography color='error.main'>{t('header.logout')}</Typography>
+              <Typography
+                sx={{
+                  color: 'error.main',
+                }}
+              >
+                {t('header.logout')}
+              </Typography>
             </MenuItem>
           </Menu>
         </>

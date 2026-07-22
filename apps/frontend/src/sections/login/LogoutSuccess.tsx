@@ -85,17 +85,20 @@ const LogoutSuccess = () => {
         {/* Thank you message */}
         <Typography
           variant='h5'
-          fontWeight='600'
-          color='text.primary'
-          sx={{ mb: 2, animation: `${fadeSlideIn} 0.6s ease 3.1s both` }}
+          sx={{
+            fontWeight: '600',
+            color: 'text.primary',
+            mb: 2,
+            animation: `${fadeSlideIn} 0.6s ease 3.1s both`,
+          }}
         >
           {t('logout.thankYou')}
         </Typography>
 
         <Typography
           variant='body1'
-          color='text.secondary'
           sx={{
+            color: 'text.secondary',
             mb: 4,
             lineHeight: 1.6,
             animation: `${fadeSlideIn} 0.6s ease 3.3s both`,
@@ -133,7 +136,12 @@ const LogoutSuccess = () => {
 
         {/* Additional info */}
         <Box sx={{ textAlign: 'center', mt: 3 }}>
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {t('logout.needHelp')}{' '}
             <Link to='/register' style={{ color: 'inherit', textDecoration: 'underline' }}>
               {t('logout.contact')}

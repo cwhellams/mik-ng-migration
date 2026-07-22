@@ -272,9 +272,13 @@ export const AccessCodes: React.FC = () => {
             />
           </Box>
         </Grid>
-
         {isAccessCodesAdmin && (
-          <Grid size={{ xs: 2, md: 2 }} textAlign='right'>
+          <Grid
+            size={{ xs: 2, md: 2 }}
+            sx={{
+              textAlign: 'right',
+            }}
+          >
             <Box
               sx={{
                 display: 'flex',
@@ -332,13 +336,18 @@ export const AccessCodes: React.FC = () => {
           </Button>
         )}
       </Title>
-
       {isAccessCodesAdmin && data?.secrets.some((s) => s.secretClass === 'BOARD') && (
-        <Typography variant='subtitle1' fontWeight='bold' sx={{ mt: 1, mb: 0.5 }}>
+        <Typography
+          variant='subtitle1'
+          sx={{
+            fontWeight: 'bold',
+            mt: 1,
+            mb: 0.5,
+          }}
+        >
           {t('accessCodes.memberSecretsTitle')}
         </Typography>
       )}
-
       <ResponsiveTable
         notFoundMsg={t('accessCodes.noSecrets')}
         rows={data?.secrets.filter((s) => !isAccessCodesAdmin || s.secretClass === 'MEMBER')}
@@ -349,10 +358,16 @@ export const AccessCodes: React.FC = () => {
         })}
         row={renderSecretRow}
       />
-
       {isAccessCodesAdmin && data?.secrets.some((s) => s.secretClass === 'BOARD') && (
         <>
-          <Typography variant='subtitle1' fontWeight='bold' sx={{ mt: 2, mb: 0.5 }}>
+          <Typography
+            variant='subtitle1'
+            sx={{
+              fontWeight: 'bold',
+              mt: 2,
+              mb: 0.5,
+            }}
+          >
             {t('accessCodes.boardSecretsTitle')}
           </Typography>
           <ResponsiveTable
@@ -367,14 +382,12 @@ export const AccessCodes: React.FC = () => {
           />
         </>
       )}
-
       <SecretDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onSuccess={handleDialogSuccess}
         secret={editingSecret}
       />
-
       <ConfirmDialog
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}

@@ -98,7 +98,6 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
   return (
     <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
       <DialogTitle>{t('flightLog.maintenanceNotes.addTitle')}</DialogTitle>
-
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
           <SnackAlert problem={problem} />
@@ -135,7 +134,13 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
             />
 
             <Box>
-              <Typography variant='body2' color='text.secondary' gutterBottom>
+              <Typography
+                variant='body2'
+                gutterBottom
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('flightLog.maintenanceNotes.flightTime')}
               </Typography>
               <Box sx={{ display: 'flex', gap: 2 }}>
@@ -149,11 +154,14 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
                       type='number'
                       error={!!errors.flightHours}
                       helperText={errors.flightHours?.message}
-                      InputProps={{
-                        endAdornment: <InputAdornment position='end'>h</InputAdornment>,
-                      }}
-                      inputProps={{ min: 0 }}
                       sx={{ flex: 1 }}
+                      slotProps={{
+                        input: {
+                          endAdornment: <InputAdornment position='end'>h</InputAdornment>,
+                        },
+
+                        htmlInput: { min: 0 },
+                      }}
                     />
                   )}
                 />
@@ -167,11 +175,14 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
                       type='number'
                       error={!!errors.flightMinutes}
                       helperText={errors.flightMinutes?.message}
-                      InputProps={{
-                        endAdornment: <InputAdornment position='end'>min</InputAdornment>,
-                      }}
-                      inputProps={{ min: 0, max: 59 }}
                       sx={{ flex: 1 }}
+                      slotProps={{
+                        input: {
+                          endAdornment: <InputAdornment position='end'>min</InputAdornment>,
+                        },
+
+                        htmlInput: { min: 0, max: 59 },
+                      }}
                     />
                   )}
                 />
@@ -192,7 +203,9 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
                     t('flightLog.maintenanceNotes.blankRowsAfterHelp')
                   }
                   fullWidth
-                  inputProps={{ min: 0 }}
+                  slotProps={{
+                    htmlInput: { min: 0 },
+                  }}
                 />
               )}
             />

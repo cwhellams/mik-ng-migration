@@ -83,22 +83,52 @@ export const FlightLogUserDashboard = () => {
                 <Grid size={2}>{t('dashboard.flightLog.plane')}</Grid>
                 <Grid size={3}>{t('dashboard.flightLog.lastFlight')}</Grid>
                 <Grid size={7} container>
-                  <Grid size={12} textAlign='center'>
+                  <Grid
+                    size={12}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     {t('dashboard.flightLog.currency')}
                   </Grid>
-                  <Grid size={2} textAlign='center'>
+                  <Grid
+                    size={2}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     1m
                   </Grid>
-                  <Grid size={2} textAlign='center'>
+                  <Grid
+                    size={2}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     3m
                   </Grid>
-                  <Grid size={2} textAlign='center'>
+                  <Grid
+                    size={2}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     6m
                   </Grid>
-                  <Grid size={2} textAlign='center'>
+                  <Grid
+                    size={2}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     12m
                   </Grid>
-                  <Grid size={4} textAlign='center'>
+                  <Grid
+                    size={4}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     {t('dashboard.flightLog.totals')}
                   </Grid>
                 </Grid>
@@ -135,34 +165,83 @@ export const FlightLogUserDashboard = () => {
                   </Grid>
 
                   <Grid size={12}>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
                       {t('dashboard.flightLog.currency')}
                     </Typography>
                   </Grid>
 
-                  <Grid size={3} textAlign='center' color='text.secondary'>
+                  <Grid
+                    size={3}
+                    sx={{
+                      textAlign: 'center',
+                      color: 'text.secondary',
+                    }}
+                  >
                     1m
                   </Grid>
-                  <Grid size={3} textAlign='center' color='text.secondary'>
+                  <Grid
+                    size={3}
+                    sx={{
+                      textAlign: 'center',
+                      color: 'text.secondary',
+                    }}
+                  >
                     3m
                   </Grid>
-                  <Grid size={3} textAlign='center' color='text.secondary'>
+                  <Grid
+                    size={3}
+                    sx={{
+                      textAlign: 'center',
+                      color: 'text.secondary',
+                    }}
+                  >
                     6m
                   </Grid>
-                  <Grid size={3} textAlign='center' color='text.secondary'>
+                  <Grid
+                    size={3}
+                    sx={{
+                      textAlign: 'center',
+                      color: 'text.secondary',
+                    }}
+                  >
                     12m
                   </Grid>
 
-                  <Grid size={3} textAlign='center'>
+                  <Grid
+                    size={3}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     {formatCurrency(stat.landings1month, stat.time1month)}
                   </Grid>
-                  <Grid size={3} textAlign='center'>
+                  <Grid
+                    size={3}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     {formatCurrency(stat.landings3month, stat.time3month)}
                   </Grid>
-                  <Grid size={3} textAlign='center'>
+                  <Grid
+                    size={3}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     {formatCurrency(stat.landings6month, stat.time6month)}
                   </Grid>
-                  <Grid size={3} textAlign='center'>
+                  <Grid
+                    size={3}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     {formatCurrency(stat.landings12month, stat.time12month)}
                   </Grid>
                 </>
@@ -178,19 +257,44 @@ export const FlightLogUserDashboard = () => {
                       {formatDateTime(stat.lastTakeoffTimeUtc)}
                     </Link>
                   </Grid>
-                  <Grid size={(2 / 12) * 7} textAlign='center'>
+                  <Grid
+                    size={(2 / 12) * 7}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     {formatCurrency(stat.landings1month, stat.time1month)}
                   </Grid>
-                  <Grid size={(2 / 12) * 7} textAlign='center'>
+                  <Grid
+                    size={(2 / 12) * 7}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     {formatCurrency(stat.landings3month, stat.time3month)}
                   </Grid>
-                  <Grid size={(2 / 12) * 7} textAlign='center'>
+                  <Grid
+                    size={(2 / 12) * 7}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     {formatCurrency(stat.landings6month, stat.time6month)}
                   </Grid>
-                  <Grid size={(2 / 12) * 7} textAlign='center'>
+                  <Grid
+                    size={(2 / 12) * 7}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     {formatCurrency(stat.landings12month, stat.time12month)}
                   </Grid>
-                  <Grid size={(4 / 12) * 7} textAlign='center'>
+                  <Grid
+                    size={(4 / 12) * 7}
+                    sx={{
+                      textAlign: 'center',
+                    }}
+                  >
                     {formatCurrency(stat.totalLandings, stat.totalFlightMins)}
                   </Grid>
                 </>

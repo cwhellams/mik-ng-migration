@@ -2,7 +2,7 @@ import { Box, Button, FormControl, Grid, InputLabel, MenuItem, Select } from '@m
 import useApi from '../../../hooks/useApi'
 import { InvoicableFlightFilters } from '@backend/routes/flight-log/models'
 import { dayjs } from '../../../utils/date'
-import { DatePicker } from '@mui/x-date-pickers/DatePicker/DatePicker'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { AjlbListResponse } from '@backend/routes/ajlb/model'
 import { t } from 'i18next'
 import { RemoteContent } from '../../../components/RemoteContent'
@@ -36,7 +36,13 @@ export const InvoicingRange = ({
 
   return (
     <RemoteContent isLoading={isLoading} error={error}>
-      <Grid container spacing={2} mb={2}>
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          mb: 2,
+        }}
+      >
         <Grid size={{ xs: 12, sm: 3 }}>
           <FormControl fullWidth>
             <InputLabel shrink>{t('flightLog.aircraft')}</InputLabel>
@@ -80,7 +86,6 @@ export const InvoicingRange = ({
           />
         </Grid>
       </Grid>
-
       <Box sx={{ display: 'flex', flexDirection: 'row-reverse', pt: 2 }}>
         <Button
           color='primary'

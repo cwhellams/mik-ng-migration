@@ -194,7 +194,14 @@ export default function DtoSyllabusEditorPage() {
 
   return (
     <Box>
-      <Box display='flex' alignItems='center' gap={2} mb={2}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          mb: 2,
+        }}
+      >
         <IconButton onClick={() => navigate('/admin/dto')}>
           <Icon icon='mdi:arrow-left' />
         </IconButton>
@@ -205,13 +212,11 @@ export default function DtoSyllabusEditorPage() {
           size='small'
         />
       </Box>
-
       {!isEditable && (
         <Alert severity='info' sx={{ mb: 2 }}>
           This syllabus is published and cannot be edited.
         </Alert>
       )}
-
       {saveError && (
         <Alert severity='error' sx={{ mb: 2 }}>
           {saveError}
@@ -222,7 +227,6 @@ export default function DtoSyllabusEditorPage() {
           Saved successfully.
         </Alert>
       )}
-
       <TextField
         label='Description'
         value={description}
@@ -233,22 +237,26 @@ export default function DtoSyllabusEditorPage() {
         disabled={!isEditable}
         sx={{ mb: 2 }}
       />
-
       <TextField
         label='Minimum total block time (minutes)'
         value={minBlockTimeMins}
         onChange={(e) => setMinBlockTimeMins(e.target.value)}
         type='number'
-        inputProps={{ min: 1 }}
         helperText='Training completion gate — leave blank for no requirement'
         disabled={!isEditable}
         sx={{ mb: 3, maxWidth: 340 }}
+        slotProps={{
+          htmlInput: { min: 1 },
+        }}
       />
-
-      <Typography variant='h6' mb={1}>
+      <Typography
+        variant='h6'
+        sx={{
+          mb: 1,
+        }}
+      >
         Flights ({flights.length})
       </Typography>
-
       {flights.map((flight, fi) => (
         <Box
           key={fi}
@@ -260,7 +268,14 @@ export default function DtoSyllabusEditorPage() {
             borderRadius: 2,
           }}
         >
-          <Box display='flex' alignItems='center' gap={1} mb={1}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              mb: 1,
+            }}
+          >
             <Typography variant='subtitle2' sx={{ minWidth: 80 }}>
               Flight {fi + 1}
             </Typography>
@@ -271,7 +286,12 @@ export default function DtoSyllabusEditorPage() {
             )}
           </Box>
           <Stack spacing={1.5}>
-            <Box display='flex' gap={2}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+              }}
+            >
               <TextField
                 label='Code *'
                 value={flight.code}
@@ -329,20 +349,35 @@ export default function DtoSyllabusEditorPage() {
               value={flight.recommendedBlockTimeMins}
               onChange={(e) => updateFlight(fi, { recommendedBlockTimeMins: e.target.value })}
               type='number'
-              inputProps={{ min: 1 }}
               size='small'
               disabled={!isEditable}
               helperText='Advisory — shown to instructor, not enforced'
               sx={{ maxWidth: 260 }}
+              slotProps={{
+                htmlInput: { min: 1 },
+              }}
             />
           </Stack>
 
           <Divider sx={{ my: 1.5 }} />
-          <Typography variant='subtitle2' mb={1}>
+          <Typography
+            variant='subtitle2'
+            sx={{
+              mb: 1,
+            }}
+          >
             Items ({flight.items.length})
           </Typography>
           {flight.items.map((item, ii) => (
-            <Box key={ii} display='flex' gap={1} alignItems='flex-start' mb={1}>
+            <Box
+              key={ii}
+              sx={{
+                display: 'flex',
+                gap: 1,
+                alignItems: 'flex-start',
+                mb: 1,
+              }}
+            >
               <TextField
                 label='Item name *'
                 value={item.name}
@@ -384,7 +419,6 @@ export default function DtoSyllabusEditorPage() {
           )}
         </Box>
       ))}
-
       {isEditable && (
         <Button
           variant='outlined'
@@ -395,9 +429,13 @@ export default function DtoSyllabusEditorPage() {
           Add Flight
         </Button>
       )}
-
       {isEditable && (
-        <Box display='flex' gap={2}>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+          }}
+        >
           <Button
             variant='contained'
             onClick={handleSave}

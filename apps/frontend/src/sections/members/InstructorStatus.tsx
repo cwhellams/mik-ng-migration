@@ -156,7 +156,12 @@ const InstructorStatus = () => {
 
     if (!dateStr) {
       return (
-        <Typography variant='body2' color='text.disabled'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.disabled',
+          }}
+        >
           {t('instructorStatus.notHeld')}
         </Typography>
       )
@@ -357,29 +362,57 @@ const InstructorStatus = () => {
           </Button>
         )}
       </Title>
-
-      <Box mb={2}>
+      <Box
+        sx={{
+          mb: 2,
+        }}
+      >
         <Box
           component='img'
           src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/EASA_Logo.png/330px-EASA_Logo.png'
           alt='EASA'
           sx={{ height: 32, display: 'block', mb: 1 }}
         />
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {t('instructorStatus.subtitle')}
         </Typography>
       </Box>
-
       {/* Audit date picker — admin only */}
       {isMembersAdmin && (
-        <Box mb={3} p={2} border={1} borderColor='divider' borderRadius={1}>
+        <Box
+          sx={{
+            mb: 3,
+            p: 2,
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: 1,
+          }}
+        >
           <Typography variant='subtitle2' gutterBottom>
             {t('instructorStatus.auditTitle')}
           </Typography>
-          <Typography variant='body2' color='text.secondary' mb={2}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              mb: 2,
+            }}
+          >
             {t('instructorStatus.auditSubtitle')}
           </Typography>
-          <Stack direction='row' spacing={2} alignItems='center' flexWrap='wrap'>
+          <Stack
+            direction='row'
+            spacing={2}
+            sx={{
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
             <DatePicker
               label={t('instructorStatus.auditDate')}
               value={auditDate}
@@ -414,16 +447,25 @@ const InstructorStatus = () => {
           )}
         </Box>
       )}
-
       <RemoteContent isLoading={isLoading || auditLoading} error={error}>
         {displayInstructors && (
-          <Typography variant='body2' mb={1}>
+          <Typography
+            variant='body2'
+            sx={{
+              mb: 1,
+            }}
+          >
             {t('instructorStatus.count', { count: displayInstructors.length })}
           </Typography>
         )}
 
         {!displayInstructors?.length ? (
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {t('instructorStatus.noInstructors')}
           </Typography>
         ) : (
@@ -446,7 +488,13 @@ const InstructorStatus = () => {
                   <TableRow key={instructor.memberId} hover>
                     <TableCell>
                       {isMembersAdmin ? (
-                        <Stack direction='row' alignItems='center' spacing={0.5}>
+                        <Stack
+                          direction='row'
+                          spacing={0.5}
+                          sx={{
+                            alignItems: 'center',
+                          }}
+                        >
                           <Button
                             variant='text'
                             size='small'
@@ -492,12 +540,27 @@ const InstructorStatus = () => {
           </TableContainer>
         )}
       </RemoteContent>
-
       {/* History panel — shown when an instructor row is selected */}
       {isMembersAdmin && selectedInstructorId && (
-        <Box mt={3}>
-          <Stack direction='row' justifyContent='space-between' alignItems='center' mb={1}>
-            <Typography variant='subtitle1' fontWeight={600}>
+        <Box
+          sx={{
+            mt: 3,
+          }}
+        >
+          <Stack
+            direction='row'
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 1,
+            }}
+          >
+            <Typography
+              variant='subtitle1'
+              sx={{
+                fontWeight: 600,
+              }}
+            >
               {t('instructorStatus.history')} —{' '}
               {selectedInstructor
                 ? `${selectedInstructor.lastName} ${selectedInstructor.firstName}`
@@ -523,7 +586,13 @@ const InstructorStatus = () => {
           </Stack>
 
           {historyLoading && (
-            <Box display='flex' justifyContent='center' py={2}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                py: 2,
+              }}
+            >
               <CircularProgress size={24} />
             </Box>
           )}
@@ -534,7 +603,12 @@ const InstructorStatus = () => {
           )}
           {historyData &&
             (historyData.length === 0 ? (
-              <Typography variant='body2' color='text.secondary'>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {t('instructorStatus.noHistory')}
               </Typography>
             ) : (
@@ -567,7 +641,12 @@ const InstructorStatus = () => {
                             {h[col.key] ? (
                               dayjs(h[col.key]).format('DD.MM.YYYY')
                             ) : (
-                              <Typography variant='body2' color='text.disabled'>
+                              <Typography
+                                variant='body2'
+                                sx={{
+                                  color: 'text.disabled',
+                                }}
+                              >
                                 {t('instructorStatus.notHeld')}
                               </Typography>
                             )}

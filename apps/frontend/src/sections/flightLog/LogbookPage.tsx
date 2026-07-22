@@ -237,7 +237,14 @@ const FlightLogsList = () => {
     log: FlightLogListEntry
     onAddInFlightDefect: () => void
   }) => (
-    <Stack direction='row' spacing={1} flexWrap='wrap' justifyContent='flex-end'>
+    <Stack
+      direction='row'
+      spacing={1}
+      sx={{
+        flexWrap: 'wrap',
+        justifyContent: 'flex-end',
+      }}
+    >
       <StatusButton
         log={log}
         update={editableItem === log ? () => validateEntry(log) : undefined}
@@ -431,16 +438,17 @@ const FlightLogsList = () => {
   return (
     <Box>
       <SnackAlert problem={problem} />
-
       <Breadcrumbs sx={{ my: 2 }}>
         <Link to='/logs/books'>{t('flightLog.logbooks.ajlb')}</Link>
-        <Typography color='text.primary'>
+        <Typography
+          sx={{
+            color: 'text.primary',
+          }}
+        >
           {aircraftRegistration} / {ajlb?.seqNo}
         </Typography>
       </Breadcrumbs>
-
       <Title label={t('flightLog.logbooks.title')} />
-
       {ajlb && (hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) || isFlightLogUser) && (
         <Stack direction='row' spacing={1} sx={{ mb: 2 }}>
           {hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) && (
@@ -472,7 +480,6 @@ const FlightLogsList = () => {
           )}
         </Stack>
       )}
-
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
           header={
@@ -487,7 +494,12 @@ const FlightLogsList = () => {
               <Grid size={1.1}>{t('flightLog.hours')}</Grid>
               <Grid size={0.8}>{t('flightLog.landings')}</Grid>
               <Grid size={1.2}>{t('flightLog.flightType')}</Grid>
-              <Grid size={1} textAlign='center'>
+              <Grid
+                size={1}
+                sx={{
+                  textAlign: 'center',
+                }}
+              >
                 {t('flightLog.logbooks.status')}
               </Grid>
             </>
@@ -540,7 +552,13 @@ const FlightLogsList = () => {
             if (isEmptyRow) {
               if (hasEditActions && log && isFlightLogAdmin && log.status === FlightLogStatus.NEW) {
                 return (
-                  <Stack direction='row-reverse' spacing={1} width='100%'>
+                  <Stack
+                    direction='row-reverse'
+                    spacing={1}
+                    sx={{
+                      width: '100%',
+                    }}
+                  >
                     <EditButton
                       title={t('flightLog.logbooks.deleteBlankRow')}
                       onClick={() =>
@@ -584,7 +602,6 @@ const FlightLogsList = () => {
                     ref={location.hash == `#${log.flightId}` ? scrollToRef : undefined}
                   />
                 </Grid>
-
                 {isMd ? (
                   <>
                     <Grid size={1.5}>
@@ -599,12 +616,24 @@ const FlightLogsList = () => {
 
                     <Grid size={1}>
                       <Box>{log.departureAirport}</Box>
-                      <Box color='text.secondary'>{formatTime(log.takeoffTimeUtc)}</Box>
+                      <Box
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
+                        {formatTime(log.takeoffTimeUtc)}
+                      </Box>
                     </Grid>
 
                     <Grid size={1}>
                       <Box>{log.arrivalAirport}</Box>
-                      <Box color='text.secondary'>{formatTime(log.landingTimeUtc)}</Box>
+                      <Box
+                        sx={{
+                          color: 'text.secondary',
+                        }}
+                      >
+                        {formatTime(log.landingTimeUtc)}
+                      </Box>
                     </Grid>
 
                     <Grid size={1.1}>{log.flightTime}</Grid>
@@ -614,7 +643,12 @@ const FlightLogsList = () => {
                     <Grid size={0.8}>
                       <Box>{log.numberOfLandings}</Box>
                       {log.acTotalLandings != null && (
-                        <Box color='text.secondary' fontSize='0.75em'>
+                        <Box
+                          sx={{
+                            color: 'text.secondary',
+                            fontSize: '0.75em',
+                          }}
+                        >
                           {log.acTotalLandings}
                         </Box>
                       )}
@@ -622,7 +656,13 @@ const FlightLogsList = () => {
 
                     <Grid size={1.2}>{t(`flightLog.flightTypes.${log.flightType}`)}</Grid>
 
-                    <Grid size={1} alignSelf='center' justifyItems='end'>
+                    <Grid
+                      size={1}
+                      sx={{
+                        alignSelf: 'center',
+                        justifyItems: 'end',
+                      }}
+                    >
                       <Actions log={log} onAddInFlightDefect={handleAddInFlightDefect} />
                     </Grid>
 
@@ -692,7 +732,6 @@ const FlightLogsList = () => {
           }}
         />
       </RemoteContent>
-
       {ajlb?.view && (
         <Pagination
           count={(ajlb.view.lastPage - ajlb.startPage) / 2 + 1}
@@ -716,7 +755,6 @@ const FlightLogsList = () => {
           }}
         />
       )}
-
       {ajlb && data && (
         <FlightLogValidation
           ajlb={ajlb}
@@ -730,7 +768,6 @@ const FlightLogsList = () => {
           isMutating={mutation.isMutating}
         />
       )}
-
       {ajlb && (
         <AddMaintenanceNoteDialog
           open={addNoteOpen}
@@ -744,7 +781,6 @@ const FlightLogsList = () => {
           defaultFlightMins={data?.logs[data.logs.length - 1]?.acTotalFlightMins ?? undefined}
         />
       )}
-
       {ajlb && (
         <AddDefectDialog
           open={addDefectOpen}

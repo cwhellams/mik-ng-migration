@@ -129,8 +129,19 @@ export const NavdataInfoStatus = ({ aircraftRegistration }: { aircraftRegistrati
   const latest = data?.records?.[0]
 
   return (
-    <Stack direction='row' alignItems='center' spacing={1}>
-      <Typography variant='body2' color='text.secondary'>
+    <Stack
+      direction='row'
+      spacing={1}
+      sx={{
+        alignItems: 'center',
+      }}
+    >
+      <Typography
+        variant='body2'
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         {t('aircraft.navdata.navdataLabel', 'Navdata:')}
       </Typography>
       <NavdataStatusChip expires={latest?.expires} />
@@ -326,8 +337,20 @@ export const NavdataSection: React.FC<NavdataSectionProps> = ({
 
   return (
     <Box sx={{ position: 'relative' }}>
-      <Stack direction='row' alignItems='center' justifyContent='space-between' mb={1}>
-        <Typography variant='subtitle1' color='text.primary'>
+      <Stack
+        direction='row'
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 1,
+        }}
+      >
+        <Typography
+          variant='subtitle1'
+          sx={{
+            color: 'text.primary',
+          }}
+        >
           {t('aircraft.navdata.title', 'Navdata')}
         </Typography>
         {isAdmin && (
@@ -338,10 +361,14 @@ export const NavdataSection: React.FC<NavdataSectionProps> = ({
           </Tooltip>
         )}
       </Stack>
-
       <RemoteContent isLoading={isLoading} error={error}>
         {records.length === 0 ? (
-          <Typography variant='body2' color='text.secondary'>
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {t('aircraft.navdata.noRecords', 'No navdata records')}
           </Typography>
         ) : (
@@ -369,7 +396,12 @@ export const NavdataSection: React.FC<NavdataSectionProps> = ({
                       <Typography variant='body2'>{record.updateDate}</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant='body2' fontWeight='medium'>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          fontWeight: 'medium',
+                        }}
+                      >
                         {record.cycle}
                       </Typography>
                     </TableCell>
@@ -399,13 +431,11 @@ export const NavdataSection: React.FC<NavdataSectionProps> = ({
           </TableContainer>
         )}
       </RemoteContent>
-
       <AddNavdataModal
         open={addModalOpen}
         aircraftRegistration={aircraftRegistration}
         onClose={() => setAddModalOpen(false)}
       />
-
       <ConfirmDialog
         open={deleteConfirmOpen}
         title={t('aircraft.navdata.delete.title', 'Delete Navdata Record')}

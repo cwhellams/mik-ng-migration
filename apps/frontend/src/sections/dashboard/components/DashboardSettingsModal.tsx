@@ -107,7 +107,13 @@ export const DashboardSettingsModal = ({
   return (
     <Dialog open={open} onClose={handleCancel} maxWidth='sm' fullWidth>
       <DialogTitle>
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <Typography variant='h6'>Dashboard Settings</Typography>
           <IconButton edge='end' color='inherit' onClick={handleCancel} aria-label='close'>
             <CloseIcon />

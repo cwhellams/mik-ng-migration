@@ -40,19 +40,30 @@ export const BookingTimeline = ({
   return (
     <>
       <Box
-        width={'33%'}
         sx={{
+          width: '33%',
           p: { xs: 1, sm: 1.5 },
           borderRadius: 1,
           height: '100%',
           bgcolor: alpha(theme.palette.info.main, 0.1),
         }}
       >
-        <Typography variant='body2' fontWeight='medium' color={'primary.info'}>
+        <Typography
+          variant='body2'
+          sx={{
+            fontWeight: 'medium',
+            color: 'primary.info',
+          }}
+        >
           {t('schedule.freeBefore')}
         </Typography>
         <Typography variant='body1'>{showDiff(previousEndDate, startDate)}</Typography>
-        <Typography variant='caption' color='text.secondary'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {previousEndDate
             ? t('schedule.ends', {
                 at: toHelsinki(previousEndDate).format('D.M. HH:mm'),
@@ -60,38 +71,53 @@ export const BookingTimeline = ({
             : t('schedule.noPreviousBooking')}
         </Typography>
       </Box>
-
       <Box
-        width={'33%'}
         sx={{
+          width: '33%',
           p: { xs: 1, sm: 1.5 },
           borderRadius: 1,
           height: '100%',
           bgcolor: alpha(theme.palette.primary.main, 0.1),
         }}
       >
-        <Typography variant='body2' fontWeight='medium' color={'primary.main'}>
+        <Typography
+          variant='body2'
+          sx={{
+            fontWeight: 'medium',
+            color: 'primary.main',
+          }}
+        >
           {t('schedule.bookingDuration')}
         </Typography>
         <Typography variant='h6'>
           {formatDuration(endDate?.diff(startDate, 'minutes') ?? -1)}
         </Typography>
       </Box>
-
       <Box
-        width={'33%'}
         sx={{
+          width: '33%',
           p: { xs: 1, sm: 1.5 },
           borderRadius: 1,
           height: '100%',
           bgcolor: alpha(theme.palette.info.main, 0.1),
         }}
       >
-        <Typography variant='body2' fontWeight='medium' color={'info.main'}>
+        <Typography
+          variant='body2'
+          sx={{
+            fontWeight: 'medium',
+            color: 'info.main',
+          }}
+        >
           {t('schedule.freeAfter')}
         </Typography>
         <Typography variant='body1'>{showDiff(endDate, nextStartDate)}</Typography>
-        <Typography variant='caption' color='text.secondary'>
+        <Typography
+          variant='caption'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {nextStartDate
             ? t('schedule.starts', {
                 at: toHelsinki(nextStartDate).format('D.M. HH:mm'),

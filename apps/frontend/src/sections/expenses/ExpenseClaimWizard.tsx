@@ -453,26 +453,27 @@ export default function ExpenseClaimWizard() {
               </MenuItem>
             ))}
           </TextField>
-
           <TextField
             label={t('expenses.fields.title')}
             value={form.title}
             fullWidth
             required
-            inputProps={{ maxLength: 200 }}
             onChange={(e) => setForm((c) => ({ ...c, title: e.target.value }))}
+            slotProps={{
+              htmlInput: { maxLength: 200 },
+            }}
           />
-
           <TextField
             label={t('expenses.fields.description')}
             value={form.description}
             fullWidth
             multiline
             minRows={3}
-            inputProps={{ maxLength: 2000 }}
             onChange={(e) => setForm((c) => ({ ...c, description: e.target.value }))}
+            slotProps={{
+              htmlInput: { maxLength: 2000 },
+            }}
           />
-
           <DatePicker
             label={t('expenses.fields.expenseDate')}
             value={form.expenseDate ? dayjs(form.expenseDate) : null}
@@ -486,7 +487,6 @@ export default function ExpenseClaimWizard() {
             }}
             slotProps={{ textField: { sx: { maxWidth: 200 } } }}
           />
-
           {!isMileage && (
             <TextField
               select
@@ -509,10 +509,20 @@ export default function ExpenseClaimWizard() {
               ))}
             </TextField>
           )}
-
           {!isMileage && form.currency !== 'EUR' && (fxRateLoading || claimFxRate) && (
-            <Stack direction='row' spacing={0.5} alignItems='center'>
-              <Typography variant='body2' color='text.secondary'>
+            <Stack
+              direction='row'
+              spacing={0.5}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {fxRateLoading
                   ? t('expenses.fields.fxRateLookingUp')
                   : `1 ${form.currency} = ${claimFxRate} EUR`}
@@ -553,7 +563,6 @@ export default function ExpenseClaimWizard() {
             <FormControlLabel value='true' control={<Radio />} label={t('common.yes')} />
             <FormControlLabel value='false' control={<Radio />} label={t('common.no')} />
           </RadioGroup>
-
           {fuelForFlight && (
             <Stack spacing={2}>
               <Stack direction='row' spacing={1}>
@@ -588,14 +597,18 @@ export default function ExpenseClaimWizard() {
                     <TextField
                       {...params}
                       label={t('expenses.wizard.selectFlight')}
-                      InputProps={{
-                        ...params.InputProps,
-                        endAdornment: (
-                          <>
-                            {recentFlightsApi.isLoading ? <CircularProgress size={20} /> : null}
-                            {params.InputProps.endAdornment}
-                          </>
-                        ),
+                      slotProps={{
+                        ...params.slotProps,
+
+                        input: {
+                          ...params.slotProps.input,
+                          endAdornment: (
+                            <>
+                              {recentFlightsApi.isLoading ? <CircularProgress size={20} /> : null}
+                              {params.slotProps.input.endAdornment}
+                            </>
+                          ),
+                        },
                       }}
                     />
                   )}
@@ -615,7 +628,6 @@ export default function ExpenseClaimWizard() {
               )}
             </Stack>
           )}
-
           <FormControlLabel
             control={
               <Switch
@@ -758,7 +770,12 @@ export default function ExpenseClaimWizard() {
                     )}
                   </Typography>
                   {mileageDetail.boardApproved && (
-                    <Typography variant='body2' color='warning.main'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'warning.main',
+                      }}
+                    >
                       ✓ {t('expenses.mileage.boardApprovedLabel')}
                     </Typography>
                   )}
@@ -766,7 +783,6 @@ export default function ExpenseClaimWizard() {
               )}
             </Stack>
           </Paper>
-
           {!isMileage && (
             <Paper variant='outlined' sx={{ p: 2 }}>
               <Typography variant='subtitle2' gutterBottom>
@@ -784,7 +800,6 @@ export default function ExpenseClaimWizard() {
               />
             </Paper>
           )}
-
           <Paper variant='outlined' sx={{ p: 2 }}>
             <Typography variant='subtitle2' gutterBottom>
               {t('expenses.fields.bankDetails')}
@@ -795,7 +810,6 @@ export default function ExpenseClaimWizard() {
                 : t('expenses.wizard.noBankDetails')}
             </Typography>
           </Paper>
-
           {!isMileage && (
             <Paper variant='outlined' sx={{ p: 2 }}>
               <Typography variant='subtitle2' gutterBottom>
@@ -806,7 +820,6 @@ export default function ExpenseClaimWizard() {
               </Typography>
             </Paper>
           )}
-
           {!!submitError && <Alert severity='error'>{submitError}</Alert>}
         </Stack>
       )
@@ -822,7 +835,6 @@ export default function ExpenseClaimWizard() {
   return (
     <Box>
       <Title label={t('expenses.new')} />
-
       <Paper sx={{ p: 3, mb: 3 }}>
         <Stepper activeStep={step} alternativeLabel sx={{ mb: 3 }}>
           {stepLabels.map((label) => (
@@ -838,7 +850,12 @@ export default function ExpenseClaimWizard() {
 
         <Divider sx={{ mt: 3, mb: 2 }} />
 
-        <Stack direction='row' justifyContent='space-between'>
+        <Stack
+          direction='row'
+          sx={{
+            justifyContent: 'space-between',
+          }}
+        >
           <Button
             variant='outlined'
             onClick={back}

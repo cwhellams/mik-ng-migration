@@ -65,7 +65,14 @@ function LangFields({ label, languages, values, multiline, onChange }: Readonly<
         mb: 2,
       }}
     >
-      <Typography variant='caption' color='text.secondary' sx={{ display: 'block', mb: 1 }}>
+      <Typography
+        variant='caption'
+        sx={{
+          color: 'text.secondary',
+          display: 'block',
+          mb: 1,
+        }}
+      >
         {label}
       </Typography>
       {languages.map((lang, i) => (
@@ -278,7 +285,12 @@ function QuestionCard({
           mb: 1,
         }}
       >
-        <Typography variant='subtitle1' fontWeight='bold'>
+        <Typography
+          variant='subtitle1'
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           {t('exams.questionNumber', { n: index + 1 })}
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -290,7 +302,6 @@ function QuestionCard({
           </IconButton>
         </Box>
       </Box>
-
       {error && (
         <Alert severity='error' sx={{ mb: 1 }} onClose={() => setError(null)}>
           {error}
@@ -322,16 +333,24 @@ function QuestionCard({
           </Box>
         </Box>
       ) : (
-        <Typography variant='body2' color='text.secondary'>
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {previewLanguage
             ? (question.translations[previewLanguage]?.prompt ?? t('exams.admin.noTranslation'))
             : t('exams.admin.noTranslation')}
         </Typography>
       )}
-
       <Divider sx={{ my: 1.5 }} />
-
-      <Typography variant='caption' fontWeight='bold'>
+      <Typography
+        variant='caption'
+        sx={{
+          fontWeight: 'bold',
+        }}
+      >
         {t('exams.admin.choices')}
       </Typography>
       {question.choices.map((choice) =>
@@ -369,7 +388,6 @@ function QuestionCard({
           )
         })(),
       )}
-
       <Button
         startIcon={<Icon icon='mdi:plus' />}
         size='small'
@@ -378,7 +396,6 @@ function QuestionCard({
       >
         {t('exams.admin.addChoice')}
       </Button>
-
       {editingChoice !== null && (
         <ChoiceEditor
           questionId={question.questionId}
@@ -518,7 +535,6 @@ export default function ExamVersionEditorPage() {
       >
         {t('exams.admin.title')}
       </Button>
-
       <RemoteContent isLoading={isLoading} error={error}>
         {version && (
           <>
@@ -622,7 +638,9 @@ export default function ExamVersionEditorPage() {
                   }
                   fullWidth
                   sx={{ mb: 2 }}
-                  inputProps={{ min: 0, max: 100 }}
+                  slotProps={{
+                    htmlInput: { min: 0, max: 100 },
+                  }}
                 />
                 <TextField
                   label={t('exams.admin.questionCount')}
@@ -640,8 +658,10 @@ export default function ExamVersionEditorPage() {
                   }
                   fullWidth
                   sx={{ mb: 2 }}
-                  inputProps={{ min: 1 }}
                   helperText={t('exams.admin.questionCountHelp')}
+                  slotProps={{
+                    htmlInput: { min: 1 },
+                  }}
                 />
                 <Button
                   onClick={handleSaveVersionSettings}
