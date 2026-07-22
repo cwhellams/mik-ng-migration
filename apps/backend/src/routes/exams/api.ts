@@ -59,7 +59,7 @@ export const router = Router()
 router.get(
   '/',
   validateUser(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
-  async (_req: Request, res: Response) => {
+  async (_req: Request<Record<string, string>>, res: Response) => {
     const exams = await getExamsWithPublishedVersions()
     res.json(exams)
   },
@@ -69,7 +69,7 @@ router.get(
 router.get(
   '/:examId',
   validateUser(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const exam = await getExamWithPublishedVersion(req.params.examId)
     if (!exam) return problem({ status: 404, detail: 'Exam not found' })
     res.json(exam)
@@ -84,7 +84,7 @@ router.get(
 router.post(
   '/:examId/attempts',
   validateUser(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const exam = await getExamWithPublishedVersion(req.params.examId)
     if (!exam || !exam.currentVersion) {
       return problem({ status: 404, detail: 'No published version for this exam' })
@@ -99,7 +99,7 @@ router.post(
 router.get(
   '/my/attempts',
   validateUser(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const filters = AttemptFiltersSchema.parse({
       ...req.query,
       memberId: req.user!.memberId,
@@ -113,7 +113,7 @@ router.get(
 router.get(
   '/attempts/:attemptId',
   validateUser(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const attempt = await getAttemptById(req.params.attemptId)
     if (!attempt) return problem({ status: 404, detail: 'Attempt not found' })
 
@@ -129,7 +129,7 @@ router.get(
 router.get(
   '/attempts/:attemptId/version',
   validateUser(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const attempt = await getAttemptById(req.params.attemptId)
     if (!attempt) return problem({ status: 404, detail: 'Attempt not found' })
 
@@ -147,7 +147,7 @@ router.get(
 router.get(
   '/attempts/:attemptId/answers',
   validateUser(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const attempt = await getAttemptById(req.params.attemptId)
     if (!attempt) return problem({ status: 404, detail: 'Attempt not found' })
 
@@ -164,7 +164,7 @@ router.get(
 router.put(
   '/attempts/:attemptId/answers',
   validateUser(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const attempt = await getAttemptById(req.params.attemptId)
     if (!attempt) return problem({ status: 404, detail: 'Attempt not found' })
     if (attempt.memberId !== req.user!.memberId)
@@ -191,7 +191,7 @@ router.put(
 router.post(
   '/attempts/:attemptId/submit',
   validateUser(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const attempt = await getAttemptById(req.params.attemptId)
     if (!attempt) return problem({ status: 404, detail: 'Attempt not found' })
     if (attempt.memberId !== req.user!.memberId)
@@ -206,7 +206,7 @@ router.post(
 router.post(
   '/attempts/:attemptId/abandon',
   validateUser(MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const attempt = await getAttemptById(req.params.attemptId)
     if (!attempt) return problem({ status: 404, detail: 'Attempt not found' })
     if (attempt.memberId !== req.user!.memberId)
@@ -224,7 +224,7 @@ router.post(
 router.get(
   '/admin/exams',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (_req: Request, res: Response) => {
+  async (_req: Request<Record<string, string>>, res: Response) => {
     const exams = await getExams()
     res.json(exams)
   },
@@ -233,7 +233,7 @@ router.get(
 router.post(
   '/admin/exams',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = ExamUpsertSchema.parse(req.body)
     const exam = await insertExam(data, req.user!)
     res.status(HttpStatusCode.Created).json(exam)
@@ -243,7 +243,7 @@ router.post(
 router.post(
   '/admin/exams/import',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = ExamImportSchema.parse(req.body)
     const result = await importExam(data, req.user!)
     res.status(HttpStatusCode.Created).json(result)
@@ -253,7 +253,7 @@ router.post(
 router.put(
   '/admin/exams/:examId',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const exam = await getExamById(req.params.examId)
     if (!exam) return problem({ status: 404, detail: 'Exam not found' })
     const data = ExamUpsertSchema.partial().parse(req.body)
@@ -265,7 +265,7 @@ router.put(
 router.delete(
   '/admin/exams/:examId',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const exam = await getExamById(req.params.examId)
     if (!exam) return problem({ status: 404, detail: 'Exam not found' })
     await deleteExam(req.params.examId)
@@ -280,7 +280,7 @@ router.delete(
 router.get(
   '/admin/exams/:examId/versions',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const versions = await getVersionsByExamId(req.params.examId)
     res.json(versions)
   },
@@ -289,7 +289,7 @@ router.get(
 router.post(
   '/admin/exams/:examId/versions',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = ExamVersionCreateSchema.parse(req.body)
     const version = await createVersion(
       req.params.examId,
@@ -308,7 +308,7 @@ router.post(
 router.get(
   '/admin/versions/:versionId',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const detail = await getVersionDetail(req.params.versionId)
     if (!detail) return problem({ status: 404, detail: 'Version not found' })
     res.json(detail)
@@ -318,7 +318,7 @@ router.get(
 router.put(
   '/admin/versions/:versionId',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const version = await getVersionById(req.params.versionId)
     if (!version) return problem({ status: 404, detail: 'Version not found' })
     if (version.status !== 'DRAFT')
@@ -332,7 +332,7 @@ router.put(
 router.post(
   '/admin/versions/:versionId/publish',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const published = await publishVersion(req.params.versionId, req.user!)
     res.json(published)
   },
@@ -341,7 +341,7 @@ router.post(
 router.delete(
   '/admin/versions/:versionId',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const version = await getVersionById(req.params.versionId)
     if (!version) return problem({ status: 404, detail: 'Version not found' })
     if (version.status !== 'DRAFT')
@@ -358,7 +358,7 @@ router.delete(
 router.put(
   '/admin/versions/:versionId/translations/:language',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const version = await getVersionById(req.params.versionId)
     if (!version) return problem({ status: 404, detail: 'Version not found' })
     if (version.status !== 'DRAFT')
@@ -384,7 +384,7 @@ router.put(
 router.put(
   '/admin/versions/:versionId/questions',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const version = await getVersionById(req.params.versionId)
     if (!version) return problem({ status: 404, detail: 'Version not found' })
     if (version.status !== 'DRAFT')
@@ -398,7 +398,7 @@ router.put(
 router.delete(
   '/admin/questions/:questionId',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const version = await getVersionByQuestionId(req.params.questionId)
     if (!version) return problem({ status: 404, detail: 'Question not found' })
     if (version.status !== 'DRAFT')
@@ -415,7 +415,7 @@ router.delete(
 router.put(
   '/admin/questions/:questionId/choices',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const version = await getVersionByQuestionId(req.params.questionId)
     if (!version) return problem({ status: 404, detail: 'Question not found' })
     if (version.status !== 'DRAFT')
@@ -429,7 +429,7 @@ router.put(
 router.delete(
   '/admin/choices/:choiceId',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const version = await getVersionByChoiceId(req.params.choiceId)
     if (!version) return problem({ status: 404, detail: 'Choice not found' })
     if (version.status !== 'DRAFT')
@@ -446,7 +446,7 @@ router.delete(
 router.get(
   '/admin/attempts',
   validateUser(MIKPermissions.EXAM_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const filters = AttemptFiltersSchema.parse(req.query)
     const result = await getAttempts(filters)
     res.json(result)

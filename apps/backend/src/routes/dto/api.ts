@@ -65,7 +65,7 @@ const upload = multer({
 router.get(
   '/programs',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (_req: Request, res: Response) => {
+  async (_req: Request<Record<string, string>>, res: Response) => {
     const programs = await getTrainingPrograms()
     res.json(programs)
   },
@@ -75,7 +75,7 @@ router.get(
 router.get(
   '/programs/:programId',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const program = await getTrainingProgramById(req.params.programId)
     if (!program) return problem({ status: 404, detail: 'Training program not found' })
     res.json(program)
@@ -86,7 +86,7 @@ router.get(
 router.post(
   '/programs',
   validateUser(MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const parsed = TrainingProgramUpsertSchema.safeParse(req.body)
     if (!parsed.success) {
       return problem({
@@ -104,7 +104,7 @@ router.post(
 router.put(
   '/programs/:programId',
   validateUser(MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const parsed = TrainingProgramUpsertSchema.safeParse(req.body)
     if (!parsed.success) {
       return problem({
@@ -131,7 +131,7 @@ router.put(
 router.get(
   '/programs/:programId/syllabi',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const syllabi = await getSyllabiByProgram(req.params.programId)
     res.json(syllabi)
   },
@@ -141,7 +141,7 @@ router.get(
 router.get(
   '/programs/:programId/syllabi/latest-published',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const syllabus = await getLatestPublishedSyllabus(req.params.programId)
     if (!syllabus) return problem({ status: 404, detail: 'No published syllabus found' })
     res.json(syllabus)
@@ -152,7 +152,7 @@ router.get(
 router.get(
   '/syllabi/:syllabusId',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const syllabus = await getSyllabusWithFlights(req.params.syllabusId)
     if (!syllabus) return problem({ status: 404, detail: 'Syllabus not found' })
     res.json(syllabus)
@@ -163,7 +163,7 @@ router.get(
 router.post(
   '/programs/:programId/syllabi',
   validateUser(MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const schema = z.object({
       description: z.string().nullable().optional(),
       minBlockTimeMins: z.number().int().positive().nullable().optional(),
@@ -181,7 +181,7 @@ router.post(
 router.put(
   '/syllabi/:syllabusId',
   validateUser(MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const schema = z.object({
       description: z.string().nullable().optional(),
       minBlockTimeMins: z.number().int().positive().nullable().optional(),
@@ -202,7 +202,7 @@ router.put(
 router.post(
   '/syllabi/:syllabusId/publish',
   validateUser(MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const syllabus = await publishSyllabus(req.params.syllabusId, req.user!.memberId)
     if (!syllabus) {
       return problem({ status: 404, detail: 'Syllabus not found or not publishable' })
@@ -215,7 +215,7 @@ router.post(
 router.get(
   '/syllabi/:syllabusId/export',
   validateUser(MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const syllabus = await getSyllabusWithFlights(req.params.syllabusId)
     if (!syllabus) return problem({ status: 404, detail: 'Syllabus not found' })
 
@@ -251,7 +251,7 @@ router.get(
 router.post(
   '/syllabi/:syllabusId/copy',
   validateUser(MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const copy = await copySyllabusAsDraft(req.params.syllabusId, req.user!.memberId)
     if (!copy) return problem({ status: 404, detail: 'Syllabus not found' })
     res.status(HttpStatusCode.Created).json(copy)
@@ -262,7 +262,7 @@ router.post(
 router.put(
   '/syllabi/:syllabusId/flights',
   validateUser(MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const syllabus = await getSyllabusById(req.params.syllabusId)
     if (!syllabus) return problem({ status: 404, detail: 'Syllabus not found' })
     if (syllabus.status === 'PUBLISHED' || syllabus.status === 'ARCHIVED') {
@@ -328,7 +328,7 @@ router.put(
 router.get(
   '/syllabi/:syllabusId/flights',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const flights = await getFlightsBySyllabus(req.params.syllabusId)
     res.json(flights)
   },
@@ -338,7 +338,7 @@ router.get(
 router.get(
   '/flights/:flightId',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const flight = await getSyllabusFlightWithItems(req.params.flightId)
     if (!flight) return problem({ status: 404, detail: 'Syllabus flight not found' })
     res.json(flight)
@@ -354,7 +354,7 @@ router.post(
   '/programs/:programId/syllabi/import',
   validateUser(MIKPermissions.DTO_ADMIN),
   upload.single('file'),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     if (!req.file) {
       return problem({ status: HttpStatusCode.BadRequest, detail: 'No JSON file uploaded' })
     }
@@ -408,7 +408,7 @@ router.post(
 router.get(
   '/me/syllabus',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const assignment = await getActiveSyllabusForMember(req.user!.memberId)
     if (!assignment) return res.json(null)
     const syllabus = await getSyllabusWithFlights(assignment.syllabusId)
@@ -420,7 +420,7 @@ router.get(
 router.get(
   '/members/:memberId/syllabus',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const user = req.user!
     // Members can only view their own syllabus unless they are instructor/admin
     if (
@@ -443,7 +443,7 @@ router.get(
 router.post(
   '/members/:memberId/syllabus',
   validateUser(MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const schema = z.object({ programId: z.string().guid() })
     const parsed = schema.safeParse(req.body)
     if (!parsed.success) {
@@ -488,7 +488,7 @@ router.post(
 router.get(
   '/flight-logs/:flightLogId/attempt',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const attempt = await getAttemptByFlightLogId(req.params.flightLogId)
     if (!attempt) return res.json(null)
     res.json(attempt)
@@ -499,7 +499,7 @@ router.get(
 router.post(
   '/flight-logs/:flightLogId/attempt',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const schema = z.object({
       syllabusFlightId: z.string().guid(),
       memberSyllabusId: z.string().guid(),
@@ -546,7 +546,7 @@ router.post(
 router.patch(
   '/flight-logs/:flightLogId/attempt',
   validateUser(MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const schema = z.object({ syllabusFlightId: z.string().guid() })
     const parsed = schema.safeParse(req.body)
     if (!parsed.success) {
@@ -572,7 +572,7 @@ router.patch(
 router.get(
   '/attempts/:attemptId',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const attempt = await getAttemptByIdWithFlightData(req.params.attemptId)
     if (!attempt) return problem({ status: 404, detail: 'Attempt not found' })
 
@@ -596,7 +596,7 @@ router.get(
 router.post(
   '/attempts/:attemptId/verify',
   validateUser(MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const parsed = VerifyAttemptSchema.safeParse(req.body)
     if (!parsed.success) {
       return problem({
@@ -621,7 +621,7 @@ router.post(
 router.get(
   '/instructor/pending',
   validateUser(MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const attempts = await getPendingVerifications()
     res.json(attempts)
   },
@@ -631,7 +631,7 @@ router.get(
 router.get(
   '/instructor/pending/count',
   validateUser(MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const count = await getPendingVerificationsCount()
     res.json({ count })
   },
@@ -645,7 +645,7 @@ router.get(
 router.get(
   '/members/:memberId/hil',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const user = req.user!
     if (
       req.params.memberId !== user.memberId &&
@@ -667,7 +667,7 @@ router.get(
 router.get(
   '/progress',
   validateUser(MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (_req: Request, res: Response) => {
+  async (_req: Request<Record<string, string>>, res: Response) => {
     const progress = await getStudentProgress()
     res.json(progress)
   },
@@ -677,7 +677,7 @@ router.get(
 router.get(
   '/member-syllabus/:memberSyllabusId/attempts',
   validateUser(MIKPermissions.DTO_USER, MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const user = req.user!
     const isInstructorOrAdmin =
       user.permissions.includes(MIKPermissions.DTO_INSTRUCTOR) ||
@@ -697,7 +697,7 @@ router.get(
 router.get(
   '/member-syllabus/:memberSyllabusId/detail',
   validateUser(MIKPermissions.DTO_INSTRUCTOR, MIKPermissions.DTO_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const memberSyllabusId = req.params.memberSyllabusId
     const memberSyllabus = await getMemberSyllabusByIdWithFlights(memberSyllabusId)
     if (!memberSyllabus) {

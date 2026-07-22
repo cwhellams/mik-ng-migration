@@ -32,12 +32,12 @@ const isTreasurer = (req: Request) =>
 // Package definitions (admin / treasurer)
 // ─────────────────────────────────────────────────────────────────────────────
 
-router.get('/packages', async (req: Request, res: Response) => {
+router.get('/packages', async (req: Request<Record<string, string>>, res: Response) => {
   const { aircraft } = req.query as { aircraft?: string }
   res.json(await getPrepaidPackages(aircraft))
 })
 
-router.get('/packages/:id', async (req: Request, res: Response) => {
+router.get('/packages/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const pkg = await getPrepaidPackageById(req.params.id)
   if (!pkg) return problem({ status: 404, detail: 'Package not found' })
   res.json(pkg)
@@ -46,7 +46,7 @@ router.get('/packages/:id', async (req: Request, res: Response) => {
 router.post(
   '/packages',
   validateUser(MIKPermissions.STORE_ADMIN, MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = PrepaidPackageUpsertSchema.parse(req.body)
     res.status(HttpStatusCode.Created).json(await insertPrepaidPackage(data, req.user!))
   },
@@ -55,7 +55,7 @@ router.post(
 router.put(
   '/packages/:id',
   validateUser(MIKPermissions.STORE_ADMIN, MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = PrepaidPackageUpsertSchema.partial().parse(req.body)
     res.json(await updatePrepaidPackage(req.params.id, data, req.user!))
   },
@@ -66,7 +66,7 @@ router.put(
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Admin: all member packages; member: their own
-router.get('/member-packages', async (req: Request, res: Response) => {
+router.get('/member-packages', async (req: Request<Record<string, string>>, res: Response) => {
   const admin = isTreasurer(req)
   const memberId = admin ? (req.query.memberId as string | undefined) : req.user!.memberId
   const packageId = req.query.packageId as string | undefined
@@ -77,13 +77,13 @@ router.get('/member-packages', async (req: Request, res: Response) => {
 router.get(
   '/member-packages/:id/usage',
   validateUser(MIKPermissions.STORE_ADMIN, MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     res.json(await getUsageLog(Number(req.params.id)))
   },
 )
 
 // Unbilled flight time grouped by aircraft for the current member
-router.get('/unbilled-time', async (req: Request, res: Response) => {
+router.get('/unbilled-time', async (req: Request<Record<string, string>>, res: Response) => {
   res.json(await getUnbilledTimeByAircraft(req.user!.memberId))
 })
 
@@ -94,7 +94,7 @@ router.get('/unbilled-time', async (req: Request, res: Response) => {
 router.post(
   '/extend-expiry',
   validateUser(MIKPermissions.STORE_ADMIN, MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = ExtendExpirySchema.parse(req.body)
     const updated = await extendExpiryForAircraft(
       data.aircraftRegistration,

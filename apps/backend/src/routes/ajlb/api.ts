@@ -85,12 +85,15 @@ router.delete(
 )
 
 // AJLB logbook endpoints
-router.get('/:registration/:seqNo', async (req: Request, res: Response<AircraftJourneyLogBook>) => {
-  const { registration, seqNo } = req.params
+router.get(
+  '/:registration/:seqNo',
+  async (req: Request<Record<string, string>>, res: Response<AircraftJourneyLogBook>) => {
+    const { registration, seqNo } = req.params
 
-  const book = await getAjlb(registration, Number(seqNo))
-  res.status(200).json(book)
-})
+    const book = await getAjlb(registration, Number(seqNo))
+    res.status(200).json(book)
+  },
+)
 
 router.get('/', async (req: Request<AjlbFilter>, res: Response<AjlbListResponse>) => {
   const filters = AircraftJourneyLogBookFilterSchema.parse(req.query)
@@ -102,7 +105,7 @@ router.get('/', async (req: Request<AjlbFilter>, res: Response<AjlbListResponse>
 router.post(
   '/',
   validateUser(MIKPermissions.FLIGHTLOG_ADMIN),
-  async (req: Request, res: Response<AircraftJourneyLogBook>) => {
+  async (req: Request<Record<string, string>>, res: Response<AircraftJourneyLogBook>) => {
     const ajlb = UpsertSchema(AircraftJourneyLogBookSchema).parse(req.body)
     await createAjlb(ajlb, req.user!)
 

@@ -62,13 +62,13 @@ const isStoreAdmin = (req: Request) =>
 // Categories
 // ─────────────────────────────────────────────────────────────────────────────
 
-router.get('/categories', async (req: Request, res: Response) => {
+router.get('/categories', async (req: Request<Record<string, string>>, res: Response) => {
   const admin = req.user?.permissions?.includes(MIKPermissions.STORE_ADMIN) ?? false
   const categories = await getCategories(!admin)
   res.json(categories)
 })
 
-router.get('/categories/:id', async (req: Request, res: Response) => {
+router.get('/categories/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const cat = await getCategoryById(req.params.id)
   if (!cat) return problem({ status: 404, detail: 'Category not found' })
   res.json(cat)
@@ -77,7 +77,7 @@ router.get('/categories/:id', async (req: Request, res: Response) => {
 router.post(
   '/categories',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = CategoryUpsertSchema.parse(req.body)
     const cat = await insertCategory(data, req.user!)
     res.status(HttpStatusCode.Created).json(cat)
@@ -87,7 +87,7 @@ router.post(
 router.put(
   '/categories/:id',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = CategoryUpsertSchema.partial().parse(req.body)
     const cat = await updateCategory(req.params.id, data, req.user!)
     res.json(cat)
@@ -97,7 +97,7 @@ router.put(
 router.delete(
   '/categories/:id',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     await deleteCategory(req.params.id)
     res.status(HttpStatusCode.NoContent).send()
   },
@@ -108,18 +108,22 @@ router.delete(
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Product listing — any authenticated user; admins see all, members see published+active only
-router.get('/products', ...validateUser(), async (req: Request, res: Response) => {
-  const adminShopView = isAdminShopView(isStoreAdmin(req), req.query.adminView)
-  const filters = ProductFiltersSchema.parse({
-    ...req.query,
-    // non-admin users may only see published and active products
-    ...(adminShopView ? {} : { published: 'true', active: 'true' }),
-  })
-  const products = await getProducts(filters)
-  res.json(products)
-})
+router.get(
+  '/products',
+  ...validateUser(),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const adminShopView = isAdminShopView(isStoreAdmin(req), req.query.adminView)
+    const filters = ProductFiltersSchema.parse({
+      ...req.query,
+      // non-admin users may only see published and active products
+      ...(adminShopView ? {} : { published: 'true', active: 'true' }),
+    })
+    const products = await getProducts(filters)
+    res.json(products)
+  },
+)
 
-router.get('/products/:id', async (req: Request, res: Response) => {
+router.get('/products/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const product = await getProductById(req.params.id)
   if (!product) return problem({ status: 404, detail: 'Product not found' })
 
@@ -133,7 +137,7 @@ router.get('/products/:id', async (req: Request, res: Response) => {
 router.post(
   '/products',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = ProductUpsertSchema.parse(req.body)
     if (data.productType === 'FLIGHT_HOURS_PACKAGE') {
       return problem({
@@ -149,7 +153,7 @@ router.post(
 router.put(
   '/products/:id',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = ProductUpsertSchema.partial().parse(req.body)
     if (data.productType === 'FLIGHT_HOURS_PACKAGE') {
       return problem({
@@ -165,7 +169,7 @@ router.put(
 router.delete(
   '/products/:id',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const productId = req.params.id
     if (await hasProductOrders(productId)) {
       return problem({
@@ -179,15 +183,18 @@ router.delete(
 )
 
 // Product properties
-router.get('/products/:id/properties', async (req: Request, res: Response) => {
-  const props = await getProductProperties(req.params.id)
-  res.json(props)
-})
+router.get(
+  '/products/:id/properties',
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const props = await getProductProperties(req.params.id)
+    res.json(props)
+  },
+)
 
 router.put(
   '/products/:id/properties',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = PropertyUpsertSchema.parse(req.body)
     await upsertProductProperty(req.params.id, data)
     const props = await getProductProperties(req.params.id)
@@ -198,7 +205,7 @@ router.put(
 router.delete(
   '/products/:productId/properties/:propertyId',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     await deleteProductProperty(Number(req.params.propertyId))
     res.status(HttpStatusCode.NoContent).send()
   },
@@ -211,7 +218,7 @@ router.delete(
 router.get(
   '/discount-codes',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (_req: Request, res: Response) => {
+  async (_req: Request<Record<string, string>>, res: Response) => {
     res.json(await getDiscountCodes())
   },
 )
@@ -219,7 +226,7 @@ router.get(
 router.post(
   '/discount-codes',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = DiscountCodeUpsertSchema.parse(req.body)
     res.status(HttpStatusCode.Created).json(await insertDiscountCode(data, req.user!))
   },
@@ -228,7 +235,7 @@ router.post(
 router.put(
   '/discount-codes/:id',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = DiscountCodeUpsertSchema.partial().parse(req.body)
     res.json(await updateDiscountCode(Number(req.params.id), data, req.user!))
   },
@@ -238,7 +245,7 @@ router.put(
 router.get(
   '/discount-codes/validate/:code',
   validateUser(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const dc = await getDiscountCodeByCode(req.params.code)
     if (!dc || !dc.isActive) return problem({ status: 404, detail: 'Invalid discount code' })
     if (dc.validUntil && new Date(dc.validUntil) < new Date())
@@ -255,11 +262,11 @@ router.get(
 
 router.use('/cart', validateUser(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN))
 
-router.get('/cart', async (req: Request, res: Response) => {
+router.get('/cart', async (req: Request<Record<string, string>>, res: Response) => {
   res.json(await getCart(req.user!.memberId))
 })
 
-router.post('/cart/items', async (req: Request, res: Response) => {
+router.post('/cart/items', async (req: Request<Record<string, string>>, res: Response) => {
   const data = CartItemUpsertSchema.parse(req.body)
   const product = await getProductById(data.productId)
   if (!product || !isPurchasableProduct(product)) {
@@ -269,24 +276,27 @@ router.post('/cart/items', async (req: Request, res: Response) => {
   res.status(HttpStatusCode.Created).json(cart)
 })
 
-router.put('/cart/items/:itemId', async (req: Request, res: Response) => {
+router.put('/cart/items/:itemId', async (req: Request<Record<string, string>>, res: Response) => {
   const { quantity } = req.body
   if (typeof quantity !== 'number') return problem({ status: 400, detail: 'quantity is required' })
   const cart = await updateCartItem(req.user!.memberId, Number(req.params.itemId), quantity)
   res.json(cart)
 })
 
-router.delete('/cart/items/:itemId', async (req: Request, res: Response) => {
-  const cart = await removeCartItem(req.user!.memberId, Number(req.params.itemId))
-  res.json(cart)
-})
+router.delete(
+  '/cart/items/:itemId',
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const cart = await removeCartItem(req.user!.memberId, Number(req.params.itemId))
+    res.json(cart)
+  },
+)
 
-router.delete('/cart', async (req: Request, res: Response) => {
+router.delete('/cart', async (req: Request<Record<string, string>>, res: Response) => {
   const cart = await clearCart(req.user!.memberId)
   res.json(cart)
 })
 
-router.post('/cart/discount', async (req: Request, res: Response) => {
+router.post('/cart/discount', async (req: Request<Record<string, string>>, res: Response) => {
   const { code } = req.body
   if (!code) {
     const cart = await applyDiscountToCart(req.user!.memberId, null)
@@ -306,7 +316,7 @@ router.post('/cart/discount', async (req: Request, res: Response) => {
 router.post(
   '/orders',
   validateUser(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = OrderCreateSchema.parse(req.body)
     const cart = await getCart(req.user!.memberId)
     const hasUnavailableItem = (cart.items ?? []).some(
@@ -327,7 +337,7 @@ router.post(
 router.get(
   '/orders',
   validateUser(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const admin = isStoreAdmin(req)
     const filters = OrderFiltersSchema.parse(req.query)
     const result = await getOrders({
@@ -347,7 +357,7 @@ router.get(
 router.get(
   '/orders/:id',
   validateUser(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const order = await getOrderById(req.params.id)
     if (!order) return problem({ status: 404, detail: 'Order not found' })
 
@@ -362,7 +372,7 @@ router.get(
 router.put(
   '/orders/:id/status',
   validateUser(MIKPermissions.STORE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const status = OrderStatusEnum.parse(req.body.status)
     const order = await updateOrderStatus(req.params.id, status, req.user!)
     res.json(order)

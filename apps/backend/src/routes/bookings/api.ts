@@ -53,7 +53,7 @@ const isBookingAdmin = (user?: JWTUser): boolean =>
   user?.permissions?.includes(MIKPermissions.BOOKING_ADMIN) ?? false
 
 // Create a booking
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req: Request<Record<string, string>>, res: Response) => {
   const data = BookingUpsertSchema.parse(req.body)
 
   // only admin can create bookings for other members
@@ -137,7 +137,7 @@ router.get('/', async (req: Request<BookingFilters>, res: Response<BookingListRe
 
 // Get a booking by ID
 // Caution - KEEP THIS LASTin Get endpoints so that other paths are used first
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const { id } = req.params
 
   const booking = await getBookingById(id)
@@ -150,7 +150,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 
 const validateWriteAccess = (
   booking: Pick<Booking, 'memberId' | 'instructorMemberId'>,
-  req: Request,
+  req: Request<Record<string, string>>,
 ) => {
   // Check if the booking is owned by the user, user is the assigned instructor, or user is a booking admin
   const isOwner = booking.memberId === req.user?.memberId
@@ -235,7 +235,7 @@ const clearOverlappingBookings = async (
 }
 
 // Update a booking
-router.patch('/:id', async (req: Request, res: Response) => {
+router.patch('/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const bookingId = req.params.id
 
   const patch = BookingUpsertSchema.partial().parse(req.body)
@@ -300,7 +300,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
 })
 
 // Cancel a booking (legacy endpoint, no reason required)
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const bookingId = req.params.id
 
   const booking = await getBookingById(bookingId)
@@ -344,7 +344,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
 })
 
 // Cancel a booking with a reason
-router.post('/:id/cancel', async (req: Request, res: Response) => {
+router.post('/:id/cancel', async (req: Request<Record<string, string>>, res: Response) => {
   const bookingId = req.params.id
 
   const cancellation = CancellationRequestSchema.parse(req.body)
@@ -390,7 +390,7 @@ router.post('/:id/cancel', async (req: Request, res: Response) => {
 })
 
 // Transfer a booking to another member
-router.post('/:id/transfer', async (req: Request, res: Response) => {
+router.post('/:id/transfer', async (req: Request<Record<string, string>>, res: Response) => {
   const bookingId = req.params.id
 
   const { newMemberId } = TransferBookingSchema.parse(req.body)

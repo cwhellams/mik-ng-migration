@@ -123,7 +123,7 @@ async function processReceipt(
   }
 }
 
-async function requireClaimForUser(req: Request, claimId: string) {
+async function requireClaimForUser(req: Request<Record<string, string>>, claimId: string) {
   const claim = await getExpenseClaimById(claimId)
   if (!claim) {
     return problem({ status: HttpStatusCode.NotFound, detail: 'Expense claim not found' })
@@ -200,7 +200,7 @@ async function syncMemberIbanFromClaim(
 router.get(
   '/categories',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (_req: Request, res: Response) => {
+  async (_req: Request<Record<string, string>>, res: Response) => {
     res.status(HttpStatusCode.Ok).json(await getExpenseCategories())
   },
 )
@@ -208,7 +208,7 @@ router.get(
 router.get(
   '/fx-rate',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const { date, currency } = req.query
     if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return problem({ status: HttpStatusCode.BadRequest, detail: 'date must be YYYY-MM-DD' })
@@ -232,7 +232,7 @@ router.get(
 router.get(
   '/',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const filters = ExpenseClaimFiltersSchema.parse(req.query)
     res.status(HttpStatusCode.Ok).json(await getExpenseClaimsByMember(req.user!.memberId, filters))
   },
@@ -241,7 +241,7 @@ router.get(
 router.post(
   '/',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = CreateExpenseClaimSchema.parse(req.body)
     await validateCategoryRequirements({
       categoryId: data.categoryId,
@@ -269,7 +269,7 @@ router.post(
 router.get(
   '/admin/all',
   validateUser(MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const filters = ExpenseClaimFiltersSchema.parse(req.query)
     res.status(HttpStatusCode.Ok).json(await getAllExpenseClaims(filters))
   },
@@ -278,7 +278,7 @@ router.get(
 router.get(
   '/admin/pending/count',
   validateUser(MIKPermissions.EXPENSE_ADMIN),
-  async (_req: Request, res: Response) => {
+  async (_req: Request<Record<string, string>>, res: Response) => {
     res.status(HttpStatusCode.Ok).json({ count: await getPendingExpenseClaimsCount() })
   },
 )
@@ -286,7 +286,7 @@ router.get(
 router.get(
   '/:id',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     res.status(HttpStatusCode.Ok).json(await requireClaimForUser(req, req.params.id))
   },
 )
@@ -294,7 +294,7 @@ router.get(
 router.put(
   '/:id',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const existing = await requireClaimForUser(req, req.params.id)
     if (existing.memberId !== req.user!.memberId) {
       return problem({ status: HttpStatusCode.Forbidden, detail: 'Protected Content' })
@@ -323,7 +323,7 @@ router.put(
 router.delete(
   '/:id',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const claim = await requireClaimForUser(req, req.params.id)
     if (claim.memberId !== req.user!.memberId) {
       return problem({ status: HttpStatusCode.Forbidden, detail: 'Protected Content' })
@@ -343,7 +343,7 @@ router.delete(
 router.post(
   '/:id/submit',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const claim = await requireClaimForUser(req, req.params.id)
     if (claim.memberId !== req.user!.memberId) {
       return problem({ status: HttpStatusCode.Forbidden, detail: 'Protected Content' })
@@ -395,7 +395,7 @@ router.post(
 router.post(
   '/:id/retract',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const claim = await requireClaimForUser(req, req.params.id)
     if (claim.memberId !== req.user!.memberId) {
       return problem({ status: HttpStatusCode.Forbidden, detail: 'Protected Content' })
@@ -418,7 +418,7 @@ router.post(
   '/:id/receipt',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
   receiptUpload.single('file'),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     if (!req.file) {
       return problem({ status: HttpStatusCode.BadRequest, detail: 'No receipt uploaded' })
     }
@@ -477,7 +477,7 @@ router.post(
 router.delete(
   '/:id/receipt',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const claim = await requireClaimForUser(req, req.params.id)
     if (claim.memberId !== req.user!.memberId) {
       return problem({ status: HttpStatusCode.Forbidden, detail: 'Protected Content' })
@@ -502,7 +502,7 @@ router.delete(
 router.get(
   '/:id/receipt',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const claim = await requireClaimForUser(req, req.params.id)
     if (!claim.receipt?.storageKey) {
       return problem({ status: HttpStatusCode.NotFound, detail: 'No receipt found' })
@@ -515,7 +515,7 @@ router.get(
 router.post(
   '/:id/approve',
   validateUser(MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const claim = await requireClaimForUser(req, req.params.id)
     if (req.user!.memberId === claim.memberId) {
       return problem({
@@ -584,7 +584,7 @@ router.post(
 router.post(
   '/:id/reject',
   validateUser(MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const claim = await requireClaimForUser(req, req.params.id)
     if (![ExpenseClaimStatus.SUBMITTED, ExpenseClaimStatus.PENDING_INFO].includes(claim.status)) {
       return problem({ status: HttpStatusCode.Conflict, detail: 'Claim is not awaiting approval.' })
@@ -613,7 +613,7 @@ router.post(
 router.post(
   '/:id/override-fuel-price',
   validateUser(MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const claim = await requireClaimForUser(req, req.params.id)
     if (claim.categoryCode !== 'fuel') {
       return problem({
@@ -641,7 +641,7 @@ router.post(
 router.post(
   '/:id/request-info',
   validateUser(MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const claim = await requireClaimForUser(req, req.params.id)
     if (![ExpenseClaimStatus.SUBMITTED, ExpenseClaimStatus.PENDING_INFO].includes(claim.status)) {
       return problem({ status: HttpStatusCode.Conflict, detail: 'Claim is not awaiting review.' })
@@ -679,7 +679,7 @@ router.post(
 router.post(
   '/:id/set-draft',
   validateUser(MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const claim = await requireClaimForUser(req, req.params.id)
     const allowedStatuses = [
       ExpenseClaimStatus.SUBMITTED,

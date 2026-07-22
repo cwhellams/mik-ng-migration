@@ -67,57 +67,60 @@ router.use(
   ),
 )
 
-router.get('/', async (req: Request, res: Response<InvoiceListResponse>) => {
-  const parsed = InvoiceItemQuerySchema.safeParse(req.query)
+router.get(
+  '/',
+  async (req: Request<Record<string, string>>, res: Response<InvoiceListResponse>) => {
+    const parsed = InvoiceItemQuerySchema.safeParse(req.query)
 
-  if (!parsed.success) {
-    const errors = parsed.error.issues.map((issue) => ({
-      path: issue.path.join('.'),
-      message: issue.message,
-      code: issue.code,
+    if (!parsed.success) {
+      const errors = parsed.error.issues.map((issue) => ({
+        path: issue.path.join('.'),
+        message: issue.message,
+        code: issue.code,
+      }))
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Unable to parse query filter, search criteria are invalid.',
+        extensions: {
+          errors,
+        },
+      })
+    }
+
+    const filters: InvoiceItemQueryParams = parsed.data
+    const isAdmin = req.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
+    const rawItems = await getInvoices(req.user?.memberId!, isAdmin, filters)
+
+    logger.info(`Fetched ${rawItems.length} invoices with filters: ${JSON.stringify(filters)}`)
+    const invoices: Invoice[] = rawItems.map((row) => ({
+      id: String(row.id),
+      created_at: row.created_at ? new Date(row.created_at as any).toISOString() : '',
+      created_by: row.created_by,
+      currency: row.currency === null ? null : String(row.currency),
+      description: row.description,
+      due_at: new Date(row.due_at as any).toISOString().split('T')[0],
+      invoice_type: row.invoice_type as any,
+      is_paid: row.is_paid === null ? null : Boolean(row.is_paid),
+      member_id: row.member_id,
+      paid_at: row.paid_at ? new Date(row.paid_at as any).toISOString() : null,
+      pmt_ref: row.pmt_ref,
+      sent_at: row.sent_at ? new Date(row.sent_at as any).toISOString().split('T')[0] : null,
+      total_sum: row.total_sum === null ? null : String(row.total_sum),
+      updated_at: row.updated_at ? new Date(row.updated_at as any).toISOString() : '',
+      updated_by: row.updated_by,
     }))
-    return problem({
-      status: HttpStatusCode.BadRequest,
-      detail: 'Unable to parse query filter, search criteria are invalid.',
-      extensions: {
-        errors,
-      },
-    })
-  }
 
-  const filters: InvoiceItemQueryParams = parsed.data
-  const isAdmin = req.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
-  const rawItems = await getInvoices(req.user?.memberId!, isAdmin, filters)
+    const response: InvoiceListResponse = {
+      invoices,
+    }
 
-  logger.info(`Fetched ${rawItems.length} invoices with filters: ${JSON.stringify(filters)}`)
-  const invoices: Invoice[] = rawItems.map((row) => ({
-    id: String(row.id),
-    created_at: row.created_at ? new Date(row.created_at as any).toISOString() : '',
-    created_by: row.created_by,
-    currency: row.currency === null ? null : String(row.currency),
-    description: row.description,
-    due_at: new Date(row.due_at as any).toISOString().split('T')[0],
-    invoice_type: row.invoice_type as any,
-    is_paid: row.is_paid === null ? null : Boolean(row.is_paid),
-    member_id: row.member_id,
-    paid_at: row.paid_at ? new Date(row.paid_at as any).toISOString() : null,
-    pmt_ref: row.pmt_ref,
-    sent_at: row.sent_at ? new Date(row.sent_at as any).toISOString().split('T')[0] : null,
-    total_sum: row.total_sum === null ? null : String(row.total_sum),
-    updated_at: row.updated_at ? new Date(row.updated_at as any).toISOString() : '',
-    updated_by: row.updated_by,
-  }))
-
-  const response: InvoiceListResponse = {
-    invoices,
-  }
-
-  res.status(200).json(response)
-})
+    res.status(200).json(response)
+  },
+)
 
 router.get(
   '/unpaid-overdue',
-  async (req: Request, res: Response<UnpaidOverdueInvoiceListResponse>) => {
+  async (req: Request<Record<string, string>>, res: Response<UnpaidOverdueInvoiceListResponse>) => {
     const invoices = await getUnpaidOverdueInvoicesWithMemberInfo()
 
     const totalSum = invoices
@@ -136,7 +139,7 @@ router.get(
 router.get(
   '/flights',
   validateUser(MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response<InvoicableFlightListResponse>) => {
+  async (req: Request<Record<string, string>>, res: Response<InvoicableFlightListResponse>) => {
     const data = InvoicableFlightFiltersSchema.parse(req.query)
 
     const response = await getInvoicableFlights(data)
@@ -147,7 +150,7 @@ router.get(
 router.get(
   '/flights/prepaid-summary',
   validateUser(MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response<PrepaidFlightSummaryResponse>) => {
+  async (req: Request<Record<string, string>>, res: Response<PrepaidFlightSummaryResponse>) => {
     const data = InvoiceFlightsSchema.parse(req.query)
 
     const response = await getInvoicableFlights({
@@ -167,7 +170,7 @@ router.get(
 router.post(
   '/flights',
   validateUser(MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = InvoiceFlightsSchema.parse(req.body)
 
     const response = await getInvoicableFlights({
@@ -196,7 +199,7 @@ router.post(
 router.get(
   '/flights/:flightId/credit',
   validateUser(MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const { flightId } = req.params
     const credit = await getFlightCredit(flightId)
     res.status(200).json(credit ?? null)
@@ -206,7 +209,7 @@ router.get(
 router.put(
   '/flights/:flightId/credit',
   validateUser(MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const { flightId } = req.params
     const parsed = FlightCreditSchema.safeParse({ flightId, ...req.body })
     if (!parsed.success) {
@@ -246,33 +249,39 @@ router.put(
   },
 )
 
-router.patch('/items/refresh', async (req: Request, res: Response<ItemListResponse>) => {
-  const simplbooksItems = await getItems()
-  await upsertInvoiceItems(simplbooksItems)
+router.patch(
+  '/items/refresh',
+  async (req: Request<Record<string, string>>, res: Response<ItemListResponse>) => {
+    const simplbooksItems = await getItems()
+    await upsertInvoiceItems(simplbooksItems)
 
-  const invoiceItems = await getInvoiceItems()
+    const invoiceItems = await getInvoiceItems()
 
-  const items = invoiceItems
-    .map(mapInvoiceItemRowToItem)
-    .filter((item): item is Item => item !== null)
+    const items = invoiceItems
+      .map(mapInvoiceItemRowToItem)
+      .filter((item): item is Item => item !== null)
 
-  res.status(HttpStatusCode.Ok).json({ items })
-})
+    res.status(HttpStatusCode.Ok).json({ items })
+  },
+)
 
-router.get('/items', async (req: Request, res: Response<ItemListResponse>) => {
-  const invoiceItems = await getInvoiceItems()
+router.get(
+  '/items',
+  async (req: Request<Record<string, string>>, res: Response<ItemListResponse>) => {
+    const invoiceItems = await getInvoiceItems()
 
-  const items = invoiceItems
-    .map(mapInvoiceItemRowToItem)
-    .filter((item): item is Item => item !== null)
+    const items = invoiceItems
+      .map(mapInvoiceItemRowToItem)
+      .filter((item): item is Item => item !== null)
 
-  res.status(HttpStatusCode.Ok).json({ items })
-})
+    res.status(HttpStatusCode.Ok).json({ items })
+  },
+)
 
 router.patch(
   '/items/:id/expense-claim-item',
   validateUser(MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response<ItemListResponse>) => {
+  async (req: Request<Record<string, string>>, res: Response<ItemListResponse>) => {
     const id = Number(req.params.id)
     if (!Number.isInteger(id) || id < 1) {
       return problem({
@@ -296,7 +305,7 @@ router.patch(
 router.patch(
   '/items/:id/is-fuel-item',
   validateUser(MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response<ItemListResponse>) => {
+  async (req: Request<Record<string, string>>, res: Response<ItemListResponse>) => {
     const id = Number(req.params.id)
     if (!Number.isInteger(id) || id < 1) {
       return problem({
@@ -320,7 +329,7 @@ router.patch(
 router.patch(
   '/items/:id/is-km-item',
   validateUser(MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response<ItemListResponse>) => {
+  async (req: Request<Record<string, string>>, res: Response<ItemListResponse>) => {
     const id = Number(req.params.id)
     if (!Number.isInteger(id) || id < 1) {
       return problem({
@@ -344,7 +353,7 @@ router.patch(
 router.patch(
   '/items/:id/is-other-item',
   validateUser(MIKPermissions.INVOICING_ADMIN),
-  async (req: Request, res: Response<ItemListResponse>) => {
+  async (req: Request<Record<string, string>>, res: Response<ItemListResponse>) => {
     const id = Number(req.params.id)
     if (!Number.isInteger(id) || id < 1) {
       return problem({
@@ -367,7 +376,7 @@ router.patch(
 
 router.get(
   '/annualMembershipBillingRuns',
-  async (req: Request, res: Response<RecurringFeesProcessing[]>) => {
+  async (req: Request<Record<string, string>>, res: Response<RecurringFeesProcessing[]>) => {
     const isAdmin = req!.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
 
     if (!isAdmin) {
@@ -389,14 +398,17 @@ router.get(
     }
   },
 )
-router.get('/annualEquipmentFee', async (req: Request, res: Response<EquipmentFee | undefined>) => {
-  const kalustomaksu = await getAnnualEquipmmentFee()
-  res.status(HttpStatusCode.Ok).json(kalustomaksu)
-})
+router.get(
+  '/annualEquipmentFee',
+  async (req: Request<Record<string, string>>, res: Response<EquipmentFee | undefined>) => {
+    const kalustomaksu = await getAnnualEquipmmentFee()
+    res.status(HttpStatusCode.Ok).json(kalustomaksu)
+  },
+)
 
 router.post(
   '/triggerAnnualMembershipBillingProcess/',
-  async (req: Request, res: Response<AnnualBillingResponse>) => {
+  async (req: Request<Record<string, string>>, res: Response<AnnualBillingResponse>) => {
     logger.info('Annual membership processing triggered.')
 
     const result = await createAnnualMemberFeesForMembers(req.user!.memberId).catch((error) => {
@@ -411,18 +423,21 @@ router.post(
   },
 )
 
-router.post('/requestOwnEquipmentFeeInvoice', async (req: Request, res: Response) => {
-  const result = await createAnnualEquipmentFeeForMember(req.user!.memberId).catch((error) => {
-    logger.error('Error during equipment fee invoice processing:', error)
-    res.status(HttpStatusCode.BadRequest).json({
-      detail: error.message,
+router.post(
+  '/requestOwnEquipmentFeeInvoice',
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const result = await createAnnualEquipmentFeeForMember(req.user!.memberId).catch((error) => {
+      logger.error('Error during equipment fee invoice processing:', error)
+      res.status(HttpStatusCode.BadRequest).json({
+        detail: error.message,
+      })
     })
-  })
 
-  res.status(HttpStatusCode.Ok).json(result)
-})
+    res.status(HttpStatusCode.Ok).json(result)
+  },
+)
 
-router.get('/equipmentFeeStatus', async (req: Request, res: Response) => {
+router.get('/equipmentFeeStatus', async (req: Request<Record<string, string>>, res: Response) => {
   const currentYear = new Date().getFullYear()
   const hasPaid = await hasRequestedEquipmentFee(currentYear, req.user!.memberId)
 
@@ -432,28 +447,31 @@ router.get('/equipmentFeeStatus', async (req: Request, res: Response) => {
   })
 })
 
-router.post('/sendEquipmentFeeInvoiceToMember', async (req: Request, res: Response) => {
-  const isAdmin = req.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
-  const { memberId } = req.body
+router.post(
+  '/sendEquipmentFeeInvoiceToMember',
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const isAdmin = req.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
+    const { memberId } = req.body
 
-  if (isAdmin) {
-    const result = await createAnnualEquipmentFeeForMember(memberId).catch((error) => {
-      logger.error('Error during equipment fee invoice processing:', error)
-      res.status(HttpStatusCode.BadRequest).json({
-        detail: error.message,
+    if (isAdmin) {
+      const result = await createAnnualEquipmentFeeForMember(memberId).catch((error) => {
+        logger.error('Error during equipment fee invoice processing:', error)
+        res.status(HttpStatusCode.BadRequest).json({
+          detail: error.message,
+        })
       })
-    })
 
-    res.status(HttpStatusCode.Ok).json(result)
-  } else {
-    return problem({
-      status: HttpStatusCode.Forbidden,
-      detail: 'User does not have permission to request equipment fee invoice for other members.',
-    })
-  }
-})
+      res.status(HttpStatusCode.Ok).json(result)
+    } else {
+      return problem({
+        status: HttpStatusCode.Forbidden,
+        detail: 'User does not have permission to request equipment fee invoice for other members.',
+      })
+    }
+  },
+)
 
-router.get('/:invoiceId/pdf', async (req: Request, res: Response) => {
+router.get('/:invoiceId/pdf', async (req: Request<Record<string, string>>, res: Response) => {
   const { invoiceId } = req.params
   const isAdmin = req.user!.permissions.includes(MIKPermissions.INVOICING_ADMIN)
 

@@ -63,15 +63,18 @@ const anonymize = (occurrence: Occurrence) => {
   }
 }
 
-router.get('/:reportId', async (req: Request, res: Response<Occurrence | undefined>) => {
-  const { reportId } = req.params
+router.get(
+  '/:reportId',
+  async (req: Request<Record<string, string>>, res: Response<Occurrence | undefined>) => {
+    const { reportId } = req.params
 
-  const occurrence = await getOccurrence(reportId, accessFilters(req.user!), 'read')
-  if (!occurrence || occurrence.status === OccurrenceStatus.DELETED) {
-    return problem({ status: 404, detail: 'Report not found' })
-  }
-  res.status(200).json(anonymize(occurrence))
-})
+    const occurrence = await getOccurrence(reportId, accessFilters(req.user!), 'read')
+    if (!occurrence || occurrence.status === OccurrenceStatus.DELETED) {
+      return problem({ status: 404, detail: 'Report not found' })
+    }
+    res.status(200).json(anonymize(occurrence))
+  },
+)
 
 const accessFilters = (user: JWTUser) => {
   const isAdmin =
@@ -100,7 +103,7 @@ router.get('/', async (req: Request<OccurrenceFilters>, res: Response<Occurrence
   res.status(200).json({ occurrences: occurrences.map(anonymize) })
 })
 
-router.post('/', async (req: Request, res: Response<Occurrence>) => {
+router.post('/', async (req: Request<Record<string, string>>, res: Response<Occurrence>) => {
   const now = dayjs().set('millisecond', 0)
   const occurrence = OccurrenceUpsertSchema.strip().parse(req.body)
 

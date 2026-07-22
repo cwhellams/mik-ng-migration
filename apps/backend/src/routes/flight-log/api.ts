@@ -56,7 +56,7 @@ const isFlightLogAdmin = (user?: JWTUser): boolean =>
   user?.permissions?.includes(MIKPermissions.FLIGHTLOG_ADMIN) ?? false
 
 // Get flight log total times by registraion
-router.get('/airfields', async (req: Request, res: Response) => {
+router.get('/airfields', async (req: Request<Record<string, string>>, res: Response) => {
   const reg = req.params.registration
   const airfields = await getAirfields(reg)
   if (airfields.length === 0) {
@@ -66,7 +66,7 @@ router.get('/airfields', async (req: Request, res: Response) => {
 })
 
 // Create a flight log
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req: Request<Record<string, string>>, res: Response) => {
   const isAdmin = isFlightLogAdmin(req.user)
   if (isAdmin) {
     const enableFullData = req.headers['x-mik-migration'] === 'true'
@@ -173,7 +173,7 @@ router.get(
 )
 
 // Get flight log total times by registration
-router.get('/totals', async (req: Request, res: Response) => {
+router.get('/totals', async (req: Request<Record<string, string>>, res: Response) => {
   const totals = await getFlightLogTotals()
 
   if (totals.length === 0) {
@@ -183,7 +183,7 @@ router.get('/totals', async (req: Request, res: Response) => {
 })
 
 // Get flight log total times by registraion
-router.get('/:registration/totals', async (req: Request, res: Response) => {
+router.get('/:registration/totals', async (req: Request<Record<string, string>>, res: Response) => {
   const reg = req.params.registration
   const totals = await getFlightLogTotals(reg)
   if (totals.length === 0) {
@@ -193,7 +193,7 @@ router.get('/:registration/totals', async (req: Request, res: Response) => {
 })
 
 // GET /export/count — returns { count: N } for filter preview
-router.get('/export/count', async (req: Request, res: Response) => {
+router.get('/export/count', async (req: Request<Record<string, string>>, res: Response) => {
   const filters = FlightLogExportFiltersSchema.parse(req.query)
   const memberId = isFlightLogAdmin(req.user) ? undefined : req.user!.memberId
   const count = await countFlightLogsForExport(filters, memberId)
@@ -203,7 +203,7 @@ router.get('/export/count', async (req: Request, res: Response) => {
 const MAX_EXPORT_ROWS = 10_000
 
 // GET /export — streams a CSV or PDF file download
-router.get('/export', async (req: Request, res: Response) => {
+router.get('/export', async (req: Request<Record<string, string>>, res: Response) => {
   const { format = FlightLogExportFormat.CSV, ...rest } = FlightLogExportFiltersSchema.parse(
     req.query,
   )
@@ -241,7 +241,7 @@ router.get('/export', async (req: Request, res: Response) => {
 
 // Get a flight log by ID
 // Caution - KEEP THIS LAST in Get endpoints so that other paths are used first
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const { id } = req.params
 
   const flight = await getReadableFlight(id, req)
@@ -272,7 +272,7 @@ const getAjlb = async (registration: string) => {
 
 const getValidPatchForUpdate = async (
   flight: FlightLog,
-  req: Request,
+  req: Request<Record<string, string>>,
 ): Promise<Partial<FlightLogUpsertRequest>> => {
   const admin = isFlightLogAdmin(req.user)
 
@@ -320,7 +320,7 @@ const getValidPatchForUpdate = async (
 }
 
 // Update a flight log
-router.patch('/:id', async (req: Request, res: Response) => {
+router.patch('/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const flightId = req.params.id
 
   const flight = await getReadableFlight(flightId, req)
@@ -352,7 +352,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
 router.post(
   '/:id/validate',
   validateUser(MIKPermissions.FLIGHTLOG_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const flightId = req.params.id
 
     const { revert } = FlightLogValidationRequestSchema.parse(req.body ?? {})
@@ -421,7 +421,7 @@ router.post(
 )
 
 // Delete a flight log
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const flightId = req.params.id
 
   const flight = await getReadableFlight(flightId, req)

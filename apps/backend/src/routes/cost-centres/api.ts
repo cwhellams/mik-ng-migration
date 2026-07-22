@@ -22,7 +22,7 @@ const CostCentreBodySchema = z.object({
 router.get(
   '/',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
-  async (_req: Request, res: Response) => {
+  async (_req: Request<Record<string, string>>, res: Response) => {
     res.json(await getCostCentres())
   },
 )
@@ -31,7 +31,7 @@ router.get(
 router.post(
   '/',
   validateUser(MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const { code, description } = CostCentreBodySchema.parse(req.body)
     const existing = await getCostCentres()
     if (existing.some((c) => c.code === code)) {
@@ -49,7 +49,7 @@ router.post(
 router.put(
   '/:code',
   validateUser(MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const { description } = z.object({ description: z.string().min(1).max(200) }).parse(req.body)
     const updated = await updateCostCentre(req.params.code, description)
     if (!updated) {
@@ -63,7 +63,7 @@ router.put(
 router.delete(
   '/:code',
   validateUser(MIKPermissions.EXPENSE_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const deleted = await deleteCostCentre(req.params.code)
     if (!deleted) {
       return problem({ status: HttpStatusCode.NotFound, detail: 'Cost centre not found.' })

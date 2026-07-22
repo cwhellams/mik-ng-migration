@@ -49,7 +49,7 @@ const validateItemRefs = async (data: {
 // Locations
 // ─────────────────────────────────────────────────────────────────────────────
 
-router.get('/locations', async (req: Request, res: Response) => {
+router.get('/locations', async (req: Request<Record<string, string>>, res: Response) => {
   const admin = isInventoryAdmin(req)
   const locations = await getLocations(!admin)
   res.json(locations)
@@ -58,7 +58,7 @@ router.get('/locations', async (req: Request, res: Response) => {
 router.post(
   '/locations',
   validateUser(MIKPermissions.INVENTORY_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = InventoryLocationUpsertSchema.parse(req.body)
     const location = await upsertLocation(data, req.user!)
     res.status(HttpStatusCode.Created).json(location)
@@ -68,7 +68,7 @@ router.post(
 router.put(
   '/locations/:id',
   validateUser(MIKPermissions.INVENTORY_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const existing = await getLocationById(req.params.id)
     if (!existing) return problem({ status: 404, detail: 'Location not found' })
 
@@ -84,7 +84,7 @@ router.put(
 router.delete(
   '/locations/:id',
   validateUser(MIKPermissions.INVENTORY_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const existing = await getLocationById(req.params.id)
     if (!existing) return problem({ status: 404, detail: 'Location not found' })
 
@@ -97,7 +97,7 @@ router.delete(
 // Categories
 // ─────────────────────────────────────────────────────────────────────────────
 
-router.get('/categories', async (req: Request, res: Response) => {
+router.get('/categories', async (req: Request<Record<string, string>>, res: Response) => {
   const admin = isInventoryAdmin(req)
   const categories = await getCategories(!admin)
   res.json(categories)
@@ -106,7 +106,7 @@ router.get('/categories', async (req: Request, res: Response) => {
 router.post(
   '/categories',
   validateUser(MIKPermissions.INVENTORY_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = InventoryCategoryUpsertSchema.parse(req.body)
     const category = await upsertCategory(data, req.user!)
     res.status(HttpStatusCode.Created).json(category)
@@ -116,7 +116,7 @@ router.post(
 router.put(
   '/categories/:id',
   validateUser(MIKPermissions.INVENTORY_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const existing = await getCategoryById(req.params.id)
     if (!existing) return problem({ status: 404, detail: 'Category not found' })
 
@@ -133,7 +133,7 @@ router.put(
 // Items
 // ─────────────────────────────────────────────────────────────────────────────
 
-router.get('/items', async (req: Request, res: Response) => {
+router.get('/items', async (req: Request<Record<string, string>>, res: Response) => {
   const admin = isInventoryAdmin(req)
   const filters = InventoryFiltersSchema.parse({
     ...req.query,
@@ -146,7 +146,7 @@ router.get('/items', async (req: Request, res: Response) => {
 router.post(
   '/items',
   validateUser(MIKPermissions.INVENTORY_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const data = InventoryItemUpsertSchema.parse(req.body)
     const refError = await validateItemRefs(data)
     if (refError) return problem({ status: 400, detail: refError })
@@ -155,7 +155,7 @@ router.post(
   },
 )
 
-router.get('/items/:id', async (req: Request, res: Response) => {
+router.get('/items/:id', async (req: Request<Record<string, string>>, res: Response) => {
   const admin = isInventoryAdmin(req)
   const item = await getItemById(req.params.id)
   // Non-admins must not be able to fetch soft-deleted items directly, matching
@@ -172,7 +172,7 @@ router.get('/items/:id', async (req: Request, res: Response) => {
 router.put(
   '/items/:id',
   validateUser(MIKPermissions.INVENTORY_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const existing = await getItemById(req.params.id)
     if (!existing) return problem({ status: 404, detail: 'Item not found' })
 
@@ -190,7 +190,7 @@ router.put(
 router.delete(
   '/items/:id',
   validateUser(MIKPermissions.INVENTORY_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const existing = await getItemById(req.params.id)
     if (!existing) return problem({ status: 404, detail: 'Item not found' })
 
@@ -202,7 +202,7 @@ router.delete(
 router.post(
   '/items/:id/adjust-quantity',
   validateUser(MIKPermissions.INVENTORY_ADMIN),
-  async (req: Request, res: Response) => {
+  async (req: Request<Record<string, string>>, res: Response) => {
     const existing = await getItemById(req.params.id)
     if (!existing) return problem({ status: 404, detail: 'Item not found' })
 
