@@ -83,6 +83,7 @@ const Register = () => {
     lastName: '',
 
     phoneNumber: '',
+    phoneCountry: 'FI',
     postcode: '',
     streetAddress: '',
     townCity: '',
@@ -307,6 +308,8 @@ const Register = () => {
               label={t('member.phone')}
               value={member.phoneNumber ?? ''}
               onChange={(value) => setMember({ ...member, phoneNumber: value })}
+              countryCode={member.phoneCountry}
+              onCountryCodeChange={(code) => setMember({ ...member, phoneCountry: code })}
               fullWidth
               required
             />

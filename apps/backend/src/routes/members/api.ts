@@ -278,6 +278,7 @@ const MUST_UPDATE_PROFILE_REVIEW_FIELDS = [
   'firstName',
   'lastName',
   'phoneNumber',
+  'phoneCountry',
   'streetAddress',
   'postcode',
   'townCity',

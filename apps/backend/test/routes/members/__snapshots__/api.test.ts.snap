@@ -403,6 +403,7 @@ exports[`GET /members/id Get member details as an admin 1`] = `
   "iban": null,
   "ibanAccountName": null,
   "iceContactName": null,
+  "iceContactPhoneCountry": "FI",
   "iceContactPhoneNumber": null,
   "imDiscord": null,
   "imFacebookMessenger": null,
@@ -424,6 +425,7 @@ exports[`GET /members/id Get member details as an admin 1`] = `
   "memberSince": Any<String>,
   "memberType": "SYSTEM",
   "mustUpdateProfile": false,
+  "phoneCountry": "FI",
   "phoneNumber": null,
   "postcode": null,
   "roles": [
@@ -482,6 +484,7 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
   "iban": null,
   "ibanAccountName": null,
   "iceContactName": "Liisa Virtanen",
+  "iceContactPhoneCountry": "FI",
   "iceContactPhoneNumber": "0407654321",
   "imDiscord": null,
   "imFacebookMessenger": null,
@@ -506,6 +509,7 @@ exports[`GET /members/me should return 200 with valid token for user 1`] = `
   "membershipApprovedAt": Any<String>,
   "membershipApprovedBy": "Matti1",
   "mustUpdateProfile": false,
+  "phoneCountry": "FI",
   "phoneNumber": "0401234567",
   "postcode": "00100",
   "roles": [
@@ -614,6 +618,7 @@ exports[`GET /members/me should return 200 with valid token for user 2`] = `
   "iban": null,
   "ibanAccountName": null,
   "iceContactName": null,
+  "iceContactPhoneCountry": "FI",
   "iceContactPhoneNumber": null,
   "imDiscord": null,
   "imFacebookMessenger": null,
@@ -635,6 +640,7 @@ exports[`GET /members/me should return 200 with valid token for user 2`] = `
   "memberSince": Any<String>,
   "memberType": "SYSTEM",
   "mustUpdateProfile": false,
+  "phoneCountry": "FI",
   "phoneNumber": null,
   "postcode": null,
   "roles": [
@@ -693,6 +699,7 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
   "iban": null,
   "ibanAccountName": null,
   "iceContactName": "Matti Korhonen",
+  "iceContactPhoneCountry": "FI",
   "iceContactPhoneNumber": "0418765432",
   "imDiscord": null,
   "imFacebookMessenger": null,
@@ -717,6 +724,7 @@ exports[`GET /members/me should return 200 with valid token for user 3`] = `
   "membershipApprovedAt": Any<String>,
   "membershipApprovedBy": "Matti1",
   "mustUpdateProfile": false,
+  "phoneCountry": "FI",
   "phoneNumber": "0412345678",
   "postcode": "02100",
   "roles": [

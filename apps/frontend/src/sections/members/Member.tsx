@@ -204,6 +204,7 @@ const MemberProfile = () => {
     lastName,
     //roles,
     phoneNumber,
+    phoneCountry,
     streetAddress,
     postcode,
     townCity,
@@ -211,6 +212,7 @@ const MemberProfile = () => {
     dateOfBirth,
     iceContactName,
     iceContactPhoneNumber,
+    iceContactPhoneCountry,
     imWhatsapp,
     imTelegram,
     imFacebookMessenger,
@@ -414,7 +416,7 @@ const MemberProfile = () => {
                   </FormField>
 
                   <FormField label={t('member.phone')} width={100}>
-                    {phoneNumber ? formatPhoneNumber(phoneNumber) : 'N/A'}
+                    {phoneNumber ? formatPhoneNumber(phoneNumber, phoneCountry) : 'N/A'}
                   </FormField>
 
                   <FormField label={t('member.address')} width={100}>
@@ -455,7 +457,9 @@ const MemberProfile = () => {
                   <FormField label={t('member.iceContact')}>{iceContactName || 'N/A'}</FormField>
 
                   <FormField label={t('member.icePhone')}>
-                    {iceContactPhoneNumber ? formatPhoneNumber(iceContactPhoneNumber) : 'N/A'}
+                    {iceContactPhoneNumber
+                      ? formatPhoneNumber(iceContactPhoneNumber, iceContactPhoneCountry)
+                      : 'N/A'}
                   </FormField>
                 </Stack>
               </CardContent>

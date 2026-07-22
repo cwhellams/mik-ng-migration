@@ -300,6 +300,8 @@ export const MemberSchema = AuditableSchema.extend({
   lastName: z.string(),
 
   phoneNumber: z.string().nullish(),
+  /** ISO 3166-1 alpha-2 country selected alongside phoneNumber — dial codes like +44 are ambiguous on their own. */
+  phoneCountry: z.string().length(2).nullish(),
   streetAddress: z.string().nullish(),
   postcode: z.string().nullish(),
   townCity: z.string().nullish(),
@@ -308,6 +310,7 @@ export const MemberSchema = AuditableSchema.extend({
 
   iceContactName: z.string().nullish(),
   iceContactPhoneNumber: z.string().nullish(),
+  iceContactPhoneCountry: z.string().length(2).nullish(),
 
   imWhatsapp: z.string().nullish(),
   imTelegram: z.string().nullish(),
@@ -366,6 +369,7 @@ export const MemberProfileSchema = MemberSchema.pick({
   lastName: true,
 
   phoneNumber: true,
+  phoneCountry: true,
   streetAddress: true,
   postcode: true,
   townCity: true,
@@ -373,6 +377,7 @@ export const MemberProfileSchema = MemberSchema.pick({
 
   iceContactName: true,
   iceContactPhoneNumber: true,
+  iceContactPhoneCountry: true,
 
   imWhatsapp: true,
   imTelegram: true,
@@ -405,6 +410,11 @@ export const MemberProfileSchema = MemberSchema.pick({
       .string()
       .regex(/^\+[0-9\s\-()]+$/, 'member.phoneRequiresCorrectFormatting')
       .nullish(),
+  ),
+  phoneCountry: z.preprocess((v) => (v === '' ? null : v), z.string().length(2).nullish()),
+  iceContactPhoneCountry: z.preprocess(
+    (v) => (v === '' ? null : v),
+    z.string().length(2).nullish(),
   ),
 })
 

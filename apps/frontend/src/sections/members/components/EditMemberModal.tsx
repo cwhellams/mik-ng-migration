@@ -80,6 +80,7 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
         lastName: '',
         email: '',
         phoneNumber: '',
+        phoneCountry: 'FI',
         streetAddress: '',
         postcode: '',
         townCity: '',
@@ -92,6 +93,7 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           firstName: memberData.firstName,
           lastName: memberData.lastName,
           phoneNumber: memberData.phoneNumber || '',
+          phoneCountry: memberData.phoneCountry ?? undefined,
           streetAddress: memberData.streetAddress || '',
           postcode: memberData.postcode || '',
           townCity: memberData.townCity || '',
@@ -109,6 +111,7 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
         setFormData({
           iceContactName: memberData.iceContactName || '',
           iceContactPhoneNumber: memberData.iceContactPhoneNumber || '',
+          iceContactPhoneCountry: memberData.iceContactPhoneCountry ?? undefined,
         })
       } else if (mode === 'instantMessaging') {
         setFormData({
@@ -236,6 +239,8 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           label={t('member.phone')}
           value={formData.phoneNumber || ''}
           onChange={(value) => setFormData((prev) => ({ ...prev, phoneNumber: value }))}
+          countryCode={formData.phoneCountry}
+          onCountryCodeChange={(code) => setFormData((prev) => ({ ...prev, phoneCountry: code }))}
         />
       </Grid>
       {formData.memberType !== MIKMemberTypes.EXTERNAL && (
@@ -302,6 +307,8 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           label={t('member.phone')}
           value={formData.phoneNumber || ''}
           onChange={(value) => setFormData((prev) => ({ ...prev, phoneNumber: value }))}
+          countryCode={formData.phoneCountry}
+          onCountryCodeChange={(code) => setFormData((prev) => ({ ...prev, phoneCountry: code }))}
         />
       </Grid>
       <Grid size={12}>
@@ -403,6 +410,10 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           label={t('member.icePhone')}
           value={formData.iceContactPhoneNumber || ''}
           onChange={(value) => setFormData((prev) => ({ ...prev, iceContactPhoneNumber: value }))}
+          countryCode={formData.iceContactPhoneCountry}
+          onCountryCodeChange={(code) =>
+            setFormData((prev) => ({ ...prev, iceContactPhoneCountry: code }))
+          }
         />
       </Grid>
     </Grid>

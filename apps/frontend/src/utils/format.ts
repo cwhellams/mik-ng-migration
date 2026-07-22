@@ -1,53 +1,11 @@
-export function formatPhoneNumber(phone: string): string {
-  if (!phone) return ''
+import { formatFullPhoneNumber } from '../data/callingCodes'
 
-  // Remove all non-digit and non-plus characters
-  const cleaned = phone.replace(/[^\d+]/g, '')
-
-  // Check if it starts with a country code
-  if (cleaned.startsWith('+358')) {
-    // Finnish number with country code: +358 XX XXX XXXX
-    const digits = cleaned.substring(4)
-    if (digits.length >= 2) {
-      return cleaned.replace(/^\+358(\d{2})(\d{0,3})(\d{0,4})/, (_, p1, p2, p3) => {
-        let formatted = '+358 ' + p1
-        if (p2) formatted += ' ' + p2
-        if (p3) formatted += ' ' + p3
-        return formatted
-      })
-    }
-    return cleaned
-  } else if (cleaned.startsWith('+46') || cleaned.startsWith('+47') || cleaned.startsWith('+45')) {
-    // Nordic countries: +XX XX XXX XXX
-    if (cleaned.length >= 5) {
-      return cleaned.replace(/^(\+\d{2})(\d{2})(\d{0,3})(\d{0,3})/, (_, c, p1, p2, p3) => {
-        let formatted = c + ' ' + p1
-        if (p2) formatted += ' ' + p2
-        if (p3) formatted += ' ' + p3
-        return formatted
-      })
-    }
-    return cleaned
-  } else if (cleaned.startsWith('+')) {
-    // Other international numbers: +XXX XXX XXX XXXX
-    return cleaned.replace(/^(\+\d{1,3})(\d{0,3})(\d{0,3})(\d{0,4})/, (_, c, p1, p2, p3) => {
-      let formatted = c
-      if (p1) formatted += ' ' + p1
-      if (p2) formatted += ' ' + p2
-      if (p3) formatted += ' ' + p3
-      return formatted
-    })
-  } else if (cleaned.startsWith('0')) {
-    // Legacy Finnish format without country code: 0XX XXX XXXX
-    return cleaned.replace(/^0(\d{2})(\d{0,3})(\d{0,4})/, (_, p1, p2, p3) => {
-      let formatted = '0' + p1
-      if (p2) formatted += ' ' + p2
-      if (p3) formatted += ' ' + p3
-      return formatted
-    })
-  }
-
-  return phone
+// countryCode (ISO 3166-1 alpha-2) is optional — pass it when available (e.g.
+// member.phoneCountry) since dial codes alone are ambiguous (e.g. +44 is shared by the
+// UK, Guernsey, Isle of Man and Jersey). Without it, the country is guessed from the
+// dial code prefix.
+export function formatPhoneNumber(phone: string, countryCode?: string | null): string {
+  return formatFullPhoneNumber(phone.replace(/[^\d+]/g, ''), countryCode)
 }
 
 // Legacy function kept for backward compatibility

@@ -62,6 +62,7 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     lastName: member.last_name,
 
     phoneNumber: member.phone_number,
+    phoneCountry: member.phone_country,
     postcode: member.postcode,
     streetAddress: member.street_address,
     townCity: member.town_city,
@@ -69,6 +70,7 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
 
     iceContactName: member.ice_contact_name,
     iceContactPhoneNumber: member.ice_contact_phone_number,
+    iceContactPhoneCountry: member.ice_contact_phone_country,
 
     imWhatsapp: member.im_whatsapp,
     imTelegram: member.im_telegram,
@@ -311,6 +313,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       first_name: member.firstName,
       last_name: member.lastName,
       phone_number: member.phoneNumber,
+      phone_country: member.phoneCountry ?? undefined,
       street_address: member.streetAddress,
       postcode: member.postcode,
       town_city: member.townCity,
@@ -385,6 +388,7 @@ export async function updateMember(
       last_name: patch.lastName,
 
       phone_number: patch.phoneNumber,
+      phone_country: patch.phoneCountry ?? undefined,
       street_address: patch.streetAddress,
       postcode: patch.postcode,
       town_city: patch.townCity,
@@ -392,6 +396,7 @@ export async function updateMember(
 
       ice_contact_name: patch.iceContactName,
       ice_contact_phone_number: patch.iceContactPhoneNumber,
+      ice_contact_phone_country: patch.iceContactPhoneCountry ?? undefined,
 
       im_whatsapp: patch.imWhatsapp,
       im_telegram: patch.imTelegram,

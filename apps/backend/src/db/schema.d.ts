@@ -1191,6 +1191,7 @@ export interface MemberRegister {
   iban: string | null
   iban_account_name: string | null
   ice_contact_name: string | null
+  ice_contact_phone_country: Generated<string>
   ice_contact_phone_number: string | null
   im_discord: string | null
   im_facebook_messenger: string | null
@@ -1219,6 +1220,7 @@ export interface MemberRegister {
   membership_approved_at: Timestamp | null
   membership_approved_by: string | null
   must_update_profile: Generated<boolean>
+  phone_country: Generated<string>
   phone_number: string | null
   postcode: string | null
   removal_reason: string | null
