@@ -165,6 +165,8 @@
     "street": "Gatuadress",
     "streetAddress": "Gatuadress",
     "address": "Adress",
+    "country": "Land",
+    "countryInvalid": "Vänligen välj ett giltigt land",
     "emergencyContact": "Nödkontakt",
     "iceContact": "ICE-kontakt",
     "icePhone": "ICE-telefon",

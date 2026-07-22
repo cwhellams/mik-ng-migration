@@ -37,6 +37,7 @@ describe('SimplBooks Emailer Tests', () => {
     lastName: 'User',
     streetAddress: '123 Test St',
     townCity: 'Helsinki',
+    country: 'FI',
     postcode: '00100',
     email: 'test@example.com',
     isTrainingProgramPilot: false,

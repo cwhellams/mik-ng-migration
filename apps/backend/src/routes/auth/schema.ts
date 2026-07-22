@@ -70,6 +70,10 @@ export const RegisterRequestSchema = MemberProfileSchema.extend({
     (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
     z.string().optional(),
   ),
+  country: z
+    .string()
+    .regex(/^[A-Z]{2}$/, 'member.countryInvalid')
+    .default('FI'),
 }).superRefine((data, ctx) => {
   if (data.memberType === MIKMemberTypes.JUNIOR) {
     if (!data.dateOfBirth) {

@@ -1177,6 +1177,7 @@ export interface MemberRegister {
   brevo_sync_status: Generated<string | null>
   brevo_synced_at: Timestamp | null
   can_make_reservations: Generated<boolean>
+  country: Generated<string>
   created_at: Generated<Timestamp>
   created_by: string
   /**

@@ -16,6 +16,7 @@ const baseMember: Member = {
   streetAddress: 'Street 1',
   postcode: '00100',
   townCity: 'Helsinki',
+  country: 'FI',
   phoneNumber: '+35840111222',
   iban: 'FI2112345600000785',
   ibanAccountName: 'Matti Meikalainen',

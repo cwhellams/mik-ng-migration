@@ -303,6 +303,8 @@ export const MemberSchema = AuditableSchema.extend({
   streetAddress: z.string().nullish(),
   postcode: z.string().nullish(),
   townCity: z.string().nullish(),
+  /** ISO 3166-1 alpha-2 country code, e.g. 'FI' */
+  country: z.string().regex(/^[A-Z]{2}$/, 'member.countryInvalid'),
 
   iceContactName: z.string().nullish(),
   iceContactPhoneNumber: z.string().nullish(),
@@ -367,6 +369,7 @@ export const MemberProfileSchema = MemberSchema.pick({
   streetAddress: true,
   postcode: true,
   townCity: true,
+  country: true,
 
   iceContactName: true,
   iceContactPhoneNumber: true,

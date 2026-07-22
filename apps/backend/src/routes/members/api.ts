@@ -281,6 +281,7 @@ const MUST_UPDATE_PROFILE_REVIEW_FIELDS = [
   'streetAddress',
   'postcode',
   'townCity',
+  'country',
 ]
 
 router.patch(

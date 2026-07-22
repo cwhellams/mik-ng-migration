@@ -32,6 +32,7 @@ import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../../components/SaveButton'
 import { PhoneNumberInput } from '../../../components/PhoneNumberInput'
+import { CountrySelect } from '../../../components/CountrySelect'
 import { useNavigate } from 'react-router-dom'
 
 export type MemberEditMode =
@@ -82,6 +83,7 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
         streetAddress: '',
         postcode: '',
         townCity: '',
+        country: 'FI',
         lang: MIKLang.FI,
       } as RegisterRequest)
     } else if (memberData) {
@@ -93,6 +95,7 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           streetAddress: memberData.streetAddress || '',
           postcode: memberData.postcode || '',
           townCity: memberData.townCity || '',
+          country: memberData.country || 'FI',
           dateOfBirth: memberData.dateOfBirth,
           lang: memberData.lang,
           iban: memberData.iban ?? undefined,
@@ -264,6 +267,13 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
               onChange={handleChange('townCity')}
             />
           </Grid>
+          <Grid size={12}>
+            <CountrySelect
+              required
+              value={formData.country}
+              onChange={(code) => setFormData((prev) => ({ ...prev, country: code }))}
+            />
+          </Grid>
         </>
       )}
     </Grid>
@@ -319,6 +329,13 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
           label={t('member.town')}
           value={formData.townCity || ''}
           onChange={handleChange('townCity')}
+        />
+      </Grid>
+      <Grid size={12}>
+        <CountrySelect
+          required
+          value={formData.country}
+          onChange={(code) => setFormData((prev) => ({ ...prev, country: code }))}
         />
       </Grid>
       <Grid size={12}>

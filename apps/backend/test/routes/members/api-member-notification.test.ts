@@ -67,6 +67,7 @@ const req: RegisterRequest = {
   streetAddress: 'Test Street 1',
   postcode: '00100',
   townCity: 'Helsinki',
+  country: 'FI',
 }
 
 describe('POST /members – secretary notification', () => {

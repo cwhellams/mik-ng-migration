@@ -65,6 +65,7 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     postcode: member.postcode,
     streetAddress: member.street_address,
     townCity: member.town_city,
+    country: member.country,
 
     iceContactName: member.ice_contact_name,
     iceContactPhoneNumber: member.ice_contact_phone_number,
@@ -313,6 +314,7 @@ export async function addMember(member: RegisterRequest, jwt?: JWTUser): Promise
       street_address: member.streetAddress,
       postcode: member.postcode,
       town_city: member.townCity,
+      country: member.country,
 
       billing_id: undefined,
       date_of_birth: member.dateOfBirth,
@@ -386,6 +388,7 @@ export async function updateMember(
       street_address: patch.streetAddress,
       postcode: patch.postcode,
       town_city: patch.townCity,
+      country: patch.country,
 
       ice_contact_name: patch.iceContactName,
       ice_contact_phone_number: patch.iceContactPhoneNumber,

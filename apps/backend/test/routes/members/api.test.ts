@@ -1171,6 +1171,7 @@ describe('POST /members', () => {
     streetAddress: 'street',
     postcode: '00100',
     townCity: 'city',
+    country: 'FI',
   }
 
   it('Return 401 if no token in authorization header', async () => {
@@ -1535,6 +1536,7 @@ describe('POST /members/me/cancel-membership', () => {
       streetAddress: 'Test Street',
       postcode: '00100',
       townCity: 'Test City',
+      country: 'FI',
     })
     cancelMemberToken = generateAccessToken({
       memberId: cancelMemberId,
@@ -1800,6 +1802,7 @@ describe('POST /members/me/email-change/request', () => {
       streetAddress: 'Test Street',
       postcode: '00100',
       townCity: 'Test City',
+      country: 'FI',
     })
     emailChangeMemberToken = generateAccessToken({
       memberId: emailChangeMemberId,
@@ -1879,6 +1882,7 @@ describe('POST /members/me/email-change/verify', () => {
       streetAddress: 'Test Street',
       postcode: '00100',
       townCity: 'Test City',
+      country: 'FI',
     })
     verifyMemberToken = generateAccessToken({
       memberId: verifyMemberId,

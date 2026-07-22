@@ -54,6 +54,7 @@ const flyingMember: Member = {
   streetAddress: 'Isotie 10 B2',
   postcode: '00340',
   townCity: 'Nummela',
+  country: 'FI',
   lang: MIKLang.FI,
   createdAt: '2024-01-01T00:00:00Z',
   createdBy: 'admin',

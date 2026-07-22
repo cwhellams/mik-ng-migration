@@ -43,6 +43,7 @@ import { InstructorQualificationsCard } from './components/InstructorQualificati
 
 import { formatPhoneNumber } from '../../utils/format'
 import { langFlagIcon } from '../../utils/lang'
+import { COUNTRIES } from '../../data/countries'
 import { FormTitle } from '../../components/FormTitle'
 import { useRoles } from '../../hooks/useRoles'
 import { RemoteContent } from '../../components/RemoteContent'
@@ -206,6 +207,7 @@ const MemberProfile = () => {
     streetAddress,
     postcode,
     townCity,
+    country,
     dateOfBirth,
     iceContactName,
     iceContactPhoneNumber,
@@ -419,6 +421,7 @@ const MemberProfile = () => {
                     {[streetAddress, `${postcode || ''} ${townCity || ''}`]
                       .filter(Boolean)
                       .join(', ') || 'N/A'}
+                    {country && <> {COUNTRIES.find((c) => c.code === country)?.name ?? country}</>}
                   </FormField>
 
                   <FormField label={t('member.dateOfBirth')} width={100}>

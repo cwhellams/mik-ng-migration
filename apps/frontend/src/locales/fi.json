@@ -164,6 +164,8 @@
     "street": "Katuosoite",
     "streetAddress": "Katuosoite",
     "address": "Osoite",
+    "country": "Maa",
+    "countryInvalid": "Valitse kelvollinen maa",
     "emergencyContact": "Hätäyhteyshenkilö",
     "iceContact": "ICE-yhteyshenkilö",
     "icePhone": "ICE-puhelin",

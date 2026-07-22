@@ -226,6 +226,7 @@ describe('Db add member tests', () => {
       streetAddress: 'Test Street',
       postcode: '00100',
       townCity: 'Test City',
+      country: 'FI',
     })
     await expectSnapshottedMember(memberId, email.toLowerCase())
     await updateMember(
@@ -400,6 +401,7 @@ describe('Db add member tests', () => {
         streetAddress: 'Test Street',
         postcode: '00100',
         townCity: 'Test City',
+        country: 'FI',
       })
 
       const result = await updateMemberLang(memberId, MIKLang.EN, jwt)
@@ -425,6 +427,7 @@ describe('Db add member tests', () => {
         streetAddress: 'Test Street',
         postcode: '00100',
         townCity: 'Test City',
+        country: 'FI',
       })
 
       // Enable reservations first since new members have it disabled by default
@@ -453,6 +456,7 @@ describe('Db add member tests', () => {
       streetAddress: 'Test Street',
       postcode: '00100',
       townCity: 'Test City',
+      country: 'FI',
     })
 
     // New members have reservations disabled by default
@@ -478,6 +482,7 @@ describe('Db add member tests', () => {
       streetAddress: 'Test Street',
       postcode: '00100',
       townCity: 'Test City',
+      country: 'FI',
     })
 
     try {
@@ -516,6 +521,7 @@ describe('canMemberBeDeleted Tests', () => {
       streetAddress: 'Test Street',
       postcode: '00100',
       townCity: 'Test City',
+      country: 'FI',
     })
 
     const result = await canMemberBeDeleted(memberId)
@@ -547,6 +553,7 @@ describe('Deactivate and Restore Member Tests', () => {
       streetAddress: 'Test Street',
       postcode: '00100',
       townCity: 'Test City',
+      country: 'FI',
     })
 
     const beforeMember = await getMemberById(memberId)
@@ -572,6 +579,7 @@ describe('Deactivate and Restore Member Tests', () => {
       streetAddress: 'Test Street',
       postcode: '00100',
       townCity: 'Test City',
+      country: 'FI',
     })
 
     // Deactivate first
@@ -620,6 +628,7 @@ describe('getUnpaidMembershipFeesForYear Tests', () => {
       streetAddress: 'Test Street',
       postcode: '00100',
       townCity: 'Test City',
+      country: 'FI',
     })
   })
 

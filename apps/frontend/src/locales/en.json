@@ -165,6 +165,8 @@
     "street": "Street Address",
     "streetAddress": "Street Address",
     "address": "Address",
+    "country": "Country",
+    "countryInvalid": "Please select a valid country",
     "emergencyContact": "Emergency Contact",
     "iceContact": "ICE Contact",
     "icePhone": "ICE Phone",

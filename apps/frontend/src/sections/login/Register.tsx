@@ -38,6 +38,7 @@ import { useTranslation } from 'react-i18next'
 import LanguageSelector from '../../components/LanguageSelector'
 import { TurnstileWidget } from '../../components/TurnstileWidget'
 import { PhoneNumberInput } from '../../components/PhoneNumberInput'
+import { CountrySelect } from '../../components/CountrySelect'
 import useApi from '../../hooks/useApi'
 
 // Local form state type — allows undefined for radio-button fields so that
@@ -85,6 +86,7 @@ const Register = () => {
     postcode: '',
     streetAddress: '',
     townCity: '',
+    country: 'FI',
 
     memberType: undefined,
     dateOfBirth: undefined,
@@ -340,6 +342,12 @@ const Register = () => {
             value={member.townCity}
             onChange={(e) => setMember({ ...member, townCity: e.target.value })}
             required
+          />
+          <CountrySelect
+            required
+            margin='normal'
+            value={member.country}
+            onChange={(code) => setMember({ ...member, country: code })}
           />
           <FormControl sx={{ mt: 1 }}>
             <FormLabel id='member-type-label'>{t('member.memberType')}</FormLabel>
