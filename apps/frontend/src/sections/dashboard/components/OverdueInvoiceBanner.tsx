@@ -12,7 +12,7 @@ export const OverdueInvoiceBanner = () => {
 
   const { data, isLoading, error } = useApi<InvoiceListResponse>({
     url: 'v1/invoices',
-    params: { pastDue: 'true' },
+    params: { pastDue: 'true', scope: 'personal' },
   })
 
   const overdueInvoices = data?.invoices || []

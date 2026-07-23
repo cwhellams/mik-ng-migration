@@ -37,12 +37,23 @@ export async function getInvoices(
   isAdmin: boolean,
   filters?: InvoiceItemQueryParams,
 ): Promise<Invoice[]> {
-  const { startDate, endDate, status, type, pastDue, id, memberId: filterMemberId } = filters || {}
+  const {
+    startDate,
+    endDate,
+    status,
+    type,
+    pastDue,
+    id,
+    memberId: filterMemberId,
+    scope,
+  } = filters || {}
 
   let query = db.selectFrom('accts.invoice').selectAll()
 
-  if (!isAdmin) {
-    // If not admin, filter by memberId
+  if (!isAdmin || scope === 'personal') {
+    // If not admin, or the caller explicitly asked for personal-only results
+    // (e.g. the dashboard's own-invoices warning), always filter by memberId
+    // regardless of admin status.
     query = query.where('member_id', '=', memberId)
   } else if (filterMemberId) {
     // Admin can optionally filter by a specific member

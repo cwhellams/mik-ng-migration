@@ -112,6 +112,24 @@ describe('Invoicing Queries', () => {
       })
     })
 
+    it('should filter invoices by memberId for admin user when scope=personal', async () => {
+      const filters: InvoiceItemQueryParams = { scope: 'personal' }
+      const invoices = await getInvoices(adminMemberId, true, filters)
+      expect(invoices).toBeDefined()
+      invoices.forEach((invoice) => {
+        expect(invoice.member_id).toBe(adminMemberId)
+      })
+    })
+
+    it('should ignore memberId filter for admin user when scope=personal', async () => {
+      const filters: InvoiceItemQueryParams = { scope: 'personal', memberId: testMemberId }
+      const invoices = await getInvoices(adminMemberId, true, filters)
+      expect(invoices).toBeDefined()
+      invoices.forEach((invoice) => {
+        expect(invoice.member_id).toBe(adminMemberId)
+      })
+    })
+
     it('should apply multiple filters together', async () => {
       const filters: InvoiceItemQueryParams = {
         startDate: '2024-01-01',

@@ -21,6 +21,7 @@ export const InvoiceItemQuerySchema = z.object({
     .optional(),
   id: z.coerce.number().int().optional(),
   memberId: z.string().optional(),
+  scope: z.enum(['personal', 'all']).optional(),
 })
 
 export type InvoiceItemQueryParams = z.infer<typeof InvoiceItemQuerySchema>
