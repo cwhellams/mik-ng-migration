@@ -36,6 +36,7 @@ const mockGetAirfieldEfficiencyByAcYr = jest.fn<() => Promise<any>>()
 const mockGetAirfieldEfficiencyByAcYrMth = jest.fn<() => Promise<any>>()
 const mockGetAogDaysByAcYr = jest.fn<() => Promise<any>>()
 const mockGetAogDaysByAcYrMth = jest.fn<() => Promise<any>>()
+const mockGetPobDistributionByAcYr = jest.fn<() => Promise<any>>()
 
 jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getTotalFlightTimeByAc: mockGetTotalFlightTimeByAc,
@@ -71,6 +72,7 @@ jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getAirfieldEfficiencyByAcYrMth: mockGetAirfieldEfficiencyByAcYrMth,
   getAogDaysByAcYr: mockGetAogDaysByAcYr,
   getAogDaysByAcYrMth: mockGetAogDaysByAcYrMth,
+  getPobDistributionByAcYr: mockGetPobDistributionByAcYr,
 }))
 
 jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
@@ -954,6 +956,35 @@ describe('Stats API', () => {
           yr_from: undefined,
           yr_to: undefined,
           mth: 7,
+        })
+      })
+    })
+  })
+
+  describe('POB (Persons On Board) Distribution Endpoints', () => {
+    describe('GET /api/stats/pob-distribution/year', () => {
+      it('should return POB distribution by aircraft and year', async () => {
+        const mockData = {
+          aircraft_registration: 'OH-STL',
+          yr: 2024,
+          pob_bucket: '3',
+          flight_count: 5,
+          cross_country_flight_count: 2,
+          total_flight_mins: 300,
+        }
+        mockGetPobDistributionByAcYr.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/pob-distribution/year')
+          .query({ aircraft_registration: 'OH-STL', yr_from: '2024', yr_to: '2024' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetPobDistributionByAcYr).toHaveBeenCalledWith({
+          aircraft_registration: 'OH-STL',
+          yr: undefined,
+          yr_from: 2024,
+          yr_to: 2024,
         })
       })
     })

@@ -7,6 +7,11 @@ import {
   Grid,
   ToggleButtonGroup,
   ToggleButton,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
 } from '@mui/material'
 import { ResponsiveBar } from '@nivo/bar'
 import { ResponsiveCalendar } from '@nivo/calendar'
@@ -25,6 +30,7 @@ import {
   VisitedAirfieldsByAc,
   CommercialFlightTimeByAcYrMth,
   TotalLandingsByAcYr,
+  PobDistributionByAcYr,
 } from '@backend/routes/stats/models'
 import { RemoteContent } from '../../components/RemoteContent'
 import { PilotStatistics as PilotStatisticsView } from './components/PilotStatistics'
@@ -32,6 +38,12 @@ import { ReservationEfficiency as ReservationEfficiencyView } from './components
 import { YearOnYearReport } from './components/YearOnYearReport'
 
 type ViewMode = 'aircraft' | 'pilot' | 'pilots' | 'efficiency' | 'yoy' | 'airfield' | 'aog'
+
+type PobBucketTotals = {
+  flightCount: number
+  crossCountryFlightCount: number
+  totalFlightMins: number
+}
 import { AirfieldEfficiency as AirfieldEfficiencyView } from './components/AirfieldEfficiency'
 import { AogStatistics as AogStatisticsView } from './components/AogStatistics'
 
@@ -262,6 +274,25 @@ export const Stats = () => {
       params: {
         yr_from: yrFrom,
         yr_to: yrTo,
+      },
+    },
+    {
+      refreshInterval: 0,
+    },
+  )
+
+  // Fetch occupancy (persons-on-board) distribution — server-side view already
+  // restricts this to aircraft with more than 2 seats (currently only OH-STL)
+  const {
+    data: pobDistributionData,
+    error: pobDistributionError,
+    isLoading: pobDistributionLoading,
+  } = useApi<PobDistributionByAcYr[]>(
+    {
+      url: 'v1/stats/pob-distribution/year',
+      params: {
+        yr_from: new Date().getFullYear() - 1,
+        yr_to: new Date().getFullYear(),
       },
     },
     {
@@ -513,6 +544,84 @@ export const Stats = () => {
       .filter((item): item is NonNullable<typeof item> => item !== null)
       .sort((a, b) => a.aircraft.localeCompare(b.aircraft))
   }, [visitedAirfieldsData])
+
+  const POB_BUCKET_LABELS: Record<string, string> = {
+    '1_2': '1-2 people',
+    '3': '3 people',
+    '4_PLUS': '>=4 people',
+  }
+  const POB_BUCKET_ORDER = ['1_2', '3', '4_PLUS']
+
+  // Transform occupancy distribution into a YTD pie and a previous-year pie per aircraft
+  const pobDistributionPieData = useMemo(() => {
+    if (!pobDistributionData || pobDistributionData.length === 0) return []
+
+    const currentYear = new Date().getFullYear()
+    const aircraftMap = new Map<string, Map<number, Map<string, PobBucketTotals>>>()
+
+    pobDistributionData.forEach((item) => {
+      if (item.yr !== currentYear && item.yr !== currentYear - 1) return
+
+      if (!aircraftMap.has(item.aircraft_registration)) {
+        aircraftMap.set(item.aircraft_registration, new Map())
+      }
+      const yearMap = aircraftMap.get(item.aircraft_registration)!
+      if (!yearMap.has(item.yr)) {
+        yearMap.set(item.yr, new Map())
+      }
+      const bucketMap = yearMap.get(item.yr)!
+      const existing = bucketMap.get(item.pob_bucket) ?? {
+        flightCount: 0,
+        crossCountryFlightCount: 0,
+        totalFlightMins: 0,
+      }
+      bucketMap.set(item.pob_bucket, {
+        flightCount: existing.flightCount + item.flight_count,
+        crossCountryFlightCount: existing.crossCountryFlightCount + item.cross_country_flight_count,
+        totalFlightMins: existing.totalFlightMins + item.total_flight_mins,
+      })
+    })
+
+    const toPieData = (bucketMap: Map<string, PobBucketTotals> | undefined) =>
+      POB_BUCKET_ORDER.filter((bucket) => (bucketMap?.get(bucket)?.flightCount ?? 0) > 0).map(
+        (bucket) => ({
+          id: POB_BUCKET_LABELS[bucket],
+          label: POB_BUCKET_LABELS[bucket],
+          value: bucketMap!.get(bucket)!.flightCount,
+        }),
+      )
+
+    // Per-bucket breakdown feeding the summary table below each pie: flight
+    // hours (rounded to the nearest hour) and the share of flights that were
+    // cross-country (departure airport != arrival airport).
+    const toBucketStats = (bucketMap: Map<string, PobBucketTotals> | undefined) =>
+      POB_BUCKET_ORDER.filter((bucket) => (bucketMap?.get(bucket)?.flightCount ?? 0) > 0).map(
+        (bucket) => {
+          const totals = bucketMap!.get(bucket)!
+          return {
+            bucket,
+            label: POB_BUCKET_LABELS[bucket],
+            flightCount: totals.flightCount,
+            hours: Math.round(totals.totalFlightMins / 60),
+            crossCountryPct: Math.round(
+              (totals.crossCountryFlightCount / totals.flightCount) * 100,
+            ),
+          }
+        },
+      )
+
+    return Array.from(aircraftMap.entries())
+      .map(([aircraft, yearMap]) => ({
+        aircraft,
+        ytd: toPieData(yearMap.get(currentYear)),
+        ytdStats: toBucketStats(yearMap.get(currentYear)),
+        previousYear: toPieData(yearMap.get(currentYear - 1)),
+        previousYearStats: toBucketStats(yearMap.get(currentYear - 1)),
+        previousYearLabel: currentYear - 1,
+      }))
+      .filter((item) => item.ytd.length > 0 || item.previousYear.length > 0)
+      .sort((a, b) => a.aircraft.localeCompare(b.aircraft))
+  }, [pobDistributionData])
 
   // Get all unique keys for bar chart
   const barChartKeys = useMemo(() => {
@@ -1167,6 +1276,151 @@ export const Stats = () => {
                             ]}
                           />
                         </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Box>
+              </RemoteContent>
+            )}
+
+            {/* Occupancy (Persons on Board) Distribution Pie Charts */}
+            {viewMode === 'aircraft' && pobDistributionPieData.length > 0 && (
+              <RemoteContent isLoading={pobDistributionLoading} error={pobDistributionError}>
+                <Box>
+                  {pobDistributionPieData.map((aircraftPie) => (
+                    <Card key={aircraftPie.aircraft} sx={{ mb: 3 }}>
+                      <CardContent>
+                        <Typography variant='h6' gutterBottom>
+                          Occupancy Distribution - {aircraftPie.aircraft}
+                        </Typography>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                            mb: 2,
+                          }}
+                        >
+                          Share of flights by number of people on board (restricted to aircraft with
+                          more than 2 seats)
+                        </Typography>
+                        <Grid container spacing={2}>
+                          {(
+                            [
+                              {
+                                key: 'ytd',
+                                title: `Year to Date (${new Date().getFullYear()})`,
+                                data: aircraftPie.ytd,
+                                stats: aircraftPie.ytdStats,
+                              },
+                              {
+                                key: 'previousYear',
+                                title: `Previous Year (${aircraftPie.previousYearLabel})`,
+                                data: aircraftPie.previousYear,
+                                stats: aircraftPie.previousYearStats,
+                              },
+                            ] as const
+                          ).map((pie) => (
+                            <Grid size={{ xs: 12, md: 6 }} key={pie.key}>
+                              <Typography variant='subtitle2' align='center' gutterBottom>
+                                {pie.title}
+                              </Typography>
+                              <Box sx={{ height: 400 }}>
+                                {pie.data.length > 0 ? (
+                                  <ResponsivePie
+                                    data={pie.data}
+                                    margin={{ top: 20, right: 40, bottom: 60, left: 40 }}
+                                    innerRadius={0.5}
+                                    padAngle={0.7}
+                                    cornerRadius={3}
+                                    activeOuterRadiusOffset={8}
+                                    borderWidth={1}
+                                    borderColor={{
+                                      from: 'color',
+                                      modifiers: [['darker', 0.2]],
+                                    }}
+                                    arcLinkLabelsSkipAngle={10}
+                                    arcLinkLabelsTextColor={arcLinkLabelsTextColor}
+                                    arcLinkLabelsThickness={2}
+                                    arcLinkLabelsColor={{ from: 'color' }}
+                                    arcLabel={(d) =>
+                                      `${((d.value / pie.data.reduce((sum, p) => sum + p.value, 0)) * 100).toFixed(0)}%`
+                                    }
+                                    arcLabelsSkipAngle={10}
+                                    arcLabelsTextColor={{
+                                      from: 'color',
+                                      modifiers: [['darker', 2]],
+                                    }}
+                                    theme={nivoTheme}
+                                    legends={[
+                                      {
+                                        anchor: 'bottom',
+                                        direction: 'row',
+                                        justify: false,
+                                        translateX: 0,
+                                        translateY: 56,
+                                        itemsSpacing: 0,
+                                        itemWidth: 90,
+                                        itemHeight: 18,
+                                        itemTextColor: arcLinkLabelsTextColor,
+                                        itemDirection: 'left-to-right',
+                                        itemOpacity: 1,
+                                        symbolSize: 18,
+                                        symbolShape: 'circle',
+                                        effects: [
+                                          {
+                                            on: 'hover',
+                                            style: {
+                                              itemTextColor: legendHoverTextColor,
+                                            },
+                                          },
+                                        ],
+                                      },
+                                    ]}
+                                  />
+                                ) : (
+                                  <Box
+                                    sx={{
+                                      height: '100%',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                    }}
+                                  >
+                                    <Typography sx={{ color: 'text.secondary' }}>
+                                      No data available
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                              {pie.stats.length > 0 && (
+                                <Table size='small' sx={{ mt: 3 }}>
+                                  <TableHead>
+                                    <TableRow>
+                                      <TableCell>Occupancy</TableCell>
+                                      <TableCell align='right'>Flights</TableCell>
+                                      <TableCell align='right'>Hours</TableCell>
+                                      <TableCell align='right'>Cross-Country</TableCell>
+                                    </TableRow>
+                                  </TableHead>
+                                  <TableBody>
+                                    {pie.stats.map((bucketStats) => (
+                                      <TableRow key={bucketStats.bucket}>
+                                        <TableCell>{bucketStats.label}</TableCell>
+                                        <TableCell align='right'>
+                                          {bucketStats.flightCount}
+                                        </TableCell>
+                                        <TableCell align='right'>{bucketStats.hours}</TableCell>
+                                        <TableCell align='right'>
+                                          {bucketStats.crossCountryPct}%
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              )}
+                            </Grid>
+                          ))}
+                        </Grid>
                       </CardContent>
                     </Card>
                   ))}

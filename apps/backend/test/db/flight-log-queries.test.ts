@@ -60,8 +60,8 @@ describe('Db Get FlightLog tests', () => {
 describe('Db query FlightLog tests', () => {
   it('getFlightLogs with no params should return all logs', async () => {
     const result = await getFlightLogs({})
-    expect(result.rows).toEqual(243)
-    expect(result.logs.length).toEqual(43)
+    expect(result.rows).toEqual(283)
+    expect(result.logs.length).toEqual(33)
   })
 
   it('getFlightLogs with Captain and copilot should return filtered logs', async () => {
@@ -96,7 +96,7 @@ describe('Db query FlightLog tests', () => {
 
   it('getFlightLogs for specified aircraft should match snapshot', async () => {
     const result = await getFlightLogs({ aircraftRegistration: 'OH-STL' })
-    expect(result.rows).toEqual(206)
+    expect(result.rows).toEqual(246)
   })
 
   it('getFlightLogs for specific member id should match snapshot', async () => {
@@ -109,7 +109,7 @@ describe('Db query FlightLog tests', () => {
     const result = await getFlightLogs({
       startDate: '2025-03-04',
     })
-    expect(result.rows).toEqual(29)
+    expect(result.rows).toEqual(63)
     expect(normalizeLandingTotals(result.logs[0])).toMatchSnapshot()
   })
 
@@ -117,7 +117,7 @@ describe('Db query FlightLog tests', () => {
     const result = await getFlightLogs({
       endDate: '2025-03-06',
     })
-    expect(result.rows).toEqual(215)
+    expect(result.rows).toEqual(222)
     expect(result.pages).toEqual(5)
     expect(result.page).toEqual(5)
     expect(normalizeLandingTotals(result.logs[0])).toMatchSnapshot()
@@ -143,8 +143,8 @@ describe('Db query FlightLog tests', () => {
       endDate: '2025-03-06T00:00:00Z',
       startDate: '2025-03-02T09:00:00Z',
     })
-    expect(result.rows).toEqual(3)
-    expect(result.logs.length).toEqual(3)
+    expect(result.rows).toEqual(4)
+    expect(result.logs.length).toEqual(4)
 
     expect(normalizeLandingTotals(result.logs[2])).toMatchSnapshot()
   })

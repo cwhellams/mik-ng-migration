@@ -37,6 +37,7 @@ import type {
   AirfieldEfficiencyByAcYrMth,
   AogDaysByAcYrMth,
   AogDaysByAcYr,
+  PobDistributionByAcYr,
 } from '../routes/stats/models.ts'
 
 // Helper function to apply year filters
@@ -696,6 +697,30 @@ export const getAirfieldEfficiencyByAcYr = async (filters?: {
   }
   query = applyYearFilter(query, filters)
   return await query.execute()
+}
+
+// Occupancy (persons-on-board) distribution, restricted to aircraft with >2 seats
+export const getPobDistributionByAcYr = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<PobDistributionByAcYr[]> => {
+  let query = db.selectFrom('stats.pob_distribution_by_ac_yr').selectAll()
+
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+
+  const results = await query.execute()
+  return results.map((row) => ({
+    ...row,
+    yr: Number(row.yr),
+    flight_count: Number(row.flight_count),
+    cross_country_flight_count: Number(row.cross_country_flight_count),
+    total_flight_mins: Number(row.total_flight_mins),
+  })) as PobDistributionByAcYr[]
 }
 
 export const getAirfieldEfficiencyByAcYrMth = async (filters?: {

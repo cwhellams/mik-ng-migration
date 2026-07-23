@@ -103,7 +103,7 @@ describe('GET /flight-log', () => {
       .query({ aircraftRegistration: 'OH-STL' })
 
     expect(response.status).toBe(200)
-    expect(response.body.logs).toHaveLength(6)
+    expect(response.body.logs).toHaveLength(46)
     expect(response.body.logs.map(maskLandingTotals)).toMatchSnapshot()
   })
 

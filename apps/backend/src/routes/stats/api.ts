@@ -35,6 +35,7 @@ import {
   getAirfieldEfficiencyByAcYrMth,
   getAogDaysByAcYrMth,
   getAogDaysByAcYr,
+  getPobDistributionByAcYr,
 } from '../../db/stats-queries.ts'
 import type {
   TotalFlightTimeByAc,
@@ -70,6 +71,7 @@ import type {
   AirfieldEfficiencyByAcYrMth,
   AogDaysByAcYrMth,
   AogDaysByAcYr,
+  PobDistributionByAcYr,
 } from './models.ts'
 
 export const router = Router()
@@ -464,6 +466,20 @@ router.get('/aog/aircraft/year/month', async (req: Request, res: Response<AogDay
   })
   res.status(200).json(data)
 })
+
+router.get(
+  '/pob-distribution/year',
+  async (req: Request, res: Response<PobDistributionByAcYr[]>) => {
+    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const data = await getPobDistributionByAcYr({
+      aircraft_registration: aircraft_registration as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
 
 // NOTE: routes registered after this point require an admin-tier permission — this
 // stricter gate applies to every route below it (Express router.use has no path scoping

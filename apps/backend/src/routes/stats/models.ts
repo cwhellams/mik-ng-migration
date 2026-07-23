@@ -286,6 +286,16 @@ export const AogDaysByAcYrSchema = z.object({
   total_aog_days: z.number(),
 })
 
+// Occupancy (persons-on-board) distribution, restricted to aircraft with >2 seats
+export const PobDistributionByAcYrSchema = z.object({
+  aircraft_registration: z.string(),
+  yr: z.number(),
+  pob_bucket: z.enum(['1_2', '3', '4_PLUS']),
+  flight_count: z.number(),
+  cross_country_flight_count: z.number(),
+  total_flight_mins: z.number(),
+})
+
 // Pilot Statistics
 export const PilotStatisticsHistogramBinSchema = z.object({
   binFrom: z.number(),
@@ -337,3 +347,4 @@ export type AirfieldEfficiencyByAcYr = z.infer<typeof AirfieldEfficiencyByAcYrSc
 export type AirfieldEfficiencyByAcYrMth = z.infer<typeof AirfieldEfficiencyByAcYrMthSchema>
 export type AogDaysByAcYrMth = z.infer<typeof AogDaysByAcYrMthSchema>
 export type AogDaysByAcYr = z.infer<typeof AogDaysByAcYrSchema>
+export type PobDistributionByAcYr = z.infer<typeof PobDistributionByAcYrSchema>
