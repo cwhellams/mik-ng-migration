@@ -157,6 +157,94 @@ describe('Db query FlightLog tests', () => {
     expect(result.logs?.map((f) => f.incidentOrObservations)).toEqual(['Engine stopped briefly'])
   })
 
+  it('getFlightLogs with ajlb paging resolves pageStartFlightMins from the previous page without erroring', async () => {
+    // OH-STL ajlb_seq_no 3 (rows_per_page=5, start_page=500): page 500 holds
+    // pob25a01/b01/a02/c01/a03, whose cumulative ac_total_flight_mins ends at
+    // 700405 on pob25a03 (row 5, the last row of page 500). Page numbers step
+    // by 2 (500, 502, 504, ...), matching flight.vw_flight_logs' page_number
+    // formula and the frontend's own pagination - so this also guards against
+    // the boundary lookup regressing to an off-by-one (`page - 1` instead of
+    // `page - 2`) that would silently return pageStartFlightMins: null for
+    // every page after the first.
+    const result = await getFlightLogs({
+      aircraftRegistration: 'OH-STL',
+      ajlbSeqNo: 3,
+      page: 502,
+    })
+    expect(result.pageStartFlightMins).toEqual(700405)
+  })
+
+  it('getFlightLogs keeps pageStartFlightMins correct when two flights share the same off_block_time_epoch', async () => {
+    // Insert two NEW flights on OH-STL ajlb_seq_no 3 with an identical
+    // off_block_time_epoch, positioned between the existing pob25a02
+    // (1737532800, cumulative total 700240) and pob25c01 (1738742400) rows.
+    // Both land as the new rows 4 and 5 of page 500, pushing pob25c01/pob25a03
+    // onto page 502. Whichever of the two the flight_id tiebreaker resolves
+    // first, their combined flight_mins (30 + 45) must be fully accounted for
+    // in the page-500 boundary before page 502 begins - so this must equal
+    // 700240 + 30 + 45 regardless of tie-break order.
+    const tiedOffBlockTimeEpoch = '1737999960'
+    const baseFlight = {
+      aircraftRegistration: 'OH-STL',
+      picMemberId: 'Liisa1',
+      offBlockTimeEpoch: tiedOffBlockTimeEpoch,
+      takeoffTimeEpoch: '1738000860',
+      oilUpliftLitres: 1,
+      fuelUpliftLitres: 20,
+      personsOnBoard: 1,
+      numberOfLandings: 1,
+      numberOfNightLandings: 0,
+      departureAirport: 'EFHK',
+      arrivalAirport: 'EFHK',
+      flightType: FlightType.SCHOOL,
+      billingRemarks: null,
+      personalRemarks: 'ajlb tie-break test',
+      picRole: 'PIC' as const,
+      crew2MemberId: null,
+      crew2Role: null,
+      crew3MemberId: null,
+      crew3Role: null,
+      crew4MemberId: null,
+      crew4Role: null,
+      fuelRemainingLitres: 20,
+      incidentOrObservations: null,
+      totalTimeInService: 1,
+      instrumentFlyingMins: 0,
+      nightFlyingMins: 0,
+      partiallyBillableFlight: false,
+    }
+    const insertUser = { memberId: 'Matti1', permissions: [MIKPermissions.FLIGHTLOG_USER] }
+
+    const flightIdA = await insertFlightLog(
+      {
+        ...baseFlight,
+        landingTimeEpoch: '1738002660',
+        onBlockTimeEpoch: '1738003560',
+      } as FlightLogMemberRequest,
+      insertUser,
+    )
+    const flightIdB = await insertFlightLog(
+      {
+        ...baseFlight,
+        landingTimeEpoch: '1738003560',
+        onBlockTimeEpoch: '1738004460',
+      } as FlightLogMemberRequest,
+      insertUser,
+    )
+
+    try {
+      const result = await getFlightLogs({
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        page: 502,
+      })
+      expect(result.pageStartFlightMins).toEqual(700240 + 30 + 45)
+    } finally {
+      await deleteFlightLog(flightIdA)
+      await deleteFlightLog(flightIdB)
+    }
+  })
+
   it('getFlightLogTotals returns totals for all ac', async () => {
     const result = await getFlightLogTotals()
     expect(normalizeLandingTotals(result)).toMatchSnapshot()

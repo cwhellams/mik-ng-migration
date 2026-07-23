@@ -241,7 +241,11 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'totals.page_number',
       'totals.ac_total_flight_mins',
     ])
+    // flight_id is a tiebreaker matching the ORDER BY used by flight.vw_flight_logs'
+    // window functions, so ties on off_block_time_epoch resolve the same way here
+    // as they do when the view assigns page_number/ac_total_flight_mins.
     .orderBy('off_block_time_epoch', filters.orderLatestFirst ? 'desc' : 'asc')
+    .orderBy('flight_id', filters.orderLatestFirst ? 'desc' : 'asc')
     // offset only valid with dynamic paging
     .offset(!ajlbPaging && page > 0 ? pageSize * (page - 1) : 0)
     .limit(pageSize)
@@ -254,14 +258,25 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
       .where('ajlb_seq_no', '=', filters.ajlbSeqNo!)
       .where((eb) =>
-        eb('flight.logs.ajlb_page_number', '=', filters.page! - 1).or(
+        // AJLB page numbers step by 2 per page (flight.vw_flight_logs' page_number formula
+        // is start_page + 2 * floor(...)), matching the frontend's own page navigation
+        // (LogbookPage.tsx: newPage = startPage + 2 * (page - 1)). So the previous page is
+        // filters.page - 2, not filters.page - 1 - otherwise this never matches any real
+        // page and pageStartFlightMins silently comes back null for every page after the first.
+        eb('flight.logs.ajlb_page_number', '=', filters.page! - 2).or(
           'totals.page_number',
           '=',
-          filters.page! - 1,
+          filters.page! - 2,
         ),
       )
       .select(['flight.logs.ajlb_total_flight_mins', 'totals.ac_total_flight_mins'])
-      .orderBy('off_block_time_epoch', 'desc')
+      // flight_id tiebreaker keeps this in sync with the view's row ordering (see above)
+      // so this reliably finds the true last row of the previous page even when flights
+      // share the same off_block_time_epoch. Both columns must be qualified since
+      // 'totals' (flight.vw_flight_logs) also has a flight_id column, making the bare
+      // reference ambiguous to Postgres.
+      .orderBy('flight.logs.off_block_time_epoch', 'desc')
+      .orderBy('flight.logs.flight_id', 'desc')
       .limit(1)
       .executeTakeFirst()
 
@@ -708,28 +723,37 @@ export const updateFlightLog = async (
       : undefined,
     pic_member_id: data.picMemberId,
     pic_role: data.picRole,
-    crew2_last_name: data.crew2MemberId
-      ? eb
-          .selectFrom('member.register')
-          .select('last_name')
-          .where('member_id', '=', data.crew2MemberId)
-      : undefined,
+    crew2_last_name:
+      data.crew2MemberId === undefined
+        ? undefined
+        : data.crew2MemberId
+          ? eb
+              .selectFrom('member.register')
+              .select('last_name')
+              .where('member_id', '=', data.crew2MemberId)
+          : null,
     crew2_member_id: data.crew2MemberId,
     crew2_role: data.crew2Role,
-    crew3_last_name: data.crew3MemberId
-      ? eb
-          .selectFrom('member.register')
-          .select('last_name')
-          .where('member_id', '=', data.crew3MemberId)
-      : undefined,
+    crew3_last_name:
+      data.crew3MemberId === undefined
+        ? undefined
+        : data.crew3MemberId
+          ? eb
+              .selectFrom('member.register')
+              .select('last_name')
+              .where('member_id', '=', data.crew3MemberId)
+          : null,
     crew3_member_id: data.crew3MemberId,
     crew3_role: data.crew3Role,
-    crew4_last_name: data.crew4MemberId
-      ? eb
-          .selectFrom('member.register')
-          .select('last_name')
-          .where('member_id', '=', data.crew4MemberId)
-      : undefined,
+    crew4_last_name:
+      data.crew4MemberId === undefined
+        ? undefined
+        : data.crew4MemberId
+          ? eb
+              .selectFrom('member.register')
+              .select('last_name')
+              .where('member_id', '=', data.crew4MemberId)
+          : null,
     crew4_member_id: data.crew4MemberId,
     crew4_role: data.crew4Role,
     departure_airport: data.departureAirport,
