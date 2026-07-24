@@ -680,16 +680,20 @@ const MeetingsAdminPage = () => {
                                         sx={{ justifyContent: 'space-between' }}
                                       >
                                         <Typography>{option.optionText}</Typography>
-                                        <Typography color='text.secondary'>
-                                          {option.voteCount ?? 0}
-                                        </Typography>
+                                        {vote.status === 'CLOSED' && (
+                                          <Typography color='text.secondary'>
+                                            {option.voteCount ?? 0}
+                                          </Typography>
+                                        )}
                                       </Stack>
                                     ))}
                                   </Stack>
 
-                                  <Typography variant='body2' color='text.secondary'>
-                                    {t('meetings.votes.totalVotes')}: {vote.totalVotes ?? 0}
-                                  </Typography>
+                                  {vote.status === 'CLOSED' && (
+                                    <Typography variant='body2' color='text.secondary'>
+                                      {t('meetings.votes.totalVotes')}: {vote.totalVotes ?? 0}
+                                    </Typography>
+                                  )}
 
                                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                                     {vote.status !== 'OPEN' && vote.status !== 'CLOSED' && (
