@@ -397,24 +397,30 @@ export const updateMeeting = async (
   const { rows } = await sql<{ meeting_id: string }>`
     UPDATE member.meeting
     SET
-      title = CASE WHEN ${data.title !== undefined} THEN ${data.title ?? ''} ELSE title END,
+      -- title, description, document_search_filter: DRAFT only
+      title = CASE
+        WHEN status = 'DRAFT' AND ${data.title !== undefined}
+          THEN ${data.title ?? ''}
+        ELSE title
+      END,
       description = CASE
-        WHEN ${Object.prototype.hasOwnProperty.call(data, 'description')}
+        WHEN status = 'DRAFT' AND ${Object.prototype.hasOwnProperty.call(data, 'description')}
           THEN ${data.description ?? null}
         ELSE description
       END,
       document_search_filter = CASE
-        WHEN ${Object.prototype.hasOwnProperty.call(data, 'documentSearchFilter')}
+        WHEN status = 'DRAFT' AND ${Object.prototype.hasOwnProperty.call(data, 'documentSearchFilter')}
           THEN ${data.documentSearchFilter ?? null}
         ELSE document_search_filter
       END,
+      -- meeting_url: editable at any non-ENDED stage
       meeting_url = CASE
         WHEN ${Object.prototype.hasOwnProperty.call(data, 'meetingUrl')}
           THEN ${data.meetingUrl ?? null}
         ELSE meeting_url
       END
     WHERE meeting_id = ${meetingId}::uuid
-      AND status = 'DRAFT'
+      AND status != 'ENDED'
     RETURNING meeting_id
   `.execute(db)
 

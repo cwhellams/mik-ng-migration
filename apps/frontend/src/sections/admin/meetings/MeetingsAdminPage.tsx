@@ -551,6 +551,12 @@ const MeetingsAdminPage = () => {
                           </Button>
                         </>
                       )}
+                      {(meetingDetail.status === 'ONGOING' ||
+                        meetingDetail.status === 'PENDING_NOTES') && (
+                        <Button variant='outlined' onClick={handleSaveMeeting}>
+                          {t('common.save')}
+                        </Button>
+                      )}
                       {meetingDetail.status === 'ONGOING' && (
                         <Button
                           variant='contained'
