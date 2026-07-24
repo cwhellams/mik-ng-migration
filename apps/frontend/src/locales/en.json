@@ -2750,7 +2750,8 @@
       "status": {
         "DRAFT": "Draft",
         "ONGOING": "Ongoing",
-        "ENDED": "Ended"
+        "ENDED": "Ended",
+        "PENDING_NOTES": "Pending Notes"
       },
       "attendees": "Attendees",
       "attendeeCount": "{{count}} attendee(s)",
@@ -2777,8 +2778,11 @@
       "noVoteCounters": "No vote counters assigned.",
       "noVotes": "No votes created yet.",
       "voteTopic": "Topic",
-      "deleteMeeting": "Delete Meeting"
+      "deleteMeeting": "Delete Meeting",
+      "pendingNotes": "Pending Notes",
+      "confirmPendingNotes": "Move to pending notes? Members will no longer be able to attend or vote."
     },
-    "voteCounterNotice": "You are a vote counter for this meeting. You will see the results after each vote is closed."
+    "voteCounterNotice": "You are a vote counter for this meeting. You will see the results after each vote is closed.",
+    "pendingNotes": "The meeting has concluded. Results are being finalised."
   }
 }

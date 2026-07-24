@@ -61,9 +61,10 @@ const eligibleMemberTypes: MemberListFilters['memberType'] = [
   MIKMemberTypes.HONORARY,
 ]
 
-const statusColor = (status: Meeting['status']): 'default' | 'warning' | 'success' => {
+const statusColor = (status: Meeting['status']): 'default' | 'warning' | 'success' | 'info' => {
   if (status === 'ONGOING') return 'success'
   if (status === 'DRAFT') return 'warning'
+  if (status === 'PENDING_NOTES') return 'info'
   return 'default'
 }
 
@@ -257,6 +258,20 @@ const MeetingsAdminPage = () => {
 
     setActionError(null)
     const response = await detailMutation.trigger('POST', {}, 'start')
+    if (response.error) {
+      handleMutationError(response.error.detail)
+      return
+    }
+
+    await refreshSelectedMeetingData()
+  }
+
+  const handlePendingNotesMeeting = async () => {
+    if (!selectedMeetingId) return
+    if (!window.confirm(t('meetings.admin.confirmPendingNotes'))) return
+
+    setActionError(null)
+    const response = await detailMutation.trigger('POST', {}, 'pending-notes')
     if (response.error) {
       handleMutationError(response.error.detail)
       return
@@ -521,6 +536,16 @@ const MeetingsAdminPage = () => {
                         </>
                       )}
                       {meetingDetail.status === 'ONGOING' && (
+                        <Button
+                          variant='contained'
+                          color='info'
+                          onClick={handlePendingNotesMeeting}
+                        >
+                          {t('meetings.admin.pendingNotes')}
+                        </Button>
+                      )}
+                      {(meetingDetail.status === 'ONGOING' ||
+                        meetingDetail.status === 'PENDING_NOTES') && (
                         <Button variant='contained' color='warning' onClick={handleEndMeeting}>
                           {t('meetings.admin.endMeeting')}
                         </Button>
@@ -623,7 +648,7 @@ const MeetingsAdminPage = () => {
                       sx={{ justifyContent: 'space-between' }}
                     >
                       <Typography variant='h6'>{t('meetings.votes.title')}</Typography>
-                      {meetingDetail.status !== 'ENDED' && (
+                      {meetingDetail.status === 'ONGOING' && (
                         <Button variant='contained' onClick={() => setCreateVoteOpen(true)}>
                           {t('meetings.admin.createVote')}
                         </Button>

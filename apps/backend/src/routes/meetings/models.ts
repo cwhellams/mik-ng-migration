@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const MeetingStatusSchema = z.enum(['DRAFT', 'ONGOING', 'ENDED'])
+export const MeetingStatusSchema = z.enum(['DRAFT', 'ONGOING', 'PENDING_NOTES', 'ENDED'])
 export type MeetingStatus = z.infer<typeof MeetingStatusSchema>
 
 export const VoteStatusSchema = z.enum(['DRAFT', 'OPEN', 'CLOSED'])

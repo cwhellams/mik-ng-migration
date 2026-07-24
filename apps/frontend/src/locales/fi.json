@@ -2756,7 +2756,8 @@
       "status": {
         "DRAFT": "Luonnos",
         "ONGOING": "Käynnissä",
-        "ENDED": "Päättynyt"
+        "ENDED": "Päättynyt",
+        "PENDING_NOTES": "Odottaa pöytäkirjaa"
       },
       "attendees": "Läsnäolijat",
       "attendeeCount": "{{count}} osallistuja(a)",
@@ -2783,8 +2784,11 @@
       "noVoteCounters": "Ääntenlaskijoita ei ole asetettu.",
       "noVotes": "Äänestyksiä ei ole vielä luotu.",
       "voteTopic": "Aihe",
-      "deleteMeeting": "Poista kokous"
+      "deleteMeeting": "Poista kokous",
+      "pendingNotes": "Odottaa pöytäkirjaa",
+      "confirmPendingNotes": "Siirry odottamaan pöytäkirjaa? Jäsenet eivät enää voi ilmoittautua tai äänestää."
     },
-    "voteCounterNotice": "Olet tämän kokouksen äänten laskija. Näet tulokset kun äänestys suljetaan."
+    "voteCounterNotice": "Olet tämän kokouksen äänten laskija. Näet tulokset kun äänestys suljetaan.",
+    "pendingNotes": "Kokous on päättynyt. Tuloksia viimeistellään."
   }
 }

@@ -204,7 +204,9 @@ const MeetingPage = () => {
                   </Box>
                 )}
 
-                {!activeMeeting.isAttending ? (
+                {activeMeeting.status === 'PENDING_NOTES' ? (
+                  <Alert severity='info'>{t('meetings.pendingNotes')}</Alert>
+                ) : !activeMeeting.isAttending ? (
                   <Box>
                     <Button
                       variant='contained'
@@ -228,7 +230,7 @@ const MeetingPage = () => {
         )}
       </RemoteContent>
 
-      {activeMeeting?.isAttending && (
+      {activeMeeting?.isAttending && activeMeeting.status === 'ONGOING' && (
         <RemoteContent isLoading={votesLoading} error={votesError}>
           <Stack spacing={2}>
             <Typography variant='h5'>{t('meetings.votes.title')}</Typography>
@@ -358,7 +360,7 @@ const MeetingPage = () => {
         </RemoteContent>
       )}
 
-      {activeMeeting?.isAttending && closedVotesWithResults.length > 0 && (
+      {closedVotesWithResults.length > 0 && (
         <RemoteContent isLoading={votesLoading} error={votesError}>
           <Stack spacing={2}>
             <Typography variant='h5'>{t('meetings.votes.closedResults')}</Typography>

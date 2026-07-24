@@ -21,6 +21,7 @@ import {
   isAttendee,
   isVoteCounter,
   openVote,
+  pendingNotesMeeting,
   registerAttendance,
   removeVoteCounter,
   startMeeting,
@@ -167,7 +168,7 @@ router.post(
 )
 
 router.post(
-  '/:id/end',
+  '/:id/pending-notes',
   validateUser(MIKPermissions.MEETING_ADMIN),
   async (req: Request<{ id: string }>, res: Response<Meeting>) => {
     const existing = await getMeetingById(req.params.id, req.user!.memberId)
@@ -175,7 +176,28 @@ router.post(
       return problem({ status: 404, detail: 'Meeting not found' })
     }
     if (existing.status !== 'ONGOING') {
-      return problem({ status: 409, detail: 'Only ongoing meetings can be ended' })
+      return problem({ status: 409, detail: 'Only ongoing meetings can move to pending notes' })
+    }
+
+    const meeting = await pendingNotesMeeting(req.params.id, req.user!.memberId)
+    if (!meeting) {
+      return problem({ status: 500, detail: 'Failed to update meeting status' })
+    }
+
+    return res.status(HttpStatusCode.Ok).json(meeting)
+  },
+)
+
+router.post(
+  '/:id/end',
+  validateUser(MIKPermissions.MEETING_ADMIN),
+  async (req: Request<{ id: string }>, res: Response<Meeting>) => {
+    const existing = await getMeetingById(req.params.id, req.user!.memberId)
+    if (!existing) {
+      return problem({ status: 404, detail: 'Meeting not found' })
+    }
+    if (existing.status !== 'ONGOING' && existing.status !== 'PENDING_NOTES') {
+      return problem({ status: 409, detail: 'Only ongoing or pending-notes meetings can be ended' })
     }
 
     const meeting = await endMeeting(req.params.id, req.user!.memberId, req.user!.memberId)

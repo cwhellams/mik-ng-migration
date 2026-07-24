@@ -2724,7 +2724,8 @@
       "status": {
         "DRAFT": "Utkast",
         "ONGOING": "Pågående",
-        "ENDED": "Avslutat"
+        "ENDED": "Avslutat",
+        "PENDING_NOTES": "Protokoll pågår"
       },
       "attendees": "Deltagare",
       "attendeeCount": "{{count}} deltagare",
@@ -2751,7 +2752,10 @@
       "noVoteCounters": "Inga rösträknare tilldelade.",
       "noVotes": "Inga omröstningar skapade ännu.",
       "voteTopic": "Ämne",
-      "deleteMeeting": "Ta bort möte"
-    }
+      "deleteMeeting": "Ta bort möte",
+      "pendingNotes": "Protokoll pågår",
+      "confirmPendingNotes": "Övergå till protokollstatus? Medlemmar kan inte längre anmäla sig eller rösta."
+    },
+    "pendingNotes": "Mötet har avslutats. Resultaten sammanställs."
   }
 }

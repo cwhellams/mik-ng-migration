@@ -21,7 +21,7 @@ type MeetingRow = {
   title: string
   description: string | null
   document_search_filter: string | null
-  status: 'DRAFT' | 'ONGOING' | 'ENDED'
+  status: 'DRAFT' | 'ONGOING' | 'PENDING_NOTES' | 'ENDED'
   created_by: string | null
   created_at: unknown
   started_at: unknown
@@ -153,7 +153,7 @@ const getMeetingRows = async (
   executor: Executor,
   memberId?: string,
   meetingId?: string,
-  status?: 'DRAFT' | 'ONGOING' | 'ENDED',
+  status?: 'DRAFT' | 'ONGOING' | 'PENDING_NOTES' | 'ENDED',
 ): Promise<MeetingRow[]> => {
   const { rows } = await sql<MeetingRow>`
     SELECT
@@ -304,7 +304,52 @@ export const getMeetingById = async (
 }
 
 export const getActiveMeeting = async (memberId: string): Promise<Meeting | undefined> => {
-  const rows = await getMeetingRows(db, memberId, undefined, 'ONGOING')
+  // ONGOING → visible to all members
+  // PENDING_NOTES → visible only to vote counters (meeting is over for regular members)
+  const { rows } = await sql<MeetingRow>`
+    SELECT
+      m.meeting_id,
+      m.title,
+      m.description,
+      m.document_search_filter,
+      m.status,
+      m.created_by,
+      m.created_at,
+      m.started_at,
+      m.ended_at,
+      COALESCE(att.attendance_count, 0)::int AS attendance_count,
+      EXISTS (
+        SELECT 1
+        FROM member.meeting_attendance ma
+        WHERE ma.meeting_id = m.meeting_id
+          AND ma.member_id = ${memberId}
+      ) AS is_attending,
+      EXISTS (
+        SELECT 1
+        FROM member.meeting_vote_counter mvc
+        WHERE mvc.meeting_id = m.meeting_id
+          AND mvc.member_id = ${memberId}
+      ) AS is_vote_counter
+    FROM member.meeting m
+    LEFT JOIN (
+      SELECT meeting_id, COUNT(*)::int AS attendance_count
+      FROM member.meeting_attendance
+      GROUP BY meeting_id
+    ) att ON att.meeting_id = m.meeting_id
+    WHERE m.status = 'ONGOING'
+       OR (
+         m.status = 'PENDING_NOTES'
+         AND EXISTS (
+           SELECT 1
+           FROM member.meeting_vote_counter mvc
+           WHERE mvc.meeting_id = m.meeting_id
+             AND mvc.member_id = ${memberId}
+         )
+       )
+    ORDER BY m.started_at DESC
+    LIMIT 1
+  `.execute(db)
+
   return rows[0] ? mapMeeting(rows[0]) : undefined
 }
 
@@ -399,6 +444,21 @@ export const startMeeting = async (
   return rows[0] ? getMeetingById(meetingId, memberId ?? _startedBy) : undefined
 }
 
+export const pendingNotesMeeting = async (
+  meetingId: string,
+  memberId?: string,
+): Promise<Meeting | undefined> => {
+  const { rows } = await sql<{ meeting_id: string }>`
+    UPDATE member.meeting
+    SET status = 'PENDING_NOTES'
+    WHERE meeting_id = ${meetingId}::uuid
+      AND status = 'ONGOING'
+    RETURNING meeting_id
+  `.execute(db)
+
+  return rows[0] ? getMeetingById(meetingId, memberId) : undefined
+}
+
 export const endMeeting = async (
   meetingId: string,
   _endedBy: string,
@@ -410,7 +470,7 @@ export const endMeeting = async (
       status = 'ENDED',
       ended_at = NOW()
     WHERE meeting_id = ${meetingId}::uuid
-      AND status = 'ONGOING'
+      AND status IN ('ONGOING', 'PENDING_NOTES')
     RETURNING meeting_id
   `.execute(db)
 
