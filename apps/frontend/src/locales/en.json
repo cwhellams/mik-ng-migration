@@ -2279,7 +2279,7 @@
         "review": "Review & Submit"
       },
       "receiptPolicyTitle": "Important: only one receipt document allowed per claim",
-      "receiptPolicyBody": "Our accounting system only supports a single attachment per expense claim. You may upload only one image or PDF document as your receipt.\n\nAll claims must be in the same currency — do NOT mix currencies (e.g. EUR and SEK) within a single claim.\n\nFX rates are based on the rates supplied by a 3rd-party API (frankfurter.app), using the expense date you provide.\n\nMileage claims use 50% of the Finnish Tax Administration (Vero) official rate.\n\nFuel re-imbursement price is capped at the EFNU price — enter the total litres of uplift and the total paid (including any handling fees). If the total exceeds the cost at EFNU, you are responsible for the excess.",
+      "receiptPolicyBody": "Our accounting system only supports a single attachment per expense claim. You may upload only one image or PDF document as your receipt.\n\nAll claims must be in the same currency — do NOT mix currencies (e.g. EUR and SEK) within a single claim.\n\nFX rates are based on the rates supplied by a 3rd-party API (frankfurter.app), using the expense date you provide.\n\nMileage claims use 50% of the Finnish Tax Administration (Vero) official rate.\n\nFor fuel re-imbursement, enter the total litres of uplift and the total paid (including any handling fees).",
       "fuelFlightQuestion": "Was this fuel purchased for a specific flight?",
       "aircraftSelectorTooltip": "Select the aircraft this line item relates to, if any.",
       "recentFlights": "Select from recent flights",

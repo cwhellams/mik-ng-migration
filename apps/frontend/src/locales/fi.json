@@ -2285,7 +2285,7 @@
         "review": "Tarkistus ja lähetys"
       },
       "receiptPolicyTitle": "Tärkeää: vain yksi kuittiasiakirja per hakemus",
-      "receiptPolicyBody": "Kirjanpitojärjestelmämme tukee vain yhtä liitettä per kulukorvaus. Voit ladata yhden kuvan tai PDF-dokumentin kuittina.\n\nKaikkien hakemuksen rivien on oltava samassa valuutassa — ÄLÄ sekoita valuuttoja (esim. EUR ja SEK) samassa hakemuksessa.\n\nVaihtokurssit perustuvat kolmannen osapuolen API:n (frankfurter.app) tarjoamiin kursseihin ilmoittamasi kulupäivän mukaan.\n\nKilometrikorvaukset käyttävät 50 % Verohallinnon virallisesta kilometrikorvauksesta.\n\nPolttoaineen korvaus on rajattu EFNU-hintaan — syötä tankatut litrat yhteensä ja maksettu kokonaissumma (sis. mahdolliset käsittelymaksut). Jos summa ylittää EFNU-hinnan, vastaat itse erotuksesta.",
+      "receiptPolicyBody": "Kirjanpitojärjestelmämme tukee vain yhtä liitettä per kulukorvaus. Voit ladata yhden kuvan tai PDF-dokumentin kuittina.\n\nKaikkien hakemuksen rivien on oltava samassa valuutassa — ÄLÄ sekoita valuuttoja (esim. EUR ja SEK) samassa hakemuksessa.\n\nVaihtokurssit perustuvat kolmannen osapuolen API:n (frankfurter.app) tarjoamiin kursseihin ilmoittamasi kulupäivän mukaan.\n\nKilometrikorvaukset käyttävät 50 % Verohallinnon virallisesta kilometrikorvauksesta.\n\nPolttoaineen korvausta varten syötä tankatut litrat yhteensä ja maksettu kokonaissumma (sis. mahdolliset käsittelymaksut).",
       "fuelFlightQuestion": "Ostettiinko tämä polttoaine tiettyä lentoa varten?",
       "aircraftSelectorTooltip": "Valitse ilma-alus, johon tämä rivi liittyy, jos sovellettavissa.",
       "recentFlights": "Valitse viimeisimmistä lennoista",

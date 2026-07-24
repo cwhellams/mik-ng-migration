@@ -2252,7 +2252,7 @@
         "review": "Granska & Skicka"
       },
       "receiptPolicyTitle": "Viktigt: endast ett kvittodokument tillåtet per anspråk",
-      "receiptPolicyBody": "Vårt redovisningssystem stöder bara en bilaga per utgiftsanspråk. Du kan ladda upp en bild eller ett PDF-dokument som kvitto.\n\nAlla anspråk måste vara i samma valuta — blanda INTE valutor (t.ex. EUR och SEK) i ett och samma anspråk.\n\nVäxelkurser baseras på kurser från ett tredjeparts-API (frankfurter.app), med användning av det utgiftsdatum du anger.\n\nKilometerersättning använder 50 % av Skatteförvaltningens (Vero) officiella sats.\n\nBränsleersättningen är begränsad till EFNU-priset — ange totalt antal tankade liter och det totala beloppet du betalat (inklusive eventuella hanteringsavgifter). Om beloppet överstiger EFNU-priset ansvarar du själv för mellanskillnaden.",
+      "receiptPolicyBody": "Vårt redovisningssystem stöder bara en bilaga per utgiftsanspråk. Du kan ladda upp en bild eller ett PDF-dokument som kvitto.\n\nAlla anspråk måste vara i samma valuta — blanda INTE valutor (t.ex. EUR och SEK) i ett och samma anspråk.\n\nVäxelkurser baseras på kurser från ett tredjeparts-API (frankfurter.app), med användning av det utgiftsdatum du anger.\n\nKilometerersättning använder 50 % av Skatteförvaltningens (Vero) officiella sats.\n\nFör bränsleersättning, ange totalt antal tankade liter och det totala beloppet du betalat (inklusive eventuella hanteringsavgifter).",
       "fuelFlightQuestion": "Köptes detta bränsle för en specifik flygning?",
       "aircraftSelectorTooltip": "Välj det flygplan denna rad gäller, om tillämpligt.",
       "recentFlights": "Välj från senaste flygningar",
