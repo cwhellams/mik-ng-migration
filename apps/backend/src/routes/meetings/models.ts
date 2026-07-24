@@ -39,6 +39,7 @@ export const MeetingSchema = z.object({
   title: z.string(),
   description: z.string().nullable(),
   documentSearchFilter: z.string().nullable(),
+  meetingUrl: z.string().nullable(),
   status: MeetingStatusSchema,
   createdBy: z.string().nullable(),
   createdAt: z.string().datetime(),
@@ -93,6 +94,7 @@ export const CreateMeetingSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().max(5000).nullable().optional(),
   documentSearchFilter: z.string().trim().max(500).nullable().optional(),
+  meetingUrl: z.string().trim().url().nullable().optional(),
 })
 export type CreateMeeting = z.infer<typeof CreateMeetingSchema>
 

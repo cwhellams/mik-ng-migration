@@ -2754,8 +2754,10 @@
       "voteTopic": "Ämne",
       "deleteMeeting": "Ta bort möte",
       "pendingNotes": "Protokoll pågår",
-      "confirmPendingNotes": "Övergå till protokollstatus? Medlemmar kan inte längre anmäla sig eller rösta."
+      "confirmPendingNotes": "Övergå till protokollstatus? Medlemmar kan inte längre anmäla sig eller rösta.",
+      "meetingUrl": "Möteslänk (t.ex. Zoom eller Teams)"
     },
-    "pendingNotes": "Mötet har avslutats. Resultaten sammanställs."
+    "pendingNotes": "Mötet har avslutats. Resultaten sammanställs.",
+    "joinMeeting": "Anslut till mötet"
   }
 }

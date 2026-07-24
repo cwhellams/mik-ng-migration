@@ -44,6 +44,7 @@ const emptyMeetingForm: CreateMeeting = {
   title: '',
   description: '',
   documentSearchFilter: '',
+  meetingUrl: '',
 }
 
 const emptyVoteForm: CreateVote = {
@@ -187,6 +188,7 @@ const MeetingsAdminPage = () => {
       title: meetingDetail.title,
       description: meetingDetail.description ?? '',
       documentSearchFilter: meetingDetail.documentSearchFilter ?? '',
+      meetingUrl: meetingDetail.meetingUrl ?? '',
     })
   }, [meetingDetail])
 
@@ -219,6 +221,7 @@ const MeetingsAdminPage = () => {
       title: newMeetingForm.title.trim(),
       description: newMeetingForm.description?.trim() || null,
       documentSearchFilter: newMeetingForm.documentSearchFilter?.trim() || null,
+      meetingUrl: newMeetingForm.meetingUrl?.trim() || null,
     }
 
     const response = await meetingsMutation.trigger('POST', payload)
@@ -241,6 +244,7 @@ const MeetingsAdminPage = () => {
       title: meetingForm.title.trim(),
       description: meetingForm.description?.trim() || null,
       documentSearchFilter: meetingForm.documentSearchFilter?.trim() || null,
+      meetingUrl: meetingForm.meetingUrl?.trim() || null,
     }
 
     const response = await detailMutation.trigger('PATCH', payload)
@@ -514,6 +518,18 @@ const MeetingsAdminPage = () => {
                         }))
                       }
                       disabled={meetingDetail.status !== 'DRAFT'}
+                      fullWidth
+                    />
+                    <TextField
+                      label={t('meetings.admin.meetingUrl')}
+                      value={meetingForm.meetingUrl ?? ''}
+                      onChange={(event) =>
+                        setMeetingForm((current) => ({
+                          ...current,
+                          meetingUrl: event.target.value,
+                        }))
+                      }
+                      placeholder='https://'
                       fullWidth
                     />
 
@@ -790,6 +806,18 @@ const MeetingsAdminPage = () => {
                   documentSearchFilter: event.target.value,
                 }))
               }
+              fullWidth
+            />
+            <TextField
+              label={t('meetings.admin.meetingUrl')}
+              value={newMeetingForm.meetingUrl ?? ''}
+              onChange={(event) =>
+                setNewMeetingForm((current) => ({
+                  ...current,
+                  meetingUrl: event.target.value,
+                }))
+              }
+              placeholder='https://'
               fullWidth
             />
           </Stack>

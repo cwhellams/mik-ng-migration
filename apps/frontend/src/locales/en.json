@@ -2780,9 +2780,11 @@
       "voteTopic": "Topic",
       "deleteMeeting": "Delete Meeting",
       "pendingNotes": "Pending Notes",
-      "confirmPendingNotes": "Move to pending notes? Members will no longer be able to attend or vote."
+      "confirmPendingNotes": "Move to pending notes? Members will no longer be able to attend or vote.",
+      "meetingUrl": "Meeting link (e.g. Zoom or Teams URL)"
     },
     "voteCounterNotice": "You are a vote counter for this meeting. You will see the results after each vote is closed.",
-    "pendingNotes": "The meeting has concluded. Results are being finalised."
+    "pendingNotes": "The meeting has concluded. Results are being finalised.",
+    "joinMeeting": "Join Meeting"
   }
 }

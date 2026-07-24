@@ -21,6 +21,7 @@ type MeetingRow = {
   title: string
   description: string | null
   document_search_filter: string | null
+  meeting_url: string | null
   status: 'DRAFT' | 'ONGOING' | 'PENDING_NOTES' | 'ENDED'
   created_by: string | null
   created_at: unknown
@@ -103,6 +104,7 @@ const mapMeeting = (row: MeetingRow): Meeting => ({
   title: row.title,
   description: row.description,
   documentSearchFilter: row.document_search_filter,
+  meetingUrl: row.meeting_url,
   status: row.status,
   createdBy: row.created_by,
   createdAt: toIsoString(row.created_at),
@@ -161,6 +163,7 @@ const getMeetingRows = async (
       m.title,
       m.description,
       m.document_search_filter,
+      m.meeting_url,
       m.status,
       m.created_by,
       m.created_at,
@@ -312,6 +315,7 @@ export const getActiveMeeting = async (memberId: string): Promise<Meeting | unde
       m.title,
       m.description,
       m.document_search_filter,
+      m.meeting_url,
       m.status,
       m.created_by,
       m.created_at,
@@ -359,12 +363,14 @@ export const createMeeting = async (data: CreateMeeting, createdBy: string): Pro
       title,
       description,
       document_search_filter,
+      meeting_url,
       created_by
     )
     VALUES (
       ${data.title},
       ${data.description ?? null},
       ${data.documentSearchFilter ?? null},
+      ${data.meetingUrl ?? null},
       ${createdBy}
     )
     RETURNING meeting_id
@@ -401,6 +407,11 @@ export const updateMeeting = async (
         WHEN ${Object.prototype.hasOwnProperty.call(data, 'documentSearchFilter')}
           THEN ${data.documentSearchFilter ?? null}
         ELSE document_search_filter
+      END,
+      meeting_url = CASE
+        WHEN ${Object.prototype.hasOwnProperty.call(data, 'meetingUrl')}
+          THEN ${data.meetingUrl ?? null}
+        ELSE meeting_url
       END
     WHERE meeting_id = ${meetingId}::uuid
       AND status = 'DRAFT'

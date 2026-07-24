@@ -2786,9 +2786,11 @@
       "voteTopic": "Aihe",
       "deleteMeeting": "Poista kokous",
       "pendingNotes": "Odottaa pöytäkirjaa",
-      "confirmPendingNotes": "Siirry odottamaan pöytäkirjaa? Jäsenet eivät enää voi ilmoittautua tai äänestää."
+      "confirmPendingNotes": "Siirry odottamaan pöytäkirjaa? Jäsenet eivät enää voi ilmoittautua tai äänestää.",
+      "meetingUrl": "Kokouslinkki (esim. Zoom tai Teams)"
     },
     "voteCounterNotice": "Olet tämän kokouksen äänten laskija. Näet tulokset kun äänestys suljetaan.",
-    "pendingNotes": "Kokous on päättynyt. Tuloksia viimeistellään."
+    "pendingNotes": "Kokous on päättynyt. Tuloksia viimeistellään.",
+    "joinMeeting": "Liity kokoukseen"
   }
 }

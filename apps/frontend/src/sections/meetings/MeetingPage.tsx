@@ -204,6 +204,20 @@ const MeetingPage = () => {
                   </Box>
                 )}
 
+                {activeMeeting.meetingUrl && activeMeeting.status === 'ONGOING' && (
+                  <Box>
+                    <Button
+                      variant='contained'
+                      color='primary'
+                      href={activeMeeting.meetingUrl}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                    >
+                      {t('meetings.joinMeeting')}
+                    </Button>
+                  </Box>
+                )}
+
                 {activeMeeting.status === 'PENDING_NOTES' ? (
                   <Alert severity='info'>{t('meetings.pendingNotes')}</Alert>
                 ) : !activeMeeting.isAttending ? (
