@@ -58,7 +58,9 @@
     "inventory": "Inventarie",
     "inventoryAdmin": "Inventarieadmin",
     "ameList": "AME-katalog",
-    "ameAdmin": "AME-godkännanden"
+    "ameAdmin": "AME-godkännanden",
+    "meetings": "Möten",
+    "meetingsAdmin": "Möten (administration)"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -2684,6 +2686,73 @@
       "deltaHint": "Positivt för att lägga till, negativt för att ta bort",
       "fieldRequired": "Detta fält är obligatoriskt",
       "invalidImageUrl": "Ange en giltig http(s)-URL"
+    }
+  },
+  "meetings": {
+    "title": "Allmänna möten",
+    "noActiveMeeting": "Inget möte pågår för tillfället.",
+    "ongoingMeeting": "Möte pågår",
+    "attend": "Jag deltar",
+    "attending": "Du är registrerad som deltagare",
+    "documents": "Öppna relaterade dokument",
+    "voteCounterNotice": "Du är rösträknare för detta möte. Du ser resultaten efter att varje omröstning stängts.",
+    "closedResults": "Avslutade omröstningar — resultat",
+    "votes": {
+      "title": "Omröstningar",
+      "noOpenVotes": "Inga öppna omröstningar för tillfället.",
+      "submit": "Rösta",
+      "submitted": "Röst avgiven",
+      "alreadyVoted": "Du har redan röstat i denna fråga.",
+      "open": "Öppen",
+      "closed": "Stängd",
+      "results": "Resultat",
+      "totalVotes": "Totalt antal röster",
+      "selectOne": "Välj ett alternativ",
+      "selectMultiple": "Välj upp till {{max}} alternativ",
+      "selectMultipleUnlimited": "Välj ett eller flera alternativ",
+      "closedResults": "Avslutade omröstningar — resultat"
+    },
+    "admin": {
+      "title": "Mötesadministration",
+      "createMeeting": "Skapa möte",
+      "editMeeting": "Redigera möte",
+      "meetingDetails": "Mötesdetaljer",
+      "startMeeting": "Starta möte",
+      "endMeeting": "Avsluta möte",
+      "confirmStart": "Starta detta möte? Medlemmar kan då anmäla sig.",
+      "confirmEnd": "Avsluta detta möte? Öppna omröstningar lämnas oförändrade.",
+      "confirmDelete": "Ta bort detta utkastmöte?",
+      "status": {
+        "DRAFT": "Utkast",
+        "ONGOING": "Pågående",
+        "ENDED": "Avslutat"
+      },
+      "attendees": "Deltagare",
+      "attendeeCount": "{{count}} deltagare",
+      "voteCounters": "Rösträknare",
+      "addVoteCounter": "Lägg till rösträknare",
+      "removeVoteCounter": "Ta bort",
+      "createVote": "Skapa omröstning",
+      "openVote": "Öppna omröstning",
+      "closeVote": "Stäng omröstning",
+      "voteStatus": {
+        "DRAFT": "Utkast",
+        "OPEN": "Öppen",
+        "CLOSED": "Stängd"
+      },
+      "options": "Alternativ",
+      "addOption": "Lägg till alternativ",
+      "removeOption": "Ta bort",
+      "isMultiSelect": "Tillåt flera val",
+      "maxSelections": "Maximalt antal val (lämna tomt för obegränsat)",
+      "documentFilter": "Dokumentsökfilter",
+      "noMeetings": "Inga möten ännu.",
+      "noMeetingSelected": "Välj ett möte",
+      "noAttendees": "Inga deltagare ännu.",
+      "noVoteCounters": "Inga rösträknare tilldelade.",
+      "noVotes": "Inga omröstningar skapade ännu.",
+      "voteTopic": "Ämne",
+      "deleteMeeting": "Ta bort möte"
     }
   }
 }
