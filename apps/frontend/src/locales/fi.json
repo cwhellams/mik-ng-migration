@@ -57,7 +57,9 @@
     "inventory": "Varasto",
     "inventoryAdmin": "Varasto-hallinta",
     "ameList": "AME-hakemisto",
-    "ameAdmin": "AME-hyväksynnät"
+    "ameAdmin": "AME-hyväksynnät",
+    "meetings": "Kokoukset",
+    "meetingsAdmin": "Kokoukset (hallinto)"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"

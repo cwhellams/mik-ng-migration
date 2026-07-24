@@ -58,7 +58,9 @@
     "inventory": "Inventory",
     "inventoryAdmin": "Inventory Admin",
     "ameList": "AME Directory",
-    "ameAdmin": "AME Approvals"
+    "ameAdmin": "AME Approvals",
+    "meetings": "Meetings",
+    "meetingsAdmin": "Meetings Admin"
   },
   "languageSelector": {
     "selectLanguage": "Select language"
