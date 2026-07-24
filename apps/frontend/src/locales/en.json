@@ -2712,5 +2712,69 @@
       "fieldRequired": "This field is required",
       "invalidImageUrl": "Enter a valid http(s) URL"
     }
+  },
+  "meetings": {
+    "title": "General Meetings",
+    "noActiveMeeting": "No meeting is currently in progress.",
+    "ongoingMeeting": "Meeting in progress",
+    "attend": "I'm attending",
+    "attending": "You are registered as attending",
+    "documents": "Open related documents",
+    "votes": {
+      "title": "Votes",
+      "noOpenVotes": "No open votes at this time.",
+      "submit": "Submit vote",
+      "submitted": "Vote submitted",
+      "alreadyVoted": "You have already voted on this question.",
+      "open": "Open",
+      "closed": "Closed",
+      "results": "Results",
+      "totalVotes": "Total votes",
+      "selectOne": "Select one option",
+      "selectMultiple": "Select up to {{max}} options",
+      "selectMultipleUnlimited": "Select one or more options"
+    },
+    "admin": {
+      "title": "Meetings Admin",
+      "createMeeting": "Create Meeting",
+      "editMeeting": "Edit Meeting",
+      "meetingDetails": "Meeting Details",
+      "startMeeting": "Start Meeting",
+      "endMeeting": "End Meeting",
+      "confirmStart": "Start this meeting? Members will be able to join.",
+      "confirmEnd": "End this meeting? All open votes will remain as-is.",
+      "confirmDelete": "Delete this draft meeting?",
+      "status": {
+        "DRAFT": "Draft",
+        "ONGOING": "Ongoing",
+        "ENDED": "Ended"
+      },
+      "attendees": "Attendees",
+      "attendeeCount": "{{count}} attendee(s)",
+      "voteCounters": "Vote Counters",
+      "addVoteCounter": "Add vote counter",
+      "removeVoteCounter": "Remove",
+      "createVote": "Create Vote",
+      "openVote": "Open voting",
+      "closeVote": "Close voting",
+      "voteStatus": {
+        "DRAFT": "Draft",
+        "OPEN": "Open",
+        "CLOSED": "Closed"
+      },
+      "options": "Options",
+      "addOption": "Add option",
+      "removeOption": "Remove",
+      "isMultiSelect": "Allow multiple selections",
+      "maxSelections": "Maximum selections (leave empty for unlimited)",
+      "documentFilter": "Document search filter",
+      "noMeetings": "No meetings yet.",
+      "noMeetingSelected": "Select a meeting",
+      "noAttendees": "No attendees yet.",
+      "noVoteCounters": "No vote counters assigned.",
+      "noVotes": "No votes created yet.",
+      "voteTopic": "Topic",
+      "deleteMeeting": "Delete Meeting"
+    }
   }
 }

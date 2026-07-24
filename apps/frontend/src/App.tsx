@@ -102,6 +102,8 @@ import { CostCentresPage } from './sections/accounting/CostCentresPage'
 import AmeList from './sections/ame/AmeList'
 import AmeSubmitForm from './sections/ame/AmeSubmitForm'
 import AmeAdminList from './sections/admin/ame/AmeAdminList'
+import MeetingPage from './sections/meetings/MeetingPage'
+import MeetingsAdminPage from './sections/admin/meetings/MeetingsAdminPage'
 
 function DtoIndexRedirect() {
   const { hasAccess } = useRoles()
@@ -208,6 +210,7 @@ function App() {
                 <Route path='events' element={<EventsList />} />
                 <Route path='ame-list' element={<AmeList />} />
                 <Route path='ame-list/new' element={<AmeSubmitForm />} />
+                <Route path='meetings' element={<MeetingPage />} />
               </Route>
               <Route path='/profile/email-change/verify' element={<EmailChangeVerify />} />
               <Route path='/expenses'>
@@ -496,6 +499,14 @@ function App() {
                   element={
                     <RequirePermission adminModeOnly permissions={[MIKPermissions.AME_ADMIN]}>
                       <AmeAdminList />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='meetings'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.MEETING_ADMIN]}>
+                      <MeetingsAdminPage />
                     </RequirePermission>
                   }
                 />

@@ -2718,5 +2718,69 @@
       "fieldRequired": "Tämä kenttä on pakollinen",
       "invalidImageUrl": "Anna kelvollinen http(s)-osoite"
     }
+  },
+  "meetings": {
+    "title": "Yleiskokoukset",
+    "noActiveMeeting": "Kokous ei ole käynnissä.",
+    "ongoingMeeting": "Kokous käynnissä",
+    "attend": "Ilmoittaudu läsnäolevaksi",
+    "attending": "Olet ilmoittautunut läsnäolevaksi",
+    "documents": "Avaa liittyvät dokumentit",
+    "votes": {
+      "title": "Äänestykset",
+      "noOpenVotes": "Avoimia äänestyksiä ei ole tällä hetkellä.",
+      "submit": "Lähetä ääni",
+      "submitted": "Ääni lähetetty",
+      "alreadyVoted": "Olet jo äänestänyt tästä kysymyksestä.",
+      "open": "Avoin",
+      "closed": "Suljettu",
+      "results": "Tulokset",
+      "totalVotes": "Ääniä yhteensä",
+      "selectOne": "Valitse yksi vaihtoehto",
+      "selectMultiple": "Valitse enintään {{max}} vaihtoehtoa",
+      "selectMultipleUnlimited": "Valitse yksi tai useampi vaihtoehto"
+    },
+    "admin": {
+      "title": "Kokoushallinta",
+      "createMeeting": "Luo kokous",
+      "editMeeting": "Muokkaa kokousta",
+      "meetingDetails": "Kokouksen tiedot",
+      "startMeeting": "Aloita kokous",
+      "endMeeting": "Päätä kokous",
+      "confirmStart": "Aloitetaanko tämä kokous? Jäsenet voivat liittyä mukaan.",
+      "confirmEnd": "Päätetäänkö tämä kokous? Avoimet äänestykset jäävät ennalleen.",
+      "confirmDelete": "Poistetaanko tämä luonnoskokous?",
+      "status": {
+        "DRAFT": "Luonnos",
+        "ONGOING": "Käynnissä",
+        "ENDED": "Päättynyt"
+      },
+      "attendees": "Läsnäolijat",
+      "attendeeCount": "{{count}} osallistuja(a)",
+      "voteCounters": "Ääntenlaskijat",
+      "addVoteCounter": "Lisää ääntenlaskija",
+      "removeVoteCounter": "Poista",
+      "createVote": "Luo äänestys",
+      "openVote": "Avaa äänestys",
+      "closeVote": "Sulje äänestys",
+      "voteStatus": {
+        "DRAFT": "Luonnos",
+        "OPEN": "Avoin",
+        "CLOSED": "Suljettu"
+      },
+      "options": "Vaihtoehdot",
+      "addOption": "Lisää vaihtoehto",
+      "removeOption": "Poista",
+      "isMultiSelect": "Salli useita valintoja",
+      "maxSelections": "Valintojen enimmäismäärä (jätä tyhjäksi rajattomalle)",
+      "documentFilter": "Dokumenttihaun suodatin",
+      "noMeetings": "Kokouksia ei ole vielä.",
+      "noMeetingSelected": "Valitse kokous",
+      "noAttendees": "Ei vielä läsnäolijoita.",
+      "noVoteCounters": "Ääntenlaskijoita ei ole asetettu.",
+      "noVotes": "Äänestyksiä ei ole vielä luotu.",
+      "voteTopic": "Aihe",
+      "deleteMeeting": "Poista kokous"
+    }
   }
 }
