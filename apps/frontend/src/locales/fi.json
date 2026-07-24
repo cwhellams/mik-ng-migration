@@ -2740,7 +2740,8 @@
       "totalVotes": "Ääniä yhteensä",
       "selectOne": "Valitse yksi vaihtoehto",
       "selectMultiple": "Valitse enintään {{max}} vaihtoehtoa",
-      "selectMultipleUnlimited": "Valitse yksi tai useampi vaihtoehto"
+      "selectMultipleUnlimited": "Valitse yksi tai useampi vaihtoehto",
+      "closedResults": "Suljetut äänestykset — tulokset"
     },
     "admin": {
       "title": "Kokoushallinta",
@@ -2784,7 +2785,6 @@
       "voteTopic": "Aihe",
       "deleteMeeting": "Poista kokous"
     },
-    "voteCounterNotice": "Olet tämän kokouksen äänten laskija. Näet tulokset kun äänestys suljetaan.",
-    "closedResults": "Suljetut äänestykset — tulokset"
+    "voteCounterNotice": "Olet tämän kokouksen äänten laskija. Näet tulokset kun äänestys suljetaan."
   }
 }

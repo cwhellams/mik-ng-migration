@@ -2696,7 +2696,6 @@
     "attending": "Du är registrerad som deltagare",
     "documents": "Öppna relaterade dokument",
     "voteCounterNotice": "Du är rösträknare för detta möte. Du ser resultaten efter att varje omröstning stängts.",
-    "closedResults": "Avslutade omröstningar — resultat",
     "votes": {
       "title": "Omröstningar",
       "noOpenVotes": "Inga öppna omröstningar för tillfället.",

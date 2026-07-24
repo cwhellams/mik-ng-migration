@@ -2734,7 +2734,8 @@
       "totalVotes": "Total votes",
       "selectOne": "Select one option",
       "selectMultiple": "Select up to {{max}} options",
-      "selectMultipleUnlimited": "Select one or more options"
+      "selectMultipleUnlimited": "Select one or more options",
+      "closedResults": "Closed votes — results"
     },
     "admin": {
       "title": "Meetings Admin",
@@ -2778,7 +2779,6 @@
       "voteTopic": "Topic",
       "deleteMeeting": "Delete Meeting"
     },
-    "voteCounterNotice": "You are a vote counter for this meeting. You will see the results after each vote is closed.",
-    "closedResults": "Closed votes — results"
+    "voteCounterNotice": "You are a vote counter for this meeting. You will see the results after each vote is closed."
   }
 }
