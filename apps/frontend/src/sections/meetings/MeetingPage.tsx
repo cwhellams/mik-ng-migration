@@ -78,6 +78,14 @@ const MeetingPage = () => {
     [votesData?.votes],
   )
 
+  const closedVotesWithResults = useMemo(
+    () =>
+      (votesData?.votes ?? []).filter(
+        (vote) => vote.status === 'CLOSED' && vote.totalVotes != null,
+      ),
+    [votesData?.votes],
+  )
+
   const handleAttend = async () => {
     if (!meetingId) return
 
@@ -207,7 +215,12 @@ const MeetingPage = () => {
                     </Button>
                   </Box>
                 ) : (
-                  <Alert severity='success'>{t('meetings.attending')}</Alert>
+                  <Stack spacing={1}>
+                    <Alert severity='success'>{t('meetings.attending')}</Alert>
+                    {activeMeeting.isVoteCounter && (
+                      <Alert severity='info'>{t('meetings.voteCounterNotice')}</Alert>
+                    )}
+                  </Stack>
                 )}
               </Stack>
             </CardContent>
@@ -341,6 +354,43 @@ const MeetingPage = () => {
                 )
               })
             )}
+          </Stack>
+        </RemoteContent>
+      )}
+
+      {activeMeeting?.isAttending && closedVotesWithResults.length > 0 && (
+        <RemoteContent isLoading={votesLoading} error={votesError}>
+          <Stack spacing={2}>
+            <Typography variant='h5'>{t('meetings.votes.closedResults')}</Typography>
+            {closedVotesWithResults.map((vote) => (
+              <Card key={vote.voteId} variant='outlined'>
+                <CardContent>
+                  <Stack spacing={2}>
+                    <Box>
+                      <Typography variant='h6'>{vote.topic}</Typography>
+                      {vote.description && (
+                        <Typography color='text.secondary'>{vote.description}</Typography>
+                      )}
+                    </Box>
+                    <Stack spacing={1}>
+                      {vote.options.map((option) => (
+                        <Box key={option.optionId}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                            <Typography variant='body2'>{option.optionText}</Typography>
+                            <Typography variant='body2' color='text.secondary'>
+                              {option.voteCount ?? 0}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Stack>
+                    <Typography variant='body2' color='text.secondary'>
+                      {t('meetings.votes.totalVotes')}: {vote.totalVotes ?? 0}
+                    </Typography>
+                  </Stack>
+                </CardContent>
+              </Card>
+            ))}
           </Stack>
         </RemoteContent>
       )}

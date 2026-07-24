@@ -113,12 +113,17 @@ const mapMeeting = (row: MeetingRow): Meeting => ({
   isVoteCounter: Boolean(row.is_vote_counter),
 })
 
-const mapVoteOption = (row: VoteOptionRow, includeResults: boolean): VoteOption => ({
+const mapVoteOption = (
+  row: VoteOptionRow,
+  includeResults: boolean,
+  voteStatus: 'DRAFT' | 'OPEN' | 'CLOSED',
+): VoteOption => ({
   optionId: row.option_id,
   voteId: row.vote_id,
   optionText: row.option_text,
   displayOrder: Number(row.display_order ?? 0),
-  voteCount: includeResults ? Number(row.vote_count ?? 0) : null,
+  // Results are only revealed once the vote is closed
+  voteCount: includeResults && voteStatus === 'CLOSED' ? Number(row.vote_count ?? 0) : null,
 })
 
 const mapMeetingVote = (
@@ -138,7 +143,8 @@ const mapMeetingVote = (
   closedAt: toNullableIsoString(row.closed_at),
   closedBy: row.closed_by,
   displayOrder: Number(row.display_order ?? 0),
-  totalVotes: includeResults ? Number(row.total_votes ?? 0) : null,
+  // Results are only revealed once the vote is closed
+  totalVotes: includeResults && row.status === 'CLOSED' ? Number(row.total_votes ?? 0) : null,
   hasVoted: Boolean(row.has_voted),
   options,
 })
@@ -252,8 +258,9 @@ const getVoteRows = async (
 
   const optionsByVote = new Map<string, VoteOption[]>()
   for (const optionRow of optionRows) {
+    const voteRow = voteRows.find((r) => r.vote_id === optionRow.vote_id)
     const options = optionsByVote.get(optionRow.vote_id) ?? []
-    options.push(mapVoteOption(optionRow, includeResults))
+    options.push(mapVoteOption(optionRow, includeResults, voteRow?.status ?? 'OPEN'))
     optionsByVote.set(optionRow.vote_id, options)
   }
 

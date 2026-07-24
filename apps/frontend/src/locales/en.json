@@ -2777,6 +2777,8 @@
       "noVotes": "No votes created yet.",
       "voteTopic": "Topic",
       "deleteMeeting": "Delete Meeting"
-    }
+    },
+    "voteCounterNotice": "You are a vote counter for this meeting. You will see the results after each vote is closed.",
+    "closedResults": "Closed votes — results"
   }
 }

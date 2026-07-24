@@ -2783,6 +2783,8 @@
       "noVotes": "Äänestyksiä ei ole vielä luotu.",
       "voteTopic": "Aihe",
       "deleteMeeting": "Poista kokous"
-    }
+    },
+    "voteCounterNotice": "Olet tämän kokouksen äänten laskija. Näet tulokset kun äänestys suljetaan.",
+    "closedResults": "Suljetut äänestykset — tulokset"
   }
 }
