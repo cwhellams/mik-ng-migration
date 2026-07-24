@@ -19,6 +19,7 @@ import {
   isAfterEquipmentFeeDiscountDate,
   isAfterMembershipFeeDiscountDate,
 } from '../../util/feeDiscounts.ts'
+import { resolveArticlePrice } from './articlePricing.ts'
 
 const getMemberFeeSimplBooksCodeFromMemberType = (memberType: MIKMemberTypes) => {
   switch (memberType) {
@@ -72,7 +73,7 @@ const createTasksFromArticleInputs = async (
       Task: {
         article_id: article.id,
         amount: 1,
-        price_per_unit: article.markup_value,
+        price_per_unit: resolveArticlePrice(article),
         ...(discountPercent !== undefined && discountPercent > 0
           ? { discount: discountPercent }
           : {}),

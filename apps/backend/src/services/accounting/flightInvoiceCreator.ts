@@ -9,6 +9,7 @@ import utc from 'dayjs/plugin/utc.js'
 import timezone from 'dayjs/plugin/timezone.js'
 import logger from '../../lib/logger.ts'
 import { ART_ENTRY_ERROR_CODE, ART_EQUIP_USAGE_FEE_CODE } from './config.ts'
+import { resolveArticlePrice } from './articlePricing.ts'
 import {
   planPrepaidFlightUsage,
   computeTopUpMins,
@@ -367,7 +368,7 @@ function createTasksForFlight(
         article_id: ctx.kalustonkayttoFee.id,
         code: ctx.kalustonkayttoFee.code,
         amount: billableMins - creditedMins,
-        price_per_unit: ctx.kalustonkayttoFee.markup_value,
+        price_per_unit: resolveArticlePrice(ctx.kalustonkayttoFee),
         contents: createFlightTaskContents(flight),
         name: ctx.kalustonkayttoFee.name,
       },
@@ -389,7 +390,7 @@ function createTasksForFlight(
         article_id: ctx.virhemerkintaFee.id,
         code: ART_ENTRY_ERROR_CODE,
         amount: ctx.virhemerkintaFee.amount || 1,
-        price_per_unit: ctx.virhemerkintaFee.markup_value ?? 0,
+        price_per_unit: resolveArticlePrice(ctx.virhemerkintaFee),
         contents: createFlightTaskContents(flight, virhemerkintaAdditionalText),
         name: ctx.virhemerkintaFee.name,
       },

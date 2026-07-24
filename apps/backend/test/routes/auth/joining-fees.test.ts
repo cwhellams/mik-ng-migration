@@ -4,7 +4,14 @@ import express from 'express'
 
 // --- Module mocks (must be set up BEFORE importing the route) -----------------
 
-type ArticleFeeRow = { id: number; code: string; name: string; price_per_unit?: number }
+type ArticleFeeRow = {
+  id: number
+  code: string
+  name: string
+  price_per_unit?: number
+  markup_value?: number
+  markup_type?: 'percent' | 'fixed' | 'none'
+}
 
 const mockGetArticleFees = jest.fn<(codes: string[]) => Promise<ArticleFeeRow[]>>()
 
@@ -162,5 +169,51 @@ describe('GET /api/auth/joining-fees', () => {
     expect(calledWith).toContain('LIITTYMINEN')
     expect(calledWith).toContain('NLIITTYMINEN')
     expect(calledWith).toContain('KLIITTYMINEN')
+  })
+
+  it('reads the fee from markup_value when the article is markup-priced (production data)', async () => {
+    // Reproduces the production scenario where joining-fee articles have
+    // price_per_unit: 0 and the real price in markup_value.
+    mockGetArticleFees.mockResolvedValue([
+      {
+        id: 1,
+        code: 'LIITTYMINEN',
+        name: 'Full member joining fee',
+        markup_type: 'fixed',
+        price_per_unit: 0,
+        markup_value: 100,
+      },
+      {
+        id: 2,
+        code: 'NLIITTYMINEN',
+        name: 'Junior joining fee',
+        markup_type: 'fixed',
+        price_per_unit: 0,
+        markup_value: 0,
+      },
+    ])
+
+    const res = await request(app).get('/api/auth/joining-fees')
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({ fullMemberFee: 100, reducedMemberFee: 0 })
+  })
+
+  it('returns a 500 instead of a silent €0 when a markup-priced article has no markup_value', async () => {
+    mockGetArticleFees.mockResolvedValue([
+      {
+        id: 1,
+        code: 'LIITTYMINEN',
+        name: 'Full member joining fee',
+        markup_type: 'fixed',
+        price_per_unit: 0,
+        // markup_value missing — misconfigured article, must not silently bill/display €0
+      },
+    ])
+
+    const res = await request(app).get('/api/auth/joining-fees')
+
+    expect(res.status).toBe(500)
+    expect(res.body).not.toEqual({ fullMemberFee: 0, reducedMemberFee: null })
   })
 })

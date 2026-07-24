@@ -142,6 +142,7 @@ export const ArticleFeeSchema = z.object({
   name: z.string(),
   contents: z.string().optional().nullable(),
   markup_value: z.number().optional(),
+  markup_type: z.enum(['percent', 'fixed', 'none']).optional(),
   price_per_unit: z.number().optional(),
   amount: z.number().optional().nullable(),
 })

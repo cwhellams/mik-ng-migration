@@ -38,6 +38,7 @@ import {
   ART_JUNIOR_JOINING_FEE,
   ART_SUPPORTING_MEMBER_JOINING_FEE,
 } from '../../services/accounting/config.ts'
+import { resolveArticlePrice } from '../../services/accounting/articlePricing.ts'
 import logger from '../../lib/logger.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { loginEmailTitle, loginEmailBodyHtml } from '../../templates/loginEmailTemplate.ts'
@@ -325,13 +326,17 @@ router.get('/joining-fees', async (_req: Request, res: Response) => {
     ART_SUPPORTING_MEMBER_JOINING_FEE,
   ])
 
-  const fullMemberFee = fees.find((f) => f.code === ART_JOINING_FEE)?.price_per_unit ?? null
+  const fullMemberFeeArticle = fees.find((f) => f.code === ART_JOINING_FEE)
   // Junior and supporting members share the same joining-fee tier; prefer junior code
   // (NLIITTYMINEN) and fall back to supporting-member code (KLIITTYMINEN) if absent.
-  const reducedMemberFee =
-    fees.find((f) => f.code === ART_JUNIOR_JOINING_FEE)?.price_per_unit ??
-    fees.find((f) => f.code === ART_SUPPORTING_MEMBER_JOINING_FEE)?.price_per_unit ??
-    null
+  const reducedMemberFeeArticle =
+    fees.find((f) => f.code === ART_JUNIOR_JOINING_FEE) ??
+    fees.find((f) => f.code === ART_SUPPORTING_MEMBER_JOINING_FEE)
+
+  const fullMemberFee = fullMemberFeeArticle ? resolveArticlePrice(fullMemberFeeArticle) : null
+  const reducedMemberFee = reducedMemberFeeArticle
+    ? resolveArticlePrice(reducedMemberFeeArticle)
+    : null
 
   res.status(200).json({ fullMemberFee, reducedMemberFee })
 })

@@ -153,6 +153,7 @@ export async function getArticleFees(codes: string[]): Promise<ArticleFee[]> {
         name: result.name,
         unit: rawItem.unit,
         markup_value: rawItem.markup_value,
+        markup_type: rawItem.markup_type,
         price_per_unit: rawItem.price_per_unit,
         contents: rawItem.contents,
         amount: rawItem.amount,
