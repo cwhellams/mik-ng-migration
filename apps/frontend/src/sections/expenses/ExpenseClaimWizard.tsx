@@ -309,7 +309,7 @@ export default function ExpenseClaimWizard() {
               li.description.trim().length > 0 &&
               li.quantity > 0 &&
               li.unitPrice > 0 &&
-              (!isFuel || !!li.costCentreCode),
+              (!isFuel || (!!li.costCentreCode && !!li.date && !!li.airport)),
           )
         )
       default:

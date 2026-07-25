@@ -118,17 +118,21 @@ const mapLineItem = (row: {
   sort_order: number
   cost_centre_code?: string | null
   fuel_type?: string | null
+  fuel_date?: string | null
+  airport?: string | null
 }): ExpenseLineItem => ({
   id: row.id,
   itemId: row.item_id,
   itemCode: row.item_code ?? undefined,
   description: row.description,
+  date: row.fuel_date ?? undefined,
   quantity: Number(row.quantity),
   unit: row.unit as ExpenseLineItem['unit'],
   unitPrice: Number(row.unit_price),
   sortOrder: row.sort_order,
   costCentreCode: row.cost_centre_code ?? undefined,
   fuelType: (row.fuel_type as ExpenseLineItem['fuelType']) ?? undefined,
+  airport: row.airport ?? undefined,
 })
 
 const mapMessage = (row: {
@@ -264,6 +268,8 @@ async function insertLineItems(
         sort_order: item.sortOrder,
         cost_centre_code: item.costCentreCode ?? null,
         fuel_type: item.fuelType ?? null,
+        fuel_date: item.date ?? null,
+        airport: item.airport ?? null,
       })),
     )
     .execute()
@@ -367,6 +373,8 @@ export async function getExpenseClaimById(id: string): Promise<ExpenseClaim | un
         'li.sort_order',
         'li.cost_centre_code',
         'li.fuel_type',
+        'li.fuel_date',
+        'li.airport',
       ])
       .where('li.claim_id', '=', id)
       .orderBy('li.sort_order')

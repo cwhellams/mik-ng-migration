@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   IconButton,
@@ -25,6 +26,8 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import type { ExpenseLineItem, ExpenseClaimReceipt } from '@backend/routes/expenses/models'
+import type { AirfieldListResponse } from '@backend/routes/flight-log/models'
+import useApi from '../../hooks/useApi'
 
 // ─── IBAN validation (MOD-97 algorithm) ──────────────────────────────────────
 
@@ -62,6 +65,7 @@ export function defaultUnitForCategory(code: string | undefined): ExpenseLineIte
 export type EditableLineItem = Omit<ExpenseLineItem, 'date'> & {
   date: string
   costCentreCode?: string | null
+  airport?: string | null
 }
 
 export const makeDefaultLineItem = (
@@ -76,6 +80,7 @@ export const makeDefaultLineItem = (
   unitPrice: 0,
   sortOrder: 0,
   costCentreCode: costCentreCode ?? null,
+  airport: null,
 })
 
 // ─── Item code → aircraft (cost centre) matching ───────────────────────────────
@@ -212,6 +217,12 @@ export function LineItemsTable({
   // derived unitPrice so the field doesn't jump around while typing.
   const [rawTotals, setRawTotals] = useState<Record<number, number>>({})
 
+  const { data: airfieldData } = useApi<AirfieldListResponse>(
+    { url: 'v1/flight-logs/airfields', skipFetch: !isFuel },
+    { revalidateIfStale: false, revalidateOnFocus: false, revalidateOnReconnect: false },
+  )
+  const airfields = airfieldData?.airfields ?? []
+
   const touch = (key: string) => setTouched((prev) => new Set(prev).add(key))
   const shouldShow = (key: string) => showErrors || touched.has(key)
 
@@ -230,6 +241,12 @@ export function LineItemsTable({
         <TableHead>
           <TableRow>
             <TableCell sx={{ minWidth: 200 }}>{t('expenses.wizard.col.description')}</TableCell>
+            {isFuel && (
+              <TableCell sx={{ minWidth: 140 }}>{t('expenses.wizard.col.date')}</TableCell>
+            )}
+            {isFuel && (
+              <TableCell sx={{ minWidth: 200 }}>{t('expenses.wizard.col.airport')}</TableCell>
+            )}
             <TableCell sx={{ minWidth: 90 }}>
               {isFuel ? t('expenses.wizard.col.litres') : t('expenses.wizard.col.qty')}
             </TableCell>
@@ -331,6 +348,52 @@ export function LineItemsTable({
                     }
                   />
                 </TableCell>
+                {isFuel && (
+                  <TableCell sx={{ verticalAlign: 'top' }}>
+                    <TextField
+                      size='small'
+                      type='date'
+                      value={item.date}
+                      disabled={disabled}
+                      onChange={(e) => update(idx, { date: e.target.value })}
+                      onBlur={() => touch(`${idx}-date`)}
+                      error={shouldShow(`${idx}-date`) && !item.date}
+                      helperText={
+                        shouldShow(`${idx}-date`) && !item.date
+                          ? t('expenses.validation.fuelDateRequired')
+                          : undefined
+                      }
+                      slotProps={{ inputLabel: { shrink: true } }}
+                      sx={{ width: 150 }}
+                    />
+                  </TableCell>
+                )}
+                {isFuel && (
+                  <TableCell sx={{ verticalAlign: 'top' }}>
+                    <Autocomplete
+                      size='small'
+                      options={airfields}
+                      disabled={disabled}
+                      value={airfields.find((af) => af.ident === item.airport) ?? null}
+                      getOptionLabel={(option) => `${option.ident}: ${option.name}`}
+                      onChange={(_e, value) => update(idx, { airport: value?.ident ?? null })}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          placeholder='ICAO'
+                          onBlur={() => touch(`${idx}-airport`)}
+                          error={shouldShow(`${idx}-airport`) && !item.airport}
+                          helperText={
+                            shouldShow(`${idx}-airport`) && !item.airport
+                              ? t('expenses.validation.airportRequired')
+                              : undefined
+                          }
+                        />
+                      )}
+                      sx={{ width: 200 }}
+                    />
+                  </TableCell>
+                )}
                 <TableCell sx={{ verticalAlign: 'top' }}>
                   <TextField
                     size='small'

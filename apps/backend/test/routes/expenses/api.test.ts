@@ -214,6 +214,7 @@ describe('POST /expenses (fuel)', () => {
             itemId: null,
             description: '100 l JetA1',
             date: '2026-07-16',
+            airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
@@ -263,6 +264,39 @@ describe('POST /expenses (fuel)', () => {
     }
   })
 
+  it('rejects a fuel claim when a line item has no airport or date selected', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Fuel test',
+        currency: 'EUR',
+        fuelLitres: 100,
+        fuelType: 'JetA1',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: '100 l JetA1',
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
+            fuelType: 'JetA1',
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(400)
+    if (res.status === 201) {
+      insertedClaimIds.push(res.body.id)
+    }
+  })
+
   it('submits a fuel claim with no claim-level aircraftId', async () => {
     const categoryId = await fuelCategoryId()
 
@@ -283,6 +317,7 @@ describe('POST /expenses (fuel)', () => {
             itemId: null,
             description: '100 l JetA1',
             date: '2026-07-16',
+            airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
@@ -345,6 +380,7 @@ describe('POST /expenses (fuel litres/type)', () => {
             itemId: null,
             description: '100 l JetA1',
             date: '2026-07-16',
+            airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
@@ -380,6 +416,7 @@ describe('POST /expenses (fuel litres/type)', () => {
             itemId: null,
             description: '100 l JetA1',
             date: '2026-07-16',
+            airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
@@ -429,6 +466,7 @@ describe('POST /expenses/:id/override-fuel-price', () => {
             itemId: null,
             description: '100 l JetA1',
             date: '2026-07-16',
+            airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice,

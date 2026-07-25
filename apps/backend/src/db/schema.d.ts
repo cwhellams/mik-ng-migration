@@ -187,9 +187,11 @@ export interface AcctsExpenseClaim {
 }
 
 export interface AcctsExpenseClaimLineItem {
+  airport: string | null
   claim_id: string
   cost_centre_code: string | null
   description: string
+  fuel_date: string | null
   fuel_type: string | null
   id: Generated<number>
   item_id: number | null
@@ -1660,12 +1662,12 @@ export interface StatsNonBillableTotalFlightTimeByAcYrMth {
 }
 
 export interface StatsPobDistributionByAcYr {
-  aircraft_registration: string
-  cross_country_flight_count: number
-  flight_count: number
-  pob_bucket: string
-  total_flight_mins: number
-  yr: number
+  aircraft_registration: string | null
+  cross_country_flight_count: Int8 | null
+  flight_count: Int8 | null
+  pob_bucket: string | null
+  total_flight_mins: Int8 | null
+  yr: Numeric | null
 }
 
 export interface StatsReservationEfficiencyByAcYr {

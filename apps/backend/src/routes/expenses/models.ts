@@ -72,6 +72,7 @@ export const ExpenseLineItemSchema = z.object({
   sortOrder: z.number().int().default(0),
   costCentreCode: z.string().max(50).nullable().optional(),
   fuelType: z.enum(FUEL_TYPES).optional(),
+  airport: z.string().max(10).nullable().optional(),
 })
 export type ExpenseLineItem = z.infer<typeof ExpenseLineItemSchema>
 

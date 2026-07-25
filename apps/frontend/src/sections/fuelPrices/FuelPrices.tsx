@@ -9,6 +9,7 @@ import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
 import { useThemeMode } from '../../theme/ThemeContext'
 import { useTranslation } from 'react-i18next'
+import { RecentFuelings } from './RecentFuelings'
 
 const FuelPrices = () => {
   const { t } = useTranslation()
@@ -133,6 +134,10 @@ const FuelPrices = () => {
           )}
         </Paper>
       )}
+
+      <Box sx={{ mt: 4 }}>
+        <RecentFuelings />
+      </Box>
     </RemoteContent>
   )
 }

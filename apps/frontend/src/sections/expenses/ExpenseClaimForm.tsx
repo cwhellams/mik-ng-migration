@@ -136,6 +136,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
         sortOrder: item.sortOrder,
         costCentreCode: item.costCentreCode ?? null,
         fuelType: item.fuelType,
+        airport: item.airport ?? null,
       })) ?? [makeDefaultLineItem()],
     })
     setClaimCurrency(claimApi.data.currency ?? 'EUR')
@@ -248,6 +249,8 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     if (lineTotal <= 0) errors.lineItems = t('expenses.messages.zeroTotal')
     if (isFuel && form.lineItems.some((item) => !item.costCentreCode)) {
       errors.lineItems = t('expenses.validation.aircraftRequired')
+    } else if (isFuel && form.lineItems.some((item) => !item.date || !item.airport)) {
+      errors.lineItems = t('expenses.validation.airportRequired')
     }
     if (!form.iban.trim()) errors.iban = t('expenses.messages.ibanRequired')
     if (!form.ibanAccountName.trim())

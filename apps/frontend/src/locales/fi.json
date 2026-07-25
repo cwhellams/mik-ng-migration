@@ -1436,7 +1436,18 @@
     "title": "Polttoainehinnat",
     "empty": "Polttoainehintoja ei ole vielä lisätty.",
     "enterEditMode": "Muokkaa polttoainehintoja",
-    "exitEditMode": "Poistu muokkaustilasta"
+    "exitEditMode": "Poistu muokkaustilasta",
+    "recentFuelings": {
+      "title": "Viimeisimmät tankkaukset",
+      "empty": "Tankkauksia ei ole vielä kirjattu.",
+      "col": {
+        "date": "Päivämäärä",
+        "airport": "Lentopaikka",
+        "litres": "Litraa",
+        "fuelType": "Polttoainetyyppi",
+        "pricePerLitre": "€/litra (sis. kulut)"
+      }
+    }
   },
   "dashboard": {
     "schedule": {
@@ -2316,6 +2327,7 @@
         "description": "Kuvaus",
         "itemId": "Tuote-ID",
         "date": "Päivämäärä",
+        "airport": "Lentopaikka",
         "qty": "Määrä",
         "litres": "Litraa",
         "unit": "Yksikkö",
@@ -2353,7 +2365,9 @@
       "descriptionRequired": "Kuvaus on pakollinen",
       "quantityMin": "Määrän on oltava vähintään 1",
       "unitPriceRequired": "Yksikköhinnan on oltava suurempi kuin nolla",
-      "aircraftRequired": "Ilma-alus on pakollinen polttoainekuluille"
+      "aircraftRequired": "Ilma-alus on pakollinen polttoainekuluille",
+      "fuelDateRequired": "Päivämäärä on pakollinen polttoainerivin tiedoille",
+      "airportRequired": "Lentopaikka on pakollinen polttoainerivin tiedoille"
     }
   },
   "inventory": {
