@@ -18,11 +18,7 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import {
-  MIKMemberTypes,
-  MIKPermissions,
-  type MemberListFilters,
-} from '@backend/routes/members/models'
+import { MIKMemberTypes, type MemberListFilters } from '@backend/routes/members/models'
 import type {
   CreateMeeting,
   CreateVote,
@@ -69,15 +65,57 @@ const statusColor = (status: Meeting['status']): 'default' | 'warning' | 'succes
   return 'default'
 }
 
-const voteStatusColor = (status: MeetingVote['status']): 'default' | 'success' | 'warning' => {
+const voteStatusColor = (
+  status: MeetingVote['status'],
+): 'default' | 'success' | 'warning' | 'error' => {
   if (status === 'OPEN') return 'success'
   if (status === 'DRAFT') return 'warning'
+  if (status === 'ABANDONED') return 'error'
   return 'default'
+}
+
+const DocumentFilterField = ({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
+}) => {
+  const { t } = useTranslation()
+
+  return (
+    <Stack direction='row' spacing={1} sx={{ alignItems: 'flex-start' }}>
+      <TextField
+        label={t('meetings.admin.documentFilter')}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        helperText={t('meetings.admin.documentFilterHelp')}
+        disabled={disabled}
+        fullWidth
+      />
+      <Button
+        variant='outlined'
+        sx={{ mt: 1, flexShrink: 0 }}
+        startIcon={<Icon icon='mdi:open-in-new' />}
+        onClick={() =>
+          window.open(
+            `/club/documents${value ? `?search=${encodeURIComponent(value)}` : ''}`,
+            '_blank',
+            'noopener,noreferrer',
+          )
+        }
+      >
+        {t('meetings.admin.browseDocuments')}
+      </Button>
+    </Stack>
+  )
 }
 
 const MeetingsAdminPage = () => {
   const { t } = useTranslation()
-  const { hasAccess } = useRoles()
+  const { isMeetingAdmin, isLoading: rolesLoading } = useRoles()
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null)
   const [meetingForm, setMeetingForm] = useState<CreateMeeting>(emptyMeetingForm)
   const [createMeetingOpen, setCreateMeetingOpen] = useState(false)
@@ -86,8 +124,9 @@ const MeetingsAdminPage = () => {
   const [newVoteForm, setNewVoteForm] = useState<CreateVote>(emptyVoteForm)
   const [selectedVoteCounter, setSelectedVoteCounter] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
-
-  const canAccess = hasAccess(MIKPermissions.MEETING_ADMIN)
+  const [endMeetingOpen, setEndMeetingOpen] = useState(false)
+  const [notesFile, setNotesFile] = useState<File | null>(null)
+  const [endMeetingError, setEndMeetingError] = useState<string | null>(null)
 
   const {
     data: meetingsData,
@@ -171,6 +210,11 @@ const MeetingsAdminPage = () => {
   const { mutation: detailMutation } = useApi<Meeting>({
     url: `v1/meetings/${selectedMeetingId ?? 'pending'}`,
     skipFetch: true,
+  })
+  const { mutation: endMeetingMutation } = useApi<Meeting>({
+    url: `v1/meetings/${selectedMeetingId ?? 'pending'}`,
+    skipFetch: true,
+    headers: { 'Content-Type': 'multipart/form-data' },
   })
   const { mutation: voteCounterMutation } = useApi<VoteCountersResponse>({
     url: `v1/meetings/${selectedMeetingId ?? 'pending'}/vote-counters`,
@@ -285,16 +329,20 @@ const MeetingsAdminPage = () => {
   }
 
   const handleEndMeeting = async () => {
-    if (!selectedMeetingId) return
-    if (!window.confirm(t('meetings.admin.confirmEnd'))) return
+    if (!selectedMeetingId || !notesFile) return
 
-    setActionError(null)
-    const response = await detailMutation.trigger('POST', {}, 'end')
+    setEndMeetingError(null)
+    const formData = new FormData()
+    formData.append('file', notesFile)
+
+    const response = await endMeetingMutation.trigger('POST', formData, 'end')
     if (response.error) {
-      handleMutationError(response.error.detail)
+      setEndMeetingError(response.error.detail ?? t('common.error'))
       return
     }
 
+    setEndMeetingOpen(false)
+    setNotesFile(null)
     await refreshSelectedMeetingData()
   }
 
@@ -388,6 +436,8 @@ const MeetingsAdminPage = () => {
   }
 
   const handleOpenVote = async (voteId: string) => {
+    if (!window.confirm(t('meetings.admin.confirmOpenVote'))) return
+
     setActionError(null)
     const response = await voteMutation.trigger('POST', {}, `${voteId}/open`)
     if (response.error) {
@@ -399,6 +449,8 @@ const MeetingsAdminPage = () => {
   }
 
   const handleCloseVote = async (voteId: string) => {
+    if (!window.confirm(t('meetings.admin.confirmCloseVote'))) return
+
     setActionError(null)
     const response = await voteMutation.trigger('PATCH', {}, `${voteId}/close`)
     if (response.error) {
@@ -409,7 +461,24 @@ const MeetingsAdminPage = () => {
     await mutateVotes()
   }
 
-  if (!canAccess) {
+  const handleAbandonVote = async (voteId: string) => {
+    if (!window.confirm(t('meetings.admin.confirmAbandonVote'))) return
+
+    setActionError(null)
+    const response = await voteMutation.trigger('PATCH', {}, `${voteId}/abandon`)
+    if (response.error) {
+      handleMutationError(response.error.detail)
+      return
+    }
+
+    await mutateVotes()
+  }
+
+  if (rolesLoading) {
+    return null
+  }
+
+  if (!isMeetingAdmin) {
     return <Alert severity='error'>{t('error.noAccess')}</Alert>
   }
 
@@ -465,7 +534,7 @@ const MeetingsAdminPage = () => {
         </RemoteContent>
 
         <RemoteContent isLoading={detailLoading} error={detailError}>
-          {!selectedMeetingId || !meetingDetail ? (
+          {meetings.length === 0 ? null : !selectedMeetingId || !meetingDetail ? (
             <Alert severity='info'>
               {t('meetings.admin.noMeetingSelected', 'Select a meeting')}
             </Alert>
@@ -508,17 +577,15 @@ const MeetingsAdminPage = () => {
                       minRows={3}
                       fullWidth
                     />
-                    <TextField
-                      label={t('meetings.admin.documentFilter')}
+                    <DocumentFilterField
                       value={meetingForm.documentSearchFilter ?? ''}
-                      onChange={(event) =>
+                      onChange={(value) =>
                         setMeetingForm((current) => ({
                           ...current,
-                          documentSearchFilter: event.target.value,
+                          documentSearchFilter: value,
                         }))
                       }
                       disabled={meetingDetail.status !== 'DRAFT'}
-                      fullWidth
                     />
                     <TextField
                       label={t('meetings.admin.meetingUrl')}
@@ -566,10 +633,28 @@ const MeetingsAdminPage = () => {
                           {t('meetings.admin.pendingNotes')}
                         </Button>
                       )}
-                      {(meetingDetail.status === 'ONGOING' ||
-                        meetingDetail.status === 'PENDING_NOTES') && (
-                        <Button variant='contained' color='warning' onClick={handleEndMeeting}>
+                      {meetingDetail.status === 'PENDING_NOTES' && (
+                        <Button
+                          variant='contained'
+                          color='warning'
+                          onClick={() => setEndMeetingOpen(true)}
+                        >
                           {t('meetings.admin.endMeeting')}
+                        </Button>
+                      )}
+                      {meetingDetail.status === 'ENDED' && meetingDetail.meetingNotesDocumentId && (
+                        <Button
+                          variant='outlined'
+                          startIcon={<Icon icon='mdi:file-document-outline' />}
+                          onClick={() =>
+                            window.open(
+                              `/club/documents?search=${encodeURIComponent(meetingDetail.meetingId)}`,
+                              '_blank',
+                              'noopener,noreferrer',
+                            )
+                          }
+                        >
+                          {t('meetings.admin.viewMeetingNotes')}
                         </Button>
                       )}
                     </Stack>
@@ -610,7 +695,7 @@ const MeetingsAdminPage = () => {
                     <Stack
                       direction={{ xs: 'column', sm: 'row' }}
                       spacing={1}
-                      sx={{ alignItems: 'flex-start' }}
+                      sx={{ alignItems: 'center' }}
                     >
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <SelectMember
@@ -684,87 +769,100 @@ const MeetingsAdminPage = () => {
                             {t('meetings.admin.noVotes', 'No votes created yet.')}
                           </Typography>
                         ) : (
-                          votes.map((vote) => (
-                            <Card key={vote.voteId} variant='outlined'>
-                              <CardContent>
-                                <Stack spacing={2}>
-                                  <Stack
-                                    direction={{ xs: 'column', sm: 'row' }}
-                                    spacing={1}
-                                    sx={{ justifyContent: 'space-between' }}
-                                  >
-                                    <Box>
-                                      <Typography variant='h6'>{vote.topic}</Typography>
-                                      {vote.description && (
-                                        <Typography color='text.secondary'>
-                                          {vote.description}
-                                        </Typography>
-                                      )}
-                                    </Box>
-                                    <Chip
-                                      size='small'
-                                      color={voteStatusColor(vote.status)}
-                                      label={t(`meetings.admin.voteStatus.${vote.status}`)}
-                                    />
-                                  </Stack>
+                          votes.map((vote) => {
+                            const resultsVisible = vote.totalVotes != null
 
-                                  <Typography variant='body2' color='text.secondary'>
-                                    {vote.isMultiSelect
-                                      ? vote.maxSelections
-                                        ? t('meetings.votes.selectMultiple', {
-                                            max: vote.maxSelections,
-                                          })
-                                        : t('meetings.votes.selectMultipleUnlimited')
-                                      : t('meetings.votes.selectOne')}
-                                  </Typography>
-
-                                  <Stack spacing={1}>
-                                    {vote.options.map((option) => (
-                                      <Stack
-                                        key={option.optionId}
-                                        direction='row'
-                                        spacing={1}
-                                        sx={{ justifyContent: 'space-between' }}
-                                      >
-                                        <Typography>{option.optionText}</Typography>
-                                        {vote.status === 'CLOSED' && (
+                            return (
+                              <Card key={vote.voteId} variant='outlined'>
+                                <CardContent>
+                                  <Stack spacing={2}>
+                                    <Stack
+                                      direction={{ xs: 'column', sm: 'row' }}
+                                      spacing={1}
+                                      sx={{ justifyContent: 'space-between' }}
+                                    >
+                                      <Box>
+                                        <Typography variant='h6'>{vote.topic}</Typography>
+                                        {vote.description && (
                                           <Typography color='text.secondary'>
-                                            {option.voteCount ?? 0}
+                                            {vote.description}
                                           </Typography>
                                         )}
-                                      </Stack>
-                                    ))}
-                                  </Stack>
+                                      </Box>
+                                      <Chip
+                                        size='small'
+                                        color={voteStatusColor(vote.status)}
+                                        label={t(`meetings.admin.voteStatus.${vote.status}`)}
+                                      />
+                                    </Stack>
 
-                                  {vote.status === 'CLOSED' && (
                                     <Typography variant='body2' color='text.secondary'>
-                                      {t('meetings.votes.totalVotes')}: {vote.totalVotes ?? 0}
+                                      {vote.isMultiSelect
+                                        ? vote.maxSelections
+                                          ? t('meetings.votes.selectMultiple', {
+                                              max: vote.maxSelections,
+                                            })
+                                          : t('meetings.votes.selectMultipleUnlimited')
+                                        : t('meetings.votes.selectOne')}
                                     </Typography>
-                                  )}
 
-                                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                                    {vote.status !== 'OPEN' && vote.status !== 'CLOSED' && (
-                                      <Button
-                                        variant='contained'
-                                        onClick={() => handleOpenVote(vote.voteId)}
-                                      >
-                                        {t('meetings.admin.openVote')}
-                                      </Button>
+                                    <Stack spacing={1}>
+                                      {vote.options.map((option) => (
+                                        <Stack
+                                          key={option.optionId}
+                                          direction='row'
+                                          spacing={1}
+                                          sx={{ justifyContent: 'space-between' }}
+                                        >
+                                          <Typography>{option.optionText}</Typography>
+                                          {resultsVisible && (
+                                            <Typography color='text.secondary'>
+                                              {option.voteCount ?? 0}
+                                            </Typography>
+                                          )}
+                                        </Stack>
+                                      ))}
+                                    </Stack>
+
+                                    {resultsVisible && (
+                                      <Typography variant='body2' color='text.secondary'>
+                                        {t('meetings.votes.totalVotes')}: {vote.totalVotes ?? 0}
+                                      </Typography>
                                     )}
-                                    {vote.status === 'OPEN' && (
-                                      <Button
-                                        variant='contained'
-                                        color='warning'
-                                        onClick={() => handleCloseVote(vote.voteId)}
-                                      >
-                                        {t('meetings.admin.closeVote')}
-                                      </Button>
-                                    )}
+
+                                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                                      {vote.status === 'DRAFT' && (
+                                        <Button
+                                          variant='contained'
+                                          onClick={() => handleOpenVote(vote.voteId)}
+                                        >
+                                          {t('meetings.admin.openVote')}
+                                        </Button>
+                                      )}
+                                      {vote.status === 'OPEN' && (
+                                        <Button
+                                          variant='contained'
+                                          color='warning'
+                                          onClick={() => handleCloseVote(vote.voteId)}
+                                        >
+                                          {t('meetings.admin.closeVote')}
+                                        </Button>
+                                      )}
+                                      {vote.status === 'OPEN' && (
+                                        <Button
+                                          variant='outlined'
+                                          color='error'
+                                          onClick={() => handleAbandonVote(vote.voteId)}
+                                        >
+                                          {t('meetings.admin.abandonVote')}
+                                        </Button>
+                                      )}
+                                    </Stack>
                                   </Stack>
-                                </Stack>
-                              </CardContent>
-                            </Card>
-                          ))
+                                </CardContent>
+                              </Card>
+                            )
+                          })
                         )}
                       </Stack>
                     </RemoteContent>
@@ -803,16 +901,14 @@ const MeetingsAdminPage = () => {
               minRows={3}
               fullWidth
             />
-            <TextField
-              label={t('meetings.admin.documentFilter')}
+            <DocumentFilterField
               value={newMeetingForm.documentSearchFilter ?? ''}
-              onChange={(event) =>
+              onChange={(value) =>
                 setNewMeetingForm((current) => ({
                   ...current,
-                  documentSearchFilter: event.target.value,
+                  documentSearchFilter: value,
                 }))
               }
-              fullWidth
             />
             <TextField
               label={t('meetings.admin.meetingUrl')}
@@ -934,6 +1030,60 @@ const MeetingsAdminPage = () => {
             }
           >
             {t('meetings.admin.createVote')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={endMeetingOpen}
+        onClose={() => {
+          setEndMeetingOpen(false)
+          setNotesFile(null)
+          setEndMeetingError(null)
+        }}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>{t('meetings.admin.endMeeting')}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <Alert severity='warning'>{t('meetings.admin.confirmEnd')}</Alert>
+            {endMeetingError && <Alert severity='error'>{endMeetingError}</Alert>}
+            <Typography variant='body2' color='text.secondary'>
+              {t('meetings.admin.endMeetingNotesHelp')}
+            </Typography>
+            <Button
+              component='label'
+              variant='outlined'
+              startIcon={<Icon icon='mdi:file-upload-outline' />}
+            >
+              {notesFile ? notesFile.name : t('meetings.admin.selectNotesFile')}
+              <input
+                type='file'
+                hidden
+                accept='.pdf,.doc,.docx,.txt'
+                onChange={(event) => setNotesFile(event.target.files?.[0] ?? null)}
+              />
+            </Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setEndMeetingOpen(false)
+              setNotesFile(null)
+              setEndMeetingError(null)
+            }}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            variant='contained'
+            color='warning'
+            onClick={handleEndMeeting}
+            disabled={!notesFile || endMeetingMutation.isMutating}
+          >
+            {t('meetings.admin.endMeeting')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -3,6 +3,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { NotificationBanner } from '../components/NotificationBanner'
+import { MeetingOngoingBanner } from '../components/MeetingOngoingBanner'
 import { useMe } from '../hooks/useMe'
 import { useEffect } from 'react'
 
@@ -29,6 +30,7 @@ const MainLayout = () => {
     <>
       <Header />
       <NotificationBanner />
+      <MeetingOngoingBanner />
 
       <Box sx={{ pt: 3, pb: 4, minHeight: 'calc(100vh - 300px)' }}>
         <Container maxWidth='lg'>

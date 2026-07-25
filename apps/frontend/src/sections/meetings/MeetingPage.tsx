@@ -7,14 +7,17 @@ import {
   Card,
   CardContent,
   Checkbox,
+  Collapse,
   FormControl,
   FormControlLabel,
   FormHelperText,
+  IconButton,
   Radio,
   RadioGroup,
   Stack,
   Typography,
 } from '@mui/material'
+import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import { MIKPermissions } from '@backend/routes/members/models'
 import type { Meeting, MeetingVote, MeetingVotesResponse } from '@backend/routes/meetings/models'
@@ -28,6 +31,7 @@ const MeetingPage = () => {
   const { hasAccess } = useRoles()
   const [selectionByVote, setSelectionByVote] = useState<Record<string, string[]>>({})
   const [voteErrors, setVoteErrors] = useState<Record<string, string | null>>({})
+  const [expandedVotes, setExpandedVotes] = useState<Record<string, boolean>>({})
 
   const canAccess = hasAccess(MIKPermissions.MEETING_USER, MIKPermissions.MEETING_ADMIN)
 
@@ -204,37 +208,46 @@ const MeetingPage = () => {
                   </Box>
                 )}
 
-                {activeMeeting.meetingUrl && activeMeeting.status === 'ONGOING' && (
-                  <Box>
-                    <Button
-                      variant='contained'
-                      color='primary'
-                      href={activeMeeting.meetingUrl}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                    >
-                      {t('meetings.joinMeeting')}
-                    </Button>
-                  </Box>
-                )}
-
                 {activeMeeting.status === 'PENDING_NOTES' ? (
                   <Alert severity='info'>{t('meetings.pendingNotes')}</Alert>
                 ) : !activeMeeting.isAttending ? (
-                  <Box>
-                    <Button
-                      variant='contained'
-                      onClick={handleAttend}
-                      disabled={attendMutation.isMutating}
-                    >
-                      {t('meetings.attend')}
-                    </Button>
-                  </Box>
+                  <Stack spacing={0.5}>
+                    <Box>
+                      <Button
+                        variant='contained'
+                        onClick={handleAttend}
+                        disabled={attendMutation.isMutating}
+                      >
+                        {t('meetings.attend')}
+                      </Button>
+                    </Box>
+                    <Typography variant='body2' color='text.secondary'>
+                      {t('meetings.attendHelp')}
+                    </Typography>
+                  </Stack>
                 ) : (
                   <Stack spacing={1}>
                     <Alert severity='success'>{t('meetings.attending')}</Alert>
                     {activeMeeting.isVoteCounter && (
                       <Alert severity='info'>{t('meetings.voteCounterNotice')}</Alert>
+                    )}
+                    {activeMeeting.meetingUrl && activeMeeting.status === 'ONGOING' && (
+                      <Stack spacing={0.5}>
+                        <Box>
+                          <Button
+                            variant='contained'
+                            color='primary'
+                            href={activeMeeting.meetingUrl}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                          >
+                            {t('meetings.joinMeeting')}
+                          </Button>
+                        </Box>
+                        <Typography variant='body2' color='text.secondary'>
+                          {t('meetings.joinMeetingHelp')}
+                        </Typography>
+                      </Stack>
                     )}
                   </Stack>
                 )}
@@ -255,6 +268,7 @@ const MeetingPage = () => {
                 const selectedOptionIds = selectionByVote[vote.voteId] ?? []
                 const voteError = voteErrors[vote.voteId]
                 const resultsVisible = vote.totalVotes != null
+                const isExpanded = !vote.hasVoted || expandedVotes[vote.voteId] === true
 
                 return (
                   <Card key={vote.voteId}>
@@ -267,63 +281,46 @@ const MeetingPage = () => {
                           )}
                         </Box>
 
-                        <FormControl error={Boolean(voteError)} disabled={vote.hasVoted}>
-                          <FormHelperText sx={{ mb: 1 }}>{getVoteHelpText(vote)}</FormHelperText>
-
-                          {!vote.isMultiSelect ? (
-                            <RadioGroup
-                              value={selectedOptionIds[0] ?? ''}
-                              onChange={(event) =>
-                                setSingleSelection(vote.voteId, event.target.value)
+                        {vote.hasVoted && (
+                          <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                            <Alert severity='success' sx={{ flex: 1 }}>
+                              {t('meetings.votes.submitted')}
+                            </Alert>
+                            <IconButton
+                              size='small'
+                              aria-label={t('meetings.votes.toggleSelection')}
+                              onClick={() =>
+                                setExpandedVotes((current) => ({
+                                  ...current,
+                                  [vote.voteId]: !isExpanded,
+                                }))
                               }
+                              sx={{
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.3s',
+                              }}
                             >
-                              {vote.options.map((option) => (
-                                <FormControlLabel
-                                  key={option.optionId}
-                                  value={option.optionId}
-                                  control={<Radio />}
-                                  label={
-                                    <Stack
-                                      direction='row'
-                                      spacing={1}
-                                      sx={{ alignItems: 'center' }}
-                                    >
-                                      <span>{option.optionText}</span>
-                                      {resultsVisible && (
-                                        <Typography variant='body2' color='text.secondary'>
-                                          ({option.voteCount ?? 0})
-                                        </Typography>
-                                      )}
-                                    </Stack>
-                                  }
-                                />
-                              ))}
-                            </RadioGroup>
-                          ) : (
-                            <Stack>
-                              {vote.options.map((option) => {
-                                const checked = selectedOptionIds.includes(option.optionId)
-                                const maxReached =
-                                  vote.maxSelections != null &&
-                                  selectedOptionIds.length >= vote.maxSelections &&
-                                  !checked
+                              <Icon icon='mdi:chevron-down' width={20} height={20} />
+                            </IconButton>
+                          </Stack>
+                        )}
 
-                                return (
+                        <Collapse in={isExpanded}>
+                          <FormControl error={Boolean(voteError)} disabled={vote.hasVoted}>
+                            <FormHelperText sx={{ mb: 1 }}>{getVoteHelpText(vote)}</FormHelperText>
+
+                            {!vote.isMultiSelect ? (
+                              <RadioGroup
+                                value={selectedOptionIds[0] ?? ''}
+                                onChange={(event) =>
+                                  setSingleSelection(vote.voteId, event.target.value)
+                                }
+                              >
+                                {vote.options.map((option) => (
                                   <FormControlLabel
                                     key={option.optionId}
-                                    control={
-                                      <Checkbox
-                                        checked={checked}
-                                        disabled={maxReached}
-                                        onChange={(event) =>
-                                          toggleMultiSelection(
-                                            vote,
-                                            option.optionId,
-                                            event.target.checked,
-                                          )
-                                        }
-                                      />
-                                    }
+                                    value={option.optionId}
+                                    control={<Radio />}
                                     label={
                                       <Stack
                                         direction='row'
@@ -339,17 +336,58 @@ const MeetingPage = () => {
                                       </Stack>
                                     }
                                   />
-                                )
-                              })}
-                            </Stack>
-                          )}
+                                ))}
+                              </RadioGroup>
+                            ) : (
+                              <Stack>
+                                {vote.options.map((option) => {
+                                  const checked = selectedOptionIds.includes(option.optionId)
+                                  const maxReached =
+                                    vote.maxSelections != null &&
+                                    selectedOptionIds.length >= vote.maxSelections &&
+                                    !checked
 
-                          {voteError && <FormHelperText>{voteError}</FormHelperText>}
-                        </FormControl>
+                                  return (
+                                    <FormControlLabel
+                                      key={option.optionId}
+                                      control={
+                                        <Checkbox
+                                          checked={checked}
+                                          disabled={maxReached}
+                                          onChange={(event) =>
+                                            toggleMultiSelection(
+                                              vote,
+                                              option.optionId,
+                                              event.target.checked,
+                                            )
+                                          }
+                                        />
+                                      }
+                                      label={
+                                        <Stack
+                                          direction='row'
+                                          spacing={1}
+                                          sx={{ alignItems: 'center' }}
+                                        >
+                                          <span>{option.optionText}</span>
+                                          {resultsVisible && (
+                                            <Typography variant='body2' color='text.secondary'>
+                                              ({option.voteCount ?? 0})
+                                            </Typography>
+                                          )}
+                                        </Stack>
+                                      }
+                                    />
+                                  )
+                                })}
+                              </Stack>
+                            )}
 
-                        {vote.hasVoted ? (
-                          <Alert severity='success'>{t('meetings.votes.submitted')}</Alert>
-                        ) : (
+                            {voteError && <FormHelperText>{voteError}</FormHelperText>}
+                          </FormControl>
+                        </Collapse>
+
+                        {!vote.hasVoted && (
                           <Button
                             variant='contained'
                             onClick={() => handleSubmitVote(vote)}

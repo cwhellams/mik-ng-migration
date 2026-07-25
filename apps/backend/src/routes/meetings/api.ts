@@ -5,6 +5,7 @@ import { z } from 'zod'
 
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import {
+  abandonVote,
   addVoteCounter,
   closeVote,
   createMeeting,
@@ -28,7 +29,13 @@ import {
   submitVote,
   updateMeeting,
 } from '../../db/meeting-queries.ts'
+import { addDocument } from '../../db/document-queries.ts'
+import { storageService } from '../../services/storage.ts'
+import { documentUpload } from '../../util/documentHelper.ts'
+import { UpsertSchema } from '../../types/schema.ts'
+import logger from '../../lib/logger.ts'
 import { MIKPermissions } from '../members/models.ts'
+import { DocumentCategory, DocumentSchema } from '../documents/models.ts'
 import {
   AddVoteCounterSchema,
   CreateMeetingSchema,
@@ -191,16 +198,62 @@ router.post(
 router.post(
   '/:id/end',
   validateUser(MIKPermissions.MEETING_ADMIN),
+  documentUpload.single('file'),
   async (req: Request<{ id: string }>, res: Response<Meeting>) => {
     const existing = await getMeetingById(req.params.id, req.user!.memberId)
     if (!existing) {
       return problem({ status: 404, detail: 'Meeting not found' })
     }
-    if (existing.status !== 'ONGOING' && existing.status !== 'PENDING_NOTES') {
-      return problem({ status: 409, detail: 'Only ongoing or pending-notes meetings can be ended' })
+    if (existing.status !== 'PENDING_NOTES') {
+      return problem({ status: 409, detail: 'Only pending-notes meetings can be ended' })
+    }
+    if (!req.file) {
+      return problem({
+        status: 400,
+        detail: 'Meeting notes document is required to close a meeting',
+      })
     }
 
-    const meeting = await endMeeting(req.params.id, req.user!.memberId, req.user!.memberId)
+    let notesDocumentId: number
+    try {
+      // Prefix with the meeting ID so re-used filenames (e.g. every secretary's
+      // "poytakirja.pdf") can't collide and overwrite a previous meeting's notes.
+      const storageFileName = `${existing.meetingId}-${req.file.originalname}`
+      const uploadResult = await storageService.uploadFile(
+        req.file.buffer,
+        storageFileName,
+        req.file.mimetype,
+        DocumentCategory.MINUTES,
+      )
+
+      const document = UpsertSchema(DocumentSchema).parse({
+        title: existing.title,
+        description: `Meeting notes for "${existing.title}"`,
+        category: DocumentCategory.MINUTES,
+        documentUrl: uploadResult.url,
+        publishedDate: new Date().toISOString().slice(0, 10),
+        isPublic: true,
+        isArchived: false,
+        tags: ['meeting-notes', existing.meetingId],
+        fileName: req.file.originalname,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        storageKey: uploadResult.key,
+      })
+
+      const created = await addDocument(document, req.user!)
+      notesDocumentId = created.documentId!
+    } catch (error) {
+      logger.error('Meeting notes upload failed:', error)
+      return problem({ status: 500, detail: 'Failed to upload meeting notes document' })
+    }
+
+    const meeting = await endMeeting(
+      req.params.id,
+      req.user!.memberId,
+      notesDocumentId,
+      req.user!.memberId,
+    )
     if (!meeting) {
       return problem({ status: 500, detail: 'Failed to end meeting' })
     }
@@ -303,7 +356,7 @@ router.get(
       }
     }
 
-    const includeResults = isAdmin || (await isVoteCounter(req.params.id, req.user!.memberId))
+    const includeResults = await isVoteCounter(req.params.id, req.user!.memberId)
     const votes = await getMeetingVotes(req.params.id, includeResults, req.user!.memberId)
     return res.status(HttpStatusCode.Ok).json({ votes })
   },
@@ -358,6 +411,32 @@ router.patch(
   },
 )
 
+router.patch(
+  '/:id/votes/:voteId/abandon',
+  validateUser(MIKPermissions.MEETING_ADMIN),
+  async (req: Request<{ id: string; voteId: string }>, res: Response<MeetingVote>) => {
+    const meeting = await getMeetingById(req.params.id, req.user!.memberId)
+    if (!meeting) {
+      return problem({ status: 404, detail: 'Meeting not found' })
+    }
+
+    const vote = await getMeetingVoteById(req.params.voteId, true, req.user!.memberId)
+    if (!vote || vote.meetingId !== req.params.id) {
+      return problem({ status: 404, detail: 'Vote not found' })
+    }
+    if (vote.status !== 'OPEN') {
+      return problem({ status: 409, detail: 'Only open votes can be abandoned' })
+    }
+
+    const abandoned = await abandonVote(req.params.voteId, req.user!.memberId, req.user!.memberId)
+    if (!abandoned) {
+      return problem({ status: 500, detail: 'Failed to abandon vote' })
+    }
+
+    return res.status(HttpStatusCode.Ok).json(abandoned)
+  },
+)
+
 router.get(
   '/:id/votes/:voteId/results',
   validateUser(MIKPermissions.MEETING_USER, MIKPermissions.MEETING_ADMIN),
@@ -367,10 +446,9 @@ router.get(
       return problem({ status: 404, detail: 'Meeting not found' })
     }
 
-    const canSeeResults =
-      canAdminMeeting(req) || (await isVoteCounter(req.params.id, req.user!.memberId))
+    const canSeeResults = await isVoteCounter(req.params.id, req.user!.memberId)
     if (!canSeeResults) {
-      return problem({ status: 403, detail: 'Only vote counters and admins can view vote results' })
+      return problem({ status: 403, detail: 'Only vote counters can view vote results' })
     }
 
     const vote = await getMeetingVoteById(req.params.voteId, true, req.user!.memberId)
@@ -426,8 +504,7 @@ router.post(
     const data = parseBody(SubmitVoteSchema, req.body, 'Invalid vote submission')
     await submitVote(req.params.voteId, req.user!.memberId, data.optionIds)
 
-    const includeResults =
-      canAdminMeeting(req) || (await isVoteCounter(req.params.id, req.user!.memberId))
+    const includeResults = await isVoteCounter(req.params.id, req.user!.memberId)
     const updatedVote = await getMeetingVoteById(
       req.params.voteId,
       includeResults,

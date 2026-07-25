@@ -27,6 +27,7 @@ type MeetingRow = {
   created_at: unknown
   started_at: unknown
   ended_at: unknown
+  meeting_notes_document_id: number | null
   attendance_count: number
   is_attending: boolean
   is_vote_counter: boolean
@@ -39,7 +40,7 @@ type MeetingVoteRow = {
   description: string | null
   is_multi_select: boolean
   max_selections: number | null
-  status: 'DRAFT' | 'OPEN' | 'CLOSED'
+  status: 'DRAFT' | 'OPEN' | 'CLOSED' | 'ABANDONED'
   created_at: unknown
   created_by: string | null
   closed_at: unknown
@@ -78,7 +79,7 @@ type VoteMetaRow = {
   vote_id: string
   meeting_id: string
   meeting_status: 'DRAFT' | 'ONGOING' | 'ENDED'
-  vote_status: 'DRAFT' | 'OPEN' | 'CLOSED'
+  vote_status: 'DRAFT' | 'OPEN' | 'CLOSED' | 'ABANDONED'
   is_multi_select: boolean
   max_selections: number | null
 }
@@ -110,6 +111,7 @@ const mapMeeting = (row: MeetingRow): Meeting => ({
   createdAt: toIsoString(row.created_at),
   startedAt: toNullableIsoString(row.started_at),
   endedAt: toNullableIsoString(row.ended_at),
+  meetingNotesDocumentId: row.meeting_notes_document_id,
   attendanceCount: Number(row.attendance_count ?? 0),
   isAttending: Boolean(row.is_attending),
   isVoteCounter: Boolean(row.is_vote_counter),
@@ -118,7 +120,7 @@ const mapMeeting = (row: MeetingRow): Meeting => ({
 const mapVoteOption = (
   row: VoteOptionRow,
   includeResults: boolean,
-  voteStatus: 'DRAFT' | 'OPEN' | 'CLOSED',
+  voteStatus: 'DRAFT' | 'OPEN' | 'CLOSED' | 'ABANDONED',
 ): VoteOption => ({
   optionId: row.option_id,
   voteId: row.vote_id,
@@ -169,6 +171,7 @@ const getMeetingRows = async (
       m.created_at,
       m.started_at,
       m.ended_at,
+      m.meeting_notes_document_id,
       COALESCE(att.attendance_count, 0)::int AS attendance_count,
       EXISTS (
         SELECT 1
@@ -321,6 +324,7 @@ export const getActiveMeeting = async (memberId: string): Promise<Meeting | unde
       m.created_at,
       m.started_at,
       m.ended_at,
+      m.meeting_notes_document_id,
       COALESCE(att.attendance_count, 0)::int AS attendance_count,
       EXISTS (
         SELECT 1
@@ -479,15 +483,17 @@ export const pendingNotesMeeting = async (
 export const endMeeting = async (
   meetingId: string,
   _endedBy: string,
+  meetingNotesDocumentId: number,
   memberId?: string,
 ): Promise<Meeting | undefined> => {
   const { rows } = await sql<{ meeting_id: string }>`
     UPDATE member.meeting
     SET
       status = 'ENDED',
-      ended_at = NOW()
+      ended_at = NOW(),
+      meeting_notes_document_id = ${meetingNotesDocumentId}
     WHERE meeting_id = ${meetingId}::uuid
-      AND status IN ('ONGOING', 'PENDING_NOTES')
+      AND status = 'PENDING_NOTES'
     RETURNING meeting_id
   `.execute(db)
 
@@ -670,8 +676,8 @@ export const openVote = async (
     return problem({ status: 409, detail: 'Voting can only be opened during an ongoing meeting' })
   }
 
-  if (meta.vote_status === 'CLOSED') {
-    return problem({ status: 409, detail: 'Closed votes cannot be reopened' })
+  if (meta.vote_status === 'CLOSED' || meta.vote_status === 'ABANDONED') {
+    return problem({ status: 409, detail: 'Closed or abandoned votes cannot be reopened' })
   }
 
   const { rows: conflicting } = await sql<{ vote_id: string }>`
@@ -713,6 +719,25 @@ export const closeVote = async (
   `.execute(db)
 
   return rows[0] ? getMeetingVoteById(voteId, true, memberId ?? closedBy) : undefined
+}
+
+export const abandonVote = async (
+  voteId: string,
+  abandonedBy: string,
+  memberId?: string,
+): Promise<MeetingVote | undefined> => {
+  const { rows } = await sql<{ vote_id: string }>`
+    UPDATE member.meeting_vote
+    SET
+      status = 'ABANDONED',
+      closed_at = NOW(),
+      closed_by = ${abandonedBy}
+    WHERE vote_id = ${voteId}::uuid
+      AND status = 'OPEN'
+    RETURNING vote_id
+  `.execute(db)
+
+  return rows[0] ? getMeetingVoteById(voteId, true, memberId ?? abandonedBy) : undefined
 }
 
 export const getMeetingVotes = async (

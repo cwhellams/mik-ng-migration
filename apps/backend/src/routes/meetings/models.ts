@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const MeetingStatusSchema = z.enum(['DRAFT', 'ONGOING', 'PENDING_NOTES', 'ENDED'])
 export type MeetingStatus = z.infer<typeof MeetingStatusSchema>
 
-export const VoteStatusSchema = z.enum(['DRAFT', 'OPEN', 'CLOSED'])
+export const VoteStatusSchema = z.enum(['DRAFT', 'OPEN', 'CLOSED', 'ABANDONED'])
 export type VoteStatus = z.infer<typeof VoteStatusSchema>
 
 export const VoteOptionSchema = z.object({
@@ -45,6 +45,7 @@ export const MeetingSchema = z.object({
   createdAt: z.string().datetime(),
   startedAt: z.string().datetime().nullable(),
   endedAt: z.string().datetime().nullable(),
+  meetingNotesDocumentId: z.number().int().positive().nullable(),
   attendanceCount: z.number().int().nonnegative().default(0),
   isAttending: z.boolean().default(false),
   isVoteCounter: z.boolean().default(false),

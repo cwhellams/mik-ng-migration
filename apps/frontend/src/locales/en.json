@@ -2728,6 +2728,7 @@
       "submit": "Submit vote",
       "submitted": "Vote submitted",
       "alreadyVoted": "You have already voted on this question.",
+      "toggleSelection": "Show or hide your selection",
       "open": "Open",
       "closed": "Closed",
       "results": "Results",
@@ -2742,16 +2743,19 @@
       "createMeeting": "Create Meeting",
       "editMeeting": "Edit Meeting",
       "meetingDetails": "Meeting Details",
-      "startMeeting": "Start Meeting",
-      "endMeeting": "End Meeting",
-      "confirmStart": "Start this meeting? Members will be able to join.",
-      "confirmEnd": "End this meeting? All open votes will remain as-is.",
+      "startMeeting": "Open Meeting",
+      "endMeeting": "Close Meeting",
+      "confirmStart": "Open this meeting? Members will be able to join. This cannot be undone.",
+      "confirmEnd": "Close this meeting? All open votes will remain as-is. This cannot be undone.",
+      "endMeetingNotesHelp": "The meeting notes document is required and will be uploaded to the club's document archive.",
+      "selectNotesFile": "Select meeting notes file",
+      "viewMeetingNotes": "View meeting notes",
       "confirmDelete": "Delete this draft meeting?",
       "status": {
         "DRAFT": "Draft",
-        "ONGOING": "Ongoing",
-        "ENDED": "Ended",
-        "PENDING_NOTES": "Pending Notes"
+        "ONGOING": "Open",
+        "ENDED": "Closed",
+        "PENDING_NOTES": "Waiting for Meeting Notes"
       },
       "attendees": "Attendees",
       "attendeeCount": "{{count}} attendee(s)",
@@ -2761,10 +2765,15 @@
       "createVote": "Create Vote",
       "openVote": "Open voting",
       "closeVote": "Close voting",
+      "abandonVote": "Abandon vote",
+      "confirmOpenVote": "Open this vote? Members will be able to start voting immediately. This cannot be undone.",
+      "confirmCloseVote": "Close this vote? No more votes can be submitted and it cannot be reopened. This cannot be undone.",
+      "confirmAbandonVote": "Abandon this vote? Its results will never be counted or shown as official. This cannot be undone.",
       "voteStatus": {
         "DRAFT": "Draft",
         "OPEN": "Open",
-        "CLOSED": "Closed"
+        "CLOSED": "Closed",
+        "ABANDONED": "Abandoned"
       },
       "options": "Options",
       "addOption": "Add option",
@@ -2772,6 +2781,8 @@
       "isMultiSelect": "Allow multiple selections",
       "maxSelections": "Maximum selections (leave empty for unlimited)",
       "documentFilter": "Document search filter",
+      "documentFilterHelp": "Enter a title or keyword to match documents in the club's document library.",
+      "browseDocuments": "Browse documents",
       "noMeetings": "No meetings yet.",
       "noMeetingSelected": "Select a meeting",
       "noAttendees": "No attendees yet.",
@@ -2779,12 +2790,18 @@
       "noVotes": "No votes created yet.",
       "voteTopic": "Topic",
       "deleteMeeting": "Delete Meeting",
-      "pendingNotes": "Pending Notes",
-      "confirmPendingNotes": "Move to pending notes? Members will no longer be able to attend or vote.",
+      "pendingNotes": "Move to Waiting for Meeting Notes",
+      "confirmPendingNotes": "Move to waiting for meeting notes? Members will no longer be able to attend or vote. This cannot be undone.",
       "meetingUrl": "Meeting link (e.g. Zoom or Teams URL)"
     },
     "voteCounterNotice": "You are a vote counter for this meeting. You will see the results after each vote is closed.",
-    "pendingNotes": "The meeting has concluded. Results are being finalised.",
-    "joinMeeting": "Join Meeting"
+    "pendingNotes": "The meeting has ended and is waiting for meeting notes. Results are being finalised.",
+    "joinMeeting": "Join Video Call",
+    "joinMeetingHelp": "Opens the remote video call for this meeting in a new tab.",
+    "attendHelp": "Register your attendance to take part in votes during this meeting.",
+    "banner": {
+      "ongoing": "{{title}} is ongoing",
+      "action": "Open meeting"
+    }
   }
 }
