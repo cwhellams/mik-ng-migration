@@ -302,7 +302,7 @@ importers:
         version: 5.3.0
       '@hello-pangea/dnd':
         specifier: ^18.0.1
-        version: 18.0.1(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 18.0.1(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@hookform/resolvers':
         specifier: ^5.4.0
         version: 5.4.0(react-hook-form@7.81.0(react@19.2.7))
@@ -311,13 +311,13 @@ importers:
         version: 6.0.2(react@19.2.7)
       '@marsidev/react-turnstile':
         specifier: ^1.5.3
-        version: 1.5.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 1.5.3(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@mui/icons-material':
         specifier: ^9.2.0
-        version: 9.2.0(@mui/material@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)
+        version: 9.2.0(@mui/material@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)
       '@mui/material':
         specifier: ^9.2.0
-        version: 9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@mui/styled-engine':
         specifier: ^9.1.1
         version: 9.1.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)
@@ -329,22 +329,22 @@ importers:
         version: 9.2.0(@types/react@19.2.17)(react@19.2.7)
       '@mui/x-date-pickers':
         specifier: ^9.10.0
-        version: 9.10.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@mui/material@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(@mui/system@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(dayjs@1.11.21)(luxon@3.7.2)(moment@2.30.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 9.10.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@mui/material@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7))(@mui/system@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(dayjs@1.11.21)(luxon@3.7.2)(moment@2.30.1)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/bar':
         specifier: ^0.99.0
-        version: 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/calendar':
         specifier: ^0.99.0
-        version: 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/core':
         specifier: ^0.99.0
-        version: 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/line':
         specifier: ^0.99.0
-        version: 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/pie':
         specifier: ^0.99.0
-        version: 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@simplewebauthn/browser':
         specifier: 13.3.0
         version: 13.3.0
@@ -377,10 +377,10 @@ importers:
         version: 19.2.7
       react-big-calendar:
         specifier: ^1.20.0
-        version: 1.20.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 1.20.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       react-dom:
-        specifier: ^19.2.7
-        version: 19.2.7(react@19.2.7)
+        specifier: ^19.2.8
+        version: 19.2.8(react@19.2.7)
       react-dropzone:
         specifier: ^15.0.0
         version: 15.0.0(react@19.2.7)
@@ -389,13 +389,13 @@ importers:
         version: 7.81.0(react@19.2.7)
       react-i18next:
         specifier: ^17.0.10
-        version: 17.0.10(i18next@26.3.6(typescript@7.0.2))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@7.0.2)
+        version: 17.0.10(i18next@26.3.6(typescript@7.0.2))(react-dom@19.2.8(react@19.2.7))(react@19.2.7)(typescript@7.0.2)
       react-router:
         specifier: ^7.18.1
-        version: 7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 7.18.1(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       react-router-dom:
         specifier: ^7.18.1
-        version: 7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 7.18.1(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       react-swipeable:
         specifier: ^7.0.2
         version: 7.0.2(react@19.2.7)
@@ -2979,10 +2979,7 @@ packages:
     resolution: {integrity: sha512-CqN8MnISMwQbLJXO3doBAV4Yw9hx9/Pyr2rZ78+NfaCnhyRA/nKrpyk6E7mKw17ZOaQdLpK9GiUjrqLzBlN3sg==}
 
   '@types/web-push@3.6.4':
-    resolution:
-      {
-        integrity: sha512-GnJmSr40H3RAnj0s34FNTcJi1hmWFV5KXugE0mYWnYhgTAHLJ/dJKAwDmvPJYMke0RplY2XE9LnM4hqSqKIjhQ==,
-      }
+    resolution: {integrity: sha512-GnJmSr40H3RAnj0s34FNTcJi1hmWFV5KXugE0mYWnYhgTAHLJ/dJKAwDmvPJYMke0RplY2XE9LnM4hqSqKIjhQ==}
 
   '@types/webidl-conversions@7.0.3':
     resolution: {integrity: sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==}
@@ -3250,11 +3247,8 @@ packages:
     engines: {node: '>= 6.0.0'}
 
   agent-base@7.1.4:
-    resolution:
-      {
-        integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==,
-      }
-    engines: { node: '>= 14' }
+    resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
+    engines: {node: '>= 14'}
 
   agent-base@9.0.0:
     resolution: {integrity: sha512-TQf59BsZnytt8GdJKLPfUZ54g/iaUL2OWDSFCCvMOhsHduDQxO8xC4PNeyIkVcA5KwL2phPSv0douC0fgWzmnA==}
@@ -3365,10 +3359,7 @@ packages:
     resolution: {integrity: sha512-BSHWgDSAiKs50o2Re8ppvp3seVHXSRM44cdSsT9FfNEUUZLOGWVCsiWaRPWM1Znn+mqZ1OfVZ3z3DWEzSp7hRA==}
 
   asn1.js@5.4.1:
-    resolution:
-      {
-        integrity: sha512-+I//4cYPccV8LdmBLiX8CYvf9Sp3vQsrqu2QNXRcrbiWvcx/UdlFiqUJJzxRQxgsZmvhXhn4cSKeSmoFjVdupA==,
-      }
+    resolution: {integrity: sha512-+I//4cYPccV8LdmBLiX8CYvf9Sp3vQsrqu2QNXRcrbiWvcx/UdlFiqUJJzxRQxgsZmvhXhn4cSKeSmoFjVdupA==}
 
   asn1js@3.0.10:
     resolution: {integrity: sha512-S2s3aOytiKdFRdulw2qPE51MzjzVOisppcVv7jVFR+Kw0kxwvFrDcYA0h7Ndqbmj0HkMIXYWaoj7fli8kgx1eg==}
@@ -3489,10 +3480,7 @@ packages:
     resolution: {integrity: sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==}
 
   bn.js@4.12.5:
-    resolution:
-      {
-        integrity: sha512-3aRg6/JxfffFD+OlOjOFR3Vo79l39ooBTFucxx+MT3dhCtzn3EmiUPQo+6/OZuI2jbXi3YKgmiTFBgChQMwIRQ==,
-      }
+    resolution: {integrity: sha512-3aRg6/JxfffFD+OlOjOFR3Vo79l39ooBTFucxx+MT3dhCtzn3EmiUPQo+6/OZuI2jbXi3YKgmiTFBgChQMwIRQ==}
 
   body-parser@2.3.0:
     resolution: {integrity: sha512-2cGmJupaNgg+QUwVLAucDuWuoMZ6EX9iHDRswZ5lsNYEmwPaRknMPCLZz07yTzVq/83p4o/wzbDZbBrTvGGTIw==}
@@ -4655,22 +4643,16 @@ packages:
     resolution: {integrity: sha512-RJ8XvFvpPM/Dmc5SV+dC4y5PCeOhT3x1Hq0NU3rjGeg5a/CqlhZ7uudknPwZFz4aeAXDcbAyaeP7GAo9lvngtA==}
 
   http_ece@1.2.0:
-    resolution:
-      {
-        integrity: sha512-JrF8SSLVmcvc5NducxgyOrKXe3EsyHMgBFgSaIUGmArKe+rwr0uphRkRXvwiom3I+fpIfoItveHrfudL8/rxuA==,
-      }
-    engines: { node: '>=16' }
+    resolution: {integrity: sha512-JrF8SSLVmcvc5NducxgyOrKXe3EsyHMgBFgSaIUGmArKe+rwr0uphRkRXvwiom3I+fpIfoItveHrfudL8/rxuA==}
+    engines: {node: '>=16'}
 
   https-proxy-agent@5.0.1:
     resolution: {integrity: sha512-dFcAjpTQFgoLMzC2VwU+C/CbS7uRL0lWmxDITmqm7C+7F0Odmj6s9l6alZc6AELXhrnggM2CeWSXHGOdX2YtwA==}
     engines: {node: '>= 6'}
 
   https-proxy-agent@7.0.6:
-    resolution:
-      {
-        integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==,
-      }
-    engines: { node: '>= 14' }
+    resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
+    engines: {node: '>= 14'}
 
   https-proxy-agent@9.1.0:
     resolution: {integrity: sha512-ag87y7cJJ9/3+GxFr8Oy4O5faDsGRGnBGsJj/YjOSsSx/5eadKLYTMPlzuR6obgoCDDm0abAAZitXXQkMOPSpA==}
@@ -5500,10 +5482,7 @@ packages:
     engines: {node: '>=6'}
 
   minimalistic-assert@1.0.1:
-    resolution:
-      {
-        integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==,
-      }
+    resolution: {integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==}
 
   minimatch@10.2.5:
     resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
@@ -6061,10 +6040,10 @@ packages:
       react: ^16.14.0 || ^17 || ^18 || ^19
       react-dom: ^16.14.0 || ^17 || ^18 || ^19
 
-  react-dom@19.2.7:
-    resolution: {integrity: sha512-t0BRVXvbiE/o20Hfw669rLbMCDWtYZLvmJigy2f0MxsXF+71pxhR3xOkspmsO8h3ZlNzyibAmtCa3l4lYKk6gQ==}
+  react-dom@19.2.8:
+    resolution: {integrity: sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==}
     peerDependencies:
-      react: ^19.2.7
+      react: ^19.2.8
 
   react-dropzone@15.0.0:
     resolution: {integrity: sha512-lGjYV/EoqEjEWPnmiSvH4v5IoIAwQM2W4Z1C0Q/Pw2xD0eVzKPS359BQTUMum+1fa0kH2nrKjuavmTPOGhpLPg==}
@@ -7011,11 +6990,8 @@ packages:
     resolution: {integrity: sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==}
 
   web-push@3.6.7:
-    resolution:
-      {
-        integrity: sha512-OpiIUe8cuGjrj3mMBFWY+e4MMIkW3SVT+7vEIjvD9kejGUypv8GPDf84JdPWskK8zMRIJ6xYGm+Kxr8YkPyA0A==,
-      }
-    engines: { node: '>= 16' }
+    resolution: {integrity: sha512-OpiIUe8cuGjrj3mMBFWY+e4MMIkW3SVT+7vEIjvD9kejGUypv8GPDf84JdPWskK8zMRIJ6xYGm+Kxr8YkPyA0A==}
+    engines: {node: '>= 16'}
     hasBin: true
 
   webidl-conversions@3.0.1:
@@ -8153,12 +8129,12 @@ snapshots:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
 
-  '@base-ui/utils@0.3.1(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@base-ui/utils@0.3.1(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@babel/runtime': 7.29.7
       '@floating-ui/utils': 0.2.12
       react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
       reselect: 5.2.0
       use-sync-external-store: 1.6.0(react@19.2.7)
     optionalDependencies:
@@ -8458,13 +8434,13 @@ snapshots:
 
   '@fontsource/poppins@5.3.0': {}
 
-  '@hello-pangea/dnd@18.0.1(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@hello-pangea/dnd@18.0.1(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@babel/runtime': 7.29.7
       css-box-model: 1.2.1
       raf-schd: 4.0.3
       react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
       react-redux: 9.3.0(@types/react@19.2.17)(react@19.2.7)(redux@5.0.1)
       redux: 5.0.1
     transitivePeerDependencies:
@@ -8846,10 +8822,10 @@ snapshots:
 
   '@levischuck/tiny-cbor@0.2.11': {}
 
-  '@marsidev/react-turnstile@1.5.3(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@marsidev/react-turnstile@1.5.3(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
       react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
 
   '@mongodb-js/saslprep@1.4.12':
     dependencies:
@@ -8857,15 +8833,15 @@ snapshots:
 
   '@mui/core-downloads-tracker@9.2.0': {}
 
-  '@mui/icons-material@9.2.0(@mui/material@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)':
+  '@mui/icons-material@9.2.0(@mui/material@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)':
     dependencies:
       '@babel/runtime': 7.29.7
-      '@mui/material': 9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@mui/material': 9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       react: 19.2.7
     optionalDependencies:
       '@types/react': 19.2.17
 
-  '@mui/material@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@mui/material@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@babel/runtime': 7.29.7
       '@mui/core-downloads-tracker': 9.2.0
@@ -8878,9 +8854,9 @@ snapshots:
       csstype: 3.2.3
       prop-types: 15.8.1
       react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
       react-is: 19.2.7
-      react-transition-group: 4.4.5(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react-transition-group: 4.4.5(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
     optionalDependencies:
       '@emotion/react': 11.14.0(@types/react@19.2.17)(react@19.2.7)
       '@emotion/styled': 11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)
@@ -8942,19 +8918,19 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.17
 
-  '@mui/x-date-pickers@9.10.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@mui/material@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(@mui/system@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(dayjs@1.11.21)(luxon@3.7.2)(moment@2.30.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@mui/x-date-pickers@9.10.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@mui/material@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7))(@mui/system@9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(dayjs@1.11.21)(luxon@3.7.2)(moment@2.30.1)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@babel/runtime': 7.29.7
-      '@mui/material': 9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@mui/material': 9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@mui/system': 9.2.0(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)
       '@mui/utils': 9.2.0(@types/react@19.2.17)(react@19.2.7)
-      '@mui/x-internals': 9.10.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@mui/x-internals': 9.10.0(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@types/react-transition-group': 4.4.12(@types/react@19.2.17)
       clsx: 2.1.1
       prop-types: 15.8.1
       react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
-      react-transition-group: 4.4.5(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
+      react-transition-group: 4.4.5(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
     optionalDependencies:
       '@emotion/react': 11.14.0(@types/react@19.2.17)(react@19.2.7)
       '@emotion/styled': 11.14.1(@emotion/react@11.14.0(@types/react@19.2.17)(react@19.2.7))(@types/react@19.2.17)(react@19.2.7)
@@ -8964,10 +8940,10 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
 
-  '@mui/x-internals@9.10.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@mui/x-internals@9.10.0(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@babel/runtime': 7.29.7
-      '@base-ui/utils': 0.3.1(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@base-ui/utils': 0.3.1(@types/react@19.2.17)(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@mui/utils': 9.2.0(@types/react@19.2.17)(react@19.2.7)
       react: 19.2.7
       reselect: 5.2.0
@@ -8983,38 +8959,38 @@ snapshots:
       '@tybys/wasm-util': 0.10.3
     optional: true
 
-  '@nivo/annotations@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/annotations@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/colors': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/colors': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/theming': 0.99.0(react@19.2.7)
-      '@react-spring/web': 10.1.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@react-spring/web': 10.1.2(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       lodash: 4.18.1
       react: 19.2.7
     transitivePeerDependencies:
       - react-dom
 
-  '@nivo/arcs@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/arcs@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/colors': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/text': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/colors': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/text': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/theming': 0.99.0(react@19.2.7)
       '@react-spring/core': 10.1.2(react@19.2.7)
-      '@react-spring/web': 10.1.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@react-spring/web': 10.1.2(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@types/d3-shape': 3.1.8
       d3-shape: 3.2.0
       react: 19.2.7
     transitivePeerDependencies:
       - react-dom
 
-  '@nivo/axes@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/axes@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/scales': 0.99.0
-      '@nivo/text': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/text': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/theming': 0.99.0(react@19.2.7)
-      '@react-spring/web': 10.1.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@react-spring/web': 10.1.2(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@types/d3-format': 1.4.5
       '@types/d3-time-format': 2.3.4
       d3-format: 1.4.5
@@ -9023,19 +8999,19 @@ snapshots:
     transitivePeerDependencies:
       - react-dom
 
-  '@nivo/bar@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/bar@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/annotations': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/axes': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/annotations': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/axes': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/canvas': 0.99.0
-      '@nivo/colors': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/legends': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/colors': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/legends': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/scales': 0.99.0
-      '@nivo/text': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/text': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/theming': 0.99.0(react@19.2.7)
-      '@nivo/tooltip': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@react-spring/web': 10.1.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/tooltip': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@react-spring/web': 10.1.2(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@types/d3-scale': 4.0.9
       '@types/d3-shape': 3.1.8
       d3-scale: 4.0.2
@@ -9045,13 +9021,13 @@ snapshots:
     transitivePeerDependencies:
       - react-dom
 
-  '@nivo/calendar@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/calendar@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/legends': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/text': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/legends': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/text': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/theming': 0.99.0(react@19.2.7)
-      '@nivo/tooltip': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/tooltip': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@types/d3-scale': 4.0.9
       '@types/d3-time': 1.1.4
       '@types/d3-time-format': 3.0.4
@@ -9065,9 +9041,9 @@ snapshots:
 
   '@nivo/canvas@0.99.0': {}
 
-  '@nivo/colors@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/colors@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/theming': 0.99.0(react@19.2.7)
       '@types/d3-color': 3.1.3
       '@types/d3-scale': 4.0.9
@@ -9080,11 +9056,11 @@ snapshots:
     transitivePeerDependencies:
       - react-dom
 
-  '@nivo/core@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/core@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@nivo/theming': 0.99.0(react@19.2.7)
-      '@nivo/tooltip': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@react-spring/web': 10.1.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/tooltip': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@react-spring/web': 10.1.2(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@types/d3-shape': 3.1.8
       d3-color: 3.1.0
       d3-format: 1.4.5
@@ -9095,16 +9071,16 @@ snapshots:
       d3-time-format: 3.0.0
       lodash: 4.18.1
       react: 19.2.7
-      react-virtualized-auto-sizer: 1.0.26(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react-virtualized-auto-sizer: 1.0.26(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       use-debounce: 10.1.1(react@19.2.7)
     transitivePeerDependencies:
       - react-dom
 
-  '@nivo/legends@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/legends@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/colors': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/text': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/colors': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/text': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/theming': 0.99.0(react@19.2.7)
       '@types/d3-scale': 4.0.9
       d3-scale: 4.0.2
@@ -9112,32 +9088,32 @@ snapshots:
     transitivePeerDependencies:
       - react-dom
 
-  '@nivo/line@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/line@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/annotations': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/axes': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/colors': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/legends': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/annotations': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/axes': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/colors': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/legends': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/scales': 0.99.0
       '@nivo/theming': 0.99.0(react@19.2.7)
-      '@nivo/tooltip': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/voronoi': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@react-spring/web': 10.1.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/tooltip': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/voronoi': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@react-spring/web': 10.1.2(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@types/d3-shape': 3.1.8
       d3-shape: 3.2.0
       react: 19.2.7
     transitivePeerDependencies:
       - react-dom
 
-  '@nivo/pie@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/pie@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/arcs': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/colors': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@nivo/legends': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/arcs': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/colors': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
+      '@nivo/legends': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/theming': 0.99.0(react@19.2.7)
-      '@nivo/tooltip': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/tooltip': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@types/d3-shape': 3.1.8
       d3-shape: 3.2.0
       react: 19.2.7
@@ -9156,11 +9132,11 @@ snapshots:
       d3-time-format: 3.0.0
       lodash: 4.18.1
 
-  '@nivo/text@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/text@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/theming': 0.99.0(react@19.2.7)
-      '@react-spring/web': 10.1.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@react-spring/web': 10.1.2(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       react: 19.2.7
     transitivePeerDependencies:
       - react-dom
@@ -9170,20 +9146,20 @@ snapshots:
       lodash: 4.18.1
       react: 19.2.7
 
-  '@nivo/tooltip@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/tooltip@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/theming': 0.99.0(react@19.2.7)
-      '@react-spring/web': 10.1.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@react-spring/web': 10.1.2(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       react: 19.2.7
     transitivePeerDependencies:
       - react-dom
 
-  '@nivo/voronoi@0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@nivo/voronoi@0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@nivo/core': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/core': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@nivo/theming': 0.99.0(react@19.2.7)
-      '@nivo/tooltip': 0.99.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@nivo/tooltip': 0.99.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       '@types/d3-delaunay': 6.0.4
       '@types/d3-scale': 4.0.9
       d3-delaunay: 6.0.4
@@ -9331,7 +9307,7 @@ snapshots:
 
   '@react-spring/types@10.1.2': {}
 
-  '@react-spring/web@10.1.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@react-spring/web@10.1.2(react-dom@19.2.8(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@react-spring/animated': 10.1.2(react@19.2.7)
       '@react-spring/core': 10.1.2(react@19.2.7)
@@ -9339,7 +9315,7 @@ snapshots:
       '@react-spring/types': 10.1.2
       csstype: 3.2.3
       react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
 
   '@restart/hooks@0.4.16(react@19.2.7)':
     dependencies:
@@ -13373,7 +13349,7 @@ snapshots:
       minimist: 1.2.8
       strip-json-comments: 2.0.1
 
-  react-big-calendar@1.20.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  react-big-calendar@1.20.0(react-dom@19.2.8(react@19.2.7))(react@19.2.7):
     dependencies:
       '@babel/runtime': 7.29.7
       clsx: 2.1.1
@@ -13390,11 +13366,11 @@ snapshots:
       moment-timezone: 0.5.48
       prop-types: 15.8.1
       react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
-      react-overlays: 5.2.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
+      react-overlays: 5.2.1(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
       uncontrollable: 7.2.1(react@19.2.7)
 
-  react-dom@19.2.7(react@19.2.7):
+  react-dom@19.2.8(react@19.2.7):
     dependencies:
       react: 19.2.7
       scheduler: 0.27.0
@@ -13410,7 +13386,7 @@ snapshots:
     dependencies:
       react: 19.2.7
 
-  react-i18next@17.0.10(i18next@26.3.6(typescript@7.0.2))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@7.0.2):
+  react-i18next@17.0.10(i18next@26.3.6(typescript@7.0.2))(react-dom@19.2.8(react@19.2.7))(react@19.2.7)(typescript@7.0.2):
     dependencies:
       '@babel/runtime': 7.29.7
       html-parse-stringify: 3.0.1
@@ -13418,7 +13394,7 @@ snapshots:
       react: 19.2.7
       use-sync-external-store: 1.6.0(react@19.2.7)
     optionalDependencies:
-      react-dom: 19.2.7(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
       typescript: 7.0.2
 
   react-is@16.13.1: {}
@@ -13429,7 +13405,7 @@ snapshots:
 
   react-lifecycles-compat@3.0.4: {}
 
-  react-overlays@5.2.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  react-overlays@5.2.1(react-dom@19.2.8(react@19.2.7))(react@19.2.7):
     dependencies:
       '@babel/runtime': 7.29.7
       '@popperjs/core': 2.11.8
@@ -13438,7 +13414,7 @@ snapshots:
       dom-helpers: 5.2.1
       prop-types: 15.8.1
       react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
       uncontrollable: 7.2.1(react@19.2.7)
       warning: 4.0.3
 
@@ -13451,37 +13427,37 @@ snapshots:
       '@types/react': 19.2.17
       redux: 5.0.1
 
-  react-router-dom@7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  react-router-dom@7.18.1(react-dom@19.2.8(react@19.2.7))(react@19.2.7):
     dependencies:
       react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
-      react-router: 7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
+      react-router: 7.18.1(react-dom@19.2.8(react@19.2.7))(react@19.2.7)
 
-  react-router@7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  react-router@7.18.1(react-dom@19.2.8(react@19.2.7))(react@19.2.7):
     dependencies:
       cookie: 1.1.1
       react: 19.2.7
       set-cookie-parser: 2.7.2
     optionalDependencies:
-      react-dom: 19.2.7(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
 
   react-swipeable@7.0.2(react@19.2.7):
     dependencies:
       react: 19.2.7
 
-  react-transition-group@4.4.5(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  react-transition-group@4.4.5(react-dom@19.2.8(react@19.2.7))(react@19.2.7):
     dependencies:
       '@babel/runtime': 7.29.7
       dom-helpers: 5.2.1
       loose-envify: 1.4.0
       prop-types: 15.8.1
       react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
 
-  react-virtualized-auto-sizer@1.0.26(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  react-virtualized-auto-sizer@1.0.26(react-dom@19.2.8(react@19.2.7))(react@19.2.7):
     dependencies:
       react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
+      react-dom: 19.2.8(react@19.2.7)
 
   react@19.2.7: {}
 
