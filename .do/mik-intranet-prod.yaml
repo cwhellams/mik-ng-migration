@@ -141,6 +141,21 @@ services:
       - key: AIRCRAFT_DOCUMENT_EXPIRY_REMINDER_DAYS
         value: ${AIRCRAFT_DOCUMENT_EXPIRY_REMINDER_DAYS}
         type: GENERAL
+      - key: PUSH_NOTIFICATION_WORKER_ENABLED
+        value: ${PUSH_NOTIFICATION_WORKER_ENABLED}
+        type: GENERAL
+      - key: PUSH_NOTIFICATION_HOURS_BEFORE
+        value: ${PUSH_NOTIFICATION_HOURS_BEFORE}
+        type: GENERAL
+      - key: VAPID_PUBLIC_KEY
+        value: ${VAPID_PUBLIC_KEY}
+        type: SECRET
+      - key: VAPID_PRIVATE_KEY
+        value: ${VAPID_PRIVATE_KEY}
+        type: SECRET
+      - key: VAPID_SUBJECT
+        value: ${VAPID_SUBJECT}
+        type: GENERAL
       - key: BREVO_SYNC_WORKER_ENABLED
         value: ${BREVO_SYNC_WORKER_ENABLED}
         type: GENERAL

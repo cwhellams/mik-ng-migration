@@ -240,6 +240,13 @@
       "unsupportedBrowser": "Your browser does not support passkeys.",
       "insecureContext": "Passkeys require a secure HTTPS connection."
     },
+    "pushNotifications": {
+      "title": "Push Notifications",
+      "description": "Get a browser notification 1 hour before your bookings start on this device.",
+      "unsupportedBrowser": "Your browser does not support push notifications.",
+      "iosInstallPrompt": "On iPhone/iPad, add MIK NG to your Home Screen first (Share > Add to Home Screen), then reopen the app from there to enable notifications.",
+      "error": "Could not update push notification settings. Please try again."
+    },
     "lang": "Language",
     "iban": "IBAN (for expense reimbursements)",
     "ibanHelper": "Save your bank account IBAN here so it can be auto-filled in expense claims.",

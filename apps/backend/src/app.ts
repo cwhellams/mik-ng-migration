@@ -41,6 +41,7 @@ import { router as instructorQualificationRoutes } from './routes/instructor-qua
 import { router as fuelPricesRoutes } from './routes/fuel-prices/api.ts'
 import { router as notificationBannerRoutes } from './routes/notification-banner/api.ts'
 import { router as configRoutes } from './routes/config/api.ts'
+import { router as pushRoutes } from './routes/push/api.ts'
 import { router as dtoRoutes } from './routes/dto/api.ts'
 import { router as eventRoutes } from './routes/events/api.ts'
 import { router as expenseRoutes } from './routes/expenses/api.ts'
@@ -64,6 +65,7 @@ import { startJuniorMemberPromotionWorker } from './workers/juniorMemberPromotio
 import { startQualificationExpiryWorker } from './workers/qualificationExpiryWorker.ts'
 import { startTinyUrlCleanupWorker } from './workers/tinyUrlCleanupWorker.ts'
 import { startAircraftDocumentExpiryWorker } from './workers/aircraftDocumentExpiryWorker.ts'
+import { startPushNotificationWorker } from './workers/pushNotificationWorker.ts'
 
 const app = express()
 const PORT = process.env.BACKEND_PORT ?? 3000
@@ -175,6 +177,7 @@ app.use('/api/v1/exams', examRoutes)
 app.use('/api/v1/notification-banner', notificationBannerRoutes)
 app.use('/api/v1/instructor-qualifications', instructorQualificationRoutes)
 app.use('/api/v1/config', configRoutes)
+app.use('/api/v1/push', pushRoutes)
 app.use('/api/v1/dto', dtoRoutes)
 app.use('/api/v1/events', eventRoutes)
 app.use('/api/v1/expenses', expenseRoutes)
@@ -199,6 +202,7 @@ const juniorMemberPromotionWorker = startJuniorMemberPromotionWorker()
 const qualificationExpiryWorker = startQualificationExpiryWorker()
 const tinyUrlCleanupWorker = startTinyUrlCleanupWorker()
 const aircraftDocumentExpiryWorker = startAircraftDocumentExpiryWorker()
+const pushNotificationWorker = startPushNotificationWorker()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
@@ -226,6 +230,7 @@ const shutdown = async (): Promise<void> => {
   qualificationExpiryWorker?.stop()
   tinyUrlCleanupWorker?.stop()
   aircraftDocumentExpiryWorker?.stop()
+  pushNotificationWorker?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)

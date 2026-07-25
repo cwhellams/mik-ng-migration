@@ -182,3 +182,44 @@ The proxy also enforces a Simplbooks-like global rate limit of `1 request/second
 If exceeded, it returns HTTP `429` with a `Retry-After` header.
 
 The backend default `.env` already points `SIMPLBOOKS_BASE_URI` to `http://127.0.0.1:4010`.
+
+# Push Notifications (booking reminders)
+
+Members can opt in to browser push notifications reminding them of an upcoming booking, in addition to the existing 24h email reminder.
+
+## How it works
+
+- **Subscribing**: a member enables notifications via the toggle on their own profile (`PushNotificationsCard.tsx`, `apps/frontend/src/sections/members/components/`). This registers a per-device `PushSubscription` with the browser and stores it in `member.push_subscriptions` (see `apps/backend/src/db/push-queries.ts`). Opt-in is per-device — a member can have push enabled on their phone but not their desktop, each device gets its own row.
+- **Service worker**: `apps/frontend/public/push-sw.js` handles the `push` and `notificationclick` events. It's bundled into the generated Workbox service worker via `workbox.importScripts` in `apps/frontend/vite.config.ts`.
+- **Sending**: `apps/backend/src/workers/pushNotificationWorker.ts` runs hourly (cron `0 * * * *`), claims upcoming bookings starting within `PUSH_NOTIFICATION_HOURS_BEFORE` hours, and sends a push via `apps/backend/src/lib/webPush.ts` (uses the `web-push` npm library and VAPID keys) to every subscribed device for that member. If the push service reports the subscription is gone (HTTP 404/410), the stale row is deleted automatically.
+- **VAPID keys**: web push requires a VAPID key pair (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) used to sign push messages and identify the sender to the push service (FCM for Chrome, etc). These are the same for all environments that share a frontend origin.
+
+## Configuration
+
+| Env var                          | Purpose                                                        |
+| --------------------------------- | ---------------------------------------------------------------- |
+| `VAPID_PUBLIC_KEY`                | Public VAPID key, also served to the frontend via `v1/push/vapid-public-key` |
+| `VAPID_PRIVATE_KEY`               | Private VAPID key, used server-side to sign push payloads (secret) |
+| `VAPID_SUBJECT`                   | `mailto:` contact URI required by the VAPID spec                 |
+| `PUSH_NOTIFICATION_WORKER_ENABLED`| `true`/`false` — whether the hourly worker cron runs at all      |
+| `PUSH_NOTIFICATION_HOURS_BEFORE`  | How many hours before a booking's start time to send the reminder |
+
+In TEST and PROD, `VAPID_PRIVATE_KEY` is a GitHub **secret**; the others are GitHub **vars**. They're wired into the DO app specs (`.do/mik-intranet-test.yaml`, `.do/mik-intranet-prod.yaml`) and deploy workflows (`.github/workflows/create-test-release-and-deploy-to-do.yml`, `.github/workflows/prod-deploy-to-do.yml`).
+
+> **Local dev VAPID keys are already available as GitHub Dev environment variables/secrets** — pull them from there rather than generating your own, so pushes work against the same key pair the frontend expects.
+
+## Testing locally
+
+1. Ensure your `apps/backend/.env` has `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` set (see above), plus `PUSH_NOTIFICATION_WORKER_ENABLED=true` if you want to exercise the hourly cron worker itself.
+2. Run `pnpm dev` as normal. `vite.config.ts` has `devOptions.enabled: true` so the PWA service worker (including `push-sw.js`) registers even under `pnpm dev` — without this, `navigator.serviceWorker.ready` never resolves and the toggle stays disabled.
+3. Log in as a member and enable the notifications toggle on their own profile page (this requires the browser to grant notification permission, and a real HTTPS/localhost context).
+4. To trigger a real push immediately, without waiting for the hourly worker or a real booking, use the test script:
+
+   ```bash
+   cd apps/backend
+   npx tsx scripts/testPushNotification.ts <memberId>
+   ```
+
+   This looks up the member's stored subscriptions and sends a real web push through the configured VAPID keys — a notification should appear from the browser/OS almost immediately.
+
+5. If nothing appears, check in order: the site's notification permission (chrome://settings), the OS-level notification settings for the browser (e.g. Windows Settings → Notifications → per-app toggle, and Focus Assist), and `chrome://gcm-internals` for the push channel connection state.

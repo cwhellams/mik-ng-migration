@@ -240,6 +240,13 @@
       "unsupportedBrowser": "Din webbläsare stöder inte passnycklar.",
       "insecureContext": "Passnycklar kräver en säker HTTPS-anslutning."
     },
+    "pushNotifications": {
+      "title": "Push-notiser",
+      "description": "Få en webbläsarnotis 1 timme innan din bokning börjar på denna enhet.",
+      "unsupportedBrowser": "Din webbläsare stöder inte push-notiser.",
+      "iosInstallPrompt": "På iPhone/iPad, lägg först till MIK NG på hemskärmen (Dela > Lägg till på hemskärmen) och öppna appen därifrån för att aktivera notiser.",
+      "error": "Kunde inte uppdatera inställningarna för push-notiser. Försök igen."
+    },
     "lang": "Språk",
     "iban": "IBAN (för utgiftsersättningar)",
     "ibanHelper": "Spara ditt bankkonto IBAN här så att det fylls i automatiskt i utgiftsanspråk.",

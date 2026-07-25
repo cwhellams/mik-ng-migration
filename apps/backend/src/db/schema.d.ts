@@ -1153,6 +1153,16 @@ export interface MemberPendingEmailChanges {
   used_at: Timestamp | null
 }
 
+export interface MemberPushSubscriptions {
+  created_at: Generated<Timestamp>
+  endpoint: string
+  id: Generated<string>
+  keys_auth: string
+  keys_p256dh: string
+  member_id: string
+  user_agent: string | null
+}
+
 export interface MemberQualificationProofFiles {
   document_category: Generated<string>
   file_name: string
@@ -1349,6 +1359,13 @@ export interface ScheduleBookings {
   start_time_utc: Generated<Timestamp>
   updated_at: Generated<Timestamp>
   updated_by: string
+}
+
+export interface SchedulePushReminderLog {
+  booking_id: string
+  id: Generated<string>
+  member_id: string
+  sent_at: Generated<Timestamp>
 }
 
 export interface Secrets {
@@ -1876,6 +1893,7 @@ export interface DB {
   'member.non_renewal_actions': MemberNonRenewalActions
   'member.passkeys': MemberPasskeys
   'member.pending_email_changes': MemberPendingEmailChanges
+  'member.push_subscriptions': MemberPushSubscriptions
   'member.qualification_proof_files': MemberQualificationProofFiles
   'member.register': MemberRegister
   'member.register_audit': MemberRegisterAudit
@@ -1887,6 +1905,7 @@ export interface DB {
   'prepaid.packages': PrepaidPackages
   'prepaid.usage_log': PrepaidUsageLog
   'schedule.bookings': ScheduleBookings
+  'schedule.push_reminder_log': SchedulePushReminderLog
   secrets: Secrets
   'shop.cart_items': ShopCartItems
   'shop.carts': ShopCarts

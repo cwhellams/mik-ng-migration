@@ -10,6 +10,8 @@
  *    excluded because they are security credentials, not personal data.
  *  - passkey public_key (raw bytes) is excluded; the credential metadata
  *    (id, name, device type, last used) is sufficient for a GDPR export.
+ *  - push subscription auth/p256dh keys are excluded; they are cryptographic
+ *    material used to encrypt push payloads, not personal data.
  */
 
 import { db } from './connection.ts'
@@ -193,6 +195,17 @@ export async function getGdprPasskeys(memberId: string) {
       // public_key intentionally excluded – it is a raw cryptographic key,
       // not personal data, and would produce unreadable binary in JSON output.
     ])
+    .where('member_id', '=', memberId)
+    .orderBy('created_at', 'desc')
+    .execute()
+}
+
+// ─── Push subscriptions (without raw auth/p256dh key material) ───────────────
+
+export async function getGdprPushSubscriptions(memberId: string) {
+  return db
+    .selectFrom('member.push_subscriptions')
+    .select(['id', 'member_id', 'endpoint', 'user_agent', 'created_at'])
     .where('member_id', '=', memberId)
     .orderBy('created_at', 'desc')
     .execute()

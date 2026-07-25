@@ -239,6 +239,13 @@
       "unsupportedBrowser": "Selaimesi ei tue avainkoodeja.",
       "insecureContext": "Avainkoodit vaativat suojatun HTTPS-yhteyden."
     },
+    "pushNotifications": {
+      "title": "Push-ilmoitukset",
+      "description": "Saat selainilmoituksen tunti ennen varauksesi alkua tällä laitteella.",
+      "unsupportedBrowser": "Selaimesi ei tue push-ilmoituksia.",
+      "iosInstallPrompt": "iPhonella/iPadilla lisää MIK NG ensin kotivalikkoon (Jaa > Lisää kotivalikkoon) ja avaa sovellus sieltä ottaaksesi ilmoitukset käyttöön.",
+      "error": "Push-ilmoitusasetusten päivitys epäonnistui. Yritä uudelleen."
+    },
     "isTrainingProgramPilot": "Koulutusohjelmaoppilas",
     "lang": "Kieli",
     "iban": "IBAN (kulukorvauksia varten)",

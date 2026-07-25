@@ -11,6 +11,7 @@ out
 *.js
 !eslint.config.js
 !global-teardown.js
+!apps/frontend/public/push-sw.js
 
 # Environment variables
 **/.env*

@@ -58,6 +58,7 @@ import { Title } from '../../components/Title'
 import { sanitizeUrl } from '@backend/util/sanitizers'
 import { useTimezone } from '../../hooks/useTimezone'
 import { PasskeysCard } from './components/PasskeysCard'
+import { PushNotificationsCard } from './components/PushNotificationsCard'
 import { ApplicationDataCard } from './components/ApplicationDataCard'
 import { GdprExportCard } from './components/GdprExportCard'
 
@@ -579,6 +580,8 @@ const MemberProfile = () => {
           />
 
           {!isExternalUser && <PasskeysCard memberId={memberId!} isAdmin={isAdmin} />}
+
+          {!isExternalUser && memberId === 'me' && <PushNotificationsCard />}
 
           {!isAdmin && memberId === 'me' && <GdprExportCard />}
 

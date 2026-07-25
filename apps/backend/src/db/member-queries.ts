@@ -826,6 +826,11 @@ export async function deactivateMember(
     // Remove all roles/permissions
     await txn.deleteFrom('member.member_to_roles').where('member_id', '=', memberId).execute()
 
+    // Push subscriptions are useless once the member can't log in; delete them
+    // explicitly rather than relying on ON DELETE CASCADE, since the member
+    // row itself is never hard-deleted here.
+    await txn.deleteFrom('member.push_subscriptions').where('member_id', '=', memberId).execute()
+
     const now = new Date()
 
     // Update member status to REMOVED and revoke permissions

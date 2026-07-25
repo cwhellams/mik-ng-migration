@@ -20,6 +20,13 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
+        // Without this, no service worker is registered in `pnpm dev`, so
+        // navigator.serviceWorker.ready never resolves and the push
+        // notifications toggle on the member profile stays stuck disabled.
+        devOptions: {
+          enabled: true,
+          type: 'module',
+        },
         includeAssets: ['mik-logo-blue.png', 'pwa-192x192.png', 'pwa-512x512.png'],
         manifest: {
           name: 'MIK NG Intranet',
@@ -50,6 +57,9 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
+          // Loads public/push-sw.js into the generated service worker so it can
+          // handle 'push' and 'notificationclick' events for booking reminders.
+          importScripts: ['push-sw.js'],
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
           globIgnores: ['**/index.html'], // Exclude index.html from precaching
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
