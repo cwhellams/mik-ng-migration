@@ -145,8 +145,6 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
   const query = db
     .selectFrom('flight.logs')
     .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
-    .leftJoin('member.register', 'flight.logs.billable_member_id', 'member.register.member_id')
-    .leftJoin('flight.flight_credits', 'flight.logs.flight_id', 'flight.flight_credits.flight_id')
     .$if(!!filters.flightId, (qb) => qb.where('flight.logs.flight_id', '=', filters.flightId!))
     .$if(!!filters.billableMemberId, (qb) =>
       qb.where('billable_member_id', '=', filters.billableMemberId!),
@@ -248,8 +246,6 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'totals.row_number',
       'totals.page_number',
       'totals.ac_total_flight_mins',
-      'member.register.is_training_program_pilot',
-      'flight.flight_credits.credited_mins',
     ])
     // flight_id is a tiebreaker matching the ORDER BY used by flight.vw_flight_logs'
     // window functions, so ties on off_block_time_epoch resolve the same way here
@@ -308,7 +304,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         blockMins: row.block_mins,
         blockTime: row.block_time,
         crew2LastName: row.crew2_last_name,
-        creditedMins: row.credited_mins ?? null,
+        creditedMins: null,
         departureAirport: row.departure_airport,
         estimatedCost: null,
         flightId: row.flight_id,
@@ -322,7 +318,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         invoiceNumber: row.invoice_number,
         isBillableFlight: row.is_billable_flight,
         isBilled: row.is_billed,
-        isTrainingProgramPilot: row.is_training_program_pilot ?? null,
+        isTrainingProgramPilot: null,
         minBillableExceptionReason: row.min_billable_exception_reason ?? null,
         nightFlyingMins: row.night_flying_mins,
         numberOfLandings: row.number_of_landings,

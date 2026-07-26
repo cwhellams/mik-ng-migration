@@ -130,15 +130,14 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
   // Compute estimated costs only for the member's own self-service view
   if (isMemberSelfView) {
     const memberId = req.user!.memberId
-
-    const pageCosts = await estimateFlightCosts(logs.logs, memberId)
-    logs.logs = logs.logs.map((log) => ({
-      ...log,
-      estimatedCost: pageCosts.get(log.flightId) ?? null,
-    }))
-
     const allUnbilled = await getUnbilledFlightsForEstimation(memberId)
     const allCosts = await estimateFlightCosts(allUnbilled, memberId)
+
+    logs.logs = logs.logs.map((log) => ({
+      ...log,
+      estimatedCost: allCosts.get(log.flightId) ?? null,
+    }))
+
     const total = [...allCosts.values()]
       .filter((v): v is number => v !== null)
       .reduce((sum, c) => sum + c, 0)
