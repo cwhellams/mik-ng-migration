@@ -2134,7 +2134,9 @@
       "statusCompleted": "Completed",
       "statusPending": "Pending verification",
       "statusNotStarted": "Not started",
-      "requiresReverification": "Re-verification required"
+      "requiresReverification": "Re-verification required",
+      "generalInformation": "General information",
+      "requirementsExperienceCredit": "Requirements & Experience credit"
     },
     "detail": {
       "title": "Student Detail",

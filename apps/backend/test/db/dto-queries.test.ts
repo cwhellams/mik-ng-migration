@@ -8,6 +8,8 @@ import {
   getItemOutcomesByAttempts,
   copySyllabusAsDraft,
   insertSyllabus,
+  submitSyllabusForApproval,
+  publishSyllabus,
 } from '../../src/db/dto-queries.ts'
 
 // ── Seed data IDs ─────────────────────────────────────────────────────────────
@@ -91,6 +93,86 @@ describe('updateSyllabus — minBlockTimeMins field handling', () => {
       USER_ID,
     )
     expect(updated).toBeUndefined()
+  })
+
+  it('returns undefined for a WAITING_FOR_APPROVAL syllabus', async () => {
+    await submitSyllabusForApproval(draftSyllabusId, USER_ID)
+    const updated = await updateSyllabus(
+      draftSyllabusId,
+      { description: 'should not change' },
+      USER_ID,
+    )
+    expect(updated).toBeUndefined()
+  })
+})
+
+// ── publishSyllabus — approval-gated publish + auto-archive ───────────────────
+
+describe('publishSyllabus', () => {
+  // Uses a throwaway training program so this never touches the shared
+  // seeded SYLLABUS_ID fixture other tests rely on being PUBLISHED v1.0.0.
+  const TEST_PROGRAM_NAME = 'Test Program DTO Query Publish Suite'
+  let testProgramId: string | undefined
+  let firstSyllabusId: string | undefined
+  let secondSyllabusId: string | undefined
+
+  afterEach(async () => {
+    if (firstSyllabusId) {
+      await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', firstSyllabusId).execute()
+      firstSyllabusId = undefined
+    }
+    if (secondSyllabusId) {
+      await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', secondSyllabusId).execute()
+      secondSyllabusId = undefined
+    }
+    if (testProgramId) {
+      await db.deleteFrom('dto.training_program').where('program_id', '=', testProgramId).execute()
+      testProgramId = undefined
+    }
+  })
+
+  it('returns undefined when called on a DRAFT syllabus (must go through WAITING_FOR_APPROVAL)', async () => {
+    const program = await db
+      .insertInto('dto.training_program')
+      .values({ name: TEST_PROGRAM_NAME, created_by: USER_ID, updated_by: USER_ID })
+      .returningAll()
+      .executeTakeFirstOrThrow()
+    testProgramId = program.program_id
+
+    const draft = await insertSyllabus(testProgramId, {}, USER_ID)
+    firstSyllabusId = draft.syllabusId
+    const result = await publishSyllabus(firstSyllabusId, USER_ID)
+    expect(result).toBeUndefined()
+  })
+
+  it('archives the previously PUBLISHED syllabus for the same program', async () => {
+    const program = await db
+      .insertInto('dto.training_program')
+      .values({ name: TEST_PROGRAM_NAME, created_by: USER_ID, updated_by: USER_ID })
+      .returningAll()
+      .executeTakeFirstOrThrow()
+    testProgramId = program.program_id
+
+    const first = await insertSyllabus(testProgramId, {}, USER_ID)
+    firstSyllabusId = first.syllabusId
+    await submitSyllabusForApproval(firstSyllabusId, USER_ID)
+    const publishedFirst = await publishSyllabus(firstSyllabusId, USER_ID, 'AUTH-REF-1')
+    expect(publishedFirst?.status).toBe('PUBLISHED')
+    expect(publishedFirst?.approvalReference).toBe('AUTH-REF-1')
+
+    const second = await insertSyllabus(testProgramId, {}, USER_ID)
+    secondSyllabusId = second.syllabusId
+    await submitSyllabusForApproval(secondSyllabusId, USER_ID)
+    const publishedSecond = await publishSyllabus(secondSyllabusId, USER_ID)
+    expect(publishedSecond?.status).toBe('PUBLISHED')
+
+    const firstAfter = await db
+      .selectFrom('dto.syllabus')
+      .selectAll()
+      .where('syllabus_id', '=', firstSyllabusId)
+      .executeTakeFirst()
+    expect(firstAfter?.status).toBe('ARCHIVED')
+    expect(firstAfter?.published_at).not.toBeNull()
   })
 })
 

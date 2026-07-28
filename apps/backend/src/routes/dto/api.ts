@@ -4,7 +4,15 @@ import multer from 'multer'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
-import { TrainingProgramUpsertSchema, SyllabusImportSchema, VerifyAttemptSchema } from './models.ts'
+import {
+  TrainingProgramUpsertSchema,
+  SyllabusImportSchema,
+  VerifyAttemptSchema,
+  PublishSyllabusSchema,
+  SyllabusTextPatchSchema,
+  SyllabusUpsertBodySchema,
+  FlightTypeEnum,
+} from './models.ts'
 import {
   getTrainingPrograms,
   getTrainingProgramById,
@@ -16,7 +24,10 @@ import {
   getLatestPublishedSyllabus,
   insertSyllabus,
   updateSyllabus,
+  submitSyllabusForApproval,
+  withdrawSyllabusFromApproval,
   publishSyllabus,
+  patchSyllabusText,
   upsertSyllabusFlights,
   importSyllabusFromJson,
   getActiveSyllabusForMember,
@@ -164,11 +175,7 @@ router.post(
   '/programs/:programId/syllabi',
   validateUser(MIKPermissions.DTO_ADMIN),
   async (req: Request<Record<string, string>>, res: Response) => {
-    const schema = z.object({
-      description: z.string().nullable().optional(),
-      minBlockTimeMins: z.number().int().positive().nullable().optional(),
-    })
-    const parsed = schema.safeParse(req.body)
+    const parsed = SyllabusUpsertBodySchema.safeParse(req.body)
     if (!parsed.success) {
       return problem({ status: HttpStatusCode.BadRequest, detail: 'Invalid syllabus data' })
     }
@@ -182,11 +189,7 @@ router.put(
   '/syllabi/:syllabusId',
   validateUser(MIKPermissions.DTO_ADMIN),
   async (req: Request<Record<string, string>>, res: Response) => {
-    const schema = z.object({
-      description: z.string().nullable().optional(),
-      minBlockTimeMins: z.number().int().positive().nullable().optional(),
-    })
-    const parsed = schema.safeParse(req.body)
+    const parsed = SyllabusUpsertBodySchema.safeParse(req.body)
     if (!parsed.success) {
       return problem({ status: HttpStatusCode.BadRequest, detail: 'Invalid syllabus data' })
     }
@@ -198,14 +201,69 @@ router.put(
   },
 )
 
-/** POST /dto/syllabi/:syllabusId/publish — publish a draft syllabus (admin) */
+/** POST /dto/syllabi/:syllabusId/submit-for-approval — submit a draft for authority approval (admin) */
+router.post(
+  '/syllabi/:syllabusId/submit-for-approval',
+  validateUser(MIKPermissions.DTO_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const syllabus = await submitSyllabusForApproval(req.params.syllabusId, req.user!.memberId)
+    if (!syllabus) {
+      return problem({ status: 404, detail: 'Syllabus not found or not a draft' })
+    }
+    res.json(syllabus)
+  },
+)
+
+/** POST /dto/syllabi/:syllabusId/withdraw — withdraw a syllabus back to draft (admin) */
+router.post(
+  '/syllabi/:syllabusId/withdraw',
+  validateUser(MIKPermissions.DTO_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const syllabus = await withdrawSyllabusFromApproval(req.params.syllabusId, req.user!.memberId)
+    if (!syllabus) {
+      return problem({ status: 404, detail: 'Syllabus not found or not awaiting approval' })
+    }
+    res.json(syllabus)
+  },
+)
+
+/** POST /dto/syllabi/:syllabusId/publish — publish a syllabus awaiting approval (admin) */
 router.post(
   '/syllabi/:syllabusId/publish',
   validateUser(MIKPermissions.DTO_ADMIN),
   async (req: Request<Record<string, string>>, res: Response) => {
-    const syllabus = await publishSyllabus(req.params.syllabusId, req.user!.memberId)
+    const parsed = PublishSyllabusSchema.safeParse(req.body ?? {})
+    if (!parsed.success) {
+      return problem({ status: HttpStatusCode.BadRequest, detail: 'Invalid publish data' })
+    }
+    const syllabus = await publishSyllabus(
+      req.params.syllabusId,
+      req.user!.memberId,
+      parsed.data.approvalReference,
+    )
     if (!syllabus) {
-      return problem({ status: 404, detail: 'Syllabus not found or not publishable' })
+      return problem({ status: 404, detail: 'Syllabus not found or not awaiting approval' })
+    }
+    res.json(syllabus)
+  },
+)
+
+/** PATCH /dto/syllabi/:syllabusId/text — typo-fix text-only edits on a PUBLISHED syllabus (admin) */
+router.patch(
+  '/syllabi/:syllabusId/text',
+  validateUser(MIKPermissions.DTO_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const parsed = SyllabusTextPatchSchema.safeParse(req.body)
+    if (!parsed.success) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Invalid text patch data',
+        extensions: { errors: parsed.error.issues },
+      })
+    }
+    const syllabus = await patchSyllabusText(req.params.syllabusId, parsed.data, req.user!.memberId)
+    if (!syllabus) {
+      return problem({ status: 404, detail: 'Syllabus not found or not published' })
     }
     res.json(syllabus)
   },
@@ -224,6 +282,8 @@ router.get(
       title: program?.name ?? 'Untitled',
       version: syllabus.version,
       description: syllabus.description ?? undefined,
+      requirementsExperienceCredit: syllabus.requirementsExperienceCredit ?? undefined,
+      generalInformation: syllabus.generalInformation ?? undefined,
       minBlockTimeMins: syllabus.minBlockTimeMins ?? undefined,
       flights: (syllabus.flights ?? []).map((f) => ({
         code: f.code,
@@ -232,6 +292,8 @@ router.get(
         tags: f.tags,
         isInterimCheckpoint: f.isInterimCheckpoint,
         recommendedBlockTimeMins: f.recommendedBlockTimeMins ?? undefined,
+        flightType: f.flightType ?? undefined,
+        easaFclReference: f.easaFclReference ?? undefined,
         items: (f.items ?? []).map((i) => ({
           name: i.name,
           description: i.description ?? undefined,
@@ -265,7 +327,7 @@ router.put(
   async (req: Request<Record<string, string>>, res: Response) => {
     const syllabus = await getSyllabusById(req.params.syllabusId)
     if (!syllabus) return problem({ status: 404, detail: 'Syllabus not found' })
-    if (syllabus.status === 'PUBLISHED' || syllabus.status === 'ARCHIVED') {
+    if (syllabus.status !== 'DRAFT') {
       return problem({ status: HttpStatusCode.Conflict, detail: 'Syllabus is not editable' })
     }
 
@@ -278,6 +340,8 @@ router.put(
           tags: z.array(z.string()).default([]),
           isInterimCheckpoint: z.boolean().default(false),
           recommendedBlockTimeMins: z.number().int().positive().nullable().optional(),
+          flightType: FlightTypeEnum.nullable().optional(),
+          easaFclReference: z.string().nullable().optional(),
           items: z
             .array(
               z.object({

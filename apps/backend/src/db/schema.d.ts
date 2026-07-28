@@ -35,6 +35,8 @@ export type CancellationReason =
 
 export type CrewRole = 'FE' | 'FI' | 'OBS' | 'PIC' | 'STU'
 
+export type DtoFlightType = 'DUAL' | 'DUAL_XC' | 'SOLO' | 'SOLO_XC'
+
 export type DtoItemOutcome = 'COMPLETED' | 'FAILED' | 'MOVED_TO_HIL'
 
 export type DtoSyllabusStatus = 'ARCHIVED' | 'DRAFT' | 'PUBLISHED' | 'WAITING_FOR_APPROVAL'
@@ -337,16 +339,20 @@ export interface DtoMemberSyllabus {
 }
 
 export interface DtoSyllabus {
+  approval_reference: string | null
   created_at: Generated<Timestamp>
   created_by: string
   description: string | null
+  general_information: string | null
   major_version: number
   min_block_time_mins: number | null
   minor_version: number
   patch_version: Generated<number>
   program_id: string
   published_at: Timestamp | null
+  requirements_experience_credit: string | null
   status: Generated<DtoSyllabusStatus>
+  submitted_for_approval_at: Timestamp | null
   syllabus_id: Generated<string>
   updated_at: Generated<Timestamp>
   updated_by: string
@@ -381,7 +387,9 @@ export interface DtoSyllabusFlights {
   code: string
   created_at: Generated<Timestamp>
   description: string | null
+  easa_fcl_reference: string | null
   flight_id: Generated<string>
+  flight_type: DtoFlightType | null
   is_interim_checkpoint: Generated<boolean>
   name: string
   recommended_block_time_mins: number | null

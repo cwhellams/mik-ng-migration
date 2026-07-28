@@ -1,4 +1,5 @@
 import { db } from './connection.ts'
+import { renderMarkdown } from '../util/markdown.ts'
 import type {
   TrainingProgram,
   TrainingProgramUpsert,
@@ -12,7 +13,9 @@ import type {
   HilEntry,
   StudentProgress,
   SyllabusImport,
+  SyllabusTextPatch,
   VerifyAttempt,
+  FlightType,
 } from '../routes/dto/models.ts'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -26,6 +29,11 @@ function toIso(d: Date | string | null | undefined): string {
 function toIsoNullable(d: Date | string | null | undefined): string | null {
   if (d == null) return null
   return d instanceof Date ? d.toISOString() : d
+}
+
+function renderMarkdownNullable(markdown: string | null): string | null {
+  if (markdown == null) return null
+  return renderMarkdown(markdown)
 }
 
 function mapProgram(r: {
@@ -48,22 +56,35 @@ function mapProgram(r: {
   }
 }
 
-function mapSyllabus(r: {
-  syllabus_id: string
-  program_id: string
-  major_version: number
-  minor_version: number
-  patch_version: number
-  version: string | null
-  description: string | null
-  min_block_time_mins: number | null
-  status: string
-  published_at: Date | string | null
-  created_at: Date | string
-  created_by: string
-  updated_at: Date | string
-  updated_by: string
-}): Syllabus {
+/**
+ * @param includeHtml Renders the markdown text fields to HTML. Defaults to
+ *   true (single-syllabus detail responses use it); pass false for list
+ *   endpoints (e.g. getSyllabiByProgram) where the rendered HTML is never
+ *   displayed, to avoid parsing markdown for every row in the list.
+ */
+function mapSyllabus(
+  r: {
+    syllabus_id: string
+    program_id: string
+    major_version: number
+    minor_version: number
+    patch_version: number
+    version: string | null
+    description: string | null
+    requirements_experience_credit: string | null
+    general_information: string | null
+    min_block_time_mins: number | null
+    status: string
+    published_at: Date | string | null
+    submitted_for_approval_at: Date | string | null
+    approval_reference: string | null
+    created_at: Date | string
+    created_by: string
+    updated_at: Date | string
+    updated_by: string
+  },
+  includeHtml = true,
+): Syllabus {
   return {
     syllabusId: r.syllabus_id,
     programId: r.program_id,
@@ -72,9 +93,18 @@ function mapSyllabus(r: {
     patchVersion: r.patch_version,
     version: r.version ?? `${r.major_version}.${r.minor_version}.${r.patch_version}`,
     description: r.description,
+    descriptionHtml: includeHtml ? renderMarkdownNullable(r.description) : null,
+    requirementsExperienceCredit: r.requirements_experience_credit,
+    requirementsExperienceCreditHtml: includeHtml
+      ? renderMarkdownNullable(r.requirements_experience_credit)
+      : null,
+    generalInformation: r.general_information,
+    generalInformationHtml: includeHtml ? renderMarkdownNullable(r.general_information) : null,
     minBlockTimeMins: r.min_block_time_mins,
     status: r.status as Syllabus['status'],
     publishedAt: toIsoNullable(r.published_at),
+    submittedForApprovalAt: toIsoNullable(r.submitted_for_approval_at),
+    approvalReference: r.approval_reference,
     createdAt: toIso(r.created_at),
     createdBy: r.created_by,
     updatedAt: toIso(r.updated_at),
@@ -92,6 +122,8 @@ function mapFlight(r: {
   tags: string[]
   is_interim_checkpoint: boolean
   recommended_block_time_mins: number | null
+  flight_type: string | null
+  easa_fcl_reference: string | null
   created_at: Date | string
   updated_at: Date | string
 }): SyllabusFlight {
@@ -105,6 +137,8 @@ function mapFlight(r: {
     tags: r.tags,
     isInterimCheckpoint: r.is_interim_checkpoint,
     recommendedBlockTimeMins: r.recommended_block_time_mins,
+    flightType: r.flight_type as SyllabusFlight['flightType'],
+    easaFclReference: r.easa_fcl_reference,
     createdAt: toIso(r.created_at),
     updatedAt: toIso(r.updated_at),
   }
@@ -232,7 +266,10 @@ export async function getSyllabiByProgram(programId: string): Promise<Syllabus[]
     .orderBy('minor_version', 'desc')
     .orderBy('patch_version', 'desc')
     .execute()
-  return rows.map(mapSyllabus)
+  // List view only ever shows version/status/dates — skip markdown rendering
+  // per row (mapSyllabus's `includeHtml=false`) rather than parsing markdown
+  // for every historical syllabus version on every list load.
+  return rows.map((r) => mapSyllabus(r, false))
 }
 
 export async function getSyllabusById(syllabusId: string): Promise<Syllabus | undefined> {
@@ -326,7 +363,12 @@ async function nextMinorVersion(
 
 export async function insertSyllabus(
   programId: string,
-  data: { description?: string | null; minBlockTimeMins?: number | null },
+  data: {
+    description?: string | null
+    requirementsExperienceCredit?: string | null
+    generalInformation?: string | null
+    minBlockTimeMins?: number | null
+  },
   userId: string,
 ): Promise<Syllabus> {
   const version = await nextMinorVersion(programId)
@@ -338,6 +380,8 @@ export async function insertSyllabus(
       minor_version: version.minorVersion,
       patch_version: version.patchVersion,
       description: data.description ?? null,
+      requirements_experience_credit: data.requirementsExperienceCredit ?? null,
+      general_information: data.generalInformation ?? null,
       min_block_time_mins: data.minBlockTimeMins ?? null,
       status: 'DRAFT',
       created_by: userId,
@@ -350,7 +394,12 @@ export async function insertSyllabus(
 
 export async function updateSyllabus(
   syllabusId: string,
-  data: { description?: string | null; minBlockTimeMins?: number | null },
+  data: {
+    description?: string | null
+    requirementsExperienceCredit?: string | null
+    generalInformation?: string | null
+    minBlockTimeMins?: number | null
+  },
   userId: string,
 ): Promise<Syllabus | undefined> {
   let q = db.updateTable('dto.syllabus').set({
@@ -358,12 +407,56 @@ export async function updateSyllabus(
     updated_by: userId,
     updated_at: new Date(),
   })
+  if ('requirementsExperienceCredit' in data) {
+    q = q.set({ requirements_experience_credit: data.requirementsExperienceCredit ?? null })
+  }
+  if ('generalInformation' in data) {
+    q = q.set({ general_information: data.generalInformation ?? null })
+  }
   if ('minBlockTimeMins' in data) {
     q = q.set({ min_block_time_mins: data.minBlockTimeMins ?? null })
   }
   const r = await q
     .where('syllabus_id', '=', syllabusId)
-    .where('status', 'in', ['DRAFT', 'WAITING_FOR_APPROVAL'])
+    .where('status', '=', 'DRAFT')
+    .returningAll()
+    .executeTakeFirst()
+  return r ? mapSyllabus(r) : undefined
+}
+
+export async function submitSyllabusForApproval(
+  syllabusId: string,
+  userId: string,
+): Promise<Syllabus | undefined> {
+  const now = new Date()
+  const r = await db
+    .updateTable('dto.syllabus')
+    .set({
+      status: 'WAITING_FOR_APPROVAL',
+      submitted_for_approval_at: now,
+      updated_by: userId,
+      updated_at: now,
+    })
+    .where('syllabus_id', '=', syllabusId)
+    .where('status', '=', 'DRAFT')
+    .returningAll()
+    .executeTakeFirst()
+  return r ? mapSyllabus(r) : undefined
+}
+
+export async function withdrawSyllabusFromApproval(
+  syllabusId: string,
+  userId: string,
+): Promise<Syllabus | undefined> {
+  const r = await db
+    .updateTable('dto.syllabus')
+    .set({
+      status: 'DRAFT',
+      updated_by: userId,
+      updated_at: new Date(),
+    })
+    .where('syllabus_id', '=', syllabusId)
+    .where('status', '=', 'WAITING_FOR_APPROVAL')
     .returningAll()
     .executeTakeFirst()
   return r ? mapSyllabus(r) : undefined
@@ -372,20 +465,123 @@ export async function updateSyllabus(
 export async function publishSyllabus(
   syllabusId: string,
   userId: string,
+  approvalReference?: string | null,
 ): Promise<Syllabus | undefined> {
-  const r = await db
-    .updateTable('dto.syllabus')
-    .set({
-      status: 'PUBLISHED',
-      published_at: new Date(),
-      updated_by: userId,
-      updated_at: new Date(),
-    })
-    .where('syllabus_id', '=', syllabusId)
-    .where('status', 'in', ['DRAFT', 'WAITING_FOR_APPROVAL'])
-    .returningAll()
-    .executeTakeFirst()
-  return r ? mapSyllabus(r) : undefined
+  const now = new Date()
+
+  const published = await db.transaction().execute(async (trx) => {
+    const row = await trx
+      .updateTable('dto.syllabus')
+      .set({
+        status: 'PUBLISHED',
+        published_at: now,
+        approval_reference: approvalReference ?? null,
+        updated_by: userId,
+        updated_at: now,
+      })
+      .where('syllabus_id', '=', syllabusId)
+      .where('status', '=', 'WAITING_FOR_APPROVAL')
+      .returningAll()
+      .executeTakeFirst()
+
+    if (!row) return undefined
+
+    // Atomically auto-archive any other currently-PUBLISHED syllabus for the
+    // same program. published_at is intentionally left untouched on the
+    // archived row (see chk_dto_syllabus_published_at in V1370).
+    await trx
+      .updateTable('dto.syllabus')
+      .set({ status: 'ARCHIVED', updated_by: userId, updated_at: now })
+      .where('program_id', '=', row.program_id)
+      .where('syllabus_id', '!=', syllabusId)
+      .where('status', '=', 'PUBLISHED')
+      .execute()
+
+    return row
+  })
+
+  return published ? mapSyllabus(published) : undefined
+}
+
+/**
+ * Typo-fix flow: edits text fields (syllabus description / general info /
+ * requirements, flight name/description, item name/description) in place on
+ * an already-PUBLISHED syllabus, bumping patch_version as an audit signal.
+ * Uses targeted per-row UPDATEs keyed by existing IDs — never delete/reinsert
+ * — because live syllabus_flight_attempts/flight_item_outcomes/hil_queue rows
+ * hold FKs to these exact flight_id/item_id values.
+ */
+export async function patchSyllabusText(
+  syllabusId: string,
+  data: SyllabusTextPatch,
+  userId: string,
+): Promise<SyllabusWithFlights | undefined> {
+  const now = new Date()
+
+  const patched = await db.transaction().execute(async (trx) => {
+    const syllabusPatch: Record<string, unknown> = { updated_by: userId, updated_at: now }
+    if ('description' in data) syllabusPatch.description = data.description ?? null
+    if ('requirementsExperienceCredit' in data) {
+      syllabusPatch.requirements_experience_credit = data.requirementsExperienceCredit ?? null
+    }
+    if ('generalInformation' in data) {
+      syllabusPatch.general_information = data.generalInformation ?? null
+    }
+
+    const row = await trx
+      .updateTable('dto.syllabus')
+      .set((eb) => ({ ...syllabusPatch, patch_version: eb('patch_version', '+', 1) }))
+      .where('syllabus_id', '=', syllabusId)
+      .where('status', '=', 'PUBLISHED')
+      .returning('syllabus_id')
+      .executeTakeFirst()
+
+    if (!row) return false
+
+    // Pre-fetch which flight IDs actually belong to this syllabus so a stray
+    // flightId/itemId referencing a different syllabus can never be written
+    // to, even if the flight-level patch below is skipped (e.g. only item
+    // text was submitted for that flight).
+    const ownFlightRows = await trx
+      .selectFrom('dto.syllabus_flights')
+      .select('flight_id')
+      .where('syllabus_id', '=', syllabusId)
+      .execute()
+    const ownFlightIds = new Set(ownFlightRows.map((r) => r.flight_id))
+
+    for (const f of data.flights ?? []) {
+      if (!ownFlightIds.has(f.flightId)) continue
+
+      const flightPatch: Record<string, unknown> = {}
+      if (f.name !== undefined) flightPatch.name = f.name
+      if ('description' in f) flightPatch.description = f.description ?? null
+      if (Object.keys(flightPatch).length > 0) {
+        await trx
+          .updateTable('dto.syllabus_flights')
+          .set({ ...flightPatch, updated_at: now })
+          .where('flight_id', '=', f.flightId)
+          .where('syllabus_id', '=', syllabusId)
+          .execute()
+      }
+      for (const it of f.items ?? []) {
+        const itemPatch: Record<string, unknown> = {}
+        if (it.name !== undefined) itemPatch.name = it.name
+        if ('description' in it) itemPatch.description = it.description ?? null
+        if (Object.keys(itemPatch).length > 0) {
+          await trx
+            .updateTable('dto.syllabus_flight_items')
+            .set(itemPatch)
+            .where('item_id', '=', it.itemId)
+            .where('syllabus_flight_id', '=', f.flightId)
+            .execute()
+        }
+      }
+    }
+    return true
+  })
+
+  if (!patched) return undefined
+  return getSyllabusWithFlights(syllabusId)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -439,6 +635,8 @@ export async function upsertSyllabusFlights(
     tags?: string[]
     isInterimCheckpoint?: boolean
     recommendedBlockTimeMins?: number | null
+    flightType?: FlightType | null
+    easaFclReference?: string | null
     items?: Array<{ name: string; description?: string | null; mandatory: boolean }>
   }>,
 ): Promise<void> {
@@ -458,6 +656,8 @@ export async function upsertSyllabusFlights(
         tags: f.tags ?? [],
         is_interim_checkpoint: f.isInterimCheckpoint ?? false,
         recommended_block_time_mins: f.recommendedBlockTimeMins ?? null,
+        flight_type: f.flightType ?? null,
+        easa_fcl_reference: f.easaFclReference ?? null,
       })
       .returning('flight_id')
       .executeTakeFirstOrThrow()
@@ -497,6 +697,8 @@ export async function importSyllabusFromJson(
       minor_version: version.minorVersion,
       patch_version: version.patchVersion,
       description: importData.description ?? null,
+      requirements_experience_credit: importData.requirementsExperienceCredit ?? null,
+      general_information: importData.generalInformation ?? null,
       min_block_time_mins: importData.minBlockTimeMins ?? null,
       status: 'DRAFT',
       created_by: userId,
@@ -516,6 +718,8 @@ export async function importSyllabusFromJson(
       tags: f.tags,
       isInterimCheckpoint: f.isInterimCheckpoint,
       recommendedBlockTimeMins: f.recommendedBlockTimeMins,
+      flightType: f.flightType,
+      easaFclReference: f.easaFclReference,
       items: f.items,
     })),
   )
@@ -728,6 +932,8 @@ export async function copySyllabusAsDraft(
       minor_version: version.minorVersion,
       patch_version: version.patchVersion,
       description: source.description ?? null,
+      requirements_experience_credit: source.requirementsExperienceCredit ?? null,
+      general_information: source.generalInformation ?? null,
       min_block_time_mins: source.minBlockTimeMins ?? null,
       status: 'DRAFT',
       created_by: userId,
@@ -747,6 +953,8 @@ export async function copySyllabusAsDraft(
       tags: f.tags,
       isInterimCheckpoint: f.isInterimCheckpoint,
       recommendedBlockTimeMins: f.recommendedBlockTimeMins,
+      flightType: f.flightType,
+      easaFclReference: f.easaFclReference,
       items: (f.items ?? []).map((i) => ({
         name: i.name,
         description: i.description,

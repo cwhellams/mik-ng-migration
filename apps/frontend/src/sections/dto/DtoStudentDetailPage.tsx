@@ -18,6 +18,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../components/Title'
 import { RemoteContent } from '../../components/RemoteContent'
+import { MarkdownContent } from '../../components/MarkdownContent'
 import useApi from '../../hooks/useApi'
 import type { SyllabusFlight } from '@backend/routes/dto/models'
 import type { StudentProgressDetail, AttemptWithOutcomes } from './dtoApi'
@@ -112,15 +113,14 @@ export default function DtoStudentDetailPage() {
           <Stack spacing={3}>
             {/* Syllabus info */}
             <Paper variant='outlined' sx={{ p: 2 }}>
-              <Typography
-                variant='subtitle2'
-                sx={{
-                  color: 'text.secondary',
-                }}
-              >
-                {data.memberSyllabus.syllabusDetail?.description} v
-                {data.memberSyllabus.syllabusDetail?.version}
+              <Typography variant='subtitle2' color='text.secondary'>
+                v{data.memberSyllabus.syllabusDetail?.version}
               </Typography>
+              {data.memberSyllabus.syllabusDetail?.descriptionHtml && (
+                <Box sx={{ mt: 1 }}>
+                  <MarkdownContent html={data.memberSyllabus.syllabusDetail.descriptionHtml} />
+                </Box>
+              )}
             </Paper>
 
             {/* HIL items */}

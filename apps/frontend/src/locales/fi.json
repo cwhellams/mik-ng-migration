@@ -2140,7 +2140,9 @@
       "statusCompleted": "Hyväksytty",
       "statusPending": "Odottaa vahvistusta",
       "statusNotStarted": "Ei aloitettu",
-      "requiresReverification": "Vaatii uudelleentarkastuksen"
+      "requiresReverification": "Vaatii uudelleentarkastuksen",
+      "generalInformation": "Yleistä tietoa",
+      "requirementsExperienceCredit": "Vaatimukset ja kokemushyvitys"
     },
     "detail": {
       "title": "Oppilaan tiedot",

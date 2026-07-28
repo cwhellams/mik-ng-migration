@@ -2107,7 +2107,9 @@
       "statusCompleted": "Genomförd",
       "statusPending": "Väntar på verifiering",
       "statusNotStarted": "Inte påbörjad",
-      "requiresReverification": "Kräver omverifiering"
+      "requiresReverification": "Kräver omverifiering",
+      "generalInformation": "Allmän information",
+      "requirementsExperienceCredit": "Krav & erfarenhetstillgodoräknande"
     },
     "detail": {
       "title": "Elevdetaljer",

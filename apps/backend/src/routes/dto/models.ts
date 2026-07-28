@@ -10,6 +10,9 @@ export type ItemOutcome = z.infer<typeof ItemOutcomeEnum>
 export const VerificationResultEnum = z.enum(['APPROVED', 'FAILED'])
 export type VerificationResult = z.infer<typeof VerificationResultEnum>
 
+export const FlightTypeEnum = z.enum(['DUAL', 'SOLO', 'DUAL_XC', 'SOLO_XC'])
+export type FlightType = z.infer<typeof FlightTypeEnum>
+
 // ── Training Program ──────────────────────────────────────────────────────────
 export const TrainingProgramSchema = z.object({
   programId: z.string().guid(),
@@ -57,6 +60,8 @@ export const SyllabusFlightSchema = z.object({
   tags: z.array(z.string()),
   isInterimCheckpoint: z.boolean(),
   recommendedBlockTimeMins: z.number().int().positive().nullable().optional(),
+  flightType: FlightTypeEnum.nullable().optional(),
+  easaFclReference: z.string().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   items: z.array(SyllabusFlightItemSchema).optional(),
@@ -70,6 +75,8 @@ export const SyllabusFlightUpsertSchema = z.object({
   tags: z.array(z.string()).default([]),
   isInterimCheckpoint: z.boolean().default(false),
   recommendedBlockTimeMins: z.number().int().positive().nullable().optional(),
+  flightType: FlightTypeEnum.nullable().optional(),
+  easaFclReference: z.string().nullable().optional(),
   items: z.array(SyllabusFlightItemUpsertSchema).optional(),
 })
 export type SyllabusFlightUpsert = z.infer<typeof SyllabusFlightUpsertSchema>
@@ -83,9 +90,16 @@ export const SyllabusSchema = z.object({
   patchVersion: z.number().int(),
   version: z.string(),
   description: z.string().nullable().optional(),
+  descriptionHtml: z.string().nullable().optional(),
+  generalInformation: z.string().nullable().optional(),
+  generalInformationHtml: z.string().nullable().optional(),
+  requirementsExperienceCredit: z.string().nullable().optional(),
+  requirementsExperienceCreditHtml: z.string().nullable().optional(),
   minBlockTimeMins: z.number().int().positive().nullable().optional(),
   status: SyllabusStatusEnum,
   publishedAt: z.string().nullable().optional(),
+  submittedForApprovalAt: z.string().nullable().optional(),
+  approvalReference: z.string().nullable().optional(),
   createdAt: z.string(),
   createdBy: z.string(),
   updatedAt: z.string(),
@@ -98,6 +112,48 @@ export const SyllabusWithFlightsSchema = SyllabusSchema.extend({
   flights: z.array(SyllabusFlightSchema),
 })
 export type SyllabusWithFlights = z.infer<typeof SyllabusWithFlightsSchema>
+
+// Shared by POST /programs/:programId/syllabi (create) and
+// PUT /syllabi/:syllabusId (update) — both accept the same syllabus text/settings body.
+export const SyllabusUpsertBodySchema = z.object({
+  description: z.string().nullable().optional(),
+  requirementsExperienceCredit: z.string().nullable().optional(),
+  generalInformation: z.string().nullable().optional(),
+  minBlockTimeMins: z.number().int().positive().nullable().optional(),
+})
+export type SyllabusUpsertBody = z.infer<typeof SyllabusUpsertBodySchema>
+
+// ── Syllabus Text Patch (typo-fix on a PUBLISHED syllabus) ─────────────────────
+export const SyllabusTextPatchSchema = z.object({
+  description: z.string().nullable().optional(),
+  requirementsExperienceCredit: z.string().nullable().optional(),
+  generalInformation: z.string().nullable().optional(),
+  flights: z
+    .array(
+      z.object({
+        flightId: z.string().guid(),
+        name: z.string().min(1).optional(),
+        description: z.string().nullable().optional(),
+        items: z
+          .array(
+            z.object({
+              itemId: z.string().guid(),
+              name: z.string().min(1).optional(),
+              description: z.string().nullable().optional(),
+            }),
+          )
+          .optional(),
+      }),
+    )
+    .optional(),
+})
+export type SyllabusTextPatch = z.infer<typeof SyllabusTextPatchSchema>
+
+// ── Publish ──────────────────────────────────────────────────────────────────
+export const PublishSyllabusSchema = z.object({
+  approvalReference: z.string().nullable().optional(),
+})
+export type PublishSyllabusInput = z.infer<typeof PublishSyllabusSchema>
 
 // ── JSON Import ────────────────────────────────────────────────────────────────
 export const ImportFlightItemSchema = z.object({
@@ -113,6 +169,8 @@ export const ImportFlightSchema = z.object({
   description: z.string().optional(),
   isInterimCheckpoint: z.boolean().optional(),
   recommendedBlockTimeMins: z.number().int().positive().nullable().optional(),
+  flightType: FlightTypeEnum.nullable().optional(),
+  easaFclReference: z.string().nullable().optional(),
   items: z.array(ImportFlightItemSchema).optional(),
 })
 
@@ -120,6 +178,8 @@ export const SyllabusImportSchema = z.object({
   title: z.string().min(1),
   version: z.string().min(1),
   description: z.string().optional(),
+  requirementsExperienceCredit: z.string().nullable().optional(),
+  generalInformation: z.string().nullable().optional(),
   minBlockTimeMins: z.number().int().positive().nullable().optional(),
   flights: z.array(ImportFlightSchema).min(1),
 })

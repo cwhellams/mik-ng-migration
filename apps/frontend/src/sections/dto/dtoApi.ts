@@ -1,4 +1,5 @@
 import { sharedApi } from '../../hooks/useApi'
+import { FlightTypeEnum } from '@backend/routes/dto/models'
 import type {
   TrainingProgram,
   Syllabus,
@@ -10,9 +11,35 @@ import type {
   HilEntry,
   StudentProgress,
   VerifyAttempt,
+  FlightType,
 } from '@backend/routes/dto/models'
 
 const BASE = 'v1/dto'
+
+// ── Shared syllabus status/flight-type presentation helpers ──────────────────
+// Kept here (rather than duplicated per page) so DtoProgramsAdminPage and
+// DtoSyllabusEditorPage always render the same status colors, and so the
+// flight-type dropdown can never drift out of sync with the backend enum.
+export function statusChipColor(
+  status: Syllabus['status'],
+): 'success' | 'warning' | 'default' | 'info' {
+  if (status === 'PUBLISHED') return 'success'
+  if (status === 'WAITING_FOR_APPROVAL') return 'warning'
+  if (status === 'ARCHIVED') return 'default'
+  return 'info'
+}
+
+const FLIGHT_TYPE_LABELS: Record<FlightType, string> = {
+  DUAL: 'Dual',
+  SOLO: 'Solo',
+  DUAL_XC: 'Dual XC',
+  SOLO_XC: 'Solo XC',
+}
+
+export const FLIGHT_TYPE_OPTIONS = FlightTypeEnum.options.map((value) => ({
+  value,
+  label: FLIGHT_TYPE_LABELS[value],
+}))
 
 const get = <T>(path: string, params?: Record<string, unknown>): Promise<T> =>
   sharedApi.get<T>(`${BASE}/${path}`, { params }).then((r) => r.data)
@@ -56,16 +83,48 @@ export const getSyllabus = (syllabusId: string): Promise<SyllabusWithFlights> =>
 
 export const createSyllabus = (
   programId: string,
-  data: { description?: string },
+  data: {
+    description?: string
+    requirementsExperienceCredit?: string | null
+    generalInformation?: string | null
+  },
 ): Promise<Syllabus> => post<Syllabus>(`programs/${programId}/syllabi`, data)
 
 export const updateSyllabus = (
   syllabusId: string,
-  data: { description?: string; minBlockTimeMins?: number | null },
+  data: {
+    description?: string
+    requirementsExperienceCredit?: string | null
+    generalInformation?: string | null
+    minBlockTimeMins?: number | null
+  },
 ): Promise<Syllabus> => put<Syllabus>(`syllabi/${syllabusId}`, data)
 
-export const publishSyllabus = (syllabusId: string): Promise<Syllabus> =>
-  post<Syllabus>(`syllabi/${syllabusId}/publish`)
+export const submitSyllabusForApproval = (syllabusId: string): Promise<Syllabus> =>
+  post<Syllabus>(`syllabi/${syllabusId}/submit-for-approval`)
+
+export const withdrawSyllabus = (syllabusId: string): Promise<Syllabus> =>
+  post<Syllabus>(`syllabi/${syllabusId}/withdraw`)
+
+export const publishSyllabus = (
+  syllabusId: string,
+  approvalReference?: string | null,
+): Promise<Syllabus> => post<Syllabus>(`syllabi/${syllabusId}/publish`, { approvalReference })
+
+export const patchSyllabusText = (
+  syllabusId: string,
+  data: {
+    description?: string | null
+    requirementsExperienceCredit?: string | null
+    generalInformation?: string | null
+    flights?: Array<{
+      flightId: string
+      name?: string
+      description?: string | null
+      items?: Array<{ itemId: string; name?: string; description?: string | null }>
+    }>
+  },
+): Promise<SyllabusWithFlights> => patch<SyllabusWithFlights>(`syllabi/${syllabusId}/text`, data)
 
 export const exportSyllabus = async (syllabusId: string, version: string): Promise<void> => {
   const response = await getRaw(`syllabi/${syllabusId}/export`)

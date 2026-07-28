@@ -334,15 +334,20 @@ exports[`Snapshot: GET /dto/member-syllabus/:id/detail (instructor reads student
     "memberName": "Matti Virtanen",
     "memberSyllabusId": "e0000000-0000-0000-0000-000000000002",
     "syllabusDetail": {
+      "approvalReference": null,
       "createdAt": Any<String>,
       "createdBy": "Liisa1",
       "description": "Full PPL(A) syllabus following EASA DTO requirements. Mobile-friendly field reference.",
+      "descriptionHtml": "<p>Full PPL(A) syllabus following EASA DTO requirements. Mobile-friendly field reference.</p>
+",
       "flights": [
         {
           "code": "01",
           "createdAt": Any<String>,
           "description": "Straight & level flight, turns, climbs and descents. Introduction to aircraft controls.",
+          "easaFclReference": null,
           "flightId": "c0000000-0000-0000-0000-000000000001",
+          "flightType": null,
           "isInterimCheckpoint": false,
           "items": [
             {
@@ -373,7 +378,9 @@ exports[`Snapshot: GET /dto/member-syllabus/:id/detail (instructor reads student
           "code": "02",
           "createdAt": Any<String>,
           "description": "Normal circuit, stabilised approach, touch & go. Short-field and soft-field techniques.",
+          "easaFclReference": null,
           "flightId": "c0000000-0000-0000-0000-000000000002",
+          "flightType": null,
           "isInterimCheckpoint": false,
           "items": [
             {
@@ -404,7 +411,9 @@ exports[`Snapshot: GET /dto/member-syllabus/:id/detail (instructor reads student
           "code": "03",
           "createdAt": Any<String>,
           "description": "VFR cross-country navigation using map reading and radio navigation aids.",
+          "easaFclReference": null,
           "flightId": "c0000000-0000-0000-0000-000000000003",
+          "flightType": null,
           "isInterimCheckpoint": false,
           "items": [
             {
@@ -437,7 +446,9 @@ exports[`Snapshot: GET /dto/member-syllabus/:id/detail (instructor reads student
           "code": "04",
           "createdAt": Any<String>,
           "description": "Simulated engine failures, forced landings, fire drills and emergency communications.",
+          "easaFclReference": null,
           "flightId": "c0000000-0000-0000-0000-000000000004",
+          "flightType": null,
           "isInterimCheckpoint": false,
           "items": [
             {
@@ -468,7 +479,9 @@ exports[`Snapshot: GET /dto/member-syllabus/:id/detail (instructor reads student
           "code": "VT",
           "createdAt": Any<String>,
           "description": "Interim checkpoint assessment covering all skills acquired to date.",
+          "easaFclReference": null,
           "flightId": "c0000000-0000-0000-0000-000000000005",
+          "flightType": null,
           "isInterimCheckpoint": true,
           "items": [
             {
@@ -499,7 +512,9 @@ exports[`Snapshot: GET /dto/member-syllabus/:id/detail (instructor reads student
           "code": "05",
           "createdAt": Any<String>,
           "description": "First solo cross-country flight with at least one full-stop landing away from home base.",
+          "easaFclReference": null,
           "flightId": "c0000000-0000-0000-0000-000000000006",
+          "flightType": null,
           "isInterimCheckpoint": false,
           "items": [
             {
@@ -533,7 +548,9 @@ exports[`Snapshot: GET /dto/member-syllabus/:id/detail (instructor reads student
           "code": "06",
           "createdAt": Any<String>,
           "description": "Night circuits, night cross-country and night approach procedures.",
+          "easaFclReference": null,
           "flightId": "c0000000-0000-0000-0000-000000000007",
+          "flightType": null,
           "isInterimCheckpoint": false,
           "items": [
             {
@@ -566,7 +583,9 @@ exports[`Snapshot: GET /dto/member-syllabus/:id/detail (instructor reads student
           "code": "07",
           "createdAt": Any<String>,
           "description": "Spin awareness, recovery from unusual attitudes, steep turns.",
+          "easaFclReference": null,
           "flightId": "c0000000-0000-0000-0000-000000000008",
+          "flightType": null,
           "isInterimCheckpoint": false,
           "items": [
             {
@@ -594,13 +613,18 @@ exports[`Snapshot: GET /dto/member-syllabus/:id/detail (instructor reads student
           "updatedAt": Any<String>,
         },
       ],
+      "generalInformation": null,
+      "generalInformationHtml": null,
       "majorVersion": 1,
       "minBlockTimeMins": 2700,
       "minorVersion": 0,
       "patchVersion": 0,
       "programId": "a0000000-0000-0000-0000-000000000001",
       "publishedAt": Any<String>,
+      "requirementsExperienceCredit": null,
+      "requirementsExperienceCreditHtml": null,
       "status": "PUBLISHED",
+      "submittedForApprovalAt": Any<String>,
       "syllabusId": "b0000000-0000-0000-0000-000000000001",
       "updatedAt": Any<String>,
       "updatedBy": "Liisa1",
@@ -613,15 +637,20 @@ exports[`Snapshot: GET /dto/member-syllabus/:id/detail (instructor reads student
 
 exports[`Snapshot: GET /dto/syllabi/:syllabusId (syllabus shape with time fields) matches snapshot for published syllabus 1`] = `
 {
+  "approvalReference": null,
   "createdAt": Any<String>,
   "createdBy": "Liisa1",
   "description": "Full PPL(A) syllabus following EASA DTO requirements. Mobile-friendly field reference.",
+  "descriptionHtml": "<p>Full PPL(A) syllabus following EASA DTO requirements. Mobile-friendly field reference.</p>
+",
   "flights": [
     {
       "code": "01",
       "createdAt": Any<String>,
       "description": "Straight & level flight, turns, climbs and descents. Introduction to aircraft controls.",
+      "easaFclReference": null,
       "flightId": "c0000000-0000-0000-0000-000000000001",
+      "flightType": null,
       "isInterimCheckpoint": false,
       "items": [
         {
@@ -652,7 +681,9 @@ exports[`Snapshot: GET /dto/syllabi/:syllabusId (syllabus shape with time fields
       "code": "02",
       "createdAt": Any<String>,
       "description": "Normal circuit, stabilised approach, touch & go. Short-field and soft-field techniques.",
+      "easaFclReference": null,
       "flightId": "c0000000-0000-0000-0000-000000000002",
+      "flightType": null,
       "isInterimCheckpoint": false,
       "items": [
         {
@@ -683,7 +714,9 @@ exports[`Snapshot: GET /dto/syllabi/:syllabusId (syllabus shape with time fields
       "code": "03",
       "createdAt": Any<String>,
       "description": "VFR cross-country navigation using map reading and radio navigation aids.",
+      "easaFclReference": null,
       "flightId": "c0000000-0000-0000-0000-000000000003",
+      "flightType": null,
       "isInterimCheckpoint": false,
       "items": [
         {
@@ -716,7 +749,9 @@ exports[`Snapshot: GET /dto/syllabi/:syllabusId (syllabus shape with time fields
       "code": "04",
       "createdAt": Any<String>,
       "description": "Simulated engine failures, forced landings, fire drills and emergency communications.",
+      "easaFclReference": null,
       "flightId": "c0000000-0000-0000-0000-000000000004",
+      "flightType": null,
       "isInterimCheckpoint": false,
       "items": [
         {
@@ -747,7 +782,9 @@ exports[`Snapshot: GET /dto/syllabi/:syllabusId (syllabus shape with time fields
       "code": "VT",
       "createdAt": Any<String>,
       "description": "Interim checkpoint assessment covering all skills acquired to date.",
+      "easaFclReference": null,
       "flightId": "c0000000-0000-0000-0000-000000000005",
+      "flightType": null,
       "isInterimCheckpoint": true,
       "items": [
         {
@@ -778,7 +815,9 @@ exports[`Snapshot: GET /dto/syllabi/:syllabusId (syllabus shape with time fields
       "code": "05",
       "createdAt": Any<String>,
       "description": "First solo cross-country flight with at least one full-stop landing away from home base.",
+      "easaFclReference": null,
       "flightId": "c0000000-0000-0000-0000-000000000006",
+      "flightType": null,
       "isInterimCheckpoint": false,
       "items": [
         {
@@ -812,7 +851,9 @@ exports[`Snapshot: GET /dto/syllabi/:syllabusId (syllabus shape with time fields
       "code": "06",
       "createdAt": Any<String>,
       "description": "Night circuits, night cross-country and night approach procedures.",
+      "easaFclReference": null,
       "flightId": "c0000000-0000-0000-0000-000000000007",
+      "flightType": null,
       "isInterimCheckpoint": false,
       "items": [
         {
@@ -845,7 +886,9 @@ exports[`Snapshot: GET /dto/syllabi/:syllabusId (syllabus shape with time fields
       "code": "07",
       "createdAt": Any<String>,
       "description": "Spin awareness, recovery from unusual attitudes, steep turns.",
+      "easaFclReference": null,
       "flightId": "c0000000-0000-0000-0000-000000000008",
+      "flightType": null,
       "isInterimCheckpoint": false,
       "items": [
         {
@@ -873,13 +916,18 @@ exports[`Snapshot: GET /dto/syllabi/:syllabusId (syllabus shape with time fields
       "updatedAt": Any<String>,
     },
   ],
+  "generalInformation": null,
+  "generalInformationHtml": null,
   "majorVersion": 1,
   "minBlockTimeMins": 2700,
   "minorVersion": 0,
   "patchVersion": 0,
   "programId": "a0000000-0000-0000-0000-000000000001",
   "publishedAt": Any<String>,
+  "requirementsExperienceCredit": null,
+  "requirementsExperienceCreditHtml": null,
   "status": "PUBLISHED",
+  "submittedForApprovalAt": Any<String>,
   "syllabusId": "b0000000-0000-0000-0000-000000000001",
   "updatedAt": Any<String>,
   "updatedBy": "Liisa1",
