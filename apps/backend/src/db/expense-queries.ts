@@ -247,11 +247,11 @@ const claimSelect = (executor: Executor) =>
       sql<string>`trim(concat(coalesce(member.first_name, ''), ' ', coalesce(member.last_name, '')))`.as(
         'member_name',
       ),
-      sql<number>`coalesce((
+      sql<number>`round(coalesce((
         select sum(li.quantity * li.unit_price) * coalesce(claim.fx_rate, 1.0)
         from accts.expense_claim_line_item li
         where li.claim_id = claim.id
-      ), 0)`.as('total_amount'),
+      ), 0)::numeric, 2)`.as('total_amount'),
     ])
 
 async function insertLineItems(
