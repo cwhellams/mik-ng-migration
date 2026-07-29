@@ -36,6 +36,7 @@ import { randomUUID } from 'node:crypto'
 import { SimplbooksEventType } from '../services/simplbooks/models.ts'
 import { toLocal } from '../util/date.ts'
 import { MIK_SIMPLBOOKS_MEMBER } from '../services/simplbooks/simplbooksOutboxHandler.ts'
+import type { FlightForEstimation } from '../services/accounting/flightCostEstimator.ts'
 
 function mapFullResultToFlightLogs(
   row: Selectable<
@@ -210,10 +211,12 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'flight.logs.ajlb_row_number',
       'flight.logs.arrival_airport',
       'flight.logs.billable_member_id',
+      'flight.logs.block_mins',
       'flight.logs.block_time',
       'flight.logs.crew2_last_name',
       'flight.logs.departure_airport',
       'flight.logs.flight_id',
+      'flight.logs.flight_mins',
       'flight.logs.flight_time',
       'flight.logs.flight_type',
       'flight.logs.fuel_remaining_litres',
@@ -221,6 +224,9 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'flight.logs.incident_or_observations',
       'flight.logs.instrument_flying_mins',
       'flight.logs.invoice_number',
+      'flight.logs.is_billable_flight',
+      'flight.logs.is_billed',
+      'flight.logs.min_billable_exception_reason',
       'flight.logs.night_flying_mins',
       'flight.logs.number_of_landings',
       'flight.logs.number_of_night_landings',
@@ -295,10 +301,14 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         ajlbRowNo: row.ajlb_row_number ?? row.row_number ?? 1,
         arrivalAirport: row.arrival_airport,
         billableMemberId: row.billable_member_id,
+        blockMins: row.block_mins,
         blockTime: row.block_time,
         crew2LastName: row.crew2_last_name,
+        creditedMins: null,
         departureAirport: row.departure_airport,
+        estimatedCost: null,
         flightId: row.flight_id,
+        flightMins: row.flight_mins,
         flightTime: row.flight_time,
         flightType: row.flight_type as FlightType,
         fuelRemainingLitres: row.fuel_remaining_litres,
@@ -306,6 +316,10 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
         incidentOrObservations: row.incident_or_observations,
         instrumentFlyingMins: row.instrument_flying_mins,
         invoiceNumber: row.invoice_number,
+        isBillableFlight: row.is_billable_flight,
+        isBilled: row.is_billed,
+        isTrainingProgramPilot: null,
+        minBillableExceptionReason: row.min_billable_exception_reason ?? null,
         nightFlyingMins: row.night_flying_mins,
         numberOfLandings: row.number_of_landings,
         numberOfNightLandings: row.number_of_night_landings,
@@ -328,6 +342,50 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     limit: pageSize,
     pageStartFlightMins,
   }
+}
+
+export async function getUnbilledFlightsForEstimation(
+  memberId: string,
+): Promise<FlightForEstimation[]> {
+  const rows = await db
+    .selectFrom('flight.logs')
+    .leftJoin('member.register', 'flight.logs.billable_member_id', 'member.register.member_id')
+    .leftJoin('flight.flight_credits', 'flight.logs.flight_id', 'flight.flight_credits.flight_id')
+    .select([
+      'flight.logs.flight_id',
+      'flight.logs.flight_type',
+      'flight.logs.is_billable_flight',
+      'flight.logs.is_billed',
+      'flight.logs.block_mins',
+      'flight.logs.flight_mins',
+      'flight.logs.departure_airport',
+      'flight.logs.arrival_airport',
+      'flight.logs.min_billable_exception_reason',
+      'flight.logs.aircraft_registration',
+      'flight.logs.takeoff_time_utc',
+      'member.register.is_training_program_pilot',
+      'flight.flight_credits.credited_mins',
+    ])
+    .where('flight.logs.billable_member_id', '=', memberId)
+    .where('flight.logs.is_billable_flight', '=', true)
+    .where('flight.logs.is_billed', '=', false)
+    .execute()
+
+  return rows.map((row) => ({
+    flightId: row.flight_id,
+    flightType: row.flight_type,
+    isBillableFlight: row.is_billable_flight,
+    isBilled: row.is_billed,
+    isTrainingProgramPilot: row.is_training_program_pilot ?? null,
+    blockMins: row.block_mins,
+    flightMins: row.flight_mins,
+    departureAirport: row.departure_airport,
+    arrivalAirport: row.arrival_airport,
+    minBillableExceptionReason: row.min_billable_exception_reason ?? null,
+    creditedMins: row.credited_mins ?? null,
+    aircraftRegistration: row.aircraft_registration,
+    takeoffTimeUtc: row.takeoff_time_utc.toISOString(),
+  }))
 }
 
 const sumIfMonths = (
@@ -1014,6 +1072,7 @@ export async function getFlightLogsForExport(
       'flight.logs.ajlb_seq_no',
       'flight.logs.arrival_airport',
       'flight.logs.billable_member_id',
+      'flight.logs.block_mins',
       'flight.logs.block_time',
       'flight.logs.crew2_last_name',
       'flight.logs.departure_airport',
@@ -1026,6 +1085,8 @@ export async function getFlightLogsForExport(
       'flight.logs.incident_or_observations',
       'flight.logs.instrument_flying_mins',
       'flight.logs.invoice_number',
+      'flight.logs.is_billable_flight',
+      'flight.logs.is_billed',
       'flight.logs.night_flying_mins',
       'flight.logs.number_of_landings',
       'flight.logs.number_of_night_landings',
@@ -1055,10 +1116,14 @@ export async function getFlightLogsForExport(
       ajlbRowNo: 0,
       arrivalAirport: row.arrival_airport,
       billableMemberId: row.billable_member_id,
+      blockMins: row.block_mins,
       blockTime: row.block_time,
       crew2LastName: row.crew2_last_name,
+      creditedMins: null,
       departureAirport: row.departure_airport,
+      estimatedCost: null,
       flightId: row.flight_id,
+      flightMins: row.flight_mins,
       flightTime: row.flight_time,
       flightType: row.flight_type as FlightType,
       fuelRemainingLitres: row.fuel_remaining_litres,
@@ -1066,6 +1131,10 @@ export async function getFlightLogsForExport(
       incidentOrObservations: row.incident_or_observations,
       instrumentFlyingMins: row.instrument_flying_mins,
       invoiceNumber: row.invoice_number,
+      isBillableFlight: row.is_billable_flight,
+      isBilled: row.is_billed,
+      isTrainingProgramPilot: null,
+      minBillableExceptionReason: null,
       nightFlyingMins: row.night_flying_mins,
       numberOfLandings: row.number_of_landings,
       numberOfNightLandings: row.number_of_night_landings,

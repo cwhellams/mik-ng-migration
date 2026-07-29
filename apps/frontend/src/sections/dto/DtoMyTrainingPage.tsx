@@ -15,6 +15,7 @@ import {
 import { Icon } from '@iconify/react'
 import { Title } from '../../components/Title'
 import { RemoteContent } from '../../components/RemoteContent'
+import { MarkdownContent } from '../../components/MarkdownContent'
 import useApi from '../../hooks/useApi'
 import { useTranslation } from 'react-i18next'
 import type { SyllabusFlight, SyllabusFlightAttempt, HilEntry } from '@backend/routes/dto/models'
@@ -94,9 +95,7 @@ export default function DtoMyTrainingPage() {
             {/* Syllabus header */}
             <Paper variant='outlined' sx={{ p: 2 }}>
               <Typography variant='h6' gutterBottom>
-                {assignment.syllabusDetail?.description
-                  ? assignment.syllabusDetail.description
-                  : t('dto.myTraining.activeSyllabus')}
+                {t('dto.myTraining.activeSyllabus')}
               </Typography>
               <Typography
                 variant='body2'
@@ -106,6 +105,30 @@ export default function DtoMyTrainingPage() {
               >
                 {t('dto.myTraining.version')}: v{assignment.syllabusDetail?.version}
               </Typography>
+
+              {assignment.syllabusDetail?.descriptionHtml && (
+                <Box sx={{ mt: 1.5 }}>
+                  <MarkdownContent html={assignment.syllabusDetail.descriptionHtml} />
+                </Box>
+              )}
+              {assignment.syllabusDetail?.generalInformationHtml && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Typography variant='overline' color='text.secondary'>
+                    {t('dto.myTraining.generalInformation')}
+                  </Typography>
+                  <MarkdownContent html={assignment.syllabusDetail.generalInformationHtml} />
+                </Box>
+              )}
+              {assignment.syllabusDetail?.requirementsExperienceCreditHtml && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Typography variant='overline' color='text.secondary'>
+                    {t('dto.myTraining.requirementsExperienceCredit')}
+                  </Typography>
+                  <MarkdownContent
+                    html={assignment.syllabusDetail.requirementsExperienceCreditHtml}
+                  />
+                </Box>
+              )}
 
               {/* Overall progress */}
               <Box

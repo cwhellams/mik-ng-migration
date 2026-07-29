@@ -6,6 +6,8 @@ import {
   useTheme,
   Pagination,
   PaginationItem,
+  Tooltip,
+  Typography,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
@@ -32,6 +34,9 @@ import {
 import { ResponsiveTable } from '../../components/ResponsiveTable'
 import { useTimezone } from '../../hooks/useTimezone'
 import { FlightLogExportDialog } from './components/FlightLogExportDialog'
+
+const formatEur = (value: number) =>
+  new Intl.NumberFormat('fi-FI', { style: 'currency', currency: 'EUR' }).format(value)
 
 const FlightLogsList = () => {
   const { t } = useTranslation()
@@ -125,15 +130,22 @@ const FlightLogsList = () => {
             <>
               <Grid size={1.3}>{t('flightLog.date')}</Grid>
               <Grid size={1}>{t('flightLog.aircraft')}</Grid>
-              <Grid size={1.7}>{t('flightLog.crews.pic')}</Grid>
-              <Grid size={1.7}>{t('flightLog.logbooks.student')}</Grid>
+              <Grid size={1.5}>{t('flightLog.crews.pic')}</Grid>
+              <Grid size={1.5}>{t('flightLog.logbooks.student')}</Grid>
               <Grid size={0.5}>PoB</Grid>
               <Grid size={1}>{t('flightLog.departure')}</Grid>
               <Grid size={1}>{t('flightLog.arrival')}</Grid>
-              <Grid size={1.1}>{t('flightLog.duration')}</Grid>
-              <Grid size={0.8}>{t('flightLog.landings')}</Grid>
-              <Grid size={1.5}>{t('flightLog.flightType')}</Grid>
-              <Grid size={0.4} sx={{ textAlign: 'end' }}>
+              <Grid size={1}>{t('flightLog.duration')}</Grid>
+              <Grid size={0.7}>{t('flightLog.landings')}</Grid>
+              <Grid size={1.1}>{t('flightLog.flightType')}</Grid>
+              {!isFlightLogAdmin && (
+                <Tooltip title={t('flightLog.estimatedCostTooltip')}>
+                  <Grid size={0.9} sx={{ textAlign: 'end', cursor: 'help' }}>
+                    {t('flightLog.estimatedCost')}
+                  </Grid>
+                </Tooltip>
+              )}
+              <Grid size={0.5} sx={{ textAlign: 'end' }}>
                 {t('flightLog.logbooks.status')}
               </Grid>
             </>
@@ -159,10 +171,10 @@ const FlightLogsList = () => {
                 <>
                   <Grid size={1}>{log.aircraftRegistration}</Grid>
 
-                  <Grid size={1.7}>
+                  <Grid size={1.5}>
                     <Box>{log.picLastName}</Box>
                   </Grid>
-                  <Grid size={1.7}>
+                  <Grid size={1.5}>
                     <Box>{log.crew2LastName}</Box>
                   </Grid>
                   <Grid size={0.5}>
@@ -205,17 +217,23 @@ const FlightLogsList = () => {
                     </Box>
                   </Grid>
 
-                  <Grid size={1.1}>
+                  <Grid size={1}>
                     {log.flightTime}
                     <Box>{log.blockTime}</Box>
                   </Grid>
 
-                  <Grid size={0.8}>{log.numberOfLandings}</Grid>
+                  <Grid size={0.7}>{log.numberOfLandings}</Grid>
 
-                  <Grid size={1.5}>{t(`flightLog.flightTypes.${log.flightType}`)}</Grid>
+                  <Grid size={1.1}>{t(`flightLog.flightTypes.${log.flightType}`)}</Grid>
+
+                  {!isFlightLogAdmin && (
+                    <Grid size={0.9} sx={{ textAlign: 'end', color: 'text.secondary' }}>
+                      {log.estimatedCost != null ? `~${formatEur(log.estimatedCost)}` : '—'}
+                    </Grid>
+                  )}
 
                   <Grid
-                    size={0.4}
+                    size={0.5}
                     sx={{
                       alignSelf: 'top',
                       justifyItems: 'end',
@@ -255,11 +273,33 @@ const FlightLogsList = () => {
                     flightTime={log.flightTime}
                     secondaryTime={log.blockTime}
                   />
+                  {!isFlightLogAdmin && log.estimatedCost != null && (
+                    <Grid size={12} sx={{ color: 'text.secondary', fontSize: '0.85em' }}>
+                      ~{formatEur(log.estimatedCost)}
+                    </Grid>
+                  )}
                 </>
               )}
             </>
           )}
         />
+        {!isFlightLogAdmin && data?.unbilledEstimatedTotal != null && (
+          <Tooltip title={t('flightLog.unbilledEstimatedTotalTooltip')}>
+            <Box
+              sx={{
+                mt: 2,
+                textAlign: 'right',
+                cursor: 'help',
+                color: 'text.secondary',
+              }}
+            >
+              <Typography variant='body2'>
+                {t('flightLog.unbilledEstimatedTotal')}:{' '}
+                <strong>~{formatEur(data.unbilledEstimatedTotal)}</strong>
+              </Typography>
+            </Box>
+          </Tooltip>
+        )}
       </RemoteContent>
       <Pagination
         count={data?.pages ?? 1}

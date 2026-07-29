@@ -28,10 +28,14 @@ import {
   createProgram,
   updateProgram,
   createSyllabus,
+  submitSyllabusForApproval,
+  withdrawSyllabus,
   publishSyllabus,
   exportSyllabus,
   copySyllabusAsDraft,
+  statusChipColor,
 } from '../../dto/dtoApi'
+import PublishSyllabusDialog from './PublishSyllabusDialog'
 
 function ProgramDialog({
   open,
@@ -130,7 +134,10 @@ function SyllabiSection({
     url: `v1/dto/programs/${program.programId}/syllabi`,
   })
   const [creating, setCreating] = useState(false)
+  const [submitting, setSubmitting] = useState<string | null>(null)
+  const [withdrawing, setWithdrawing] = useState<string | null>(null)
   const [publishing, setPublishing] = useState<string | null>(null)
+  const [publishTarget, setPublishTarget] = useState<string | null>(null)
   const [copying, setCopying] = useState<string | null>(null)
   const [exporting, setExporting] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
@@ -146,11 +153,33 @@ function SyllabiSection({
     }
   }
 
-  const handlePublish = async (syllabusId: string) => {
-    setPublishing(syllabusId)
+  const handleSubmitForApproval = async (syllabusId: string) => {
+    setSubmitting(syllabusId)
     try {
-      await publishSyllabus(syllabusId)
+      await submitSyllabusForApproval(syllabusId)
       await mutation.trigger('GET')
+    } finally {
+      setSubmitting(null)
+    }
+  }
+
+  const handleWithdraw = async (syllabusId: string) => {
+    setWithdrawing(syllabusId)
+    try {
+      await withdrawSyllabus(syllabusId)
+      await mutation.trigger('GET')
+    } finally {
+      setWithdrawing(null)
+    }
+  }
+
+  const handlePublish = async (approvalReference: string | null) => {
+    if (!publishTarget) return
+    setPublishing(publishTarget)
+    try {
+      await publishSyllabus(publishTarget, approvalReference)
+      await mutation.trigger('GET')
+      setPublishTarget(null)
     } finally {
       setPublishing(null)
     }
@@ -252,14 +281,20 @@ function SyllabiSection({
               <TableRow key={s.syllabusId}>
                 <TableCell>{s.version}</TableCell>
                 <TableCell>
-                  <Chip
-                    label={s.status}
-                    color={s.status === 'PUBLISHED' ? 'success' : 'default'}
-                    size='small'
-                  />
+                  <Chip label={s.status} color={statusChipColor(s.status)} size='small' />
+                  {s.status === 'WAITING_FOR_APPROVAL' && s.submittedForApprovalAt && (
+                    <Typography variant='caption' color='text.secondary' sx={{ display: 'block' }}>
+                      Submitted {new Date(s.submittedForApprovalAt).toLocaleDateString()}
+                    </Typography>
+                  )}
                 </TableCell>
                 <TableCell>
                   {s.publishedAt ? new Date(s.publishedAt).toLocaleDateString() : '—'}
+                  {s.approvalReference && (
+                    <Typography variant='caption' color='text.secondary' sx={{ display: 'block' }}>
+                      Ref: {s.approvalReference}
+                    </Typography>
+                  )}
                 </TableCell>
                 <TableCell align='right'>
                   <Box
@@ -288,15 +323,33 @@ function SyllabiSection({
                     >
                       {copying === s.syllabusId ? 'Copying…' : 'Copy as Draft'}
                     </Button>
-                    {(s.status === 'DRAFT' || s.status === 'WAITING_FOR_APPROVAL') && (
+                    {s.status === 'DRAFT' && (
                       <Button
                         size='small'
-                        color='success'
-                        disabled={publishing === s.syllabusId}
-                        onClick={() => handlePublish(s.syllabusId)}
+                        disabled={submitting === s.syllabusId}
+                        onClick={() => handleSubmitForApproval(s.syllabusId)}
                       >
-                        {publishing === s.syllabusId ? 'Publishing…' : 'Publish'}
+                        {submitting === s.syllabusId ? 'Submitting…' : 'Submit for Approval'}
                       </Button>
+                    )}
+                    {s.status === 'WAITING_FOR_APPROVAL' && (
+                      <>
+                        <Button
+                          size='small'
+                          disabled={withdrawing === s.syllabusId}
+                          onClick={() => handleWithdraw(s.syllabusId)}
+                        >
+                          {withdrawing === s.syllabusId ? 'Withdrawing…' : 'Withdraw'}
+                        </Button>
+                        <Button
+                          size='small'
+                          color='success'
+                          disabled={publishing === s.syllabusId}
+                          onClick={() => setPublishTarget(s.syllabusId)}
+                        >
+                          {publishing === s.syllabusId ? 'Publishing…' : 'Publish'}
+                        </Button>
+                      </>
                     )}
                   </Box>
                 </TableCell>
@@ -305,6 +358,11 @@ function SyllabiSection({
           </TableBody>
         </Table>
       )}
+      <PublishSyllabusDialog
+        open={publishTarget !== null}
+        onClose={() => setPublishTarget(null)}
+        onConfirm={handlePublish}
+      />
     </Box>
   )
 }

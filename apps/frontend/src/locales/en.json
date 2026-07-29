@@ -824,6 +824,10 @@
     "landings": "Landings",
     "flightType": "Type",
     "billed": "Billed",
+    "estimatedCost": "Est. cost",
+    "estimatedCostTooltip": "Estimated cost based on log entry. Does not include prepaid packages. May differ from the actual invoice.",
+    "unbilledEstimatedTotal": "Estimated total for all unbilled flights",
+    "unbilledEstimatedTotalTooltip": "Unverified estimate based on log entries. Does not include prepaid packages. Actual invoice amount may differ.",
     "times": "Flight Times",
     "flightDate": "Flight Date",
     "timeZone": "Time Zone",
@@ -2141,7 +2145,9 @@
       "statusCompleted": "Completed",
       "statusPending": "Pending verification",
       "statusNotStarted": "Not started",
-      "requiresReverification": "Re-verification required"
+      "requiresReverification": "Re-verification required",
+      "generalInformation": "General information",
+      "requirementsExperienceCredit": "Requirements & Experience credit"
     },
     "detail": {
       "title": "Student Detail",

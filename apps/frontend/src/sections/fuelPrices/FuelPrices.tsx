@@ -1,8 +1,9 @@
 import { MIKPermissions } from '@backend/routes/members/models'
 import { FuelPrices as FuelPricesResponse } from '@backend/routes/fuel-prices/models'
-import { Alert, Box, Button, Paper, Stack, TextField } from '@mui/material'
+import { Alert, Button, Paper, Stack, TextField } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { EditButton } from '../../components/EditButton'
+import { MarkdownContent } from '../../components/MarkdownContent'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
@@ -96,42 +97,7 @@ const FuelPrices = () => {
       ) : (
         <Paper sx={{ p: 2 }}>
           {!data?.markdown && <Alert severity='info'>{t('fuelPrices.empty')}</Alert>}
-          {!!data?.renderedHtml && (
-            <Box
-              sx={{
-                '& :first-of-type': { mt: 0 },
-                '& table': {
-                  borderCollapse: 'collapse',
-                  width: '100%',
-                  mb: 2,
-                },
-                '& th, & td': {
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  px: 1.5,
-                  py: 1,
-                  textAlign: 'left',
-                  verticalAlign: 'top',
-                },
-                '& th': {
-                  fontWeight: 'bold',
-                  bgcolor: 'action.hover',
-                },
-                '& tr:nth-of-type(even)': {
-                  bgcolor: 'action.selected',
-                },
-                '& blockquote': {
-                  borderLeft: '4px solid',
-                  borderColor: 'divider',
-                  pl: 2,
-                  ml: 0,
-                  color: 'text.secondary',
-                  fontStyle: 'italic',
-                },
-              }}
-              dangerouslySetInnerHTML={{ __html: data.renderedHtml }}
-            />
-          )}
+          {!!data?.renderedHtml && <MarkdownContent html={data.renderedHtml} />}
         </Paper>
       )}
 

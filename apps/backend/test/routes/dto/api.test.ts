@@ -236,6 +236,431 @@ describe('PUT /dto/syllabi/:syllabusId (update does not wipe minBlockTimeMins)',
   })
 })
 
+// ── Tests: Approval workflow (submit / withdraw / publish) ────────────────────
+
+describe('POST /dto/syllabi/:syllabusId/submit-for-approval', () => {
+  let draftSyllabusId: string
+
+  beforeEach(async () => {
+    const res = await request(app)
+      .post(`/dto/programs/${PROGRAM_ID}/syllabi`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({})
+    draftSyllabusId = res.body.syllabusId
+  })
+
+  afterEach(async () => {
+    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', draftSyllabusId).execute()
+  })
+
+  it('returns 403 for DTO_USER', async () => {
+    const res = await request(app)
+      .post(`/dto/syllabi/${draftSyllabusId}/submit-for-approval`)
+      .set('Cookie', `accessToken=${juha1Token}`)
+    expect(res.status).toBe(403)
+  })
+
+  it('moves a DRAFT syllabus to WAITING_FOR_APPROVAL and records submittedForApprovalAt', async () => {
+    const res = await request(app)
+      .post(`/dto/syllabi/${draftSyllabusId}/submit-for-approval`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(res.status).toBe(200)
+    expect(res.body.status).toBe('WAITING_FOR_APPROVAL')
+    expect(res.body.submittedForApprovalAt).toEqual(expect.any(String))
+  })
+
+  it('returns 404 when called on the already-published seed syllabus', async () => {
+    const res = await request(app)
+      .post(`/dto/syllabi/${SYLLABUS_ID}/submit-for-approval`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(res.status).toBe(404)
+  })
+})
+
+describe('POST /dto/syllabi/:syllabusId/withdraw', () => {
+  let draftSyllabusId: string
+
+  beforeEach(async () => {
+    const res = await request(app)
+      .post(`/dto/programs/${PROGRAM_ID}/syllabi`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({})
+    draftSyllabusId = res.body.syllabusId
+  })
+
+  afterEach(async () => {
+    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', draftSyllabusId).execute()
+  })
+
+  it('returns 404 when called on a DRAFT syllabus', async () => {
+    const res = await request(app)
+      .post(`/dto/syllabi/${draftSyllabusId}/withdraw`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(res.status).toBe(404)
+  })
+
+  it('moves a WAITING_FOR_APPROVAL syllabus back to DRAFT', async () => {
+    await request(app)
+      .post(`/dto/syllabi/${draftSyllabusId}/submit-for-approval`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    const res = await request(app)
+      .post(`/dto/syllabi/${draftSyllabusId}/withdraw`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(res.status).toBe(200)
+    expect(res.body.status).toBe('DRAFT')
+  })
+
+  it('returns 404 when called on the already-published seed syllabus', async () => {
+    const res = await request(app)
+      .post(`/dto/syllabi/${SYLLABUS_ID}/withdraw`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(res.status).toBe(404)
+  })
+})
+
+describe('POST /dto/syllabi/:syllabusId/publish', () => {
+  // Uses a throwaway training program (not PROGRAM_ID) so the auto-archive
+  // test never touches the shared seeded SYLLABUS_ID fixture other tests rely on.
+  const TEST_PROGRAM_NAME = 'Test Program DTO Publish Suite'
+  let testProgramId: string
+  let draftSyllabusId: string
+
+  beforeEach(async () => {
+    await db.deleteFrom('dto.training_program').where('name', '=', TEST_PROGRAM_NAME).execute()
+    const programRes = await request(app)
+      .post('/dto/programs')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ name: TEST_PROGRAM_NAME })
+    testProgramId = programRes.body.programId
+
+    const draftRes = await request(app)
+      .post(`/dto/programs/${testProgramId}/syllabi`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({})
+    draftSyllabusId = draftRes.body.syllabusId
+  })
+
+  afterEach(async () => {
+    await db.deleteFrom('dto.syllabus').where('program_id', '=', testProgramId).execute()
+    await db.deleteFrom('dto.training_program').where('program_id', '=', testProgramId).execute()
+  })
+
+  it('returns 404 when publishing directly from DRAFT (approval step is now required)', async () => {
+    const res = await request(app)
+      .post(`/dto/syllabi/${draftSyllabusId}/publish`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(res.status).toBe(404)
+  })
+
+  it('publishes from WAITING_FOR_APPROVAL and persists an approvalReference', async () => {
+    await request(app)
+      .post(`/dto/syllabi/${draftSyllabusId}/submit-for-approval`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    const res = await request(app)
+      .post(`/dto/syllabi/${draftSyllabusId}/publish`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ approvalReference: 'AUTH-2026-001' })
+    expect(res.status).toBe(200)
+    expect(res.body.status).toBe('PUBLISHED')
+    expect(res.body.approvalReference).toBe('AUTH-2026-001')
+    expect(res.body.publishedAt).toEqual(expect.any(String))
+  })
+
+  it('auto-archives the previously PUBLISHED syllabus for the same program', async () => {
+    await request(app)
+      .post(`/dto/syllabi/${draftSyllabusId}/submit-for-approval`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    await request(app)
+      .post(`/dto/syllabi/${draftSyllabusId}/publish`)
+      .set('Cookie', `accessToken=${adminToken}`)
+
+    const secondRes = await request(app)
+      .post(`/dto/programs/${testProgramId}/syllabi`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({})
+    const secondId = secondRes.body.syllabusId
+    await request(app)
+      .post(`/dto/syllabi/${secondId}/submit-for-approval`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    const publishRes = await request(app)
+      .post(`/dto/syllabi/${secondId}/publish`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(publishRes.status).toBe(200)
+    expect(publishRes.body.status).toBe('PUBLISHED')
+
+    const firstAfter = await request(app)
+      .get(`/dto/syllabi/${draftSyllabusId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(firstAfter.body.status).toBe('ARCHIVED')
+    expect(firstAfter.body.publishedAt).toEqual(expect.any(String))
+  })
+})
+
+describe('PUT /dto/syllabi/:syllabusId and /flights — WAITING_FOR_APPROVAL guard', () => {
+  let syllabusId: string
+
+  beforeEach(async () => {
+    const draftRes = await request(app)
+      .post(`/dto/programs/${PROGRAM_ID}/syllabi`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({})
+    syllabusId = draftRes.body.syllabusId
+    await request(app)
+      .post(`/dto/syllabi/${syllabusId}/submit-for-approval`)
+      .set('Cookie', `accessToken=${adminToken}`)
+  })
+
+  afterEach(async () => {
+    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', syllabusId).execute()
+  })
+
+  it('PUT /dto/syllabi/:syllabusId returns 404 for a WAITING_FOR_APPROVAL syllabus', async () => {
+    const res = await request(app)
+      .put(`/dto/syllabi/${syllabusId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ description: 'should not apply' })
+    expect(res.status).toBe(404)
+  })
+
+  it('PUT /dto/syllabi/:syllabusId/flights returns 409 for a WAITING_FOR_APPROVAL syllabus', async () => {
+    const res = await request(app)
+      .put(`/dto/syllabi/${syllabusId}/flights`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ flights: [] })
+    expect(res.status).toBe(409)
+  })
+})
+
+// ── Tests: Typo-fix flow on a PUBLISHED syllabus ──────────────────────────────
+
+describe('PATCH /dto/syllabi/:syllabusId/text', () => {
+  let testSyllabusId: string
+  let testFlightId: string
+  let testItemId: string
+
+  beforeEach(async () => {
+    const draftRes = await request(app)
+      .post(`/dto/programs/${PROGRAM_ID}/syllabi`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ description: 'Original description' })
+    testSyllabusId = draftRes.body.syllabusId
+
+    const flightsRes = await request(app)
+      .put(`/dto/syllabi/${testSyllabusId}/flights`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        flights: [
+          {
+            code: 'T1',
+            name: 'Original flight name',
+            description: 'Original flight description',
+            items: [
+              {
+                name: 'Original item name',
+                description: 'Original item description',
+                mandatory: true,
+              },
+            ],
+          },
+        ],
+      })
+    testFlightId = flightsRes.body.flights[0].flightId
+    testItemId = flightsRes.body.flights[0].items[0].itemId
+
+    // Bypass the normal DRAFT -> WAITING_FOR_APPROVAL -> PUBLISHED flow: this
+    // test only needs an isolated PUBLISHED syllabus, not the shared seed fixture.
+    await db
+      .updateTable('dto.syllabus')
+      .set({ status: 'PUBLISHED', published_at: new Date() })
+      .where('syllabus_id', '=', testSyllabusId)
+      .execute()
+  })
+
+  afterEach(async () => {
+    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', testSyllabusId).execute()
+  })
+
+  it('returns 403 for DTO_USER', async () => {
+    const res = await request(app)
+      .patch(`/dto/syllabi/${testSyllabusId}/text`)
+      .set('Cookie', `accessToken=${juha1Token}`)
+      .send({ description: 'x' })
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 404 when the syllabus is a DRAFT (typo-fix is PUBLISHED-only)', async () => {
+    const draftRes = await request(app)
+      .post(`/dto/programs/${PROGRAM_ID}/syllabi`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({})
+    const res = await request(app)
+      .patch(`/dto/syllabi/${draftRes.body.syllabusId}/text`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ description: 'x' })
+    expect(res.status).toBe(404)
+    await db
+      .deleteFrom('dto.syllabus')
+      .where('syllabus_id', '=', draftRes.body.syllabusId)
+      .execute()
+  })
+
+  it('returns 404 when the syllabus is ARCHIVED', async () => {
+    await db
+      .updateTable('dto.syllabus')
+      .set({ status: 'ARCHIVED' })
+      .where('syllabus_id', '=', testSyllabusId)
+      .execute()
+    const res = await request(app)
+      .patch(`/dto/syllabi/${testSyllabusId}/text`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ description: 'x' })
+    expect(res.status).toBe(404)
+  })
+
+  it('bumps patch_version and applies text corrections without changing IDs or structure', async () => {
+    const res = await request(app)
+      .patch(`/dto/syllabi/${testSyllabusId}/text`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        description: 'Corrected description',
+        flights: [
+          {
+            flightId: testFlightId,
+            name: 'Corrected flight name',
+            items: [{ itemId: testItemId, name: 'Corrected item name' }],
+          },
+        ],
+      })
+    expect(res.status).toBe(200)
+    expect(res.body.description).toBe('Corrected description')
+    expect(res.body.patchVersion).toBe(1)
+    expect(res.body.version).toMatch(/\.1$/)
+
+    const flight = res.body.flights.find((f: { flightId: string }) => f.flightId === testFlightId)
+    expect(flight).toBeDefined()
+    expect(flight.name).toBe('Corrected flight name')
+    // description was not included in the patch payload — must remain unchanged
+    expect(flight.description).toBe('Original flight description')
+    expect(flight.code).toBe('T1')
+
+    const item = flight.items.find((i: { itemId: string }) => i.itemId === testItemId)
+    expect(item).toBeDefined()
+    expect(item.name).toBe('Corrected item name')
+    expect(item.description).toBe('Original item description')
+    expect(item.mandatory).toBe(true)
+  })
+
+  it('never writes to a flight/item belonging to a different syllabus, even if referenced by ID', async () => {
+    // A second, isolated PUBLISHED syllabus with its own flight/item.
+    const foreignDraftRes = await request(app)
+      .post(`/dto/programs/${PROGRAM_ID}/syllabi`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({})
+    const foreignSyllabusId = foreignDraftRes.body.syllabusId
+    const foreignFlightsRes = await request(app)
+      .put(`/dto/syllabi/${foreignSyllabusId}/flights`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        flights: [
+          {
+            code: 'F1',
+            name: 'Foreign flight name',
+            items: [{ name: 'Foreign item name', mandatory: false }],
+          },
+        ],
+      })
+    const foreignFlightId = foreignFlightsRes.body.flights[0].flightId
+    const foreignItemId = foreignFlightsRes.body.flights[0].items[0].itemId
+    await db
+      .updateTable('dto.syllabus')
+      .set({ status: 'PUBLISHED', published_at: new Date() })
+      .where('syllabus_id', '=', foreignSyllabusId)
+      .execute()
+
+    // PATCH testSyllabusId's text but reference the OTHER syllabus's flight/item IDs.
+    const res = await request(app)
+      .patch(`/dto/syllabi/${testSyllabusId}/text`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        flights: [
+          {
+            flightId: foreignFlightId,
+            name: 'Hijacked flight name',
+            items: [{ itemId: foreignItemId, name: 'Hijacked item name' }],
+          },
+        ],
+      })
+    expect(res.status).toBe(200)
+    // testSyllabusId has no flight with foreignFlightId, so nothing in its own response changes
+    expect(
+      res.body.flights.find((f: { flightId: string }) => f.flightId === foreignFlightId),
+    ).toBeUndefined()
+
+    // The foreign syllabus's flight/item text must be completely untouched.
+    const foreignFlightRow = await db
+      .selectFrom('dto.syllabus_flights')
+      .select('name')
+      .where('flight_id', '=', foreignFlightId)
+      .executeTakeFirst()
+    expect(foreignFlightRow?.name).toBe('Foreign flight name')
+    const foreignItemRow = await db
+      .selectFrom('dto.syllabus_flight_items')
+      .select('name')
+      .where('item_id', '=', foreignItemId)
+      .executeTakeFirst()
+    expect(foreignItemRow?.name).toBe('Foreign item name')
+
+    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', foreignSyllabusId).execute()
+  })
+})
+
+// ── Tests: Flight metadata (flightType, easaFclReference) ─────────────────────
+
+describe('PUT /dto/syllabi/:syllabusId/flights — flightType and easaFclReference', () => {
+  let draftSyllabusId: string
+
+  beforeEach(async () => {
+    const res = await request(app)
+      .post(`/dto/programs/${PROGRAM_ID}/syllabi`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({})
+    draftSyllabusId = res.body.syllabusId
+  })
+
+  afterEach(async () => {
+    await db.deleteFrom('dto.syllabus').where('syllabus_id', '=', draftSyllabusId).execute()
+  })
+
+  it('persists flightType and easaFclReference on a flight', async () => {
+    const res = await request(app)
+      .put(`/dto/syllabi/${draftSyllabusId}/flights`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        flights: [
+          {
+            code: 'X1',
+            name: 'XC Flight',
+            flightType: 'SOLO_XC',
+            easaFclReference: 'FCL.010',
+          },
+        ],
+      })
+    expect(res.status).toBe(200)
+    expect(res.body.flights[0].flightType).toBe('SOLO_XC')
+    expect(res.body.flights[0].easaFclReference).toBe('FCL.010')
+  })
+
+  it('returns 400 for an invalid flightType value', async () => {
+    const res = await request(app)
+      .put(`/dto/syllabi/${draftSyllabusId}/flights`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        flights: [{ code: 'X1', name: 'XC Flight', flightType: 'NOT_A_TYPE' }],
+      })
+    expect(res.status).toBe(400)
+  })
+})
+
 // ── Tests: Export ──────────────────────────────────────────────────────────────
 
 describe('GET /dto/syllabi/:syllabusId/export', () => {
@@ -795,7 +1220,14 @@ function maskTimestamps(obj: unknown): unknown {
   if (obj && typeof obj === 'object') {
     return Object.fromEntries(
       Object.entries(obj as Record<string, unknown>).map(([k, v]) =>
-        ['createdAt', 'updatedAt', 'verifiedAt', 'assignedAt', 'publishedAt'].includes(k)
+        [
+          'createdAt',
+          'updatedAt',
+          'verifiedAt',
+          'assignedAt',
+          'publishedAt',
+          'submittedForApprovalAt',
+        ].includes(k)
           ? [k, expect.any(String)]
           : [k, maskTimestamps(v)],
       ),

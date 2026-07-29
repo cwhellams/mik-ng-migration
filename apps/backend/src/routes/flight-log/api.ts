@@ -30,12 +30,14 @@ import {
   getFlightLogs,
   getFlightLogTotals,
   getFlightStats,
+  getUnbilledFlightsForEstimation,
   insertFlightLog,
   updateFlightLog,
   updateFlightLogStatus,
   countFlightLogsForExport,
   getFlightLogsForExport,
 } from '../../db/flight-log-queries.ts'
+import { estimateFlightCosts } from '../../services/accounting/flightCostEstimator.ts'
 import { generateCsv, generateEasaPdf, getFilename, type PdfMemberInfo } from './exportFormats.ts'
 import { invalidateApprovedAttempt } from '../../db/dto-queries.ts'
 import logger from '../../lib/logger.ts'
@@ -102,11 +104,13 @@ router.post('/', async (req: Request<Record<string, string>>, res: Response) => 
 // Get flight logs using filter
 router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogListResponse>) => {
   const data = FlightLogFiltersSchema.parse(req.query)
+  const isAdmin = isFlightLogAdmin(req.user)
+  const isMemberSelfView = !isAdmin && data.ajlbSeqNo == undefined
 
   // FlightLog admin can see logs of all members, normal users only through logbooks
   const filters: FlightLogFilters = {
     ...data,
-    ...(!isFlightLogAdmin(req.user) && data.ajlbSeqNo == undefined
+    ...(isMemberSelfView
       ? { billableMemberId: req.user!.memberId, anyCrewMemberId: undefined }
       : {}),
   }
@@ -114,13 +118,30 @@ router.get('/', async (req: Request<FlightLogFilters>, res: Response<FlightLogLi
   const logs = await getFlightLogs(filters)
 
   // For non-admin users, clamp billing status to VALIDATED for other members' flights
-  if (!isFlightLogAdmin(req.user)) {
+  if (!isAdmin) {
     const userMemberId = req.user!.memberId
     logs.logs = logs.logs.map((log) => ({
       ...log,
       status: log.billableMemberId === userMemberId ? log.status : FlightLogStatus.VALIDATED,
       invoiceNumber: log.billableMemberId === userMemberId ? log.invoiceNumber : null,
     }))
+  }
+
+  // Compute estimated costs only for the member's own self-service view
+  if (isMemberSelfView) {
+    const memberId = req.user!.memberId
+    const allUnbilled = await getUnbilledFlightsForEstimation(memberId)
+    const allCosts = await estimateFlightCosts(allUnbilled, memberId)
+
+    logs.logs = logs.logs.map((log) => ({
+      ...log,
+      estimatedCost: allCosts.get(log.flightId) ?? null,
+    }))
+
+    const total = [...allCosts.values()]
+      .filter((v): v is number => v !== null)
+      .reduce((sum, c) => sum + c, 0)
+    logs.unbilledEstimatedTotal = total > 0 ? total : null
   }
 
   res.status(200).json(logs)

@@ -404,17 +404,22 @@ export const FlightLogListEntrySchema = FlightLogSchema.pick({
   ajlbRowNo: true,
   arrivalAirport: true,
   billableMemberId: true,
+  blockMins: true,
   blockTime: true,
   crew2LastName: true,
   departureAirport: true,
   flightId: true,
+  flightMins: true,
   flightTime: true,
   flightType: true,
   fuelRemainingLitres: true,
   fuelUpliftLitres: true,
   incidentOrObservations: true,
   instrumentFlyingMins: true,
+  isBillableFlight: true,
+  isBilled: true,
   invoiceNumber: true,
+  minBillableExceptionReason: true,
   nightFlyingMins: true,
   numberOfLandings: true,
   numberOfNightLandings: true,
@@ -429,6 +434,9 @@ export const FlightLogListEntrySchema = FlightLogSchema.pick({
   totalTimeInService: true,
 }).extend({
   acTotalFlightMins: z.number().int().nullable(),
+  creditedMins: z.number().int().nullable(),
+  estimatedCost: z.number().nullable(),
+  isTrainingProgramPilot: z.boolean().nullable(),
 })
 
 export type FlightLogListEntry = z.infer<typeof FlightLogListEntrySchema>
@@ -440,6 +448,7 @@ export const FlightLogListResponseSchema = z.object({
   pages: z.number().int().optional(),
   rows: z.number().int().optional(),
   pageStartFlightMins: z.number().int().nullable().optional(),
+  unbilledEstimatedTotal: z.number().nullable().optional(),
 })
 
 export type FlightLogListResponse = z.infer<typeof FlightLogListResponseSchema>

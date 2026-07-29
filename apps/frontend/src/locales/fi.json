@@ -831,6 +831,10 @@
     "landings": "Laskuja",
     "flightType": "Tyyppi",
     "billed": "Laskutettu",
+    "estimatedCost": "Arv. hinta",
+    "estimatedCostTooltip": "Arvioitu hinta lokikirjauksen perusteella. Ei sisällä ennakkomaksupaketteja. Todellinen laskun summa voi poiketa.",
+    "unbilledEstimatedTotal": "Kaikkien laskuttamattomien lentojen arvioitu summa",
+    "unbilledEstimatedTotalTooltip": "Vahvistamaton arvio lokikirjausten perusteella. Ei sisällä ennakkomaksupaketteja. Todellinen laskun summa voi poiketa.",
     "times": "Lentoajat",
     "flightDate": "Lentopäivä",
     "timeZone": "Aikavyöhyke",
@@ -2147,7 +2151,9 @@
       "statusCompleted": "Hyväksytty",
       "statusPending": "Odottaa vahvistusta",
       "statusNotStarted": "Ei aloitettu",
-      "requiresReverification": "Vaatii uudelleentarkastuksen"
+      "requiresReverification": "Vaatii uudelleentarkastuksen",
+      "generalInformation": "Yleistä tietoa",
+      "requirementsExperienceCredit": "Vaatimukset ja kokemushyvitys"
     },
     "detail": {
       "title": "Oppilaan tiedot",

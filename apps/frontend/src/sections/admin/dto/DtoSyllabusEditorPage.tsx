@@ -8,6 +8,7 @@ import {
   Divider,
   FormControlLabel,
   IconButton,
+  MenuItem,
   Stack,
   TextField,
   Typography,
@@ -16,30 +17,48 @@ import { Icon } from '@iconify/react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Title } from '../../../components/Title'
+import { MarkdownContent } from '../../../components/MarkdownContent'
 import useApi from '../../../hooks/useApi'
 import type { SyllabusWithFlights, SyllabusFlight } from '@backend/routes/dto/models'
-import { updateSyllabus, updateSyllabusFlights, publishSyllabus } from '../../dto/dtoApi'
+import {
+  updateSyllabus,
+  updateSyllabusFlights,
+  submitSyllabusForApproval,
+  withdrawSyllabus,
+  publishSyllabus,
+  patchSyllabusText,
+  statusChipColor,
+  FLIGHT_TYPE_OPTIONS,
+} from '../../dto/dtoApi'
+import PublishSyllabusDialog from './PublishSyllabusDialog'
 
-type ItemDraft = { name: string; description: string; mandatory: boolean }
+type ItemDraft = { itemId?: string; name: string; description: string; mandatory: boolean }
 type FlightDraft = {
+  flightId?: string
   code: string
   name: string
   description: string
   tags: string[]
   isInterimCheckpoint: boolean
   recommendedBlockTimeMins: string
+  flightType: string
+  easaFclReference: string
   items: ItemDraft[]
 }
 
 function flightToJson(flight: SyllabusFlight): FlightDraft {
   return {
+    flightId: flight.flightId,
     code: flight.code,
     name: flight.name,
     description: flight.description ?? '',
     tags: flight.tags,
     isInterimCheckpoint: flight.isInterimCheckpoint,
     recommendedBlockTimeMins: flight.recommendedBlockTimeMins?.toString() ?? '',
+    flightType: flight.flightType ?? '',
+    easaFclReference: flight.easaFclReference ?? '',
     items: (flight.items ?? []).map((i) => ({
+      itemId: i.itemId,
       name: i.name,
       description: i.description ?? '',
       mandatory: i.mandatory,
@@ -61,22 +80,35 @@ export default function DtoSyllabusEditorPage() {
   })
 
   const [description, setDescription] = useState('')
+  const [generalInformation, setGeneralInformation] = useState('')
+  const [requirementsExperienceCredit, setRequirementsExperienceCredit] = useState('')
   const [minBlockTimeMins, setMinBlockTimeMins] = useState('')
   const [flights, setFlights] = useState<FlightDraft[]>([])
+  const [typoFixMode, setTypoFixMode] = useState(false)
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
+  const [submittingForApproval, setSubmittingForApproval] = useState(false)
+  const [withdrawing, setWithdrawing] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
+  const resetDraftFromSyllabus = (source: SyllabusWithFlights | null | undefined = syllabus) => {
+    if (!source) return
+    setDescription(source.description ?? '')
+    setGeneralInformation(source.generalInformation ?? '')
+    setRequirementsExperienceCredit(source.requirementsExperienceCredit ?? '')
+    setMinBlockTimeMins(source.minBlockTimeMins?.toString() ?? '')
+    setFlights((source.flights ?? []).map(flightToJson))
+  }
+
   useEffect(() => {
-    if (syllabus) {
-      setDescription(syllabus.description ?? '')
-      setMinBlockTimeMins(syllabus.minBlockTimeMins?.toString() ?? '')
-      setFlights((syllabus.flights ?? []).map(flightToJson))
-    }
+    resetDraftFromSyllabus()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [syllabus?.syllabusId])
 
-  const isEditable = syllabus?.status === 'DRAFT' || syllabus?.status === 'WAITING_FOR_APPROVAL'
+  const isDraftEditable = syllabus?.status === 'DRAFT'
+  const isTextEditable = isDraftEditable || (syllabus?.status === 'PUBLISHED' && typoFixMode)
 
   const handleSave = async () => {
     if (!syllabusId) return
@@ -92,6 +124,8 @@ export default function DtoSyllabusEditorPage() {
       }
       await updateSyllabus(syllabusId, {
         description,
+        requirementsExperienceCredit,
+        generalInformation,
         minBlockTimeMins: parsedMin,
       })
       await updateSyllabusFlights(
@@ -103,10 +137,16 @@ export default function DtoSyllabusEditorPage() {
           return {
             ...f,
             recommendedBlockTimeMins: rec && rec > 0 ? rec : null,
+            flightType: f.flightType || null,
+            easaFclReference: f.easaFclReference.trim() || null,
           } as unknown as SyllabusFlight
         }),
       )
-      await mutation.trigger('GET')
+      const { data: fresh } = await mutation.trigger('GET')
+      // upsertSyllabusFlights deletes+reinserts flights/items with brand new
+      // IDs — re-sync local draft state so stale flightId/itemId values
+      // never linger into a later Fix Typos session.
+      resetDraftFromSyllabus(fresh)
       setSaveSuccess(true)
     } catch (e: unknown) {
       setSaveError(
@@ -118,13 +158,84 @@ export default function DtoSyllabusEditorPage() {
     }
   }
 
-  const handlePublish = async () => {
+  const handleSaveTypoFixes = async () => {
+    if (!syllabusId) return
+    setSaving(true)
+    setSaveError(null)
+    setSaveSuccess(false)
+    try {
+      await patchSyllabusText(syllabusId, {
+        description,
+        requirementsExperienceCredit,
+        generalInformation,
+        flights: flights
+          .filter((f) => f.flightId)
+          .map((f) => ({
+            flightId: f.flightId!,
+            name: f.name,
+            description: f.description,
+            items: f.items
+              .filter((i) => i.itemId)
+              .map((i) => ({
+                itemId: i.itemId!,
+                name: i.name,
+                description: i.description,
+              })),
+          })),
+      })
+      const { data: fresh } = await mutation.trigger('GET')
+      resetDraftFromSyllabus(fresh)
+      setTypoFixMode(false)
+      setSaveSuccess(true)
+    } catch (e: unknown) {
+      setSaveError(
+        (e as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
+          'Failed to save typo fixes',
+      )
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSubmitForApproval = async () => {
+    if (!syllabusId) return
+    setSubmittingForApproval(true)
+    setSaveError(null)
+    try {
+      await submitSyllabusForApproval(syllabusId)
+      const { data: fresh } = await mutation.trigger('GET')
+      resetDraftFromSyllabus(fresh)
+    } catch {
+      setSaveError('Failed to submit for approval')
+    } finally {
+      setSubmittingForApproval(false)
+    }
+  }
+
+  const handleWithdraw = async () => {
+    if (!syllabusId) return
+    setWithdrawing(true)
+    setSaveError(null)
+    try {
+      await withdrawSyllabus(syllabusId)
+      const { data: fresh } = await mutation.trigger('GET')
+      resetDraftFromSyllabus(fresh)
+    } catch {
+      setSaveError('Failed to withdraw')
+    } finally {
+      setWithdrawing(false)
+    }
+  }
+
+  const handlePublish = async (approvalReference: string | null) => {
     if (!syllabusId) return
     setPublishing(true)
     setSaveError(null)
     try {
-      await publishSyllabus(syllabusId)
-      await mutation.trigger('GET')
+      await publishSyllabus(syllabusId, approvalReference)
+      const { data: fresh } = await mutation.trigger('GET')
+      resetDraftFromSyllabus(fresh)
+      setPublishDialogOpen(false)
     } catch {
       setSaveError('Failed to publish')
     } finally {
@@ -142,6 +253,8 @@ export default function DtoSyllabusEditorPage() {
         tags: [],
         isInterimCheckpoint: false,
         recommendedBlockTimeMins: '',
+        flightType: '',
+        easaFclReference: '',
         items: [],
       },
     ])
@@ -206,15 +319,27 @@ export default function DtoSyllabusEditorPage() {
           <Icon icon='mdi:arrow-left' />
         </IconButton>
         <Title label={`Syllabus v${syllabus.version}`} />
-        <Chip
-          label={syllabus.status}
-          color={syllabus.status === 'PUBLISHED' ? 'success' : 'default'}
-          size='small'
-        />
+        <Chip label={syllabus.status} color={statusChipColor(syllabus.status)} size='small' />
       </Box>
-      {!isEditable && (
+      {syllabus.status === 'WAITING_FOR_APPROVAL' && (
         <Alert severity='info' sx={{ mb: 2 }}>
-          This syllabus is published and cannot be edited.
+          Awaiting authority approval
+          {syllabus.submittedForApprovalAt
+            ? ` — submitted ${new Date(syllabus.submittedForApprovalAt).toLocaleDateString()}`
+            : ''}
+          . Editing is locked; withdraw to make further changes.
+        </Alert>
+      )}
+      {syllabus.status === 'PUBLISHED' && !typoFixMode && (
+        <Alert severity='info' sx={{ mb: 2 }}>
+          This syllabus is published and cannot be structurally edited.
+          {syllabus.approvalReference && ` Approval reference: ${syllabus.approvalReference}.`} Use
+          &quot;Fix Typos&quot; for text-only corrections.
+        </Alert>
+      )}
+      {syllabus.status === 'ARCHIVED' && (
+        <Alert severity='warning' sx={{ mb: 2 }}>
+          This syllabus version is archived (superseded by a newer published version).
         </Alert>
       )}
       {saveError && (
@@ -227,23 +352,78 @@ export default function DtoSyllabusEditorPage() {
           Saved successfully.
         </Alert>
       )}
-      <TextField
-        label='Description'
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        fullWidth
-        multiline
-        rows={3}
-        disabled={!isEditable}
-        sx={{ mb: 2 }}
-      />
+      {isTextEditable ? (
+        <TextField
+          label='Description'
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          fullWidth
+          multiline
+          rows={3}
+          helperText='Markdown supported'
+          sx={{ mb: 2 }}
+        />
+      ) : (
+        syllabus.descriptionHtml && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant='overline' color='text.secondary'>
+              Description
+            </Typography>
+            <MarkdownContent html={syllabus.descriptionHtml} />
+          </Box>
+        )
+      )}
+
+      {isTextEditable ? (
+        <TextField
+          label='General information'
+          value={generalInformation}
+          onChange={(e) => setGeneralInformation(e.target.value)}
+          fullWidth
+          multiline
+          rows={3}
+          helperText='Markdown supported'
+          sx={{ mb: 2 }}
+        />
+      ) : (
+        syllabus.generalInformationHtml && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant='overline' color='text.secondary'>
+              General information
+            </Typography>
+            <MarkdownContent html={syllabus.generalInformationHtml} />
+          </Box>
+        )
+      )}
+
+      {isTextEditable ? (
+        <TextField
+          label='Requirements & Experience credit'
+          value={requirementsExperienceCredit}
+          onChange={(e) => setRequirementsExperienceCredit(e.target.value)}
+          fullWidth
+          multiline
+          rows={3}
+          helperText='Markdown supported'
+          sx={{ mb: 2 }}
+        />
+      ) : (
+        syllabus.requirementsExperienceCreditHtml && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant='overline' color='text.secondary'>
+              Requirements &amp; Experience credit
+            </Typography>
+            <MarkdownContent html={syllabus.requirementsExperienceCreditHtml} />
+          </Box>
+        )
+      )}
       <TextField
         label='Minimum total block time (minutes)'
         value={minBlockTimeMins}
         onChange={(e) => setMinBlockTimeMins(e.target.value)}
         type='number'
         helperText='Training completion gate — leave blank for no requirement'
-        disabled={!isEditable}
+        disabled={!isDraftEditable}
         sx={{ mb: 3, maxWidth: 340 }}
         slotProps={{
           htmlInput: { min: 1 },
@@ -279,7 +459,7 @@ export default function DtoSyllabusEditorPage() {
             <Typography variant='subtitle2' sx={{ minWidth: 80 }}>
               Flight {fi + 1}
             </Typography>
-            {isEditable && (
+            {isDraftEditable && (
               <IconButton size='small' color='error' onClick={() => removeFlight(fi)}>
                 <Icon icon='mdi:delete' />
               </IconButton>
@@ -297,7 +477,7 @@ export default function DtoSyllabusEditorPage() {
                 value={flight.code}
                 onChange={(e) => updateFlight(fi, { code: e.target.value })}
                 size='small'
-                disabled={!isEditable}
+                disabled={!isDraftEditable}
                 sx={{ width: 120 }}
               />
               <TextField
@@ -305,7 +485,7 @@ export default function DtoSyllabusEditorPage() {
                 value={flight.name}
                 onChange={(e) => updateFlight(fi, { name: e.target.value })}
                 size='small'
-                disabled={!isEditable}
+                disabled={!isTextEditable}
                 fullWidth
               />
             </Box>
@@ -314,11 +494,37 @@ export default function DtoSyllabusEditorPage() {
               value={flight.description}
               onChange={(e) => updateFlight(fi, { description: e.target.value })}
               size='small'
-              disabled={!isEditable}
+              disabled={!isTextEditable}
               multiline
               rows={2}
               fullWidth
             />
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                select
+                label='Flight type'
+                value={flight.flightType}
+                onChange={(e) => updateFlight(fi, { flightType: e.target.value })}
+                size='small'
+                disabled={!isDraftEditable}
+                sx={{ minWidth: 160 }}
+              >
+                <MenuItem value=''>—</MenuItem>
+                {FLIGHT_TYPE_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
+                label='EASA FCL reference'
+                value={flight.easaFclReference}
+                onChange={(e) => updateFlight(fi, { easaFclReference: e.target.value })}
+                size='small'
+                disabled={!isDraftEditable}
+                fullWidth
+              />
+            </Box>
             <TextField
               label='Tags (comma-separated)'
               value={flight.tags.join(', ')}
@@ -331,7 +537,7 @@ export default function DtoSyllabusEditorPage() {
                 })
               }
               size='small'
-              disabled={!isEditable}
+              disabled={!isDraftEditable}
               fullWidth
             />
             <FormControlLabel
@@ -339,7 +545,7 @@ export default function DtoSyllabusEditorPage() {
                 <Checkbox
                   checked={flight.isInterimCheckpoint}
                   onChange={(e) => updateFlight(fi, { isInterimCheckpoint: e.target.checked })}
-                  disabled={!isEditable}
+                  disabled={!isDraftEditable}
                 />
               }
               label='Interim Checkpoint (Välitarkastuslento)'
@@ -350,7 +556,7 @@ export default function DtoSyllabusEditorPage() {
               onChange={(e) => updateFlight(fi, { recommendedBlockTimeMins: e.target.value })}
               type='number'
               size='small'
-              disabled={!isEditable}
+              disabled={!isDraftEditable}
               helperText='Advisory — shown to instructor, not enforced'
               sx={{ maxWidth: 260 }}
               slotProps={{
@@ -383,7 +589,7 @@ export default function DtoSyllabusEditorPage() {
                 value={item.name}
                 onChange={(e) => updateItem(fi, ii, { name: e.target.value })}
                 size='small'
-                disabled={!isEditable}
+                disabled={!isTextEditable}
                 sx={{ flex: 2 }}
               />
               <TextField
@@ -391,7 +597,7 @@ export default function DtoSyllabusEditorPage() {
                 value={item.description}
                 onChange={(e) => updateItem(fi, ii, { description: e.target.value })}
                 size='small'
-                disabled={!isEditable}
+                disabled={!isTextEditable}
                 sx={{ flex: 2 }}
               />
               <FormControlLabel
@@ -399,27 +605,27 @@ export default function DtoSyllabusEditorPage() {
                   <Checkbox
                     checked={item.mandatory}
                     onChange={(e) => updateItem(fi, ii, { mandatory: e.target.checked })}
-                    disabled={!isEditable}
+                    disabled={!isDraftEditable}
                     size='small'
                   />
                 }
                 label='Mandatory'
               />
-              {isEditable && (
+              {isDraftEditable && (
                 <IconButton size='small' color='error' onClick={() => removeItem(fi, ii)}>
                   <Icon icon='mdi:delete' />
                 </IconButton>
               )}
             </Box>
           ))}
-          {isEditable && (
+          {isDraftEditable && (
             <Button size='small' startIcon={<Icon icon='mdi:plus' />} onClick={() => addItem(fi)}>
               Add Item
             </Button>
           )}
         </Box>
       ))}
-      {isEditable && (
+      {isDraftEditable && (
         <Button
           variant='outlined'
           startIcon={<Icon icon='mdi:plus' />}
@@ -429,7 +635,7 @@ export default function DtoSyllabusEditorPage() {
           Add Flight
         </Button>
       )}
-      {isEditable && (
+      {isDraftEditable && (
         <Box
           sx={{
             display: 'flex',
@@ -446,15 +652,75 @@ export default function DtoSyllabusEditorPage() {
           </Button>
           <Button
             variant='outlined'
-            color='success'
-            onClick={handlePublish}
-            disabled={publishing}
-            startIcon={<Icon icon='mdi:check-circle' />}
+            onClick={handleSubmitForApproval}
+            disabled={submittingForApproval}
+            startIcon={<Icon icon='mdi:send' />}
           >
-            {publishing ? 'Publishing…' : 'Publish'}
+            {submittingForApproval ? 'Submitting…' : 'Submit for Approval'}
           </Button>
         </Box>
       )}
+
+      {syllabus.status === 'WAITING_FOR_APPROVAL' && (
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant='outlined'
+            onClick={handleWithdraw}
+            disabled={withdrawing}
+            startIcon={<Icon icon='mdi:undo' />}
+          >
+            {withdrawing ? 'Withdrawing…' : 'Withdraw to Draft'}
+          </Button>
+          <Button
+            variant='outlined'
+            color='success'
+            onClick={() => setPublishDialogOpen(true)}
+            disabled={publishing}
+            startIcon={<Icon icon='mdi:check-circle' />}
+          >
+            Publish (record approval)
+          </Button>
+        </Box>
+      )}
+
+      {syllabus.status === 'PUBLISHED' && (
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          {!typoFixMode ? (
+            <Button
+              variant='outlined'
+              onClick={() => setTypoFixMode(true)}
+              startIcon={<Icon icon='mdi:pencil' />}
+            >
+              Fix Typos
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant='contained'
+                onClick={handleSaveTypoFixes}
+                disabled={saving}
+                startIcon={<Icon icon='mdi:content-save' />}
+              >
+                {saving ? 'Saving…' : 'Save Typo Fixes'}
+              </Button>
+              <Button
+                onClick={() => {
+                  setTypoFixMode(false)
+                  resetDraftFromSyllabus()
+                }}
+              >
+                Cancel
+              </Button>
+            </>
+          )}
+        </Box>
+      )}
+
+      <PublishSyllabusDialog
+        open={publishDialogOpen}
+        onClose={() => setPublishDialogOpen(false)}
+        onConfirm={handlePublish}
+      />
     </Box>
   )
 }
