@@ -87,6 +87,14 @@ type ClaimRow = {
 const hasOwn = <T extends object>(obj: T, key: keyof any): boolean =>
   Object.prototype.hasOwnProperty.call(obj, key)
 
+// Finnish aerodromes all use the EFxx ICAO prefix (issue #1020) — anything else on a
+// fuel line item counts as fueling abroad, replacing the old claim-level checkbox.
+const isAirportOutsideFinland = (icao: string | null | undefined): boolean =>
+  !!icao && !icao.toUpperCase().startsWith('EF')
+
+const computeRefuelOutsideFinland = (lineItems: ExpenseLineItem[]): boolean =>
+  lineItems.some((item) => isAirportOutsideFinland(item.airport))
+
 const mapCategory = (row: {
   id: number
   code: string
@@ -413,7 +421,7 @@ export async function createExpenseClaim(
         status: ExpenseClaimStatus.DRAFT,
         fuel_litres: data.fuelLitres ?? null,
         fuel_type: data.fuelType ?? null,
-        refuel_outside_finland: data.refuelOutsideFinland ?? false,
+        refuel_outside_finland: computeRefuelOutsideFinland(data.lineItems),
         expense_date: data.expenseDate,
         iban: data.iban,
         iban_account_name: data.ibanAccountName,
@@ -463,13 +471,12 @@ export async function updateExpenseClaim(
     if (hasOwn(data, 'description')) patch.description = data.description ?? null
     if (hasOwn(data, 'fuelLitres')) patch.fuel_litres = data.fuelLitres ?? null
     if (hasOwn(data, 'fuelType')) patch.fuel_type = data.fuelType ?? null
-    if (hasOwn(data, 'refuelOutsideFinland'))
-      patch.refuel_outside_finland = data.refuelOutsideFinland ?? false
     if (hasOwn(data, 'expenseDate')) patch.expense_date = data.expenseDate ?? null
     if (hasOwn(data, 'iban')) patch.iban = data.iban ?? null
     if (hasOwn(data, 'ibanAccountName')) patch.iban_account_name = data.ibanAccountName ?? null
     if (hasOwn(data, 'currency')) patch.ccy = data.currency ?? null
     if (hasOwn(data, 'fxRate')) patch.fx_rate = data.fxRate ?? null
+    if (data.lineItems) patch.refuel_outside_finland = computeRefuelOutsideFinland(data.lineItems)
 
     await txn.updateTable('accts.expense_claim').set(patch).where('id', '=', id).execute()
 

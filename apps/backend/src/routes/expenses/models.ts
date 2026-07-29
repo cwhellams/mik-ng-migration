@@ -104,7 +104,6 @@ export const CreateExpenseClaimSchema = z.object({
   expenseDate: z.string().date().optional(),
   fuelLitres: z.number().positive().optional(),
   fuelType: z.enum(FUEL_TYPES).optional(),
-  refuelOutsideFinland: z.boolean().optional().default(false),
   currency: z.enum(MIK_SUPPORTED_CURRENCIES).optional(),
   fxRate: z.number().positive().nullable().optional(),
   lineItems: z.array(ExpenseLineItemSchema).min(1),
@@ -129,6 +128,7 @@ export const ExpenseClaimSchema = z.object({
   status: z.nativeEnum(ExpenseClaimStatus),
   fuelLitres: z.number().nullable().optional(),
   fuelType: z.string().nullable().optional(),
+  // Derived server-side from line items' airport codes (issue #1020) — not client-writable.
   refuelOutsideFinland: z.boolean().optional().default(false),
   expenseDate: z.string().nullable().optional(),
   iban: z.string().nullable().optional(),

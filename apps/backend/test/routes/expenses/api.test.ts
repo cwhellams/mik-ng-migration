@@ -347,6 +347,8 @@ describe('POST /expenses (fuel)', () => {
 
 describe('POST /expenses (fuel litres/type)', () => {
   const insertedClaimIds: string[] = []
+  // EEPU (Pärnu, Estonia) — a non-Finnish airfield seeded by V240__ExpenseClaimsTestData.sql.
+  const foreignAirportIdent = 'EEPU'
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
@@ -399,7 +401,11 @@ describe('POST /expenses (fuel litres/type)', () => {
     expect(res.body.lineItems[0].fuelType).toBe('JetA1')
   })
 
-  it('defaults refuelOutsideFinland to false and persists true when set', async () => {
+  // refuelOutsideFinland is derived server-side from each line item's ICAO airport
+  // code (issue #1020) rather than being a client-editable claim-level flag: any
+  // non-EFxx airport counts as fueling abroad, regardless of what the client sends.
+
+  it('derives refuelOutsideFinland=false for a Finnish (EFxx) line-item airport', async () => {
     const categoryId = await fuelCategoryId()
 
     const res = await request(app)
@@ -410,13 +416,44 @@ describe('POST /expenses (fuel litres/type)', () => {
         title: 'Fuel test',
         currency: 'EUR',
         expenseDate: '2026-07-15',
-        refuelOutsideFinland: true,
+        refuelOutsideFinland: true, // ignored by the server, kept here to prove that
         lineItems: [
           {
             itemId: null,
             description: '100 l JetA1',
             date: '2026-07-16',
             airport: 'EFNU',
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    expect(res.body.refuelOutsideFinland).toBe(false)
+  })
+
+  it('derives refuelOutsideFinland=true when a line-item airport is not EFxx', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Fuel test abroad',
+        currency: 'EUR',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: '100 l JetA1',
+            date: '2026-07-16',
+            airport: foreignAirportIdent,
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,

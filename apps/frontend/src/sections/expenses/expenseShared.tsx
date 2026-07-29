@@ -100,6 +100,14 @@ export function matchAircraftCostCentre(
   return costCentres.find((cc) => cc.code.slice(-3).toUpperCase() === suffix)?.code
 }
 
+/**
+ * Whether an ICAO airport code lies outside Finland (issue #1020) — Finnish
+ * aerodromes all use the EFxx prefix, so anything else counts as abroad.
+ */
+export function isAirportOutsideFinland(icao: string | null | undefined): boolean {
+  return !!icao && !icao.toUpperCase().startsWith('EF')
+}
+
 // ─── EUR formatter ────────────────────────────────────────────────────────────
 
 export const eurFormatter = new Intl.NumberFormat('fi-FI', { style: 'currency', currency: 'EUR' })

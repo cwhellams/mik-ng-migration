@@ -2,6 +2,12 @@
 -- each line item, so the "recent fuelings by outstation" report (issue #966)
 -- has something to show in local/dev environments.
 
+-- Non-Finnish airfield for the "refuel outside Finland" derivation (issue #1020) —
+-- only Finnish (EFxx) airfields are seeded by V20__AirfieldStaticTestDataFi.sql.
+INSERT INTO static.airfields (ident, name, iso_country)
+VALUES ('EEPU', 'Pärnu Airport', 'EE')
+ON CONFLICT (ident) DO NOTHING;
+
 -- Fuel claim 1: Matti1, OH-STL, submitted, fuelled at home base EFNU.
 INSERT INTO accts.expense_claim (
     id, member_id, category_id, aircraft_id, title, expense_date, ccy,
@@ -110,7 +116,29 @@ VALUES (
     55, 'l', 1.276, 'JetA1', 'OH-STL', '2026-04-15', 'EFTP', 0
 );
 
--- Fuel claim 6: Matti1, still a draft — no airport/date yet (older data entered
+-- Fuel claim 6: Jukka1, OH-IHQ, submitted, fuelled abroad at Pärnu (EEPU) —
+-- refuelOutsideFinland is derived as true from this non-EFxx airport (issue #1020).
+INSERT INTO accts.expense_claim (
+    id, member_id, category_id, aircraft_id, title, expense_date, ccy,
+    iban, iban_account_name, status, submitted_at
+)
+VALUES (
+    'a1000000-0000-0000-0000-000000000007', 'Jukka1',
+    (SELECT id FROM accts.expense_category WHERE code = 'fuel'),
+    'OH-IHQ', 'Fuel Pärnu', '2026-06-25', 'EUR',
+    'FI3312345600000012', 'Jukka Nieminen', 'SUBMITTED', '2026-06-25 14:00:00'
+);
+
+INSERT INTO accts.expense_claim_line_item (
+    claim_id, description, quantity, unit, unit_price, fuel_type, cost_centre_code,
+    fuel_date, airport, sort_order
+)
+VALUES (
+    'a1000000-0000-0000-0000-000000000007', '48 l 100LL at Pärnu',
+    48, 'l', 2.1, '100LL', 'OH-IHQ', '2026-06-25', 'EEPU', 0
+);
+
+-- Fuel claim 7: Matti1, still a draft — no airport/date yet (older data entered
 -- before this field existed), demonstrates that incomplete fuel lines are
 -- simply excluded from the recent-fuelings report rather than erroring.
 INSERT INTO accts.expense_claim (

@@ -10,11 +10,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  FormControlLabel,
   MenuItem,
   Paper,
   Stack,
-  Switch,
   TextField,
   Typography,
 } from '@mui/material'
@@ -65,7 +63,6 @@ const defaultForm: FormState = {
   iban: '',
   ibanAccountName: '',
   lineItems: [makeDefaultLineItem()],
-  refuelOutsideFinland: false,
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -124,7 +121,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
       fxRate: claimApi.data.fxRate ?? null,
       iban: claimApi.data.iban ?? '',
       ibanAccountName: claimApi.data.ibanAccountName ?? '',
-      refuelOutsideFinland: claimApi.data.refuelOutsideFinland ?? false,
       lineItems: claimApi.data.lineItems?.map((item) => ({
         id: item.id,
         itemId: item.itemId ?? null,
@@ -546,21 +542,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                   }))
                 }
               />
-
-              {isFuel && (
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={form.refuelOutsideFinland}
-                      disabled={!editable}
-                      onChange={(e) =>
-                        setForm((c) => ({ ...c, refuelOutsideFinland: e.target.checked }))
-                      }
-                    />
-                  }
-                  label={t('expenses.fields.refuelOutsideFinland')}
-                />
-              )}
             </Stack>
           </Paper>
 

@@ -18,7 +18,6 @@ import {
   Step,
   StepLabel,
   Stepper,
-  Switch,
   TextField,
   Tooltip,
   Typography,
@@ -45,6 +44,7 @@ import {
   LineItemsTable,
   ReceiptUploadZone,
   defaultUnitForCategory,
+  isAirportOutsideFinland,
   makeDefaultLineItem,
   validateIban,
 } from './expenseShared'
@@ -67,7 +67,6 @@ type WizardForm = {
   iban: string
   ibanAccountName: string
   lineItems: EditableLineItem[]
-  refuelOutsideFinland: boolean
 }
 
 const defaultForm: WizardForm = {
@@ -78,7 +77,6 @@ const defaultForm: WizardForm = {
   iban: '',
   ibanAccountName: '',
   lineItems: [makeDefaultLineItem()],
-  refuelOutsideFinland: false,
 }
 
 // ─── Step keys ────────────────────────────────────────────────────────────────
@@ -628,15 +626,6 @@ export default function ExpenseClaimWizard() {
               )}
             </Stack>
           )}
-          <FormControlLabel
-            control={
-              <Switch
-                checked={form.refuelOutsideFinland}
-                onChange={(e) => setForm((c) => ({ ...c, refuelOutsideFinland: e.target.checked }))}
-              />
-            }
-            label={t('expenses.fields.refuelOutsideFinland')}
-          />
         </Stack>
       )
     }
@@ -746,7 +735,9 @@ export default function ExpenseClaimWizard() {
               {isFuel && (
                 <Typography variant='body2'>
                   <b>{t('expenses.fields.refuelOutsideFinland')}:</b>{' '}
-                  {form.refuelOutsideFinland ? t('common.yes') : t('common.no')}
+                  {form.lineItems.some((item) => isAirportOutsideFinland(item.airport))
+                    ? t('common.yes')
+                    : t('common.no')}
                 </Typography>
               )}
               {isMileage && mileageDetail.distanceKm && (
