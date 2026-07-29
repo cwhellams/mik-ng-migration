@@ -467,6 +467,74 @@ describe('POST /expenses (fuel litres/type)', () => {
     insertedClaimIds.push(res.body.id)
     expect(res.body.refuelOutsideFinland).toBe(true)
   })
+
+  // Production has fuel line items from before airport/date existed (issue #966).
+  // Editing/submitting those claims must keep working without backfilling the field —
+  // airport/date are only required for genuinely new line items (issue #1020).
+  it('allows editing and submitting a legacy fuel claim whose line item predates airport/date', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const claim = await db
+      .insertInto('accts.expense_claim')
+      .values({
+        member_id: 'Juha1',
+        category_id: categoryId,
+        title: 'Legacy fuel claim',
+        status: ExpenseClaimStatus.DRAFT,
+        updated_at: new Date(),
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow()
+    insertedClaimIds.push(claim.id)
+
+    const lineItem = await db
+      .insertInto('accts.expense_claim_line_item')
+      .values({
+        claim_id: claim.id,
+        description: '100 l JetA1 (legacy, no airport recorded)',
+        quantity: 100,
+        unit: 'l',
+        unit_price: 1.5,
+        sort_order: 0,
+        cost_centre_code: 'OH-STL',
+        fuel_type: 'JetA1',
+        // fuel_date / airport intentionally left null — data entered before issue #966.
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow()
+
+    const editRes = await request(app)
+      .put(`/expenses/${claim.id}`)
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        title: 'Legacy fuel claim (edited)',
+        expenseDate: '2026-07-15',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        lineItems: [
+          {
+            id: lineItem.id,
+            description: '100 l JetA1 (legacy, no airport recorded)',
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
+            fuelType: 'JetA1',
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(editRes.status).toBe(200)
+    expect(editRes.body.title).toBe('Legacy fuel claim (edited)')
+    expect(editRes.body.lineItems[0].airport).toBeFalsy()
+
+    const submitRes = await request(app)
+      .post(`/expenses/${claim.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(submitRes.status).toBe(200)
+  })
 })
 
 // ── Tests: POST /expenses/:id/override-fuel-price — admin EFNU price override ───

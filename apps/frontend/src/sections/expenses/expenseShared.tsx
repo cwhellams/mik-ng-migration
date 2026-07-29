@@ -365,9 +365,9 @@ export function LineItemsTable({
                       disabled={disabled}
                       onChange={(e) => update(idx, { date: e.target.value })}
                       onBlur={() => touch(`${idx}-date`)}
-                      error={shouldShow(`${idx}-date`) && !item.date}
+                      error={shouldShow(`${idx}-date`) && !item.date && !item.id}
                       helperText={
-                        shouldShow(`${idx}-date`) && !item.date
+                        shouldShow(`${idx}-date`) && !item.date && !item.id
                           ? t('expenses.validation.fuelDateRequired')
                           : undefined
                       }
@@ -390,9 +390,9 @@ export function LineItemsTable({
                           {...params}
                           placeholder='ICAO'
                           onBlur={() => touch(`${idx}-airport`)}
-                          error={shouldShow(`${idx}-airport`) && !item.airport}
+                          error={shouldShow(`${idx}-airport`) && !item.airport && !item.id}
                           helperText={
-                            shouldShow(`${idx}-airport`) && !item.airport
+                            shouldShow(`${idx}-airport`) && !item.airport && !item.id
                               ? t('expenses.validation.airportRequired')
                               : undefined
                           }

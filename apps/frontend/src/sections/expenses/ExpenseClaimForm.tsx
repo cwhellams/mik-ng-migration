@@ -245,7 +245,12 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     if (lineTotal <= 0) errors.lineItems = t('expenses.messages.zeroTotal')
     if (isFuel && form.lineItems.some((item) => !item.costCentreCode)) {
       errors.lineItems = t('expenses.validation.aircraftRequired')
-    } else if (isFuel && form.lineItems.some((item) => !item.date || !item.airport)) {
+    } else if (
+      isFuel &&
+      // Airport/date are only required for new line items — pre-existing (persisted)
+      // ones may predate this field and must remain editable/submittable as-is.
+      form.lineItems.some((item) => !item.id && (!item.date || !item.airport))
+    ) {
       errors.lineItems = t('expenses.validation.airportRequired')
     }
     if (!form.iban.trim()) errors.iban = t('expenses.messages.ibanRequired')
