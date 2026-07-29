@@ -1,5 +1,5 @@
 -- ============================================================
--- V1440 – Add flight_type classification and EASA FCL reference
+-- V1460 – Add flight_type classification and EASA FCL reference
 -- to dto.syllabus_flights (issues #598, #599)
 -- ============================================================
 -- flight_type: fixed dropdown classification of the exercise.
