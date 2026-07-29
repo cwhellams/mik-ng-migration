@@ -1441,7 +1441,18 @@
     "title": "Bränslepriser",
     "empty": "Bränslepriser har inte lagts till ännu.",
     "enterEditMode": "Redigera bränslepriser",
-    "exitEditMode": "Avsluta redigeringsläge"
+    "exitEditMode": "Avsluta redigeringsläge",
+    "recentFuelings": {
+      "title": "Senaste tankningar",
+      "empty": "Inga tankningar har registrerats ännu.",
+      "col": {
+        "date": "Datum",
+        "airport": "Flygplats",
+        "litres": "Liter",
+        "fuelType": "Bränsletyp",
+        "pricePerLitre": "€/liter (inkl. avgifter)"
+      }
+    }
   },
   "dashboard": {
     "schedule": {
@@ -2289,6 +2300,7 @@
         "description": "Beskrivning",
         "itemId": "Post-ID",
         "date": "Datum",
+        "airport": "Flygplats",
         "qty": "Antal",
         "litres": "Liter",
         "unit": "Enhet",
@@ -2326,7 +2338,9 @@
       "descriptionRequired": "Beskrivning krävs",
       "quantityMin": "Antal måste vara minst 1",
       "unitPriceRequired": "Enhetspriset måste vara större än noll",
-      "aircraftRequired": "Flygplan krävs för bränsleanspråk"
+      "aircraftRequired": "Flygplan krävs för bränsleanspråk",
+      "fuelDateRequired": "Datum krävs för bränslerader",
+      "airportRequired": "Flygplats krävs för bränslerader"
     }
   },
   "inventory": {

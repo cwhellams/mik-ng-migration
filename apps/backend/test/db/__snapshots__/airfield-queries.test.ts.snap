@@ -512,5 +512,10 @@ exports[`Db query Get aircrafts tests getAirfields returns all airfields in the 
     "ident": "EFYL",
     "name": "Ylivieska Airfield",
   },
+  {
+    "country": "EE",
+    "ident": "EEPU",
+    "name": "Pärnu Airport",
+  },
 ]
 `;

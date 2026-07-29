@@ -1,6 +1,6 @@
 import { MIKPermissions } from '@backend/routes/members/models'
 import { FuelPrices as FuelPricesResponse } from '@backend/routes/fuel-prices/models'
-import { Alert, Button, Paper, Stack, TextField } from '@mui/material'
+import { Alert, Box, Button, Paper, Stack, TextField } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { EditButton } from '../../components/EditButton'
 import { MarkdownContent } from '../../components/MarkdownContent'
@@ -10,6 +10,7 @@ import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
 import { useThemeMode } from '../../theme/ThemeContext'
 import { useTranslation } from 'react-i18next'
+import { RecentFuelings } from './RecentFuelings'
 
 const FuelPrices = () => {
   const { t } = useTranslation()
@@ -99,6 +100,10 @@ const FuelPrices = () => {
           {!!data?.renderedHtml && <MarkdownContent html={data.renderedHtml} />}
         </Paper>
       )}
+
+      <Box sx={{ mt: 4 }}>
+        <RecentFuelings />
+      </Box>
     </RemoteContent>
   )
 }

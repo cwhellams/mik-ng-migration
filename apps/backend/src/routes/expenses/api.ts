@@ -139,7 +139,12 @@ async function requireClaimForUser(req: Request<Record<string, string>>, claimId
 async function validateCategoryRequirements(data: {
   categoryId?: number
   flightLogId?: string | null
-  lineItems?: { costCentreCode?: string | null }[]
+  lineItems?: {
+    id?: number
+    costCentreCode?: string | null
+    airport?: string | null
+    date?: string | null
+  }[]
 }) {
   const categories = await getExpenseCategories()
   const category = categories.find((item) => item.id === data.categoryId)
@@ -154,6 +159,15 @@ async function validateCategoryRequirements(data: {
       return problem({
         status: HttpStatusCode.BadRequest,
         detail: 'Each fuel line item requires an aircraft to be selected.',
+      })
+    }
+    // Airport and date let us report recent fuel prices by outstation (see issue #966).
+    // Only required for new line items (no persisted id) — production data predating
+    // this field must remain processable without being backfilled (see issue #1020).
+    if ((data.lineItems ?? []).some((item) => !item.id && (!item.airport || !item.date))) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Each fuel line item requires an airport and date to be selected.',
       })
     }
   }

@@ -87,6 +87,14 @@ type ClaimRow = {
 const hasOwn = <T extends object>(obj: T, key: keyof any): boolean =>
   Object.prototype.hasOwnProperty.call(obj, key)
 
+// Finnish aerodromes all use the EFxx ICAO prefix (issue #1020) — anything else on a
+// fuel line item counts as fueling abroad, replacing the old claim-level checkbox.
+const isAirportOutsideFinland = (icao: string | null | undefined): boolean =>
+  !!icao && !icao.toUpperCase().startsWith('EF')
+
+const computeRefuelOutsideFinland = (lineItems: ExpenseLineItem[]): boolean =>
+  lineItems.some((item) => isAirportOutsideFinland(item.airport))
+
 const mapCategory = (row: {
   id: number
   code: string
@@ -118,17 +126,21 @@ const mapLineItem = (row: {
   sort_order: number
   cost_centre_code?: string | null
   fuel_type?: string | null
+  fuel_date?: string | null
+  airport?: string | null
 }): ExpenseLineItem => ({
   id: row.id,
   itemId: row.item_id,
   itemCode: row.item_code ?? undefined,
   description: row.description,
+  date: row.fuel_date ?? undefined,
   quantity: Number(row.quantity),
   unit: row.unit as ExpenseLineItem['unit'],
   unitPrice: Number(row.unit_price),
   sortOrder: row.sort_order,
   costCentreCode: row.cost_centre_code ?? undefined,
   fuelType: (row.fuel_type as ExpenseLineItem['fuelType']) ?? undefined,
+  airport: row.airport ?? undefined,
 })
 
 const mapMessage = (row: {
@@ -264,6 +276,8 @@ async function insertLineItems(
         sort_order: item.sortOrder,
         cost_centre_code: item.costCentreCode ?? null,
         fuel_type: item.fuelType ?? null,
+        fuel_date: item.date ?? null,
+        airport: item.airport ?? null,
       })),
     )
     .execute()
@@ -367,6 +381,8 @@ export async function getExpenseClaimById(id: string): Promise<ExpenseClaim | un
         'li.sort_order',
         'li.cost_centre_code',
         'li.fuel_type',
+        'li.fuel_date',
+        'li.airport',
       ])
       .where('li.claim_id', '=', id)
       .orderBy('li.sort_order')
@@ -405,7 +421,7 @@ export async function createExpenseClaim(
         status: ExpenseClaimStatus.DRAFT,
         fuel_litres: data.fuelLitres ?? null,
         fuel_type: data.fuelType ?? null,
-        refuel_outside_finland: data.refuelOutsideFinland ?? false,
+        refuel_outside_finland: computeRefuelOutsideFinland(data.lineItems),
         expense_date: data.expenseDate,
         iban: data.iban,
         iban_account_name: data.ibanAccountName,
@@ -455,13 +471,12 @@ export async function updateExpenseClaim(
     if (hasOwn(data, 'description')) patch.description = data.description ?? null
     if (hasOwn(data, 'fuelLitres')) patch.fuel_litres = data.fuelLitres ?? null
     if (hasOwn(data, 'fuelType')) patch.fuel_type = data.fuelType ?? null
-    if (hasOwn(data, 'refuelOutsideFinland'))
-      patch.refuel_outside_finland = data.refuelOutsideFinland ?? false
     if (hasOwn(data, 'expenseDate')) patch.expense_date = data.expenseDate ?? null
     if (hasOwn(data, 'iban')) patch.iban = data.iban ?? null
     if (hasOwn(data, 'ibanAccountName')) patch.iban_account_name = data.ibanAccountName ?? null
     if (hasOwn(data, 'currency')) patch.ccy = data.currency ?? null
     if (hasOwn(data, 'fxRate')) patch.fx_rate = data.fxRate ?? null
+    if (data.lineItems) patch.refuel_outside_finland = computeRefuelOutsideFinland(data.lineItems)
 
     await txn.updateTable('accts.expense_claim').set(patch).where('id', '=', id).execute()
 

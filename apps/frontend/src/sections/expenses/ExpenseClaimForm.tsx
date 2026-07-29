@@ -10,11 +10,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  FormControlLabel,
   MenuItem,
   Paper,
   Stack,
-  Switch,
   TextField,
   Typography,
 } from '@mui/material'
@@ -65,7 +63,6 @@ const defaultForm: FormState = {
   iban: '',
   ibanAccountName: '',
   lineItems: [makeDefaultLineItem()],
-  refuelOutsideFinland: false,
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -124,7 +121,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
       fxRate: claimApi.data.fxRate ?? null,
       iban: claimApi.data.iban ?? '',
       ibanAccountName: claimApi.data.ibanAccountName ?? '',
-      refuelOutsideFinland: claimApi.data.refuelOutsideFinland ?? false,
       lineItems: claimApi.data.lineItems?.map((item) => ({
         id: item.id,
         itemId: item.itemId ?? null,
@@ -136,6 +132,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
         sortOrder: item.sortOrder,
         costCentreCode: item.costCentreCode ?? null,
         fuelType: item.fuelType,
+        airport: item.airport ?? null,
       })) ?? [makeDefaultLineItem()],
     })
     setClaimCurrency(claimApi.data.currency ?? 'EUR')
@@ -248,6 +245,13 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     if (lineTotal <= 0) errors.lineItems = t('expenses.messages.zeroTotal')
     if (isFuel && form.lineItems.some((item) => !item.costCentreCode)) {
       errors.lineItems = t('expenses.validation.aircraftRequired')
+    } else if (
+      isFuel &&
+      // Airport/date are only required for new line items — pre-existing (persisted)
+      // ones may predate this field and must remain editable/submittable as-is.
+      form.lineItems.some((item) => !item.id && (!item.date || !item.airport))
+    ) {
+      errors.lineItems = t('expenses.validation.airportRequired')
     }
     if (!form.iban.trim()) errors.iban = t('expenses.messages.ibanRequired')
     if (!form.ibanAccountName.trim())
@@ -543,21 +547,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                   }))
                 }
               />
-
-              {isFuel && (
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={form.refuelOutsideFinland}
-                      disabled={!editable}
-                      onChange={(e) =>
-                        setForm((c) => ({ ...c, refuelOutsideFinland: e.target.checked }))
-                      }
-                    />
-                  }
-                  label={t('expenses.fields.refuelOutsideFinland')}
-                />
-              )}
             </Stack>
           </Paper>
 

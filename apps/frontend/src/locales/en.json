@@ -1433,7 +1433,18 @@
     "title": "Fuel prices",
     "empty": "Fuel prices have not been added yet.",
     "enterEditMode": "Edit fuel prices",
-    "exitEditMode": "Exit edit mode"
+    "exitEditMode": "Exit edit mode",
+    "recentFuelings": {
+      "title": "Recent fuelings",
+      "empty": "No recent fuelings recorded yet.",
+      "col": {
+        "date": "Date",
+        "airport": "Airport",
+        "litres": "Litres",
+        "fuelType": "Fuel type",
+        "pricePerLitre": "€/litre (incl. fees)"
+      }
+    }
   },
   "dashboard": {
     "schedule": {
@@ -2316,6 +2327,7 @@
         "description": "Description",
         "itemId": "Item Id",
         "date": "Date",
+        "airport": "Airport",
         "qty": "Qty",
         "litres": "Litres",
         "unit": "Unit",
@@ -2353,7 +2365,9 @@
       "descriptionRequired": "Description is required",
       "quantityMin": "Quantity must be at least 1",
       "unitPriceRequired": "Unit price must be greater than zero",
-      "aircraftRequired": "Aircraft is required for fuel claims"
+      "aircraftRequired": "Aircraft is required for fuel claims",
+      "fuelDateRequired": "Date is required for fuel line items",
+      "airportRequired": "Airport is required for fuel line items"
     }
   },
   "inventory": {

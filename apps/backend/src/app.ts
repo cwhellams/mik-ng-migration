@@ -30,6 +30,7 @@ import { router as dashboardRoutes } from './routes/dashboard/api.ts'
 import taxReportRoutes from './routes/tax-reports/api.ts'
 import traficomReportRoutes from './routes/traficom-reports/api.ts'
 import upliftReportRoutes from './routes/uplift-reports/api.ts'
+import fuelReportRoutes from './routes/fuel-report/api.ts'
 import instructorWorktimeRoutes from './routes/instructor-worktime/api.ts'
 import { router as outboxRoutes } from './routes/outbox/api.ts'
 import { router as versionRoute } from './routes/version/api.ts'
@@ -173,6 +174,7 @@ app.use('/api/v1/time', timeRoute)
 app.use('/api/v1/shop', shopRoutes)
 app.use('/api/v1/prepaid-hours', prepaidHoursRoutes)
 app.use('/api/v1/fuel-prices', fuelPricesRoutes)
+app.use('/api/v1/fuel-report', fuelReportRoutes)
 app.use('/api/v1/exams', examRoutes)
 app.use('/api/v1/notification-banner', notificationBannerRoutes)
 app.use('/api/v1/instructor-qualifications', instructorQualificationRoutes)

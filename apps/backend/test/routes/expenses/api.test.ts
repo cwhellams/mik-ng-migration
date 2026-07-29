@@ -214,6 +214,7 @@ describe('POST /expenses (fuel)', () => {
             itemId: null,
             description: '100 l JetA1',
             date: '2026-07-16',
+            airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
@@ -263,6 +264,39 @@ describe('POST /expenses (fuel)', () => {
     }
   })
 
+  it('rejects a fuel claim when a line item has no airport or date selected', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Fuel test',
+        currency: 'EUR',
+        fuelLitres: 100,
+        fuelType: 'JetA1',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: '100 l JetA1',
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
+            fuelType: 'JetA1',
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(400)
+    if (res.status === 201) {
+      insertedClaimIds.push(res.body.id)
+    }
+  })
+
   it('submits a fuel claim with no claim-level aircraftId', async () => {
     const categoryId = await fuelCategoryId()
 
@@ -283,6 +317,7 @@ describe('POST /expenses (fuel)', () => {
             itemId: null,
             description: '100 l JetA1',
             date: '2026-07-16',
+            airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
@@ -312,6 +347,8 @@ describe('POST /expenses (fuel)', () => {
 
 describe('POST /expenses (fuel litres/type)', () => {
   const insertedClaimIds: string[] = []
+  // EEPU (Pärnu, Estonia) — a non-Finnish airfield seeded by V240__ExpenseClaimsTestData.sql.
+  const foreignAirportIdent = 'EEPU'
 
   afterEach(async () => {
     if (insertedClaimIds.length > 0) {
@@ -345,6 +382,7 @@ describe('POST /expenses (fuel litres/type)', () => {
             itemId: null,
             description: '100 l JetA1',
             date: '2026-07-16',
+            airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
@@ -363,7 +401,11 @@ describe('POST /expenses (fuel litres/type)', () => {
     expect(res.body.lineItems[0].fuelType).toBe('JetA1')
   })
 
-  it('defaults refuelOutsideFinland to false and persists true when set', async () => {
+  // refuelOutsideFinland is derived server-side from each line item's ICAO airport
+  // code (issue #1020) rather than being a client-editable claim-level flag: any
+  // non-EFxx airport counts as fueling abroad, regardless of what the client sends.
+
+  it('derives refuelOutsideFinland=false for a Finnish (EFxx) line-item airport', async () => {
     const categoryId = await fuelCategoryId()
 
     const res = await request(app)
@@ -374,12 +416,44 @@ describe('POST /expenses (fuel litres/type)', () => {
         title: 'Fuel test',
         currency: 'EUR',
         expenseDate: '2026-07-15',
-        refuelOutsideFinland: true,
+        refuelOutsideFinland: true, // ignored by the server, kept here to prove that
         lineItems: [
           {
             itemId: null,
             description: '100 l JetA1',
             date: '2026-07-16',
+            airport: 'EFNU',
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    expect(res.body.refuelOutsideFinland).toBe(false)
+  })
+
+  it('derives refuelOutsideFinland=true when a line-item airport is not EFxx', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Fuel test abroad',
+        currency: 'EUR',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: '100 l JetA1',
+            date: '2026-07-16',
+            airport: foreignAirportIdent,
             quantity: 100,
             unit: 'l',
             unitPrice: 1.5,
@@ -392,6 +466,74 @@ describe('POST /expenses (fuel litres/type)', () => {
     expect(res.status).toBe(201)
     insertedClaimIds.push(res.body.id)
     expect(res.body.refuelOutsideFinland).toBe(true)
+  })
+
+  // Production has fuel line items from before airport/date existed (issue #966).
+  // Editing/submitting those claims must keep working without backfilling the field —
+  // airport/date are only required for genuinely new line items (issue #1020).
+  it('allows editing and submitting a legacy fuel claim whose line item predates airport/date', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const claim = await db
+      .insertInto('accts.expense_claim')
+      .values({
+        member_id: 'Juha1',
+        category_id: categoryId,
+        title: 'Legacy fuel claim',
+        status: ExpenseClaimStatus.DRAFT,
+        updated_at: new Date(),
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow()
+    insertedClaimIds.push(claim.id)
+
+    const lineItem = await db
+      .insertInto('accts.expense_claim_line_item')
+      .values({
+        claim_id: claim.id,
+        description: '100 l JetA1 (legacy, no airport recorded)',
+        quantity: 100,
+        unit: 'l',
+        unit_price: 1.5,
+        sort_order: 0,
+        cost_centre_code: 'OH-STL',
+        fuel_type: 'JetA1',
+        // fuel_date / airport intentionally left null — data entered before issue #966.
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow()
+
+    const editRes = await request(app)
+      .put(`/expenses/${claim.id}`)
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        title: 'Legacy fuel claim (edited)',
+        expenseDate: '2026-07-15',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        lineItems: [
+          {
+            id: lineItem.id,
+            description: '100 l JetA1 (legacy, no airport recorded)',
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
+            fuelType: 'JetA1',
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(editRes.status).toBe(200)
+    expect(editRes.body.title).toBe('Legacy fuel claim (edited)')
+    expect(editRes.body.lineItems[0].airport).toBeFalsy()
+
+    const submitRes = await request(app)
+      .post(`/expenses/${claim.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(submitRes.status).toBe(200)
   })
 })
 
@@ -429,6 +571,7 @@ describe('POST /expenses/:id/override-fuel-price', () => {
             itemId: null,
             description: '100 l JetA1',
             date: '2026-07-16',
+            airport: 'EFNU',
             quantity: 100,
             unit: 'l',
             unitPrice,
