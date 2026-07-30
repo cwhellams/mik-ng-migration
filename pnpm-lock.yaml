@@ -373,13 +373,13 @@ importers:
         specifier: ^5.5.4
         version: 5.5.4
       react:
-        specifier: ^19.2.8
+        specifier: 19.2.8
         version: 19.2.8
       react-big-calendar:
         specifier: ^1.20.0
         version: 1.20.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react-dom:
-        specifier: ^19.2.8
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       react-dropzone:
         specifier: ^15.0.0
