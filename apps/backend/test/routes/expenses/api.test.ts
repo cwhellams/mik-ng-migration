@@ -170,6 +170,49 @@ describe('POST /expenses (mileage)', () => {
     expect(res.body.mileageDetail.distanceKm).toBe(99)
     expect(res.body.mileageDetail).not.toHaveProperty('passengers')
   })
+
+  // Regression test for issue #1023: unit_price was DECIMAL(10,2), so a rate like
+  // 0.2755 EUR/km got rounded to 0.28 on insert before being multiplied by distance,
+  // inflating the total (99 * 0.28 = 27.72 instead of the correct 99 * 0.2755 = 27.27).
+  it('preserves 4-decimal precision on the per-km rate so the total is not rounded up early', async () => {
+    const categoryId = await mileageCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Mileage precision test',
+        currency: 'EUR',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: 'HOME - ROS - HOME',
+            date: '2026-07-16',
+            quantity: 99,
+            unit: 'km',
+            unitPrice: 0.2755,
+            sortOrder: 0,
+          },
+        ],
+        mileageDetail: {
+          route: 'HOME - ROS - HOME',
+          journeyDate: '2026-07-16',
+          distanceKm: 99,
+          boardApproved: false,
+          hetu: '010101-123A',
+        },
+      })
+
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+
+    expect(res.body.lineItems[0].unitPrice).toBe(0.2755)
+    expect(res.body.totalAmount).toBe(27.27)
+  })
 })
 
 // ── Tests: POST /expenses (fuel claims) — per-line-item aircraft requirement ────
