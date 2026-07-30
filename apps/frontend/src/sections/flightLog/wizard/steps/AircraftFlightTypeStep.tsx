@@ -4,6 +4,7 @@ import { Controller } from 'react-hook-form'
 import type { AircraftListResponse } from '@backend/routes/aircrafts/models'
 import { FlightType } from '@backend/routes/flight-log/models'
 import { ButtonPicker } from '../components/ButtonPicker'
+import { FlightPlanReminder } from '../components/FlightPlanReminder'
 import { flightTypes } from '../../constants'
 import type { WizardFormProps } from '../types'
 
@@ -63,6 +64,7 @@ export const AircraftFlightTypeStep = ({ control, setValue, getValues, aircraftD
           )}
         />
       </Box>
+      <FlightPlanReminder />
     </Box>
   )
 }

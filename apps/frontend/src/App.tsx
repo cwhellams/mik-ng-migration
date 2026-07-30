@@ -53,6 +53,7 @@ import LogbookFlights from './sections/flightLog/LogbookPage'
 import Outbox from './sections/admin/Outbox'
 import NonRenewals from './sections/admin/NonRenewals'
 import NotificationBannerAdmin from './sections/admin/NotificationBannerAdmin'
+import UsefulPhoneNumbersAdminPage from './sections/admin/UsefulPhoneNumbersAdminPage'
 import { UnpaidOverdueInvoices } from './sections/accounting/UnpaidOverdueInvoices'
 import ShopPage from './sections/shop/ShopPage'
 import ProductPage from './sections/shop/ProductPage'
@@ -234,6 +235,7 @@ function App() {
                 <Route path='outbox' element={<Outbox />} />
                 <Route path='non-renewals' element={<NonRenewals />} />
                 <Route path='notification-banner' element={<NotificationBannerAdmin />} />
+                <Route path='phone-numbers' element={<UsefulPhoneNumbersAdminPage />} />
                 <Route path='shop' element={<ShopAdminDashboard />} />
                 <Route path='shop/products' element={<ProductsAdmin />} />
                 <Route path='shop/categories' element={<CategoriesAdmin />} />

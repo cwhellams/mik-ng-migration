@@ -39,6 +39,7 @@
     "examsHistory": "Historiani",
     "examsAdmin": "Koehallinta",
     "notificationBanner": "Ilmoitusbanneri",
+    "usefulPhoneNumbers": "Puhelinnumerot",
     "instructorStatus": "Opettajien tila",
     "dto": "DTO Koulutus",
     "dtoAdmin": "DTO Hallinta",
@@ -761,6 +762,18 @@
     "saveSuccess": "Kustannuspaikka tallennettu.",
     "deleteConfirm": "Poistetaanko kustannuspaikka {{code}}?"
   },
+  "usefulPhoneNumbers": {
+    "title": "Puhelinnumerot",
+    "description": "Hallinnoi jäsenille näytettäviä puhelinnumeroita, kuten lentoreittikeskuksen numeroa, jota käytetään lentopäiväkirjan muistutuksessa.",
+    "formTitle": "Lisää tai muokkaa puhelinnumeroa",
+    "label": "Nimike",
+    "labelHint": "Käytä nimikettä FLIGHT_PLAN_CENTER numerolle, jonka lentopäiväkirjan muistutus näyttää.",
+    "phoneNumber": "Puhelinnumero",
+    "sortOrder": "Järjestys",
+    "list": "Määritetyt puhelinnumerot",
+    "saveSuccess": "Puhelinnumero tallennettu.",
+    "deleteConfirm": "Poistetaanko puhelinnumero {{label}}?"
+  },
   "billing": {
     "title": "Omat laskuni",
     "filters": {
@@ -973,6 +986,12 @@
       "discard": "Hylkää",
       "discardBody": "Hylätäänkö tämä kirjaus? Mitään ei ole tallennettu.",
       "accept": "Hyväksy",
+      "flightPlanReminder": {
+        "button": "Muista sulkea lentosuunnitelmasi",
+        "title": "Lentosuunnitelmakeskus",
+        "noNumber": "Lentosuunnitelmakeskuksen numeroa ei ole asetettu."
+      },
+      "blockTimes": "Lohkoajat",
       "ajlbSummary": {
         "title": "Merkintä ilma-aluksen matkapäiväkirjaan",
         "flightTime": "Lentoaika",
@@ -1850,6 +1869,7 @@
     "noVariants": "Ei variantteja"
   },
   "common": {
+    "ok": "OK",
     "name": "Nimi",
     "description": "Kuvaus",
     "actions": "Toiminnot",

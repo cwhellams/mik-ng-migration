@@ -40,6 +40,7 @@
     "examsHistory": "My History",
     "examsAdmin": "Exam Admin",
     "notificationBanner": "Notification Banner",
+    "usefulPhoneNumbers": "Phone Numbers",
     "instructorStatus": "Instructor Status",
     "dto": "DTO Training",
     "dtoAdmin": "DTO Admin",
@@ -754,6 +755,18 @@
     "saveSuccess": "Cost centre saved.",
     "deleteConfirm": "Delete cost centre {{code}}?"
   },
+  "usefulPhoneNumbers": {
+    "title": "Useful Phone Numbers",
+    "description": "Manage phone numbers shown to members, such as the flight plan centre used by the flight log reminder.",
+    "formTitle": "Add or edit phone number",
+    "label": "Label",
+    "labelHint": "Use FLIGHT_PLAN_CENTER as the label for the number shown by the flight log wizard's reminder.",
+    "phoneNumber": "Phone number",
+    "sortOrder": "Sort order",
+    "list": "Configured phone numbers",
+    "saveSuccess": "Phone number saved.",
+    "deleteConfirm": "Delete phone number {{label}}?"
+  },
   "billing": {
     "title": "My Invoices",
     "filters": {
@@ -966,6 +979,12 @@
       "discard": "Discard",
       "discardBody": "Discard this entry? Nothing has been saved.",
       "accept": "Accept",
+      "flightPlanReminder": {
+        "button": "Remember to close your flight plan",
+        "title": "Flight plan centre",
+        "noNumber": "No flight plan centre number configured."
+      },
+      "blockTimes": "Block times",
       "ajlbSummary": {
         "title": "Aircraft Journey Log Book entry",
         "flightTime": "Flight time",
@@ -1844,6 +1863,7 @@
     "noVariants": "No variants configured"
   },
   "common": {
+    "ok": "OK",
     "name": "Name",
     "description": "Description",
     "actions": "Actions",

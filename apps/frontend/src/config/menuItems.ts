@@ -250,6 +250,12 @@ export const menuItems: MenuItem[] = [
         adminModeOnly: true,
       },
       {
+        label: 'header.usefulPhoneNumbers',
+        path: 'phone-numbers',
+        requiredRoles: [MIKPermissions.MEMBER_ADMIN],
+        adminModeOnly: true,
+      },
+      {
         label: 'header.dtoAdmin',
         path: 'dto',
         requiredRoles: [MIKPermissions.DTO_ADMIN],

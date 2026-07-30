@@ -1526,6 +1526,12 @@ export interface StaticAirfields {
   name: string | null
 }
 
+export interface StaticUsefulPhoneNumber {
+  label: string
+  phone_number: string
+  sort_order: Generated<number>
+}
+
 export interface StatsAirfieldEfficiencyByAcYr {
   aircraft_registration: string | null
   away_mins: Numeric | null
@@ -1929,6 +1935,7 @@ export interface DB {
   'shop.product_property_options': ShopProductPropertyOptions
   'shop.products': ShopProducts
   'static.airfields': StaticAirfields
+  'static.useful_phone_number': StaticUsefulPhoneNumber
   'stats.airfield_efficiency_by_ac_yr': StatsAirfieldEfficiencyByAcYr
   'stats.airfield_efficiency_by_ac_yr_mth': StatsAirfieldEfficiencyByAcYrMth
   'stats.airfield_efficiency_by_yr': StatsAirfieldEfficiencyByYr

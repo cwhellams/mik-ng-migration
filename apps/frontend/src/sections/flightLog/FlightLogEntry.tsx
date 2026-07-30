@@ -53,6 +53,7 @@ import FlightTimeline from './components/FlightTimeline'
 import FlightCrew from './components/FlightCrew'
 import { buildFlightLogResolver } from './formResolver'
 import { FlightLogEntryWizard } from './wizard/FlightLogEntryWizard'
+import { MobileFlightLogView } from './MobileFlightLogView'
 import { flightTypes } from './constants'
 import { useMe } from '../../hooks/useMe'
 import { FlightTime } from './components/FlightTime'
@@ -92,8 +93,11 @@ const FlightLogEntry = () => {
   const isNew = flightId == 'new'
   const [forceClassicForm, setForceClassicForm] = useState(false)
 
-  if (isNew && !isSmUp && !forceClassicForm) {
-    return <FlightLogEntryWizard onSwitchToClassicForm={() => setForceClassicForm(true)} />
+  if (!isSmUp && !forceClassicForm) {
+    if (isNew) {
+      return <FlightLogEntryWizard onSwitchToClassicForm={() => setForceClassicForm(true)} />
+    }
+    return <MobileFlightLogView onSwitchToClassicForm={() => setForceClassicForm(true)} />
   }
 
   return <ClassicFlightLogEntry />

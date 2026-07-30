@@ -44,22 +44,29 @@ const ReviewSection = ({
   </Paper>
 )
 
+// Compact "day-of-month centered, month above, year below" date block — matches the
+// logbook list's FlightLogDate layout, sized for the highlight card's dark background.
+const CompactDate = ({ date }: { date: dayjs.Dayjs | undefined }) => (
+  <Box sx={{ textAlign: 'center' }}>
+    <Typography sx={{ fontSize: 11, textTransform: 'uppercase', opacity: 0.8, lineHeight: 1.2 }}>
+      {date ? date.format('MMM') : ''}
+    </Typography>
+    <Typography sx={{ fontSize: 32, fontWeight: 'bold', lineHeight: 1 }}>
+      {date ? date.format('D') : '—'}
+    </Typography>
+    <Typography sx={{ fontSize: 11, opacity: 0.8, lineHeight: 1.2 }}>
+      {date ? date.format('YYYY') : ''}
+    </Typography>
+  </Box>
+)
+
 export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSection }: Props) => {
   const { t } = useTranslation()
-  const { formatTime, formatDate } = useTimezone()
+  const { formatTime } = useTimezone()
 
   const [
     aircraftRegistration,
-    flightType,
     picMemberId,
-    picRole,
-    crew2MemberId,
-    crew2Role,
-    crew3MemberId,
-    crew3Role,
-    crew4MemberId,
-    crew4Role,
-    personsOnBoard,
     offBlockTimeEpoch,
     takeoffTimeEpoch,
     landingTimeEpoch,
@@ -78,16 +85,7 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
     billingRemarks,
   ] = watch([
     'aircraftRegistration',
-    'flightType',
     'picMemberId',
-    'picRole',
-    'crew2MemberId',
-    'crew2Role',
-    'crew3MemberId',
-    'crew3Role',
-    'crew4MemberId',
-    'crew4Role',
-    'personsOnBoard',
     'offBlockTimeEpoch',
     'takeoffTimeEpoch',
     'landingTimeEpoch',
@@ -106,18 +104,11 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
     'billingRemarks',
   ])
 
-  const memberName = (id: string | null | undefined) => {
+  const memberLastName = (id: string | null | undefined) => {
     if (!id) return null
     const member = memberList.find((m) => m.memberId === id)
-    return member ? `${member.first} ${member.last}` : id
+    return member ? member.last : id
   }
-
-  const crewLines = [
-    { id: picMemberId, role: picRole },
-    { id: crew2MemberId, role: crew2Role },
-    { id: crew3MemberId, role: crew3Role },
-    { id: crew4MemberId, role: crew4Role },
-  ].filter((c) => c.id)
 
   const formatEpoch = (epoch: string | undefined) =>
     epoch ? formatTime(dayjs.unix(Number(epoch)).toISOString()) : '—'
@@ -136,6 +127,10 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
     takeoffTimeEpoch && landingTimeEpoch
       ? Math.round((Number(landingTimeEpoch) - Number(takeoffTimeEpoch)) / 60)
       : null
+  const blockMins =
+    offBlockTimeEpoch && onBlockTimeEpoch
+      ? Math.round((Number(onBlockTimeEpoch) - Number(offBlockTimeEpoch)) / 60)
+      : null
   const currentTotalMins = parseHoursMinutes(aircraft?.status?.totalTime)
   const newTotalMins =
     currentTotalMins != null && flightMins != null ? currentTotalMins + flightMins : null
@@ -143,25 +138,31 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Paper elevation={3} sx={{ p: 2, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
-        <Typography variant='subtitle2' sx={{ opacity: 0.85, mb: 1 }}>
-          {t('flightLog.wizard.ajlbSummary.title')}
-        </Typography>
-
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mb: 1 }}>
-          <Box>
-            <Typography variant='caption' sx={{ opacity: 0.8 }}>
-              {t('flightLog.flightDate')}
-            </Typography>
-            <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
-              {flightDate ? formatDate(flightDate.toISOString()) : '—'}
-            </Typography>
-          </Box>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'auto 1fr 1fr',
+            columnGap: 3,
+            rowGap: 1,
+            mb: 1.5,
+            alignItems: 'start',
+          }}
+        >
+          <CompactDate date={flightDate} />
           <Box>
             <Typography variant='caption' sx={{ opacity: 0.8 }}>
               {t('flightLog.aircraft')}
             </Typography>
             <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
               {aircraftRegistration || '—'}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant='caption' sx={{ opacity: 0.8 }}>
+              {t('flightLog.crews.pic')}
+            </Typography>
+            <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
+              {memberLastName(picMemberId) || '—'}
             </Typography>
           </Box>
         </Box>
@@ -181,6 +182,9 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
             <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
               {formatEpoch(takeoffTimeEpoch)}
             </Typography>
+            <Typography variant='caption' sx={{ opacity: 0.8, display: 'block' }}>
+              {departureAirport || '—'}
+            </Typography>
           </Box>
           <Box>
             <Typography variant='caption' sx={{ opacity: 0.8 }}>
@@ -188,6 +192,9 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
             </Typography>
             <Typography variant='h5' sx={{ fontWeight: 'bold' }}>
               {formatEpoch(landingTimeEpoch)}
+            </Typography>
+            <Typography variant='caption' sx={{ opacity: 0.8, display: 'block' }}>
+              {arrivalAirport || '—'}
             </Typography>
           </Box>
           <Box>
@@ -237,12 +244,12 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
           {t('flightLog.wizard.ajlbSummary.verifyPrompt')}
         </Alert>
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1 }}>
           <Box>
             <Typography variant='caption' sx={{ opacity: 0.8 }}>
               {t('flightLog.wizard.ajlbSummary.landings')}
             </Typography>
-            <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+            <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
               {numberOfLandings ?? '—'}
             </Typography>
           </Box>
@@ -250,15 +257,23 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
             <Typography variant='caption' sx={{ opacity: 0.8 }}>
               {t('flightLog.fuelUpliftLitres')}
             </Typography>
-            <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+            <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
               {fuelUpliftLitres ?? t('common.none')}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant='caption' sx={{ opacity: 0.8 }}>
+              {t('flightLog.fuelRemainingLitres')}
+            </Typography>
+            <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
+              {Math.round(fuelRemainingLitres ?? 0)}L
             </Typography>
           </Box>
           <Box>
             <Typography variant='caption' sx={{ opacity: 0.8 }}>
               {t('flightLog.oilUpliftLitres')}
             </Typography>
-            <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+            <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
               {oilUpliftLitres ?? 0}L
             </Typography>
           </Box>
@@ -272,7 +287,7 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
                   <Typography variant='caption' sx={{ opacity: 0.8 }}>
                     {t('flightLog.nightFlyingMins')}
                   </Typography>
-                  <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+                  <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
                     {formatMins(nightFlyingMins)}
                   </Typography>
                 </Box>
@@ -280,7 +295,7 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
                   <Typography variant='caption' sx={{ opacity: 0.8 }}>
                     {t('flightLog.numberOfNightLandings')}
                   </Typography>
-                  <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+                  <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
                     {numberOfNightLandings ?? 0}
                   </Typography>
                 </Box>
@@ -291,109 +306,43 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
                 <Typography variant='caption' sx={{ opacity: 0.8 }}>
                   {t('flightLog.instrumentFlyingMins')}
                 </Typography>
-                <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
+                <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
                   {formatMins(instrumentFlyingMins)}
                 </Typography>
               </Box>
             )}
           </Box>
         )}
+
+        <Box sx={{ borderTop: '1px solid', borderColor: 'rgba(255,255,255,0.35)', my: 1.5 }} />
+
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
+          <Box>
+            <Typography variant='caption' sx={{ opacity: 0.8 }}>
+              {t('flightLog.offBlockTime')}
+            </Typography>
+            <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
+              {formatEpoch(offBlockTimeEpoch)}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant='caption' sx={{ opacity: 0.8 }}>
+              {t('flightLog.onBlockTime')}
+            </Typography>
+            <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
+              {formatEpoch(onBlockTimeEpoch)}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant='caption' sx={{ opacity: 0.8 }}>
+              {t('flightLog.blockTime')}
+            </Typography>
+            <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
+              {blockMins != null ? formatMins(blockMins) : '—'}
+            </Typography>
+          </Box>
+        </Box>
       </Paper>
-
-      <ReviewSection
-        title={t('flightLog.wizard.step.aircraftType')}
-        onEdit={() => onEditSection('aircraftType')}
-      >
-        <Typography variant='body2'>
-          {aircraftRegistration} — {t(`flightLog.flightTypes.${flightType}`)}
-        </Typography>
-      </ReviewSection>
-
-      <ReviewSection title={t('flightLog.wizard.step.crew')} onEdit={() => onEditSection('crew')}>
-        {crewLines.map((c, i) => (
-          <Typography key={i} variant='body2'>
-            {memberName(c.id)} {c.role ? `(${c.role})` : ''}
-          </Typography>
-        ))}
-        <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-          {t('flightLog.personsOnBoard')}: {personsOnBoard}
-        </Typography>
-      </ReviewSection>
-
-      <ReviewSection
-        title={t('flightLog.wizard.step.timeDeparture')}
-        onEdit={() => onEditSection('timeDeparture')}
-      >
-        <Typography variant='body2'>
-          {t('flightLog.offBlockTime')}: {formatEpoch(offBlockTimeEpoch)}
-        </Typography>
-        <Typography variant='body2'>
-          {t('flightLog.takeoffTime')}: {formatEpoch(takeoffTimeEpoch)}
-        </Typography>
-      </ReviewSection>
-
-      <ReviewSection
-        title={t('flightLog.wizard.step.timeArrival')}
-        onEdit={() => onEditSection('timeArrival')}
-      >
-        <Typography variant='body2'>
-          {t('flightLog.landingTime')}: {formatEpoch(landingTimeEpoch)}
-        </Typography>
-        <Typography variant='body2'>
-          {t('flightLog.onBlockTime')}: {formatEpoch(onBlockTimeEpoch)}
-        </Typography>
-      </ReviewSection>
-
-      <ReviewSection
-        title={t('flightLog.wizard.step.airports')}
-        onEdit={() => onEditSection('airports')}
-      >
-        <Typography variant='body2'>
-          {departureAirport} → {arrivalAirport}
-        </Typography>
-      </ReviewSection>
-
-      <ReviewSection
-        title={t('flightLog.wizard.step.landings')}
-        onEdit={() => onEditSection('landings')}
-      >
-        <Typography variant='body2'>{numberOfLandings}</Typography>
-      </ReviewSection>
-
-      {hasNightOrIfr && (
-        <ReviewSection
-          title={t('flightLog.wizard.step.nightIfr')}
-          onEdit={() => onEditSection('nightIfr')}
-        >
-          <Typography variant='body2'>
-            {t('flightLog.nightFlyingMins')}: {formatMins(nightFlyingMins)}
-          </Typography>
-          <Typography variant='body2'>
-            {t('flightLog.numberOfNightLandings')}: {numberOfNightLandings ?? 0}
-          </Typography>
-          <Typography variant='body2'>
-            {t('flightLog.instrumentFlyingMins')}: {formatMins(instrumentFlyingMins)}
-          </Typography>
-        </ReviewSection>
-      )}
-
-      <ReviewSection
-        title={t('flightLog.wizard.step.fuelUplift')}
-        onEdit={() => onEditSection('fuelUplift')}
-      >
-        <Typography variant='body2'>
-          {t('flightLog.fuelUpliftLitres')}: {fuelUpliftLitres ?? t('common.none')}
-        </Typography>
-        <Typography variant='body2'>
-          {t('flightLog.fuelRemainingLitres')}: {Math.round(fuelRemainingLitres ?? 0)}L
-        </Typography>
-      </ReviewSection>
-
-      <ReviewSection title={t('flightLog.wizard.step.oil')} onEdit={() => onEditSection('oil')}>
-        <Typography variant='body2'>
-          {t('flightLog.oilUpliftLitres')}: {oilUpliftLitres ?? 0}L
-        </Typography>
-      </ReviewSection>
 
       {(incidentOrObservations || personalRemarks || billingRemarks) && (
         <ReviewSection

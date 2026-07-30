@@ -1,7 +1,7 @@
 import { Box, Typography, ToggleButton, ToggleButtonGroup, TextField } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { Controller } from 'react-hook-form'
-import { NumericTimeEntry } from '../components/NumericTimeEntry'
+import { TimeEntryField } from '../components/TimeEntryField'
 import { ButtonPicker } from '../components/ButtonPicker'
 import type { WizardFormProps } from '../types'
 
@@ -52,25 +52,21 @@ export const NightIfrStep = ({ control, setValue, nightOrIfr, onNightOrIfrChange
 
       {nightOrIfr && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-              {t('flightLog.nightFlyingMins')}
-            </Typography>
-            <Controller
-              name='nightFlyingMins'
-              control={control}
-              render={({ field }) => {
-                const { hour, minute } = minsToHM(field.value)
-                return (
-                  <NumericTimeEntry
-                    hour={field.value != null ? hour : null}
-                    minute={field.value != null ? minute : null}
-                    onChange={(h, m) => field.onChange(h * 60 + m)}
-                  />
-                )
-              }}
-            />
-          </Box>
+          <Controller
+            name='nightFlyingMins'
+            control={control}
+            render={({ field }) => {
+              const { hour, minute } = minsToHM(field.value)
+              return (
+                <TimeEntryField
+                  label={t('flightLog.nightFlyingMins')}
+                  hour={field.value != null ? hour : null}
+                  minute={field.value != null ? minute : null}
+                  onChange={(h, m) => field.onChange(h * 60 + m)}
+                />
+              )
+            }}
+          />
 
           <Box>
             <Typography
@@ -125,25 +121,21 @@ export const NightIfrStep = ({ control, setValue, nightOrIfr, onNightOrIfrChange
             />
           </Box>
 
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-              {t('flightLog.instrumentFlyingMins')}
-            </Typography>
-            <Controller
-              name='instrumentFlyingMins'
-              control={control}
-              render={({ field }) => {
-                const { hour, minute } = minsToHM(field.value)
-                return (
-                  <NumericTimeEntry
-                    hour={field.value != null ? hour : null}
-                    minute={field.value != null ? minute : null}
-                    onChange={(h, m) => field.onChange(h * 60 + m)}
-                  />
-                )
-              }}
-            />
-          </Box>
+          <Controller
+            name='instrumentFlyingMins'
+            control={control}
+            render={({ field }) => {
+              const { hour, minute } = minsToHM(field.value)
+              return (
+                <TimeEntryField
+                  label={t('flightLog.instrumentFlyingMins')}
+                  hour={field.value != null ? hour : null}
+                  minute={field.value != null ? minute : null}
+                  onChange={(h, m) => field.onChange(h * 60 + m)}
+                />
+              )
+            }}
+          />
         </Box>
       )}
     </Box>

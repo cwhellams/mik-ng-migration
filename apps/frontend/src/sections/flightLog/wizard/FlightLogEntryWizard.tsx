@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText } from '@mui/material'
-import { useForm } from 'react-hook-form'
+import { useForm, type DefaultValues } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import {
   FlightLog,
   FlightType,
+  FlightLogUpsertSchema,
   type FlightLogUpsertRequest,
 } from '@backend/routes/flight-log/models'
 import { AircraftListResponse } from '@backend/routes/aircrafts/models'
@@ -32,6 +33,14 @@ import { WIZARD_STEPS, type WizardStep } from './useWizardSteps'
 
 interface Props {
   onSwitchToClassicForm: () => void
+  // When set, the wizard edits this existing flight log instead of creating a new
+  // one — PATCHes on accept and seeds all form state from `initialData`.
+  flightId?: string
+  initialData?: FlightLog
+  // Step to open on — used to jump straight to the review card, or to a specific
+  // section when editing via one of the review card's per-section edit buttons.
+  initialStep?: WizardStep
+  onClose?: () => void
 }
 
 const FIELDS_TO_VALIDATE_PER_STEP: Partial<Record<WizardStep, (keyof FlightLogUpsertRequest)[]>> = {
@@ -51,13 +60,22 @@ const FIELDS_TO_VALIDATE_PER_STEP: Partial<Record<WizardStep, (keyof FlightLogUp
   airports: ['departureAirport', 'arrivalAirport'],
 }
 
-export const FlightLogEntryWizard = ({ onSwitchToClassicForm }: Props) => {
+export const FlightLogEntryWizard = ({
+  onSwitchToClassicForm,
+  flightId,
+  initialData,
+  initialStep,
+  onClose,
+}: Props) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { me } = useMe()
+  const isEditing = !!flightId
 
-  const backLink = `/logs${location.state ?? ''}`
+  const backLink = isEditing
+    ? `/logs${location.state ?? ''}#${flightId}`
+    : `/logs${location.state ?? ''}`
 
   const { data: aircraftData } = useApi<AircraftListResponse>({
     url: 'v1/aircrafts',
@@ -69,9 +87,57 @@ export const FlightLogEntryWizard = ({ onSwitchToClassicForm }: Props) => {
     { revalidateIfStale: false, revalidateOnFocus: false, revalidateOnReconnect: false },
   )
 
-  const { mutation } = useApi<FlightLog>({ url: 'v1/flight-logs', skipFetch: true })
+  const { mutation } = useApi<FlightLog>({
+    url: `v1/flight-logs${isEditing ? `/${flightId}` : ''}`,
+    skipFetch: true,
+  })
 
   const resolver = buildFlightLogResolver(t, memberList, true)
+
+  const defaultValues: DefaultValues<FlightLogUpsertRequest> = initialData
+    ? FlightLogUpsertSchema.strip().parse(initialData)
+    : {
+        aircraftRegistration: '',
+        flightType: FlightType.PRIVATE,
+
+        picMemberId: me?.memberId ?? '',
+        picRole: 'PIC',
+        personsOnBoard: 1,
+        crew2MemberId: null,
+        crew2Role: null,
+        crew3MemberId: null,
+        crew3Role: null,
+        crew4MemberId: null,
+        crew4Role: null,
+
+        totalTimeInService: 0,
+        incidentOrObservations: null,
+
+        numberOfNightLandings: 0,
+        nightFlyingMins: 0,
+        instrumentFlyingMins: 0,
+
+        fuelRemainingLitres: 0,
+        fuelUpliftLitres: null,
+        oilUpliftLitres: null,
+
+        personalRemarks: null,
+        billingRemarks: null,
+        partiallyBillableFlight: false,
+        entryErrorFee: false,
+        entryErrorFeeAppliedByMemberId: null,
+        nonBillingApprovedByMemberId: null,
+        validationRemarks: null,
+
+        minBillableExceptionReason: null,
+        minBillableExceptionApprovedByMemberId: null,
+
+        ajlbSeqNo: 1,
+        ajlbBlankRowsBefore: 0,
+        billableMemberId: me?.memberId ?? '',
+        isBillableFlight: true,
+        nonBillingReason: null,
+      }
 
   const {
     control,
@@ -87,58 +153,19 @@ export const FlightLogEntryWizard = ({ onSwitchToClassicForm }: Props) => {
   } = useForm<FlightLogUpsertRequest>({
     mode: 'onChange',
     resolver,
-    defaultValues: {
-      aircraftRegistration: '',
-      flightType: FlightType.PRIVATE,
-
-      picMemberId: me?.memberId ?? '',
-      picRole: 'PIC',
-      personsOnBoard: 1,
-      crew2MemberId: null,
-      crew2Role: null,
-      crew3MemberId: null,
-      crew3Role: null,
-      crew4MemberId: null,
-      crew4Role: null,
-
-      totalTimeInService: 0,
-      incidentOrObservations: null,
-
-      numberOfNightLandings: 0,
-      nightFlyingMins: 0,
-      instrumentFlyingMins: 0,
-
-      fuelRemainingLitres: 0,
-      fuelUpliftLitres: null,
-      oilUpliftLitres: null,
-
-      personalRemarks: null,
-      billingRemarks: null,
-      partiallyBillableFlight: false,
-      entryErrorFee: false,
-      entryErrorFeeAppliedByMemberId: null,
-      nonBillingApprovedByMemberId: null,
-      validationRemarks: null,
-
-      minBillableExceptionReason: null,
-      minBillableExceptionApprovedByMemberId: null,
-
-      ajlbSeqNo: 1,
-      ajlbBlankRowsBefore: 0,
-      billableMemberId: me?.memberId ?? '',
-      isBillableFlight: true,
-      nonBillingReason: null,
-    },
+    defaultValues,
   })
 
   // `me` resolves asynchronously (SWR), so the defaultValues above may still be ''
   // when the form first mounts — mirrors the classic form's equivalent effect.
+  // Skipped when editing an existing flight: it already has its own PIC/billable
+  // member and must not be silently reassigned to the current user.
   useEffect(() => {
-    if (me?.memberId) {
+    if (!isEditing && me?.memberId) {
       setValue('picMemberId', me.memberId)
       setValue('billableMemberId', me.memberId)
     }
-  }, [me, setValue])
+  }, [me, setValue, isEditing])
 
   const formProps = {
     control,
@@ -152,13 +179,29 @@ export const FlightLogEntryWizard = ({ onSwitchToClassicForm }: Props) => {
     errors,
   }
 
-  const [stepIndex, setStepIndex] = useState(0)
+  const [stepIndex, setStepIndex] = useState(() =>
+    initialStep ? WIZARD_STEPS.indexOf(initialStep) : 0,
+  )
   const currentStep = WIZARD_STEPS[stepIndex]
 
-  const [flightDate, setFlightDate] = useState(() => dayjs().utc().startOf('day'))
-  const [nightOrIfr, setNightOrIfr] = useState<boolean | null>(null)
-  const [refueled, setRefueled] = useState<boolean | null>(null)
-  const [oilAdded, setOilAdded] = useState<boolean | null>(null)
+  const [flightDate, setFlightDate] = useState(() =>
+    initialData
+      ? dayjs.unix(Number(initialData.offBlockTimeEpoch)).utc().startOf('day')
+      : dayjs().utc().startOf('day'),
+  )
+  const [nightOrIfr, setNightOrIfr] = useState<boolean | null>(() =>
+    initialData
+      ? (initialData.nightFlyingMins ?? 0) > 0 ||
+        (initialData.numberOfNightLandings ?? 0) > 0 ||
+        (initialData.instrumentFlyingMins ?? 0) > 0
+      : null,
+  )
+  const [refueled, setRefueled] = useState<boolean | null>(() =>
+    initialData ? initialData.fuelUpliftLitres != null : null,
+  )
+  const [oilAdded, setOilAdded] = useState<boolean | null>(() =>
+    initialData ? initialData.oilUpliftLitres != null : null,
+  )
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -209,15 +252,24 @@ export const FlightLogEntryWizard = ({ onSwitchToClassicForm }: Props) => {
   const handleAccept = handleSubmit(async (data) => {
     setSubmitting(true)
     try {
-      const { data: saved, error } = await mutation.trigger('POST', data, undefined, {
-        revalidate: false,
-        populateCache: (result) => result,
-      })
+      const { data: saved, error } = await mutation.trigger(
+        isEditing ? 'PATCH' : 'POST',
+        data,
+        undefined,
+        {
+          revalidate: false,
+          populateCache: (result) => result,
+        },
+      )
       if (error) {
         setProblem(error)
         return
       }
-      navigate(`/logs${location.state ?? ''}#${saved?.flightId ?? ''}`)
+      if (isEditing) {
+        onClose?.()
+      } else {
+        navigate(`/logs${location.state ?? ''}#${saved?.flightId ?? ''}`)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -290,6 +342,9 @@ export const FlightLogEntryWizard = ({ onSwitchToClassicForm }: Props) => {
           flightDate={flightDate}
           onFlightDateChange={setFlightDate}
           showTakeoffDelta
+          // off-block's "reference" is just the flight date, not a real previous
+          // time — don't auto-seed it from midnight.
+          seedFirstFromReference={false}
         />
       )}
       {currentStep === 'timeArrival' && (
@@ -334,7 +389,7 @@ export const FlightLogEntryWizard = ({ onSwitchToClassicForm }: Props) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowDiscardConfirm(false)}>{t('common.cancel')}</Button>
-          <Button color='error' onClick={() => navigate(backLink)}>
+          <Button color='error' onClick={() => (isEditing ? onClose?.() : navigate(backLink))}>
             {t('flightLog.wizard.discard')}
           </Button>
         </DialogActions>

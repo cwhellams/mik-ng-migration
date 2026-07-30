@@ -1,19 +1,14 @@
-import { useState } from 'react'
-import {
-  Box,
-  FormHelperText,
-  IconButton,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from '@mui/material'
+import { useEffect, useState } from 'react'
+import { Box, IconButton, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { Controller } from 'react-hook-form'
+import { useController, type Control, type UseFormTrigger } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import { NumericTimeEntry } from '../components/NumericTimeEntry'
+import type { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
+import { TimeEntryField } from '../components/TimeEntryField'
 import { calculateNext } from '../../utils/timeUtils'
+import { vibrate } from '../../../../utils/haptics'
 import { useTimezone } from '../../../../hooks/useTimezone'
 import { useServerClock } from '../../../../hooks/useServerClock'
 import type { WizardFormProps } from '../types'
@@ -41,6 +36,10 @@ interface Props extends WizardFormProps {
   flightDate?: dayjs.Dayjs
   onFlightDateChange?: (date: dayjs.Dayjs) => void
   showTakeoffDelta?: boolean
+  // false only for the very first time field in the whole flow (off-block) — its
+  // "reference" is just the flight date, not a real previous time, so it must not be
+  // auto-seeded from it. Every other field defaults to true.
+  seedFirstFromReference?: boolean
 }
 
 export const TimeStep = ({
@@ -53,6 +52,7 @@ export const TimeStep = ({
   flightDate,
   onFlightDateChange,
   showTakeoffDelta,
+  seedFirstFromReference = true,
 }: Props) => {
   const { t } = useTranslation()
   const { timezone, setTimezone } = useTimezone()
@@ -80,7 +80,10 @@ export const TimeStep = ({
             disableFuture
             format='DD.MM.YYYY'
             onChange={(date) => {
-              if (date) onFlightDateChange?.(date)
+              if (date) {
+                vibrate()
+                onFlightDateChange?.(date)
+              }
               setShowDatePicker(false)
             }}
             slotProps={{ textField: { size: 'small' } }}
@@ -120,61 +123,116 @@ export const TimeStep = ({
         </ToggleButtonGroup>
       )}
 
+      <Box sx={{ width: '100%', mt: flightDate ? 3 : 0 }} />
+
       {fields.map((fieldConfig, index) => {
         const fieldReferenceEpoch = index === 0 ? referenceEpoch : priorFieldEpochs[index - 1]
         const refDate = fieldReferenceEpoch ? toDate(fieldReferenceEpoch) : null
         const fieldDeps = index < fields.length - 1 ? [fields[index + 1].field] : deps
+        const shouldSeed = index > 0 || seedFirstFromReference
 
         return (
-          <Box key={fieldConfig.field} sx={{ width: '100%', textAlign: 'center' }}>
-            <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-              {fieldConfig.label}
-            </Typography>
-            <Controller
-              name={fieldConfig.field}
-              control={control}
-              render={({ field: rhfField, fieldState: { error } }) => {
-                const currentValue = rhfField.value ? toDate(rhfField.value) : null
-
-                const formatError = () => {
-                  if (!error) return null
-                  if (error.type === 'too_small')
-                    return `${t('flightLog.wizard.timeMustBeAfter')} ${toDate(error.message ?? '0').format('HH:mm')}`
-                  if (error.type === 'too_big')
-                    return `${t('flightLog.wizard.timeMustBeBefore')} ${toDate(error.message ?? '0').format('HH:mm')}`
-                  return error.message ?? error.type
-                }
-
-                return (
-                  <Box>
-                    <NumericTimeEntry
-                      hour={currentValue ? currentValue.hour() : null}
-                      minute={currentValue ? currentValue.minute() : null}
-                      disabled={!refDate}
-                      onChange={(h, m) => {
-                        if (!refDate) return
-                        const time = refDate.hour(h).minute(m).second(0)
-                        const result = calculateNext(refDate, time)
-                        rhfField.onChange(result.unix().toString())
-                        fieldDeps.forEach((dep) => trigger(dep))
-                      }}
-                    />
-                    {error && <FormHelperText error>{formatError()}</FormHelperText>}
-                    {!refDate && (
-                      <FormHelperText>
-                        {t('flightLog.wizard.enterPreviousTimeFirst')}
-                      </FormHelperText>
-                    )}
-                  </Box>
-                )
-              }}
-            />
-          </Box>
+          <TimeFieldWheel
+            key={fieldConfig.field}
+            name={fieldConfig.field}
+            label={fieldConfig.label}
+            control={control}
+            trigger={trigger}
+            refDate={refDate}
+            fieldDeps={fieldDeps}
+            shouldSeed={shouldSeed}
+            toDate={toDate}
+          />
         )
       })}
 
       {showTakeoffDelta && <TakeoffDelta epoch={takeoffEpoch} utcMs={utcMs} />}
     </Box>
+  )
+}
+
+interface TimeFieldWheelProps {
+  name: TimeFieldName
+  label: string
+  control: Control<FlightLogUpsertRequest>
+  trigger: UseFormTrigger<FlightLogUpsertRequest>
+  // the previous field's time-of-day this field is anchored to — null if not entered
+  // yet, in which case this field stays disabled.
+  refDate: dayjs.Dayjs | null
+  // fields outside this page to re-trigger once this field changes
+  fieldDeps: TimeFieldName[]
+  // whether to auto-fill this field from refDate the first time refDate becomes
+  // available and the field itself is still empty.
+  shouldSeed: boolean
+  toDate: (epoch: string | number) => dayjs.Dayjs
+}
+
+// One field's wheel entry — off-block, takeoff, landing, or on-block. Handles both the
+// forward auto-seeding from the previous time and the red error highlighting.
+const TimeFieldWheel = ({
+  name,
+  label,
+  control,
+  trigger,
+  refDate,
+  fieldDeps,
+  shouldSeed,
+  toDate,
+}: TimeFieldWheelProps) => {
+  const { t } = useTranslation()
+  const {
+    field: rhfField,
+    fieldState: { error },
+  } = useController({ name, control })
+  const currentValue = rhfField.value ? toDate(rhfField.value) : null
+
+  // Auto-seed forward, once: the first time this field's reference becomes available
+  // and the field itself has never been set, default it to a minute after the
+  // reference (e.g. takeoff defaults to off-block + 1min) — a plausible, already-valid
+  // starting point the user can then adjust by scrolling. Guarded on the field's own
+  // value being empty, so it never overwrites a value the user (or a previous seed)
+  // already set, and never cascades backward when an earlier field is edited later.
+  useEffect(() => {
+    if (shouldSeed && refDate && !rhfField.value) {
+      const seeded = refDate.add(1, 'minute')
+      rhfField.onChange(seeded.unix().toString())
+      fieldDeps.forEach((dep) => trigger(dep))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refDate, shouldSeed])
+
+  const formatError = () => {
+    if (!error) return null
+    if (error.type === 'too_small')
+      return `${t('flightLog.wizard.timeMustBeAfter')} ${toDate(error.message ?? '0').format('HH:mm')}`
+    if (error.type === 'too_big')
+      return `${t('flightLog.wizard.timeMustBeBefore')} ${toDate(error.message ?? '0').format('HH:mm')}`
+    return error.message ?? error.type
+  }
+
+  // Only show validation errors once the user has actually entered a value for this
+  // field — with mode:'onChange' the shared resolver re-validates the whole form on
+  // every keystroke, which would otherwise surface errors for still-empty fields on
+  // later steps.
+  const hasError = !!error && !!currentValue
+
+  return (
+    <TimeEntryField
+      label={label}
+      hour={currentValue ? currentValue.hour() : null}
+      minute={currentValue ? currentValue.minute() : null}
+      disabled={!refDate}
+      error={hasError}
+      errorMessage={formatError()}
+      disabledMessage={t('flightLog.wizard.enterPreviousTimeFirst')}
+      onChange={(h, m) => {
+        if (!refDate) return
+        const time = refDate.hour(h).minute(m).second(0)
+        const result = calculateNext(refDate, time)
+        rhfField.onChange(result.unix().toString())
+        fieldDeps.forEach((dep) => trigger(dep))
+      }}
+    />
   )
 }
 

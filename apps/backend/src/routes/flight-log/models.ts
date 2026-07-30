@@ -292,6 +292,29 @@ export const validateFlightLogTimes = (
 
   // taxi in is limited to 30 minutes
   validate('landingTimeEpoch', 'onBlockTimeEpoch', 30)
+
+  // None of the times may be in the future — the DB has the same constraint, but
+  // checking it here surfaces a friendly validation message at entry time instead of
+  // a raw constraint-violation error only on submit.
+  const nowEpoch = Math.floor(Date.now() / 1000)
+  ;(
+    ['offBlockTimeEpoch', 'takeoffTimeEpoch', 'landingTimeEpoch', 'onBlockTimeEpoch'] as const
+  ).forEach((key) => {
+    const value = times[key]
+    if (value == null) return
+    const epoch = Number(value)
+    if (epoch > nowEpoch) {
+      addIssue({
+        code: 'too_big',
+        maximum: nowEpoch,
+        inclusive: true,
+        origin: 'number',
+        input: epoch,
+        message: nowEpoch.toString(),
+        path: [key],
+      })
+    }
+  })
 }
 
 export const validateFlightLogBusinessRules = (
