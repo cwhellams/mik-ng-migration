@@ -2,16 +2,19 @@ import {
   Box,
   Grid,
   Button,
+  IconButton,
   useMediaQuery,
   useTheme,
   Pagination,
   PaginationItem,
   Tooltip,
   Typography,
+  Divider,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
 import { Icon } from '@iconify/react'
+import AirplaneTicketOutlinedIcon from '@mui/icons-material/AirplaneTicketOutlined'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   FlightLog,
@@ -25,14 +28,8 @@ import { useScrollOnRender } from '../../hooks/useScrollOnRender'
 import { useEffect, useState } from 'react'
 import { StatusButton } from './components/StatusButton'
 import { Title } from '../../components/Title'
-import {
-  ViewMobileFlightTime,
-  ViewFlightDate,
-  ViewMobileFlightDetails,
-  ViewMobileCrew,
-} from './components/FlightListEntry'
+import { FlightLogBanner, FlightLogDate, FlightLogTimeline } from './components/FlightListEntry'
 import { ResponsiveTable } from '../../components/ResponsiveTable'
-import { useTimezone } from '../../hooks/useTimezone'
 import { FlightLogExportDialog } from './components/FlightLogExportDialog'
 
 const formatEur = (value: number) =>
@@ -42,8 +39,6 @@ const FlightLogsList = () => {
   const { t } = useTranslation()
 
   const { me, isFlightLogAdmin } = useRoles()
-
-  const { formatTime } = useTimezone()
 
   const [searchParams, setSearchParams] = useSearchParams()
   const scrollToRef = useScrollOnRender()
@@ -79,28 +74,11 @@ const FlightLogsList = () => {
   )
 
   const theme = useTheme()
-  const isMd = useMediaQuery(theme.breakpoints.up('md'))
+  const isSmUp = useMediaQuery(theme.breakpoints.up('sm'))
 
   return (
     <Box>
-      <Title label={t('flightLog.title')}>
-        <Button
-          variant='outlined'
-          startIcon={<Icon icon='mdi:export' />}
-          onClick={() => setExportOpen(true)}
-        >
-          {t('flightLog.export.button')}
-        </Button>
-        <Button
-          variant='contained'
-          color='primary'
-          startIcon={<Icon icon='mdi:plus' />}
-          component={Link}
-          to='/logs/flights/new'
-        >
-          {t('flightLog.newEntry', 'New Entry')}
-        </Button>
-      </Title>
+      <Title label={t('flightLog.title')} />
       <FlightLogExportDialog
         open={exportOpen}
         onClose={() => setExportOpen(false)}
@@ -110,8 +88,10 @@ const FlightLogsList = () => {
         size={12}
         sx={{
           display: 'flex',
-          justifyContent: 'flex-start',
-          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 1,
           mb: 3,
         }}
       >
@@ -123,165 +103,141 @@ const FlightLogsList = () => {
             })
           }}
         />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title={t('flightLog.export.button')}>
+            <IconButton
+              onClick={() => setExportOpen(true)}
+              aria-label={t('flightLog.export.button')}
+            >
+              <Icon icon='mdi:export' />
+            </IconButton>
+          </Tooltip>
+          {isSmUp ? (
+            <Button
+              variant='contained'
+              color='primary'
+              startIcon={<AirplaneTicketOutlinedIcon />}
+              component={Link}
+              to='/logs/flights/new'
+            >
+              {t('flightLog.newEntry', 'New Entry')}
+            </Button>
+          ) : (
+            <Tooltip title={t('flightLog.newEntry', 'New Entry')}>
+              <IconButton
+                component={Link}
+                to='/logs/flights/new'
+                aria-label={t('flightLog.newEntry', 'New Entry')}
+                sx={{
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                }}
+              >
+                <AirplaneTicketOutlinedIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
       </Grid>
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable
-          header={
-            <>
-              <Grid size={1.3}>{t('flightLog.date')}</Grid>
-              <Grid size={1}>{t('flightLog.aircraft')}</Grid>
-              <Grid size={1.5}>{t('flightLog.crews.pic')}</Grid>
-              <Grid size={1.5}>{t('flightLog.logbooks.student')}</Grid>
-              <Grid size={0.5}>PoB</Grid>
-              <Grid size={1}>{t('flightLog.departure')}</Grid>
-              <Grid size={1}>{t('flightLog.arrival')}</Grid>
-              <Grid size={1}>{t('flightLog.duration')}</Grid>
-              <Grid size={0.7}>{t('flightLog.landings')}</Grid>
-              <Grid size={1.1}>{t('flightLog.flightType')}</Grid>
-              {!isFlightLogAdmin && (
-                <Tooltip title={t('flightLog.estimatedCostTooltip')}>
-                  <Grid size={0.9} sx={{ textAlign: 'end', cursor: 'help' }}>
-                    {t('flightLog.estimatedCost')}
-                  </Grid>
-                </Tooltip>
-              )}
-              <Grid size={0.5} sx={{ textAlign: 'end' }}>
-                {t('flightLog.logbooks.status')}
-              </Grid>
-            </>
-          }
           notFoundMsg={t('flightLog.noLogs')}
           rows={data?.logs ?? []}
           rowProps={() => ({
-            minHeight: 75,
+            borderTop: '2px solid',
+            borderColor: 'divider',
+            pt: 1.5,
           })}
-          row={(log) => (
-            <>
-              <Grid size={{ xs: 3, md: 1.3 }}>
-                <ViewFlightDate
-                  flightId={log.flightId}
-                  date={log.offBlockTimeUtc}
-                  link={isFlightLogAdmin || log.billableMemberId == me?.memberId}
-                  state={`?${searchParams.toString()}`}
+          row={(log) => {
+            const canOpen = isFlightLogAdmin || log.billableMemberId == me?.memberId
+
+            return (
+              <Grid size={12}>
+                <Box
+                  component={canOpen ? Link : 'div'}
+                  to={canOpen ? `/logs/flights/${log.flightId}` : undefined}
+                  state={canOpen ? `?${searchParams.toString()}` : undefined}
                   ref={location.hash == `#${log.flightId}` ? scrollToRef : undefined}
-                />
-              </Grid>
-
-              {isMd ? (
-                <>
-                  <Grid size={1}>{log.aircraftRegistration}</Grid>
-
-                  <Grid size={1.5}>
-                    <Box>{log.picLastName}</Box>
-                  </Grid>
-                  <Grid size={1.5}>
-                    <Box>{log.crew2LastName}</Box>
-                  </Grid>
-                  <Grid size={0.5}>
-                    <Box>{log.personsOnBoard}</Box>
-                  </Grid>
-
-                  <Grid size={1}>
-                    <Box>{log.departureAirport}</Box>
-                    <Box
-                      sx={{
-                        color: 'text.secondary',
-                      }}
-                    >
-                      {formatTime(log.offBlockTimeUtc)}
-                    </Box>
-                    <Box
-                      sx={{
-                        color: 'text.secondary',
-                      }}
-                    >
-                      {formatTime(log.takeoffTimeUtc)}
-                    </Box>
-                  </Grid>
-
-                  <Grid size={1}>
-                    <Box>{log.arrivalAirport}</Box>
-                    <Box
-                      sx={{
-                        color: 'text.secondary',
-                      }}
-                    >
-                      {formatTime(log.landingTimeUtc)}
-                    </Box>
-                    <Box
-                      sx={{
-                        color: 'text.secondary',
-                      }}
-                    >
-                      {formatTime(log.onBlockTimeUtc)}
-                    </Box>
-                  </Grid>
-
-                  <Grid size={1}>
-                    {log.flightTime}
-                    <Box>{log.blockTime}</Box>
-                  </Grid>
-
-                  <Grid size={0.7}>{log.numberOfLandings}</Grid>
-
-                  <Grid size={1.1}>{t(`flightLog.flightTypes.${log.flightType}`)}</Grid>
-
-                  {!isFlightLogAdmin && (
-                    <Grid size={0.9} sx={{ textAlign: 'end', color: 'text.secondary' }}>
-                      {log.estimatedCost != null ? `~${formatEur(log.estimatedCost)}` : '—'}
-                    </Grid>
-                  )}
-
-                  <Grid
-                    size={0.5}
+                  sx={{
+                    display: 'contents',
+                    color: 'inherit',
+                    textDecoration: 'none',
+                    cursor: canOpen ? 'pointer' : 'default',
+                  }}
+                >
+                  <FlightLogBanner
+                    aircraftRegistration={log.aircraftRegistration}
+                    flightType={t(`flightLog.flightTypes.${log.flightType}`)}
+                  />
+                  <Box
                     sx={{
-                      alignSelf: 'top',
-                      justifyItems: 'end',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: { xs: 1, sm: 2 },
+                      mt: 1,
                     }}
                   >
-                    <StatusButton log={log} />
-                  </Grid>
-                </>
-              ) : (
-                <>
-                  {
-                    // give more room to action buttons by leaving registration out when synching
-                    <Grid size={3}>{log.aircraftRegistration}</Grid>
-                  }
-
-                  <ViewMobileFlightDetails
-                    size={6}
-                    numberOfLandings={log.numberOfLandings}
-                    flightType={log.flightType}
+                    <FlightLogDate
+                      flightId={log.flightId}
+                      date={log.offBlockTimeUtc}
+                      link={false}
+                    />
+                    <Divider orientation='vertical' flexItem />
+                    <FlightLogTimeline
+                      departureAirport={log.departureAirport}
+                      arrivalAirport={log.arrivalAirport}
+                      offBlockTimeUtc={log.offBlockTimeUtc}
+                      takeoffTimeUtc={log.takeoffTimeUtc}
+                      landingTimeUtc={log.landingTimeUtc}
+                      onBlockTimeUtc={log.onBlockTimeUtc}
+                      flightTime={log.flightTime}
+                      blockTime={log.blockTime}
+                    />
+                  </Box>
+                  <Divider sx={{ mt: 1 }} />
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 1,
+                      mt: 0.5,
+                    }}
                   >
-                    <StatusButton log={log} />
-                  </ViewMobileFlightDetails>
-
-                  <ViewMobileCrew
-                    size={4}
-                    personsOnBoard={log.personsOnBoard}
-                    crew={[log.picLastName, log.crew2LastName]}
-                  />
-                  <ViewMobileFlightTime
-                    size={8}
-                    departureAirport={log.departureAirport}
-                    arrivalAirport={log.arrivalAirport}
-                    offBlockTimeUtc={log.offBlockTimeUtc}
-                    takeoffTimeUtc={log.takeoffTimeUtc}
-                    landingTimeUtc={log.landingTimeUtc}
-                    onBlockTimeUtc={log.onBlockTimeUtc}
-                    flightTime={log.flightTime}
-                    secondaryTime={log.blockTime}
-                  />
-                  {!isFlightLogAdmin && log.estimatedCost != null && (
-                    <Grid size={12} sx={{ color: 'text.secondary', fontSize: '0.85em' }}>
-                      ~{formatEur(log.estimatedCost)}
-                    </Grid>
-                  )}
-                </>
-              )}
-            </>
-          )}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 2,
+                        color: 'text.secondary',
+                        fontSize: '0.85em',
+                      }}
+                    >
+                      <Box>
+                        {log.picLastName}
+                        {log.crew2LastName ? ` / ${log.crew2LastName}` : ''} ({log.personsOnBoard}
+                        <Icon icon='mdi:account' style={{ verticalAlign: 'middle' }} />)
+                      </Box>
+                      <Box>
+                        {log.numberOfLandings}{' '}
+                        <Icon icon='mdi:airplane-landing' style={{ verticalAlign: 'middle' }} />
+                      </Box>
+                      {!isFlightLogAdmin && (
+                        <Box>
+                          {log.estimatedCost != null ? `~${formatEur(log.estimatedCost)}` : '—'}
+                        </Box>
+                      )}
+                    </Box>
+                    <Box onClick={(e) => e.stopPropagation()} sx={{ display: 'contents' }}>
+                      <StatusButton log={log} />
+                    </Box>
+                  </Box>
+                </Box>
+              </Grid>
+            )
+          }}
         />
         {!isFlightLogAdmin && data?.unbilledEstimatedTotal != null && (
           <Tooltip title={t('flightLog.unbilledEstimatedTotalTooltip')}>
@@ -309,9 +265,9 @@ const FlightLogsList = () => {
           searchParams.set('page', page.toString())
           setSearchParams(searchParams)
         }}
-        showFirstButton={true}
-        showLastButton={true}
-        siblingCount={2}
+        showFirstButton={isSmUp}
+        showLastButton={isSmUp}
+        siblingCount={isSmUp ? 2 : 1}
         sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}
         renderItem={(item) => {
           if (item.type === 'page' && item.page !== null) {

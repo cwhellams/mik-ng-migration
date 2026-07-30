@@ -22,7 +22,6 @@ export const EditButton = ({
     <Tooltip title={title}>
       <span>
         <IconButton
-          size='small'
           aria-label={title}
           onClick={onClick}
           disabled={viewOnly}
@@ -30,6 +29,9 @@ export const EditButton = ({
             backgroundColor: 'background.paper',
             boxShadow: 0,
             '&:hover': { backgroundColor: 'background.default' },
+            // Ensure touch targets meet the 44px minimum on mobile
+            minWidth: { xs: 44, sm: 'auto' },
+            minHeight: { xs: 44, sm: 'auto' },
             ...sx,
           }}
         >

@@ -1205,6 +1205,7 @@ export interface MemberRegister {
    */
   dashboard_settings: Json | null
   date_of_birth: string | null
+  default_instructor_member_id: string | null
   email: string
   email_verified_at: Timestamp | null
   first_name: string

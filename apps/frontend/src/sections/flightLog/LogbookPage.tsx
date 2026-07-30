@@ -9,6 +9,11 @@ import {
   Breadcrumbs,
   Typography,
   Button,
+  IconButton,
+  Menu,
+  MenuItem as MuiMenuItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
@@ -32,7 +37,7 @@ import { FlightLogValidation } from './components/FlightLogValidation'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Title } from '../../components/Title'
 import {
-  ViewMobileFlightTime,
+  FlightLogTimeline,
   ViewFlightDate,
   ViewMobileFlightDetails,
   ViewMobileCrew,
@@ -187,6 +192,7 @@ const FlightLogsList = () => {
 
   const theme = useTheme()
   const isMd = useMediaQuery(theme.breakpoints.up('md'))
+  const isSmUp = useMediaQuery(theme.breakpoints.up('sm'))
 
   const editableItem =
     isFlightLogAdmin && ajlb?.view?.newFlightsPage === data?.page
@@ -236,56 +242,121 @@ const FlightLogsList = () => {
   }: {
     log: FlightLogListEntry
     onAddInFlightDefect: () => void
-  }) => (
-    <Stack
-      direction='row'
-      spacing={1}
-      sx={{
-        flexWrap: 'wrap',
-        justifyContent: 'flex-end',
-      }}
-    >
-      <StatusButton
-        log={log}
-        update={editableItem === log ? () => validateEntry(log) : undefined}
-      />
+  }) => {
+    const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
+    const menuOpen = Boolean(menuAnchor)
 
-      {isFlightLogUser && (
-        <EditButton
-          title={t('flightLog.defects.addInFlightButton')}
-          onClick={onAddInFlightDefect}
-          icon='mdi:alert-circle-outline'
-          width={20}
-        />
-      )}
-
-      {isFlightLogAdmin && log.status == FlightLogStatus.NEW && (
-        <>
-          {log.ajlbBlankRowsBefore > 0 && (
-            <EditButton
-              title={t('flightLog.logbooks.deleteBlankRow')}
-              onClick={() =>
+    const adminActions =
+      isFlightLogAdmin && log.status == FlightLogStatus.NEW
+        ? [
+            ...(log.ajlbBlankRowsBefore > 0
+              ? [
+                  {
+                    key: 'remove-blank',
+                    title: t('flightLog.logbooks.deleteBlankRow'),
+                    icon: 'mdi:table-row-remove',
+                    onClick: () =>
+                      updateEntry(log, {
+                        ajlbBlankRowsBefore: log.ajlbBlankRowsBefore - 1,
+                      }),
+                  },
+                ]
+              : []),
+            {
+              key: 'add-blank',
+              title: t('flightLog.logbooks.addBlankRow'),
+              icon: 'mdi:table-row-plus-before',
+              onClick: () =>
                 updateEntry(log, {
-                  ajlbBlankRowsBefore: log.ajlbBlankRowsBefore - 1,
-                })
-              }
-              icon='mdi:table-row-remove'
-            />
-          )}
+                  ajlbBlankRowsBefore: log.ajlbBlankRowsBefore + 1,
+                }),
+            },
+          ]
+        : []
 
-          <EditButton
-            title={t('flightLog.logbooks.addBlankRow')}
-            onClick={() =>
-              updateEntry(log, {
-                ajlbBlankRowsBefore: log.ajlbBlankRowsBefore + 1,
-              })
-            }
-            icon='mdi:table-row-plus-before'
+    // On mobile: collapse secondary actions into a kebab menu
+    if (!isSmUp && (isFlightLogUser || adminActions.length > 0)) {
+      return (
+        <Stack direction='row' spacing={0.5} sx={{ justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+          <StatusButton
+            log={log}
+            update={editableItem === log ? () => validateEntry(log) : undefined}
           />
-        </>
-      )}
-    </Stack>
-  )
+          <IconButton
+            size='small'
+            aria-label={t('common.moreActions')}
+            onClick={(e) => setMenuAnchor(e.currentTarget)}
+            sx={{ minWidth: 44, minHeight: 44 }}
+          >
+            <Icon icon='mdi:dots-vertical' width={20} />
+          </IconButton>
+          <Menu anchorEl={menuAnchor} open={menuOpen} onClose={() => setMenuAnchor(null)}>
+            {isFlightLogUser && (
+              <MuiMenuItem
+                onClick={() => {
+                  setMenuAnchor(null)
+                  onAddInFlightDefect()
+                }}
+              >
+                <ListItemIcon>
+                  <Icon icon='mdi:alert-circle-outline' width={20} />
+                </ListItemIcon>
+                <ListItemText>{t('flightLog.defects.addInFlightButton')}</ListItemText>
+              </MuiMenuItem>
+            )}
+            {adminActions.map((action) => (
+              <MuiMenuItem
+                key={action.key}
+                onClick={() => {
+                  setMenuAnchor(null)
+                  action.onClick()
+                }}
+              >
+                <ListItemIcon>
+                  <Icon icon={action.icon} width={20} />
+                </ListItemIcon>
+                <ListItemText>{action.title}</ListItemText>
+              </MuiMenuItem>
+            ))}
+          </Menu>
+        </Stack>
+      )
+    }
+
+    return (
+      <Stack
+        direction='row'
+        spacing={1}
+        sx={{
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end',
+        }}
+      >
+        <StatusButton
+          log={log}
+          update={editableItem === log ? () => validateEntry(log) : undefined}
+        />
+
+        {isFlightLogUser && (
+          <EditButton
+            title={t('flightLog.defects.addInFlightButton')}
+            onClick={onAddInFlightDefect}
+            icon='mdi:alert-circle-outline'
+            width={20}
+          />
+        )}
+
+        {adminActions.map((action) => (
+          <EditButton
+            key={action.key}
+            title={action.title}
+            onClick={action.onClick}
+            icon={action.icon}
+          />
+        ))}
+      </Stack>
+    )
+  }
 
   const logsWithEmptyRows = buildLogbookRows(data?.logs, ajlb?.rowsPerPage ?? 0)
 
@@ -701,15 +772,16 @@ const FlightLogsList = () => {
                       personsOnBoard={log.personsOnBoard}
                       crew={[log.picLastName, log.crew2LastName]}
                     />
-                    <ViewMobileFlightTime
-                      size={8}
-                      departureAirport={log.departureAirport}
-                      arrivalAirport={log.arrivalAirport}
-                      takeoffTimeUtc={log.takeoffTimeUtc}
-                      landingTimeUtc={log.landingTimeUtc}
-                      flightTime={log.flightTime}
-                      secondaryTime={log.acTotalFlightTime}
-                    />
+                    <Grid size={8}>
+                      <FlightLogTimeline
+                        departureAirport={log.departureAirport}
+                        arrivalAirport={log.arrivalAirport}
+                        takeoffTimeUtc={log.takeoffTimeUtc}
+                        landingTimeUtc={log.landingTimeUtc}
+                        flightTime={log.flightTime}
+                        secondaryTime={log.acTotalFlightTime}
+                      />
+                    </Grid>
 
                     {inFlightDefects.length > 0 && ajlb && (
                       <Grid size={12} sx={{ pt: 0, pb: 0.5 }}>
@@ -741,9 +813,9 @@ const FlightLogsList = () => {
             const newPage = (ajlb?.startPage ?? 1) + 2 * (page - 1)
             setSearchParams({ page: newPage.toString() })
           }}
-          showFirstButton={true}
-          showLastButton={true}
-          siblingCount={2}
+          showFirstButton={isSmUp}
+          showLastButton={isSmUp}
+          siblingCount={isSmUp ? 2 : 1}
           sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}
           renderItem={(item) => {
             if (item.type === 'page' && item.page !== null) {

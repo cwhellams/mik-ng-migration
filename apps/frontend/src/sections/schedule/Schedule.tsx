@@ -56,8 +56,6 @@ import { Title } from '../../components/Title'
 import { Icon } from '@iconify/react'
 import { bookingFlags, bookingMinDate } from './helpers'
 
-dayjs.locale('fi')
-
 const withDragAndDrop = ((
   withDragAndDropImport as unknown as { default?: typeof withDragAndDropImport }
 ).default ?? withDragAndDropImport) as typeof withDragAndDropImport

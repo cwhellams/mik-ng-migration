@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { dayjs } from './utils/date'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { MIKPermissions } from '@backend/routes/members/models'
 import { useRoles } from './hooks/useRoles'
@@ -105,6 +106,16 @@ function App() {
   const [loading, setLoading] = useState(true)
   const { i18n, t } = useTranslation()
   const { isUpdateAvailable, dismissUpdate, refreshApp } = useServiceWorkerUpdate()
+
+  // Keep dayjs's global default locale (month/day names used by plain dayjs().format()
+  // calls throughout the app) in sync with the selected app language. This must run
+  // synchronously during render (not in a useEffect) — App re-renders before its
+  // children on a language change, so setting it here guarantees the locale is already
+  // correct by the time any child calls dayjs().format(). A useEffect here runs after
+  // commit, one render too late: children would render with the previous locale on the
+  // language-change render, only catching up on whatever the *next* unrelated re-render
+  // happens to be — visible as each language showing the previous one's month names.
+  dayjs.locale(i18n.language)
 
   useEffect(() => {
     // Check if document fonts are loaded with a hard timeout to prevent infinite loading on mobile

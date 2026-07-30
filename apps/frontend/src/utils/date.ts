@@ -5,6 +5,7 @@ import updateLocale from 'dayjs/plugin/updateLocale'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import 'dayjs/locale/fi'
 import 'dayjs/locale/en'
+import 'dayjs/locale/sv'
 
 dayJs.extend(utc)
 dayJs.extend(updateLocale)
@@ -16,6 +17,9 @@ dayJs.updateLocale('en', {
   weekStart: 1,
 })
 dayJs.updateLocale('fi', {
+  weekStart: 1,
+})
+dayJs.updateLocale('sv', {
   weekStart: 1,
 })
 

@@ -25,19 +25,23 @@ import {
   DialogContentText,
   DialogActions,
   TextField,
+  IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import { useForm, Controller, type Resolver } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm, Controller } from 'react-hook-form'
 import {
   FlightLog,
   FlightLogUpsertSchema,
   type FlightLogUpsertRequest,
-  flightLogDateValidator,
   FlightLogStatus,
   FlightType,
 } from '@backend/routes/flight-log/models'
@@ -47,6 +51,9 @@ import { FUEL_TYPES } from '@backend/routes/expenses/models'
 import { MemberListResponse } from '@backend/routes/members/models'
 import FlightTimeline from './components/FlightTimeline'
 import FlightCrew from './components/FlightCrew'
+import { buildFlightLogResolver } from './formResolver'
+import { FlightLogEntryWizard } from './wizard/FlightLogEntryWizard'
+import { flightTypes } from './constants'
 import { useMe } from '../../hooks/useMe'
 import { FlightTime } from './components/FlightTime'
 import { TxtField } from './components/TxtField'
@@ -73,16 +80,29 @@ import {
 } from '../dto/dtoApi'
 import { MIKPermissions } from '@backend/routes/members/models'
 
-const flightTypes: FlightType[] = [
-  FlightType.PRIVATE,
-  FlightType.SCHOOL,
-  FlightType.CHECKFLIGHT,
-  FlightType.FERRY,
-  FlightType.TEST_FLIGHT,
-]
-
+// Renders the guided mobile wizard for new entries on phone-width viewports (unless
+// the user opted into the classic form via the wizard's "Use full form instead" link);
+// the classic single-page form otherwise. Split into two components (rather than an
+// early return inside one) so each keeps its own consistent hook-call order — an early
+// return partway through ClassicFlightLogEntry's hooks would violate the rules of hooks.
 const FlightLogEntry = () => {
+  const { flightId } = useParams()
+  const theme = useTheme()
+  const isSmUp = useMediaQuery(theme.breakpoints.up('sm'))
+  const isNew = flightId == 'new'
+  const [forceClassicForm, setForceClassicForm] = useState(false)
+
+  if (isNew && !isSmUp && !forceClassicForm) {
+    return <FlightLogEntryWizard onSwitchToClassicForm={() => setForceClassicForm(true)} />
+  }
+
+  return <ClassicFlightLogEntry />
+}
+
+const ClassicFlightLogEntry = () => {
   const { t } = useTranslation()
+  const theme = useTheme()
+  const isSmUp = useMediaQuery(theme.breakpoints.up('sm'))
 
   const navigate = useNavigate()
   // preserve search filters when navigating back
@@ -138,98 +158,10 @@ const FlightLogEntry = () => {
     },
   )
 
-  // Custom resolver: wraps zodResolver and adds FI/FE member-role validation.
-  // Field-level validate rules are ignored by RHF when a resolver is present,
-  // so role checks must be enforced here to block invalid submissions.
-  // Note: if memberList is still loading, role checks are skipped — but the
-  // member dropdown itself also shows no qualified members until loaded, so
-  // an unqualified selection cannot be made before the list arrives.
-  const formResolver = useMemo((): Resolver<FlightLogUpsertRequest> => {
-    const baseResolver: Resolver<FlightLogUpsertRequest> = zodResolver(
-      flightLogDateValidator(FlightLogUpsertSchema.strip()) as any,
-      {},
-    ) as Resolver<FlightLogUpsertRequest>
-    return async (values, context, options) => {
-      const result = await baseResolver(values, context, options)
-
-      const crewSlots = [
-        {
-          memberId: values.picMemberId,
-          role: values.picRole,
-          field: 'picMemberId',
-        },
-        {
-          memberId: values.crew2MemberId,
-          role: values.crew2Role,
-          field: 'crew2MemberId',
-        },
-        {
-          memberId: values.crew3MemberId,
-          role: values.crew3Role,
-          field: 'crew3MemberId',
-        },
-        {
-          memberId: values.crew4MemberId,
-          role: values.crew4Role,
-          field: 'crew4MemberId',
-        },
-      ]
-
-      const additionalErrors: Record<string, { type: string; message: string }> = {}
-      for (const { memberId, role, field } of crewSlots) {
-        if (!memberId || (role !== 'FI' && role !== 'FE')) continue
-        const roleErrorMessage =
-          role === 'FI'
-            ? t('flightLog.error.memberNotInstructor')
-            : t('flightLog.error.memberNotExaminer')
-
-        if (!memberList?.members) {
-          additionalErrors[field] = {
-            type: 'custom',
-            message: roleErrorMessage,
-          }
-          continue
-        }
-
-        const member = memberList.members.find((m) => m.memberId === memberId)
-        if (!member) {
-          additionalErrors[field] = {
-            type: 'custom',
-            message: roleErrorMessage,
-          }
-          continue
-        }
-
-        if (role === 'FI' && !member.roles.includes('INSTRUCTOR')) {
-          additionalErrors[field] = {
-            type: 'custom',
-            message: roleErrorMessage,
-          }
-        } else if (role === 'FE' && !member.roles.includes('EXAMINER')) {
-          additionalErrors[field] = {
-            type: 'custom',
-            message: roleErrorMessage,
-          }
-        }
-      }
-
-      if (isEditable && (values.oilUpliftLitres === null || values.oilUpliftLitres === undefined)) {
-        additionalErrors['oilUpliftLitres'] = {
-          type: 'custom',
-          message: t('flightLog.error.oilUpliftRequired'),
-        }
-      }
-
-      if (Object.keys(additionalErrors).length === 0) {
-        return result
-      }
-
-      return {
-        values: {},
-        errors: { ...result.errors, ...additionalErrors },
-      }
-    }
-  }, [memberList, t, isEditable])
+  const formResolver = useMemo(
+    () => buildFlightLogResolver(t, memberList, isEditable),
+    [memberList, t, isEditable],
+  )
 
   const {
     register,
@@ -787,7 +719,7 @@ const FlightLogEntry = () => {
                                 Training items:
                               </Typography>
                               {flight.items!.map((item) => (
-                                <Typography key={item.itemId} variant='body2'>
+                                <Typography key={item.itemId} variant='body2' component='div'>
                                   • {item.name}
                                   {item.mandatory && (
                                     <Chip label='mandatory' size='small' sx={{ ml: 0.5 }} />
@@ -1041,9 +973,13 @@ const FlightLogEntry = () => {
                     >
                       <span>{t('flightLog.partiallyBillableFlight')}</span>
                       <Tooltip title={t('flightLog.partiallyBillableFlightTooltip')}>
-                        <span>
+                        <IconButton
+                          size='small'
+                          aria-label={t('flightLog.partiallyBillableFlightTooltip')}
+                          sx={{ p: 0.5 }}
+                        >
                           <Icon icon='mdi:information-outline' width={16} />
-                        </span>
+                        </IconButton>
                       </Tooltip>
                     </Stack>
                   }
@@ -1097,186 +1033,208 @@ const FlightLogEntry = () => {
 
             {/* Admin Use */}
             <Grid size={12}>
-              <Paper variant='outlined' sx={{ p: 2, borderColor: 'divider' }}>
-                <Grid container spacing={2}>
-                  <Grid size={12}>
-                    <Typography variant='h6'>{t('flightLog.adminUse')}</Typography>
-                  </Grid>
+              <Accordion
+                defaultExpanded={isSmUp}
+                disableGutters
+                elevation={0}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  '&:before': { display: 'none' },
+                }}
+              >
+                <AccordionSummary expandIcon={<Icon icon='mdi:chevron-down' width={20} />}>
+                  <Typography variant='h6'>{t('flightLog.adminUse')}</Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ p: 2, pt: 0 }}>
+                  <Grid container spacing={2}>
+                    <Grid size={12}>
+                      {!isNew && (
+                        <>
+                          <FormControl required fullWidth error={!!errors.flightType}>
+                            <FormControlLabel
+                              label={
+                                <Stack
+                                  direction='row'
+                                  spacing={0.5}
+                                  sx={{
+                                    alignItems: 'center',
+                                  }}
+                                >
+                                  <span>{t('invoicing.isFreeFlight')}</span>
+                                  <Tooltip title={t('flightLog.nonBillableFlightTooltip')}>
+                                    <IconButton
+                                      size='small'
+                                      aria-label={t('flightLog.nonBillableFlightTooltip')}
+                                      sx={{ p: 0.5 }}
+                                    >
+                                      <Icon icon='mdi:information-outline' width={16} />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Stack>
+                              }
+                              control={
+                                <Controller
+                                  name='isBillableFlight'
+                                  control={control}
+                                  disabled={!adminFieldsEditable}
+                                  render={({ field }) => (
+                                    <Checkbox
+                                      checked={!field.value}
+                                      disabled={!adminFieldsEditable}
+                                      onChange={({ target }) => {
+                                        const isNonBillable = target.checked
+                                        field.onChange(!isNonBillable)
 
-                  <Grid size={12}>
-                    {!isNew && (
-                      <>
-                        <FormControl required fullWidth error={!!errors.flightType}>
-                          <FormControlLabel
-                            label={
-                              <Stack
-                                direction='row'
-                                spacing={0.5}
-                                sx={{
-                                  alignItems: 'center',
-                                }}
-                              >
-                                <span>{t('invoicing.isFreeFlight')}</span>
-                                <Tooltip title={t('flightLog.nonBillableFlightTooltip')}>
-                                  <span>
-                                    <Icon icon='mdi:information-outline' width={16} />
-                                  </span>
-                                </Tooltip>
-                              </Stack>
-                            }
-                            control={
-                              <Controller
-                                name='isBillableFlight'
-                                control={control}
-                                disabled={!adminFieldsEditable}
-                                render={({ field }) => (
-                                  <Checkbox
-                                    checked={!field.value}
-                                    disabled={!adminFieldsEditable}
-                                    onChange={({ target }) => {
-                                      const isNonBillable = target.checked
-                                      field.onChange(!isNonBillable)
-
-                                      if (isNonBillable) {
-                                        setValue('partiallyBillableFlight', false)
-                                        if (!watch('nonBillingApprovedByMemberId')) {
-                                          setValue(
-                                            'nonBillingApprovedByMemberId',
-                                            me?.memberId ?? null,
-                                          )
+                                        if (isNonBillable) {
+                                          setValue('partiallyBillableFlight', false)
+                                          if (!watch('nonBillingApprovedByMemberId')) {
+                                            setValue(
+                                              'nonBillingApprovedByMemberId',
+                                              me?.memberId ?? null,
+                                            )
+                                          }
+                                        } else {
+                                          setValue('nonBillingApprovedByMemberId', null)
                                         }
-                                      } else {
-                                        setValue('nonBillingApprovedByMemberId', null)
-                                      }
-                                    }}
-                                  />
-                                )}
-                              />
-                            }
-                          />
-                        </FormControl>
+                                      }}
+                                    />
+                                  )}
+                                />
+                              }
+                            />
+                          </FormControl>
 
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            color: 'text.secondary',
-                            ml: 4,
-                            mt: -0.5,
-                          }}
-                        >
-                          {`${t('flightLog.nonBillingApprovedByMemberId')}: ${nonBillingApprovedByMemberId ?? '-'}`}
-                        </Typography>
-
-                        <Grid size={12} sx={{ mt: 1 }}>
-                          <TxtField
-                            name='nonBillingReason'
-                            control={control}
-                            props={{
-                              disabled: !adminFieldsEditable,
-                              multiline: true,
-                              rows: 2,
-                            }}
-                          />
-                        </Grid>
-                      </>
-                    )}
-                  </Grid>
-
-                  <Grid size={12}>
-                    <FormControl fullWidth>
-                      <FormControlLabel
-                        label={
-                          <Stack
-                            direction='row'
-                            spacing={0.5}
+                          <Typography
+                            variant='body2'
                             sx={{
-                              alignItems: 'center',
+                              color: 'text.secondary',
+                              ml: 4,
+                              mt: -0.5,
                             }}
                           >
-                            <span>{t('flightLog.entryErrorFee')}</span>
-                            <Tooltip title={t('flightLog.entryErrorFeeTooltip')}>
-                              <span>
-                                <Icon icon='mdi:information-outline' width={16} />
-                              </span>
-                            </Tooltip>
-                          </Stack>
-                        }
-                        control={
-                          <Controller
-                            name='entryErrorFee'
-                            control={control}
-                            disabled={!adminFieldsEditable || isBillableFlight === false}
-                            render={({ field }) => (
-                              <Checkbox
-                                checked={field.value ?? false}
-                                disabled={!adminFieldsEditable || isBillableFlight === false}
-                                onChange={({ target }) => {
-                                  const checked = target.checked
-                                  field.onChange(checked)
+                            {`${t('flightLog.nonBillingApprovedByMemberId')}: ${nonBillingApprovedByMemberId ?? '-'}`}
+                          </Typography>
 
-                                  if (checked && !watch('entryErrorFeeAppliedByMemberId')) {
-                                    setValue('entryErrorFeeAppliedByMemberId', me?.memberId ?? null)
-                                  }
-                                  if (!checked) {
-                                    setValue('entryErrorFeeAppliedByMemberId', null)
-                                  }
-                                }}
-                              />
-                            )}
-                          />
-                        }
-                      />
-                    </FormControl>
+                          <Grid size={12} sx={{ mt: 1 }}>
+                            <TxtField
+                              name='nonBillingReason'
+                              control={control}
+                              props={{
+                                disabled: !adminFieldsEditable,
+                                multiline: true,
+                                rows: 2,
+                              }}
+                            />
+                          </Grid>
+                        </>
+                      )}
+                    </Grid>
 
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        color: 'text.secondary',
-                        ml: 4,
-                        mt: -0.5,
-                      }}
-                    >
-                      {`${t('flightLog.entryErrorFeeAppliedByMemberId')}: ${entryErrorFeeAppliedByMemberId ?? '-'}`}
-                    </Typography>
-                  </Grid>
-
-                  <Grid size={12}>
-                    <TxtField
-                      name='validationRemarks'
-                      control={control}
-                      props={{
-                        disabled: !adminFieldsEditable,
-                        multiline: true,
-                        rows: 2,
-                      }}
-                    />
-                  </Grid>
-
-                  {data && (
                     <Grid size={12}>
-                      <StatusDisplay
-                        log={data}
-                        showButton={isFlightLogAdmin && !isInvoiced}
-                        update={async (payload) => {
-                          // When validating (not reverting), save form changes first
-                          if (!payload.revert) {
-                            const saved = await saveChanges()
-                            if (!saved) return
+                      <FormControl fullWidth>
+                        <FormControlLabel
+                          label={
+                            <Stack
+                              direction='row'
+                              spacing={0.5}
+                              sx={{
+                                alignItems: 'center',
+                              }}
+                            >
+                              <span>{t('flightLog.entryErrorFee')}</span>
+                              <Tooltip title={t('flightLog.entryErrorFeeTooltip')}>
+                                <IconButton
+                                  size='small'
+                                  aria-label={t('flightLog.entryErrorFeeTooltip')}
+                                  sx={{ p: 0.5 }}
+                                >
+                                  <Icon icon='mdi:information-outline' width={16} />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
                           }
-                          const { error } = await mutation.trigger('POST', payload, 'validate', {
-                            // put returned payload to the cache
-                            revalidate: false,
-                            populateCache: (result) => result,
-                          })
-                          if (error) {
-                            return setProblem(error)
+                          control={
+                            <Controller
+                              name='entryErrorFee'
+                              control={control}
+                              disabled={!adminFieldsEditable || isBillableFlight === false}
+                              render={({ field }) => (
+                                <Checkbox
+                                  checked={field.value ?? false}
+                                  disabled={!adminFieldsEditable || isBillableFlight === false}
+                                  onChange={({ target }) => {
+                                    const checked = target.checked
+                                    field.onChange(checked)
+
+                                    if (checked && !watch('entryErrorFeeAppliedByMemberId')) {
+                                      setValue(
+                                        'entryErrorFeeAppliedByMemberId',
+                                        me?.memberId ?? null,
+                                      )
+                                    }
+                                    if (!checked) {
+                                      setValue('entryErrorFeeAppliedByMemberId', null)
+                                    }
+                                  }}
+                                />
+                              )}
+                            />
                           }
+                        />
+                      </FormControl>
+
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                          ml: 4,
+                          mt: -0.5,
+                        }}
+                      >
+                        {`${t('flightLog.entryErrorFeeAppliedByMemberId')}: ${entryErrorFeeAppliedByMemberId ?? '-'}`}
+                      </Typography>
+                    </Grid>
+
+                    <Grid size={12}>
+                      <TxtField
+                        name='validationRemarks'
+                        control={control}
+                        props={{
+                          disabled: !adminFieldsEditable,
+                          multiline: true,
+                          rows: 2,
                         }}
                       />
                     </Grid>
-                  )}
-                </Grid>
-              </Paper>
+
+                    {data && (
+                      <Grid size={12}>
+                        <StatusDisplay
+                          log={data}
+                          showButton={isFlightLogAdmin && !isInvoiced}
+                          update={async (payload) => {
+                            // When validating (not reverting), save form changes first
+                            if (!payload.revert) {
+                              const saved = await saveChanges()
+                              if (!saved) return
+                            }
+                            const { error } = await mutation.trigger('POST', payload, 'validate', {
+                              // put returned payload to the cache
+                              revalidate: false,
+                              populateCache: (result) => result,
+                            })
+                            if (error) {
+                              return setProblem(error)
+                            }
+                          }}
+                        />
+                      </Grid>
+                    )}
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
             </Grid>
           </Grid>
 

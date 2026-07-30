@@ -357,6 +357,7 @@ export const MemberSchema = AuditableSchema.extend({
   mustUpdateProfile: z.boolean().optional(),
   mailingLists: z.array(z.string()).nullish(),
   applicationData: ApplicationDataSchema.nullish(),
+  defaultInstructorMemberId: z.string().nullable().optional(),
 })
 
 export type Member = z.infer<typeof MemberSchema>
@@ -400,6 +401,7 @@ export const MemberProfileSchema = MemberSchema.pick({
   mailingLists: true,
   iban: true,
   ibanAccountName: true,
+  defaultInstructorMemberId: true,
 }).extend({
   streetAddress: z.string().min(1),
   postcode: z.string().min(1).regex(/^\d+$/, 'member.postcodeDigitsOnly'),

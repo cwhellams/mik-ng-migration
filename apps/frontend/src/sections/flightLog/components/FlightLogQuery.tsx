@@ -16,12 +16,13 @@ export const FlightLogQuery = ({ registration, setFilters }: Props) => {
   })
 
   return (
-    <FormControl sx={{ m: 1, minWidth: 250 }}>
+    <FormControl size='small' sx={{ minWidth: 160 }}>
       <InputLabel id='role-label'>{t('flightLog.aircraft')}</InputLabel>
 
       <Select
         labelId='role-label'
         id='role'
+        size='small'
         value={registration ?? ''}
         label={t('flightLog.aircraft')}
         onChange={({ target }) => setFilters({ aircraftRegistration: target.value })}

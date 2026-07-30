@@ -248,6 +248,8 @@
       "error": "Kunde inte uppdatera inställningarna för push-notiser. Försök igen."
     },
     "lang": "Språk",
+    "defaultInstructor": "Standardinstruktör",
+    "defaultInstructorHelper": "Används för att förifylla instruktören när en skolflygning loggas.",
     "iban": "IBAN (för utgiftsersättningar)",
     "ibanHelper": "Spara ditt bankkonto IBAN här så att det fylls i automatiskt i utgiftsanspråk.",
     "ibanAccountName": "Kontoinnehavarens namn",
@@ -861,6 +863,10 @@
     "selectCrew": "Välj besättning",
     "duty": "Tjänst",
     "addCrew": "Lägg till besättningsmedlem",
+    "removeCrew": "Ta bort besättningsmedlem",
+    "swapCrew": "Byt PIC och besättning 2",
+    "removeCrewConfirmTitle": "Ta bort besättningsmedlem?",
+    "removeCrewConfirmBody": "De angivna uppgifterna tas bort. Är du säker?",
     "error": {
       "memberNotInstructor": "Den valda medlemmen måste ha rollen flyginstruktör för FI-tjänst",
       "memberNotExaminer": "Den valda medlemmen måste ha rollen flygkontrollant för FE-tjänst",
@@ -880,6 +886,8 @@
     "fuelInfo": "Bränsle- och oljeinformation",
     "fuelUpliftLitres": "Bränslepåfyllning (liter)",
     "fuelRemainingLitres": "Bränsle kvar",
+    "fuelLitres": "Liter",
+    "fuelUSG": "US-gallon",
     "fuelRemainingZeroWarning": "Varning: Bränsle kvar är inställt på 0. Kontrollera att detta är korrekt.",
     "oilUpliftLitres": "Oljepåfyllning (liter)",
     "noOilAdded": "Ingen oljepåfyllning",
@@ -921,6 +929,7 @@
     "landing": "Landning",
     "onBlock": "Till block",
     "totalBlockTime": "Total blocktid",
+    "blockTime": "Block",
     "logbookCalculator": "Loggbokskalkylator",
     "currentLogbookTime": "Aktuell loggbokstid",
     "thisFlightTime": "Denna flygtid",
@@ -931,6 +940,49 @@
     "enterCurrentTime": "Ange din aktuella tid",
     "calculatedTotal": "Beräknad total",
     "selectFlightTypeCrew": "Vänligen välj en flygtyp för att fortsätta med besättningsinformation",
+    "wizard": {
+      "step": {
+        "aircraftType": "Flygplan & flygtyp",
+        "crew": "Besättning",
+        "timeDeparture": "Från block- & starttid",
+        "timeArrival": "Landnings- & till block-tid",
+        "airports": "Avgång & ankomst",
+        "landings": "Landningar",
+        "nightIfr": "Nattflygning & IFR",
+        "fuelUplift": "Tankad bränslemängd",
+        "fuelRemaining": "Bränsle kvar",
+        "oil": "Olja",
+        "notes": "Anteckningar",
+        "review": "Sammanfattning"
+      },
+      "question": {
+        "nightOrIfr": "Innebar denna flygning nattflygning eller IFR?"
+      },
+      "stepCounter": "Steg {{current}} av {{total}}",
+      "useClassicForm": "Använd hela formuläret istället",
+      "today": "Idag, {{date}}",
+      "changeDate": "Ändra datum",
+      "timeMustBeAfter": ">",
+      "timeMustBeBefore": "<=",
+      "enterPreviousTimeFirst": "Ange föregående tid först",
+      "minutesAgo": "{{count}} min sedan",
+      "hoursMinutesAgo": "{{hours}} h {{minutes}} min sedan",
+      "landingsOverflow": ">6",
+      "oilOverflow": ">0.6L",
+      "quickArrival": "Landning på {{airfield}}",
+      "backToQuickPick": "Tillbaka till snabbval",
+      "discard": "Förkasta",
+      "discardBody": "Förkasta denna post? Inget har sparats.",
+      "accept": "Acceptera",
+      "ajlbSummary": {
+        "title": "Post för flygplanets färddagbok",
+        "flightTime": "Flygtid",
+        "currentTotal": "Nuvarande totaltid (före flygningen)",
+        "newTotal": "Ny totaltid (efter flygningen)",
+        "verifyPrompt": "Kontrollera att den nuvarande totaltiden ovan stämmer med den fysiska färddagboken — flygningar glöms ibland bort och registreras inte i systemet.",
+        "landings": "Landningar"
+      }
+    },
     "flightTypes": {
       "PRIVATE": "Privatflyg",
       "SCHOOL": "Skoletflyg",
@@ -1800,7 +1852,8 @@
     "saving": "Sparar...",
     "deleting": "Tar bort...",
     "requiresAdminMode": "Administratörsläge krävs",
-    "none": "Ingen"
+    "none": "Ingen",
+    "moreActions": "Fler åtgärder"
   },
   "exams": {
     "title": "Prov",

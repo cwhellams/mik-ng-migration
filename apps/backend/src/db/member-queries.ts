@@ -105,6 +105,7 @@ function toMember(member: Selectable<MemberRegister>, roles: MemberRole[]): Memb
     isMembershipApproved: member.is_membership_approved,
     membershipApprovedAt: member.membership_approved_at?.toISOString(),
     membershipApprovedBy: member.membership_approved_by ?? undefined,
+    defaultInstructorMemberId: member.default_instructor_member_id ?? undefined,
 
     autoRenewAnnualMembership: member.auto_renew_annual_membership,
     autoRenewEquipmentFee: member.auto_renew_equipment_fee,
@@ -429,6 +430,8 @@ export async function updateMember(
 
       iban: patch.iban,
       iban_account_name: patch.ibanAccountName,
+
+      default_instructor_member_id: patch.defaultInstructorMemberId,
 
       updated_at: now,
       updated_by: jwt.memberId,

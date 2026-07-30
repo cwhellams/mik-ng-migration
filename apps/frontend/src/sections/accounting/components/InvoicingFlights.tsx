@@ -26,7 +26,7 @@ import { Grid } from '@mui/system'
 import {
   ViewMobileCrew,
   ViewMobileFlightDetails,
-  ViewMobileFlightTime,
+  FlightLogTimeline,
 } from '../../flightLog/components/FlightListEntry'
 import { ViewFlightDate } from '../../flightLog/components/FlightListEntry'
 import { ResponsiveTable } from '../../../components/ResponsiveTable'
@@ -363,14 +363,15 @@ export const InvoicingFlights = ({
                     crew={[log.billableMemberLastName]}
                   />
 
-                  <ViewMobileFlightTime
-                    size={8}
-                    departureAirport={log.departureAirport}
-                    arrivalAirport={log.arrivalAirport}
-                    takeoffTimeUtc={log.takeoffTimeUtc}
-                    landingTimeUtc={log.landingTimeUtc}
-                    flightTime={log.flightTime}
-                  />
+                  <Grid size={8}>
+                    <FlightLogTimeline
+                      departureAirport={log.departureAirport}
+                      arrivalAirport={log.arrivalAirport}
+                      takeoffTimeUtc={log.takeoffTimeUtc}
+                      landingTimeUtc={log.landingTimeUtc}
+                      flightTime={log.flightTime}
+                    />
+                  </Grid>
 
                   <Grid size={12}>{log.billingRemarks}</Grid>
                   {isMinBillableStep && showExceptionField(log) && (

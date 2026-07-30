@@ -2,7 +2,10 @@ import {
   Alert,
   Box,
   FormHelperText,
+  InputAdornment,
   Slider,
+  Stack,
+  TextField,
   Typography,
   useMediaQuery,
   useTheme,
@@ -98,6 +101,45 @@ export const Fuel = ({ control, usableFuelLitres, disabled }: Props) => {
             valueLabelDisplay='on'
             marks={marks}
           />
+
+          {/* Numeric inputs synced with slider for precise touch entry */}
+          <Stack direction='row' spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              size='small'
+              type='number'
+              label={t('flightLog.fuelLitres')}
+              value={Math.round(field.value ?? 0)}
+              disabled={disabled}
+              slotProps={{
+                input: { endAdornment: <InputAdornment position='end'>L</InputAdornment> },
+                htmlInput: { min: 0, max: usableFuelLitres, step: 1 },
+              }}
+              onChange={(e) => {
+                const litres = Math.min(usableFuelLitres, Math.max(0, Number(e.target.value)))
+                field.onChange(Math.round(litres))
+              }}
+              sx={{ width: 120 }}
+            />
+            <TextField
+              size='small'
+              type='number'
+              label={t('flightLog.fuelUSG')}
+              value={Math.round((field.value ?? 0) / 3.785)}
+              disabled={disabled}
+              slotProps={{
+                input: { endAdornment: <InputAdornment position='end'>USG</InputAdornment> },
+                htmlInput: { min: 0, max: Math.round(usableFuelLitres / 3.785), step: 1 },
+              }}
+              onChange={(e) => {
+                const litres = Math.min(
+                  usableFuelLitres,
+                  Math.max(0, Number(e.target.value) * 3.785),
+                )
+                field.onChange(Math.round(litres))
+              }}
+              sx={{ width: 120 }}
+            />
+          </Stack>
 
           {!disabled && (field.value ?? 0) === 0 && (
             <Alert severity='warning' sx={{ mt: 1 }}>

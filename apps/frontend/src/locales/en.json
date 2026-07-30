@@ -248,6 +248,8 @@
       "error": "Could not update push notification settings. Please try again."
     },
     "lang": "Language",
+    "defaultInstructor": "Default Instructor",
+    "defaultInstructorHelper": "Used to pre-fill the instructor when logging a school flight.",
     "iban": "IBAN (for expense reimbursements)",
     "ibanHelper": "Save your bank account IBAN here so it can be auto-filled in expense claims.",
     "ibanAccountName": "Account holder name",
@@ -853,6 +855,10 @@
     "selectCrew": "Select crew",
     "duty": "Duty",
     "addCrew": "Add Crew Member",
+    "removeCrew": "Remove Crew Member",
+    "swapCrew": "Swap PIC and Crew #2",
+    "removeCrewConfirmTitle": "Remove crew member?",
+    "removeCrewConfirmBody": "This will discard the entered crew data. Are you sure?",
     "error": {
       "memberNotInstructor": "Selected member must have the Flight Instructor role for FI duty",
       "memberNotExaminer": "Selected member must have the Flight Examiner role for FE duty",
@@ -872,6 +878,8 @@
     "fuelInfo": "Fuel and Oil Information",
     "fuelUpliftLitres": "Fuel Uplift (litres)",
     "fuelRemainingLitres": "Fuel remaining",
+    "fuelLitres": "Litres",
+    "fuelUSG": "US gallons",
     "fuelRemainingZeroWarning": "Warning: Fuel remaining is set to 0. Please verify this is correct.",
     "oilUpliftLitres": "Oil Uplift (litres)",
     "noOilAdded": "No oil added",
@@ -913,6 +921,7 @@
     "landing": "Landing",
     "onBlock": "On Block",
     "totalBlockTime": "Total Block Time",
+    "blockTime": "Block",
     "logbookCalculator": "Logbook Calculator",
     "currentLogbookTime": "Current Logbook Time",
     "thisFlightTime": "This Flight Time",
@@ -923,6 +932,49 @@
     "enterCurrentTime": "Enter your current time",
     "calculatedTotal": "Calculated total",
     "selectFlightTypeCrew": "Please select a flight type to continue with crew information",
+    "wizard": {
+      "step": {
+        "aircraftType": "Aircraft & flight type",
+        "crew": "Crew",
+        "timeDeparture": "Off-block & takeoff time",
+        "timeArrival": "Landing & on-block time",
+        "airports": "Departure & arrival",
+        "landings": "Landings",
+        "nightIfr": "Night flying & IFR",
+        "fuelUplift": "Fuel uplift",
+        "fuelRemaining": "Fuel remaining",
+        "oil": "Oil",
+        "notes": "Notes",
+        "review": "Review"
+      },
+      "question": {
+        "nightOrIfr": "Did this flight involve night flying or IFR?"
+      },
+      "stepCounter": "Step {{current}} of {{total}}",
+      "useClassicForm": "Use full form instead",
+      "today": "Today, {{date}}",
+      "changeDate": "Change date",
+      "timeMustBeAfter": ">",
+      "timeMustBeBefore": "<=",
+      "enterPreviousTimeFirst": "Enter the previous time first",
+      "minutesAgo": "{{count}}min ago",
+      "hoursMinutesAgo": "{{hours}}h {{minutes}}min ago",
+      "landingsOverflow": ">6",
+      "oilOverflow": ">0.6L",
+      "quickArrival": "Landing at {{airfield}}",
+      "backToQuickPick": "Back to quick pick",
+      "discard": "Discard",
+      "discardBody": "Discard this entry? Nothing has been saved.",
+      "accept": "Accept",
+      "ajlbSummary": {
+        "title": "Aircraft Journey Log Book entry",
+        "flightTime": "Flight time",
+        "currentTotal": "Current total (before flight)",
+        "newTotal": "New total (after flight)",
+        "verifyPrompt": "Check that the current total above matches the physical logbook — flights are sometimes forgotten and not entered into the system.",
+        "landings": "Landings"
+      }
+    },
     "flightTypes": {
       "PRIVATE": "Private Flight",
       "SCHOOL": "School Flight",
@@ -1827,7 +1879,8 @@
     "saving": "Saving...",
     "deleting": "Deleting...",
     "requiresAdminMode": "Admin mode required",
-    "none": "None"
+    "none": "None",
+    "moreActions": "More actions"
   },
   "exams": {
     "title": "Exams",

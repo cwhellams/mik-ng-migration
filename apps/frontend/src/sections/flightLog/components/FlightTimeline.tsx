@@ -92,6 +92,7 @@ const FlightTimeline = ({
       >
         {t('flightLog.flightTimeline')}
       </Typography>
+      {/* Horizontal bar — desktop only */}
       <Box
         sx={{
           position: 'relative',
@@ -178,6 +179,85 @@ const FlightTimeline = ({
                 {formatDuration(taxiInTime)}
               </Typography>
             </Box>
+          )}
+        </Box>
+      </Box>
+
+      {/* Compact vertical bar — mobile only */}
+      <Box
+        sx={{
+          display: { xs: 'flex', sm: 'flex', md: 'none' },
+          flexDirection: 'row',
+          alignItems: 'stretch',
+          mb: 2,
+          gap: 1.5,
+        }}
+      >
+        {/* Proportional colour bar */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            width: 14,
+            borderRadius: 1,
+            overflow: 'hidden',
+            border: '1px solid',
+            borderColor: 'divider',
+            flexShrink: 0,
+          }}
+        >
+          {taxiOutTime > 0 && (
+            <Box
+              sx={{
+                flex: taxiOutTime,
+                backgroundColor: theme.palette.info.light,
+                minHeight: 4,
+              }}
+            />
+          )}
+          {flightTime > 0 && (
+            <Box
+              sx={{
+                flex: flightTime,
+                backgroundColor: theme.palette.primary.main,
+                minHeight: 4,
+              }}
+            />
+          )}
+          {taxiInTime > 0 && (
+            <Box
+              sx={{
+                flex: taxiInTime,
+                backgroundColor: theme.palette.info.light,
+                minHeight: 4,
+              }}
+            />
+          )}
+        </Box>
+
+        {/* Labels alongside the bar */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            flex: 1,
+          }}
+        >
+          {taxiOutTime > 0 && (
+            <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+              {t('flightLog.taxiOut')}: {formatDuration(taxiOutTime)}
+            </Typography>
+          )}
+          {flightTime > 0 && (
+            <Typography variant='caption' sx={{ fontWeight: 'medium' }}>
+              {t('flightLog.flightTime')}: {formatDuration(flightTime)}
+            </Typography>
+          )}
+          {taxiInTime > 0 && (
+            <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+              {t('flightLog.taxiIn')}: {formatDuration(taxiInTime)}
+            </Typography>
           )}
         </Box>
       </Box>

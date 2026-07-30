@@ -10,6 +10,14 @@ import {
   MenuItem,
   FormHelperText,
   Autocomplete,
+  useMediaQuery,
+  useTheme,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material'
 import {
   Control,
@@ -35,6 +43,11 @@ interface FlightCrewProps {
   setValue?: UseFormSetValue<FlightLogUpsertRequest>
   trigger?: UseFormTrigger<FlightLogUpsertRequest>
   watch: UseFormWatch<FlightLogUpsertRequest>
+  // When set (multi-pilot flight types only), auto-fills the second crew slot with
+  // this instructor + FI duty as soon as it's needed — still freely reassignable
+  // through the normal picker, just a starting value (used by the mobile wizard for
+  // the member's profile-configured default instructor on school flights).
+  defaultInstructorMemberId?: string | null
 }
 
 // Crew member types
@@ -60,8 +73,11 @@ const FlightCrew = ({
   setValue,
   trigger,
   watch,
+  defaultInstructorMemberId,
 }: FlightCrewProps) => {
   const { t } = useTranslation()
+  const theme = useTheme()
+  const isSmUp = useMediaQuery(theme.breakpoints.up('sm'))
 
   const isEditable = !!setValue
 
@@ -84,11 +100,18 @@ const FlightCrew = ({
   const minimumCrewCount = multiPilotTypes.includes(flightType) ? 2 : 1
 
   const [crewCount, setCrewCount] = useState(minimumCrewCount)
+  const [pendingRemoveSlot, setPendingRemoveSlot] = useState<CrewSlot | null>(null)
 
   const handleAddCrew = () => setCrewCount((c) => c + 1)
   const handleRemoveCrew = (slot: CrewSlot) => {
     setCrewCount((c) => c - 1)
     cleanCrew(slot)
+  }
+  const confirmRemoveCrew = () => {
+    if (pendingRemoveSlot) {
+      handleRemoveCrew(pendingRemoveSlot)
+      setPendingRemoveSlot(null)
+    }
   }
 
   const cleanCrew = useCallback(
@@ -98,6 +121,28 @@ const FlightCrew = ({
     },
     [setValue],
   )
+
+  // School flights default to instructor-as-PIC/student-as-crew#2; checkflights have
+  // no such default but the same swap is just as useful there. Swaps the (member, duty)
+  // pair between slot 1 and slot 2, whoever currently occupies them.
+  const canSwapCrew =
+    isEditable &&
+    (flightType === FlightType.SCHOOL || flightType === FlightType.CHECKFLIGHT) &&
+    !!crewMembers[0] &&
+    !!crewMembers[1]
+
+  const handleSwapCrew = () => {
+    const picMemberId = watch('picMemberId')
+    const picRole = watch('picRole')
+    const crew2MemberId = watch('crew2MemberId')
+    const crew2Role = watch('crew2Role')
+    // only invoked via canSwapCrew, which guarantees both slots are filled
+    setValue?.('picMemberId', crew2MemberId ?? picMemberId)
+    setValue?.('picRole', crew2Role ?? picRole)
+    setValue?.('crew2MemberId', picMemberId)
+    setValue?.('crew2Role', picRole)
+    trigger?.(['picMemberId', 'picRole', 'crew2MemberId', 'crew2Role'])
+  }
 
   const getDefaultMultiRole = (crew: CrewMember) => {
     switch (crew.role) {
@@ -238,6 +283,18 @@ const FlightCrew = ({
         // if persons on board is less than crew count, set it to crew count
         setValue?.('personsOnBoard', crewCount)
       }
+
+      if (defaultInstructorMemberId && !crewMembers[1] && maximumCrewCount >= 2) {
+        if (crewCount < 2) {
+          setCrewCount(2)
+        }
+        // instructor defaults to PIC, student (self) defaults to crew #2 — still
+        // freely reassignable, and swappable via the swap-crew button below.
+        setValue?.('picMemberId', defaultInstructorMemberId)
+        setValue?.('picRole', 'FI')
+        setValue?.('crew2MemberId', me?.memberId ?? '')
+        setValue?.('crew2Role', 'STU')
+      }
     }
   }, [
     isSinglePilotFlight,
@@ -249,6 +306,8 @@ const FlightCrew = ({
     members,
     cleanCrew,
     watch,
+    defaultInstructorMemberId,
+    me,
   ])
 
   if (!flightType) {
@@ -369,6 +428,8 @@ const FlightCrew = ({
                           value={field.value || ''}
                           label={t('flightLog.duty')}
                           disabled={!isEditable}
+                          // On narrow mobile columns show only the short code; full label in dropdown
+                          renderValue={isSmUp ? undefined : (value) => String(value)}
                           onChange={(e) => {
                             const nextDuty = e.target.value
                             field.onChange(e)
@@ -407,18 +468,34 @@ const FlightCrew = ({
             {index >= minimumCrewCount && index == length - 1 && isEditable && (
               // only last crew slot can be removed
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Button
-                  color='error'
-                  onClick={() => handleRemoveCrew(slot)}
-                  sx={{ minWidth: 'auto', p: 1 }}
-                >
-                  <Icon icon='mdi:close' />
-                </Button>
+                <Tooltip title={t('flightLog.removeCrew')}>
+                  <Button
+                    color='error'
+                    aria-label={t('flightLog.removeCrew')}
+                    onClick={() => setPendingRemoveSlot(slot)}
+                    sx={{ minWidth: 44, minHeight: 44, p: 1 }}
+                  >
+                    <Icon icon='mdi:close' />
+                  </Button>
+                </Tooltip>
               </Grid>
             )}
           </Grid>
         )
       })}
+      {canSwapCrew && (
+        <Grid size={{ xs: 12 }}>
+          <Button
+            variant='outlined'
+            startIcon={<Icon icon='mdi:swap-vertical' />}
+            onClick={handleSwapCrew}
+            fullWidth
+            sx={{ mt: 1 }}
+          >
+            {t('flightLog.swapCrew')}
+          </Button>
+        </Grid>
+      )}
       {!isSinglePilotFlight && crewCount < maximumCrewCount && isEditable && (
         <Grid size={{ xs: 12 }}>
           <Box>
@@ -434,6 +511,19 @@ const FlightCrew = ({
           </Box>
         </Grid>
       )}
+
+      <Dialog open={pendingRemoveSlot !== null} onClose={() => setPendingRemoveSlot(null)}>
+        <DialogTitle>{t('flightLog.removeCrewConfirmTitle')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{t('flightLog.removeCrewConfirmBody')}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPendingRemoveSlot(null)}>{t('common.cancel')}</Button>
+          <Button color='error' onClick={confirmRemoveCrew}>
+            {t('flightLog.removeCrew')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   )
 }

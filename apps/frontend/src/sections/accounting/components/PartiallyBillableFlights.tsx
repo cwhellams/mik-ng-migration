@@ -27,7 +27,7 @@ import { Grid } from '@mui/system'
 import {
   ViewMobileCrew,
   ViewMobileFlightDetails,
-  ViewMobileFlightTime,
+  FlightLogTimeline,
   ViewFlightDate,
 } from '../../flightLog/components/FlightListEntry'
 import { ResponsiveTable } from '../../../components/ResponsiveTable'
@@ -223,14 +223,15 @@ export const PartiallyBillableFlights = ({
                     crew={[log.billableMemberLastName]}
                   />
 
-                  <ViewMobileFlightTime
-                    size={8}
-                    departureAirport={log.departureAirport}
-                    arrivalAirport={log.arrivalAirport}
-                    takeoffTimeUtc={log.takeoffTimeUtc}
-                    landingTimeUtc={log.landingTimeUtc}
-                    flightTime={log.flightTime}
-                  />
+                  <Grid size={8}>
+                    <FlightLogTimeline
+                      departureAirport={log.departureAirport}
+                      arrivalAirport={log.arrivalAirport}
+                      takeoffTimeUtc={log.takeoffTimeUtc}
+                      landingTimeUtc={log.landingTimeUtc}
+                      flightTime={log.flightTime}
+                    />
+                  </Grid>
 
                   <Grid size={12}>
                     <Typography variant='body2'>{log.billingRemarks}</Typography>

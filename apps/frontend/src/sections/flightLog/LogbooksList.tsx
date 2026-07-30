@@ -122,8 +122,7 @@ const Roles = () => {
           </Tooltip>
         )}
 
-        <Grid
-          size={5}
+        <Box
           sx={{
             alignSelf: 'center',
           }}
@@ -137,7 +136,7 @@ const Roles = () => {
             }
             label={t('flightLog.logbooks.showOldBooks')}
           />
-        </Grid>
+        </Box>
       </Grid>
       <RemoteContent isLoading={isLoading} error={error}>
         <ResponsiveTable

@@ -18,9 +18,11 @@ import {
   Checkbox,
   FormGroup,
   Box,
+  Autocomplete,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { Member, MIKLang, MIKMemberTypes } from '@backend/routes/members/models'
+import { Member, MemberListResponse, MIKLang, MIKMemberTypes } from '@backend/routes/members/models'
+import useApi from '../../../hooks/useApi'
 import { DateField } from '@mui/x-date-pickers/DateField'
 import dayjs, { Dayjs } from 'dayjs'
 import { useRoles } from '../../../hooks/useRoles'
@@ -55,9 +57,16 @@ interface EditMemberModalProps {
 
   // either create or update members
   api: APIMutation<Member>
+  isAdmin?: boolean
 }
 
-export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberModalProps) => {
+export const EditMemberModal = ({
+  onClose,
+  mode,
+  memberData,
+  api,
+  isAdmin,
+}: EditMemberModalProps) => {
   const { t, i18n } = useTranslation()
   const theme = useTheme()
   const isXs = useMediaQuery(theme.breakpoints.down('sm'))
@@ -67,6 +76,22 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
   const [formData, setFormData] = useState<Partial<Member>>({})
 
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
+
+  const { data: instructorData } = useApi<MemberListResponse>(
+    {
+      url: 'v1/members',
+      params: { role: ['INSTRUCTOR'] },
+      skipFetch: mode !== 'training',
+    },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+    },
+  )
+  const instructors = instructorData?.members ?? []
+  const selectedInstructor =
+    instructors.find((m) => m.memberId === formData.defaultInstructorMemberId) ?? null
 
   // Initialize form data when modal opens
   useEffect(() => {
@@ -133,6 +158,7 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
       } else if (mode === 'training') {
         setFormData({
           isTrainingProgramPilot: memberData.isTrainingProgramPilot,
+          defaultInstructorMemberId: memberData.defaultInstructorMemberId ?? null,
         })
       } else if (mode == 'membership') {
         setFormData({
@@ -598,30 +624,54 @@ export const EditMemberModal = ({ onClose, mode, memberData, api }: EditMemberMo
 
   const renderTrainingForm = () => (
     <Grid container spacing={2}>
-      <Grid
-        size={12}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <Typography
-          variant='body2'
+      {isAdmin && (
+        <Grid
+          size={12}
           sx={{
-            color: 'text.secondary',
-            width: 150,
+            display: 'flex',
+            alignItems: 'center',
           }}
         >
-          {t('member.isTrainingProgramPilot')}
-        </Typography>
-        <Checkbox
-          checked={formData.isTrainingProgramPilot}
-          onChange={({ target }) => {
-            setFormData({
-              ...formData,
-              isTrainingProgramPilot: target.checked,
-            })
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'text.secondary',
+              width: 150,
+            }}
+          >
+            {t('member.isTrainingProgramPilot')}
+          </Typography>
+          <Checkbox
+            checked={formData.isTrainingProgramPilot}
+            onChange={({ target }) => {
+              setFormData({
+                ...formData,
+                isTrainingProgramPilot: target.checked,
+              })
+            }}
+          />
+        </Grid>
+      )}
+      <Grid size={12}>
+        <Autocomplete
+          fullWidth
+          options={instructors}
+          getOptionLabel={(option) => `${option.first} ${option.last}`}
+          isOptionEqualToValue={(option, value) => option.memberId === value.memberId}
+          value={selectedInstructor}
+          onChange={(_event, newValue) => {
+            setFormData((prev) => ({
+              ...prev,
+              defaultInstructorMemberId: newValue?.memberId ?? null,
+            }))
           }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label={t('member.defaultInstructor')}
+              helperText={t('member.defaultInstructorHelper')}
+            />
+          )}
         />
       </Grid>
     </Grid>

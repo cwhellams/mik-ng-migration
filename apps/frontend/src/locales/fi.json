@@ -248,6 +248,8 @@
     },
     "isTrainingProgramPilot": "Koulutusohjelmaoppilas",
     "lang": "Kieli",
+    "defaultInstructor": "Oletuslentoopettaja",
+    "defaultInstructorHelper": "Käytetään esitäyttämään lennonopettaja koululentoa kirjattaessa.",
     "iban": "IBAN (kulukorvauksia varten)",
     "ibanHelper": "Tallenna pankkitilin IBAN-numero tähän, jotta se täytetään automaattisesti kuluhakemuksiin.",
     "ibanAccountName": "Tilinomistajan nimi",
@@ -860,6 +862,10 @@
     "selectCrew": "Valitse henkilö",
     "duty": "Rooli",
     "addCrew": "Lisää miehistön jäsen",
+    "removeCrew": "Poista miehistön jäsen",
+    "swapCrew": "Vaihda PIC ja miehistö 2",
+    "removeCrewConfirmTitle": "Poistetaanko miehistön jäsen?",
+    "removeCrewConfirmBody": "Syötetyt tiedot poistetaan. Haluatko varmasti?",
     "error": {
       "memberNotInstructor": "Valitulla jäsenellä tulee olla lentokouluttajan rooli FI-tehtävään",
       "memberNotExaminer": "Valitulla jäsenellä tulee olla tarkastuslentäjän rooli FE-tehtävään",
@@ -879,6 +885,8 @@
     "fuelInfo": "Polttoaineen tiedot",
     "fuelUpliftLitres": "Polttoainetäydennys (litraa)",
     "fuelRemainingLitres": "Polttoainetta jäljellä",
+    "fuelLitres": "Litraa",
+    "fuelUSG": "US-gallonaa",
     "fuelRemainingZeroWarning": "Varoitus: Polttoainetta jäljellä on asetettu 0:aan. Varmista, että tämä on oikein.",
     "oilUpliftLitres": "Öljytäydennys (litraa)",
     "noOilAdded": "Ei öljytäydennystä",
@@ -920,6 +928,7 @@
     "landing": "Laskuaika",
     "onBlock": "Saapumisaika",
     "totalBlockTime": "Kokonaisaika",
+    "blockTime": "Blokki",
     "logbookCalculator": "Lentopäiväkirjalaskuri",
     "currentLogbookTime": "Nykyinen lentotuntimäärä",
     "thisFlightTime": "Tämän lennon aika",
@@ -930,6 +939,49 @@
     "enterCurrentTime": "Syötä nykyinen lentotuntimäärä",
     "calculatedTotal": "Laskettu kokonaisaika",
     "selectFlightTypeCrew": "Valitse lennon tyyppi jatkaaksesi miehistön tietojen syömistä",
+    "wizard": {
+      "step": {
+        "aircraftType": "Ilma-alus ja lennon tyyppi",
+        "crew": "Miehistö",
+        "timeDeparture": "Lähtö- ja nousuaika",
+        "timeArrival": "Lasku- ja saapumisaika",
+        "airports": "Lähtö- ja saapumislentopaikka",
+        "landings": "Laskut",
+        "nightIfr": "Yölento ja mittarilento",
+        "fuelUplift": "Tankattu polttoaine",
+        "fuelRemaining": "Polttoainetta jäljellä",
+        "oil": "Öljy",
+        "notes": "Muistiinpanot",
+        "review": "Yhteenveto"
+      },
+      "question": {
+        "nightOrIfr": "Sisälsikö lento yölentoa tai mittarilentoa?"
+      },
+      "stepCounter": "Vaihe {{current}}/{{total}}",
+      "useClassicForm": "Käytä täyttä lomaketta",
+      "today": "Tänään, {{date}}",
+      "changeDate": "Vaihda päivämäärä",
+      "timeMustBeAfter": ">",
+      "timeMustBeBefore": "<=",
+      "enterPreviousTimeFirst": "Syötä edellinen aika ensin",
+      "minutesAgo": "{{count}} min sitten",
+      "hoursMinutesAgo": "{{hours}} h {{minutes}} min sitten",
+      "landingsOverflow": ">6",
+      "oilOverflow": ">0.6L",
+      "quickArrival": "Laskeudutaan kentälle {{airfield}}",
+      "backToQuickPick": "Takaisin pikavalintoihin",
+      "discard": "Hylkää",
+      "discardBody": "Hylätäänkö tämä kirjaus? Mitään ei ole tallennettu.",
+      "accept": "Hyväksy",
+      "ajlbSummary": {
+        "title": "Merkintä ilma-aluksen matkapäiväkirjaan",
+        "flightTime": "Lentoaika",
+        "currentTotal": "Nykyinen kokonaisaika (ennen lentoa)",
+        "newTotal": "Uusi kokonaisaika (lennon jälkeen)",
+        "verifyPrompt": "Tarkista, että yllä oleva nykyinen kokonaisaika täsmää fyysisen matkapäiväkirjan kanssa — lentoja jää joskus kirjaamatta järjestelmään.",
+        "landings": "Laskeutumiset"
+      }
+    },
     "flightTypes": {
       "PRIVATE": "Yksityislento",
       "SCHOOL": "Koululento",
@@ -1833,7 +1885,8 @@
     "saving": "Tallennetaan...",
     "deleting": "Poistetaan...",
     "requiresAdminMode": "Ylläpitotila vaaditaan",
-    "none": "Ei mitään"
+    "none": "Ei mitään",
+    "moreActions": "Lisää toimintoja"
   },
   "exams": {
     "title": "Kokeet",

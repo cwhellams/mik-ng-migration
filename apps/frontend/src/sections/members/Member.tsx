@@ -27,7 +27,7 @@ import {
 } from '@mui/material'
 import useApi from '../../hooks/useApi'
 import dayjs from 'dayjs'
-import { Member, MIKLang, MIKMemberTypes } from '@backend/routes/members/models'
+import { Member, MemberListResponse, MIKLang, MIKMemberTypes } from '@backend/routes/members/models'
 import { InvoiceListResponse } from '@backend/routes/invoicing/models'
 import { FlightLogListResponse } from '@backend/routes/flight-log/models'
 import { BookingListResponse, BookingFilters } from '@backend/routes/bookings/models'
@@ -75,6 +75,18 @@ const MemberProfile = () => {
   const { data, isLoading, error, mutation } = useApi<Member>({
     url: `v1/members/${memberId}`,
   })
+
+  // Members can list other members filtered by role even without admin rights, unlike
+  // GET /v1/members/:id which is admin-only — use the list endpoint to resolve the
+  // default instructor's name.
+  const { data: instructorListData } = useApi<MemberListResponse>({
+    url: 'v1/members',
+    params: { role: ['INSTRUCTOR'] },
+    skipFetch: !data?.defaultInstructorMemberId,
+  })
+  const defaultInstructor = instructorListData?.members.find(
+    (m) => m.memberId === data?.defaultInstructorMemberId,
+  )
 
   // Dedicated mutation for the must-update-profile flag. It posts to the shared
   // /v1/members/must-update-profile endpoint with a one-element id array, so the
@@ -240,6 +252,7 @@ const MemberProfile = () => {
     lang,
     iban,
     ibanAccountName,
+    defaultInstructorMemberId,
   } = data || {}
 
   const isRemoved = memberType == MIKMemberTypes.REMOVED
@@ -587,7 +600,7 @@ const MemberProfile = () => {
 
           {!isExternalUser && (
             <Card>
-              {isAdmin && (
+              {(isAdmin || memberId === 'me') && (
                 <EditButton
                   title={t('member.edit.training')}
                   onClick={() => handleOpenEditModal('training')}
@@ -601,14 +614,24 @@ const MemberProfile = () => {
               <CardContent>
                 <FormTitle title={t('member.trainingProgram')} icon='mdi:account-school' />
 
-                <FormField label={t('member.isTrainingProgramPilot')}>
-                  <Checkbox
-                    checked={Boolean(isTrainingProgramPilot)}
-                    disabled
-                    size='large'
-                    sx={{ p: 0, pl: 0 }}
-                  />
-                </FormField>
+                <Stack spacing={1.5}>
+                  <FormField label={t('member.isTrainingProgramPilot')}>
+                    <Checkbox
+                      checked={Boolean(isTrainingProgramPilot)}
+                      disabled
+                      size='large'
+                      sx={{ p: 0, pl: 0 }}
+                    />
+                  </FormField>
+
+                  <FormField label={t('member.defaultInstructor')} width={100}>
+                    {defaultInstructorMemberId
+                      ? defaultInstructor
+                        ? `${defaultInstructor.first} ${defaultInstructor.last}`
+                        : '...'
+                      : 'N/A'}
+                  </FormField>
+                </Stack>
               </CardContent>
             </Card>
           )}
@@ -879,6 +902,7 @@ const MemberProfile = () => {
           onClose={() => setEditMode(undefined)}
           memberData={data}
           api={mutation}
+          isAdmin={isAdmin}
         />
       </Box>
       {!isMembershipApproved && <Watermark text={t('member.membershipPending')} />}
