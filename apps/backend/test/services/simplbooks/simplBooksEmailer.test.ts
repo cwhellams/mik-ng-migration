@@ -3,14 +3,14 @@ import { MIKLang, MIKMemberTypes, type Member } from '../../../src/routes/member
 import type { EmailAttachment } from '../../../src/lib/sendGmail.ts'
 
 // Mock the dependencies with proper typing
-const getMemberById = jest.fn<() => Promise<Member | undefined>>()
+const getMemberById = jest.fn<(...args: any[]) => Promise<Member | undefined>>()
 const sendEmail =
   jest.fn<
     (to: string, subject: string, html: string, attachments?: EmailAttachment[]) => Promise<void>
   >()
-const getInvoice = jest.fn<() => Promise<any>>()
-const getInvoicePdf = jest.fn<() => Promise<string>>()
-const markInvoiceAsSent = jest.fn<() => Promise<void>>()
+const getInvoice = jest.fn<(...args: any[]) => Promise<any>>()
+const getInvoicePdf = jest.fn<(...args: any[]) => Promise<string>>()
+const markInvoiceAsSent = jest.fn<(...args: any[]) => Promise<void>>()
 
 jest.unstable_mockModule('../../../src/db/member-queries.ts', () => ({
   getMemberById,

@@ -8,8 +8,8 @@ import { generateAccessToken } from '../../../src/routes/auth/token.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 
-const mockGetFuelPricesMarkdown = jest.fn<() => Promise<string>>()
-const mockSetFuelPricesMarkdown = jest.fn<() => Promise<void>>()
+const mockGetFuelPricesMarkdown = jest.fn<(...args: any[]) => Promise<string>>()
+const mockSetFuelPricesMarkdown = jest.fn<(...args: any[]) => Promise<void>>()
 
 jest.unstable_mockModule('../../../src/db/fuel-prices-queries.ts', () => ({
   getFuelPricesMarkdown: mockGetFuelPricesMarkdown,

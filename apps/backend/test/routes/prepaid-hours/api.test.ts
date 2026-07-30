@@ -16,18 +16,20 @@ process.env.SIMPLBOOKS_API ??= 'api'
 
 // ── Mock all DB queries so no real DB is needed ───────────────────────────────
 jest.mock('../../../src/db/prepaid-hours-queries.ts', () => ({
-  getPrepaidPackages: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
-  getPrepaidPackageById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
+  getPrepaidPackages: jest.fn<(...args: any[]) => Promise<unknown[]>>().mockResolvedValue([]),
+  getPrepaidPackageById: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue(null),
   insertPrepaidPackage: jest
     .fn<() => Promise<unknown>>()
     .mockResolvedValue({ productId: 'PKG001' }),
   updatePrepaidPackage: jest
     .fn<() => Promise<unknown>>()
     .mockResolvedValue({ productId: 'PKG001' }),
-  getMemberPackages: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
-  extendExpiryForAircraft: jest.fn<() => Promise<number>>().mockResolvedValue(3),
-  getUsageLog: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
-  getUnbilledTimeByAircraft: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
+  getMemberPackages: jest.fn<(...args: any[]) => Promise<unknown[]>>().mockResolvedValue([]),
+  extendExpiryForAircraft: jest.fn<(...args: any[]) => Promise<number>>().mockResolvedValue(3),
+  getUsageLog: jest.fn<(...args: any[]) => Promise<unknown[]>>().mockResolvedValue([]),
+  getUnbilledTimeByAircraft: jest
+    .fn<(...args: any[]) => Promise<unknown[]>>()
+    .mockResolvedValue([]),
 }))
 
 const { router } = await import('../../../src/routes/prepaid-hours/api.ts')

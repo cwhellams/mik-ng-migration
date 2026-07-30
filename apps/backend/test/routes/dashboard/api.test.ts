@@ -3,8 +3,8 @@ import request from 'supertest'
 import express from 'express'
 
 // Mock the member-queries module before importing anything else
-const mockGetDashboardSettings = jest.fn<() => Promise<any>>()
-const mockSetDashboardSettings = jest.fn<() => Promise<void>>()
+const mockGetDashboardSettings = jest.fn<(...args: any[]) => Promise<any>>()
+const mockSetDashboardSettings = jest.fn<(...args: any[]) => Promise<void>>()
 
 jest.unstable_mockModule('../../../src/db/member-queries.ts', () => ({
   getDashboardSettings: mockGetDashboardSettings,

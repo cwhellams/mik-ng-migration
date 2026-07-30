@@ -10,39 +10,47 @@ process.env.ACCESS_TOKEN_SECRET ??= 'test-access-secret'
 process.env.ACCESS_TOKEN_EXPIRATION ??= '15m'
 
 jest.mock('../../../src/db/shop-queries.ts', () => ({
-  getCategories: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
-  getCategoryById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
-  insertCategory: jest.fn<() => Promise<unknown>>().mockResolvedValue({ categoryId: 'CAT001' }),
-  updateCategory: jest.fn<() => Promise<unknown>>().mockResolvedValue({ categoryId: 'CAT001' }),
-  deleteCategory: jest.fn<() => Promise<void>>().mockResolvedValue(),
+  getCategories: jest.fn<(...args: any[]) => Promise<unknown[]>>().mockResolvedValue([]),
+  getCategoryById: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue(null),
+  insertCategory: jest
+    .fn<(...args: any[]) => Promise<unknown>>()
+    .mockResolvedValue({ categoryId: 'CAT001' }),
+  updateCategory: jest
+    .fn<(...args: any[]) => Promise<unknown>>()
+    .mockResolvedValue({ categoryId: 'CAT001' }),
+  deleteCategory: jest.fn<(...args: any[]) => Promise<void>>().mockResolvedValue(),
 
-  getProducts: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
-  getProductById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
-  insertProduct: jest.fn<() => Promise<unknown>>().mockResolvedValue({ productId: 'PROD001' }),
-  updateProduct: jest.fn<() => Promise<unknown>>().mockResolvedValue({ productId: 'PROD001' }),
-  deleteProduct: jest.fn<() => Promise<void>>().mockResolvedValue(),
-  hasProductOrders: jest.fn<() => Promise<boolean>>().mockResolvedValue(false),
+  getProducts: jest.fn<(...args: any[]) => Promise<unknown[]>>().mockResolvedValue([]),
+  getProductById: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue(null),
+  insertProduct: jest
+    .fn<(...args: any[]) => Promise<unknown>>()
+    .mockResolvedValue({ productId: 'PROD001' }),
+  updateProduct: jest
+    .fn<(...args: any[]) => Promise<unknown>>()
+    .mockResolvedValue({ productId: 'PROD001' }),
+  deleteProduct: jest.fn<(...args: any[]) => Promise<void>>().mockResolvedValue(),
+  hasProductOrders: jest.fn<(...args: any[]) => Promise<boolean>>().mockResolvedValue(false),
 
-  getProductProperties: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
-  upsertProductProperty: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  deleteProductProperty: jest.fn<() => Promise<void>>().mockResolvedValue(),
+  getProductProperties: jest.fn<(...args: any[]) => Promise<unknown[]>>().mockResolvedValue([]),
+  upsertProductProperty: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue({}),
+  deleteProductProperty: jest.fn<(...args: any[]) => Promise<void>>().mockResolvedValue(),
 
-  getDiscountCodes: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
-  getDiscountCodeByCode: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
-  insertDiscountCode: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  updateDiscountCode: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  getDiscountCodes: jest.fn<(...args: any[]) => Promise<unknown[]>>().mockResolvedValue([]),
+  getDiscountCodeByCode: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue(null),
+  insertDiscountCode: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue({}),
+  updateDiscountCode: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue({}),
 
-  getCart: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  addCartItem: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  updateCartItem: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  removeCartItem: jest.fn<() => Promise<void>>().mockResolvedValue(),
-  clearCart: jest.fn<() => Promise<void>>().mockResolvedValue(),
-  applyDiscountToCart: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  getCart: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue({}),
+  addCartItem: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue({}),
+  updateCartItem: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue({}),
+  removeCartItem: jest.fn<(...args: any[]) => Promise<void>>().mockResolvedValue(),
+  clearCart: jest.fn<(...args: any[]) => Promise<void>>().mockResolvedValue(),
+  applyDiscountToCart: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue({}),
 
-  getOrders: jest.fn<() => Promise<unknown[]>>().mockResolvedValue([]),
-  getOrderById: jest.fn<() => Promise<unknown>>().mockResolvedValue(null),
-  createOrderFromCart: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
-  updateOrderStatus: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+  getOrders: jest.fn<(...args: any[]) => Promise<unknown[]>>().mockResolvedValue([]),
+  getOrderById: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue(null),
+  createOrderFromCart: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue({}),
+  updateOrderStatus: jest.fn<(...args: any[]) => Promise<unknown>>().mockResolvedValue({}),
 }))
 
 const { router } = await import('../../../src/routes/shop/api.ts')

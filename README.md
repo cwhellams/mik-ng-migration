@@ -196,13 +196,13 @@ Members can opt in to browser push notifications reminding them of an upcoming b
 
 ## Configuration
 
-| Env var                          | Purpose                                                        |
-| --------------------------------- | ---------------------------------------------------------------- |
-| `VAPID_PUBLIC_KEY`                | Public VAPID key, also served to the frontend via `v1/push/vapid-public-key` |
-| `VAPID_PRIVATE_KEY`               | Private VAPID key, used server-side to sign push payloads (secret) |
-| `VAPID_SUBJECT`                   | `mailto:` contact URI required by the VAPID spec                 |
-| `PUSH_NOTIFICATION_WORKER_ENABLED`| `true`/`false` — whether the hourly worker cron runs at all      |
-| `PUSH_NOTIFICATION_HOURS_BEFORE`  | How many hours before a booking's start time to send the reminder |
+| Env var                            | Purpose                                                                      |
+| ---------------------------------- | ---------------------------------------------------------------------------- |
+| `VAPID_PUBLIC_KEY`                 | Public VAPID key, also served to the frontend via `v1/push/vapid-public-key` |
+| `VAPID_PRIVATE_KEY`                | Private VAPID key, used server-side to sign push payloads (secret)           |
+| `VAPID_SUBJECT`                    | `mailto:` contact URI required by the VAPID spec                             |
+| `PUSH_NOTIFICATION_WORKER_ENABLED` | `true`/`false` — whether the hourly worker cron runs at all                  |
+| `PUSH_NOTIFICATION_HOURS_BEFORE`   | How many hours before a booking's start time to send the reminder            |
 
 In TEST and PROD, `VAPID_PRIVATE_KEY` is a GitHub **secret**; the others are GitHub **vars**. They're wired into the DO app specs (`.do/mik-intranet-test.yaml`, `.do/mik-intranet-prod.yaml`) and deploy workflows (`.github/workflows/create-test-release-and-deploy-to-do.yml`, `.github/workflows/prod-deploy-to-do.yml`).
 

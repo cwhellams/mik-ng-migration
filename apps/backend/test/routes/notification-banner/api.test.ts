@@ -3,8 +3,8 @@ import request from 'supertest'
 import express from 'express'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 
-const mockGetNotificationBanner = jest.fn<() => Promise<any>>()
-const mockSetNotificationBanner = jest.fn<() => Promise<void>>()
+const mockGetNotificationBanner = jest.fn<(...args: any[]) => Promise<any>>()
+const mockSetNotificationBanner = jest.fn<(...args: any[]) => Promise<void>>()
 
 jest.unstable_mockModule('../../../src/db/notification-banner-queries.ts', () => ({
   getNotificationBanner: mockGetNotificationBanner,

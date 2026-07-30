@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals'
 import { MIKLang } from '../../src/routes/members/models.ts'
 
-const markdownEmailTemplateMock = jest.fn(() => '<html>ok</html>')
+const markdownEmailTemplateMock = jest.fn((...args: unknown[]) => '<html>ok</html>')
 
 jest.unstable_mockModule('../../src/templates/emailTemplate.ts', () => ({
   markdownEmailTemplate: markdownEmailTemplateMock,

@@ -231,6 +231,17 @@ The GitHub Actions workflows require:
 
 Always run `pnpm format` and `pnpm build` before committing changes to ensure CI passes.
 
+## Consolidating Chore PRs
+
+Dependabot (and other automated tooling) opens one PR per dependency bump, which is noisy to review and merge individually. Periodically consolidate all open chore PRs into a single PR:
+
+1. List open PRs and identify the "chore" ones — titles of the form `chore(deps): ...` / `chore(deps-dev): ...`, typically authored by `app/dependabot`: `gh pr list --state open --json number,title,author,headRefName`.
+2. For each candidate PR, inspect its diff (`gh pr diff <number>`) to see the actual version bump(s) — don't just merge branches, since multiple PRs frequently touch `pnpm-lock.yaml` and will conflict. Note any duplicate/overlapping bumps (e.g. two PRs bumping the same package to the same version via different dependabot groupings) and only apply them once.
+3. Create a single new branch off `main` (e.g. `chore/consolidate-dependency-bumps-<date>`) and manually apply each package.json version bump identified above, then run `pnpm install` once to regenerate `pnpm-lock.yaml` cleanly.
+4. Run `pnpm format`, `pnpm build` (backend + frontend), and `pnpm test` on the consolidated branch. All must pass before opening the PR.
+5. Push the branch and open a single PR summarizing every dependency bump it includes (list package name + old → new version for each).
+6. Close each individual chore PR with a comment pointing to the consolidated PR (e.g. `Consolidated into #<new PR number>.`), then close it — do not merge the individual PRs.
+
 ## SimplBooks Dry-Run Mode
 
 The outbox worker supports a dry-run mode for testing invoice generation locally or in the beta environment **without making any HTTP calls to SimplBooks**.

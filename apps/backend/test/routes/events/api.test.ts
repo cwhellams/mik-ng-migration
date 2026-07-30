@@ -4,11 +4,11 @@ import request from 'supertest'
 
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 
-const mockGetAllEvents = jest.fn<() => Promise<unknown[]>>()
-const mockGetEventById = jest.fn<() => Promise<unknown>>()
-const mockCreateEvent = jest.fn<() => Promise<unknown>>()
-const mockUpdateEvent = jest.fn<() => Promise<unknown>>()
-const mockDeleteEvent = jest.fn<() => Promise<boolean>>()
+const mockGetAllEvents = jest.fn<(...args: any[]) => Promise<unknown[]>>()
+const mockGetEventById = jest.fn<(...args: any[]) => Promise<unknown>>()
+const mockCreateEvent = jest.fn<(...args: any[]) => Promise<unknown>>()
+const mockUpdateEvent = jest.fn<(...args: any[]) => Promise<unknown>>()
+const mockDeleteEvent = jest.fn<(...args: any[]) => Promise<boolean>>()
 
 jest.unstable_mockModule('../../../src/db/events-queries.ts', () => ({
   getAllEvents: mockGetAllEvents,

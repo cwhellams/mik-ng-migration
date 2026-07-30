@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Flight Invoice Outbox Integration Suite 1 — Billability combinations S1-1: fully billable flight without equipment fee — adds kalustonkaytto task 1`] = `
 [

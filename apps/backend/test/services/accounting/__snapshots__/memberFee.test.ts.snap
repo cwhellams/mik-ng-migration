@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Membership Fee Invoice Payload Tests with 50% membership fee seasonal discount (on or after October 1) applies 50% discount to membership fee for a FLYING member 1`] = `
 {

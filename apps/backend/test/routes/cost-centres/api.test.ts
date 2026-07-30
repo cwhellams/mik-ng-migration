@@ -3,11 +3,13 @@ import express from 'express'
 import request from 'supertest'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
 
-const mockGetCostCentres = jest.fn<() => Promise<Array<{ code: string; description: string }>>>()
-const mockCreateCostCentre = jest.fn<() => Promise<{ code: string; description: string }>>()
+const mockGetCostCentres =
+  jest.fn<(...args: any[]) => Promise<Array<{ code: string; description: string }>>>()
+const mockCreateCostCentre =
+  jest.fn<(...args: any[]) => Promise<{ code: string; description: string }>>()
 const mockUpdateCostCentre =
-  jest.fn<() => Promise<{ code: string; description: string } | undefined>>()
-const mockDeleteCostCentre = jest.fn<() => Promise<boolean>>()
+  jest.fn<(...args: any[]) => Promise<{ code: string; description: string } | undefined>>()
+const mockDeleteCostCentre = jest.fn<(...args: any[]) => Promise<boolean>>()
 
 jest.unstable_mockModule('../../../src/db/cost-centre-queries.ts', () => ({
   getCostCentres: mockGetCostCentres,

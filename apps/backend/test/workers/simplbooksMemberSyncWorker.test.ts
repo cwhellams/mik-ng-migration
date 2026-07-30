@@ -3,15 +3,15 @@ import type { Selectable } from 'kysely'
 import type { MemberRegister, MemberBrevoSyncState } from '../../src/db/schema.ts'
 
 // Create mock functions first with proper types
-const mockUpdateClient = jest.fn<() => Promise<void>>()
+const mockUpdateClient = jest.fn<(...args: any[]) => Promise<void>>()
 const mockCreateSimplbooksSyncState =
   jest.fn<(syncedCount: number, status: string) => Promise<number>>()
 const mockGetLastSimplbooksSyncState =
-  jest.fn<() => Promise<Selectable<MemberBrevoSyncState> | null>>()
+  jest.fn<(...args: any[]) => Promise<Selectable<MemberBrevoSyncState> | null>>()
 const mockGetMembersToSync =
   jest.fn<(lastSyncedAt?: Date) => Promise<Selectable<MemberRegister>[]>>()
 const mockGetSimplbooksSyncStatusCounts =
-  jest.fn<() => Promise<{ pending: number; synced: number; failed: number }>>()
+  jest.fn<(...args: any[]) => Promise<{ pending: number; synced: number; failed: number }>>()
 const mockUpdateMemberSimplbooksSyncStatus =
   jest.fn<(memberId: string, status: string) => Promise<void>>()
 const mockUpdateSimplbooksSyncState =

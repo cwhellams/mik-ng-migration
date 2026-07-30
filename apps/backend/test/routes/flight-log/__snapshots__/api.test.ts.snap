@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`GET /flight-log Get flight log with Id should return a single row when data is present for the given Id 1`] = `
 {
