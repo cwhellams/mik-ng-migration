@@ -269,19 +269,20 @@ const Header = (props: HeaderProps) => {
           {/* User Avatar and Theme Toggle - Always Visible */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <ClockDisplay />
-            {hasAccess(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN) && (
-              <IconButton
-                component={Link}
-                to='/shop/cart'
-                size='small'
-                aria-label={t('shop.cart')}
-                sx={{ color: 'text.primary' }}
-              >
-                <Badge badgeContent={cartItemCount || undefined} color='primary'>
-                  <Icon icon='mdi:cart-outline' width={24} height={24} />
-                </Badge>
-              </IconButton>
-            )}
+            {hasAccess(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN) &&
+              location.pathname.startsWith('/shop') && (
+                <IconButton
+                  component={Link}
+                  to='/shop/cart'
+                  size='small'
+                  aria-label={t('shop.cart')}
+                  sx={{ color: 'text.primary' }}
+                >
+                  <Badge badgeContent={cartItemCount || undefined} color='primary'>
+                    <Icon icon='mdi:cart-outline' width={24} height={24} />
+                  </Badge>
+                </IconButton>
+              )}
             <AdminToggle />
             <ThemeToggle />
             <User />
