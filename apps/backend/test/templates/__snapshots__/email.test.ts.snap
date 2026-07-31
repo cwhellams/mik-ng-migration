@@ -436,9 +436,7 @@ exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: 
   <a href="https://example.com/profile/email-change/verify?token&#x3D;abc123">
   https://example.com/profile/email-change/verify?token&#x3D;abc123
   </a>
-</p>
-
-<p>This link will expire in 15 minutes.</p>
+</p><p>This link will expire in 15 minutes.</p>
 
       </div>
 
@@ -477,9 +475,7 @@ exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: 
   <a href="https://example.com/profile/email-change/verify?token&#x3D;abc123">
   https://example.com/profile/email-change/verify?token&#x3D;abc123
   </a>
-</p>
-
-<p>Tämä linkki vanhenee 15 minuutissa.</p>
+</p><p>Tämä linkki vanhenee 15 minuutissa.</p>
 
       </div>
 
@@ -518,9 +514,7 @@ exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: 
   <a href="https://example.com/profile/email-change/verify?token&#x3D;abc123">
   https://example.com/profile/email-change/verify?token&#x3D;abc123
   </a>
-</p>
-
-<p>Denna länk upphör att gälla om 15 minuter.</p>
+</p><p>Denna länk upphör att gälla om 15 minuter.</p>
 
       </div>
 
@@ -565,9 +559,7 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: en 1`] = `
   <a href="https://example.com">
   https://example.com
   </a>
-</p>
-
-<p>Your verification code is:</p>
+</p><p>Your verification code is:</p>
 <p style="font-size: 1.25em; font-weight: bold; color: #003366;">
   12345
 </p>
@@ -609,9 +601,7 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: fi 1`] = `
   <a href="https://example.com">
     https://example.com
   </a>
-</p>
-
-<p>Vahvistuskoodisi on:</p>
+</p><p>Vahvistuskoodisi on:</p>
 <p style="font-size: 1.25em; font-weight: bold; color: #003366;">
   12345
 </p>
@@ -653,9 +643,7 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: sv 1`] = `
   <a href="https://example.com">
   https://example.com
   </a>
-</p>
-
-<p>Din verifieringskod är:</p>
+</p><p>Din verifieringskod är:</p>
 <p style="font-size: 1.25em; font-weight: bold; color: #003366;">
   12345
 </p>
@@ -1101,9 +1089,7 @@ erääntyi <strong>2024-06-30</strong> ja on edelleen maksamatta.</p>
 <p>Pyydämme sinua suorittamaan maksun mahdollisimman pian.</p>
 <p style="color: #cc0000; font-weight: bold;">
   ⚠️ Varoitus: Jos tämä lasku jää maksamatta, mahdollisuutesi varata lentokoneita voidaan jäädyttää.
-</p>
-
-<p>Jos olet jo suorittanut maksun tai uskot tämän muistutuksen olevan virhe, ota meihin yhteyttä välittömästi: <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
+</p><p>Jos olet jo suorittanut maksun tai uskot tämän muistutuksen olevan virhe, ota meihin yhteyttä välittömästi: <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
 <p>Kiitos huomiostasi tähän asiaan.</p>
 
       </div>
@@ -1130,9 +1116,7 @@ was due on <strong>2024-06-30</strong> and remains unpaid.</p>
 <p>Please arrange payment at your earliest convenience.</p>
 <p style="color: #cc0000; font-weight: bold;">
 ⚠️ Warning: If this invoice remains unpaid, your ability to make aircraft reservations may be suspended.
-</p>
-
-<p>If you have already made payment or believe this notice is in error, please contact us immediately at <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
+</p><p>If you have already made payment or believe this notice is in error, please contact us immediately at <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
 <p>Thank you for your prompt attention to this matter.</p>
 
       </div>
@@ -1159,9 +1143,7 @@ förföll till betalning den <strong>2024-06-30</strong> och är fortfarande obe
 <p>Vänligen ordna betalning vid ditt närmaste tillfälle.</p>
 <p style="color: #cc0000; font-weight: bold;">
 ⚠️ Varning: Om denna faktura förblir obetald kan din möjlighet att göra flygplansreservationer komma att tillfälligt stängas av.
-</p>
-
-<p>Om du redan har betalat eller tror att detta meddelande är felaktigt, vänligen kontakta oss omedelbart på <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
+</p><p>Om du redan har betalat eller tror att detta meddelande är felaktigt, vänligen kontakta oss omedelbart på <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
 <p>Tack för din snabba uppmärksamhet i denna fråga.</p>
 
       </div>
@@ -1511,14 +1493,10 @@ exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">Lentokoneen varausoikeus keskeytetty</h1><p>Hyvä Tester1,</p>
 <p>Oikeutesi tehdä lentovarauksia on <strong>keskeytetty</strong> maksamattomien lentolaskujen vuoksi.</p>
-<div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;">
-
-<p><strong>Maksamattomat lentolaskut:</strong></p>
+<div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;"><p><strong>Maksamattomat lentolaskut:</strong></p>
 <p>Määrä: <strong>2</strong></p>
 <p>Kokonaissumma: <strong>150 €</strong></p>
-</div>
-
-<h2 style="text-align: center; color: #003366;">Mitä tämä tarkoittaa</h2><ul>
+</div><h2 style="text-align: center; color: #003366;">Mitä tämä tarkoittaa</h2><ul>
 <li>Et voi tehdä uusia lentovarauksia ennen kuin kaikki erääntyneet lentolaskut on maksettu</li>
 <li><strong>3 olemassa oleva(a) varausta on peruutettu</strong></li>
 <li>Tämä keskeytys koskee vain lentokoneen varausoikeuksia</li>
@@ -1563,22 +1541,16 @@ exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">Aircraft Reservation Privileges Suspended</h1><p>Dear Tester1,</p>
 <p>Your ability to make aircraft reservations has been <strong>suspended</strong> due to unpaid flight invoices.</p>
-<div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;">
-
-<p><strong>Outstanding Flight Invoices:</strong></p>
+<div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;"><p><strong>Outstanding Flight Invoices:</strong></p>
 <p>Count: <strong>2</strong></p>
 <p>Total Amount: <strong>150 €</strong></p>
-</div>
-
-<h2 style="text-align: center; color: #003366;">What this means</h2><ul>
+</div><h2 style="text-align: center; color: #003366;">What this means</h2><ul>
 <li>You cannot make new aircraft reservations until all overdue flight invoices are paid</li>
 <li><strong>3 existing reservation(s) have been cancelled</strong></li>
 <li>This suspension only affects flight booking privileges</li>
 <li>Your reservation privileges will be automatically restored once all flight invoices are paid</li>
 </ul>
-</ul>
-
-<h2 style="text-align: center; color: #003366;">Action Required</h2><p>Please pay all overdue flight invoices immediately. You can view and pay your invoices by logging into the MIK Intranet.</p>
+</ul><h2 style="text-align: center; color: #003366;">Action Required</h2><p>Please pay all overdue flight invoices immediately. You can view and pay your invoices by logging into the MIK Intranet.</p>
 
     <div style="text-align: center; margin: 24px 0;">
       <a href="http://localhost:5173/club/billing" style="
@@ -1617,14 +1589,10 @@ exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 
       <div style="color: #333333">
         <h1 style="text-align: center; color: #003366;">Flygplansreservationsrättigheter har upphävts</h1><p>Bästa Tester1,</p>
 <p>Din möjlighet att göra flygplansreservationer har <strong>upphävts</strong> på grund av obetalda flygfakturor.</p>
-<div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;">
-
-<p><strong>Utestående flygfakturor:</strong></p>
+<div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;"><p><strong>Utestående flygfakturor:</strong></p>
 <p>Antal: <strong>2</strong></p>
 <p>Totalt belopp: <strong>150 €</strong></p>
-</div>
-
-<h2 style="text-align: center; color: #003366;">Vad detta betyder</h2><ul>
+</div><h2 style="text-align: center; color: #003366;">Vad detta betyder</h2><ul>
 <li>Du kan inte göra nya flygplansreservationer förrän alla förfallna flygfakturor är betalda</li>
 <li><strong>3 befintlig(a) reservation(er) har avbokats</strong></li>
 <li>Detta upphävande påverkar endast flygbokningsrättigheter</li>

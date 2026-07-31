@@ -27,9 +27,9 @@
   "packageManager": "pnpm@11.10.0",
   "devDependencies": {
     "@stoplight/prism-cli": "^5.16.0",
-    "concurrently": "^9.2.4",
+    "concurrently": "^10.0.4",
     "eslint": "^9.39.5",
-    "prettier": "^3.9.5",
+    "prettier": "^3.9.6",
     "typescript": "^7.0.2"
   }
 }
