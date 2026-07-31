@@ -102,14 +102,12 @@ router.post('/', async (req: Request<Record<string, string>>, res: Response) => 
 router.get('/', async (req: Request<BookingFilters>, res: Response<BookingListResponse>) => {
   const data = BookingFiltersSchema.parse(req.query)
 
-  // If user is not Booking Admin they can only query their own bookings
+  // Non-admins can view the full shared schedule (no memberId filter), or filter to their
+  // own bookings, but cannot filter by another member's memberId.
   if (!isBookingAdmin(req.user) && data.memberId && data.memberId !== req.user!.memberId) {
     return problem({ status: 403, detail: 'Cannot query bookings for another member' })
   }
-  const filters: BookingFilters = {
-    ...data,
-    ...(isBookingAdmin(req.user) ? {} : { memberId: req.user!.memberId }),
-  }
+  const filters: BookingFilters = { ...data }
 
   const previous = filters.from
     ? await getBookings({

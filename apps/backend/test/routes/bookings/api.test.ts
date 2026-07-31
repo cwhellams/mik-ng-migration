@@ -58,11 +58,21 @@ describe('GET /bookings', () => {
     expect(response.body.bookings.length >= 40).toBe(true)
   })
 
-  it('should only return the logged in user own bookings for a non-admin user', async () => {
+  it('should return the full shared schedule for a non-admin user when no memberId filter is given', async () => {
     const response = await request(app)
       .get('/bookings')
       .set('Cookie', `accessToken=${userToken}`)
       .query(<BookingFilters>{})
+
+    expect(response.status).toBe(200)
+    expect(response.body.bookings.length >= 40).toBe(true)
+  })
+
+  it('should allow a non-admin user to filter to their own bookings', async () => {
+    const response = await request(app)
+      .get('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .query(<BookingFilters>{ memberId: userId })
 
     expect(response.status).toBe(200)
     expect(response.body.bookings.every((booking: Booking) => booking.memberId === userId)).toBe(
