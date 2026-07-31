@@ -1858,7 +1858,9 @@
       "expiredMins": "Vanhentuneessa jäljellä",
       "unbilledFlightsByAircraft": "Laskuttamattomat lennot ilma-aluksittain",
       "airborneMins": "Lentoaika (min)",
-      "blockMins": "Lohkoaika (min)"
+      "blockMins": "Lohkoaika (min)",
+      "updateStatus": "Päivitä tila",
+      "statusUpdated": "Tilauksen tila päivitetty"
     },
     "variants": "Variantit",
     "addVariant": "Lisää variantti",

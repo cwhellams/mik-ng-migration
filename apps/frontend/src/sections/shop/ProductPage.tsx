@@ -40,6 +40,7 @@ export default function ProductPage() {
   const [snack, setSnack] = useState<{
     msg: string
     sev: 'success' | 'error'
+    showCartLink?: boolean
   } | null>(null)
 
   const {
@@ -107,7 +108,7 @@ export default function ProductPage() {
     if (result.error) {
       setSnack({ msg: t('common.error'), sev: 'error' })
     } else {
-      setSnack({ msg: t('shop.addedToCart'), sev: 'success' })
+      setSnack({ msg: t('shop.addedToCart'), sev: 'success', showCartLink: true })
     }
   }
 
@@ -216,17 +217,7 @@ export default function ProductPage() {
               </Typography>
 
               <Typography variant='h5' color='primary' sx={{ mb: 2 }}>
-                €{(product.price * (1 + product.vatPercent / 100)).toFixed(2)}
-                <Typography
-                  component='span'
-                  variant='body2'
-                  sx={{
-                    color: 'text.secondary',
-                    ml: 1,
-                  }}
-                >
-                  ({t('shop.vatIncluded', { pct: product.vatPercent })})
-                </Typography>
+                €{product.price.toFixed(2)}
               </Typography>
 
               {product.description && (
@@ -401,11 +392,21 @@ export default function ProductPage() {
       </RemoteContent>
       <Snackbar
         open={!!snack}
-        autoHideDuration={3000}
+        autoHideDuration={5000}
         onClose={() => setSnack(null)}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert severity={snack?.sev ?? 'info'} onClose={() => setSnack(null)}>
+        <Alert
+          severity={snack?.sev ?? 'info'}
+          onClose={() => setSnack(null)}
+          action={
+            snack?.showCartLink ? (
+              <Button color='inherit' size='small' component={Link} to='/shop/cart'>
+                {t('shop.viewCart')}
+              </Button>
+            ) : undefined
+          }
+        >
           {snack?.msg}
         </Alert>
       </Snackbar>

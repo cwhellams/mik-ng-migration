@@ -1825,7 +1825,9 @@
       "expiredMins": "Minuter vid utgång",
       "unbilledFlightsByAircraft": "Ofakturerade flyg per luftfartyg",
       "airborneMins": "Flygtid (min)",
-      "blockMins": "Blocktid (min)"
+      "blockMins": "Blocktid (min)",
+      "updateStatus": "Uppdatera status",
+      "statusUpdated": "Orderstatus uppdaterad"
     },
     "variants": "Varianter",
     "addVariant": "Lägg till variant",

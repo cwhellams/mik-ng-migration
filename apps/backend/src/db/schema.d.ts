@@ -119,7 +119,8 @@ export type Occurrencestatus =
 
 export type SecretClassType = 'BOARD' | 'MEMBER'
 
-export type ShopOrderStatus = 'CANCELLED' | 'INVOICED' | 'PENDING' | 'PROCESSING' | 'REFUNDED'
+export type ShopOrderStatus =
+  'CANCELLED' | 'INVOICE_PAID' | 'INVOICED' | 'PENDING' | 'PROCESSING' | 'REFUNDED'
 
 export type ShopProductType = 'FLIGHT_HOURS_PACKAGE' | 'STANDARD'
 

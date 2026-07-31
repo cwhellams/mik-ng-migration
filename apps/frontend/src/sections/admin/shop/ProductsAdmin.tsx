@@ -1,5 +1,6 @@
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Chip,
@@ -489,7 +490,6 @@ interface ProductForm {
   categoryId: string
   simplbooksItemId: string
   price: string
-  vatPercent: string
   stockQuantity: string
   lowStockThreshold: string
   maxPerMemberQty: string
@@ -509,7 +509,6 @@ const emptyForm: ProductForm = {
   categoryId: '',
   simplbooksItemId: '',
   price: '',
-  vatPercent: '24',
   stockQuantity: '0',
   lowStockThreshold: '',
   maxPerMemberQty: '',
@@ -532,7 +531,6 @@ function productToForm(p: Product): ProductForm {
     categoryId: p.categoryId,
     simplbooksItemId: p.simplbooksItemId ?? '',
     price: String(p.price),
-    vatPercent: String(p.vatPercent),
     stockQuantity: String(p.stockQuantity),
     lowStockThreshold: p.lowStockThreshold == null ? '' : String(p.lowStockThreshold),
     maxPerMemberQty: p.maxOrderQuantity == null ? '' : String(p.maxOrderQuantity),
@@ -550,7 +548,7 @@ function formToPayload(f: ProductForm) {
     categoryId: f.categoryId,
     simplbooksItemId: f.simplbooksItemId || null,
     price: Number.parseFloat(f.price) || 0,
-    vatPercent: Number.parseFloat(f.vatPercent) || 24,
+    vatPercent: 0,
     stockQuantity: Number.parseInt(f.stockQuantity) || 0,
     lowStockThreshold: f.lowStockThreshold ? Number.parseInt(f.lowStockThreshold) : null,
     maxOrderQuantity: f.maxPerMemberQty ? Number.parseInt(f.maxPerMemberQty) : null,
@@ -595,6 +593,10 @@ export default function ProductsAdmin() {
     isLoading: categoriesLoading,
     error: categoriesError,
   } = useApi<Category[]>({ url: 'v1/shop/categories' })
+
+  const { data: simplbooksItems, isLoading: simplbooksItemsLoading } = useApi<
+    { code: string; name: string }[]
+  >({ url: 'v1/shop/simplbooks-items' })
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Product | null>(null)
@@ -840,14 +842,6 @@ export default function ProductsAdmin() {
                   slotProps={{ htmlInput: { step: '0.01' } }}
                 />
                 <TextField
-                  label={t('shop.vatPercent')}
-                  size='small'
-                  fullWidth
-                  type='number'
-                  value={form.vatPercent}
-                  onChange={set('vatPercent')}
-                />
-                <TextField
                   label={t('shop.stock')}
                   size='small'
                   fullWidth
@@ -871,12 +865,18 @@ export default function ProductsAdmin() {
                   value={form.maxPerMemberQty}
                   onChange={set('maxPerMemberQty')}
                 />
-                <TextField
-                  label={t('shop.simplbooksItemId')}
-                  size='small'
-                  fullWidth
-                  value={form.simplbooksItemId}
-                  onChange={set('simplbooksItemId')}
+                <Autocomplete
+                  options={simplbooksItems ?? []}
+                  loading={simplbooksItemsLoading}
+                  getOptionLabel={(o) => `${o.name} (${o.code})`}
+                  isOptionEqualToValue={(o, v) => o.code === v.code}
+                  value={simplbooksItems?.find((o) => o.code === form.simplbooksItemId) ?? null}
+                  onChange={(_e, v) =>
+                    setForm((prev) => ({ ...prev, simplbooksItemId: v?.code ?? '' }))
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} label={t('shop.simplbooksItemId')} size='small' />
+                  )}
                 />
                 <TextField
                   label={t('shop.imageUrl')}

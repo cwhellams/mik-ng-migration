@@ -3,6 +3,7 @@ import {
   AppBar,
   Toolbar,
   Box,
+  Badge,
   Button,
   Container,
   useScrollTrigger,
@@ -34,6 +35,8 @@ import { HeaderSubMenu } from './HeaderSubMenu'
 import ClockDisplay from './ClockDisplay'
 import { MIKPermissions } from '@backend/routes/members/models'
 import { useMyDtoSyllabus } from '../sections/dto/useMyDtoSyllabus'
+import useApi from '../hooks/useApi'
+import type { Cart } from '@backend/routes/shop/models'
 
 interface HeaderProps {
   window?: () => Window
@@ -53,6 +56,12 @@ const Header = (props: HeaderProps) => {
   const location = useLocation()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const { hasAccess } = useRoles()
+
+  const { data: cart } = useApi<Cart>({
+    url: 'v1/shop/cart',
+    skipFetch: !hasAccess(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN),
+  })
+  const cartItemCount = cart?.items?.reduce((sum, i) => sum + i.quantity, 0) ?? 0
 
   // Only fetch the active DTO syllabus when the user is acting as a plain
   // DTO_USER (student).  Instructors always see the DTO nav; admins only see
@@ -260,6 +269,19 @@ const Header = (props: HeaderProps) => {
           {/* User Avatar and Theme Toggle - Always Visible */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <ClockDisplay />
+            {hasAccess(MIKPermissions.STORE_USER, MIKPermissions.STORE_ADMIN) && (
+              <IconButton
+                component={Link}
+                to='/shop/cart'
+                size='small'
+                aria-label={t('shop.cart')}
+                sx={{ color: 'text.primary' }}
+              >
+                <Badge badgeContent={cartItemCount || undefined} color='primary'>
+                  <Icon icon='mdi:cart-outline' width={24} height={24} />
+                </Badge>
+              </IconButton>
+            )}
             <AdminToggle />
             <ThemeToggle />
             <User />

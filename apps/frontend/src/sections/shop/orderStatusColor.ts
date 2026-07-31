@@ -7,6 +7,7 @@ export const ORDER_STATUS_COLOR: Record<
   PENDING: 'info',
   PROCESSING: 'warning',
   INVOICED: 'success',
+  INVOICE_PAID: 'success',
   CANCELLED: 'error',
   REFUNDED: 'default',
 }

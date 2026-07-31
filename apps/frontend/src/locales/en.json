@@ -1852,7 +1852,9 @@
       "expiredMins": "Expired Min",
       "unbilledFlightsByAircraft": "Unbilled flights by aircraft",
       "airborneMins": "Airborne (min)",
-      "blockMins": "Block time (min)"
+      "blockMins": "Block time (min)",
+      "updateStatus": "Update Status",
+      "statusUpdated": "Order status updated"
     },
     "variants": "Variants",
     "addVariant": "Add Variant",

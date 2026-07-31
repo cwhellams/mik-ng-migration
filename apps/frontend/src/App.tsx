@@ -66,6 +66,7 @@ import ShopAdminDashboard from './sections/admin/shop/ShopAdminDashboard'
 import ProductsAdmin from './sections/admin/shop/ProductsAdmin'
 import CategoriesAdmin from './sections/admin/shop/CategoriesAdmin'
 import OrdersAdmin from './sections/admin/shop/OrdersAdmin'
+import OrderDetailAdmin from './sections/admin/shop/OrderDetailAdmin'
 import DiscountCodesAdmin from './sections/admin/shop/DiscountCodesAdmin'
 import FlightPackagesAdmin from './sections/admin/shop/FlightPackagesAdmin'
 import ExamsPage from './sections/exams/ExamsPage'
@@ -377,6 +378,14 @@ function App() {
                   element={
                     <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
                       <OrdersAdmin />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='shop/orders/:orderId'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
+                      <OrderDetailAdmin />
                     </RequirePermission>
                   }
                 />

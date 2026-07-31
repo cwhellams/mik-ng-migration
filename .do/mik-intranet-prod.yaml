@@ -234,6 +234,9 @@ services:
       - key: APP_ENV
         value: 'production'
         type: GENERAL
+      - key: ORDER_NOTIFICATION_EMAIL
+        value: ${ORDER_NOTIFICATION_EMAIL}
+        type: GENERAL
 
     instance_count: 1
     health_check:

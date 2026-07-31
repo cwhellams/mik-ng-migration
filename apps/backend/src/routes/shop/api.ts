@@ -45,6 +45,9 @@ import {
   updateOrderStatus,
 } from '../../db/shop-queries.ts'
 import { isAdminShopView, isPurchasableProduct } from './shop-visibility.ts'
+import { getItems } from '../../services/simplbooks/simplbooksApiClient.ts'
+import { sendEmail } from '../../lib/sendGmail.ts'
+import logger from '../../lib/logger.ts'
 
 export const router = Router()
 router.use(
@@ -57,6 +60,22 @@ router.use(
 
 const isStoreAdmin = (req: Request) =>
   req.user?.permissions?.includes(MIKPermissions.STORE_ADMIN) ?? false
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SimplBooks items proxy (admin only — used to populate product picker)
+// ─────────────────────────────────────────────────────────────────────────────
+
+router.get(
+  '/simplbooks-items',
+  validateUser(MIKPermissions.STORE_ADMIN),
+  async (_req: Request, res: Response) => {
+    const articles = await getItems()
+    const items = articles
+      .filter((a) => a.code && a.name)
+      .map((a) => ({ code: a.code!, name: a.name! }))
+    res.json(items)
+  },
+)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Categories
@@ -329,6 +348,32 @@ router.post(
       })
     }
     const order = await createOrderFromCart(req.user!.memberId, data, req.user!)
+
+    // Send order notification email to the orders inbox (fire-and-forget)
+    const notifyEmail = process.env.ORDER_NOTIFICATION_EMAIL
+    if (notifyEmail) {
+      const member = order.member
+      const itemRows = (order.items ?? [])
+        .map(
+          (i) =>
+            `<tr><td>${i.productId}</td><td>${i.quantity}</td><td>€${i.unitPrice.toFixed(2)}</td><td>€${i.totalPrice.toFixed(2)}</td></tr>`,
+        )
+        .join('')
+      const html = `
+        <h2>New shop order #${order.orderId}</h2>
+        <p><strong>Member:</strong> ${member?.firstName ?? ''} ${member?.lastName ?? ''} &lt;${member?.email ?? req.user!.email}&gt;</p>
+        <table border="1" cellpadding="4" cellspacing="0">
+          <thead><tr><th>Product</th><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead>
+          <tbody>${itemRows}</tbody>
+        </table>
+        <p><strong>Order total: €${order.totalAmount.toFixed(2)}</strong></p>
+        ${order.notes ? `<p><strong>Notes:</strong> ${order.notes}</p>` : ''}
+      `
+      sendEmail(notifyEmail, `New order #${order.orderId}`, html).catch((err: unknown) =>
+        logger.error('Failed to send order notification email', err),
+      )
+    }
+
     res.status(HttpStatusCode.Created).json(order)
   },
 )

@@ -123,6 +123,7 @@ jobs:
           echo "MEDICAL_CHECK_ENABLED=${{ vars.MEDICAL_CHECK_ENABLED }}" >> "$GITHUB_ENV"
           echo "TINY_URL_CLEANUP_WORKER_ENABLED=${{ vars.TINY_URL_CLEANUP_WORKER_ENABLED_PROD }}" >> "$GITHUB_ENV"
           echo "TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP=${{ vars.TINY_URL_CLEANUP_WORKER_RUN_ON_STARTUP_PROD }}" >> "$GITHUB_ENV"
+          echo "ORDER_NOTIFICATION_EMAIL=${{ vars.ORDER_NOTIFICATION_EMAIL }}" >> "$GITHUB_ENV"
 
       - name: Promote image to production
         run: |

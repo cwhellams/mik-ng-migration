@@ -25,7 +25,14 @@ import type { Order, OrderStatus } from '@backend/routes/shop/models'
 import { Link } from 'react-router-dom'
 import { ORDER_STATUS_COLOR } from '../../shop/orderStatusColor'
 
-const ALL_STATUSES: OrderStatus[] = ['PENDING', 'PROCESSING', 'INVOICED', 'CANCELLED', 'REFUNDED']
+const ALL_STATUSES: OrderStatus[] = [
+  'PENDING',
+  'PROCESSING',
+  'INVOICED',
+  'INVOICE_PAID',
+  'CANCELLED',
+  'REFUNDED',
+]
 type DateRange = '7d' | '1m' | '3m' | '6m' | '1y'
 
 const DATE_RANGE_OPTIONS: Array<{ value: DateRange; label: string }> = [
@@ -154,7 +161,7 @@ export default function OrdersAdmin() {
                       <Button
                         size='small'
                         component={Link}
-                        to={`/shop/orders/${order.orderId}`}
+                        to={`/admin/shop/orders/${order.orderId}`}
                         startIcon={<Icon icon='mdi:eye' />}
                       >
                         {t('common.view')}
