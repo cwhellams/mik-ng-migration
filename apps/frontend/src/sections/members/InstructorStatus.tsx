@@ -32,6 +32,7 @@ import type {
   InstructorQualificationHistory,
 } from '@backend/routes/instructor-qualifications/models'
 import { useRoles } from '../../hooks/useRoles'
+import EasaLogo from '../../assets/easa-logo.png'
 
 const EXPIRING_DAYS_THRESHOLD = 30
 
@@ -369,7 +370,7 @@ const InstructorStatus = () => {
       >
         <Box
           component='img'
-          src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/EASA_Logo.png/330px-EASA_Logo.png'
+          src={EasaLogo}
           alt='EASA'
           sx={{ height: 32, display: 'block', mb: 1 }}
         />
