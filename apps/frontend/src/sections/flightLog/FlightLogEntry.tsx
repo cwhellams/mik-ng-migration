@@ -80,6 +80,8 @@ import {
   type MemberSyllabusDetail,
 } from '../dto/dtoApi'
 import { MIKPermissions } from '@backend/routes/members/models'
+import { useOverlapCheck } from './useOverlapCheck'
+import { OverlapWarningDialog } from './components/OverlapWarningDialog'
 
 // Renders the guided mobile wizard for new entries on phone-width viewports (unless
 // the user opted into the classic form via the wizard's "Use full form instead" link);
@@ -349,6 +351,8 @@ const ClassicFlightLogEntry = () => {
   const [originalSyllabusFlightId, setOriginalSyllabusFlightId] = useState<string>('')
   const [showDtoWarning, setShowDtoWarning] = useState(false)
   const [pendingSubmitData, setPendingSubmitData] = useState<FlightLogUpsertRequest | null>(null)
+  // Warns about entries overlapping the submitted times before the save is attempted
+  const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(isNew ? undefined : flightId)
   // Local-only state for fuel type — not stored in the flight log, used only for expense prefill
   const [fuelUpliftType, setFuelUpliftType] = useState<(typeof FUEL_TYPES)[number] | ''>('')
   const [fuelClaimCreating, setFuelClaimCreating] = useState(false)
@@ -470,7 +474,7 @@ const ClassicFlightLogEntry = () => {
     }
   }
 
-  const onSubmit = (data: FlightLogUpsertRequest) => {
+  const continueSubmit = (data: FlightLogUpsertRequest) => {
     if (!isNew && existingAttemptVerified) {
       setPendingSubmitData(data)
       setShowDtoWarning(true)
@@ -478,6 +482,9 @@ const ClassicFlightLogEntry = () => {
       doSave(data)
     }
   }
+
+  const onSubmit = (data: FlightLogUpsertRequest) =>
+    withOverlapCheck(data, () => continueSubmit(data))
 
   // Save current form state without navigating away; used before validate
   const saveChanges = async (): Promise<boolean> => {
@@ -1284,6 +1291,7 @@ const ClassicFlightLogEntry = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <OverlapWarningDialog {...overlapDialogProps} />
     </RemoteContent>
   )
 }

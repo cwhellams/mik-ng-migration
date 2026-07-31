@@ -515,6 +515,34 @@ export const FlightLogStatsResponseSchema = z.object({
 
 export type FlightLogStatsResponse = z.infer<typeof FlightLogStatsResponseSchema>
 
+export const FlightLogOverlapQuerySchema = z
+  .object({
+    aircraftRegistration: z.string().min(1),
+    offBlockTimeEpoch: z.coerce.number().int(),
+    onBlockTimeEpoch: z.coerce.number().int(),
+    // omitted when checking a brand new entry
+    excludeFlightId: z.string().optional(),
+  })
+  .strict()
+
+export type FlightLogOverlapQuery = z.infer<typeof FlightLogOverlapQuerySchema>
+
+export const FlightLogOverlapConflictSchema = z.object({
+  flightId: z.string(),
+  aircraftRegistration: z.string(),
+  offBlockTimeUtc: z.string().datetime(),
+  onBlockTimeUtc: z.string().datetime(),
+  status: z.nativeEnum(FlightLogStatus),
+})
+
+export type FlightLogOverlapConflict = z.infer<typeof FlightLogOverlapConflictSchema>
+
+export const FlightLogOverlapResponseSchema = z.object({
+  conflicts: z.array(FlightLogOverlapConflictSchema),
+})
+
+export type FlightLogOverlapResponse = z.infer<typeof FlightLogOverlapResponseSchema>
+
 export const AirfieldListResponseSchema = z.object({
   airfields: z.array(
     z.object({

@@ -9,6 +9,7 @@ import flightLogRouter from '../../../src/routes/flight-log/api.ts'
 import {
   type FlightLog,
   FlightType,
+  FlightLogStatus,
   type FlightLogUpsertRequest,
 } from '../../../src/routes/flight-log/models.ts'
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
@@ -209,6 +210,68 @@ describe('GET /flight-log', () => {
       .set('Cookie', `accessToken=${mattiToken}`)
     expect(response.status).toBe(404)
     expect(response.body.detail).toMatch(/Flight log not found/)
+  })
+})
+
+describe('GET /flight-log/overlap-check', () => {
+  // 'mikify' is a NEW OH-STL flight covering 1740816000 - 1740824100
+  it('returns the conflicting entry for an overlapping interval', async () => {
+    const response = await request(app)
+      .get('/flight-log/overlap-check')
+      .set('Cookie', `accessToken=${mattiToken}`)
+      .query({
+        aircraftRegistration: 'OH-STL',
+        offBlockTimeEpoch: 1740819600,
+        onBlockTimeEpoch: 1740822000,
+      })
+
+    expect(response.status).toBe(200)
+    expect(response.body.conflicts).toHaveLength(1)
+    expect(response.body.conflicts[0]).toEqual({
+      flightId: 'mikify',
+      aircraftRegistration: 'OH-STL',
+      offBlockTimeUtc: expect.any(String),
+      onBlockTimeUtc: expect.any(String),
+      status: FlightLogStatus.NEW,
+    })
+  })
+
+  it('excludes the flight being edited', async () => {
+    const response = await request(app)
+      .get('/flight-log/overlap-check')
+      .set('Cookie', `accessToken=${mattiToken}`)
+      .query({
+        aircraftRegistration: 'OH-STL',
+        offBlockTimeEpoch: 1740819600,
+        onBlockTimeEpoch: 1740822000,
+        excludeFlightId: 'mikify',
+      })
+
+    expect(response.status).toBe(200)
+    expect(response.body.conflicts).toEqual([])
+  })
+
+  it('returns no conflicts for a free interval', async () => {
+    const response = await request(app)
+      .get('/flight-log/overlap-check')
+      .set('Cookie', `accessToken=${mattiToken}`)
+      .query({
+        aircraftRegistration: 'OH-STL',
+        offBlockTimeEpoch: 1740824100,
+        onBlockTimeEpoch: 1740829800,
+      })
+
+    expect(response.status).toBe(200)
+    expect(response.body.conflicts).toEqual([])
+  })
+
+  it('returns 400 when the interval is missing', async () => {
+    const response = await request(app)
+      .get('/flight-log/overlap-check')
+      .set('Cookie', `accessToken=${mattiToken}`)
+      .query({ aircraftRegistration: 'OH-STL' })
+
+    expect(response.status).toBe(400)
   })
 })
 

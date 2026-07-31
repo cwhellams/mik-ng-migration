@@ -30,6 +30,8 @@ import { OilStep } from './steps/OilStep'
 import { NotesStep } from './steps/NotesStep'
 import { ReviewStep } from './steps/ReviewStep'
 import { WIZARD_STEPS, type WizardStep } from './useWizardSteps'
+import { useOverlapCheck } from '../useOverlapCheck'
+import { OverlapWarningDialog } from '../components/OverlapWarningDialog'
 
 interface Props {
   onSwitchToClassicForm: () => void
@@ -205,6 +207,8 @@ export const FlightLogEntryWizard = ({
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  // Warns about entries overlapping the submitted times before the save is attempted
+  const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(flightId)
 
   const registration = watch('aircraftRegistration')
   const aircraft = aircraftData?.aircrafts.find((a) => a.registration === registration)
@@ -249,7 +253,7 @@ export const FlightLogEntryWizard = ({
 
   const handleBack = () => setStepIndex((i) => Math.max(i - 1, 0))
 
-  const handleAccept = handleSubmit(async (data) => {
+  const doSave = async (data: FlightLogUpsertRequest) => {
     setSubmitting(true)
     try {
       const { data: saved, error } = await mutation.trigger(
@@ -273,7 +277,9 @@ export const FlightLogEntryWizard = ({
     } finally {
       setSubmitting(false)
     }
-  })
+  }
+
+  const handleAccept = handleSubmit((data) => withOverlapCheck(data, () => void doSave(data)))
 
   const timeEpochFor = (field: keyof FlightLogUpsertRequest): string | null => {
     const value = getValues(field)
@@ -394,6 +400,8 @@ export const FlightLogEntryWizard = ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      <OverlapWarningDialog {...overlapDialogProps} />
     </WizardShell>
   )
 }

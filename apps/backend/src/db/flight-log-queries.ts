@@ -20,6 +20,8 @@ import {
   type FlightCredit,
   type FlightLogExportFilters,
   type FlightLogExportEntry,
+  type FlightLogOverlapConflict,
+  type FlightLogOverlapQuery,
 } from '../routes/flight-log/models.ts'
 import type { MIKPermissions } from '../routes/members/models.ts'
 import { generateShortId } from '../util/nanoId.ts'
@@ -962,6 +964,43 @@ const updateFlightLogWithAudit = async (
 
   const retval = await updQuery.executeTakeFirst()
   return retval.numUpdatedRows == 1n
+}
+
+/**
+ * Existing flight logs for the same aircraft whose block time overlaps the given
+ * interval. Uses the same half-open comparison as the flight.no_overlaps_function
+ * trigger, so anything returned here is what the database will reject on save.
+ */
+export async function getOverlappingFlightLogs({
+  aircraftRegistration,
+  offBlockTimeEpoch,
+  onBlockTimeEpoch,
+  excludeFlightId,
+}: FlightLogOverlapQuery): Promise<FlightLogOverlapConflict[]> {
+  const rows = await db
+    .selectFrom('flight.logs')
+    .select([
+      'flight_id',
+      'aircraft_registration',
+      'off_block_time_utc',
+      'on_block_time_utc',
+      'status',
+    ])
+    .where('aircraft_registration', '=', aircraftRegistration)
+    // epoch columns are int8, which kysely surfaces as string
+    .where('off_block_time_epoch', '<', onBlockTimeEpoch.toString())
+    .where('on_block_time_epoch', '>', offBlockTimeEpoch.toString())
+    .$if(!!excludeFlightId, (qb) => qb.where('flight_id', '!=', excludeFlightId!))
+    .orderBy('off_block_time_epoch')
+    .execute()
+
+  return rows.map((row) => ({
+    flightId: row.flight_id,
+    aircraftRegistration: row.aircraft_registration,
+    offBlockTimeUtc: row.off_block_time_utc.toISOString(),
+    onBlockTimeUtc: row.on_block_time_utc.toISOString(),
+    status: row.status as FlightLogStatus,
+  }))
 }
 
 export async function getFlightLogTotals(registration?: string): Promise<FlightTimeTotals[]> {

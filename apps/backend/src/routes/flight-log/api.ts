@@ -23,6 +23,8 @@ import {
   FlightLogStatsFilterSchema,
   FlightLogExportFiltersSchema,
   FlightLogExportFormat,
+  FlightLogOverlapQuerySchema,
+  type FlightLogOverlapResponse,
 } from './models.ts'
 import {
   deleteFlightLog,
@@ -36,6 +38,7 @@ import {
   updateFlightLogStatus,
   countFlightLogsForExport,
   getFlightLogsForExport,
+  getOverlappingFlightLogs,
 } from '../../db/flight-log-queries.ts'
 import { estimateFlightCosts } from '../../services/accounting/flightCostEstimator.ts'
 import { generateCsv, generateEasaPdf, getFilename, type PdfMemberInfo } from './exportFormats.ts'
@@ -259,6 +262,18 @@ router.get('/export', async (req: Request<Record<string, string>>, res: Response
     res.status(200).send(csv)
   }
 })
+
+// Lists existing entries whose block time overlaps the given interval on the same
+// aircraft, so the UI can warn before submitting. The database trigger is the
+// authoritative guard; this only gives the user an earlier, readable heads-up.
+router.get(
+  '/overlap-check',
+  async (req: Request<Record<string, string>>, res: Response<FlightLogOverlapResponse>) => {
+    const query = FlightLogOverlapQuerySchema.parse(req.query)
+    const conflicts = await getOverlappingFlightLogs(query)
+    res.status(200).json({ conflicts })
+  },
+)
 
 // Get a flight log by ID
 // Caution - KEEP THIS LAST in Get endpoints so that other paths are used first

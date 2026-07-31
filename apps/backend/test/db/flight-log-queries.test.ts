@@ -7,6 +7,7 @@ import {
   getFlightLogTotals,
   getFlightStats,
   getInvoicableFlights,
+  getOverlappingFlightLogs,
   insertFlightLog,
   invoiceFlights,
   updateFlightLog,
@@ -174,20 +175,23 @@ describe('Db query FlightLog tests', () => {
     expect(result.pageStartFlightMins).toEqual(700405)
   })
 
-  it('getFlightLogs keeps pageStartFlightMins correct when two flights share the same off_block_time_epoch', async () => {
-    // Insert two NEW flights on OH-STL ajlb_seq_no 3 with an identical
-    // off_block_time_epoch, positioned between the existing pob25a02
-    // (1737532800, cumulative total 700240) and pob25c01 (1738742400) rows.
-    // Both land as the new rows 4 and 5 of page 500, pushing pob25c01/pob25a03
-    // onto page 502. Whichever of the two the flight_id tiebreaker resolves
-    // first, their combined flight_mins (30 + 45) must be fully accounted for
-    // in the page-500 boundary before page 502 begins - so this must equal
-    // 700240 + 30 + 45 regardless of tie-break order.
-    const tiedOffBlockTimeEpoch = '1737999960'
+  it('getFlightLogs keeps pageStartFlightMins correct across a page boundary', async () => {
+    // Insert two consecutive NEW flights on OH-STL ajlb_seq_no 3, positioned
+    // between the existing pob25a02 (1737532800, cumulative total 700240) and
+    // pob25c01 (1738742400) rows. Both land as the new rows 4 and 5 of page 500,
+    // pushing pob25c01/pob25a03 onto page 502, so their combined flight_mins
+    // (30 + 45) must be fully accounted for in the page-500 boundary before
+    // page 502 begins - i.e. 700240 + 30 + 45.
+    //
+    // These two flights used to share an off_block_time_epoch, to also cover the
+    // ROWS-frame tiebreaker added in V1201. V1540 (issue #896) now rejects any
+    // overlap on the same aircraft, and two flights sharing an off-block time
+    // always overlap, so that state can no longer be created through an insert.
+    // The V1201 tiebreaker still guards legacy rows that predate V1540.
     const baseFlight = {
       aircraftRegistration: 'OH-STL',
       picMemberId: 'Liisa1',
-      offBlockTimeEpoch: tiedOffBlockTimeEpoch,
+      offBlockTimeEpoch: '1737999960',
       takeoffTimeEpoch: '1738000860',
       oilUpliftLitres: 1,
       fuelUpliftLitres: 20,
@@ -223,11 +227,14 @@ describe('Db query FlightLog tests', () => {
       } as FlightLogMemberRequest,
       insertUser,
     )
+    // starts back-to-back with flight A's on-block time, 45 flight minutes
     const flightIdB = await insertFlightLog(
       {
         ...baseFlight,
-        landingTimeEpoch: '1738003560',
-        onBlockTimeEpoch: '1738004460',
+        offBlockTimeEpoch: '1738003560',
+        takeoffTimeEpoch: '1738004460',
+        landingTimeEpoch: '1738007160',
+        onBlockTimeEpoch: '1738008060',
       } as FlightLogMemberRequest,
       insertUser,
     )
@@ -255,6 +262,39 @@ describe('Db query FlightLog tests', () => {
     expect(normalizeLandingTotals(result)).toMatchSnapshot()
   })
 })
+
+// Shared payload for the overlap cases; only the four timestamps vary between tests
+const overlapTestFlight: FlightLogMemberRequest = {
+  aircraftRegistration: 'OH-STL',
+  picMemberId: 'Liisa1',
+  crew2MemberId: null,
+  crew2Role: null,
+  crew3MemberId: null,
+  crew3Role: null,
+  crew4MemberId: null,
+  crew4Role: null,
+  offBlockTimeEpoch: '0',
+  takeoffTimeEpoch: '0',
+  landingTimeEpoch: '0',
+  onBlockTimeEpoch: '0',
+  oilUpliftLitres: null,
+  fuelUpliftLitres: null,
+  personsOnBoard: 1,
+  numberOfLandings: 1,
+  numberOfNightLandings: 0,
+  departureAirport: 'EFHK',
+  arrivalAirport: 'EFHK',
+  flightType: FlightType.SCHOOL,
+  billingRemarks: null,
+  personalRemarks: null,
+  picRole: 'PIC',
+  fuelRemainingLitres: 22,
+  incidentOrObservations: null,
+  totalTimeInService: 1023.5,
+  instrumentFlyingMins: 0,
+  nightFlyingMins: 0,
+  partiallyBillableFlight: false,
+}
 
 describe('Db insert tests', () => {
   it('insertFlightLog inserts a new flight log to the db, querying using returned flight id returns the row, row can be deleted using flight id', async () => {
@@ -318,6 +358,68 @@ describe('Db insert tests', () => {
         permissions: [MIKPermissions.FLIGHTLOG_USER],
       }),
     ).rejects.toThrow('Duplicate flight log')
+  })
+
+  it('insertFlightLog prevents adding a flight overlapping an existing NEW flight', async () => {
+    // 'mikify' is a NEW OH-STL flight covering 1740816000 - 1740824100
+    const overlapping: FlightLogMemberRequest = {
+      ...overlapTestFlight,
+      offBlockTimeEpoch: '1740819600',
+      takeoffTimeEpoch: '1740819900',
+      landingTimeEpoch: '1740821700',
+      onBlockTimeEpoch: '1740822000',
+    }
+
+    await expect(
+      insertFlightLog(overlapping, {
+        memberId: 'Matti1',
+        permissions: [MIKPermissions.FLIGHTLOG_USER],
+      }),
+    ).rejects.toThrow('Overlapping flight log entry')
+  })
+})
+
+describe('Db overlap query tests', () => {
+  it('getOverlappingFlightLogs finds an entry covering the given interval', async () => {
+    const conflicts = await getOverlappingFlightLogs({
+      aircraftRegistration: 'OH-STL',
+      offBlockTimeEpoch: 1740819600,
+      onBlockTimeEpoch: 1740822000,
+    })
+
+    expect(conflicts.map((c) => c.flightId)).toEqual(['mikify'])
+    expect(conflicts[0].status).toEqual(FlightLogStatus.NEW)
+  })
+
+  it('getOverlappingFlightLogs ignores the flight being edited', async () => {
+    const conflicts = await getOverlappingFlightLogs({
+      aircraftRegistration: 'OH-STL',
+      offBlockTimeEpoch: 1740819600,
+      onBlockTimeEpoch: 1740822000,
+      excludeFlightId: 'mikify',
+    })
+
+    expect(conflicts).toEqual([])
+  })
+
+  it('getOverlappingFlightLogs treats back-to-back flights as non-overlapping', async () => {
+    const conflicts = await getOverlappingFlightLogs({
+      aircraftRegistration: 'OH-STL',
+      offBlockTimeEpoch: 1740824100,
+      onBlockTimeEpoch: 1740830000,
+    })
+
+    expect(conflicts).toEqual([])
+  })
+
+  it('getOverlappingFlightLogs does not match other aircraft', async () => {
+    const conflicts = await getOverlappingFlightLogs({
+      aircraftRegistration: 'OH-IHQ',
+      offBlockTimeEpoch: 1740819600,
+      onBlockTimeEpoch: 1740822000,
+    })
+
+    expect(conflicts).toEqual([])
   })
 })
 
