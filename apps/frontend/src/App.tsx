@@ -98,6 +98,9 @@ import { ExpenseApproval } from './sections/accounting/ExpenseApproval'
 import { ExpenseClaimAdminDetail } from './sections/accounting/ExpenseClaimAdminDetail'
 import { MileageAllowancesPage } from './sections/accounting/MileageAllowancesPage'
 import { CostCentresPage } from './sections/accounting/CostCentresPage'
+import AmeList from './sections/ame/AmeList'
+import AmeSubmitForm from './sections/ame/AmeSubmitForm'
+import AmeAdminList from './sections/admin/ame/AmeAdminList'
 
 function DtoIndexRedirect() {
   const { hasAccess } = useRoles()
@@ -194,6 +197,8 @@ function App() {
                 <Route path='documents' element={<Documents />} />
                 <Route path='stats' element={<Stats />} />
                 <Route path='events' element={<EventsList />} />
+                <Route path='ame-list' element={<AmeList />} />
+                <Route path='ame-list/new' element={<AmeSubmitForm />} />
               </Route>
               <Route path='/profile/email-change/verify' element={<EmailChangeVerify />} />
               <Route path='/expenses'>
@@ -474,6 +479,14 @@ function App() {
                   element={
                     <RequirePermission adminModeOnly permissions={[MIKPermissions.INVENTORY_ADMIN]}>
                       <InventoryAdminPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='ame'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.AME_ADMIN]}>
+                      <AmeAdminList />
                     </RequirePermission>
                   }
                 />

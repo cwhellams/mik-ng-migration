@@ -19,6 +19,7 @@ import { DashboardSettingsModal } from './components/DashboardSettingsModal'
 import { InstructorQualificationsBanner } from './components/InstructorQualificationsBanner'
 import { DtoInstructorWidget } from './components/DtoInstructorWidget'
 import { ExpenseAdminWidget } from './components/ExpenseAdminWidget'
+import { AmeAdminWidget } from './components/AmeAdminWidget'
 import { EventsDashboard } from './components/EventsDashboard'
 import useApi from '../../hooks/useApi'
 import type { DashboardSettings, DashboardComponent } from './types'
@@ -53,6 +54,7 @@ const createComponentMap = (
       <DtoInstructorWidget />
     ) : null,
   expenseAdmin: () => (hasAccess(MIKPermissions.EXPENSE_ADMIN) ? <ExpenseAdminWidget /> : null),
+  ameAdmin: () => (hasAccess(MIKPermissions.AME_ADMIN) ? <AmeAdminWidget /> : null),
 })
 
 const Dashboard = () => {

@@ -56,7 +56,9 @@
     "mileageAllowances": "Kilometetersättning",
     "costCentres": "Kostnadsställen",
     "inventory": "Inventarie",
-    "inventoryAdmin": "Inventarieadmin"
+    "inventoryAdmin": "Inventarieadmin",
+    "ameList": "AME-katalog",
+    "ameAdmin": "AME-godkännanden"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"

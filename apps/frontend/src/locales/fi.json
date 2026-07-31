@@ -55,7 +55,9 @@
     "mileageAllowances": "Kilometrikorvaukset",
     "costCentres": "Kustannuspaikat",
     "inventory": "Varasto",
-    "inventoryAdmin": "Varasto-hallinta"
+    "inventoryAdmin": "Varasto-hallinta",
+    "ameList": "AME-hakemisto",
+    "ameAdmin": "AME-hyväksynnät"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"

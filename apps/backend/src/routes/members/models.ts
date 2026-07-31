@@ -79,6 +79,12 @@ export enum MIKPermissions {
 
   // can create/edit/delete inventory items, locations and categories
   INVENTORY_ADMIN = 'inventory.admin',
+
+  // can submit AME recommendations
+  AME_USER = 'ame.user',
+
+  // can approve/reject AME submissions (committee)
+  AME_ADMIN = 'ame.admin',
 }
 
 // admins can be downgraded to user permissions when not in sudo mode
@@ -109,6 +115,9 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
 
     case MIKPermissions.INVENTORY_ADMIN:
       return MIKPermissions.INVENTORY_USER
+
+    case MIKPermissions.AME_ADMIN:
+      return MIKPermissions.AME_USER
 
     // no separate user role for events – all members can read events
     case MIKPermissions.EVENTS_ADMIN:

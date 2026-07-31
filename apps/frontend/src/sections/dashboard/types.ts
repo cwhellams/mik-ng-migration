@@ -103,6 +103,12 @@ export const DASHBOARD_COMPONENT_METADATA: DashboardComponentMetadata[] = [
     description: 'Expense claims awaiting treasurer/chairman review',
     icon: '🧾',
   },
+  {
+    id: 'ameAdmin',
+    label: 'AME Directory',
+    description: 'AME submissions awaiting committee review',
+    icon: '🩺',
+  },
 ]
 
 /**

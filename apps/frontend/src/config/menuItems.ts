@@ -117,6 +117,11 @@ export const menuItems: MenuItem[] = [
         path: 'stats',
         label: 'header.stats',
       },
+      {
+        path: 'ame-list',
+        label: 'header.ameList',
+        requiredRoles: [MIKPermissions.MEMBER, MIKPermissions.MEMBER_ADMIN],
+      },
     ],
   },
   {
@@ -216,6 +221,7 @@ export const menuItems: MenuItem[] = [
       MIKPermissions.DTO_ADMIN,
       MIKPermissions.EVENTS_ADMIN,
       MIKPermissions.INVENTORY_ADMIN,
+      MIKPermissions.AME_ADMIN,
     ],
     adminModeOnly: true,
     subItems: [
@@ -271,6 +277,12 @@ export const menuItems: MenuItem[] = [
         label: 'header.inventoryAdmin',
         path: 'inventory',
         requiredRoles: [MIKPermissions.INVENTORY_ADMIN],
+        adminModeOnly: true,
+      },
+      {
+        label: 'header.ameAdmin',
+        path: 'ame',
+        requiredRoles: [MIKPermissions.AME_ADMIN],
         adminModeOnly: true,
       },
     ],

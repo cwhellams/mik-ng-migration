@@ -50,6 +50,7 @@ import { router as costCentreRoutes } from './routes/cost-centres/api.ts'
 import { router as usefulPhoneNumberRoutes } from './routes/useful-phone-numbers/api.ts'
 import { mileageAllowanceRouter } from './routes/expenses/mileageApi.ts'
 import { router as inventoryRoutes } from './routes/inventory/api.ts'
+import { router as ameRoutes } from './routes/ame/api.ts'
 import maintenanceNoteRoutes from './routes/maintenance-notes/api.ts'
 import aircraftHilRoutes from './routes/aircraft-hil/api.ts'
 import defectRoutes from './routes/defects/api.ts'
@@ -188,6 +189,7 @@ app.use('/api/v1/cost-centres', costCentreRoutes)
 app.use('/api/v1/useful-phone-numbers', usefulPhoneNumberRoutes)
 app.use('/api/v1/mileage-allowances', mileageAllowanceRouter)
 app.use('/api/v1/inventory', inventoryRoutes)
+app.use('/api/v1/ame', ameRoutes)
 app.use('/api/v1/maintenance-notes', maintenanceNoteRoutes)
 app.use('/api/v1/aircraft-hil', aircraftHilRoutes)
 app.use('/api/v1/defects', defectRoutes)

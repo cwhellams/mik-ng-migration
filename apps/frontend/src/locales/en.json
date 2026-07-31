@@ -56,7 +56,9 @@
     "mileageAllowances": "Mileage Allowances",
     "costCentres": "Cost Centres",
     "inventory": "Inventory",
-    "inventoryAdmin": "Inventory Admin"
+    "inventoryAdmin": "Inventory Admin",
+    "ameList": "AME Directory",
+    "ameAdmin": "AME Approvals"
   },
   "languageSelector": {
     "selectLanguage": "Select language"

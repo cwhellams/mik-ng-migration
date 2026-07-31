@@ -128,6 +128,26 @@ export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SKIP
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>
 
+export interface ClubAmeList {
+  id: Generated<string>
+  submitted_by: string
+  name: string
+  medical_centre: string
+  location: string
+  price: Numeric | null
+  medical_types: Generated<string[]>
+  notes: string | null
+  report_date: string
+  status: Generated<string>
+  approved_at: Timestamp | null
+  approved_by: string | null
+  rejected_at: Timestamp | null
+  rejected_by: string | null
+  rejection_reason: string | null
+  created_at: Generated<Timestamp>
+  updated_at: Generated<Timestamp>
+}
+
 export interface AcctsAircraftPricing {
   created_at: Generated<Timestamp>
   created_by: string | null
@@ -1896,6 +1916,7 @@ export interface DB {
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory
   fuel_prices_content: FuelPricesContent
+  'club.ame_list': ClubAmeList
   'inventory.audit_log': InventoryAuditLog
   'inventory.categories': InventoryCategories
   'inventory.items': InventoryItems
