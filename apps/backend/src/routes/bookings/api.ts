@@ -103,9 +103,12 @@ router.get('/', async (req: Request<BookingFilters>, res: Response<BookingListRe
   const data = BookingFiltersSchema.parse(req.query)
 
   // If user is not Booking Admin they can only query their own bookings
+  if (!isBookingAdmin(req.user) && data.memberId && data.memberId !== req.user!.memberId) {
+    return problem({ status: 403, detail: 'Cannot query bookings for another member' })
+  }
   const filters: BookingFilters = {
     ...data,
-    ...(isBookingAdmin(req.user) || !data.memberId ? {} : { memberId: req.user!.memberId }),
+    ...(isBookingAdmin(req.user) ? {} : { memberId: req.user!.memberId }),
   }
 
   const previous = filters.from
@@ -135,19 +138,6 @@ router.get('/', async (req: Request<BookingFilters>, res: Response<BookingListRe
   })
 })
 
-// Get a booking by ID
-// Caution - KEEP THIS LASTin Get endpoints so that other paths are used first
-router.get('/:id', async (req: Request<Record<string, string>>, res: Response) => {
-  const { id } = req.params
-
-  const booking = await getBookingById(id)
-  if (!booking) {
-    return problem({ status: 404, detail: 'Booking not found' })
-  }
-
-  res.status(200).json(booking)
-})
-
 const validateWriteAccess = (
   booking: Pick<Booking, 'memberId' | 'instructorMemberId'>,
   req: Request<Record<string, string>>,
@@ -163,6 +153,20 @@ const validateWriteAccess = (
     })
   }
 }
+
+// Get a booking by ID
+// Caution - KEEP THIS LASTin Get endpoints so that other paths are used first
+router.get('/:id', async (req: Request<Record<string, string>>, res: Response) => {
+  const { id } = req.params
+
+  const booking = await getBookingById(id)
+  if (!booking) {
+    return problem({ status: 404, detail: 'Booking not found' })
+  }
+  validateWriteAccess(booking, req)
+
+  res.status(200).json(booking)
+})
 
 const INSTRUCTOR_ROLES = ['INSTRUCTOR', 'EXAMINER']
 

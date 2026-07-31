@@ -10,7 +10,6 @@ import globals from 'globals'
 export default [
   // Apply ESLint recommended rules
   eslint.configs.recommended,
-  js.configs.recommended,
 
   // Apply TypeScript configurations
   {

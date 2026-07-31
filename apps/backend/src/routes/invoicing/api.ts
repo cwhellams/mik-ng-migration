@@ -120,7 +120,7 @@ router.get(
 
 router.get(
   '/unpaid-overdue',
-  validateUser(MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN),
+  validateUser(MIKPermissions.INVOICING_ADMIN),
   async (req: Request<Record<string, string>>, res: Response<UnpaidOverdueInvoiceListResponse>) => {
     const invoices = await getUnpaidOverdueInvoicesWithMemberInfo()
 
@@ -409,6 +409,7 @@ router.get(
 
 router.post(
   '/triggerAnnualMembershipBillingProcess/',
+  validateUser(MIKPermissions.INVOICING_ADMIN),
   async (req: Request<Record<string, string>>, res: Response<AnnualBillingResponse>) => {
     logger.info('Annual membership processing triggered.')
 

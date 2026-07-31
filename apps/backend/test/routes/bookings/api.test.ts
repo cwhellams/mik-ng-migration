@@ -48,20 +48,41 @@ const adminToken = generateAccessToken({
 })
 
 describe('GET /bookings', () => {
-  it('should return all bookings for the logged in user', async () => {
+  it('should return all bookings for a booking admin', async () => {
     const response = await request(app)
       .get('/bookings')
-      .set('Cookie', `accessToken=${userToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query(<BookingFilters>{})
 
     expect(response.status).toBe(200)
     expect(response.body.bookings.length >= 40).toBe(true)
   })
 
-  it('should return 200 with valid query params', async () => {
+  it('should only return the logged in user own bookings for a non-admin user', async () => {
     const response = await request(app)
       .get('/bookings')
       .set('Cookie', `accessToken=${userToken}`)
+      .query(<BookingFilters>{})
+
+    expect(response.status).toBe(200)
+    expect(response.body.bookings.every((booking: Booking) => booking.memberId === userId)).toBe(
+      true,
+    )
+  })
+
+  it('should return 403 when a non-admin user requests another members bookings', async () => {
+    const response = await request(app)
+      .get('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .query(<BookingFilters>{ memberId: adminMemberId })
+
+    expect(response.status).toBe(403)
+  })
+
+  it('should return 200 with valid query params', async () => {
+    const response = await request(app)
+      .get('/bookings')
+      .set('Cookie', `accessToken=${adminToken}`)
       .query(<BookingFilters>{
         from: dayjs().startOf('day').add(1, 'day').toISOString(),
         to: dayjs().startOf('day').add(2, 'day').toISOString(),
@@ -97,10 +118,10 @@ describe('GET /bookings', () => {
 })
 
 describe('GET /bookings/bookingId', () => {
-  it('should return booking for the logged in user', async () => {
+  it('should return booking details for an admin regardless of owner', async () => {
     const response = await request(app)
       .get('/bookings/stl1')
-      .set('Cookie', `accessToken=${userToken}`)
+      .set('Cookie', `accessToken=${adminToken}`)
       .query({})
 
     expect(response.status).toBe(200)
@@ -135,6 +156,49 @@ describe('GET /bookings/bookingId', () => {
       updatedBy: 'Liisa1',
       updatedByName: 'Liisa Korhonen',
     })
+  })
+
+  it('should scope booking access to the owner for non-admin users', async () => {
+    const createResponse = await request(app)
+      .post('/bookings')
+      .set('Cookie', `accessToken=${userToken}`)
+      .send(<BookingUpsertRequest>{
+        memberId: userId,
+        registration: 'OH-IHQ',
+        status: BookingStatus.CONFIRMED,
+        type: BookingType.PRIVATE,
+        description: 'ownership scoping test booking',
+        startTimeEpoch: dayjs().add(100, 'days').startOf('minute').unix().toString(),
+        endTimeEpoch: dayjs()
+          .add(100, 'days')
+          .startOf('minute')
+          .add(15, 'minutes')
+          .unix()
+          .toString(),
+      })
+    expect(createResponse.status).toBe(201)
+    const bookingId = createResponse.body.bookingId
+
+    const ownRes = await request(app)
+      .get(`/bookings/${bookingId}`)
+      .set('Cookie', `accessToken=${userToken}`)
+    expect(ownRes.status).toBe(200)
+
+    const otherUserToken = generateAccessToken({
+      memberId: 'Kaisa1',
+      lastName: 'Laine',
+      email: 'kaisa@mik.fi',
+      roles: [],
+      permissions: [MIKPermissions.BOOKING_USER],
+      canMakeReservations: true,
+    })
+    const otherRes = await request(app)
+      .get(`/bookings/${bookingId}`)
+      .set('Cookie', `accessToken=${otherUserToken}`)
+    expect(otherRes.status).toBe(403)
+
+    // Cleanup
+    await request(app).delete(`/bookings/${bookingId}`).set('Cookie', `accessToken=${userToken}`)
   })
 
   it('should return 403 for the user without booking privileges', async () => {

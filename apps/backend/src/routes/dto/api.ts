@@ -555,6 +555,18 @@ router.get(
   async (req: Request<Record<string, string>>, res: Response) => {
     const attempt = await getAttemptByFlightLogId(req.params.flightLogId)
     if (!attempt) return res.json(null)
+
+    const user = req.user!
+    const isInstructorOrAdmin =
+      user.permissions.includes(MIKPermissions.DTO_INSTRUCTOR) ||
+      user.permissions.includes(MIKPermissions.DTO_ADMIN)
+    if (!isInstructorOrAdmin) {
+      const ownerId = await getMemberSyllabusOwnerId(attempt.memberSyllabusId)
+      if (ownerId !== user.memberId) {
+        return problem({ status: 403, detail: 'Forbidden' })
+      }
+    }
+
     res.json(attempt)
   },
 )

@@ -224,6 +224,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@jest/globals": "^30.4.1",
     "@swc/core": "^1.15.46",
     "@swc/jest": "^0.2.39",
@@ -257,6 +258,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-promise": "^7.3.0",
+    "globals": "^17.7.0",
     "jest": "^30.4.2",
     "jest-junit": "^17.0.0",
     "kysely-codegen": "^0.20.0",

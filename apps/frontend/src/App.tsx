@@ -269,10 +269,7 @@ function App() {
                 <Route
                   path='unpaid-overdue'
                   element={
-                    <RequirePermission
-                      adminModeOnly
-                      permissions={[MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN]}
-                    >
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
                       <UnpaidOverdueInvoices />
                     </RequirePermission>
                   }

@@ -32,6 +32,13 @@ describe('markdown', () => {
       expect(html).not.toContain('javascript:')
     })
 
+    it('escapes image alt text instead of allowing attribute breakout', () => {
+      const html = renderMarkdown('![alt" onerror="alert(1)](http://example.com/x.png)')
+
+      expect(html).not.toContain('" onerror="alert(1)')
+      expect(html).toContain('<img')
+    })
+
     it('renders safe links with target=_blank and rel=noopener', () => {
       const html = renderMarkdown('[example](https://example.com)')
 

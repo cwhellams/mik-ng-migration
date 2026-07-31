@@ -34,6 +34,12 @@ markdownParser.use({
       const title = token.title ? ` title="${escapeHtml(token.title)}"` : ''
       return `<a href="${safeHref}"${title} target="_blank" rel="noopener noreferrer">${text}</a>`
     },
+    image(token: Tokens.Image) {
+      const safeHref = token.href ? escapeHtml(token.href) : ''
+      const alt = escapeHtml(token.text ?? '')
+      const title = token.title ? ` title="${escapeHtml(token.title)}"` : ''
+      return `<img src="${safeHref}" alt="${alt}"${title}>`
+    },
   },
 })
 
