@@ -672,6 +672,8 @@
   "error": {
     "pageNotFound": "Page not found",
     "pageNotFoundMessage": "Oops, the page you're looking for doesn't exist.",
+    "forbidden": "Access denied",
+    "forbiddenMessage": "You do not have permission to view this page.",
     "backToHome": "Back to homepage",
     "logout": "Log out",
     "loadingMemberData": "Error loading member data",

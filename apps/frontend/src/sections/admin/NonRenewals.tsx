@@ -20,7 +20,6 @@ import { Icon } from '@iconify/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
-import { useRoles } from '../../hooks/useRoles'
 import { useMultiSelect } from '../../hooks/useMultiSelect'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
@@ -32,7 +31,6 @@ import { useTimezone } from '../../hooks/useTimezone'
 
 export default function NonRenewals() {
   const { t } = useTranslation()
-  const { isMembersAdmin } = useRoles()
   const { formatDate, formatDateTime } = useTimezone()
 
   const [problem, setProblem] = useState<Problem | undefined>()
@@ -201,15 +199,6 @@ export default function NonRenewals() {
         }),
       })
     }
-  }
-
-  if (!isMembersAdmin) {
-    return (
-      <Box>
-        <Title label={t('member.nonRenewals', 'Non-Renewals')} />
-        <Typography>{t('member.noPermission')}</Typography>
-      </Box>
-    )
   }
 
   const isBusy = bulkLoading || actionLoadingId !== null

@@ -681,6 +681,8 @@
   "error": {
     "pageNotFound": "Sidan hittades inte",
     "pageNotFoundMessage": "Hoppsan, sidan du letar efter finns inte.",
+    "forbidden": "Åtkomst nekad",
+    "forbiddenMessage": "Du har inte behörighet att visa den här sidan.",
     "backToHome": "Tillbaka till startsidan",
     "logout": "Logga ut",
     "loadingMemberData": "Fel vid laddning av medlemsdata",

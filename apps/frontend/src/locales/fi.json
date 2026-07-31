@@ -679,6 +679,8 @@
   "error": {
     "pageNotFound": "Sivua ei löytynyt",
     "pageNotFoundMessage": "Hups, sivua ei löytynyt.",
+    "forbidden": "Pääsy estetty",
+    "forbiddenMessage": "Sinulla ei ole oikeuksia tämän sivun katseluun.",
     "backToHome": "Takaisin kotisivulle",
     "logout": "Uloskirjaudu",
     "loadingMemberData": "Virhe jäsentietojen lataamisessa",

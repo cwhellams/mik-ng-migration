@@ -120,6 +120,7 @@ router.get(
 
 router.get(
   '/unpaid-overdue',
+  validateUser(MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN),
   async (req: Request<Record<string, string>>, res: Response<UnpaidOverdueInvoiceListResponse>) => {
     const invoices = await getUnpaidOverdueInvoicesWithMemberInfo()
 

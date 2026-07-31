@@ -25,7 +25,6 @@ import dayjs, { type Dayjs } from 'dayjs'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
-import { useThemeMode } from '../../../theme/ThemeContext'
 import type { ClubEvent, EventListResponse } from '@backend/routes/events/models'
 
 interface EventForm {
@@ -57,7 +56,6 @@ const eventToForm = (event: ClubEvent): EventForm => ({
 
 const EventsAdmin = () => {
   const { t } = useTranslation()
-  const { sudo } = useThemeMode()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<ClubEvent | null>(null)
   const [form, setForm] = useState<EventForm>(emptyForm())
@@ -69,15 +67,6 @@ const EventsAdmin = () => {
   const { data, isLoading, error, mutation, mutate } = useApi<EventListResponse>({
     url: 'v1/events',
   })
-
-  // Only show admin features if in admin mode
-  if (!sudo) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography sx={{ color: 'warning.main' }}>{t('common.requiresAdminMode')}</Typography>
-      </Box>
-    )
-  }
 
   const events = data?.events ?? []
   const now = dayjs()

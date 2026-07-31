@@ -5,6 +5,7 @@ import { MIKPermissions } from '@backend/routes/members/models'
 import { useRoles } from './hooks/useRoles'
 import { Snackbar, Button, Box } from '@mui/material'
 import SplashScreen from './components/SplashScreen'
+import RequirePermission from './components/RequirePermission'
 import MainLayout from './layouts/MainLayout'
 import AuthLayout from './layouts/AuthLayout'
 import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate'
@@ -201,19 +202,113 @@ function App() {
                 <Route path=':id/edit' element={<ExpenseClaimForm />} />
               </Route>
               <Route path='/accounting'>
-                <Route index element={<InvoicingAdminDashboard />} />
-                <Route path='invoicing' element={<FlightInvoicing />} />
-                <Route path='items' element={<InvoiceItemsPage />} />
-                <Route path='tools' element={<ToolsPage />} />
-                <Route path='tax-report' element={<TaxReport />} />
-                <Route path='traficom-report' element={<TraficomReport />} />
-                <Route path='uplift-report' element={<UpliftReport />} />
-                <Route path='instructor-worktime' element={<InstructorWorktimeReport />} />
-                <Route path='unpaid-overdue' element={<UnpaidOverdueInvoices />} />
-                <Route path='expenses' element={<ExpenseApproval />} />
-                <Route path='expenses/:id' element={<ExpenseClaimAdminDetail />} />
-                <Route path='mileage-allowances' element={<MileageAllowancesPage />} />
-                <Route path='cost-centres' element={<CostCentresPage />} />
+                <Route
+                  index
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
+                      <InvoicingAdminDashboard />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='invoicing'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
+                      <FlightInvoicing />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='items'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
+                      <InvoiceItemsPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='tools'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
+                      <ToolsPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='tax-report'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
+                      <TaxReport />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='traficom-report'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
+                      <TraficomReport />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='uplift-report'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
+                      <UpliftReport />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='instructor-worktime'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.INVOICING_ADMIN]}>
+                      <InstructorWorktimeReport />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='unpaid-overdue'
+                  element={
+                    <RequirePermission
+                      adminModeOnly
+                      permissions={[MIKPermissions.INVOICING_USER, MIKPermissions.INVOICING_ADMIN]}
+                    >
+                      <UnpaidOverdueInvoices />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='expenses'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
+                      <ExpenseApproval />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='expenses/:id'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
+                      <ExpenseClaimAdminDetail />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='mileage-allowances'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
+                      <MileageAllowancesPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='cost-centres'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
+                      <CostCentresPage />
+                    </RequirePermission>
+                  }
+                />
               </Route>
               <Route path='/shop'>
                 <Route index element={<ShopPage />} />
@@ -232,24 +327,150 @@ function App() {
               </Route>
               <Route path='/admin'>
                 <Route index element={<Navigate to='outbox' replace />} />
-                <Route path='outbox' element={<Outbox />} />
-                <Route path='non-renewals' element={<NonRenewals />} />
-                <Route path='notification-banner' element={<NotificationBannerAdmin />} />
-                <Route path='phone-numbers' element={<UsefulPhoneNumbersAdminPage />} />
-                <Route path='shop' element={<ShopAdminDashboard />} />
-                <Route path='shop/products' element={<ProductsAdmin />} />
-                <Route path='shop/categories' element={<CategoriesAdmin />} />
-                <Route path='shop/orders' element={<OrdersAdmin />} />
-                <Route path='shop/discount-codes' element={<DiscountCodesAdmin />} />
-                <Route path='shop/flight-packages' element={<FlightPackagesAdmin />} />
-                <Route path='events' element={<EventsAdmin />} />
-                <Route path='exams' element={<ExamsAdminPage />} />
-                <Route path='exams/versions/:versionId' element={<ExamVersionEditorPage />} />
-                <Route path='exams/attempts' element={<AttemptsAdminPage />} />
-                <Route path='dto' element={<DtoProgramsAdminPage />} />
-                <Route path='dto/syllabi/:syllabusId' element={<DtoSyllabusEditorPage />} />
-                <Route path='dto/programs/:programId/import' element={<DtoImportPage />} />
-                <Route path='inventory' element={<InventoryAdminPage />} />
+                <Route
+                  path='outbox'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.OUTBOX_ADMIN]}>
+                      <Outbox />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='non-renewals'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.MEMBER_ADMIN]}>
+                      <NonRenewals />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='notification-banner'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.MEMBER_ADMIN]}>
+                      <NotificationBannerAdmin />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='shop'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
+                      <ShopAdminDashboard />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='shop/products'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
+                      <ProductsAdmin />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='shop/categories'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
+                      <CategoriesAdmin />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='shop/orders'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
+                      <OrdersAdmin />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='shop/discount-codes'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
+                      <DiscountCodesAdmin />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='shop/flight-packages'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.STORE_ADMIN]}>
+                      <FlightPackagesAdmin />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='events'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.EVENTS_ADMIN]}>
+                      <EventsAdmin />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='exams'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.EXAM_ADMIN]}>
+                      <ExamsAdminPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='exams/versions/:versionId'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.EXAM_ADMIN]}>
+                      <ExamVersionEditorPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='exams/attempts'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.EXAM_ADMIN]}>
+                      <AttemptsAdminPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='dto'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.DTO_ADMIN]}>
+                      <DtoProgramsAdminPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='dto/syllabi/:syllabusId'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.DTO_ADMIN]}>
+                      <DtoSyllabusEditorPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='dto/programs/:programId/import'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.DTO_ADMIN]}>
+                      <DtoImportPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='phone-numbers'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.MEMBER_ADMIN]}>
+                      <UsefulPhoneNumbersAdminPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='inventory'
+                  element={
+                    <RequirePermission adminModeOnly permissions={[MIKPermissions.INVENTORY_ADMIN]}>
+                      <InventoryAdminPage />
+                    </RequirePermission>
+                  }
+                />
               </Route>
               <Route path='/dto'>
                 <Route index element={<DtoIndexRedirect />} />
