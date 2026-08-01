@@ -118,8 +118,8 @@ router.patch(
     if (!existing) {
       return problem({ status: 404, detail: 'Meeting not found' })
     }
-    if (existing.status === 'ENDED') {
-      return problem({ status: 409, detail: 'Ended meetings cannot be edited' })
+    if (existing.status !== 'DRAFT') {
+      return problem({ status: 409, detail: 'Only draft meetings can be edited' })
     }
 
     const data = parseBody(UpdateMeetingSchema, req.body, 'Invalid meeting data')

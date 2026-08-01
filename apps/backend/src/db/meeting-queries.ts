@@ -447,8 +447,15 @@ export const startMeeting = async (
   _startedBy: string,
   memberId?: string,
 ): Promise<Meeting | undefined> => {
-  const ongoing = await getActiveMeeting(_startedBy)
-  if (ongoing && ongoing.meetingId !== meetingId) {
+  const { rows: activeRows } = await sql<{ meeting_id: string }>`
+    SELECT meeting_id
+    FROM member.meeting
+    WHERE status IN ('ONGOING', 'PENDING_NOTES')
+      AND meeting_id <> ${meetingId}::uuid
+    LIMIT 1
+  `.execute(db)
+
+  if (activeRows[0]) {
     return problem({ status: 409, detail: 'Another meeting is already ongoing' })
   }
 
@@ -667,39 +674,48 @@ export const openVote = async (
   _openedBy: string,
   memberId?: string,
 ): Promise<MeetingVote | undefined> => {
-  const meta = await getVoteMeta(db, voteId)
-  if (!meta) {
-    return undefined
-  }
+  return db.transaction().execute(async (trx) => {
+    const meta = await getVoteMeta(trx, voteId)
+    if (!meta) {
+      return undefined
+    }
 
-  if (meta.meeting_status !== 'ONGOING') {
-    return problem({ status: 409, detail: 'Voting can only be opened during an ongoing meeting' })
-  }
+    if (meta.meeting_status !== 'ONGOING') {
+      return problem({ status: 409, detail: 'Voting can only be opened during an ongoing meeting' })
+    }
 
-  if (meta.vote_status === 'CLOSED' || meta.vote_status === 'ABANDONED') {
-    return problem({ status: 409, detail: 'Closed or abandoned votes cannot be reopened' })
-  }
+    if (meta.vote_status === 'CLOSED' || meta.vote_status === 'ABANDONED') {
+      return problem({ status: 409, detail: 'Closed or abandoned votes cannot be reopened' })
+    }
 
-  const { rows: conflicting } = await sql<{ vote_id: string }>`
-    SELECT vote_id
-    FROM member.meeting_vote
-    WHERE meeting_id = ${meta.meeting_id}::uuid
-      AND status = 'OPEN'
-      AND vote_id <> ${voteId}::uuid
-    LIMIT 1
-  `.execute(db)
+    await sql`
+      SELECT meeting_id
+      FROM member.meeting
+      WHERE meeting_id = ${meta.meeting_id}::uuid
+      FOR UPDATE
+    `.execute(trx)
 
-  if (conflicting[0]) {
-    return problem({ status: 409, detail: 'Another vote is already open' })
-  }
+    const { rows: conflicting } = await sql<{ vote_id: string }>`
+      SELECT vote_id
+      FROM member.meeting_vote
+      WHERE meeting_id = ${meta.meeting_id}::uuid
+        AND status = 'OPEN'
+        AND vote_id <> ${voteId}::uuid
+      LIMIT 1
+    `.execute(trx)
 
-  await sql`
-    UPDATE member.meeting_vote
-    SET status = 'OPEN'
-    WHERE vote_id = ${voteId}::uuid
-  `.execute(db)
+    if (conflicting[0]) {
+      return problem({ status: 409, detail: 'Another vote is already open' })
+    }
 
-  return getMeetingVoteById(voteId, true, memberId)
+    await sql`
+      UPDATE member.meeting_vote
+      SET status = 'OPEN'
+      WHERE vote_id = ${voteId}::uuid
+    `.execute(trx)
+
+    return getMeetingVoteById(voteId, true, memberId)
+  })
 }
 
 export const closeVote = async (

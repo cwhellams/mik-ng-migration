@@ -419,7 +419,7 @@ const MeetingsAdminPage = () => {
       options: cleanedOptions,
       isMultiSelect: newVoteForm.isMultiSelect,
       maxSelections:
-        newVoteForm.isMultiSelect && newVoteForm.maxSelections
+        newVoteForm.isMultiSelect && newVoteForm.maxSelections != null
           ? Number(newVoteForm.maxSelections)
           : null,
     }
