@@ -21,7 +21,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../components/Title'
 import type { Product, Category, Cart } from '@backend/routes/shop/models'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 

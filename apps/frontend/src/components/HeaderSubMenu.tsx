@@ -1,5 +1,5 @@
 import { Tabs, Tab, Box, useTheme, useMediaQuery } from '@mui/material'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router'
 import { t } from 'i18next'
 import { MenuItem } from '../config/menuItems'
 import { useRoles } from '../hooks/useRoles'

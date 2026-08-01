@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { dayjs } from './utils/date'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router'
 import { MIKPermissions } from '@backend/routes/members/models'
 import { useRoles } from './hooks/useRoles'
 import { Snackbar, Button, Box } from '@mui/material'

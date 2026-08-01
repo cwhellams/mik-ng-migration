@@ -1,5 +1,5 @@
 import { Box, TextField, InputAdornment, Stack, Chip, Button } from '@mui/material'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import useApi from '../../hooks/useApi'
 import { Member, MemberListResponse } from '@backend/routes/members/models'
 import { Icon } from '@iconify/react'

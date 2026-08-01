@@ -12,7 +12,7 @@ import { t } from 'i18next'
 import theme from '../../../theme/theme'
 import { Booking } from '@backend/routes/bookings/models'
 import { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { formatDuration } from '../../flightLog/utils/timeUtils'
 import { toHelsinki } from '../../../utils/date'
 

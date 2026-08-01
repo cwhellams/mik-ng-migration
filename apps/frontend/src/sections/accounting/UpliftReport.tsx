@@ -29,7 +29,7 @@ import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import Papa from 'papaparse'
 import { Download, OpenInNew } from '@mui/icons-material'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useTimezone } from '../../hooks/useTimezone'
 import type { AircraftListResponse } from '@backend/routes/aircrafts/models'
 

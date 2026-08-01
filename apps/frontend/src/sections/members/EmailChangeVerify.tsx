@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router'
 import { Box, CircularProgress, Typography, Button } from '@mui/material'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'

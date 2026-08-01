@@ -1,7 +1,7 @@
 import { Typography, Box, TextField, Button, InputAdornment, Divider } from '@mui/material'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../../hooks/useAuth'
 import { LoginLayout } from './LoginLayout'
 import { LoginRequest, LoginResponse } from '@backend/routes/auth/schema'

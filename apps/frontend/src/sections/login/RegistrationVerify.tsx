@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router'
 import { LoginLayout } from './LoginLayout'
 import { Box, CircularProgress, Typography, Button } from '@mui/material'
 import { Icon } from '@iconify/react'

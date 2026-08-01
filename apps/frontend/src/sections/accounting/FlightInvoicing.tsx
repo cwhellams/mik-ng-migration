@@ -10,7 +10,7 @@ import {
   Alert,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router'
 import { InvoicableFlights, InvoicableFlightFilters } from '@backend/routes/flight-log/models'
 import { dayjs } from '../../utils/date'
 import { useState } from 'react'

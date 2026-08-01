@@ -20,7 +20,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Product, Cart, Category } from '@backend/routes/shop/models'
 import type { MemberPackage, PrepaidPackage } from '@backend/routes/prepaid-hours/models'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link } from 'react-router'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 

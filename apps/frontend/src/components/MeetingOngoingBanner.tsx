@@ -1,5 +1,5 @@
 import { Alert, Button } from '@mui/material'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import useApi from '../hooks/useApi'
 import type { Meeting } from '@backend/routes/meetings/models'

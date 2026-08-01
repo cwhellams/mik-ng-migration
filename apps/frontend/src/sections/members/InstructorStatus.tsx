@@ -23,7 +23,7 @@ import Papa from 'papaparse'
 import useApi, { sharedApi } from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import dayjs, { type Dayjs } from 'dayjs'
 import type {

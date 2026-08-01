@@ -1,7 +1,7 @@
 import { Box, Container } from '@mui/material'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
-import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, useNavigate, useLocation } from 'react-router'
 import { NotificationBanner } from '../components/NotificationBanner'
 import { MeetingOngoingBanner } from '../components/MeetingOngoingBanner'
 import { useMe } from '../hooks/useMe'

@@ -23,7 +23,7 @@ import {
 import { Icon } from '@iconify/react'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router'
 import { Title } from '../../../components/Title'
 import { RemoteContent } from '../../../components/RemoteContent'
 import useApi from '../../../hooks/useApi'
