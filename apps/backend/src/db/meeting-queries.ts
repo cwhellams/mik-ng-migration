@@ -78,7 +78,7 @@ type VoteCounterRow = {
 type VoteMetaRow = {
   vote_id: string
   meeting_id: string
-  meeting_status: 'DRAFT' | 'ONGOING' | 'ENDED'
+  meeting_status: 'DRAFT' | 'ONGOING' | 'PENDING_NOTES' | 'ENDED'
   vote_status: 'DRAFT' | 'OPEN' | 'CLOSED' | 'ABANDONED'
   is_multi_select: boolean
   max_selections: number | null

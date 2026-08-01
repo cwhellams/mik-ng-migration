@@ -66,9 +66,8 @@ jest.unstable_mockModule('../../../src/services/storage.ts', () => ({
 
 jest.unstable_mockModule('../../../src/util/documentHelper.ts', () => ({
   documentUpload: {
-    single:
-      () => (req: express.Request, _res: express.Response, next: express.NextFunction) =>
-        next(),
+    single: () => (req: express.Request, _res: express.Response, next: express.NextFunction) =>
+      next(),
   },
 }))
 
@@ -132,16 +131,41 @@ describe('Meetings API', () => {
     mockUserPermissions = [MIKPermissions.MEETING_ADMIN]
   })
 
-  it('allows editing only draft meetings', async () => {
-    mockGetMeetingById.mockResolvedValue({ ...draftMeeting, status: 'ONGOING' })
+  it('does not allow editing ended meetings', async () => {
+    mockGetMeetingById.mockResolvedValue({ ...draftMeeting, status: 'ENDED' })
 
     const response = await request(app).patch(`/api/v1/meetings/${meetingId}`).send({
       title: 'Updated title',
     })
 
     expect(response.status).toBe(409)
-    expect(response.body.detail).toBe('Only draft meetings can be edited')
+    expect(response.body.detail).toBe('Ended meetings cannot be edited')
     expect(mockUpdateMeeting).not.toHaveBeenCalled()
+  })
+
+  it('allows updating meetingUrl during an ongoing meeting', async () => {
+    const ongoingMeeting = {
+      ...draftMeeting,
+      status: 'ONGOING' as const,
+      startedAt: '2026-01-01T11:00:00.000Z',
+    }
+    mockGetMeetingById.mockResolvedValueOnce(ongoingMeeting)
+    mockUpdateMeeting.mockResolvedValue({
+      ...ongoingMeeting,
+      meetingUrl: 'https://meet.example.com/abc',
+    })
+
+    const response = await request(app).patch(`/api/v1/meetings/${meetingId}`).send({
+      meetingUrl: 'https://meet.example.com/abc',
+    })
+
+    expect(response.status).toBe(200)
+    expect(response.body.meetingUrl).toBe('https://meet.example.com/abc')
+    expect(mockUpdateMeeting).toHaveBeenCalledWith(
+      meetingId,
+      { meetingUrl: 'https://meet.example.com/abc' },
+      'test-admin',
+    )
   })
 
   it('updates a draft meeting', async () => {
