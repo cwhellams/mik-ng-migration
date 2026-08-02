@@ -16,6 +16,8 @@ import {
   FormControlLabel,
   Card,
   CardContent,
+  Alert,
+  IconButton,
 } from '@mui/material'
 
 import dayjs from 'dayjs'
@@ -31,6 +33,7 @@ import {
   OccurrenceStatus,
   OccurrenceUpsert,
   OccurrenceAccess,
+  OccurrenceAttachment,
   OccurrenceProcessedPayload,
   OccurrenceClosedPayload,
 } from '@backend/routes/occurrences/models'
@@ -54,6 +57,9 @@ import { MIKLang } from '@backend/routes/members/models'
 import { EditButton } from '../../components/EditButton'
 import { Box } from '@mui/system'
 import { useTimezone } from '../../hooks/useTimezone'
+
+const MAX_ATTACHMENT_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB, matches the backend's raw upload limit
+const ACCEPTED_ATTACHMENT_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 export const OccurrenceEntry = () => {
   const { t, i18n } = useTranslation()
@@ -1025,6 +1031,154 @@ export const OccurrenceEntry = () => {
     )
   }
 
+  const AttachmentsForm = () => {
+    const [dragActive, setDragActive] = useState(false)
+    const attachments = data?.attachments ?? []
+
+    const handleUpload = async (file: File) => {
+      if (!ACCEPTED_ATTACHMENT_TYPES.includes(file.type)) {
+        return setProblem({ status: 400, detail: t('occurrences.attachments.invalidType') })
+      }
+      if (file.size > MAX_ATTACHMENT_UPLOAD_BYTES) {
+        return setProblem({ status: 400, detail: t('occurrences.attachments.tooLarge') })
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+      const { error } = await mutation.trigger<FormData, OccurrenceAttachment>(
+        'POST',
+        formData,
+        'attachments',
+      )
+      if (error) {
+        return setProblem(error)
+      }
+      setProblem({ status: 200, detail: t('general.savingSuccess') })
+    }
+
+    const handleDelete = async (attachmentId: number) => {
+      const { error } = await mutation.trigger('DELETE', undefined, `attachments/${attachmentId}`)
+      if (error) {
+        return setProblem(error)
+      }
+      setProblem({ status: 200, detail: t('general.savingSuccess') })
+    }
+
+    const handleOpen = async (attachmentId: number) => {
+      const { data: urlData, error } = await mutation.trigger<undefined, { url: string }>(
+        'GET',
+        undefined,
+        `attachments/${attachmentId}/url`,
+      )
+      if (error) {
+        return setProblem(error)
+      }
+      if (urlData?.url) window.open(urlData.url, '_blank', 'noopener,noreferrer')
+    }
+
+    return (
+      <Card sx={{ mt: 4 }}>
+        <CardContent>
+          <FormTitle title={t('occurrences.attachments.title')} icon='mdi:paperclip' />
+          <Alert severity='info'>{t('occurrences.attachments.info')}</Alert>
+
+          <Stack spacing={1.5} sx={{ mt: 2 }}>
+            {attachments.map((attachment) => (
+              <Paper key={attachment.attachmentId} variant='outlined' sx={{ p: 2 }}>
+                <Stack
+                  direction='row'
+                  sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <Box>
+                    <Typography variant='body2'>{attachment.fileName}</Typography>
+                    <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                      {Math.round(attachment.fileSize / 1024)} kB &middot;{' '}
+                      {t(
+                        attachment.originStatus === OccurrenceStatus.NEW
+                          ? 'occurrences.attachments.fromOriginal'
+                          : 'occurrences.attachments.addedLater',
+                      )}
+                    </Typography>
+                  </Box>
+                  <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+                    <Button size='small' onClick={() => void handleOpen(attachment.attachmentId)}>
+                      {t('occurrences.attachments.open')}
+                    </Button>
+                    {access?.write && (
+                      <IconButton
+                        size='small'
+                        color='error'
+                        onClick={() => void handleDelete(attachment.attachmentId)}
+                      >
+                        <Icon icon='mdi:delete-outline' />
+                      </IconButton>
+                    )}
+                  </Stack>
+                </Stack>
+              </Paper>
+            ))}
+
+            {access?.write && (
+              <Paper
+                variant='outlined'
+                component='label'
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setDragActive(true)
+                }}
+                onDragEnter={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setDragActive(true)
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setDragActive(false)
+                }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setDragActive(false)
+                  const file = e.dataTransfer.files?.[0]
+                  if (file) void handleUpload(file)
+                }}
+                sx={{
+                  p: 3,
+                  textAlign: 'center',
+                  border: '2px dashed',
+                  borderColor: dragActive ? 'primary.main' : 'divider',
+                  bgcolor: dragActive ? 'action.hover' : 'transparent',
+                  cursor: 'pointer',
+                  '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' },
+                }}
+              >
+                <Icon icon='mdi:upload' width={32} />
+                <Typography variant='body2' sx={{ mt: 1 }}>
+                  {t('occurrences.attachments.dropOrClick')}
+                </Typography>
+                <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                  {t('occurrences.attachments.acceptedFormats')}
+                </Typography>
+                <input
+                  type='file'
+                  hidden
+                  accept={ACCEPTED_ATTACHMENT_TYPES.join(',')}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) void handleUpload(file)
+                    e.target.value = ''
+                  }}
+                />
+              </Paper>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
+    )
+  }
+
   const CommentsForm = () => {
     const [newComment, setNewComment] = useState('')
     return (
@@ -1121,6 +1275,15 @@ export const OccurrenceEntry = () => {
           </form>
         </Paper>
 
+        {isNew && (
+          <Card sx={{ mt: 4 }}>
+            <CardContent>
+              <FormTitle title={t('occurrences.attachments.title')} icon='mdi:paperclip' />
+              <Alert severity='info'>{t('occurrences.attachments.saveFirst')}</Alert>
+            </CardContent>
+          </Card>
+        )}
+
         {!isNew && (
           <>
             <Card sx={{ mt: 4 }}>
@@ -1131,6 +1294,8 @@ export const OccurrenceEntry = () => {
             </Card>
 
             <SharingForm />
+
+            {(access?.author || isAdmin) && <AttachmentsForm />}
 
             {data?.status !== OccurrenceStatus.NEW && <CommentsForm />}
           </>

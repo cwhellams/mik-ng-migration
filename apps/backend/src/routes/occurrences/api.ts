@@ -1,4 +1,6 @@
 import { Router, type Request, type Response } from 'express'
+import multer from 'multer'
+import sharp from 'sharp'
 
 import {
   OccurrenceAccessSchema,
@@ -10,6 +12,7 @@ import {
   OccurrenceUpsertSchema,
   type Occurrence,
   type OccurrenceAccess,
+  type OccurrenceAttachment,
   type OccurrenceComment,
   type OccurrenceFilters,
   type OccurrencesListResponse,
@@ -18,10 +21,15 @@ import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
 import {
   addOccurrenceAccess,
+  addOccurrenceAttachment,
+  copyOccurrenceAttachments,
+  countOccurrenceAttachments,
   createOccurrence,
   deleteOccurrenceAccess,
   getOccurrence,
+  getOccurrenceAttachment,
   getOccurrences,
+  removeOccurrenceAttachment,
   updateOccurrence,
   updateOccurrenceAccess,
 } from '../../db/occurrence-queries.ts'
@@ -32,8 +40,71 @@ import dayjs from 'dayjs'
 import { sendOccurrenceNotification } from '../../templates/occurrenceNotification.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { getMemberRolesByPermission } from '../../db/member-queries.ts'
+import { storageService } from '../../services/storage.ts'
+import logger from '../../lib/logger.ts'
 
 export const router = Router()
+
+const OCCURRENCE_ATTACHMENT_BUCKET =
+  process.env.OCCURRENCE_ATTACHMENT_BUCKET ??
+  (process.env.NODE_ENV === 'production'
+    ? 'mik-occurrence-attachments'
+    : 'mik-occurrence-attachments-test')
+
+const MAX_ATTACHMENT_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB — raw upload limit before compression
+const MAX_ATTACHMENT_BYTES = 1 * 1024 * 1024 // 1 MB — post-compression image limit
+const MAX_ATTACHMENTS_PER_REPORT = 5
+
+const attachmentUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_ATTACHMENT_UPLOAD_BYTES },
+  fileFilter: (_req, file, cb) => {
+    if (['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only JPEG, PNG or WEBP images are allowed as attachments'))
+    }
+  },
+})
+
+const sanitizeAttachmentFileName = (fileName: string): string => {
+  const sanitized = fileName
+    .replace(/\.[^.]+$/, '')
+    .replaceAll(/[^a-zA-Z0-9_-]+/g, '_')
+    .replaceAll(/_+/g, '_')
+    .replaceAll(/^_+|_+$/g, '')
+
+  return sanitized || 'attachment'
+}
+
+// Always re-encodes through sharp, which drops all metadata (EXIF GPS/device/timestamp)
+// unless .withMetadata() is called - this is what guarantees a reporter's picture can
+// never de-anonymize them, on the original report or the anonymized copy.
+export async function processAttachmentImage(
+  file: Express.Multer.File,
+): Promise<{ buffer: Buffer; fileName: string; mimeType: string }> {
+  const buildImage = () =>
+    sharp(file.buffer)
+      .rotate()
+      .resize({ width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true })
+
+  let buffer = await buildImage().jpeg({ quality: 85, mozjpeg: true }).toBuffer()
+  if (buffer.length > MAX_ATTACHMENT_BYTES) {
+    buffer = await buildImage().jpeg({ quality: 70, mozjpeg: true }).toBuffer()
+  }
+  if (buffer.length > MAX_ATTACHMENT_BYTES) {
+    problem({
+      status: 400,
+      detail: 'Attachment image is too large after compression. Please upload a smaller image.',
+    })
+  }
+
+  return {
+    buffer,
+    fileName: `${sanitizeAttachmentFileName(file.originalname)}.jpg`,
+    mimeType: 'image/jpeg',
+  }
+}
 
 router.use(
   validateUser(
@@ -44,8 +115,16 @@ router.use(
   ),
 )
 
+// attachments may contain identifying pictures (the reporter's own photo instead of
+// the intended subject) - only the report's author and SMS roles may see them, not
+// members who were separately granted read access via the sharing card
+const canSeeAttachments = (occurrence: Occurrence, user: JWTUser) =>
+  occurrence.access.some((a) => a.author && a.memberId === user.memberId) ||
+  user.permissions.includes(MIKPermissions.SMS_MANAGER) ||
+  user.permissions.includes(MIKPermissions.SMS_PROCESSOR)
+
 // never expose original author details of anonymized reports
-const anonymize = (occurrence: Occurrence) => {
+const anonymize = (occurrence: Occurrence, user: JWTUser) => {
   const anonymize = ![
     OccurrenceStatus.NEW,
     OccurrenceStatus.RECEIVED,
@@ -60,6 +139,7 @@ const anonymize = (occurrence: Occurrence) => {
       lastName: anonymize && a.author ? 'Author' : a.lastName,
     })),
     createdBy: anonymize ? '-' : occurrence.createdBy,
+    attachments: canSeeAttachments(occurrence, user) ? occurrence.attachments : [],
   }
 }
 
@@ -72,7 +152,7 @@ router.get(
     if (!occurrence || occurrence.status === OccurrenceStatus.DELETED) {
       return problem({ status: 404, detail: 'Report not found' })
     }
-    res.status(200).json(anonymize(occurrence))
+    res.status(200).json(anonymize(occurrence, req.user!))
   },
 )
 
@@ -100,7 +180,7 @@ router.get('/', async (req: Request<OccurrenceFilters>, res: Response<Occurrence
     },
     accessFilters(req.user!),
   )
-  res.status(200).json({ occurrences: occurrences.map(anonymize) })
+  res.status(200).json({ occurrences: occurrences.map((o) => anonymize(o, req.user!)) })
 })
 
 router.post('/', async (req: Request<Record<string, string>>, res: Response<Occurrence>) => {
@@ -147,7 +227,7 @@ router.post('/', async (req: Request<Record<string, string>>, res: Response<Occu
   )
 
   // send email notifications to every member having roles with SMS independent processor permission
-  const anonymized = anonymize(created)
+  const anonymized = anonymize(created, req.user!)
   await sendOccurrenceNotification(
     sendEmail,
     smsProcessorRoles.map((r) => r.roleId),
@@ -186,7 +266,7 @@ router.patch(
       },
       req.user!,
     )
-    res.status(200).json(anonymize(updated))
+    res.status(200).json(anonymize(updated, req.user!))
   },
 )
 
@@ -298,7 +378,7 @@ router.post(
       },
       req.user!,
     )
-    res.status(200).json(anonymize(updated))
+    res.status(200).json(anonymize(updated, req.user!))
   },
 )
 
@@ -383,7 +463,11 @@ router.post(
         )
       }
 
-      return res.status(200).json(anonymize(anonymizingReport))
+      // copy (not share) attachments to the anonymizing report so the independent
+      // processor can remove a picture there without touching the original record
+      const attachments = await copyOccurrenceAttachments(occurrence.id, anonymizingReport.id)
+
+      return res.status(200).json(anonymize({ ...anonymizingReport, attachments }, req.user!))
     } else if (status == OccurrenceStatus.ANONYMIZED) {
       const smsManagerRoles = await getMemberRolesByPermission(MIKPermissions.SMS_MANAGER)
       const updated = await updateOccurrence(
@@ -416,7 +500,7 @@ router.post(
         .filter((access) => !deletedAccessIds.includes(access.accessId!))
         .concat(newAccesses)
 
-      const anonymized = anonymize({ ...updated, access: access })
+      const anonymized = anonymize({ ...updated, access: access }, req.user!)
 
       // send email notifications to SMS managers
       await sendOccurrenceNotification(
@@ -444,7 +528,7 @@ router.post(
         },
         req.user!,
       )
-      return res.status(200).json(anonymize(updated))
+      return res.status(200).json(anonymize(updated, req.user!))
     } else if (status == OccurrenceStatus.CLOSED) {
       const closed = OccurrenceClosedPayloadSchema.parse(req.body)
       const updated = await updateOccurrence(
@@ -463,7 +547,7 @@ router.post(
         },
         req.user!,
       )
-      return res.status(200).json(anonymize(updated))
+      return res.status(200).json(anonymize(updated, req.user!))
     }
 
     const updated = await updateOccurrence(
@@ -474,6 +558,136 @@ router.post(
       },
       req.user!,
     )
-    res.status(200).json(anonymize(updated))
+    res.status(200).json(anonymize(updated, req.user!))
+  },
+)
+
+router.post(
+  '/:reportId/attachments',
+  attachmentUpload.single('file'),
+  async (req: Request<{ reportId: string }>, res: Response<OccurrenceAttachment>) => {
+    const { reportId } = req.params
+    if (!req.file) {
+      return problem({ status: 400, detail: 'No attachment uploaded' })
+    }
+
+    const occurrence = await getOccurrence(reportId, accessFilters(req.user!), 'write')
+    if (!occurrence) {
+      return problem({ status: 404, detail: 'Report not found' })
+    }
+    if (occurrence.status === OccurrenceStatus.DELETED) {
+      return problem({ status: 404, detail: 'Report locked' })
+    }
+
+    const attachmentCount = await countOccurrenceAttachments(occurrence.id)
+    if (attachmentCount >= MAX_ATTACHMENTS_PER_REPORT) {
+      return problem({
+        status: 400,
+        detail: `A report can have at most ${MAX_ATTACHMENTS_PER_REPORT} attachments.`,
+      })
+    }
+
+    let uploadKey: string | undefined
+    try {
+      const { buffer, fileName, mimeType } = await processAttachmentImage(req.file)
+      const upload = await storageService.uploadFile(
+        buffer,
+        `${Date.now()}_${fileName}`,
+        mimeType,
+        `occurrences/${occurrence.id}`,
+        OCCURRENCE_ATTACHMENT_BUCKET,
+      )
+      uploadKey = upload.key
+
+      const attachment = await addOccurrenceAttachment(
+        occurrence.id,
+        {
+          fileName,
+          mimeType,
+          fileSize: buffer.length,
+          storageKey: upload.key,
+          originStatus: occurrence.status,
+        },
+        req.user!,
+      )
+
+      res.status(200).json(attachment)
+    } catch (error) {
+      if (uploadKey) {
+        await storageService
+          .deleteFile(uploadKey, OCCURRENCE_ATTACHMENT_BUCKET)
+          .catch((deleteError) => {
+            logger.error('Failed to roll back uploaded occurrence attachment file', deleteError)
+          })
+      }
+      logger.error('Occurrence attachment upload failed', error)
+      throw error
+    }
+  },
+)
+
+router.delete(
+  '/:reportId/attachments/:attachmentId',
+  async (req: Request<{ reportId: string; attachmentId: string }>, res: Response<void>) => {
+    const { reportId, attachmentId } = req.params
+
+    const occurrence = await getOccurrence(reportId, accessFilters(req.user!), 'write')
+    if (!occurrence) {
+      return problem({ status: 404, detail: 'Report not found' })
+    }
+    if (occurrence.status === OccurrenceStatus.DELETED) {
+      return problem({ status: 404, detail: 'Report locked' })
+    }
+
+    const attachment = await getOccurrenceAttachment(occurrence.id, Number(attachmentId))
+    if (!attachment) {
+      return problem({ status: 404, detail: 'Attachment not found' })
+    }
+
+    await removeOccurrenceAttachment(occurrence.id, Number(attachmentId), req.user!)
+    await updateOccurrence(
+      occurrence,
+      {
+        comments: [
+          ...occurrence.comments,
+          {
+            at: new Date().toISOString(),
+            comment: `Attachment removed: ${attachment.file_name}`,
+            by: req.user!.lastName,
+            status: null,
+          },
+        ],
+      },
+      req.user!,
+    )
+
+    res.status(204).send()
+  },
+)
+
+router.get(
+  '/:reportId/attachments/:attachmentId/url',
+  async (
+    req: Request<{ reportId: string; attachmentId: string }>,
+    res: Response<{ url: string }>,
+  ) => {
+    const { reportId, attachmentId } = req.params
+
+    const occurrence = await getOccurrence(reportId, accessFilters(req.user!), 'read')
+    if (!occurrence || !canSeeAttachments(occurrence, req.user!)) {
+      return problem({ status: 404, detail: 'Attachment not found' })
+    }
+
+    const attachment = await getOccurrenceAttachment(occurrence.id, Number(attachmentId))
+    if (!attachment) {
+      return problem({ status: 404, detail: 'Attachment not found' })
+    }
+
+    const url = await storageService.getPresignedUrl(
+      attachment.storage_key,
+      300,
+      OCCURRENCE_ATTACHMENT_BUCKET,
+    )
+    res.status(200).json({ url })
   },
 )

@@ -184,6 +184,7 @@ describe('Occurrence Email template tests', () => {
     occurrenceDate: '2025-12-01T10:30:00.000Z',
     reportDate: '2025-12-01T10:31:00.000Z',
     status: 'NEW',
+    attachments: [],
   } as Occurrence
 
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(

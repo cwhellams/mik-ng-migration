@@ -121,6 +121,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 - **Important**: Add `SIMPLBOOKS_COMPANY_ID=123` to the .env file if missing to avoid startup errors
 - **Important**: Add `DISABLE_EMAIL_SENDING=true` to the .env file to prevent actual emails being sent in development
 - **Important**: Add `SIMPLBOOKS_DRY_RUN=true` to test the invoice outbox worker locally without calling SimplBooks (see Dry-Run Mode below)
+- **Optional**: `OCCURRENCE_ATTACHMENT_BUCKET` overrides the DO Spaces bucket used for occurrence report attachments (pictures). Defaults to `mik-occurrence-attachments` in production and `mik-occurrence-attachments-test` otherwise. The bucket must be created (Restricted) in DO Spaces before first use in an environment.
 
 ## Known Issues and Workarounds
 

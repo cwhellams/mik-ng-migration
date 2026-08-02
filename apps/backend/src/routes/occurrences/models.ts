@@ -138,6 +138,20 @@ export const OccurrenceAccessSchema = z.object({
 
 export type OccurrenceAccess = z.infer<typeof OccurrenceAccessSchema>
 
+export const OccurrenceAttachmentSchema = z.object({
+  attachmentId: z.number().readonly(),
+  fileName: z.string(),
+  mimeType: z.string(),
+  fileSize: z.number(),
+  // report status at the time the attachment was uploaded - lets the UI show
+  // whether it came from the original report or was added later
+  originStatus: z.nativeEnum(OccurrenceStatus).readonly(),
+  at: z.string().datetime().readonly(),
+  by: z.string().readonly(),
+})
+
+export type OccurrenceAttachment = z.infer<typeof OccurrenceAttachmentSchema>
+
 export const OccurrenceSchema = AuditableSchema.extend({
   id: z.string().readonly(),
   status: z.nativeEnum(OccurrenceStatus),
@@ -176,6 +190,7 @@ export const OccurrenceSchema = AuditableSchema.extend({
   access: z.array(OccurrenceAccessSchema),
   comments: z.array(OccurrenceCommentSchema).readonly(),
   handling: OccurrenceHandlingSchema.readonly(),
+  attachments: z.array(OccurrenceAttachmentSchema).readonly(),
 })
 
 export type Occurrence = z.infer<typeof OccurrenceSchema>
@@ -189,6 +204,7 @@ export const OccurrenceUpsertSchema = UpsertSchema(OccurrenceSchema).omit({
   access: true,
   comments: true,
   handling: true,
+  attachments: true,
 })
 
 export type OccurrenceUpsert = z.infer<typeof OccurrenceUpsertSchema>
