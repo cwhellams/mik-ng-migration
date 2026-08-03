@@ -1,4 +1,4 @@
-import type { ExpressionBuilder, Selectable } from 'kysely'
+import { sql, type ExpressionBuilder, type Kysely, type Selectable, type Transaction } from 'kysely'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
   OccurrenceCategory,
@@ -16,6 +16,8 @@ import * as connection from './connection.ts'
 import type { DB, FlightOccurrences, FlightOccurrenceAttachments } from './schema.js'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 import { storageService } from '../services/storage.ts'
+
+type Executor = Kysely<DB> | Transaction<DB>
 
 const toOccurrence = (
   row: Selectable<FlightOccurrences>,
@@ -214,6 +216,7 @@ export async function createOccurrence(
     comments: OccurrenceComment[]
   },
   user: JWTUser,
+  executor: Executor = connection.db,
 ): Promise<Occurrence> {
   const now = new Date()
 
@@ -228,7 +231,7 @@ export async function createOccurrence(
     updatedBy: user.memberId,
   }
 
-  await connection.db
+  await executor
     .insertInto('flight.occurrences')
     .values({
       report_id: created.id,
@@ -259,7 +262,7 @@ export async function createOccurrence(
     })
     .execute()
 
-  const access = await addOccurrenceAccess(created.id, user, ...occurrence.access)
+  const access = await addOccurrenceAccess(created.id, user, executor, ...occurrence.access)
 
   return { ...created, access }
 }
@@ -275,6 +278,7 @@ export async function updateOccurrence(
     }
   >,
   user: JWTUser,
+  executor: Executor = connection.db,
 ): Promise<Occurrence> {
   const now = new Date().toISOString()
   const updated: Occurrence = {
@@ -284,7 +288,7 @@ export async function updateOccurrence(
     updatedAt: now,
   }
 
-  await connection.db
+  await executor
     .updateTable('flight.occurrences')
     .set({
       occurrence_date: patch.occurrenceDate,
@@ -318,9 +322,10 @@ export async function updateOccurrence(
 export const addOccurrenceAccess = async (
   reportId: string,
   user: JWTUser,
+  executor: Executor = connection.db,
   ...access: OccurrenceAccess[]
 ): Promise<OccurrenceAccess[]> => {
-  const inserted = await connection.db
+  const inserted = await executor
     .insertInto('flight.occurrence_access')
     .values(
       access.map((access) => ({
@@ -353,8 +358,9 @@ export const updateOccurrenceAccess = async (
   reportId: string,
   access: OccurrenceAccess,
   user: JWTUser,
+  executor: Executor = connection.db,
 ) =>
-  connection.db
+  executor
     .updateTable('flight.occurrence_access')
     .set({
       write_access: access.write,
@@ -385,9 +391,10 @@ const insertOccurrenceAttachment = async (
   reportId: string,
   attachment: NewOccurrenceAttachment,
   createdBy: string,
+  executor: Executor = connection.db,
 ): Promise<Selectable<FlightOccurrenceAttachments>> => {
   const now = new Date()
-  return connection.db
+  return executor
     .insertInto('flight.occurrence_attachments')
     .values({
       report_id: reportId,
@@ -405,23 +412,44 @@ const insertOccurrenceAttachment = async (
     .executeTakeFirstOrThrow()
 }
 
+const mapAttachmentRow = (
+  row: Selectable<FlightOccurrenceAttachments>,
+  by: string,
+): OccurrenceAttachment => ({
+  attachmentId: row.attachment_id,
+  fileName: row.file_name,
+  mimeType: row.mime_type,
+  fileSize: row.file_size,
+  originStatus: row.origin_status as OccurrenceStatus,
+  at: row.created_at.toISOString(),
+  by,
+})
+
+// Enforces the per-report attachment cap atomically: an advisory lock scoped to the
+// report id serializes concurrent uploads so the count check below can't race with
+// another upload's insert.
 export const addOccurrenceAttachment = async (
   reportId: string,
   attachment: NewOccurrenceAttachment,
   user: JWTUser,
-): Promise<OccurrenceAttachment> => {
-  const row = await insertOccurrenceAttachment(reportId, attachment, user.memberId)
+  maxAttachments: number,
+): Promise<OccurrenceAttachment | undefined> =>
+  connection.db.transaction().execute(async (trx) => {
+    await sql`select pg_advisory_xact_lock(hashtext(${reportId}))`.execute(trx)
 
-  return {
-    attachmentId: row.attachment_id,
-    fileName: row.file_name,
-    mimeType: row.mime_type,
-    fileSize: row.file_size,
-    originStatus: row.origin_status as OccurrenceStatus,
-    at: row.created_at.toISOString(),
-    by: user.lastName,
-  }
-}
+    const { count } = await trx
+      .selectFrom('flight.occurrence_attachments')
+      .select((eb) => eb.fn.countAll().as('count'))
+      .where('report_id', '=', reportId)
+      .where('removed_at', 'is', null)
+      .executeTakeFirstOrThrow()
+    if (Number(count) >= maxAttachments) {
+      return undefined
+    }
+
+    const row = await insertOccurrenceAttachment(reportId, attachment, user.memberId, trx)
+    return mapAttachmentRow(row, user.lastName)
+  })
 
 export const getOccurrenceAttachment = async (reportId: string, attachmentId: number) =>
   connection.db
@@ -445,9 +473,10 @@ export const countOccurrenceAttachments = async (reportId: string): Promise<numb
 export const removeOccurrenceAttachment = async (
   reportId: string,
   attachmentId: number,
+  bucketName: string,
   user: JWTUser,
 ): Promise<void> => {
-  await connection.db
+  const removed = await connection.db
     .updateTable('flight.occurrence_attachments')
     .set({
       removed_at: new Date(),
@@ -457,7 +486,12 @@ export const removeOccurrenceAttachment = async (
     })
     .where('report_id', '=', reportId)
     .where('attachment_id', '=', attachmentId)
-    .execute()
+    .returning('storage_key')
+    .executeTakeFirst()
+
+  if (removed) {
+    await storageService.deleteFile(removed.storage_key, bucketName)
+  }
 }
 
 // Copies every non-hidden attachment from one report to another, preserving the
@@ -466,8 +500,10 @@ export const removeOccurrenceAttachment = async (
 export const copyOccurrenceAttachments = async (
   fromReportId: string,
   toReportId: string,
+  bucketName: string,
+  executor: Executor = connection.db,
 ): Promise<OccurrenceAttachment[]> => {
-  const source = await connection.db
+  const source = await executor
     .selectFrom('flight.occurrence_attachments')
     .selectAll('flight.occurrence_attachments')
     .leftJoin(
@@ -480,33 +516,26 @@ export const copyOccurrenceAttachments = async (
     .where('flight.occurrence_attachments.removed_at', 'is', null)
     .execute()
 
-  const copies: OccurrenceAttachment[] = []
-  for (const attachment of source) {
-    const destKey = attachment.storage_key.replace(
-      `occurrences/${fromReportId}/`,
-      `occurrences/${toReportId}/`,
-    )
-    await storageService.copyFile(attachment.storage_key, destKey)
-    const row = await insertOccurrenceAttachment(
-      toReportId,
-      {
-        fileName: attachment.file_name,
-        mimeType: attachment.mime_type,
-        fileSize: attachment.file_size,
-        storageKey: destKey,
-        originStatus: attachment.origin_status as OccurrenceStatus,
-      },
-      attachment.created_by,
-    )
-    copies.push({
-      attachmentId: row.attachment_id,
-      fileName: row.file_name,
-      mimeType: row.mime_type,
-      fileSize: row.file_size,
-      originStatus: row.origin_status as OccurrenceStatus,
-      at: row.created_at.toISOString(),
-      by: attachment.last_name ?? attachment.created_by,
-    })
-  }
-  return copies
+  return Promise.all(
+    source.map(async (attachment) => {
+      const destKey = attachment.storage_key.replace(
+        `occurrences/${fromReportId}/`,
+        `occurrences/${toReportId}/`,
+      )
+      await storageService.copyFile(attachment.storage_key, destKey, bucketName)
+      const row = await insertOccurrenceAttachment(
+        toReportId,
+        {
+          fileName: attachment.file_name,
+          mimeType: attachment.mime_type,
+          fileSize: attachment.file_size,
+          storageKey: destKey,
+          originStatus: attachment.origin_status as OccurrenceStatus,
+        },
+        attachment.created_by,
+        executor,
+      )
+      return mapAttachmentRow(row, attachment.last_name ?? attachment.created_by)
+    }),
+  )
 }

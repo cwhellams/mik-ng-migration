@@ -41,6 +41,7 @@ import { sendOccurrenceNotification } from '../../templates/occurrenceNotificati
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { getMemberRolesByPermission } from '../../db/member-queries.ts'
 import { storageService } from '../../services/storage.ts'
+import { db } from '../../db/connection.ts'
 import logger from '../../lib/logger.ts'
 
 export const router = Router()
@@ -122,6 +123,11 @@ const canSeeAttachments = (occurrence: Occurrence, user: JWTUser) =>
   occurrence.access.some((a) => a.author && a.memberId === user.memberId) ||
   user.permissions.includes(MIKPermissions.SMS_MANAGER) ||
   user.permissions.includes(MIKPermissions.SMS_PROCESSOR)
+
+const parseAttachmentId = (raw: string): number | undefined => {
+  const id = Number(raw)
+  return Number.isInteger(id) ? id : undefined
+}
 
 // never expose original author details of anonymized reports
 const anonymize = (occurrence: Occurrence, user: JWTUser) => {
@@ -301,7 +307,12 @@ router.post(
     }
 
     const access = OccurrenceAccessSchema.parse(req.body)
-    await addOccurrenceAccess(occurrence.id, req.user!, validateAccessPermission(access, req.user!))
+    await addOccurrenceAccess(
+      occurrence.id,
+      req.user!,
+      undefined,
+      validateAccessPermission(access, req.user!),
+    )
 
     res.status(200).json(access)
   },
@@ -416,58 +427,73 @@ router.post(
     }
 
     if (status == OccurrenceStatus.RECEIVED) {
-      // Create anonymized version from the original
-      const anonymizingReport = await createOccurrence(
-        {
-          ...occurrence,
-          status: OccurrenceStatus.ANONYMIZING,
-          linkedReportId: occurrence.id,
-          deadLine: occurrence.deadLine,
-          comments: [
-            ...occurrence.comments,
-            {
-              ...comment,
-              status: OccurrenceStatus.ANONYMIZING,
-            },
-          ],
-          access: occurrence.access.map((access) => ({
-            ...access,
-            // SMS processors have now write access to the anonymizing report,
-            // everyone (authors) else can only read
-            write: !!access.roleId,
-            manage: !!access.roleId,
-          })),
-        },
-        req.user!,
-      )
-
-      // mark the original report as received and readonly
-      await updateOccurrence(
-        occurrence,
-        {
-          status,
-          linkedReportId: anonymizingReport.id,
-          comments: [...occurrence.comments, comment],
-        },
-        req.user!,
-      )
-      for (const access of occurrence.access) {
-        await updateOccurrenceAccess(
-          occurrence.id,
+      // The whole sequence below must succeed or fail together: if any step throws,
+      // the original report must not end up marked RECEIVED with access already
+      // revoked but no valid anonymized copy.
+      const received = await db.transaction().execute(async (trx) => {
+        // Create anonymized version from the original
+        const anonymizingReport = await createOccurrence(
           {
-            ...access,
-            write: false,
-            manage: false,
+            ...occurrence,
+            status: OccurrenceStatus.ANONYMIZING,
+            linkedReportId: occurrence.id,
+            deadLine: occurrence.deadLine,
+            comments: [
+              ...occurrence.comments,
+              {
+                ...comment,
+                status: OccurrenceStatus.ANONYMIZING,
+              },
+            ],
+            access: occurrence.access.map((access) => ({
+              ...access,
+              // SMS processors have now write access to the anonymizing report,
+              // everyone (authors) else can only read
+              write: !!access.roleId,
+              manage: !!access.roleId,
+            })),
           },
           req.user!,
+          trx,
         )
-      }
 
-      // copy (not share) attachments to the anonymizing report so the independent
-      // processor can remove a picture there without touching the original record
-      const attachments = await copyOccurrenceAttachments(occurrence.id, anonymizingReport.id)
+        // mark the original report as received and readonly
+        await updateOccurrence(
+          occurrence,
+          {
+            status,
+            linkedReportId: anonymizingReport.id,
+            comments: [...occurrence.comments, comment],
+          },
+          req.user!,
+          trx,
+        )
+        for (const access of occurrence.access) {
+          await updateOccurrenceAccess(
+            occurrence.id,
+            {
+              ...access,
+              write: false,
+              manage: false,
+            },
+            req.user!,
+            trx,
+          )
+        }
 
-      return res.status(200).json(anonymize({ ...anonymizingReport, attachments }, req.user!))
+        // copy (not share) attachments to the anonymizing report so the independent
+        // processor can remove a picture there without touching the original record
+        const attachments = await copyOccurrenceAttachments(
+          occurrence.id,
+          anonymizingReport.id,
+          OCCURRENCE_ATTACHMENT_BUCKET,
+          trx,
+        )
+
+        return { ...anonymizingReport, attachments }
+      })
+
+      return res.status(200).json(anonymize(received, req.user!))
     } else if (status == OccurrenceStatus.ANONYMIZED) {
       const smsManagerRoles = await getMemberRolesByPermission(MIKPermissions.SMS_MANAGER)
       const updated = await updateOccurrence(
@@ -487,6 +513,7 @@ router.post(
       const newAccesses = await addOccurrenceAccess(
         occurrence.id,
         req.user!,
+        undefined,
         // add SMS managers with full access
         ...smsManagerRoles.map((role) => ({
           roleId: role.roleId,
@@ -572,13 +599,15 @@ router.post(
     }
 
     const occurrence = await getOccurrence(reportId, accessFilters(req.user!), 'write')
-    if (!occurrence) {
+    if (!occurrence || !canSeeAttachments(occurrence, req.user!)) {
       return problem({ status: 404, detail: 'Report not found' })
     }
     if (occurrence.status === OccurrenceStatus.DELETED) {
       return problem({ status: 404, detail: 'Report locked' })
     }
 
+    // fast-fail before spending time on image processing/upload; the authoritative
+    // check happens atomically alongside the insert in addOccurrenceAttachment
     const attachmentCount = await countOccurrenceAttachments(occurrence.id)
     if (attachmentCount >= MAX_ATTACHMENTS_PER_REPORT) {
       return problem({
@@ -609,7 +638,14 @@ router.post(
           originStatus: occurrence.status,
         },
         req.user!,
+        MAX_ATTACHMENTS_PER_REPORT,
       )
+      if (!attachment) {
+        return problem({
+          status: 400,
+          detail: `A report can have at most ${MAX_ATTACHMENTS_PER_REPORT} attachments.`,
+        })
+      }
 
       res.status(200).json(attachment)
     } catch (error) {
@@ -632,19 +668,29 @@ router.delete(
     const { reportId, attachmentId } = req.params
 
     const occurrence = await getOccurrence(reportId, accessFilters(req.user!), 'write')
-    if (!occurrence) {
+    if (!occurrence || !canSeeAttachments(occurrence, req.user!)) {
       return problem({ status: 404, detail: 'Report not found' })
     }
     if (occurrence.status === OccurrenceStatus.DELETED) {
       return problem({ status: 404, detail: 'Report locked' })
     }
 
-    const attachment = await getOccurrenceAttachment(occurrence.id, Number(attachmentId))
+    const parsedAttachmentId = parseAttachmentId(attachmentId)
+    if (parsedAttachmentId === undefined) {
+      return problem({ status: 404, detail: 'Attachment not found' })
+    }
+
+    const attachment = await getOccurrenceAttachment(occurrence.id, parsedAttachmentId)
     if (!attachment) {
       return problem({ status: 404, detail: 'Attachment not found' })
     }
 
-    await removeOccurrenceAttachment(occurrence.id, Number(attachmentId), req.user!)
+    await removeOccurrenceAttachment(
+      occurrence.id,
+      parsedAttachmentId,
+      OCCURRENCE_ATTACHMENT_BUCKET,
+      req.user!,
+    )
     await updateOccurrence(
       occurrence,
       {
@@ -678,7 +724,12 @@ router.get(
       return problem({ status: 404, detail: 'Attachment not found' })
     }
 
-    const attachment = await getOccurrenceAttachment(occurrence.id, Number(attachmentId))
+    const parsedAttachmentId = parseAttachmentId(attachmentId)
+    if (parsedAttachmentId === undefined) {
+      return problem({ status: 404, detail: 'Attachment not found' })
+    }
+
+    const attachment = await getOccurrenceAttachment(occurrence.id, parsedAttachmentId)
     if (!attachment) {
       return problem({ status: 404, detail: 'Attachment not found' })
     }
