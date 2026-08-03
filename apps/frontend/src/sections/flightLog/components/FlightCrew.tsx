@@ -34,6 +34,8 @@ import { FlightLogUpsertRequest, FlightType } from '@backend/routes/flight-log/m
 import { MemberListResponse } from '@backend/routes/members/models'
 import useApi from '../../../hooks/useApi'
 import { useMe } from '../../../hooks/useMe'
+import { useIsFormSubmitted } from '../../../hooks/useIsFormSubmitted'
+import { formatRequiredFieldError, shouldShowFieldError } from '../../../utils/formErrors'
 
 interface FlightCrewProps {
   flightType: FlightType
@@ -78,6 +80,7 @@ const FlightCrew = ({
   const { t } = useTranslation()
   const theme = useTheme()
   const isSmUp = useMediaQuery(theme.breakpoints.up('sm'))
+  const isSubmitted = useIsFormSubmitted(control)
 
   const isEditable = !!setValue
 
@@ -366,53 +369,65 @@ const FlightCrew = ({
                   name={crewId}
                   control={control}
                   rules={{ required: true }}
-                  render={({ field: { onChange, value }, fieldState: { error } }) => (
-                    <Autocomplete
-                      disabled={!isEditable}
-                      options={filteredMembers}
-                      value={members.find((member) => member.value === value) ?? null}
-                      groupBy={(option) => option.role}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label={t(`flightLog.crews.${slot}`)}
-                          placeholder={t('flightLog.selectCrew')}
-                          margin='normal'
-                          error={!!error}
-                          helperText={error?.message?.toString()}
-                          slotProps={{
-                            ...params.slotProps,
+                  render={({ field: { onChange, value }, fieldState: { error, isDirty } }) => {
+                    const showError = shouldShowFieldError(error, isDirty, isSubmitted)
 
-                            inputLabel: {
-                              shrink: true,
-                            },
-                          }}
-                        />
-                      )}
-                      onChange={(_e, crew) => {
-                        onChange(crew?.value ?? null)
-
-                        if (crew && !isSinglePilotFlight) {
-                          // improve usability by setting default role
-                          // based on selected crew member
-
-                          const defaultRole = getDefaultMultiRole(crew)
-                          setValue?.(crewRole, defaultRole)
-
-                          if (slot == 'pic' && (defaultRole == 'FI' || defaultRole == 'FE')) {
-                            // instructor was selected as PIC, add missing self crew
-                            if (crewCount < 2) {
-                              setCrewCount(2)
+                    return (
+                      <Autocomplete
+                        disabled={!isEditable}
+                        options={filteredMembers}
+                        value={members.find((member) => member.value === value) ?? null}
+                        groupBy={(option) => option.role}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label={t(`flightLog.crews.${slot}`)}
+                            required={slot === 'pic'}
+                            placeholder={t('flightLog.selectCrew')}
+                            margin='normal'
+                            error={showError}
+                            helperText={
+                              showError
+                                ? formatRequiredFieldError(
+                                    error,
+                                    t('flightLog.error.fieldRequired'),
+                                  )
+                                : undefined
                             }
-                            if (!crewMembers[1]) {
-                              setValue?.('crew2MemberId', me?.memberId ?? '')
-                              setValue?.('crew2Role', 'STU')
+                            slotProps={{
+                              ...params.slotProps,
+
+                              inputLabel: {
+                                shrink: true,
+                              },
+                            }}
+                          />
+                        )}
+                        onChange={(_e, crew) => {
+                          onChange(crew?.value ?? null)
+
+                          if (crew && !isSinglePilotFlight) {
+                            // improve usability by setting default role
+                            // based on selected crew member
+
+                            const defaultRole = getDefaultMultiRole(crew)
+                            setValue?.(crewRole, defaultRole)
+
+                            if (slot == 'pic' && (defaultRole == 'FI' || defaultRole == 'FE')) {
+                              // instructor was selected as PIC, add missing self crew
+                              if (crewCount < 2) {
+                                setCrewCount(2)
+                              }
+                              if (!crewMembers[1]) {
+                                setValue?.('crew2MemberId', me?.memberId ?? '')
+                                setValue?.('crew2Role', 'STU')
+                              }
                             }
                           }
-                        }
-                      }}
-                    />
-                  )}
+                        }}
+                      />
+                    )
+                  }}
                 />
               </Grid>
               {!isSinglePilotFlight && (
@@ -420,47 +435,55 @@ const FlightCrew = ({
                   <Controller
                     name={crewRole}
                     control={control}
-                    render={({ field, fieldState: { error } }) => (
-                      <FormControl fullWidth error={!!error} margin='normal'>
-                        <InputLabel>{t('flightLog.duty')}</InputLabel>
-                        <Select
-                          {...field}
-                          value={field.value || ''}
-                          label={t('flightLog.duty')}
-                          disabled={!isEditable}
-                          // On narrow mobile columns show only the short code; full label in dropdown
-                          renderValue={isSmUp ? undefined : (value) => String(value)}
-                          onChange={(e) => {
-                            const nextDuty = e.target.value
-                            field.onChange(e)
+                    render={({ field, fieldState: { error, isDirty } }) => {
+                      const showError = shouldShowFieldError(error, isDirty, isSubmitted)
 
-                            const selectedMemberId = watch(crewId)
-                            const selectedMember = members.find(
-                              (member) => member.value === selectedMemberId,
-                            )
+                      return (
+                        <FormControl fullWidth error={showError} margin='normal'>
+                          <InputLabel>{t('flightLog.duty')}</InputLabel>
+                          <Select
+                            {...field}
+                            value={field.value || ''}
+                            label={t('flightLog.duty')}
+                            disabled={!isEditable}
+                            // On narrow mobile columns show only the short code; full label in dropdown
+                            renderValue={isSmUp ? undefined : (value) => String(value)}
+                            onChange={(e) => {
+                              const nextDuty = e.target.value
+                              field.onChange(e)
 
-                            if (
-                              selectedMemberId &&
-                              (nextDuty === 'FI' || nextDuty === 'FE') &&
-                              (!selectedMember ||
-                                !isMemberQualifiedForDuty(selectedMember, nextDuty))
-                            ) {
-                              setValue?.(crewId, null)
-                            }
+                              const selectedMemberId = watch(crewId)
+                              const selectedMember = members.find(
+                                (member) => member.value === selectedMemberId,
+                              )
 
-                            // re-validate the member field when duty changes
-                            trigger?.(crewId)
-                          }}
-                        >
-                          {CREW_ROLES.map((type) => (
-                            <MenuItem key={type.value} value={type.value}>
-                              {type.value} - {type.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        {error && <FormHelperText>{error.message?.toString()}</FormHelperText>}
-                      </FormControl>
-                    )}
+                              if (
+                                selectedMemberId &&
+                                (nextDuty === 'FI' || nextDuty === 'FE') &&
+                                (!selectedMember ||
+                                  !isMemberQualifiedForDuty(selectedMember, nextDuty))
+                              ) {
+                                setValue?.(crewId, null)
+                              }
+
+                              // re-validate the member field when duty changes
+                              trigger?.(crewId)
+                            }}
+                          >
+                            {CREW_ROLES.map((type) => (
+                              <MenuItem key={type.value} value={type.value}>
+                                {type.value} - {type.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          {showError && (
+                            <FormHelperText>
+                              {formatRequiredFieldError(error, t('flightLog.error.fieldRequired'))}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      )
+                    }}
                   />
                 </Grid>
               )}

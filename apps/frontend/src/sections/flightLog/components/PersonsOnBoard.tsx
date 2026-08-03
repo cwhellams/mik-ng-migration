@@ -2,16 +2,20 @@ import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
 import { Box, Typography, ToggleButtonGroup, ToggleButton, FormHelperText } from '@mui/material'
 import { Control, Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { useIsFormSubmitted } from '../../../hooks/useIsFormSubmitted'
+import { formatRequiredFieldError, shouldShowFieldError } from '../../../utils/formErrors'
 
 interface Props {
   control: Control<FlightLogUpsertRequest>
   seats: number
   crew: (string | null)[]
   disabled?: boolean
+  required?: boolean
 }
 
-export const PersonsOnBoard = ({ control, seats, crew, disabled }: Props) => {
+export const PersonsOnBoard = ({ control, seats, crew, disabled, required }: Props) => {
   const { t } = useTranslation()
+  const isSubmitted = useIsFormSubmitted(control)
 
   // number of crew members (pic not included)
   const crewCount = crew.filter(Boolean).length
@@ -24,8 +28,9 @@ export const PersonsOnBoard = ({ control, seats, crew, disabled }: Props) => {
     <Controller
       name='personsOnBoard'
       control={control}
-      render={({ field, fieldState: { error } }) => {
+      render={({ field, fieldState: { error, isDirty } }) => {
         const isUnset = field.value === undefined || field.value === null
+        const showError = shouldShowFieldError(error, isDirty, isSubmitted)
 
         return (
           <Box
@@ -35,6 +40,11 @@ export const PersonsOnBoard = ({ control, seats, crew, disabled }: Props) => {
           >
             <Typography variant='body2' gutterBottom>
               {t('flightLog.personsOnBoard')}
+              {required && (
+                <Box component='span' sx={{ color: 'error.main' }}>
+                  {' *'}
+                </Box>
+              )}
             </Typography>
             {noAircraftSelected ? (
               <FormHelperText sx={{ mx: 0, mb: 1 }}>
@@ -80,7 +90,11 @@ export const PersonsOnBoard = ({ control, seats, crew, disabled }: Props) => {
                 )}
               </ToggleButtonGroup>
             )}
-            {error && <FormHelperText error>{error.message?.toString()}</FormHelperText>}
+            {showError && (
+              <FormHelperText error>
+                {formatRequiredFieldError(error, t('flightLog.error.fieldRequired'))}
+              </FormHelperText>
+            )}
           </Box>
         )
       }}

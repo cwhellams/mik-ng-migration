@@ -2,24 +2,29 @@ import { Box, TextField, Button, ButtonGroup, Typography } from '@mui/material'
 import { Control, Controller } from 'react-hook-form'
 import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
 import { useTranslation } from 'react-i18next'
+import { useIsFormSubmitted } from '../../../hooks/useIsFormSubmitted'
+import { formatRequiredFieldError, shouldShowFieldError } from '../../../utils/formErrors'
 
 interface Props {
   name: keyof FlightLogUpsertRequest
   control: Control<FlightLogUpsertRequest>
   min?: number
   disabled?: boolean
+  required?: boolean
 }
 
-export const NumberOfLandings = ({ name, control, min = 1, disabled }: Props) => {
+export const NumberOfLandings = ({ name, control, min = 1, disabled, required }: Props) => {
   const { t } = useTranslation()
+  const isSubmitted = useIsFormSubmitted(control)
   return (
     <Controller
       name={name}
       control={control}
       disabled={disabled}
-      render={({ field, fieldState: { error } }) => {
+      render={({ field, fieldState: { error, isDirty } }) => {
         const isUnset = typeof field.value !== 'number' || field.value === null
         const currentValue = isUnset ? min : (field.value as number)
+        const showError = shouldShowFieldError(error, isDirty, isSubmitted)
 
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
@@ -29,6 +34,11 @@ export const NumberOfLandings = ({ name, control, min = 1, disabled }: Props) =>
               gutterBottom
             >
               {t('flightLog.' + name)}
+              {required && (
+                <Box component='span' sx={{ color: 'error.main' }}>
+                  {' *'}
+                </Box>
+              )}
             </Typography>
 
             <ButtonGroup
@@ -60,8 +70,12 @@ export const NumberOfLandings = ({ name, control, min = 1, disabled }: Props) =>
                 margin='none'
                 size='small'
                 sx={{ input: { textAlign: 'center' } }}
-                error={!!error}
-                helperText={error?.message?.toString()}
+                error={showError}
+                helperText={
+                  showError
+                    ? formatRequiredFieldError(error, t('flightLog.error.fieldRequired'))
+                    : undefined
+                }
               />
 
               <Button

@@ -29,7 +29,12 @@ export const CrewStep = ({ control, watch, setValue, trigger, register, aircraft
           flightType === FlightType.SCHOOL ? me?.defaultInstructorMemberId : undefined
         }
       />
-      <PersonsOnBoard control={control} seats={aircraft?.seats ?? 0} crew={crew.slice(1)} />
+      <PersonsOnBoard
+        control={control}
+        seats={aircraft?.seats ?? 0}
+        crew={crew.slice(1)}
+        required
+      />
     </Box>
   )
 }

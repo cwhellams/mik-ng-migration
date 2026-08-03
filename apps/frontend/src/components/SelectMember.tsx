@@ -20,6 +20,7 @@ export const SelectMember = ({
   disabled,
   role = 'MEMBER',
   memberType,
+  required,
 }: {
   entries?: Member[]
   value: string | null
@@ -30,6 +31,7 @@ export const SelectMember = ({
   disabled?: boolean
   role?: string
   memberType?: MemberListFilters['memberType']
+  required?: boolean
 }) => {
   const filters: MemberListFilters = {
     ...(memberType != null ? { memberType } : { role }),
@@ -74,6 +76,7 @@ export const SelectMember = ({
         <TextField
           {...params}
           label={label}
+          required={required}
           placeholder={placeholder}
           margin='normal'
           slotProps={{

@@ -887,7 +887,9 @@
     "error": {
       "memberNotInstructor": "Den valda medlemmen måste ha rollen flyginstruktör för FI-tjänst",
       "memberNotExaminer": "Den valda medlemmen måste ha rollen flygkontrollant för FE-tjänst",
-      "oilUpliftRequired": "Ange mängden oljepåfyllning eller välj 'Ingen oljepåfyllning'"
+      "oilUpliftRequired": "Ange mängden oljepåfyllning eller välj 'Ingen oljepåfyllning'",
+      "fuelUpliftRequired": "Ange mängden bränslepåfyllning eller välj 'Ingen bränslepåfyllning'",
+      "fieldRequired": "Detta fält är obligatoriskt"
     },
     "aircraftInfo": "Flygplansinformation",
     "additionalInfo": "Ytterligare information",
@@ -902,6 +904,7 @@
     "instrumentFlyingMins": "Instrumenttimmar (TT:MM)",
     "fuelInfo": "Bränsle- och oljeinformation",
     "fuelUpliftLitres": "Bränslepåfyllning (liter)",
+    "noFuelAdded": "Ingen bränslepåfyllning",
     "fuelRemainingLitres": "Bränsle kvar",
     "fuelLitres": "Liter",
     "fuelUSG": "US-gallon",
@@ -982,8 +985,9 @@
       "useClassicForm": "Använd hela formuläret istället",
       "today": "Idag, {{date}}",
       "changeDate": "Ändra datum",
-      "timeMustBeAfter": ">",
-      "timeMustBeBefore": "<=",
+      "timeMustBeAfter": "Måste vara efter {{time}}",
+      "timeMustBeBefore": "Måste vara senast {{time}}",
+      "timeCannotBeFuture": "Denna tid är i framtiden — kontrollera tiden och datumet",
       "enterPreviousTimeFirst": "Ange föregående tid först",
       "minutesAgo": "{{count}} min sedan",
       "hoursMinutesAgo": "{{hours}} h {{minutes}} min sedan",
@@ -993,6 +997,11 @@
       "backToQuickPick": "Tillbaka till snabbval",
       "discard": "Förkasta",
       "discardBody": "Förkasta denna post? Inget har sparats.",
+      "draftRestored": "Din oavslutade post har återställts.",
+      "draftAmbiguousTitle": "Oavslutade poster hittades",
+      "draftAmbiguousBody": "Du har {{count}} oavslutade flygloggposter sparade från andra flikar.",
+      "draftResumeMostRecent": "Återuppta senaste",
+      "draftStartFresh": "Börja om",
       "accept": "Acceptera",
       "flightPlanReminder": {
         "button": "Kom ihåg att stänga din färdplan",
@@ -1881,6 +1890,7 @@
     "saving": "Sparar...",
     "deleting": "Tar bort...",
     "requiresAdminMode": "Administratörsläge krävs",
+    "fieldRequired": "Detta fält är obligatoriskt",
     "none": "Ingen",
     "moreActions": "Fler åtgärder"
   },
@@ -2335,7 +2345,8 @@
       "addLineItem": "Lägg till rad",
       "removeLineItem": "Ta bort",
       "uploadReceipt": "Ladda upp kvitto",
-      "overrideFuelPrice": "Åsidosätt bränslepris"
+      "overrideFuelPrice": "Åsidosätt bränslepris",
+      "discardDraft": "Förkasta"
     },
     "deleteDialog": {
       "title": "Ta bort utkastet?",
@@ -2357,6 +2368,13 @@
         "receipt": "Kvitto",
         "review": "Granska & Skicka"
       },
+      "draftRestored": "Din oavslutade ansökan har återställts.",
+      "draftAmbiguousTitle": "Oavslutade ansökningar hittades",
+      "draftAmbiguousBody": "Du har {{count}} oavslutade utgiftsanspråk sparade från andra flikar.",
+      "draftMostRecentTitle": "Senaste: \"{{title}}\".",
+      "draftResumeMostRecent": "Återuppta senaste",
+      "draftStartFresh": "Börja om",
+      "discardBody": "Förkasta detta anspråk och rensa formuläret? Om du redan har sparat det som utkast på servern raderas det inte — du kan hitta och radera det i din lista över utgiftsanspråk.",
       "receiptPolicyTitle": "Viktigt: endast ett kvittodokument tillåtet per anspråk",
       "receiptPolicyBody": "Vårt redovisningssystem stöder bara en bilaga per utgiftsanspråk. Du kan ladda upp en bild eller ett PDF-dokument som kvitto.\n\nAlla anspråk måste vara i samma valuta — blanda INTE valutor (t.ex. EUR och SEK) i ett och samma anspråk.\n\nVäxelkurser baseras på kurser från ett tredjeparts-API (frankfurter.app), med användning av det utgiftsdatum du anger.\n\nKilometerersättning använder 50 % av Skatteförvaltningens (Vero) officiella sats.\n\nFör bränsleersättning, ange totalt antal tankade liter och det totala beloppet du betalat (inklusive eventuella hanteringsavgifter).",
       "fuelFlightQuestion": "Köptes detta bränsle för en specifik flygning?",
@@ -2377,6 +2395,7 @@
       "receiptSkipWarning": "Du kan hoppa över kvittouppladdningen nu och lägga till det senare innan inlämning.",
       "saveDraftBeforeReceipt": "Spara utkastet innan du laddar upp kvitton.",
       "noBankDetails": "Inte angett — ersättning kräver bankuppgifter före betalning",
+      "saveFailedGeneric": "Det gick inte att spara ansökan. Kontrollera uppgifterna och försök igen.",
       "noReceipt": "Inget kvitto uppladdat",
       "col": {
         "description": "Beskrivning",

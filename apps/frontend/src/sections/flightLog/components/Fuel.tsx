@@ -13,14 +13,17 @@ import {
 import { Control, Controller } from 'react-hook-form'
 import { FlightLogUpsertRequest } from '@backend/routes/flight-log/models'
 import { useTranslation } from 'react-i18next'
+import { useIsFormSubmitted } from '../../../hooks/useIsFormSubmitted'
+import { shouldShowFieldError } from '../../../utils/formErrors'
 
 interface Props {
   control: Control<FlightLogUpsertRequest>
   usableFuelLitres: number
   disabled?: boolean
+  required?: boolean
 }
 
-export const Fuel = ({ control, usableFuelLitres, disabled }: Props) => {
+export const Fuel = ({ control, usableFuelLitres, disabled, required }: Props) => {
   const theme = useTheme()
   const isMd = useMediaQuery(theme.breakpoints.up('md'))
 
@@ -70,12 +73,13 @@ export const Fuel = ({ control, usableFuelLitres, disabled }: Props) => {
   const label = (value: number) => `${Math.round(value)}L = ${Math.round(value / 3.785)}USG`
 
   const { t } = useTranslation()
+  const isSubmitted = useIsFormSubmitted(control)
   return (
     <Controller
       name={'fuelRemainingLitres'}
       control={control}
       disabled={disabled}
-      render={({ field, fieldState }) => (
+      render={({ field, fieldState: { error, isDirty } }) => (
         <Box>
           <Typography
             variant='body2'
@@ -86,6 +90,11 @@ export const Fuel = ({ control, usableFuelLitres, disabled }: Props) => {
             }}
           >
             {t('flightLog.fuelRemainingLitres')}
+            {required && (
+              <Box component='span' sx={{ color: 'error.main' }}>
+                {' *'}
+              </Box>
+            )}
           </Typography>
 
           <Slider
@@ -147,7 +156,9 @@ export const Fuel = ({ control, usableFuelLitres, disabled }: Props) => {
             </Alert>
           )}
 
-          <FormHelperText error>{fieldState.error?.message}</FormHelperText>
+          {shouldShowFieldError(error, isDirty, isSubmitted) && (
+            <FormHelperText error>{error?.message}</FormHelperText>
+          )}
         </Box>
       )}
     />

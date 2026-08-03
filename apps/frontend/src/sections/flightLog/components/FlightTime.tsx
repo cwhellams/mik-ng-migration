@@ -28,6 +28,8 @@ import { useTranslation } from 'react-i18next'
 import { TimeField } from '@mui/x-date-pickers/TimeField'
 import { calculateNext } from '../utils/timeUtils'
 import { useTimezone } from '../../../hooks/useTimezone'
+import { useIsFormSubmitted } from '../../../hooks/useIsFormSubmitted'
+import { shouldShowFieldError } from '../../../utils/formErrors'
 
 interface FlightTimeProps {
   data?: FlightLog
@@ -361,6 +363,7 @@ const TimeStringEditor = ({
   deps: (keyof FlightLogUpsertRequest)[]
 }) => {
   const { t } = useTranslation()
+  const isSubmitted = useIsFormSubmitted(control)
 
   const toDate = (epoch: string | number | true) => {
     const date = dayjs.unix(Number(epoch))
@@ -368,11 +371,19 @@ const TimeStringEditor = ({
   }
 
   const formatError = (error: FieldError) => {
+    if (error.type === 'invalid_type') {
+      return t('flightLog.error.fieldRequired')
+    }
     if (error.type == 'too_small') {
-      return `> ${toDate(error.message ?? '').format('HH:mm')}`
+      return t('flightLog.wizard.timeMustBeAfter', {
+        time: toDate(error.message ?? '').format('HH:mm'),
+      })
     }
     if (error.type == 'too_big') {
-      return `<= ${toDate(error.message ?? '').format('HH:mm')}`
+      if (error.message?.startsWith('future:')) return t('flightLog.wizard.timeCannotBeFuture')
+      return t('flightLog.wizard.timeMustBeBefore', {
+        time: toDate(error.message ?? '').format('HH:mm'),
+      })
     }
     return error.message ?? error.type
   }
@@ -383,36 +394,40 @@ const TimeStringEditor = ({
     <Controller
       name={name}
       control={control}
-      render={({ field, fieldState: { error } }) => (
-        <FormControl fullWidth error={!!error}>
-          <TimeField
-            {...field}
-            required
-            disabled={disabled}
-            ampm={false}
-            disableFuture
-            inputRef={field.ref}
-            disableIgnoringDatePartForTimeValidation={true}
-            timezone={useUtcTime ? 'UTC' : 'system'}
-            referenceDate={useUtcTime ? minDate?.utc() : minDate}
-            value={field.value ? toDate(field.value) : null}
-            onChange={(time) => {
-              if (!time?.isValid() || !minDate) {
-                return field.onChange('')
-              }
-              const dateTime = calculateNext(minDate, time)
-              field.onChange(dateTime.unix().toString())
+      render={({ field, fieldState: { error, isDirty } }) => {
+        const showError = shouldShowFieldError(error, isDirty, isSubmitted)
 
-              // trigger validation of dependent fields
-              deps.forEach((dep) => {
-                trigger(dep)
-              })
-            }}
-            label={useUtcTime ? `${label} (UTC)` : `${label} (${t('flightLog.local')})`}
-          />
-          {error && <FormHelperText>{formatError(error)}</FormHelperText>}
-        </FormControl>
-      )}
+        return (
+          <FormControl fullWidth error={showError}>
+            <TimeField
+              {...field}
+              required
+              disabled={disabled}
+              ampm={false}
+              disableFuture
+              inputRef={field.ref}
+              disableIgnoringDatePartForTimeValidation={true}
+              timezone={useUtcTime ? 'UTC' : 'system'}
+              referenceDate={useUtcTime ? minDate?.utc() : minDate}
+              value={field.value ? toDate(field.value) : null}
+              onChange={(time) => {
+                if (!time?.isValid() || !minDate) {
+                  return field.onChange('')
+                }
+                const dateTime = calculateNext(minDate, time)
+                field.onChange(dateTime.unix().toString())
+
+                // trigger validation of dependent fields
+                deps.forEach((dep) => {
+                  trigger(dep)
+                })
+              }}
+              label={useUtcTime ? `${label} (UTC)` : `${label} (${t('flightLog.local')})`}
+            />
+            {showError && error && <FormHelperText>{formatError(error)}</FormHelperText>}
+          </FormControl>
+        )
+      }}
     />
   )
 }

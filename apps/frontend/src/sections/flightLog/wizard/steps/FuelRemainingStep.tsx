@@ -6,5 +6,5 @@ interface Props extends WizardFormProps {
 }
 
 export const FuelRemainingStep = ({ control, usableFuelLitres }: Props) => (
-  <Fuel control={control} usableFuelLitres={usableFuelLitres} />
+  <Fuel control={control} usableFuelLitres={usableFuelLitres} required />
 )

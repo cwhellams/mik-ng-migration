@@ -90,7 +90,7 @@ export const TimeStep = ({
           />
         ) : (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+            <Typography variant='subtitle1' sx={{ fontWeight: 700, color: 'text.primary' }}>
               {flightDate.isSame(dayjs(), 'day')
                 ? t('flightLog.wizard.today', { date: flightDate.format('DD.MM.YYYY') })
                 : flightDate.format('DD.MM.YYYY')}
@@ -100,7 +100,7 @@ export const TimeStep = ({
               onClick={() => setShowDatePicker(true)}
               aria-label={t('flightLog.wizard.changeDate')}
             >
-              <Icon icon='mdi:pencil' width={16} />
+              <Icon icon='mdi:pencil' width={20} />
             </IconButton>
           </Box>
         ))}
@@ -204,9 +204,15 @@ const TimeFieldWheel = ({
   const formatError = () => {
     if (!error) return null
     if (error.type === 'too_small')
-      return `${t('flightLog.wizard.timeMustBeAfter')} ${toDate(error.message ?? '0').format('HH:mm')}`
-    if (error.type === 'too_big')
-      return `${t('flightLog.wizard.timeMustBeBefore')} ${toDate(error.message ?? '0').format('HH:mm')}`
+      return t('flightLog.wizard.timeMustBeAfter', {
+        time: toDate(error.message ?? '0').format('HH:mm'),
+      })
+    if (error.type === 'too_big') {
+      if (error.message?.startsWith('future:')) return t('flightLog.wizard.timeCannotBeFuture')
+      return t('flightLog.wizard.timeMustBeBefore', {
+        time: toDate(error.message ?? '0').format('HH:mm'),
+      })
+    }
     return error.message ?? error.type
   }
 

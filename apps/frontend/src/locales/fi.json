@@ -886,7 +886,9 @@
     "error": {
       "memberNotInstructor": "Valitulla jäsenellä tulee olla lentokouluttajan rooli FI-tehtävään",
       "memberNotExaminer": "Valitulla jäsenellä tulee olla tarkastuslentäjän rooli FE-tehtävään",
-      "oilUpliftRequired": "Syötä öljytäydennyksen määrä tai valitse 'Ei öljytäydennystä'"
+      "oilUpliftRequired": "Syötä öljytäydennyksen määrä tai valitse 'Ei öljytäydennystä'",
+      "fuelUpliftRequired": "Syötä polttoainetäydennyksen määrä tai valitse 'Ei polttoainetäydennystä'",
+      "fieldRequired": "Tämä kenttä on pakollinen"
     },
     "aircraftInfo": "Ilma-aluksen tiedot",
     "additionalInfo": "Lisätiedot",
@@ -901,6 +903,7 @@
     "instrumentFlyingMins": "Mittarilentotunnit (HH:MM)",
     "fuelInfo": "Polttoaineen tiedot",
     "fuelUpliftLitres": "Polttoainetäydennys (litraa)",
+    "noFuelAdded": "Ei polttoainetäydennystä",
     "fuelRemainingLitres": "Polttoainetta jäljellä",
     "fuelLitres": "Litraa",
     "fuelUSG": "US-gallonaa",
@@ -981,8 +984,9 @@
       "useClassicForm": "Käytä täyttä lomaketta",
       "today": "Tänään, {{date}}",
       "changeDate": "Vaihda päivämäärä",
-      "timeMustBeAfter": ">",
-      "timeMustBeBefore": "<=",
+      "timeMustBeAfter": "Oltava klo {{time}} jälkeen",
+      "timeMustBeBefore": "Oltava viimeistään klo {{time}}",
+      "timeCannotBeFuture": "Tämä aika on tulevaisuudessa — tarkista aika ja päivämäärä",
       "enterPreviousTimeFirst": "Syötä edellinen aika ensin",
       "minutesAgo": "{{count}} min sitten",
       "hoursMinutesAgo": "{{hours}} h {{minutes}} min sitten",
@@ -992,6 +996,11 @@
       "backToQuickPick": "Takaisin pikavalintoihin",
       "discard": "Hylkää",
       "discardBody": "Hylätäänkö tämä kirjaus? Mitään ei ole tallennettu.",
+      "draftRestored": "Keskeneräinen kirjauksesi palautettiin.",
+      "draftAmbiguousTitle": "Keskeneräisiä kirjauksia löytyi",
+      "draftAmbiguousBody": "Sinulla on {{count}} keskeneräistä lentopäiväkirjamerkintää tallennettuna muista välilehdistä.",
+      "draftResumeMostRecent": "Jatka uusinta",
+      "draftStartFresh": "Aloita alusta",
       "accept": "Hyväksy",
       "flightPlanReminder": {
         "button": "Muista sulkea lentosuunnitelmasi",
@@ -1914,6 +1923,7 @@
     "saving": "Tallennetaan...",
     "deleting": "Poistetaan...",
     "requiresAdminMode": "Ylläpitotila vaaditaan",
+    "fieldRequired": "Tämä kenttä on pakollinen",
     "none": "Ei mitään",
     "moreActions": "Lisää toimintoja"
   },
@@ -2368,7 +2378,8 @@
       "addLineItem": "Lisää rivi",
       "removeLineItem": "Poista",
       "uploadReceipt": "Lataa kuitti",
-      "overrideFuelPrice": "Ohita polttoaineen hinta"
+      "overrideFuelPrice": "Ohita polttoaineen hinta",
+      "discardDraft": "Hylkää"
     },
     "deleteDialog": {
       "title": "Poistetaanko luonnos?",
@@ -2390,6 +2401,13 @@
         "receipt": "Kuitti",
         "review": "Tarkistus ja lähetys"
       },
+      "draftRestored": "Keskeneräinen hakemuksesi palautettiin.",
+      "draftAmbiguousTitle": "Keskeneräisiä hakemuksia löytyi",
+      "draftAmbiguousBody": "Sinulla on {{count}} keskeneräistä kulukorvaushakemusta tallennettuna muista välilehdistä.",
+      "draftMostRecentTitle": "Uusin: \"{{title}}\".",
+      "draftResumeMostRecent": "Jatka uusinta",
+      "draftStartFresh": "Aloita alusta",
+      "discardBody": "Hylätäänkö tämä hakemus ja tyhjennetäänkö lomake? Jos olet jo tallentanut sen luonnoksena palvelimelle, sitä ei poisteta — voit löytää ja poistaa sen kulukorvaushakemuslistaltasi.",
       "receiptPolicyTitle": "Tärkeää: vain yksi kuittiasiakirja per hakemus",
       "receiptPolicyBody": "Kirjanpitojärjestelmämme tukee vain yhtä liitettä per kulukorvaus. Voit ladata yhden kuvan tai PDF-dokumentin kuittina.\n\nKaikkien hakemuksen rivien on oltava samassa valuutassa — ÄLÄ sekoita valuuttoja (esim. EUR ja SEK) samassa hakemuksessa.\n\nVaihtokurssit perustuvat kolmannen osapuolen API:n (frankfurter.app) tarjoamiin kursseihin ilmoittamasi kulupäivän mukaan.\n\nKilometrikorvaukset käyttävät 50 % Verohallinnon virallisesta kilometrikorvauksesta.\n\nPolttoaineen korvausta varten syötä tankatut litrat yhteensä ja maksettu kokonaissumma (sis. mahdolliset käsittelymaksut).",
       "fuelFlightQuestion": "Ostettiinko tämä polttoaine tiettyä lentoa varten?",
@@ -2410,6 +2428,7 @@
       "receiptSkipWarning": "Voit ohittaa kuitin lataamisen nyt ja lisätä sen myöhemmin ennen lähettämistä.",
       "saveDraftBeforeReceipt": "Tallenna luonnos ennen kuitin lataamista.",
       "noBankDetails": "Ei annettu — korvaus vaatii pankkitiedot ennen maksua",
+      "saveFailedGeneric": "Hakemuksen tallennus epäonnistui. Tarkista tiedot ja yritä uudelleen.",
       "noReceipt": "Kuittia ei ladattu",
       "col": {
         "description": "Kuvaus",

@@ -613,7 +613,6 @@ export const OccurrenceEntry = () => {
             label={t('occurrences.departureAirport')}
             control={control}
             disabled={!isEditable}
-            error={errors.departureAirport}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
@@ -622,7 +621,6 @@ export const OccurrenceEntry = () => {
             label={t('occurrences.arrivalAirport')}
             control={control}
             disabled={!isEditable}
-            error={errors.arrivalAirport}
           />
         </Grid>
         <Grid size={12}>

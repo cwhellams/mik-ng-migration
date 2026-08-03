@@ -274,16 +274,20 @@ describe('POST /expenses (fuel)', () => {
     expect(res.body.lineItems[0].costCentreCode).toBe('OH-STL')
   })
 
-  it('rejects a fuel claim when a line item has no aircraft selected', async () => {
+  // Aircraft/airport/date completeness is enforced at submit time, not at create/
+  // save-draft time — a fuel claim must be saveable before those fields are filled in.
+  it('allows saving a fuel claim draft with no aircraft selected, but rejects submitting it', async () => {
     const categoryId = await fuelCategoryId()
 
-    const res = await request(app)
+    const create = await request(app)
       .post('/expenses')
       .set('Cookie', `accessToken=${memberToken}`)
       .send({
         categoryId,
         title: 'Fuel test',
         currency: 'EUR',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
         fuelLitres: 100,
         fuelType: 'JetA1',
         expenseDate: '2026-07-15',
@@ -300,23 +304,29 @@ describe('POST /expenses (fuel)', () => {
           },
         ],
       })
+    expect(create.status).toBe(201)
+    insertedClaimIds.push(create.body.id)
 
-    expect(res.status).toBe(400)
-    if (res.status === 201) {
-      insertedClaimIds.push(res.body.id)
-    }
+    const submit = await request(app)
+      .post(`/expenses/${create.body.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(submit.status).toBe(400)
+    expect(submit.body.detail).toBe('Each fuel line item requires an aircraft to be selected.')
   })
 
-  it('rejects a fuel claim when a line item has no airport or date selected', async () => {
+  it('allows saving a fuel claim draft with no airport or date, but rejects submitting it', async () => {
     const categoryId = await fuelCategoryId()
 
-    const res = await request(app)
+    const create = await request(app)
       .post('/expenses')
       .set('Cookie', `accessToken=${memberToken}`)
       .send({
         categoryId,
         title: 'Fuel test',
         currency: 'EUR',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
         fuelLitres: 100,
         fuelType: 'JetA1',
         expenseDate: '2026-07-15',
@@ -333,11 +343,17 @@ describe('POST /expenses (fuel)', () => {
           },
         ],
       })
+    expect(create.status).toBe(201)
+    insertedClaimIds.push(create.body.id)
 
-    expect(res.status).toBe(400)
-    if (res.status === 201) {
-      insertedClaimIds.push(res.body.id)
-    }
+    const submit = await request(app)
+      .post(`/expenses/${create.body.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(submit.status).toBe(400)
+    expect(submit.body.detail).toBe(
+      'Each fuel line item requires an airport and date to be selected.',
+    )
   })
 
   it('submits a fuel claim with no claim-level aircraftId', async () => {
@@ -524,6 +540,11 @@ describe('POST /expenses (fuel litres/type)', () => {
         category_id: categoryId,
         title: 'Legacy fuel claim',
         status: ExpenseClaimStatus.DRAFT,
+        // Predates the airport/date field (see FUEL_LINE_ITEM_AIRPORT_DATE_CUTOFF in
+        // api.ts) — genuinely simulates legacy data rather than relying on the line
+        // item merely having a persisted id, which no longer signals "legacy" now
+        // that every item gets an id as soon as a draft is first saved.
+        created_at: new Date('2026-01-01T00:00:00.000Z'),
         updated_at: new Date(),
       })
       .returning('id')
@@ -667,5 +688,145 @@ describe('POST /expenses/:id/override-fuel-price', () => {
       .send({ efnuPrice: 1.91 })
 
     expect(res.status).toBe(403)
+  })
+})
+
+// ── Tests: POST /expenses — draft saves with incomplete line items ─────────────
+// Line items are intentionally NOT required to be complete when saving a draft (see
+// ExpenseLineItemSchema/CreateExpenseClaimSchema in models.ts) — a partially-filled
+// wizard must be able to "Save draft" from any step. Completeness is enforced only at
+// submit time (POST /expenses/:id/submit, tested below).
+
+describe('POST /expenses (draft with incomplete line items)', () => {
+  const insertedClaimIds: string[] = []
+
+  afterEach(async () => {
+    if (insertedClaimIds.length > 0) {
+      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      insertedClaimIds.length = 0
+    }
+  })
+
+  async function miscCategoryId(): Promise<number> {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', CATEGORY_CODE)
+      .executeTakeFirstOrThrow()
+    return category.id
+  }
+
+  it('saves a draft with no line items at all', async () => {
+    const categoryId = await miscCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({ categoryId, title: 'Early draft', lineItems: [] })
+
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    expect(res.body.lineItems).toEqual([])
+  })
+
+  it('saves a draft with an untouched placeholder line item (empty description)', async () => {
+    const categoryId = await miscCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Early draft with placeholder item',
+        lineItems: [
+          { itemId: null, description: '', quantity: 1, unit: 'pcs', unitPrice: 0, sortOrder: 0 },
+        ],
+      })
+
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    expect(res.body.lineItems).toHaveLength(1)
+    expect(res.body.lineItems[0].description).toBe('')
+  })
+})
+
+// ── Tests: POST /expenses/:id/submit — line item requirements ──────────────────
+
+describe('POST /expenses/:id/submit (line item requirements)', () => {
+  const insertedClaimIds: string[] = []
+
+  afterEach(async () => {
+    if (insertedClaimIds.length > 0) {
+      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      insertedClaimIds.length = 0
+    }
+  })
+
+  async function createDraft(lineItems: unknown[]): Promise<string> {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', CATEGORY_CODE)
+      .executeTakeFirstOrThrow()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId: category.id,
+        title: 'Submit validation test',
+        currency: 'EUR',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        expenseDate: '2026-07-15',
+        lineItems,
+      })
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    return res.body.id
+  }
+
+  it('rejects submitting a claim with no line items', async () => {
+    const claimId = await createDraft([])
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toBe('At least one line item is required.')
+  })
+
+  it('rejects submitting a claim whose line item has no description', async () => {
+    const claimId = await createDraft([
+      { itemId: null, description: '', quantity: 1, unit: 'pcs', unitPrice: 10, sortOrder: 0 },
+    ])
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toBe('Every line item needs a description.')
+  })
+
+  it('submits successfully once line items are complete', async () => {
+    const claimId = await createDraft([
+      {
+        itemId: null,
+        description: 'Test expense',
+        quantity: 1,
+        unit: 'pcs',
+        unitPrice: 10,
+        sortOrder: 0,
+      },
+    ])
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.status).toBe(ExpenseClaimStatus.SUBMITTED)
   })
 })

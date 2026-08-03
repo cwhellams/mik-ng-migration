@@ -1,5 +1,13 @@
-import { useEffect, useState } from 'react'
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText } from '@mui/material'
+import { useEffect, useRef, useState } from 'react'
+import {
+  Alert,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+} from '@mui/material'
 import { useForm, type DefaultValues } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -17,6 +25,15 @@ import { useMe } from '../../../hooks/useMe'
 import { SnackAlert } from '../../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
 import { buildFlightLogResolver } from '../formResolver'
+import { calculateNext } from '../utils/timeUtils'
+import {
+  readWizardDraft,
+  readWizardDraftSavedAt,
+  writeWizardDraft,
+  clearWizardDraft,
+} from '../../../utils/wizardDraft'
+import { useWizardDraftGate } from '../../../hooks/useWizardDraftGate'
+import { WizardDraftChooserBanner } from '../../../components/WizardDraftChooserBanner'
 import { WizardShell } from './components/WizardShell'
 import { AircraftFlightTypeStep } from './steps/AircraftFlightTypeStep'
 import { CrewStep } from './steps/CrewStep'
@@ -45,6 +62,17 @@ interface Props {
   onClose?: () => void
 }
 
+// Snapshot persisted to localStorage on every change so an iOS Safari-killed tab (or
+// an accidental navigation away) can resume the in-progress entry instead of losing it.
+interface FlightLogWizardDraft {
+  values: FlightLogUpsertRequest
+  stepIndex: number
+  flightDateIso: string
+  nightOrIfr: boolean | null
+  refueled: boolean | null
+  oilAdded: boolean | null
+}
+
 const FIELDS_TO_VALIDATE_PER_STEP: Partial<Record<WizardStep, (keyof FlightLogUpsertRequest)[]>> = {
   crew: [
     'picMemberId',
@@ -62,7 +90,49 @@ const FIELDS_TO_VALIDATE_PER_STEP: Partial<Record<WizardStep, (keyof FlightLogUp
   airports: ['departureAirport', 'arrivalAirport'],
 }
 
-export const FlightLogEntryWizard = ({
+// Wraps the actual wizard so a conditional early-return (needed when several
+// orphaned drafts from other, presumably-gone tabs are ambiguous and require the user
+// to pick one) never sits partway through FlightLogEntryWizardInner's own hooks —
+// mirrors the same split already used for this reason in FlightLogEntry.tsx.
+export const FlightLogEntryWizard = (props: Props) => {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { flightId, onSwitchToClassicForm, onClose } = props
+  const isEditing = !!flightId
+  const backLink = isEditing
+    ? `/logs${location.state ?? ''}#${flightId}`
+    : `/logs${location.state ?? ''}`
+
+  const draftKey = `flightLog:${flightId ?? 'new'}`
+  const gate = useWizardDraftGate<FlightLogWizardDraft>(draftKey)
+
+  if (gate.status === 'ambiguous') {
+    return (
+      <WizardShell
+        title={t('flightLog.wizard.draftAmbiguousTitle')}
+        stepIndex={0}
+        stepCount={1}
+        onClose={() => (isEditing ? onClose?.() : navigate(backLink))}
+        onSwitchToClassicForm={onSwitchToClassicForm}
+        footer={null}
+      >
+        <WizardDraftChooserBanner
+          title={t('flightLog.wizard.draftAmbiguousTitle')}
+          body={t('flightLog.wizard.draftAmbiguousBody', { count: gate.candidates.length })}
+          resumeLabel={t('flightLog.wizard.draftResumeMostRecent')}
+          startFreshLabel={t('flightLog.wizard.draftStartFresh')}
+          onResumeMostRecent={gate.resumeMostRecent}
+          onStartFresh={gate.startFresh}
+        />
+      </WizardShell>
+    )
+  }
+
+  return <FlightLogEntryWizardInner key={draftKey} {...props} />
+}
+
+const FlightLogEntryWizardInner = ({
   onSwitchToClassicForm,
   flightId,
   initialData,
@@ -78,6 +148,32 @@ export const FlightLogEntryWizard = ({
   const backLink = isEditing
     ? `/logs${location.state ?? ''}#${flightId}`
     : `/logs${location.state ?? ''}`
+
+  const draftKey = `flightLog:${flightId ?? 'new'}`
+  // Read at most once per mount — later renders must not re-read, since only the
+  // initial (lazy) state/defaultValues below ever consume this.
+  const persistedDraftRef = useRef<FlightLogWizardDraft | null | undefined>(undefined)
+  if (persistedDraftRef.current === undefined) {
+    persistedDraftRef.current = readWizardDraft<FlightLogWizardDraft>(draftKey)
+  }
+  // A draft saved before the entry's last server-side update is stale — e.g. an admin
+  // corrected this entry after the draft was left behind on this device/tab. Silently
+  // replaying old field values over that correction would revert it with no warning,
+  // so such a draft is discarded (falling back to the freshly-fetched server data)
+  // rather than merged in.
+  const rawPersistedDraft = persistedDraftRef.current
+  const persistedDraftSavedAt = readWizardDraftSavedAt(draftKey)
+  const isDraftStale =
+    !!initialData &&
+    persistedDraftSavedAt != null &&
+    persistedDraftSavedAt < Date.parse(initialData.updatedAt)
+  const persistedDraft = isDraftStale ? null : rawPersistedDraft
+  useEffect(() => {
+    if (isDraftStale) clearWizardDraft(draftKey)
+    // Only needs to run once per mount, using the value computed during render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  const [showRestoredBanner, setShowRestoredBanner] = useState(!!persistedDraft)
 
   const { data: aircraftData } = useApi<AircraftListResponse>({
     url: 'v1/aircrafts',
@@ -96,7 +192,7 @@ export const FlightLogEntryWizard = ({
 
   const resolver = buildFlightLogResolver(t, memberList, true)
 
-  const defaultValues: DefaultValues<FlightLogUpsertRequest> = initialData
+  const baseDefaultValues: DefaultValues<FlightLogUpsertRequest> = initialData
     ? FlightLogUpsertSchema.strip().parse(initialData)
     : {
         aircraftRegistration: '',
@@ -141,6 +237,13 @@ export const FlightLogEntryWizard = ({
         nonBillingReason: null,
       }
 
+  // A restored draft's values win over the base defaults (initialData or blank-new),
+  // filling in on top so any schema fields the older draft predates still get sane
+  // fallbacks from baseDefaultValues.
+  const defaultValues: DefaultValues<FlightLogUpsertRequest> = persistedDraft
+    ? { ...baseDefaultValues, ...persistedDraft.values }
+    : baseDefaultValues
+
   const {
     control,
     watch,
@@ -182,33 +285,114 @@ export const FlightLogEntryWizard = ({
   }
 
   const [stepIndex, setStepIndex] = useState(() =>
-    initialStep ? WIZARD_STEPS.indexOf(initialStep) : 0,
+    initialStep ? WIZARD_STEPS.indexOf(initialStep) : (persistedDraft?.stepIndex ?? 0),
   )
   const currentStep = WIZARD_STEPS[stepIndex]
 
-  const [flightDate, setFlightDate] = useState(() =>
-    initialData
+  const [flightDate, setFlightDate] = useState(() => {
+    if (persistedDraft) return dayjs(persistedDraft.flightDateIso).utc()
+    return initialData
       ? dayjs.unix(Number(initialData.offBlockTimeEpoch)).utc().startOf('day')
-      : dayjs().utc().startOf('day'),
-  )
-  const [nightOrIfr, setNightOrIfr] = useState<boolean | null>(() =>
-    initialData
+      : dayjs().utc().startOf('day')
+  })
+  // Re-anchor all already-entered times to the new day whenever the flight date is
+  // changed (via the date-chip pencil icon), and re-validate them — otherwise a
+  // previously-set time keeps encoding the old date while the UI shows the new one,
+  // leaving stale validation errors (or a stale stored timestamp) behind.
+  useEffect(() => {
+    const setTimeFromEpoch = (
+      base: dayjs.Dayjs,
+      field: 'offBlockTimeEpoch' | 'takeoffTimeEpoch' | 'landingTimeEpoch' | 'onBlockTimeEpoch',
+    ) => {
+      const epoch = getValues(field)
+      if (!epoch) return null
+      const time = dayjs.unix(Number(epoch)).utc()
+      const result = calculateNext(base, time)
+      setValue(field, result.unix().toString())
+      return result
+    }
+
+    const offBlockTime = setTimeFromEpoch(flightDate, 'offBlockTimeEpoch')
+    const takeoffTime = offBlockTime && setTimeFromEpoch(offBlockTime, 'takeoffTimeEpoch')
+    const landingTime = takeoffTime && setTimeFromEpoch(takeoffTime, 'landingTimeEpoch')
+    if (landingTime) setTimeFromEpoch(landingTime, 'onBlockTimeEpoch')
+
+    void trigger(['offBlockTimeEpoch', 'takeoffTimeEpoch', 'landingTimeEpoch', 'onBlockTimeEpoch'])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flightDate])
+
+  const [nightOrIfr, setNightOrIfr] = useState<boolean | null>(() => {
+    if (persistedDraft) return persistedDraft.nightOrIfr
+    return initialData
       ? (initialData.nightFlyingMins ?? 0) > 0 ||
-        (initialData.numberOfNightLandings ?? 0) > 0 ||
-        (initialData.instrumentFlyingMins ?? 0) > 0
-      : null,
-  )
-  const [refueled, setRefueled] = useState<boolean | null>(() =>
-    initialData ? initialData.fuelUpliftLitres != null : null,
-  )
-  const [oilAdded, setOilAdded] = useState<boolean | null>(() =>
-    initialData ? initialData.oilUpliftLitres != null : null,
-  )
+          (initialData.numberOfNightLandings ?? 0) > 0 ||
+          (initialData.instrumentFlyingMins ?? 0) > 0
+      : null
+  })
+  const [refueled, setRefueled] = useState<boolean | null>(() => {
+    if (persistedDraft) return persistedDraft.refueled
+    // null/undefined means unanswered (common on entries predating this required
+    // field) — leave it unanswered rather than guessing, so the step still requires
+    // an explicit choice. 0 means the user already answered "No".
+    if (!initialData || initialData.fuelUpliftLitres == null) return null
+    return initialData.fuelUpliftLitres > 0
+  })
+  const [oilAdded, setOilAdded] = useState<boolean | null>(() => {
+    if (persistedDraft) return persistedDraft.oilAdded
+    if (!initialData || initialData.oilUpliftLitres == null) return null
+    return initialData.oilUpliftLitres > 0
+  })
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   // Warns about entries overlapping the submitted times before the save is attempted
   const { withOverlapCheck, overlapDialogProps } = useOverlapCheck(flightId)
+
+  // Set the instant the draft is intentionally cleared (discard, or a successful
+  // save) so the debounced autosave below can never resurrect it. Clearing storage
+  // alone isn't enough: the debounce timer armed by the user's last keystroke is only
+  // cancelled by this effect's cleanup on unmount, and unmount (route transition,
+  // onClose) isn't guaranteed to happen before that timer fires — if it doesn't, the
+  // pending write would silently rewrite the just-cleared draft back into storage.
+  const draftClearedRef = useRef(false)
+  const discardDraft = () => {
+    draftClearedRef.current = true
+    clearWizardDraft(draftKey)
+  }
+
+  // Autosave the whole form plus the wizard-only bits (step, flight date, the three
+  // yes/no radio states) on every change, so a reload restores this exact draft.
+  useEffect(() => {
+    // Re-read via getValues() on every watch tick rather than trusting the callback's
+    // own (partial, still-in-flux) values — always snapshots the complete, current form.
+    const snapshot = () => {
+      if (draftClearedRef.current) return
+      writeWizardDraft<FlightLogWizardDraft>(draftKey, {
+        values: getValues(),
+        stepIndex,
+        flightDateIso: flightDate.toISOString(),
+        nightOrIfr,
+        refueled,
+        oilAdded,
+      })
+    }
+    snapshot()
+
+    // watch() fires on every keystroke (including per-digit numeric inputs) — writing
+    // synchronously that often would stringify+persist the whole form on the main
+    // thread once per keystroke, jank that's especially noticeable on lower-end mobile
+    // Safari, exactly where this draft-persistence feature matters most. Debounce it.
+    let debounceTimer: ReturnType<typeof setTimeout> | undefined
+    const scheduleSnapshot = () => {
+      clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(snapshot, 400)
+    }
+    const subscription = watch(scheduleSnapshot)
+    return () => {
+      clearTimeout(debounceTimer)
+      subscription.unsubscribe()
+    }
+  }, [draftKey, stepIndex, flightDate, nightOrIfr, refueled, oilAdded, watch, getValues])
 
   const registration = watch('aircraftRegistration')
   const aircraft = aircraftData?.aircrafts.find((a) => a.registration === registration)
@@ -269,6 +453,7 @@ export const FlightLogEntryWizard = ({
         setProblem(error)
         return
       }
+      discardDraft()
       if (isEditing) {
         onClose?.()
       } else {
@@ -332,6 +517,29 @@ export const FlightLogEntryWizard = ({
     >
       <SnackAlert problem={problem} />
 
+      {showRestoredBanner && (
+        <Alert
+          severity='info'
+          onClose={() => setShowRestoredBanner(false)}
+          action={
+            <Button
+              color='inherit'
+              size='small'
+              onClick={() => {
+                discardDraft()
+                if (isEditing) onClose?.()
+                else navigate(backLink)
+              }}
+            >
+              {t('flightLog.wizard.discard')}
+            </Button>
+          }
+          sx={{ mb: 2 }}
+        >
+          {t('flightLog.wizard.draftRestored')}
+        </Alert>
+      )}
+
       {currentStep === 'aircraftType' && (
         <AircraftFlightTypeStep {...formProps} aircraftData={aircraftData} />
       )}
@@ -386,6 +594,10 @@ export const FlightLogEntryWizard = ({
           aircraft={aircraft}
           flightDate={flightDate}
           onEditSection={(step) => setStepIndex(WIZARD_STEPS.indexOf(step))}
+          isEditing={isEditing}
+          acTotalFlightTimeAfter={initialData?.acTotalFlightTime}
+          originalTakeoffTimeEpoch={initialData?.takeoffTimeEpoch}
+          originalLandingTimeEpoch={initialData?.landingTimeEpoch}
         />
       )}
 
@@ -395,7 +607,14 @@ export const FlightLogEntryWizard = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowDiscardConfirm(false)}>{t('common.cancel')}</Button>
-          <Button color='error' onClick={() => (isEditing ? onClose?.() : navigate(backLink))}>
+          <Button
+            color='error'
+            onClick={() => {
+              discardDraft()
+              if (isEditing) onClose?.()
+              else navigate(backLink)
+            }}
+          >
             {t('flightLog.wizard.discard')}
           </Button>
         </DialogActions>

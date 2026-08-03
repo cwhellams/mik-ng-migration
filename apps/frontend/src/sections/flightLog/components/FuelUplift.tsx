@@ -18,15 +18,15 @@ interface Props {
   disabled?: boolean
 }
 
-export const OilUplift = ({ control, disabled }: Props) => {
+export const FuelUplift = ({ control, disabled }: Props) => {
   const { t } = useTranslation()
   const isSubmitted = useIsFormSubmitted(control)
   return (
     <Controller
-      name='oilUpliftLitres'
+      name='fuelUpliftLitres'
       control={control}
       render={({ field, fieldState: { error, isDirty } }) => {
-        const isNoOilAdded = field.value === 0
+        const isNoFuelAdded = field.value === 0
         const showError = shouldShowFieldError(error, isDirty, isSubmitted)
 
         return (
@@ -44,7 +44,7 @@ export const OilUplift = ({ control, disabled }: Props) => {
                 color={disabled ? 'text.disabled' : 'text.primary'}
                 gutterBottom
               >
-                {t('flightLog.oilUpliftLitres')}
+                {t('flightLog.fuelUpliftLitres')}
                 <Box component='span' sx={{ color: 'error.main' }}>
                   {' *'}
                 </Box>
@@ -55,17 +55,17 @@ export const OilUplift = ({ control, disabled }: Props) => {
                 control={
                   <Checkbox
                     size='small'
-                    checked={isNoOilAdded}
+                    checked={isNoFuelAdded}
                     disabled={disabled}
                     onChange={(e) => {
                       field.onChange(e.target.checked ? 0 : null)
                     }}
                   />
                 }
-                label={t('flightLog.noOilAdded')}
+                label={t('flightLog.noFuelAdded')}
               />
             </Stack>
-            {!isNoOilAdded && (
+            {!isNoFuelAdded && (
               <TextField
                 type='number'
                 disabled={disabled}
@@ -73,7 +73,7 @@ export const OilUplift = ({ control, disabled }: Props) => {
                 onChange={(e) => {
                   field.onChange(e.target.value === '' ? null : Number(e.target.value))
                 }}
-                slotProps={{ htmlInput: { step: '0.1', min: 0, max: 10 } }}
+                slotProps={{ htmlInput: { step: 1, min: 0, max: 300 } }}
                 size='small'
                 fullWidth
                 error={showError}

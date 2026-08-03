@@ -879,7 +879,9 @@
     "error": {
       "memberNotInstructor": "Selected member must have the Flight Instructor role for FI duty",
       "memberNotExaminer": "Selected member must have the Flight Examiner role for FE duty",
-      "oilUpliftRequired": "Please enter oil uplift amount or check 'No oil added'"
+      "oilUpliftRequired": "Please enter oil uplift amount or check 'No oil added'",
+      "fuelUpliftRequired": "Please enter fuel uplift amount or check 'No fuel added'",
+      "fieldRequired": "This field is required"
     },
     "aircraftInfo": "Aircraft Information",
     "additionalInfo": "Additional Information",
@@ -894,6 +896,7 @@
     "instrumentFlyingMins": "Instrument Hours (HH:MM)",
     "fuelInfo": "Fuel and Oil Information",
     "fuelUpliftLitres": "Fuel Uplift (litres)",
+    "noFuelAdded": "No fuel added",
     "fuelRemainingLitres": "Fuel remaining",
     "fuelLitres": "Litres",
     "fuelUSG": "US gallons",
@@ -974,8 +977,9 @@
       "useClassicForm": "Use full form instead",
       "today": "Today, {{date}}",
       "changeDate": "Change date",
-      "timeMustBeAfter": ">",
-      "timeMustBeBefore": "<=",
+      "timeMustBeAfter": "Must be after {{time}}",
+      "timeMustBeBefore": "Must be no later than {{time}}",
+      "timeCannotBeFuture": "This time is in the future — check the time and date",
       "enterPreviousTimeFirst": "Enter the previous time first",
       "minutesAgo": "{{count}}min ago",
       "hoursMinutesAgo": "{{hours}}h {{minutes}}min ago",
@@ -985,6 +989,11 @@
       "backToQuickPick": "Back to quick pick",
       "discard": "Discard",
       "discardBody": "Discard this entry? Nothing has been saved.",
+      "draftRestored": "Resumed your unfinished entry.",
+      "draftAmbiguousTitle": "Unfinished entries found",
+      "draftAmbiguousBody": "You have {{count}} unfinished flight log entries saved from other tabs.",
+      "draftResumeMostRecent": "Resume most recent",
+      "draftStartFresh": "Start fresh",
       "accept": "Accept",
       "flightPlanReminder": {
         "button": "Remember to close your flight plan",
@@ -1908,6 +1917,7 @@
     "saving": "Saving...",
     "deleting": "Deleting...",
     "requiresAdminMode": "Admin mode required",
+    "fieldRequired": "This field is required",
     "none": "None",
     "moreActions": "More actions"
   },
@@ -2362,7 +2372,8 @@
       "addLineItem": "Add item",
       "removeLineItem": "Remove",
       "uploadReceipt": "Upload receipt",
-      "overrideFuelPrice": "Override fuel price"
+      "overrideFuelPrice": "Override fuel price",
+      "discardDraft": "Discard"
     },
     "deleteDialog": {
       "title": "Delete draft claim?",
@@ -2384,6 +2395,13 @@
         "receipt": "Receipt",
         "review": "Review & Submit"
       },
+      "draftRestored": "Resumed your unfinished claim.",
+      "draftAmbiguousTitle": "Unfinished claims found",
+      "draftAmbiguousBody": "You have {{count}} unfinished expense claims saved from other tabs.",
+      "draftMostRecentTitle": "Most recent: \"{{title}}\".",
+      "draftResumeMostRecent": "Resume most recent",
+      "draftStartFresh": "Start fresh",
+      "discardBody": "Discard this claim and clear the form? Any part you already saved as a draft on the server is not deleted — you can find and delete it from your expense claims list.",
       "receiptPolicyTitle": "Important: only one receipt document allowed per claim",
       "receiptPolicyBody": "Our accounting system only supports a single attachment per expense claim. You may upload only one image or PDF document as your receipt.\n\nAll claims must be in the same currency — do NOT mix currencies (e.g. EUR and SEK) within a single claim.\n\nFX rates are based on the rates supplied by a 3rd-party API (frankfurter.app), using the expense date you provide.\n\nMileage claims use 50% of the Finnish Tax Administration (Vero) official rate.\n\nFor fuel re-imbursement, enter the total litres of uplift and the total paid (including any handling fees).",
       "fuelFlightQuestion": "Was this fuel purchased for a specific flight?",
@@ -2404,6 +2422,7 @@
       "receiptSkipWarning": "You can skip receipt upload now and add it later before submitting.",
       "saveDraftBeforeReceipt": "Save the draft first before uploading receipts.",
       "noBankDetails": "Not provided — reimbursement will require bank details before payment",
+      "saveFailedGeneric": "Something went wrong saving this claim. Please check your entries and try again.",
       "noReceipt": "No receipt uploaded",
       "col": {
         "description": "Description",

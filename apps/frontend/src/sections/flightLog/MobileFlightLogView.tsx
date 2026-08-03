@@ -100,6 +100,10 @@ export const MobileFlightLogView = ({ onSwitchToClassicForm }: Props) => {
               setEditStep(step)
               setEditing(true)
             }}
+            isEditing
+            acTotalFlightTimeAfter={data.acTotalFlightTime}
+            originalTakeoffTimeEpoch={data.takeoffTimeEpoch}
+            originalLandingTimeEpoch={data.landingTimeEpoch}
             control={control}
             setValue={setValue}
             getValues={getValues}

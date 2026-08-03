@@ -64,7 +64,10 @@ export const ExpenseLineItemSchema = z.object({
   id: z.number().optional(),
   itemId: z.number().int().positive().nullable().optional(),
   itemCode: z.string().nullable().optional(),
-  description: z.string().min(1).max(500),
+  // Not required at the schema level (a saved-but-not-yet-submitted draft may still
+  // have an untouched placeholder line item) — enforced instead at submit time,
+  // alongside the other submit-only checks in POST /expenses/:id/submit.
+  description: z.string().max(500),
   date: z.string().date().nullable().optional(),
   quantity: z.number().positive(),
   unit: z.enum(['pcs', 'km', 'l', 'h']).default('pcs'),
@@ -106,7 +109,10 @@ export const CreateExpenseClaimSchema = z.object({
   fuelType: z.enum(FUEL_TYPES).optional(),
   currency: z.enum(MIK_SUPPORTED_CURRENCIES).optional(),
   fxRate: z.number().positive().nullable().optional(),
-  lineItems: z.array(ExpenseLineItemSchema).min(1),
+  // Not required to be non-empty here — a claim can be saved as a draft before any
+  // line items are filled in. Enforced at submit time instead (see the description
+  // comment above and POST /expenses/:id/submit).
+  lineItems: z.array(ExpenseLineItemSchema),
   iban: z.string().max(34).optional(),
   ibanAccountName: z.string().max(200).optional(),
   mileageDetail: CreateMileageDetailSchema.optional(),

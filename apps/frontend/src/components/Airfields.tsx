@@ -1,7 +1,10 @@
 import { AirfieldListResponse } from '@backend/routes/flight-log/models'
 import { Autocomplete, TextField } from '@mui/material'
-import { Control, Controller, FieldPath, FieldValues, GlobalError } from 'react-hook-form'
+import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import useApi from '../hooks/useApi'
+import { useIsFormSubmitted } from '../hooks/useIsFormSubmitted'
+import { formatRequiredFieldError, shouldShowFieldError } from '../utils/formErrors'
 
 interface AirfieldsProps<T extends FieldValues> {
   control: Control<T>
@@ -9,7 +12,6 @@ interface AirfieldsProps<T extends FieldValues> {
   disabled?: boolean
   name: FieldPath<T>
   label: string
-  error?: GlobalError
 }
 
 export const Airfields = <T extends FieldValues>({
@@ -18,8 +20,9 @@ export const Airfields = <T extends FieldValues>({
   disabled,
   name,
   label,
-  error,
 }: AirfieldsProps<T>) => {
+  const { t } = useTranslation()
+  const isSubmitted = useIsFormSubmitted(control)
   const { data } = useApi<AirfieldListResponse>(
     {
       url: 'v1/flight-logs/airfields',
@@ -38,35 +41,41 @@ export const Airfields = <T extends FieldValues>({
     <Controller
       name={name}
       control={control}
-      render={({ field: { onChange, value } }) => (
-        <Autocomplete
-          options={airfields}
-          disabled={disabled}
-          value={airfields.find((airfield) => airfield.ident === value) ?? null}
-          getOptionLabel={(option) => `${option.ident}: ${option.name}`}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              required={required}
-              label={label}
-              placeholder='ICAO'
-              margin='normal'
-              slotProps={{
-                ...params.slotProps,
+      render={({ field: { onChange, value }, fieldState: { error, isDirty } }) => {
+        const showError = shouldShowFieldError(error, isDirty, isSubmitted)
 
-                inputLabel: {
-                  shrink: true,
-                },
-              }}
-              error={!!error}
-              helperText={error?.message?.toString()}
-            />
-          )}
-          onChange={(_e, airfield) => {
-            onChange(airfield?.ident ?? '')
-          }}
-        />
-      )}
+        return (
+          <Autocomplete
+            options={airfields}
+            disabled={disabled}
+            value={airfields.find((airfield) => airfield.ident === value) ?? null}
+            getOptionLabel={(option) => `${option.ident}: ${option.name}`}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                required={required}
+                label={label}
+                placeholder='ICAO'
+                margin='normal'
+                slotProps={{
+                  ...params.slotProps,
+
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                error={showError}
+                helperText={
+                  showError ? formatRequiredFieldError(error, t('common.fieldRequired')) : undefined
+                }
+              />
+            )}
+            onChange={(_e, airfield) => {
+              onChange(airfield?.ident ?? '')
+            }}
+          />
+        )
+      }}
     />
   )
 }

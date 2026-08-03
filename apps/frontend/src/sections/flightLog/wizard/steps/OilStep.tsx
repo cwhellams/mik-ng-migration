@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { Box, TextField, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { Controller } from 'react-hook-form'
@@ -11,8 +12,11 @@ interface Props extends WizardFormProps {
   onOilAddedChange: (value: boolean) => void
 }
 
-export const OilStep = ({ control, setValue, oilAdded, onOilAddedChange }: Props) => {
+export const OilStep = ({ control, setValue, getValues, oilAdded, onOilAddedChange }: Props) => {
   const { t } = useTranslation()
+  // Remembers whatever litres the user had typed while "Yes" was selected, so an
+  // accidental tap on "No" and back doesn't force blind re-entry.
+  const lastEnteredLitres = useRef<number | null>(null)
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>
@@ -24,9 +28,11 @@ export const OilStep = ({ control, setValue, oilAdded, onOilAddedChange }: Props
           const value = v === 'yes'
           onOilAddedChange(value)
           if (!value) {
+            const current = getValues('oilUpliftLitres')
+            if (current) lastEnteredLitres.current = current
             setValue('oilUpliftLitres', 0)
           } else if (setValue) {
-            setValue('oilUpliftLitres', null)
+            setValue('oilUpliftLitres', lastEnteredLitres.current)
           }
         }}
         size='large'

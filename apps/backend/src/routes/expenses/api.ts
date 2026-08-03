@@ -136,6 +136,12 @@ async function requireClaimForUser(req: Request<Record<string, string>>, claimId
   return claim
 }
 
+// Claims created before this shipped (2026-07-25, see V1490 migration) may have fuel
+// line items with no airport/date recorded — grandfathered in below so they remain
+// submittable without backfilling. Anything created from this point on is expected to
+// always have it filled in by submit time (see the comment on enforceFuelLineItemDetails).
+const FUEL_LINE_ITEM_AIRPORT_DATE_CUTOFF = new Date('2026-07-26T00:00:00.000Z')
+
 async function validateCategoryRequirements(data: {
   categoryId?: number
   flightLogId?: string | null
@@ -145,6 +151,13 @@ async function validateCategoryRequirements(data: {
     airport?: string | null
     date?: string | null
   }[]
+  // Per-line-item fuel completeness (aircraft/airport/date) is a submit-time
+  // requirement, not a create/save-draft one — a claim must be saveable mid-flight,
+  // before the user has filled in every line item. Only POST /:id/submit passes true.
+  enforceFuelLineItemDetails?: boolean
+  // Only meaningful (and only needed) when enforceFuelLineItemDetails is true — used
+  // to grandfather in claims that predate the airport/date field.
+  claimCreatedAt?: string
 }) {
   const categories = await getExpenseCategories()
   const category = categories.find((item) => item.id === data.categoryId)
@@ -152,7 +165,7 @@ async function validateCategoryRequirements(data: {
     return problem({ status: HttpStatusCode.BadRequest, detail: 'Expense category not found' })
   }
 
-  if (category.code === 'fuel') {
+  if (category.code === 'fuel' && data.enforceFuelLineItemDetails) {
     // Aircraft selection moved from claim-level to per-line-item (see V1360 migration),
     // so it's enforced here instead of the old claim-level aircraftId requirement.
     if ((data.lineItems ?? []).some((item) => !item.costCentreCode)) {
@@ -162,9 +175,13 @@ async function validateCategoryRequirements(data: {
       })
     }
     // Airport and date let us report recent fuel prices by outstation (see issue #966).
-    // Only required for new line items (no persisted id) — production data predating
-    // this field must remain processable without being backfilled (see issue #1020).
-    if ((data.lineItems ?? []).some((item) => !item.id && (!item.airport || !item.date))) {
+    // Grandfathers in claims that predate the field (issue #1020) — NOT based on
+    // whether a line item has a persisted id, since by submit time every item in a
+    // normal draft-then-submit flow already has one (it was assigned on the earlier
+    // save-draft request), which would otherwise exempt everything.
+    const isLegacyClaim =
+      !!data.claimCreatedAt && new Date(data.claimCreatedAt) < FUEL_LINE_ITEM_AIRPORT_DATE_CUTOFF
+    if (!isLegacyClaim && (data.lineItems ?? []).some((item) => !item.airport || !item.date)) {
       return problem({
         status: HttpStatusCode.BadRequest,
         detail: 'Each fuel line item requires an airport and date to be selected.',
@@ -370,7 +387,26 @@ router.post(
       categoryId: claim.categoryId,
       flightLogId: claim.flightLogId ?? undefined,
       lineItems: claim.lineItems,
+      enforceFuelLineItemDetails: true,
+      claimCreatedAt: claim.createdAt,
     })
+
+    // Line items are intentionally not required to be complete at creation/save-draft
+    // time (see ExpenseLineItemSchema/CreateExpenseClaimSchema in models.ts) so a
+    // partially-filled claim can still be saved and resumed later — enforced here
+    // instead, at the point the claim actually becomes payable.
+    if (!claim.lineItems?.length) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'At least one line item is required.',
+      })
+    }
+    if (claim.lineItems.some((item) => !item.description?.trim())) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Every line item needs a description.',
+      })
+    }
 
     if (!claim.iban?.trim()) {
       return problem({

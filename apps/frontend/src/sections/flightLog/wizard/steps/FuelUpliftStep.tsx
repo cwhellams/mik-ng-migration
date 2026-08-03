@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { Box, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { TxtField } from '../../components/TxtField'
@@ -8,8 +9,17 @@ interface Props extends WizardFormProps {
   onRefueledChange: (value: boolean) => void
 }
 
-export const FuelUpliftStep = ({ control, setValue, refueled, onRefueledChange }: Props) => {
+export const FuelUpliftStep = ({
+  control,
+  setValue,
+  getValues,
+  refueled,
+  onRefueledChange,
+}: Props) => {
   const { t } = useTranslation()
+  // Remembers whatever litres the user had typed while "Yes" was selected, so an
+  // accidental tap on "No" and back doesn't force blind re-entry.
+  const lastEnteredLitres = useRef<number | null>(null)
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>
@@ -21,7 +31,11 @@ export const FuelUpliftStep = ({ control, setValue, refueled, onRefueledChange }
           const value = v === 'yes'
           onRefueledChange(value)
           if (!value) {
-            setValue('fuelUpliftLitres', null)
+            const current = getValues('fuelUpliftLitres')
+            if (current) lastEnteredLitres.current = current
+            setValue('fuelUpliftLitres', 0)
+          } else {
+            setValue('fuelUpliftLitres', lastEnteredLitres.current)
           }
         }}
         size='large'

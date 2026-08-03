@@ -13,11 +13,21 @@ interface Props extends WizardFormProps {
   aircraft: Aircraft | undefined
   flightDate: dayjs.Dayjs
   onEditSection: (step: WizardStep) => void
+  // When editing an existing entry, the aircraft's running total as it stood right
+  // after this flight (stored on the entry itself) — used instead of the aircraft's
+  // live present-day total, which has no relation to this specific historical flight.
+  isEditing: boolean
+  acTotalFlightTimeAfter?: string | null
+  // The takeoff/landing times as originally recorded on the entry (before any edits
+  // made in this wizard session) — needed to back out the fixed pre-flight total from
+  // acTotalFlightTimeAfter regardless of how the user has since edited the times.
+  originalTakeoffTimeEpoch?: string | null
+  originalLandingTimeEpoch?: string | null
 }
 
 // Parses the server's "H:MM" total-time string into minutes; returns null if missing
 // or malformed rather than guessing, since this feeds a legal-logbook figure.
-const parseHoursMinutes = (value: string | undefined): number | null => {
+const parseHoursMinutes = (value: string | null | undefined): number | null => {
   if (!value) return null
   const [h, m] = value.split(':')
   const hours = Number(h)
@@ -60,7 +70,17 @@ const CompactDate = ({ date }: { date: dayjs.Dayjs | undefined }) => (
   </Box>
 )
 
-export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSection }: Props) => {
+export const ReviewStep = ({
+  watch,
+  memberList,
+  aircraft,
+  flightDate,
+  onEditSection,
+  isEditing,
+  acTotalFlightTimeAfter,
+  originalTakeoffTimeEpoch,
+  originalLandingTimeEpoch,
+}: Props) => {
   const { t } = useTranslation()
   const { formatTime } = useTimezone()
 
@@ -131,9 +151,35 @@ export const ReviewStep = ({ watch, memberList, aircraft, flightDate, onEditSect
     offBlockTimeEpoch && onBlockTimeEpoch
       ? Math.round((Number(onBlockTimeEpoch) - Number(offBlockTimeEpoch)) / 60)
       : null
-  const currentTotalMins = parseHoursMinutes(aircraft?.status?.totalTime)
+  // Editing an existing entry: anchor to the historical total stored on the entry
+  // itself (the total right after this flight), not the aircraft's live present-day
+  // total. The pre-flight baseline is backed out using the *originally recorded*
+  // flight duration (not the current, possibly-just-edited one) so it stays fixed
+  // regardless of edits, and the displayed "new total" is then that fixed baseline
+  // plus the current flight duration — reflecting any edit the user just made.
+  const historicalNewTotalMins = isEditing ? parseHoursMinutes(acTotalFlightTimeAfter) : null
+  const originalFlightMins =
+    originalTakeoffTimeEpoch && originalLandingTimeEpoch
+      ? Math.round((Number(originalLandingTimeEpoch) - Number(originalTakeoffTimeEpoch)) / 60)
+      : null
+  const liveCurrentTotalMins = parseHoursMinutes(aircraft?.status?.totalTime)
+
+  // Guard against the subtraction going negative rather than rendering a garbled
+  // "-1:-10"-style string.
+  const rawCurrentTotalMins =
+    isEditing && historicalNewTotalMins != null && originalFlightMins != null
+      ? historicalNewTotalMins - originalFlightMins
+      : isEditing
+        ? null
+        : liveCurrentTotalMins
+  const currentTotalMins =
+    rawCurrentTotalMins != null && rawCurrentTotalMins < 0 ? null : rawCurrentTotalMins
   const newTotalMins =
-    currentTotalMins != null && flightMins != null ? currentTotalMins + flightMins : null
+    currentTotalMins != null && flightMins != null
+      ? currentTotalMins + flightMins
+      : isEditing
+        ? historicalNewTotalMins
+        : null
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

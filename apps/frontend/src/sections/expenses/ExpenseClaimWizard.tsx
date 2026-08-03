@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
@@ -7,6 +7,10 @@ import {
   Box,
   Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
   Divider,
   FormControlLabel,
   IconButton,
@@ -53,6 +57,9 @@ import {
   type MileageDetailForm,
   makeMileageDetailForm,
 } from './MileageDetailFields'
+import { readWizardDraft, writeWizardDraft, clearWizardDraft } from '../../utils/wizardDraft'
+import { useWizardDraftGate } from '../../hooks/useWizardDraftGate'
+import { WizardDraftChooserBanner } from '../../components/WizardDraftChooserBanner'
 
 // ─── Form state ───────────────────────────────────────────────────────────────
 
@@ -77,6 +84,24 @@ const defaultForm: WizardForm = {
   iban: '',
   ibanAccountName: '',
   lineItems: [makeDefaultLineItem()],
+}
+
+// ─── Draft persistence ──────────────────────────────────────────────────────────
+// iOS Safari can silently kill a backgrounded tab (e.g. switching to another app for
+// a few minutes) and reload it from scratch on return, wiping this wizard's in-memory
+// state. Snapshot progress to localStorage so a reload resumes instead of restarting.
+
+const EXPENSE_WIZARD_DRAFT_KEY = 'expenseClaim:new'
+
+interface ExpenseWizardDraft {
+  step: number
+  form: WizardForm
+  fuelForFlight: boolean | null
+  flightMode: 'dropdown' | 'manual'
+  receipt: ExpenseClaimReceipt | undefined
+  savedClaimId: string | null
+  mileageDetail: MileageDetailForm
+  claimFxRate: number | null
 }
 
 // ─── Step keys ────────────────────────────────────────────────────────────────
@@ -105,22 +130,88 @@ function useWizardSteps(isFuel: boolean, isMileage: boolean) {
 
 // ─── Wizard ───────────────────────────────────────────────────────────────────
 
+// Wraps the actual wizard so a conditional early-return (needed when several
+// orphaned drafts from other, presumably-gone tabs are ambiguous and require the user
+// to pick one) never sits partway through ExpenseClaimWizardInner's own hooks —
+// mirrors the same split already used for this reason in flightLog/FlightLogEntry.tsx.
 export default function ExpenseClaimWizard() {
+  const { t } = useTranslation()
+  const gate = useWizardDraftGate<ExpenseWizardDraft>(EXPENSE_WIZARD_DRAFT_KEY)
+
+  if (gate.status === 'ambiguous') {
+    const topCandidateTitle = gate.candidates[0]?.value.form?.title
+    return (
+      <Box>
+        <Title label={t('expenses.new')} />
+        <WizardDraftChooserBanner
+          title={t('expenses.wizard.draftAmbiguousTitle')}
+          body={
+            t('expenses.wizard.draftAmbiguousBody', { count: gate.candidates.length }) +
+            (topCandidateTitle
+              ? ` ${t('expenses.wizard.draftMostRecentTitle', { title: topCandidateTitle })}`
+              : '')
+          }
+          resumeLabel={t('expenses.wizard.draftResumeMostRecent')}
+          startFreshLabel={t('expenses.wizard.draftStartFresh')}
+          onResumeMostRecent={gate.resumeMostRecent}
+          onStartFresh={gate.startFresh}
+        />
+      </Box>
+    )
+  }
+
+  return <ExpenseClaimWizardInner />
+}
+
+function ExpenseClaimWizardInner() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { me } = useMe()
 
-  const [step, setStep] = useState(0)
-  const [form, setForm] = useState<WizardForm>(defaultForm)
-  const [fuelForFlight, setFuelForFlight] = useState<boolean | null>(null)
-  const [flightMode, setFlightMode] = useState<'dropdown' | 'manual'>('dropdown')
-  const [receipt, setReceipt] = useState<ExpenseClaimReceipt | undefined>()
-  const [savedClaimId, setSavedClaimId] = useState<string | null>(null)
+  // Read at most once per mount — later renders must not re-read, since only the
+  // initial (lazy) state below ever consumes this.
+  const persistedDraftRef = useRef<ExpenseWizardDraft | null | undefined>(undefined)
+  if (persistedDraftRef.current === undefined) {
+    persistedDraftRef.current = readWizardDraft<ExpenseWizardDraft>(EXPENSE_WIZARD_DRAFT_KEY)
+  }
+  const persistedDraft = persistedDraftRef.current
+  const [showRestoredBanner, setShowRestoredBanner] = useState(!!persistedDraft)
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
+
+  const [step, setStep] = useState(persistedDraft?.step ?? 0)
+  const [form, setForm] = useState<WizardForm>(persistedDraft?.form ?? defaultForm)
+  const [fuelForFlight, setFuelForFlight] = useState<boolean | null>(
+    persistedDraft?.fuelForFlight ?? null,
+  )
+  const [flightMode, setFlightMode] = useState<'dropdown' | 'manual'>(
+    persistedDraft?.flightMode ?? 'dropdown',
+  )
+  const [receipt, setReceipt] = useState<ExpenseClaimReceipt | undefined>(persistedDraft?.receipt)
+  const [savedClaimId, setSavedClaimId] = useState<string | null>(
+    persistedDraft?.savedClaimId ?? null,
+  )
   const [submitError, setSubmitError] = useState<string>()
-  const [mileageDetail, setMileageDetail] = useState<MileageDetailForm>(makeMileageDetailForm())
-  const [claimFxRate, setClaimFxRate] = useState<number | null>(null)
+  const [mileageDetail, setMileageDetail] = useState<MileageDetailForm>(
+    persistedDraft?.mileageDetail ?? makeMileageDetailForm(),
+  )
+  const [claimFxRate, setClaimFxRate] = useState<number | null>(persistedDraft?.claimFxRate ?? null)
   const [fxRateLoading, setFxRateLoading] = useState(false)
+
+  // Autosave every change so an iOS reload (or an accidental navigation away) can
+  // resume this exact draft instead of losing it.
+  useEffect(() => {
+    writeWizardDraft<ExpenseWizardDraft>(EXPENSE_WIZARD_DRAFT_KEY, {
+      step,
+      form,
+      fuelForFlight,
+      flightMode,
+      receipt,
+      savedClaimId,
+      mileageDetail,
+      claimFxRate,
+    })
+  }, [step, form, fuelForFlight, flightMode, receipt, savedClaimId, mileageDetail, claimFxRate])
 
   const categoryApi = useApi<ExpenseCategory[]>({ url: 'v1/expenses/categories' })
   const { data: mileageAllowance } = useApi<{ effectiveRatePerKm: number }>({
@@ -364,7 +455,7 @@ export default function ExpenseClaimWizard() {
       : await mutation.trigger('POST', payload)
 
     if (res.error) {
-      setSubmitError(res.error.detail)
+      setSubmitError(res.error.detail ?? t('expenses.wizard.saveFailedGeneric'))
       return null
     }
 
@@ -384,7 +475,7 @@ export default function ExpenseClaimWizard() {
       `${claimId}/receipt`,
     )
     if (res.error) {
-      setSubmitError(res.error.detail)
+      setSubmitError(res.error.detail ?? t('expenses.wizard.saveFailedGeneric'))
       return
     }
     if (res.data) setReceipt(res.data as ExpenseClaimReceipt)
@@ -401,10 +492,25 @@ export default function ExpenseClaimWizard() {
     if (!claimId) return
     const res = await mutation.trigger('POST', {}, `${claimId}/submit`)
     if (res.error) {
-      setSubmitError(res.error.detail)
+      setSubmitError(res.error.detail ?? t('expenses.wizard.saveFailedGeneric'))
       return
     }
+    clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
     navigate(`/expenses/${claimId}`)
+  }
+
+  // Once a draft is saved server-side, the claim itself (at /expenses/:id) becomes
+  // the source of truth — the local wizard draft would otherwise resurrect stale data
+  // the next time someone starts a brand new claim.
+  const goToSavedClaim = (id: string | null) => {
+    if (!id) return
+    clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
+    navigate(`/expenses/${id}`)
+  }
+
+  const discardDraft = () => {
+    clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
+    navigate('/expenses')
   }
 
   // ── Step content ─────────────────────────────────────────────────────────────
@@ -825,7 +931,41 @@ export default function ExpenseClaimWizard() {
 
   return (
     <Box>
-      <Title label={t('expenses.new')} />
+      <Stack direction='row' sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Title label={t('expenses.new')} />
+        <Button color='error' size='small' onClick={() => setShowDiscardConfirm(true)}>
+          {t('expenses.actions.discardDraft')}
+        </Button>
+      </Stack>
+
+      {showRestoredBanner && (
+        <Alert
+          severity='info'
+          onClose={() => setShowRestoredBanner(false)}
+          action={
+            <Button color='inherit' size='small' onClick={discardDraft}>
+              {t('expenses.actions.discardDraft')}
+            </Button>
+          }
+          sx={{ mb: 2 }}
+        >
+          {t('expenses.wizard.draftRestored')}
+          {form.title && ` "${form.title}"`}
+        </Alert>
+      )}
+
+      <Dialog open={showDiscardConfirm} onClose={() => setShowDiscardConfirm(false)}>
+        <DialogContent>
+          <DialogContentText>{t('expenses.wizard.discardBody')}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowDiscardConfirm(false)}>{t('common.cancel')}</Button>
+          <Button color='error' onClick={discardDraft}>
+            {t('expenses.actions.discardDraft')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Paper sx={{ p: 3, mb: 3 }}>
         <Stepper activeStep={step} alternativeLabel sx={{ mb: 3 }}>
           {stepLabels.map((label) => (
@@ -838,6 +978,15 @@ export default function ExpenseClaimWizard() {
         <Divider sx={{ mb: 3 }} />
 
         <Box sx={{ minHeight: 200 }}>{renderStep()}</Box>
+
+        {/* STEP_RECEIPT and STEP_REVIEW already surface submitError inline, near the
+            relevant content — shown here too so a failed save/submit is never silently
+            invisible on every other step. */}
+        {!!submitError && currentStep !== STEP_RECEIPT && currentStep !== STEP_REVIEW && (
+          <Alert severity='error' sx={{ mt: 2 }}>
+            {submitError}
+          </Alert>
+        )}
 
         <Divider sx={{ mt: 3, mb: 2 }} />
 
@@ -860,7 +1009,7 @@ export default function ExpenseClaimWizard() {
             {!isLastStep && (
               <Button
                 variant='text'
-                onClick={() => void saveDraft().then((id) => id && navigate(`/expenses/${id}`))}
+                onClick={() => void saveDraft().then(goToSavedClaim)}
                 disabled={mutation.isMutating}
               >
                 {t('expenses.actions.saveDraft')}
@@ -870,7 +1019,7 @@ export default function ExpenseClaimWizard() {
               <>
                 <Button
                   variant='outlined'
-                  onClick={() => void saveDraft().then((id) => id && navigate(`/expenses/${id}`))}
+                  onClick={() => void saveDraft().then(goToSavedClaim)}
                   disabled={mutation.isMutating}
                 >
                   {t('expenses.actions.saveDraft')}

@@ -8,9 +8,10 @@ import {
 import { MemberListResponse } from '@backend/routes/members/models'
 
 // Shared resolver for both the classic flight log form and the mobile wizard: wraps
-// zodResolver and adds FI/FE member-role validation plus the "oil uplift required"
-// check. Field-level validate rules are ignored by RHF when a resolver is present, so
-// these role/oil checks must be enforced here to block invalid submissions.
+// zodResolver and adds FI/FE member-role validation plus the "oil/fuel uplift
+// required" checks. Field-level validate rules are ignored by RHF when a resolver is
+// present, so these role/uplift checks must be enforced here to block invalid
+// submissions.
 // Note: if memberList is still loading, role checks are skipped — but the member
 // picker itself also shows no qualified members until loaded, so an unqualified
 // selection cannot be made before the list arrives.
@@ -92,6 +93,13 @@ export const buildFlightLogResolver = (
       additionalErrors['oilUpliftLitres'] = {
         type: 'custom',
         message: t('flightLog.error.oilUpliftRequired'),
+      }
+    }
+
+    if (isEditable && (values.fuelUpliftLitres === null || values.fuelUpliftLitres === undefined)) {
+      additionalErrors['fuelUpliftLitres'] = {
+        type: 'custom',
+        message: t('flightLog.error.fuelUpliftRequired'),
       }
     }
 

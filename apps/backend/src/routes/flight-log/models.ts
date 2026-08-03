@@ -83,8 +83,8 @@ export const FlightLogSchema = AuditableSchema.extend({
   ajlbPageNo: z.number().int().positive(),
   ajlbRowNo: z.number().int().positive().readonly(),
   ajlbTotalLandings: z.number().int().nullable().readonly(),
-  arrivalAirport: z.string(),
-  billableMemberId: z.string(),
+  arrivalAirport: z.string().min(1),
+  billableMemberId: z.string().min(1),
   billingRemarks: z.string().nullable(),
   blockMins: z.number().readonly(),
   blockTime: z.string().readonly(),
@@ -97,7 +97,7 @@ export const FlightLogSchema = AuditableSchema.extend({
   crew4LastName: z.string().nullable().readonly(),
   crew4MemberId: z.string().nullable(),
   crew4Role: CrewRoleEnum.nullable(),
-  departureAirport: z.string(),
+  departureAirport: z.string().min(1),
   flightId: z.string().readonly(),
   flightMins: z.number().readonly(),
   flightTime: z.string().readonly(),
@@ -310,7 +310,10 @@ export const validateFlightLogTimes = (
         inclusive: true,
         origin: 'number',
         input: epoch,
-        message: nowEpoch.toString(),
+        // Prefixed so the UI can tell "this is in the future" apart from the
+        // duration-limit checks above, which share the same too_big code but should
+        // keep showing "must be before HH:mm" instead.
+        message: `future:${nowEpoch}`,
         path: [key],
       })
     }

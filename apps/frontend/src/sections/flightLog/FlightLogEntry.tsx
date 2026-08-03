@@ -60,9 +60,11 @@ import { FlightTime } from './components/FlightTime'
 import { TxtField } from './components/TxtField'
 import { MinutesField } from './components/MinutesField'
 import { Airfields } from '../../components/Airfields'
+import { shouldShowFieldError } from '../../utils/formErrors'
 import { PersonsOnBoard } from './components/PersonsOnBoard'
 import { NumberOfLandings } from './components/NumberOfLandings'
 import { Fuel } from './components/Fuel'
+import { FuelUplift } from './components/FuelUplift'
 import { OilUplift } from './components/OilUplift'
 import { StatusDisplay } from './components/StatusDisplay'
 import { RemoteContent } from '../../components/RemoteContent'
@@ -174,7 +176,7 @@ const ClassicFlightLogEntry = () => {
     handleSubmit,
     control,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isSubmitted },
     clearErrors,
     setError,
     setValue,
@@ -559,76 +561,80 @@ const ClassicFlightLogEntry = () => {
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FormControl required fullWidth error={!!errors.aircraftRegistration}>
-                <InputLabel>{t('flightLog.aircraft')}</InputLabel>
-                <Controller
-                  name='aircraftRegistration'
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      required
-                      onChange={({ target }) => {
-                        const plane = aircraftData?.aircrafts.find(
-                          (plane) => plane.registration == target.value,
-                        )
-                        if (!getValues('departureAirport')) {
-                          // set last known landing location as the default departure airport
+              <Controller
+                name='aircraftRegistration'
+                control={control}
+                render={({ field, fieldState: { error, isDirty } }) => {
+                  const showError = shouldShowFieldError(error, isDirty, isSubmitted)
 
-                          if (plane?.status?.lastLandingAirport) {
-                            setValue('departureAirport', plane.status.lastLandingAirport)
-                            clearErrors('departureAirport')
+                  return (
+                    <FormControl required fullWidth error={showError}>
+                      <InputLabel>{t('flightLog.aircraft')}</InputLabel>
+                      <Select
+                        {...field}
+                        required
+                        onChange={({ target }) => {
+                          const plane = aircraftData?.aircrafts.find(
+                            (plane) => plane.registration == target.value,
+                          )
+                          if (!getValues('departureAirport')) {
+                            // set last known landing location as the default departure airport
+
+                            if (plane?.status?.lastLandingAirport) {
+                              setValue('departureAirport', plane.status.lastLandingAirport)
+                              clearErrors('departureAirport')
+                            }
                           }
-                        }
 
-                        field.onChange(target.value)
-                      }}
-                      label={t('flightLog.aircraft')}
-                      disabled={!isEditable || !aircraftData?.aircrafts}
-                    >
-                      {aircrafts?.map((registration) => (
-                        <MenuItem key={registration} value={registration}>
-                          {registration}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-                {errors.aircraftRegistration && (
-                  <FormHelperText>{errors.aircraftRegistration.message?.toString()}</FormHelperText>
-                )}
-              </FormControl>
+                          field.onChange(target.value)
+                        }}
+                        label={t('flightLog.aircraft')}
+                        disabled={!isEditable || !aircraftData?.aircrafts}
+                      >
+                        {aircrafts?.map((registration) => (
+                          <MenuItem key={registration} value={registration}>
+                            {registration}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {showError && <FormHelperText>{error?.message?.toString()}</FormHelperText>}
+                    </FormControl>
+                  )
+                }}
+              />
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FormControl required fullWidth error={!!errors.flightType}>
-                <InputLabel>{t('flightLog.flightType')}</InputLabel>
-                <Controller
-                  name='flightType'
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      label={`${t('flightLog.flightType')}`}
-                      disabled={!isEditable}
-                    >
-                      {flightTypes.map((type) => (
-                        <MenuItem key={type} value={type}>
-                          {t(`flightLog.flightTypes.${type}`)}
-                        </MenuItem>
-                      ))}
-                      {!flightTypes.includes(field.value) && (
-                        <MenuItem key={field.value} value={field.value}>
-                          {t(`flightLog.flightTypes.${field.value}`)}
-                        </MenuItem>
-                      )}
-                    </Select>
-                  )}
-                />
-                {errors.flightType && (
-                  <FormHelperText>{errors.flightType.message?.toString()}</FormHelperText>
-                )}
-              </FormControl>
+              <Controller
+                name='flightType'
+                control={control}
+                render={({ field, fieldState: { error, isDirty } }) => {
+                  const showError = shouldShowFieldError(error, isDirty, isSubmitted)
+
+                  return (
+                    <FormControl required fullWidth error={showError}>
+                      <InputLabel>{t('flightLog.flightType')}</InputLabel>
+                      <Select
+                        {...field}
+                        label={`${t('flightLog.flightType')}`}
+                        disabled={!isEditable}
+                      >
+                        {flightTypes.map((type) => (
+                          <MenuItem key={type} value={type}>
+                            {t(`flightLog.flightTypes.${type}`)}
+                          </MenuItem>
+                        ))}
+                        {!flightTypes.includes(field.value) && (
+                          <MenuItem key={field.value} value={field.value}>
+                            {t(`flightLog.flightTypes.${field.value}`)}
+                          </MenuItem>
+                        )}
+                      </Select>
+                      {showError && <FormHelperText>{error?.message?.toString()}</FormHelperText>}
+                    </FormControl>
+                  )
+                }}
+              />
             </Grid>
 
             {/* Flight Crew */}
@@ -784,7 +790,6 @@ const ClassicFlightLogEntry = () => {
                 control={control}
                 required={true}
                 disabled={!isEditable}
-                error={errors.departureAirport}
               />
             </Grid>
 
@@ -795,7 +800,6 @@ const ClassicFlightLogEntry = () => {
                 control={control}
                 required={true}
                 disabled={!isEditable}
-                error={errors.arrivalAirport}
               />
             </Grid>
 
@@ -805,11 +809,17 @@ const ClassicFlightLogEntry = () => {
                 seats={aircraft?.seats ?? 0}
                 disabled={!isEditable}
                 crew={watch(['crew2MemberId', 'crew3MemberId', 'crew4MemberId'])}
+                required
               />
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>
-              <NumberOfLandings name='numberOfLandings' control={control} disabled={!isEditable} />
+              <NumberOfLandings
+                name='numberOfLandings'
+                control={control}
+                disabled={!isEditable}
+                required
+              />
             </Grid>
 
             {/* Night and Instrument Flying    */}
@@ -843,21 +853,12 @@ const ClassicFlightLogEntry = () => {
                 control={control}
                 disabled={!isEditable}
                 usableFuelLitres={aircraft?.usableFuelLitres ?? 100}
+                required
               />
             </Grid>
 
             <Grid size={12}>
-              <TxtField
-                name='fuelUpliftLitres'
-                control={control}
-                props={{
-                  type: 'number',
-                  disabled: !isEditable,
-                  slotProps: {
-                    htmlInput: { step: 1, required: false, min: 0, max: 300 },
-                  },
-                }}
-              />
+              <FuelUplift control={control} disabled={!isEditable} />
             </Grid>
 
             {/* Fuel expense shortcut — shown whenever a fuel uplift has been entered */}
@@ -965,6 +966,7 @@ const ClassicFlightLogEntry = () => {
                       label={t(`flightLog.billableMemberId`)}
                       placeholder={t('flightLog.selectCrew')}
                       disabled={isInvoiced}
+                      required
                     />
                   )}
                 />

@@ -9,7 +9,11 @@ describe('validateFlightLogTimes', () => {
     validateFlightLogTimes({ offBlockTimeEpoch: futureEpoch.toString() }, addIssue)
 
     expect(addIssue).toHaveBeenCalledWith(
-      expect.objectContaining({ code: 'too_big', path: ['offBlockTimeEpoch'] }),
+      expect.objectContaining({
+        code: 'too_big',
+        path: ['offBlockTimeEpoch'],
+        message: expect.stringMatching(/^future:\d+$/),
+      }),
     )
   })
 
