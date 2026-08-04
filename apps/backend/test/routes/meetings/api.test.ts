@@ -57,11 +57,13 @@ jest.unstable_mockModule('../../../src/db/meeting-queries.ts', () => ({
 
 jest.unstable_mockModule('../../../src/db/document-queries.ts', () => ({
   addDocument: jest.fn(),
+  removeDocument: jest.fn(),
 }))
 
 jest.unstable_mockModule('../../../src/services/storage.ts', () => ({
   storageService: {
     uploadFile: jest.fn(),
+    deleteFile: jest.fn(),
   },
 }))
 

@@ -95,7 +95,15 @@ export const CreateMeetingSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().max(5000).nullable().optional(),
   documentSearchFilter: z.string().trim().max(500).nullable().optional(),
-  meetingUrl: z.string().trim().url().nullable().optional(),
+  meetingUrl: z
+    .string()
+    .trim()
+    .url()
+    .refine((value) => /^https?:\/\//i.test(value), {
+      message: 'meetingUrl must use http or https',
+    })
+    .nullable()
+    .optional(),
 })
 export type CreateMeeting = z.infer<typeof CreateMeetingSchema>
 

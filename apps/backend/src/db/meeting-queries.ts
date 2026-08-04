@@ -459,17 +459,25 @@ export const startMeeting = async (
     return problem({ status: 409, detail: 'Another meeting is already ongoing' })
   }
 
-  const { rows } = await sql<{ meeting_id: string }>`
-    UPDATE member.meeting
-    SET
-      status = 'ONGOING',
-      started_at = COALESCE(started_at, NOW())
-    WHERE meeting_id = ${meetingId}::uuid
-      AND status = 'DRAFT'
-    RETURNING meeting_id
-  `.execute(db)
+  try {
+    const { rows } = await sql<{ meeting_id: string }>`
+      UPDATE member.meeting
+      SET
+        status = 'ONGOING',
+        started_at = COALESCE(started_at, NOW())
+      WHERE meeting_id = ${meetingId}::uuid
+        AND status = 'DRAFT'
+      RETURNING meeting_id
+    `.execute(db)
 
-  return rows[0] ? getMeetingById(meetingId, memberId ?? _startedBy) : undefined
+    return rows[0] ? getMeetingById(meetingId, memberId ?? _startedBy) : undefined
+  } catch (error: any) {
+    // ux_member_meeting_single_active — lost the race against a concurrent start
+    if (error.code === '23505') {
+      return problem({ status: 409, detail: 'Another meeting is already ongoing' })
+    }
+    throw error
+  }
 }
 
 export const pendingNotesMeeting = async (

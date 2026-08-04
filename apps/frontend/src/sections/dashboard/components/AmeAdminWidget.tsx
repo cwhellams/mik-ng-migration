@@ -1,6 +1,6 @@
 import { Alert, Badge, Box, Button, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import useApi from '../../../hooks/useApi'
 
 export function AmeAdminWidget() {

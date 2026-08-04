@@ -156,10 +156,18 @@ const MeetingsAdminPage = () => {
     isLoading: detailLoading,
     error: detailError,
     mutate: mutateDetail,
-  } = useApi<Meeting>({
-    url: `v1/meetings/${selectedMeetingId ?? 'pending'}`,
-    skipFetch: !selectedMeetingId,
-  })
+  } = useApi<Meeting>(
+    {
+      url: `v1/meetings/${selectedMeetingId ?? 'pending'}`,
+      skipFetch: !selectedMeetingId,
+    },
+    {
+      // The fetched meeting is copied into the editable meetingForm state
+      // below; revalidating on tab focus would otherwise silently overwrite
+      // an admin's in-progress edits with stale server values.
+      revalidateOnFocus: false,
+    },
+  )
 
   const {
     data: attendeesData,

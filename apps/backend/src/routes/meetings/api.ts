@@ -29,7 +29,7 @@ import {
   submitVote,
   updateMeeting,
 } from '../../db/meeting-queries.ts'
-import { addDocument } from '../../db/document-queries.ts'
+import { addDocument, removeDocument } from '../../db/document-queries.ts'
 import { storageService } from '../../services/storage.ts'
 import { documentUpload } from '../../util/documentHelper.ts'
 import { UpsertSchema } from '../../types/schema.ts'
@@ -123,6 +123,19 @@ router.patch(
     }
 
     const data = parseBody(UpdateMeetingSchema, req.body, 'Invalid meeting data')
+
+    const editsDraftOnlyField =
+      data.title !== undefined ||
+      data.description !== undefined ||
+      data.documentSearchFilter !== undefined
+    if (editsDraftOnlyField && existing.status !== 'DRAFT') {
+      return problem({
+        status: 409,
+        detail:
+          'Title, description, and document filter can only be edited while the meeting is a draft',
+      })
+    }
+
     const meeting = await updateMeeting(req.params.id, data, req.user!.memberId)
     if (!meeting) {
       return problem({ status: 500, detail: 'Failed to update meeting' })
@@ -215,6 +228,7 @@ router.post(
     }
 
     let notesDocumentId: number
+    let storageKey: string
     try {
       // Prefix with the meeting ID so re-used filenames (e.g. every secretary's
       // "poytakirja.pdf") can't collide and overwrite a previous meeting's notes.
@@ -225,6 +239,7 @@ router.post(
         req.file.mimetype,
         DocumentCategory.MINUTES,
       )
+      storageKey = uploadResult.key
 
       const document = UpsertSchema(DocumentSchema).parse({
         title: existing.title,
@@ -255,7 +270,11 @@ router.post(
       req.user!.memberId,
     )
     if (!meeting) {
-      return problem({ status: 500, detail: 'Failed to end meeting' })
+      // Lost the race against a concurrent end-meeting call — the upload above
+      // already completed, so clean it up instead of leaving it orphaned.
+      await removeDocument(notesDocumentId)
+      await storageService.deleteFile(storageKey)
+      return problem({ status: 409, detail: 'Meeting is no longer pending notes' })
     }
 
     return res.status(HttpStatusCode.Ok).json(meeting)

@@ -14,3 +14,10 @@ ALTER TABLE member.meeting
 ALTER TABLE member.meeting
     ADD CONSTRAINT chk_member_meeting_status
         CHECK (status IN ('DRAFT', 'ONGOING', 'PENDING_NOTES', 'ENDED'));
+
+-- Enforces at most one meeting ONGOING/PENDING_NOTES at a time, closing the
+-- race where two concurrent starts of different DRAFT meetings can otherwise
+-- both pass an application-level check before either UPDATE commits.
+CREATE UNIQUE INDEX ux_member_meeting_single_active
+    ON member.meeting ((true))
+    WHERE status IN ('ONGOING', 'PENDING_NOTES');

@@ -28,6 +28,8 @@ import { refreshAircraftHil } from './useAircraftHil'
 
 export type HilEditMode = 'new' | 'edit'
 
+const toDateOnlyIso = (date: Dayjs): string => `${date.format('YYYY-MM-DD')}T00:00:00.000Z`
+
 interface EditHilModalProps {
   mode: HilEditMode | undefined
   aircraftRegistration: string
@@ -172,8 +174,12 @@ export const EditHilModal = ({
       restrictions: restrictions.trim() || null,
       sourceRef: sourceRef.trim(),
       name: name.trim(),
-      openDate: openDate.toISOString(),
-      dueDate: dueDate.toISOString(),
+      // openDate/dueDate are date pickers, not date-times: serialize the
+      // calendar day the user picked as UTC midnight rather than
+      // toISOString(), which shifts by the local UTC offset and can roll
+      // the date across midnight.
+      openDate: toDateOnlyIso(openDate),
+      dueDate: toDateOnlyIso(dueDate),
     }
 
     const { error } = isNew

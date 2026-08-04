@@ -10,7 +10,7 @@ import {
 } from '@mui/material'
 import { useForm, type DefaultValues } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router'
 import dayjs from 'dayjs'
 import {
   FlightLog,

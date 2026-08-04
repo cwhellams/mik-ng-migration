@@ -19,7 +19,7 @@ import {
   Typography,
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Icon } from '@iconify/react'
 import Papa from 'papaparse'
 import type { Dayjs } from 'dayjs'
