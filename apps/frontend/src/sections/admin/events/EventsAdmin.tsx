@@ -317,7 +317,7 @@ const EventsAdmin = () => {
   const renderEventRow = (event: ClubEvent) => {
     const start = dayjs(event.startTime)
     const end = dayjs(event.endTime)
-    const isMultiDay = !start.isSame(end, 'day')
+    const isMultiDay = formatDateCustom(start, 'YYYY-MM-DD') !== formatDateCustom(end, 'YYYY-MM-DD')
     const dateLabel = isMultiDay
       ? `${formatDateCustom(start, 'D.M.YYYY HH:mm')} – ${formatDateCustom(end, 'D.M.YYYY HH:mm')}`
       : `${formatDateCustom(start, 'D.M.YYYY')} ${formatTime(start.toDate())} – ${formatTime(end.toDate())}`

@@ -34,7 +34,7 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
 
   const start = dayjs(event.startTime)
   const end = dayjs(event.endTime)
-  const isMultiDay = !start.isSame(end, 'day')
+  const isMultiDay = formatDateCustom(start, 'YYYY-MM-DD') !== formatDateCustom(end, 'YYYY-MM-DD')
   const isPast = end.isBefore(dayjs())
   const { title, description } = getEventDisplayText(event, i18n.language)
 
