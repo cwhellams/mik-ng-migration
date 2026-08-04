@@ -206,7 +206,6 @@ export type RevealHetuResponse = z.infer<typeof RevealHetuResponseSchema>
 export const MileageReportFiltersSchema = z.object({
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  status: z.nativeEnum(ExpenseClaimStatus).default(ExpenseClaimStatus.APPROVED),
 })
 export type MileageReportFilters = z.infer<typeof MileageReportFiltersSchema>
 

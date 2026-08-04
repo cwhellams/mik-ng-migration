@@ -216,7 +216,7 @@ export async function getMileageReportRows(
     .innerJoin('accts.expense_category as category', 'category.id', 'claim.category_id')
     .leftJoin('member.register as member', 'member.member_id', 'claim.member_id')
     .where('category.code', '=', 'mileage')
-    .where('claim.status', '=', filters.status)
+    .where('claim.status', '=', ExpenseClaimStatus.APPROVED)
     .where('detail.journey_date', '>=', filters.startDate)
     .where('detail.journey_date', '<=', filters.endDate)
     .select([

@@ -67,10 +67,13 @@ export function ExpenseClaimAdminDetail() {
   const selfApproval = me?.memberId === claim?.memberId
 
   useEffect(() => {
+    setRevealedHetu(null)
+    setHetuError(undefined)
+    if (hetuHideTimeout.current) clearTimeout(hetuHideTimeout.current)
     return () => {
       if (hetuHideTimeout.current) clearTimeout(hetuHideTimeout.current)
     }
-  }, [])
+  }, [id])
 
   // Auto-fetch presigned URL for the receipt so it can be rendered inline
   useEffect(() => {

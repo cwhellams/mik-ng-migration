@@ -96,7 +96,7 @@ export const MileageTulorekisteriReport = () => {
     link.setAttribute('href', url)
     link.setAttribute(
       'download',
-      `tulorekisteri-mileage-report-${startDate?.format('YYYY-MM-DD')}-${endDate?.format('YYYY-MM-DD')}.csv`,
+      `tulorekisteri-mileage-report-${startDate?.format('YYYY-MM-DD') ?? 'unknown'}-${endDate?.format('YYYY-MM-DD') ?? 'unknown'}.csv`,
     )
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
