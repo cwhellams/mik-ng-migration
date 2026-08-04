@@ -21,5 +21,6 @@ LEFT JOIN stats.total_flight_time_by_ac_yr f
     ON f.aircraft_registration = o.registration
     AND f.yr = EXTRACT(YEAR FROM o.occurrence_date)
 WHERE o.status != 'DELETED'
+  AND o.registration IS NOT NULL
   AND (o.linked_report_id IS NULL OR o.status = 'RECEIVED')
 GROUP BY o.registration, EXTRACT(YEAR FROM o.occurrence_date), f.total_flight_mins;
