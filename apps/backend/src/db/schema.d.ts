@@ -658,6 +658,7 @@ export interface FlightAircraftHil {
   name: string
   open_date: Timestamp
   resolved_note_id: string | null
+  restrictions: string | null
   source_ref: string
   updated_at: Generated<Timestamp>
   updated_by: string
@@ -859,7 +860,6 @@ export interface FlightMaintenanceNote {
   created_by: string
   description: string
   flight_mins: number
-  hil_id: string | null
   note_id: Generated<string>
   performed_by: string
   updated_at: Generated<Timestamp>

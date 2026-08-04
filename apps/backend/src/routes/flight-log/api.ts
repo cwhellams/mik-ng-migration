@@ -25,6 +25,7 @@ import {
   FlightLogExportFormat,
   FlightLogOverlapQuerySchema,
   type FlightLogOverlapResponse,
+  FlightLogPageForMinsFilterSchema,
 } from './models.ts'
 import {
   deleteFlightLog,
@@ -39,6 +40,7 @@ import {
   countFlightLogsForExport,
   getFlightLogsForExport,
   getOverlappingFlightLogs,
+  getFlightLogPageForMins,
 } from '../../db/flight-log-queries.ts'
 import { estimateFlightCosts } from '../../services/accounting/flightCostEstimator.ts'
 import { generateCsv, generateEasaPdf, getFilename, type PdfMemberInfo } from './exportFormats.ts'
@@ -102,6 +104,18 @@ router.post('/', async (req: Request<Record<string, string>>, res: Response) => 
     const flightId = await insertFlightLog(data, req.user!)
     res.status(201).json({ flight_id: flightId })
   }
+})
+
+// Which logbook page a given running-total flight time falls on, e.g. to
+// deep-link from a HIL entry to the flight-log defect it was deferred from.
+router.get('/page-for-mins', async (req: Request, res: Response<{ page: number | undefined }>) => {
+  const filters = FlightLogPageForMinsFilterSchema.parse(req.query)
+  const page = await getFlightLogPageForMins(
+    filters.aircraftRegistration,
+    filters.ajlbSeqNo,
+    filters.flightMins,
+  )
+  res.status(200).json({ page })
 })
 
 // Get flight logs using filter

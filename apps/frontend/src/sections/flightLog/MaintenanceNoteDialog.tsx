@@ -10,18 +10,23 @@ import {
   Typography,
   Chip,
   InputAdornment,
+  Link,
 } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
+import { useDefects } from '../../hooks/useDefects'
 import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
 import {
   MaintenanceNoteFormSchema,
   type MaintenanceNoteFormValues,
 } from './maintenanceNoteFormSchema'
 import { useRoles } from '../../hooks/useRoles'
+import { useAircraftHil } from '../aircrafts/components/hil/useAircraftHil'
+import { useOpenDefectLink } from '../aircrafts/components/hil/useOpenDefectLink'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { SaveButton } from '../../components/SaveButton'
 import { SnackAlert } from '../../components/SnackAlert'
@@ -47,6 +52,15 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
   const [problem, setProblem] = useState<Problem | undefined>()
 
   const canModify = isFlightLogAdmin || note.createdBy === me?.memberId
+
+  const { hil } = useAircraftHil(note.aircraftRegistration, true)
+  const closedHil = hil.filter((entry) => entry.resolvedNoteId === note.noteId)
+
+  // Covers both defects closed directly and those cascaded via a hold item —
+  // resolveDefectsByHil stamps resolved_note_id on those too.
+  const { data: aircraftDefects } = useDefects(note.aircraftRegistration)
+  const closedDefects = aircraftDefects?.filter((d) => d.resolvedNoteId === note.noteId) ?? []
+  const handleOpenDefect = useOpenDefectLink(note.aircraftRegistration)
 
   const { mutation: updateMutation } = useApi<MaintenanceNote>({
     url: `v1/maintenance-notes/${note.noteId}`,
@@ -116,7 +130,9 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Icon icon='mdi:wrench' width={20} />
           {t('flightLog.maintenanceNotes.viewTitle')}
-          {note.hilId && <Chip size='small' label='HIL' color='warning' sx={{ ml: 'auto' }} />}
+          {closedHil.length > 0 && (
+            <Chip size='small' label='HIL' color='warning' sx={{ ml: 'auto' }} />
+          )}
         </DialogTitle>
 
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -292,7 +308,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                   </Box>
                 )}
 
-                {note.hilId && (
+                {closedHil.length > 0 && (
                   <Box>
                     <Typography
                       variant='caption'
@@ -300,11 +316,46 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                         color: 'text.secondary',
                       }}
                     >
-                      {t('flightLog.maintenanceNotes.hilId')}
+                      {t('flightLog.maintenanceNotes.closedHil')}
                     </Typography>
-                    <Typography variant='body2' sx={{ fontFamily: 'monospace' }}>
-                      {note.hilId}
+                    {closedHil.map((entry) => (
+                      <Link
+                        key={entry.hilId}
+                        component={RouterLink}
+                        to={`/fly?registration=${encodeURIComponent(note.aircraftRegistration)}&hil=${entry.hilId}`}
+                        variant='body2'
+                        sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                      >
+                        <Icon icon='mdi:clipboard-list' width={16} />
+                        {`HIL #${entry.hilNumber} — ${entry.description}`}
+                      </Link>
+                    ))}
+                  </Box>
+                )}
+
+                {closedDefects.length > 0 && (
+                  <Box>
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: 'text.secondary',
+                      }}
+                    >
+                      {t('flightLog.maintenanceNotes.closedDefects')}
                     </Typography>
+                    {closedDefects.map((defect) => (
+                      <Link
+                        key={defect.defectId}
+                        component='button'
+                        type='button'
+                        onClick={() => handleOpenDefect(defect)}
+                        variant='body2'
+                        sx={{ display: 'flex', alignItems: 'center', gap: 0.5, textAlign: 'left' }}
+                      >
+                        <Icon icon='mdi:alert-circle-check-outline' width={16} />
+                        {defect.description}
+                      </Link>
+                    ))}
                   </Box>
                 )}
 

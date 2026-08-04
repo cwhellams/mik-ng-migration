@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { DefectStatusSchema } from '../defects/models.ts'
+
 export const AircraftHilSchema = z.object({
   hilId: z.string().guid(),
   aircraftRegistration: z.string(),
@@ -7,6 +9,7 @@ export const AircraftHilSchema = z.object({
   sourceRef: z.string(),
   defectCat: z.string(),
   description: z.string(),
+  restrictions: z.string().nullable(),
   openDate: z.string().datetime(),
   name: z.string(),
   dueDate: z.string().datetime(),
@@ -21,22 +24,29 @@ export type AircraftHil = z.infer<typeof AircraftHilSchema>
 
 export const CreateAircraftHilSchema = z.object({
   aircraftRegistration: z.string().min(1),
-  hilNumber: z.number().int().positive(),
+  // Matches the number on the paper hold item list; when omitted the next
+  // free number for the aircraft is assigned instead
+  hilNumber: z.number().int().positive().optional(),
   sourceRef: z.string().min(1),
   defectCat: z.string().min(1),
   description: z.string().min(1),
+  restrictions: z.string().nullable().optional(),
   openDate: z.string().datetime(),
   name: z.string().min(1),
   dueDate: z.string().datetime(),
+  // A hold item can only be opened from an existing, active flight-log defect
+  defectId: z.string().guid(),
 })
 
 export type CreateAircraftHilRequest = z.infer<typeof CreateAircraftHilSchema>
 
 export const UpdateAircraftHilSchema = z
   .object({
+    hilNumber: z.number().int().positive().optional(),
     sourceRef: z.string().min(1).optional(),
     defectCat: z.string().min(1).optional(),
     description: z.string().min(1).optional(),
+    restrictions: z.string().nullable().optional(),
     openDate: z.string().datetime().optional(),
     name: z.string().min(1).optional(),
     dueDate: z.string().datetime().optional(),
@@ -73,3 +83,64 @@ export const CreateAircraftHilExtensionSchema = z.object({
 })
 
 export type CreateAircraftHilExtensionRequest = z.infer<typeof CreateAircraftHilExtensionSchema>
+
+// A flight-log defect deferred to a HIL entry. Carries just enough to link back
+// to the page of the journey log book where the defect was recorded.
+export const HilLinkedDefectSchema = z.object({
+  defectId: z.string().guid(),
+  ajlbSeqNo: z.number().int(),
+  flightId: z.string().nullable(),
+  description: z.string(),
+  status: DefectStatusSchema,
+  // Position within the logbook, used to find which page the defect is on
+  flightMins: z.number().int(),
+})
+
+export type HilLinkedDefect = z.infer<typeof HilLinkedDefectSchema>
+
+export const AircraftHilDetailSchema = AircraftHilSchema.extend({
+  extensions: z.array(AircraftHilExtensionSchema),
+  // The latest extension due date if the item has been extended, otherwise dueDate
+  effectiveDueDate: z.string().datetime(),
+  isOverdue: z.boolean(),
+  defects: z.array(HilLinkedDefectSchema),
+})
+
+export type AircraftHilDetail = z.infer<typeof AircraftHilDetailSchema>
+
+export const AircraftHilOverviewSchema = z.object({
+  aircraftRegistration: z.string(),
+  // An aircraft is grounded while a defect has no HIL deferral and no
+  // maintenance release, or while a HIL item is past its effective due date.
+  isGrounded: z.boolean(),
+  openDefectCount: z.number().int(),
+  // The defects behind openDefectCount, so the grounding banner can link
+  // straight to each one on the logbook, not just show a count.
+  openDefects: z.array(HilLinkedDefectSchema),
+  overdueHilCount: z.number().int(),
+  hil: z.array(AircraftHilDetailSchema),
+})
+
+export type AircraftHilOverview = z.infer<typeof AircraftHilOverviewSchema>
+
+export const AircraftHilOverviewFilterSchema = z.object({
+  aircraftRegistration: z.string().optional(),
+  includeResolved: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => v === 'true'),
+})
+
+export type AircraftHilOverviewFilter = z.infer<typeof AircraftHilOverviewFilterSchema>
+
+export const AircraftHilAuditEntrySchema = z.object({
+  auditId: z.number().int(),
+  hilId: z.string().guid(),
+  operationType: z.string(),
+  changedData: z.unknown().nullable(),
+  newData: z.unknown().nullable(),
+  changedBy: z.string(),
+  changedAt: z.string().datetime(),
+})
+
+export type AircraftHilAuditEntry = z.infer<typeof AircraftHilAuditEntrySchema>

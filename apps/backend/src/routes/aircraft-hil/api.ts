@@ -1,11 +1,14 @@
 import { Router, type Request, type Response } from 'express'
 import {
   AircraftHilFilterSchema,
+  AircraftHilOverviewFilterSchema,
   CreateAircraftHilSchema,
   UpdateAircraftHilSchema,
   CreateAircraftHilExtensionSchema,
   type AircraftHil,
+  type AircraftHilAuditEntry,
   type AircraftHilExtension,
+  type AircraftHilOverview,
 } from './models.ts'
 import {
   getAircraftHilEntries,
@@ -14,13 +17,38 @@ import {
   getAircraftHilExtensions,
   createAircraftHilExtension,
   getAircraftHilEntry,
+  getAircraftHilOverview,
+  getAircraftHilAudit,
 } from '../../db/aircraft-hil-queries.ts'
-import { resolveDefectsByHil } from '../../db/defect-queries.ts'
+import { resolveDefectsByHil, getDefect } from '../../db/defect-queries.ts'
+import { getMaintenanceNote } from '../../db/maintenance-note-queries.ts'
+import { db } from '../../db/connection.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
 
 export const router = Router()
+
+// Hold item restrictions affect what kind of flights can be flown, so the
+// read-only overview is available to everyone who can see aircraft details.
+// Declared before the flight-log guard below so that guard does not apply.
+router.get(
+  '/overview',
+  validateUser(
+    MIKPermissions.AIRCRAFT_USER,
+    MIKPermissions.AIRCRAFT_ADMIN,
+    MIKPermissions.FLIGHTLOG_USER,
+    MIKPermissions.FLIGHTLOG_ADMIN,
+  ),
+  async (req: Request, res: Response<AircraftHilOverview[]>) => {
+    const filters = AircraftHilOverviewFilterSchema.parse(req.query)
+    const overview = await getAircraftHilOverview(
+      filters.aircraftRegistration,
+      filters.includeResolved,
+    )
+    res.status(200).json(overview)
+  },
+)
 
 router.use(validateUser(MIKPermissions.FLIGHTLOG_USER, MIKPermissions.FLIGHTLOG_ADMIN))
 
@@ -30,11 +58,27 @@ router.get('/', async (req: Request, res: Response<AircraftHil[]>) => {
   res.status(200).json(entries)
 })
 
-router.post('/', async (req: Request, res: Response<AircraftHil>) => {
-  const data = CreateAircraftHilSchema.parse(req.body)
-  const entry = await createAircraftHilEntry(data, req.user!.memberId!)
-  res.status(201).json(entry)
-})
+router.post(
+  '/',
+  validateUser(MIKPermissions.FLIGHTLOG_ADMIN),
+  async (req: Request, res: Response<AircraftHil>) => {
+    const data = CreateAircraftHilSchema.parse(req.body)
+
+    const defect = await getDefect(data.defectId)
+    if (!defect || defect.aircraftRegistration !== data.aircraftRegistration) {
+      return problem({ status: 400, detail: 'Defect not found for this aircraft' })
+    }
+    if (defect.status !== 'ACTIVE') {
+      return problem({
+        status: 400,
+        detail: 'Defect is already deferred to a hold item or resolved',
+      })
+    }
+
+    const entry = await createAircraftHilEntry(data, req.user!.memberId!)
+    res.status(201).json(entry)
+  },
+)
 
 router.patch(
   '/:id',
@@ -42,14 +86,51 @@ router.patch(
   async (req: Request<{ id: string }>, res: Response<AircraftHil>) => {
     const { id } = req.params
     const data = UpdateAircraftHilSchema.parse(req.body)
-    const updated = await updateAircraftHilEntry(id, data, req.user!.memberId!)
-    if (!updated) return problem({ status: 404, detail: 'HIL entry not found' })
+
+    const existing = await getAircraftHilEntry(id)
+    if (!existing) return problem({ status: 404, detail: 'HIL entry not found' })
 
     if (data.resolvedNoteId) {
-      await resolveDefectsByHil(id, data.resolvedNoteId, req.user!.memberId!)
+      const note = await getMaintenanceNote(data.resolvedNoteId)
+      if (!note || note.aircraftRegistration !== existing.aircraftRegistration) {
+        return problem({
+          status: 400,
+          detail: 'Maintenance note belongs to a different aircraft',
+        })
+      }
     }
 
+    const updated = await db.transaction().execute(async (trx) => {
+      const result = await updateAircraftHilEntry(id, data, req.user!.memberId!, trx)
+      if (!result) return undefined
+
+      if (data.resolvedNoteId) {
+        await resolveDefectsByHil(
+          id,
+          existing.aircraftRegistration,
+          data.resolvedNoteId,
+          req.user!.memberId!,
+          trx,
+        )
+      }
+
+      return result
+    })
+    if (!updated) return problem({ status: 404, detail: 'HIL entry not found' })
+
     res.status(200).json(updated)
+  },
+)
+
+router.get(
+  '/:id/audit',
+  validateUser(MIKPermissions.FLIGHTLOG_ADMIN),
+  async (req: Request<{ id: string }>, res: Response<AircraftHilAuditEntry[]>) => {
+    const { id } = req.params
+    const hil = await getAircraftHilEntry(id)
+    if (!hil) return problem({ status: 404, detail: 'HIL entry not found' })
+    const audit = await getAircraftHilAudit(id)
+    res.status(200).json(audit)
   },
 )
 
@@ -71,6 +152,10 @@ router.post(
     const { id } = req.params
     const hil = await getAircraftHilEntry(id)
     if (!hil) return problem({ status: 404, detail: 'HIL entry not found' })
+    const existingExtensions = await getAircraftHilExtensions(id)
+    if (existingExtensions.length > 0) {
+      return problem({ status: 400, detail: 'A hold item can only be extended once' })
+    }
     const data = CreateAircraftHilExtensionSchema.parse(req.body)
     const extension = await createAircraftHilExtension(id, data, req.user!.memberId!)
     res.status(201).json(extension)

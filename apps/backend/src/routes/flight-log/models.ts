@@ -494,6 +494,13 @@ export const FlightLogStatsFilterSchema = z.object({
 })
 export type FlightLogStatsFilter = z.infer<typeof FlightLogStatsFilterSchema>
 
+export const FlightLogPageForMinsFilterSchema = z.object({
+  aircraftRegistration: z.string().min(1),
+  ajlbSeqNo: z.coerce.number().int().positive(),
+  flightMins: z.coerce.number().int().min(0),
+})
+export type FlightLogPageForMinsFilter = z.infer<typeof FlightLogPageForMinsFilterSchema>
+
 export const FlightLogStatsSchema = z.object({
   aircraftRegistration: z.string(),
   lastFlightId: z.string().nullable(),

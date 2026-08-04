@@ -1,4 +1,7 @@
+import type { Kysely } from 'kysely'
+
 import * as connection from './connection.ts'
+import type { DB } from './schema.d.ts'
 import type {
   Defect,
   DefectStatus,
@@ -42,13 +45,13 @@ function mapRowToDefect(row: {
 
 export async function getDefects(
   aircraftRegistration: string,
-  ajlbSeqNo: number,
+  ajlbSeqNo?: number,
 ): Promise<Defect[]> {
   const rows = await connection.db
     .selectFrom('flight.defect')
     .selectAll()
     .where('aircraft_registration', '=', aircraftRegistration)
-    .where('ajlb_seq_no', '=', ajlbSeqNo)
+    .$if(ajlbSeqNo !== undefined, (qb) => qb.where('ajlb_seq_no', '=', ajlbSeqNo!))
     .orderBy('flight_mins', 'asc')
     .execute()
 
@@ -124,10 +127,12 @@ export async function updateDefect(
 
 export async function resolveDefectsByHil(
   hilId: string,
+  aircraftRegistration: string,
   resolvedNoteId: string,
   updatedBy: string,
+  executor: Kysely<DB> = connection.db,
 ): Promise<void> {
-  await connection.db
+  await executor
     .updateTable('flight.defect')
     .set({
       status: 'RESOLVED',
@@ -136,6 +141,33 @@ export async function resolveDefectsByHil(
       updated_by: updatedBy,
     })
     .where('hil_id', '=', hilId)
+    .where('aircraft_registration', '=', aircraftRegistration)
     .where('status', '!=', 'RESOLVED')
+    .execute()
+}
+
+/**
+ * Resolves defects directly by id, without going via a hold item. Scoped to
+ * ACTIVE defects on the given aircraft so a maintenance note can't reach into
+ * another aircraft's defects or one already deferred to HIL / resolved.
+ */
+export async function resolveDefects(
+  defectIds: string[],
+  aircraftRegistration: string,
+  resolvedNoteId: string,
+  updatedBy: string,
+  executor: Kysely<DB> = connection.db,
+): Promise<void> {
+  await executor
+    .updateTable('flight.defect')
+    .set({
+      status: 'RESOLVED',
+      resolved_note_id: resolvedNoteId,
+      updated_at: new Date(),
+      updated_by: updatedBy,
+    })
+    .where('defect_id', 'in', defectIds)
+    .where('aircraft_registration', '=', aircraftRegistration)
+    .where('status', '=', 'ACTIVE')
     .execute()
 }

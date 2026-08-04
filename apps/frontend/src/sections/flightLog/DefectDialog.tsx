@@ -14,19 +14,24 @@ import {
   FormControl,
   InputLabel,
   SelectChangeEvent,
+  Link,
 } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
+import { useMaintenanceNotes } from '../../hooks/useMaintenanceNotes'
 import type { Defect } from '@backend/routes/defects/models'
 import type { AircraftHil } from '@backend/routes/aircraft-hil/models'
 import { useRoles } from '../../hooks/useRoles'
 import { SaveButton } from '../../components/SaveButton'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
+import { EditHilModal, type HilEditMode } from '../aircrafts/components/hil/EditHilModal'
+import { useOpenNoteLink } from './useOpenNoteLink'
 
 const EditDefectFormSchema = z.object({
   description: z.string().min(1),
@@ -57,6 +62,7 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
   const [isLinkingHil, setIsLinkingHil] = useState(false)
   const [resolvedNoteId, setResolvedNoteId] = useState('')
   const [isResolvingOpen, setIsResolvingOpen] = useState(false)
+  const [hilEditMode, setHilEditMode] = useState<HilEditMode | undefined>()
 
   const canModify = isFlightLogAdmin || defect.createdBy === me?.memberId
 
@@ -76,11 +82,23 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
     skipFetch: true,
   })
 
+  // Every flight-log user may read the hold item list, so the linked entry can
+  // be named (and linked to) for pilots as well, not just plane captains.
   const { data: hilEntries } = useApi<AircraftHil[]>({
     url: 'v1/aircraft-hil',
     params: { aircraftRegistration },
-    skipFetch: !isFlightLogAdmin || !open,
+    skipFetch: !open,
   })
+
+  // Needed both to populate the "close with note" picker (MOVED_TO_HIL) and to
+  // resolve the note this defect was already resolved by, for the link below.
+  const { data: maintenanceNotes } = useMaintenanceNotes(
+    open && (defect.status === 'MOVED_TO_HIL' || defect.resolvedNoteId)
+      ? aircraftRegistration
+      : undefined,
+  )
+
+  const handleOpenNote = useOpenNoteLink(aircraftRegistration)
 
   const {
     control,
@@ -141,6 +159,7 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
   const flightTimeLabel = `${Math.floor(defect.flightMins / 60)}:${String(defect.flightMins % 60).padStart(2, '0')}`
 
   const linkedHil = hilEntries?.find((h) => h.hilId === defect.hilId)
+  const resolvedByNote = maintenanceNotes?.find((n) => n.noteId === defect.resolvedNoteId)
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
@@ -214,11 +233,17 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
                   >
                     {t('flightLog.defects.linkedHil')}
                   </Typography>
-                  <Typography variant='body2'>
+                  <Link
+                    component={RouterLink}
+                    to={`/fly?registration=${encodeURIComponent(aircraftRegistration)}&hil=${defect.hilId}`}
+                    variant='body2'
+                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
+                  >
+                    <Icon icon='mdi:clipboard-list' width={16} />
                     {linkedHil
                       ? `HIL #${linkedHil.hilNumber} — ${linkedHil.description}`
-                      : defect.hilId}
-                  </Typography>
+                      : t('flightLog.defects.openHil')}
+                  </Link>
                 </Box>
               )}
 
@@ -232,9 +257,18 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
                   >
                     {t('flightLog.defects.resolvedBy')}
                   </Typography>
-                  <Typography variant='body2' sx={{ fontFamily: 'monospace' }}>
-                    {defect.resolvedNoteId}
-                  </Typography>
+                  <Link
+                    component='button'
+                    type='button'
+                    onClick={() => resolvedByNote && handleOpenNote(resolvedByNote)}
+                    variant='body2'
+                    sx={{ display: 'flex', alignItems: 'center', gap: 0.5, textAlign: 'left' }}
+                  >
+                    <Icon icon='mdi:wrench' width={16} />
+                    {resolvedByNote
+                      ? `${resolvedByNote.description} — ${resolvedByNote.performedBy}`
+                      : t('flightLog.defects.openNote')}
+                  </Link>
                 </Box>
               )}
 
@@ -308,17 +342,38 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
                     </Button>
                   )}
 
+                  {!defect.hilId && !isLinkingHil && (
+                    <Button
+                      size='small'
+                      variant='outlined'
+                      color='warning'
+                      startIcon={<Icon icon='mdi:clipboard-plus' />}
+                      onClick={() => setHilEditMode('new')}
+                    >
+                      {t('flightLog.defects.deferToNewHil')}
+                    </Button>
+                  )}
+
                   {defect.status === 'MOVED_TO_HIL' &&
                     (isResolvingOpen ? (
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <TextField
-                          size='small'
-                          label={t('flightLog.defects.resolvedNoteId')}
-                          value={resolvedNoteId}
-                          onChange={(e) => setResolvedNoteId(e.target.value)}
-                          fullWidth
-                          helperText={t('flightLog.defects.resolvedNoteHelp')}
-                        />
+                        <FormControl fullWidth size='small'>
+                          <InputLabel>{t('flightLog.defects.resolvedNoteId')}</InputLabel>
+                          <Select
+                            value={resolvedNoteId}
+                            label={t('flightLog.defects.resolvedNoteId')}
+                            onChange={(e: SelectChangeEvent) => setResolvedNoteId(e.target.value)}
+                          >
+                            <MenuItem value=''>
+                              <em>{t('flightLog.defects.noNote')}</em>
+                            </MenuItem>
+                            {maintenanceNotes?.map((note) => (
+                              <MenuItem key={note.noteId} value={note.noteId}>
+                                {note.description} — {note.performedBy}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           <Button
                             size='small'
@@ -373,6 +428,19 @@ export const DefectDialog: React.FC<DefectDialogProps> = ({
           {isEditing && <SaveButton loading={updateMutation.isMutating} />}
         </DialogActions>
       </form>
+
+      <EditHilModal
+        mode={hilEditMode}
+        aircraftRegistration={aircraftRegistration}
+        defect={{
+          defectId: defect.defectId,
+          description: defect.description,
+        }}
+        onClose={() => {
+          setHilEditMode(undefined)
+          onChanged()
+        }}
+      />
     </Dialog>
   )
 }

@@ -152,6 +152,33 @@ const FlightLogsList = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const scrollToRef = useScrollOnRender()
 
+  // Deep link from the HIL page: /logs/books/OH-XYZ/1?closeHil=<hilId>
+  const closeHilId = searchParams.get('closeHil') ?? undefined
+  useEffect(() => {
+    if (closeHilId) setAddNoteOpen(true)
+  }, [closeHilId])
+
+  // Clears closeHil once the dialog it opened is done with, so a later,
+  // unrelated "Add Maintenance Note" doesn't silently re-select the same HIL.
+  const handleCloseAddNote = () => {
+    setAddNoteOpen(false)
+    if (closeHilId) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('closeHil')
+        return next
+      })
+    }
+  }
+
+  // Deep link from the HIL page's linked-defect link:
+  // /logs/books/OH-XYZ/1?page=N&highlightDefect=<defectId>
+  const highlightDefectId = searchParams.get('highlightDefect') ?? undefined
+
+  // Deep link from a defect's "resolved by" link:
+  // /logs/books/OH-XYZ/1?page=N&highlightNote=<noteId>
+  const highlightNoteId = searchParams.get('highlightNote') ?? undefined
+
   const [page, setPage] = useState<number | undefined>(
     searchParams.get('page') ? Number(searchParams.get('page')) : undefined,
   )
@@ -178,10 +205,24 @@ const FlightLogsList = () => {
     },
   )
 
+  useEffect(() => {
+    if (!highlightDefectId) return
+    document
+      .getElementById(`defect-${highlightDefectId}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [highlightDefectId, data])
+
   const { data: maintenanceNotes, mutate: mutateNotes } = useMaintenanceNotes(
     ajlb?.aircraftRegistration,
     ajlb?.seqNo,
   )
+
+  useEffect(() => {
+    if (!highlightNoteId) return
+    document
+      .getElementById(`note-${highlightNoteId}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [highlightNoteId, maintenanceNotes])
 
   const { data: defects, mutate: mutateDefects } = useDefects(
     ajlb?.aircraftRegistration,
@@ -189,6 +230,10 @@ const FlightLogsList = () => {
   )
 
   const isFlightLogUser = hasAccess(MIKPermissions.FLIGHTLOG_USER)
+  // Reporting a defect is a baseline flying-rights action: a plane captain
+  // should be able to do it even outside sudo mode, so this checks the raw
+  // admin permission rather than the sudo-gated isFlightLogAdmin.
+  const canReportDefects = isFlightLogUser || hasAccess(MIKPermissions.FLIGHTLOG_ADMIN)
 
   const theme = useTheme()
   const isMd = useMediaQuery(theme.breakpoints.up('md'))
@@ -275,7 +320,7 @@ const FlightLogsList = () => {
         : []
 
     // On mobile: collapse secondary actions into a kebab menu
-    if (!isSmUp && (isFlightLogUser || adminActions.length > 0)) {
+    if (!isSmUp && (canReportDefects || adminActions.length > 0)) {
       return (
         <Stack direction='row' spacing={0.5} sx={{ justifyContent: 'flex-end', flexWrap: 'wrap' }}>
           <StatusButton
@@ -291,7 +336,7 @@ const FlightLogsList = () => {
             <Icon icon='mdi:dots-vertical' width={20} />
           </IconButton>
           <Menu anchorEl={menuAnchor} open={menuOpen} onClose={() => setMenuAnchor(null)}>
-            {isFlightLogUser && (
+            {canReportDefects && (
               <MuiMenuItem
                 onClick={() => {
                   setMenuAnchor(null)
@@ -337,7 +382,7 @@ const FlightLogsList = () => {
           update={editableItem === log ? () => validateEntry(log) : undefined}
         />
 
-        {isFlightLogUser && (
+        {canReportDefects && (
           <EditButton
             title={t('flightLog.defects.addInFlightButton')}
             onClick={onAddInFlightDefect}
@@ -520,9 +565,9 @@ const FlightLogsList = () => {
         </Typography>
       </Breadcrumbs>
       <Title label={t('flightLog.logbooks.title')} />
-      {ajlb && (hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) || isFlightLogUser) && (
+      {ajlb && (isFlightLogAdmin || canReportDefects) && (
         <Stack direction='row' spacing={1} sx={{ mb: 2 }}>
-          {hasAccess(MIKPermissions.FLIGHTLOG_ADMIN) && (
+          {isFlightLogAdmin && (
             <Button
               variant='outlined'
               startIcon={<Icon icon='mdi:wrench-clock' />}
@@ -532,7 +577,7 @@ const FlightLogsList = () => {
               {t('flightLog.maintenanceNotes.addButton')}
             </Button>
           )}
-          {isFlightLogUser && (
+          {canReportDefects && (
             <Button
               variant='outlined'
               color='error'
@@ -595,7 +640,11 @@ const FlightLogsList = () => {
             if (isNoteRow && note) {
               return (
                 <Box sx={{ gridColumn: '1 / -1', width: '100%', py: 0.25 }}>
-                  <MaintenanceNoteMarker note={note} onChanged={() => mutateNotes()} />
+                  <MaintenanceNoteMarker
+                    note={note}
+                    onChanged={() => mutateNotes()}
+                    highlighted={note.noteId === highlightNoteId}
+                  />
                 </Box>
               )
             }
@@ -611,6 +660,7 @@ const FlightLogsList = () => {
                     defect={defect}
                     aircraftRegistration={ajlb.aircraftRegistration}
                     onChanged={() => mutateDefects()}
+                    highlighted={defect.defectId === highlightDefectId}
                   />
                 </Box>
               )
@@ -746,6 +796,7 @@ const FlightLogsList = () => {
                               defect={d}
                               aircraftRegistration={ajlb.aircraftRegistration}
                               onChanged={() => mutateDefects()}
+                              highlighted={d.defectId === highlightDefectId}
                             />
                           ))}
                         </Box>
@@ -792,6 +843,7 @@ const FlightLogsList = () => {
                               defect={d}
                               aircraftRegistration={ajlb.aircraftRegistration}
                               onChanged={() => mutateDefects()}
+                              highlighted={d.defectId === highlightDefectId}
                             />
                           ))}
                         </Box>
@@ -843,14 +895,16 @@ const FlightLogsList = () => {
       {ajlb && (
         <AddMaintenanceNoteDialog
           open={addNoteOpen}
-          onClose={() => setAddNoteOpen(false)}
+          onClose={handleCloseAddNote}
           onSuccess={() => {
-            setAddNoteOpen(false)
+            handleCloseAddNote()
             mutateNotes()
+            mutateDefects()
           }}
           aircraftRegistration={ajlb.aircraftRegistration}
           ajlbSeqNo={ajlb.seqNo}
           defaultFlightMins={data?.logs[data.logs.length - 1]?.acTotalFlightMins ?? undefined}
+          defaultHilIds={closeHilId ? [closeHilId] : undefined}
         />
       )}
       {ajlb && (

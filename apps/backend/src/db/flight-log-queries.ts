@@ -141,6 +141,43 @@ export async function getFlightLog(flightId: string): Promise<FlightLog | undefi
   }
 }
 
+/**
+ * Which physical logbook page a given running-total flight time (e.g. a
+ * flight-log defect's flightMins) falls on. Used to deep-link straight to the
+ * right page instead of defaulting to the last one.
+ */
+export async function getFlightLogPageForMins(
+  aircraftRegistration: string,
+  ajlbSeqNo: number,
+  flightMins: number,
+): Promise<number | undefined> {
+  const rows = await db
+    .selectFrom('flight.logs')
+    .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
+    .where('aircraft_registration', '=', aircraftRegistration)
+    .where('ajlb_seq_no', '=', ajlbSeqNo)
+    .select([
+      'flight.logs.ajlb_page_number',
+      'totals.page_number',
+      'flight.logs.ajlb_total_flight_mins',
+      'totals.ac_total_flight_mins',
+    ])
+    .orderBy('off_block_time_epoch', 'asc')
+    .orderBy('flight.logs.flight_id', 'asc')
+    .execute()
+
+  if (!rows.length) return undefined
+
+  // The first flight whose running total reaches the target is the one whose
+  // page the defect was recorded on; fall back to the last page otherwise.
+  const match =
+    rows.find(
+      (row) => (row.ajlb_total_flight_mins ?? row.ac_total_flight_mins ?? 0) >= flightMins,
+    ) ?? rows[rows.length - 1]
+
+  return match.ajlb_page_number ?? match.page_number ?? undefined
+}
+
 export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLogListResponse> {
   const ajlbPaging = !!filters.ajlbSeqNo && filters.page !== undefined
 

@@ -8,7 +8,6 @@ export const MaintenanceNoteSchema = z.object({
   performedBy: z.string(),
   flightMins: z.number().int(),
   blankRowsAfter: z.number().int().min(0),
-  hilId: z.string().guid().nullable(),
   createdAt: z.string().datetime(),
   createdBy: z.string(),
 })
@@ -22,7 +21,11 @@ export const CreateMaintenanceNoteSchema = z.object({
   performedBy: z.string().min(1),
   flightMins: z.number().int().min(0),
   blankRowsAfter: z.number().int().min(0).default(0),
-  hilId: z.string().guid().nullable().optional(),
+  // Currently-open hold items on this aircraft that this note closes
+  hilIds: z.array(z.string().guid()).optional(),
+  // Active logbook defects on this aircraft that this note resolves directly,
+  // without ever having been deferred to a hold item
+  defectIds: z.array(z.string().guid()).optional(),
 })
 
 export type CreateMaintenanceNoteRequest = z.infer<typeof CreateMaintenanceNoteSchema>
@@ -33,7 +36,6 @@ export const UpdateMaintenanceNoteSchema = z
     performedBy: z.string().min(1).optional(),
     flightMins: z.number().int().min(0).optional(),
     blankRowsAfter: z.number().int().min(0).optional(),
-    hilId: z.string().guid().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided',
@@ -43,7 +45,7 @@ export type UpdateMaintenanceNoteRequest = z.infer<typeof UpdateMaintenanceNoteS
 
 export const MaintenanceNoteFilterSchema = z.object({
   aircraftRegistration: z.string(),
-  ajlbSeqNo: z.coerce.number().int().positive(),
+  ajlbSeqNo: z.coerce.number().int().positive().optional(),
 })
 
 export type MaintenanceNoteFilter = z.infer<typeof MaintenanceNoteFilterSchema>

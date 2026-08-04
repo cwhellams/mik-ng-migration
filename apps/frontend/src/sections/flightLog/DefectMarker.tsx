@@ -9,12 +9,14 @@ interface DefectMarkerProps {
   defect: Defect
   aircraftRegistration: string
   onChanged: () => void
+  highlighted?: boolean
 }
 
 export const DefectMarker: React.FC<DefectMarkerProps> = ({
   defect,
   aircraftRegistration,
   onChanged,
+  highlighted,
 }) => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
@@ -23,12 +25,22 @@ export const DefectMarker: React.FC<DefectMarkerProps> = ({
     defect.status === 'ACTIVE' ? 'error' : defect.status === 'MOVED_TO_HIL' ? 'warning' : 'success'
 
   const icon =
-    defect.status === 'RESOLVED' ? 'mdi:alert-circle-check-outline' : 'mdi:alert-circle-outline'
+    defect.status === 'RESOLVED'
+      ? 'mdi:alert-circle-check-outline'
+      : defect.status === 'MOVED_TO_HIL'
+        ? 'mdi:clipboard-list'
+        : 'mdi:alert-circle-outline'
+
+  const tooltip =
+    defect.status === 'MOVED_TO_HIL'
+      ? t('flightLog.defects.movedToHilTooltip')
+      : t('flightLog.defects.clickToView')
 
   return (
     <>
-      <Tooltip title={t('flightLog.defects.clickToView')} placement='top'>
+      <Tooltip title={tooltip} placement='top'>
         <Chip
+          id={`defect-${defect.defectId}`}
           icon={<Icon icon={icon} width={16} />}
           label={defect.description}
           size='small'
@@ -39,6 +51,10 @@ export const DefectMarker: React.FC<DefectMarkerProps> = ({
             maxWidth: '100%',
             cursor: 'pointer',
             my: 0.5,
+            ...(highlighted && {
+              outline: (theme) => `2px solid ${theme.palette.primary.main}`,
+              outlineOffset: 1,
+            }),
             '& .MuiChip-label': {
               overflow: 'hidden',
               textOverflow: 'ellipsis',

@@ -9,12 +9,21 @@ import {
   Box,
   Typography,
   InputAdornment,
+  Checkbox,
+  FormControl,
+  InputLabel,
+  ListItemText,
+  MenuItem,
+  Select,
+  type SelectChangeEvent,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import useApi from '../../hooks/useApi'
+import { useDefects } from '../../hooks/useDefects'
 import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
+import type { AircraftHil } from '@backend/routes/aircraft-hil/models'
 import { SaveButton } from '../../components/SaveButton'
 import { SnackAlert } from '../../components/SnackAlert'
 import { Problem } from '@backend/routes/response'
@@ -22,6 +31,7 @@ import {
   MaintenanceNoteFormSchema,
   type MaintenanceNoteFormValues,
 } from './maintenanceNoteFormSchema'
+import { refreshAircraftHil } from '../aircrafts/components/hil/useAircraftHil'
 
 interface AddMaintenanceNoteDialogProps {
   open: boolean
@@ -30,6 +40,8 @@ interface AddMaintenanceNoteDialogProps {
   aircraftRegistration: string
   ajlbSeqNo: number
   defaultFlightMins?: number
+  /** Hold items to pre-select for closing, e.g. when arriving from the HIL page */
+  defaultHilIds?: string[]
 }
 
 export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> = ({
@@ -39,14 +51,32 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
   aircraftRegistration,
   ajlbSeqNo,
   defaultFlightMins,
+  defaultHilIds,
 }) => {
   const { t } = useTranslation()
   const [problem, setProblem] = useState<Problem | undefined>()
+  const [selectedHilIds, setSelectedHilIds] = useState<string[]>([])
+  const [selectedDefectIds, setSelectedDefectIds] = useState<string[]>([])
 
   const { mutation } = useApi<MaintenanceNote>({
     url: 'v1/maintenance-notes',
     skipFetch: true,
   })
+
+  // Every flight-log admin closing a hold item picks from the currently open
+  // ones for this aircraft, regardless of which logbook page they came from.
+  const { data: hilEntries } = useApi<AircraftHil[]>({
+    url: 'v1/aircraft-hil',
+    params: { aircraftRegistration },
+    skipFetch: !open,
+  })
+  const openHilEntries = hilEntries?.filter((h) => !h.resolvedNoteId) ?? []
+
+  // A maintenance note can also close a defect directly, without it ever
+  // having been deferred to a hold item — so offer every open defect on the
+  // aircraft, regardless of which logbook page it was recorded on.
+  const { data: aircraftDefects } = useDefects(open ? aircraftRegistration : undefined)
+  const activeDefects = aircraftDefects?.filter((d) => d.status === 'ACTIVE') ?? []
 
   const {
     control,
@@ -67,6 +97,8 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
   useEffect(() => {
     if (open) {
       setProblem(undefined)
+      setSelectedHilIds(defaultHilIds ?? [])
+      setSelectedDefectIds([])
       reset({
         description: '',
         performedBy: '',
@@ -75,7 +107,7 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
         blankRowsAfter: 0,
       })
     }
-  }, [open, defaultFlightMins, reset])
+  }, [open, defaultFlightMins, defaultHilIds, reset])
 
   const onSubmit = async (values: MaintenanceNoteFormValues) => {
     const { error } = await mutation.trigger('POST', {
@@ -85,12 +117,16 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
       performedBy: values.performedBy,
       flightMins: values.flightHours * 60 + values.flightMinutes,
       blankRowsAfter: values.blankRowsAfter,
+      ...(selectedHilIds.length ? { hilIds: selectedHilIds } : {}),
+      ...(selectedDefectIds.length ? { defectIds: selectedDefectIds } : {}),
     })
 
     if (error) {
       setProblem(error)
       return
     }
+
+    if (selectedHilIds.length) await refreshAircraftHil()
 
     onSuccess()
   }
@@ -209,6 +245,68 @@ export const AddMaintenanceNoteDialog: React.FC<AddMaintenanceNoteDialogProps> =
                 />
               )}
             />
+
+            {openHilEntries.length > 0 && (
+              <FormControl fullWidth size='small'>
+                <InputLabel>{t('flightLog.maintenanceNotes.closeHilItems')}</InputLabel>
+                <Select<string[]>
+                  multiple
+                  value={selectedHilIds}
+                  label={t('flightLog.maintenanceNotes.closeHilItems')}
+                  onChange={(e: SelectChangeEvent<string[]>) =>
+                    setSelectedHilIds(
+                      typeof e.target.value === 'string'
+                        ? e.target.value.split(',')
+                        : e.target.value,
+                    )
+                  }
+                  renderValue={(selected) =>
+                    openHilEntries
+                      .filter((h) => selected.includes(h.hilId))
+                      .map((h) => `HIL #${h.hilNumber}`)
+                      .join(', ')
+                  }
+                >
+                  {openHilEntries.map((hil) => (
+                    <MenuItem key={hil.hilId} value={hil.hilId}>
+                      <Checkbox checked={selectedHilIds.includes(hil.hilId)} />
+                      <ListItemText primary={`HIL #${hil.hilNumber} — ${hil.description}`} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
+            {activeDefects.length > 0 && (
+              <FormControl fullWidth size='small'>
+                <InputLabel>{t('flightLog.maintenanceNotes.closeDefects')}</InputLabel>
+                <Select<string[]>
+                  multiple
+                  value={selectedDefectIds}
+                  label={t('flightLog.maintenanceNotes.closeDefects')}
+                  onChange={(e: SelectChangeEvent<string[]>) =>
+                    setSelectedDefectIds(
+                      typeof e.target.value === 'string'
+                        ? e.target.value.split(',')
+                        : e.target.value,
+                    )
+                  }
+                  renderValue={(selected) =>
+                    activeDefects
+                      .filter((d) => selected.includes(d.defectId))
+                      .map((d) => d.description)
+                      .join(', ')
+                  }
+                >
+                  {activeDefects.map((defect) => (
+                    <MenuItem key={defect.defectId} value={defect.defectId}>
+                      <Checkbox checked={selectedDefectIds.includes(defect.defectId)} />
+                      <ListItemText primary={defect.description} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
           </Box>
         </DialogContent>
 

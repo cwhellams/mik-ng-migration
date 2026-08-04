@@ -48,7 +48,7 @@ export type UpdateDefectRequest = z.infer<typeof UpdateDefectSchema>
 
 export const DefectFilterSchema = z.object({
   aircraftRegistration: z.string(),
-  ajlbSeqNo: z.coerce.number().int().positive(),
+  ajlbSeqNo: z.coerce.number().int().positive().optional(),
 })
 
 export type DefectFilter = z.infer<typeof DefectFilterSchema>

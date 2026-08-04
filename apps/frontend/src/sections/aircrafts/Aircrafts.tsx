@@ -39,8 +39,11 @@ import { Icon } from '@iconify/react'
 import { AircraftDocumentSection } from './components/AircraftDocumentSection'
 import { AircraftCardSection } from './components/AircraftCardSection'
 import { NavdataSection, NavdataInfoStatus } from './components/NavdataSection'
+import { AircraftHilSection } from './components/hil/AircraftHilSection'
+import { AircraftGroundedAlert } from './components/hil/AircraftGroundedAlert'
 import { useRoles } from '../../hooks/useRoles'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { AircraftEditMode, EditAircraftModal } from './components/EditAircraftModal'
 import { PricingEditMode, EditPricingModal } from './components/EditPricingModal'
 import dayjs from 'dayjs'
@@ -54,6 +57,9 @@ import { mutate } from 'swr'
 import { formatHHMM } from '../../utils/format'
 import { useTimezone } from '../../hooks/useTimezone'
 
+// Index of the Hold Item List entry in the per-card bottom navigation
+const HIL_TAB = 5
+
 const Aircrafts = () => {
   const [showInactive, setShowInactive] = useState(false)
 
@@ -62,7 +68,7 @@ const Aircrafts = () => {
     params: { activeOnly: !showInactive },
   })
 
-  const { isAircraftAdmin, isInvoicingAdmin } = useRoles()
+  const { isAircraftAdmin, isInvoicingAdmin, isFlightLogAdmin } = useRoles()
   const canEditPricing = isAircraftAdmin || isInvoicingAdmin
 
   const pricingDelete = useApi({ url: 'v1/aircraft-pricing', skipFetch: true })
@@ -90,6 +96,17 @@ const Aircrafts = () => {
       [registration]: newValue,
     }))
   }
+
+  // Deep link from a flight-log defect: /fly?registration=OH-XYZ&hil=<hilId>
+  const [searchParams] = useSearchParams()
+  const highlightHilId = searchParams.get('hil') ?? undefined
+  const highlightRegistration = searchParams.get('registration') ?? undefined
+
+  useEffect(() => {
+    if (highlightHilId && highlightRegistration) {
+      setActiveTab((prev) => ({ ...prev, [highlightRegistration]: HIL_TAB }))
+    }
+  }, [highlightHilId, highlightRegistration])
 
   const translateAlert = (alert: AircraftAlert): AircraftAlert => {
     return {
@@ -438,6 +455,12 @@ const Aircrafts = () => {
                       )}
                     </Box>
 
+                    {/* Grounding status is relevant regardless of which tab is open */}
+                    <AircraftGroundedAlert
+                      aircraftRegistration={aircraft.registration}
+                      onShowHil={() => handleTabChange(aircraft.registration, HIL_TAB)}
+                    />
+
                     {/* Info Tab Content */}
                     {currentTab === 0 && (
                       <>
@@ -595,6 +618,19 @@ const Aircrafts = () => {
                         />
                       </Box>
                     )}
+
+                    {/* Hold Item List Tab Content */}
+                    {currentTab === HIL_TAB && (
+                      <AircraftHilSection
+                        aircraftRegistration={aircraft.registration}
+                        canEdit={isFlightLogAdmin}
+                        highlightHilId={
+                          highlightRegistration === aircraft.registration
+                            ? highlightHilId
+                            : undefined
+                        }
+                      />
+                    )}
                   </Stack>
                 </CardContent>
                 {/* Bottom Navigation */}
@@ -629,6 +665,10 @@ const Aircrafts = () => {
                   <BottomNavigationAction
                     label={t('aircraft.tabs.navdata', 'Navdata')}
                     icon={<Icon icon='mdi:satellite-uplink' />}
+                  />
+                  <BottomNavigationAction
+                    label={t('aircraft.tabs.hil', 'HIL')}
+                    icon={<Icon icon='mdi:clipboard-list' />}
                   />
                 </BottomNavigation>
               </Card>
