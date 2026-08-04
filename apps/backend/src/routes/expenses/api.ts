@@ -1,4 +1,5 @@
 import { HttpStatusCode } from 'axios'
+import dayjs from 'dayjs'
 import { Router, type Request, type Response } from 'express'
 import multer from 'multer'
 import sharp from 'sharp'
@@ -25,6 +26,11 @@ import {
   updateExpenseClaim,
 } from '../../db/expense-queries.ts'
 import { insertOutboxItem } from '../../db/outbox-simplbooks-queries.ts'
+import {
+  getMileageDetailFullHetu,
+  getMileageReportRows,
+  recordMileageHetuAccess,
+} from '../../db/mileage-queries.ts'
 import { db } from '../../db/connection.ts'
 import { getMemberById, updateMember } from '../../db/member-queries.ts'
 import { storageService } from '../../services/storage.ts'
@@ -37,6 +43,7 @@ import {
   ExpenseClaimFiltersSchema,
   ExpenseClaimStatus,
   ExpenseMessageType,
+  MileageReportFiltersSchema,
   OverrideFuelPriceSchema,
   RejectExpenseClaimSchema,
   RequestInfoSchema,
@@ -329,11 +336,68 @@ router.get(
   },
 )
 
+// Tulorekisteri (Finnish income register) mileage report — see issue #1022.
+// Never includes HETU: it's a worklist of claims to file, not the filing itself.
+router.get(
+  '/admin/mileage-report',
+  validateUser(MIKPermissions.EXPENSE_HETU_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const parsed = MileageReportFiltersSchema.safeParse(req.query)
+    if (!parsed.success) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'startDate and endDate are required in YYYY-MM-DD format.',
+        extensions: { errors: parsed.error.issues },
+      })
+    }
+    const filters = parsed.data
+
+    if (dayjs(filters.endDate).isAfter(dayjs(), 'day')) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'End date cannot be in the future.',
+      })
+    }
+    if (dayjs(filters.startDate).isAfter(dayjs(filters.endDate), 'day')) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Start date cannot be after end date.',
+      })
+    }
+
+    res.status(HttpStatusCode.Ok).json({ data: await getMileageReportRows(filters), filters })
+  },
+)
+
 router.get(
   '/:id',
   validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
   async (req: Request<Record<string, string>>, res: Response) => {
     res.status(HttpStatusCode.Ok).json(await requireClaimForUser(req, req.params.id))
+  },
+)
+
+// Audited plaintext HETU reveal — see issue #1022. Narrower than EXPENSE_ADMIN:
+// only treasurer/chairman (whoever holds EXPENSE_HETU_ADMIN) may reveal it, and
+// no owner-self-service path exists, unlike the other :id-scoped routes below.
+router.get(
+  '/:id/mileage/hetu',
+  validateUser(MIKPermissions.EXPENSE_HETU_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const claim = await getExpenseClaimById(req.params.id)
+    if (!claim) {
+      return problem({ status: HttpStatusCode.NotFound, detail: 'Expense claim not found' })
+    }
+
+    const hetu = await getMileageDetailFullHetu(claim.id)
+    if (!hetu) {
+      return problem({ status: HttpStatusCode.NotFound, detail: 'No HETU on file for this claim' })
+    }
+
+    // Fail closed: if the audit write throws, the request throws too and no HETU is sent.
+    await recordMileageHetuAccess(claim.id, req.user!.memberId)
+
+    res.status(HttpStatusCode.Ok).json({ hetu })
   },
 )
 

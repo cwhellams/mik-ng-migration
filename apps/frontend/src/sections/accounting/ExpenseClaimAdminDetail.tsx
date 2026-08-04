@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import {
@@ -21,8 +21,11 @@ import {
   Typography,
 } from '@mui/material'
 import { ExpenseClaimStatus, type ExpenseClaim } from '@backend/routes/expenses/models'
+import { MIKPermissions } from '@backend/routes/members/models'
 import useApi, { sharedApi } from '../../hooks/useApi'
 import { useMe } from '../../hooks/useMe'
+import { useRoles } from '../../hooks/useRoles'
+import { useThemeMode } from '../../theme/ThemeContext'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
 import {
@@ -30,6 +33,8 @@ import {
   formatExpenseAmount,
   getExpenseCategoryLabel,
 } from '../expenses/expenseUi'
+
+const HETU_REVEAL_DURATION_MS = 30_000
 
 export function ExpenseClaimAdminDetail() {
   const { id } = useParams<{ id: string }>()
@@ -44,15 +49,28 @@ export function ExpenseClaimAdminDetail() {
   const [overrideFuelPriceOpen, setOverrideFuelPriceOpen] = useState(false)
   const [actionError, setActionError] = useState<string>()
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null)
+  const [revealedHetu, setRevealedHetu] = useState<string | null>(null)
+  const [hetuError, setHetuError] = useState<string>()
+  const hetuHideTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  const { hasAccess } = useRoles()
+  const { sudo } = useThemeMode()
+  const canRevealHetu = sudo && hasAccess(MIKPermissions.EXPENSE_HETU_ADMIN)
 
   const claimApi = useApi<ExpenseClaim>({ url: `v1/expenses/${id}` })
-  const { mutation } = useApi<ExpenseClaim | { url: string }>({
+  const { mutation } = useApi<ExpenseClaim | { url: string } | { hetu: string }>({
     url: 'v1/expenses',
     skipFetch: true,
   })
 
   const claim = claimApi.data
   const selfApproval = me?.memberId === claim?.memberId
+
+  useEffect(() => {
+    return () => {
+      if (hetuHideTimeout.current) clearTimeout(hetuHideTimeout.current)
+    }
+  }, [])
 
   // Auto-fetch presigned URL for the receipt so it can be rendered inline
   useEffect(() => {
@@ -135,6 +153,27 @@ export function ExpenseClaimAdminDetail() {
     setOverrideFuelPriceOpen(false)
     setEfnuPrice('')
     await claimApi.mutate()
+  }
+
+  const revealHetu = async () => {
+    if (!claim) {
+      return
+    }
+
+    setHetuError(undefined)
+    const response = await mutation.trigger<Record<string, never>, { hetu: string }>(
+      'GET',
+      {},
+      `${claim.id}/mileage/hetu`,
+    )
+    if (response.error) {
+      setHetuError(response.error.detail)
+      return
+    }
+
+    setRevealedHetu(response.data?.hetu ?? null)
+    if (hetuHideTimeout.current) clearTimeout(hetuHideTimeout.current)
+    hetuHideTimeout.current = setTimeout(() => setRevealedHetu(null), HETU_REVEAL_DURATION_MS)
   }
 
   const setToDraft = async () => {
@@ -253,6 +292,62 @@ export function ExpenseClaimAdminDetail() {
                 </TableBody>
               </Table>
             </Paper>
+
+            {claim.categoryCode === 'mileage' && claim.mileageDetail && (
+              <Paper sx={{ p: 3 }}>
+                <Typography variant='h6' sx={{ mb: 2 }}>
+                  {t('expenses.mileage.sectionTitle')}
+                </Typography>
+                <Stack spacing={1}>
+                  <Typography variant='body2'>
+                    {t('expenses.mileage.route')}: {claim.mileageDetail.route}
+                  </Typography>
+                  <Typography variant='body2'>
+                    {t('expenses.mileage.journeyDate')}: {claim.mileageDetail.journeyDate}
+                  </Typography>
+                  <Typography variant='body2'>
+                    {t('expenses.mileage.distanceKm')}: {claim.mileageDetail.distanceKm} km
+                  </Typography>
+                  {claim.mileageDetail.ratePerKm != null && (
+                    <Typography variant='body2'>
+                      {t('expenses.mileage.ratePerKm')}: {claim.mileageDetail.ratePerKm} €/km
+                    </Typography>
+                  )}
+                  <Typography variant='body2'>
+                    {t('expenses.mileage.boardApprovedLabel')}:{' '}
+                    {claim.mileageDetail.boardApproved ? t('common.yes') : t('common.no')}
+                  </Typography>
+                  {claim.mileageDetail.hetu && (
+                    <Stack
+                      direction='row'
+                      spacing={1}
+                      sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+                    >
+                      <Typography variant='body2'>
+                        {t('expenses.mileage.hetu')}: {revealedHetu ?? claim.mileageDetail.hetu}
+                      </Typography>
+                      {canRevealHetu && !revealedHetu && (
+                        <Button size='small' onClick={() => void revealHetu()}>
+                          {t('expenses.mileage.reveal')}
+                        </Button>
+                      )}
+                      {revealedHetu && (
+                        <Button
+                          size='small'
+                          onClick={() => void navigator.clipboard.writeText(revealedHetu)}
+                        >
+                          {t('expenses.mileage.copy')}
+                        </Button>
+                      )}
+                    </Stack>
+                  )}
+                  {revealedHetu && (
+                    <Alert severity='warning'>{t('expenses.mileage.revealNotice')}</Alert>
+                  )}
+                  {hetuError && <Alert severity='error'>{hetuError}</Alert>}
+                </Stack>
+              </Paper>
+            )}
 
             <Paper sx={{ p: 3 }}>
               <Typography variant='h6' sx={{ mb: 2 }}>

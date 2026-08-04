@@ -191,3 +191,41 @@ export const RequestInfoSchema = z.object({
 export const OverrideFuelPriceSchema = z.object({
   efnuPrice: z.number().positive(),
 })
+
+// ─── HETU reveal (issue #1022) ───────────────────────────────────────────────
+
+export const RevealHetuResponseSchema = z.object({
+  hetu: z.string(),
+})
+export type RevealHetuResponse = z.infer<typeof RevealHetuResponseSchema>
+
+// ─── Tulorekisteri mileage report (issue #1022) ──────────────────────────────
+// Never includes HETU — the report is a worklist; HETU is only available via the
+// per-claim reveal endpoint above.
+
+export const MileageReportFiltersSchema = z.object({
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  status: z.nativeEnum(ExpenseClaimStatus).default(ExpenseClaimStatus.APPROVED),
+})
+export type MileageReportFilters = z.infer<typeof MileageReportFiltersSchema>
+
+export const MileageReportRowSchema = z.object({
+  claimId: z.string().guid(),
+  memberId: z.string(),
+  memberName: z.string(),
+  journeyDate: z.string(),
+  route: z.string(),
+  distanceKm: z.number(),
+  ratePerKm: z.number(),
+  totalAmount: z.number(),
+  approvedAt: z.string().nullable(),
+  iban: z.string().nullable(),
+})
+export type MileageReportRow = z.infer<typeof MileageReportRowSchema>
+
+export const MileageReportResponseSchema = z.object({
+  data: z.array(MileageReportRowSchema),
+  filters: MileageReportFiltersSchema,
+})
+export type MileageReportResponse = z.infer<typeof MileageReportResponseSchema>

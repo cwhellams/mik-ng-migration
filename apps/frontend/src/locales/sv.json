@@ -54,6 +54,7 @@
     "newExpense": "Nytt utgiftsanspråk",
     "expenseClaims": "Utgiftsanspråk",
     "mileageAllowances": "Kilometetersättning",
+    "tulorekisteriReport": "Inkomstregisterrapport",
     "costCentres": "Kostnadsställen",
     "inventory": "Inventarie",
     "inventoryAdmin": "Inventarieadmin",
@@ -2493,7 +2494,35 @@
       "hetu": "Personnummer (HETU)",
       "hetuHint": "Krävs för skattemässiga ändamål. Lagras krypterat och syns inte efter sparande.",
       "boardApprovalRequired": "Denna resa överskrider gränsen på {{maxKm}} km och kräver styrelsens godkännande.",
-      "boardApprovedLabel": "Jag bekräftar att styrelsen har godkänt denna resa"
+      "boardApprovedLabel": "Jag bekräftar att styrelsen har godkänt denna resa",
+      "ratePerKm": "Ersättning",
+      "reveal": "Visa",
+      "copy": "Kopiera",
+      "revealNotice": "Denna åtkomst har loggats."
+    },
+    "tulorekisteriReport": {
+      "title": "Inkomstregisterrapport",
+      "description": "Godkända kilometerersättningar att anmäla till inkomstregistret. Visar aldrig personnummer — det visas från det enskilda ersättningsanspråket.",
+      "filters": {
+        "startDate": "Startdatum",
+        "endDate": "Slutdatum",
+        "generate": "Skapa rapport",
+        "export": "Exportera till CSV"
+      },
+      "table": {
+        "member": "Medlem",
+        "journeyDate": "Resedatum",
+        "route": "Rutt",
+        "distanceKm": "Avstånd (km)",
+        "totalAmount": "Totalt (EUR)",
+        "approvedAt": "Godkänd"
+      },
+      "noData": "Inga godkända kilometerersättningar hittades för den valda perioden",
+      "errors": {
+        "endDateFuture": "Slutdatum kan inte vara i framtiden",
+        "startAfterEnd": "Startdatum kan inte vara efter slutdatum",
+        "required": "Både start- och slutdatum krävs"
+      }
     },
     "status": {
       "DRAFT": "Utkast",

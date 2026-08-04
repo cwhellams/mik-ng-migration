@@ -74,6 +74,9 @@ export enum MIKPermissions {
   // can view and approve/reject expense claims (treasurer / committee)
   EXPENSE_ADMIN = 'expense.admin',
 
+  // can reveal HETU on mileage claims and run the Tulorekisteri report (treasurer/chairman only)
+  EXPENSE_HETU_ADMIN = 'expense.hetu_admin',
+
   // can browse the club inventory
   INVENTORY_USER = 'inventory.user',
 
@@ -133,10 +136,11 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
     case MIKPermissions.EXPENSE_ADMIN:
       return MIKPermissions.EXPENSE_USER
 
-    // no separate user roles for SMS or outbox permissions
+    // no separate user roles for SMS, outbox, or HETU-reveal permissions
     case MIKPermissions.SMS_PROCESSOR:
     case MIKPermissions.SMS_MANAGER:
     case MIKPermissions.OUTBOX_ADMIN:
+    case MIKPermissions.EXPENSE_HETU_ADMIN:
       return undefined
     default:
       return permission

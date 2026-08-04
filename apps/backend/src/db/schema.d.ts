@@ -289,6 +289,20 @@ export interface AcctsMileageAllowance {
   updated_by: string
 }
 
+export interface AcctsMileageHetuAccessAudit {
+  accessed_at: Generated<Timestamp>
+  /**
+   * Member who revealed the HETU (must hold expense.hetu_admin)
+   */
+  accessed_by: string
+  claim_id: string
+  /**
+   * Where the reveal happened, e.g. CLAIM_REVEAL
+   */
+  context: string
+  id: Generated<number>
+}
+
 export interface AcctsOutboxSimplbooks {
   created_at_utc: Generated<Timestamp>
   error_message: string | null
@@ -1981,6 +1995,7 @@ export interface DB {
   'accts.invoice': AcctsInvoice
   'accts.items': AcctsItems
   'accts.mileage_allowance': AcctsMileageAllowance
+  'accts.mileage_hetu_access_audit': AcctsMileageHetuAccessAudit
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks
   'accts.recurring_fees_processing': AcctsRecurringFeesProcessing
   'club.ame_list': ClubAmeList

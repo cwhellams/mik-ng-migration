@@ -551,6 +551,7 @@ describe('GET /members/roles', () => {
       'events.admin',
       'expense.user',
       'expense.admin',
+      'expense.hetu_admin',
       'inventory.user',
       'inventory.admin',
       'ame.user',
