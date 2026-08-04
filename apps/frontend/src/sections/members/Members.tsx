@@ -278,9 +278,15 @@ const Members = () => {
               sx={{
                 alignItems: 'center',
                 display: 'flex',
+                gap: 1,
                 mr: 1,
               }}
             >
+              <Tooltip title={t('member.changeLog.title')}>
+                <Link to='members/changelog' aria-label={t('member.changeLog.title')}>
+                  <Icon icon='mdi:history' color='#646cff' fontSize={24} />
+                </Link>
+              </Tooltip>
               <Link to='members/roles'>
                 <Icon icon='mdi:gear' color='#646cff' fontSize={24} />
               </Link>

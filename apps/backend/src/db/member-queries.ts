@@ -1,4 +1,4 @@
-import { type Selectable } from 'kysely'
+import { sql, type Selectable } from 'kysely'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
 import { db } from './connection.ts'
@@ -21,6 +21,9 @@ import {
   type NonRenewalMember,
   type NonRenewalAction,
   NonRenewalActionType,
+  MemberChangeType,
+  type MemberChangeLogEntry,
+  type MemberChangeLogFilters,
 } from '../routes/members/models.ts'
 import { problem } from '../routes/response.ts'
 import type { Upsert } from '../types/schema.ts'
@@ -1097,4 +1100,143 @@ export async function insertNonRenewalAction(
     performedBy: result.performed_by,
     notes: result.notes,
   }
+}
+
+/**
+ * Columns that are written by background sync jobs or are pure row metadata.
+ * They are never interesting in a registry change log, and an audit row whose
+ * only changes are these columns is dropped entirely so worker churn does not
+ * bury the real membership changes.
+ */
+const CHANGE_LOG_IGNORED_COLUMNS = new Set([
+  'created_at',
+  'created_by',
+  'updated_at',
+  'updated_by',
+  'brevo_contact_id',
+  'brevo_sync_status',
+  'brevo_synced_at',
+  'simplbooks_sync_status',
+  'simplbooks_synced_at',
+  'dashboard_settings',
+])
+
+type AuditSnapshot = Record<string, unknown> | null
+
+/** Names of the register columns that differ between two audit snapshots. */
+function changedColumns(before: AuditSnapshot, after: AuditSnapshot): string[] {
+  if (!before || !after) return []
+
+  return [...new Set([...Object.keys(before), ...Object.keys(after)])]
+    .filter((column) => !CHANGE_LOG_IGNORED_COLUMNS.has(column))
+    .filter((column) => JSON.stringify(before[column]) !== JSON.stringify(after[column]))
+    .sort()
+}
+
+function classifyChange(
+  operationType: string,
+  before: AuditSnapshot,
+  after: AuditSnapshot,
+): MemberChangeType {
+  // A row inserted as already approved (admin adding a member directly) is a
+  // join, not a pending application
+  if (operationType === 'INSERT') {
+    return after?.is_membership_approved === true
+      ? MemberChangeType.APPROVED
+      : MemberChangeType.REGISTERED
+  }
+  if (operationType === 'DELETE') return MemberChangeType.DELETED
+
+  const previousType = before?.member_type
+  const newType = after?.member_type
+
+  if (newType === MIKMemberTypes.REMOVED && previousType !== MIKMemberTypes.REMOVED) {
+    return MemberChangeType.LEFT
+  }
+  if (previousType === MIKMemberTypes.REMOVED && newType !== MIKMemberTypes.REMOVED) {
+    return MemberChangeType.RESTORED
+  }
+  if (before?.is_membership_approved === false && after?.is_membership_approved === true) {
+    return MemberChangeType.APPROVED
+  }
+  if (previousType !== newType) return MemberChangeType.TYPE_CHANGED
+
+  return MemberChangeType.UPDATED
+}
+
+/**
+ * Registry change log for the given period, newest change first.
+ *
+ * `memberType` matches the type either before or after the change, so a member
+ * leaving is still listed when filtering by the type they held while a member.
+ * System accounts are always excluded.
+ */
+export async function getMemberChangeLog(
+  filters: MemberChangeLogFilters,
+): Promise<MemberChangeLogEntry[]> {
+  const memberTypes = filters.memberType
+    ? Array.isArray(filters.memberType)
+      ? filters.memberType
+      : [filters.memberType]
+    : []
+
+  const newType = sql<string | null>`a.new_data ->> 'member_type'`
+  const previousType = sql<string | null>`a.changed_data ->> 'member_type'`
+
+  const rows = await db
+    .selectFrom('member.register_audit as a')
+    .leftJoin('member.register as cb', 'cb.member_id', 'a.changed_by')
+    .select([
+      'a.audit_id',
+      'a.member_id',
+      'a.operation_type',
+      'a.changed_at',
+      'a.changed_by',
+      'a.changed_data',
+      'a.new_data',
+      'cb.first_name as changed_by_first_name',
+      'cb.last_name as changed_by_last_name',
+    ])
+    .where(sql`a.changed_at::date`, '>=', sql`${filters.startDate}::date`)
+    .where(sql`a.changed_at::date`, '<=', sql`${filters.endDate}::date`)
+    .where(
+      sql<boolean>`coalesce(${newType}, ${previousType}) is distinct from ${MIKMemberTypes.SYSTEM}`,
+    )
+    .$if(memberTypes.length > 0, (qb) =>
+      qb.where((eb) =>
+        eb.or([eb(newType, 'in', memberTypes), eb(previousType, 'in', memberTypes)]),
+      ),
+    )
+    .orderBy('a.changed_at', 'desc')
+    .orderBy('a.audit_id', 'desc')
+    .execute()
+
+  return rows
+    .map((row) => {
+      const before = row.changed_data as AuditSnapshot
+      const after = row.new_data as AuditSnapshot
+      const snapshot = after ?? before
+
+      return {
+        auditId: row.audit_id,
+        memberId: row.member_id,
+        firstName: (snapshot?.first_name as string) ?? '',
+        lastName: (snapshot?.last_name as string) ?? '',
+        memberType: ((after ?? before)?.member_type as MIKMemberTypes) ?? null,
+        previousMemberType: (before?.member_type as MIKMemberTypes) ?? null,
+        operationType: row.operation_type as MemberChangeLogEntry['operationType'],
+        changeType: classifyChange(row.operation_type, before, after),
+        changedFields: changedColumns(before, after),
+        changedAt: row.changed_at.toISOString(),
+        changedBy: row.changed_by,
+        changedByName:
+          row.changed_by_first_name && row.changed_by_last_name
+            ? `${row.changed_by_first_name} ${row.changed_by_last_name}`
+            : null,
+      }
+    })
+    .filter(
+      // Drop UPDATEs that only touched ignored columns (background sync churn)
+      (entry) => entry.operationType !== 'UPDATE' || entry.changedFields.length > 0,
+    )
 }

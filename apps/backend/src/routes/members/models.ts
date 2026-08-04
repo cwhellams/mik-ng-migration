@@ -522,6 +522,91 @@ export const NonRenewalActionSchema = z.object({
 
 export type NonRenewalAction = z.infer<typeof NonRenewalActionSchema>
 
+// member registry change log endpoint
+
+/**
+ * Derived classification of a single `member.register_audit` row. The raw
+ * INSERT/UPDATE/DELETE operation says nothing about what actually happened to
+ * the membership, so the interesting transitions are named explicitly.
+ */
+export enum MemberChangeType {
+  /** A new row was added to the register (a membership application) */
+  REGISTERED = 'REGISTERED',
+  /** Membership application was approved — the member joined the club */
+  APPROVED = 'APPROVED',
+  /** Member type changed to REMOVED — the member left the club */
+  LEFT = 'LEFT',
+  /** Member type changed away from REMOVED — a removal was reverted */
+  RESTORED = 'RESTORED',
+  /** Member type changed between two non-REMOVED types (e.g. JUNIOR → FLYING) */
+  TYPE_CHANGED = 'TYPE_CHANGED',
+  /** Any other edit of the member's details */
+  UPDATED = 'UPDATED',
+  /** The row was hard-deleted from the register */
+  DELETED = 'DELETED',
+}
+
+const strictDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .refine((val) => {
+    const d = new Date(`${val}T00:00:00Z`)
+    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === val
+  }, {
+    message: 'Invalid calendar date',
+  })
+
+export const MemberChangeLogFiltersSchema = z.object({
+  startDate: strictDate,
+  endDate: strictDate,
+  memberType: z
+    .nativeEnum(MIKMemberTypes)
+    .or(z.array(z.nativeEnum(MIKMemberTypes)))
+    .nullish(),
+})
+
+export type MemberChangeLogFilters = z.infer<typeof MemberChangeLogFiltersSchema>
+
+export const MemberChangeLogEntrySchema = z.object({
+  auditId: z.number(),
+  memberId: z.string(),
+  /** Name as recorded in the audit snapshot, i.e. as it was at the time of the change */
+  firstName: z.string(),
+  lastName: z.string(),
+  /** Member type after the change (for DELETE, the type the member had when deleted) */
+  memberType: z.nativeEnum(MIKMemberTypes).nullable(),
+  /** Member type before the change, null for INSERT */
+  previousMemberType: z.nativeEnum(MIKMemberTypes).nullable(),
+  operationType: z.enum(['INSERT', 'UPDATE', 'DELETE']),
+  changeType: z.nativeEnum(MemberChangeType),
+  /** Register columns whose value changed, snake_case, empty for INSERT/DELETE */
+  changedFields: z.array(z.string()),
+  changedAt: z.string().datetime(),
+  changedBy: z.string(),
+  /** Full name of the member who made the change, null if that account is gone */
+  changedByName: z.string().nullable(),
+})
+
+export type MemberChangeLogEntry = z.infer<typeof MemberChangeLogEntrySchema>
+
+export const MemberChangeLogSummarySchema = z.object({
+  /** Memberships that became approved during the period */
+  newMembers: z.number(),
+  /** Memberships that were removed or deleted during the period */
+  leftMembers: z.number(),
+  totalChanges: z.number(),
+})
+
+export type MemberChangeLogSummary = z.infer<typeof MemberChangeLogSummarySchema>
+
+export const MemberChangeLogResponseSchema = z.object({
+  entries: z.array(MemberChangeLogEntrySchema),
+  summary: MemberChangeLogSummarySchema,
+  filters: MemberChangeLogFiltersSchema,
+})
+
+export type MemberChangeLogResponse = z.infer<typeof MemberChangeLogResponseSchema>
+
 export const MemberDeletabilitySchema = z.object({
   canDelete: z.boolean(),
   hasInvoices: z.boolean(),

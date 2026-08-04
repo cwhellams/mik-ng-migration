@@ -17,6 +17,9 @@ import {
   MIKMemberTypes,
   type NonRenewalListResponse,
   NonRenewalActionType,
+  MemberChangeLogFiltersSchema,
+  MemberChangeType,
+  type MemberChangeLogResponse,
 } from './models.ts'
 import {
   getMemberById,
@@ -44,6 +47,7 @@ import {
   canMemberBeDeleted,
   setMustUpdateProfileBulk,
   clearMustUpdateProfile,
+  getMemberChangeLog,
 } from '../../db/member-queries.ts'
 import { getInvoices } from '../../db/invoicing-queries.ts'
 import { getFlightLogs } from '../../db/flight-log-queries.ts'
@@ -196,6 +200,63 @@ router.get(
     }
 
     res.status(HttpStatusCode.Ok).json(stats)
+  },
+)
+
+/** Longest period the change log can be queried for in one request */
+const CHANGE_LOG_MAX_DAYS = 366
+
+router.get(
+  '/changelog',
+  validateUser(MIKPermissions.MEMBER_ADMIN),
+  async (req: Request, res: Response<MemberChangeLogResponse>) => {
+    const parsed = MemberChangeLogFiltersSchema.safeParse(req.query)
+
+    if (!parsed.success) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail:
+          'Invalid query parameters. startDate and endDate are required in YYYY-MM-DD format.',
+        extensions: {
+          errors: parsed.error.issues.map((issue) => ({
+            path: issue.path.join('.'),
+            message: issue.message,
+            code: issue.code,
+          })),
+        },
+      })
+    }
+
+    const filters = parsed.data
+
+    if (dayjs(filters.startDate).isAfter(dayjs(filters.endDate), 'day')) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'Start date cannot be after end date.',
+      })
+    }
+
+    if (dayjs(filters.endDate).diff(dayjs(filters.startDate), 'day') > CHANGE_LOG_MAX_DAYS) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: `The period cannot be longer than ${CHANGE_LOG_MAX_DAYS} days.`,
+      })
+    }
+
+    const entries = await getMemberChangeLog(filters)
+
+    res.status(HttpStatusCode.Ok).json({
+      entries,
+      summary: {
+        newMembers: entries.filter((e) => e.changeType === MemberChangeType.APPROVED).length,
+        leftMembers: entries.filter(
+          (e) =>
+            e.changeType === MemberChangeType.LEFT || e.changeType === MemberChangeType.DELETED,
+        ).length,
+        totalChanges: entries.length,
+      },
+      filters,
+    })
   },
 )
 

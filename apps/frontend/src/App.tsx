@@ -40,6 +40,7 @@ import FuelPrices from './sections/fuelPrices/FuelPrices'
 import Documents from './sections/documents/Documents'
 import { Stats } from './sections/stats/Stats'
 import MemberTrash from './sections/members/MemberTrash'
+import MemberChangeLog from './sections/members/MemberChangeLog'
 import InstructorStatus from './sections/members/InstructorStatus'
 import 'dayjs/locale/en-gb'
 import { InvoicingAdminDashboard } from './sections/accounting/Dashboard'
@@ -191,6 +192,14 @@ function App() {
                 <Route index element={<Members />} />
                 <Route index path='members/roles' element={<Roles />} />
                 <Route path='members/trash' element={<MemberTrash />} />
+                <Route
+                  path='members/changelog'
+                  element={
+                    <RequirePermission permissions={[MIKPermissions.MEMBER_ADMIN]}>
+                      <MemberChangeLog />
+                    </RequirePermission>
+                  }
+                />
                 <Route path='members/:memberId' element={<Member />} />
                 <Route path='instructor-status' element={<InstructorStatus />} />
                 <Route path='billing' element={<Billing />} />
