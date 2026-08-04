@@ -81,7 +81,7 @@ function genericCsv(logs: FlightLogExportEntry[]): Buffer {
     'On Block (UTC)': dayjs.utc(l.onBlockTimeUtc).format('HH:mm'),
     'Flight Time': l.flightTime,
     'Block Time': l.blockTime,
-    PIC: l.picLastName,
+    PIC: l.actingPicLastName,
     'Night (min)': l.nightFlyingMins,
     'IFR (min)': l.instrumentFlyingMins,
     Landings: l.numberOfLandings,
@@ -119,7 +119,7 @@ function foreflightCsv(logs: FlightLogExportEntry[]): Buffer {
     TimeOut: dayjs.utc(l.offBlockTimeUtc).format('HH:mm'),
     TimeIn: dayjs.utc(l.onBlockTimeUtc).format('HH:mm'),
     TotalTime: l.flightTime,
-    PIC: l.picLastName,
+    PIC: l.actingPicLastName,
     Night: minsToHHMM(l.nightFlyingMins),
     ActualInstrument: minsToHHMM(l.instrumentFlyingMins),
     Day: l.numberOfLandings - l.numberOfNightLandings,
@@ -154,8 +154,8 @@ function myflightbookCsv(logs: FlightLogExportEntry[]): Buffer {
     'Engine End',
   ]
   const rows = logs.map((l) => {
-    const isPIC = l.picRole === 'PIC' || l.picRole === 'FI'
-    const isDual = l.picRole === 'STU'
+    const isPIC = l.ownRole === 'PIC' || l.ownRole === 'FI'
+    const isDual = l.ownRole === 'STU'
     return {
       Date: dayjs.utc(l.offBlockTimeUtc).format('DD/MM/YYYY'),
       'Tail Number': l.aircraftRegistration,
@@ -169,7 +169,7 @@ function myflightbookCsv(logs: FlightLogExportEntry[]): Buffer {
       IMC: minsToHHMM(l.instrumentFlyingMins),
       'Simulated Instrument': '',
       'Dual Received': isDual ? l.flightTime : '',
-      CFI: l.picRole === 'FI' ? l.flightTime : '',
+      CFI: l.ownRole === 'FI' ? l.flightTime : '',
       'Total Flight Time': l.flightTime,
       PIC: isPIC ? l.flightTime : '',
       Route: `${l.departureAirport} ${l.arrivalAirport}`,
@@ -208,7 +208,7 @@ function crewloungeCsv(logs: FlightLogExportEntry[]): Buffer {
     ata: dayjs.utc(l.onBlockTimeUtc).format('HH:mm'),
     aircraft_type: l.aircraftModel ?? '',
     registration: l.aircraftRegistration,
-    pic: l.picLastName,
+    pic: l.actingPicLastName,
     total_time: l.flightTime,
     night_time: minsToHHMM(l.nightFlyingMins),
     ifr_time: minsToHHMM(l.instrumentFlyingMins),
@@ -239,8 +239,8 @@ function logbookAeroCsv(logs: FlightLogExportEntry[]): Buffer {
     'remarks',
   ]
   const rows = logs.map((l) => {
-    const isPIC = l.picRole === 'PIC' || l.picRole === 'FI'
-    const isDual = l.picRole === 'STU'
+    const isPIC = l.ownRole === 'PIC' || l.ownRole === 'FI'
+    const isDual = l.ownRole === 'STU'
     return {
       date: dayjs.utc(l.offBlockTimeUtc).format('DD.MM.YYYY'),
       departure_place: l.departureAirport,
@@ -250,7 +250,7 @@ function logbookAeroCsv(logs: FlightLogExportEntry[]): Buffer {
       aircraft_model: l.aircraftModel ?? '',
       aircraft_reg: l.aircraftRegistration,
       total_time: l.flightTime,
-      pic_name: l.picLastName,
+      pic_name: l.actingPicLastName,
       night: minsToHHMM(l.nightFlyingMins),
       ifr: minsToHHMM(l.instrumentFlyingMins),
       pic_time: isPIC ? l.flightTime : '',
@@ -287,7 +287,7 @@ function logtenCsv(logs: FlightLogExportEntry[]): Buffer {
     'Actual Instrument': minsToHHMM(l.instrumentFlyingMins),
     'Day Landings': l.numberOfLandings - l.numberOfNightLandings,
     'Night Landings': l.numberOfNightLandings,
-    'PIC Name': l.picLastName,
+    'PIC Name': l.actingPicLastName,
     Remarks: l.personalRemarks ?? '',
   }))
   return toCsvBuffer(fields, rows)
@@ -320,10 +320,10 @@ function flylogCsv(logs: FlightLogExportEntry[]): Buffer {
     off_block: dayjs.utc(l.offBlockTimeUtc).format('HH:mm'),
     on_block: dayjs.utc(l.onBlockTimeUtc).format('HH:mm'),
     total_time: l.flightTime,
-    pic_lastname: l.picLastName,
+    pic_lastname: l.actingPicLastName,
     night: minsToHHMM(l.nightFlyingMins),
     ifr: minsToHHMM(l.instrumentFlyingMins),
-    pic_role: l.picRole ?? '',
+    pic_role: l.ownRole ?? '',
     landings: l.numberOfLandings,
     night_landings: l.numberOfNightLandings,
     remarks: l.personalRemarks ?? '',
@@ -462,9 +462,9 @@ function addTotals(a: Totals, b: Totals): Totals {
 }
 
 function entryTotals(l: FlightLogExportEntry): Totals {
-  const isPIC = l.picRole === 'PIC' || l.picRole === 'FI'
-  const isDual = l.picRole === 'STU'
-  const isInstructor = l.picRole === 'FI' || l.picRole === 'FE'
+  const isPIC = l.ownRole === 'PIC' || l.ownRole === 'FI'
+  const isDual = l.ownRole === 'STU'
+  const isInstructor = l.ownRole === 'FI' || l.ownRole === 'FE'
   return {
     flightMins: l.flightMins,
     nightMins: l.nightFlyingMins,
@@ -722,9 +722,9 @@ export function generateEasaPdf(
       const pageTotal = zeroTotals()
 
       for (const log of pageRows) {
-        const isPIC = log.picRole === 'PIC' || log.picRole === 'FI'
-        const isDual = log.picRole === 'STU'
-        const isInstructor = log.picRole === 'FI' || log.picRole === 'FE'
+        const isPIC = log.ownRole === 'PIC' || log.ownRole === 'FI'
+        const isDual = log.ownRole === 'STU'
+        const isInstructor = log.ownRole === 'FI' || log.ownRole === 'FE'
         const et = entryTotals(log)
         Object.assign(pageTotal, addTotals(pageTotal, et))
 
@@ -738,7 +738,7 @@ export function generateEasaPdf(
           log.aircraftRegistration,
           'X', // SE — all MIK aircraft are single-engine
           '', // ME
-          log.picLastName,
+          log.actingPicLastName,
           log.flightTime,
           minsToHHMM(log.nightFlyingMins),
           minsToHHMM(log.instrumentFlyingMins),

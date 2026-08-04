@@ -713,7 +713,12 @@ export type FlightLogExportFilters = z.infer<typeof FlightLogExportFiltersSchema
 
 export type FlightLogExportEntry = FlightLogListEntry & {
   flightMins: number
+  /** Role recorded in crew slot 1 (the `pic_*` columns) — not necessarily the exporting pilot. */
   picRole: string | null
+  /** Role the pilot this export is generated for actually flew in, from any crew slot. */
+  ownRole: string | null
+  /** Last name of the crew member who acted as pilot in command on this flight. */
+  actingPicLastName: string
   aircraftModel: string | null
   personalRemarks: string | null
 }

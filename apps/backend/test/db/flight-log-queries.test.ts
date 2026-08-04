@@ -1,9 +1,11 @@
 import 'dotenv/config'
 
 import {
+  countFlightLogsForExport,
   deleteFlightLog,
   getFlightLog,
   getFlightLogs,
+  getFlightLogsForExport,
   getFlightLogTotals,
   getFlightStats,
   getInvoicableFlights,
@@ -969,5 +971,76 @@ describe('Db Flight statistics', () => {
         totalLandings: 2,
       },
     ])
+  })
+})
+
+describe('Db FlightLog export tests', () => {
+  // Instructor flights on OH-P28 (see V190__InstructorFlightData.sql):
+  //   fi_inst1: Matti1 (STU, slot 1) + Jukka1 (FI, crew2), billed to Jukka1
+  //   fi_inst2: Anna1  (STU, slot 1) + Jukka1 (FI, crew2)
+  //   fi_inst3: Jukka1 (FI,  slot 1) + Liisa1 (STU, crew2)
+  const instructorFlights = {
+    aircraftRegistration: 'OH-P28',
+    startDate: '2025-04-01T00:00:00.000Z',
+    endDate: '2025-05-31T00:00:00.000Z',
+  }
+
+  // The "mass" test flights are all flown by Pekka1 as PIC but billed to other members.
+  const massFlights = {
+    startDate: '2010-01-01T00:00:00.000Z',
+    endDate: '2010-06-30T00:00:00.000Z',
+  }
+
+  it('counts the flights the member actually flew, not the ones they were billed for', async () => {
+    // Kaisa1 is billed for 43 of the mass flights but flew none of them
+    expect(await countFlightLogsForExport(massFlights, 'Kaisa1')).toEqual(0)
+    expect(await countFlightLogsForExport(massFlights, 'Pekka1')).toEqual(200)
+    expect(await countFlightLogsForExport(massFlights)).toEqual(200)
+  })
+
+  it('reports the instructor own FI role regardless of the crew slot they occupied', async () => {
+    const logs = await getFlightLogsForExport(instructorFlights, 'Jukka1')
+
+    expect(logs.map((l) => l.flightId)).toEqual(['fi_inst1', 'fi_inst2', 'fi_inst3'])
+    expect(logs.map((l) => l.ownRole)).toEqual(['FI', 'FI', 'FI'])
+    // Jukka1 is the instructor and therefore the pilot in command on all three
+    expect(logs.map((l) => l.actingPicLastName)).toEqual(['Nieminen', 'Nieminen', 'Nieminen'])
+    // slot 1 holds the student on the first two flights
+    expect(logs.map((l) => l.picRole)).toEqual(['STU', 'STU', 'FI'])
+  })
+
+  it('reports the student own STU role and the instructor as pilot in command', async () => {
+    const logs = await getFlightLogsForExport(instructorFlights, 'Matti1')
+    const dualFlight = logs.find((l) => l.flightId === 'fi_inst1')
+
+    expect(dualFlight?.ownRole).toEqual('STU')
+    expect(dualFlight?.actingPicLastName).toEqual('Nieminen')
+    // Matti1 also flew solo flights on the same aircraft in this period
+    expect(logs.filter((l) => l.ownRole === 'PIC').length).toBeGreaterThan(0)
+  })
+
+  it('falls back to crew slot 1 for exports that are not scoped to a member', async () => {
+    const logs = await getFlightLogsForExport(instructorFlights)
+    const dualFlight = logs.find((l) => l.flightId === 'fi_inst1')
+
+    expect(dualFlight?.ownRole).toEqual('STU')
+    expect(dualFlight?.picRole).toEqual('STU')
+    expect(dualFlight?.actingPicLastName).toEqual('Nieminen')
+  })
+
+  it('treats flight examiners as acting PIC when no PIC or FI role is present', async () => {
+    const logs = await getFlightLogsForExport(
+      {
+        aircraftRegistration: 'OH-STL',
+        startDate: '2024-03-11T00:00:00.000Z',
+        endDate: '2024-03-13T00:00:00.000Z',
+      },
+      'Sanna1',
+    )
+    const examinerFlight = logs.find((l) => l.flightId === 'eject')
+
+    expect(examinerFlight?.ownRole).toEqual('STU')
+    expect(examinerFlight?.picRole).toEqual('STU')
+    expect(examinerFlight?.actingPicLastName).toEqual('Seppälä')
   })
 })

@@ -1070,24 +1070,72 @@ export async function upsertFlightCredit(
   return { flightId, creditedMins, note }
 }
 
+interface ExportCrewSlot {
+  memberId: string | null
+  lastName: string | null
+  role: string | null
+}
+
+/**
+ * The `pic_*` columns are just crew slot 1 — its occupant may hold any role
+ * (PIC, FI, STU, FE, OBS), so slot 1 is not necessarily the exporting pilot nor
+ * the legal pilot in command. Resolve, for a single flight row:
+ *  - `ownRole`: the role held by the member this export is generated for, in
+ *    whichever crew slot they occupied. Falls back to slot 1 for exports that are
+ *    not scoped to a member (admins exporting everyone's flights).
+ *  - `actingPicLastName`: the name of the crew member who acted as pilot in
+ *    command — the crew member with the PIC role if there is one, otherwise the
+ *    instructor (who is PIC on a training flight), otherwise slot 1.
+ */
+function resolveExportCrew(
+  slots: ExportCrewSlot[],
+  memberId?: string,
+): { ownRole: string | null; actingPicLastName: string } {
+  const own = memberId ? slots.find((slot) => slot.memberId === memberId) : slots[0]
+  const actingPic =
+    slots.find((slot) => slot.role === 'PIC') ??
+    slots.find((slot) => slot.role === 'FI') ??
+    slots.find((slot) => slot.role === 'FE') ??
+    slots[0]
+  return {
+    ownRole: own?.role ?? null,
+    actingPicLastName: actingPic.lastName ?? slots[0].lastName ?? '',
+  }
+}
+
 function buildExportBaseQuery(filters: FlightLogExportFilters, memberId?: string) {
-  return db
-    .selectFrom('flight.logs')
-    .leftJoin(
-      'flight.aircraft',
-      'flight.logs.aircraft_registration',
-      'flight.aircraft.registration',
-    )
-    .$if(!!memberId, (qb) => qb.where('billable_member_id', '=', memberId!))
-    .$if(!!filters.aircraftRegistration, (qb) =>
-      qb.where('aircraft_registration', '=', filters.aircraftRegistration!),
-    )
-    .$if(!!filters.startDate, (qb) =>
-      qb.where('off_block_time_epoch', '>=', dayjs(filters.startDate!).unix().toString()),
-    )
-    .$if(!!filters.endDate, (qb) =>
-      qb.where('on_block_time_epoch', '<=', dayjs(filters.endDate!).endOf('day').unix().toString()),
-    )
+  return (
+    db
+      .selectFrom('flight.logs')
+      .leftJoin(
+        'flight.aircraft',
+        'flight.logs.aircraft_registration',
+        'flight.aircraft.registration',
+      )
+      // A pilot log must contain the flights the member actually flew, in whichever
+      // crew slot they occupied — not the flights they happened to be billed for.
+      .$if(!!memberId, (qb) =>
+        qb.where((eb) =>
+          eb('pic_member_id', '=', memberId!)
+            .or('crew2_member_id', '=', memberId!)
+            .or('crew3_member_id', '=', memberId!)
+            .or('crew4_member_id', '=', memberId!),
+        ),
+      )
+      .$if(!!filters.aircraftRegistration, (qb) =>
+        qb.where('aircraft_registration', '=', filters.aircraftRegistration!),
+      )
+      .$if(!!filters.startDate, (qb) =>
+        qb.where('off_block_time_epoch', '>=', dayjs(filters.startDate!).unix().toString()),
+      )
+      .$if(!!filters.endDate, (qb) =>
+        qb.where(
+          'on_block_time_epoch',
+          '<=',
+          dayjs(filters.endDate!).endOf('day').unix().toString(),
+        ),
+      )
+  )
 }
 
 export async function countFlightLogsForExport(
@@ -1114,6 +1162,14 @@ export async function getFlightLogsForExport(
       'flight.logs.block_mins',
       'flight.logs.block_time',
       'flight.logs.crew2_last_name',
+      'flight.logs.crew2_member_id',
+      'flight.logs.crew2_role',
+      'flight.logs.crew3_last_name',
+      'flight.logs.crew3_member_id',
+      'flight.logs.crew3_role',
+      'flight.logs.crew4_last_name',
+      'flight.logs.crew4_member_id',
+      'flight.logs.crew4_role',
       'flight.logs.departure_airport',
       'flight.logs.flight_id',
       'flight.logs.flight_mins',
@@ -1137,6 +1193,7 @@ export async function getFlightLogsForExport(
       'flight.logs.personal_remarks',
       'flight.logs.persons_on_board',
       'flight.logs.pic_last_name',
+      'flight.logs.pic_member_id',
       'flight.logs.pic_role',
       'flight.logs.status',
       'flight.logs.total_time_in_service',
@@ -1146,6 +1203,15 @@ export async function getFlightLogsForExport(
     .execute()
 
   return results.map((row) => {
+    const { ownRole, actingPicLastName } = resolveExportCrew(
+      [
+        { memberId: row.pic_member_id, lastName: row.pic_last_name, role: row.pic_role },
+        { memberId: row.crew2_member_id, lastName: row.crew2_last_name, role: row.crew2_role },
+        { memberId: row.crew3_member_id, lastName: row.crew3_last_name, role: row.crew3_role },
+        { memberId: row.crew4_member_id, lastName: row.crew4_last_name, role: row.crew4_role },
+      ],
+      memberId,
+    )
     const listEntry: FlightLogListEntry = {
       acTotalFlightTime: '00:00',
       acTotalLandings: null,
@@ -1192,6 +1258,8 @@ export async function getFlightLogsForExport(
       ...listEntry,
       flightMins: row.flight_mins,
       picRole: row.pic_role,
+      ownRole,
+      actingPicLastName,
       aircraftModel: row.aircraft_model ?? null,
       personalRemarks: row.personal_remarks,
     }
