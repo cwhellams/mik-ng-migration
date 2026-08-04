@@ -309,7 +309,45 @@ export const PilotStatisticsSchema = z.object({
   airportsHistogram: z.array(PilotStatisticsHistogramBinSchema),
 })
 
+// My Statistics — personal, self-scoped stats for the authenticated member.
+// Scoped on pic_member_id: this is "flights I flew", not "flights billed to me".
+export const MyStatisticsTotalsSchema = z.object({
+  flightCount: z.number(),
+  totalFlightMins: z.number(),
+  totalBlockMins: z.number(),
+  totalLandings: z.number(),
+  uniqueAirports: z.number(),
+})
+
+export const MyStatisticsDaySchema = z.object({
+  date: z.string(),
+  flightMins: z.number(),
+})
+
+export const MyStatisticsMonthSchema = z.object({
+  yr: z.number(),
+  mth: z.number(),
+  flightMins: z.number(),
+})
+
+export const MyStatisticsSchema = z.object({
+  totals: MyStatisticsTotalsSchema,
+  daily: z.array(MyStatisticsDaySchema),
+  monthly: z.array(MyStatisticsMonthSchema),
+})
+
+export const MyStatisticsFilterSchema = z.object({
+  date_from: z.string().date().optional(),
+  date_to: z.string().date().optional(),
+  aircraft_registration: z.string().min(1).optional(),
+})
+
 // Type exports
+export type MyStatisticsTotals = z.infer<typeof MyStatisticsTotalsSchema>
+export type MyStatisticsDay = z.infer<typeof MyStatisticsDaySchema>
+export type MyStatisticsMonth = z.infer<typeof MyStatisticsMonthSchema>
+export type MyStatistics = z.infer<typeof MyStatisticsSchema>
+export type MyStatisticsFilter = z.infer<typeof MyStatisticsFilterSchema>
 export type PilotStatisticsHistogramBin = z.infer<typeof PilotStatisticsHistogramBinSchema>
 export type PilotStatistics = z.infer<typeof PilotStatisticsSchema>
 export type TotalFlightTimeByAc = z.infer<typeof TotalFlightTimeByAcSchema>

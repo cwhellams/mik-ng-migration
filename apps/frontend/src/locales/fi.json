@@ -2184,6 +2184,27 @@
       "monthAxis": "Kuukausi",
       "hoursAxis": "Tunnit"
     },
+    "my": {
+      "viewMode": "Omat tilastot",
+      "range": {
+        "ytd": "Kuluva vuosi",
+        "allTime": "Koko historia"
+      },
+      "aircraft": "Kone",
+      "allAircraft": "Kaikki koneet",
+      "totals": {
+        "flightTime": "Lentoaika",
+        "blockTime": "Blokkiaika",
+        "landings": "Laskeutumiset",
+        "airports": "Vieraillut lentoasemat",
+        "flights": "Lennot"
+      },
+      "calendarTitle": "Oma lentoaikakalenteri",
+      "monthlyTitle": "Omat lentotunnit kuukausittain",
+      "monthAxis": "Kuukausi",
+      "hoursAxis": "Tunnit",
+      "noData": "Ei lentoja valitulla jaksolla"
+    },
     "pilots": {
       "dateRange": "Aikajakso",
       "from": "Alkaen",

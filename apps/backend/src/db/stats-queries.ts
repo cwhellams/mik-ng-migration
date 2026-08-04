@@ -23,6 +23,7 @@ import type {
   TotalFlightTimeByPilotYrMth,
   TotalFlightTimeByAcCalendar,
   CommercialFlightTimeByAcYrMth,
+  MyStatistics,
   PilotStatistics,
   PilotStatisticsHistogramBin,
   ReservationEfficiencyByYr,
@@ -569,6 +570,118 @@ export const getPilotStatistics = async (filters: {
     uniquePicCount,
     hoursHistogram: buildHistogram(hoursValues, 2),
     airportsHistogram: buildHistogram(airportValues, 2),
+  }
+}
+
+// My Statistics — personal stats for a single member.
+//
+// Scoped on pic_member_id rather than billable_member_id: this view answers
+// "what have I flown", so a flight someone else paid for still counts as mine,
+// and a flight billed to me but flown by someone else does not.
+export const getMyStatistics = async (filters: {
+  memberId: string
+  date_from?: string
+  date_to?: string
+  aircraft_registration?: string
+}): Promise<MyStatistics> => {
+  // Shared predicate for every aggregate below. Starts with WHERE so callers can
+  // append further AND conditions.
+  const where = sql`
+    WHERE pic_member_id = ${filters.memberId}
+    ${
+      filters.date_from
+        ? sql`AND takeoff_time_epoch >= EXTRACT(EPOCH FROM ${filters.date_from}::date)::bigint`
+        : sql``
+    }
+    ${
+      filters.date_to
+        ? sql`AND takeoff_time_epoch < EXTRACT(EPOCH FROM (${filters.date_to}::date + INTERVAL '1 day'))::bigint`
+        : sql``
+    }
+    ${
+      filters.aircraft_registration
+        ? sql`AND aircraft_registration = ${filters.aircraft_registration}`
+        : sql``
+    }
+  `
+
+  const [totalsResult, airportsResult, dailyResult] = await Promise.all([
+    sql<{
+      flight_count: number
+      total_flight_mins: number
+      total_block_mins: number
+      total_landings: number
+    }>`
+      SELECT
+        COUNT(*)::int AS flight_count,
+        COALESCE(SUM(flight_mins), 0)::int AS total_flight_mins,
+        COALESCE(SUM(block_mins), 0)::int AS total_block_mins,
+        COALESCE(SUM(number_of_landings), 0)::int AS total_landings
+      FROM flight.logs
+      ${where}
+    `.execute(db),
+
+    // Same airport-code sanity filter as getPilotStatistics so the two agree.
+    sql<{ unique_airports: number }>`
+      SELECT COUNT(DISTINCT airport)::int AS unique_airports
+      FROM (
+        SELECT departure_airport AS airport
+        FROM flight.logs
+        ${where}
+          AND departure_airport IS NOT NULL
+          AND LENGTH(TRIM(departure_airport)) >= 2
+          AND departure_airport ~ '^[A-Z]'
+        UNION
+        SELECT arrival_airport AS airport
+        FROM flight.logs
+        ${where}
+          AND arrival_airport IS NOT NULL
+          AND LENGTH(TRIM(arrival_airport)) >= 2
+          AND arrival_airport ~ '^[A-Z]'
+      ) a
+    `.execute(db),
+
+    sql<{ date: string; flight_mins: number }>`
+      SELECT
+        TO_CHAR(TO_TIMESTAMP(takeoff_time_epoch)::date, 'YYYY-MM-DD') AS date,
+        COALESCE(SUM(flight_mins), 0)::int AS flight_mins
+      FROM flight.logs
+      ${where}
+      GROUP BY 1
+      ORDER BY 1
+    `.execute(db),
+  ])
+
+  const totalsRow = totalsResult.rows[0]
+  const daily = dailyResult.rows.map((r) => ({
+    date: r.date,
+    flightMins: Number(r.flight_mins),
+  }))
+
+  // Roll the daily series up to months rather than issuing a fourth query.
+  const monthlyMins = new Map<string, number>()
+  for (const day of daily) {
+    const key = day.date.slice(0, 7)
+    monthlyMins.set(key, (monthlyMins.get(key) ?? 0) + day.flightMins)
+  }
+  const monthly = Array.from(monthlyMins.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, flightMins]) => ({
+      yr: Number(key.slice(0, 4)),
+      mth: Number(key.slice(5, 7)),
+      flightMins,
+    }))
+
+  return {
+    totals: {
+      flightCount: Number(totalsRow?.flight_count ?? 0),
+      totalFlightMins: Number(totalsRow?.total_flight_mins ?? 0),
+      totalBlockMins: Number(totalsRow?.total_block_mins ?? 0),
+      totalLandings: Number(totalsRow?.total_landings ?? 0),
+      uniqueAirports: Number(airportsResult.rows[0]?.unique_airports ?? 0),
+    },
+    daily,
+    monthly,
   }
 }
 

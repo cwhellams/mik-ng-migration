@@ -23,6 +23,7 @@ import {
   getTotalFlightTimeByAcDt,
   getCommercialFlightTimeByAcYrMth,
   getPilotStatistics,
+  getMyStatistics,
   getReservationEfficiencyByYr,
   getReservationEfficiencyByYrMth,
   getReservationEfficiencyByAcYr,
@@ -37,6 +38,7 @@ import {
   getAogDaysByAcYr,
   getPobDistributionByAcYr,
 } from '../../db/stats-queries.ts'
+import { MyStatisticsFilterSchema } from './models.ts'
 import type {
   TotalFlightTimeByAc,
   TotalFlightTimeByAcYrFt,
@@ -59,6 +61,7 @@ import type {
   TotalFlightTimeByAcCalendar,
   CommercialFlightTimeByAcYrMth,
   PilotStatistics,
+  MyStatistics,
   ReservationEfficiencyByYr,
   ReservationEfficiencyByYrMth,
   ReservationEfficiencyByAcYr,
@@ -299,6 +302,14 @@ router.get('/pilots', async (req: Request, res: Response<PilotStatistics>) => {
   const to = (req.query.to as string | undefined) ?? defaultTo
 
   const data = await getPilotStatistics({ from, to })
+  res.status(200).json(data)
+})
+
+// Personal statistics for the authenticated member. Self-scoped by construction —
+// the member id is taken from the session, never from the query string.
+router.get('/my', async (req: Request, res: Response<MyStatistics>) => {
+  const filters = MyStatisticsFilterSchema.parse(req.query)
+  const data = await getMyStatistics({ memberId: req.user!.memberId, ...filters })
   res.status(200).json(data)
 })
 

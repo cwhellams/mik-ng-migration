@@ -2178,6 +2178,27 @@
       "monthAxis": "Month",
       "hoursAxis": "Hours"
     },
+    "my": {
+      "viewMode": "My Stats",
+      "range": {
+        "ytd": "Year to Date",
+        "allTime": "All Time"
+      },
+      "aircraft": "Aircraft",
+      "allAircraft": "All Aircraft",
+      "totals": {
+        "flightTime": "Flight Time",
+        "blockTime": "Block Time",
+        "landings": "Landings",
+        "airports": "Airports Visited",
+        "flights": "Flights"
+      },
+      "calendarTitle": "My Flight Time Calendar",
+      "monthlyTitle": "My Flight Hours by Month",
+      "monthAxis": "Month",
+      "hoursAxis": "Hours",
+      "noData": "No flights for the selected period"
+    },
     "pilots": {
       "dateRange": "Time Period",
       "from": "From",

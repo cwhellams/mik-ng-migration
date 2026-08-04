@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
 import { useRoles } from '../../hooks/useRoles'
 import { useThemeMode } from '../../theme/ThemeContext'
+import { useNivoTheme } from './useNivoTheme'
 import { MIKPermissions } from '@backend/routes/members/models'
 import {
   TotalFlightTimeByAcYrFt,
@@ -37,7 +38,11 @@ import { PilotStatistics as PilotStatisticsView } from './components/PilotStatis
 import { ReservationEfficiency as ReservationEfficiencyView } from './components/ReservationEfficiency'
 import { YearOnYearReport } from './components/YearOnYearReport'
 
-type ViewMode = 'aircraft' | 'pilot' | 'pilots' | 'efficiency' | 'yoy' | 'airfield' | 'aog'
+type ViewMode = 'my' | 'aircraft' | 'pilot' | 'pilots' | 'efficiency' | 'yoy' | 'airfield' | 'aog'
+
+// View modes rendered entirely by their own component, rather than by the
+// aircraft/member charts below.
+const STANDALONE_VIEW_MODES: ViewMode[] = ['my', 'pilots', 'efficiency', 'yoy', 'airfield', 'aog']
 
 type PobBucketTotals = {
   flightCount: number
@@ -46,6 +51,7 @@ type PobBucketTotals = {
 }
 import { AirfieldEfficiency as AirfieldEfficiencyView } from './components/AirfieldEfficiency'
 import { AogStatistics as AogStatisticsView } from './components/AogStatistics'
+import { MyStatistics as MyStatisticsView } from './components/MyStatistics'
 
 const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
   <Box
@@ -67,39 +73,7 @@ export const Stats = () => {
   const { hasAccess: hasAdminAccess } = useRoles()
   const { sudo, mode } = useThemeMode()
 
-  const nivoTheme = useMemo(
-    () => ({
-      axis: {
-        ticks: {
-          text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
-          line: { stroke: mode === 'dark' ? '#888888' : '#777777' },
-        },
-        legend: {
-          text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
-        },
-        domain: {
-          line: { stroke: mode === 'dark' ? '#555555' : '#777777' },
-        },
-      },
-      legends: {
-        text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
-      },
-      tooltip: {
-        container: {
-          background: mode === 'dark' ? '#2a2a2a' : '#ffffff',
-          color: mode === 'dark' ? '#ffffff' : '#333333',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
-        },
-      },
-      grid: {
-        line: { stroke: mode === 'dark' ? '#444444' : '#dddddd' },
-      },
-      labels: {
-        text: { fill: mode === 'dark' ? '#cccccc' : '#333333' },
-      },
-    }),
-    [mode],
-  )
+  const nivoTheme = useNivoTheme()
 
   const arcLinkLabelsTextColor = mode === 'dark' ? '#cccccc' : '#333333'
   const legendHoverTextColor = mode === 'dark' ? '#ffffff' : '#000000'
@@ -741,6 +715,7 @@ export const Stats = () => {
                 fullWidth
                 size='small'
               >
+                <ToggleButton value='my'>{t('stats.my.viewMode')}</ToggleButton>
                 <ToggleButton value='aircraft'>Aircraft</ToggleButton>
                 <ToggleButton value='pilot'>Members</ToggleButton>
                 <ToggleButton value='pilots'>Pilots</ToggleButton>
@@ -753,6 +728,8 @@ export const Stats = () => {
           </Grid>
         </CardContent>
       </Card>
+      {/* My Statistics view */}
+      {viewMode === 'my' && <MyStatisticsView />}
       {/* Pilot Statistics view */}
       {viewMode === 'pilots' && <PilotStatisticsView />}
       {/* Reservation Efficiency view */}
@@ -763,512 +740,234 @@ export const Stats = () => {
       {viewMode === 'airfield' && <AirfieldEfficiencyView />}
       {/* AOG (Aircraft On Ground) view */}
       {viewMode === 'aog' && <AogStatisticsView />}
-      {viewMode !== 'pilots' &&
-        viewMode !== 'efficiency' &&
-        viewMode !== 'yoy' &&
-        viewMode !== 'airfield' &&
-        viewMode !== 'aog' && (
-          <>
-            {/* Summary Stats */}
-            {viewMode === 'aircraft' ? (
-              <RemoteContent isLoading={aircraftLoading} error={aircraftError}>
-                <Grid container spacing={3} sx={{ mb: 3 }}>
-                  {summaryStatsByAircraft.map((stats) => (
-                    <Grid key={stats.aircraft} size={{ xs: 12, sm: 6 }}>
-                      <Card>
-                        <CardContent>
-                          <Typography
-                            gutterBottom
-                            sx={{
-                              color: 'text.secondary',
-                            }}
-                          >
-                            {stats.aircraft} - Flight Hours YTD
-                          </Typography>
-                          <Typography variant='h4'>{stats.ytd}</Typography>
-                          <Box sx={{ mt: 2 }}>
-                            {stats.previousYears.map((yearData) => (
-                              <Typography
-                                key={yearData.year}
-                                variant='body2'
-                                sx={{
-                                  color: 'text.secondary',
-                                }}
-                              >
-                                {yearData.year}: {yearData.hours} hrs (NF: {yearData.nf}, IFR:{' '}
-                                {yearData.ifr})
-                              </Typography>
-                            ))}
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-              </RemoteContent>
-            ) : (
-              <RemoteContent isLoading={memberCountLoading} error={memberCountError}>
-                <Card sx={{ mb: 3 }}>
-                  <CardContent>
-                    <Typography variant='h6' gutterBottom>
-                      Member Count by Type
-                    </Typography>
-                    <Box sx={{ height: 400 }}>
-                      <ResponsivePie
-                        data={memberCountPieData}
-                        margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
-                        innerRadius={0.5}
-                        padAngle={0.7}
-                        cornerRadius={3}
-                        activeOuterRadiusOffset={8}
-                        borderWidth={1}
-                        borderColor={{
-                          from: 'color',
-                          modifiers: [['darker', 0.2]],
-                        }}
-                        arcLinkLabelsSkipAngle={10}
-                        arcLinkLabelsTextColor={arcLinkLabelsTextColor}
-                        arcLinkLabelsThickness={2}
-                        arcLinkLabelsColor={{ from: 'color' }}
-                        arcLabelsSkipAngle={10}
-                        arcLabelsTextColor={{
-                          from: 'color',
-                          modifiers: [['darker', 2]],
-                        }}
-                        theme={nivoTheme}
-                        legends={[
-                          {
-                            anchor: 'bottom',
-                            direction: 'row',
-                            justify: false,
-                            translateX: 0,
-                            translateY: 56,
-                            itemsSpacing: 0,
-                            itemWidth: 100,
-                            itemHeight: 18,
-                            itemTextColor: arcLinkLabelsTextColor,
-                            itemDirection: 'left-to-right',
-                            itemOpacity: 1,
-                            symbolSize: 18,
-                            symbolShape: 'circle',
-                            effects: [
-                              {
-                                on: 'hover',
-                                style: {
-                                  itemTextColor: legendHoverTextColor,
-                                },
-                              },
-                            ],
-                          },
-                        ]}
-                      />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </RemoteContent>
-            )}
-
-            {/* Flight Time Calendar */}
-            {viewMode === 'aircraft' && (
-              <RemoteContent isLoading={calendarLoading} error={calendarError}>
-                <Box>
-                  {calendarDataByAircraft.map((aircraftCalendar) => (
-                    <Card key={aircraftCalendar.aircraft} sx={{ mb: 3 }}>
+      {!STANDALONE_VIEW_MODES.includes(viewMode) && (
+        <>
+          {/* Summary Stats */}
+          {viewMode === 'aircraft' ? (
+            <RemoteContent isLoading={aircraftLoading} error={aircraftError}>
+              <Grid container spacing={3} sx={{ mb: 3 }}>
+                {summaryStatsByAircraft.map((stats) => (
+                  <Grid key={stats.aircraft} size={{ xs: 12, sm: 6 }}>
+                    <Card>
                       <CardContent>
-                        <Typography variant='h6' gutterBottom>
-                          Flight Time Calendar - {aircraftCalendar.aircraft} (Last 2 Years)
+                        <Typography
+                          gutterBottom
+                          sx={{
+                            color: 'text.secondary',
+                          }}
+                        >
+                          {stats.aircraft} - Flight Hours YTD
                         </Typography>
-                        <Box sx={{ height: 400 }}>
-                          <ResponsiveCalendar
-                            data={aircraftCalendar.data}
-                            from={dateFrom}
-                            to={dateTo}
-                            emptyColor={mode === 'dark' ? '#333333' : '#eeeeee'}
-                            colors={['#61cdbb', '#97e3d5', '#e8c1a0', '#f47560']}
-                            margin={{ top: 40, right: 40, bottom: 40, left: 40 }}
-                            yearSpacing={40}
-                            monthBorderColor={mode === 'dark' ? '#555555' : '#ffffff'}
-                            dayBorderWidth={2}
-                            dayBorderColor={mode === 'dark' ? '#555555' : '#ffffff'}
-                            tooltip={CalendarTooltip}
-                            theme={nivoTheme}
-                            legends={[
-                              {
-                                anchor: 'bottom-right',
-                                direction: 'row',
-                                translateY: 36,
-                                itemCount: 4,
-                                itemWidth: 42,
-                                itemHeight: 36,
-                                itemsSpacing: 14,
-                                itemDirection: 'right-to-left',
-                              },
-                            ]}
-                          />
+                        <Typography variant='h4'>{stats.ytd}</Typography>
+                        <Box sx={{ mt: 2 }}>
+                          {stats.previousYears.map((yearData) => (
+                            <Typography
+                              key={yearData.year}
+                              variant='body2'
+                              sx={{
+                                color: 'text.secondary',
+                              }}
+                            >
+                              {yearData.year}: {yearData.hours} hrs (NF: {yearData.nf}, IFR:{' '}
+                              {yearData.ifr})
+                            </Typography>
+                          ))}
                         </Box>
                       </CardContent>
                     </Card>
-                  ))}
-                </Box>
-              </RemoteContent>
-            )}
-
-            {/* Monthly Flight Time by Aircraft (Stacked) */}
-            {viewMode === 'aircraft' && (
-              <RemoteContent isLoading={monthlyLoading} error={monthlyError}>
-                <Card sx={{ mb: 3 }}>
-                  <CardContent>
-                    <Typography variant='h6' gutterBottom>
-                      Monthly Flight Time by Aircraft (Last 12 Months)
-                    </Typography>
-                    <Box>
-                      {monthlyDataByAircraft.map((aircraftData) => (
-                        <Box key={aircraftData.aircraft} sx={{ mb: 4 }}>
-                          <Typography
-                            variant='subtitle1'
-                            gutterBottom
-                            sx={{
-                              fontWeight: 'bold',
-                            }}
-                          >
-                            {aircraftData.aircraft}
-                          </Typography>
-                          <Box sx={{ height: 300 }}>
-                            <ResponsiveBar
-                              data={aircraftData.data}
-                              keys={flightTypes}
-                              indexBy='month'
-                              margin={{
-                                top: 20,
-                                right: 130,
-                                bottom: 50,
-                                left: 60,
-                              }}
-                              padding={0.3}
-                              valueScale={{ type: 'linear' }}
-                              colors={{ scheme: 'nivo' }}
-                              borderColor={{
-                                from: 'color',
-                                modifiers: [['darker', 1.6]],
-                              }}
-                              axisTop={null}
-                              axisRight={null}
-                              axisBottom={{
-                                tickSize: 5,
-                                tickPadding: 5,
-                                tickRotation: -45,
-                                legend: 'Month',
-                                legendPosition: 'middle',
-                                legendOffset: 40,
-                              }}
-                              axisLeft={{
-                                tickSize: 5,
-                                tickPadding: 5,
-                                tickRotation: 0,
-                                legend: 'Hours',
-                                legendPosition: 'middle',
-                                legendOffset: -50,
-                              }}
-                              labelSkipWidth={12}
-                              labelSkipHeight={12}
-                              labelTextColor={{
-                                from: 'color',
-                                modifiers: [['darker', 1.6]],
-                              }}
-                              theme={nivoTheme}
-                              legends={[
-                                {
-                                  dataFrom: 'keys',
-                                  anchor: 'bottom-right',
-                                  direction: 'column',
-                                  justify: false,
-                                  translateX: 120,
-                                  translateY: 0,
-                                  itemsSpacing: 2,
-                                  itemWidth: 100,
-                                  itemHeight: 20,
-                                  itemDirection: 'left-to-right',
-                                  itemOpacity: 0.85,
-                                  symbolSize: 20,
-                                  effects: [
-                                    {
-                                      on: 'hover',
-                                      style: {
-                                        itemOpacity: 1,
-                                      },
-                                    },
-                                  ],
-                                },
-                              ]}
-                            />
-                          </Box>
-                        </Box>
-                      ))}
-                    </Box>
-                  </CardContent>
-                </Card>
-              </RemoteContent>
-            )}
-
-            {/* Commercial Flight Time by Aircraft (Admin Only) */}
-            {viewMode === 'aircraft' && hasCommercialAccess && (
-              <RemoteContent isLoading={commercialLoading} error={commercialError}>
-                <Card sx={{ mb: 3 }}>
-                  <CardContent>
-                    <Typography variant='h6' gutterBottom>
-                      Commercial Flight Time by Aircraft (Last 12 Months)
-                    </Typography>
-                    <Box>
-                      {commercialBarData.map((aircraftData) => (
-                        <Box key={aircraftData.aircraft} sx={{ mb: 4 }}>
-                          <Typography
-                            variant='subtitle1'
-                            gutterBottom
-                            sx={{
-                              fontWeight: 'bold',
-                            }}
-                          >
-                            {aircraftData.aircraft}
-                          </Typography>
-                          <Box sx={{ height: 300 }}>
-                            <ResponsiveBar
-                              data={aircraftData.data}
-                              keys={['hours']}
-                              indexBy='month'
-                              margin={{
-                                top: 20,
-                                right: 30,
-                                bottom: 50,
-                                left: 60,
-                              }}
-                              padding={0.3}
-                              valueScale={{ type: 'linear' }}
-                              colors={{ scheme: 'set2' }}
-                              borderColor={{
-                                from: 'color',
-                                modifiers: [['darker', 1.6]],
-                              }}
-                              axisTop={null}
-                              axisRight={null}
-                              axisBottom={{
-                                tickSize: 5,
-                                tickPadding: 5,
-                                tickRotation: -45,
-                                legend: 'Month',
-                                legendPosition: 'middle',
-                                legendOffset: 40,
-                              }}
-                              axisLeft={{
-                                tickSize: 5,
-                                tickPadding: 5,
-                                tickRotation: 0,
-                                legend: 'Commercial Hours',
-                                legendPosition: 'middle',
-                                legendOffset: -50,
-                              }}
-                              labelSkipWidth={12}
-                              labelSkipHeight={12}
-                              labelTextColor={{
-                                from: 'color',
-                                modifiers: [['darker', 1.6]],
-                              }}
-                              theme={nivoTheme}
-                              enableLabel={true}
-                            />
-                          </Box>
-                        </Box>
-                      ))}
-                    </Box>
-                  </CardContent>
-                </Card>
-              </RemoteContent>
-            )}
-
-            {/* Flight Time by Year */}
-            {viewMode === 'aircraft' && (
-              <RemoteContent isLoading={isLoading} error={error}>
-                <Card>
-                  <CardContent>
-                    <Typography variant='h6' gutterBottom>
-                      Flight Time by Aircraft (Yearly)
-                    </Typography>
-                    <Box sx={{ height: 500 }}>
-                      <ResponsiveBar
-                        data={barData}
-                        keys={barChartKeys}
-                        indexBy='year'
-                        margin={{ top: 20, right: 130, bottom: 50, left: 60 }}
-                        padding={0.3}
-                        valueScale={{ type: 'linear' }}
-                        groupMode='grouped'
-                        colors={{ scheme: 'nivo' }}
-                        borderColor={{
-                          from: 'color',
-                          modifiers: [['darker', 1.6]],
-                        }}
-                        axisTop={null}
-                        axisRight={null}
-                        axisBottom={{
-                          tickSize: 5,
-                          tickPadding: 5,
-                          tickRotation: 0,
-                          legend: 'Year',
-                          legendPosition: 'middle',
-                          legendOffset: 40,
-                        }}
-                        axisLeft={{
-                          tickSize: 5,
-                          tickPadding: 5,
-                          tickRotation: 0,
-                          legend: 'Hours',
-                          legendPosition: 'middle',
-                          legendOffset: -50,
-                        }}
-                        labelSkipWidth={12}
-                        labelSkipHeight={12}
-                        labelTextColor={{
-                          from: 'color',
-                          modifiers: [['darker', 1.6]],
-                        }}
-                        theme={nivoTheme}
-                      />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </RemoteContent>
-            )}
-
-            {/* Landings by Aircraft (Yearly) */}
-            {viewMode === 'aircraft' && (
-              <RemoteContent isLoading={landingsLoading} error={landingsError}>
-                <Card sx={{ mb: 3 }}>
-                  <CardContent>
-                    <Typography variant='h6' gutterBottom>
-                      {t('stats.totalLandingsByYear')}
-                    </Typography>
-                    <Box sx={{ height: 500 }}>
-                      <ResponsiveBar
-                        data={landingsBarData}
-                        keys={landingsBarKeys}
-                        indexBy='year'
-                        margin={{ top: 20, right: 130, bottom: 50, left: 60 }}
-                        padding={0.3}
-                        valueScale={{ type: 'linear' }}
-                        groupMode='grouped'
-                        colors={{ scheme: 'set2' }}
-                        borderColor={{
-                          from: 'color',
-                          modifiers: [['darker', 1.6]],
-                        }}
-                        axisTop={null}
-                        axisRight={null}
-                        axisBottom={{
-                          tickSize: 5,
-                          tickPadding: 5,
-                          tickRotation: 0,
-                          legend: t('stats.yearAxis'),
-                          legendPosition: 'middle',
-                          legendOffset: 40,
-                        }}
-                        axisLeft={{
-                          tickSize: 5,
-                          tickPadding: 5,
-                          tickRotation: 0,
-                          legend: t('stats.landingsAxis'),
-                          legendPosition: 'middle',
-                          legendOffset: -50,
-                        }}
-                        labelSkipWidth={12}
-                        labelSkipHeight={12}
-                        labelTextColor={{
-                          from: 'color',
-                          modifiers: [['darker', 1.6]],
-                        }}
-                        theme={nivoTheme}
-                        legends={[
-                          {
-                            dataFrom: 'keys',
-                            anchor: 'bottom-right',
-                            direction: 'column',
-                            justify: false,
-                            translateX: 120,
-                            translateY: 0,
-                            itemsSpacing: 2,
-                            itemWidth: 100,
-                            itemHeight: 20,
-                            itemDirection: 'left-to-right',
-                            itemOpacity: 0.85,
-                            symbolSize: 20,
-                            effects: [
-                              {
-                                on: 'hover',
-                                style: {
-                                  itemOpacity: 1,
-                                },
+                  </Grid>
+                ))}
+              </Grid>
+            </RemoteContent>
+          ) : (
+            <RemoteContent isLoading={memberCountLoading} error={memberCountError}>
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant='h6' gutterBottom>
+                    Member Count by Type
+                  </Typography>
+                  <Box sx={{ height: 400 }}>
+                    <ResponsivePie
+                      data={memberCountPieData}
+                      margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
+                      innerRadius={0.5}
+                      padAngle={0.7}
+                      cornerRadius={3}
+                      activeOuterRadiusOffset={8}
+                      borderWidth={1}
+                      borderColor={{
+                        from: 'color',
+                        modifiers: [['darker', 0.2]],
+                      }}
+                      arcLinkLabelsSkipAngle={10}
+                      arcLinkLabelsTextColor={arcLinkLabelsTextColor}
+                      arcLinkLabelsThickness={2}
+                      arcLinkLabelsColor={{ from: 'color' }}
+                      arcLabelsSkipAngle={10}
+                      arcLabelsTextColor={{
+                        from: 'color',
+                        modifiers: [['darker', 2]],
+                      }}
+                      theme={nivoTheme}
+                      legends={[
+                        {
+                          anchor: 'bottom',
+                          direction: 'row',
+                          justify: false,
+                          translateX: 0,
+                          translateY: 56,
+                          itemsSpacing: 0,
+                          itemWidth: 100,
+                          itemHeight: 18,
+                          itemTextColor: arcLinkLabelsTextColor,
+                          itemDirection: 'left-to-right',
+                          itemOpacity: 1,
+                          symbolSize: 18,
+                          symbolShape: 'circle',
+                          effects: [
+                            {
+                              on: 'hover',
+                              style: {
+                                itemTextColor: legendHoverTextColor,
                               },
-                            ],
-                          },
-                        ]}
-                      />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </RemoteContent>
-            )}
+                            },
+                          ],
+                        },
+                      ]}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            </RemoteContent>
+          )}
 
-            {/* Visited Airfields Pie Chart */}
-            {viewMode === 'aircraft' && visitedAirfieldsPieData.length > 0 && (
-              <RemoteContent isLoading={visitedAirfieldsLoading} error={visitedAirfieldsError}>
-                <Box>
-                  {visitedAirfieldsPieData.map((aircraftPie) => (
-                    <Card key={aircraftPie.aircraft} sx={{ mb: 3 }}>
-                      <CardContent>
-                        <Typography variant='h6' gutterBottom>
-                          Visited Airfields - {aircraftPie.aircraft} (Last 2 Years)
+          {/* Flight Time Calendar */}
+          {viewMode === 'aircraft' && (
+            <RemoteContent isLoading={calendarLoading} error={calendarError}>
+              <Box>
+                {calendarDataByAircraft.map((aircraftCalendar) => (
+                  <Card key={aircraftCalendar.aircraft} sx={{ mb: 3 }}>
+                    <CardContent>
+                      <Typography variant='h6' gutterBottom>
+                        Flight Time Calendar - {aircraftCalendar.aircraft} (Last 2 Years)
+                      </Typography>
+                      <Box sx={{ height: 400 }}>
+                        <ResponsiveCalendar
+                          data={aircraftCalendar.data}
+                          from={dateFrom}
+                          to={dateTo}
+                          emptyColor={mode === 'dark' ? '#333333' : '#eeeeee'}
+                          colors={['#61cdbb', '#97e3d5', '#e8c1a0', '#f47560']}
+                          margin={{ top: 40, right: 40, bottom: 40, left: 40 }}
+                          yearSpacing={40}
+                          monthBorderColor={mode === 'dark' ? '#555555' : '#ffffff'}
+                          dayBorderWidth={2}
+                          dayBorderColor={mode === 'dark' ? '#555555' : '#ffffff'}
+                          tooltip={CalendarTooltip}
+                          theme={nivoTheme}
+                          legends={[
+                            {
+                              anchor: 'bottom-right',
+                              direction: 'row',
+                              translateY: 36,
+                              itemCount: 4,
+                              itemWidth: 42,
+                              itemHeight: 36,
+                              itemsSpacing: 14,
+                              itemDirection: 'right-to-left',
+                            },
+                          ]}
+                        />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            </RemoteContent>
+          )}
+
+          {/* Monthly Flight Time by Aircraft (Stacked) */}
+          {viewMode === 'aircraft' && (
+            <RemoteContent isLoading={monthlyLoading} error={monthlyError}>
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant='h6' gutterBottom>
+                    Monthly Flight Time by Aircraft (Last 12 Months)
+                  </Typography>
+                  <Box>
+                    {monthlyDataByAircraft.map((aircraftData) => (
+                      <Box key={aircraftData.aircraft} sx={{ mb: 4 }}>
+                        <Typography
+                          variant='subtitle1'
+                          gutterBottom
+                          sx={{
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          {aircraftData.aircraft}
                         </Typography>
-                        <Box sx={{ height: 500 }}>
-                          <ResponsivePie
-                            data={aircraftPie.data}
-                            margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
-                            innerRadius={0.5}
-                            padAngle={0.7}
-                            cornerRadius={3}
-                            activeOuterRadiusOffset={8}
-                            borderWidth={1}
+                        <Box sx={{ height: 300 }}>
+                          <ResponsiveBar
+                            data={aircraftData.data}
+                            keys={flightTypes}
+                            indexBy='month'
+                            margin={{
+                              top: 20,
+                              right: 130,
+                              bottom: 50,
+                              left: 60,
+                            }}
+                            padding={0.3}
+                            valueScale={{ type: 'linear' }}
+                            colors={{ scheme: 'nivo' }}
                             borderColor={{
                               from: 'color',
-                              modifiers: [['darker', 0.2]],
+                              modifiers: [['darker', 1.6]],
                             }}
-                            arcLinkLabelsSkipAngle={10}
-                            arcLinkLabelsTextColor={arcLinkLabelsTextColor}
-                            arcLinkLabelsThickness={2}
-                            arcLinkLabelsColor={{ from: 'color' }}
-                            arcLabelsSkipAngle={10}
-                            arcLabelsTextColor={{
+                            axisTop={null}
+                            axisRight={null}
+                            axisBottom={{
+                              tickSize: 5,
+                              tickPadding: 5,
+                              tickRotation: -45,
+                              legend: 'Month',
+                              legendPosition: 'middle',
+                              legendOffset: 40,
+                            }}
+                            axisLeft={{
+                              tickSize: 5,
+                              tickPadding: 5,
+                              tickRotation: 0,
+                              legend: 'Hours',
+                              legendPosition: 'middle',
+                              legendOffset: -50,
+                            }}
+                            labelSkipWidth={12}
+                            labelSkipHeight={12}
+                            labelTextColor={{
                               from: 'color',
-                              modifiers: [['darker', 2]],
+                              modifiers: [['darker', 1.6]],
                             }}
                             theme={nivoTheme}
                             legends={[
                               {
-                                anchor: 'bottom',
-                                direction: 'row',
+                                dataFrom: 'keys',
+                                anchor: 'bottom-right',
+                                direction: 'column',
                                 justify: false,
-                                translateX: 0,
-                                translateY: 56,
-                                itemsSpacing: 0,
+                                translateX: 120,
+                                translateY: 0,
+                                itemsSpacing: 2,
                                 itemWidth: 100,
-                                itemHeight: 18,
-                                itemTextColor: arcLinkLabelsTextColor,
+                                itemHeight: 20,
                                 itemDirection: 'left-to-right',
-                                itemOpacity: 1,
-                                symbolSize: 18,
-                                symbolShape: 'circle',
+                                itemOpacity: 0.85,
+                                symbolSize: 20,
                                 effects: [
                                   {
                                     on: 'hover',
                                     style: {
-                                      itemTextColor: legendHoverTextColor,
+                                      itemOpacity: 1,
                                     },
                                   },
                                 ],
@@ -1276,159 +975,431 @@ export const Stats = () => {
                             ]}
                           />
                         </Box>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </Box>
-              </RemoteContent>
-            )}
+                      </Box>
+                    ))}
+                  </Box>
+                </CardContent>
+              </Card>
+            </RemoteContent>
+          )}
 
-            {/* Occupancy (Persons on Board) Distribution Pie Charts */}
-            {viewMode === 'aircraft' && pobDistributionPieData.length > 0 && (
-              <RemoteContent isLoading={pobDistributionLoading} error={pobDistributionError}>
-                <Box>
-                  {pobDistributionPieData.map((aircraftPie) => (
-                    <Card key={aircraftPie.aircraft} sx={{ mb: 3 }}>
-                      <CardContent>
-                        <Typography variant='h6' gutterBottom>
-                          Occupancy Distribution - {aircraftPie.aircraft}
-                        </Typography>
+          {/* Commercial Flight Time by Aircraft (Admin Only) */}
+          {viewMode === 'aircraft' && hasCommercialAccess && (
+            <RemoteContent isLoading={commercialLoading} error={commercialError}>
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant='h6' gutterBottom>
+                    Commercial Flight Time by Aircraft (Last 12 Months)
+                  </Typography>
+                  <Box>
+                    {commercialBarData.map((aircraftData) => (
+                      <Box key={aircraftData.aircraft} sx={{ mb: 4 }}>
                         <Typography
-                          variant='body2'
+                          variant='subtitle1'
+                          gutterBottom
                           sx={{
-                            color: 'text.secondary',
-                            mb: 2,
+                            fontWeight: 'bold',
                           }}
                         >
-                          Share of flights by number of people on board (restricted to aircraft with
-                          more than 2 seats)
+                          {aircraftData.aircraft}
                         </Typography>
-                        <Grid container spacing={2}>
-                          {(
-                            [
-                              {
-                                key: 'ytd',
-                                title: `Year to Date (${new Date().getFullYear()})`,
-                                data: aircraftPie.ytd,
-                                stats: aircraftPie.ytdStats,
+                        <Box sx={{ height: 300 }}>
+                          <ResponsiveBar
+                            data={aircraftData.data}
+                            keys={['hours']}
+                            indexBy='month'
+                            margin={{
+                              top: 20,
+                              right: 30,
+                              bottom: 50,
+                              left: 60,
+                            }}
+                            padding={0.3}
+                            valueScale={{ type: 'linear' }}
+                            colors={{ scheme: 'set2' }}
+                            borderColor={{
+                              from: 'color',
+                              modifiers: [['darker', 1.6]],
+                            }}
+                            axisTop={null}
+                            axisRight={null}
+                            axisBottom={{
+                              tickSize: 5,
+                              tickPadding: 5,
+                              tickRotation: -45,
+                              legend: 'Month',
+                              legendPosition: 'middle',
+                              legendOffset: 40,
+                            }}
+                            axisLeft={{
+                              tickSize: 5,
+                              tickPadding: 5,
+                              tickRotation: 0,
+                              legend: 'Commercial Hours',
+                              legendPosition: 'middle',
+                              legendOffset: -50,
+                            }}
+                            labelSkipWidth={12}
+                            labelSkipHeight={12}
+                            labelTextColor={{
+                              from: 'color',
+                              modifiers: [['darker', 1.6]],
+                            }}
+                            theme={nivoTheme}
+                            enableLabel={true}
+                          />
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </CardContent>
+              </Card>
+            </RemoteContent>
+          )}
+
+          {/* Flight Time by Year */}
+          {viewMode === 'aircraft' && (
+            <RemoteContent isLoading={isLoading} error={error}>
+              <Card>
+                <CardContent>
+                  <Typography variant='h6' gutterBottom>
+                    Flight Time by Aircraft (Yearly)
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    <ResponsiveBar
+                      data={barData}
+                      keys={barChartKeys}
+                      indexBy='year'
+                      margin={{ top: 20, right: 130, bottom: 50, left: 60 }}
+                      padding={0.3}
+                      valueScale={{ type: 'linear' }}
+                      groupMode='grouped'
+                      colors={{ scheme: 'nivo' }}
+                      borderColor={{
+                        from: 'color',
+                        modifiers: [['darker', 1.6]],
+                      }}
+                      axisTop={null}
+                      axisRight={null}
+                      axisBottom={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: 'Year',
+                        legendPosition: 'middle',
+                        legendOffset: 40,
+                      }}
+                      axisLeft={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: 'Hours',
+                        legendPosition: 'middle',
+                        legendOffset: -50,
+                      }}
+                      labelSkipWidth={12}
+                      labelSkipHeight={12}
+                      labelTextColor={{
+                        from: 'color',
+                        modifiers: [['darker', 1.6]],
+                      }}
+                      theme={nivoTheme}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            </RemoteContent>
+          )}
+
+          {/* Landings by Aircraft (Yearly) */}
+          {viewMode === 'aircraft' && (
+            <RemoteContent isLoading={landingsLoading} error={landingsError}>
+              <Card sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant='h6' gutterBottom>
+                    {t('stats.totalLandingsByYear')}
+                  </Typography>
+                  <Box sx={{ height: 500 }}>
+                    <ResponsiveBar
+                      data={landingsBarData}
+                      keys={landingsBarKeys}
+                      indexBy='year'
+                      margin={{ top: 20, right: 130, bottom: 50, left: 60 }}
+                      padding={0.3}
+                      valueScale={{ type: 'linear' }}
+                      groupMode='grouped'
+                      colors={{ scheme: 'set2' }}
+                      borderColor={{
+                        from: 'color',
+                        modifiers: [['darker', 1.6]],
+                      }}
+                      axisTop={null}
+                      axisRight={null}
+                      axisBottom={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: t('stats.yearAxis'),
+                        legendPosition: 'middle',
+                        legendOffset: 40,
+                      }}
+                      axisLeft={{
+                        tickSize: 5,
+                        tickPadding: 5,
+                        tickRotation: 0,
+                        legend: t('stats.landingsAxis'),
+                        legendPosition: 'middle',
+                        legendOffset: -50,
+                      }}
+                      labelSkipWidth={12}
+                      labelSkipHeight={12}
+                      labelTextColor={{
+                        from: 'color',
+                        modifiers: [['darker', 1.6]],
+                      }}
+                      theme={nivoTheme}
+                      legends={[
+                        {
+                          dataFrom: 'keys',
+                          anchor: 'bottom-right',
+                          direction: 'column',
+                          justify: false,
+                          translateX: 120,
+                          translateY: 0,
+                          itemsSpacing: 2,
+                          itemWidth: 100,
+                          itemHeight: 20,
+                          itemDirection: 'left-to-right',
+                          itemOpacity: 0.85,
+                          symbolSize: 20,
+                          effects: [
+                            {
+                              on: 'hover',
+                              style: {
+                                itemOpacity: 1,
                               },
-                              {
-                                key: 'previousYear',
-                                title: `Previous Year (${aircraftPie.previousYearLabel})`,
-                                data: aircraftPie.previousYear,
-                                stats: aircraftPie.previousYearStats,
-                              },
-                            ] as const
-                          ).map((pie) => (
-                            <Grid size={{ xs: 12, md: 6 }} key={pie.key}>
-                              <Typography variant='subtitle2' align='center' gutterBottom>
-                                {pie.title}
-                              </Typography>
-                              <Box sx={{ height: 400 }}>
-                                {pie.data.length > 0 ? (
-                                  <ResponsivePie
-                                    data={pie.data}
-                                    margin={{ top: 20, right: 40, bottom: 60, left: 40 }}
-                                    innerRadius={0.5}
-                                    padAngle={0.7}
-                                    cornerRadius={3}
-                                    activeOuterRadiusOffset={8}
-                                    borderWidth={1}
-                                    borderColor={{
-                                      from: 'color',
-                                      modifiers: [['darker', 0.2]],
-                                    }}
-                                    arcLinkLabelsSkipAngle={10}
-                                    arcLinkLabelsTextColor={arcLinkLabelsTextColor}
-                                    arcLinkLabelsThickness={2}
-                                    arcLinkLabelsColor={{ from: 'color' }}
-                                    arcLabel={(d) =>
-                                      `${((d.value / pie.data.reduce((sum, p) => sum + p.value, 0)) * 100).toFixed(0)}%`
-                                    }
-                                    arcLabelsSkipAngle={10}
-                                    arcLabelsTextColor={{
-                                      from: 'color',
-                                      modifiers: [['darker', 2]],
-                                    }}
-                                    theme={nivoTheme}
-                                    legends={[
-                                      {
-                                        anchor: 'bottom',
-                                        direction: 'row',
-                                        justify: false,
-                                        translateX: 0,
-                                        translateY: 56,
-                                        itemsSpacing: 0,
-                                        itemWidth: 90,
-                                        itemHeight: 18,
-                                        itemTextColor: arcLinkLabelsTextColor,
-                                        itemDirection: 'left-to-right',
-                                        itemOpacity: 1,
-                                        symbolSize: 18,
-                                        symbolShape: 'circle',
-                                        effects: [
-                                          {
-                                            on: 'hover',
-                                            style: {
-                                              itemTextColor: legendHoverTextColor,
-                                            },
+                            },
+                          ],
+                        },
+                      ]}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            </RemoteContent>
+          )}
+
+          {/* Visited Airfields Pie Chart */}
+          {viewMode === 'aircraft' && visitedAirfieldsPieData.length > 0 && (
+            <RemoteContent isLoading={visitedAirfieldsLoading} error={visitedAirfieldsError}>
+              <Box>
+                {visitedAirfieldsPieData.map((aircraftPie) => (
+                  <Card key={aircraftPie.aircraft} sx={{ mb: 3 }}>
+                    <CardContent>
+                      <Typography variant='h6' gutterBottom>
+                        Visited Airfields - {aircraftPie.aircraft} (Last 2 Years)
+                      </Typography>
+                      <Box sx={{ height: 500 }}>
+                        <ResponsivePie
+                          data={aircraftPie.data}
+                          margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
+                          innerRadius={0.5}
+                          padAngle={0.7}
+                          cornerRadius={3}
+                          activeOuterRadiusOffset={8}
+                          borderWidth={1}
+                          borderColor={{
+                            from: 'color',
+                            modifiers: [['darker', 0.2]],
+                          }}
+                          arcLinkLabelsSkipAngle={10}
+                          arcLinkLabelsTextColor={arcLinkLabelsTextColor}
+                          arcLinkLabelsThickness={2}
+                          arcLinkLabelsColor={{ from: 'color' }}
+                          arcLabelsSkipAngle={10}
+                          arcLabelsTextColor={{
+                            from: 'color',
+                            modifiers: [['darker', 2]],
+                          }}
+                          theme={nivoTheme}
+                          legends={[
+                            {
+                              anchor: 'bottom',
+                              direction: 'row',
+                              justify: false,
+                              translateX: 0,
+                              translateY: 56,
+                              itemsSpacing: 0,
+                              itemWidth: 100,
+                              itemHeight: 18,
+                              itemTextColor: arcLinkLabelsTextColor,
+                              itemDirection: 'left-to-right',
+                              itemOpacity: 1,
+                              symbolSize: 18,
+                              symbolShape: 'circle',
+                              effects: [
+                                {
+                                  on: 'hover',
+                                  style: {
+                                    itemTextColor: legendHoverTextColor,
+                                  },
+                                },
+                              ],
+                            },
+                          ]}
+                        />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            </RemoteContent>
+          )}
+
+          {/* Occupancy (Persons on Board) Distribution Pie Charts */}
+          {viewMode === 'aircraft' && pobDistributionPieData.length > 0 && (
+            <RemoteContent isLoading={pobDistributionLoading} error={pobDistributionError}>
+              <Box>
+                {pobDistributionPieData.map((aircraftPie) => (
+                  <Card key={aircraftPie.aircraft} sx={{ mb: 3 }}>
+                    <CardContent>
+                      <Typography variant='h6' gutterBottom>
+                        Occupancy Distribution - {aircraftPie.aircraft}
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                          mb: 2,
+                        }}
+                      >
+                        Share of flights by number of people on board (restricted to aircraft with
+                        more than 2 seats)
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {(
+                          [
+                            {
+                              key: 'ytd',
+                              title: `Year to Date (${new Date().getFullYear()})`,
+                              data: aircraftPie.ytd,
+                              stats: aircraftPie.ytdStats,
+                            },
+                            {
+                              key: 'previousYear',
+                              title: `Previous Year (${aircraftPie.previousYearLabel})`,
+                              data: aircraftPie.previousYear,
+                              stats: aircraftPie.previousYearStats,
+                            },
+                          ] as const
+                        ).map((pie) => (
+                          <Grid size={{ xs: 12, md: 6 }} key={pie.key}>
+                            <Typography variant='subtitle2' align='center' gutterBottom>
+                              {pie.title}
+                            </Typography>
+                            <Box sx={{ height: 400 }}>
+                              {pie.data.length > 0 ? (
+                                <ResponsivePie
+                                  data={pie.data}
+                                  margin={{ top: 20, right: 40, bottom: 60, left: 40 }}
+                                  innerRadius={0.5}
+                                  padAngle={0.7}
+                                  cornerRadius={3}
+                                  activeOuterRadiusOffset={8}
+                                  borderWidth={1}
+                                  borderColor={{
+                                    from: 'color',
+                                    modifiers: [['darker', 0.2]],
+                                  }}
+                                  arcLinkLabelsSkipAngle={10}
+                                  arcLinkLabelsTextColor={arcLinkLabelsTextColor}
+                                  arcLinkLabelsThickness={2}
+                                  arcLinkLabelsColor={{ from: 'color' }}
+                                  arcLabel={(d) =>
+                                    `${((d.value / pie.data.reduce((sum, p) => sum + p.value, 0)) * 100).toFixed(0)}%`
+                                  }
+                                  arcLabelsSkipAngle={10}
+                                  arcLabelsTextColor={{
+                                    from: 'color',
+                                    modifiers: [['darker', 2]],
+                                  }}
+                                  theme={nivoTheme}
+                                  legends={[
+                                    {
+                                      anchor: 'bottom',
+                                      direction: 'row',
+                                      justify: false,
+                                      translateX: 0,
+                                      translateY: 56,
+                                      itemsSpacing: 0,
+                                      itemWidth: 90,
+                                      itemHeight: 18,
+                                      itemTextColor: arcLinkLabelsTextColor,
+                                      itemDirection: 'left-to-right',
+                                      itemOpacity: 1,
+                                      symbolSize: 18,
+                                      symbolShape: 'circle',
+                                      effects: [
+                                        {
+                                          on: 'hover',
+                                          style: {
+                                            itemTextColor: legendHoverTextColor,
                                           },
-                                        ],
-                                      },
-                                    ]}
-                                  />
-                                ) : (
-                                  <Box
-                                    sx={{
-                                      height: '100%',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                    }}
-                                  >
-                                    <Typography sx={{ color: 'text.secondary' }}>
-                                      No data available
-                                    </Typography>
-                                  </Box>
-                                )}
-                              </Box>
-                              {pie.stats.length > 0 && (
-                                <Table size='small' sx={{ mt: 3 }}>
-                                  <TableHead>
-                                    <TableRow>
-                                      <TableCell>Occupancy</TableCell>
-                                      <TableCell align='right'>Flights</TableCell>
-                                      <TableCell align='right'>Hours</TableCell>
-                                      <TableCell align='right'>Cross-Country</TableCell>
-                                    </TableRow>
-                                  </TableHead>
-                                  <TableBody>
-                                    {pie.stats.map((bucketStats) => (
-                                      <TableRow key={bucketStats.bucket}>
-                                        <TableCell>{bucketStats.label}</TableCell>
-                                        <TableCell align='right'>
-                                          {bucketStats.flightCount}
-                                        </TableCell>
-                                        <TableCell align='right'>{bucketStats.hours}</TableCell>
-                                        <TableCell align='right'>
-                                          {bucketStats.crossCountryPct}%
-                                        </TableCell>
-                                      </TableRow>
-                                    ))}
-                                  </TableBody>
-                                </Table>
+                                        },
+                                      ],
+                                    },
+                                  ]}
+                                />
+                              ) : (
+                                <Box
+                                  sx={{
+                                    height: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}
+                                >
+                                  <Typography sx={{ color: 'text.secondary' }}>
+                                    No data available
+                                  </Typography>
+                                </Box>
                               )}
-                            </Grid>
-                          ))}
-                        </Grid>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </Box>
-              </RemoteContent>
-            )}
-          </>
-        )}
+                            </Box>
+                            {pie.stats.length > 0 && (
+                              <Table size='small' sx={{ mt: 3 }}>
+                                <TableHead>
+                                  <TableRow>
+                                    <TableCell>Occupancy</TableCell>
+                                    <TableCell align='right'>Flights</TableCell>
+                                    <TableCell align='right'>Hours</TableCell>
+                                    <TableCell align='right'>Cross-Country</TableCell>
+                                  </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  {pie.stats.map((bucketStats) => (
+                                    <TableRow key={bucketStats.bucket}>
+                                      <TableCell>{bucketStats.label}</TableCell>
+                                      <TableCell align='right'>{bucketStats.flightCount}</TableCell>
+                                      <TableCell align='right'>{bucketStats.hours}</TableCell>
+                                      <TableCell align='right'>
+                                        {bucketStats.crossCountryPct}%
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            )}
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            </RemoteContent>
+          )}
+        </>
+      )}
     </Box>
   )
 }

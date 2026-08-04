@@ -37,6 +37,7 @@ const mockGetAirfieldEfficiencyByAcYrMth = jest.fn<(...args: any[]) => Promise<a
 const mockGetAogDaysByAcYr = jest.fn<(...args: any[]) => Promise<any>>()
 const mockGetAogDaysByAcYrMth = jest.fn<(...args: any[]) => Promise<any>>()
 const mockGetPobDistributionByAcYr = jest.fn<(...args: any[]) => Promise<any>>()
+const mockGetMyStatistics = jest.fn<(...args: any[]) => Promise<any>>()
 
 jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getTotalFlightTimeByAc: mockGetTotalFlightTimeByAc,
@@ -73,19 +74,27 @@ jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getAogDaysByAcYr: mockGetAogDaysByAcYr,
   getAogDaysByAcYrMth: mockGetAogDaysByAcYrMth,
   getPobDistributionByAcYr: mockGetPobDistributionByAcYr,
+  getMyStatistics: mockGetMyStatistics,
 }))
 
+const TEST_MEMBER_ID = 'testmember1'
+
 jest.unstable_mockModule('../../../src/middleware/authMiddleware.ts', () => ({
-  validateUser: () => (req: express.Request, res: express.Response, next: express.NextFunction) =>
-    next(),
+  validateUser: () => (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    req.user = { memberId: TEST_MEMBER_ID } as express.Request['user']
+    next()
+  },
 }))
 
 const { router } = await import('../../../src/routes/stats/api.ts')
 const { router: timeRouter } = await import('../../../src/routes/time/api.ts')
 
+const { problemErrorHandler } = await import('../../../src/routes/response.ts')
+
 const app = express()
 app.use('/api/stats', router)
 app.use('/api/time', timeRouter)
+app.use(problemErrorHandler)
 
 describe('Stats API', () => {
   beforeEach(() => {
@@ -986,6 +995,68 @@ describe('Stats API', () => {
           yr_from: 2024,
           yr_to: 2024,
         })
+      })
+    })
+  })
+
+  describe('My Statistics Endpoint', () => {
+    const mockData = {
+      totals: {
+        flightCount: 12,
+        totalFlightMins: 720,
+        totalBlockMins: 840,
+        totalLandings: 30,
+        uniqueAirports: 5,
+      },
+      daily: [{ date: '2024-05-01', flightMins: 60 }],
+      monthly: [{ yr: 2024, mth: 5, flightMins: 60 }],
+    }
+
+    describe('GET /api/stats/my', () => {
+      it('should scope the query to the authenticated member with no filters', async () => {
+        mockGetMyStatistics.mockResolvedValue(mockData)
+
+        const response = await request(app).get('/api/stats/my')
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual(mockData)
+        expect(mockGetMyStatistics).toHaveBeenCalledWith({ memberId: TEST_MEMBER_ID })
+      })
+
+      it('should pass the date range and aircraft filter through', async () => {
+        mockGetMyStatistics.mockResolvedValue(mockData)
+
+        const response = await request(app).get('/api/stats/my').query({
+          date_from: '2024-01-01',
+          date_to: '2024-12-31',
+          aircraft_registration: 'OH-STL',
+        })
+
+        expect(response.status).toBe(200)
+        expect(mockGetMyStatistics).toHaveBeenCalledWith({
+          memberId: TEST_MEMBER_ID,
+          date_from: '2024-01-01',
+          date_to: '2024-12-31',
+          aircraft_registration: 'OH-STL',
+        })
+      })
+
+      it('should ignore an attempt to request another member via the query string', async () => {
+        mockGetMyStatistics.mockResolvedValue(mockData)
+
+        const response = await request(app)
+          .get('/api/stats/my')
+          .query({ memberId: 'someoneelse', pic_member_id: 'someoneelse' })
+
+        expect(response.status).toBe(200)
+        expect(mockGetMyStatistics).toHaveBeenCalledWith({ memberId: TEST_MEMBER_ID })
+      })
+
+      it('should reject a malformed date range', async () => {
+        const response = await request(app).get('/api/stats/my').query({ date_from: 'last-week' })
+
+        expect(response.status).toBe(400)
+        expect(mockGetMyStatistics).not.toHaveBeenCalled()
       })
     })
   })

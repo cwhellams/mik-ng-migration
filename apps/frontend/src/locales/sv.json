@@ -2151,6 +2151,27 @@
       "monthAxis": "Månad",
       "hoursAxis": "Timmar"
     },
+    "my": {
+      "viewMode": "Min statistik",
+      "range": {
+        "ytd": "Innevarande år",
+        "allTime": "All tid"
+      },
+      "aircraft": "Flygplan",
+      "allAircraft": "Alla flygplan",
+      "totals": {
+        "flightTime": "Flygtid",
+        "blockTime": "Blocktid",
+        "landings": "Landningar",
+        "airports": "Besökta flygplatser",
+        "flights": "Flygningar"
+      },
+      "calendarTitle": "Min flygtidskalender",
+      "monthlyTitle": "Mina flygtimmar per månad",
+      "monthAxis": "Månad",
+      "hoursAxis": "Timmar",
+      "noData": "Inga flygningar för vald period"
+    },
     "pilots": {
       "dateRange": "Tidsperiod",
       "from": "Från",
