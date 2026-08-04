@@ -3,6 +3,7 @@ import express from 'express'
 import request from 'supertest'
 
 import { MIKPermissions } from '../../../src/routes/members/models.ts'
+import type { updateMeeting } from '../../../src/db/meeting-queries.ts'
 
 const mockAbandonVote = jest.fn<() => Promise<unknown>>()
 const mockAddVoteCounter = jest.fn<() => Promise<void>>()
@@ -26,7 +27,7 @@ const mockRegisterAttendance = jest.fn<() => Promise<void>>()
 const mockRemoveVoteCounter = jest.fn<() => Promise<boolean>>()
 const mockStartMeeting = jest.fn<() => Promise<unknown>>()
 const mockSubmitVote = jest.fn<() => Promise<void>>()
-const mockUpdateMeeting = jest.fn<() => Promise<unknown>>()
+const mockUpdateMeeting = jest.fn<typeof updateMeeting>()
 
 jest.unstable_mockModule('../../../src/db/meeting-queries.ts', () => ({
   abandonVote: mockAbandonVote,
