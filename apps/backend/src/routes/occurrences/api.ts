@@ -417,13 +417,13 @@ router.post(
         detail: 'Report is not eligible to be shared with CAMO',
       })
     }
-    if (occurrence.access.some((access) => access.roleId === CAMO_ROLE_ID)) {
-      return problem({ status: 409, detail: 'Report has already been shared with CAMO' })
-    }
-
     const camoRoles = await getMemberRolesByPermission(MIKPermissions.CAMO_USER)
     if (camoRoles.length === 0) {
       return problem({ status: 400, detail: 'No CAMO role is configured' })
+    }
+    const camoRoleIds = new Set([CAMO_ROLE_ID, ...camoRoles.map((role) => role.roleId)])
+    if (occurrence.access.some((access) => access.roleId && camoRoleIds.has(access.roleId))) {
+      return problem({ status: 409, detail: 'Report has already been shared with CAMO' })
     }
 
     const newAccess = await addOccurrenceAccess(
@@ -444,11 +444,7 @@ router.post(
       req.user!,
     )
 
-    await sendCamoNotification(
-      sendEmail,
-      camoRoles.map((r) => r.roleId),
-      shared,
-    )
+    await sendCamoNotification(sendEmail, [...camoRoleIds], shared)
 
     res.status(200).json(shared)
   },

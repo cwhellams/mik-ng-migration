@@ -23,7 +23,7 @@ export const sendCamoNotification = async (
     console.log(
       `Sending occurrence ${occurrence.id} CAMO notification to member ${member.email} in roles [${roles.join(', ')}]`,
     )
-    sendEmailFn(
+    await sendEmailFn(
       member.email,
       camoNotificationEmailSubject(member.lang),
       camoNotificationEmailBodyHtml(member.lang, occurrence),
