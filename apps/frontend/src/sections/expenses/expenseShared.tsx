@@ -221,9 +221,6 @@ export function LineItemsTable({
   const { t } = useTranslation()
   const isNonEur = (claimCurrency ?? 'EUR') !== 'EUR'
   const [touched, setTouched] = useState<Set<string>>(new Set())
-  // Total cost as typed by the member for fuel lines — kept separate from the
-  // derived unitPrice so the field doesn't jump around while typing.
-  const [rawTotals, setRawTotals] = useState<Record<number, number>>({})
 
   const { data: airfieldData } = useApi<AirfieldListResponse>(
     { url: 'v1/flight-logs/airfields', skipFetch: !isFuel },
@@ -237,10 +234,12 @@ export function LineItemsTable({
   const update = (idx: number, patch: Partial<EditableLineItem>) =>
     onChange(items.map((li, i) => (i === idx ? { ...li, ...patch } : li)))
 
+  // The total cost is persisted alongside the derived unitPrice (issue #1024) so it
+  // round-trips exactly on reload instead of being reconstructed as quantity * unitPrice,
+  // which drifts once unitPrice is rounded to its stored precision.
   const applyTotalCost = (idx: number, totalCost: number, quantity: number) => {
-    setRawTotals((prev) => ({ ...prev, [idx]: totalCost }))
     const unitPrice = quantity > 0 ? totalCost / quantity : 0
-    update(idx, { unitPrice })
+    update(idx, { totalCost, unitPrice })
   }
 
   return (
@@ -329,12 +328,12 @@ export function LineItemsTable({
         <TableBody>
           {items.map((item, idx) => {
             const lineTotal = item.quantity * item.unitPrice
+            const displayedTotalCost = item.totalCost ?? lineTotal
             const eurTotal = isNonEur
               ? claimFxRate != null
-                ? lineTotal * claimFxRate
+                ? displayedTotalCost * claimFxRate
                 : null
-              : lineTotal
-            const displayedTotalCost = rawTotals[idx] ?? lineTotal
+              : displayedTotalCost
 
             return (
               <TableRow key={idx}>
@@ -414,6 +413,7 @@ export function LineItemsTable({
                       if (isFuel) {
                         update(idx, {
                           quantity,
+                          totalCost: displayedTotalCost,
                           unitPrice: quantity > 0 ? displayedTotalCost / quantity : 0,
                         })
                       } else {

@@ -129,6 +129,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
         quantity: item.quantity,
         unit: item.unit,
         unitPrice: item.unitPrice,
+        totalCost: item.totalCost,
         sortOrder: item.sortOrder,
         costCentreCode: item.costCentreCode ?? null,
         fuelType: item.fuelType,

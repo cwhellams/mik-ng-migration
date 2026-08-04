@@ -72,6 +72,11 @@ export const ExpenseLineItemSchema = z.object({
   quantity: z.number().positive(),
   unit: z.enum(['pcs', 'km', 'l', 'h']).default('pcs'),
   unitPrice: z.number().min(0),
+  // The user-entered total for this line (e.g. total fuel cost paid), persisted alongside
+  // unitPrice so it round-trips exactly on reload instead of being reconstructed as
+  // quantity * unitPrice, which drifts once unitPrice is rounded to its stored precision
+  // (issue #1024).
+  totalCost: z.number().min(0).nullable().optional(),
   sortOrder: z.number().int().default(0),
   costCentreCode: z.string().max(50).nullable().optional(),
   fuelType: z.enum(FUEL_TYPES).optional(),

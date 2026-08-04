@@ -200,6 +200,7 @@ export interface AcctsExpenseClaimLineItem {
   item_id: number | null
   quantity: Generated<Numeric>
   sort_order: Generated<number>
+  total_cost: Numeric | null
   unit: Generated<string>
   unit_price: Numeric
 }
