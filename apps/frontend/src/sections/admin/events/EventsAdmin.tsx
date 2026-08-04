@@ -10,6 +10,8 @@ import {
   Divider,
   FormControlLabel,
   IconButton,
+  Menu,
+  MenuItem,
   Stack,
   Switch,
   TextField,
@@ -27,32 +29,62 @@ import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
 import type { ClubEvent, EventListResponse } from '@backend/routes/events/models'
 
+type TranslationLanguage = 'fi' | 'sv'
+const TRANSLATION_LANGUAGES: TranslationLanguage[] = ['fi', 'sv']
+
+interface TranslationForm {
+  title: string
+  description: string
+}
+
 interface EventForm {
   title: string
   description: string
   location: string
+  performer: string
   startTime: Dayjs | null
   endTime: Dayjs | null
   isPublic: boolean
+  translations: Partial<Record<TranslationLanguage, TranslationForm>>
 }
 
 const emptyForm = (): EventForm => ({
   title: '',
   description: '',
   location: '',
+  performer: '',
   startTime: dayjs().add(7, 'day').startOf('hour'),
   endTime: dayjs().add(7, 'day').startOf('hour').add(2, 'hour'),
   isPublic: false,
+  translations: {},
 })
 
 const eventToForm = (event: ClubEvent): EventForm => ({
   title: event.title,
   description: event.description ?? '',
   location: event.location ?? '',
+  performer: event.performer ?? '',
   startTime: dayjs(event.startTime),
   endTime: dayjs(event.endTime),
   isPublic: event.isPublic,
+  translations: {
+    ...(event.translations.fi && {
+      fi: {
+        title: event.translations.fi.title,
+        description: event.translations.fi.description ?? '',
+      },
+    }),
+    ...(event.translations.sv && {
+      sv: {
+        title: event.translations.sv.title,
+        description: event.translations.sv.description ?? '',
+      },
+    }),
+  },
 })
+
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024
 
 const EventsAdmin = () => {
   const { t } = useTranslation()
@@ -64,8 +96,21 @@ const EventsAdmin = () => {
   const [deleting, setDeleting] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
+  const [imageRemoved, setImageRemoved] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
+  const [translationMenuAnchor, setTranslationMenuAnchor] = useState<HTMLElement | null>(null)
+
   const { data, isLoading, error, mutation, mutate } = useApi<EventListResponse>({
     url: 'v1/events',
+  })
+  const { mutation: imageMutation } = useApi<ClubEvent>({
+    method: 'POST',
+    url: 'v1/events',
+    skipFetch: true,
+    headers: { 'Content-Type': 'multipart/form-data' },
   })
 
   const events = data?.events ?? []
@@ -73,10 +118,18 @@ const EventsAdmin = () => {
   const upcomingEvents = events.filter((e) => dayjs(e.endTime).isAfter(now))
   const pastEvents = events.filter((e) => !dayjs(e.endTime).isAfter(now))
 
+  const resetImageState = (previewUrl: string | null) => {
+    setImageFile(null)
+    setImagePreviewUrl(previewUrl)
+    setImageRemoved(false)
+    setImageError(null)
+  }
+
   const openCreate = () => {
     setEditingEvent(null)
     setForm(emptyForm())
     setSaveError(null)
+    resetImageState(null)
     setDialogOpen(true)
   }
 
@@ -84,7 +137,89 @@ const EventsAdmin = () => {
     setEditingEvent(event)
     setForm(eventToForm(event))
     setSaveError(null)
+    resetImageState(event.imageUrl)
     setDialogOpen(true)
+  }
+
+  const handleImageSelect = (file: File) => {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setImageError(t('events.form.imageTypeError'))
+      return
+    }
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      setImageError(t('events.form.imageSizeError', { maxSize: '10 MB' }))
+      return
+    }
+    if (imageFile && imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl)
+    }
+    setImageError(null)
+    setImageFile(file)
+    setImageRemoved(false)
+    setImagePreviewUrl(URL.createObjectURL(file))
+  }
+
+  const handleImageRemove = () => {
+    if (imageFile && imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl)
+    }
+    setImageFile(null)
+    setImagePreviewUrl(null)
+    setImageError(null)
+    setImageRemoved(!!editingEvent?.imageUrl)
+  }
+
+  const addTranslation = (language: TranslationLanguage) => {
+    setForm((f) => ({
+      ...f,
+      translations: { ...f.translations, [language]: { title: '', description: '' } },
+    }))
+    setTranslationMenuAnchor(null)
+  }
+
+  const removeTranslation = (language: TranslationLanguage) => {
+    setForm((f) => {
+      const translations = { ...f.translations }
+      delete translations[language]
+      return { ...f, translations }
+    })
+  }
+
+  const updateTranslationField = (
+    language: TranslationLanguage,
+    field: keyof TranslationForm,
+    value: string,
+  ) => {
+    setForm((f) => ({
+      ...f,
+      translations: {
+        ...f.translations,
+        [language]: {
+          ...(f.translations[language] ?? { title: '', description: '' }),
+          [field]: value,
+        },
+      },
+    }))
+  }
+
+  const buildTranslationsPayload = () => {
+    const payload: Partial<
+      Record<TranslationLanguage, { title: string; description: string | null } | null>
+    > = {}
+
+    for (const language of TRANSLATION_LANGUAGES) {
+      const block = form.translations[language]
+      if (block) {
+        payload[language] = {
+          title: block.title.trim(),
+          description: block.description.trim() || null,
+        }
+      } else if (editingEvent?.translations[language]) {
+        payload[language] = null
+      }
+    }
+
+    return Object.keys(payload).length > 0 ? payload : undefined
   }
 
   const handleSave = async () => {
@@ -95,18 +230,41 @@ const EventsAdmin = () => {
         title: form.title,
         description: form.description || null,
         location: form.location || null,
+        performer: form.performer.trim() || null,
+        translations: buildTranslationsPayload(),
         startTime: form.startTime.toISOString(),
         endTime: form.endTime.toISOString(),
         isPublic: form.isPublic,
       }
 
       const response = editingEvent
-        ? await mutation.trigger('PUT', payload, editingEvent.eventId)
-        : await mutation.trigger('POST', payload)
+        ? await mutation.trigger<typeof payload, ClubEvent>('PUT', payload, editingEvent.eventId)
+        : await mutation.trigger<typeof payload, ClubEvent>('POST', payload)
+
       if (response.error) {
         setSaveError(t('events.saveError'))
         return
       }
+
+      const eventId = editingEvent?.eventId ?? response.data?.eventId
+      if (eventId) {
+        if (imageFile) {
+          const formData = new FormData()
+          formData.append('file', imageFile)
+          const imageResponse = await imageMutation.trigger('POST', formData, `${eventId}/image`)
+          if (imageResponse.error) {
+            setSaveError(t('events.form.uploadError'))
+            return
+          }
+        } else if (imageRemoved) {
+          const imageResponse = await imageMutation.trigger('DELETE', undefined, `${eventId}/image`)
+          if (imageResponse.error) {
+            setSaveError(t('events.form.uploadError'))
+            return
+          }
+        }
+      }
+
       await mutate()
       setDialogOpen(false)
     } finally {
@@ -130,11 +288,21 @@ const EventsAdmin = () => {
     }
   }
 
+  const activeTranslationLanguages = TRANSLATION_LANGUAGES.filter((l) => l in form.translations)
+  const availableTranslationLanguages = TRANSLATION_LANGUAGES.filter(
+    (l) => !(l in form.translations),
+  )
+  const translationsValid = activeTranslationLanguages.every(
+    (l) => (form.translations[l]?.title.trim().length ?? 0) > 0,
+  )
+
   const isFormValid =
     form.title.trim().length > 0 &&
     form.startTime !== null &&
     form.endTime !== null &&
-    form.endTime.isAfter(form.startTime)
+    form.endTime.isAfter(form.startTime) &&
+    !imageError &&
+    translationsValid
 
   const renderEventRow = (event: ClubEvent) => {
     const start = dayjs(event.startTime)
@@ -156,6 +324,20 @@ const EventsAdmin = () => {
             opacity: isPast ? 0.65 : 1,
           }}
         >
+          {event.imageUrl && (
+            <Box
+              component='img'
+              src={event.imageUrl}
+              alt=''
+              sx={{
+                width: 56,
+                height: 56,
+                borderRadius: 1,
+                objectFit: 'cover',
+                flexShrink: 0,
+              }}
+            />
+          )}
           <Box
             sx={{
               flex: 1,
@@ -363,6 +545,150 @@ const EventsAdmin = () => {
               multiline
               rows={4}
             />
+
+            <TextField
+              label={t('events.form.performer')}
+              value={form.performer}
+              onChange={(e) => setForm((f) => ({ ...f, performer: e.target.value }))}
+              fullWidth
+              helperText={t('events.form.performerHint')}
+              slotProps={{
+                htmlInput: { maxLength: 200 },
+              }}
+            />
+
+            <Box>
+              <Typography variant='body2' sx={{ mb: 0.5 }}>
+                {t('events.form.image')}
+              </Typography>
+              {imagePreviewUrl ? (
+                <Stack direction='row' sx={{ alignItems: 'center', gap: 1.5 }}>
+                  <Box
+                    component='img'
+                    src={imagePreviewUrl}
+                    alt=''
+                    sx={{ width: 80, height: 80, borderRadius: 1, objectFit: 'cover' }}
+                  />
+                  <Button
+                    size='small'
+                    color='error'
+                    variant='outlined'
+                    startIcon={<Icon icon='mdi:delete' />}
+                    onClick={handleImageRemove}
+                  >
+                    {t('events.form.removeImage')}
+                  </Button>
+                </Stack>
+              ) : (
+                <Button
+                  size='small'
+                  variant='outlined'
+                  component='label'
+                  startIcon={<Icon icon='mdi:image-plus' />}
+                >
+                  {t('events.form.image')}
+                  <input
+                    type='file'
+                    hidden
+                    accept={ALLOWED_IMAGE_TYPES.join(',')}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleImageSelect(file)
+                      e.target.value = ''
+                    }}
+                  />
+                </Button>
+              )}
+              <Typography
+                variant='caption'
+                sx={{
+                  display: 'block',
+                  mt: 0.5,
+                  color: imageError ? 'error.main' : 'text.secondary',
+                }}
+              >
+                {imageError ?? t('events.form.imageHint')}
+              </Typography>
+            </Box>
+
+            <Box>
+              <Stack
+                direction='row'
+                sx={{
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                }}
+              >
+                <Typography variant='body2'>{t('events.form.addTranslation')}</Typography>
+                {availableTranslationLanguages.length > 0 && (
+                  <Button
+                    size='small'
+                    startIcon={<Icon icon='mdi:plus' />}
+                    onClick={(e) => setTranslationMenuAnchor(e.currentTarget)}
+                  >
+                    {t('events.form.addTranslation')}
+                  </Button>
+                )}
+              </Stack>
+              <Menu
+                anchorEl={translationMenuAnchor}
+                open={!!translationMenuAnchor}
+                onClose={() => setTranslationMenuAnchor(null)}
+              >
+                {availableTranslationLanguages.map((language) => (
+                  <MenuItem key={language} onClick={() => addTranslation(language)}>
+                    {t(`events.form.languages.${language}`)}
+                  </MenuItem>
+                ))}
+              </Menu>
+
+              {activeTranslationLanguages.map((language) => (
+                <Box
+                  key={language}
+                  sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    p: 2,
+                    mt: 1.5,
+                  }}
+                >
+                  <Stack
+                    direction='row'
+                    sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}
+                  >
+                    <Chip label={t(`events.form.languages.${language}`)} size='small' />
+                    <Tooltip title={t('events.form.removeTranslation')}>
+                      <IconButton size='small' onClick={() => removeTranslation(language)}>
+                        <Icon icon='mdi:close' width={16} />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                  <Stack sx={{ gap: 1.5 }}>
+                    <TextField
+                      label={t('events.form.translationTitle')}
+                      value={form.translations[language]?.title ?? ''}
+                      onChange={(e) => updateTranslationField(language, 'title', e.target.value)}
+                      required
+                      fullWidth
+                      slotProps={{ htmlInput: { maxLength: 200 } }}
+                    />
+                    <TextField
+                      label={t('events.form.translationDescription')}
+                      value={form.translations[language]?.description ?? ''}
+                      onChange={(e) =>
+                        updateTranslationField(language, 'description', e.target.value)
+                      }
+                      fullWidth
+                      multiline
+                      rows={3}
+                    />
+                  </Stack>
+                </Box>
+              ))}
+            </Box>
 
             <FormControlLabel
               control={

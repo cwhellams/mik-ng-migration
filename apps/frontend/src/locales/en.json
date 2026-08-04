@@ -2373,13 +2373,29 @@
     "saveError": "Failed to save the event. Please try again.",
     "deleteError": "Failed to delete the event. Please try again.",
     "form": {
-      "title": "Title",
+      "title": "Title (English)",
       "startTime": "Start time",
       "endTime": "End time",
       "location": "Location",
-      "description": "Description",
+      "description": "Description (English)",
+      "performer": "Performer / speaker",
+      "performerHint": "Optional — name of the performer, speaker or instructor.",
+      "image": "Event image",
+      "imageHint": "Optional — upload an image (flyer or photo) shown on the MIK.fi website and in the club calendar.",
+      "removeImage": "Remove image",
+      "imageTypeError": "Please choose a JPEG, PNG or WebP image.",
+      "imageSizeError": "Image is too large (max {{maxSize}}).",
+      "uploadError": "Failed to upload the image. Please try again.",
       "isPublic": "Public event",
-      "isPublicHint": "Public events are visible on the MIK.fi website and accessible without login."
+      "isPublicHint": "Public events are visible on the MIK.fi website and accessible without login.",
+      "addTranslation": "Add translation",
+      "removeTranslation": "Remove translation",
+      "translationTitle": "Title",
+      "translationDescription": "Description",
+      "languages": {
+        "fi": "Finnish",
+        "sv": "Swedish"
+      }
     }
   },
   "expenses": {

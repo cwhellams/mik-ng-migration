@@ -23,9 +23,10 @@ import { MIKPermissions } from '@backend/routes/members/models'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import { downloadEventIcs, generateEventGoogleCalendarLink } from '../../utils/eventCalendar'
+import { getEventDisplayText } from './eventLanguage'
 
 const EventCard = ({ event }: { event: ClubEvent }) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const menuOpen = Boolean(anchorEl)
 
@@ -33,6 +34,7 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
   const end = dayjs(event.endTime)
   const isMultiDay = !start.isSame(end, 'day')
   const isPast = end.isBefore(dayjs())
+  const { title, description } = getEventDisplayText(event, i18n.language)
 
   const dateLabel = isMultiDay
     ? `${start.format('D.M.YYYY HH:mm')} – ${end.format('D.M.YYYY HH:mm')}`
@@ -47,6 +49,21 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
         opacity: isPast ? 0.65 : 1,
       }}
     >
+      {event.imageUrl && (
+        <Box
+          component='img'
+          src={event.imageUrl}
+          alt={title}
+          sx={{
+            width: 96,
+            height: 96,
+            borderRadius: 1,
+            objectFit: 'cover',
+            flexShrink: 0,
+            display: { xs: 'none', sm: 'block' },
+          }}
+        />
+      )}
       {/* Date column */}
       <Box
         sx={{
@@ -114,7 +131,7 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
               }}
             >
               <Typography variant='h6' component='span'>
-                {event.title}
+                {title}
               </Typography>
               {event.isPublic && (
                 <Chip label={t('events.public')} size='small' color='primary' variant='outlined' />
@@ -162,7 +179,28 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
               </Stack>
             )}
 
-            {event.description && (
+            {event.performer && (
+              <Stack
+                direction='row'
+                sx={{
+                  alignItems: 'center',
+                  gap: 0.5,
+                  mt: 0.25,
+                }}
+              >
+                <Icon icon='mdi:microphone' width={14} />
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
+                  {event.performer}
+                </Typography>
+              </Stack>
+            )}
+
+            {description && (
               <Typography
                 variant='body2'
                 sx={{
@@ -170,7 +208,7 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
                   whiteSpace: 'pre-line',
                 }}
               >
-                {event.description}
+                {description}
               </Typography>
             )}
           </Box>

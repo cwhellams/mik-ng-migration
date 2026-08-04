@@ -128,26 +128,6 @@ export type SimplbooksOutboxStatus = 'FAILED' | 'PENDING' | 'PROCESSING' | 'SKIP
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>
 
-export interface ClubAmeList {
-  id: Generated<string>
-  submitted_by: string
-  name: string
-  medical_centre: string
-  location: string
-  price: Numeric | null
-  medical_types: Generated<string[]>
-  notes: string | null
-  report_date: string
-  status: Generated<string>
-  approved_at: Timestamp | null
-  approved_by: string | null
-  rejected_at: Timestamp | null
-  rejected_by: string | null
-  rejection_reason: string | null
-  created_at: Generated<Timestamp>
-  updated_at: Generated<Timestamp>
-}
-
 export interface AcctsAircraftPricing {
   created_at: Generated<Timestamp>
   created_by: string | null
@@ -327,6 +307,26 @@ export interface AcctsRecurringFeesProcessing {
   updated_at: Generated<Timestamp>
   updated_by: string
   year: number
+}
+
+export interface ClubAmeList {
+  approved_at: Timestamp | null
+  approved_by: string | null
+  created_at: Generated<Timestamp>
+  id: Generated<string>
+  location: string
+  medical_centre: string
+  medical_types: Generated<string[]>
+  name: string
+  notes: string | null
+  price: Numeric | null
+  rejected_at: Timestamp | null
+  rejected_by: string | null
+  rejection_reason: string | null
+  report_date: string
+  status: Generated<string>
+  submitted_by: string
+  updated_at: Generated<Timestamp>
 }
 
 export interface DtoFlightItemOutcomes {
@@ -1112,12 +1112,22 @@ export interface MemberEvents {
   description: string | null
   end_time: Timestamp
   event_id: Generated<string>
+  image_key: string | null
+  image_url: string | null
   is_public: Generated<boolean>
   location: string | null
+  performer: string | null
   start_time: Timestamp
   title: string
   updated_at: Generated<Timestamp>
   updated_by: string
+}
+
+export interface MemberEventTranslations {
+  description: string | null
+  event_id: string
+  language: string
+  title: string
 }
 
 export interface MemberLoginAttempts {
@@ -1867,6 +1877,7 @@ export interface DB {
   'accts.mileage_allowance': AcctsMileageAllowance
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks
   'accts.recurring_fees_processing': AcctsRecurringFeesProcessing
+  'club.ame_list': ClubAmeList
   'dto.flight_item_outcomes': DtoFlightItemOutcomes
   'dto.hil_queue': DtoHilQueue
   'dto.member_syllabus': DtoMemberSyllabus
@@ -1916,7 +1927,6 @@ export interface DB {
   flyway_data_history: FlywayDataHistory
   flyway_schema_history: FlywaySchemaHistory
   fuel_prices_content: FuelPricesContent
-  'club.ame_list': ClubAmeList
   'inventory.audit_log': InventoryAuditLog
   'inventory.categories': InventoryCategories
   'inventory.items': InventoryItems
@@ -1925,6 +1935,7 @@ export interface DB {
   'member.brevo_sync_state': MemberBrevoSyncState
   'member.document_tiny_urls': MemberDocumentTinyUrls
   'member.documents': MemberDocuments
+  'member.event_translations': MemberEventTranslations
   'member.events': MemberEvents
   'member.login_attempts': MemberLoginAttempts
   'member.login_events': MemberLoginEvents

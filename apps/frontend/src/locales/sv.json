@@ -2346,13 +2346,29 @@
     "saveError": "Det gick inte att spara händelsen. Försök igen.",
     "deleteError": "Det gick inte att ta bort händelsen. Försök igen.",
     "form": {
-      "title": "Titel",
+      "title": "Titel (engelska)",
       "startTime": "Starttid",
       "endTime": "Sluttid",
       "location": "Plats",
-      "description": "Beskrivning",
+      "description": "Beskrivning (engelska)",
+      "performer": "Uppträdande / talare",
+      "performerHint": "Valfritt — namn på den uppträdande, talaren eller instruktören.",
+      "image": "Bild för händelsen",
+      "imageHint": "Valfritt — ladda upp en bild för händelsen (affisch eller foto) som visas på MIK.fi-webbplatsen och i klubbens kalender.",
+      "removeImage": "Ta bort bild",
+      "imageTypeError": "Välj en JPEG-, PNG- eller WebP-bild.",
+      "imageSizeError": "Bilden är för stor (max {{maxSize}}).",
+      "uploadError": "Det gick inte att ladda upp bilden. Försök igen.",
       "isPublic": "Offentlig händelse",
-      "isPublicHint": "Offentliga händelser visas på MIK.fi-webbplatsen och är tillgängliga utan inloggning."
+      "isPublicHint": "Offentliga händelser visas på MIK.fi-webbplatsen och är tillgängliga utan inloggning.",
+      "addTranslation": "Lägg till översättning",
+      "removeTranslation": "Ta bort översättning",
+      "translationTitle": "Titel",
+      "translationDescription": "Beskrivning",
+      "languages": {
+        "fi": "Finska",
+        "sv": "Svenska"
+      }
     }
   },
   "expenses": {

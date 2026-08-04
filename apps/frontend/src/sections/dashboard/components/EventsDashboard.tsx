@@ -23,9 +23,10 @@ import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
 import type { ClubEvent, EventListResponse } from '@backend/routes/events/models'
 import { downloadEventIcs, generateEventGoogleCalendarLink } from '../../../utils/eventCalendar'
+import { getEventDisplayText } from '../../events/eventLanguage'
 
 const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const menuOpen = Boolean(anchorEl)
 
@@ -33,6 +34,7 @@ const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
   const end = dayjs(event.endTime)
   const isMultiDay = !start.isSame(end, 'day')
   const isPast = end.isBefore(dayjs())
+  const { title } = getEventDisplayText(event, i18n.language)
 
   const dateLabel = isMultiDay
     ? `${start.format('D.M.YYYY HH:mm')} – ${end.format('D.M.YYYY HH:mm')}`
@@ -48,6 +50,20 @@ const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
           gap: 1,
         }}
       >
+        {event.imageUrl && (
+          <Box
+            component='img'
+            src={event.imageUrl}
+            alt={title}
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: 1,
+              objectFit: 'cover',
+              flexShrink: 0,
+            }}
+          />
+        )}
         <Box
           sx={{
             flex: 1,
@@ -68,7 +84,7 @@ const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
                 fontWeight: 'medium',
               }}
             >
-              {event.title}
+              {title}
             </Typography>
             {isPast && <Chip label={t('events.past')} size='small' variant='outlined' />}
           </Stack>

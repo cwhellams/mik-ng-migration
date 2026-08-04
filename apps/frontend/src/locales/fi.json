@@ -2379,13 +2379,29 @@
     "saveError": "Tapahtuman tallentaminen epäonnistui. Yritä uudelleen.",
     "deleteError": "Tapahtuman poistaminen epäonnistui. Yritä uudelleen.",
     "form": {
-      "title": "Otsikko",
+      "title": "Otsikko (englanti)",
       "startTime": "Alkuaika",
       "endTime": "Loppuaika",
       "location": "Paikka",
-      "description": "Kuvaus",
+      "description": "Kuvaus (englanti)",
+      "performer": "Esiintyjä / luennoitsija",
+      "performerHint": "Valinnainen — esiintyjän, luennoitsijan tai kouluttajan nimi.",
+      "image": "Tapahtuman kuva",
+      "imageHint": "Valinnainen — lataa tapahtuman kuva (juliste tai valokuva), joka näytetään MIK.fi-sivustolla ja kerhon kalenterissa.",
+      "removeImage": "Poista kuva",
+      "imageTypeError": "Valitse JPEG-, PNG- tai WebP-kuva.",
+      "imageSizeError": "Kuva on liian suuri (enintään {{maxSize}}).",
+      "uploadError": "Kuvan lataaminen epäonnistui. Yritä uudelleen.",
       "isPublic": "Julkinen tapahtuma",
-      "isPublicHint": "Julkiset tapahtumat näkyvät MIK.fi-sivustolla eikä niihin vaadita kirjautumista."
+      "isPublicHint": "Julkiset tapahtumat näkyvät MIK.fi-sivustolla eikä niihin vaadita kirjautumista.",
+      "addTranslation": "Lisää käännös",
+      "removeTranslation": "Poista käännös",
+      "translationTitle": "Otsikko",
+      "translationDescription": "Kuvaus",
+      "languages": {
+        "fi": "Suomi",
+        "sv": "Ruotsi"
+      }
     }
   },
   "expenses": {

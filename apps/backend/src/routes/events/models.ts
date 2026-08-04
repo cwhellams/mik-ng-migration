@@ -1,10 +1,31 @@
 import { z } from 'zod'
 
+// English lives on the event's base title/description columns and is always
+// present. This table only ever holds the optional Finnish/Swedish overrides.
+const EventTranslationSchema = z.object({
+  title: z.string(),
+  description: z.string().nullable(),
+})
+
+export type EventTranslation = z.infer<typeof EventTranslationSchema>
+
+const EventTranslationsSchema = z
+  .object({
+    fi: EventTranslationSchema.optional(),
+    sv: EventTranslationSchema.optional(),
+  })
+  .default({})
+
+export type EventTranslations = z.infer<typeof EventTranslationsSchema>
+
 export const EventSchema = z.object({
   eventId: z.string().guid(),
   title: z.string().min(1).max(200),
   description: z.string().nullable(),
   location: z.string().nullable(),
+  imageUrl: z.string().nullable(),
+  performer: z.string().nullable(),
+  translations: EventTranslationsSchema,
   startTime: z.string().datetime({ offset: true }),
   endTime: z.string().datetime({ offset: true }),
   isPublic: z.boolean(),
@@ -18,10 +39,26 @@ export type ClubEvent = z.infer<typeof EventSchema>
 
 const EventDateTimeSchema = z.string().datetime({ offset: true })
 
+const EventTranslationWriteSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().nullable().optional(),
+})
+
+// A present language key upserts that translation; `null` deletes it; an
+// omitted key leaves it unchanged (update) / uncreated (create).
+const EventTranslationsWriteSchema = z.object({
+  fi: EventTranslationWriteSchema.nullable().optional(),
+  sv: EventTranslationWriteSchema.nullable().optional(),
+})
+
+export type EventTranslationsWrite = z.infer<typeof EventTranslationsWriteSchema>
+
 const EventWriteSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
+  performer: z.string().max(200).nullable().optional(),
+  translations: EventTranslationsWriteSchema.optional(),
   startTime: EventDateTimeSchema,
   endTime: EventDateTimeSchema,
   isPublic: z.boolean().optional(),
