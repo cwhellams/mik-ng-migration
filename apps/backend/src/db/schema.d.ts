@@ -1217,6 +1217,19 @@ export interface MemberLoginEvents {
   user_agent: string | null
 }
 
+export interface MemberMailboxMessages {
+  body: string | null
+  created_at: Generated<Timestamp>
+  dedup_key: string | null
+  expires_at: Generated<Timestamp>
+  id: Generated<Int8>
+  read_at: Timestamp | null
+  recipient_id: string
+  severity: Generated<string>
+  title: string
+  type: string
+}
+
 export interface MemberMeeting {
   created_at: Generated<Timestamp>
   created_by: string | null
@@ -2081,6 +2094,7 @@ export interface DB {
   'member.events': MemberEvents
   'member.login_attempts': MemberLoginAttempts
   'member.login_events': MemberLoginEvents
+  'member.mailbox_messages': MemberMailboxMessages
   'member.meeting': MemberMeeting
   'member.meeting_attendance': MemberMeetingAttendance
   'member.meeting_vote': MemberMeetingVote
