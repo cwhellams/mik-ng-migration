@@ -1814,7 +1814,9 @@
       "processed": "Save ratings and mark as Processed",
       "confirmProcessed": "Are you sure the report is fully processed and can be marked as processed?",
       "close": "Save ratings and close Report",
-      "confirmClose": "Are you sure all mitigating actions have been taken and the report can be closed?"
+      "confirmClose": "Are you sure all mitigating actions have been taken and the report can be closed?",
+      "sendToCamo": "Send to CAMO",
+      "confirmSendToCamo": "This will email CAMO and grant them access to view and comment on this report. This action cannot be undone. Continue?"
     },
     "categories": "Categories",
     "categoryEnum": {

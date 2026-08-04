@@ -1822,7 +1822,9 @@
       "processed": "Spara bedömningar och markera som behandlad",
       "confirmProcessed": "Är du säker på att rapporten är fullständigt behandlad och kan markeras som behandlad?",
       "close": "Spara bedömningar och stäng rapport",
-      "confirmClose": "Är du säker på att alla förebyggande åtgärder har vidtagits och rapporten kan stängas?"
+      "confirmClose": "Är du säker på att alla förebyggande åtgärder har vidtagits och rapporten kan stängas?",
+      "sendToCamo": "Skicka till CAMO",
+      "confirmSendToCamo": "Detta skickar ett e-postmeddelande till CAMO och ger dem åtkomst att visa och kommentera denna rapport. Åtgärden kan inte ångras. Vill du fortsätta?"
     },
     "categories": "Kategorier",
     "categoryEnum": {

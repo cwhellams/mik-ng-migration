@@ -61,6 +61,9 @@ import { useTimezone } from '../../hooks/useTimezone'
 const MAX_ATTACHMENT_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB, matches the backend's raw upload limit
 const ACCEPTED_ATTACHMENT_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
+// role_id of the dedicated CAMO role, created in V1680__AddCamoRole.sql
+const CAMO_ROLE_ID = 'CAMO'
+
 export const OccurrenceEntry = () => {
   const { t, i18n } = useTranslation()
   const { formatDateTime, timezoneName, timezoneOffset } = useTimezone()
@@ -221,6 +224,14 @@ export const OccurrenceEntry = () => {
       access,
       method == 'POST' ? 'access' : `access/${access.accessId}`,
     )
+    if (error) {
+      return setProblem(error)
+    }
+    setProblem({ status: 200, detail: t('general.savingSuccess') })
+  }
+
+  const handleSendToCamo = async () => {
+    const { error } = await mutation.trigger<unknown, Occurrence>('POST', {}, 'camo')
     if (error) {
       return setProblem(error)
     }
@@ -686,7 +697,26 @@ export const OccurrenceEntry = () => {
           )
 
         case OccurrenceStatus.ANONYMIZED:
-          return <BeforeForm />
+          return (
+            <>
+              {data?.aircraftTechnicalFault &&
+                !data.access.some((a) => a.roleId === CAMO_ROLE_ID) && (
+                  <ConfirmButton
+                    onConfirm={handleSendToCamo}
+                    title={t('occurrences.actions.sendToCamo')}
+                    message={t('occurrences.actions.confirmSendToCamo')}
+                    confirmText={t('general.save')}
+                    cancelText={t('general.cancel')}
+                    severity='warning'
+                    buttonProps={{
+                      startIcon: <Icon icon='mdi:send' />,
+                      sx: { ml: 5, mb: 3 },
+                    }}
+                  />
+                )}
+              <BeforeForm />
+            </>
+          )
 
         default:
           return (

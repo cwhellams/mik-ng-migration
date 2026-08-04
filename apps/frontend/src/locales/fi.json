@@ -1821,7 +1821,9 @@
       "processed": "Tallenna luokitukset ja merkitse käsitellyksi",
       "confirmProcessed": "Oletko varma, että raportti on täysin käsitelty ja voidaan merkitä käsitellyksi?",
       "close": "Tallenna luokitukset ja sulje raportti",
-      "confirmClose": "Oletko varma, että kaikki korjaavat toimenpiteet on toteutettu ja raportti voidaan sulkea?"
+      "confirmClose": "Oletko varma, että kaikki korjaavat toimenpiteet on toteutettu ja raportti voidaan sulkea?",
+      "sendToCamo": "Lähetä CAMOlle",
+      "confirmSendToCamo": "Tämä lähettää sähköposti-ilmoituksen CAMOlle ja antaa heille oikeuden nähdä ja kommentoida tätä raporttia. Toimintoa ei voi perua. Jatketaanko?"
     },
     "categories": "Kategoriat",
     "categoryEnum": {
