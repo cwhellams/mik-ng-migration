@@ -2476,8 +2476,11 @@
     "deleteError": "Failed to delete the event. Please try again.",
     "form": {
       "title": "Title (English)",
-      "startTime": "Start time",
-      "endTime": "End time",
+      "startTimeTz": "Start time ({{tz}})",
+      "endTimeTz": "End time ({{tz}})",
+      "timezone": "Time zone",
+      "timezoneHelsinki": "Helsinki",
+      "timezoneHint": "The time zone the event's start and end times are entered in. Defaults to Helsinki since most club events happen there.",
       "location": "Location",
       "description": "Description (English)",
       "performer": "Performer / speaker",

@@ -19,6 +19,7 @@ import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
 import { useRoles } from '../../hooks/useRoles'
 import { useThemeMode } from '../../theme/ThemeContext'
+import { useTimezone } from '../../hooks/useTimezone'
 import { MIKPermissions } from '@backend/routes/members/models'
 import dayjs from 'dayjs'
 import { useState } from 'react'
@@ -27,6 +28,7 @@ import { getEventDisplayText } from './eventLanguage'
 
 const EventCard = ({ event }: { event: ClubEvent }) => {
   const { t, i18n } = useTranslation()
+  const { formatDateCustom, formatTime, timezoneOffset } = useTimezone()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const menuOpen = Boolean(anchorEl)
 
@@ -37,8 +39,12 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
   const { title, description } = getEventDisplayText(event, i18n.language)
 
   const dateLabel = isMultiDay
-    ? `${start.format('D.M.YYYY HH:mm')} – ${end.format('D.M.YYYY HH:mm')}`
-    : `${start.format('D.M.YYYY')} ${start.format('HH:mm')} – ${end.format('HH:mm')}`
+    ? `${formatDateCustom(start, 'D.M.YYYY HH:mm')} – ${formatDateCustom(end, 'D.M.YYYY HH:mm')}`
+    : `${formatDateCustom(start, 'D.M.YYYY')} ${formatTime(start.toDate())} – ${formatTime(end.toDate())}`
+  const tzLabel = timezoneOffset(start.toDate())
+  const startDay = formatDateCustom(start, 'D')
+  const startMonth = formatDateCustom(start, 'MMM')
+  const startYear = formatDateCustom(start, 'YYYY')
 
   return (
     <Box
@@ -81,7 +87,7 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
             lineHeight: 1,
           }}
         >
-          {start.format('D')}
+          {startDay}
         </Typography>
         <Typography
           variant='caption'
@@ -90,7 +96,7 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
             textTransform: 'uppercase',
           }}
         >
-          {start.format('MMM')}
+          {startMonth}
         </Typography>
         <Typography
           variant='caption'
@@ -98,7 +104,7 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
             color: 'text.secondary',
           }}
         >
-          {start.format('YYYY')}
+          {startYear}
         </Typography>
       </Box>
       {/* Content column */}
@@ -154,7 +160,7 @@ const EventCard = ({ event }: { event: ClubEvent }) => {
                   color: 'text.secondary',
                 }}
               >
-                {dateLabel}
+                {dateLabel} ({tzLabel})
               </Typography>
             </Stack>
 
