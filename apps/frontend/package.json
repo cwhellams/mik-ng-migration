@@ -49,7 +49,6 @@
     "react-hook-form": "^7.83.0",
     "react-i18next": "^17.0.11",
     "react-router": "^8.3.0",
-    "react-router-dom": "^7.18.1",
     "react-swipeable": "^7.0.2",
     "swr": "^2.4.2",
     "validator": "^13.15.35",

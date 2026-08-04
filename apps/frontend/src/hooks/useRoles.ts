@@ -31,6 +31,8 @@ export function useRoles(): {
   isInventoryUser: boolean
   isAmeAdmin: boolean
   isAmeUser: boolean
+  isMeetingAdmin: boolean
+  isMeetingUser: boolean
   roles: MemberRole[]
   permissions: MIKPermissions[]
   sudoers: boolean
@@ -81,6 +83,8 @@ export function useRoles(): {
     isInventoryUser: hasAccess(MIKPermissions.INVENTORY_USER, MIKPermissions.INVENTORY_ADMIN),
     isAmeAdmin: hasSudoAccess(MIKPermissions.AME_ADMIN),
     isAmeUser: hasAccess(MIKPermissions.AME_USER, MIKPermissions.AME_ADMIN),
+    isMeetingAdmin: hasSudoAccess(MIKPermissions.MEETING_ADMIN),
+    isMeetingUser: hasAccess(MIKPermissions.MEETING_USER, MIKPermissions.MEETING_ADMIN),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
     // user is in sudoers file if the downgraded permission is different

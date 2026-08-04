@@ -22,7 +22,7 @@ import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
 import type { Order, OrderStatus } from '@backend/routes/shop/models'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { ORDER_STATUS_COLOR } from '../../shop/orderStatusColor'
 
 const ALL_STATUSES: OrderStatus[] = [

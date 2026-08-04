@@ -15,7 +15,7 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 import { Title } from '../../../components/Title'
 import { MarkdownContent } from '../../../components/MarkdownContent'
 import useApi from '../../../hooks/useApi'

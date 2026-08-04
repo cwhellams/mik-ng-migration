@@ -105,6 +105,11 @@ export const menuItems: MenuItem[] = [
         requiredRoles: [MIKPermissions.MEMBER, MIKPermissions.MEMBER_ADMIN],
       },
       {
+        path: 'meetings',
+        label: 'header.meetings',
+        requiredRoles: [MIKPermissions.MEETING_USER, MIKPermissions.MEETING_ADMIN],
+      },
+      {
         path: '/exams',
         label: 'header.exams',
         requiredRoles: [MIKPermissions.EXAM_USER, MIKPermissions.EXAM_ADMIN],
@@ -222,6 +227,7 @@ export const menuItems: MenuItem[] = [
       MIKPermissions.EVENTS_ADMIN,
       MIKPermissions.INVENTORY_ADMIN,
       MIKPermissions.AME_ADMIN,
+      MIKPermissions.MEETING_ADMIN,
     ],
     adminModeOnly: true,
     subItems: [
@@ -271,6 +277,12 @@ export const menuItems: MenuItem[] = [
         label: 'header.eventsAdmin',
         path: 'events',
         requiredRoles: [MIKPermissions.EVENTS_ADMIN],
+        adminModeOnly: true,
+      },
+      {
+        label: 'header.meetingsAdmin',
+        path: 'meetings',
+        requiredRoles: [MIKPermissions.MEETING_ADMIN],
         adminModeOnly: true,
       },
       {

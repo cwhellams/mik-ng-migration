@@ -10,7 +10,7 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Box } from '@mui/system'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { RemoteContent } from '../../../components/RemoteContent'
 import useApi from '../../../hooks/useApi'
 import { useThemeMode } from '../../../theme/ThemeContext'

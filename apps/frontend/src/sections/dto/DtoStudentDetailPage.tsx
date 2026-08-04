@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../components/Title'
 import { RemoteContent } from '../../components/RemoteContent'

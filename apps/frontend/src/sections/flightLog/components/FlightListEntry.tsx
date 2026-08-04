@@ -1,7 +1,7 @@
 export const FlightLogListEntry = () => {}
 import { Box, Typography } from '@mui/material'
 import { Grid, useMediaQuery, useTheme } from '@mui/system'
-import { Link, LinkProps } from 'react-router-dom'
+import { Link, LinkProps } from 'react-router'
 import { ReactNode } from 'react'
 import { Icon } from '@iconify/react'
 import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFilledWhiteOutlined'

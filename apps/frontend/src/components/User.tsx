@@ -1,5 +1,5 @@
 import { Box, Button, Typography, Menu, MenuItem, ListItemIcon, Divider } from '@mui/material'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'

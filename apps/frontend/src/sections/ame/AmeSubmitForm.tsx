@@ -15,7 +15,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers'
 import dayjs, { type Dayjs } from 'dayjs'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
 import { AME_MEDICAL_TYPES } from '@backend/routes/ame/models'

@@ -22,12 +22,25 @@ export const markdownEmailTemplate = (
       },
       extensions: [buttonExtension],
     })
-    .parse(template(variables), {
+    .parse(template(escapeMarkdownVariables(variables)), {
       async: false,
     })
 
   return emailTemplate(body, footer)
 }
+
+// Handlebars only HTML-escapes template output, so user-controlled values
+// (e.g. a member's display name) can still contain literal markdown link
+// syntax like `[button:Click me](http://evil.example)`. Escaping `[` and `]`
+// stops that text from being parsed as a markdown link or button once the
+// substituted string reaches `marked` below.
+const escapeMarkdownVariables = (variables: Record<string, unknown>): Record<string, unknown> =>
+  Object.fromEntries(
+    Object.entries(variables).map(([key, value]) => [
+      key,
+      typeof value === 'string' ? value.replace(/[[\]]/g, '\\$&') : value,
+    ]),
+  )
 
 const emailTemplate = (body: string, footer?: string) => `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">

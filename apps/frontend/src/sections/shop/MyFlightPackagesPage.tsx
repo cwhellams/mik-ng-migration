@@ -14,7 +14,7 @@ import {
 import type { UnbilledTimeByAircraft, MemberPackage } from '@backend/routes/prepaid-hours/models'
 import type { EquipmentFeeStatus } from '@backend/routes/invoicing/models'
 import { Icon } from '@iconify/react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'

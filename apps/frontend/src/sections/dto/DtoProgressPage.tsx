@@ -24,7 +24,7 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'

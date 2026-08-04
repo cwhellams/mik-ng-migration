@@ -10,7 +10,7 @@ import {
   ListItemText,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { FlightLogListResponse, FlightLogStatus } from '@backend/routes/flight-log/models'
 import { useThemeMode } from '../../../theme/ThemeContext'

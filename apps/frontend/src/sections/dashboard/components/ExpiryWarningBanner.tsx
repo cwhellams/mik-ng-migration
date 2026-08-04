@@ -1,6 +1,6 @@
 import { Alert, AlertTitle, Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useMe } from '../../../hooks/useMe'
 import dayjs from 'dayjs'
 import { getEffectiveMedicalExpiry } from '../../../utils/date'

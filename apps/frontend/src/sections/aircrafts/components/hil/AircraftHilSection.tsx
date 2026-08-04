@@ -13,7 +13,7 @@ import {
 import { Icon } from '@iconify/react'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import type { AircraftHilDetail } from '@backend/routes/aircraft-hil/models'
 import type { AjlbListResponse } from '@backend/routes/ajlb/model'
 import { EditButton } from '../../../../components/EditButton'

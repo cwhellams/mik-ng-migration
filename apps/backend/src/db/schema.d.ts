@@ -1151,6 +1151,48 @@ export interface MemberLoginEvents {
   user_agent: string | null
 }
 
+export interface MemberMeeting {
+  created_at: Generated<Timestamp>
+  created_by: string | null
+  description: string | null
+  document_search_filter: string | null
+  ended_at: Timestamp | null
+  meeting_id: Generated<string>
+  meeting_notes_document_id: number | null
+  meeting_url: string | null
+  started_at: Timestamp | null
+  status: Generated<string>
+  title: string
+}
+
+export interface MemberMeetingAttendance {
+  joined_at: Generated<Timestamp>
+  meeting_id: string
+  member_id: string
+}
+
+export interface MemberMeetingVote {
+  closed_at: Timestamp | null
+  closed_by: string | null
+  created_at: Generated<Timestamp>
+  created_by: string | null
+  description: string | null
+  display_order: Generated<number>
+  is_multi_select: Generated<boolean>
+  max_selections: number | null
+  meeting_id: string
+  status: Generated<string>
+  topic: string
+  vote_id: Generated<string>
+}
+
+export interface MemberMeetingVoteCounter {
+  assigned_at: Generated<Timestamp>
+  assigned_by: string | null
+  meeting_id: string
+  member_id: string
+}
+
 export interface MemberMemberToRoles {
   created_at: Generated<Timestamp>
   created_by: string
@@ -1317,6 +1359,27 @@ export interface MemberSimplbooksSyncState {
   last_synced_at: Generated<Timestamp>
   members_synced: Generated<number>
   sync_status: Generated<string>
+}
+
+export interface MemberVoteCast {
+  cast_at: Generated<Timestamp>
+  cast_id: Generated<string>
+  member_id: string
+  vote_id: string
+}
+
+export interface MemberVoteOption {
+  display_order: Generated<number>
+  option_id: Generated<string>
+  option_text: string
+  vote_id: string
+}
+
+export interface MemberVoteSelection {
+  option_id: string
+  selected_at: Generated<Timestamp>
+  selection_id: Generated<string>
+  vote_id: string
 }
 
 export interface MemberWebauthnChallenges {
@@ -1939,6 +2002,10 @@ export interface DB {
   'member.events': MemberEvents
   'member.login_attempts': MemberLoginAttempts
   'member.login_events': MemberLoginEvents
+  'member.meeting': MemberMeeting
+  'member.meeting_attendance': MemberMeetingAttendance
+  'member.meeting_vote': MemberMeetingVote
+  'member.meeting_vote_counter': MemberMeetingVoteCounter
   'member.member_to_roles': MemberMemberToRoles
   'member.non_renewal_actions': MemberNonRenewalActions
   'member.passkeys': MemberPasskeys
@@ -1949,6 +2016,9 @@ export interface DB {
   'member.register_audit': MemberRegisterAudit
   'member.roles': MemberRoles
   'member.simplbooks_sync_state': MemberSimplbooksSyncState
+  'member.vote_cast': MemberVoteCast
+  'member.vote_option': MemberVoteOption
+  'member.vote_selection': MemberVoteSelection
   'member.webauthn_challenges': MemberWebauthnChallenges
   notification_banner: NotificationBanner
   'prepaid.member_packages': PrepaidMemberPackages

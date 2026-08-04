@@ -57,7 +57,9 @@
     "inventory": "Varasto",
     "inventoryAdmin": "Varasto-hallinta",
     "ameList": "AME-hakemisto",
-    "ameAdmin": "AME-hyväksynnät"
+    "ameAdmin": "AME-hyväksynnät",
+    "meetings": "Kokoukset",
+    "meetingsAdmin": "Kokoukset (hallinto)"
   },
   "languageSelector": {
     "selectLanguage": "Valitse kieli"
@@ -2717,6 +2719,95 @@
       "deltaHint": "Positiivinen lisää, negatiivinen vähentää",
       "fieldRequired": "Tämä kenttä on pakollinen",
       "invalidImageUrl": "Anna kelvollinen http(s)-osoite"
+    }
+  },
+  "meetings": {
+    "title": "Yleiskokoukset",
+    "noActiveMeeting": "Kokous ei ole käynnissä.",
+    "ongoingMeeting": "Kokous käynnissä",
+    "attend": "Ilmoittaudu läsnäolevaksi",
+    "attending": "Olet ilmoittautunut läsnäolevaksi",
+    "documents": "Avaa liittyvät dokumentit",
+    "votes": {
+      "title": "Äänestykset",
+      "noOpenVotes": "Avoimia äänestyksiä ei ole tällä hetkellä.",
+      "submit": "Lähetä ääni",
+      "submitted": "Ääni lähetetty",
+      "alreadyVoted": "Olet jo äänestänyt tästä kysymyksestä.",
+      "toggleSelection": "Näytä tai piilota oma valintasi",
+      "open": "Avoin",
+      "closed": "Suljettu",
+      "results": "Tulokset",
+      "totalVotes": "Ääniä yhteensä",
+      "selectOne": "Valitse yksi vaihtoehto",
+      "selectMultiple": "Valitse enintään {{max}} vaihtoehtoa",
+      "selectMultipleUnlimited": "Valitse yksi tai useampi vaihtoehto",
+      "closedResults": "Suljetut äänestykset — tulokset"
+    },
+    "admin": {
+      "title": "Kokoushallinta",
+      "createMeeting": "Luo kokous",
+      "editMeeting": "Muokkaa kokousta",
+      "meetingDetails": "Kokouksen tiedot",
+      "startMeeting": "Avaa kokous",
+      "endMeeting": "Sulje kokous",
+      "confirmStart": "Avataanko tämä kokous? Jäsenet voivat liittyä mukaan. Tätä ei voi perua.",
+      "confirmEnd": "Suljetaanko tämä kokous? Avoimet äänestykset jäävät ennalleen. Tätä ei voi perua.",
+      "endMeetingNotesHelp": "Kokouksen pöytäkirja vaaditaan ja se ladataan klubin dokumenttiarkistoon.",
+      "selectNotesFile": "Valitse pöytäkirjatiedosto",
+      "viewMeetingNotes": "Näytä pöytäkirja",
+      "confirmDelete": "Poistetaanko tämä luonnoskokous?",
+      "status": {
+        "DRAFT": "Luonnos",
+        "ONGOING": "Avoin",
+        "ENDED": "Suljettu",
+        "PENDING_NOTES": "Odottaa pöytäkirjaa"
+      },
+      "attendees": "Läsnäolijat",
+      "attendeeCount": "{{count}} osallistuja(a)",
+      "voteCounters": "Ääntenlaskijat",
+      "addVoteCounter": "Lisää ääntenlaskija",
+      "removeVoteCounter": "Poista",
+      "createVote": "Luo äänestys",
+      "openVote": "Avaa äänestys",
+      "closeVote": "Sulje äänestys",
+      "abandonVote": "Hylkää äänestys",
+      "confirmOpenVote": "Avataanko tämä äänestys? Jäsenet voivat aloittaa äänestämisen välittömästi. Tätä ei voi perua.",
+      "confirmCloseVote": "Suljetaanko tämä äänestys? Ääniä ei voi enää lähettää, eikä sitä voi avata uudelleen. Tätä ei voi perua.",
+      "confirmAbandonVote": "Hylätäänkö tämä äänestys? Sen tuloksia ei koskaan lasketa tai näytetä virallisina. Tätä ei voi perua.",
+      "voteStatus": {
+        "DRAFT": "Luonnos",
+        "OPEN": "Avoin",
+        "CLOSED": "Suljettu",
+        "ABANDONED": "Hylätty"
+      },
+      "options": "Vaihtoehdot",
+      "addOption": "Lisää vaihtoehto",
+      "removeOption": "Poista",
+      "isMultiSelect": "Salli useita valintoja",
+      "maxSelections": "Valintojen enimmäismäärä (jätä tyhjäksi rajattomalle)",
+      "documentFilter": "Dokumenttihaun suodatin",
+      "documentFilterHelp": "Kirjoita otsikko tai hakusana, joka täsmää klubin dokumenttikirjaston dokumentteihin.",
+      "browseDocuments": "Selaa dokumentteja",
+      "noMeetings": "Kokouksia ei ole vielä.",
+      "noMeetingSelected": "Valitse kokous",
+      "noAttendees": "Ei vielä läsnäolijoita.",
+      "noVoteCounters": "Ääntenlaskijoita ei ole asetettu.",
+      "noVotes": "Äänestyksiä ei ole vielä luotu.",
+      "voteTopic": "Aihe",
+      "deleteMeeting": "Poista kokous",
+      "pendingNotes": "Siirrä odottamaan pöytäkirjaa",
+      "confirmPendingNotes": "Siirry odottamaan pöytäkirjaa? Jäsenet eivät enää voi ilmoittautua tai äänestää. Tätä ei voi perua.",
+      "meetingUrl": "Kokouslinkki (esim. Zoom tai Teams)"
+    },
+    "voteCounterNotice": "Olet tämän kokouksen äänten laskija. Näet tulokset kun äänestys suljetaan.",
+    "pendingNotes": "Kokous on päättynyt ja odottaa pöytäkirjaa. Tuloksia viimeistellään.",
+    "joinMeeting": "Liity videokokoukseen",
+    "joinMeetingHelp": "Avaa kokouksen etäyhteyden (videopuhelun) uuteen välilehteen.",
+    "attendHelp": "Ilmoittautumalla läsnäolevaksi voit osallistua kokouksen äänestyksiin.",
+    "banner": {
+      "ongoing": "{{title}} on käynnissä",
+      "action": "Avaa kokous"
     }
   }
 }

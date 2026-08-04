@@ -54,6 +54,7 @@ import { router as ameRoutes } from './routes/ame/api.ts'
 import maintenanceNoteRoutes from './routes/maintenance-notes/api.ts'
 import aircraftHilRoutes from './routes/aircraft-hil/api.ts'
 import defectRoutes from './routes/defects/api.ts'
+import meetingRoutes from './routes/meetings/api.ts'
 import { startSimpleBooksOutboxProcessor } from './workers/simplbooksOutboxWorker.ts'
 import { startSimplbooksInvoicePaymentWorker } from './workers/simplbooksInvoicePaymentWorker.ts'
 import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
@@ -193,6 +194,7 @@ app.use('/api/v1/ame', ameRoutes)
 app.use('/api/v1/maintenance-notes', maintenanceNoteRoutes)
 app.use('/api/v1/aircraft-hil', aircraftHilRoutes)
 app.use('/api/v1/defects', defectRoutes)
+app.use('/api/v1/meetings', meetingRoutes)
 
 // Test database connection before starting workers
 await testConnection()

@@ -1,7 +1,7 @@
 import { Box, Button, Typography, Chip, Alert } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router'
 import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'

@@ -1,7 +1,7 @@
 import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import type { TrainingProgram } from '@backend/routes/dto/models'

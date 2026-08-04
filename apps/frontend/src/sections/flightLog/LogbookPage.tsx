@@ -17,7 +17,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import useApi from '../../hooks/useApi'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router'
 import {
   FlightLog,
   FlightLogUpsertRequest,

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { LoginLayout } from './LoginLayout'
 import { Box, Typography, TextField, Button, CircularProgress, Alert } from '@mui/material'
 import { useTranslation } from 'react-i18next'

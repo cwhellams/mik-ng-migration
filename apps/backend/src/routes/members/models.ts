@@ -85,6 +85,12 @@ export enum MIKPermissions {
 
   // can approve/reject AME submissions (committee)
   AME_ADMIN = 'ame.admin',
+
+  // can join general meetings and vote remotely
+  MEETING_USER = 'meeting.user',
+
+  // can manage general meetings and voting
+  MEETING_ADMIN = 'meeting.admin',
 }
 
 // admins can be downgraded to user permissions when not in sudo mode
@@ -115,6 +121,8 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
 
     case MIKPermissions.INVENTORY_ADMIN:
       return MIKPermissions.INVENTORY_USER
+    case MIKPermissions.MEETING_ADMIN:
+      return MIKPermissions.MEETING_USER
 
     case MIKPermissions.AME_ADMIN:
       return MIKPermissions.AME_USER

@@ -1,7 +1,7 @@
 import { Typography, Box, Paper, Divider, Fade } from '@mui/material'
 import MikLogo from '../../assets/mik-blue.svg'
 import { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 export const LoginLayout = ({ title, children }: { title: string; children: ReactNode }) => (
   <Box

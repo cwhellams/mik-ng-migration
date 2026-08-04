@@ -35,7 +35,7 @@ import { Problem } from '@backend/routes/response'
 import { SaveButton } from '../../../components/SaveButton'
 import { PhoneNumberInput } from '../../../components/PhoneNumberInput'
 import { CountrySelect } from '../../../components/CountrySelect'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 
 export type MemberEditMode =
   | 'register'

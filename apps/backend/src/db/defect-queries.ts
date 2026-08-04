@@ -1,4 +1,4 @@
-import type { Kysely } from 'kysely'
+import { sql, type Kysely } from 'kysely'
 
 import * as connection from './connection.ts'
 import type { DB } from './schema.d.ts'
@@ -110,7 +110,15 @@ export async function updateDefect(
       }),
       ...(data.resolvedNoteId !== undefined && {
         resolved_note_id: data.resolvedNoteId,
-        status: data.resolvedNoteId !== null ? 'RESOLVED' : 'MOVED_TO_HIL',
+        // Un-resolving (resolvedNoteId: null) should only land back on
+        // MOVED_TO_HIL if the defect is actually linked to a hold item —
+        // otherwise it belongs back on ACTIVE.
+        status:
+          data.resolvedNoteId !== null
+            ? ('RESOLVED' as const)
+            : (sql<
+                'ACTIVE' | 'MOVED_TO_HIL'
+              >`CASE WHEN hil_id IS NOT NULL THEN 'MOVED_TO_HIL' ELSE 'ACTIVE' END` as any),
       }),
       updated_at: new Date(),
       updated_by: updatedBy,

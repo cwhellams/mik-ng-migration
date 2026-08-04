@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink } from 'react-router'
 import type { ClubEvent, EventListResponse } from '@backend/routes/events/models'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'

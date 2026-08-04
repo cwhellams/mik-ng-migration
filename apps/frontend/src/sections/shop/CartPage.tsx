@@ -24,7 +24,7 @@ import { Title } from '../../components/Title'
 import useApi from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import type { Cart, Order } from '@backend/routes/shop/models'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router'
 
 export default function CartPage() {
   const { t, i18n } = useTranslation()

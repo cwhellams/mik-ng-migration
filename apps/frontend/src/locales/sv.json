@@ -58,7 +58,9 @@
     "inventory": "Inventarie",
     "inventoryAdmin": "Inventarieadmin",
     "ameList": "AME-katalog",
-    "ameAdmin": "AME-godkännanden"
+    "ameAdmin": "AME-godkännanden",
+    "meetings": "Möten",
+    "meetingsAdmin": "Möten (administration)"
   },
   "languageSelector": {
     "selectLanguage": "Välj språk"
@@ -2684,6 +2686,95 @@
       "deltaHint": "Positivt för att lägga till, negativt för att ta bort",
       "fieldRequired": "Detta fält är obligatoriskt",
       "invalidImageUrl": "Ange en giltig http(s)-URL"
+    }
+  },
+  "meetings": {
+    "title": "Allmänna möten",
+    "noActiveMeeting": "Inget möte pågår för tillfället.",
+    "ongoingMeeting": "Möte pågår",
+    "attend": "Jag deltar",
+    "attending": "Du är registrerad som deltagare",
+    "documents": "Öppna relaterade dokument",
+    "voteCounterNotice": "Du är rösträknare för detta möte. Du ser resultaten efter att varje omröstning stängts.",
+    "votes": {
+      "title": "Omröstningar",
+      "noOpenVotes": "Inga öppna omröstningar för tillfället.",
+      "submit": "Rösta",
+      "submitted": "Röst avgiven",
+      "alreadyVoted": "Du har redan röstat i denna fråga.",
+      "toggleSelection": "Visa eller dölj ditt val",
+      "open": "Öppen",
+      "closed": "Stängd",
+      "results": "Resultat",
+      "totalVotes": "Totalt antal röster",
+      "selectOne": "Välj ett alternativ",
+      "selectMultiple": "Välj upp till {{max}} alternativ",
+      "selectMultipleUnlimited": "Välj ett eller flera alternativ",
+      "closedResults": "Avslutade omröstningar — resultat"
+    },
+    "admin": {
+      "title": "Mötesadministration",
+      "createMeeting": "Skapa möte",
+      "editMeeting": "Redigera möte",
+      "meetingDetails": "Mötesdetaljer",
+      "startMeeting": "Öppna möte",
+      "endMeeting": "Stäng möte",
+      "confirmStart": "Öppna detta möte? Medlemmar kan då anmäla sig. Detta kan inte ångras.",
+      "confirmEnd": "Stäng detta möte? Öppna omröstningar lämnas oförändrade. Detta kan inte ångras.",
+      "endMeetingNotesHelp": "Mötesprotokollet krävs och laddas upp till klubbens dokumentarkiv.",
+      "selectNotesFile": "Välj protokollfil",
+      "viewMeetingNotes": "Visa mötesprotokoll",
+      "confirmDelete": "Ta bort detta utkastmöte?",
+      "status": {
+        "DRAFT": "Utkast",
+        "ONGOING": "Öppet",
+        "ENDED": "Stängt",
+        "PENDING_NOTES": "Väntar på mötesprotokoll"
+      },
+      "attendees": "Deltagare",
+      "attendeeCount": "{{count}} deltagare",
+      "voteCounters": "Rösträknare",
+      "addVoteCounter": "Lägg till rösträknare",
+      "removeVoteCounter": "Ta bort",
+      "createVote": "Skapa omröstning",
+      "openVote": "Öppna omröstning",
+      "closeVote": "Stäng omröstning",
+      "abandonVote": "Överge omröstning",
+      "confirmOpenVote": "Öppna denna omröstning? Medlemmar kan börja rösta omedelbart. Detta kan inte ångras.",
+      "confirmCloseVote": "Stäng denna omröstning? Inga fler röster kan lämnas och den kan inte öppnas igen. Detta kan inte ångras.",
+      "confirmAbandonVote": "Överge denna omröstning? Dess resultat kommer aldrig att räknas eller visas som officiella. Detta kan inte ångras.",
+      "voteStatus": {
+        "DRAFT": "Utkast",
+        "OPEN": "Öppen",
+        "CLOSED": "Stängd",
+        "ABANDONED": "Övergiven"
+      },
+      "options": "Alternativ",
+      "addOption": "Lägg till alternativ",
+      "removeOption": "Ta bort",
+      "isMultiSelect": "Tillåt flera val",
+      "maxSelections": "Maximalt antal val (lämna tomt för obegränsat)",
+      "documentFilter": "Dokumentsökfilter",
+      "documentFilterHelp": "Ange en titel eller ett sökord som matchar dokument i klubbens dokumentbibliotek.",
+      "browseDocuments": "Bläddra bland dokument",
+      "noMeetings": "Inga möten ännu.",
+      "noMeetingSelected": "Välj ett möte",
+      "noAttendees": "Inga deltagare ännu.",
+      "noVoteCounters": "Inga rösträknare tilldelade.",
+      "noVotes": "Inga omröstningar skapade ännu.",
+      "voteTopic": "Ämne",
+      "deleteMeeting": "Ta bort möte",
+      "pendingNotes": "Flytta till väntar på mötesprotokoll",
+      "confirmPendingNotes": "Övergå till protokollstatus? Medlemmar kan inte längre anmäla sig eller rösta. Detta kan inte ångras.",
+      "meetingUrl": "Möteslänk (t.ex. Zoom eller Teams)"
+    },
+    "pendingNotes": "Mötet har avslutats och väntar på mötesprotokoll. Resultaten sammanställs.",
+    "joinMeeting": "Anslut till videomötet",
+    "joinMeetingHelp": "Öppnar mötets fjärranslutna videosamtal i en ny flik.",
+    "attendHelp": "Anmäl din närvaro för att kunna delta i mötets omröstningar.",
+    "banner": {
+      "ongoing": "{{title}} pågår",
+      "action": "Öppna möte"
     }
   }
 }

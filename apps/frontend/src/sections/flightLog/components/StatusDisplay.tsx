@@ -5,7 +5,7 @@ import {
 } from '@backend/routes/flight-log/models'
 import { Box, Button, Stack, CircularProgress } from '@mui/material'
 import { t } from 'i18next'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { FormField } from '../../../components/FormField'
 import theme from '../../../theme/theme'
 import { Icon } from '@iconify/react'

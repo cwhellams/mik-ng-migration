@@ -1,5 +1,5 @@
 import { Typography, Box, Grid, Stack } from '@mui/material'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { useRoles } from '../../hooks/useRoles'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'

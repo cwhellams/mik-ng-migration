@@ -19,7 +19,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router'
 import MikLogo from '../assets/mik-blue.svg'
 import MikLogoWhite from '../assets/mik-white.svg'
 import { useTranslation } from 'react-i18next'

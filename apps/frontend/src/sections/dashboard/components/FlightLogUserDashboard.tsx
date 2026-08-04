@@ -11,7 +11,7 @@ import {
   AccordionSummary,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { RemoteContent } from '../../../components/RemoteContent'
 import { useMe } from '../../../hooks/useMe'
 import { FlightLogStatsFilter, FlightLogStatsResponse } from '@backend/routes/flight-log/models'

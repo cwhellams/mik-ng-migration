@@ -18,7 +18,7 @@ import {
   Snackbar,
 } from '@mui/material'
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
