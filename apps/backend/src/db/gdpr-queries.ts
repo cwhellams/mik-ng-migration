@@ -16,6 +16,7 @@
 
 import { db } from './connection.ts'
 import { sql } from 'kysely'
+import { jsonArrayFrom } from 'kysely/helpers/postgres'
 
 // ─── Flight logs (all crew roles) ────────────────────────────────────────────
 
@@ -231,6 +232,16 @@ export async function getGdprIncidentReports(memberId: string) {
   return db
     .selectFrom('flight.occurrences as o')
     .selectAll('o')
+    .select((eb) =>
+      jsonArrayFrom(
+        // includes attachments hidden by an SMS processor: this is the member's own
+        // subject-access export, not the SMS-facing view, so nothing is withheld
+        eb
+          .selectFrom('flight.occurrence_attachments as att')
+          .selectAll('att')
+          .whereRef('att.report_id', '=', 'o.report_id'),
+      ).as('attachments'),
+    )
     .where((eb) =>
       eb.or([
         eb('o.created_by', '=', memberId),

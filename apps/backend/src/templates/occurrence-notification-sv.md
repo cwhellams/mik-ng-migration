@@ -12,6 +12,10 @@ Händelsen är endast synlig för oberoende granskare och måste anonymiseras in
 Den anonymiserade händelsen är nu synlig endast för säkerhetsansvariga. Vänligen behandla händelsen så snart som möjligt och dela med andra relevanta personer.
 {{/if}}
 
+{{#if hasAttachments}}
+Denna rapport har {{attachmentCount}} bilaga(or).
+{{/if}}
+
 {{#if deadLine}}
 Händelsen måste behandlas inom 72 timmar. Deadline är {{deadLine}}.
 {{/if}}

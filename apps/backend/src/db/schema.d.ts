@@ -888,6 +888,22 @@ export interface FlightOccurrenceAccess {
   write_access: Generated<boolean>
 }
 
+export interface FlightOccurrenceAttachments {
+  attachment_id: Generated<number>
+  created_at: Generated<Timestamp>
+  created_by: string
+  file_name: string
+  file_size: number
+  mime_type: string
+  origin_status: Occurrencestatus
+  removed_at: Timestamp | null
+  removed_by: string | null
+  report_id: string
+  storage_key: string
+  updated_at: Generated<Timestamp>
+  updated_by: string
+}
+
 export interface FlightOccurrences {
   animal_number: string | null
   animal_size: string | null
@@ -1983,6 +1999,7 @@ export interface DB {
   'flight.maintenance_note': FlightMaintenanceNote
   'flight.maintenance_note_audit': FlightMaintenanceNoteAudit
   'flight.occurrence_access': FlightOccurrenceAccess
+  'flight.occurrence_attachments': FlightOccurrenceAttachments
   'flight.occurrences': FlightOccurrences
   'flight.vw_aircraft_grounding_status': FlightVwAircraftGroundingStatus
   'flight.vw_flight_logs': FlightVwFlightLogs

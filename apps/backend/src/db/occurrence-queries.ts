@@ -1,4 +1,4 @@
-import type { ExpressionBuilder, Selectable } from 'kysely'
+import { sql, type ExpressionBuilder, type Kysely, type Selectable, type Transaction } from 'kysely'
 import type { JWTUser } from '../routes/auth/token.ts'
 import {
   OccurrenceCategory,
@@ -7,17 +7,22 @@ import {
   type OccurrenceComment,
   type OccurrenceHandling,
   type OccurrenceAccess,
+  type OccurrenceAttachment,
   type OccurrenceUpsert,
   type OccurrenceFilters,
 } from '../routes/occurrences/models.ts'
 import { generateShortId } from '../util/nanoId.ts'
 import * as connection from './connection.ts'
-import type { DB, FlightOccurrences } from './schema.js'
+import type { DB, FlightOccurrences, FlightOccurrenceAttachments } from './schema.js'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
+import { storageService } from '../services/storage.ts'
+
+type Executor = Kysely<DB> | Transaction<DB>
 
 const toOccurrence = (
   row: Selectable<FlightOccurrences>,
   access: OccurrenceAccess[],
+  attachments: OccurrenceAttachment[],
 ): Occurrence => {
   const status = row.status as OccurrenceStatus
 
@@ -45,6 +50,7 @@ const toOccurrence = (
     access,
     comments: row.comments as OccurrenceComment[],
     handling: row.handling as OccurrenceHandling,
+    attachments,
     createdAt: row.created_at.toISOString(),
     createdBy: row.created_by,
     updatedAt: row.updated_at.toISOString(),
@@ -76,6 +82,22 @@ export const getOccurrence = async (
           .select('member.register.last_name')
           .whereRef('flight.occurrence_access.report_id', '=', 'flight.occurrences.report_id'),
       ).as('access'),
+    )
+    .select((eb) =>
+      jsonArrayFrom(
+        eb
+          .selectFrom('flight.occurrence_attachments')
+          .selectAll('flight.occurrence_attachments')
+          .leftJoin(
+            'member.register',
+            'flight.occurrence_attachments.created_by',
+            'member.register.member_id',
+          )
+          .select('member.register.last_name')
+          .whereRef('flight.occurrence_attachments.report_id', '=', 'flight.occurrences.report_id')
+          .where('flight.occurrence_attachments.removed_at', 'is', null)
+          .orderBy('flight.occurrence_attachments.created_at'),
+      ).as('attachments'),
     )
     .where('flight.occurrences.report_id', '=', reportId)
     .where((eb) =>
@@ -111,6 +133,15 @@ export const getOccurrence = async (
       manage: a.manage_access,
       at: new Date(a.updated_at).toISOString(),
       by: a.updated_by,
+    })),
+    result.attachments.map((a) => ({
+      attachmentId: a.attachment_id,
+      fileName: a.file_name,
+      mimeType: a.mime_type,
+      fileSize: a.file_size,
+      originStatus: a.origin_status as OccurrenceStatus,
+      at: new Date(a.created_at).toISOString(),
+      by: a.last_name ?? a.created_by,
     })),
   )
 }
@@ -172,7 +203,7 @@ export async function getOccurrences(
     .orderBy('created_at', 'desc')
     .execute()
 
-  return results.map((r) => toOccurrence(r, []))
+  return results.map((r) => toOccurrence(r, [], []))
 }
 
 export async function createOccurrence(
@@ -185,6 +216,7 @@ export async function createOccurrence(
     comments: OccurrenceComment[]
   },
   user: JWTUser,
+  executor: Executor = connection.db,
 ): Promise<Occurrence> {
   const now = new Date()
 
@@ -192,13 +224,14 @@ export async function createOccurrence(
     ...occurrence,
     id: generateShortId(),
     handling: {},
+    attachments: [],
     createdAt: now.toISOString(),
     createdBy: user.memberId,
     updatedAt: now.toISOString(),
     updatedBy: user.memberId,
   }
 
-  await connection.db
+  await executor
     .insertInto('flight.occurrences')
     .values({
       report_id: created.id,
@@ -229,7 +262,7 @@ export async function createOccurrence(
     })
     .execute()
 
-  const access = await addOccurrenceAccess(created.id, user, ...occurrence.access)
+  const access = await addOccurrenceAccess(created.id, user, executor, ...occurrence.access)
 
   return { ...created, access }
 }
@@ -245,6 +278,7 @@ export async function updateOccurrence(
     }
   >,
   user: JWTUser,
+  executor: Executor = connection.db,
 ): Promise<Occurrence> {
   const now = new Date().toISOString()
   const updated: Occurrence = {
@@ -254,7 +288,7 @@ export async function updateOccurrence(
     updatedAt: now,
   }
 
-  await connection.db
+  await executor
     .updateTable('flight.occurrences')
     .set({
       occurrence_date: patch.occurrenceDate,
@@ -288,9 +322,10 @@ export async function updateOccurrence(
 export const addOccurrenceAccess = async (
   reportId: string,
   user: JWTUser,
+  executor: Executor = connection.db,
   ...access: OccurrenceAccess[]
 ): Promise<OccurrenceAccess[]> => {
-  const inserted = await connection.db
+  const inserted = await executor
     .insertInto('flight.occurrence_access')
     .values(
       access.map((access) => ({
@@ -323,8 +358,9 @@ export const updateOccurrenceAccess = async (
   reportId: string,
   access: OccurrenceAccess,
   user: JWTUser,
+  executor: Executor = connection.db,
 ) =>
-  connection.db
+  executor
     .updateTable('flight.occurrence_access')
     .set({
       write_access: access.write,
@@ -342,3 +378,164 @@ export const deleteOccurrenceAccess = async (reportId: string, ...accessIds: num
     .where('report_id', '=', reportId)
     .where('access_id', 'in', accessIds)
     .execute()
+
+interface NewOccurrenceAttachment {
+  fileName: string
+  mimeType: string
+  fileSize: number
+  storageKey: string
+  originStatus: OccurrenceStatus
+}
+
+const insertOccurrenceAttachment = async (
+  reportId: string,
+  attachment: NewOccurrenceAttachment,
+  createdBy: string,
+  executor: Executor = connection.db,
+): Promise<Selectable<FlightOccurrenceAttachments>> => {
+  const now = new Date()
+  return executor
+    .insertInto('flight.occurrence_attachments')
+    .values({
+      report_id: reportId,
+      file_name: attachment.fileName,
+      mime_type: attachment.mimeType,
+      file_size: attachment.fileSize,
+      storage_key: attachment.storageKey,
+      origin_status: attachment.originStatus,
+      created_at: now,
+      created_by: createdBy,
+      updated_at: now,
+      updated_by: createdBy,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+const mapAttachmentRow = (
+  row: Selectable<FlightOccurrenceAttachments>,
+  by: string,
+): OccurrenceAttachment => ({
+  attachmentId: row.attachment_id,
+  fileName: row.file_name,
+  mimeType: row.mime_type,
+  fileSize: row.file_size,
+  originStatus: row.origin_status as OccurrenceStatus,
+  at: row.created_at.toISOString(),
+  by,
+})
+
+// Enforces the per-report attachment cap atomically: an advisory lock scoped to the
+// report id serializes concurrent uploads so the count check below can't race with
+// another upload's insert.
+export const addOccurrenceAttachment = async (
+  reportId: string,
+  attachment: NewOccurrenceAttachment,
+  user: JWTUser,
+  maxAttachments: number,
+): Promise<OccurrenceAttachment | undefined> =>
+  connection.db.transaction().execute(async (trx) => {
+    await sql`select pg_advisory_xact_lock(hashtext(${reportId}))`.execute(trx)
+
+    const { count } = await trx
+      .selectFrom('flight.occurrence_attachments')
+      .select((eb) => eb.fn.countAll().as('count'))
+      .where('report_id', '=', reportId)
+      .where('removed_at', 'is', null)
+      .executeTakeFirstOrThrow()
+    if (Number(count) >= maxAttachments) {
+      return undefined
+    }
+
+    const row = await insertOccurrenceAttachment(reportId, attachment, user.memberId, trx)
+    return mapAttachmentRow(row, user.lastName)
+  })
+
+export const getOccurrenceAttachment = async (reportId: string, attachmentId: number) =>
+  connection.db
+    .selectFrom('flight.occurrence_attachments')
+    .selectAll()
+    .where('report_id', '=', reportId)
+    .where('attachment_id', '=', attachmentId)
+    .where('removed_at', 'is', null)
+    .executeTakeFirst()
+
+export const countOccurrenceAttachments = async (reportId: string): Promise<number> => {
+  const result = await connection.db
+    .selectFrom('flight.occurrence_attachments')
+    .select((eb) => eb.fn.countAll().as('count'))
+    .where('report_id', '=', reportId)
+    .where('removed_at', 'is', null)
+    .executeTakeFirstOrThrow()
+  return Number(result.count)
+}
+
+export const removeOccurrenceAttachment = async (
+  reportId: string,
+  attachmentId: number,
+  bucketName: string,
+  user: JWTUser,
+): Promise<void> => {
+  const removed = await connection.db
+    .updateTable('flight.occurrence_attachments')
+    .set({
+      removed_at: new Date(),
+      removed_by: user.memberId,
+      updated_at: new Date(),
+      updated_by: user.memberId,
+    })
+    .where('report_id', '=', reportId)
+    .where('attachment_id', '=', attachmentId)
+    .returning('storage_key')
+    .executeTakeFirst()
+
+  if (removed) {
+    await storageService.deleteFile(removed.storage_key, bucketName)
+  }
+}
+
+// Copies every non-hidden attachment from one report to another, preserving the
+// original uploader and origin status, so the anonymized copy still shows whether
+// a picture came from the original report or was added later.
+export const copyOccurrenceAttachments = async (
+  fromReportId: string,
+  toReportId: string,
+  bucketName: string,
+  executor: Executor = connection.db,
+): Promise<OccurrenceAttachment[]> => {
+  const source = await executor
+    .selectFrom('flight.occurrence_attachments')
+    .selectAll('flight.occurrence_attachments')
+    .leftJoin(
+      'member.register',
+      'flight.occurrence_attachments.created_by',
+      'member.register.member_id',
+    )
+    .select('member.register.last_name')
+    .where('flight.occurrence_attachments.report_id', '=', fromReportId)
+    .where('flight.occurrence_attachments.removed_at', 'is', null)
+    .execute()
+
+  return Promise.all(
+    source.map(async (attachment) => {
+      const destKey = attachment.storage_key.replace(
+        `occurrences/${fromReportId}/`,
+        `occurrences/${toReportId}/`,
+      )
+      await storageService.copyFile(attachment.storage_key, destKey, bucketName)
+      const row = await insertOccurrenceAttachment(
+        toReportId,
+        {
+          fileName: attachment.file_name,
+          mimeType: attachment.mime_type,
+          fileSize: attachment.file_size,
+          storageKey: destKey,
+          originStatus: attachment.origin_status as OccurrenceStatus,
+        },
+        attachment.created_by,
+        executor,
+      )
+      return mapAttachmentRow(row, attachment.last_name ?? attachment.created_by)
+    }),
+  )
+}

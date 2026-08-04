@@ -37,6 +37,7 @@ const expectedSMS1 = {
   access: [],
   comments: [],
   handling: {},
+  attachments: [],
   createdAt: expect.any(String),
   createdBy: 'Matti1',
   updatedAt: expect.any(String),

@@ -1796,6 +1796,18 @@
       "after": "Efter åtgärder",
       "mitigatingAction": "Vidtagna förebyggande åtgärder"
     },
+    "attachments": {
+      "title": "Bilagor",
+      "info": "Lägg till bilder för att förtydliga rapporten, till exempel en bild på skadan eller djuret. Godkända format: JPEG, PNG, WEBP. Metadata (plats, enhet) tas automatiskt bort.",
+      "saveFirst": "Spara rapporten innan du lägger till bilagor.",
+      "dropOrClick": "Dra och släpp en bild här, eller klicka för att välja",
+      "acceptedFormats": "JPEG, PNG eller WEBP, upp till 10 MB",
+      "fromOriginal": "Från ursprungsrapporten",
+      "addedLater": "Tillagd senare",
+      "open": "Öppna",
+      "invalidType": "Endast JPEG-, PNG- eller WEBP-bilder accepteras.",
+      "tooLarge": "Filen är för stor (max 10 MB)."
+    },
     "actions": {
       "receive": "Markera som mottagen och skapa kopia för anonymisering",
       "anonymize": "Publicera anonymiserad rapport",

@@ -1795,6 +1795,18 @@
       "after": "Parannustoimien jälkeen",
       "mitigatingAction": "Toteutetut parannustoimet"
     },
+    "attachments": {
+      "title": "Liitteet",
+      "info": "Lisää kuvia selventämään ilmoitusta, esimerkiksi kuva vauriosta tai eläimestä. Hyväksytyt muodot: JPEG, PNG, WEBP. Metatiedot (sijainti, laite) poistetaan automaattisesti.",
+      "saveFirst": "Tallenna ilmoitus ennen liitteiden lisäämistä.",
+      "dropOrClick": "Raahaa kuva tähän tai valitse klikkaamalla",
+      "acceptedFormats": "JPEG, PNG tai WEBP, enintään 10 Mt",
+      "fromOriginal": "Alkuperäisestä ilmoituksesta",
+      "addedLater": "Lisätty myöhemmin",
+      "open": "Avaa",
+      "invalidType": "Vain JPEG-, PNG- tai WEBP-kuvat hyväksytään.",
+      "tooLarge": "Tiedosto on liian suuri (enintään 10 Mt)."
+    },
     "actions": {
       "receive": "Merkitse vastaanotetuksi ja luo kopio anonymisointia varten",
       "anonymize": "Julkaise anonymisoitu raportti",

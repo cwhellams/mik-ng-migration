@@ -3,6 +3,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  CopyObjectCommand,
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { nanoid } from 'nanoid'
@@ -99,6 +100,20 @@ export async function downloadFile(key: string, bucketName?: string): Promise<Bu
   return Buffer.concat(chunks)
 }
 
+export async function copyFile(
+  sourceKey: string,
+  destKey: string,
+  bucketName?: string,
+): Promise<void> {
+  const bucket = bucketName || MIK_MEMBER_PUBLIC_BUCKET
+  const command = new CopyObjectCommand({
+    Bucket: bucket,
+    Key: destKey,
+    CopySource: `${bucket}/${encodeURIComponent(sourceKey)}`,
+  })
+  await s3Client.send(command)
+}
+
 export function getAircraftBucketName(registration: string): string {
   const suffix = registration.slice(-3).toLowerCase()
   return `mik-ac-${suffix}`
@@ -139,6 +154,17 @@ export async function mockDownloadFile(_key: string, _bucketName?: string): Prom
   return Buffer.from('mock-file-contents')
 }
 
+export async function mockCopyFile(
+  sourceKey: string,
+  destKey: string,
+  bucketName?: string,
+): Promise<void> {
+  const bucket = bucketName || MIK_MEMBER_PUBLIC_BUCKET
+  console.log(
+    `Mock: Would copy file from key: ${sourceKey} to key: ${destKey} in bucket: ${bucket}`,
+  )
+}
+
 export function mockGetAircraftBucketName(registration: string): string {
   const suffix = registration.slice(-3).toLowerCase()
   return `mik-ac-${suffix}`
@@ -155,6 +181,7 @@ export const storageService = isTest
       deleteFile: mockDeleteFile,
       getPresignedUrl: mockGetPresignedUrl,
       downloadFile: mockDownloadFile,
+      copyFile: mockCopyFile,
       getAircraftBucketName: mockGetAircraftBucketName,
     }
   : {
@@ -162,6 +189,7 @@ export const storageService = isTest
       deleteFile,
       getPresignedUrl,
       downloadFile,
+      copyFile,
       getAircraftBucketName,
     }
 

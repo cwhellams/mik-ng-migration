@@ -12,6 +12,10 @@ Poikkema on näkyvissä vain riippumattomille tarkastajille ja se on anonymisoit
 Anonymisoitu poikkema on nyt näkyvissä vain turvallisuuspäälliköille. Ole hyvä ja käsittele poikkema mahdollisimman pian ja jaa se muille asiaankuuluville henkilöille.
 {{/if}}
 
+{{#if hasAttachments}}
+Ilmoituksessa on {{attachmentCount}} liite(ttä).
+{{/if}}
+
 {{#if deadLine}}
 Poikkeman käsittely on tehtävä 72 tunnissa. Määräaika päättyy {{deadLine}}.
 {{/if}}

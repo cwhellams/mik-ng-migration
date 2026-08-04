@@ -1788,6 +1788,18 @@
       "after": "After mitigating actions",
       "mitigatingAction": "Mitigating Actions Taken"
     },
+    "attachments": {
+      "title": "Attachments",
+      "info": "Add pictures to clarify the report, for example a picture of the damage or animal involved. Accepted formats: JPEG, PNG, WEBP. Metadata (location, device) is automatically removed.",
+      "saveFirst": "Save the report first before adding attachments.",
+      "dropOrClick": "Drag and drop a picture here, or click to select",
+      "acceptedFormats": "JPEG, PNG or WEBP, up to 10 MB",
+      "fromOriginal": "From original report",
+      "addedLater": "Added later",
+      "open": "Open",
+      "invalidType": "Only JPEG, PNG or WEBP images are accepted.",
+      "tooLarge": "File is too large (max 10 MB)."
+    },
     "actions": {
       "receive": "Mark Received and Create Copy for Anonymization",
       "anonymize": "Publish Anonymized Report",

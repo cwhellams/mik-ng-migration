@@ -12,6 +12,10 @@ The occurrence is only visible to independent reviewers and have to be anonymize
 The anonymized occurrence is now visible now only to safety managers. Please process the occurrence as soon as possible and share to other relevant people.
 {{/if}}
 
+{{#if hasAttachments}}
+This report has {{attachmentCount}} attachment(s).
+{{/if}}
+
 {{#if deadLine}}
 Occurrence has to be processed in 72 hours. Deadline is at {{deadLine}}.
 {{/if}}

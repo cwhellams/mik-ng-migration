@@ -2,9 +2,10 @@ import 'dotenv/config'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import request from 'supertest'
+import sharp from 'sharp'
 
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
-import { router } from '../../../src/routes/occurrences/api.ts'
+import { router, processAttachmentImage } from '../../../src/routes/occurrences/api.ts'
 import {
   OccurrenceCategory,
   type OccurrencesListResponse,
@@ -70,6 +71,10 @@ afterAll(() => {
 
 afterEach(async () => {
   // Clean up test data
+  await db
+    .deleteFrom('flight.occurrence_attachments')
+    .where('report_id', 'not like', 'SMS%')
+    .execute()
   await db.deleteFrom('flight.occurrence_access').where('report_id', 'not like', 'SMS%').execute()
   await db.deleteFrom('flight.occurrences').where('report_id', 'not like', 'SMS%').execute()
 })
@@ -361,6 +366,7 @@ const expected = {
     },
   ],
   handling: {},
+  attachments: [],
   createdAt: expect.any(String),
   createdBy: 'Liisa1',
   updatedAt: expect.any(String),
@@ -692,5 +698,227 @@ describe('POST /occurrences/status', () => {
     expect((await query(anonymizedId, userToken)).body).toEqual(expectedClosed)
     expect((await query(anonymizedId, processorToken)).status).toEqual(404)
     expect((await query(anonymizedId, managerToken)).body).toEqual(expectedClosed)
+  })
+})
+
+describe('Occurrence attachments', () => {
+  const outsiderToken = generateAccessToken({
+    memberId: 'Anna1',
+    lastName: 'Heikkinen',
+    email: 'outsider@mik.fi',
+    roles: ['COMMITTEE'],
+    permissions: [MIKPermissions.FLIGHTLOG_USER],
+    canMakeReservations: false,
+  })
+
+  let jpegBuffer: Buffer
+  let exifJpegBuffer: Buffer
+
+  beforeAll(async () => {
+    jpegBuffer = await sharp({
+      create: { width: 40, height: 30, channels: 3, background: { r: 10, g: 200, b: 10 } },
+    })
+      .jpeg()
+      .toBuffer()
+
+    exifJpegBuffer = await sharp({
+      create: { width: 40, height: 30, channels: 3, background: { r: 10, g: 200, b: 10 } },
+    })
+      .withMetadata({ orientation: 6 })
+      .withExif({ IFD0: { Make: 'TestPhoneMaker', Model: 'TestPhoneModel' } })
+      .jpeg()
+      .toBuffer()
+  })
+
+  const uploadAttachment = (
+    reportId: string,
+    token: string,
+    buffer: Buffer,
+    filename = 'photo.jpg',
+    mimetype = 'image/jpeg',
+  ) =>
+    request(app)
+      .post(`/occurrences/${reportId}/attachments`)
+      .set('Cookie', `accessToken=${token}`)
+      .attach('file', buffer, { filename, contentType: mimetype })
+
+  const deleteAttachment = (reportId: string, attachmentId: number, token: string) =>
+    request(app)
+      .delete(`/occurrences/${reportId}/attachments/${attachmentId}`)
+      .set('Cookie', `accessToken=${token}`)
+
+  const getAttachmentUrl = (reportId: string, attachmentId: number, token: string) =>
+    request(app)
+      .get(`/occurrences/${reportId}/attachments/${attachmentId}/url`)
+      .set('Cookie', `accessToken=${token}`)
+
+  describe('processAttachmentImage', () => {
+    it('strips EXIF metadata and bakes in orientation', async () => {
+      const sourceMeta = await sharp(exifJpegBuffer).metadata()
+      expect(sourceMeta.exif).toBeDefined()
+      expect(sourceMeta.orientation).toBe(6)
+
+      const { buffer, mimeType } = await processAttachmentImage({
+        buffer: exifJpegBuffer,
+        originalname: 'IMG_selfie.jpg',
+        mimetype: 'image/jpeg',
+      } as unknown as Express.Multer.File)
+
+      expect(mimeType).toBe('image/jpeg')
+      const outMeta = await sharp(buffer).metadata()
+      expect(outMeta.exif).toBeUndefined()
+      expect([undefined, 1]).toContain(outMeta.orientation)
+      // orientation 6 (rotate 90) is baked into the pixels, so width/height swap
+      expect(outMeta.width).toBe(sourceMeta.height)
+      expect(outMeta.height).toBe(sourceMeta.width)
+    })
+  })
+
+  describe('POST /occurrences/:reportId/attachments', () => {
+    it('lets the author upload to their own NEW report', async () => {
+      const created = await post('', data, userToken)
+      const reportId = created.body.id
+
+      const response = await uploadAttachment(reportId, userToken, jpegBuffer)
+      expect(response.status).toBe(200)
+      expect(response.body).toEqual({
+        attachmentId: expect.any(Number),
+        fileName: expect.stringMatching(/\.jpg$/),
+        mimeType: 'image/jpeg',
+        fileSize: expect.any(Number),
+        originStatus: 'NEW',
+        at: expect.any(String),
+        by: 'Lahtinen',
+      })
+
+      const fetched = await query(reportId, userToken)
+      expect(fetched.body.attachments).toHaveLength(1)
+    })
+
+    it('rejects upload from a member without access to the report', async () => {
+      const created = await post('', data, userToken)
+      const response = await uploadAttachment(created.body.id, outsiderToken, jpegBuffer)
+      expect(response.status).toBe(404)
+    })
+
+    it('rejects upload once the report is deleted', async () => {
+      const created = await post('', data, userToken)
+      await post(`/${created.body.id}/status/DELETED`, {}, processorToken)
+
+      const response = await uploadAttachment(created.body.id, userToken, jpegBuffer)
+      expect(response.status).toBe(404)
+    })
+
+    it('rejects a 6th attachment', async () => {
+      const created = await post('', data, userToken)
+      const reportId = created.body.id
+      for (let i = 0; i < 5; i++) {
+        const res = await uploadAttachment(reportId, userToken, jpegBuffer)
+        expect(res.status).toBe(200)
+      }
+      const sixth = await uploadAttachment(reportId, userToken, jpegBuffer)
+      expect(sixth.status).toBe(400)
+    })
+
+    it('rejects non-image uploads', async () => {
+      const created = await post('', data, userToken)
+      const response = await uploadAttachment(
+        created.body.id,
+        userToken,
+        Buffer.from('not an image'),
+        'notes.txt',
+        'text/plain',
+      )
+      expect(response.status).toBe(500)
+    })
+
+    it('rejects oversized uploads', async () => {
+      const created = await post('', data, userToken)
+      const oversized = Buffer.alloc(10 * 1024 * 1024 + 1024)
+      const response = await uploadAttachment(created.body.id, userToken, oversized)
+      expect(response.status).toBe(500)
+    })
+  })
+
+  describe('Attachment visibility', () => {
+    it('hides attachments from a member with only sharing-card access', async () => {
+      const created = await post('', data, userToken)
+      const reportId = created.body.id
+      await uploadAttachment(reportId, userToken, jpegBuffer)
+
+      await request(app)
+        .post(`/occurrences/${reportId}/access`)
+        .set('Cookie', `accessToken=${userToken}`)
+        .send({ memberId: 'Anna1', author: false, write: false, manage: false })
+
+      const asOutsider = await query(reportId, outsiderToken)
+      expect(asOutsider.status).toBe(200)
+      expect(asOutsider.body.attachments).toEqual([])
+
+      const asAuthor = await query(reportId, userToken)
+      expect(asAuthor.body.attachments).toHaveLength(1)
+    })
+
+    it('enforces the same visibility rule on the presigned URL endpoint', async () => {
+      const created = await post('', data, userToken)
+      const reportId = created.body.id
+      const uploaded = await uploadAttachment(reportId, userToken, jpegBuffer)
+      const attachmentId = uploaded.body.attachmentId
+
+      const forbidden = await getAttachmentUrl(reportId, attachmentId, outsiderToken)
+      expect(forbidden.status).toBe(404)
+
+      const allowed = await getAttachmentUrl(reportId, attachmentId, userToken)
+      expect(allowed.status).toBe(200)
+      expect(allowed.body.url).toEqual(expect.any(String))
+    })
+  })
+
+  describe('Clone isolation through the RECEIVED transition', () => {
+    it('copies attachments to the anonymizing report without touching the original', async () => {
+      const created = await post('', data, userToken)
+      const reportId = created.body.id
+      const uploaded = await uploadAttachment(reportId, userToken, jpegBuffer)
+      expect(uploaded.status).toBe(200)
+
+      const received = await post(`/${reportId}/status/RECEIVED`, {}, processorToken)
+      expect(received.status).toBe(200)
+      expect(received.body.attachments).toHaveLength(1)
+      expect(received.body.attachments[0]).toEqual({
+        attachmentId: expect.any(Number),
+        fileName: uploaded.body.fileName,
+        mimeType: 'image/jpeg',
+        fileSize: uploaded.body.fileSize,
+        // provenance is preserved: this copy still shows it came from the original report
+        originStatus: 'NEW',
+        at: expect.any(String),
+        by: 'Korhonen',
+      })
+      // the copy is a distinct attachment row, not a reference to the original
+      expect(received.body.attachments[0].attachmentId).not.toEqual(uploaded.body.attachmentId)
+
+      const anonymizingId = received.body.id
+      const copiedAttachmentId = received.body.attachments[0].attachmentId
+
+      // the independent processor hides the picture on the anonymizing copy only
+      const removed = await deleteAttachment(anonymizingId, copiedAttachmentId, processorToken)
+      expect(removed.status).toBe(204)
+
+      const anonymizingAfterDelete = await query(anonymizingId, processorToken)
+      expect(anonymizingAfterDelete.body.attachments).toEqual([])
+      expect(anonymizingAfterDelete.body.comments.at(-1)).toEqual({
+        at: expect.any(String),
+        by: 'Lahtinen',
+        status: null,
+        comment: expect.stringContaining('Attachment removed'),
+      })
+
+      // the original report's attachment must survive untouched
+      const originalAfterDelete = await query(reportId, processorToken)
+      expect(originalAfterDelete.body.attachments).toHaveLength(1)
+      expect(originalAfterDelete.body.attachments[0].attachmentId).toEqual(
+        uploaded.body.attachmentId,
+      )
+    })
   })
 })
