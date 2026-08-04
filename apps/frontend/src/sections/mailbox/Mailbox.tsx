@@ -31,6 +31,14 @@ export default function Mailbox() {
                 markRead(message.id)
               }
             }}
+            onKeyDown={(e) => {
+              if (!message.readAt && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault()
+                markRead(message.id)
+              }
+            }}
+            tabIndex={message.readAt ? undefined : 0}
+            role={message.readAt ? undefined : 'button'}
             sx={{ cursor: message.readAt ? 'default' : 'pointer' }}
             action={
               !message.readAt ? (

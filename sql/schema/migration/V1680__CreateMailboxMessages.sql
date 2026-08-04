@@ -28,7 +28,7 @@ CREATE TABLE member.mailbox_messages (
     dedup_key    VARCHAR(200),
 
     CONSTRAINT chk_mailbox_messages_severity CHECK (severity IN ('info', 'warning', 'error', 'success')),
-    CONSTRAINT uq_mailbox_messages_dedup_key UNIQUE (dedup_key)
+    CONSTRAINT uq_mailbox_messages_dedup_key UNIQUE (recipient_id, dedup_key)
 );
 
 CREATE INDEX idx_mailbox_messages_recipient ON member.mailbox_messages (recipient_id, created_at DESC);

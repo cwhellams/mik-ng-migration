@@ -39,6 +39,7 @@ export async function getMessagesForMember(memberId: string): Promise<MailboxMes
     .selectFrom('member.mailbox_messages')
     .select(['id', 'recipient_id', 'type', 'severity', 'title', 'body', 'created_at', 'read_at'])
     .where('recipient_id', '=', memberId)
+    .where('expires_at', '>', new Date())
     .orderBy('created_at', 'desc')
     .execute()
   return rows.map(mapRow)
@@ -51,6 +52,7 @@ export async function getUnreadCountForMember(memberId: string): Promise<number>
     .select((eb) => eb.fn.countAll().as('count'))
     .where('recipient_id', '=', memberId)
     .where('read_at', 'is', null)
+    .where('expires_at', '>', new Date())
     .executeTakeFirstOrThrow()
   return Number(result.count)
 }
@@ -105,7 +107,7 @@ export async function createMailboxMessage(input: CreateMailboxMessageInput): Pr
       body: input.body ?? null,
       dedup_key: input.dedupKey ?? null,
     })
-    .onConflict((oc) => oc.column('dedup_key').doNothing())
+    .onConflict((oc) => oc.columns(['recipient_id', 'dedup_key']).doNothing())
     .execute()
 }
 

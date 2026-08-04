@@ -42,7 +42,11 @@ router.get('/unread-count', async (req: Request, res: Response<{ count: number }
 
 /** Mark a single message read. Ownership is enforced in the query itself. */
 router.patch('/:id/read', async (req: Request, res: Response) => {
-  const updated = await markMessageRead(String(req.params.id), req.user!.memberId)
+  const id = req.params.id as string
+  if (!/^\d+$/.test(id)) {
+    return problem({ status: HttpStatusCode.BadRequest, detail: 'Invalid message id.' })
+  }
+  const updated = await markMessageRead(id, req.user!.memberId)
   if (!updated) {
     return problem({ status: HttpStatusCode.NotFound, detail: 'Message not found.' })
   }
