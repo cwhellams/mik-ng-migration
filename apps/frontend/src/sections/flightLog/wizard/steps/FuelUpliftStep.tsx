@@ -32,7 +32,7 @@ export const FuelUpliftStep = ({
           onRefueledChange(value)
           if (!value) {
             const current = getValues('fuelUpliftLitres')
-            if (current) lastEnteredLitres.current = current
+            if (current !== null && current !== undefined) lastEnteredLitres.current = current
             setValue('fuelUpliftLitres', 0)
           } else {
             setValue('fuelUpliftLitres', lastEnteredLitres.current)

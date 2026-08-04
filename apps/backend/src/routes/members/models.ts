@@ -549,12 +549,15 @@ export enum MemberChangeType {
 const strictDate = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/)
-  .refine((val) => {
-    const d = new Date(`${val}T00:00:00Z`)
-    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === val
-  }, {
-    message: 'Invalid calendar date',
-  })
+  .refine(
+    (val) => {
+      const d = new Date(`${val}T00:00:00Z`)
+      return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === val
+    },
+    {
+      message: 'Invalid calendar date',
+    },
+  )
 
 export const MemberChangeLogFiltersSchema = z.object({
   startDate: strictDate,

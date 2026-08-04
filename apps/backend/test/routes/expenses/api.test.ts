@@ -599,6 +599,55 @@ describe('POST /expenses (fuel litres/type)', () => {
 
     expect(submitRes.status).toBe(200)
   })
+
+  // Aircraft selection moved from claim-level to per-line-item (see V1360 migration,
+  // #963); production has fuel line items from before that, with no costCentreCode
+  // recorded. Submitting one of those (e.g. after an admin moves it back to DRAFT)
+  // must keep working without backfilling a field that didn't exist for it yet.
+  it('allows submitting a legacy fuel claim whose line item predates per-line-item aircraft selection', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const claim = await db
+      .insertInto('accts.expense_claim')
+      .values({
+        member_id: 'Juha1',
+        category_id: categoryId,
+        title: 'Legacy fuel claim (pre-aircraft-field)',
+        status: ExpenseClaimStatus.DRAFT,
+        // Predates FUEL_LINE_ITEM_AIRCRAFT_CUTOFF in api.ts - genuinely simulates
+        // legacy data from before aircraft was tracked per line item.
+        created_at: new Date('2026-01-01T00:00:00.000Z'),
+        updated_at: new Date(),
+        iban: 'FI2112345600000785',
+        iban_account_name: 'Juha Seppälä',
+        expense_date: '2026-01-01',
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow()
+    insertedClaimIds.push(claim.id)
+
+    await db
+      .insertInto('accts.expense_claim_line_item')
+      .values({
+        claim_id: claim.id,
+        description: '100 l JetA1 (legacy, no aircraft recorded)',
+        quantity: 100,
+        unit: 'l',
+        unit_price: 1.5,
+        sort_order: 0,
+        fuel_type: 'JetA1',
+        airport: 'EFHK',
+        fuel_date: '2026-01-01',
+        // cost_centre_code intentionally left null - predates per-line-item aircraft.
+      })
+      .execute()
+
+    const submitRes = await request(app)
+      .post(`/expenses/${claim.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(submitRes.status).toBe(200)
+  })
 })
 
 // ── Tests: POST /expenses/:id/override-fuel-price — admin EFNU price override ───

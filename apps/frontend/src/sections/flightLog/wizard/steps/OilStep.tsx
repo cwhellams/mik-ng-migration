@@ -29,7 +29,7 @@ export const OilStep = ({ control, setValue, getValues, oilAdded, onOilAddedChan
           onOilAddedChange(value)
           if (!value) {
             const current = getValues('oilUpliftLitres')
-            if (current) lastEnteredLitres.current = current
+            if (current !== null && current !== undefined) lastEnteredLitres.current = current
             setValue('oilUpliftLitres', 0)
           } else if (setValue) {
             setValue('oilUpliftLitres', lastEnteredLitres.current)

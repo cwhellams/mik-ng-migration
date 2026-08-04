@@ -198,19 +198,36 @@ function ExpenseClaimWizardInner() {
   const [claimFxRate, setClaimFxRate] = useState<number | null>(persistedDraft?.claimFxRate ?? null)
   const [fxRateLoading, setFxRateLoading] = useState(false)
 
+  // Set the instant the draft is intentionally cleared (discard, submit, or landing on
+  // an already-saved claim) so the debounced autosave below can never resurrect it.
+  // Clearing storage alone isn't enough: the debounce timer armed by the last change
+  // before that point is only cancelled by this effect's cleanup on unmount, and while
+  // this component unmounts on every one of those paths (they all call navigate()
+  // right after clearing), that unmount is a subsequent React render - not guaranteed
+  // to beat the 400ms timer under all conditions. See the same guard in
+  // FlightLogEntryWizard.tsx, where it's required for a real (not just theoretical) race.
+  const draftClearedRef = useRef(false)
+
   // Autosave every change so an iOS reload (or an accidental navigation away) can
-  // resume this exact draft instead of losing it.
+  // resume this exact draft instead of losing it. Debounced like the flight-log
+  // wizard's equivalent effect: writing synchronously on every keystroke would
+  // stringify+persist the whole draft on the main thread that often, causing
+  // noticeable input jank especially on lower-end mobile Safari.
   useEffect(() => {
-    writeWizardDraft<ExpenseWizardDraft>(EXPENSE_WIZARD_DRAFT_KEY, {
-      step,
-      form,
-      fuelForFlight,
-      flightMode,
-      receipt,
-      savedClaimId,
-      mileageDetail,
-      claimFxRate,
-    })
+    const timer = setTimeout(() => {
+      if (draftClearedRef.current) return
+      writeWizardDraft<ExpenseWizardDraft>(EXPENSE_WIZARD_DRAFT_KEY, {
+        step,
+        form,
+        fuelForFlight,
+        flightMode,
+        receipt,
+        savedClaimId,
+        mileageDetail,
+        claimFxRate,
+      })
+    }, 400)
+    return () => clearTimeout(timer)
   }, [step, form, fuelForFlight, flightMode, receipt, savedClaimId, mileageDetail, claimFxRate])
 
   const categoryApi = useApi<ExpenseCategory[]>({ url: 'v1/expenses/categories' })
@@ -495,6 +512,7 @@ function ExpenseClaimWizardInner() {
       setSubmitError(res.error.detail ?? t('expenses.wizard.saveFailedGeneric'))
       return
     }
+    draftClearedRef.current = true
     clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
     navigate(`/expenses/${claimId}`)
   }
@@ -504,11 +522,13 @@ function ExpenseClaimWizardInner() {
   // the next time someone starts a brand new claim.
   const goToSavedClaim = (id: string | null) => {
     if (!id) return
+    draftClearedRef.current = true
     clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
     navigate(`/expenses/${id}`)
   }
 
   const discardDraft = () => {
+    draftClearedRef.current = true
     clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
     navigate('/expenses')
   }

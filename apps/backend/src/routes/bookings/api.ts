@@ -43,6 +43,14 @@ import {
   bookingTransferredToEmailBodyHtml,
   bookingTransferredToEmailSubject,
 } from '../../templates/bookingTransferredEmailTemplate.ts'
+import {
+  bookingInstructorCancelledEmailBodyHtml,
+  bookingInstructorCancelledEmailSubject,
+  bookingInstructorConfirmedEmailBodyHtml,
+  bookingInstructorConfirmedEmailSubject,
+  bookingInstructorUpdatedEmailBodyHtml,
+  bookingInstructorUpdatedEmailSubject,
+} from '../../templates/bookingInstructorEmailTemplate.ts'
 import { generateIcsContent, generateCancelIcsContent } from '../../lib/calendarEvent.ts'
 
 // all scheduling routes are protected by booking permissions
@@ -94,6 +102,7 @@ router.post('/', async (req: Request<Record<string, string>>, res: Response) => 
       ],
     )
   }
+  notifyInstructor(booking.instructorMemberId, booking, memberFullName(member), 'confirmed')
 
   res.status(201).json(booking)
 })
@@ -188,6 +197,90 @@ const validateInstructor = async (
   }
 }
 
+// insertBooking's return value doesn't carry the joined student name (only
+// getBookingById-backed reads do), so callers pass it explicitly rather than
+// this helper reading it off booking.member itself.
+const memberFullName = (member: { firstName?: string; lastName?: string } | null | undefined) =>
+  `${member?.firstName ?? ''} ${member?.lastName ?? ''}`.trim()
+
+type InstructorNotificationKind = 'confirmed' | 'updated' | 'cancelled'
+
+const sendInstructorNotification = async (
+  instructorMemberId: string,
+  booking: Booking,
+  studentName: string,
+  kind: InstructorNotificationKind,
+): Promise<void> => {
+  const instructor = await getMemberById(instructorMemberId)
+  if (!instructor?.email) return
+
+  if (kind === 'cancelled') {
+    await sendEmail(
+      instructor.email,
+      bookingInstructorCancelledEmailSubject(instructor.lang),
+      bookingInstructorCancelledEmailBodyHtml(
+        instructor.lang,
+        instructor.firstName,
+        booking,
+        studentName,
+      ),
+      [
+        {
+          filename: 'booking.ics',
+          content: generateCancelIcsContent(booking),
+          contentType: 'text/calendar',
+        },
+      ],
+    )
+    return
+  }
+
+  const subject =
+    kind === 'confirmed'
+      ? bookingInstructorConfirmedEmailSubject(instructor.lang)
+      : bookingInstructorUpdatedEmailSubject(instructor.lang)
+  const body =
+    kind === 'confirmed'
+      ? bookingInstructorConfirmedEmailBodyHtml(
+          instructor.lang,
+          instructor.firstName,
+          booking,
+          studentName,
+        )
+      : bookingInstructorUpdatedEmailBodyHtml(
+          instructor.lang,
+          instructor.firstName,
+          booking,
+          studentName,
+        )
+
+  await sendEmail(instructor.email, subject, body, [
+    {
+      filename: 'booking.ics',
+      content: generateIcsContent(booking, instructor.email),
+      contentType: 'text/calendar',
+    },
+  ])
+}
+
+// Single entry point for every instructor notification across the route handlers below.
+// Callers don't await this (delivery shouldn't block the response), so failures are
+// caught and logged here instead of surfacing as an unhandled promise rejection, which
+// would otherwise crash the whole process (Node has no unhandledRejection handler).
+const notifyInstructor = (
+  instructorMemberId: string | null | undefined,
+  booking: Booking,
+  studentName: string,
+  kind: InstructorNotificationKind,
+): void => {
+  if (!instructorMemberId) return
+  sendInstructorNotification(instructorMemberId, booking, studentName, kind).catch((error) => {
+    logger.error(
+      `Failed to send instructor ${kind} notification for booking ${booking.bookingId}: ${error}`,
+    )
+  })
+}
+
 const clearOverlappingBookings = async (
   booking: BookingUpsertRequest & { bookingId: string },
   jwt: JWTUser,
@@ -233,6 +326,12 @@ const clearOverlappingBookings = async (
         ],
       )
     }
+    notifyInstructor(
+      cancelledOverlap.instructorMemberId,
+      cancelledOverlap,
+      memberFullName(cancelledOverlap.member),
+      'cancelled',
+    )
   }
 }
 
@@ -298,6 +397,36 @@ router.patch('/:id', async (req: Request<Record<string, string>>, res: Response)
     )
   }
 
+  // A generic PATCH can also cancel the booking (status is a patchable field), which
+  // takes priority over an instructor reassignment: notify the pre-patch instructor
+  // that their booking was cancelled, using the pre-patch snapshot for the schedule.
+  const bookingJustCancelled =
+    updated.status === BookingStatus.CANCELLED && booking.status !== BookingStatus.CANCELLED
+
+  if (bookingJustCancelled) {
+    notifyInstructor(
+      booking.instructorMemberId,
+      booking,
+      memberFullName(booking.member),
+      'cancelled',
+    )
+  } else if (booking.instructorMemberId !== updated.instructorMemberId) {
+    notifyInstructor(
+      booking.instructorMemberId,
+      booking,
+      memberFullName(booking.member),
+      'cancelled',
+    )
+    notifyInstructor(
+      updated.instructorMemberId,
+      updated,
+      memberFullName(updated.member),
+      'confirmed',
+    )
+  } else {
+    notifyInstructor(updated.instructorMemberId, updated, memberFullName(updated.member), 'updated')
+  }
+
   res.status(200).json(updated)
 })
 
@@ -341,6 +470,12 @@ router.delete('/:id', async (req: Request<Record<string, string>>, res: Response
       ],
     )
   }
+  notifyInstructor(
+    cancelled.instructorMemberId,
+    cancelled,
+    memberFullName(cancelled.member),
+    'cancelled',
+  )
 
   res.status(204).json(cancelled)
 })
@@ -387,6 +522,12 @@ router.post('/:id/cancel', async (req: Request<Record<string, string>>, res: Res
       ],
     )
   }
+  notifyInstructor(
+    cancelled.instructorMemberId,
+    cancelled,
+    memberFullName(cancelled.member),
+    'cancelled',
+  )
 
   res.status(200).json(cancelled)
 })
@@ -471,6 +612,8 @@ router.post('/:id/transfer', async (req: Request<Record<string, string>>, res: R
       ],
     )
   }
+
+  notifyInstructor(updated.instructorMemberId, updated, memberFullName(updated.member), 'updated')
 
   res.status(200).json(updated)
 })

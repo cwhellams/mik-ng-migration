@@ -190,7 +190,7 @@ const FlightLogEntryWizardInner = ({
     skipFetch: true,
   })
 
-  const resolver = buildFlightLogResolver(t, memberList, true)
+  const resolver = buildFlightLogResolver(t, memberList, !isEditing)
 
   const baseDefaultValues: DefaultValues<FlightLogUpsertRequest> = initialData
     ? FlightLogUpsertSchema.strip().parse(initialData)

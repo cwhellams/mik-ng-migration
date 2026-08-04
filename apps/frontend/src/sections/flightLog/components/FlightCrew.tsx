@@ -463,7 +463,10 @@ const FlightCrew = ({
                                 (!selectedMember ||
                                   !isMemberQualifiedForDuty(selectedMember, nextDuty))
                               ) {
-                                setValue?.(crewId, null)
+                                // shouldDirty: the field's required error is only shown once
+                                // isDirty flips (see shouldShowFieldError) - without it, clearing
+                                // an unqualified member here would leave the error hidden.
+                                setValue?.(crewId, null, { shouldDirty: true })
                               }
 
                               // re-validate the member field when duty changes

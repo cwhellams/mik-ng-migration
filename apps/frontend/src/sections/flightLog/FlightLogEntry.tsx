@@ -167,8 +167,8 @@ const ClassicFlightLogEntry = () => {
   )
 
   const formResolver = useMemo(
-    () => buildFlightLogResolver(t, memberList, isEditable),
-    [memberList, t, isEditable],
+    () => buildFlightLogResolver(t, memberList, isNew),
+    [memberList, t, isNew],
   )
 
   const {

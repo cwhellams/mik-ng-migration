@@ -142,6 +142,13 @@ async function requireClaimForUser(req: Request<Record<string, string>>, claimId
 // always have it filled in by submit time (see the comment on enforceFuelLineItemDetails).
 const FUEL_LINE_ITEM_AIRPORT_DATE_CUTOFF = new Date('2026-07-26T00:00:00.000Z')
 
+// Claims created before per-line-item aircraft selection shipped (2026-07-17, #963)
+// may have no costCentreCode on their fuel line items - aircraft was still a
+// claim-level field back then. Grandfathered in the same way as the airport/date
+// cutoff above, so a legacy claim moved back to DRAFT (e.g. by an admin) and
+// resubmitted isn't blocked on backfilling a field that didn't exist for it yet.
+const FUEL_LINE_ITEM_AIRCRAFT_CUTOFF = new Date('2026-07-18T00:00:00.000Z')
+
 async function validateCategoryRequirements(data: {
   categoryId?: number
   flightLogId?: string | null
@@ -166,22 +173,30 @@ async function validateCategoryRequirements(data: {
   }
 
   if (category.code === 'fuel' && data.enforceFuelLineItemDetails) {
+    // NOT based on whether a line item has a persisted id, since by submit time every
+    // item in a normal draft-then-submit flow already has one (it was assigned on the
+    // earlier save-draft request), which would otherwise exempt everything.
+    const claimCreatedAt = data.claimCreatedAt ? new Date(data.claimCreatedAt) : undefined
+    const predatesAircraftField =
+      !!claimCreatedAt && claimCreatedAt < FUEL_LINE_ITEM_AIRCRAFT_CUTOFF
+    const predatesAirportDateField =
+      !!claimCreatedAt && claimCreatedAt < FUEL_LINE_ITEM_AIRPORT_DATE_CUTOFF
+
     // Aircraft selection moved from claim-level to per-line-item (see V1360 migration),
     // so it's enforced here instead of the old claim-level aircraftId requirement.
-    if ((data.lineItems ?? []).some((item) => !item.costCentreCode)) {
+    // Grandfathers in claims that predate the field (see FUEL_LINE_ITEM_AIRCRAFT_CUTOFF).
+    if (!predatesAircraftField && (data.lineItems ?? []).some((item) => !item.costCentreCode)) {
       return problem({
         status: HttpStatusCode.BadRequest,
         detail: 'Each fuel line item requires an aircraft to be selected.',
       })
     }
     // Airport and date let us report recent fuel prices by outstation (see issue #966).
-    // Grandfathers in claims that predate the field (issue #1020) — NOT based on
-    // whether a line item has a persisted id, since by submit time every item in a
-    // normal draft-then-submit flow already has one (it was assigned on the earlier
-    // save-draft request), which would otherwise exempt everything.
-    const isLegacyClaim =
-      !!data.claimCreatedAt && new Date(data.claimCreatedAt) < FUEL_LINE_ITEM_AIRPORT_DATE_CUTOFF
-    if (!isLegacyClaim && (data.lineItems ?? []).some((item) => !item.airport || !item.date)) {
+    // Grandfathers in claims that predate the field (issue #1020).
+    if (
+      !predatesAirportDateField &&
+      (data.lineItems ?? []).some((item) => !item.airport || !item.date)
+    ) {
       return problem({
         status: HttpStatusCode.BadRequest,
         detail: 'Each fuel line item requires an airport and date to be selected.',

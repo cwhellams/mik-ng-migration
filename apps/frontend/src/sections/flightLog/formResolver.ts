@@ -18,7 +18,12 @@ import { MemberListResponse } from '@backend/routes/members/models'
 export const buildFlightLogResolver = (
   t: (key: string) => string,
   memberList: MemberListResponse | undefined,
-  isEditable: boolean,
+  // Fuel/oil uplift is only required when creating a brand new entry - not merely
+  // whenever an existing entry happens to still be editable (status NEW). Older
+  // entries can legitimately have a null uplift recorded from before this field
+  // existed, and requiring it on every editable entry would block fixing an unrelated
+  // field on them until the user fabricates a value for a flight that already happened.
+  isNew: boolean,
 ): Resolver<FlightLogUpsertRequest> => {
   const baseResolver: Resolver<FlightLogUpsertRequest> = zodResolver(
     flightLogDateValidator(FlightLogUpsertSchema.strip()) as any,
@@ -89,14 +94,14 @@ export const buildFlightLogResolver = (
       }
     }
 
-    if (isEditable && (values.oilUpliftLitres === null || values.oilUpliftLitres === undefined)) {
+    if (isNew && (values.oilUpliftLitres === null || values.oilUpliftLitres === undefined)) {
       additionalErrors['oilUpliftLitres'] = {
         type: 'custom',
         message: t('flightLog.error.oilUpliftRequired'),
       }
     }
 
-    if (isEditable && (values.fuelUpliftLitres === null || values.fuelUpliftLitres === undefined)) {
+    if (isNew && (values.fuelUpliftLitres === null || values.fuelUpliftLitres === undefined)) {
       additionalErrors['fuelUpliftLitres'] = {
         type: 'custom',
         message: t('flightLog.error.fuelUpliftRequired'),
