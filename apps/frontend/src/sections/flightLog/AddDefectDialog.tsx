@@ -96,8 +96,12 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
       flightId: flightId ?? undefined,
       description: values.description,
       flightMins: values.flightHours * 60 + values.flightMinutes,
-      rows: values.rows,
-      blankRowsAfter: values.rows > 0 ? values.blankRowsAfter : 0,
+      // In-flight defects (flightId set) are always inline chips: the row model
+      // anchors own-row items by flightMins, not flightId, so a non-zero rows
+      // value here could drift the defect onto a different flight's row if
+      // cumulative totals ever change.
+      rows: isPreFlight ? values.rows : 0,
+      blankRowsAfter: isPreFlight && values.rows > 0 ? values.blankRowsAfter : 0,
     })
 
     if (error) {
@@ -197,45 +201,49 @@ export const AddDefectDialog: React.FC<AddDefectDialogProps> = ({
               </>
             )}
 
-            <Controller
-              name='rows'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label={t('flightLog.maintenanceNotes.rows')}
-                  type='number'
-                  error={!!errors.rows}
-                  helperText={errors.rows?.message ?? t('flightLog.maintenanceNotes.rowsHelp')}
-                  fullWidth
-                  slotProps={{
-                    htmlInput: { min: 0 },
-                  }}
+            {isPreFlight && (
+              <>
+                <Controller
+                  name='rows'
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label={t('flightLog.maintenanceNotes.rows')}
+                      type='number'
+                      error={!!errors.rows}
+                      helperText={errors.rows?.message ?? t('flightLog.maintenanceNotes.rowsHelp')}
+                      fullWidth
+                      slotProps={{
+                        htmlInput: { min: 0 },
+                      }}
+                    />
+                  )}
                 />
-              )}
-            />
 
-            <Controller
-              name='blankRowsAfter'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label={t('flightLog.maintenanceNotes.blankRowsAfter')}
-                  type='number'
-                  disabled={rows === 0}
-                  error={!!errors.blankRowsAfter}
-                  helperText={
-                    errors.blankRowsAfter?.message ??
-                    t('flightLog.maintenanceNotes.blankRowsAfterHelp')
-                  }
-                  fullWidth
-                  slotProps={{
-                    htmlInput: { min: 0 },
-                  }}
+                <Controller
+                  name='blankRowsAfter'
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label={t('flightLog.maintenanceNotes.blankRowsAfter')}
+                      type='number'
+                      disabled={rows === 0}
+                      error={!!errors.blankRowsAfter}
+                      helperText={
+                        errors.blankRowsAfter?.message ??
+                        t('flightLog.maintenanceNotes.blankRowsAfterHelp')
+                      }
+                      fullWidth
+                      slotProps={{
+                        htmlInput: { min: 0 },
+                      }}
+                    />
+                  )}
                 />
-              )}
-            />
+              </>
+            )}
           </Box>
         </DialogContent>
 

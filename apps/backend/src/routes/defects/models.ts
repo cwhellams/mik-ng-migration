@@ -33,11 +33,16 @@ export const CreateDefectSchema = z
     flightId: z.string().nullable().optional(),
     description: z.string().min(1),
     flightMins: z.number().int().min(0),
-    // Defaults to 0 (inline chip) when flightId is set, matching today's
-    // in-flight-defect behavior; the frontend sends an explicit rows value.
-    rows: z.number().int().min(0).default(0),
+    // When omitted, defaults to 1 (own row) for pre-flight defects (flightId
+    // null) and 0 (inline chip) for in-flight defects (flightId set), matching
+    // today's rendering; the frontend always sends an explicit rows value.
+    rows: z.number().int().min(0).optional(),
     blankRowsAfter: z.number().int().min(0).default(0),
   })
+  .transform((data) => ({
+    ...data,
+    rows: data.rows ?? (data.flightId == null ? 1 : 0),
+  }))
   .refine((data) => data.rows > 0 || data.blankRowsAfter === 0, {
     message: 'blankRowsAfter must be 0 when rows is 0',
     path: ['blankRowsAfter'],

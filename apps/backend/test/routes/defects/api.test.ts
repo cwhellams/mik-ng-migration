@@ -179,8 +179,8 @@ describe('POST /defects', () => {
         description: `${TEST_MARKER} tire worn under the limits`,
         flightMins: LIVE_FLIGHT_MINS,
         // The frontend always sends an explicit rows value (1 for a
-        // standalone/pre-flight defect); the schema's own default (0) only
-        // applies when a caller omits it entirely, see the next test.
+        // standalone/pre-flight defect); the schema also defaults to 1 here
+        // when a caller omits it entirely, see the next test.
         rows: 1,
       })
 
@@ -195,7 +195,7 @@ describe('POST /defects', () => {
     createdDefectIds.push(res.body.defectId)
   })
 
-  it('defaults rows to 0 when omitted, regardless of flightId', async () => {
+  it('defaults rows to 1 (own row) when omitted for a pre-flight defect (no flightId)', async () => {
     const res = await request(app)
       .post('/defects')
       .set('Cookie', `accessToken=${ownerToken}`)
@@ -207,7 +207,7 @@ describe('POST /defects', () => {
       })
 
     expect(res.status).toBe(201)
-    expect(res.body.rows).toBe(0)
+    expect(res.body.rows).toBe(1)
     createdDefectIds.push(res.body.defectId)
   })
 
@@ -272,6 +272,7 @@ describe('PATCH /defects/:id', () => {
         ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} defect`,
         flightMins: LIVE_FLIGHT_MINS,
+        rows: 0,
       })
     defectId = res.body.defectId
     createdDefectIds.push(defectId)
@@ -297,7 +298,7 @@ describe('PATCH /defects/:id', () => {
   })
 
   it('returns 400 for blankRowsAfter when the persisted rows is 0 (rows is not PATCH-able)', async () => {
-    // The beforeEach POST omits `rows`, so this defect defaults to rows: 0.
+    // The beforeEach POST explicitly sends rows: 0.
     const res = await request(app)
       .patch(`/defects/${defectId}`)
       .set('Cookie', `accessToken=${ownerToken}`)
