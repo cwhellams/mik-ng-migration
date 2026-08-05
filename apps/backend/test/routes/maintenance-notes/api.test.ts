@@ -23,6 +23,10 @@ app.use(problemErrorHandler)
 const AIRCRAFT = 'OH-STL'
 const OTHER_AIRCRAFT = 'OH-IHQ'
 const AJLB_SEQ_NO = 1
+// OH-STL/1's last validated flight total (test data) is 21301 -- flightMins
+// sent through the (guarded) HTTP API for a real create must be safely past
+// that live-region baseline, or the request is rejected with 400.
+const LIVE_FLIGHT_MINS = 900000
 
 const ownerToken = generateAccessToken({
   memberId: 'Matti1',
@@ -191,7 +195,7 @@ describe('POST /maintenance-notes', () => {
         ajlbSeqNo: AJLB_SEQ_NO,
         description: 'Annual inspection',
         performedBy: 'Matti Virtanen',
-        flightMins: 500,
+        flightMins: LIVE_FLIGHT_MINS,
         blankRowsAfter: 1,
       })
 
@@ -201,7 +205,7 @@ describe('POST /maintenance-notes', () => {
       ajlbSeqNo: AJLB_SEQ_NO,
       description: 'Annual inspection',
       performedBy: 'Matti Virtanen',
-      flightMins: 500,
+      flightMins: LIVE_FLIGHT_MINS,
       blankRowsAfter: 1,
       createdBy: 'Matti1',
       createdAt: expect.any(String),
@@ -209,6 +213,76 @@ describe('POST /maintenance-notes', () => {
     })
 
     createdNoteId = res.body.noteId
+  })
+
+  it('returns 201 for rows: 0 (renders inline on the anchor flight instead of its own row)', async () => {
+    const res = await request(app)
+      .post('/maintenance-notes')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Inline note',
+        performedBy: 'Matti Virtanen',
+        flightMins: LIVE_FLIGHT_MINS,
+        rows: 0,
+      })
+
+    expect(res.status).toBe(201)
+    expect(res.body.rows).toBe(0)
+    expect(res.body.blankRowsAfter).toBe(0)
+
+    createdNoteId = res.body.noteId
+  })
+
+  it('returns 400 when rows is 0 and blankRowsAfter is non-zero', async () => {
+    const res = await request(app)
+      .post('/maintenance-notes')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Invalid inline note',
+        performedBy: 'Matti Virtanen',
+        flightMins: LIVE_FLIGHT_MINS,
+        rows: 0,
+        blankRowsAfter: 2,
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when flightMins is at or before the last validated flight', async () => {
+    // OH-STL/1's last validated flight total is 21301 in the test data.
+    const res = await request(app)
+      .post('/maintenance-notes')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Backdated note',
+        performedBy: 'Matti Virtanen',
+        flightMins: 21301,
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when flightMins is at or before start_flight_mins and nothing is validated yet', async () => {
+    // OH-IHQ/1 has no validated flights in the test data, so the baseline is
+    // the ajlb's start_flight_mins (2445).
+    const res = await request(app)
+      .post('/maintenance-notes')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        aircraftRegistration: OTHER_AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Backdated note',
+        performedBy: 'Matti Virtanen',
+        flightMins: 2445,
+      })
+
+    expect(res.status).toBe(400)
   })
 })
 
@@ -254,6 +328,7 @@ describe('POST /maintenance-notes with hilIds', () => {
         ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} nav light`,
         flightMins: 120,
+        rows: 1,
         blankRowsAfter: 0,
       },
       'Matti1',
@@ -285,7 +360,7 @@ describe('POST /maintenance-notes with hilIds', () => {
         ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} release`,
         performedBy: 'AME',
-        flightMins: 130,
+        flightMins: LIVE_FLIGHT_MINS,
         hilIds: [hilId],
       })
 
@@ -316,6 +391,7 @@ describe('POST /maintenance-notes with hilIds', () => {
         ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} other aircraft nav light`,
         flightMins: 90,
+        rows: 1,
         blankRowsAfter: 0,
       },
       'Matti1',
@@ -335,7 +411,7 @@ describe('POST /maintenance-notes with hilIds', () => {
           ajlbSeqNo: AJLB_SEQ_NO,
           description: `${TEST_MARKER} release`,
           performedBy: 'AME',
-          flightMins: 130,
+          flightMins: LIVE_FLIGHT_MINS,
           hilIds: [otherHilId],
         })
 
@@ -376,6 +452,7 @@ describe('POST /maintenance-notes with defectIds', () => {
         ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} oil seepage`,
         flightMins: 140,
+        rows: 1,
         blankRowsAfter: 0,
       },
       'Matti1',
@@ -388,6 +465,7 @@ describe('POST /maintenance-notes with defectIds', () => {
         ajlbSeqNo: 1,
         description: `${TEST_MARKER} other aircraft`,
         flightMins: 50,
+        rows: 1,
         blankRowsAfter: 0,
       },
       'Matti1',
@@ -413,7 +491,7 @@ describe('POST /maintenance-notes with defectIds', () => {
         ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} release`,
         performedBy: 'AME',
-        flightMins: 150,
+        flightMins: LIVE_FLIGHT_MINS,
         defectIds: [defectId],
       })
 
@@ -439,7 +517,7 @@ describe('POST /maintenance-notes with defectIds', () => {
         ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} release`,
         performedBy: 'AME',
-        flightMins: 150,
+        flightMins: LIVE_FLIGHT_MINS,
         defectIds: [otherAircraftDefectId],
       })
 
@@ -467,6 +545,7 @@ describe('PATCH /maintenance-notes/:id', () => {
         description: 'Pre-patch note',
         performedBy: 'Matti Virtanen',
         flightMins: 200,
+        rows: 1,
         blankRowsAfter: 0,
       },
       'Matti1',
@@ -525,6 +604,26 @@ describe('PATCH /maintenance-notes/:id', () => {
     expect(res.body.description).toBe('updated by admin')
   })
 
+  it('returns 200 when flightMins is updated past the last validated flight', async () => {
+    const res = await request(app)
+      .patch(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ flightMins: LIVE_FLIGHT_MINS })
+
+    expect(res.status).toBe(200)
+    expect(res.body.flightMins).toBe(LIVE_FLIGHT_MINS)
+  })
+
+  it('returns 400 when flightMins is updated to at or before the last validated flight', async () => {
+    // OH-STL/1's last validated flight total is 21301 in the test data.
+    const res = await request(app)
+      .patch(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ flightMins: 21301 })
+
+    expect(res.status).toBe(400)
+  })
+
   it('returns 404 for non-existent note id', async () => {
     const res = await request(app)
       .patch('/maintenance-notes/00000000-0000-0000-0000-000000000000')
@@ -532,6 +631,60 @@ describe('PATCH /maintenance-notes/:id', () => {
       .send({ description: 'ghost update' })
 
     expect(res.status).toBe(404)
+  })
+})
+
+describe('PATCH /maintenance-notes/:id rows/blankRowsAfter cross-validation', () => {
+  it('returns 400 for blankRowsAfter alone when the persisted rows is already 0', async () => {
+    const note = await createMaintenanceNote(
+      {
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Inline note for PATCH cross-validation',
+        performedBy: 'Matti Virtanen',
+        flightMins: 200,
+        rows: 0,
+        blankRowsAfter: 0,
+      },
+      'Matti1',
+    )
+
+    try {
+      const res = await request(app)
+        .patch(`/maintenance-notes/${note.noteId}`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ blankRowsAfter: 2 })
+
+      expect(res.status).toBe(400)
+    } finally {
+      await deleteMaintenanceNote(note.noteId)
+    }
+  })
+
+  it('returns 400 for rows: 0 alone when the persisted blankRowsAfter is already non-zero', async () => {
+    const note = await createMaintenanceNote(
+      {
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Note with blankRowsAfter for PATCH cross-validation',
+        performedBy: 'Matti Virtanen',
+        flightMins: 200,
+        rows: 1,
+        blankRowsAfter: 2,
+      },
+      'Matti1',
+    )
+
+    try {
+      const res = await request(app)
+        .patch(`/maintenance-notes/${note.noteId}`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ rows: 0 })
+
+      expect(res.status).toBe(400)
+    } finally {
+      await deleteMaintenanceNote(note.noteId)
+    }
   })
 })
 

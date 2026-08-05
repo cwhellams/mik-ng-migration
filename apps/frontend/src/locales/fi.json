@@ -1292,6 +1292,8 @@
       "flightTime": "Lentokoneen kokonaislentoaika",
       "hours": "Tunnit",
       "minutes": "Minuutit",
+      "rows": "Rivejä",
+      "rowsHelp": "Kuinka monta riviä tämä vie fyysisellä matkapäiväkirjan sivulla (0 = näytetään lennon rivillä)",
       "blankRowsAfter": "Tyhjiä rivejä jälkeen",
       "blankRowsAfterHelp": "Fyysiseen matkapäiväkirjaan lisättävät tyhjät rivit merkinnän jälkeen",
       "closeHilItems": "Sulje siirrettyjä vikoja",

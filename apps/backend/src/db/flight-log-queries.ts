@@ -178,6 +178,28 @@ export async function getFlightLogPageForMins(
   return match.ajlb_page_number ?? match.page_number ?? undefined
 }
 
+/**
+ * The frozen baseline flight_mins for an ajlb: the last VALIDATED flight's
+ * total flight mins, or the ajlb's start_flight_mins if nothing has been
+ * validated yet. Maintenance notes and defects may only be positioned
+ * strictly after this value -- anything at or before it belongs to an
+ * already-frozen, immutable page (see flight.vw_ajlb_live_sequence, which
+ * only reflows notes/defects past this same boundary).
+ */
+export async function getAjlbLiveBaselineFlightMins(
+  aircraftRegistration: string,
+  ajlbSeqNo: number,
+): Promise<number> {
+  const row = await db
+    .selectFrom('flight.vw_flight_time_totals')
+    .select('validated_total_flight_mins')
+    .where('aircraft_registration', '=', aircraftRegistration)
+    .where('ajlb_seq_no', '=', ajlbSeqNo)
+    .executeTakeFirst()
+
+  return row?.validated_total_flight_mins ?? 0
+}
+
 export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLogListResponse> {
   const ajlbPaging = !!filters.ajlbSeqNo && filters.page !== undefined
 
