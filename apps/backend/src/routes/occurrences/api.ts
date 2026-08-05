@@ -53,7 +53,7 @@ const OCCURRENCE_ATTACHMENT_BUCKET =
     ? 'mik-occurrence-attachments'
     : 'mik-occurrence-attachments-test')
 
-// role_id of the dedicated CAMO role, created in V1680__AddCamoRole.sql
+// role_id of the dedicated CAMO role, created in V1690__AddCamoRole.sql
 const CAMO_ROLE_ID = 'CAMO'
 
 const MAX_ATTACHMENT_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB — raw upload limit before compression
@@ -117,6 +117,7 @@ router.use(
     MIKPermissions.FLIGHTLOG_ADMIN,
     MIKPermissions.SMS_MANAGER,
     MIKPermissions.SMS_PROCESSOR,
+    MIKPermissions.CAMO_USER,
   ),
 )
 
@@ -365,6 +366,7 @@ router.post(
     MIKPermissions.FLIGHTLOG_USER,
     MIKPermissions.FLIGHTLOG_ADMIN,
     MIKPermissions.SMS_MANAGER,
+    MIKPermissions.CAMO_USER,
   ),
   async (req: Request<{ reportId: string }>, res: Response<Occurrence>) => {
     const { reportId } = req.params
@@ -426,18 +428,28 @@ router.post(
       return problem({ status: 409, detail: 'Report has already been shared with CAMO' })
     }
 
-    const newAccess = await addOccurrenceAccess(
-      occurrence.id,
-      req.user!,
-      undefined,
-      // CAMO can view and comment, but not edit or manage the report
-      ...camoRoles.map((role) => ({
-        roleId: role.roleId,
-        author: false,
-        write: true,
-        manage: false,
-      })),
-    )
+    let newAccess: OccurrenceAccess[]
+    try {
+      newAccess = await addOccurrenceAccess(
+        occurrence.id,
+        req.user!,
+        undefined,
+        // CAMO can view and comment, but not edit or manage the report
+        ...camoRoles.map((role) => ({
+          roleId: role.roleId,
+          author: false,
+          write: true,
+          manage: false,
+        })),
+      )
+    } catch (error: any) {
+      // pre-check above is not race-safe against concurrent requests; fall back to
+      // the unique_report_role constraint to still fail gracefully instead of 500ing
+      if (error.code === '23505') {
+        return problem({ status: 409, detail: 'Report has already been shared with CAMO' })
+      }
+      throw error
+    }
 
     const shared = anonymize(
       { ...occurrence, access: [...occurrence.access, ...newAccess] },

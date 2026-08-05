@@ -1,5 +1,5 @@
 -- ============================================================
--- V1680__AddCamoRole
+-- V1690__AddCamoRole
 -- ============================================================
 
 -- Add a dedicated CAMO role so occurrence reports involving an aircraft
