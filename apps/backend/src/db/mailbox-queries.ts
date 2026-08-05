@@ -33,14 +33,22 @@ const mapRow = (r: {
   readAt: r.read_at ? new Date(r.read_at).toISOString() : null,
 })
 
+export const DEFAULT_MAILBOX_LIST_LIMIT = 200
+
 /** List a member's own mailbox messages, newest first. */
-export async function getMessagesForMember(memberId: string): Promise<MailboxMessageRow[]> {
+export async function getMessagesForMember(
+  memberId: string,
+  options: { limit?: number; offset?: number } = {},
+): Promise<MailboxMessageRow[]> {
+  const { limit = DEFAULT_MAILBOX_LIST_LIMIT, offset = 0 } = options
   const rows = await db
     .selectFrom('member.mailbox_messages')
     .select(['id', 'recipient_id', 'type', 'severity', 'title', 'body', 'created_at', 'read_at'])
     .where('recipient_id', '=', memberId)
     .where('expires_at', '>', new Date())
     .orderBy('created_at', 'desc')
+    .limit(limit)
+    .offset(offset)
     .execute()
   return rows.map(mapRow)
 }
@@ -57,7 +65,11 @@ export async function getUnreadCountForMember(memberId: string): Promise<number>
   return Number(result.count)
 }
 
-/** Mark a single message read. Returns false if it doesn't exist or isn't owned by this member. */
+/**
+ * Mark a single message read. Idempotent: marking an already-read message still
+ * returns true. Returns false only if the message doesn't exist or isn't owned
+ * by this member.
+ */
 export async function markMessageRead(messageId: string, memberId: string): Promise<boolean> {
   const result = await db
     .updateTable('member.mailbox_messages')
@@ -66,7 +78,17 @@ export async function markMessageRead(messageId: string, memberId: string): Prom
     .where('recipient_id', '=', memberId)
     .where('read_at', 'is', null)
     .executeTakeFirst()
-  return Number(result.numUpdatedRows) > 0
+  if (Number(result.numUpdatedRows) > 0) {
+    return true
+  }
+
+  const existing = await db
+    .selectFrom('member.mailbox_messages')
+    .select('id')
+    .where('id', '=', messageId)
+    .where('recipient_id', '=', memberId)
+    .executeTakeFirst()
+  return existing !== undefined
 }
 
 /** Mark every unread message read for a member. */

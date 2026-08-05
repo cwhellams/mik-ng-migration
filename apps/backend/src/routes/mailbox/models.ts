@@ -14,3 +14,10 @@ export const MailboxMessageSchema = z.object({
 })
 
 export type MailboxMessage = z.infer<typeof MailboxMessageSchema>
+
+export const MailboxListQuerySchema = z.object({
+  limit: z.coerce.number().int().positive().max(500).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+})
+
+export type MailboxListQuery = z.infer<typeof MailboxListQuerySchema>

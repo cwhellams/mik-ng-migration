@@ -10,7 +10,7 @@ import {
   markAllMessagesRead,
   markMessageRead,
 } from '../../db/mailbox-queries.ts'
-import type { MailboxMessage } from './models.ts'
+import { MailboxListQuerySchema, type MailboxMessage } from './models.ts'
 
 export const router = Router()
 
@@ -30,7 +30,8 @@ const toApiMessage = (
 
 /** List the current member's own mailbox messages, newest first. */
 router.get('/', async (req: Request, res: Response<MailboxMessage[]>) => {
-  const messages = await getMessagesForMember(req.user!.memberId)
+  const { limit, offset } = MailboxListQuerySchema.parse(req.query)
+  const messages = await getMessagesForMember(req.user!.memberId, { limit, offset })
   res.status(HttpStatusCode.Ok).json(messages.map(toApiMessage))
 })
 

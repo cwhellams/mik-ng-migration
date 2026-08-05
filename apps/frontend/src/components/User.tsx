@@ -14,7 +14,7 @@ import { useState } from 'react'
 import { Icon } from '@iconify/react'
 import { useAuth } from '../hooks/useAuth'
 import { useMe } from '../hooks/useMe'
-import { useMailbox } from '../hooks/useMailbox'
+import { useMailboxUnreadCount } from '../hooks/useMailbox'
 import UserAvatar from '../sections/members/components/UserAvatar'
 import useApi from '../hooks/useApi'
 import { Member, MIKLang } from '@backend/routes/members/models'
@@ -28,7 +28,7 @@ const User = () => {
   const open = Boolean(anchorEl)
 
   const { me, isLoading, mutate } = useMe()
-  const { unreadCount } = useMailbox({ enabled: !!me })
+  const { unreadCount } = useMailboxUnreadCount({ enabled: !!me })
 
   const { timezone, setTimezone } = useTimezone()
 
