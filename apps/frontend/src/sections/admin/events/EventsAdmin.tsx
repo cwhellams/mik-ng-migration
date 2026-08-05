@@ -74,6 +74,8 @@ const eventToForm = (event: ClubEvent): EventForm => ({
   performer: event.performer ?? '',
   startTime: dayjs(event.startTime),
   endTime: dayjs(event.endTime),
+  // The backend only persists the resulting UTC instant, not the zone it was entered in,
+  // so we can't recover the original selector value — default to Helsinki intentionally.
   timezone: 'helsinki',
   isPublic: event.isPublic,
   translations: {
