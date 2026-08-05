@@ -777,6 +777,27 @@ describe('Flight Invoice Creator - Equipment Usage Fee Logic', () => {
       expect(invoice.Tasks[1].Task.article_id).toBe(testArticleIds[3])
       expect(invoice.Tasks[1].Task.price_per_unit).toBe(-1.5)
     })
+
+    it('credit row should use package-specific article when simplbooksItemId is a numeric SimplBooks article ID', async () => {
+      await createEquipmentFeeRequest(year2025, testMemberId)
+      await createMemberPackage({
+        productId: 'TPKG_NUM',
+        minutes: 90,
+        perMinRate: 1.5,
+        simplbooksItemId: String(testArticleIds[3]),
+      })
+
+      const flight = createTestFlight({ flightMins: 90, blockMins: 95 })
+      const invoice = await createFlightInvoicePayload({ flights: [flight] }, testMemberId)
+
+      expect(invoice.Tasks).toHaveLength(2)
+      // Debit line: still uses the aircraft article
+      expect(invoice.Tasks[0].Task.article_id).toBe(testArticleIds[1])
+      expect(invoice.Tasks[0].Task.price_per_unit).toBe(1.5)
+      // Credit line: uses the numeric SimplBooks article ID directly, not the aircraft article
+      expect(invoice.Tasks[1].Task.article_id).toBe(testArticleIds[3])
+      expect(invoice.Tasks[1].Task.price_per_unit).toBe(-1.5)
+    })
   })
 
   describe('Entry error fee (VIRHEMERKINTA)', () => {

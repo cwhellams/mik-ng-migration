@@ -131,11 +131,15 @@ async function fetchFlightFees(
   registrations: string[],
   packageItemCodes: string[] = [],
 ): Promise<FlightArticleFees> {
+  const packageStringCodes = packageItemCodes.filter((code) =>
+    Number.isNaN(Number.parseInt(code, 10)),
+  )
+
   const fees = await getArticleFees([
     ART_EQUIP_USAGE_FEE_CODE,
     ART_ENTRY_ERROR_CODE,
     ...registrations,
-    ...packageItemCodes,
+    ...packageStringCodes,
   ])
 
   const kalustonkayttoFee = fees.find((f) => f.code === ART_EQUIP_USAGE_FEE_CODE)
@@ -163,6 +167,13 @@ async function fetchFlightFees(
 
   const packageArticleIdMap = new Map<string, number>()
   for (const code of packageItemCodes) {
+    const numericId = Number.parseInt(code, 10)
+    if (!Number.isNaN(numericId)) {
+      // Numeric SimplBooks item reference — it IS the article ID, no lookup needed
+      packageArticleIdMap.set(code, numericId)
+      continue
+    }
+
     const fee = fees.find((f) => f.code === code)
     if (fee) {
       packageArticleIdMap.set(code, fee.id)
