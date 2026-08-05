@@ -249,23 +249,41 @@ export async function removeContactFromMailingList(
   }
 }
 
+const SENT_CAMPAIGNS_PAGE_SIZE = 50
+
 /**
- * Get sent email campaigns since a given date, oldest first.
+ * Get sent email campaigns since a given date, oldest first. Paginates
+ * through the full result set using the response's `count` field so
+ * campaigns beyond the first page aren't silently skipped.
  * @param sinceDate - Only campaigns sent on or after this date are returned
  * @returns Sent campaigns (list view — no htmlContent; fetch via getCampaignById for that)
  */
 export async function getSentCampaigns(sinceDate: Date): Promise<BrevoCampaign[]> {
   try {
-    const response = await brevoApiClient.get<BrevoCampaignListResponse>('/emailCampaigns', {
-      params: {
-        status: 'sent',
-        startDate: sinceDate.toISOString().slice(0, 10),
-        sort: 'asc',
-        limit: 50,
-      },
-    })
+    const campaigns: BrevoCampaign[] = []
+    let offset = 0
 
-    return response.data.campaigns
+    for (;;) {
+      const response = await brevoApiClient.get<BrevoCampaignListResponse>('/emailCampaigns', {
+        params: {
+          status: 'sent',
+          startDate: sinceDate.toISOString().slice(0, 10),
+          sort: 'asc',
+          limit: SENT_CAMPAIGNS_PAGE_SIZE,
+          offset,
+        },
+      })
+
+      campaigns.push(...response.data.campaigns)
+      offset += SENT_CAMPAIGNS_PAGE_SIZE
+
+      const gotFullPage = response.data.campaigns.length === SENT_CAMPAIGNS_PAGE_SIZE
+      if (!gotFullPage || campaigns.length >= response.data.count) {
+        break
+      }
+    }
+
+    return campaigns
   } catch (error) {
     throw handleError(error, 'Failed to get sent Brevo campaigns')
   }

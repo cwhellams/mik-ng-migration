@@ -51,7 +51,10 @@ export async function updateBrevoCampaignArchiveState(
       last_synced_at: lastSyncedAt,
       campaigns_archived: campaignsArchived,
       sync_status: status,
-      error_message: errorMessage,
+      // Kysely omits undefined-valued columns from .set(), which would leave
+      // a stale error_message from an earlier FAILED run in place forever
+      // since this row is reused rather than re-inserted each run.
+      error_message: errorMessage ?? null,
     })
     .where('id', '=', id)
     .execute()
