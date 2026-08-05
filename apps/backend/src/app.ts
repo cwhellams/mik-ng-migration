@@ -61,6 +61,7 @@ import { startOverdueInvoiceWorker } from './workers/overdueInvoiceWorker.ts'
 import { rateLimiterMiddleware } from './middleware/rateLimiter.ts'
 import { startOccurrenceNotificationWorker } from './workers/occurrenceNotifyWorker.ts'
 import { startBrevoSyncWorker } from './workers/brevoSyncWorker.ts'
+import { startBrevoCampaignArchiveWorker } from './workers/brevoCampaignArchiveWorker.ts'
 import { testConnection, closeDb } from './db/connection.ts'
 import { closeEventStore } from './lib/eventStore.ts'
 import { startSimplbooksSyncWorker } from './workers/simplbooksMemberSyncWorker.ts'
@@ -204,6 +205,7 @@ const invoicePaymentWorker = startSimplbooksInvoicePaymentWorker()
 const overdueInvoiceWorker = startOverdueInvoiceWorker()
 const occurrenceNotificationWorker = startOccurrenceNotificationWorker()
 const brevoSyncWorker = startBrevoSyncWorker()
+const brevoCampaignArchiveWorker = startBrevoCampaignArchiveWorker()
 const simplbooksMemberSyncWorker = startSimplbooksSyncWorker()
 const bookingReminderWorker = startBookingReminderWorker()
 const juniorMemberPromotionWorker = startJuniorMemberPromotionWorker()
@@ -232,6 +234,7 @@ const shutdown = async (): Promise<void> => {
   overdueInvoiceWorker?.stop()
   occurrenceNotificationWorker?.stop()
   brevoSyncWorker?.stop()
+  brevoCampaignArchiveWorker?.stop()
   simplbooksMemberSyncWorker?.stop()
   bookingReminderWorker?.stop()
   juniorMemberPromotionWorker?.stop()

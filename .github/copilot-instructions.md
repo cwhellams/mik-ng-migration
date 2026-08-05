@@ -122,6 +122,7 @@ The backend requires a `.env` file in `apps/backend/`. A working example exists 
 - **Important**: Add `DISABLE_EMAIL_SENDING=true` to the .env file to prevent actual emails being sent in development
 - **Important**: Add `SIMPLBOOKS_DRY_RUN=true` to test the invoice outbox worker locally without calling SimplBooks (see Dry-Run Mode below)
 - **Optional**: `OCCURRENCE_ATTACHMENT_BUCKET` overrides the DO Spaces bucket used for occurrence report attachments (pictures). Defaults to `mik-occurrence-attachments` in production and `mik-occurrence-attachments-test` otherwise. The bucket must be created (Restricted) in DO Spaces before first use in an environment.
+- **Optional**: `BREVO_CAMPAIGN_ARCHIVE_ENABLED=true` enables the daily worker that archives sent Brevo newsletter campaigns as PDF documents (`newsletter` category). Requires the Brevo API key to have the `campaigns:read` scope. `BREVO_CAMPAIGN_ARCHIVE_RUN_ON_STARTUP=true` runs it once immediately in addition to the daily schedule. `PUPPETEER_EXECUTABLE_PATH` overrides the Chromium binary used for HTML-to-PDF rendering (defaults to `/usr/bin/chromium-browser`, installed via apk in the production Dockerfile — for local dev outside the Alpine image, point this at a local Chrome/Chromium install).
 
 ## Known Issues and Workarounds
 

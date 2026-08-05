@@ -88,6 +88,7 @@ export enum DocumentCategory {
   POLICY = 'policy',
   SAFETY = 'safety',
   NEWS = 'news',
+  NEWSLETTER = 'newsletter',
   AIRFIELDS = 'airfields',
   OTHER = 'other',
 }
