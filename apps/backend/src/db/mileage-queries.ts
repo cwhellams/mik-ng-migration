@@ -222,7 +222,6 @@ export async function getMileageReportRows(
     .select([
       'claim.id as claim_id',
       'claim.member_id',
-      'claim.iban',
       'claim.approved_at',
       'detail.route',
       'detail.journey_date',
@@ -246,7 +245,6 @@ export async function getMileageReportRows(
     ratePerKm: Number(row.rate_per_km),
     totalAmount: Number(row.total_amount),
     approvedAt: row.approved_at ? new Date(String(row.approved_at)).toISOString() : null,
-    iban: row.iban,
   }))
 }
 
@@ -255,11 +253,20 @@ export async function getMileageReportRows(
 // within days of approval — so it's purged 1 week after approval (GDPR minimisation).
 
 export async function purgeExpiredHetu(): Promise<number> {
+  // Bounded to a 7-37 day window (instead of an open-ended "older than 7 days"
+  // scan) so this daily job's cost stays flat as expense_claim grows over the
+  // years, and joined to expense_mileage_detail/expense_category so it only
+  // ever considers mileage claims that still have a HETU to purge.
   const eligibleClaims = await db
-    .selectFrom('accts.expense_claim')
-    .select('id')
-    .where('status', '=', ExpenseClaimStatus.APPROVED)
-    .where('approved_at', '<', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+    .selectFrom('accts.expense_claim as claim')
+    .innerJoin('accts.expense_mileage_detail as detail', 'detail.claim_id', 'claim.id')
+    .innerJoin('accts.expense_category as category', 'category.id', 'claim.category_id')
+    .select('claim.id')
+    .where('category.code', '=', 'mileage')
+    .where('claim.status', '=', ExpenseClaimStatus.APPROVED)
+    .where('detail.hetu_encrypted', 'is not', null)
+    .where('claim.approved_at', '<', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+    .where('claim.approved_at', '>=', new Date(Date.now() - 37 * 24 * 60 * 60 * 1000))
     .execute()
 
   const claimIds = eligibleClaims.map((row) => row.id)

@@ -31,6 +31,9 @@ import type { MileageReportResponse } from '@backend/routes/expenses/models'
 // Never fetches or renders HETU — this is a worklist of claims to file with
 // Tulorekisteri, not the filing itself. HETU is only available per-claim via
 // the reveal button on the claim's admin detail page (issue #1022).
+// Also excludes IBAN: bundling every claimant's bank account into one
+// downloadable file is a bigger leak surface than viewing it per-claim, and
+// this worklist doesn't need it to identify journeys to file.
 export const MileageTulorekisteriReport = () => {
   const { t } = useTranslation()
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs().startOf('month'))
@@ -84,7 +87,6 @@ export const MileageTulorekisteriReport = () => {
       'Rate (€/km)': row.ratePerKm,
       'Total (EUR)': row.totalAmount,
       'Approved at': row.approvedAt ?? '',
-      IBAN: row.iban ?? '',
       'Claim ID': row.claimId,
     }))
 

@@ -388,6 +388,12 @@ router.get(
     if (!claim) {
       return problem({ status: HttpStatusCode.NotFound, detail: 'Expense claim not found' })
     }
+    if (claim.status !== ExpenseClaimStatus.APPROVED) {
+      return problem({
+        status: HttpStatusCode.Conflict,
+        detail: 'HETU can only be revealed for approved claims.',
+      })
+    }
 
     const hetu = await getMileageDetailFullHetu(claim.id)
     if (!hetu) {

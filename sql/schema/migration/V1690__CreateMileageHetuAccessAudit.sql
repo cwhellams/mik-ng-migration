@@ -4,7 +4,10 @@
 
 CREATE TABLE accts.mileage_hetu_access_audit (
     id          SERIAL      PRIMARY KEY,
-    claim_id    UUID        NOT NULL REFERENCES accts.expense_claim(id) ON DELETE CASCADE,
+    -- No ON DELETE CASCADE: this is an audit trail, not regular data — it must
+    -- survive even if the claim it refers to is later deleted (e.g. a member
+    -- deleting their own still-DRAFT claim).
+    claim_id    UUID        NOT NULL REFERENCES accts.expense_claim(id),
     accessed_by VARCHAR(9)  NOT NULL REFERENCES member.register(member_id),
     context     TEXT        NOT NULL,
     accessed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

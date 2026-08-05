@@ -1031,6 +1031,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
   describe('GET /expenses/:id/mileage/hetu', () => {
     it('returns the plaintext HETU for EXPENSE_HETU_ADMIN and writes one audit row', async () => {
       const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
 
       const res = await request(app)
         .get(`/expenses/${claimId}/mileage/hetu`)
@@ -1052,6 +1053,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
 
     it('rejects a committee member who only has EXPENSE_ADMIN', async () => {
       const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
 
       const res = await request(app)
         .get(`/expenses/${claimId}/mileage/hetu`)
@@ -1063,6 +1065,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
 
     it('rejects a plain member', async () => {
       const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
 
       const res = await request(app)
         .get(`/expenses/${claimId}/mileage/hetu`)
@@ -1073,6 +1076,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
 
     it('returns 404 when the claim has no HETU on file', async () => {
       const claimId = await createMileageClaim({ journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
 
       const res = await request(app)
         .get(`/expenses/${claimId}/mileage/hetu`)
@@ -1080,6 +1084,24 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
         .set('x-sudo', 'true')
 
       expect(res.status).toBe(404)
+    })
+
+    it('rejects revealing HETU on a claim that is not yet approved', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+
+      expect(res.status).toBe(409)
+
+      const auditRows = await db
+        .selectFrom('accts.mileage_hetu_access_audit')
+        .selectAll()
+        .where('claim_id', '=', claimId)
+        .execute()
+      expect(auditRows).toHaveLength(0)
     })
   })
 

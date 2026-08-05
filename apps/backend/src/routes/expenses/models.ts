@@ -219,7 +219,6 @@ export const MileageReportRowSchema = z.object({
   ratePerKm: z.number(),
   totalAmount: z.number(),
   approvedAt: z.string().nullable(),
-  iban: z.string().nullable(),
 })
 export type MileageReportRow = z.infer<typeof MileageReportRowSchema>
 
