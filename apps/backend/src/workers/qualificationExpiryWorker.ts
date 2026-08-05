@@ -9,12 +9,15 @@ import {
   type QualificationField,
 } from '../db/instructor-qualification-queries.ts'
 import { sendEmail } from '../lib/sendGmail.ts'
+import { createMailboxMessage } from '../db/mailbox-queries.ts'
 import logger from '../lib/logger.ts'
 import {
   qualificationExpiryReminderSubject,
   qualificationExpiryReminderBodyHtml,
+  qualificationExpiryReminderMailboxBody,
   qualificationExpiredSubject,
   qualificationExpiredBodyHtml,
+  qualificationExpiredMailboxBody,
   buildQualificationEmailVars,
   TRAINING_EMAIL,
 } from '../templates/qualificationExpiryEmailTemplate.ts'
@@ -137,6 +140,15 @@ async function sendReminderNotifications(
         qualificationExpiryReminderBodyHtml(q.lang, vars),
       )
 
+      await createMailboxMessage({
+        recipientId: q.memberId,
+        type: 'QUALIFICATION_EXPIRY_REMINDER',
+        severity: 'warning',
+        title: qualificationExpiryReminderSubject(q.lang),
+        body: qualificationExpiryReminderMailboxBody(q.lang, vars),
+        dedupKey: `qualification-expiry:${q.field}:REMINDER:${q.expiryDate}`,
+      })
+
       await recordExpiryNotificationSent(q.memberId, q.field, 'REMINDER', q.expiryDate)
 
       logger.info(`Sent reminder to ${q.email} for ${q.field} expiring ${q.expiryDate}`)
@@ -197,6 +209,15 @@ async function sendExpiredNotifications(
 
       // Also notify the training department
       sendEmailFn(TRAINING_EMAIL, `${subject} — ${q.lastName} ${q.firstName}`, body)
+
+      await createMailboxMessage({
+        recipientId: q.memberId,
+        type: 'QUALIFICATION_EXPIRED',
+        severity: 'error',
+        title: subject,
+        body: qualificationExpiredMailboxBody(q.lang, vars),
+        dedupKey: `qualification-expiry:${q.field}:EXPIRED:${q.expiryDate}`,
+      })
 
       await recordExpiryNotificationSent(q.memberId, q.field, 'EXPIRED', q.expiryDate)
 
