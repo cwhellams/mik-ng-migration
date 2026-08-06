@@ -558,6 +558,7 @@ describe('GET /members/roles', () => {
       'ame.admin',
       'meeting.user',
       'meeting.admin',
+      'camo.user',
     ])
     expect(roles.map(({ roleId, permissions }) => ({ roleId, permissions }))).toEqual([
       {
@@ -581,6 +582,7 @@ describe('GET /members/roles', () => {
         ],
         roleId: 'ADMIN',
       },
+      { permissions: ['camo.user'], roleId: 'CAMO' },
       {
         permissions: [
           'member.admin',

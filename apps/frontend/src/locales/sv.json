@@ -1813,7 +1813,8 @@
       "addedLater": "Tillagd senare",
       "open": "Öppna",
       "invalidType": "Endast JPEG-, PNG- eller WEBP-bilder accepteras.",
-      "tooLarge": "Filen är för stor (max 10 MB)."
+      "tooLarge": "Filen är för stor (max 10 MB).",
+      "none": "Inga bilagor."
     },
     "actions": {
       "receive": "Markera som mottagen och skapa kopia för anonymisering",
@@ -1822,7 +1823,9 @@
       "processed": "Spara bedömningar och markera som behandlad",
       "confirmProcessed": "Är du säker på att rapporten är fullständigt behandlad och kan markeras som behandlad?",
       "close": "Spara bedömningar och stäng rapport",
-      "confirmClose": "Är du säker på att alla förebyggande åtgärder har vidtagits och rapporten kan stängas?"
+      "confirmClose": "Är du säker på att alla förebyggande åtgärder har vidtagits och rapporten kan stängas?",
+      "sendToCamo": "Skicka till CAMO",
+      "confirmSendToCamo": "Detta skickar ett e-postmeddelande till CAMO och ger dem åtkomst att visa och kommentera denna rapport. Åtgärden kan inte ångras. Vill du fortsätta?"
     },
     "categories": "Kategorier",
     "categoryEnum": {

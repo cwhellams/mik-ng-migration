@@ -94,6 +94,9 @@ export enum MIKPermissions {
 
   // can manage general meetings and voting
   MEETING_ADMIN = 'meeting.admin',
+
+  // CAMO members can view and comment on occurrences shared with them by SMS
+  CAMO_USER = 'camo.user',
 }
 
 // admins can be downgraded to user permissions when not in sudo mode
@@ -136,11 +139,12 @@ export const downgradePermission = (permission: MIKPermissions): MIKPermissions 
     case MIKPermissions.EXPENSE_ADMIN:
       return MIKPermissions.EXPENSE_USER
 
-    // no separate user roles for SMS, outbox, or HETU-reveal permissions
+    // no separate user roles for SMS, outbox, HETU-reveal, or CAMO permissions
     case MIKPermissions.SMS_PROCESSOR:
     case MIKPermissions.SMS_MANAGER:
     case MIKPermissions.OUTBOX_ADMIN:
     case MIKPermissions.EXPENSE_HETU_ADMIN:
+    case MIKPermissions.CAMO_USER:
       return undefined
     default:
       return permission
