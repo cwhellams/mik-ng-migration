@@ -208,6 +208,34 @@ export async function recordMileageHetuAccess(claimId: string, accessedBy: strin
     .execute()
 }
 
+export type MileageHetuAccessLogEntry = {
+  accessedAt: string
+  accessedByName: string
+}
+
+/** Who viewed a claim's HETU and when — shown to the claim owner so they can see who accessed it. */
+export async function getMileageHetuAccessLog(
+  claimId: string,
+): Promise<MileageHetuAccessLogEntry[]> {
+  const rows = await db
+    .selectFrom('accts.mileage_hetu_access_audit as audit')
+    .leftJoin('member.register as member', 'member.member_id', 'audit.accessed_by')
+    .where('audit.claim_id', '=', claimId)
+    .select([
+      'audit.accessed_at',
+      sql<string>`trim(concat(coalesce(member.first_name, ''), ' ', coalesce(member.last_name, '')))`.as(
+        'accessed_by_name',
+      ),
+    ])
+    .orderBy('audit.accessed_at', 'desc')
+    .execute()
+
+  return rows.map((row) => ({
+    accessedAt: new Date(String(row.accessed_at)).toISOString(),
+    accessedByName: row.accessed_by_name || 'Unknown',
+  }))
+}
+
 // ─── Tulorekisteri mileage report (issue #1022) ──────────────────────────────
 // Never selects hetu_encrypted — the report must not expose HETU, per the issue.
 

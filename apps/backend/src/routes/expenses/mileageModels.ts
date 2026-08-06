@@ -41,3 +41,11 @@ export const CreateMileageDetailSchema = MileageDetailSchema.omit({
   ratePerKm: true,
 })
 export type CreateMileageDetail = z.infer<typeof CreateMileageDetailSchema>
+
+// ─── HETU access log (issue #1022) ───────────────────────────────────────────
+
+export const MileageHetuAccessLogEntrySchema = z.object({
+  accessedAt: z.string(),
+  accessedByName: z.string(),
+})
+export type MileageHetuAccessLogEntry = z.infer<typeof MileageHetuAccessLogEntrySchema>

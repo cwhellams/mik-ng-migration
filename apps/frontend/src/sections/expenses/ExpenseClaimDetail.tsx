@@ -23,9 +23,12 @@ import { Title } from '../../components/Title'
 import {
   ExpenseStatusChip,
   formatExpenseAmount,
+  formatExpenseUnitPrice,
   getExpenseCategoryLabel,
   isExpenseEditable,
 } from './expenseUi'
+
+type HetuAccessLogEntry = { accessedAt: string; accessedByName: string }
 
 export default function ExpenseClaimDetail() {
   const { id } = useParams<{ id: string }>()
@@ -33,6 +36,11 @@ export default function ExpenseClaimDetail() {
   const navigate = useNavigate()
   const { data, isLoading, error, mutate } = useApi<ExpenseClaim>({ url: `v1/expenses/${id}` })
   const { mutation } = useApi<{ url: string }>({ url: 'v1/expenses', skipFetch: true })
+  const hasHetu = !!data?.mileageDetail?.hetu
+  const { data: hetuAccessLog } = useApi<{ data: HetuAccessLogEntry[] }>({
+    url: `v1/expenses/${id}/mileage/hetu/access-log`,
+    skipFetch: !hasHetu,
+  })
   const [retracting, setRetracting] = useState(false)
   const [retractError, setRetractError] = useState<string>()
 
@@ -134,6 +142,25 @@ export default function ExpenseClaimDetail() {
               </Stack>
             </Paper>
 
+            {hasHetu && (
+              <Paper sx={{ p: 3 }}>
+                <Typography variant='h6' sx={{ mb: 2 }}>
+                  {t('expenses.mileage.hetuAccessLog')}
+                </Typography>
+                {!hetuAccessLog?.data.length ? (
+                  <Alert severity='info'>{t('expenses.mileage.hetuAccessLogEmpty')}</Alert>
+                ) : (
+                  <Stack spacing={1}>
+                    {hetuAccessLog.data.map((entry, index) => (
+                      <Typography key={index} variant='body2'>
+                        {new Date(entry.accessedAt).toLocaleString()} — {entry.accessedByName}
+                      </Typography>
+                    ))}
+                  </Stack>
+                )}
+              </Paper>
+            )}
+
             <Paper sx={{ p: 3 }}>
               <Typography variant='h6' sx={{ mb: 2 }}>
                 {t('expenses.fields.lineItems')}
@@ -168,7 +195,7 @@ export default function ExpenseClaimDetail() {
                         <TableCell>
                           {isNonEur
                             ? `${item.unitPrice} ${data.currency}`
-                            : formatExpenseAmount(item.unitPrice)}
+                            : formatExpenseUnitPrice(item.unitPrice)}
                         </TableCell>
                         <TableCell align='right'>
                           {eurTotal != null ? formatExpenseAmount(eurTotal) : '—'}

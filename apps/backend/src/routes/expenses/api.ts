@@ -28,6 +28,7 @@ import {
 import { insertOutboxItem } from '../../db/outbox-simplbooks-queries.ts'
 import {
   getMileageDetailFullHetu,
+  getMileageHetuAccessLog,
   getMileageReportRows,
   recordMileageHetuAccess,
 } from '../../db/mileage-queries.ts'
@@ -404,6 +405,18 @@ router.get(
     await recordMileageHetuAccess(claim.id, req.user!.memberId)
 
     res.status(HttpStatusCode.Ok).json({ hetu })
+  },
+)
+
+// Who has viewed this claim's HETU and when — visible to the claim owner (and
+// EXPENSE_ADMIN) so members can see who accessed their personal identifier,
+// separate from EXPENSE_HETU_ADMIN which gates revealing the value itself.
+router.get(
+  '/:id/mileage/hetu/access-log',
+  validateUser(MIKPermissions.EXPENSE_USER, MIKPermissions.EXPENSE_ADMIN),
+  async (req: Request<Record<string, string>>, res: Response) => {
+    const claim = await requireClaimForUser(req, req.params.id)
+    res.status(HttpStatusCode.Ok).json({ data: await getMileageHetuAccessLog(claim.id) })
   },
 )
 
