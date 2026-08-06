@@ -19,6 +19,10 @@ const AIRCRAFT = 'OH-STL'
 const OTHER_AIRCRAFT = 'OH-IHQ'
 const AJLB_SEQ_NO = 1
 const TEST_MARKER = 'DEFECT-TEST'
+// OH-STL/1's last validated flight total (test data) is 21301 -- flightMins
+// sent through the (guarded) HTTP API for a real create must be safely past
+// that live-region baseline, or the request is rejected with 400.
+const LIVE_FLIGHT_MINS = 900000
 
 const adminToken = generateAccessToken({
   memberId: 'Matti1',
@@ -173,7 +177,11 @@ describe('POST /defects', () => {
         aircraftRegistration: AIRCRAFT,
         ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} tire worn under the limits`,
-        flightMins: 300,
+        flightMins: LIVE_FLIGHT_MINS,
+        // The frontend always sends an explicit rows value (1 for a
+        // standalone/pre-flight defect); the schema also defaults to 1 here
+        // when a caller omits it entirely, see the next test.
+        rows: 1,
       })
 
     expect(res.status).toBe(201)
@@ -182,8 +190,108 @@ describe('POST /defects', () => {
       flightId: null,
       status: 'ACTIVE',
       createdBy: 'Liisa1',
+      rows: 1,
     })
     createdDefectIds.push(res.body.defectId)
+  })
+
+  it('defaults rows to 1 (own row) when omitted for a pre-flight defect (no flightId)', async () => {
+    const res = await request(app)
+      .post('/defects')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: `${TEST_MARKER} defect with no explicit rows`,
+        flightMins: LIVE_FLIGHT_MINS,
+      })
+
+    expect(res.status).toBe(201)
+    expect(res.body.rows).toBe(1)
+    createdDefectIds.push(res.body.defectId)
+  })
+
+  it('defaults rows to 0 (inline chip) for an in-flight defect', async () => {
+    const res = await request(app)
+      .post('/defects')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        flightId: 'mass1',
+        description: `${TEST_MARKER} in-flight defect`,
+        flightMins: LIVE_FLIGHT_MINS,
+      })
+
+    expect(res.status).toBe(201)
+    expect(res.body.rows).toBe(0)
+    createdDefectIds.push(res.body.defectId)
+  })
+
+  it('returns 400 when rows is 0 and blankRowsAfter is non-zero', async () => {
+    const res = await request(app)
+      .post('/defects')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: `${TEST_MARKER} invalid inline defect`,
+        flightMins: LIVE_FLIGHT_MINS,
+        rows: 0,
+        blankRowsAfter: 1,
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when a pre-flight defect is backdated before the last validated flight', async () => {
+    // OH-STL/1's last validated flight total is 21301 in the test data.
+    const res = await request(app)
+      .post('/defects')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: `${TEST_MARKER} backdated defect`,
+        flightMins: 21300,
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('creates a pre-flight defect when flightMins exactly matches the last validated flight', async () => {
+    // A defect found before any new flight has flown since the last validated one
+    // legitimately has the same total flight time -- this must not be rejected.
+    const res = await request(app)
+      .post('/defects')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: `${TEST_MARKER} ramp-found defect`,
+        flightMins: 21301,
+      })
+
+    expect(res.status).toBe(201)
+    createdDefectIds.push(res.body.defectId)
+  })
+
+  it('returns 400 when an in-flight defect targets an already-validated flight', async () => {
+    // mass1's own total exactly matches OH-STL/1's last validated flight total (21301) --
+    // an in-flight defect is tied to that specific flight, so unlike the pre-flight case,
+    // this must still be rejected: you can't add a defect to a flight already validated.
+    const res = await request(app)
+      .post('/defects')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        flightId: 'mass1',
+        description: `${TEST_MARKER} in-flight defect on a validated flight`,
+        flightMins: 21301,
+      })
+
+    expect(res.status).toBe(400)
   })
 })
 
@@ -198,7 +306,8 @@ describe('PATCH /defects/:id', () => {
         aircraftRegistration: AIRCRAFT,
         ajlbSeqNo: AJLB_SEQ_NO,
         description: `${TEST_MARKER} defect`,
-        flightMins: 100,
+        flightMins: LIVE_FLIGHT_MINS,
+        rows: 0,
       })
     defectId = res.body.defectId
     createdDefectIds.push(defectId)
@@ -221,6 +330,67 @@ describe('PATCH /defects/:id', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.description).toBe('edited by owner')
+  })
+
+  it('returns 400 for blankRowsAfter alone when the persisted rows is 0', async () => {
+    // The beforeEach POST explicitly sends rows: 0, and this PATCH doesn't touch rows,
+    // so the persisted value must still be checked against the incoming blankRowsAfter.
+    const res = await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ blankRowsAfter: 2 })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('lets the owner correct rows and blankRowsAfter together on a pre-flight defect', async () => {
+    // The beforeEach POST's defect has no flightId, so it's a pre-flight defect: rows
+    // (and blankRowsAfter) can be corrected after the fact if the initial entry was wrong.
+    const res = await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ rows: 1, blankRowsAfter: 2 })
+
+    expect(res.status).toBe(200)
+    expect(res.body.rows).toBe(1)
+    expect(res.body.blankRowsAfter).toBe(2)
+  })
+
+  it('returns 400 when rows is changed to 0 while blankRowsAfter stays non-zero', async () => {
+    const setup = await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ rows: 1, blankRowsAfter: 2 })
+    expect(setup.status).toBe(200)
+
+    const res = await request(app)
+      .patch(`/defects/${defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ rows: 0 })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when changing rows on an in-flight defect', async () => {
+    const inFlight = await request(app)
+      .post('/defects')
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        flightId: 'mass1',
+        description: `${TEST_MARKER} in-flight defect for rows PATCH check`,
+        flightMins: LIVE_FLIGHT_MINS,
+      })
+    expect(inFlight.status).toBe(201)
+    createdDefectIds.push(inFlight.body.defectId)
+
+    const res = await request(app)
+      .patch(`/defects/${inFlight.body.defectId}`)
+      .set('Cookie', `accessToken=${ownerToken}`)
+      .send({ rows: 1 })
+
+    expect(res.status).toBe(400)
   })
 
   it('returns 403 when a non-admin tries to resolve a defect', async () => {

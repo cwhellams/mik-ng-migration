@@ -15,6 +15,8 @@ import {
   Stack,
   Switch,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from '@mui/material'
@@ -27,7 +29,11 @@ import dayjs, { type Dayjs } from 'dayjs'
 import { Title } from '../../../components/Title'
 import useApi from '../../../hooks/useApi'
 import { RemoteContent } from '../../../components/RemoteContent'
+import { useTimezone } from '../../../hooks/useTimezone'
+import { getOffsetLabelInTz, timezoneName } from '../../../utils/date'
 import type { ClubEvent, EventListResponse } from '@backend/routes/events/models'
+
+type EventTimezone = 'helsinki' | 'utc' | 'local'
 
 type TranslationLanguage = 'fi' | 'sv'
 const TRANSLATION_LANGUAGES: TranslationLanguage[] = ['fi', 'sv']
@@ -44,6 +50,7 @@ interface EventForm {
   performer: string
   startTime: Dayjs | null
   endTime: Dayjs | null
+  timezone: EventTimezone
   isPublic: boolean
   translations: Partial<Record<TranslationLanguage, TranslationForm>>
 }
@@ -55,6 +62,7 @@ const emptyForm = (): EventForm => ({
   performer: '',
   startTime: dayjs().add(7, 'day').startOf('hour'),
   endTime: dayjs().add(7, 'day').startOf('hour').add(2, 'hour'),
+  timezone: 'helsinki',
   isPublic: false,
   translations: {},
 })
@@ -66,6 +74,9 @@ const eventToForm = (event: ClubEvent): EventForm => ({
   performer: event.performer ?? '',
   startTime: dayjs(event.startTime),
   endTime: dayjs(event.endTime),
+  // The backend only persists the resulting UTC instant, not the zone it was entered in,
+  // so we can't recover the original selector value — default to Helsinki intentionally.
+  timezone: 'helsinki',
   isPublic: event.isPublic,
   translations: {
     ...(event.translations.fi && {
@@ -88,6 +99,7 @@ const MAX_IMAGE_UPLOAD_BYTES = 10 * 1024 * 1024
 
 const EventsAdmin = () => {
   const { t } = useTranslation()
+  const { formatDateCustom, formatTime, timezoneOffset } = useTimezone()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<ClubEvent | null>(null)
   const [form, setForm] = useState<EventForm>(emptyForm())
@@ -307,10 +319,11 @@ const EventsAdmin = () => {
   const renderEventRow = (event: ClubEvent) => {
     const start = dayjs(event.startTime)
     const end = dayjs(event.endTime)
-    const isMultiDay = !start.isSame(end, 'day')
+    const isMultiDay = formatDateCustom(start, 'YYYY-MM-DD') !== formatDateCustom(end, 'YYYY-MM-DD')
     const dateLabel = isMultiDay
-      ? `${start.format('D.M.YYYY HH:mm')} – ${end.format('D.M.YYYY HH:mm')}`
-      : `${start.format('D.M.YYYY')} ${start.format('HH:mm')} – ${end.format('HH:mm')}`
+      ? `${formatDateCustom(start, 'D.M.YYYY HH:mm')} – ${formatDateCustom(end, 'D.M.YYYY HH:mm')}`
+      : `${formatDateCustom(start, 'D.M.YYYY')} ${formatTime(start.toDate())} – ${formatTime(end.toDate())}`
+    const tzLabel = timezoneOffset(start.toDate())
     const isPast = end.isBefore(now)
 
     return (
@@ -379,7 +392,7 @@ const EventsAdmin = () => {
                   color: 'text.secondary',
                 }}
               >
-                {dateLabel}
+                {dateLabel} ({tzLabel})
               </Typography>
             </Stack>
             {event.location && (
@@ -515,16 +528,57 @@ const EventsAdmin = () => {
               }}
             />
 
+            <Box>
+              <Typography variant='body2' sx={{ mb: 0.5 }}>
+                {t('events.form.timezone')}
+              </Typography>
+              <ToggleButtonGroup
+                value={form.timezone}
+                exclusive
+                size='small'
+                onChange={(_, value: EventTimezone | null) => {
+                  if (value !== null) setForm((f) => ({ ...f, timezone: value }))
+                }}
+                aria-label={t('events.form.timezone')}
+              >
+                <ToggleButton value='helsinki' aria-label='Helsinki time'>
+                  {t('events.form.timezoneHelsinki')}
+                </ToggleButton>
+                <ToggleButton value='utc' aria-label='UTC time'>
+                  {t('flightLog.utcTime')}
+                </ToggleButton>
+                <ToggleButton value='local' aria-label='Local time'>
+                  {t('flightLog.localTime')}
+                </ToggleButton>
+              </ToggleButtonGroup>
+              <Typography
+                variant='caption'
+                sx={{
+                  display: 'block',
+                  mt: 0.5,
+                  color: 'text.secondary',
+                }}
+              >
+                {t('events.form.timezoneHint')}
+              </Typography>
+            </Box>
+
             <DateTimePicker
-              label={t('events.form.startTime')}
+              label={t('events.form.startTimeTz', {
+                tz: getOffsetLabelInTz(form.startTime?.toDate(), form.timezone),
+              })}
               value={form.startTime}
+              timezone={timezoneName(form.timezone)}
               onChange={(v) => setForm((f) => ({ ...f, startTime: v }))}
               slotProps={{ textField: { fullWidth: true } }}
             />
 
             <DateTimePicker
-              label={t('events.form.endTime')}
+              label={t('events.form.endTimeTz', {
+                tz: getOffsetLabelInTz(form.endTime?.toDate(), form.timezone),
+              })}
               value={form.endTime}
+              timezone={timezoneName(form.timezone)}
               minDateTime={form.startTime ?? undefined}
               onChange={(v) => setForm((f) => ({ ...f, endTime: v }))}
               slotProps={{ textField: { fullWidth: true } }}

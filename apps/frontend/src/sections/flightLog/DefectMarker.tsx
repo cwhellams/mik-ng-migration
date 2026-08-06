@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { Chip, Tooltip } from '@mui/material'
+import { Box, Chip, Tooltip, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTranslation } from 'react-i18next'
 import type { Defect } from '@backend/routes/defects/models'
+import { useTimezone } from '../../hooks/useTimezone'
 import { DefectDialog } from './DefectDialog'
 
 interface DefectMarkerProps {
@@ -10,6 +11,8 @@ interface DefectMarkerProps {
   aircraftRegistration: string
   onChanged: () => void
   highlighted?: boolean
+  /** Anchor flight's date, shown next to the marker when it renders on its own row. */
+  flightDate?: string | null
 }
 
 export const DefectMarker: React.FC<DefectMarkerProps> = ({
@@ -17,8 +20,10 @@ export const DefectMarker: React.FC<DefectMarkerProps> = ({
   aircraftRegistration,
   onChanged,
   highlighted,
+  flightDate,
 }) => {
   const { t } = useTranslation()
+  const { formatDate } = useTimezone()
   const [open, setOpen] = useState(false)
 
   const color =
@@ -38,31 +43,36 @@ export const DefectMarker: React.FC<DefectMarkerProps> = ({
 
   return (
     <>
-      <Tooltip title={tooltip} placement='top'>
-        <Chip
-          id={`defect-${defect.defectId}`}
-          icon={<Icon icon={icon} width={16} />}
-          label={defect.description}
-          size='small'
-          color={color}
-          variant='outlined'
-          onClick={() => setOpen(true)}
-          sx={{
-            maxWidth: '100%',
-            cursor: 'pointer',
-            my: 0.5,
-            ...(highlighted && {
-              outline: (theme) => `2px solid ${theme.palette.primary.main}`,
-              outlineOffset: 1,
-            }),
-            '& .MuiChip-label': {
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            },
-          }}
-        />
-      </Tooltip>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {flightDate && (
+          <Typography sx={{ whiteSpace: 'nowrap' }}>{formatDate(flightDate)}</Typography>
+        )}
+        <Tooltip title={tooltip} placement='top'>
+          <Chip
+            id={`defect-${defect.defectId}`}
+            icon={<Icon icon={icon} width={16} />}
+            label={defect.description}
+            size='small'
+            color={color}
+            variant='outlined'
+            onClick={() => setOpen(true)}
+            sx={{
+              maxWidth: '100%',
+              cursor: 'pointer',
+              my: 0.5,
+              ...(highlighted && {
+                outline: (theme) => `2px solid ${theme.palette.primary.main}`,
+                outlineOffset: 1,
+              }),
+              '& .MuiChip-label': {
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              },
+            }}
+          />
+        </Tooltip>
+      </Box>
 
       <DefectDialog
         defect={defect}

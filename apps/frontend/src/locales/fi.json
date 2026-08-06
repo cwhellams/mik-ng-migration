@@ -53,6 +53,7 @@
     "newExpense": "Uusi kulukorvaus",
     "expenseClaims": "Kulukorvaukset",
     "mileageAllowances": "Kilometrikorvaukset",
+    "tulorekisteriReport": "Tulorekisteriraportti",
     "costCentres": "Kustannuspaikat",
     "inventory": "Varasto",
     "inventoryAdmin": "Varasto-hallinta",
@@ -1292,6 +1293,8 @@
       "flightTime": "Lentokoneen kokonaislentoaika",
       "hours": "Tunnit",
       "minutes": "Minuutit",
+      "rows": "Rivejä",
+      "rowsHelp": "Kuinka monta riviä tämä vie fyysisellä matkapäiväkirjan sivulla (0 = näytetään lennon rivillä)",
       "blankRowsAfter": "Tyhjiä rivejä jälkeen",
       "blankRowsAfterHelp": "Fyysiseen matkapäiväkirjaan lisättävät tyhjät rivit merkinnän jälkeen",
       "closeHilItems": "Sulje siirrettyjä vikoja",
@@ -1306,8 +1309,11 @@
     "defects": {
       "addPreFlightButton": "Kirjaa vika",
       "addPreFlightTitle": "Uusi vikamerkintä (ennen lentoa)",
-      "addInFlightButton": "Kirjaa lennon aikainen vika",
       "addInFlightTitle": "Uusi vikamerkintä (lennon aikainen)",
+      "reportSectionTitle": "Ilmoita viat",
+      "reportSectionNote": "Jos havaitsit lennon aikana vikoja, kuvaile jokainen alla. Jokaisesta viasta on lisäksi ilmoitettava suoraan kalustovastaavalle puhelimitse — älä luota pelkkään tähän merkintään.",
+      "addDefectRow": "Lisää vika",
+      "blankDescriptionError": "Vian kuvaus ei voi olla tyhjä",
       "viewTitle": "Vikamerkintä",
       "description": "Kuvaus",
       "flightTime": "Lentokoneen kokonaislentoaika",
@@ -2483,8 +2489,11 @@
     "deleteError": "Tapahtuman poistaminen epäonnistui. Yritä uudelleen.",
     "form": {
       "title": "Otsikko (englanti)",
-      "startTime": "Alkuaika",
-      "endTime": "Loppuaika",
+      "startTimeTz": "Alkuaika ({{tz}})",
+      "endTimeTz": "Loppuaika ({{tz}})",
+      "timezone": "Aikavyöhyke",
+      "timezoneHelsinki": "Helsinki",
+      "timezoneHint": "Aikavyöhyke, jossa tapahtuman alku- ja loppuaika syötetään. Oletuksena Helsinki, koska useimmat kerhon tapahtumat järjestetään siellä.",
       "location": "Paikka",
       "description": "Kuvaus (englanti)",
       "performer": "Esiintyjä / luennoitsija",
@@ -2520,9 +2529,40 @@
       "estimatedAmount": "Arvioitu korvaus",
       "lineItemDescription": "Kilometrikorvaus",
       "hetu": "Henkilötunnus (HETU)",
-      "hetuHint": "Vaaditaan verotusta varten. Tallennetaan salattuna eikä näy tallennuksen jälkeen.",
+      "hetuHint": "Vaaditaan verotusta varten. Näkyy matkalaskun käsittelijöille, jokainen katselukerta kirjataan lokiin, ja se poistetaan viikon kuluttua laskun hyväksymisestä.",
+      "hetuInvalid": "Henkilötunnus ei ole kelvollinen.",
+      "hetuAccessLog": "Kuka on katsonut henkilötunnustasi",
+      "hetuAccessLogEmpty": "Kukaan ei ole vielä katsonut henkilötunnustasi.",
       "boardApprovalRequired": "Tämä matka ylittää {{maxKm}} km rajan ja vaatii hallituksen hyväksynnän.",
-      "boardApprovedLabel": "Vahvistan, että hallitus on hyväksynyt tämän matkan"
+      "boardApprovedLabel": "Vahvistan, että hallitus on hyväksynyt tämän matkan",
+      "ratePerKm": "Korvaus",
+      "reveal": "Näytä",
+      "copy": "Kopioi",
+      "revealNotice": "Tämä katselu on kirjattu lokiin."
+    },
+    "tulorekisteriReport": {
+      "title": "Tulorekisteriraportti",
+      "description": "Hyväksytyt kilometrikorvaukset ilmoitettavaksi tulorekisteriin. Ei koskaan näytä henkilötunnusta — se näytetään yksittäisen korvauksen sivulta.",
+      "filters": {
+        "startDate": "Alkupäivä",
+        "endDate": "Loppupäivä",
+        "generate": "Luo raportti",
+        "export": "Vie CSV-muodossa"
+      },
+      "table": {
+        "member": "Jäsen",
+        "journeyDate": "Matkan päivämäärä",
+        "route": "Reitti",
+        "distanceKm": "Matka (km)",
+        "totalAmount": "Yhteensä (EUR)",
+        "approvedAt": "Hyväksytty"
+      },
+      "noData": "Ei hyväksyttyjä kilometrikorvauksia valitulla aikavälillä",
+      "errors": {
+        "endDateFuture": "Loppupäivä ei voi olla tulevaisuudessa",
+        "startAfterEnd": "Alkupäivä ei voi olla loppupäivän jälkeen",
+        "required": "Sekä alku- että loppupäivä vaaditaan"
+      }
     },
     "status": {
       "DRAFT": "Luonnos",
@@ -2674,7 +2714,8 @@
       "unitPriceRequired": "Yksikköhinnan on oltava suurempi kuin nolla",
       "aircraftRequired": "Ilma-alus on pakollinen polttoainekuluille",
       "fuelDateRequired": "Päivämäärä on pakollinen polttoainerivin tiedoille",
-      "airportRequired": "Lentopaikka on pakollinen polttoainerivin tiedoille"
+      "airportRequired": "Lentopaikka on pakollinen polttoainerivin tiedoille",
+      "mileageDetailsRequired": "Reitti, matkapäivä ja matkan pituus vaaditaan. Hallituksen hyväksyntä vaaditaan kilometrirajan ylittyessä."
     }
   },
   "inventory": {

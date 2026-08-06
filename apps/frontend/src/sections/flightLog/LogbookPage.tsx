@@ -24,6 +24,7 @@ import {
   FlightLogListEntry,
   FlightLogListResponse,
   FlightLogStatus,
+  PageItemRow,
 } from '@backend/routes/flight-log/models'
 import { RemoteContent } from '../../components/RemoteContent'
 import { useRoles } from '../../hooks/useRoles'
@@ -55,6 +56,43 @@ import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
 import type { Defect } from '@backend/routes/defects/models'
 import { MIKPermissions } from '@backend/routes/members/models'
 
+// A maintenance note / defect that renders inline as a chip on its anchor
+// flight's row instead of consuming a row of its own (rows: 0 -- an in-flight
+// defect, or a note/defect explicitly given no row of its own).
+export type LogbookInsertItem =
+  | { kind: 'note'; note: MaintenanceNote; flightMins: number; sortKey: string }
+  | { kind: 'defect'; defect: Defect; flightMins: number; sortKey: string }
+
+// Notes and defects positioned as inline chips share one ordered, position-based
+// sequence (sorted by flightMins, then createdAt as a tie-break) -- this must
+// match the anchoring order flight.vw_ajlb_live_sequence computes server-side.
+// Own-row (rows > 0) items are NOT included here: their exact page/row placement
+// comes from the server (see PageItemRow / flight.vw_ajlb_live_rows) instead of
+// being reconstructed client-side, since an item's rows can straddle a page
+// boundary in a way flightMins comparisons alone can't reliably reproduce.
+export const buildInlineItems = (
+  notes: MaintenanceNote[] | undefined,
+  defects: Defect[] | undefined,
+): LogbookInsertItem[] =>
+  [
+    ...(notes ?? [])
+      .filter((note) => note.rows === 0)
+      .map((note): LogbookInsertItem => ({
+        kind: 'note',
+        note,
+        flightMins: note.flightMins,
+        sortKey: note.createdAt,
+      })),
+    ...(defects ?? [])
+      .filter((defect) => defect.rows === 0)
+      .map((defect): LogbookInsertItem => ({
+        kind: 'defect',
+        defect,
+        flightMins: defect.flightMins,
+        sortKey: defect.createdAt,
+      })),
+  ].sort((a, b) => a.flightMins - b.flightMins || a.sortKey.localeCompare(b.sortKey))
+
 type LogbookTableRow = {
   log: FlightLogListEntry | null
   isEmptyRow: boolean
@@ -65,24 +103,50 @@ type LogbookTableRow = {
   defect: Defect | undefined
   isDefectRow: boolean
   isDefectBlankRow: boolean
-  inFlightDefects: Defect[]
+  inlineItems: LogbookInsertItem[]
 }
 
+const rowDefaults = {
+  note: undefined as MaintenanceNote | undefined,
+  isNoteRow: false,
+  isNoteBlankRow: false,
+  defect: undefined as Defect | undefined,
+  isDefectRow: false,
+  isDefectBlankRow: false,
+  inlineItems: [] as LogbookInsertItem[],
+}
+
+const trailingInlineRow = (item: LogbookInsertItem): LogbookTableRow => ({
+  log: null,
+  isEmptyRow: false,
+  hasEditActions: false,
+  note: item.kind === 'note' ? item.note : undefined,
+  isNoteRow: item.kind === 'note',
+  isNoteBlankRow: false,
+  defect: item.kind === 'defect' ? item.defect : undefined,
+  isDefectRow: item.kind === 'defect',
+  isDefectBlankRow: false,
+  inlineItems: [],
+})
+
+// Builds one page's worth of rows from three sources: `logs` (flights, keyed by
+// their own per-page ajlbRowNo), `pageItemRows` (the exact physical-row placement
+// of own-row notes/defects on this page, computed server-side from
+// flight.vw_ajlb_live_rows -- see that view for why an item's rows can straddle a
+// page boundary in a way that can't be reliably reconstructed from flightMins
+// comparisons alone), and `inlineItems` (rows === 0 chips, bucketed onto their
+// anchor flight's row). A row number claimed by neither a flight nor a
+// pageItemRow is genuinely blank.
 export const buildLogbookRows = (
   logs: FlightLogListEntry[] | undefined,
-  pageSize = 0,
+  pageItemRows: PageItemRow[],
+  inlineItems: LogbookInsertItem[],
+  notesById: Record<string, MaintenanceNote>,
+  defectsById: Record<string, Defect>,
+  pageSize: number,
+  pageStartFlightMins: number | null,
 ): LogbookTableRow[] => {
-  const rowDefaults = {
-    note: undefined,
-    isNoteRow: false,
-    isNoteBlankRow: false,
-    defect: undefined,
-    isDefectRow: false,
-    isDefectBlankRow: false,
-    inFlightDefects: [] as Defect[],
-  }
-
-  if (!logs?.length) {
+  if (!logs?.length && !pageItemRows.length && !inlineItems.length) {
     return Array.from({ length: pageSize }, () => ({
       log: null,
       isEmptyRow: true,
@@ -91,29 +155,131 @@ export const buildLogbookRows = (
     }))
   }
 
-  const rows: LogbookTableRow[] = []
-
-  let prevRowNo = 0
-  logs.forEach((log) => {
-    const blankRowsOnPage = Math.max(0, log.ajlbRowNo - 1 - prevRowNo)
-    rows.push(
-      ...Array.from({ length: blankRowsOnPage }, () => ({
-        log,
-        isEmptyRow: true,
-        hasEditActions: true,
-        ...rowDefaults,
-      })),
-    )
-
-    rows.push({
-      log,
-      isEmptyRow: false,
-      hasEditActions: false,
-      ...rowDefaults,
-    })
-
-    prevRowNo = log.ajlbRowNo
+  // Genuine in-flight defects (flightId set at creation) attach directly to
+  // their flight by id -- immune to any drift in flightMins bucketing if an
+  // earlier NEW flight's timing is later edited or the flight is deleted,
+  // which would shift every subsequent flight's cumulative ac_total_flight_mins
+  // and could otherwise silently re-anchor the chip onto a different flight.
+  // Everything else (notes, and defects with no flightId) has no such fixed
+  // reference and is positioned purely by flightMins.
+  const inlineByFlightId: Record<string, LogbookInsertItem[]> = {}
+  const positionedInline: LogbookInsertItem[] = []
+  inlineItems.forEach((item) => {
+    if (item.kind === 'defect' && item.defect.flightId) {
+      inlineByFlightId[item.defect.flightId] = [
+        ...(inlineByFlightId[item.defect.flightId] ?? []),
+        item,
+      ]
+    } else {
+      positionedInline.push(item)
+    }
   })
+
+  let inlineIdx = 0
+  let prevLogMins = pageStartFlightMins ?? -1
+  // Buckets position-anchored inline (rows === 0) items in (prevLogMins,
+  // logMins] -- these never consume a row, they render as chips on the
+  // flight's own row.
+  const collectInlineItemsUpTo = (logMins: number): LogbookInsertItem[] => {
+    const collected: LogbookInsertItem[] = []
+    while (
+      inlineIdx < positionedInline.length &&
+      positionedInline[inlineIdx].flightMins <= logMins &&
+      positionedInline[inlineIdx].flightMins > prevLogMins
+    ) {
+      collected.push(positionedInline[inlineIdx])
+      inlineIdx++
+    }
+    return collected
+  }
+
+  const logsByRowNumber = new Map<number, FlightLogListEntry>()
+  logs?.forEach((log) => logsByRowNumber.set(log.ajlbRowNo, log))
+
+  const itemRowsByNumber = new Map<number, PageItemRow>()
+  pageItemRows.forEach((row) => itemRowsByNumber.set(row.rowNumber, row))
+
+  const maxRowNumber = Math.max(
+    pageSize,
+    ...(logs ?? []).map((log) => log.ajlbRowNo),
+    ...pageItemRows.map((row) => row.rowNumber),
+  )
+
+  // A genuinely blank row between two flights is always that NEXT flight's own
+  // ajlbBlankRowsBefore padding (nothing else can be interposed inside it -- see
+  // flight.vw_ajlb_live_sequence, where a flight's own blank-before rows are part
+  // of its own atomic rows_consumed block), so admin controls need a reference to
+  // that flight to offer a "remove this blank row" action.
+  const nextFlightFrom = new Map<number, FlightLogListEntry>()
+  let upcoming: FlightLogListEntry | null = null
+  for (let rowNumber = maxRowNumber; rowNumber >= 1; rowNumber--) {
+    if (upcoming) nextFlightFrom.set(rowNumber, upcoming)
+    const log = logsByRowNumber.get(rowNumber)
+    if (log) upcoming = log
+  }
+
+  const rows: LogbookTableRow[] = []
+  let lastFlightRowIdx = -1
+
+  for (let rowNumber = 1; rowNumber <= maxRowNumber; rowNumber++) {
+    const log = logsByRowNumber.get(rowNumber)
+    const pageItemRow = itemRowsByNumber.get(rowNumber)
+
+    if (log) {
+      const logMins = log.acTotalFlightMins ?? 0
+      rows.push({
+        log,
+        isEmptyRow: false,
+        hasEditActions: false,
+        ...rowDefaults,
+        inlineItems: [
+          ...collectInlineItemsUpTo(logMins),
+          ...(inlineByFlightId[log.flightId] ?? []),
+        ],
+      })
+      lastFlightRowIdx = rows.length - 1
+      prevLogMins = logMins
+    } else if (pageItemRow) {
+      const note = pageItemRow.itemType === 'note' ? notesById[pageItemRow.itemId] : undefined
+      const defect = pageItemRow.itemType === 'defect' ? defectsById[pageItemRow.itemId] : undefined
+      rows.push({
+        log: null,
+        isEmptyRow: !pageItemRow.isContentRow,
+        hasEditActions: false,
+        ...rowDefaults,
+        note,
+        isNoteRow: pageItemRow.itemType === 'note' && pageItemRow.isContentRow && !!note,
+        isNoteBlankRow: pageItemRow.itemType === 'note' && !pageItemRow.isContentRow,
+        defect,
+        isDefectRow: pageItemRow.itemType === 'defect' && pageItemRow.isContentRow && !!defect,
+        isDefectBlankRow: pageItemRow.itemType === 'defect' && !pageItemRow.isContentRow,
+      })
+    } else {
+      const next = nextFlightFrom.get(rowNumber) ?? null
+      rows.push({
+        log: next,
+        isEmptyRow: true,
+        hasEditActions: !!next,
+        ...rowDefaults,
+      })
+    }
+  }
+
+  // Inline items anchored past every flight/item on this page: merge onto the
+  // last flight's chip row if one exists, so they're never silently dropped
+  // from view; if the page has no flights at all, fall back to rendering them
+  // as their own row.
+  const trailingInline = collectInlineItemsUpTo(Infinity)
+  if (trailingInline.length) {
+    if (lastFlightRowIdx !== -1) {
+      rows[lastFlightRowIdx] = {
+        ...rows[lastFlightRowIdx],
+        inlineItems: [...rows[lastFlightRowIdx].inlineItems, ...trailingInline],
+      }
+    } else {
+      trailingInline.forEach((item) => rows.push(trailingInlineRow(item)))
+    }
+  }
 
   const trailingEmptyRows = Math.max(0, pageSize - rows.length)
   rows.push(
@@ -189,7 +355,7 @@ const FlightLogsList = () => {
     setPage(page)
   }, [searchParams, setPage])
 
-  const { data, isLoading, error, mutation } = useApi<FlightLogListResponse, FlightLog>(
+  const { data, isLoading, error, mutation, mutate } = useApi<FlightLogListResponse, FlightLog>(
     {
       url: 'v1/flight-logs',
       params: {
@@ -228,6 +394,18 @@ const FlightLogsList = () => {
     ajlb?.aircraftRegistration,
     ajlb?.seqNo,
   )
+
+  // A note/defect's rows/blankRowsAfter can shift data.pageItemRows (the server's
+  // physical-row placement for this page), so any change to either must also
+  // refresh the flight-logs list, not just the note/defect list itself.
+  const refreshAfterNoteChange = () => {
+    mutateNotes()
+    mutate()
+  }
+  const refreshAfterDefectChange = () => {
+    mutateDefects()
+    mutate()
+  }
 
   const isFlightLogUser = hasAccess(MIKPermissions.FLIGHTLOG_USER)
   // Reporting a defect is a baseline flying-rights action: a plane captain
@@ -281,13 +459,7 @@ const FlightLogsList = () => {
     return !res.error
   }
 
-  const Actions = ({
-    log,
-    onAddInFlightDefect,
-  }: {
-    log: FlightLogListEntry
-    onAddInFlightDefect: () => void
-  }) => {
+  const Actions = ({ log }: { log: FlightLogListEntry }) => {
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
     const menuOpen = Boolean(menuAnchor)
 
@@ -320,7 +492,7 @@ const FlightLogsList = () => {
         : []
 
     // On mobile: collapse secondary actions into a kebab menu
-    if (!isSmUp && (canReportDefects || adminActions.length > 0)) {
+    if (!isSmUp && adminActions.length > 0) {
       return (
         <Stack direction='row' spacing={0.5} sx={{ justifyContent: 'flex-end', flexWrap: 'wrap' }}>
           <StatusButton
@@ -336,19 +508,6 @@ const FlightLogsList = () => {
             <Icon icon='mdi:dots-vertical' width={20} />
           </IconButton>
           <Menu anchorEl={menuAnchor} open={menuOpen} onClose={() => setMenuAnchor(null)}>
-            {canReportDefects && (
-              <MuiMenuItem
-                onClick={() => {
-                  setMenuAnchor(null)
-                  onAddInFlightDefect()
-                }}
-              >
-                <ListItemIcon>
-                  <Icon icon='mdi:alert-circle-outline' width={20} />
-                </ListItemIcon>
-                <ListItemText>{t('flightLog.defects.addInFlightButton')}</ListItemText>
-              </MuiMenuItem>
-            )}
             {adminActions.map((action) => (
               <MuiMenuItem
                 key={action.key}
@@ -382,15 +541,6 @@ const FlightLogsList = () => {
           update={editableItem === log ? () => validateEntry(log) : undefined}
         />
 
-        {canReportDefects && (
-          <EditButton
-            title={t('flightLog.defects.addInFlightButton')}
-            onClick={onAddInFlightDefect}
-            icon='mdi:alert-circle-outline'
-            width={20}
-          />
-        )}
-
         {adminActions.map((action) => (
           <EditButton
             key={action.key}
@@ -403,153 +553,23 @@ const FlightLogsList = () => {
     )
   }
 
-  const logsWithEmptyRows = buildLogbookRows(data?.logs, ajlb?.rowsPerPage ?? 0)
+  // Notes and defects with rows === 0 render as chips on their anchor flight's
+  // row (the traditional in-flight-defect chip, now unified for both kinds).
+  // Own-row (rows > 0) items are placed directly from data.pageItemRows, the
+  // server's exact physical-row breakdown for this page -- see buildLogbookRows.
+  const inlineItems = buildInlineItems(maintenanceNotes, defects)
+  const notesById = Object.fromEntries((maintenanceNotes ?? []).map((note) => [note.noteId, note]))
+  const defectsById = Object.fromEntries((defects ?? []).map((defect) => [defect.defectId, defect]))
 
-  // Build a map from flightId -> IN_FLIGHT defects for chip rendering on flight rows.
-  const inFlightDefectsMap: Record<string, Defect[]> = {}
-  defects?.forEach((d) => {
-    if (d.flightId) {
-      inFlightDefectsMap[d.flightId] = [...(inFlightDefectsMap[d.flightId] ?? []), d]
-    }
-  })
-
-  // Merge maintenance notes and PRE_FLIGHT defects into the row list at the correct
-  // position. An item at flight_mins X is placed after the last flight row whose
-  // acTotalFlightMins <= X (i.e. just after the flight that reached that time).
-  const mergedRows = (() => {
-    if (!logsWithEmptyRows) return []
-
-    type InsertKind =
-      | {
-          kind: 'note'
-          note: MaintenanceNote
-          blankRowsAfter: number
-          flightMins: number
-          sortKey: string
-        }
-      | {
-          kind: 'defect'
-          defect: Defect
-          blankRowsAfter: number
-          flightMins: number
-          sortKey: string
-        }
-
-    const itemsToInsert: InsertKind[] = [
-      ...(maintenanceNotes ?? []).map((n) => ({
-        kind: 'note' as const,
-        note: n,
-        blankRowsAfter: n.blankRowsAfter,
-        flightMins: n.flightMins,
-        sortKey: n.createdAt,
-      })),
-      ...(defects ?? [])
-        .filter((d) => !d.flightId)
-        .map((d) => ({
-          kind: 'defect' as const,
-          defect: d,
-          blankRowsAfter: d.blankRowsAfter,
-          flightMins: d.flightMins,
-          sortKey: d.createdAt,
-        })),
-    ].sort((a, b) => a.flightMins - b.flightMins || a.sortKey.localeCompare(b.sortKey))
-
-    const rowDefaults = {
-      note: undefined as MaintenanceNote | undefined,
-      isNoteRow: false,
-      isNoteBlankRow: false,
-      defect: undefined as Defect | undefined,
-      isDefectRow: false,
-      isDefectBlankRow: false,
-    }
-
-    const result: LogbookTableRow[] = []
-    let insertIdx = 0
-    // Initialise to the last flight total of the previous page so items from
-    // earlier pages are not re-inserted here (cross-page bleed prevention).
-    let prevLogMins = data?.pageStartFlightMins ?? -1
-
-    for (let i = 0; i < logsWithEmptyRows.length; i++) {
-      const row = logsWithEmptyRows[i]
-
-      // Annotate flight rows with their IN_FLIGHT defects.
-      const inFlightDefects =
-        !row.isEmptyRow && row.log ? (inFlightDefectsMap[row.log.flightId] ?? []) : []
-
-      result.push({ ...row, ...rowDefaults, inFlightDefects })
-
-      if (!row.isEmptyRow && row.log) {
-        const logMins = row.log.acTotalFlightMins ?? 0
-        // Insert items whose flightMins falls in (prevLogMins, logMins].
-        while (
-          insertIdx < itemsToInsert.length &&
-          itemsToInsert[insertIdx].flightMins <= logMins &&
-          itemsToInsert[insertIdx].flightMins > prevLogMins
-        ) {
-          const item = itemsToInsert[insertIdx]
-          if (item.kind === 'note') {
-            result.push({
-              log: row.log,
-              isEmptyRow: false,
-              hasEditActions: false,
-              note: item.note,
-              isNoteRow: true,
-              isNoteBlankRow: false,
-              defect: undefined,
-              isDefectRow: false,
-              isDefectBlankRow: false,
-              inFlightDefects: [],
-            })
-            for (let b = 0; b < item.blankRowsAfter; b++) {
-              result.push({
-                log: row.log,
-                isEmptyRow: true,
-                hasEditActions: false,
-                note: item.note,
-                isNoteRow: false,
-                isNoteBlankRow: true,
-                defect: undefined,
-                isDefectRow: false,
-                isDefectBlankRow: false,
-                inFlightDefects: [],
-              })
-            }
-          } else {
-            result.push({
-              log: row.log,
-              isEmptyRow: false,
-              hasEditActions: false,
-              note: undefined,
-              isNoteRow: false,
-              isNoteBlankRow: false,
-              defect: item.defect,
-              isDefectRow: true,
-              isDefectBlankRow: false,
-              inFlightDefects: [],
-            })
-            for (let b = 0; b < item.blankRowsAfter; b++) {
-              result.push({
-                log: row.log,
-                isEmptyRow: true,
-                hasEditActions: false,
-                note: undefined,
-                isNoteRow: false,
-                isNoteBlankRow: false,
-                defect: item.defect,
-                isDefectRow: false,
-                isDefectBlankRow: true,
-                inFlightDefects: [],
-              })
-            }
-          }
-          insertIdx++
-        }
-        prevLogMins = logMins
-      }
-    }
-
-    return result
-  })()
+  const mergedRows = buildLogbookRows(
+    data?.logs,
+    data?.pageItemRows ?? [],
+    inlineItems,
+    notesById,
+    defectsById,
+    ajlb?.rowsPerPage ?? 0,
+    data?.pageStartFlightMins ?? null,
+  )
 
   return (
     <Box>
@@ -635,15 +655,16 @@ const FlightLogsList = () => {
             defect,
             isDefectRow,
             isDefectBlankRow,
-            inFlightDefects,
+            inlineItems,
           }) => {
             if (isNoteRow && note) {
               return (
                 <Box sx={{ gridColumn: '1 / -1', width: '100%', py: 0.25 }}>
                   <MaintenanceNoteMarker
                     note={note}
-                    onChanged={() => mutateNotes()}
+                    onChanged={refreshAfterNoteChange}
                     highlighted={note.noteId === highlightNoteId}
+                    flightDate={log?.offBlockTimeUtc}
                   />
                 </Box>
               )
@@ -659,8 +680,9 @@ const FlightLogsList = () => {
                   <DefectMarker
                     defect={defect}
                     aircraftRegistration={ajlb.aircraftRegistration}
-                    onChanged={() => mutateDefects()}
+                    onChanged={refreshAfterDefectChange}
                     highlighted={defect.defectId === highlightDefectId}
+                    flightDate={log?.offBlockTimeUtc}
                   />
                 </Box>
               )
@@ -696,20 +718,6 @@ const FlightLogsList = () => {
             }
             if (!log) {
               return <></>
-            }
-
-            const handleAddInFlightDefect = () => {
-              setAddDefectFlightId(log.flightId)
-
-              const fallbackMinsFromTime = (() => {
-                const [h, m] = (log.acTotalFlightTime ?? '0:0').split(':')
-                const hh = Number(h)
-                const mm = Number(m)
-                return Number.isFinite(hh) && Number.isFinite(mm) ? hh * 60 + mm : undefined
-              })()
-
-              setAddDefectFlightMins(log.acTotalFlightMins ?? fallbackMinsFromTime)
-              setAddDefectOpen(true)
             }
 
             return (
@@ -784,21 +792,30 @@ const FlightLogsList = () => {
                         justifyItems: 'end',
                       }}
                     >
-                      <Actions log={log} onAddInFlightDefect={handleAddInFlightDefect} />
+                      <Actions log={log} />
                     </Grid>
 
-                    {inFlightDefects.length > 0 && ajlb && (
+                    {inlineItems.length > 0 && ajlb && (
                       <Grid size={12} sx={{ pt: 0, pb: 0.5 }}>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {inFlightDefects.map((d) => (
-                            <DefectMarker
-                              key={d.defectId}
-                              defect={d}
-                              aircraftRegistration={ajlb.aircraftRegistration}
-                              onChanged={() => mutateDefects()}
-                              highlighted={d.defectId === highlightDefectId}
-                            />
-                          ))}
+                          {inlineItems.map((item) =>
+                            item.kind === 'defect' ? (
+                              <DefectMarker
+                                key={item.defect.defectId}
+                                defect={item.defect}
+                                aircraftRegistration={ajlb.aircraftRegistration}
+                                onChanged={refreshAfterDefectChange}
+                                highlighted={item.defect.defectId === highlightDefectId}
+                              />
+                            ) : (
+                              <MaintenanceNoteMarker
+                                key={item.note.noteId}
+                                note={item.note}
+                                onChanged={refreshAfterNoteChange}
+                                highlighted={item.note.noteId === highlightNoteId}
+                              />
+                            ),
+                          )}
                         </Box>
                       </Grid>
                     )}
@@ -815,7 +832,7 @@ const FlightLogsList = () => {
                       numberOfLandings={log.numberOfLandings}
                       flightType={log.flightType}
                     >
-                      <Actions log={log} onAddInFlightDefect={handleAddInFlightDefect} />
+                      <Actions log={log} />
                     </ViewMobileFlightDetails>
 
                     <ViewMobileCrew
@@ -834,18 +851,27 @@ const FlightLogsList = () => {
                       />
                     </Grid>
 
-                    {inFlightDefects.length > 0 && ajlb && (
+                    {inlineItems.length > 0 && ajlb && (
                       <Grid size={12} sx={{ pt: 0, pb: 0.5 }}>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {inFlightDefects.map((d) => (
-                            <DefectMarker
-                              key={d.defectId}
-                              defect={d}
-                              aircraftRegistration={ajlb.aircraftRegistration}
-                              onChanged={() => mutateDefects()}
-                              highlighted={d.defectId === highlightDefectId}
-                            />
-                          ))}
+                          {inlineItems.map((item) =>
+                            item.kind === 'defect' ? (
+                              <DefectMarker
+                                key={item.defect.defectId}
+                                defect={item.defect}
+                                aircraftRegistration={ajlb.aircraftRegistration}
+                                onChanged={refreshAfterDefectChange}
+                                highlighted={item.defect.defectId === highlightDefectId}
+                              />
+                            ) : (
+                              <MaintenanceNoteMarker
+                                key={item.note.noteId}
+                                note={item.note}
+                                onChanged={refreshAfterNoteChange}
+                                highlighted={item.note.noteId === highlightNoteId}
+                              />
+                            ),
+                          )}
                         </Box>
                       </Grid>
                     )}
@@ -900,6 +926,7 @@ const FlightLogsList = () => {
             handleCloseAddNote()
             mutateNotes()
             mutateDefects()
+            mutate()
           }}
           aircraftRegistration={ajlb.aircraftRegistration}
           ajlbSeqNo={ajlb.seqNo}
@@ -914,6 +941,7 @@ const FlightLogsList = () => {
           onSuccess={() => {
             setAddDefectOpen(false)
             mutateDefects()
+            mutate()
           }}
           aircraftRegistration={ajlb.aircraftRegistration}
           ajlbSeqNo={ajlb.seqNo}

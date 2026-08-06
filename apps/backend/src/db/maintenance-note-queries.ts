@@ -13,6 +13,7 @@ function mapRowToNote(row: {
   description: string
   performed_by: string
   flight_mins: number
+  rows: number
   blank_rows_after: number
   created_at: Date
   created_by: string
@@ -26,6 +27,7 @@ function mapRowToNote(row: {
     description: row.description,
     performedBy: row.performed_by,
     flightMins: row.flight_mins,
+    rows: row.rows,
     blankRowsAfter: row.blank_rows_after,
     createdAt: row.created_at.toISOString(),
     createdBy: row.created_by,
@@ -62,6 +64,7 @@ export async function createMaintenanceNote(
         description: data.description,
         performed_by: data.performedBy,
         flight_mins: data.flightMins,
+        rows: data.rows,
         blank_rows_after: data.blankRowsAfter,
         created_at: now,
         created_by: createdBy,
@@ -111,6 +114,7 @@ export async function updateMaintenanceNote(
       ...(data.description !== undefined && { description: data.description }),
       ...(data.performedBy !== undefined && { performed_by: data.performedBy }),
       ...(data.flightMins !== undefined && { flight_mins: data.flightMins }),
+      ...(data.rows !== undefined && { rows: data.rows }),
       ...(data.blankRowsAfter !== undefined && { blank_rows_after: data.blankRowsAfter }),
       updated_at: new Date(),
       updated_by: updatedBy,

@@ -338,7 +338,7 @@ describe('POST /flight-log', () => {
     ['Matti1', true, mattiToken],
     ['Pekka1', false, adminToken],
   ])(
-    'should create a flight log with valid payload , return flight_id and be deleted using the returned id',
+    'should create a flight log with valid payload , return flightId and be deleted using the returned id',
     async (memberId: string, isDtoFlight: boolean, token: string) => {
       const response = await request(app)
         .post('/flight-log')
@@ -348,8 +348,8 @@ describe('POST /flight-log', () => {
           picMemberId: memberId,
         })
 
-      expect(response.body.flight_id).toBeDefined()
-      const id = response.body.flight_id
+      expect(response.body.flightId).toBeDefined()
+      const id = response.body.flightId
       expect(id).toHaveLength(9)
       expect(response.status).toBe(201)
 
@@ -1038,7 +1038,7 @@ describe('GET /flight-log/stats', () => {
       })
 
     expect(createResponse.status).toBe(201)
-    createdFlightId = createResponse.body.flight_id
+    createdFlightId = createResponse.body.flightId
     expect(createdFlightId).toBeDefined()
 
     const createdFlightResponse = await request(app)
