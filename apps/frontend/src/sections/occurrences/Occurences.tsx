@@ -13,8 +13,11 @@ import {
   OccurrencesListResponse,
   OccurrenceStatus,
 } from '@backend/routes/occurrences/models'
+import { MIKPermissions } from '@backend/routes/members/models'
 import { useTimezone } from '../../hooks/useTimezone'
 import { useScrollOnRender } from '../../hooks/useScrollOnRender'
+import { useRoles } from '../../hooks/useRoles'
+import { useThemeMode } from '../../theme/ThemeContext'
 import { OccurrenceStatusChip, OccurrenceStatusFilter } from './components/OccurrenceStatusChip'
 import { formatDuration, getDurationInMinutes } from '../flightLog/utils/timeUtils'
 
@@ -27,6 +30,11 @@ export const Occurrences = () => {
   const { formatDateTime } = useTimezone()
 
   const scrollToRef = useScrollOnRender()
+
+  const { hasAccess } = useRoles()
+  const { sudo } = useThemeMode()
+  const showAdminModeHint =
+    !sudo && hasAccess(MIKPermissions.SMS_MANAGER, MIKPermissions.SMS_PROCESSOR)
 
   const { data, isLoading, error } = useApi<OccurrencesListResponse, Occurrence>(
     {
@@ -63,6 +71,19 @@ export const Occurrences = () => {
       >
         <Typography variant='body1'>{t('occurrences.infoText')}</Typography>
       </Box>
+      {showAdminModeHint && (
+        <Box
+          sx={{
+            mb: 2,
+            p: 2,
+            borderRadius: 2,
+            backgroundColor: theme.palette.warning.light,
+            color: theme.palette.warning.contrastText,
+          }}
+        >
+          <Typography variant='body1'>{t('occurrences.adminModeHint')}</Typography>
+        </Box>
+      )}
       <OccurrenceStatusFilter
         selected={filters.status!}
         onChange={(status) =>

@@ -38,11 +38,20 @@ import { PilotStatistics as PilotStatisticsView } from './components/PilotStatis
 import { ReservationEfficiency as ReservationEfficiencyView } from './components/ReservationEfficiency'
 import { YearOnYearReport } from './components/YearOnYearReport'
 
-type ViewMode = 'my' | 'aircraft' | 'pilot' | 'pilots' | 'efficiency' | 'yoy' | 'airfield' | 'aog'
+type ViewMode =
+  'my' | 'aircraft' | 'pilot' | 'pilots' | 'efficiency' | 'yoy' | 'airfield' | 'aog' | 'safety'
 
 // View modes rendered entirely by their own component, rather than by the
 // aircraft/member charts below.
-const STANDALONE_VIEW_MODES: ViewMode[] = ['my', 'pilots', 'efficiency', 'yoy', 'airfield', 'aog']
+const STANDALONE_VIEW_MODES: ViewMode[] = [
+  'my',
+  'pilots',
+  'efficiency',
+  'yoy',
+  'airfield',
+  'aog',
+  'safety',
+]
 
 type PobBucketTotals = {
   flightCount: number
@@ -51,6 +60,7 @@ type PobBucketTotals = {
 }
 import { AirfieldEfficiency as AirfieldEfficiencyView } from './components/AirfieldEfficiency'
 import { AogStatistics as AogStatisticsView } from './components/AogStatistics'
+import { SafetyStatistics as SafetyStatisticsView } from './components/SafetyStatistics'
 import { MyStatistics as MyStatisticsView } from './components/MyStatistics'
 
 const CalendarTooltip = ({ day, value }: { day: string; value: string }) => (
@@ -723,6 +733,7 @@ export const Stats = () => {
                 <ToggleButton value='yoy'>{t('stats.yearOnYear.viewMode')}</ToggleButton>
                 <ToggleButton value='airfield'>Airfield Efficiency</ToggleButton>
                 <ToggleButton value='aog'>AOG</ToggleButton>
+                <ToggleButton value='safety'>Safety</ToggleButton>
               </ToggleButtonGroup>
             </Grid>
           </Grid>
@@ -740,6 +751,8 @@ export const Stats = () => {
       {viewMode === 'airfield' && <AirfieldEfficiencyView />}
       {/* AOG (Aircraft On Ground) view */}
       {viewMode === 'aog' && <AogStatisticsView />}
+      {/* Safety Performance Indicators view */}
+      {viewMode === 'safety' && <SafetyStatisticsView />}
       {!STANDALONE_VIEW_MODES.includes(viewMode) && (
         <>
           {/* Summary Stats */}

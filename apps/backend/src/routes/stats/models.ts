@@ -296,6 +296,15 @@ export const PobDistributionByAcYrSchema = z.object({
   total_flight_mins: z.number(),
 })
 
+// Safety performance: occurrences per 100 flight hours, per aircraft per year
+export const OccurrencesPerHundredHrsByAcYrSchema = z.object({
+  aircraft_registration: z.string().nullable(),
+  yr: z.number().nullable(),
+  occurrence_count: z.number().nullable(),
+  total_flight_mins: z.number().nullable(),
+  occurrences_per_100h: z.number().nullable(),
+})
+
 // Pilot Statistics
 export const PilotStatisticsHistogramBinSchema = z.object({
   binFrom: z.number(),
@@ -386,3 +395,4 @@ export type AirfieldEfficiencyByAcYrMth = z.infer<typeof AirfieldEfficiencyByAcY
 export type AogDaysByAcYrMth = z.infer<typeof AogDaysByAcYrMthSchema>
 export type AogDaysByAcYr = z.infer<typeof AogDaysByAcYrSchema>
 export type PobDistributionByAcYr = z.infer<typeof PobDistributionByAcYrSchema>
+export type OccurrencesPerHundredHrsByAcYr = z.infer<typeof OccurrencesPerHundredHrsByAcYrSchema>

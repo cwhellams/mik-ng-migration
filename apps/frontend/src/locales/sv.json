@@ -1757,6 +1757,7 @@
     "existingReport": "Redigera rapport",
     "noReports": "Inga tillbudsrapporter",
     "infoText": "Vänligen rapportera nya tillbud för eventuella avvikelser från normal flygverksamhet. Rapporter anonymiseras av en oberoende granskare innan de publiceras vidare till säkerhetsteamet.",
+    "adminModeHint": "Administratörsläget är avstängt — du ser bara rapporter du själv har lämnat in. Växla administratörsläge i sidhuvudet för att se alla tillbudsrapporter.",
     "occurrenceDate": "Tillbudsdatum",
     "occurrenceDateTz": "Tillbudsdatum ({{tz}})",
     "deadLine": "Sista datum",

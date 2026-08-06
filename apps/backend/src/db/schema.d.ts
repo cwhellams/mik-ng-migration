@@ -1827,6 +1827,14 @@ export interface StatsNonBillableTotalFlightTimeByAcYrMth {
   yr: number
 }
 
+export interface StatsOccurrencesPer100hByAcYr {
+  aircraft_registration: string | null
+  occurrence_count: Int8 | null
+  occurrences_per_100h: Numeric | null
+  total_flight_mins: Int8 | null
+  yr: Numeric | null
+}
+
 export interface StatsPobDistributionByAcYr {
   aircraft_registration: string | null
   cross_country_flight_count: Int8 | null
@@ -2116,6 +2124,7 @@ export interface DB {
   'stats.non_billable_total_flight_time_by_ac': StatsNonBillableTotalFlightTimeByAc
   'stats.non_billable_total_flight_time_by_ac_yr': StatsNonBillableTotalFlightTimeByAcYr
   'stats.non_billable_total_flight_time_by_ac_yr_mth': StatsNonBillableTotalFlightTimeByAcYrMth
+  'stats.occurrences_per_100h_by_ac_yr': StatsOccurrencesPer100hByAcYr
   'stats.pob_distribution_by_ac_yr': StatsPobDistributionByAcYr
   'stats.reservation_efficiency_by_ac_yr': StatsReservationEfficiencyByAcYr
   'stats.reservation_efficiency_by_ac_yr_mth': StatsReservationEfficiencyByAcYrMth

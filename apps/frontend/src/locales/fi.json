@@ -1756,6 +1756,7 @@
     "existingReport": "Muokkaa poikkeamaa",
     "noReports": "Ei poikkeamaraportteja",
     "infoText": "Raportoi kaikki mahdolliset poikkeamat normaalista lentotoiminnasta. Raportit anonymisoidaan riippumattoman tarkastajan toimesta ennen julkaisua turvallisuustiimille.",
+    "adminModeHint": "Ylläpitotila on pois päältä — näet vain itse tekemäsi raportit. Vaihda ylläpitotila päälle yläpalkista nähdäksesi kaikki poikkeamaraportit.",
     "occurrenceDate": "Poikkeaman päivämäärä",
     "occurrenceDateTz": "Poikkeaman päivämäärä ({{tz}})",
     "deadLine": "Määräaika",
