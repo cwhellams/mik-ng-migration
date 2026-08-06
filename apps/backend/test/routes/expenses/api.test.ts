@@ -1162,6 +1162,59 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
     })
   })
 
+  describe('GET /expenses/:id/mileage/hetu/access-log', () => {
+    it('lets the claim owner see who revealed their HETU and when', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
+
+      await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu/access-log`)
+        .set('Cookie', `accessToken=${memberToken}`)
+
+      expect(res.status).toBe(200)
+      expect(res.body.data).toHaveLength(1)
+      expect(res.body.data[0].accessedByName).toBe('Liisa Korhonen')
+      expect(new Date(res.body.data[0].accessedAt).toString()).not.toBe('Invalid Date')
+    })
+
+    it('is empty when no one has viewed the HETU yet', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu/access-log`)
+        .set('Cookie', `accessToken=${memberToken}`)
+
+      expect(res.status).toBe(200)
+      expect(res.body.data).toEqual([])
+    })
+
+    it('rejects a member who does not own the claim', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
+
+      const otherMemberToken = generateAccessToken({
+        memberId: 'Pekka1',
+        lastName: 'Other',
+        email: 'pekka@mik.fi',
+        roles: [],
+        permissions: [MIKPermissions.EXPENSE_USER],
+        canMakeReservations: false,
+      })
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu/access-log`)
+        .set('Cookie', `accessToken=${otherMemberToken}`)
+
+      expect(res.status).toBe(403)
+    })
+  })
+
   describe('GET /expenses/admin/mileage-report', () => {
     it('returns only approved mileage claims within the date range, never HETU', async () => {
       const inRange = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-06-10' })

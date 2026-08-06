@@ -206,6 +206,9 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
           quantity: km,
           unit: 'km',
           unitPrice: rate,
+          // Always re-derive from quantity * unitPrice — a stale persisted totalCost
+          // from before a distance/rate correction must not survive the recompute.
+          totalCost: null,
           currency: 'EUR',
           fxRate: null,
         },
