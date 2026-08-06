@@ -2455,8 +2455,11 @@
     "deleteError": "Det gick inte att ta bort händelsen. Försök igen.",
     "form": {
       "title": "Titel (engelska)",
-      "startTime": "Starttid",
-      "endTime": "Sluttid",
+      "startTimeTz": "Starttid ({{tz}})",
+      "endTimeTz": "Sluttid ({{tz}})",
+      "timezone": "Tidszon",
+      "timezoneHelsinki": "Helsingfors",
+      "timezoneHint": "Tidszonen som händelsens start- och sluttid anges i. Standard är Helsingfors, eftersom de flesta klubbevenemang äger rum där.",
       "location": "Plats",
       "description": "Beskrivning (engelska)",
       "performer": "Uppträdande / talare",

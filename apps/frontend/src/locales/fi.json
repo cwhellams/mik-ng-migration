@@ -2488,8 +2488,11 @@
     "deleteError": "Tapahtuman poistaminen epäonnistui. Yritä uudelleen.",
     "form": {
       "title": "Otsikko (englanti)",
-      "startTime": "Alkuaika",
-      "endTime": "Loppuaika",
+      "startTimeTz": "Alkuaika ({{tz}})",
+      "endTimeTz": "Loppuaika ({{tz}})",
+      "timezone": "Aikavyöhyke",
+      "timezoneHelsinki": "Helsinki",
+      "timezoneHint": "Aikavyöhyke, jossa tapahtuman alku- ja loppuaika syötetään. Oletuksena Helsinki, koska useimmat kerhon tapahtumat järjestetään siellä.",
       "location": "Paikka",
       "description": "Kuvaus (englanti)",
       "performer": "Esiintyjä / luennoitsija",
