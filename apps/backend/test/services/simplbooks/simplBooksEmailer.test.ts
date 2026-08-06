@@ -343,8 +343,8 @@ describe('SimplBooks Emailer Tests', () => {
       await sendSimplbooksInvoiceEmail(12345, 'test-member-123')
 
       const emailHtml = sendEmail.mock.calls[0][2]
-      expect(emailHtml).toContain('items-table-desktop')
-      expect(emailHtml).toContain('items-table-mobile')
+      expect(emailHtml).toMatch(/<table[^>]+class="[^"]*items-table-desktop[^"]*"/)
+      expect(emailHtml).toMatch(/<div[^>]+class="[^"]*items-table-mobile[^"]*"/)
       // Cells must be free to wrap on narrow screens
       expect(emailHtml).not.toContain('white-space:nowrap')
       // Line item content appears in both layouts

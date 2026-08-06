@@ -44,7 +44,7 @@ const escapeMarkdownVariables = (variables: Record<string, unknown>): Record<str
 
 const emailTemplate = (body: string, footer?: string) => `
     <!DOCTYPE html>
-    <html lang="en">
+    <html>
     <head>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />

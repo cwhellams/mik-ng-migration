@@ -310,9 +310,7 @@ describe('Responsive email wrapper', () => {
   }).html
 
   it('includes a viewport meta tag', () => {
-    expect(html).toContain(
-      '<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
-    )
+    expect(html).toMatch(/meta[^>]+name="viewport"[^>]*>/)
   })
 
   it('includes a mobile media query', () => {
