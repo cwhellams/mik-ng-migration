@@ -1293,6 +1293,8 @@
       "flightTime": "Flygplanets totala flygtid",
       "hours": "Timmar",
       "minutes": "Minuter",
+      "rows": "Rader",
+      "rowsHelp": "Hur många rader detta tar på den fysiska loggbokssidan (0 = visas på flygningens rad)",
       "blankRowsAfter": "Tomma rader efter",
       "blankRowsAfterHelp": "Tomma rader som läggs till i den fysiska loggboken efter denna anteckning",
       "closeHilItems": "Stäng hold items",

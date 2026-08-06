@@ -8,6 +8,7 @@ import {
 import { getDefects, createDefect, updateDefect, getDefect } from '../../db/defect-queries.ts'
 import { getAircraftHilEntry } from '../../db/aircraft-hil-queries.ts'
 import { getMaintenanceNote } from '../../db/maintenance-note-queries.ts'
+import { getAjlbLiveBaselineFlightMins } from '../../db/flight-log-queries.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
 import { MIKPermissions } from '../members/models.ts'
 import { problem } from '../response.ts'
@@ -25,6 +26,13 @@ router.get('/', async (req: Request, res: Response<Defect[]>) => {
 
 router.post('/', async (req: Request, res: Response<Defect>) => {
   const data = CreateDefectSchema.parse(req.body)
+  const baseline = await getAjlbLiveBaselineFlightMins(data.aircraftRegistration, data.ajlbSeqNo)
+  if (data.flightMins <= baseline) {
+    return problem({
+      status: 400,
+      detail: 'flightMins must be after the last validated flight for this logbook',
+    })
+  }
   const defect = await createDefect(data, req.user!.memberId!)
   res.status(201).json(defect)
 })
@@ -40,6 +48,17 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response<Defect>)
 
   const defect = await getDefect(id)
   if (!defect) return problem({ status: 404, detail: 'Defect not found' })
+
+  // rows isn't PATCH-able for defects (create-only, like flightId/flightMins),
+  // so blankRowsAfter must be checked against the defect's already-persisted
+  // rows value here -- a rows: 0 defect (e.g. an in-flight chip) can never
+  // have blank spacer rows, per the DB's zero-rows-no-blank check constraint.
+  if (data.blankRowsAfter !== undefined && data.blankRowsAfter > 0 && defect.rows === 0) {
+    return problem({
+      status: 400,
+      detail: 'blankRowsAfter must be 0 when rows is 0',
+    })
+  }
 
   if (data.hilId !== undefined) {
     if (!isAdmin) {

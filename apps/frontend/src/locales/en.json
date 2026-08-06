@@ -1285,6 +1285,8 @@
       "flightTime": "Aircraft total flight time",
       "hours": "Hours",
       "minutes": "Minutes",
+      "rows": "Rows",
+      "rowsHelp": "How many rows this takes on the physical logbook page (0 = shown inline on the flight's row)",
       "blankRowsAfter": "Blank rows after",
       "blankRowsAfterHelp": "Blank rows added to physical logbook after this note",
       "closeHilItems": "Close hold items",

@@ -14,7 +14,7 @@ import {
 } from '@mui/material'
 import { Link as RouterLink } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Icon } from '@iconify/react'
 import useApi from '../../hooks/useApi'
@@ -84,9 +84,12 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
       performedBy: note.performedBy,
       flightHours: Math.floor(note.flightMins / 60),
       flightMinutes: note.flightMins % 60,
+      rows: note.rows,
       blankRowsAfter: note.blankRowsAfter,
     },
   })
+
+  const rows = useWatch({ control, name: 'rows' })
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -101,7 +104,8 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
       description: values.description,
       performedBy: values.performedBy,
       flightMins: values.flightHours * 60 + values.flightMinutes,
-      blankRowsAfter: values.blankRowsAfter,
+      rows: values.rows,
+      blankRowsAfter: values.rows > 0 ? values.blankRowsAfter : 0,
     })
 
     if (error) {
@@ -229,6 +233,24 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                 </Box>
 
                 <Controller
+                  name='rows'
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label={t('flightLog.maintenanceNotes.rows')}
+                      type='number'
+                      error={!!errors.rows}
+                      helperText={errors.rows?.message ?? t('flightLog.maintenanceNotes.rowsHelp')}
+                      fullWidth
+                      slotProps={{
+                        htmlInput: { min: 0 },
+                      }}
+                    />
+                  )}
+                />
+
+                <Controller
                   name='blankRowsAfter'
                   control={control}
                   render={({ field }) => (
@@ -236,6 +258,7 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                       {...field}
                       label={t('flightLog.maintenanceNotes.blankRowsAfter')}
                       type='number'
+                      disabled={rows === 0}
                       error={!!errors.blankRowsAfter}
                       helperText={
                         errors.blankRowsAfter?.message ??
@@ -292,6 +315,18 @@ export const MaintenanceNoteDialog: React.FC<MaintenanceNoteDialogProps> = ({
                     {t('flightLog.maintenanceNotes.flightTime')}
                   </Typography>
                   <Typography>{flightTimeLabel}</Typography>
+                </Box>
+
+                <Box>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
+                    {t('flightLog.maintenanceNotes.rows')}
+                  </Typography>
+                  <Typography>{note.rows}</Typography>
                 </Box>
 
                 {note.blankRowsAfter > 0 && (
