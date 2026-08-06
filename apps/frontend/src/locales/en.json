@@ -2520,6 +2520,7 @@
       "lineItemDescription": "Mileage claim",
       "hetu": "Finnish Social Security Number (HETU)",
       "hetuHint": "Required for tax records. Stored encrypted and not visible after saving.",
+      "hetuInvalid": "Not a valid Finnish personal identity code (HETU).",
       "boardApprovalRequired": "This journey exceeds the {{maxKm}} km limit and requires board approval.",
       "boardApprovedLabel": "I confirm this journey has been approved by the board",
       "ratePerKm": "Rate",

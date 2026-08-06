@@ -2526,6 +2526,7 @@
       "lineItemDescription": "Kilometrikorvaus",
       "hetu": "Henkilötunnus (HETU)",
       "hetuHint": "Vaaditaan verotusta varten. Tallennetaan salattuna eikä näy tallennuksen jälkeen.",
+      "hetuInvalid": "Henkilötunnus ei ole kelvollinen.",
       "boardApprovalRequired": "Tämä matka ylittää {{maxKm}} km rajan ja vaatii hallituksen hyväksynnän.",
       "boardApprovedLabel": "Vahvistan, että hallitus on hyväksynyt tämän matkan",
       "ratePerKm": "Korvaus",

@@ -2493,6 +2493,7 @@
       "lineItemDescription": "Kilometetersättning",
       "hetu": "Personnummer (HETU)",
       "hetuHint": "Krävs för skattemässiga ändamål. Lagras krypterat och syns inte efter sparande.",
+      "hetuInvalid": "Inte ett giltigt finskt personnummer (HETU).",
       "boardApprovalRequired": "Denna resa överskrider gränsen på {{maxKm}} km och kräver styrelsens godkännande.",
       "boardApprovedLabel": "Jag bekräftar att styrelsen har godkänt denna resa",
       "ratePerKm": "Ersättning",

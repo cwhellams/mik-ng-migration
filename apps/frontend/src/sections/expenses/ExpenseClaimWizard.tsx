@@ -50,6 +50,7 @@ import {
   defaultUnitForCategory,
   isAirportOutsideFinland,
   makeDefaultLineItem,
+  validateHetu,
   validateIban,
 } from './expenseShared'
 import {
@@ -400,7 +401,7 @@ function ExpenseClaimWizardInner() {
           mileageDetail.route.trim().length > 0 &&
           mileageDetail.journeyDate.length > 0 &&
           Number(mileageDetail.distanceKm) > 0 &&
-          mileageDetail.hetu.trim().length > 0 &&
+          validateHetu(mileageDetail.hetu) &&
           (Number(mileageDetail.distanceKm) <=
             (Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100) ||
             mileageDetail.boardApproved)
