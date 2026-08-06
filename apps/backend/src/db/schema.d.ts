@@ -1109,6 +1109,15 @@ export interface MemberAnnualFees {
   year: number
 }
 
+export interface MemberBrevoCampaignArchiveState {
+  campaigns_archived: Generated<number>
+  created_at: Generated<Timestamp>
+  error_message: string | null
+  id: Generated<number>
+  last_synced_at: Timestamp
+  sync_status: string
+}
+
 export interface MemberBrevoSyncState {
   created_at: Generated<Timestamp>
   error_message: string | null
@@ -2064,6 +2073,7 @@ export interface DB {
   'inventory.items': InventoryItems
   'inventory.locations': InventoryLocations
   'member.annual_fees': MemberAnnualFees
+  'member.brevo_campaign_archive_state': MemberBrevoCampaignArchiveState
   'member.brevo_sync_state': MemberBrevoSyncState
   'member.document_tiny_urls': MemberDocumentTinyUrls
   'member.documents': MemberDocuments
