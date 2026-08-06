@@ -609,9 +609,9 @@ export async function overrideFuelPrice(
     .updateTable('accts.expense_claim_line_item')
     .set({
       unit_price: sql<number>`LEAST(unit_price, ${efnuPrice})`,
-      // Keep the persisted total in sync with the capped rate, otherwise the original
-      // (higher) user-entered total would keep displaying despite the cap.
-      total_cost: sql<number>`quantity * LEAST(unit_price, ${efnuPrice})`,
+      // Only recompute the persisted total for line items the cap actually affects,
+      // otherwise an already-exact total gets reconstructed from unit_price and drifts.
+      total_cost: sql<number>`CASE WHEN unit_price > ${efnuPrice} THEN quantity * ${efnuPrice} ELSE total_cost END`,
     })
     .where('claim_id', '=', id)
     .execute()
