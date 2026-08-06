@@ -940,6 +940,16 @@ export interface FlightVwAircraftGroundingStatus {
   registration: string | null
 }
 
+export interface FlightVwAjlbLiveRows {
+  aircraft_registration: string | null
+  ajlb_seq_no: number | null
+  is_content_row: boolean | null
+  item_id: string | null
+  item_type: string | null
+  page_number: number | null
+  row_number: number | null
+}
+
 export interface FlightVwAjlbLiveSequence {
   ac_total_flight_mins: Int8 | null
   ac_total_landings: Int8 | null
@@ -2018,6 +2028,7 @@ export interface DB {
   'flight.occurrence_attachments': FlightOccurrenceAttachments
   'flight.occurrences': FlightOccurrences
   'flight.vw_aircraft_grounding_status': FlightVwAircraftGroundingStatus
+  'flight.vw_ajlb_live_rows': FlightVwAjlbLiveRows
   'flight.vw_ajlb_live_sequence': FlightVwAjlbLiveSequence
   'flight.vw_flight_logs': FlightVwFlightLogs
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals

@@ -1309,8 +1309,11 @@
     "defects": {
       "addPreFlightButton": "Rapportera fel",
       "addPreFlightTitle": "Nytt fel (före flygning)",
-      "addInFlightButton": "Rapportera fel under flygning",
       "addInFlightTitle": "Nytt fel (under flygning)",
+      "reportSectionTitle": "Rapportera fel",
+      "reportSectionNote": "Om du upptäckte fel under flygningen, beskriv varje fel nedan. Varje fel måste dessutom anmälas direkt till kalustovastaava (materialansvarig) per telefon — lita inte enbart på denna anteckning.",
+      "addDefectRow": "Lägg till fel",
+      "blankDescriptionError": "Felbeskrivningen får inte vara tom",
       "viewTitle": "Fel",
       "description": "Beskrivning",
       "flightTime": "Flygplanets totala flygtid",

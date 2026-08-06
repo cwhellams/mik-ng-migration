@@ -252,7 +252,7 @@ describe('POST /maintenance-notes', () => {
     expect(res.status).toBe(400)
   })
 
-  it('returns 400 when flightMins is at or before the last validated flight', async () => {
+  it('returns 400 when flightMins is before the last validated flight', async () => {
     // OH-STL/1's last validated flight total is 21301 in the test data.
     const res = await request(app)
       .post('/maintenance-notes')
@@ -262,13 +262,31 @@ describe('POST /maintenance-notes', () => {
         ajlbSeqNo: AJLB_SEQ_NO,
         description: 'Backdated note',
         performedBy: 'Matti Virtanen',
-        flightMins: 21301,
+        flightMins: 21300,
       })
 
     expect(res.status).toBe(400)
   })
 
-  it('returns 400 when flightMins is at or before start_flight_mins and nothing is validated yet', async () => {
+  it('creates a note when flightMins exactly matches the last validated flight', async () => {
+    // A note isn't tied to any specific flight, so one found before any new flight has
+    // flown since the last validated one legitimately matches its total exactly.
+    const res = await request(app)
+      .post('/maintenance-notes')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        aircraftRegistration: AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Ramp-found note',
+        performedBy: 'Matti Virtanen',
+        flightMins: 21301,
+      })
+
+    expect(res.status).toBe(201)
+    createdNoteId = res.body.noteId
+  })
+
+  it('returns 400 when flightMins is before start_flight_mins and nothing is validated yet', async () => {
     // OH-IHQ/1 has no validated flights in the test data, so the baseline is
     // the ajlb's start_flight_mins (2445).
     const res = await request(app)
@@ -279,10 +297,29 @@ describe('POST /maintenance-notes', () => {
         ajlbSeqNo: AJLB_SEQ_NO,
         description: 'Backdated note',
         performedBy: 'Matti Virtanen',
-        flightMins: 2445,
+        flightMins: 2444,
       })
 
     expect(res.status).toBe(400)
+  })
+
+  it('creates a note when flightMins exactly matches start_flight_mins and nothing is validated yet', async () => {
+    // OH-IHQ/1 has no validated flights in the test data, so the baseline is
+    // the ajlb's start_flight_mins (2445) -- a note found before the very first
+    // flight legitimately matches it exactly.
+    const res = await request(app)
+      .post('/maintenance-notes')
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({
+        aircraftRegistration: OTHER_AIRCRAFT,
+        ajlbSeqNo: AJLB_SEQ_NO,
+        description: 'Ramp-found note',
+        performedBy: 'Matti Virtanen',
+        flightMins: 2445,
+      })
+
+    expect(res.status).toBe(201)
+    createdNoteId = res.body.noteId
   })
 })
 
@@ -614,14 +651,26 @@ describe('PATCH /maintenance-notes/:id', () => {
     expect(res.body.flightMins).toBe(LIVE_FLIGHT_MINS)
   })
 
-  it('returns 400 when flightMins is updated to at or before the last validated flight', async () => {
+  it('returns 400 when flightMins is updated to before the last validated flight', async () => {
     // OH-STL/1's last validated flight total is 21301 in the test data.
+    const res = await request(app)
+      .patch(`/maintenance-notes/${noteId}`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ flightMins: 21300 })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 200 when flightMins is updated to exactly the last validated flight', async () => {
+    // OH-STL/1's last validated flight total is 21301 in the test data -- a note isn't
+    // tied to a specific flight, so this legitimately matches the baseline exactly.
     const res = await request(app)
       .patch(`/maintenance-notes/${noteId}`)
       .set('Cookie', `accessToken=${adminToken}`)
       .send({ flightMins: 21301 })
 
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(200)
+    expect(res.body.flightMins).toBe(21301)
   })
 
   it('returns 404 for non-existent note id', async () => {

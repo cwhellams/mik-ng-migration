@@ -45,9 +45,7 @@ export const DefectMarker: React.FC<DefectMarkerProps> = ({
     <>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         {flightDate && (
-          <Typography variant='caption' sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
-            {formatDate(flightDate)}
-          </Typography>
+          <Typography sx={{ whiteSpace: 'nowrap' }}>{formatDate(flightDate)}</Typography>
         )}
         <Tooltip title={tooltip} placement='top'>
           <Chip

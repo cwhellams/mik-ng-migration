@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import type { FlightLogListEntry } from '@backend/routes/flight-log/models'
+import type { FlightLogListEntry, PageItemRow } from '@backend/routes/flight-log/models'
 import type { MaintenanceNote } from '@backend/routes/maintenance-notes/models'
 import type { Defect } from '@backend/routes/defects/models'
-import { buildLogbookRows, buildInsertItems } from './LogbookPage'
+import { buildLogbookRows, buildInlineItems } from './LogbookPage'
 
 let logCounter = 0
 const makeLog = (overrides: Partial<FlightLogListEntry>): FlightLogListEntry => {
@@ -93,13 +93,26 @@ const makeDefect = (overrides: Partial<Defect>): Defect => {
   }
 }
 
-describe('buildInsertItems', () => {
-  it('merges notes and defects sorted by flightMins, then createdAt as a tie-break', () => {
-    const noteB = makeNote({ flightMins: 100, createdAt: '2026-01-02T00:00:00.000Z' })
-    const defectA = makeDefect({ flightMins: 100, createdAt: '2026-01-01T00:00:00.000Z' })
-    const noteC = makeNote({ flightMins: 200 })
+const makeItemRow = (overrides: Partial<PageItemRow>): PageItemRow => ({
+  rowNumber: 1,
+  itemType: 'note',
+  itemId: 'note1',
+  isContentRow: true,
+  ...overrides,
+})
 
-    const items = buildInsertItems([noteB, noteC], [defectA])
+const byId = <T extends { [key: string]: unknown }>(
+  items: T[],
+  idKey: keyof T,
+): Record<string, T> => Object.fromEntries(items.map((item) => [item[idKey] as string, item]))
+
+describe('buildInlineItems', () => {
+  it('merges notes and defects sorted by flightMins, then createdAt as a tie-break', () => {
+    const noteB = makeNote({ flightMins: 100, rows: 0, createdAt: '2026-01-02T00:00:00.000Z' })
+    const defectA = makeDefect({ flightMins: 100, rows: 0, createdAt: '2026-01-01T00:00:00.000Z' })
+    const noteC = makeNote({ flightMins: 200, rows: 0 })
+
+    const items = buildInlineItems([noteB, noteC], [defectA])
 
     expect(items.map((i) => (i.kind === 'note' ? i.note.noteId : i.defect.defectId))).toEqual([
       defectA.defectId, // same flightMins as noteB, but earlier createdAt
@@ -107,37 +120,41 @@ describe('buildInsertItems', () => {
       noteC.noteId,
     ])
   })
+
+  it('excludes own-row (rows > 0) items -- those come from pageItemRows instead', () => {
+    const ownRowNote = makeNote({ flightMins: 100, rows: 1 })
+    const inlineDefect = makeDefect({ flightMins: 100, rows: 0 })
+
+    const items = buildInlineItems([ownRowNote], [inlineDefect])
+
+    expect(items).toHaveLength(1)
+    expect(items[0].kind).toBe('defect')
+  })
 })
 
 describe('buildLogbookRows', () => {
   it('pads an empty page with blank rows when there are no flights or items', () => {
-    const rows = buildLogbookRows(undefined, [], [], 5, null)
+    const rows = buildLogbookRows(undefined, [], [], {}, {}, 5, null)
     expect(rows).toHaveLength(5)
     expect(rows.every((r) => r.isEmptyRow && r.log === null)).toBe(true)
   })
 
-  it('keeps a full page at exactly pageSize rows when an own-row item is anchored mid-page', () => {
-    // 5 flights at ac_total_flight_mins 100..500, ajlbRowNo already reflects
-    // the server-side reflow: a rows=1 item anchored after flight 3 (mins 300)
-    // pushes flight 5 to ajlbRowNo 6, i.e. off this page.
+  it('places an own-row item at the exact row number the server assigned', () => {
     const logs = [
       makeLog({ ajlbRowNo: 1, acTotalFlightMins: 100 }),
       makeLog({ ajlbRowNo: 2, acTotalFlightMins: 200 }),
-      makeLog({ ajlbRowNo: 3, acTotalFlightMins: 300 }),
       makeLog({ ajlbRowNo: 4, acTotalFlightMins: 400 }),
     ]
-    const note = makeNote({ flightMins: 300, rows: 1, blankRowsAfter: 0 })
+    const note = makeNote({ rows: 1 })
+    const pageItemRows = [makeItemRow({ rowNumber: 3, itemType: 'note', itemId: note.noteId })]
 
-    const rows = buildLogbookRows(logs, [buildInsertItems([note], [])[0]], [], 5, null)
+    const rows = buildLogbookRows(logs, pageItemRows, [], byId([note], 'noteId'), {}, 5, null)
 
-    // 4 flight rows + 1 note row = 5, no overflow past pageSize and no
-    // trailing item left dangling.
     expect(rows).toHaveLength(5)
-    expect(rows.filter((r) => !r.isEmptyRow && r.log && !r.isNoteRow)).toHaveLength(4)
+    expect(rows.filter((r) => !r.isEmptyRow && r.log && !r.isNoteRow)).toHaveLength(3)
     expect(rows.filter((r) => r.isNoteRow)).toHaveLength(1)
-    // The note row comes immediately after the 3rd flight (its anchor).
     const noteIdx = rows.findIndex((r) => r.isNoteRow)
-    expect(rows[noteIdx - 1].log?.ajlbRowNo).toBe(3)
+    expect(rows[noteIdx - 1].log?.ajlbRowNo).toBe(2)
     expect(rows[noteIdx + 1].log?.ajlbRowNo).toBe(4)
   })
 
@@ -147,11 +164,9 @@ describe('buildLogbookRows', () => {
       makeLog({ ajlbRowNo: 2, acTotalFlightMins: 200 }),
     ]
     const defect = makeDefect({ flightMins: 100, rows: 0, blankRowsAfter: 0 })
-    const items = buildInsertItems([], [defect])
-    const ownRowItems = items.filter((i) => i.rows > 0)
-    const inlineItems = items.filter((i) => i.rows === 0)
+    const inlineItems = buildInlineItems([], [defect])
 
-    const rows = buildLogbookRows(logs, ownRowItems, inlineItems, 5, null)
+    const rows = buildLogbookRows(logs, [], inlineItems, {}, {}, 5, null)
 
     expect(rows).toHaveLength(5)
     expect(rows.filter((r) => r.isDefectRow)).toHaveLength(0)
@@ -160,115 +175,129 @@ describe('buildLogbookRows', () => {
     expect(flightRow?.inlineItems[0].kind).toBe('defect')
   })
 
-  it('renders a rows > 1 item as one marker row plus continuation blank rows', () => {
+  it('renders a rows > 1 item as one content row plus continuation blank rows, per pageItemRows', () => {
     const logs = [makeLog({ ajlbRowNo: 1, acTotalFlightMins: 100 })]
-    const note = makeNote({ flightMins: 100, rows: 3, blankRowsAfter: 0 })
-    const items = buildInsertItems([note], [])
+    const note = makeNote({ rows: 3 })
+    const pageItemRows = [
+      makeItemRow({ rowNumber: 2, itemType: 'note', itemId: note.noteId, isContentRow: true }),
+      makeItemRow({ rowNumber: 3, itemType: 'note', itemId: note.noteId, isContentRow: false }),
+      makeItemRow({ rowNumber: 4, itemType: 'note', itemId: note.noteId, isContentRow: false }),
+    ]
 
-    const rows = buildLogbookRows(logs, items, [], 6, null)
+    const rows = buildLogbookRows(logs, pageItemRows, [], byId([note], 'noteId'), {}, 6, null)
 
     expect(rows).toHaveLength(6)
     const noteIdx = rows.findIndex((r) => r.isNoteRow)
-    expect(noteIdx).toBeGreaterThanOrEqual(0)
+    expect(noteIdx).toBe(1)
     expect(rows[noteIdx + 1].isNoteBlankRow).toBe(true)
     expect(rows[noteIdx + 2].isNoteBlankRow).toBe(true)
     expect(rows[noteIdx + 3].isNoteBlankRow).toBe(false) // back to a plain trailing empty row
   })
 
-  it('places trailing items anchored past the last flight, honouring blankRowsAfter', () => {
-    const logs = [makeLog({ ajlbRowNo: 1, acTotalFlightMins: 100 })]
-    const note = makeNote({ flightMins: 500, rows: 1, blankRowsAfter: 2 })
-    const items = buildInsertItems([note], [])
+  it('renders an item that starts on this page but continues onto the next as content plus blank rows, never overflowing pageSize', () => {
+    // Mirrors the real bug: a defect (rows: 2, blankRowsAfter: 4) anchored right
+    // after the page's last flight only has room for its content row plus 3
+    // continuation/blankRowsAfter rows before the page is full -- the server
+    // (flight.vw_ajlb_live_rows) is the one deciding this split, and this test
+    // just confirms buildLogbookRows renders exactly what it's told, never more.
+    const logs = [
+      makeLog({ ajlbRowNo: 1, acTotalFlightMins: 100 }),
+      makeLog({ ajlbRowNo: 2, acTotalFlightMins: 200 }),
+    ]
+    const defect = makeDefect({ rows: 2, blankRowsAfter: 4 })
+    const pageItemRows = [
+      makeItemRow({
+        rowNumber: 3,
+        itemType: 'defect',
+        itemId: defect.defectId,
+        isContentRow: true,
+      }),
+      makeItemRow({
+        rowNumber: 4,
+        itemType: 'defect',
+        itemId: defect.defectId,
+        isContentRow: false,
+      }),
+      makeItemRow({
+        rowNumber: 5,
+        itemType: 'defect',
+        itemId: defect.defectId,
+        isContentRow: false,
+      }),
+    ]
 
-    const rows = buildLogbookRows(logs, items, [], 5, null)
+    const rows = buildLogbookRows(logs, pageItemRows, [], {}, byId([defect], 'defectId'), 5, null)
 
-    expect(rows).toHaveLength(5)
-    const noteIdx = rows.findIndex((r) => r.isNoteRow)
-    expect(noteIdx).toBe(1) // right after the single flight row
-    expect(rows[noteIdx + 1].isNoteBlankRow).toBe(true)
-    expect(rows[noteIdx + 2].isNoteBlankRow).toBe(true)
+    expect(rows).toHaveLength(5) // never overflows pageSize
+    expect(rows.filter((r) => r.isDefectRow)).toHaveLength(1)
+    expect(rows.filter((r) => r.isDefectBlankRow)).toHaveLength(2)
+  })
+
+  it('renders the continuation of an item that started on the previous page as blank rows at the top', () => {
+    // The item's content row already rendered on the previous page -- this
+    // page only gets its remaining continuation/blankRowsAfter rows, still
+    // correctly identified by pageItemRows even with no flight preceding them.
+    const logs = [makeLog({ ajlbRowNo: 3, acTotalFlightMins: 300 })]
+    const defect = makeDefect({ rows: 2, blankRowsAfter: 4 })
+    const pageItemRows = [
+      makeItemRow({
+        rowNumber: 1,
+        itemType: 'defect',
+        itemId: defect.defectId,
+        isContentRow: false,
+      }),
+      makeItemRow({
+        rowNumber: 2,
+        itemType: 'defect',
+        itemId: defect.defectId,
+        isContentRow: false,
+      }),
+    ]
+
+    const rows = buildLogbookRows(logs, pageItemRows, [], {}, byId([defect], 'defectId'), 5, 299)
+
+    expect(rows[0].isDefectBlankRow).toBe(true)
+    expect(rows[1].isDefectBlankRow).toBe(true)
+    expect(rows[2].log?.ajlbRowNo).toBe(3)
+    expect(rows.filter((r) => r.isDefectRow)).toHaveLength(0) // content row isn't repeated here
   })
 
   it('renders an own-row item as the very first row when the page has no flights yet', () => {
-    const note = makeNote({ flightMins: 100, rows: 1, blankRowsAfter: 0 })
-    const items = buildInsertItems([note], [])
+    const note = makeNote({ rows: 1 })
+    const pageItemRows = [makeItemRow({ rowNumber: 1, itemType: 'note', itemId: note.noteId })]
 
-    const rows = buildLogbookRows([], items, [], 5, null)
+    const rows = buildLogbookRows([], pageItemRows, [], byId([note], 'noteId'), {}, 5, null)
 
     expect(rows).toHaveLength(5)
     expect(rows[0].isNoteRow).toBe(true)
     expect(rows[0].log).toBeNull()
   })
 
-  it('anchors an item to the first flight whose total reaches its flightMins, skipping earlier flights', () => {
-    const logs = [
-      makeLog({ ajlbRowNo: 1, acTotalFlightMins: 240 }),
-      makeLog({ ajlbRowNo: 2, acTotalFlightMins: 360 }), // first flight to reach 300
-      makeLog({ ajlbRowNo: 3, acTotalFlightMins: 405 }),
-    ]
-    const note = makeNote({ flightMins: 300, rows: 1, blankRowsAfter: 0 })
-    const items = buildInsertItems([note], [])
+  it('attaches a genuinely blank row to the next upcoming flight for admin edit actions', () => {
+    const logs = [makeLog({ ajlbRowNo: 3, acTotalFlightMins: 300 })]
 
-    const rows = buildLogbookRows(logs, items, [], 5, null)
+    const rows = buildLogbookRows(logs, [], [], {}, {}, 5, null)
 
-    const noteIdx = rows.findIndex((r) => r.isNoteRow)
-    expect(rows[noteIdx - 1].log?.ajlbRowNo).toBe(2)
-    expect(rows[noteIdx + 1].log?.ajlbRowNo).toBe(3)
-  })
-
-  it("still renders an item anchored to a full page's last flight rather than dropping it", () => {
-    // A page with rows_per_page = 3, already exactly full of flights. An item
-    // anchored to the last flight needs a 4th row -- the server's sequence
-    // wraps that onto the next page, but the next page's bleed guard
-    // (pageStartFlightMins) is keyed to the last FLIGHT's total, not to
-    // items already rendered after it, so an item left off here would never
-    // be picked up there either and would vanish permanently. Rendering it
-    // here (extending the page by one row) is a bounded, visible imperfection
-    // instead of silent data loss.
-    const logs = [
-      makeLog({ ajlbRowNo: 1, acTotalFlightMins: 100 }),
-      makeLog({ ajlbRowNo: 2, acTotalFlightMins: 200 }),
-      makeLog({ ajlbRowNo: 3, acTotalFlightMins: 300 }),
-    ]
-    const note = makeNote({ flightMins: 300, rows: 1, blankRowsAfter: 0 })
-    const items = buildInsertItems([note], [])
-
-    const rows = buildLogbookRows(logs, items, [], 3, null)
-
-    expect(rows).toHaveLength(4)
-    expect(rows.some((r) => r.isNoteRow)).toBe(true)
-  })
-
-  it('clips blankRowsAfter at the page boundary instead of dropping the whole item', () => {
-    // Same full-page setup, but the item also has 2 blankRowsAfter spacer
-    // rows. The marker itself still renders (never dropped); the spacer rows
-    // are decorative filler, so they're clipped rather than pushing the page
-    // even further past pageSize.
-    const logs = [
-      makeLog({ ajlbRowNo: 1, acTotalFlightMins: 100 }),
-      makeLog({ ajlbRowNo: 2, acTotalFlightMins: 200 }),
-      makeLog({ ajlbRowNo: 3, acTotalFlightMins: 300 }),
-    ]
-    const note = makeNote({ flightMins: 300, rows: 1, blankRowsAfter: 2 })
-    const items = buildInsertItems([note], [])
-
-    const rows = buildLogbookRows(logs, items, [], 3, null)
-
-    expect(rows).toHaveLength(4)
-    expect(rows.some((r) => r.isNoteRow)).toBe(true)
-    expect(rows.some((r) => r.isNoteBlankRow)).toBe(false)
+    expect(rows[0].isEmptyRow).toBe(true)
+    expect(rows[0].hasEditActions).toBe(true)
+    expect(rows[0].log?.ajlbRowNo).toBe(3)
+    expect(rows[1].hasEditActions).toBe(true)
+    expect(rows[1].log?.ajlbRowNo).toBe(3)
+    // Trailing padding after the last flight has no "next flight" and no action.
+    expect(rows[4].hasEditActions).toBe(false)
+    expect(rows[4].log).toBeNull()
   })
 
   it('does not re-insert items positioned on an earlier page (pageStartFlightMins bleed guard)', () => {
     const logs = [makeLog({ ajlbRowNo: 1, acTotalFlightMins: 200 })]
     // This item's flightMins falls before this page's starting total, so it
     // belongs to a previous page and must not be inserted here again.
-    const note = makeNote({ flightMins: 50, rows: 1, blankRowsAfter: 0 })
-    const items = buildInsertItems([note], [])
+    const defect = makeDefect({ flightMins: 50, rows: 0, blankRowsAfter: 0 })
+    const inlineItems = buildInlineItems([], [defect])
 
-    const rows = buildLogbookRows(logs, items, [], 5, 100)
+    const rows = buildLogbookRows(logs, [], inlineItems, {}, {}, 5, 100)
 
-    expect(rows.some((r) => r.isNoteRow)).toBe(false)
+    expect(rows.every((r) => r.inlineItems.length === 0)).toBe(true)
   })
 
   it('merges an inline item anchored past the last flight onto that flight rather than dropping it', () => {
@@ -278,10 +307,9 @@ describe('buildLogbookRows', () => {
     ]
     // flightMins is past every flight currently loaded on this page.
     const defect = makeDefect({ flightMins: 250, rows: 0, blankRowsAfter: 0 })
-    const items = buildInsertItems([], [defect])
-    const inlineItems = items.filter((i) => i.rows === 0)
+    const inlineItems = buildInlineItems([], [defect])
 
-    const rows = buildLogbookRows(logs, [], inlineItems, 5, null)
+    const rows = buildLogbookRows(logs, [], inlineItems, {}, {}, 5, null)
 
     const lastFlightRow = rows.find((r) => r.log?.ajlbRowNo === 2 && !r.isEmptyRow)
     expect(lastFlightRow?.inlineItems).toHaveLength(1)
@@ -289,10 +317,9 @@ describe('buildLogbookRows', () => {
 
   it('renders an inline item with no flight on the page at all as a standalone row instead of dropping it', () => {
     const defect = makeDefect({ flightMins: 100, rows: 0, blankRowsAfter: 0 })
-    const items = buildInsertItems([], [defect])
-    const inlineItems = items.filter((i) => i.rows === 0)
+    const inlineItems = buildInlineItems([], [defect])
 
-    const rows = buildLogbookRows([], [], inlineItems, 5, null)
+    const rows = buildLogbookRows([], [], inlineItems, {}, {}, 5, null)
 
     expect(rows.some((r) => r.isDefectRow)).toBe(true)
   })
@@ -311,10 +338,9 @@ describe('buildLogbookRows', () => {
       rows: 0,
       blankRowsAfter: 0,
     })
-    const items = buildInsertItems([], [defect])
-    const inlineItems = items.filter((i) => i.rows === 0)
+    const inlineItems = buildInlineItems([], [defect])
 
-    const rows = buildLogbookRows([anchorFlight, otherFlight], [], inlineItems, 5, null)
+    const rows = buildLogbookRows([anchorFlight, otherFlight], [], inlineItems, {}, {}, 5, null)
 
     const anchorRow = rows.find((r) => r.log?.flightId === anchorFlight.flightId && !r.isEmptyRow)
     const otherRow = rows.find((r) => r.log?.flightId === otherFlight.flightId && !r.isEmptyRow)

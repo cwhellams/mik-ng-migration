@@ -3,9 +3,28 @@ import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
 import { FlightType } from '@backend/routes/flight-log/models'
 import { TxtField } from '../../components/TxtField'
+import { ReportDefectsSection } from '../../components/ReportDefectsSection'
 import type { WizardFormProps } from '../types'
 
-export const NotesStep = ({ control, watch, setError, clearErrors, errors }: WizardFormProps) => {
+interface Props extends WizardFormProps {
+  reportedDefects: string[]
+  onReportedDefectsChange: (descriptions: string[]) => void
+  // The flight this defect would be tied to must still be unvalidated, mirroring the
+  // backend's own rule (see apps/backend/src/routes/defects/api.ts) -- hidden rather
+  // than shown-then-rejected once a flight has been validated.
+  canReportDefects: boolean
+}
+
+export const NotesStep = ({
+  control,
+  watch,
+  setError,
+  clearErrors,
+  errors,
+  reportedDefects,
+  onReportedDefectsChange,
+  canReportDefects,
+}: Props) => {
   const { t } = useTranslation()
   const flightType = watch('flightType')
   const billingRemarks = watch('billingRemarks')
@@ -49,6 +68,9 @@ export const NotesStep = ({ control, watch, setError, clearErrors, errors }: Wiz
             helperText: t('flightLog.billingRemarksTestOrFerryInstruction'),
           }}
         />
+      )}
+      {canReportDefects && (
+        <ReportDefectsSection descriptions={reportedDefects} onChange={onReportedDefectsChange} />
       )}
     </Box>
   )

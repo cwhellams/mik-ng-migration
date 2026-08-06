@@ -31,7 +31,10 @@ export const CreateDefectSchema = z
     aircraftRegistration: z.string().min(1),
     ajlbSeqNo: z.number().int().positive(),
     flightId: z.string().nullable().optional(),
-    description: z.string().min(1),
+    // A whitespace-only description would still create an ACTIVE defect that grounds the
+    // aircraft, so it's trimmed (not just checked) -- both to reject it and to keep a
+    // description that's merely padded with whitespace from being stored verbatim.
+    description: z.string().trim().min(1),
     flightMins: z.number().int().min(0),
     // When omitted, defaults to 1 (own row) for pre-flight defects (flightId
     // null) and 0 (inline chip) for in-flight defects (flightId set), matching
@@ -52,7 +55,10 @@ export type CreateDefectRequest = z.infer<typeof CreateDefectSchema>
 
 export const UpdateDefectSchema = z
   .object({
-    description: z.string().min(1).optional(),
+    description: z.string().trim().min(1).optional(),
+    // Only for a pre-flight defect (flightId null) -- an in-flight defect is always an
+    // inline chip (rows: 0) and can't be converted into a standalone row, see api.ts.
+    rows: z.number().int().min(0).optional(),
     blankRowsAfter: z.number().int().min(0).optional(),
     hilId: z.string().guid().nullable().optional(),
     resolvedNoteId: z.string().guid().nullable().optional(),
