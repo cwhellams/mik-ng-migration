@@ -1743,6 +1743,7 @@
     "existingReport": "Edit Report",
     "noReports": "No occurrence reports",
     "infoText": "Please report new occurrences for any possible deviation from normal flight operations. Reports are anonymized by an independent reviewer before publishing further to the safety team.",
+    "adminModeHint": "Admin mode is off — you're only seeing reports you filed yourself. Toggle admin mode in the header to see all occurrence reports.",
     "occurrenceDate": "Occurrence Date",
     "occurrenceDateTz": "Occurrence Date ({{tz}})",
     "deadLine": "Deadline",
