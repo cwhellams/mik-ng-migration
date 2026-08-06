@@ -1017,14 +1017,14 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
         .get(`/expenses/${claimId}`)
         .set('Cookie', `accessToken=${memberToken}`)
       expect(asMember.status).toBe(200)
-      expect(asMember.body.mileageDetail.hetu).toBe('*******123A')
+      expect(asMember.body.mileageDetail.hetu).toBe('***********')
 
       const asAdmin = await request(app)
         .get(`/expenses/${claimId}`)
         .set('Cookie', `accessToken=${hetuAdminToken}`)
         .set('x-sudo', 'true')
       expect(asAdmin.status).toBe(200)
-      expect(asAdmin.body.mileageDetail.hetu).toBe('*******123A')
+      expect(asAdmin.body.mileageDetail.hetu).toBe('***********')
     })
   })
 
