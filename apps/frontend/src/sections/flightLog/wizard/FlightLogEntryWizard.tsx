@@ -15,6 +15,7 @@ import dayjs from 'dayjs'
 import {
   FlightLog,
   FlightType,
+  FlightLogStatus,
   FlightLogUpsertSchema,
   type FlightLogUpsertRequest,
 } from '@backend/routes/flight-log/models'
@@ -49,6 +50,7 @@ import { ReviewStep } from './steps/ReviewStep'
 import { WIZARD_STEPS, type WizardStep } from './useWizardSteps'
 import { useOverlapCheck } from '../useOverlapCheck'
 import { OverlapWarningDialog } from '../components/OverlapWarningDialog'
+import { hasBlankReportedDefect, submitReportedDefects } from '../reportDefectsApi'
 
 interface Props {
   onSwitchToClassicForm: () => void
@@ -71,6 +73,7 @@ interface FlightLogWizardDraft {
   nightOrIfr: boolean | null
   refueled: boolean | null
   oilAdded: boolean | null
+  reportedDefects: string[]
 }
 
 const FIELDS_TO_VALIDATE_PER_STEP: Partial<Record<WizardStep, (keyof FlightLogUpsertRequest)[]>> = {
@@ -342,6 +345,14 @@ const FlightLogEntryWizardInner = ({
     if (!initialData || initialData.oilUpliftLitres == null) return null
     return initialData.oilUpliftLitres > 0
   })
+  // Defects found on this flight, reported alongside the entry itself instead of via
+  // the old separate "Add in-flight defect" button on the logbook view -- see doSave.
+  const [reportedDefects, setReportedDefects] = useState<string[]>(
+    () => persistedDraft?.reportedDefects ?? [],
+  )
+  // Mirrors the backend's own rule that an in-flight defect's flight must still be
+  // unvalidated -- hidden rather than shown-then-rejected once already validated.
+  const canReportDefects = !isEditing || initialData?.status === FlightLogStatus.NEW
   const [problem, setProblem] = useState<Problem | undefined>(undefined)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -374,6 +385,7 @@ const FlightLogEntryWizardInner = ({
         nightOrIfr,
         refueled,
         oilAdded,
+        reportedDefects,
       })
     }
     snapshot()
@@ -392,7 +404,17 @@ const FlightLogEntryWizardInner = ({
       clearTimeout(debounceTimer)
       subscription.unsubscribe()
     }
-  }, [draftKey, stepIndex, flightDate, nightOrIfr, refueled, oilAdded, watch, getValues])
+  }, [
+    draftKey,
+    stepIndex,
+    flightDate,
+    nightOrIfr,
+    refueled,
+    oilAdded,
+    reportedDefects,
+    watch,
+    getValues,
+  ])
 
   const registration = watch('aircraftRegistration')
   const aircraft = aircraftData?.aircrafts.find((a) => a.registration === registration)
@@ -438,6 +460,10 @@ const FlightLogEntryWizardInner = ({
   const handleBack = () => setStepIndex((i) => Math.max(i - 1, 0))
 
   const doSave = async (data: FlightLogUpsertRequest) => {
+    if (hasBlankReportedDefect(reportedDefects)) {
+      setProblem({ status: 400, detail: t('flightLog.defects.blankDescriptionError') })
+      return
+    }
     setSubmitting(true)
     try {
       const { data: saved, error } = await mutation.trigger(
@@ -453,6 +479,16 @@ const FlightLogEntryWizardInner = ({
         setProblem(error)
         return
       }
+
+      const savedFlightId = isEditing ? flightId : saved?.flightId
+      if (savedFlightId) {
+        await submitReportedDefects(savedFlightId, reportedDefects).catch((err) => {
+          // non-fatal: the flight log itself is already saved; the pilot can still
+          // report a missed defect separately via the standalone pre-flight dialog
+          console.error('Failed to submit reported defects:', err)
+        })
+      }
+
       discardDraft()
       if (isEditing) {
         onClose?.()
@@ -586,7 +622,14 @@ const FlightLogEntryWizardInner = ({
       {currentStep === 'oil' && (
         <OilStep {...formProps} oilAdded={oilAdded} onOilAddedChange={setOilAdded} />
       )}
-      {currentStep === 'notes' && <NotesStep {...formProps} />}
+      {currentStep === 'notes' && (
+        <NotesStep
+          {...formProps}
+          reportedDefects={reportedDefects}
+          onReportedDefectsChange={setReportedDefects}
+          canReportDefects={canReportDefects}
+        />
+      )}
       {currentStep === 'review' && (
         <ReviewStep
           {...formProps}

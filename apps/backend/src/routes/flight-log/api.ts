@@ -90,7 +90,8 @@ router.post('/', async (req: Request<Record<string, string>>, res: Response) => 
     }
 
     const flightId = await insertFlightLog(data, req.user!)
-    res.status(201).json({ flight_id: flightId })
+    const created = await getFlightLog(flightId)
+    res.status(201).json(created)
   } else {
     // drop any admin fields the UI might send in the request
     const data = flightLogDateValidator(FlightLogMemberUpsertSchema.strip()).parse(req.body)
@@ -102,7 +103,8 @@ router.post('/', async (req: Request<Record<string, string>>, res: Response) => 
     }
 
     const flightId = await insertFlightLog(data, req.user!)
-    res.status(201).json({ flight_id: flightId })
+    const created = await getFlightLog(flightId)
+    res.status(201).json(created)
   }
 })
 

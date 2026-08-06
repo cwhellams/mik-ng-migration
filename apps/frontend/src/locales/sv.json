@@ -54,6 +54,7 @@
     "newExpense": "Nytt utgiftsanspråk",
     "expenseClaims": "Utgiftsanspråk",
     "mileageAllowances": "Kilometetersättning",
+    "tulorekisteriReport": "Inkomstregisterrapport",
     "costCentres": "Kostnadsställen",
     "inventory": "Inventarie",
     "inventoryAdmin": "Inventarieadmin",
@@ -1293,6 +1294,8 @@
       "flightTime": "Flygplanets totala flygtid",
       "hours": "Timmar",
       "minutes": "Minuter",
+      "rows": "Rader",
+      "rowsHelp": "Hur många rader detta tar på den fysiska loggbokssidan (0 = visas på flygningens rad)",
       "blankRowsAfter": "Tomma rader efter",
       "blankRowsAfterHelp": "Tomma rader som läggs till i den fysiska loggboken efter denna anteckning",
       "closeHilItems": "Stäng hold items",
@@ -1307,8 +1310,11 @@
     "defects": {
       "addPreFlightButton": "Rapportera fel",
       "addPreFlightTitle": "Nytt fel (före flygning)",
-      "addInFlightButton": "Rapportera fel under flygning",
       "addInFlightTitle": "Nytt fel (under flygning)",
+      "reportSectionTitle": "Rapportera fel",
+      "reportSectionNote": "Om du upptäckte fel under flygningen, beskriv varje fel nedan. Varje fel måste dessutom anmälas direkt till kalustovastaava (materialansvarig) per telefon — lita inte enbart på denna anteckning.",
+      "addDefectRow": "Lägg till fel",
+      "blankDescriptionError": "Felbeskrivningen får inte vara tom",
       "viewTitle": "Fel",
       "description": "Beskrivning",
       "flightTime": "Flygplanets totala flygtid",
@@ -2489,9 +2495,40 @@
       "estimatedAmount": "Beräknad ersättning",
       "lineItemDescription": "Kilometetersättning",
       "hetu": "Personnummer (HETU)",
-      "hetuHint": "Krävs för skattemässiga ändamål. Lagras krypterat och syns inte efter sparande.",
+      "hetuHint": "Krävs för skattemässiga ändamål. Synligt för reseräkningshandläggare, varje visning loggas och uppgiften raderas 1 vecka efter att räkningen godkänts.",
+      "hetuInvalid": "Inte ett giltigt finskt personnummer (HETU).",
+      "hetuAccessLog": "Vem har sett ditt personnummer",
+      "hetuAccessLogEmpty": "Ingen har ännu sett ditt personnummer.",
       "boardApprovalRequired": "Denna resa överskrider gränsen på {{maxKm}} km och kräver styrelsens godkännande.",
-      "boardApprovedLabel": "Jag bekräftar att styrelsen har godkänt denna resa"
+      "boardApprovedLabel": "Jag bekräftar att styrelsen har godkänt denna resa",
+      "ratePerKm": "Ersättning",
+      "reveal": "Visa",
+      "copy": "Kopiera",
+      "revealNotice": "Denna åtkomst har loggats."
+    },
+    "tulorekisteriReport": {
+      "title": "Inkomstregisterrapport",
+      "description": "Godkända kilometerersättningar att anmäla till inkomstregistret. Visar aldrig personnummer — det visas från det enskilda ersättningsanspråket.",
+      "filters": {
+        "startDate": "Startdatum",
+        "endDate": "Slutdatum",
+        "generate": "Skapa rapport",
+        "export": "Exportera till CSV"
+      },
+      "table": {
+        "member": "Medlem",
+        "journeyDate": "Resedatum",
+        "route": "Rutt",
+        "distanceKm": "Avstånd (km)",
+        "totalAmount": "Totalt (EUR)",
+        "approvedAt": "Godkänd"
+      },
+      "noData": "Inga godkända kilometerersättningar hittades för den valda perioden",
+      "errors": {
+        "endDateFuture": "Slutdatum kan inte vara i framtiden",
+        "startAfterEnd": "Startdatum kan inte vara efter slutdatum",
+        "required": "Både start- och slutdatum krävs"
+      }
     },
     "status": {
       "DRAFT": "Utkast",
@@ -2643,7 +2680,8 @@
       "unitPriceRequired": "Enhetspriset måste vara större än noll",
       "aircraftRequired": "Flygplan krävs för bränsleanspråk",
       "fuelDateRequired": "Datum krävs för bränslerader",
-      "airportRequired": "Flygplats krävs för bränslerader"
+      "airportRequired": "Flygplats krävs för bränslerader",
+      "mileageDetailsRequired": "Rutt, resedatum och avstånd krävs. Styrelsegodkännande krävs över avståndsgränsen."
     }
   },
   "inventory": {

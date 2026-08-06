@@ -38,6 +38,16 @@ const memberToken = generateAccessToken({
   canMakeReservations: false,
 })
 
+// Narrower than EXPENSE_ADMIN — only treasurer/chairman hold this (issue #1022).
+const hetuAdminToken = generateAccessToken({
+  memberId: 'Liisa1',
+  lastName: 'Admin',
+  email: 'liisa@mik.fi',
+  roles: [],
+  permissions: [MIKPermissions.EXPENSE_ADMIN, MIKPermissions.EXPENSE_HETU_ADMIN],
+  canMakeReservations: false,
+})
+
 // ── Seed data IDs ─────────────────────────────────────────────────────────────
 
 const MEMBER_ID = 'Juha1'
@@ -272,6 +282,52 @@ describe('POST /expenses (fuel)', () => {
     insertedClaimIds.push(res.body.id)
     expect(res.body.aircraftId).toBeFalsy()
     expect(res.body.lineItems[0].costCentreCode).toBe('OH-STL')
+  })
+
+  // Regression test for issue #1024: only unitPrice (total cost / litres) was persisted,
+  // so redisplaying the total after a save/reload reconstructed it as quantity * unitPrice.
+  // Since unitPrice is rounded to 4 decimal places, that reconstruction drifted from the
+  // total the member actually typed in (e.g. 30 l for 50.00 EUR -> unitPrice 1.6667 ->
+  // 30 * 1.6667 = 50.01, not 50.00). Persisting totalCost directly makes it exact.
+  it('round-trips the exact total cost the member entered for a fuel line item', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Fuel precision test',
+        currency: 'EUR',
+        fuelLitres: 30,
+        fuelType: 'JetA1',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: '30 l JetA1',
+            date: '2026-07-16',
+            airport: 'EFNU',
+            quantity: 30,
+            unit: 'l',
+            unitPrice: 50 / 30,
+            totalCost: 50,
+            fuelType: 'JetA1',
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    expect(res.body.lineItems[0].totalCost).toBe(50)
+
+    const reloaded = await request(app)
+      .get(`/expenses/${res.body.id}`)
+      .set('Cookie', `accessToken=${memberToken}`)
+    expect(reloaded.status).toBe(200)
+    expect(reloaded.body.lineItems[0].totalCost).toBe(50)
   })
 
   // Aircraft/airport/date completeness is enforced at submit time, not at create/
@@ -877,5 +933,331 @@ describe('POST /expenses/:id/submit (line item requirements)', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.status).toBe(ExpenseClaimStatus.SUBMITTED)
+  })
+})
+
+// ── Tests: HETU reveal + Tulorekisteri report (issue #1022) ────────────────────
+
+describe('Mileage HETU reveal and Tulorekisteri report', () => {
+  const insertedClaimIds: string[] = []
+
+  afterEach(async () => {
+    if (insertedClaimIds.length > 0) {
+      await db
+        .deleteFrom('accts.mileage_hetu_access_audit')
+        .where('claim_id', 'in', insertedClaimIds)
+        .execute()
+      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      insertedClaimIds.length = 0
+    }
+  })
+
+  async function createMileageClaim(options: {
+    hetu?: string
+    journeyDate: string
+    distanceKm?: number
+  }): Promise<string> {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', 'mileage')
+      .executeTakeFirstOrThrow()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId: category.id,
+        title: 'Mileage HETU test',
+        currency: 'EUR',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        expenseDate: options.journeyDate,
+        lineItems: [
+          {
+            itemId: null,
+            description: 'HOME - ROS - HOME',
+            date: options.journeyDate,
+            quantity: options.distanceKm ?? 99,
+            unit: 'km',
+            unitPrice: 0.275,
+            sortOrder: 0,
+          },
+        ],
+        mileageDetail: {
+          route: 'HOME - ROS - HOME',
+          journeyDate: options.journeyDate,
+          distanceKm: options.distanceKm ?? 99,
+          boardApproved: false,
+          ...(options.hetu ? { hetu: options.hetu } : {}),
+        },
+      })
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    return res.body.id
+  }
+
+  async function approveClaim(claimId: string, approvedAt: Date): Promise<void> {
+    await db
+      .updateTable('accts.expense_claim')
+      .set({
+        status: ExpenseClaimStatus.APPROVED,
+        approved_at: approvedAt,
+        approved_by: 'Liisa1',
+      })
+      .where('id', '=', claimId)
+      .execute()
+  }
+
+  describe('GET /expenses/:id', () => {
+    it('always returns a masked HETU, never the plaintext', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+
+      const asMember = await request(app)
+        .get(`/expenses/${claimId}`)
+        .set('Cookie', `accessToken=${memberToken}`)
+      expect(asMember.status).toBe(200)
+      expect(asMember.body.mileageDetail.hetu).toBe('***********')
+
+      const asAdmin = await request(app)
+        .get(`/expenses/${claimId}`)
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+      expect(asAdmin.status).toBe(200)
+      expect(asAdmin.body.mileageDetail.hetu).toBe('***********')
+    })
+  })
+
+  describe('PUT /expenses/:id', () => {
+    it('updates route/distance without wiping the stored HETU when hetu is omitted', async () => {
+      // Mirrors the admin edit form, which never sees the plaintext HETU back from
+      // the API and so leaves the field blank unless the admin retypes it.
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+
+      const putRes = await request(app)
+        .put(`/expenses/${claimId}`)
+        .set('Cookie', `accessToken=${memberToken}`)
+        .send({
+          mileageDetail: {
+            route: 'HOME - EFHF - HOME',
+            journeyDate: '2026-07-16',
+            distanceKm: 42,
+            boardApproved: false,
+          },
+        })
+      expect(putRes.status).toBe(200)
+      expect(putRes.body.mileageDetail.route).toBe('HOME - EFHF - HOME')
+      expect(putRes.body.mileageDetail.distanceKm).toBe(42)
+
+      await approveClaim(claimId, new Date())
+      const revealRes = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+      expect(revealRes.status).toBe(200)
+      expect(revealRes.body.hetu).toBe('010101-123A')
+    })
+
+    it('re-encrypts the HETU when a new one is submitted', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+
+      const putRes = await request(app)
+        .put(`/expenses/${claimId}`)
+        .set('Cookie', `accessToken=${memberToken}`)
+        .send({
+          mileageDetail: {
+            route: 'HOME - EFHF - HOME',
+            journeyDate: '2026-07-16',
+            distanceKm: 42,
+            boardApproved: false,
+            hetu: '020202-456B',
+          },
+        })
+      expect(putRes.status).toBe(200)
+
+      await approveClaim(claimId, new Date())
+      const revealRes = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+      expect(revealRes.status).toBe(200)
+      expect(revealRes.body.hetu).toBe('020202-456B')
+    })
+  })
+
+  describe('GET /expenses/:id/mileage/hetu', () => {
+    it('returns the plaintext HETU for EXPENSE_HETU_ADMIN and writes one audit row', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+
+      expect(res.status).toBe(200)
+      expect(res.body.hetu).toBe('010101-123A')
+
+      const auditRows = await db
+        .selectFrom('accts.mileage_hetu_access_audit')
+        .selectAll()
+        .where('claim_id', '=', claimId)
+        .execute()
+      expect(auditRows).toHaveLength(1)
+      expect(auditRows[0].accessed_by).toBe('Liisa1')
+      expect(auditRows[0].context).toBe('CLAIM_REVEAL')
+    })
+
+    it('rejects a committee member who only has EXPENSE_ADMIN', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .set('x-sudo', 'true')
+
+      expect(res.status).toBe(403)
+    })
+
+    it('rejects a plain member', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${memberToken}`)
+
+      expect(res.status).toBe(403)
+    })
+
+    it('returns 404 when the claim has no HETU on file', async () => {
+      const claimId = await createMileageClaim({ journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+
+      expect(res.status).toBe(404)
+    })
+
+    it('rejects revealing HETU on a claim that is not yet approved', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+
+      expect(res.status).toBe(409)
+
+      const auditRows = await db
+        .selectFrom('accts.mileage_hetu_access_audit')
+        .selectAll()
+        .where('claim_id', '=', claimId)
+        .execute()
+      expect(auditRows).toHaveLength(0)
+    })
+  })
+
+  describe('GET /expenses/:id/mileage/hetu/access-log', () => {
+    it('lets the claim owner see who revealed their HETU and when', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
+
+      await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu/access-log`)
+        .set('Cookie', `accessToken=${memberToken}`)
+
+      expect(res.status).toBe(200)
+      expect(res.body.data).toHaveLength(1)
+      expect(res.body.data[0].accessedByName).toBe('Liisa Korhonen')
+      expect(new Date(res.body.data[0].accessedAt).toString()).not.toBe('Invalid Date')
+    })
+
+    it('is empty when no one has viewed the HETU yet', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu/access-log`)
+        .set('Cookie', `accessToken=${memberToken}`)
+
+      expect(res.status).toBe(200)
+      expect(res.body.data).toEqual([])
+    })
+
+    it('rejects a member who does not own the claim', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      await approveClaim(claimId, new Date())
+
+      const otherMemberToken = generateAccessToken({
+        memberId: 'Pekka1',
+        lastName: 'Other',
+        email: 'pekka@mik.fi',
+        roles: [],
+        permissions: [MIKPermissions.EXPENSE_USER],
+        canMakeReservations: false,
+      })
+
+      const res = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu/access-log`)
+        .set('Cookie', `accessToken=${otherMemberToken}`)
+
+      expect(res.status).toBe(403)
+    })
+  })
+
+  describe('GET /expenses/admin/mileage-report', () => {
+    it('returns only approved mileage claims within the date range, never HETU', async () => {
+      const inRange = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-06-10' })
+      await approveClaim(inRange, new Date('2026-06-11T00:00:00.000Z'))
+
+      const outOfRange = await createMileageClaim({
+        hetu: '020202-234B',
+        journeyDate: '2026-08-01',
+      })
+      await approveClaim(outOfRange, new Date('2026-08-02T00:00:00.000Z'))
+
+      const res = await request(app)
+        .get('/expenses/admin/mileage-report')
+        .query({ startDate: '2026-06-01', endDate: '2026-06-30' })
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+
+      expect(res.status).toBe(200)
+      const claimIdsInReport = res.body.data.map((row: { claimId: string }) => row.claimId)
+      expect(claimIdsInReport).toContain(inRange)
+      expect(claimIdsInReport).not.toContain(outOfRange)
+      expect(JSON.stringify(res.body)).not.toContain('hetu')
+      expect(JSON.stringify(res.body)).not.toContain('010101-123A')
+    })
+
+    it('rejects a reversed date range', async () => {
+      const res = await request(app)
+        .get('/expenses/admin/mileage-report')
+        .query({ startDate: '2026-06-30', endDate: '2026-06-01' })
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+
+      expect(res.status).toBe(400)
+    })
+
+    it('rejects a request from a committee member who only has EXPENSE_ADMIN', async () => {
+      const res = await request(app)
+        .get('/expenses/admin/mileage-report')
+        .query({ startDate: '2026-06-01', endDate: '2026-06-30' })
+        .set('Cookie', `accessToken=${adminToken}`)
+        .set('x-sudo', 'true')
+
+      expect(res.status).toBe(403)
+    })
   })
 })

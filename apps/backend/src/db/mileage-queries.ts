@@ -1,3 +1,4 @@
+import { sql } from 'kysely'
 import { db } from './connection.ts'
 import type { JWTUser } from '../routes/auth/token.ts'
 import type {
@@ -6,6 +7,11 @@ import type {
   UpsertMileageAllowance,
   CreateMileageDetail,
 } from '../routes/expenses/mileageModels.ts'
+import {
+  ExpenseClaimStatus,
+  type MileageReportFilters,
+  type MileageReportRow,
+} from '../routes/expenses/models.ts'
 import { encryptField, decryptField } from '../lib/fieldEncryption.ts'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -101,9 +107,9 @@ export async function upsertMileageAllowance(
 
 // ─── Mileage detail (per claim) ───────────────────────────────────────────────
 
-/** Mask all but the last 4 chars of a HETU so it can safely be returned in API responses */
+/** Fully mask a HETU so no part of it is ever returned in API responses without an audited reveal */
 function maskHetu(plain: string): string {
-  return plain.length > 4 ? '*'.repeat(plain.length - 4) + plain.slice(-4) : '****'
+  return '*'.repeat(plain.length)
 }
 
 export async function upsertMileageDetail(
@@ -132,9 +138,13 @@ export async function upsertMileageDetail(
         journey_date: data.journeyDate,
         distance_km: data.distanceKm,
         board_approved: data.boardApproved,
-        hetu_encrypted: hetuEncrypted,
         rate_per_km: ratePerKm,
         updated_at: now,
+        // Only overwrite the stored HETU when a new one was actually submitted —
+        // edit flows that don't re-collect it (it's never sent back to the client
+        // unmasked) must leave the existing encrypted value untouched instead of
+        // nulling it out.
+        ...(data.hetu ? { hetu_encrypted: hetuEncrypted } : {}),
       }),
     )
     .returningAll()
@@ -171,4 +181,135 @@ export async function getMileageDetailByClaimId(
     hetu: row.hetu_encrypted ? maskHetu(decryptField(row.hetu_encrypted)) : undefined,
     ratePerKm: Number(row.rate_per_km),
   }
+}
+
+// ─── HETU reveal + audit (issue #1022) ───────────────────────────────────────
+// Deliberately separate from getMileageDetailByClaimId above — every other read
+// path stays masked by default; this is the one intentional, audited exception.
+
+/** Decrypted, unmasked HETU for a claim. Callers must be permission-gated and audit-log the access. */
+export async function getMileageDetailFullHetu(claimId: string): Promise<string | undefined> {
+  const row = await db
+    .selectFrom('accts.expense_mileage_detail')
+    .select('hetu_encrypted')
+    .where('claim_id', '=', claimId)
+    .executeTakeFirst()
+  return row?.hetu_encrypted ? decryptField(row.hetu_encrypted) : undefined
+}
+
+export async function recordMileageHetuAccess(claimId: string, accessedBy: string): Promise<void> {
+  await db
+    .insertInto('accts.mileage_hetu_access_audit')
+    .values({
+      claim_id: claimId,
+      accessed_by: accessedBy,
+      context: 'CLAIM_REVEAL',
+    })
+    .execute()
+}
+
+export type MileageHetuAccessLogEntry = {
+  accessedAt: string
+  accessedByName: string
+}
+
+/** Who viewed a claim's HETU and when — shown to the claim owner so they can see who accessed it. */
+export async function getMileageHetuAccessLog(
+  claimId: string,
+): Promise<MileageHetuAccessLogEntry[]> {
+  const rows = await db
+    .selectFrom('accts.mileage_hetu_access_audit as audit')
+    .leftJoin('member.register as member', 'member.member_id', 'audit.accessed_by')
+    .where('audit.claim_id', '=', claimId)
+    .select([
+      'audit.accessed_at',
+      sql<string>`trim(concat(coalesce(member.first_name, ''), ' ', coalesce(member.last_name, '')))`.as(
+        'accessed_by_name',
+      ),
+    ])
+    .orderBy('audit.accessed_at', 'desc')
+    .execute()
+
+  return rows.map((row) => ({
+    accessedAt: new Date(String(row.accessed_at)).toISOString(),
+    accessedByName: row.accessed_by_name || 'Unknown',
+  }))
+}
+
+// ─── Tulorekisteri mileage report (issue #1022) ──────────────────────────────
+// Never selects hetu_encrypted — the report must not expose HETU, per the issue.
+
+export async function getMileageReportRows(
+  filters: MileageReportFilters,
+): Promise<MileageReportRow[]> {
+  const rows = await db
+    .selectFrom('accts.expense_claim as claim')
+    .innerJoin('accts.expense_mileage_detail as detail', 'detail.claim_id', 'claim.id')
+    .innerJoin('accts.expense_category as category', 'category.id', 'claim.category_id')
+    .leftJoin('member.register as member', 'member.member_id', 'claim.member_id')
+    .where('category.code', '=', 'mileage')
+    .where('claim.status', '=', ExpenseClaimStatus.APPROVED)
+    .where('detail.journey_date', '>=', filters.startDate)
+    .where('detail.journey_date', '<=', filters.endDate)
+    .select([
+      'claim.id as claim_id',
+      'claim.member_id',
+      'claim.approved_at',
+      'detail.route',
+      'detail.journey_date',
+      'detail.distance_km',
+      'detail.rate_per_km',
+      sql<number>`round((detail.distance_km * detail.rate_per_km)::numeric, 2)`.as('total_amount'),
+      sql<string>`trim(concat(coalesce(member.first_name, ''), ' ', coalesce(member.last_name, '')))`.as(
+        'member_name',
+      ),
+    ])
+    .orderBy('detail.journey_date', 'asc')
+    .execute()
+
+  return rows.map((row) => ({
+    claimId: row.claim_id,
+    memberId: row.member_id,
+    memberName: row.member_name,
+    journeyDate: String(row.journey_date).substring(0, 10),
+    route: row.route,
+    distanceKm: Number(row.distance_km),
+    ratePerKm: Number(row.rate_per_km),
+    totalAmount: Number(row.total_amount),
+    approvedAt: row.approved_at ? new Date(String(row.approved_at)).toISOString() : null,
+  }))
+}
+
+// ─── HETU retention purge (issue #1022) ──────────────────────────────────────
+// Board decision: HETU is only needed to file with Tulorekisteri, which happens
+// within days of approval — so it's purged 1 week after approval (GDPR minimisation).
+
+export async function purgeExpiredHetu(): Promise<number> {
+  // Bounded to a 7-37 day window (instead of an open-ended "older than 7 days"
+  // scan) so this daily job's cost stays flat as expense_claim grows over the
+  // years, and joined to expense_mileage_detail/expense_category so it only
+  // ever considers mileage claims that still have a HETU to purge.
+  const eligibleClaims = await db
+    .selectFrom('accts.expense_claim as claim')
+    .innerJoin('accts.expense_mileage_detail as detail', 'detail.claim_id', 'claim.id')
+    .innerJoin('accts.expense_category as category', 'category.id', 'claim.category_id')
+    .select('claim.id')
+    .where('category.code', '=', 'mileage')
+    .where('claim.status', '=', ExpenseClaimStatus.APPROVED)
+    .where('detail.hetu_encrypted', 'is not', null)
+    .where('claim.approved_at', '<', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+    .where('claim.approved_at', '>=', new Date(Date.now() - 37 * 24 * 60 * 60 * 1000))
+    .execute()
+
+  const claimIds = eligibleClaims.map((row) => row.id)
+  if (claimIds.length === 0) return 0
+
+  const result = await db
+    .updateTable('accts.expense_mileage_detail')
+    .set({ hetu_encrypted: null, updated_at: new Date() })
+    .where('hetu_encrypted', 'is not', null)
+    .where('claim_id', 'in', claimIds)
+    .executeTakeFirst()
+
+  return Number(result.numUpdatedRows)
 }
