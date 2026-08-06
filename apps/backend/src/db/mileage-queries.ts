@@ -107,9 +107,9 @@ export async function upsertMileageAllowance(
 
 // ─── Mileage detail (per claim) ───────────────────────────────────────────────
 
-/** Mask all but the last 4 chars of a HETU so it can safely be returned in API responses */
+/** Fully mask a HETU so no part of it is ever returned in API responses without an audited reveal */
 function maskHetu(plain: string): string {
-  return plain.length > 4 ? '*'.repeat(plain.length - 4) + plain.slice(-4) : '****'
+  return '*'.repeat(plain.length)
 }
 
 export async function upsertMileageDetail(
