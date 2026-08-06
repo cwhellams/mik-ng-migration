@@ -274,6 +274,52 @@ describe('POST /expenses (fuel)', () => {
     expect(res.body.lineItems[0].costCentreCode).toBe('OH-STL')
   })
 
+  // Regression test for issue #1024: only unitPrice (total cost / litres) was persisted,
+  // so redisplaying the total after a save/reload reconstructed it as quantity * unitPrice.
+  // Since unitPrice is rounded to 4 decimal places, that reconstruction drifted from the
+  // total the member actually typed in (e.g. 30 l for 50.00 EUR -> unitPrice 1.6667 ->
+  // 30 * 1.6667 = 50.01, not 50.00). Persisting totalCost directly makes it exact.
+  it('round-trips the exact total cost the member entered for a fuel line item', async () => {
+    const categoryId = await fuelCategoryId()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Fuel precision test',
+        currency: 'EUR',
+        fuelLitres: 30,
+        fuelType: 'JetA1',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            itemId: null,
+            description: '30 l JetA1',
+            date: '2026-07-16',
+            airport: 'EFNU',
+            quantity: 30,
+            unit: 'l',
+            unitPrice: 50 / 30,
+            totalCost: 50,
+            fuelType: 'JetA1',
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    expect(res.body.lineItems[0].totalCost).toBe(50)
+
+    const reloaded = await request(app)
+      .get(`/expenses/${res.body.id}`)
+      .set('Cookie', `accessToken=${memberToken}`)
+    expect(reloaded.status).toBe(200)
+    expect(reloaded.body.lineItems[0].totalCost).toBe(50)
+  })
+
   // Aircraft/airport/date completeness is enforced at submit time, not at create/
   // save-draft time — a fuel claim must be saveable before those fields are filled in.
   it('allows saving a fuel claim draft with no aircraft selected, but rejects submitting it', async () => {

@@ -120,6 +120,7 @@ const ExpenseReimbursementPayloadSchema = z.object({
       description: z.string(),
       quantity: z.number(),
       unitPrice: z.number(),
+      totalCost: z.number().nullable().optional(),
       articleId: z.number().nullable().optional(),
       code: z.string().optional(),
       costCentreCode: z.string().nullable().optional(),
@@ -898,7 +899,7 @@ async function createExpenseReimbursement(outboxMsg: AcctsOutboxSimplbooks) {
       },
       PurchaseRows: payload.lineItems.map((item) => {
         // Convert to EUR if claim was in a foreign currency
-        const rawSum = item.quantity * item.unitPrice
+        const rawSum = item.totalCost ?? item.quantity * item.unitPrice
         const eurSum = Math.round(rawSum * fxRate! * 100) / 100
         return {
           PurchaseRow: {
