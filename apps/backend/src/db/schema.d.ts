@@ -200,6 +200,7 @@ export interface AcctsExpenseClaimLineItem {
   item_id: number | null
   quantity: Generated<Numeric>
   sort_order: Generated<number>
+  total_cost: Numeric | null
   unit: Generated<string>
   unit_price: Numeric
 }
@@ -286,6 +287,20 @@ export interface AcctsMileageAllowance {
   tax_year: number
   updated_at: Generated<Timestamp>
   updated_by: string
+}
+
+export interface AcctsMileageHetuAccessAudit {
+  accessed_at: Generated<Timestamp>
+  /**
+   * Member who revealed the HETU (must hold expense.hetu_admin)
+   */
+  accessed_by: string
+  claim_id: string
+  /**
+   * Where the reveal happened, e.g. CLAIM_REVEAL
+   */
+  context: string
+  id: Generated<number>
 }
 
 export interface AcctsOutboxSimplbooks {
@@ -743,6 +758,7 @@ export interface FlightDefect {
   flight_mins: number
   hil_id: string | null
   resolved_note_id: string | null
+  rows: Generated<number>
   status: Generated<FlightDefectStatus>
   updated_at: Generated<Timestamp>
   updated_by: string
@@ -862,6 +878,7 @@ export interface FlightMaintenanceNote {
   flight_mins: number
   note_id: Generated<string>
   performed_by: string
+  rows: Generated<number>
   updated_at: Generated<Timestamp>
   updated_by: Generated<string>
 }
@@ -936,6 +953,30 @@ export interface FlightOccurrences {
 export interface FlightVwAircraftGroundingStatus {
   open_defect_count: Int8 | null
   registration: string | null
+}
+
+export interface FlightVwAjlbLiveRows {
+  aircraft_registration: string | null
+  ajlb_seq_no: number | null
+  is_content_row: boolean | null
+  item_id: string | null
+  item_type: string | null
+  page_number: number | null
+  row_number: number | null
+}
+
+export interface FlightVwAjlbLiveSequence {
+  ac_total_flight_mins: Int8 | null
+  ac_total_landings: Int8 | null
+  aircraft_registration: string | null
+  ajlb_row_number: Int8 | null
+  ajlb_seq_no: number | null
+  anchor_flight_id: string | null
+  item_id: string | null
+  item_type: string | null
+  rows_consumed: number | null
+  rows_per_page: number | null
+  start_page: number | null
 }
 
 export interface FlightVwFlightLogs {
@@ -1795,6 +1836,14 @@ export interface StatsNonBillableTotalFlightTimeByAcYrMth {
   yr: number
 }
 
+export interface StatsOccurrencesPer100hByAcYr {
+  aircraft_registration: string | null
+  occurrence_count: Int8 | null
+  occurrences_per_100h: Numeric | null
+  total_flight_mins: Int8 | null
+  yr: Numeric | null
+}
+
 export interface StatsPobDistributionByAcYr {
   aircraft_registration: string | null
   cross_country_flight_count: Int8 | null
@@ -1963,6 +2012,7 @@ export interface DB {
   'accts.invoice': AcctsInvoice
   'accts.items': AcctsItems
   'accts.mileage_allowance': AcctsMileageAllowance
+  'accts.mileage_hetu_access_audit': AcctsMileageHetuAccessAudit
   'accts.outbox_simplbooks': AcctsOutboxSimplbooks
   'accts.recurring_fees_processing': AcctsRecurringFeesProcessing
   'club.ame_list': ClubAmeList
@@ -2011,6 +2061,8 @@ export interface DB {
   'flight.occurrence_attachments': FlightOccurrenceAttachments
   'flight.occurrences': FlightOccurrences
   'flight.vw_aircraft_grounding_status': FlightVwAircraftGroundingStatus
+  'flight.vw_ajlb_live_rows': FlightVwAjlbLiveRows
+  'flight.vw_ajlb_live_sequence': FlightVwAjlbLiveSequence
   'flight.vw_flight_logs': FlightVwFlightLogs
   'flight.vw_flight_time_totals': FlightVwFlightTimeTotals
   flyway_data_history: FlywayDataHistory
@@ -2082,6 +2134,7 @@ export interface DB {
   'stats.non_billable_total_flight_time_by_ac': StatsNonBillableTotalFlightTimeByAc
   'stats.non_billable_total_flight_time_by_ac_yr': StatsNonBillableTotalFlightTimeByAcYr
   'stats.non_billable_total_flight_time_by_ac_yr_mth': StatsNonBillableTotalFlightTimeByAcYrMth
+  'stats.occurrences_per_100h_by_ac_yr': StatsOccurrencesPer100hByAcYr
   'stats.pob_distribution_by_ac_yr': StatsPobDistributionByAcYr
   'stats.reservation_efficiency_by_ac_yr': StatsReservationEfficiencyByAcYr
   'stats.reservation_efficiency_by_ac_yr_mth': StatsReservationEfficiencyByAcYrMth

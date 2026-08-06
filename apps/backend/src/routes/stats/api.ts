@@ -37,6 +37,7 @@ import {
   getAogDaysByAcYrMth,
   getAogDaysByAcYr,
   getPobDistributionByAcYr,
+  getOccurrencesPerHundredHrsByAcYr,
 } from '../../db/stats-queries.ts'
 import { MyStatisticsFilterSchema } from './models.ts'
 import type {
@@ -75,6 +76,7 @@ import type {
   AogDaysByAcYrMth,
   AogDaysByAcYr,
   PobDistributionByAcYr,
+  OccurrencesPerHundredHrsByAcYr,
 } from './models.ts'
 
 export const router = Router()
@@ -483,6 +485,20 @@ router.get(
   async (req: Request, res: Response<PobDistributionByAcYr[]>) => {
     const { aircraft_registration, yr, yr_from, yr_to } = req.query
     const data = await getPobDistributionByAcYr({
+      aircraft_registration: aircraft_registration as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/safety/occurrences-per-100h/aircraft/year',
+  async (req: Request, res: Response<OccurrencesPerHundredHrsByAcYr[]>) => {
+    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const data = await getOccurrencesPerHundredHrsByAcYr({
       aircraft_registration: aircraft_registration as string | undefined,
       yr: yr ? Number(yr) : undefined,
       yr_from: yr_from ? Number(yr_from) : undefined,

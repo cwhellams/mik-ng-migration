@@ -98,6 +98,7 @@ import ExpenseClaimDetail from './sections/expenses/ExpenseClaimDetail'
 import { ExpenseApproval } from './sections/accounting/ExpenseApproval'
 import { ExpenseClaimAdminDetail } from './sections/accounting/ExpenseClaimAdminDetail'
 import { MileageAllowancesPage } from './sections/accounting/MileageAllowancesPage'
+import { MileageTulorekisteriReport } from './sections/accounting/MileageTulorekisteriReport'
 import { CostCentresPage } from './sections/accounting/CostCentresPage'
 import AmeList from './sections/ame/AmeList'
 import AmeSubmitForm from './sections/ame/AmeSubmitForm'
@@ -313,6 +314,17 @@ function App() {
                   element={
                     <RequirePermission adminModeOnly permissions={[MIKPermissions.EXPENSE_ADMIN]}>
                       <MileageAllowancesPage />
+                    </RequirePermission>
+                  }
+                />
+                <Route
+                  path='tulorekisteri-report'
+                  element={
+                    <RequirePermission
+                      adminModeOnly
+                      permissions={[MIKPermissions.EXPENSE_HETU_ADMIN]}
+                    >
+                      <MileageTulorekisteriReport />
                     </RequirePermission>
                   }
                 />

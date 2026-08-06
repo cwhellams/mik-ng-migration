@@ -37,6 +37,7 @@ const mockGetAirfieldEfficiencyByAcYrMth = jest.fn<(...args: any[]) => Promise<a
 const mockGetAogDaysByAcYr = jest.fn<(...args: any[]) => Promise<any>>()
 const mockGetAogDaysByAcYrMth = jest.fn<(...args: any[]) => Promise<any>>()
 const mockGetPobDistributionByAcYr = jest.fn<(...args: any[]) => Promise<any>>()
+const mockGetOccurrencesPerHundredHrsByAcYr = jest.fn<(...args: any[]) => Promise<any>>()
 const mockGetMyStatistics = jest.fn<(...args: any[]) => Promise<any>>()
 
 jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
@@ -74,6 +75,7 @@ jest.unstable_mockModule('../../../src/db/stats-queries.ts', () => ({
   getAogDaysByAcYr: mockGetAogDaysByAcYr,
   getAogDaysByAcYrMth: mockGetAogDaysByAcYrMth,
   getPobDistributionByAcYr: mockGetPobDistributionByAcYr,
+  getOccurrencesPerHundredHrsByAcYr: mockGetOccurrencesPerHundredHrsByAcYr,
   getMyStatistics: mockGetMyStatistics,
 }))
 
@@ -990,6 +992,34 @@ describe('Stats API', () => {
         expect(response.status).toBe(200)
         expect(response.body).toEqual([mockData])
         expect(mockGetPobDistributionByAcYr).toHaveBeenCalledWith({
+          aircraft_registration: 'OH-STL',
+          yr: undefined,
+          yr_from: 2024,
+          yr_to: 2024,
+        })
+      })
+    })
+  })
+
+  describe('V1680: Safety Performance Indicator Endpoints', () => {
+    describe('GET /api/stats/safety/occurrences-per-100h/aircraft/year', () => {
+      it('should return occurrences per 100 flight hours by aircraft and year', async () => {
+        const mockData = {
+          aircraft_registration: 'OH-STL',
+          yr: 2024,
+          occurrence_count: 4,
+          total_flight_mins: 2385,
+          occurrences_per_100h: 10.06,
+        }
+        mockGetOccurrencesPerHundredHrsByAcYr.mockResolvedValue([mockData])
+
+        const response = await request(app)
+          .get('/api/stats/safety/occurrences-per-100h/aircraft/year')
+          .query({ aircraft_registration: 'OH-STL', yr_from: '2024', yr_to: '2024' })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual([mockData])
+        expect(mockGetOccurrencesPerHundredHrsByAcYr).toHaveBeenCalledWith({
           aircraft_registration: 'OH-STL',
           yr: undefined,
           yr_from: 2024,

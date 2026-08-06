@@ -54,6 +54,7 @@
     "newExpense": "New Expense Claim",
     "expenseClaims": "Expense Claims",
     "mileageAllowances": "Mileage Allowances",
+    "tulorekisteriReport": "Tulorekisteri Report",
     "costCentres": "Cost Centres",
     "inventory": "Inventory",
     "inventoryAdmin": "Inventory Admin",
@@ -1285,6 +1286,8 @@
       "flightTime": "Aircraft total flight time",
       "hours": "Hours",
       "minutes": "Minutes",
+      "rows": "Rows",
+      "rowsHelp": "How many rows this takes on the physical logbook page (0 = shown inline on the flight's row)",
       "blankRowsAfter": "Blank rows after",
       "blankRowsAfterHelp": "Blank rows added to physical logbook after this note",
       "closeHilItems": "Close hold items",
@@ -1299,8 +1302,11 @@
     "defects": {
       "addPreFlightButton": "Report defect",
       "addPreFlightTitle": "Report Defect (Pre-flight)",
-      "addInFlightButton": "Report in-flight defect",
       "addInFlightTitle": "Report Defect (In-flight)",
+      "reportSectionTitle": "Report Defects",
+      "reportSectionNote": "If you found any defects during this flight, describe each one below. Every defect must also be reported directly to the kalustovastaava (fleet manager) by phone — don't rely on this entry alone.",
+      "addDefectRow": "Add defect",
+      "blankDescriptionError": "Defect description can't be empty",
       "viewTitle": "Defect",
       "description": "Description",
       "flightTime": "Aircraft total flight time",
@@ -1743,6 +1749,7 @@
     "existingReport": "Edit Report",
     "noReports": "No occurrence reports",
     "infoText": "Please report new occurrences for any possible deviation from normal flight operations. Reports are anonymized by an independent reviewer before publishing further to the safety team.",
+    "adminModeHint": "Admin mode is off — you're only seeing reports you filed yourself. Toggle admin mode in the header to see all occurrence reports.",
     "occurrenceDate": "Occurrence Date",
     "occurrenceDateTz": "Occurrence Date ({{tz}})",
     "deadLine": "Deadline",
@@ -1798,7 +1805,8 @@
       "addedLater": "Added later",
       "open": "Open",
       "invalidType": "Only JPEG, PNG or WEBP images are accepted.",
-      "tooLarge": "File is too large (max 10 MB)."
+      "tooLarge": "File is too large (max 10 MB).",
+      "none": "No attachments."
     },
     "actions": {
       "receive": "Mark Received and Create Copy for Anonymization",
@@ -1807,7 +1815,9 @@
       "processed": "Save ratings and mark as Processed",
       "confirmProcessed": "Are you sure the report is fully processed and can be marked as processed?",
       "close": "Save ratings and close Report",
-      "confirmClose": "Are you sure all mitigating actions have been taken and the report can be closed?"
+      "confirmClose": "Are you sure all mitigating actions have been taken and the report can be closed?",
+      "sendToCamo": "Send to CAMO",
+      "confirmSendToCamo": "This will email CAMO and grant them access to view and comment on this report. This action cannot be undone. Continue?"
     },
     "categories": "Categories",
     "categoryEnum": {
@@ -2476,8 +2486,11 @@
     "deleteError": "Failed to delete the event. Please try again.",
     "form": {
       "title": "Title (English)",
-      "startTime": "Start time",
-      "endTime": "End time",
+      "startTimeTz": "Start time ({{tz}})",
+      "endTimeTz": "End time ({{tz}})",
+      "timezone": "Time zone",
+      "timezoneHelsinki": "Helsinki",
+      "timezoneHint": "The time zone the event's start and end times are entered in. Defaults to Helsinki since most club events happen there.",
       "location": "Location",
       "description": "Description (English)",
       "performer": "Performer / speaker",
@@ -2513,9 +2526,40 @@
       "estimatedAmount": "Estimated reimbursement",
       "lineItemDescription": "Mileage claim",
       "hetu": "Finnish Social Security Number (HETU)",
-      "hetuHint": "Required for tax records. Stored encrypted and not visible after saving.",
+      "hetuHint": "Required for tax records. Visible to expense claim processors, every view is logged, and it is deleted 1 week after the claim is approved.",
+      "hetuInvalid": "Not a valid Finnish personal identity code (HETU).",
+      "hetuAccessLog": "Who has viewed your HETU",
+      "hetuAccessLogEmpty": "No one has viewed your HETU yet.",
       "boardApprovalRequired": "This journey exceeds the {{maxKm}} km limit and requires board approval.",
-      "boardApprovedLabel": "I confirm this journey has been approved by the board"
+      "boardApprovedLabel": "I confirm this journey has been approved by the board",
+      "ratePerKm": "Rate",
+      "reveal": "Show",
+      "copy": "Copy",
+      "revealNotice": "This access has been logged."
+    },
+    "tulorekisteriReport": {
+      "title": "Tulorekisteri Report",
+      "description": "Approved mileage claims to file with Tulorekisteri (Finnish income register). Never shows HETU — reveal it from the individual claim.",
+      "filters": {
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "generate": "Generate Report",
+        "export": "Export to CSV"
+      },
+      "table": {
+        "member": "Member",
+        "journeyDate": "Journey date",
+        "route": "Route",
+        "distanceKm": "Distance (km)",
+        "totalAmount": "Total (EUR)",
+        "approvedAt": "Approved"
+      },
+      "noData": "No approved mileage claims found for the selected date range",
+      "errors": {
+        "endDateFuture": "End date cannot be in the future",
+        "startAfterEnd": "Start date cannot be after end date",
+        "required": "Both start and end dates are required"
+      }
     },
     "status": {
       "DRAFT": "Draft",
@@ -2667,7 +2711,8 @@
       "unitPriceRequired": "Unit price must be greater than zero",
       "aircraftRequired": "Aircraft is required for fuel claims",
       "fuelDateRequired": "Date is required for fuel line items",
-      "airportRequired": "Airport is required for fuel line items"
+      "airportRequired": "Airport is required for fuel line items",
+      "mileageDetailsRequired": "Route, journey date and distance are required. Board approval is required above the distance limit."
     }
   },
   "inventory": {

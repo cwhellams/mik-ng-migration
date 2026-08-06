@@ -467,6 +467,24 @@ export const FlightLogListEntrySchema = FlightLogSchema.pick({
 
 export type FlightLogListEntry = z.infer<typeof FlightLogListEntrySchema>
 
+// Exact physical-row placement of one own-row (rows > 0) note/defect on the requested
+// ajlb page, from flight.vw_ajlb_live_rows -- lets the frontend place these rows
+// directly instead of reconstructing page/row layout from flightMins comparisons,
+// which could either overflow a page past rowsPerPage or silently drop rows that
+// should have carried onto the next page.
+export const PageItemRowSchema = z.object({
+  rowNumber: z.number().int().positive(),
+  itemType: z.enum(['note', 'defect']),
+  itemId: z.string(),
+  // true for the item's own content row (shows its description); false for a
+  // continuation of its own multi-row content or one of its blankRowsAfter spacer
+  // rows -- both render identically (blank), so the caller doesn't need to
+  // distinguish between them.
+  isContentRow: z.boolean(),
+})
+
+export type PageItemRow = z.infer<typeof PageItemRowSchema>
+
 export const FlightLogListResponseSchema = z.object({
   logs: z.array(FlightLogListEntrySchema),
   page: z.number().int().optional(),
@@ -474,6 +492,7 @@ export const FlightLogListResponseSchema = z.object({
   pages: z.number().int().optional(),
   rows: z.number().int().optional(),
   pageStartFlightMins: z.number().int().nullable().optional(),
+  pageItemRows: z.array(PageItemRowSchema).optional(),
   unbilledEstimatedTotal: z.number().nullable().optional(),
 })
 

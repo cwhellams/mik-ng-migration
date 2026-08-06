@@ -123,6 +123,7 @@ const mapLineItem = (row: {
   quantity: unknown
   unit: string
   unit_price: unknown
+  total_cost?: unknown
   sort_order: number
   cost_centre_code?: string | null
   fuel_type?: string | null
@@ -137,6 +138,7 @@ const mapLineItem = (row: {
   quantity: Number(row.quantity),
   unit: row.unit as ExpenseLineItem['unit'],
   unitPrice: Number(row.unit_price),
+  totalCost: toNullableNumber(row.total_cost),
   sortOrder: row.sort_order,
   costCentreCode: row.cost_centre_code ?? undefined,
   fuelType: (row.fuel_type as ExpenseLineItem['fuelType']) ?? undefined,
@@ -248,7 +250,7 @@ const claimSelect = (executor: Executor) =>
         'member_name',
       ),
       sql<number>`round(coalesce((
-        select sum(li.quantity * li.unit_price) * coalesce(claim.fx_rate, 1.0)
+        select sum(coalesce(li.total_cost, li.quantity * li.unit_price)) * coalesce(claim.fx_rate, 1.0)
         from accts.expense_claim_line_item li
         where li.claim_id = claim.id
       ), 0)::numeric, 2)`.as('total_amount'),
@@ -273,6 +275,7 @@ async function insertLineItems(
         quantity: item.quantity,
         unit: item.unit,
         unit_price: item.unitPrice,
+        total_cost: item.totalCost ?? null,
         sort_order: item.sortOrder,
         cost_centre_code: item.costCentreCode ?? null,
         fuel_type: item.fuelType ?? null,
@@ -378,6 +381,7 @@ export async function getExpenseClaimById(id: string): Promise<ExpenseClaim | un
         'li.quantity',
         'li.unit',
         'li.unit_price',
+        'li.total_cost',
         'li.sort_order',
         'li.cost_centre_code',
         'li.fuel_type',
@@ -603,7 +607,12 @@ export async function overrideFuelPrice(
 ): Promise<boolean> {
   await executor
     .updateTable('accts.expense_claim_line_item')
-    .set({ unit_price: sql<number>`LEAST(unit_price, ${efnuPrice})` })
+    .set({
+      unit_price: sql<number>`LEAST(unit_price, ${efnuPrice})`,
+      // Only recompute the persisted total for line items the cap actually affects,
+      // otherwise an already-exact total gets reconstructed from unit_price and drifts.
+      total_cost: sql<number>`CASE WHEN unit_price > ${efnuPrice} THEN quantity * ${efnuPrice} ELSE total_cost END`,
+    })
     .where('claim_id', '=', id)
     .execute()
 

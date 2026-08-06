@@ -15,6 +15,8 @@ import {
   updateFlightLog,
   updateFlightLogStatus,
 } from '../../src/db/flight-log-queries.ts'
+import { createDefect } from '../../src/db/defect-queries.ts'
+import { db } from '../../src/db/connection.ts'
 import {
   FlightLogStatus,
   FlightType,
@@ -100,6 +102,16 @@ describe('Db query FlightLog tests', () => {
   it('getFlightLogs for specified aircraft should match snapshot', async () => {
     const result = await getFlightLogs({ aircraftRegistration: 'OH-STL' })
     expect(result.rows).toEqual(246)
+  })
+
+  it('getFlightLogs populates acTotalLandings for a NEW (unvalidated) flight, not just validated ones', async () => {
+    // ajlb_total_landings (the frozen column) is only ever set for VALIDATED
+    // flights; a NEW flight's total must fall back to totals.ac_total_landings
+    // (the live-computed running total), same as acTotalFlightMins/Time already do.
+    const result = await getFlightLogs({ flightId: 'mikify' })
+    expect(result.logs).toHaveLength(1)
+    expect(result.logs[0].status).toEqual('NEW')
+    expect(result.logs[0].acTotalLandings).not.toBeNull()
   })
 
   it('getFlightLogs for specific member id should match snapshot', async () => {
@@ -251,6 +263,227 @@ describe('Db query FlightLog tests', () => {
     } finally {
       await deleteFlightLog(flightIdA)
       await deleteFlightLog(flightIdB)
+    }
+  })
+
+  it('getFlightLogs resolves pageStartFlightMins across a page with zero flights on it', async () => {
+    // OH-STL ajlb_seq_no 3's live region starts right after pob25a03 (cumulative
+    // 700405, the last row of page 500). flightA (60 min) becomes the sole flight
+    // on page 502 (row 1); a defect anchored to it, sized to consume the
+    // remaining 4 rows of page 502 plus all 5 rows of page 504 (9 rows total),
+    // leaves page 504 with NO flights at all; flightB (30 min) then lands on
+    // page 506. Looking up page 506's pageStartFlightMins used to filter for
+    // "page = 504" specifically, find nothing there, and silently fall back to
+    // null -- which resets the frontend's lower bound to -1 and made it
+    // re-render every earlier note/defect a second time on page 506. It must
+    // instead find flightA's total (700465) on the nearest earlier page that
+    // actually has one.
+    const baseFlight = {
+      aircraftRegistration: 'OH-STL',
+      picMemberId: 'Liisa1',
+      oilUpliftLitres: 1,
+      fuelUpliftLitres: 20,
+      personsOnBoard: 1,
+      numberOfLandings: 1,
+      numberOfNightLandings: 0,
+      departureAirport: 'EFHK',
+      arrivalAirport: 'EFHK',
+      flightType: FlightType.SCHOOL,
+      billingRemarks: null,
+      personalRemarks: 'empty-page pageStartFlightMins test',
+      picRole: 'PIC' as const,
+      crew2MemberId: null,
+      crew2Role: null,
+      crew3MemberId: null,
+      crew3Role: null,
+      crew4MemberId: null,
+      crew4Role: null,
+      fuelRemainingLitres: 20,
+      incidentOrObservations: null,
+      totalTimeInService: 1,
+      instrumentFlyingMins: 0,
+      nightFlyingMins: 0,
+      partiallyBillableFlight: false,
+    }
+    const insertUser = { memberId: 'Matti1', permissions: [MIKPermissions.FLIGHTLOG_USER] }
+
+    const flightIdA = await insertFlightLog(
+      {
+        ...baseFlight,
+        offBlockTimeEpoch: '1784109600', // 2026-07-15T10:00:00Z
+        takeoffTimeEpoch: '1784109900',
+        landingTimeEpoch: '1784113500', // 60 min flight
+        onBlockTimeEpoch: '1784113800',
+      } as FlightLogMemberRequest,
+      insertUser,
+    )
+    const flightIdB = await insertFlightLog(
+      {
+        ...baseFlight,
+        offBlockTimeEpoch: '1784196000', // 2026-07-16T10:00:00Z
+        takeoffTimeEpoch: '1784196300',
+        landingTimeEpoch: '1784198100', // 30 min flight
+        onBlockTimeEpoch: '1784198400',
+      } as FlightLogMemberRequest,
+      insertUser,
+    )
+
+    const defect = await createDefect(
+      {
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        flightId: null,
+        description: 'fills the rest of page 502 plus all of page 504',
+        flightMins: 700405 + 60, // anchors to flightA (700465), not flightB
+        rows: 9,
+        blankRowsAfter: 0,
+      },
+      'Matti1',
+    )
+
+    try {
+      const result = await getFlightLogs({
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        page: 506,
+      })
+      expect(result.pageStartFlightMins).toEqual(700405 + 60)
+    } finally {
+      await db.deleteFrom('flight.defect').where('defect_id', '=', defect.defectId).execute()
+      await deleteFlightLog(flightIdA)
+      await deleteFlightLog(flightIdB)
+    }
+  })
+
+  it('getFlightLogs splits a note/defect that spans a page boundary across pageItemRows', async () => {
+    // OH-STL ajlb_seq_no 3's live region starts right after pob25a03 (cumulative
+    // 700405, the last row of page 500). flightA (60 min) becomes the sole flight
+    // on page 502 (row 1, absolute row 6). A defect anchored right after it, with
+    // rows: 2 + blankRowsAfter: 4 (6 rows total, absolute rows 7-12), only has 4
+    // rows of room left on page 502 (rows 2-5) -- its content row (the first of
+    // its own 6) lands there, but the remaining 2 rows must carry onto page 504
+    // as blank continuation, matching flight.vw_ajlb_live_rows' physical-row
+    // breakdown instead of either overflowing page 502 past 5 rows or dropping
+    // the carried-over rows entirely.
+    const flightIdA = await insertFlightLog(
+      {
+        aircraftRegistration: 'OH-STL',
+        picMemberId: 'Liisa1',
+        oilUpliftLitres: 1,
+        fuelUpliftLitres: 20,
+        personsOnBoard: 1,
+        numberOfLandings: 1,
+        numberOfNightLandings: 0,
+        departureAirport: 'EFHK',
+        arrivalAirport: 'EFHK',
+        flightType: FlightType.SCHOOL,
+        billingRemarks: null,
+        personalRemarks: 'pageItemRows split test',
+        picRole: 'PIC' as const,
+        crew2MemberId: null,
+        crew2Role: null,
+        crew3MemberId: null,
+        crew3Role: null,
+        crew4MemberId: null,
+        crew4Role: null,
+        fuelRemainingLitres: 20,
+        incidentOrObservations: null,
+        totalTimeInService: 1,
+        instrumentFlyingMins: 0,
+        nightFlyingMins: 0,
+        partiallyBillableFlight: false,
+        offBlockTimeEpoch: '1784282400', // 2026-07-17T10:00:00Z
+        takeoffTimeEpoch: '1784282700',
+        landingTimeEpoch: '1784286300', // 60 min flight
+        onBlockTimeEpoch: '1784286600',
+      } as FlightLogMemberRequest,
+      { memberId: 'Matti1', permissions: [MIKPermissions.FLIGHTLOG_USER] },
+    )
+
+    const defect = await createDefect(
+      {
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        flightId: null,
+        description: 'spans page 502 into page 504',
+        flightMins: 700405 + 60, // anchors right after flightA
+        rows: 2,
+        blankRowsAfter: 4,
+      },
+      'Matti1',
+    )
+
+    try {
+      const page502 = await getFlightLogs({
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        page: 502,
+      })
+      expect(page502.logs).toHaveLength(1)
+      expect(page502.pageItemRows).toEqual([
+        { rowNumber: 2, itemType: 'defect', itemId: defect.defectId, isContentRow: true },
+        { rowNumber: 3, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
+        { rowNumber: 4, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
+        { rowNumber: 5, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
+      ])
+
+      // Page 504 also picks up whatever real fixture flights land on the rows after
+      // the carried-over continuation (rows 3-5) -- irrelevant here, only the
+      // continuation's own row placement (rows 1-2) is under test.
+      const page504 = await getFlightLogs({
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        page: 504,
+      })
+      expect(page504.pageItemRows).toEqual([
+        { rowNumber: 1, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
+        { rowNumber: 2, itemType: 'defect', itemId: defect.defectId, isContentRow: false },
+      ])
+    } finally {
+      await db.deleteFrom('flight.defect').where('defect_id', '=', defect.defectId).execute()
+      await deleteFlightLog(flightIdA)
+    }
+  })
+
+  it('sorts an item recorded exactly at the baseline before the next live flight, not after', async () => {
+    // Mirrors the real bug: a pre-flight defect recorded with flightMins exactly
+    // equal to the baseline (i.e. found before any new flight has flown since the
+    // last validated one) must stay positioned before the chronologically-first
+    // live flight, not get anchored to (and printed after) it just because that
+    // flight's own ending total also happens to satisfy ">= flightMins". OH-STL
+    // ajlb_seq_no 3's validated_total_flight_mins (the true baseline) is 700000;
+    // its first live (NEW-status) fixture flight, pob25a01, starts exactly there.
+    const defect = await createDefect(
+      {
+        aircraftRegistration: 'OH-STL',
+        ajlbSeqNo: 3,
+        flightId: null,
+        description: 'found on the ramp before the earliest live flight',
+        flightMins: 700000,
+        rows: 1,
+        blankRowsAfter: 0,
+      },
+      'Matti1',
+    )
+
+    try {
+      const rows = await db
+        .selectFrom('flight.vw_ajlb_live_sequence')
+        .select(['item_type', 'item_id', 'ajlb_row_number'])
+        .where('aircraft_registration', '=', 'OH-STL')
+        .where('ajlb_seq_no', '=', 3)
+        .orderBy('ajlb_row_number')
+        .execute()
+
+      const defectRow = rows.find((r) => r.item_id === defect.defectId)
+      const firstFlightRow = rows.find((r) => r.item_type === 'flight')
+      expect(defectRow).toBeDefined()
+      expect(firstFlightRow).toBeDefined()
+      expect(Number(defectRow!.ajlb_row_number)).toBeLessThan(
+        Number(firstFlightRow!.ajlb_row_number),
+      )
+    } finally {
+      await db.deleteFrom('flight.defect').where('defect_id', '=', defect.defectId).execute()
     }
   })
 

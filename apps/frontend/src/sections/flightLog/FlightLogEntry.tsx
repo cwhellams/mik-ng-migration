@@ -84,6 +84,8 @@ import {
 import { MIKPermissions } from '@backend/routes/members/models'
 import { useOverlapCheck } from './useOverlapCheck'
 import { OverlapWarningDialog } from './components/OverlapWarningDialog'
+import { ReportDefectsSection } from './components/ReportDefectsSection'
+import { hasBlankReportedDefect, submitReportedDefects } from './reportDefectsApi'
 
 // Renders the guided mobile wizard for new entries on phone-width viewports (unless
 // the user opted into the classic form via the wizard's "Use full form instead" link);
@@ -243,6 +245,7 @@ const ClassicFlightLogEntry = () => {
     if (data) {
       reset(data)
       setProblem(undefined)
+      setReportedDefects([])
     }
   }, [data, reset])
 
@@ -343,6 +346,10 @@ const ClassicFlightLogEntry = () => {
 
   const [problem, setProblem] = useState<Problem | undefined>()
 
+  // Defects found on this flight, reported alongside the entry itself instead of via
+  // the old separate "Add in-flight defect" button on the logbook view -- see doSave.
+  const [reportedDefects, setReportedDefects] = useState<string[]>([])
+
   // DTO syllabus integration
   const billableMemberIdWatched = watch('billableMemberId')
   const [memberSyllabus, setMemberSyllabus] = useState<MemberSyllabusDetail | null>(null)
@@ -434,6 +441,9 @@ const ClassicFlightLogEntry = () => {
   const backLink = `/logs${location.state ?? ''}#${flightId}`
 
   const doSave = async (data: FlightLogUpsertRequest) => {
+    if (hasBlankReportedDefect(reportedDefects)) {
+      return setProblem({ status: 400, detail: t('flightLog.defects.blankDescriptionError') })
+    }
     try {
       const { data: savedFlight, error } = await mutation.trigger(
         isNew ? 'POST' : 'PATCH',
@@ -467,6 +477,14 @@ const ClassicFlightLogEntry = () => {
             /* non-fatal */
           })
         }
+      }
+
+      if (savedFlightId) {
+        await submitReportedDefects(savedFlightId, reportedDefects).catch((err) => {
+          // non-fatal: the flight log itself is already saved; the pilot can still
+          // report a missed defect separately via the standalone pre-flight dialog
+          console.error('Failed to submit reported defects:', err)
+        })
       }
 
       navigate(backLink)
@@ -939,6 +957,16 @@ const ClassicFlightLogEntry = () => {
                 }}
               />
             </Grid>
+
+            {/* Report Defects */}
+            {isEditable && (
+              <Grid size={12}>
+                <ReportDefectsSection
+                  descriptions={reportedDefects}
+                  onChange={setReportedDefects}
+                />
+              </Grid>
+            )}
 
             {/* Billing Information */}
             <Grid size={12}>

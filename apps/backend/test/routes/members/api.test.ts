@@ -551,12 +551,14 @@ describe('GET /members/roles', () => {
       'events.admin',
       'expense.user',
       'expense.admin',
+      'expense.hetu_admin',
       'inventory.user',
       'inventory.admin',
       'ame.user',
       'ame.admin',
       'meeting.user',
       'meeting.admin',
+      'camo.user',
     ])
     expect(roles.map(({ roleId, permissions }) => ({ roleId, permissions }))).toEqual([
       {
@@ -580,6 +582,7 @@ describe('GET /members/roles', () => {
         ],
         roleId: 'ADMIN',
       },
+      { permissions: ['camo.user'], roleId: 'CAMO' },
       {
         permissions: [
           'member.admin',
@@ -597,6 +600,7 @@ describe('GET /members/roles', () => {
           'events.admin',
           'expense.admin',
           'inventory.admin',
+          'expense.hetu_admin',
         ],
         roleId: 'CHAIRMAN',
       },

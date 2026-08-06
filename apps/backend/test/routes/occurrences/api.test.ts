@@ -424,6 +424,57 @@ describe('POST /occurrences/status', () => {
 
     expect(response.status).toEqual(401)
   })
+
+  describe('POST /occurrences/:reportId/camo', () => {
+    const createEligibleAnonymizedOccurrence = async () => {
+      const created = await post('', { ...data, aircraftTechnicalFault: true }, userToken)
+      expect(created.status).toEqual(200)
+
+      const originalId = created.body.id as string
+      const received = await post(`/${originalId}/status/RECEIVED`, {}, processorToken)
+      expect(received.status).toEqual(200)
+
+      const anonymizingId = received.body.id as string
+      const anonymized = await post(`/${anonymizingId}/status/ANONYMIZED`, {}, processorToken)
+      expect(anonymized.status).toEqual(200)
+
+      return anonymized.body.id as string
+    }
+
+    it('shares an eligible occurrence with CAMO', async () => {
+      const reportId = await createEligibleAnonymizedOccurrence()
+      const response = await post(`/${reportId}/camo`, {}, managerToken)
+
+      expect(response.status).toEqual(200)
+      expect(response.body.access).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            roleId: 'CAMO',
+            write: true,
+            manage: false,
+            author: false,
+          }),
+        ]),
+      )
+    })
+
+    it('returns 409 when occurrence has already been shared with CAMO', async () => {
+      const reportId = await createEligibleAnonymizedOccurrence()
+
+      const firstResponse = await post(`/${reportId}/camo`, {}, managerToken)
+      expect(firstResponse.status).toEqual(200)
+
+      const secondResponse = await post(`/${reportId}/camo`, {}, managerToken)
+      expect(secondResponse.status).toEqual(409)
+      expect(secondResponse.body).toEqual({
+        detail: 'Report has already been shared with CAMO',
+        instance: `/occurrences/${reportId}/camo`,
+        status: 409,
+        timestamp: expect.any(String),
+        title: 'Conflict',
+      })
+    })
+  })
   it('Return 401 if invalid token', async () => {
     const response = await post('/occurrences/SMS1_NEW/status/DELETED', {}, 'invalid_token')
     expect(response.status).toEqual(401)

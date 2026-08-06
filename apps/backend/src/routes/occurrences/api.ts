@@ -38,6 +38,7 @@ import { problem } from '../response.ts'
 import dayjs from 'dayjs'
 
 import { sendOccurrenceNotification } from '../../templates/occurrenceNotification.ts'
+import { sendCamoNotification } from '../../templates/camoNotification.ts'
 import { sendEmail } from '../../lib/sendGmail.ts'
 import { getMemberRolesByPermission } from '../../db/member-queries.ts'
 import { storageService } from '../../services/storage.ts'
@@ -51,6 +52,9 @@ const OCCURRENCE_ATTACHMENT_BUCKET =
   (process.env.NODE_ENV === 'production'
     ? 'mik-occurrence-attachments'
     : 'mik-occurrence-attachments-test')
+
+// role_id of the dedicated CAMO role, created in V1690__AddCamoRole.sql
+const CAMO_ROLE_ID = 'CAMO'
 
 const MAX_ATTACHMENT_UPLOAD_BYTES = 10 * 1024 * 1024 // 10 MB — raw upload limit before compression
 const MAX_ATTACHMENT_BYTES = 1 * 1024 * 1024 // 1 MB — post-compression image limit
@@ -113,6 +117,7 @@ router.use(
     MIKPermissions.FLIGHTLOG_ADMIN,
     MIKPermissions.SMS_MANAGER,
     MIKPermissions.SMS_PROCESSOR,
+    MIKPermissions.CAMO_USER,
   ),
 )
 
@@ -361,6 +366,7 @@ router.post(
     MIKPermissions.FLIGHTLOG_USER,
     MIKPermissions.FLIGHTLOG_ADMIN,
     MIKPermissions.SMS_MANAGER,
+    MIKPermissions.CAMO_USER,
   ),
   async (req: Request<{ reportId: string }>, res: Response<Occurrence>) => {
     const { reportId } = req.params
@@ -390,6 +396,69 @@ router.post(
       req.user!,
     )
     res.status(200).json(anonymize(updated, req.user!))
+  },
+)
+
+// SMS processor/manager decides to share an occurrence with CAMO once it has
+// been anonymized and involves an aircraft technical fault. Idempotent: the
+// unique_report_role constraint plus this pre-check stop the email/access
+// from being granted twice.
+router.post(
+  '/:reportId/camo',
+  validateUser(MIKPermissions.SMS_MANAGER, MIKPermissions.SMS_PROCESSOR),
+  async (req: Request<{ reportId: string }>, res: Response<Occurrence>) => {
+    const { reportId } = req.params
+
+    const occurrence = await getOccurrence(reportId, accessFilters(req.user!), 'manage')
+    if (!occurrence) {
+      return problem({ status: 404, detail: 'Report not found' })
+    }
+    if (occurrence.status !== OccurrenceStatus.ANONYMIZED || !occurrence.aircraftTechnicalFault) {
+      return problem({
+        status: 400,
+        detail: 'Report is not eligible to be shared with CAMO',
+      })
+    }
+    const camoRoles = await getMemberRolesByPermission(MIKPermissions.CAMO_USER)
+    if (camoRoles.length === 0) {
+      return problem({ status: 400, detail: 'No CAMO role is configured' })
+    }
+    const camoRoleIds = new Set([CAMO_ROLE_ID, ...camoRoles.map((role) => role.roleId)])
+    if (occurrence.access.some((access) => access.roleId && camoRoleIds.has(access.roleId))) {
+      return problem({ status: 409, detail: 'Report has already been shared with CAMO' })
+    }
+
+    let newAccess: OccurrenceAccess[]
+    try {
+      newAccess = await addOccurrenceAccess(
+        occurrence.id,
+        req.user!,
+        undefined,
+        // CAMO can view and comment, but not edit or manage the report
+        ...camoRoles.map((role) => ({
+          roleId: role.roleId,
+          author: false,
+          write: true,
+          manage: false,
+        })),
+      )
+    } catch (error: any) {
+      // pre-check above is not race-safe against concurrent requests; fall back to
+      // the unique_report_role constraint to still fail gracefully instead of 500ing
+      if (error.code === '23505') {
+        return problem({ status: 409, detail: 'Report has already been shared with CAMO' })
+      }
+      throw error
+    }
+
+    const shared = anonymize(
+      { ...occurrence, access: [...occurrence.access, ...newAccess] },
+      req.user!,
+    )
+
+    await sendCamoNotification(sendEmail, [...camoRoleIds], shared)
+
+    res.status(200).json(shared)
   },
 )
 

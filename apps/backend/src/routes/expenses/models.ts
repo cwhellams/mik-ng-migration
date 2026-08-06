@@ -72,6 +72,11 @@ export const ExpenseLineItemSchema = z.object({
   quantity: z.number().positive(),
   unit: z.enum(['pcs', 'km', 'l', 'h']).default('pcs'),
   unitPrice: z.number().min(0),
+  // The user-entered total for this line (e.g. total fuel cost paid), persisted alongside
+  // unitPrice so it round-trips exactly on reload instead of being reconstructed as
+  // quantity * unitPrice, which drifts once unitPrice is rounded to its stored precision
+  // (issue #1024).
+  totalCost: z.number().min(0).nullable().optional(),
   sortOrder: z.number().int().default(0),
   costCentreCode: z.string().max(50).nullable().optional(),
   fuelType: z.enum(FUEL_TYPES).optional(),
@@ -186,3 +191,39 @@ export const RequestInfoSchema = z.object({
 export const OverrideFuelPriceSchema = z.object({
   efnuPrice: z.number().positive(),
 })
+
+// ─── HETU reveal (issue #1022) ───────────────────────────────────────────────
+
+export const RevealHetuResponseSchema = z.object({
+  hetu: z.string(),
+})
+export type RevealHetuResponse = z.infer<typeof RevealHetuResponseSchema>
+
+// ─── Tulorekisteri mileage report (issue #1022) ──────────────────────────────
+// Never includes HETU — the report is a worklist; HETU is only available via the
+// per-claim reveal endpoint above.
+
+export const MileageReportFiltersSchema = z.object({
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+})
+export type MileageReportFilters = z.infer<typeof MileageReportFiltersSchema>
+
+export const MileageReportRowSchema = z.object({
+  claimId: z.string().guid(),
+  memberId: z.string(),
+  memberName: z.string(),
+  journeyDate: z.string(),
+  route: z.string(),
+  distanceKm: z.number(),
+  ratePerKm: z.number(),
+  totalAmount: z.number(),
+  approvedAt: z.string().nullable(),
+})
+export type MileageReportRow = z.infer<typeof MileageReportRowSchema>
+
+export const MileageReportResponseSchema = z.object({
+  data: z.array(MileageReportRowSchema),
+  filters: MileageReportFiltersSchema,
+})
+export type MileageReportResponse = z.infer<typeof MileageReportResponseSchema>

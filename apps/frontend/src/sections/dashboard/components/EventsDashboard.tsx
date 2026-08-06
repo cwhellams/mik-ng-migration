@@ -24,21 +24,24 @@ import { RemoteContent } from '../../../components/RemoteContent'
 import type { ClubEvent, EventListResponse } from '@backend/routes/events/models'
 import { downloadEventIcs, generateEventGoogleCalendarLink } from '../../../utils/eventCalendar'
 import { getEventDisplayText } from '../../events/eventLanguage'
+import { useTimezone } from '../../../hooks/useTimezone'
 
 const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
   const { t, i18n } = useTranslation()
+  const { formatDateCustom, formatTime, timezoneOffset } = useTimezone()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const menuOpen = Boolean(anchorEl)
 
   const start = dayjs(event.startTime)
   const end = dayjs(event.endTime)
-  const isMultiDay = !start.isSame(end, 'day')
+  const isMultiDay = formatDateCustom(start, 'YYYY-MM-DD') !== formatDateCustom(end, 'YYYY-MM-DD')
   const isPast = end.isBefore(dayjs())
   const { title } = getEventDisplayText(event, i18n.language)
 
   const dateLabel = isMultiDay
-    ? `${start.format('D.M.YYYY HH:mm')} – ${end.format('D.M.YYYY HH:mm')}`
-    : `${start.format('D.M.YYYY')} ${start.format('HH:mm')} – ${end.format('HH:mm')}`
+    ? `${formatDateCustom(start, 'D.M.YYYY HH:mm')} – ${formatDateCustom(end, 'D.M.YYYY HH:mm')}`
+    : `${formatDateCustom(start, 'D.M.YYYY')} ${formatTime(start.toDate())} – ${formatTime(end.toDate())}`
+  const tzLabel = timezoneOffset(start.toDate())
 
   return (
     <Box sx={{ opacity: isPast ? 0.65 : 1 }}>
@@ -104,7 +107,7 @@ const DashboardEventItem = ({ event }: { event: ClubEvent }) => {
                 color: 'text.secondary',
               }}
             >
-              {dateLabel}
+              {dateLabel} ({tzLabel})
             </Typography>
           </Stack>
 

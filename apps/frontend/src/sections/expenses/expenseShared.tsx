@@ -47,6 +47,30 @@ export function validateIban(raw: string): boolean {
   return remainder === 1
 }
 
+// ─── HETU validation (Finnish personal identity code checksum) ────────────────
+
+const HETU_CHECK_CHARACTERS = '0123456789ABCDEFHJKLMNPRSTUVWXY'
+const HETU_CENTURY_BASE_YEAR: Record<string, number> = { '+': 1800, '-': 1900, A: 2000 }
+
+export function validateHetu(raw: string): boolean {
+  const hetu = raw.trim().toUpperCase()
+  const match = /^(\d{2})(\d{2})(\d{2})([+\-A])(\d{3})([0-9A-Z])$/.exec(hetu)
+  if (!match) return false
+  const [, day, month, yearOfCentury, centurySign, individualNumber, checkChar] = match
+
+  const centuryBase = HETU_CENTURY_BASE_YEAR[centurySign]
+  const year = centuryBase + Number(yearOfCentury)
+  const date = new Date(year, Number(month) - 1, Number(day))
+  const isRealDate =
+    date.getFullYear() === year &&
+    date.getMonth() === Number(month) - 1 &&
+    date.getDate() === Number(day)
+  if (!isRealDate) return false
+
+  const digits = Number(`${day}${month}${yearOfCentury}${individualNumber}`)
+  return HETU_CHECK_CHARACTERS[digits % 31] === checkChar
+}
+
 // ─── Unit defaults ────────────────────────────────────────────────────────────
 
 export function defaultUnitForCategory(code: string | undefined): ExpenseLineItem['unit'] {
@@ -221,9 +245,6 @@ export function LineItemsTable({
   const { t } = useTranslation()
   const isNonEur = (claimCurrency ?? 'EUR') !== 'EUR'
   const [touched, setTouched] = useState<Set<string>>(new Set())
-  // Total cost as typed by the member for fuel lines — kept separate from the
-  // derived unitPrice so the field doesn't jump around while typing.
-  const [rawTotals, setRawTotals] = useState<Record<number, number>>({})
 
   const { data: airfieldData } = useApi<AirfieldListResponse>(
     { url: 'v1/flight-logs/airfields', skipFetch: !isFuel },
@@ -237,10 +258,12 @@ export function LineItemsTable({
   const update = (idx: number, patch: Partial<EditableLineItem>) =>
     onChange(items.map((li, i) => (i === idx ? { ...li, ...patch } : li)))
 
+  // The total cost is persisted alongside the derived unitPrice (issue #1024) so it
+  // round-trips exactly on reload instead of being reconstructed as quantity * unitPrice,
+  // which drifts once unitPrice is rounded to its stored precision.
   const applyTotalCost = (idx: number, totalCost: number, quantity: number) => {
-    setRawTotals((prev) => ({ ...prev, [idx]: totalCost }))
     const unitPrice = quantity > 0 ? totalCost / quantity : 0
-    update(idx, { unitPrice })
+    update(idx, { totalCost, unitPrice })
   }
 
   return (
@@ -329,12 +352,12 @@ export function LineItemsTable({
         <TableBody>
           {items.map((item, idx) => {
             const lineTotal = item.quantity * item.unitPrice
+            const displayedTotalCost = item.totalCost ?? lineTotal
             const eurTotal = isNonEur
               ? claimFxRate != null
-                ? lineTotal * claimFxRate
+                ? displayedTotalCost * claimFxRate
                 : null
-              : lineTotal
-            const displayedTotalCost = rawTotals[idx] ?? lineTotal
+              : displayedTotalCost
 
             return (
               <TableRow key={idx}>
@@ -414,6 +437,7 @@ export function LineItemsTable({
                       if (isFuel) {
                         update(idx, {
                           quantity,
+                          totalCost: displayedTotalCost,
                           unitPrice: quantity > 0 ? displayedTotalCost / quantity : 0,
                         })
                       } else {
