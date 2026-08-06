@@ -23,6 +23,10 @@ import {
   emailChangeVerifySubject,
   type EmailChangeVerifyVars,
 } from '../../src/templates/emailChangeVerifyTemplate.ts'
+import { expenseApprovedEmailTemplate } from '../../src/templates/expenseApprovedEmailTemplate.ts'
+import { expenseRejectedEmailTemplate } from '../../src/templates/expenseRejectedEmailTemplate.ts'
+import { expenseRequestInfoEmailTemplate } from '../../src/templates/expenseRequestInfoEmailTemplate.ts'
+import { expenseSetToDraftEmailTemplate } from '../../src/templates/expenseSetToDraftEmailTemplate.ts'
 
 describe('Login Email template tests', () => {
   const loginVars: LoginVars = {
@@ -247,5 +251,71 @@ describe('Email change verify template tests', () => {
   it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])('emailChangeVerifySubject for lang: %s', (lang) => {
     const result = emailChangeVerifySubject(lang)
     expect(result).toMatchSnapshot()
+  })
+})
+
+describe('Expense claim email template tests', () => {
+  const expenseVars = {
+    memberName: 'Tester1',
+    claimTitle: 'Fuel receipt',
+    claimUrl: 'https://example.com/expenses/123',
+  }
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
+    'expenseApprovedEmailTemplate for lang: %s',
+    (lang) => {
+      const result = expenseApprovedEmailTemplate(lang, expenseVars)
+      expect(result).toMatchSnapshot()
+    },
+  )
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
+    'expenseRejectedEmailTemplate for lang: %s',
+    (lang) => {
+      const result = expenseRejectedEmailTemplate(lang, {
+        ...expenseVars,
+        rejectionReason: 'Missing receipt',
+      })
+      expect(result).toMatchSnapshot()
+    },
+  )
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
+    'expenseRequestInfoEmailTemplate for lang: %s',
+    (lang) => {
+      const result = expenseRequestInfoEmailTemplate(lang, {
+        ...expenseVars,
+        adminMessage: 'Please attach the original receipt',
+      })
+      expect(result).toMatchSnapshot()
+    },
+  )
+
+  it.each([MIKLang.FI, MIKLang.EN, MIKLang.SV])(
+    'expenseSetToDraftEmailTemplate for lang: %s',
+    (lang) => {
+      const result = expenseSetToDraftEmailTemplate(lang, expenseVars)
+      expect(result).toMatchSnapshot()
+    },
+  )
+})
+
+describe('Responsive email wrapper', () => {
+  // Explicit (non-snapshot) assertions so a future refactor can't silently
+  // drop the mobile viewport fix without a snapshot update masking it.
+  const html = expenseApprovedEmailTemplate(MIKLang.EN, {
+    memberName: 'Tester1',
+    claimTitle: 'Fuel receipt',
+    claimUrl: 'https://example.com/expenses/123',
+  }).html
+
+  it('includes a viewport meta tag', () => {
+    expect(html).toContain(
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+    )
+  })
+
+  it('includes a mobile media query', () => {
+    expect(html).toMatch(/@media only screen and \(max-width: 600px\)/)
   })
 })

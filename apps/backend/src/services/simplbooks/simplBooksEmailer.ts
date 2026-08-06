@@ -181,29 +181,33 @@ function buildItemsTableHtml(rows: TaskRow[], lang: string): string | undefined 
         ? { description: 'Beskrivning', qty: 'Antal', unitPrice: 'À-pris', total: 'Totalt' }
         : { description: 'Description', qty: 'Qty', unitPrice: 'Unit price', total: 'Total' }
 
-  const rowsHtml = rows
-    .map((row) => {
-      const name = escapeHtml(row.name ?? '')
-      const contents = row.contents
-        ? `<br><small style="color:#666">${escapeHtml(row.contents)}</small>`
+  const items = rows.map((row) => {
+    const name = escapeHtml(row.name ?? '')
+    const contents = row.contents
+      ? `<br><small style="color:#666">${escapeHtml(row.contents)}</small>`
+      : ''
+    const qty = row.amount != null ? String(row.amount) : ''
+    const unit = row.unit ? escapeHtml(row.unit) : ''
+    const unitPrice = row.price_per_unit != null ? Number(row.price_per_unit).toFixed(2) : ''
+    const lineTotal =
+      row.amount != null && row.price_per_unit != null
+        ? (row.amount * row.price_per_unit * (1 - (row.discount ?? 0) / 100)).toFixed(2)
         : ''
-      const qty = row.amount != null ? String(row.amount) : ''
-      const unit = row.unit ? escapeHtml(row.unit) : ''
-      const unitPrice = row.price_per_unit != null ? Number(row.price_per_unit).toFixed(2) : ''
-      const lineTotal =
-        row.amount != null && row.price_per_unit != null
-          ? (row.amount * row.price_per_unit * (1 - (row.discount ?? 0) / 100)).toFixed(2)
-          : ''
-      return `<tr>
+    return { name, contents, qty, unit, unitPrice, lineTotal }
+  })
+
+  const rowsHtml = items
+    .map(
+      ({ name, contents, qty, unit, unitPrice, lineTotal }) => `<tr>
           <td style="padding:6px 8px;border-bottom:1px solid #eee">${name}${contents}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap">${qty}${unit ? `&nbsp;${unit}` : ''}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap">${unitPrice ? `€${unitPrice}` : ''}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;font-weight:bold">${lineTotal ? `€${lineTotal}` : ''}</td>
-        </tr>`
-    })
+          <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right">${qty}${unit ? `&nbsp;${unit}` : ''}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right">${unitPrice ? `€${unitPrice}` : ''}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;font-weight:bold">${lineTotal ? `€${lineTotal}` : ''}</td>
+        </tr>`,
+    )
     .join('')
 
-  return `<table style="width:100%;border-collapse:collapse;font-size:0.9em;margin:16px 0">
+  const desktopTable = `<table class="items-table-desktop" style="width:100%;border-collapse:collapse;font-size:0.9em;margin:16px 0">
       <thead>
         <tr style="background:#f5f5f5">
           <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #ddd">${headers.description}</th>
@@ -214,6 +218,33 @@ function buildItemsTableHtml(rows: TaskRow[], lang: string): string | undefined 
       </thead>
       <tbody>${rowsHtml}</tbody>
     </table>`
+
+  // Card-stacking layout shown only on narrow screens (see .items-table-mobile
+  // media query in emailTemplate.ts) — a 4-column table can't reflow legibly
+  // on a phone, so each row becomes a labeled block instead.
+  const cardsHtml = items
+    .map(
+      ({
+        name,
+        contents,
+        qty,
+        unit,
+        unitPrice,
+        lineTotal,
+      }) => `<div style="padding:10px 0;border-bottom:1px solid #eee">
+          <div style="font-weight:bold">${name}${contents}</div>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:0.9em;color:#333">
+            <span>${headers.qty}: ${qty}${unit ? `&nbsp;${unit}` : ''}</span>
+            <span>${headers.unitPrice}: ${unitPrice ? `€${unitPrice}` : ''}</span>
+          </div>
+          <div style="text-align:right;font-weight:bold;margin-top:4px">${headers.total}: ${lineTotal ? `€${lineTotal}` : ''}</div>
+        </div>`,
+    )
+    .join('')
+
+  const mobileCards = `<div class="items-table-mobile" style="display:none;margin:16px 0;font-size:0.9em">${cardsHtml}</div>`
+
+  return desktopTable + mobileCards
 }
 
 // ─── Dry-run invoice email ─────────────────────────────────────────────────────
