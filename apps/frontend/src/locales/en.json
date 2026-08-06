@@ -1805,7 +1805,8 @@
       "addedLater": "Added later",
       "open": "Open",
       "invalidType": "Only JPEG, PNG or WEBP images are accepted.",
-      "tooLarge": "File is too large (max 10 MB)."
+      "tooLarge": "File is too large (max 10 MB).",
+      "none": "No attachments."
     },
     "actions": {
       "receive": "Mark Received and Create Copy for Anonymization",

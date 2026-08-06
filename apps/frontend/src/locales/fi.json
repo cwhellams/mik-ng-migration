@@ -1812,7 +1812,8 @@
       "addedLater": "Lisätty myöhemmin",
       "open": "Avaa",
       "invalidType": "Vain JPEG-, PNG- tai WEBP-kuvat hyväksytään.",
-      "tooLarge": "Tiedosto on liian suuri (enintään 10 Mt)."
+      "tooLarge": "Tiedosto on liian suuri (enintään 10 Mt).",
+      "none": "Ei liitteitä."
     },
     "actions": {
       "receive": "Merkitse vastaanotetuksi ja luo kopio anonymisointia varten",

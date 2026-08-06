@@ -1813,7 +1813,8 @@
       "addedLater": "Tillagd senare",
       "open": "Öppna",
       "invalidType": "Endast JPEG-, PNG- eller WEBP-bilder accepteras.",
-      "tooLarge": "Filen är för stor (max 10 MB)."
+      "tooLarge": "Filen är för stor (max 10 MB).",
+      "none": "Inga bilagor."
     },
     "actions": {
       "receive": "Markera som mottagen och skapa kopia för anonymisering",
