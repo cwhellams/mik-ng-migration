@@ -24,6 +24,7 @@ import LogoutSuccess from './sections/login/LogoutSuccess'
 import NotFound from './sections/error/NotFound'
 import Member from './sections/members/Member'
 import EmailChangeVerify from './sections/members/EmailChangeVerify'
+import Mailbox from './sections/mailbox/Mailbox'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import Roles from './sections/members/Roles'
@@ -214,6 +215,7 @@ function App() {
                 <Route path='meetings' element={<MeetingPage />} />
               </Route>
               <Route path='/profile/email-change/verify' element={<EmailChangeVerify />} />
+              <Route path='/mailbox' element={<Mailbox />} />
               <Route path='/expenses'>
                 <Route index element={<ExpensesList />} />
                 <Route path='new' element={<ExpenseClaimWizard />} />

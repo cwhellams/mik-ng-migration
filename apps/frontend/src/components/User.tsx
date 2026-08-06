@@ -1,10 +1,20 @@
-import { Box, Button, Typography, Menu, MenuItem, ListItemIcon, Divider } from '@mui/material'
+import {
+  Badge,
+  Box,
+  Button,
+  Typography,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  Divider,
+} from '@mui/material'
 import { Link, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { Icon } from '@iconify/react'
 import { useAuth } from '../hooks/useAuth'
 import { useMe } from '../hooks/useMe'
+import { useMailboxUnreadCount } from '../hooks/useMailbox'
 import UserAvatar from '../sections/members/components/UserAvatar'
 import useApi from '../hooks/useApi'
 import { Member, MIKLang } from '@backend/routes/members/models'
@@ -18,6 +28,7 @@ const User = () => {
   const open = Boolean(anchorEl)
 
   const { me, isLoading, mutate } = useMe()
+  const { unreadCount } = useMailboxUnreadCount({ enabled: !!me })
 
   const { timezone, setTimezone } = useTimezone()
 
@@ -116,6 +127,14 @@ const User = () => {
                 <Icon icon='mdi:account' fontSize={20} />
               </ListItemIcon>
               {t('header.profile')}
+            </MenuItem>
+            <MenuItem component={Link} to='/mailbox'>
+              <ListItemIcon>
+                <Badge badgeContent={unreadCount || undefined} color='primary'>
+                  <Icon icon='mdi:email-outline' fontSize={20} />
+                </Badge>
+              </ListItemIcon>
+              {t('header.mailbox')}
             </MenuItem>
             <MenuItem component={Link} to='/expenses'>
               <ListItemIcon>

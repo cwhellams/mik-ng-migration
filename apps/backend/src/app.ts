@@ -43,6 +43,7 @@ import { router as fuelPricesRoutes } from './routes/fuel-prices/api.ts'
 import { router as notificationBannerRoutes } from './routes/notification-banner/api.ts'
 import { router as configRoutes } from './routes/config/api.ts'
 import { router as pushRoutes } from './routes/push/api.ts'
+import { router as mailboxRoutes } from './routes/mailbox/api.ts'
 import { router as dtoRoutes } from './routes/dto/api.ts'
 import { router as eventRoutes } from './routes/events/api.ts'
 import { router as expenseRoutes } from './routes/expenses/api.ts'
@@ -72,6 +73,7 @@ import { startTinyUrlCleanupWorker } from './workers/tinyUrlCleanupWorker.ts'
 import { startAircraftDocumentExpiryWorker } from './workers/aircraftDocumentExpiryWorker.ts'
 import { startPushNotificationWorker } from './workers/pushNotificationWorker.ts'
 import { startMileageHetuPurgeWorker } from './workers/mileageHetuPurgeWorker.ts'
+import { startMailboxCleanupWorker } from './workers/mailboxCleanupWorker.ts'
 
 const app = express()
 const PORT = process.env.BACKEND_PORT ?? 3000
@@ -93,8 +95,8 @@ app.use(helmet()) // Secure headers
 // (httpOnly cookies) as required by the CORS spec.
 const rawOrigins = process.env.CORS_ALLOWED_ORIGINS
   ? process.env.CORS_ALLOWED_ORIGINS.split(',')
-      .map((origin) => origin.trim())
-      .filter((origin) => origin.length > 0 && origin !== '*')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0 && origin !== '*')
   : []
 
 let corsOrigins: string[]
@@ -103,7 +105,7 @@ if (rawOrigins.length === 0) {
   if (process.env.NODE_ENV === 'production') {
     logger.error(
       'CORS_ALLOWED_ORIGINS is not configured — cross-origin requests will be rejected. ' +
-        'Set it to your frontend origin (e.g. https://intra.mik.fi).',
+      'Set it to your frontend origin (e.g. https://intra.mik.fi).',
     )
     corsOrigins = []
   } else {
@@ -185,6 +187,7 @@ app.use('/api/v1/notification-banner', notificationBannerRoutes)
 app.use('/api/v1/instructor-qualifications', instructorQualificationRoutes)
 app.use('/api/v1/config', configRoutes)
 app.use('/api/v1/push', pushRoutes)
+app.use('/api/v1/mailbox', mailboxRoutes)
 app.use('/api/v1/dto', dtoRoutes)
 app.use('/api/v1/events', eventRoutes)
 app.use('/api/v1/expenses', expenseRoutes)
@@ -215,6 +218,7 @@ const tinyUrlCleanupWorker = startTinyUrlCleanupWorker()
 const aircraftDocumentExpiryWorker = startAircraftDocumentExpiryWorker()
 const pushNotificationWorker = startPushNotificationWorker()
 const mileageHetuPurgeWorker = startMileageHetuPurgeWorker()
+const mailboxCleanupWorker = startMailboxCleanupWorker()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
@@ -245,6 +249,7 @@ const shutdown = async (): Promise<void> => {
   aircraftDocumentExpiryWorker?.stop()
   pushNotificationWorker?.stop()
   mileageHetuPurgeWorker?.stop()
+  mailboxCleanupWorker?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)
