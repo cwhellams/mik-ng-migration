@@ -1308,8 +1308,11 @@
     "defects": {
       "addPreFlightButton": "Kirjaa vika",
       "addPreFlightTitle": "Uusi vikamerkintä (ennen lentoa)",
-      "addInFlightButton": "Kirjaa lennon aikainen vika",
       "addInFlightTitle": "Uusi vikamerkintä (lennon aikainen)",
+      "reportSectionTitle": "Ilmoita viat",
+      "reportSectionNote": "Jos havaitsit lennon aikana vikoja, kuvaile jokainen alla. Jokaisesta viasta on lisäksi ilmoitettava suoraan kalustovastaavalle puhelimitse — älä luota pelkkään tähän merkintään.",
+      "addDefectRow": "Lisää vika",
+      "blankDescriptionError": "Vian kuvaus ei voi olla tyhjä",
       "viewTitle": "Vikamerkintä",
       "description": "Kuvaus",
       "flightTime": "Lentokoneen kokonaislentoaika",

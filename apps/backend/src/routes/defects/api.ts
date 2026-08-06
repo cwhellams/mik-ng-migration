@@ -27,10 +27,19 @@ router.get('/', async (req: Request, res: Response<Defect[]>) => {
 router.post('/', async (req: Request, res: Response<Defect>) => {
   const data = CreateDefectSchema.parse(req.body)
   const baseline = await getAjlbLiveBaselineFlightMins(data.aircraftRegistration, data.ajlbSeqNo)
-  if (data.flightMins <= baseline) {
+  const isInFlight = data.flightId != null
+  // In-flight defects are tied to one specific, already-recorded flight, so that flight
+  // must still be unvalidated (strictly after the frozen baseline) -- you can't retroactively
+  // add a defect to a flight that's already been validated. Pre-flight defects aren't tied to
+  // any flight and describe "right now", so their time may legitimately equal the baseline
+  // exactly (e.g. found on the ramp before any new flight has flown since the last one).
+  const rejected = isInFlight ? data.flightMins <= baseline : data.flightMins < baseline
+  if (rejected) {
     return problem({
       status: 400,
-      detail: 'flightMins must be after the last validated flight for this logbook',
+      detail: isInFlight
+        ? 'This flight has already been validated, so a defect can no longer be added to it'
+        : "This time can't be earlier than the logbook's last validated flight",
     })
   }
   const defect = await createDefect(data, req.user!.memberId!)
@@ -49,11 +58,22 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response<Defect>)
   const defect = await getDefect(id)
   if (!defect) return problem({ status: 404, detail: 'Defect not found' })
 
-  // rows isn't PATCH-able for defects (create-only, like flightId/flightMins),
-  // so blankRowsAfter must be checked against the defect's already-persisted
-  // rows value here -- a rows: 0 defect (e.g. an in-flight chip) can never
-  // have blank spacer rows, per the DB's zero-rows-no-blank check constraint.
-  if (data.blankRowsAfter !== undefined && data.blankRowsAfter > 0 && defect.rows === 0) {
+  // An in-flight defect (flightId set) is always an inline chip anchored to that flight
+  // by id, not by position -- rows is fixed at 0 for it, like flightId/flightMins.
+  // Only a pre-flight defect's row count can be corrected after creation.
+  if (data.rows !== undefined && defect.flightId != null) {
+    return problem({
+      status: 400,
+      detail: 'rows cannot be changed for an in-flight defect',
+    })
+  }
+
+  // A partial update (e.g. blankRowsAfter alone) must be checked against the defect's
+  // already-persisted value for whichever field it didn't touch, or it can pass
+  // validation here yet still violate the DB's zero-rows-no-blank check constraint.
+  const effectiveRows = data.rows ?? defect.rows
+  const effectiveBlankRowsAfter = data.blankRowsAfter ?? defect.blankRowsAfter
+  if (effectiveRows === 0 && effectiveBlankRowsAfter > 0) {
     return problem({
       status: 400,
       detail: 'blankRowsAfter must be 0 when rows is 0',

@@ -22,6 +22,7 @@ import {
   type FlightLogExportEntry,
   type FlightLogOverlapConflict,
   type FlightLogOverlapQuery,
+  type PageItemRow,
 } from '../routes/flight-log/models.ts'
 import type { MIKPermissions } from '../routes/members/models.ts'
 import { generateShortId } from '../util/nanoId.ts'
@@ -30,6 +31,7 @@ import {
   sql,
   type ExpressionBuilder,
   type Selectable,
+  type SqlBool,
   type StringReference,
   type UpdateObject,
 } from 'kysely'
@@ -181,10 +183,13 @@ export async function getFlightLogPageForMins(
 /**
  * The frozen baseline flight_mins for an ajlb: the last VALIDATED flight's
  * total flight mins, or the ajlb's start_flight_mins if nothing has been
- * validated yet. Maintenance notes and defects may only be positioned
- * strictly after this value -- anything at or before it belongs to an
- * already-frozen, immutable page (see flight.vw_ajlb_live_sequence, which
- * only reflows notes/defects past this same boundary).
+ * validated yet. Maintenance notes and pre-flight defects (not tied to a
+ * specific flight) may be positioned at or after this value -- they describe
+ * "right now" and may legitimately match it exactly. In-flight defects (tied
+ * to a specific flight) must be strictly after it, since that flight itself
+ * must still be unvalidated. Anything strictly before the baseline belongs to
+ * an already-frozen, immutable page (see flight.vw_ajlb_live_sequence, which
+ * only reflows notes/defects at or past this same boundary).
  */
 export async function getAjlbLiveBaselineFlightMins(
   aircraftRegistration: string,
@@ -198,6 +203,33 @@ export async function getAjlbLiveBaselineFlightMins(
     .executeTakeFirst()
 
   return row?.validated_total_flight_mins ?? 0
+}
+
+/**
+ * Exact physical-row placement of own-row (rows > 0) notes/defects on one ajlb page,
+ * from flight.vw_ajlb_live_rows -- see that view for why this can't be derived
+ * client-side from flightMins alone (an item's rows can straddle a page boundary).
+ */
+export async function getAjlbPageItemRows(
+  aircraftRegistration: string,
+  ajlbSeqNo: number,
+  page: number,
+): Promise<PageItemRow[]> {
+  const rows = await db
+    .selectFrom('flight.vw_ajlb_live_rows')
+    .select(['row_number', 'item_type', 'item_id', 'is_content_row'])
+    .where('aircraft_registration', '=', aircraftRegistration)
+    .where('ajlb_seq_no', '=', ajlbSeqNo)
+    .where('page_number', '=', page)
+    .orderBy('row_number')
+    .execute()
+
+  return rows.map((row) => ({
+    rowNumber: row.row_number!,
+    itemType: row.item_type as 'note' | 'defect',
+    itemId: row.item_id!,
+    isContentRow: row.is_content_row!,
+  }))
 }
 
 export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLogListResponse> {
@@ -307,6 +339,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       'totals.row_number',
       'totals.page_number',
       'totals.ac_total_flight_mins',
+      'totals.ac_total_landings',
     ])
     // flight_id is a tiebreaker matching the ORDER BY used by flight.vw_flight_logs'
     // window functions, so ties on off_block_time_epoch resolve the same way here
@@ -324,24 +357,22 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       .selectFrom('flight.logs')
       .leftJoin('flight.vw_flight_logs as totals', 'flight.logs.flight_id', 'totals.flight_id')
       .where('ajlb_seq_no', '=', filters.ajlbSeqNo!)
-      .where((eb) =>
-        // AJLB page numbers step by 2 per page (flight.vw_flight_logs' page_number formula
-        // is start_page + 2 * floor(...)), matching the frontend's own page navigation
-        // (LogbookPage.tsx: newPage = startPage + 2 * (page - 1)). So the previous page is
-        // filters.page - 2, not filters.page - 1 - otherwise this never matches any real
-        // page and pageStartFlightMins silently comes back null for every page after the first.
-        eb('flight.logs.ajlb_page_number', '=', filters.page! - 2).or(
-          'totals.page_number',
-          '=',
-          filters.page! - 2,
-        ),
+      // A note/defect large enough to fill an entire physical page on its own leaves that
+      // page with zero flights (see flight.vw_ajlb_live_sequence) -- looking only at
+      // filters.page - 2 would then find nothing and fall back to null, which resets the
+      // frontend's lower bound to -1 and makes it re-render every earlier note/defect a
+      // second time on this page. Search back to the nearest EARLIER page that actually
+      // has a flight instead of assuming it's exactly the immediately preceding one.
+      .where(
+        sql<SqlBool>`coalesce("flight"."logs"."ajlb_page_number", "totals"."page_number") < ${filters.page!}`,
       )
       .select(['flight.logs.ajlb_total_flight_mins', 'totals.ac_total_flight_mins'])
       // flight_id tiebreaker keeps this in sync with the view's row ordering (see above)
-      // so this reliably finds the true last row of the previous page even when flights
-      // share the same off_block_time_epoch. Both columns must be qualified since
-      // 'totals' (flight.vw_flight_logs) also has a flight_id column, making the bare
-      // reference ambiguous to Postgres.
+      // so this reliably finds the true last row of that page even when flights share the
+      // same off_block_time_epoch. Both columns must be qualified since 'totals'
+      // (flight.vw_flight_logs) also has a flight_id column, making the bare reference
+      // ambiguous to Postgres.
+      .orderBy(sql`coalesce("flight"."logs"."ajlb_page_number", "totals"."page_number")`, 'desc')
       .orderBy('flight.logs.off_block_time_epoch', 'desc')
       .orderBy('flight.logs.flight_id', 'desc')
       .limit(1)
@@ -351,11 +382,15 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
       prevPageLastFlight?.ajlb_total_flight_mins ?? prevPageLastFlight?.ac_total_flight_mins ?? null
   }
 
+  const pageItemRows = ajlbPaging
+    ? await getAjlbPageItemRows(filters.aircraftRegistration!, filters.ajlbSeqNo!, filters.page!)
+    : undefined
+
   return {
     logs: results.map((row) => {
       const res: FlightLogListEntry = {
         acTotalFlightTime: row.ajlb_total_flight_time ?? row.ac_total_flight_time ?? '00:00',
-        acTotalLandings: row.ajlb_total_landings ?? null,
+        acTotalLandings: row.ajlb_total_landings ?? row.ac_total_landings ?? null,
         aircraftRegistration: row.aircraft_registration,
         ajlbBlankRowsBefore: row.ajlb_blank_rows_before,
         ajlbSeqNo: row.ajlb_seq_no,
@@ -402,6 +437,7 @@ export async function getFlightLogs(filters: FlightLogFilters): Promise<FlightLo
     rows: Number(rows),
     limit: pageSize,
     pageStartFlightMins,
+    pageItemRows,
   }
 }
 

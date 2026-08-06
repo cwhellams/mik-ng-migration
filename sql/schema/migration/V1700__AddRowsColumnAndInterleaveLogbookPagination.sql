@@ -93,6 +93,15 @@ live_flights AS (
             OVER (PARTITION BY l.aircraft_registration, l.ajlb_seq_no
                   ORDER BY l.off_block_time_epoch, l.flight_id
                   ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS ac_total_flight_mins,
+        -- The cumulative total BEFORE this flight's own contribution -- lets an item
+        -- anchor to the flight that actually pushed the total past its checkpoint,
+        -- rather than any later flight that also happens to exceed it, and crucially
+        -- keeps an item recorded exactly AT this flight's starting point (e.g. found
+        -- on the ramp before this flight ever happened) from wrongly anchoring to it.
+        b.baseline_mins + COALESCE(SUM(l.flight_mins)
+            OVER (PARTITION BY l.aircraft_registration, l.ajlb_seq_no
+                  ORDER BY l.off_block_time_epoch, l.flight_id
+                  ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING), 0) AS starting_flight_mins,
         b.baseline_landings + SUM(l.number_of_landings)
             OVER (PARTITION BY l.aircraft_registration, l.ajlb_seq_no
                   ORDER BY l.off_block_time_epoch, l.flight_id
@@ -104,11 +113,14 @@ live_flights AS (
     WHERE l.status = 'NEW'
 ),
 
--- Own-row (rows > 0) notes/defects positioned after the frozen baseline. rows = 0
--- items are inline chips and never consume a page row, so they're excluded entirely.
--- The flight_mins > baseline_mins filter mirrors the write-time guard that rejects
--- creating/editing an item at or before the baseline; kept here too as a defensive
--- backstop so this view stays correct even if that data ever gets out of sync.
+-- Own-row (rows > 0) notes/defects positioned at or after the frozen baseline. rows = 0
+-- items are inline chips (only ever in-flight defects) and never consume a page row, so
+-- they're excluded entirely -- rows > 0 here always means "not tied to a specific flight"
+-- (a note, or a pre-flight defect), which may legitimately match the baseline exactly (e.g.
+-- found before any new flight has flown since the last validated one). The
+-- flight_mins >= baseline_mins filter mirrors the write-time guard that rejects
+-- creating/editing such an item strictly before the baseline; kept here too as a
+-- defensive backstop so this view stays correct even if that data ever gets out of sync.
 live_items AS (
     SELECT 'note'::text AS item_type, n.note_id::text AS item_id,
         n.aircraft_registration, n.ajlb_seq_no, n.flight_mins,
@@ -116,7 +128,7 @@ live_items AS (
     FROM flight.maintenance_note AS n
     JOIN baseline AS b
         ON b.aircraft_registration = n.aircraft_registration AND b.ajlb_seq_no = n.ajlb_seq_no
-    WHERE n.rows > 0 AND n.flight_mins > b.baseline_mins
+    WHERE n.rows > 0 AND n.flight_mins >= b.baseline_mins
 
     UNION ALL
 
@@ -126,13 +138,18 @@ live_items AS (
     FROM flight.defect AS d
     JOIN baseline AS b
         ON b.aircraft_registration = d.aircraft_registration AND b.ajlb_seq_no = d.ajlb_seq_no
-    WHERE d.rows > 0 AND d.flight_mins > b.baseline_mins
+    WHERE d.rows > 0 AND d.flight_mins >= b.baseline_mins
 ),
 
--- Anchor each item to the first live flight (chronologically) whose cumulative
--- ac_total_flight_mins reaches the item's flight_mins. No match (item posted ahead
--- of every live flight, or there are no live flights yet) => anchor is NULL and the
--- item sorts after every live flight.
+-- Anchor each item to the live flight (chronologically first, if several qualify)
+-- whose own contribution actually pushed the cumulative total from below the
+-- item's checkpoint to at or past it -- i.e. starting_flight_mins < flight_mins
+-- <= ac_total_flight_mins. An item checked in exactly AT a flight's starting
+-- point (e.g. found on the ramp before that flight ever happened) must NOT match
+-- that flight: it happened before it, not during/by the end of it. No match =>
+-- anchor is NULL; sequenced below decides whether that means "before every live
+-- flight" (checkpoint at or before the baseline) or "after every live flight"
+-- (checkpoint posted ahead of all of them, or there are no live flights yet).
 anchored_items AS (
     SELECT
         li.item_type,
@@ -142,14 +159,18 @@ anchored_items AS (
         li.flight_mins,
         li.rows_consumed,
         li.created_at,
+        b.baseline_mins,
         anchor.flight_id AS anchor_flight_id,
         anchor.off_block_time_epoch AS anchor_epoch
     FROM live_items AS li
+    JOIN baseline AS b
+        ON b.aircraft_registration = li.aircraft_registration AND b.ajlb_seq_no = li.ajlb_seq_no
     LEFT JOIN LATERAL (
         SELECT lf.flight_id, lf.off_block_time_epoch
         FROM live_flights AS lf
         WHERE lf.aircraft_registration = li.aircraft_registration
             AND lf.ajlb_seq_no = li.ajlb_seq_no
+            AND lf.starting_flight_mins < li.flight_mins
             AND lf.ac_total_flight_mins >= li.flight_mins
         ORDER BY lf.off_block_time_epoch, lf.flight_id
         LIMIT 1
@@ -159,8 +180,10 @@ anchored_items AS (
 -- One ordered sequence per ajlb: each live flight immediately followed by any items
 -- anchored to it. Tie-break: a flight sorts before its own anchored items (both share
 -- the same sort_epoch/sort_tiebreak, split apart by sort_type_rank); among items
--- anchored to the same flight, ordered by (flight_mins, created_at); items with no
--- anchor sort after every live flight, ordered among themselves the same way.
+-- anchored to the same flight, ordered by (flight_mins, created_at). An unanchored
+-- item sorts before every live flight if its checkpoint is at or before the baseline
+-- (it happened before the live region started), or after every live flight if its
+-- checkpoint is posted ahead of all of them (or there are no live flights yet).
 sequenced AS (
     SELECT
         aircraft_registration,
@@ -185,7 +208,11 @@ sequenced AS (
         ajlb_seq_no,
         item_type,
         item_id,
-        COALESCE(anchor_epoch, 9223372036854775807::int8),
+        CASE
+            WHEN anchor_epoch IS NOT NULL THEN anchor_epoch
+            WHEN flight_mins <= baseline_mins THEN -1::int8
+            ELSE 9223372036854775807::int8
+        END,
         COALESCE(anchor_flight_id::text, ''),
         1,
         flight_mins,
@@ -218,6 +245,32 @@ SELECT
 FROM sequenced AS s
 JOIN baseline AS b
     ON b.aircraft_registration = s.aircraft_registration AND b.ajlb_seq_no = s.ajlb_seq_no;
+
+
+-- Per-physical-row breakdown of own-row (rows > 0) notes/defects, unrolling each
+-- item's rows_consumed (rows + blank_rows_after) into one row per physical logbook
+-- line, so a page's rendering never has to guess how many of an item's rows landed
+-- on it -- items that span a page boundary (the item's own content/continuation
+-- rows, or its blank_rows_after filler) are now attributed to the exact page they
+-- fall on, matching the physical logbook exactly instead of the previous
+-- flightMins-range heuristic, which could either overflow a page past
+-- rows_per_page or silently drop rows that should have carried onto the next page.
+-- Flights are excluded (item_type = 'flight'): they always consume exactly one row
+-- and already get their page/row number from flight.vw_flight_logs below.
+CREATE VIEW flight.vw_ajlb_live_rows AS
+
+SELECT
+    s.aircraft_registration,
+    s.ajlb_seq_no,
+    s.item_type,
+    s.item_id,
+    gs.row_offset = 0 AS is_content_row,
+    1 + MOD(s.ajlb_row_number - s.rows_consumed + gs.row_offset, s.rows_per_page)::int4 AS row_number,
+    s.start_page
+        + 2 * ((s.ajlb_row_number - s.rows_consumed + gs.row_offset) / s.rows_per_page)::int4 AS page_number
+FROM flight.vw_ajlb_live_sequence AS s
+CROSS JOIN LATERAL generate_series(0, s.rows_consumed - 1) AS gs(row_offset)
+WHERE s.item_type != 'flight';
 
 
 CREATE OR REPLACE VIEW flight.vw_flight_logs AS

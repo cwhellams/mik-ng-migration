@@ -32,10 +32,13 @@ router.post(
   async (req: Request, res: Response<MaintenanceNote>) => {
     const data = CreateMaintenanceNoteSchema.parse(req.body)
     const baseline = await getAjlbLiveBaselineFlightMins(data.aircraftRegistration, data.ajlbSeqNo)
-    if (data.flightMins <= baseline) {
+    // Notes are never tied to a specific flight, so their time describes "right now" and
+    // may legitimately equal the baseline exactly (e.g. found before any new flight has
+    // flown since the last validated one) -- only earlier than the baseline is rejected.
+    if (data.flightMins < baseline) {
       return problem({
         status: 400,
-        detail: 'flightMins must be after the last validated flight for this logbook',
+        detail: "This time can't be earlier than the logbook's last validated flight",
       })
     }
     const note = await createMaintenanceNote(data, req.user!.memberId!)
@@ -56,10 +59,10 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response<Maintena
       existing.aircraftRegistration,
       existing.ajlbSeqNo,
     )
-    if (data.flightMins <= baseline) {
+    if (data.flightMins < baseline) {
       return problem({
         status: 400,
-        detail: 'flightMins must be after the last validated flight for this logbook',
+        detail: "This time can't be earlier than the logbook's last validated flight",
       })
     }
   }

@@ -21,8 +21,8 @@ export const CreateMaintenanceNoteSchema = z
   .object({
     aircraftRegistration: z.string().min(1),
     ajlbSeqNo: z.number().int().positive(),
-    description: z.string().min(1),
-    performedBy: z.string().min(1),
+    description: z.string().trim().min(1),
+    performedBy: z.string().trim().min(1),
     flightMins: z.number().int().min(0),
     rows: z.number().int().min(0).default(1),
     blankRowsAfter: z.number().int().min(0).default(0),
@@ -41,8 +41,8 @@ export type CreateMaintenanceNoteRequest = z.infer<typeof CreateMaintenanceNoteS
 
 export const UpdateMaintenanceNoteSchema = z
   .object({
-    description: z.string().min(1).optional(),
-    performedBy: z.string().min(1).optional(),
+    description: z.string().trim().min(1).optional(),
+    performedBy: z.string().trim().min(1).optional(),
     flightMins: z.number().int().min(0).optional(),
     rows: z.number().int().min(0).optional(),
     blankRowsAfter: z.number().int().min(0).optional(),

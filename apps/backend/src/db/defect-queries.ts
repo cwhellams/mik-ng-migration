@@ -106,6 +106,7 @@ export async function updateDefect(
     .updateTable('flight.defect')
     .set({
       ...(data.description !== undefined && { description: data.description }),
+      ...(data.rows !== undefined && { rows: data.rows }),
       ...(data.blankRowsAfter !== undefined && { blank_rows_after: data.blankRowsAfter }),
       ...(data.hilId !== undefined && {
         hil_id: data.hilId,
