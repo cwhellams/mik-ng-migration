@@ -2675,7 +2675,8 @@
       "unitPriceRequired": "Enhetspriset måste vara större än noll",
       "aircraftRequired": "Flygplan krävs för bränsleanspråk",
       "fuelDateRequired": "Datum krävs för bränslerader",
-      "airportRequired": "Flygplats krävs för bränslerader"
+      "airportRequired": "Flygplats krävs för bränslerader",
+      "mileageDetailsRequired": "Rutt, resedatum och avstånd krävs. Styrelsegodkännande krävs över avståndsgränsen."
     }
   },
   "inventory": {

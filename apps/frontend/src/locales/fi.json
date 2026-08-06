@@ -2708,7 +2708,8 @@
       "unitPriceRequired": "Yksikköhinnan on oltava suurempi kuin nolla",
       "aircraftRequired": "Ilma-alus on pakollinen polttoainekuluille",
       "fuelDateRequired": "Päivämäärä on pakollinen polttoainerivin tiedoille",
-      "airportRequired": "Lentopaikka on pakollinen polttoainerivin tiedoille"
+      "airportRequired": "Lentopaikka on pakollinen polttoainerivin tiedoille",
+      "mileageDetailsRequired": "Reitti, matkapäivä ja matkan pituus vaaditaan. Hallituksen hyväksyntä vaaditaan kilometrirajan ylittyessä."
     }
   },
   "inventory": {

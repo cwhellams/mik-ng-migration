@@ -1028,6 +1028,63 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
     })
   })
 
+  describe('PUT /expenses/:id', () => {
+    it('updates route/distance without wiping the stored HETU when hetu is omitted', async () => {
+      // Mirrors the admin edit form, which never sees the plaintext HETU back from
+      // the API and so leaves the field blank unless the admin retypes it.
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+
+      const putRes = await request(app)
+        .put(`/expenses/${claimId}`)
+        .set('Cookie', `accessToken=${memberToken}`)
+        .send({
+          mileageDetail: {
+            route: 'HOME - EFHF - HOME',
+            journeyDate: '2026-07-16',
+            distanceKm: 42,
+            boardApproved: false,
+          },
+        })
+      expect(putRes.status).toBe(200)
+      expect(putRes.body.mileageDetail.route).toBe('HOME - EFHF - HOME')
+      expect(putRes.body.mileageDetail.distanceKm).toBe(42)
+
+      await approveClaim(claimId, new Date())
+      const revealRes = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+      expect(revealRes.status).toBe(200)
+      expect(revealRes.body.hetu).toBe('010101-123A')
+    })
+
+    it('re-encrypts the HETU when a new one is submitted', async () => {
+      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+
+      const putRes = await request(app)
+        .put(`/expenses/${claimId}`)
+        .set('Cookie', `accessToken=${memberToken}`)
+        .send({
+          mileageDetail: {
+            route: 'HOME - EFHF - HOME',
+            journeyDate: '2026-07-16',
+            distanceKm: 42,
+            boardApproved: false,
+            hetu: '020202-456B',
+          },
+        })
+      expect(putRes.status).toBe(200)
+
+      await approveClaim(claimId, new Date())
+      const revealRes = await request(app)
+        .get(`/expenses/${claimId}/mileage/hetu`)
+        .set('Cookie', `accessToken=${hetuAdminToken}`)
+        .set('x-sudo', 'true')
+      expect(revealRes.status).toBe(200)
+      expect(revealRes.body.hetu).toBe('020202-456B')
+    })
+  })
+
   describe('GET /expenses/:id/mileage/hetu', () => {
     it('returns the plaintext HETU for EXPENSE_HETU_ADMIN and writes one audit row', async () => {
       const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })

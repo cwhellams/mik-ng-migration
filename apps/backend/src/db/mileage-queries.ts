@@ -138,9 +138,13 @@ export async function upsertMileageDetail(
         journey_date: data.journeyDate,
         distance_km: data.distanceKm,
         board_approved: data.boardApproved,
-        hetu_encrypted: hetuEncrypted,
         rate_per_km: ratePerKm,
         updated_at: now,
+        // Only overwrite the stored HETU when a new one was actually submitted —
+        // edit flows that don't re-collect it (it's never sent back to the client
+        // unmasked) must leave the existing encrypted value untouched instead of
+        // nulling it out.
+        ...(data.hetu ? { hetu_encrypted: hetuEncrypted } : {}),
       }),
     )
     .returningAll()

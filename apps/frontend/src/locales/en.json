@@ -2702,7 +2702,8 @@
       "unitPriceRequired": "Unit price must be greater than zero",
       "aircraftRequired": "Aircraft is required for fuel claims",
       "fuelDateRequired": "Date is required for fuel line items",
-      "airportRequired": "Airport is required for fuel line items"
+      "airportRequired": "Airport is required for fuel line items",
+      "mileageDetailsRequired": "Route, journey date and distance are required. Board approval is required above the distance limit."
     }
   },
   "inventory": {
