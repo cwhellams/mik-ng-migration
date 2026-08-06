@@ -352,6 +352,7 @@ function ExpenseClaimWizardInner() {
           quantity: km,
           unit: 'km',
           unitPrice: rate,
+          totalCost: null,
         },
       ],
     }))
