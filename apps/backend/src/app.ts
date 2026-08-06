@@ -70,6 +70,7 @@ import { startQualificationExpiryWorker } from './workers/qualificationExpiryWor
 import { startTinyUrlCleanupWorker } from './workers/tinyUrlCleanupWorker.ts'
 import { startAircraftDocumentExpiryWorker } from './workers/aircraftDocumentExpiryWorker.ts'
 import { startPushNotificationWorker } from './workers/pushNotificationWorker.ts'
+import { startMileageHetuPurgeWorker } from './workers/mileageHetuPurgeWorker.ts'
 
 const app = express()
 const PORT = process.env.BACKEND_PORT ?? 3000
@@ -211,6 +212,7 @@ const qualificationExpiryWorker = startQualificationExpiryWorker()
 const tinyUrlCleanupWorker = startTinyUrlCleanupWorker()
 const aircraftDocumentExpiryWorker = startAircraftDocumentExpiryWorker()
 const pushNotificationWorker = startPushNotificationWorker()
+const mileageHetuPurgeWorker = startMileageHetuPurgeWorker()
 
 //Ensure this is the last middleware!
 app.use(notFoundProblemHandler)
@@ -239,6 +241,7 @@ const shutdown = async (): Promise<void> => {
   tinyUrlCleanupWorker?.stop()
   aircraftDocumentExpiryWorker?.stop()
   pushNotificationWorker?.stop()
+  mileageHetuPurgeWorker?.stop()
   server.close(() => {
     console.warn('HTTP server closed.')
     process.exit(0)

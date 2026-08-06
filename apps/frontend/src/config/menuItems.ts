@@ -209,6 +209,12 @@ export const menuItems: MenuItem[] = [
         adminModeOnly: true,
       },
       {
+        label: 'header.tulorekisteriReport',
+        path: 'tulorekisteri-report',
+        requiredRoles: [MIKPermissions.EXPENSE_HETU_ADMIN],
+        adminModeOnly: true,
+      },
+      {
         label: 'header.costCentres',
         path: 'cost-centres',
         requiredRoles: [MIKPermissions.EXPENSE_ADMIN],

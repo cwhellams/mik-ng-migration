@@ -5,6 +5,7 @@
  */
 import { useTranslation } from 'react-i18next'
 import { Alert, Box, Checkbox, FormControlLabel, Stack, TextField, Typography } from '@mui/material'
+import { validateHetu } from './expenseShared'
 
 export interface MileageDetailForm {
   route: string
@@ -47,6 +48,9 @@ export function MileageDetailFields({
   const km = Number(value.distanceKm) || 0
   const totalEur = effectiveRatePerKm && km > 0 ? (effectiveRatePerKm * km).toFixed(2) : null
   const exceedsLimit = km > maxKm
+
+  const hetuEntered = value.hetu.trim().length > 0
+  const hetuOk = hetuEntered ? validateHetu(value.hetu) : true
 
   return (
     <Stack spacing={2}>
@@ -155,8 +159,13 @@ export function MileageDetailFields({
         fullWidth
         type='password'
         autoComplete='off'
-        helperText={t('expenses.mileage.hetuHint')}
-        onChange={(e) => set('hetu', e.target.value)}
+        error={hetuEntered && !hetuOk}
+        helperText={
+          hetuEntered && !hetuOk
+            ? t('expenses.mileage.hetuInvalid')
+            : t('expenses.mileage.hetuHint')
+        }
+        onChange={(e) => set('hetu', e.target.value.toUpperCase())}
         slotProps={{
           htmlInput: { maxLength: 11 },
         }}

@@ -40,6 +40,7 @@ import {
   ReceiptUploadZone,
   defaultUnitForCategory,
   makeDefaultLineItem,
+  validateHetu,
 } from './expenseShared'
 import {
   MileageDetailFields,
@@ -82,6 +83,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     ibanAccountName?: string
     expenseDate?: string
     lineItems?: string
+    mileageDetail?: string
   }>({})
   const [uploadError, setUploadError] = useState<string>()
   const [infoMessage, setInfoMessage] = useState<string>()
@@ -243,6 +245,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
       ibanAccountName?: string
       expenseDate?: string
       lineItems?: string
+      mileageDetail?: string
     } = {}
     const lineTotal = form.lineItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
     if (lineTotal <= 0) errors.lineItems = t('expenses.messages.zeroTotal')
@@ -260,6 +263,20 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     if (!form.ibanAccountName.trim())
       errors.ibanAccountName = t('expenses.messages.ibanAccountNameRequired')
     if (!form.expenseDate) errors.expenseDate = t('expenses.messages.expenseDateRequired')
+    if (isMileage) {
+      const maxKm = Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100
+      const km = Number(mileageDetail.distanceKm) || 0
+      if (
+        !mileageDetail.route.trim() ||
+        !mileageDetail.journeyDate ||
+        km <= 0 ||
+        (km > maxKm && !mileageDetail.boardApproved)
+      ) {
+        errors.mileageDetail = t('expenses.validation.mileageDetailsRequired')
+      } else if (mileageDetail.hetu.trim() && !validateHetu(mileageDetail.hetu)) {
+        errors.mileageDetail = t('expenses.mileage.hetuInvalid')
+      }
+    }
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
@@ -280,6 +297,17 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
         ...item,
         sortOrder: index,
       })),
+      mileageDetail: isMileage
+        ? {
+            route: mileageDetail.route,
+            journeyDate: mileageDetail.journeyDate,
+            distanceKm: Number(mileageDetail.distanceKm),
+            boardApproved: mileageDetail.boardApproved,
+            // Empty means "leave unchanged" — the API never returns the HETU
+            // unmasked, so this field is blank unless the admin retyped it.
+            hetu: mileageDetail.hetu.trim() || undefined,
+          }
+        : undefined,
     }
 
     const response = currentClaimId
@@ -558,11 +586,19 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
             <Paper sx={{ p: 3 }}>
               <MileageDetailFields
                 value={mileageDetail}
-                onChange={setMileageDetail}
+                onChange={(v) => {
+                  setMileageDetail(v)
+                  setFieldErrors((e) => ({ ...e, mileageDetail: undefined }))
+                }}
                 disabled={!editable}
                 effectiveRatePerKm={mileageAllowance?.effectiveRatePerKm}
                 maxKm={Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100}
               />
+              {!!fieldErrors.mileageDetail && (
+                <Alert severity='error' sx={{ mt: 2 }}>
+                  {fieldErrors.mileageDetail}
+                </Alert>
+              )}
             </Paper>
           )}
 
