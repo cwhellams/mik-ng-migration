@@ -31,6 +31,7 @@ import { Title } from '../../components/Title'
 import {
   ExpenseStatusChip,
   formatExpenseAmount,
+  formatExpenseUnitPrice,
   getExpenseCategoryLabel,
 } from '../expenses/expenseUi'
 
@@ -284,7 +285,7 @@ export function ExpenseClaimAdminDetail() {
                         <TableCell>
                           {isNonEur
                             ? `${item.unitPrice} ${claim.currency}`
-                            : formatExpenseAmount(item.unitPrice)}
+                            : formatExpenseUnitPrice(item.unitPrice)}
                         </TableCell>
                         <TableCell align='right'>
                           {eurTotal != null ? formatExpenseAmount(eurTotal) : '—'}

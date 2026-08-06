@@ -9,6 +9,18 @@ const currencyFormatter = new Intl.NumberFormat('fi-FI', {
 export const formatExpenseAmount = (amount?: number): string =>
   currencyFormatter.format(amount ?? 0)
 
+// Unit prices (e.g. the per-km mileage rate, 0.275 €) round away to a coarser
+// value at 2 decimals — keep up to 4 so the true rate stays visible.
+const unitPriceFormatter = new Intl.NumberFormat('fi-FI', {
+  style: 'currency',
+  currency: 'EUR',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 4,
+})
+
+export const formatExpenseUnitPrice = (amount?: number): string =>
+  unitPriceFormatter.format(amount ?? 0)
+
 export const getExpenseStatusColor = (
   status: ExpenseClaimStatus,
 ): 'default' | 'info' | 'success' | 'warning' | 'error' => {
