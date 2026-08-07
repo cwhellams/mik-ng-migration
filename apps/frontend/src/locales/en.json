@@ -511,6 +511,7 @@
           "subtitle": "Drag & drop files here or click to browse"
         },
         "selectFiles": "Select Files",
+        "fileTooLarge": "File is too large (max {{maxSize}}) and was not added.",
         "selectedFiles": "Selected Files ({{count}}/{{max}})",
         "metadataRequired": "Metadata Required",
         "start": "Upload Files",
@@ -1677,6 +1678,16 @@
     "empty": "Fuel prices have not been added yet.",
     "enterEditMode": "Edit fuel prices",
     "exitEditMode": "Exit edit mode",
+    "localPrices": {
+      "title": "Local (EFNU) fuel price cap",
+      "description": "The reimbursement cap for fuel claims, per fuel type. A claim's total litres are compared against the local price on the trip's start date — cheaper and pricier stops on the same trip balance out (issue #955).",
+      "empty": "No local fuel prices set yet.",
+      "fuelType": "Fuel type",
+      "price": "Price (€/litre)",
+      "validFrom": "Effective from",
+      "createdBy": "Set by",
+      "add": "Add price"
+    },
     "recentFuelings": {
       "title": "Recent fuelings",
       "empty": "No recent fuelings recorded yet.",
@@ -2371,6 +2382,7 @@
     "proofUpload": "Upload",
     "proofSkip": "Skip",
     "proofUploaded": "Proof uploaded successfully",
+    "proofTooLarge": "File is too large (max {{maxSize}}).",
     "snapshotTitle": "Point-in-Time Audit Lookup",
     "snapshotSubtitle": "Select a date to reconstruct the qualification status that was in effect on that day.",
     "snapshotDate": "Audit Date",
@@ -2518,11 +2530,23 @@
     "new": "New Expense Claim",
     "pendingInfoEditNotice": "The admin has requested additional information. Make your changes and re-submit the claim.",
     "mileage": {
-      "sectionTitle": "Journey details (required for tax records)",
+      "sectionTitle": "Journey details",
       "route": "Route",
       "routeHint": "e.g. Helsinki – Tampere – Helsinki",
+      "osmNote": "Distance is calculated automatically using route data from OpenStreetMap.",
+      "startAddress": "Start address",
+      "endAddress": "End address",
+      "waypoint": "Waypoint",
+      "addWaypoint": "Add waypoint",
+      "addLeg": "Add another journey",
       "journeyDate": "Date of journey",
       "distanceKm": "Distance (km)",
+      "directDistance": "direct route: {{km}} km",
+      "distanceCalculating": "Calculating distance…",
+      "distanceCalculationFailed": "Distance could not be calculated automatically right now — please enter it manually.",
+      "addressSearchUnavailable": "Address lookup is currently unavailable — you can type the address manually.",
+      "justificationNote": "Justification for the detour",
+      "justificationRequired": "This journey is more than 20% longer than the direct route — please explain why.",
       "estimatedAmount": "Estimated reimbursement",
       "lineItemDescription": "Mileage claim",
       "hetu": "Finnish Social Security Number (HETU)",
@@ -2603,6 +2627,16 @@
       "expenseDate": "Expense date",
       "flightLogIdNA": "Not applicable for this category"
     },
+    "fuel": {
+      "summaryTitle": "Fuel reimbursement (balanced price cap)",
+      "totalLitres": "Total litres",
+      "totalCost": "Total cost",
+      "localPriceCost": "Local price cap",
+      "clubCardCost": "Paid with club card",
+      "memberReimbursement": "Your reimbursement",
+      "memberOwesClub": "This trip's club-card fuel cost more than the price cap — you owe the club {{amount}}.",
+      "cappedNotice": "The total was capped at the local fuel price — some of what was spent isn't reimbursed."
+    },
     "actions": {
       "submit": "Submit claim",
       "saveDraft": "Save draft",
@@ -2616,7 +2650,9 @@
       "removeLineItem": "Remove",
       "uploadReceipt": "Upload receipt",
       "overrideFuelPrice": "Override fuel price",
-      "discardDraft": "Discard"
+      "discardDraft": "Discard",
+      "editClaim": "Edit claim",
+      "save": "Save"
     },
     "deleteDialog": {
       "title": "Delete draft claim?",
@@ -2658,12 +2694,16 @@
       "lineItemsHint": "Enter each expense item. For fuel, quantity should be in litres. Use the € button to auto-fetch the FX rate for a given date.",
       "lineItemsHintFx": "Enter each expense item. Use the € button to auto-fetch the FX rate for a given date.",
       "fetchFxRate": "Fetch FX rate from Frankfurter for this date",
-      "receiptUploadInfo": "Upload your receipt as a single image (JPG, PNG, etc.) or a PDF document. Upload limit: 10 MB. Images are compressed to ≤1 MB; PDFs max 5 MB.",
+      "receiptUploadInfo": "Upload your receipt as a single image (JPG, PNG, etc.) or a PDF document. Upload limit: 40 MB. Images are compressed automatically to ≤1 MB; PDFs max 5 MB.",
+      "receiptTooLarge": "File is too large (max {{maxSize}}).",
       "dropOrClick": "Click or drag a file here to upload",
       "receiptFileTypes": "Accepted: images (JPG, PNG, HEIC…) or PDF",
       "receiptUploaded": "Receipt uploaded",
       "receiptSkipWarning": "You can skip receipt upload now and add it later before submitting.",
       "saveDraftBeforeReceipt": "Save the draft first before uploading receipts.",
+      "attachmentsUploadInfo": "Upload one or more receipt images (JPG, PNG, etc.) or PDF documents, up to 5 files. Upload limit: 40 MB per file. Images are compressed automatically; PDFs max 5 MB. Multiple files are merged into a single PDF for accounting.",
+      "tooManyAttachments": "You can attach at most {{max}} files to a claim.",
+      "previewMergedPdf": "Preview merged PDF",
       "noBankDetails": "Not provided — reimbursement will require bank details before payment",
       "saveFailedGeneric": "Something went wrong saving this claim. Please check your entries and try again.",
       "noReceipt": "No receipt uploaded",
@@ -2679,10 +2719,12 @@
         "costCentre": "Aircraft",
         "unitPrice": "Unit price ({{currency}})",
         "totalCost": "Total cost ({{currency}})",
-        "fxRate": "FX rate"
+        "fxRate": "FX rate",
+        "paidWithClubCard": "Club card"
       },
       "totalCostTooltip": "Enter total cost in {{currency}}",
       "unitPriceTooltip": "Enter unit price in {{currency}}",
+      "paidWithClubCardTooltip": "Check if this fuel was paid with the club's card. Still counts toward the trip's price cap calculation, but is not reimbursed to you — if it cost more than the cap, you may owe the club the difference.",
       "review": {
         "claim": "Claim details"
       }
@@ -2697,13 +2739,14 @@
       "claimRejected": "Claim rejected",
       "infoRequested": "Information requested from member",
       "claimReturnedToDraft": "Claim returned to draft",
-      "fileTooLarge": "File is too large (max 1 MB for images, 5 MB for PDFs)",
+      "fileTooLarge": "File is too large (max 40 MB — images are compressed automatically after upload, PDFs must be under 5 MB)",
       "ibanRequired": "IBAN is required for reimbursement",
       "zeroTotal": "Total amount must be greater than zero",
       "ibanAccountNameRequired": "Account holder name is required",
       "expenseDateRequired": "Expense date is required",
       "efnuPriceLabel": "EFNU fuel price (EUR/litre)",
-      "efnuPriceOverridden": "EFNU fuel price cap applied"
+      "efnuPriceOverridden": "EFNU fuel price cap applied",
+      "treasurerEditNotice": "Correct small mistakes here (wrong item code, wrong airport, etc.) without sending the claim back to the member. The claim stays exactly where it is in the approval queue, every change is logged, and the member is notified for their information."
     },
     "validation": {
       "descriptionRequired": "Description is required",
@@ -2712,7 +2755,7 @@
       "aircraftRequired": "Aircraft is required for fuel claims",
       "fuelDateRequired": "Date is required for fuel line items",
       "airportRequired": "Airport is required for fuel line items",
-      "mileageDetailsRequired": "Route, journey date and distance are required. Board approval is required above the distance limit."
+      "mileageDetailsRequired": "Start address, end address, journey date and distance are required. Board approval is required above the distance limit."
     }
   },
   "inventory": {

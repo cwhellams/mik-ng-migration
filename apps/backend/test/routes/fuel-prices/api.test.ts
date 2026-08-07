@@ -10,10 +10,17 @@ import { problemErrorHandler } from '../../../src/routes/response.ts'
 
 const mockGetFuelPricesMarkdown = jest.fn<(...args: any[]) => Promise<string>>()
 const mockSetFuelPricesMarkdown = jest.fn<(...args: any[]) => Promise<void>>()
+const mockGetLocalFuelPrices = jest.fn<(...args: any[]) => Promise<any[]>>()
+const mockCreateLocalFuelPrice = jest.fn<(...args: any[]) => Promise<any>>()
 
 jest.unstable_mockModule('../../../src/db/fuel-prices-queries.ts', () => ({
   getFuelPricesMarkdown: mockGetFuelPricesMarkdown,
   setFuelPricesMarkdown: mockSetFuelPricesMarkdown,
+}))
+
+jest.unstable_mockModule('../../../src/db/local-fuel-price-queries.ts', () => ({
+  getLocalFuelPrices: mockGetLocalFuelPrices,
+  createLocalFuelPrice: mockCreateLocalFuelPrice,
 }))
 
 const { router } = await import('../../../src/routes/fuel-prices/api.ts')
@@ -117,6 +124,71 @@ describe('Fuel Prices API', () => {
 
       expect(response.status).toBe(400)
       expect(mockSetFuelPricesMarkdown).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('GET /fuel-prices/local', () => {
+    it('requires fuel prices user or admin permission', async () => {
+      const response = await request(app)
+        .get('/fuel-prices/local')
+        .set('Cookie', `accessToken=${noPermissionToken}`)
+      expect(response.status).toBe(403)
+    })
+
+    it('returns local fuel prices for authorized users', async () => {
+      mockGetLocalFuelPrices.mockResolvedValue([
+        { id: 1, fuelType: '100LL', priceEurPerLitre: 3.05, validFrom: '2026-06-01' },
+      ])
+      const response = await request(app)
+        .get('/fuel-prices/local')
+        .set('Cookie', `accessToken=${userToken}`)
+
+      expect(response.status).toBe(200)
+      expect(response.body.prices).toHaveLength(1)
+      expect(response.body.prices[0].fuelType).toBe('100LL')
+    })
+  })
+
+  describe('POST /fuel-prices/local', () => {
+    it('requires admin permission', async () => {
+      const response = await request(app)
+        .post('/fuel-prices/local')
+        .set('Cookie', `accessToken=${userToken}`)
+        .send({ fuelType: '100LL', priceEurPerLitre: 3.05, validFrom: '2026-06-01' })
+
+      expect(response.status).toBe(403)
+      expect(mockCreateLocalFuelPrice).not.toHaveBeenCalled()
+    })
+
+    it('creates a new effective-dated price for admin users', async () => {
+      mockCreateLocalFuelPrice.mockResolvedValue({
+        id: 2,
+        fuelType: '100LL',
+        priceEurPerLitre: 3.1,
+        validFrom: '2026-07-01',
+      })
+
+      const response = await request(app)
+        .post('/fuel-prices/local')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ fuelType: '100LL', priceEurPerLitre: 3.1, validFrom: '2026-07-01' })
+
+      expect(response.status).toBe(201)
+      expect(response.body.priceEurPerLitre).toBe(3.1)
+      expect(mockCreateLocalFuelPrice).toHaveBeenCalledWith(
+        { fuelType: '100LL', priceEurPerLitre: 3.1, validFrom: '2026-07-01' },
+        expect.any(Object),
+      )
+    })
+
+    it('validates the fuel type enum', async () => {
+      const response = await request(app)
+        .post('/fuel-prices/local')
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ fuelType: 'diesel', priceEurPerLitre: 3.1, validFrom: '2026-07-01' })
+
+      expect(response.status).toBe(400)
+      expect(mockCreateLocalFuelPrice).not.toHaveBeenCalled()
     })
   })
 })

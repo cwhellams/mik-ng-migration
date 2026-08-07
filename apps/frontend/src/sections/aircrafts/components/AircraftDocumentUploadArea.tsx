@@ -42,6 +42,9 @@ interface DocumentUploadAreaProps {
   maxFiles?: number
 }
 
+// Matches the backend's documentUpload raw limit (apps/backend/src/util/documentHelper.ts).
+const MAX_DOCUMENT_UPLOAD_BYTES = 50 * 1024 * 1024
+
 interface FileWithMetadata {
   file: File
   documentType?: AircraftDocumentType
@@ -105,6 +108,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<FileWithMetadata[]>([])
   const [metadataDialogOpen, setMetadataDialogOpen] = useState(false)
   const [currentFileIndex, setCurrentFileIndex] = useState(0)
+  const [sizeError, setSizeError] = useState<string>()
 
   const { uploadFiles, progresses, isUploading, clearCompleted } = useAircraftDocumentUpload({
     aircraftRegistration,
@@ -124,10 +128,18 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
 
       const newFiles: FileWithMetadata[] = []
       const remainingSlots = maxFiles - selectedFiles.length
+      let oversized = false
 
       for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
+        if (files[i].size > MAX_DOCUMENT_UPLOAD_BYTES) {
+          oversized = true
+          continue
+        }
         newFiles.push({ file: files[i] })
       }
+      setSizeError(
+        oversized ? t('aircraft.document.upload.fileTooLarge', { maxSize: '50 MB' }) : undefined,
+      )
 
       if (newFiles.length > 0) {
         setSelectedFiles((prev) => [...prev, ...newFiles])
@@ -236,6 +248,7 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
           type='file'
           multiple
           accept='.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp'
+          capture='environment'
           style={{ display: 'none' }}
           onChange={(e) => handleFileSelect(e.target.files)}
           disabled={disabled}
@@ -263,6 +276,11 @@ export const DocumentUploadArea: React.FC<DocumentUploadAreaProps> = ({
           {t('aircraft.document.upload.selectFiles')}
         </Button>
       </Paper>
+      {!!sizeError && (
+        <Alert severity='error' sx={{ mt: 2 }}>
+          {sizeError}
+        </Alert>
+      )}
       {/* Selected files */}
       {selectedFiles.length > 0 && (
         <Stack spacing={2} sx={{ mt: 2 }}>

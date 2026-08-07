@@ -3,6 +3,7 @@ import { updateExpenseSimplbooksId, getExpenseClaimById } from '../../db/expense
 import { getMemberById } from '../../db/member-queries.ts'
 import logger from '../../lib/logger.ts'
 import { storageService } from '../storage.ts'
+import { mergeAttachmentsToPdf } from '../../util/mergeAttachmentsToPdf.ts'
 import { InvoiceMemberSchema, MemberSchema } from '../../routes/members/models.ts'
 import {
   FeeTypeEnum,
@@ -112,6 +113,11 @@ const ExpenseReimbursementPayloadSchema = z.object({
   currency: z.string().default('EUR'),
   fxRate: z.number().nullable().optional(),
   transactionDate: z.string().optional(),
+  // The claim's submit date — used as SimplBooks' accounting/bookkeeping date
+  // (transaction_date), since it's always recent and so never falls inside an
+  // already-locked accounting period, unlike a member-entered expense date which can
+  // be arbitrarily old (issue #1071).
+  submittedAt: z.string().optional(),
   due: z.string().optional(),
   claimIban: z.string().optional(),
   claimTitle: z.string().optional(),
@@ -846,14 +852,26 @@ async function createExpenseReimbursement(outboxMsg: AcctsOutboxSimplbooks) {
       }
     }
 
-    // Fetch first receipt for this claim to attach to the purchase
+    // Fetch the receipt to attach to the purchase — SimplBooks only accepts one
+    // attachment, so a claim with multiple attachments (issue #955) gets them merged
+    // into a single PDF; older claims fall back to the legacy singular receipt.
     const receiptBucket = process.env.EXPENSE_RECEIPT_BUCKET ?? 'mik-expense-receipts'
     let fileType: 'pdf' | 'png' | 'jpg' | 'jpeg' | undefined
     let fileContents: string | undefined
     try {
       const claim = await getExpenseClaimById(payload.claimId)
-      const receipt = claim?.receipt
-      if (receipt) {
+      if (claim?.attachments?.length) {
+        const files = await Promise.all(
+          claim.attachments.map(async (attachment) => ({
+            buffer: await storageService.downloadFile(attachment.storageKey, receiptBucket),
+            mimeType: attachment.mimeType,
+          })),
+        )
+        const merged = await mergeAttachmentsToPdf(files)
+        fileType = 'pdf'
+        fileContents = merged.toString('base64')
+      } else if (claim?.receipt) {
+        const receipt = claim.receipt
         const fileBuffer = await storageService.downloadFile(receipt.storageKey, receiptBucket)
         fileType =
           receipt.mimeType === 'application/pdf'
@@ -888,9 +906,17 @@ async function createExpenseReimbursement(outboxMsg: AcctsOutboxSimplbooks) {
             ? Number(member.billingId)
             : undefined,
         number: payload.number,
-        created: today,
-        transaction_date: payload.transactionDate
+        // created = invoice date (the member-entered expense date); transaction_date =
+        // accounting/bookkeeping date ("Kirjanpidon päivämäärä"), which SimplBooks
+        // subjects to period locking — using the claim's submit date there instead of
+        // the (possibly much older) expense date avoids hitting an already-locked
+        // period (issue #1071). Per vendored OpenAPI spec: simplbooks-api/schemas/
+        // PurchaseCreate.yaml / Purchase.yaml.
+        created: payload.transactionDate
           ? formatSimplbooksDate(new Date(payload.transactionDate))
+          : today,
+        transaction_date: payload.submittedAt
+          ? formatSimplbooksDate(new Date(payload.submittedAt))
           : today,
         due: payload.due ? formatSimplbooksDate(new Date(payload.due)) : undefined,
         currency_name: 'EUR',

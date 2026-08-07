@@ -23,7 +23,7 @@ import { UpsertSchema } from '../../types/schema.ts'
 import { problem } from '../response.ts'
 import { storageService, type UploadResult } from '../../services/storage.ts'
 import logger from '../../lib/logger.ts'
-import { documentUpload, getDocument } from '../../util/documentHelper.ts'
+import { documentUpload, getDocument, processDocumentFile } from '../../util/documentHelper.ts'
 
 export const router = Router()
 
@@ -198,12 +198,17 @@ router.post(
     try {
       // Safely convert category to folder name (category is guaranteed to be a string by Zod)
       const folderName = validatedInput.category.toLowerCase()
+      const processed = await processDocumentFile(req.file)
+      const fileName =
+        processed.mimetype !== req.file.mimetype
+          ? `${req.file.originalname.replace(/\.[^.]+$/, '')}.jpg`
+          : req.file.originalname
 
       // Upload file to Digital Ocean Spaces with category as folder
       const uploadResult: UploadResult = await storageService.uploadFile(
-        req.file.buffer,
-        req.file.originalname,
-        req.file.mimetype,
+        processed.buffer,
+        fileName,
+        processed.mimetype,
         folderName,
       )
 
@@ -211,9 +216,9 @@ router.post(
       const documentData = {
         ...validatedInput,
         documentUrl: uploadResult.url,
-        fileName: req.file.originalname,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype,
+        fileName,
+        fileSize: processed.buffer.length,
+        mimeType: processed.mimetype,
         storageKey: uploadResult.key,
       }
 

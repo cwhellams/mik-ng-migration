@@ -93,6 +93,7 @@ describe('Mileage HETU Purge Worker', () => {
           status: approvedAt ? ExpenseClaimStatus.APPROVED : ExpenseClaimStatus.SUBMITTED,
           approved_at: approvedAt,
           approved_by: approvedAt ? MEMBER_ID : null,
+          hetu_encrypted: 'dummy-ciphertext',
         })
         .returning('id')
         .executeTakeFirstOrThrow()
@@ -105,7 +106,6 @@ describe('Mileage HETU Purge Worker', () => {
           journey_date: '2026-07-16',
           distance_km: 99,
           rate_per_km: 0.275,
-          hetu_encrypted: 'dummy-ciphertext',
         })
         .execute()
 
@@ -119,12 +119,12 @@ describe('Mileage HETU Purge Worker', () => {
       const purged = await purgeExpiredHetu()
       expect(purged).toBeGreaterThanOrEqual(1)
 
-      const detail = await db
-        .selectFrom('accts.expense_mileage_detail')
+      const claim = await db
+        .selectFrom('accts.expense_claim')
         .select('hetu_encrypted')
-        .where('claim_id', '=', oldClaimId)
+        .where('id', '=', oldClaimId)
         .executeTakeFirstOrThrow()
-      expect(detail.hetu_encrypted).toBeNull()
+      expect(claim.hetu_encrypted).toBeNull()
     })
 
     it('does not purge HETU on claims approved less than 7 days ago', async () => {
@@ -133,12 +133,12 @@ describe('Mileage HETU Purge Worker', () => {
 
       await purgeExpiredHetu()
 
-      const detail = await db
-        .selectFrom('accts.expense_mileage_detail')
+      const claim = await db
+        .selectFrom('accts.expense_claim')
         .select('hetu_encrypted')
-        .where('claim_id', '=', recentClaimId)
+        .where('id', '=', recentClaimId)
         .executeTakeFirstOrThrow()
-      expect(detail.hetu_encrypted).toBe('dummy-ciphertext')
+      expect(claim.hetu_encrypted).toBe('dummy-ciphertext')
     })
 
     it('does not purge HETU on unapproved claims', async () => {
@@ -147,12 +147,12 @@ describe('Mileage HETU Purge Worker', () => {
 
       await purgeExpiredHetu()
 
-      const detail = await db
-        .selectFrom('accts.expense_mileage_detail')
+      const claim = await db
+        .selectFrom('accts.expense_claim')
         .select('hetu_encrypted')
-        .where('claim_id', '=', unapprovedClaimId)
+        .where('id', '=', unapprovedClaimId)
         .executeTakeFirstOrThrow()
-      expect(detail.hetu_encrypted).toBe('dummy-ciphertext')
+      expect(claim.hetu_encrypted).toBe('dummy-ciphertext')
     })
   })
 

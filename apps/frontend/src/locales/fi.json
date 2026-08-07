@@ -509,6 +509,7 @@
           "subtitle": "Vedä ja pudota tiedostoja tähän tai klikkaa selaillaksesi"
         },
         "selectFiles": "Valitse tiedostoja",
+        "fileTooLarge": "Tiedosto on liian suuri (max {{maxSize}}) eikä sitä lisätty.",
         "selectedFiles": "Valitut tiedostot ({{count}}/{{max}})",
         "metadataRequired": "Metatiedot vaaditaan",
         "start": "Lataa tiedostoja",
@@ -1684,6 +1685,16 @@
     "empty": "Polttoainehintoja ei ole vielä lisätty.",
     "enterEditMode": "Muokkaa polttoainehintoja",
     "exitEditMode": "Poistu muokkaustilasta",
+    "localPrices": {
+      "title": "Paikallinen (EFNU) polttoainehintakatto",
+      "description": "Polttoainekulujen korvauskatto polttoainetyypeittäin. Matkan kokonaislitrat verrataan paikalliseen hintaan matkan alkamispäivänä — halvemmat ja kalliimmat pysähdykset samalla matkalla tasoittavat toisiaan (issue #955).",
+      "empty": "Paikallisia polttoainehintoja ei ole vielä asetettu.",
+      "fuelType": "Polttoainetyyppi",
+      "price": "Hinta (€/litra)",
+      "validFrom": "Voimassa alkaen",
+      "createdBy": "Asettaja",
+      "add": "Lisää hinta"
+    },
     "recentFuelings": {
       "title": "Viimeisimmät tankkaukset",
       "empty": "Tankkauksia ei ole vielä kirjattu.",
@@ -2377,6 +2388,7 @@
     "proofUpload": "Lataa",
     "proofSkip": "Ohita",
     "proofUploaded": "Todistus ladattu onnistuneesti",
+    "proofTooLarge": "Tiedosto on liian suuri (max {{maxSize}}).",
     "snapshotTitle": "Point-in-Time Audit Lookup",
     "snapshotSubtitle": "Select a date to reconstruct the qualification status that was in effect on that day.",
     "snapshotDate": "Audit Date",
@@ -2524,11 +2536,23 @@
     "new": "Uusi kulukorvaus",
     "pendingInfoEditNotice": "Ylläpitäjä on pyytänyt lisätietoja. Tee muutokset ja lähetä hakemus uudelleen.",
     "mileage": {
-      "sectionTitle": "Matkan tiedot (vaaditaan verotusta varten)",
+      "sectionTitle": "Matkan tiedot",
       "route": "Reitti",
       "routeHint": "esim. Helsinki – Tampere – Helsinki",
+      "osmNote": "Matkan pituus lasketaan automaattisesti OpenStreetMapin reittitietojen perusteella.",
+      "startAddress": "Lähtöosoite",
+      "endAddress": "Määränpään osoite",
+      "waypoint": "Välipiste",
+      "addWaypoint": "Lisää välipiste",
+      "addLeg": "Lisää toinen matka",
       "journeyDate": "Matkan päivämäärä",
       "distanceKm": "Matka (km)",
+      "directDistance": "suora reitti: {{km}} km",
+      "distanceCalculating": "Lasketaan matkaa…",
+      "distanceCalculationFailed": "Matkan pituutta ei juuri nyt voitu laskea automaattisesti — syötä se käsin.",
+      "addressSearchUnavailable": "Osoitehaku ei ole juuri nyt käytettävissä — voit kirjoittaa osoitteen käsin.",
+      "justificationNote": "Perustelu kiertotielle",
+      "justificationRequired": "Tämä matka on yli 20 % pidempi kuin suora reitti — selitä miksi.",
       "estimatedAmount": "Arvioitu korvaus",
       "lineItemDescription": "Kilometrikorvaus",
       "hetu": "Henkilötunnus (HETU)",
@@ -2609,6 +2633,16 @@
       "expenseDate": "Kulupäivämäärä",
       "flightLogIdNA": "Ei sovellu tähän kategoriaan"
     },
+    "fuel": {
+      "summaryTitle": "Polttoainekorvaus (tasapainotettu hintakatto)",
+      "totalLitres": "Litroja yhteensä",
+      "totalCost": "Kokonaiskustannus",
+      "localPriceCost": "Paikallinen hintakatto",
+      "clubCardCost": "Maksettu kerhon kortilla",
+      "memberReimbursement": "Sinulle maksettava korvaus",
+      "memberOwesClub": "Tämän matkan kerhon kortilla maksettu polttoaine maksoi enemmän kuin hintakatto — olet velkaa kerholle {{amount}}.",
+      "cappedNotice": "Kokonaissumma rajattiin paikalliseen polttoainehintaan — osaa käytetystä summasta ei korvata."
+    },
     "actions": {
       "submit": "Lähetä hakemus",
       "saveDraft": "Tallenna luonnos",
@@ -2622,7 +2656,9 @@
       "removeLineItem": "Poista",
       "uploadReceipt": "Lataa kuitti",
       "overrideFuelPrice": "Ohita polttoaineen hinta",
-      "discardDraft": "Hylkää"
+      "discardDraft": "Hylkää",
+      "editClaim": "Muokkaa hakemusta",
+      "save": "Tallenna"
     },
     "deleteDialog": {
       "title": "Poistetaanko luonnos?",
@@ -2664,12 +2700,16 @@
       "lineItemsHint": "Syötä kukin kuluerä. Polttoaineelle määrän yksikkö on litraa. Käytä €-nappia hakeaksesi automaattisesti valuuttakurssin valitulle päivämäärälle.",
       "lineItemsHintFx": "Syötä kukin kuluerä. Käytä €-nappia hakeaksesi automaattisesti valuuttakurssin valitulle päivämäärälle.",
       "fetchFxRate": "Hae valuuttakurssi Frankfurterista tälle päivämäärälle",
-      "receiptUploadInfo": "Lataa kuittisi yksittäisenä kuvana (JPG, PNG jne.) tai PDF-dokumenttina. Tiedoston enimmäiskoko: 10 Mt. Kuvat pakataan ≤1 Mt:iin; PDF max 5 Mt.",
+      "receiptUploadInfo": "Lataa kuittisi yksittäisenä kuvana (JPG, PNG jne.) tai PDF-dokumenttina. Tiedoston enimmäiskoko: 40 Mt. Kuvat pakataan automaattisesti ≤1 Mt:iin; PDF max 5 Mt.",
+      "receiptTooLarge": "Tiedosto on liian suuri (max {{maxSize}}).",
       "dropOrClick": "Napsauta tai vedä tiedosto tähän ladataksesi",
       "receiptFileTypes": "Hyväksytyt: kuvat (JPG, PNG, HEIC…) tai PDF",
       "receiptUploaded": "Kuitti ladattu",
       "receiptSkipWarning": "Voit ohittaa kuitin lataamisen nyt ja lisätä sen myöhemmin ennen lähettämistä.",
       "saveDraftBeforeReceipt": "Tallenna luonnos ennen kuitin lataamista.",
+      "attachmentsUploadInfo": "Lataa yksi tai useampi kuitti (JPG, PNG jne.) tai PDF-tiedosto, enintään 5 tiedostoa. Latauksen enimmäiskoko: 40 Mt per tiedosto. Kuvat pakataan automaattisesti; PDF enintään 5 Mt. Useat tiedostot yhdistetään yhdeksi PDF:ksi kirjanpitoa varten.",
+      "tooManyAttachments": "Kuittiin voi liittää enintään {{max}} tiedostoa.",
+      "previewMergedPdf": "Esikatsele yhdistettyä PDF:ää",
       "noBankDetails": "Ei annettu — korvaus vaatii pankkitiedot ennen maksua",
       "saveFailedGeneric": "Hakemuksen tallennus epäonnistui. Tarkista tiedot ja yritä uudelleen.",
       "noReceipt": "Kuittia ei ladattu",
@@ -2685,10 +2725,12 @@
         "costCentre": "Ilma-alus",
         "unitPrice": "Yksikköhinta ({{currency}})",
         "totalCost": "Kokonaishinta ({{currency}})",
-        "fxRate": "Valuuttakurssi"
+        "fxRate": "Valuuttakurssi",
+        "paidWithClubCard": "Kerhon kortti"
       },
       "totalCostTooltip": "Syötä kokonaishinta valuutassa {{currency}}",
       "unitPriceTooltip": "Syötä yksikköhinta valuutassa {{currency}}",
+      "paidWithClubCardTooltip": "Valitse, jos tämä polttoaine maksettiin kerhon kortilla. Lasketaan silti mukaan matkan hintakattolaskelmaan, mutta sitä ei korvata sinulle — jos se maksoi enemmän kuin katto, saatat olla velkaa erotuksen kerholle.",
       "review": {
         "claim": "Hakemuksen tiedot"
       }
@@ -2703,13 +2745,14 @@
       "claimRejected": "Hakemus hylätty",
       "infoRequested": "Lisätietoja pyydetty jäseneltä",
       "claimReturnedToDraft": "Hakemus palautettu luonnokseksi",
-      "fileTooLarge": "Tiedosto on liian suuri (max 1 Mt kuville, 5 Mt PDF-tiedostoille)",
+      "fileTooLarge": "Tiedosto on liian suuri (max 40 Mt — kuvat pakataan automaattisesti latauksen jälkeen, PDF-tiedostojen tulee olla alle 5 Mt)",
       "ibanRequired": "IBAN on pakollinen korvauksen maksamiseksi",
       "zeroTotal": "Kokonaissumman on oltava suurempi kuin nolla",
       "ibanAccountNameRequired": "Tilinomistajan nimi on pakollinen",
       "expenseDateRequired": "Kulupäivämäärä on pakollinen",
       "efnuPriceLabel": "EFNU-polttoainehinta (EUR/litra)",
-      "efnuPriceOverridden": "EFNU-polttoainehintakatto sovellettu"
+      "efnuPriceOverridden": "EFNU-polttoainehintakatto sovellettu",
+      "treasurerEditNotice": "Korjaa tässä pieniä virheitä (väärä tuotekoodi, väärä lentokenttä jne.) lähettämättä hakemusta takaisin jäsenelle. Hakemus pysyy hyväksyntäjonossa täsmälleen samassa kohdassa, jokainen muutos kirjataan lokiin, ja jäsenelle ilmoitetaan asiasta tiedoksi."
     },
     "validation": {
       "descriptionRequired": "Kuvaus on pakollinen",
@@ -2718,7 +2761,7 @@
       "aircraftRequired": "Ilma-alus on pakollinen polttoainekuluille",
       "fuelDateRequired": "Päivämäärä on pakollinen polttoainerivin tiedoille",
       "airportRequired": "Lentopaikka on pakollinen polttoainerivin tiedoille",
-      "mileageDetailsRequired": "Reitti, matkapäivä ja matkan pituus vaaditaan. Hallituksen hyväksyntä vaaditaan kilometrirajan ylittyessä."
+      "mileageDetailsRequired": "Lähtö- ja määränpään osoite, matkapäivä ja matkan pituus vaaditaan. Hallituksen hyväksyntä vaaditaan kilometrirajan ylittyessä."
     }
   },
   "inventory": {

@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { randomFillSync } from 'crypto'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import request from 'supertest'
@@ -883,12 +884,36 @@ describe('Occurrence attachments', () => {
       expect(response.status).toBe(500)
     })
 
-    it('rejects oversized uploads', async () => {
+    it('rejects uploads over the raw size ceiling with a clean 400, not a 500', async () => {
+      // Issue #1075: the raw multer cap was raised (10MB -> 40MB) so real phone photos
+      // aren't rejected before compression gets a chance to run, and MulterError is now
+      // mapped to a 400 by the central error handler instead of falling through to a
+      // generic 500 with no useful detail.
       const created = await post('', data, userToken)
-      const oversized = Buffer.alloc(10 * 1024 * 1024 + 1024)
+      const oversized = Buffer.alloc(41 * 1024 * 1024)
       const response = await uploadAttachment(created.body.id, userToken, oversized)
-      expect(response.status).toBe(500)
+      expect(response.status).toBe(400)
+      expect(response.body.detail).toMatch(/too large/i)
     })
+
+    it('accepts a real photo above the old 10MB cap and compresses it', async () => {
+      // Regression test for the actual reported bug: a real (valid) photo just over the
+      // old 10MB raw limit must now succeed instead of being rejected before sharp ever
+      // ran on it. Random pixel noise is close to worst-case for JPEG compression, so a
+      // large-enough noisy image reliably produces a multi-megabyte file.
+      const width = 4500
+      const height = 3500
+      const raw = randomFillSync(Buffer.alloc(width * height * 3))
+      const largePhoto = await sharp(raw, { raw: { width, height, channels: 3 } })
+        .jpeg({ quality: 100 })
+        .toBuffer()
+      expect(largePhoto.length).toBeGreaterThan(10 * 1024 * 1024)
+
+      const created = await post('', data, userToken)
+      const response = await uploadAttachment(created.body.id, userToken, largePhoto)
+      expect(response.status).toBe(200)
+      expect(response.body.fileSize).toBeLessThanOrEqual(1024 * 1024)
+    }, 15000)
   })
 
   describe('Attachment visibility', () => {

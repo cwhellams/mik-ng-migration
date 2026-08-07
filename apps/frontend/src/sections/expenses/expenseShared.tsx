@@ -10,6 +10,7 @@ import {
   Autocomplete,
   Box,
   Button,
+  Checkbox,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -25,7 +26,11 @@ import {
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
-import type { ExpenseLineItem, ExpenseClaimReceipt } from '@backend/routes/expenses/models'
+import type {
+  ExpenseLineItem,
+  ExpenseClaimReceipt,
+  ExpenseClaimAttachment,
+} from '@backend/routes/expenses/models'
 import type { AirfieldListResponse } from '@backend/routes/flight-log/models'
 import useApi from '../../hooks/useApi'
 
@@ -105,6 +110,7 @@ export const makeDefaultLineItem = (
   sortOrder: 0,
   costCentreCode: costCentreCode ?? null,
   airport: null,
+  paidWithClubCard: false,
 })
 
 // ─── Item code → aircraft (cost centre) matching ───────────────────────────────
@@ -229,6 +235,10 @@ interface LineItemsTableProps {
   costCentres?: { code: string; description: string }[]
   /** Fuel claims: ask for litres of uplift + total cost paid (capped at the EFNU price) instead of a per-unit price */
   isFuel?: boolean
+  /** Set false to hide the delete-row control even when not disabled — e.g. the
+   * treasurer's restricted edit dialog can correct existing rows but not add/remove
+   * them (issue #1028). Defaults to true. */
+  allowRowRemoval?: boolean
 }
 
 export function LineItemsTable({
@@ -241,6 +251,7 @@ export function LineItemsTable({
   showErrors,
   costCentres,
   isFuel,
+  allowRowRemoval = true,
 }: LineItemsTableProps) {
   const { t } = useTranslation()
   const isNonEur = (claimCurrency ?? 'EUR') !== 'EUR'
@@ -341,12 +352,22 @@ export function LineItemsTable({
                 </Stack>
               </TableCell>
             )}
+            {isFuel && (
+              <TableCell sx={{ minWidth: 90 }}>
+                <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
+                  <span>{t('expenses.wizard.col.paidWithClubCard')}</span>
+                  <Tooltip title={t('expenses.wizard.paidWithClubCardTooltip')}>
+                    <Icon icon='mdi:help-circle-outline' width={16} />
+                  </Tooltip>
+                </Stack>
+              </TableCell>
+            )}
             <TableCell align='right'>
               {isNonEur
                 ? `${t('expenses.fields.totalAmount')} EUR`
                 : t('expenses.fields.totalAmount')}
             </TableCell>
-            {!disabled && <TableCell sx={{ width: 40 }} />}
+            {!disabled && allowRowRemoval && <TableCell sx={{ width: 40 }} />}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -555,10 +576,20 @@ export function LineItemsTable({
                     </TextField>
                   </TableCell>
                 )}
+                {isFuel && (
+                  <TableCell sx={{ verticalAlign: 'top' }}>
+                    <Checkbox
+                      size='small'
+                      checked={!!item.paidWithClubCard}
+                      disabled={disabled}
+                      onChange={(e) => update(idx, { paidWithClubCard: e.target.checked })}
+                    />
+                  </TableCell>
+                )}
                 <TableCell align='right' sx={{ verticalAlign: 'top' }}>
                   {eurTotal != null ? eurFormatter.format(eurTotal) : '—'}
                 </TableCell>
-                {!disabled && (
+                {!disabled && allowRowRemoval && (
                   <TableCell sx={{ verticalAlign: 'top' }}>
                     {items.length > 1 && (
                       <IconButton
@@ -593,6 +624,11 @@ interface ReceiptUploadZoneProps {
   requireSaveDraftFirst?: boolean
 }
 
+// Matches the backend's raw upload ceiling (apps/backend/src/util/imageUpload.ts) — the
+// server compresses images down after upload, so this is a sanity ceiling on the
+// original file, not the effective size limit (issue #1075).
+const MAX_RECEIPT_UPLOAD_BYTES = 40 * 1024 * 1024
+
 export function ReceiptUploadZone({
   receipt,
   onUpload,
@@ -604,13 +640,23 @@ export function ReceiptUploadZone({
 }: ReceiptUploadZoneProps) {
   const { t } = useTranslation()
   const [dragActive, setDragActive] = useState(false)
+  const [sizeError, setSizeError] = useState<string>()
+
+  const trySelectFile = (file: File) => {
+    if (file.size > MAX_RECEIPT_UPLOAD_BYTES) {
+      setSizeError(t('expenses.wizard.receiptTooLarge', { maxSize: '40 MB' }))
+      return
+    }
+    setSizeError(undefined)
+    void onUpload(file)
+  }
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
     const file = e.dataTransfer.files?.[0]
-    if (file) void onUpload(file)
+    if (file) trySelectFile(file)
   }
 
   return (
@@ -707,17 +753,193 @@ export function ReceiptUploadZone({
               type='file'
               hidden
               accept='image/*,application/pdf'
+              capture='environment'
               onChange={(e) => {
                 const file = e.target.files?.[0]
-                if (file) void onUpload(file)
+                if (file) trySelectFile(file)
                 e.target.value = ''
               }}
             />
           </Paper>
         )
       )}
+      {!!sizeError && <Alert severity='error'>{sizeError}</Alert>}
       {!!error && <Alert severity='error'>{error}</Alert>}
       {!receipt && !requireSaveDraftFirst && (
+        <Alert severity='warning'>{t('expenses.wizard.receiptSkipWarning')}</Alert>
+      )}
+    </Stack>
+  )
+}
+
+// ─── AttachmentsUploadZone ──────────────────────────────────────────────────────
+// Newer multi-file replacement for ReceiptUploadZone (issue #955) — up to
+// MAX_ATTACHMENTS_PER_CLAIM files are merged server-side into a single PDF for
+// SimplBooks (which only accepts one attachment per purchase). Existing claims
+// created before this feature keep showing the old singular ReceiptUploadZone.
+
+interface AttachmentsUploadZoneProps {
+  attachments?: ExpenseClaimAttachment[]
+  onUpload: (files: File[]) => Promise<void>
+  onDelete?: (attachmentId: number) => Promise<void>
+  onPreview?: () => Promise<void>
+  disabled?: boolean
+  error?: string
+  /** Show a "save draft first" note instead of the upload area */
+  requireSaveDraftFirst?: boolean
+}
+
+// Matches the backend's per-claim attachment limit (apps/backend/src/routes/expenses/api.ts).
+const MAX_ATTACHMENTS_PER_CLAIM = 5
+// Matches the backend's raw upload ceiling — see ReceiptUploadZone's MAX_RECEIPT_UPLOAD_BYTES.
+const MAX_ATTACHMENT_UPLOAD_BYTES = 40 * 1024 * 1024
+
+export function AttachmentsUploadZone({
+  attachments,
+  onUpload,
+  onDelete,
+  onPreview,
+  disabled,
+  error,
+  requireSaveDraftFirst,
+}: AttachmentsUploadZoneProps) {
+  const { t } = useTranslation()
+  const [dragActive, setDragActive] = useState(false)
+  const [sizeError, setSizeError] = useState<string>()
+
+  const remainingSlots = MAX_ATTACHMENTS_PER_CLAIM - (attachments?.length ?? 0)
+
+  const trySelectFiles = (fileList: FileList | File[]) => {
+    const files = Array.from(fileList)
+    if (!files.length) return
+    if (files.length > remainingSlots) {
+      setSizeError(t('expenses.wizard.tooManyAttachments', { max: MAX_ATTACHMENTS_PER_CLAIM }))
+      return
+    }
+    if (files.some((file) => file.size > MAX_ATTACHMENT_UPLOAD_BYTES)) {
+      setSizeError(t('expenses.wizard.receiptTooLarge', { maxSize: '40 MB' }))
+      return
+    }
+    setSizeError(undefined)
+    void onUpload(files)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    if (e.dataTransfer.files?.length) trySelectFiles(e.dataTransfer.files)
+  }
+
+  return (
+    <Stack spacing={2}>
+      <Alert severity='info'>{t('expenses.wizard.attachmentsUploadInfo')}</Alert>
+      {requireSaveDraftFirst && (
+        <Alert severity='warning'>{t('expenses.wizard.saveDraftBeforeReceipt')}</Alert>
+      )}
+      {!!attachments?.length && (
+        <Stack spacing={1}>
+          {attachments.map((attachment) => (
+            <Paper key={attachment.id} variant='outlined' sx={{ p: 2 }}>
+              <Stack
+                direction='row'
+                sx={{
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <Box>
+                  <Typography variant='body2'>{attachment.fileName}</Typography>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
+                    {Math.round(attachment.fileSize / 1024)} kB
+                  </Typography>
+                </Box>
+                {onDelete && !disabled && (
+                  <IconButton
+                    size='small'
+                    color='error'
+                    onClick={() => void onDelete(attachment.id)}
+                  >
+                    <Icon icon='mdi:delete-outline' />
+                  </IconButton>
+                )}
+              </Stack>
+            </Paper>
+          ))}
+        </Stack>
+      )}
+      {!disabled && !requireSaveDraftFirst && remainingSlots > 0 && (
+        <Paper
+          variant='outlined'
+          component='label'
+          onDragOver={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setDragActive(true)
+          }}
+          onDragEnter={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setDragActive(true)
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setDragActive(false)
+          }}
+          onDrop={handleDrop}
+          sx={{
+            p: 4,
+            textAlign: 'center',
+            border: '2px dashed',
+            borderColor: dragActive ? 'primary.main' : 'divider',
+            bgcolor: dragActive ? 'action.hover' : 'transparent',
+            cursor: 'pointer',
+            '&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' },
+          }}
+        >
+          <Icon icon='mdi:upload' width={40} />
+          <Typography variant='body1' sx={{ mt: 1 }}>
+            {t('expenses.wizard.dropOrClick')}
+          </Typography>
+          <Typography
+            variant='caption'
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
+            {t('expenses.wizard.receiptFileTypes')}
+          </Typography>
+          <input
+            type='file'
+            hidden
+            multiple
+            accept='image/*,application/pdf'
+            capture='environment'
+            onChange={(e) => {
+              if (e.target.files?.length) trySelectFiles(e.target.files)
+              e.target.value = ''
+            }}
+          />
+        </Paper>
+      )}
+      {!!sizeError && <Alert severity='error'>{sizeError}</Alert>}
+      {!!error && <Alert severity='error'>{error}</Alert>}
+      {!!attachments?.length && onPreview && (
+        <Button
+          variant='outlined'
+          startIcon={<Icon icon='mdi:file-pdf-box' />}
+          onClick={() => void onPreview()}
+        >
+          {t('expenses.wizard.previewMergedPdf')}
+        </Button>
+      )}
+      {!attachments?.length && !requireSaveDraftFirst && (
         <Alert severity='warning'>{t('expenses.wizard.receiptSkipWarning')}</Alert>
       )}
     </Stack>

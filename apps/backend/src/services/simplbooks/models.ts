@@ -425,7 +425,11 @@ export type PurchaseRowWrapper = z.infer<typeof PurchaseRowWrapperSchema>
 // comments replaces description; file_type + file_contents attach the receipt document
 export const PurchaseObjectSchema = z.object({
   client_id: z.number().optional(),
-  created: z.string(), // yyyy-MM-dd
+  created: z.string(), // yyyy-MM-dd — "Date of the purchase invoice"
+  // "Accounting date of the purchase invoice" (Kirjanpidon päivämäärä) — subject to
+  // period locking in SimplBooks. For expense reimbursements this is set to the
+  // claim's submit date, not the (possibly much older) member-entered expense date —
+  // see createExpenseReimbursement() in simplbooksOutboxHandler.ts (issue #1071).
   transaction_date: z.string().optional(),
   due: z.string().optional(),
   currency_name: z.string().default('EUR'),

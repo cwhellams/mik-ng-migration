@@ -23,7 +23,7 @@ import {
 } from './models.ts'
 import { validateDocumentId, type DownloadDocument } from '../documents/models.ts'
 import logger from '../../lib/logger.ts'
-import { documentUpload, getDocument } from '../../util/documentHelper.ts'
+import { documentUpload, getDocument, processDocumentFile } from '../../util/documentHelper.ts'
 
 export const router = Router()
 
@@ -205,12 +205,17 @@ router.post(
 
       // Safely convert document type to folder name (documentType is guaranteed to be a string by Zod)
       const folderName = validatedDoc.documentType.toLowerCase().replaceAll(/\s+/g, '-')
+      const processed = await processDocumentFile(req.file)
+      const fileName =
+        processed.mimetype !== req.file.mimetype
+          ? `${req.file.originalname.replace(/\.[^.]+$/, '')}.jpg`
+          : req.file.originalname
 
       // Upload file to aircraft-specific bucket with document type as folder
       const uploadResult: UploadResult = await storageService.uploadFile(
-        req.file.buffer,
-        req.file.originalname,
-        req.file.mimetype,
+        processed.buffer,
+        fileName,
+        processed.mimetype,
         folderName,
         bucketName,
       )
@@ -219,9 +224,9 @@ router.post(
       const documentData = {
         ...validatedDoc,
         documentUrl: uploadResult.url,
-        fileName: req.file.originalname,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype,
+        fileName,
+        fileSize: processed.buffer.length,
+        mimeType: processed.mimetype,
         storageKey: uploadResult.key,
       }
       const created = await addAircraftDocument(documentData, req.user!)

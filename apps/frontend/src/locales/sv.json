@@ -510,6 +510,7 @@
           "subtitle": "Dra och släpp filer här eller klicka för att bläddra"
         },
         "selectFiles": "Välj filer",
+        "fileTooLarge": "Filen är för stor (max {{maxSize}}) och lades inte till.",
         "selectedFiles": "Valda filer ({{count}}/{{max}})",
         "metadataRequired": "Metadata krävs",
         "start": "Ladda upp filer",
@@ -1685,6 +1686,16 @@
     "empty": "Bränslepriser har inte lagts till ännu.",
     "enterEditMode": "Redigera bränslepriser",
     "exitEditMode": "Avsluta redigeringsläge",
+    "localPrices": {
+      "title": "Lokalt (EFNU) bränsleprisgräns",
+      "description": "Ersättningsgränsen för bränsleanspråk, per bränsletyp. Resans totala liter jämförs med det lokala priset på resans startdatum — billigare och dyrare stopp på samma resa balanserar varandra (issue #955).",
+      "empty": "Inga lokala bränslepriser inställda ännu.",
+      "fuelType": "Bränsletyp",
+      "price": "Pris (€/liter)",
+      "validFrom": "Gäller från",
+      "createdBy": "Angiven av",
+      "add": "Lägg till pris"
+    },
     "recentFuelings": {
       "title": "Senaste tankningar",
       "empty": "Inga tankningar har registrerats ännu.",
@@ -2344,6 +2355,7 @@
     "proofUpload": "Ladda upp",
     "proofSkip": "Hoppa över",
     "proofUploaded": "Bevis laddat upp framgångsrikt",
+    "proofTooLarge": "Filen är för stor (max {{maxSize}}).",
     "snapshotTitle": "Point-in-Time Audit Lookup",
     "snapshotSubtitle": "Select a date to reconstruct the qualification status that was in effect on that day.",
     "snapshotDate": "Audit Date",
@@ -2491,11 +2503,23 @@
     "new": "Nytt utgiftsanspråk",
     "pendingInfoEditNotice": "Administratören har begärt ytterligare information. Gör dina ändringar och skicka in anspråket igen.",
     "mileage": {
-      "sectionTitle": "Resänuppgifter (krävs för skattemässiga ändamål)",
+      "sectionTitle": "Resänuppgifter",
       "route": "Rutt",
       "routeHint": "t.ex. Helsingfors – Tammerfors – Helsingfors",
+      "osmNote": "Avståndet beräknas automatiskt med ruttdata från OpenStreetMap.",
+      "startAddress": "Startadress",
+      "endAddress": "Slutadress",
+      "waypoint": "Mellanstopp",
+      "addWaypoint": "Lägg till mellanstopp",
+      "addLeg": "Lägg till en resa till",
       "journeyDate": "Resedatum",
       "distanceKm": "Avstånd (km)",
+      "directDistance": "direkt rutt: {{km}} km",
+      "distanceCalculating": "Beräknar avstånd…",
+      "distanceCalculationFailed": "Avståndet kunde inte beräknas automatiskt just nu — ange det manuellt.",
+      "addressSearchUnavailable": "Adressökningen är inte tillgänglig just nu — du kan skriva adressen manuellt.",
+      "justificationNote": "Motivering för omvägen",
+      "justificationRequired": "Denna resa är mer än 20 % längre än den direkta rutten — förklara varför.",
       "estimatedAmount": "Beräknad ersättning",
       "lineItemDescription": "Kilometetersättning",
       "hetu": "Personnummer (HETU)",
@@ -2576,6 +2600,16 @@
       "expenseDate": "Utgiftsdatum",
       "flightLogIdNA": "Ej tillämpligt för denna kategori"
     },
+    "fuel": {
+      "summaryTitle": "Bränsleersättning (balanserad prisgräns)",
+      "totalLitres": "Liter totalt",
+      "totalCost": "Total kostnad",
+      "localPriceCost": "Lokal prisgräns",
+      "clubCardCost": "Betalat med klubbkort",
+      "memberReimbursement": "Din ersättning",
+      "memberOwesClub": "Bränsle som betalats med klubbkort på denna resa kostade mer än prisgränsen — du är skyldig klubben {{amount}}.",
+      "cappedNotice": "Totalbeloppet begränsades till det lokala bränslepriset — en del av det som spenderades ersätts inte."
+    },
     "actions": {
       "submit": "Skicka anspråk",
       "saveDraft": "Spara utkast",
@@ -2589,7 +2623,9 @@
       "removeLineItem": "Ta bort",
       "uploadReceipt": "Ladda upp kvitto",
       "overrideFuelPrice": "Åsidosätt bränslepris",
-      "discardDraft": "Förkasta"
+      "discardDraft": "Förkasta",
+      "editClaim": "Redigera anspråk",
+      "save": "Spara"
     },
     "deleteDialog": {
       "title": "Ta bort utkastet?",
@@ -2631,12 +2667,16 @@
       "lineItemsHint": "Ange varje utgiftspost. För bränsle ska mängden anges i liter. Använd €-knappen för att automatiskt hämta valutakursen för ett visst datum.",
       "lineItemsHintFx": "Ange varje utgiftspost. Använd €-knappen för att automatiskt hämta valutakursen för ett visst datum.",
       "fetchFxRate": "Hämta valutakurs från Frankfurter för detta datum",
-      "receiptUploadInfo": "Ladda upp ditt kvitto som en enskild bild (JPG, PNG osv.) eller ett PDF-dokument. Maximal filstorlek: 10 MB. Bilder komprimeras till ≤1 MB; PDF max 5 MB.",
+      "receiptUploadInfo": "Ladda upp ditt kvitto som en enskild bild (JPG, PNG osv.) eller ett PDF-dokument. Maximal filstorlek: 40 MB. Bilder komprimeras automatiskt till ≤1 MB; PDF max 5 MB.",
+      "receiptTooLarge": "Filen är för stor (max {{maxSize}}).",
       "dropOrClick": "Klicka eller dra en fil hit för att ladda upp",
       "receiptFileTypes": "Godkänt: bilder (JPG, PNG, HEIC…) eller PDF",
       "receiptUploaded": "Kvitto uppladdat",
       "receiptSkipWarning": "Du kan hoppa över kvittouppladdningen nu och lägga till det senare innan inlämning.",
       "saveDraftBeforeReceipt": "Spara utkastet innan du laddar upp kvitton.",
+      "attachmentsUploadInfo": "Ladda upp en eller flera kvittobilder (JPG, PNG, osv.) eller PDF-dokument, upp till 5 filer. Uppladdningsgräns: 40 MB per fil. Bilder komprimeras automatiskt; PDF max 5 MB. Flera filer slås ihop till en enda PDF för bokföringen.",
+      "tooManyAttachments": "Du kan bifoga högst {{max}} filer till en ansökan.",
+      "previewMergedPdf": "Förhandsgranska sammanslagen PDF",
       "noBankDetails": "Inte angett — ersättning kräver bankuppgifter före betalning",
       "saveFailedGeneric": "Det gick inte att spara ansökan. Kontrollera uppgifterna och försök igen.",
       "noReceipt": "Inget kvitto uppladdat",
@@ -2652,10 +2692,12 @@
         "costCentre": "Flygplan",
         "unitPrice": "Á-pris ({{currency}})",
         "totalCost": "Totalkostnad ({{currency}})",
-        "fxRate": "Valutakurs"
+        "fxRate": "Valutakurs",
+        "paidWithClubCard": "Klubbkort"
       },
       "totalCostTooltip": "Ange totalkostnad i {{currency}}",
       "unitPriceTooltip": "Ange á-pris i {{currency}}",
+      "paidWithClubCardTooltip": "Markera om detta bränsle betalades med klubbens kort. Räknas ändå med i resans prisgränsberäkning, men ersätts inte till dig — om det kostade mer än gränsen kan du vara skyldig klubben mellanskillnaden.",
       "review": {
         "claim": "Anspråksinformation"
       }
@@ -2670,13 +2712,14 @@
       "claimRejected": "Anspråk avvisat",
       "infoRequested": "Information begärd från medlemmen",
       "claimReturnedToDraft": "Anspråk återfört till utkast",
-      "fileTooLarge": "Filen är för stor (max 1 MB för bilder, 5 MB för PDF-filer)",
+      "fileTooLarge": "Filen är för stor (max 40 MB — bilder komprimeras automatiskt efter uppladdning, PDF-filer måste vara under 5 MB)",
       "ibanRequired": "IBAN krävs för utbetalning",
       "zeroTotal": "Totalbeloppet måste vara större än noll",
       "ibanAccountNameRequired": "Kontoinnehavarens namn krävs",
       "expenseDateRequired": "Utgiftsdatum krävs",
       "efnuPriceLabel": "EFNU-bränslepris (EUR/liter)",
-      "efnuPriceOverridden": "EFNU-bränsleprisgräns tillämpad"
+      "efnuPriceOverridden": "EFNU-bränsleprisgräns tillämpad",
+      "treasurerEditNotice": "Korrigera små misstag här (fel artikelkod, fel flygplats osv.) utan att skicka tillbaka anspråket till medlemmen. Anspråket förblir exakt där det är i godkännandekön, varje ändring loggas, och medlemmen meddelas för kännedom."
     },
     "validation": {
       "descriptionRequired": "Beskrivning krävs",
@@ -2685,7 +2728,7 @@
       "aircraftRequired": "Flygplan krävs för bränsleanspråk",
       "fuelDateRequired": "Datum krävs för bränslerader",
       "airportRequired": "Flygplats krävs för bränslerader",
-      "mileageDetailsRequired": "Rutt, resedatum och avstånd krävs. Styrelsegodkännande krävs över avståndsgränsen."
+      "mileageDetailsRequired": "Start- och slutadress, resedatum och avstånd krävs. Styrelsegodkännande krävs över avståndsgränsen."
     }
   },
   "inventory": {
