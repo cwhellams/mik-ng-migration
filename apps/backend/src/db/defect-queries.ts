@@ -205,6 +205,7 @@ export async function setDefectsForHil(
       })
       .where('defect_id', 'in', removed)
       .where('hil_id', '=', hilId)
+      .where('status', '=', 'MOVED_TO_HIL')
       .execute()
   }
 

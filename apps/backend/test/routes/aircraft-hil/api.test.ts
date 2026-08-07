@@ -109,6 +109,7 @@ const cleanup = async () => {
     await db
       .selectFrom('flight.aircraft_hil')
       .select('hil_id')
+      .where('aircraft_registration', '=', AIRCRAFT)
       .where((eb) =>
         eb.or([
           eb('source_ref', 'like', `${TEST_MARKER}%`),
