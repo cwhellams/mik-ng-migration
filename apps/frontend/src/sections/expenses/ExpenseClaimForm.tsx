@@ -33,7 +33,7 @@ import useApi from '../../hooks/useApi'
 import { sharedApi } from '../../hooks/useApi'
 import { RemoteContent } from '../../components/RemoteContent'
 import { Title } from '../../components/Title'
-import { formatExpenseAmount, getExpenseCategoryLabel, isExpenseEditable } from './expenseUi'
+import { getExpenseCategoryLabel, isExpenseEditable } from './expenseUi'
 import {
   AttachmentsUploadZone,
   BankDetailsFields,
@@ -190,13 +190,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
 
   const editable = !claimApi.data || isExpenseEditable(claimApi.data.status)
   const currentClaimId = claimApi.data?.id ?? claimId
-  const isClaimNonEur = claimCurrency !== 'EUR'
-  const totalAmount = form.lineItems.reduce(
-    (sum, item) =>
-      sum +
-      (item.totalCost ?? item.quantity * item.unitPrice) * (isClaimNonEur ? (claimFxRate ?? 1) : 1),
-    0,
-  )
 
   // Mileage claims are always EUR — no currency selector needed
   useEffect(() => {
@@ -760,11 +753,6 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                   {fieldErrors.lineItems}
                 </Alert>
               )}
-              <Box sx={{ mt: 2, textAlign: 'right' }}>
-                <Typography variant='h6'>
-                  {t('expenses.fields.totalAmount')}: {formatExpenseAmount(totalAmount)}
-                </Typography>
-              </Box>
             </Paper>
           )}
 

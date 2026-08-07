@@ -11,18 +11,15 @@ import {
   Box,
   Button,
   Checkbox,
+  Divider,
+  FormControlLabel,
+  FormHelperText,
   IconButton,
   InputAdornment,
   MenuItem,
   Paper,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
@@ -277,337 +274,275 @@ export function LineItemsTable({
     update(idx, { totalCost, unitPrice })
   }
 
-  return (
-    <Box sx={{ overflowX: 'auto', width: '100%' }}>
-      <Table size='small'>
-        <TableHead>
-          <TableRow>
-            <TableCell sx={{ minWidth: 200 }}>{t('expenses.wizard.col.description')}</TableCell>
-            {isFuel && (
-              <TableCell sx={{ minWidth: 140 }}>{t('expenses.wizard.col.date')}</TableCell>
-            )}
-            {isFuel && (
-              <TableCell sx={{ minWidth: 200 }}>{t('expenses.wizard.col.airport')}</TableCell>
-            )}
-            <TableCell sx={{ minWidth: 90 }}>
-              {isFuel ? t('expenses.wizard.col.litres') : t('expenses.wizard.col.qty')}
-            </TableCell>
-            <TableCell sx={{ minWidth: 120 }}>
-              {isFuel ? (
-                <Stack
-                  direction='row'
-                  spacing={0.5}
-                  sx={{
-                    alignItems: 'center',
-                  }}
-                >
-                  <span>
-                    {t('expenses.wizard.col.totalCost', { currency: claimCurrency ?? 'EUR' })}
-                  </span>
-                  <Tooltip
-                    title={t('expenses.wizard.totalCostTooltip', {
-                      currency: claimCurrency ?? 'EUR',
-                    })}
-                  >
-                    <Icon icon='mdi:help-circle-outline' width={16} />
-                  </Tooltip>
-                </Stack>
-              ) : (
-                <Stack
-                  direction='row'
-                  spacing={0.5}
-                  sx={{
-                    alignItems: 'center',
-                  }}
-                >
-                  <span>
-                    {t('expenses.wizard.col.unitPrice', { currency: claimCurrency ?? 'EUR' })}
-                  </span>
-                  <Tooltip
-                    title={t('expenses.wizard.unitPriceTooltip', {
-                      currency: claimCurrency ?? 'EUR',
-                    })}
-                  >
-                    <Icon icon='mdi:help-circle-outline' width={16} />
-                  </Tooltip>
-                </Stack>
-              )}
-            </TableCell>
-            {expenseClaimItems && (
-              <TableCell sx={{ minWidth: 180 }}>{t('expenses.wizard.col.itemId')}</TableCell>
-            )}
-            {costCentres && (
-              <TableCell sx={{ minWidth: 130 }}>
-                <Stack
-                  direction='row'
-                  spacing={0.5}
-                  sx={{
-                    alignItems: 'center',
-                  }}
-                >
-                  <span>{t('expenses.wizard.col.costCentre')}</span>
-                  <Tooltip title={t('expenses.wizard.aircraftSelectorTooltip')}>
-                    <Icon icon='mdi:help-circle-outline' width={16} />
-                  </Tooltip>
-                </Stack>
-              </TableCell>
-            )}
-            {isFuel && (
-              <TableCell sx={{ minWidth: 90 }}>
-                <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
-                  <span>{t('expenses.wizard.col.paidWithClubCard')}</span>
-                  <Tooltip title={t('expenses.wizard.paidWithClubCardTooltip')}>
-                    <Icon icon='mdi:help-circle-outline' width={16} />
-                  </Tooltip>
-                </Stack>
-              </TableCell>
-            )}
-            <TableCell align='right'>
-              {isNonEur
-                ? `${t('expenses.fields.totalAmount')} EUR`
-                : t('expenses.fields.totalAmount')}
-            </TableCell>
-            {!disabled && allowRowRemoval && <TableCell sx={{ width: 40 }} />}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {items.map((item, idx) => {
-            const lineTotal = item.quantity * item.unitPrice
-            const displayedTotalCost = item.totalCost ?? lineTotal
-            const eurTotal = isNonEur
-              ? claimFxRate != null
-                ? displayedTotalCost * claimFxRate
-                : null
-              : displayedTotalCost
+  // Grand total across every item (issue #1037) — mirrors the per-item EUR
+  // conversion below so it's unavailable (rather than silently wrong) until an
+  // FX rate is known for non-EUR claims.
+  const grandTotal: number | null =
+    isNonEur && claimFxRate == null
+      ? null
+      : items.reduce((sum, item) => {
+          const itemTotal = item.totalCost ?? item.quantity * item.unitPrice
+          return sum + (isNonEur ? itemTotal * (claimFxRate as number) : itemTotal)
+        }, 0)
 
-            return (
-              <TableRow key={idx}>
-                <TableCell sx={{ minWidth: 200, verticalAlign: 'top' }}>
+  return (
+    <Stack spacing={2}>
+      {items.map((item, idx) => {
+        const lineTotal = item.quantity * item.unitPrice
+        const displayedTotalCost = item.totalCost ?? lineTotal
+        const eurTotal = isNonEur
+          ? claimFxRate != null
+            ? displayedTotalCost * claimFxRate
+            : null
+          : displayedTotalCost
+
+        return (
+          <Paper key={idx} variant='outlined' sx={{ p: 2 }}>
+            <Stack spacing={2}>
+              <Stack direction='row' spacing={1} sx={{ alignItems: 'flex-start' }}>
+                <TextField
+                  size='small'
+                  fullWidth
+                  multiline
+                  minRows={2}
+                  label={t('expenses.wizard.col.description')}
+                  value={item.description}
+                  disabled={disabled}
+                  onChange={(e) => update(idx, { description: e.target.value })}
+                  onBlur={() => touch(`${idx}-description`)}
+                  error={shouldShow(`${idx}-description`) && !item.description.trim()}
+                  helperText={
+                    shouldShow(`${idx}-description`) && !item.description.trim()
+                      ? t('expenses.validation.descriptionRequired')
+                      : undefined
+                  }
+                />
+                {!disabled && allowRowRemoval && items.length > 1 && (
+                  <IconButton
+                    size='small'
+                    color='error'
+                    onClick={() => onChange(items.filter((_, i) => i !== idx))}
+                  >
+                    <Icon icon='mdi:delete-outline' />
+                  </IconButton>
+                )}
+              </Stack>
+
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fill, minmax(160px, 1fr))' },
+                  gap: 2,
+                }}
+              >
+                {isFuel && (
                   <TextField
                     size='small'
-                    fullWidth
-                    multiline
-                    minRows={4}
-                    value={item.description}
+                    type='date'
+                    label={t('expenses.wizard.col.date')}
+                    value={item.date}
                     disabled={disabled}
-                    onChange={(e) => update(idx, { description: e.target.value })}
-                    onBlur={() => touch(`${idx}-description`)}
-                    error={shouldShow(`${idx}-description`) && !item.description.trim()}
+                    onChange={(e) => update(idx, { date: e.target.value })}
+                    onBlur={() => touch(`${idx}-date`)}
+                    error={shouldShow(`${idx}-date`) && !item.date && !item.id}
                     helperText={
-                      shouldShow(`${idx}-description`) && !item.description.trim()
-                        ? t('expenses.validation.descriptionRequired')
+                      shouldShow(`${idx}-date`) && !item.date && !item.id
+                        ? t('expenses.validation.fuelDateRequired')
                         : undefined
                     }
+                    slotProps={{ inputLabel: { shrink: true } }}
                   />
-                </TableCell>
-                {isFuel && (
-                  <TableCell sx={{ verticalAlign: 'top' }}>
-                    <TextField
-                      size='small'
-                      type='date'
-                      value={item.date}
-                      disabled={disabled}
-                      onChange={(e) => update(idx, { date: e.target.value })}
-                      onBlur={() => touch(`${idx}-date`)}
-                      error={shouldShow(`${idx}-date`) && !item.date && !item.id}
-                      helperText={
-                        shouldShow(`${idx}-date`) && !item.date && !item.id
-                          ? t('expenses.validation.fuelDateRequired')
-                          : undefined
-                      }
-                      slotProps={{ inputLabel: { shrink: true } }}
-                      sx={{ width: 150 }}
-                    />
-                  </TableCell>
                 )}
                 {isFuel && (
-                  <TableCell sx={{ verticalAlign: 'top' }}>
-                    <Autocomplete
-                      size='small'
-                      options={airfields}
-                      disabled={disabled}
-                      value={airfields.find((af) => af.ident === item.airport) ?? null}
-                      getOptionLabel={(option) => `${option.ident}: ${option.name}`}
-                      onChange={(_e, value) => update(idx, { airport: value?.ident ?? null })}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          placeholder='ICAO'
-                          onBlur={() => touch(`${idx}-airport`)}
-                          error={shouldShow(`${idx}-airport`) && !item.airport && !item.id}
-                          helperText={
-                            shouldShow(`${idx}-airport`) && !item.airport && !item.id
-                              ? t('expenses.validation.airportRequired')
-                              : undefined
-                          }
-                        />
-                      )}
-                      sx={{ width: 200 }}
-                    />
-                  </TableCell>
+                  <Autocomplete
+                    size='small'
+                    options={airfields}
+                    disabled={disabled}
+                    value={airfields.find((af) => af.ident === item.airport) ?? null}
+                    getOptionLabel={(option) => `${option.ident}: ${option.name}`}
+                    onChange={(_e, value) => update(idx, { airport: value?.ident ?? null })}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={t('expenses.wizard.col.airport')}
+                        placeholder='ICAO'
+                        onBlur={() => touch(`${idx}-airport`)}
+                        error={shouldShow(`${idx}-airport`) && !item.airport && !item.id}
+                        helperText={
+                          shouldShow(`${idx}-airport`) && !item.airport && !item.id
+                            ? t('expenses.validation.airportRequired')
+                            : undefined
+                        }
+                      />
+                    )}
+                  />
                 )}
-                <TableCell sx={{ verticalAlign: 'top' }}>
+                <TextField
+                  size='small'
+                  type='number'
+                  label={isFuel ? t('expenses.wizard.col.litres') : t('expenses.wizard.col.qty')}
+                  value={item.quantity || ''}
+                  disabled={disabled}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => {
+                    const quantity = Number(e.target.value) || 0
+                    if (isFuel) {
+                      update(idx, {
+                        quantity,
+                        totalCost: displayedTotalCost,
+                        unitPrice: quantity > 0 ? displayedTotalCost / quantity : 0,
+                      })
+                    } else {
+                      update(idx, { quantity })
+                    }
+                  }}
+                  onBlur={() => touch(`${idx}-quantity`)}
+                  error={shouldShow(`${idx}-quantity`) && item.quantity < 1}
+                  helperText={
+                    shouldShow(`${idx}-quantity`) && item.quantity < 1
+                      ? t('expenses.validation.quantityMin')
+                      : undefined
+                  }
+                />
+                {isFuel ? (
                   <TextField
                     size='small'
                     type='number'
-                    value={item.quantity}
+                    label={t('expenses.wizard.col.totalCost', {
+                      currency: claimCurrency ?? 'EUR',
+                    })}
+                    value={displayedTotalCost || ''}
                     disabled={disabled}
                     onFocus={(e) => e.target.select()}
-                    onChange={(e) => {
-                      const quantity = Number(e.target.value) || 0
-                      if (isFuel) {
-                        update(idx, {
-                          quantity,
-                          totalCost: displayedTotalCost,
-                          unitPrice: quantity > 0 ? displayedTotalCost / quantity : 0,
-                        })
-                      } else {
-                        update(idx, { quantity })
-                      }
-                    }}
-                    onBlur={() => touch(`${idx}-quantity`)}
-                    error={shouldShow(`${idx}-quantity`) && item.quantity < 1}
-                    helperText={
-                      shouldShow(`${idx}-quantity`) && item.quantity < 1
-                        ? t('expenses.validation.quantityMin')
-                        : undefined
+                    onChange={(e) =>
+                      applyTotalCost(idx, Number(e.target.value) || 0, item.quantity)
                     }
-                    sx={{ width: 90 }}
+                    onBlur={() => touch(`${idx}-unitPrice`)}
+                    error={shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0}
+                    helperText={
+                      shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0
+                        ? t('expenses.validation.unitPriceRequired')
+                        : t('expenses.wizard.totalCostTooltip', {
+                            currency: claimCurrency ?? 'EUR',
+                          })
+                    }
                   />
-                </TableCell>
-                <TableCell sx={{ verticalAlign: 'top' }}>
-                  {isFuel ? (
-                    <TextField
-                      size='small'
-                      type='number'
-                      value={displayedTotalCost || ''}
-                      disabled={disabled}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) =>
-                        applyTotalCost(idx, Number(e.target.value) || 0, item.quantity)
-                      }
-                      onBlur={() => touch(`${idx}-unitPrice`)}
-                      error={shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0}
-                      helperText={
-                        shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0
-                          ? t('expenses.validation.unitPriceRequired')
-                          : undefined
-                      }
-                      sx={{ width: 120 }}
-                    />
-                  ) : (
-                    <TextField
-                      size='small'
-                      type='number'
-                      value={item.unitPrice}
-                      disabled={disabled}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) => update(idx, { unitPrice: Number(e.target.value) || 0 })}
-                      onBlur={() => touch(`${idx}-unitPrice`)}
-                      error={shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0}
-                      helperText={
-                        shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0
-                          ? t('expenses.validation.unitPriceRequired')
-                          : undefined
-                      }
-                      sx={{ width: 120 }}
-                    />
-                  )}
-                </TableCell>
+                ) : (
+                  <TextField
+                    size='small'
+                    type='number'
+                    label={t('expenses.wizard.col.unitPrice', {
+                      currency: claimCurrency ?? 'EUR',
+                    })}
+                    value={item.unitPrice || ''}
+                    disabled={disabled}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => update(idx, { unitPrice: Number(e.target.value) || 0 })}
+                    onBlur={() => touch(`${idx}-unitPrice`)}
+                    error={shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0}
+                    helperText={
+                      shouldShow(`${idx}-unitPrice`) && item.unitPrice <= 0
+                        ? t('expenses.validation.unitPriceRequired')
+                        : t('expenses.wizard.unitPriceTooltip', {
+                            currency: claimCurrency ?? 'EUR',
+                          })
+                    }
+                  />
+                )}
                 {expenseClaimItems && (
-                  <TableCell sx={{ verticalAlign: 'top' }}>
-                    <TextField
-                      size='small'
-                      select
-                      value={item.itemId ?? ''}
-                      disabled={disabled}
-                      onChange={(e) => {
-                        const itemId = e.target.value === '' ? null : Number(e.target.value)
-                        const patch: Partial<EditableLineItem> = { itemId }
-                        if (isFuel && itemId != null && costCentres?.length) {
-                          const selected = expenseClaimItems?.find((i) => i.id === itemId)
-                          const matched =
-                            selected && matchAircraftCostCentre(selected.code, costCentres)
-                          if (matched) patch.costCentreCode = matched
-                        }
-                        update(idx, patch)
-                      }}
-                      sx={{ width: 180 }}
-                    >
+                  <TextField
+                    size='small'
+                    select
+                    label={t('expenses.wizard.col.itemId')}
+                    value={item.itemId ?? ''}
+                    disabled={disabled}
+                    onChange={(e) => {
+                      const itemId = e.target.value === '' ? null : Number(e.target.value)
+                      const patch: Partial<EditableLineItem> = { itemId }
+                      if (isFuel && itemId != null && costCentres?.length) {
+                        const selected = expenseClaimItems?.find((i) => i.id === itemId)
+                        const matched =
+                          selected && matchAircraftCostCentre(selected.code, costCentres)
+                        if (matched) patch.costCentreCode = matched
+                      }
+                      update(idx, patch)
+                    }}
+                  >
+                    <MenuItem value=''>
+                      <em>—</em>
+                    </MenuItem>
+                    {expenseClaimItems.map((invoiceItem) => (
+                      <MenuItem key={invoiceItem.id} value={invoiceItem.id}>
+                        {invoiceItem.id} — {invoiceItem.code} ({invoiceItem.name})
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
+                {costCentres && (
+                  <TextField
+                    size='small'
+                    select
+                    required={isFuel}
+                    label={t('expenses.wizard.col.costCentre')}
+                    value={item.costCentreCode ?? ''}
+                    disabled={disabled}
+                    onChange={(e) => update(idx, { costCentreCode: e.target.value || null })}
+                    onBlur={() => touch(`${idx}-costCentreCode`)}
+                    error={isFuel && shouldShow(`${idx}-costCentreCode`) && !item.costCentreCode}
+                    helperText={
+                      isFuel && shouldShow(`${idx}-costCentreCode`) && !item.costCentreCode
+                        ? t('expenses.validation.aircraftRequired')
+                        : t('expenses.wizard.aircraftSelectorTooltip')
+                    }
+                  >
+                    {!isFuel && (
                       <MenuItem value=''>
                         <em>—</em>
                       </MenuItem>
-                      {expenseClaimItems.map((invoiceItem) => (
-                        <MenuItem key={invoiceItem.id} value={invoiceItem.id}>
-                          {invoiceItem.id} — {invoiceItem.code} ({invoiceItem.name})
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </TableCell>
-                )}
-                {costCentres && (
-                  <TableCell sx={{ verticalAlign: 'top' }}>
-                    <TextField
-                      size='small'
-                      select
-                      required={isFuel}
-                      value={item.costCentreCode ?? ''}
-                      disabled={disabled}
-                      onChange={(e) => update(idx, { costCentreCode: e.target.value || null })}
-                      onBlur={() => touch(`${idx}-costCentreCode`)}
-                      error={isFuel && shouldShow(`${idx}-costCentreCode`) && !item.costCentreCode}
-                      helperText={
-                        isFuel && shouldShow(`${idx}-costCentreCode`) && !item.costCentreCode
-                          ? t('expenses.validation.aircraftRequired')
-                          : undefined
-                      }
-                      sx={{ width: 130 }}
-                    >
-                      {!isFuel && (
-                        <MenuItem value=''>
-                          <em>—</em>
-                        </MenuItem>
-                      )}
-                      {costCentres.map((cc) => (
-                        <MenuItem key={cc.code} value={cc.code}>
-                          {cc.code}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </TableCell>
+                    )}
+                    {costCentres.map((cc) => (
+                      <MenuItem key={cc.code} value={cc.code}>
+                        {cc.code}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 )}
                 {isFuel && (
-                  <TableCell sx={{ verticalAlign: 'top' }}>
-                    <Checkbox
-                      size='small'
-                      checked={!!item.paidWithClubCard}
-                      disabled={disabled}
-                      onChange={(e) => update(idx, { paidWithClubCard: e.target.checked })}
+                  <Box sx={{ gridColumn: { sm: '1 / -1' } }}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          size='small'
+                          checked={!!item.paidWithClubCard}
+                          disabled={disabled}
+                          onChange={(e) => update(idx, { paidWithClubCard: e.target.checked })}
+                        />
+                      }
+                      label={t('expenses.wizard.col.paidWithClubCard')}
                     />
-                  </TableCell>
+                    <FormHelperText sx={{ mt: -0.5 }}>
+                      {t('expenses.wizard.paidWithClubCardTooltip')}
+                    </FormHelperText>
+                  </Box>
                 )}
-                <TableCell align='right' sx={{ verticalAlign: 'top' }}>
-                  {eurTotal != null ? eurFormatter.format(eurTotal) : '—'}
-                </TableCell>
-                {!disabled && allowRowRemoval && (
-                  <TableCell sx={{ verticalAlign: 'top' }}>
-                    {items.length > 1 && (
-                      <IconButton
-                        size='small'
-                        color='error'
-                        onClick={() => onChange(items.filter((_, i) => i !== idx))}
-                      >
-                        <Icon icon='mdi:delete-outline' />
-                      </IconButton>
-                    )}
-                  </TableCell>
-                )}
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
-    </Box>
+              </Box>
+
+              <Typography variant='body2' sx={{ textAlign: 'right', color: 'text.secondary' }}>
+                {isNonEur
+                  ? `${t('expenses.fields.totalAmount')} EUR`
+                  : t('expenses.fields.totalAmount')}
+                : {eurTotal != null ? eurFormatter.format(eurTotal) : '—'}
+              </Typography>
+            </Stack>
+          </Paper>
+        )
+      })}
+      <Divider />
+      <Typography variant='subtitle1' sx={{ textAlign: 'right' }}>
+        {isNonEur ? `${t('expenses.fields.totalAmount')} EUR` : t('expenses.fields.totalAmount')}:{' '}
+        {grandTotal != null ? eurFormatter.format(grandTotal) : '—'}
+      </Typography>
+    </Stack>
   )
 }
 
