@@ -114,6 +114,20 @@ Because `authScenarios` is a plain object it drops straight into a table-driven 
 it.each(Object.values(authScenarios))('$name', async (scenario) => { ... })
 ```
 
+## The route permission matrix
+
+`src/test/routeMatrix.tsx` holds every route in `AppRoutes.tsx` with the permission gate it carries,
+plus the harness that visits one. The four `src/AppRoutes.permissions.<identity>.test.tsx` files
+each run the whole table against one identity — split across files because tests inside a file run
+in sequence, and rendering every page four times over is the most expensive thing in the suite.
+
+If you add or re-gate a route, update `ROUTES` in `routeMatrix.tsx`. `AppRoutes.permissions.test.tsx`
+fails loudly when the number of `<RequirePermission>` gates in the source stops matching the table,
+and the admin run fails if a listed path no longer resolves.
+
+The matrix asserts the **gate**, not the page: pages render against a catch-all API stub, and one
+that cannot cope with it is caught by an error boundary and counted as "the gate let us through".
+
 ## Fixtures
 
 `src/test/fixtures/` holds typed builders. Each takes an `overrides` object and returns a complete,
