@@ -55,7 +55,7 @@ const HilEntry = ({
   const { t } = useTranslation()
   const handleOpenDefect = useOpenDefectLink(hil.aircraftRegistration)
 
-  const isExtended = hil.effectiveDueDate !== hil.dueDate
+  const isExtended = hil.dueDate !== null && hil.effectiveDueDate !== hil.dueDate
   const isResolved = !!hil.resolvedNoteId
 
   return (
@@ -71,11 +71,13 @@ const HilEntry = ({
       <Stack spacing={1}>
         <Stack direction='row' spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
           <Chip size='small' label={`HIL #${hil.hilNumber}`} />
-          <Chip
-            size='small'
-            variant='outlined'
-            label={t('aircraft.hil.categoryChip', { defectCat: hil.defectCat })}
-          />
+          {hil.defectCat && (
+            <Chip
+              size='small'
+              variant='outlined'
+              label={t('aircraft.hil.categoryChip', { defectCat: hil.defectCat })}
+            />
+          )}
           {hil.isOverdue && (
             <Chip
               size='small'
@@ -97,7 +99,8 @@ const HilEntry = ({
             <Stack direction='row' sx={{ ml: 'auto' }}>
               {!isResolved && (
                 <>
-                  {hil.extensions.length === 0 && (
+                  {/* With no due date there is nothing to extend (issue #1120) */}
+                  {hil.extensions.length === 0 && hil.dueDate && (
                     <EditButton
                       title={t('aircraft.hil.addExtension')}
                       icon='mdi:calendar-plus'
@@ -145,12 +148,15 @@ const HilEntry = ({
             </Typography>
             <Typography
               variant='body2'
-              sx={{ textDecoration: isExtended ? 'line-through' : undefined }}
+              sx={{
+                textDecoration: isExtended ? 'line-through' : undefined,
+                color: hil.dueDate ? undefined : 'text.secondary',
+              }}
             >
-              {formatDate(hil.dueDate)}
+              {hil.dueDate ? formatDate(hil.dueDate) : t('aircraft.hil.noDueDate')}
             </Typography>
           </Box>
-          {isExtended && (
+          {isExtended && hil.effectiveDueDate && (
             <Box>
               <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block' }}>
                 {t('aircraft.hil.extendedDueDate')}
@@ -191,10 +197,14 @@ const HilEntry = ({
         <Divider />
 
         <Box>
-          <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block' }}>
-            {t('aircraft.hil.sourceRef')}
-          </Typography>
-          <Typography variant='body2'>{hil.sourceRef}</Typography>
+          {hil.sourceRef && (
+            <>
+              <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block' }}>
+                {t('aircraft.hil.sourceRef')}
+              </Typography>
+              <Typography variant='body2'>{hil.sourceRef}</Typography>
+            </>
+          )}
           {hil.defects.map((defect) => (
             <Link
               key={defect.defectId}

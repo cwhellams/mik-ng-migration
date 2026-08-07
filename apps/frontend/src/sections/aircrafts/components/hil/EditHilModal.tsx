@@ -5,6 +5,7 @@ import {
   DialogActions,
   DialogContent,
   FormControl,
+  FormHelperText,
   InputLabel,
   MenuItem,
   Select,
@@ -67,6 +68,7 @@ export const EditHilModal = ({
   const [dueDate, setDueDate] = useState<Dayjs | null>(null)
   const [resolvedNoteId, setResolvedNoteId] = useState('')
   const [selectedDefectId, setSelectedDefectId] = useState('')
+  const [deferredDefectIds, setDeferredDefectIds] = useState<string[]>([])
   const [problem, setProblem] = useState<Problem | undefined>()
 
   const { data: maintenanceNotes } = useMaintenanceNotes(
@@ -77,8 +79,21 @@ export const EditHilModal = ({
   // When arriving without one pre-selected (the HIL page's own "Add" button),
   // the plane captain must pick which defect this entry defers.
   const needsDefectPicker = isNew && !defect
-  const { data: aircraftDefects } = useDefects(needsDefectPicker ? aircraftRegistration : undefined)
+  // In edit mode the same list backs the "deferred defects" picker, so a hold
+  // item opened against the wrong defect can be pointed at the right one.
+  const canEditDefects = !isNew && !hil?.resolvedNoteId
+  const { data: aircraftDefects } = useDefects(
+    needsDefectPicker || canEditDefects ? aircraftRegistration : undefined,
+  )
   const activeDefects = aircraftDefects?.filter((d) => d.status === 'ACTIVE') ?? []
+  // A defect can be resolved directly while its hold item is still open; leave
+  // those out, since a resolved defect must not be unlinked and reactivated.
+  const linkedDefects = hil?.defects.filter((d) => d.status !== 'RESOLVED') ?? []
+  // Linked defects are MOVED_TO_HIL, not ACTIVE, so add them explicitly —
+  // otherwise the current selection would have no matching option.
+  const selectableDefects = [...linkedDefects, ...activeDefects].filter(
+    (d, index, all) => all.findIndex((other) => other.defectId === d.defectId) === index,
+  )
 
   // Suggests the next free number as a starting point, but the plane captain
   // can overwrite it to match the number on the paper hold item list.
@@ -110,12 +125,15 @@ export const EditHilModal = ({
     if (hil && mode === 'edit') {
       setHilNumber(String(hil.hilNumber))
       setDescription(hil.description)
-      setDefectCat(hil.defectCat)
+      setDefectCat(hil.defectCat ?? '')
       setRestrictions(hil.restrictions ?? '')
-      setSourceRef(hil.sourceRef)
+      setSourceRef(hil.sourceRef ?? '')
       setName(hil.name)
       setOpenDate(dayjs(hil.openDate))
-      setDueDate(dayjs(hil.dueDate))
+      setDueDate(hil.dueDate ? dayjs(hil.dueDate) : null)
+      setDeferredDefectIds(
+        hil.defects.filter((d) => d.status !== 'RESOLVED').map((d) => d.defectId),
+      )
     } else {
       setHilNumber('')
       setDescription(defect?.description ?? '')
@@ -125,6 +143,7 @@ export const EditHilModal = ({
       setName('')
       setOpenDate(dayjs())
       setDueDate(null)
+      setDeferredDefectIds([])
     }
   }, [hil, mode, defect])
 
@@ -141,13 +160,8 @@ export const EditHilModal = ({
       setProblem(validationProblem(t('aircraft.hil.defectRequired')))
       return
     }
-    if (
-      !hilNumber.trim() ||
-      !description.trim() ||
-      !defectCat.trim() ||
-      !sourceRef.trim() ||
-      !name.trim()
-    ) {
+    // Defect category, source ref and due date are optional (issue #1120)
+    if (!hilNumber.trim() || !description.trim() || !name.trim()) {
       setProblem(validationProblem(t('aircraft.hil.requiredFields')))
       return
     }
@@ -156,12 +170,24 @@ export const EditHilModal = ({
       setProblem(validationProblem(t('aircraft.hil.hilNumberInvalid')))
       return
     }
-    if (!openDate || !dueDate) {
+    if (!openDate) {
       setProblem(validationProblem(t('aircraft.hil.datesRequired')))
       return
     }
-    if (dueDate.isBefore(openDate, 'day')) {
+    if (dueDate && dueDate.isBefore(openDate, 'day')) {
       setProblem(validationProblem(t('aircraft.hil.dueBeforeOpen')))
+      return
+    }
+    // Only sent when the plane captain actually changed which defects this hold
+    // item defers, so an unrelated edit never touches the defect statuses.
+    const defectsChanged =
+      canEditDefects &&
+      (deferredDefectIds.length !== linkedDefects.length ||
+        deferredDefectIds.some((id) => !linkedDefects.some((d) => d.defectId === id)))
+
+    // A hold item must defer a defect at all times, but it can be changed
+    if (defectsChanged && deferredDefectIds.length === 0) {
+      setProblem(validationProblem(t('aircraft.hil.defectRequired')))
       return
     }
 
@@ -170,16 +196,16 @@ export const EditHilModal = ({
     const common = {
       hilNumber: hilNumberValue,
       description: description.trim(),
-      defectCat: defectCat.trim(),
+      defectCat: defectCat.trim() || null,
       restrictions: restrictions.trim() || null,
-      sourceRef: sourceRef.trim(),
+      sourceRef: sourceRef.trim() || null,
       name: name.trim(),
       // openDate/dueDate are date pickers, not date-times: serialize the
       // calendar day the user picked as UTC midnight rather than
       // toISOString(), which shifts by the local UTC offset and can roll
       // the date across midnight.
       openDate: toDateOnlyIso(openDate),
-      dueDate: toDateOnlyIso(dueDate),
+      dueDate: dueDate ? toDateOnlyIso(dueDate) : null,
     }
 
     const { error } = isNew
@@ -191,6 +217,7 @@ export const EditHilModal = ({
       : await api.mutation.trigger('PATCH', {
           ...common,
           ...(resolvedNoteId.trim() ? { resolvedNoteId: resolvedNoteId.trim() } : {}),
+          ...(defectsChanged ? { defectIds: deferredDefectIds } : {}),
         })
 
     if (error) {
@@ -257,11 +284,40 @@ export const EditHilModal = ({
             helperText={t('aircraft.hil.defectHelp')}
           />
 
+          {canEditDefects && (
+            <FormControl fullWidth>
+              <InputLabel>{t('aircraft.hil.deferredDefects')}</InputLabel>
+              <Select
+                multiple
+                value={deferredDefectIds}
+                label={t('aircraft.hil.deferredDefects')}
+                onChange={(e) =>
+                  setDeferredDefectIds(
+                    typeof e.target.value === 'string' ? [e.target.value] : e.target.value,
+                  )
+                }
+                renderValue={(selected) =>
+                  selected
+                    .map(
+                      (id) => selectableDefects.find((d) => d.defectId === id)?.description ?? id,
+                    )
+                    .join(', ')
+                }
+              >
+                {selectableDefects.map((d) => (
+                  <MenuItem key={d.defectId} value={d.defectId}>
+                    {d.description}
+                  </MenuItem>
+                ))}
+              </Select>
+              <FormHelperText>{t('aircraft.hil.deferredDefectsHelp')}</FormHelperText>
+            </FormControl>
+          )}
+
           <TextField
             label={t('aircraft.hil.defectCat')}
             value={defectCat}
             onChange={(e) => setDefectCat(e.target.value)}
-            required
             fullWidth
             helperText={t('aircraft.hil.defectCatHelp')}
           />
@@ -280,7 +336,6 @@ export const EditHilModal = ({
             label={t('aircraft.hil.sourceRef')}
             value={sourceRef}
             onChange={(e) => setSourceRef(e.target.value)}
-            required
             fullWidth
             helperText={t('aircraft.hil.sourceRefHelp')}
           />
@@ -309,9 +364,10 @@ export const EditHilModal = ({
             slotProps={{
               textField: {
                 fullWidth: true,
-                required: true,
                 helperText: t('aircraft.hil.dueDateHelp'),
               },
+              // Optional (issue #1120): let the plane captain empty the field again
+              field: { clearable: true, onClear: () => setDueDate(null) },
             }}
           />
 

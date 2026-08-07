@@ -20,13 +20,13 @@ function mapRowToHil(row: {
   hil_id: string
   aircraft_registration: string
   hil_number: number
-  source_ref: string
-  defect_cat: string
+  source_ref: string | null
+  defect_cat: string | null
   description: string
   restrictions: string | null
   open_date: Date
   name: string
-  due_date: Date
+  due_date: Date | null
   resolved_note_id: string | null
   created_at: Date
   created_by: string
@@ -43,7 +43,7 @@ function mapRowToHil(row: {
     restrictions: row.restrictions,
     openDate: row.open_date.toISOString(),
     name: row.name,
-    dueDate: row.due_date.toISOString(),
+    dueDate: row.due_date?.toISOString() ?? null,
     resolvedNoteId: row.resolved_note_id,
     createdAt: row.created_at.toISOString(),
     createdBy: row.created_by,
@@ -112,13 +112,13 @@ export async function createAircraftHilEntry(
         .values({
           aircraft_registration: data.aircraftRegistration,
           hil_number: hilNumber,
-          source_ref: data.sourceRef,
-          defect_cat: data.defectCat,
+          source_ref: data.sourceRef ?? null,
+          defect_cat: data.defectCat ?? null,
           description: data.description,
           restrictions: data.restrictions ?? null,
           open_date: new Date(data.openDate),
           name: data.name,
-          due_date: new Date(data.dueDate),
+          due_date: data.dueDate ? new Date(data.dueDate) : null,
           resolved_note_id: null,
           created_at: now,
           created_by: createdBy,
@@ -184,7 +184,9 @@ export async function updateAircraftHilEntry(
         ...(data.restrictions !== undefined && { restrictions: data.restrictions }),
         ...(data.openDate !== undefined && { open_date: new Date(data.openDate) }),
         ...(data.name !== undefined && { name: data.name }),
-        ...(data.dueDate !== undefined && { due_date: new Date(data.dueDate) }),
+        ...(data.dueDate !== undefined && {
+          due_date: data.dueDate ? new Date(data.dueDate) : null,
+        }),
         ...(data.resolvedNoteId !== undefined && { resolved_note_id: data.resolvedNoteId }),
         updated_at: new Date(),
         updated_by: updatedBy,
@@ -414,7 +416,12 @@ export async function getAircraftHilOverview(
       ...hil,
       extensions,
       effectiveDueDate,
-      isOverdue: !hil.resolvedNoteId && new Date(effectiveDueDate).getTime() < now,
+      // A hold item with no due date has no date to be past, so it is never
+      // overdue and never grounds the aircraft on its own (issue #1120).
+      isOverdue:
+        !hil.resolvedNoteId &&
+        effectiveDueDate !== null &&
+        new Date(effectiveDueDate).getTime() < now,
       defects: defectsByHil.get(hil.hilId) ?? [],
     }
 

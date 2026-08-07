@@ -733,16 +733,16 @@ export interface FlightAircraftHil {
   aircraft_registration: string
   created_at: Generated<Timestamp>
   created_by: string
-  defect_cat: string
+  defect_cat: string | null
   description: string
-  due_date: Timestamp
+  due_date: Timestamp | null
   hil_id: Generated<string>
   hil_number: number
   name: string
   open_date: Timestamp
   resolved_note_id: string | null
   restrictions: string | null
-  source_ref: string
+  source_ref: string | null
   updated_at: Generated<Timestamp>
   updated_by: string
 }

@@ -76,7 +76,8 @@ export const AddHilExtensionModal = ({ hil, onClose }: AddHilExtensionModalProps
     onClose()
   }
 
-  if (!hil) return null
+  // An item with no due date has nothing to extend, and the backend rejects it
+  if (!hil || !hil.effectiveDueDate) return null
 
   return (
     <Dialog open={!!hil} onClose={onClose} maxWidth='sm' fullWidth fullScreen={isXs}>
