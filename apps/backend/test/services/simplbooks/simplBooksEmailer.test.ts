@@ -316,4 +316,40 @@ describe('SimplBooks Emailer Tests', () => {
       })
     })
   })
+
+  describe('sendSimplbooksInvoiceEmail - Items table (mobile layout)', () => {
+    const invoiceWithTasks = {
+      data: {
+        Invoice: mockInvoice.data.Invoice,
+        Task: [
+          {
+            name: 'Flight fee',
+            contents: 'OH-IHQ 1.5h',
+            amount: 1.5,
+            price_per_unit: 120,
+            unit: 'h',
+            discount: 0,
+          },
+        ],
+      },
+    }
+
+    it('should render both a desktop table and a mobile card-stacked layout', async () => {
+      getMemberById.mockResolvedValue(mockMember)
+      getInvoice.mockResolvedValue(invoiceWithTasks as any)
+      getInvoicePdf.mockResolvedValue(mockPdfBase64)
+      sendEmail.mockImplementation(() => Promise.resolve())
+
+      await sendSimplbooksInvoiceEmail(12345, 'test-member-123')
+
+      const emailHtml = sendEmail.mock.calls[0][2]
+      expect(emailHtml).toMatch(/<table[^>]+class="[^"]*items-table-desktop[^"]*"/)
+      expect(emailHtml).toMatch(/<div[^>]+class="[^"]*items-table-mobile[^"]*"/)
+      // Cells must be free to wrap on narrow screens
+      expect(emailHtml).not.toContain('white-space:nowrap')
+      // Line item content appears in both layouts
+      expect(emailHtml).toContain('Flight fee')
+      expect(emailHtml).toContain('€180.00')
+    })
+  })
 })
