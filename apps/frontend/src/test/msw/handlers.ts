@@ -66,6 +66,6 @@ export const handlers = [
   http.get(apiUrl('v1/flight-logs'), () => HttpResponse.json(aFlightLogListResponse())),
 ]
 
-/** RFC 9457 problem response, matching what `problemErrorHandler` sends. */
+/** RFC 9457 problem response with the minimal fields (`status`, `detail`) returned for error scenarios. */
 export const problemResponse = (status: number, detail: string) =>
   HttpResponse.json({ status, detail }, { status })
