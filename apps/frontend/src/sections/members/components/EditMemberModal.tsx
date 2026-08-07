@@ -157,7 +157,7 @@ export const EditMemberModal = ({
         })
       } else if (mode === 'training') {
         setFormData({
-          isTrainingProgramPilot: memberData.isTrainingProgramPilot,
+          ...(isAdmin ? { isTrainingProgramPilot: memberData.isTrainingProgramPilot } : {}),
           defaultInstructorMemberId: memberData.defaultInstructorMemberId ?? null,
         })
       } else if (mode == 'membership') {
