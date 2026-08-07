@@ -60,7 +60,18 @@ data into each other), the server clock and a `MemoryRouter`. Options:
 | `themeMode`   | `light` | Colour mode                                                            |
 | `serverClock` | `true`  | Wrap in `ServerClockProvider` (which syncs against `GET /api/v1/time`) |
 
-For hooks, use `renderHookWithProviders` — same options, same providers.
+For hooks, use `renderHookWithProviders` — same options, same providers, plus `initialProps` for
+hooks you want to `rerender` with new arguments. A hook that needs no providers at all (pure state,
+`localStorage`, DOM refs) is better off with Testing Library's plain `renderHook`.
+
+Two things to know before writing a hook test:
+
+- **`useApi` redirects by calling `navigate()` in its render body.** That only settles because the
+  redirect unmounts the caller, so a bare `renderHook` left mounted across the redirect spins
+  forever. Test redirect behaviour through a `<Routes>` tree (see `useApi.test.tsx`).
+- **MSW cannot parse a multipart upload with `request.formData()`** — the body carries a jsdom
+  `File`, which undici's parser rejects. Read `await request.text()` and parse the fields
+  (see `useAircraftDocumentUpload.test.tsx`).
 
 ## Faking the API
 

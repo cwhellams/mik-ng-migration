@@ -149,12 +149,13 @@ export const renderWithProviders = (
  */
 export const renderHookWithProviders = <Result, Props>(
   hook: (props: Props) => Result,
-  options: ProviderOptions = {},
+  options: ProviderOptions & { initialProps?: Props } = {},
 ): RenderHookResult<Result, Props> => {
   seedPreferences(options)
   i18n.changeLanguage(options.language ?? 'en')
 
   return renderHook(hook, {
+    initialProps: options.initialProps,
     wrapper: ({ children }) => <Providers options={options}>{children}</Providers>,
   })
 }
