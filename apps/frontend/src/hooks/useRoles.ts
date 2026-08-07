@@ -33,6 +33,8 @@ export function useRoles(): {
   isAmeUser: boolean
   isMeetingAdmin: boolean
   isMeetingUser: boolean
+  isExpenseAdmin: boolean
+  isDtoInstructor: boolean
   roles: MemberRole[]
   permissions: MIKPermissions[]
   sudoers: boolean
@@ -85,6 +87,10 @@ export function useRoles(): {
     isAmeUser: hasAccess(MIKPermissions.AME_USER, MIKPermissions.AME_ADMIN),
     isMeetingAdmin: hasSudoAccess(MIKPermissions.MEETING_ADMIN),
     isMeetingUser: hasAccess(MIKPermissions.MEETING_USER, MIKPermissions.MEETING_ADMIN),
+    isExpenseAdmin: hasSudoAccess(MIKPermissions.EXPENSE_ADMIN),
+    // DTO_INSTRUCTOR is not downgraded outside sudo mode, but DTO_ADMIN is
+    isDtoInstructor:
+      hasAccess(MIKPermissions.DTO_INSTRUCTOR) || hasSudoAccess(MIKPermissions.DTO_ADMIN),
     roles: rolesData?.roles ?? [],
     permissions: rolesData?.permissions ?? [],
     // user is in sudoers file if the downgraded permission is different

@@ -38,6 +38,12 @@ import {
   getAogDaysByAcYr,
   getPobDistributionByAcYr,
   getOccurrencesPerHundredHrsByAcYr,
+  getSchoolFlightEfficiencyByYr,
+  getSchoolFlightEfficiencyByYrMth,
+  getSchoolFlightEfficiencyByAcYr,
+  getSchoolFlightEfficiencyByAcYrMth,
+  getSchoolFlightEfficiencyByInstructorYr,
+  getSchoolFlightEfficiencyByInstructorYrMth,
 } from '../../db/stats-queries.ts'
 import { MyStatisticsFilterSchema } from './models.ts'
 import type {
@@ -77,6 +83,12 @@ import type {
   AogDaysByAcYr,
   PobDistributionByAcYr,
   OccurrencesPerHundredHrsByAcYr,
+  SchoolFlightEfficiencyByYr,
+  SchoolFlightEfficiencyByYrMth,
+  SchoolFlightEfficiencyByAcYr,
+  SchoolFlightEfficiencyByAcYrMth,
+  SchoolFlightEfficiencyByInstructorYr,
+  SchoolFlightEfficiencyByInstructorYrMth,
 } from './models.ts'
 
 export const router = Router()
@@ -448,6 +460,92 @@ router.get(
     const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
     const data = await getAirfieldEfficiencyByAcYrMth({
       aircraft_registration: aircraft_registration as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+      mth: mth ? Number(mth) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+// V1760: School Flight Reservation Efficiency Routes
+router.get(
+  '/school-flight-efficiency/year',
+  async (req: Request, res: Response<SchoolFlightEfficiencyByYr[]>) => {
+    const { yr, yr_from, yr_to } = req.query
+    const data = await getSchoolFlightEfficiencyByYr({
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/school-flight-efficiency/year/month',
+  async (req: Request, res: Response<SchoolFlightEfficiencyByYrMth[]>) => {
+    const { yr, yr_from, yr_to, mth } = req.query
+    const data = await getSchoolFlightEfficiencyByYrMth({
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+      mth: mth ? Number(mth) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/school-flight-efficiency/aircraft/year',
+  async (req: Request, res: Response<SchoolFlightEfficiencyByAcYr[]>) => {
+    const { aircraft_registration, yr, yr_from, yr_to } = req.query
+    const data = await getSchoolFlightEfficiencyByAcYr({
+      aircraft_registration: aircraft_registration as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/school-flight-efficiency/aircraft/year/month',
+  async (req: Request, res: Response<SchoolFlightEfficiencyByAcYrMth[]>) => {
+    const { aircraft_registration, yr, yr_from, yr_to, mth } = req.query
+    const data = await getSchoolFlightEfficiencyByAcYrMth({
+      aircraft_registration: aircraft_registration as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+      mth: mth ? Number(mth) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/school-flight-efficiency/instructor/year',
+  async (req: Request, res: Response<SchoolFlightEfficiencyByInstructorYr[]>) => {
+    const { instructor, yr, yr_from, yr_to } = req.query
+    const data = await getSchoolFlightEfficiencyByInstructorYr({
+      instructor: instructor as string | undefined,
+      yr: yr ? Number(yr) : undefined,
+      yr_from: yr_from ? Number(yr_from) : undefined,
+      yr_to: yr_to ? Number(yr_to) : undefined,
+    })
+    res.status(200).json(data)
+  },
+)
+
+router.get(
+  '/school-flight-efficiency/instructor/year/month',
+  async (req: Request, res: Response<SchoolFlightEfficiencyByInstructorYrMth[]>) => {
+    const { instructor, yr, yr_from, yr_to, mth } = req.query
+    const data = await getSchoolFlightEfficiencyByInstructorYrMth({
+      instructor: instructor as string | undefined,
       yr: yr ? Number(yr) : undefined,
       yr_from: yr_from ? Number(yr_from) : undefined,
       yr_to: yr_to ? Number(yr_to) : undefined,

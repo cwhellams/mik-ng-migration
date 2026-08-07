@@ -1983,6 +1983,55 @@ export interface StatsReservationEfficiencyByYrMth {
   yr: Numeric | null
 }
 
+export interface StatsSchoolFlightEfficiencyByAcYr {
+  aircraft_registration: string | null
+  efficiency_pct: Numeric | null
+  total_block_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsSchoolFlightEfficiencyByAcYrMth {
+  aircraft_registration: string | null
+  efficiency_pct: Numeric | null
+  mth: Numeric | null
+  total_block_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsSchoolFlightEfficiencyByInstructorYr {
+  efficiency_pct: Numeric | null
+  instructor: string | null
+  total_block_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsSchoolFlightEfficiencyByInstructorYrMth {
+  efficiency_pct: Numeric | null
+  instructor: string | null
+  mth: Numeric | null
+  total_block_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsSchoolFlightEfficiencyByYr {
+  efficiency_pct: Numeric | null
+  total_block_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
+export interface StatsSchoolFlightEfficiencyByYrMth {
+  efficiency_pct: Numeric | null
+  mth: Numeric | null
+  total_block_mins: Numeric | null
+  total_reserved_mins: Numeric | null
+  yr: Numeric | null
+}
+
 export interface StatsTotalCommercialFlightTimeByAcYrMth {
   aircraft_registration: string
   mth: number
@@ -2227,6 +2276,12 @@ export interface DB {
   'stats.reservation_efficiency_by_member_yr_mth': StatsReservationEfficiencyByMemberYrMth
   'stats.reservation_efficiency_by_yr': StatsReservationEfficiencyByYr
   'stats.reservation_efficiency_by_yr_mth': StatsReservationEfficiencyByYrMth
+  'stats.school_flight_efficiency_by_ac_yr': StatsSchoolFlightEfficiencyByAcYr
+  'stats.school_flight_efficiency_by_ac_yr_mth': StatsSchoolFlightEfficiencyByAcYrMth
+  'stats.school_flight_efficiency_by_instructor_yr': StatsSchoolFlightEfficiencyByInstructorYr
+  'stats.school_flight_efficiency_by_instructor_yr_mth': StatsSchoolFlightEfficiencyByInstructorYrMth
+  'stats.school_flight_efficiency_by_yr': StatsSchoolFlightEfficiencyByYr
+  'stats.school_flight_efficiency_by_yr_mth': StatsSchoolFlightEfficiencyByYrMth
   'stats.total_commercial_flight_time_by_ac_yr_mth': StatsTotalCommercialFlightTimeByAcYrMth
   'stats.total_flight_time_by_ac_dt': StatsTotalFlightTimeByAcDt
   'stats.total_flight_time_by_ac_ft': StatsTotalFlightTimeByAcFt

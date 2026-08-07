@@ -268,6 +268,58 @@ export const AirfieldEfficiencyByAcYrMthSchema = z.object({
   efficiency_pct: z.number().nullable(),
 })
 
+// V1760: School Flight Reservation Efficiency Views
+// School flight reservation efficiency = block time flown / time reserved,
+// restricted to school (training) flights only.
+export const SchoolFlightEfficiencyByYrSchema = z.object({
+  yr: z.number().nullable(),
+  total_block_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const SchoolFlightEfficiencyByYrMthSchema = z.object({
+  yr: z.number().nullable(),
+  mth: z.number().nullable(),
+  total_block_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const SchoolFlightEfficiencyByAcYrSchema = z.object({
+  aircraft_registration: z.string().nullable(),
+  yr: z.number().nullable(),
+  total_block_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const SchoolFlightEfficiencyByAcYrMthSchema = z.object({
+  aircraft_registration: z.string().nullable(),
+  yr: z.number().nullable(),
+  mth: z.number().nullable(),
+  total_block_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const SchoolFlightEfficiencyByInstructorYrSchema = z.object({
+  instructor: z.string().nullable(),
+  yr: z.number().nullable(),
+  total_block_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
+export const SchoolFlightEfficiencyByInstructorYrMthSchema = z.object({
+  instructor: z.string().nullable(),
+  yr: z.number().nullable(),
+  mth: z.number().nullable(),
+  total_block_mins: z.number().nullable(),
+  total_reserved_mins: z.number().nullable(),
+  efficiency_pct: z.number().nullable(),
+})
+
 // AOG (Aircraft On Ground) days — maintenance bookings + outstanding defects
 export const AogDaysByAcYrMthSchema = z.object({
   aircraft_registration: z.string().nullable(),
@@ -396,3 +448,13 @@ export type AogDaysByAcYrMth = z.infer<typeof AogDaysByAcYrMthSchema>
 export type AogDaysByAcYr = z.infer<typeof AogDaysByAcYrSchema>
 export type PobDistributionByAcYr = z.infer<typeof PobDistributionByAcYrSchema>
 export type OccurrencesPerHundredHrsByAcYr = z.infer<typeof OccurrencesPerHundredHrsByAcYrSchema>
+export type SchoolFlightEfficiencyByYr = z.infer<typeof SchoolFlightEfficiencyByYrSchema>
+export type SchoolFlightEfficiencyByYrMth = z.infer<typeof SchoolFlightEfficiencyByYrMthSchema>
+export type SchoolFlightEfficiencyByAcYr = z.infer<typeof SchoolFlightEfficiencyByAcYrSchema>
+export type SchoolFlightEfficiencyByAcYrMth = z.infer<typeof SchoolFlightEfficiencyByAcYrMthSchema>
+export type SchoolFlightEfficiencyByInstructorYr = z.infer<
+  typeof SchoolFlightEfficiencyByInstructorYrSchema
+>
+export type SchoolFlightEfficiencyByInstructorYrMth = z.infer<
+  typeof SchoolFlightEfficiencyByInstructorYrMthSchema
+>
