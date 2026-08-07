@@ -29,6 +29,12 @@ export async function getLocalFuelPrices(): Promise<LocalFuelPrice[]> {
   return rows.map(mapLocalFuelPrice)
 }
 
+/**
+ * Sets the price for a fuel type from a given date. Re-setting a date that already has
+ * a price overwrites that row rather than inserting a second one — (fuel_type,
+ * valid_from) is unique (V1810), since duplicates would make the "most recent
+ * valid_from <= date" lookup below ambiguous.
+ */
 export async function createLocalFuelPrice(
   data: UpsertLocalFuelPrice,
   user: JWTUser,
@@ -41,6 +47,13 @@ export async function createLocalFuelPrice(
       valid_from: data.validFrom,
       created_by: user.memberId,
     })
+    .onConflict((oc) =>
+      oc.columns(['fuel_type', 'valid_from']).doUpdateSet({
+        price_eur_per_litre: data.priceEurPerLitre,
+        created_by: user.memberId,
+        created_at: new Date(),
+      }),
+    )
     .returningAll()
     .executeTakeFirstOrThrow()
   return mapLocalFuelPrice(row)

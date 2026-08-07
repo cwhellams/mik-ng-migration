@@ -1,5 +1,9 @@
+import type { Kysely, Transaction } from 'kysely'
 import { db } from './connection.ts'
+import type { DB } from './schema.d.ts'
 import type { ExpenseClaimAttachment } from '../routes/expenses/models.ts'
+
+type Executor = Kysely<DB> | Transaction<DB>
 
 const mapAttachment = (row: {
   id: number
@@ -35,14 +39,15 @@ export async function getExpenseAttachments(claimId: string): Promise<ExpenseCla
 export async function addExpenseAttachment(
   claimId: string,
   file: { storageKey: string; fileName: string; fileSize: number; mimeType: string },
+  executor: Executor = db,
 ): Promise<ExpenseClaimAttachment> {
-  const { sortOrder } = await db
+  const { sortOrder } = await executor
     .selectFrom('accts.expense_claim_attachment')
     .select((eb) => eb.fn.max('sort_order').as('sortOrder'))
     .where('claim_id', '=', claimId)
     .executeTakeFirstOrThrow()
 
-  const row = await db
+  const row = await executor
     .insertInto('accts.expense_claim_attachment')
     .values({
       claim_id: claimId,

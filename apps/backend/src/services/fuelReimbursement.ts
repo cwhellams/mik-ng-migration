@@ -37,6 +37,8 @@ export interface FuelReimbursementSummary {
 const lineCost = (item: FuelReimbursementLineItem): number =>
   item.totalCost ?? item.quantity * item.unitPrice
 
+const round2 = (value: number): number => Math.round(value * 100) / 100
+
 export function computeFuelReimbursement(
   lineItems: FuelReimbursementLineItem[],
   localPriceEurPerLitre: number | null,
@@ -80,4 +82,59 @@ export function computeFuelReimbursement(
     memberOwesClub: +Math.max(0, -netForMember).toFixed(2),
     capped: totalCost > localPriceCost,
   }
+}
+
+/**
+ * The rows that actually get paid out for a fuel claim, derived from the summary above.
+ *
+ * The summary is what the member and the treasurer see; this is what reaches the
+ * SimplBooks purchase, so the two must agree — paying the raw line items would reimburse
+ * the uncapped amount and hand back club-card fuel the member never paid for.
+ *
+ * Club-card rows are dropped (the club already paid the station directly) and the
+ * remaining member-paid rows are scaled so their totals add up to exactly
+ * `memberReimbursement`, with the rounding remainder landing on the last row. Returns an
+ * empty array when there is nothing to pay — everything was on the club card, or the
+ * club-card spend already exceeded the cap (`memberOwesClub`, recovered separately).
+ */
+export function buildFuelPayoutLineItems<
+  T extends {
+    quantity: number
+    unitPrice: number
+    totalCost?: number | null
+    paidWithClubCard?: boolean | null
+  },
+>(lineItems: T[], summary: FuelReimbursementSummary): T[] {
+  const memberPaid = lineItems.filter((item) => !item.paidWithClubCard)
+  const target = summary.memberReimbursement
+  if (!memberPaid.length || target <= 0) {
+    return []
+  }
+
+  const memberPaidCost = memberPaid.reduce(
+    (sum, item) => sum + lineCost({ ...item, paidWithClubCard: false }),
+    0,
+  )
+  // Nothing to scale against (all member-paid rows are zero-cost) — leave them as they
+  // are rather than dividing by zero.
+  if (memberPaidCost <= 0) {
+    return memberPaid
+  }
+
+  const factor = target / memberPaidCost
+  let allocated = 0
+  return memberPaid.map((item, index) => {
+    const isLast = index === memberPaid.length - 1
+    const rowTotal = isLast
+      ? round2(target - allocated)
+      : round2(lineCost({ ...item, paidWithClubCard: false }) * factor)
+    allocated = round2(allocated + rowTotal)
+    return {
+      ...item,
+      totalCost: rowTotal,
+      // Kept consistent with the scaled total so any consumer that recomputes
+      // quantity * unitPrice lands on the same figure.
+      unitPrice: item.quantity > 0 ? rowTotal / item.quantity : item.unitPrice,
+    }
+  })
 }

@@ -90,6 +90,9 @@ export const dispatchOutboxMsg = async (msg: AcctsOutboxSimplbooks) => {
       case SimplbooksEventType.REIMBURSEMENT:
         await createExpenseReimbursement(msg)
         break
+      case SimplbooksEventType.CLUB_FUEL_RECOVERY:
+        await createClubFuelRecoveryInvoice(msg)
+        break
       default:
         throw new Error(`Unsupported outbox event type: ${msg.event_type}`)
     }
@@ -957,6 +960,77 @@ async function createExpenseReimbursement(outboxMsg: AcctsOutboxSimplbooks) {
         outboxMsg.id,
         SimplbooksStatus.FAILED,
         `Failed to create reimbursement: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
+    })
+    throw error
+  }
+}
+
+const ClubFuelRecoveryPayloadSchema = z.object({
+  claimId: z.string().guid(),
+  memberId: z.string(),
+  /** What the member owes the club, in EUR — always positive; see computeFuelReimbursement. */
+  amount: z.number().positive(),
+  /** The SimplBooks article the claim's own fuel rows used, so both book to the same place. */
+  articleId: z.number().int().positive().nullable().optional(),
+  costCentreCode: z.string().nullable().optional(),
+  description: z.string(),
+})
+
+/**
+ * Invoices a member for club-card fuel that exceeded the local price cap (issue #955).
+ *
+ * The balanced cap treats club-card litres exactly like member-paid ones: they count
+ * toward the same pool, so when club-card spend alone is over the cap there is nothing
+ * to reimburse and the excess is owed back to the club. Approval of such a claim creates
+ * this event instead of (not alongside) a reimbursement purchase.
+ */
+async function createClubFuelRecoveryInvoice(outboxMsg: AcctsOutboxSimplbooks) {
+  const payload = ClubFuelRecoveryPayloadSchema.parse(outboxMsg.payload)
+
+  try {
+    const member = await getMemberById(payload.memberId)
+    if (!member?.billingId || !/^\d+$/.test(member.billingId)) {
+      throw new Error(
+        `Cannot invoice club fuel recovery for member ${payload.memberId}: no SimplBooks client id`,
+      )
+    }
+
+    const invoicePayload: InvoicePost = {
+      Invoice: { client_id: Number(member.billingId) },
+      Tasks: [
+        {
+          Task: {
+            ...(payload.articleId != null ? { article_id: payload.articleId } : {}),
+            name: payload.description,
+            amount: 1,
+            price_per_unit: payload.amount,
+          },
+          Projects: payload.costCentreCode ? [{ code: payload.costCentreCode }] : [],
+        },
+      ],
+    }
+
+    await db.transaction().execute(async (txn) => {
+      const invoiceId = await createInvoice(
+        payload.memberId,
+        outboxMsg.id,
+        MIKInvoiceType.MISC,
+        invoicePayload,
+        txn,
+      )
+      logger.info(
+        `Created club fuel recovery invoice ${invoiceId} for ${payload.amount} EUR, member ${payload.memberId}, claim ${payload.claimId}`,
+      )
+    })
+  } catch (error) {
+    logger.error(`Failed to create club fuel recovery invoice for claim ${payload.claimId}`, error)
+    await db.transaction().execute(async (txn) => {
+      await setOutboxStatus(
+        txn,
+        outboxMsg.id,
+        SimplbooksStatus.FAILED,
+        `Failed to create club fuel recovery invoice: ${error instanceof Error ? error.message : 'Unknown error'}`,
       )
     })
     throw error

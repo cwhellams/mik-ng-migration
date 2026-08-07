@@ -831,6 +831,7 @@ const LINE_ITEM_FIELD_COLUMNS: Record<string, string> = {
   quantity: 'quantity',
   unit: 'unit',
   unitPrice: 'unit_price',
+  totalCost: 'total_cost',
   costCentreCode: 'cost_centre_code',
   airport: 'airport',
   paidWithClubCard: 'paid_with_club_card',
@@ -917,8 +918,12 @@ export async function treasurerEditExpenseClaim(
       // total_cost (see applyTotalCost in expenseShared.tsx, which lets a member type a
       // known total and back-derives unitPrice from it) — clear it so the claim total
       // (coalesce(total_cost, quantity * unit_price)) recomputes from the corrected
-      // values instead of silently keeping the stale total.
+      // values instead of silently keeping the stale total. Skipped when the patch sends
+      // its own totalCost: the treasurer's edit form derives unitPrice from the total the
+      // treasurer typed, so that total is the authoritative figure, not a stale leftover
+      // (issue #1024 — reconstructing it from a rounded unit_price drifts).
       if (
+        !hasOwn(lineItemPatch, 'totalCost') &&
         (hasOwn(liPatch, 'quantity') || hasOwn(liPatch, 'unit_price')) &&
         existingLineItem.totalCost != null
       ) {

@@ -6,6 +6,7 @@ import express from 'express'
 import cookieParser from 'cookie-parser'
 import request from 'supertest'
 import sharp from 'sharp'
+import { sql } from 'kysely'
 
 import { db } from '../../../src/db/connection.ts'
 import { generateAccessToken } from '../../../src/routes/auth/token.ts'
@@ -14,6 +15,7 @@ import { MIKPermissions } from '../../../src/routes/members/models.ts'
 import { ExpenseClaimStatus } from '../../../src/routes/expenses/models.ts'
 import { problemErrorHandler } from '../../../src/routes/response.ts'
 import { storageService } from '../../../src/services/storage.ts'
+import { SimplbooksEventType } from '../../../src/services/simplbooks/models.ts'
 
 // ── Stub OSRM server ─────────────────────────────────────────────────────────
 // Every mileage claim create/update now makes a real server-side call to OSRM (issue
@@ -226,7 +228,7 @@ describe('POST /expenses (mileage)', () => {
         ],
         // Legacy clients may still send this on a leg — the API must silently ignore it.
         mileageLegs: [makeLeg({ passengers: ['Someone'] })],
-        hetu: '010101-123A',
+        hetu: '010101-123N',
       })
 
     expect(res.status).toBe(201)
@@ -279,7 +281,7 @@ describe('POST /expenses (mileage)', () => {
             journeyDate: '2026-07-17',
           }),
         ],
-        hetu: '010101-123A',
+        hetu: '010101-123N',
       })
 
     expect(res.status).toBe(201)
@@ -306,7 +308,7 @@ describe('POST /expenses (mileage)', () => {
           { description: 'Helsinki - Tampere', quantity: 150, unit: 'km', unitPrice: 0.275 },
         ],
         mileageLegs: [makeLeg({ distanceKm: 150, directDistanceKm: 100 })],
-        hetu: '010101-123A',
+        hetu: '010101-123N',
       })
     expect(withoutNote.status).toBe(400)
 
@@ -327,7 +329,7 @@ describe('POST /expenses (mileage)', () => {
             boardApproved: true,
           }),
         ],
-        hetu: '010101-123A',
+        hetu: '010101-123N',
       })
     expect(withNote.status).toBe(201)
     insertedClaimIds.push(withNote.body.id)
@@ -360,7 +362,7 @@ describe('POST /expenses (mileage)', () => {
             boardApproved: false,
           }),
         ],
-        hetu: '010101-123A',
+        hetu: '010101-123N',
       })
     expect(withoutApproval.status).toBe(400)
 
@@ -381,7 +383,7 @@ describe('POST /expenses (mileage)', () => {
             boardApproved: true,
           }),
         ],
-        hetu: '010101-123A',
+        hetu: '010101-123N',
       })
     expect(withApproval.status).toBe(201)
     insertedClaimIds.push(withApproval.body.id)
@@ -407,7 +409,7 @@ describe('POST /expenses (mileage)', () => {
         // No directDistanceKm field at all — this is exactly what a client bypassing
         // the client-side check would send.
         mileageLegs: [makeLeg({ distanceKm: 150 })],
-        hetu: '010101-123A',
+        hetu: '010101-123N',
       })
 
     expect(res.status).toBe(400)
@@ -438,7 +440,7 @@ describe('POST /expenses (mileage)', () => {
             boardApproved: true,
           },
         ],
-        hetu: '010101-123A',
+        hetu: '010101-123N',
       })
 
     expect(res.status).toBe(201)
@@ -475,7 +477,7 @@ describe('POST /expenses (mileage)', () => {
           },
         ],
         mileageLegs: [makeLeg({ journeyDate: '2026-07-16' })],
-        hetu: '010101-123A',
+        hetu: '010101-123N',
       })
 
     expect(res.status).toBe(201)
@@ -1346,6 +1348,117 @@ describe('POST /expenses/:id/submit (line item requirements)', () => {
   })
 })
 
+// A mileage claim must say who travelled where before it is payable: the wizard omits
+// mileageLegs entirely while any leg is incomplete and HETU is never required to save a
+// draft, so without a submit-time check an empty mileage claim — still carrying the
+// frontend's positive default km line item — could be submitted and approved (issue #1021).
+describe('POST /expenses/:id/submit (mileage requirements)', () => {
+  const insertedClaimIds: string[] = []
+
+  afterEach(async () => {
+    if (insertedClaimIds.length > 0) {
+      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      insertedClaimIds.length = 0
+    }
+  })
+
+  async function createMileageDraft(body: Record<string, unknown>): Promise<string> {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', 'mileage')
+      .executeTakeFirstOrThrow()
+
+    const res = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId: category.id,
+        title: 'Mileage submit validation',
+        currency: 'EUR',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          {
+            description: 'Helsinki - Tampere',
+            date: '2026-07-16',
+            quantity: 99,
+            unit: 'km',
+            unitPrice: 0.275,
+            sortOrder: 0,
+          },
+        ],
+        ...body,
+      })
+    expect(res.status).toBe(201)
+    insertedClaimIds.push(res.body.id)
+    return res.body.id
+  }
+
+  const validLeg = {
+    startAddress: 'Helsinki',
+    startLat: 60.1699,
+    startLon: 24.9384,
+    endAddress: 'Tampere',
+    endLat: 61.4978,
+    endLon: 23.761,
+    journeyDate: '2026-07-16',
+    distanceKm: 99,
+    boardApproved: false,
+  }
+
+  it('rejects submitting a mileage claim with no legs', async () => {
+    const claimId = await createMileageDraft({ hetu: '010101-123N' })
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toBe('A mileage claim needs at least one journey leg.')
+  })
+
+  it('rejects submitting a mileage claim with no HETU', async () => {
+    const claimId = await createMileageDraft({ mileageLegs: [validLeg] })
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toContain('valid Finnish personal identity code')
+  })
+
+  it('rejects submitting a mileage claim whose HETU fails its checksum', async () => {
+    const claimId = await createMileageDraft({
+      mileageLegs: [validLeg],
+      hetu: '010101-123A', // one character off — a typo, not a real identity code
+    })
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toContain('valid Finnish personal identity code')
+  })
+
+  it('submits a mileage claim with a valid leg and HETU, with no attachment', async () => {
+    const claimId = await createMileageDraft({
+      mileageLegs: [validLeg],
+      hetu: '010101-123N',
+    })
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.status).toBe(ExpenseClaimStatus.SUBMITTED)
+  })
+})
+
 // ── Tests: HETU reveal + Tulorekisteri report (issue #1022) ────────────────────
 
 describe('Mileage HETU reveal and Tulorekisteri report', () => {
@@ -1428,7 +1541,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
 
   describe('GET /expenses/:id', () => {
     it('always returns a masked HETU, never the plaintext', async () => {
-      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      const claimId = await createMileageClaim({ hetu: '010101-123N', journeyDate: '2026-07-16' })
 
       const asMember = await request(app)
         .get(`/expenses/${claimId}`)
@@ -1449,7 +1562,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
     it('updates leg distance without wiping the stored HETU when hetu is omitted', async () => {
       // Mirrors the admin edit form, which never sees the plaintext HETU back from
       // the API and so leaves the field blank unless the admin retypes it.
-      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      const claimId = await createMileageClaim({ hetu: '010101-123N', journeyDate: '2026-07-16' })
 
       const putRes = await request(app)
         .put(`/expenses/${claimId}`)
@@ -1479,11 +1592,11 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
         .set('Cookie', `accessToken=${hetuAdminToken}`)
         .set('x-sudo', 'true')
       expect(revealRes.status).toBe(200)
-      expect(revealRes.body.hetu).toBe('010101-123A')
+      expect(revealRes.body.hetu).toBe('010101-123N')
     })
 
     it('re-encrypts the HETU when a new one is submitted', async () => {
-      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      const claimId = await createMileageClaim({ hetu: '010101-123N', journeyDate: '2026-07-16' })
 
       const putRes = await request(app)
         .put(`/expenses/${claimId}`)
@@ -1502,7 +1615,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
               boardApproved: false,
             },
           ],
-          hetu: '020202-456B',
+          hetu: '020202-4564',
         })
       expect(putRes.status).toBe(200)
 
@@ -1512,13 +1625,13 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
         .set('Cookie', `accessToken=${hetuAdminToken}`)
         .set('x-sudo', 'true')
       expect(revealRes.status).toBe(200)
-      expect(revealRes.body.hetu).toBe('020202-456B')
+      expect(revealRes.body.hetu).toBe('020202-4564')
     })
   })
 
   describe('GET /expenses/:id/mileage/hetu', () => {
     it('returns the plaintext HETU for EXPENSE_HETU_ADMIN and writes one audit row', async () => {
-      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      const claimId = await createMileageClaim({ hetu: '010101-123N', journeyDate: '2026-07-16' })
       await approveClaim(claimId, new Date())
 
       const res = await request(app)
@@ -1527,7 +1640,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
         .set('x-sudo', 'true')
 
       expect(res.status).toBe(200)
-      expect(res.body.hetu).toBe('010101-123A')
+      expect(res.body.hetu).toBe('010101-123N')
 
       const auditRows = await db
         .selectFrom('accts.mileage_hetu_access_audit')
@@ -1540,7 +1653,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
     })
 
     it('rejects a committee member who only has EXPENSE_ADMIN', async () => {
-      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      const claimId = await createMileageClaim({ hetu: '010101-123N', journeyDate: '2026-07-16' })
       await approveClaim(claimId, new Date())
 
       const res = await request(app)
@@ -1552,7 +1665,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
     })
 
     it('rejects a plain member', async () => {
-      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      const claimId = await createMileageClaim({ hetu: '010101-123N', journeyDate: '2026-07-16' })
       await approveClaim(claimId, new Date())
 
       const res = await request(app)
@@ -1575,7 +1688,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
     })
 
     it('rejects revealing HETU on a claim that is not yet approved', async () => {
-      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      const claimId = await createMileageClaim({ hetu: '010101-123N', journeyDate: '2026-07-16' })
 
       const res = await request(app)
         .get(`/expenses/${claimId}/mileage/hetu`)
@@ -1595,7 +1708,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
 
   describe('GET /expenses/:id/mileage/hetu/access-log', () => {
     it('lets the claim owner see who revealed their HETU and when', async () => {
-      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      const claimId = await createMileageClaim({ hetu: '010101-123N', journeyDate: '2026-07-16' })
       await approveClaim(claimId, new Date())
 
       await request(app)
@@ -1614,7 +1727,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
     })
 
     it('is empty when no one has viewed the HETU yet', async () => {
-      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      const claimId = await createMileageClaim({ hetu: '010101-123N', journeyDate: '2026-07-16' })
       await approveClaim(claimId, new Date())
 
       const res = await request(app)
@@ -1626,7 +1739,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
     })
 
     it('rejects a member who does not own the claim', async () => {
-      const claimId = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-07-16' })
+      const claimId = await createMileageClaim({ hetu: '010101-123N', journeyDate: '2026-07-16' })
       await approveClaim(claimId, new Date())
 
       const otherMemberToken = generateAccessToken({
@@ -1648,11 +1761,11 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
 
   describe('GET /expenses/admin/mileage-report', () => {
     it('returns only approved mileage claims within the date range, never HETU', async () => {
-      const inRange = await createMileageClaim({ hetu: '010101-123A', journeyDate: '2026-06-10' })
+      const inRange = await createMileageClaim({ hetu: '010101-123N', journeyDate: '2026-06-10' })
       await approveClaim(inRange, new Date('2026-06-11T00:00:00.000Z'))
 
       const outOfRange = await createMileageClaim({
-        hetu: '020202-234B',
+        hetu: '020202-234Y',
         journeyDate: '2026-08-01',
       })
       await approveClaim(outOfRange, new Date('2026-08-02T00:00:00.000Z'))
@@ -1668,7 +1781,7 @@ describe('Mileage HETU reveal and Tulorekisteri report', () => {
       expect(claimIdsInReport).toContain(inRange)
       expect(claimIdsInReport).not.toContain(outOfRange)
       expect(JSON.stringify(res.body)).not.toContain('hetu')
-      expect(JSON.stringify(res.body)).not.toContain('010101-123A')
+      expect(JSON.stringify(res.body)).not.toContain('010101-123N')
     })
 
     it('rejects a reversed date range', async () => {
@@ -1856,6 +1969,61 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
     expect(auditRows.map((r) => r.field_name).sort()).toEqual(['totalCost', 'unitPrice'])
   })
 
+  // The treasurer's edit dialog (like the member's own form) lets the treasurer type the
+  // known total and derives unitPrice from it, so it sends both. Without totalCost in the
+  // patch schema the exact figure was dropped and rebuilt from the rounded unit price,
+  // reintroducing the drift issue #1024 fixed for members (30 l for 50.00 EUR ->
+  // unitPrice 1.6667 -> 30 * 1.6667 = 50.01).
+  it('persists an explicit totalCost sent alongside unitPrice, without drift', async () => {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', 'fuel')
+      .executeTakeFirstOrThrow()
+
+    const created = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId: category.id,
+        title: 'Treasurer total cost test',
+        expenseDate: '2026-07-15',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        lineItems: [
+          {
+            description: 'Fuel',
+            date: '2026-07-15',
+            airport: 'EFNU',
+            quantity: 30,
+            unit: 'l',
+            unitPrice: 2.0,
+            totalCost: 60,
+            fuelType: 'JetA1',
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+    expect(created.status).toBe(201)
+    insertedClaimIds.push(created.body.id)
+    const lineItemId = created.body.lineItems[0].id
+    await attachTestReceipt(created.body.id)
+    await request(app)
+      .post(`/expenses/${created.body.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    // Treasurer corrects the total to 50.00 -> unitPrice 50/30 = 1.6667 (4 dp).
+    const res = await request(app)
+      .patch(`/expenses/${created.body.id}/edit`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ lineItems: [{ id: lineItemId, unitPrice: 1.6667, totalCost: 50 }] })
+
+    expect(res.status).toBe(200)
+    expect(res.body.lineItems[0].totalCost).toBe(50)
+    expect(res.body.totalAmount).toBe(50) // not 50.01
+  })
+
   // Regression test: updateExpenseClaim recomputes refuel_outside_finland from the fuel
   // line items' airports, but treasurerEditExpenseClaim didn't — a corrected airport
   // silently left the claim-level flag disagreeing with the actual line items.
@@ -2038,6 +2206,39 @@ describe('Expense claim attachments', () => {
     expect(claim.body.attachments).toHaveLength(2)
   })
 
+  // Regression test: the rollback deleted every uploaded object but left the attachment
+  // rows inserted by earlier iterations, so the claim ended up pointing at files that no
+  // longer existed — its preview and approval then failed and the member could not retry.
+  it('leaves no attachment rows behind when a later file fails to upload', async () => {
+    const claimId = await createDraftClaim()
+    const image = await jpegBuffer()
+
+    const deleteSpy = jest.spyOn(storageService, 'deleteFile').mockResolvedValue(undefined)
+    const realUpload = storageService.uploadFile.bind(storageService)
+    let uploadCount = 0
+    jest
+      .spyOn(storageService, 'uploadFile')
+      .mockImplementation(async (...args: Parameters<typeof storageService.uploadFile>) => {
+        if (++uploadCount === 2) throw new Error('Storage unavailable')
+        return realUpload(...args)
+      })
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/attachments`)
+      .set('Cookie', `accessToken=${memberToken}`)
+      .attach('files', image, { filename: 'a.jpg', contentType: 'image/jpeg' })
+      .attach('files', image, { filename: 'b.jpg', contentType: 'image/jpeg' })
+
+    expect(res.status).toBe(500)
+    // The one object that did make it up is deleted...
+    expect(deleteSpy).toHaveBeenCalledTimes(1)
+    // ...and no half-written attachment rows survive.
+    const claim = await request(app)
+      .get(`/expenses/${claimId}`)
+      .set('Cookie', `accessToken=${memberToken}`)
+    expect(claim.body.attachments).toHaveLength(0)
+  })
+
   it('rejects uploads beyond the per-claim attachment limit', async () => {
     const claimId = await createDraftClaim()
     const image = await jpegBuffer()
@@ -2115,5 +2316,187 @@ describe('Expense claim attachments', () => {
       .set('Cookie', `accessToken=${memberToken}`)
     expect(preview.status).toBe(200)
     expect(preview.headers['content-type']).toBe('application/pdf')
+  })
+})
+
+// ── Tests: what actually gets paid on approval (issue #955) ───────────────────
+// The balanced fuel price cap was computed for display only; approval still queued
+// every raw line item — including club-card ones — so a capped claim was paid its
+// uncapped amount and club-card fuel was reimbursed on top.
+describe('POST /expenses/:id/approve (fuel reimbursement cap)', () => {
+  const insertedClaimIds: string[] = []
+  const insertedPriceIds: number[] = []
+
+  afterEach(async () => {
+    for (const claimId of insertedClaimIds) {
+      await db
+        .deleteFrom('accts.outbox_simplbooks')
+        .where(sql<boolean>`payload ->> 'claimId' = ${claimId}`)
+        .execute()
+    }
+    if (insertedClaimIds.length > 0) {
+      await db.deleteFrom('accts.expense_claim').where('id', 'in', insertedClaimIds).execute()
+      insertedClaimIds.length = 0
+    }
+    if (insertedPriceIds.length > 0) {
+      await db.deleteFrom('accts.local_fuel_price').where('id', 'in', insertedPriceIds).execute()
+      insertedPriceIds.length = 0
+    }
+  })
+
+  async function insertLocalPrice(fuelType: string, price: number, validFrom: string) {
+    const row = await db
+      .insertInto('accts.local_fuel_price')
+      .values({
+        fuel_type: fuelType,
+        price_eur_per_litre: price,
+        valid_from: validFrom,
+        created_by: 'Juha1',
+      })
+      .returning('id')
+      .executeTakeFirstOrThrow()
+    insertedPriceIds.push(row.id)
+  }
+
+  async function createSubmittedFuelClaim(lineItems: Record<string, unknown>[]): Promise<string> {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', 'fuel')
+      .executeTakeFirstOrThrow()
+
+    const created = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId: category.id,
+        title: 'Fuel payout test',
+        currency: 'EUR',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        expenseDate: '2026-07-15',
+        lineItems: lineItems.map((item, index) => ({
+          date: '2026-07-15',
+          airport: 'EFNU',
+          unit: 'l',
+          fuelType: 'JetA1',
+          costCentreCode: 'OH-STL',
+          sortOrder: index,
+          ...item,
+        })),
+      })
+    expect(created.status).toBe(201)
+    insertedClaimIds.push(created.body.id)
+
+    await attachTestReceipt(created.body.id)
+    const submitted = await request(app)
+      .post(`/expenses/${created.body.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+    expect(submitted.status).toBe(200)
+    return created.body.id
+  }
+
+  async function outboxFor(claimId: string, eventType: SimplbooksEventType) {
+    return db
+      .selectFrom('accts.outbox_simplbooks')
+      .selectAll()
+      .where('event_type', '=', eventType)
+      .where(sql<boolean>`payload ->> 'claimId' = ${claimId}`)
+      .execute()
+  }
+
+  it('queues the capped, club-card-free amount for payment, not the raw line items', async () => {
+    await insertLocalPrice('JetA1', 3.0, '2026-01-01')
+    // 100 l member-paid @ 4.00 = 400 and 20 l club card @ 4.00 = 80.
+    // Cap: 120 l * 3.00 = 360 -> capped; 360 - 80 club card = 280 to the member.
+    const claimId = await createSubmittedFuelClaim([
+      { description: 'Member paid', quantity: 100, unitPrice: 4.0 },
+      { description: 'Club card', quantity: 20, unitPrice: 4.0, paidWithClubCard: true },
+    ])
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/approve`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(res.status).toBe(200)
+    expect(res.body.fuelReimbursementSummary.memberReimbursement).toBe(280)
+
+    const [outbox] = await outboxFor(claimId, SimplbooksEventType.REIMBURSEMENT)
+    expect(outbox).toBeDefined()
+    const payload = outbox.payload as { lineItems: { description: string; totalCost: number }[] }
+    expect(payload.lineItems).toHaveLength(1)
+    expect(payload.lineItems[0].description).toBe('Member paid')
+    expect(payload.lineItems[0].totalCost).toBe(280)
+
+    // The reason the paid amount differs from the amount claimed is on the claim itself.
+    const messages = res.body.messages as { messageType: string; body: string }[]
+    expect(messages.some((message) => message.body.includes('280.00 € of 480.00 € claimed'))).toBe(
+      true,
+    )
+  })
+
+  it('queues no reimbursement and invoices the member when club-card fuel exceeded the cap', async () => {
+    await insertLocalPrice('JetA1', 3.0, '2026-01-01')
+    // 100 l club card @ 4.00 = 400, cap 100 l * 3.00 = 300 -> member owes 100, gets nothing.
+    // The 10 l member-paid row keeps the claim total above zero so it can be submitted.
+    const claimId = await createSubmittedFuelClaim([
+      { description: 'Club card', quantity: 100, unitPrice: 4.0, paidWithClubCard: true },
+      { description: 'Member paid', quantity: 10, unitPrice: 0.01 },
+    ])
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/approve`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(res.status).toBe(200)
+    expect(res.body.fuelReimbursementSummary.memberOwesClub).toBeGreaterThan(0)
+    expect(res.body.fuelReimbursementSummary.memberReimbursement).toBe(0)
+
+    expect(await outboxFor(claimId, SimplbooksEventType.REIMBURSEMENT)).toHaveLength(0)
+
+    const [recovery] = await outboxFor(claimId, SimplbooksEventType.CLUB_FUEL_RECOVERY)
+    expect(recovery).toBeDefined()
+    const payload = recovery.payload as { amount: number; costCentreCode: string }
+    expect(payload.amount).toBe(res.body.fuelReimbursementSummary.memberOwesClub)
+    expect(payload.costCentreCode).toBe('OH-STL')
+  })
+
+  it('leaves a non-fuel claim paying exactly what was claimed', async () => {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', CATEGORY_CODE)
+      .executeTakeFirstOrThrow()
+
+    const created = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId: category.id,
+        title: 'Misc payout test',
+        currency: 'EUR',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        expenseDate: '2026-07-15',
+        lineItems: [
+          { description: 'Landing fees', quantity: 2, unit: 'pcs', unitPrice: 15, sortOrder: 0 },
+        ],
+      })
+    expect(created.status).toBe(201)
+    insertedClaimIds.push(created.body.id)
+
+    await attachTestReceipt(created.body.id)
+    await request(app)
+      .post(`/expenses/${created.body.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    const res = await request(app)
+      .post(`/expenses/${created.body.id}/approve`)
+      .set('Cookie', `accessToken=${adminToken}`)
+    expect(res.status).toBe(200)
+
+    const [outbox] = await outboxFor(created.body.id, SimplbooksEventType.REIMBURSEMENT)
+    const payload = outbox.payload as { lineItems: { quantity: number; unitPrice: number }[] }
+    expect(payload.lineItems).toEqual([
+      expect.objectContaining({ description: 'Landing fees', quantity: 2, unitPrice: 15 }),
+    ])
   })
 })

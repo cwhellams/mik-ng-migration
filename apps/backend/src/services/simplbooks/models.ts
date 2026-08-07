@@ -16,6 +16,9 @@ export enum SimplbooksEventType {
   FLIGHT_INVOICE = 'flightInvoice',
   SHOP_ORDER_INVOICE = 'shopOrderInvoice',
   REIMBURSEMENT = 'reimbursement',
+  // Club-card fuel above the local price cap — invoiced back to the member, the
+  // counterpart of REIMBURSEMENT above (issue #955).
+  CLUB_FUEL_RECOVERY = 'clubFuelRecovery',
   SEND_INVOICE_PDF = 'sendInvoicePdf',
   CREDIT_NOTE = 'creditNote',
 }

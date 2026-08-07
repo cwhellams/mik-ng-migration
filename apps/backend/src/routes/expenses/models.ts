@@ -251,6 +251,11 @@ export const TreasurerEditLineItemSchema = z.object({
   quantity: z.number().positive().optional(),
   unit: z.enum(['pcs', 'km', 'l', 'h']).optional(),
   unitPrice: z.number().min(0).optional(),
+  // Sent alongside unitPrice by the treasurer's edit dialog, which (like the member's own
+  // form) lets the treasurer type the known total and back-derives unitPrice from it —
+  // persisting it keeps the exact figure instead of reconstructing it from the rounded
+  // unit price (issue #1024).
+  totalCost: z.number().min(0).nullable().optional(),
   costCentreCode: z.string().max(50).nullable().optional(),
   airport: z.string().max(10).nullable().optional(),
   paidWithClubCard: z.boolean().optional(),

@@ -1,4 +1,7 @@
-import { computeFuelReimbursement } from '../../src/services/fuelReimbursement.ts'
+import {
+  buildFuelPayoutLineItems,
+  computeFuelReimbursement,
+} from '../../src/services/fuelReimbursement.ts'
 
 describe('computeFuelReimbursement', () => {
   it('reimburses the raw cost when every stop is cheaper than the local price', () => {
@@ -98,5 +101,93 @@ describe('computeFuelReimbursement', () => {
       3.0,
     )
     expect(summary.totalCost).toBe(275.5)
+  })
+})
+
+describe('buildFuelPayoutLineItems', () => {
+  const rows = [
+    { description: 'Home base', quantity: 50, unitPrice: 2.0, totalCost: 100, itemId: 7 },
+    { description: 'Outstation', quantity: 50, unitPrice: 4.0, totalCost: 200, itemId: 7 },
+    {
+      description: 'Club card',
+      quantity: 20,
+      unitPrice: 3.0,
+      totalCost: 60,
+      itemId: 7,
+      paidWithClubCard: true,
+    },
+  ]
+
+  it('drops club-card rows and pays the member-paid rows as entered when nothing is capped', () => {
+    const summary = computeFuelReimbursement(
+      rows.map((row) => ({ ...row, paidWithClubCard: row.paidWithClubCard ?? false })),
+      3.0,
+    )
+    // 120 l * 3.00 = 360 cap, raw cost also 360 -> not capped; 360 - 60 club card = 300.
+    expect(summary.memberReimbursement).toBe(300)
+
+    const payout = buildFuelPayoutLineItems(rows, summary)
+    expect(payout).toHaveLength(2)
+    expect(payout.map((row) => row.description)).toEqual(['Home base', 'Outstation'])
+    expect(payout.reduce((sum, row) => sum + row.totalCost!, 0)).toBe(300)
+  })
+
+  it('scales the member-paid rows down to the capped total, exactly', () => {
+    // 100 l at 4.00 = 400 claimed, local price 3.00 -> capped at 300.
+    const items = [
+      { description: 'Leg 1', quantity: 30, unitPrice: 4.0, totalCost: 120 },
+      { description: 'Leg 2', quantity: 70, unitPrice: 4.0, totalCost: 280 },
+    ]
+    const summary = computeFuelReimbursement(
+      items.map((item) => ({ ...item, paidWithClubCard: false })),
+      3.0,
+    )
+    expect(summary.capped).toBe(true)
+    expect(summary.memberReimbursement).toBe(300)
+
+    const payout = buildFuelPayoutLineItems(items, summary)
+    expect(payout.reduce((sum, row) => sum + row.totalCost!, 0)).toBe(300)
+    expect(payout[0].totalCost).toBe(90) // 120 * 0.75
+    expect(payout[1].totalCost).toBe(210) // 280 * 0.75
+    // unitPrice stays consistent with the scaled total.
+    expect(payout[0].unitPrice).toBeCloseTo(3.0, 4)
+  })
+
+  it('puts the rounding remainder on the last row so the payout matches the summary to the cent', () => {
+    const items = [
+      { description: 'Leg 1', quantity: 1, unitPrice: 33.33, totalCost: 33.33 },
+      { description: 'Leg 2', quantity: 1, unitPrice: 33.33, totalCost: 33.33 },
+      { description: 'Leg 3', quantity: 1, unitPrice: 33.34, totalCost: 33.34 },
+    ]
+    const summary = { ...computeFuelReimbursement([], null), memberReimbursement: 50 }
+
+    const payout = buildFuelPayoutLineItems(items, summary)
+    expect(payout.reduce((sum, row) => sum + row.totalCost!, 0)).toBe(50)
+  })
+
+  it('pays nothing when the club card already covered the whole capped total', () => {
+    // 100 l club-card at 4.00 = 400, cap 100 l * 3.00 = 300 -> member owes 100, gets 0.
+    const items = [
+      { description: 'Club card', quantity: 100, unitPrice: 4.0, paidWithClubCard: true },
+      { description: 'Member paid', quantity: 0.0001, unitPrice: 0, paidWithClubCard: false },
+    ]
+    const summary = computeFuelReimbursement(
+      items.map((item) => ({ ...item, totalCost: null })),
+      3.0,
+    )
+    expect(summary.memberOwesClub).toBeGreaterThan(0)
+    expect(buildFuelPayoutLineItems(items, summary)).toEqual([])
+  })
+
+  it('pays nothing when every row was on the club card', () => {
+    const items = [
+      { description: 'Club card', quantity: 10, unitPrice: 2.0, paidWithClubCard: true },
+    ]
+    const summary = computeFuelReimbursement(
+      items.map((item) => ({ ...item, totalCost: null })),
+      3.0,
+    )
+    expect(summary.memberReimbursement).toBe(0)
+    expect(buildFuelPayoutLineItems(items, summary)).toEqual([])
   })
 })

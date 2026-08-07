@@ -308,7 +308,9 @@ export function MileageDetailFields({
               ? t('expenses.mileage.distanceCalculating')
               : computeError
                 ? t('expenses.mileage.distanceCalculationFailed')
-                : value.directDistanceKm
+                : // Nullish check, not falsy — a computed 0 km (start and end geocode to
+                  // the same point) is still a real direct distance worth showing.
+                  value.directDistanceKm != null
                   ? t('expenses.mileage.directDistance', { km: value.directDistanceKm })
                   : undefined
           }

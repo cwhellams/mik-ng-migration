@@ -136,6 +136,10 @@ export function ExpenseClaimAdminDetail() {
             quantity: item.quantity,
             unit: item.unit,
             unitPrice: item.unitPrice,
+            // Sent explicitly: the dialog edits the total and derives unitPrice from it
+            // (fuel claims especially), so without this the exact total the treasurer
+            // typed would be dropped and rebuilt from the rounded unit price (#1024).
+            totalCost: item.totalCost ?? null,
             costCentreCode: item.costCentreCode ?? null,
             airport: item.airport ?? null,
             paidWithClubCard: item.paidWithClubCard,
