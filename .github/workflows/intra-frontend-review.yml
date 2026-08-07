@@ -66,9 +66,18 @@ jobs:
         working-directory: apps/frontend
         run: pnpm run build
 
-      - name: Run tests
+      - name: Run tests with coverage
         working-directory: apps/frontend
-        run: pnpm run test
+        run: pnpm run test:coverage
+
+      # Reported, not enforced — see issue #1116. No thresholds are configured
+      # yet; the artifact makes the number visible so it can be ratcheted later.
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: apps/frontend/coverage/
+          if-no-files-found: ignore
 
       - name: Check for Security Vulnerabilities
         working-directory: apps/frontend
