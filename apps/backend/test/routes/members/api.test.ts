@@ -1551,6 +1551,41 @@ describe('POST /members/:memberId/deactivate', () => {
       .send({ reason: 'Test reason' })
     expect(response.status).toBe(HttpStatusCode.Forbidden)
   })
+
+  it('should return 400 and make no further changes when member is already removed', async () => {
+    const alreadyRemovedMemberId = await addMember({
+      memberType: MIKMemberTypes.REMOVED,
+      email: `already-removed-test-${Date.now()}@test.com`,
+      firstName: 'AlreadyRemoved',
+      lastName: 'TestMember',
+      lang: MIKLang.FI,
+      streetAddress: 'Test Street',
+      postcode: '00100',
+      townCity: 'Test City',
+      country: 'FI',
+    })
+
+    try {
+      const response = await request(app)
+        .post(`/members/${alreadyRemovedMemberId}/deactivate`)
+        .set('Cookie', `accessToken=${adminToken}`)
+        .send({ reason: 'Test reason' })
+      expect(response.status).toBe(400)
+      expect(response.body.detail).toBe('Member is already removed')
+
+      const member = await db
+        .selectFrom('member.register')
+        .select('member_type')
+        .where('member_id', '=', alreadyRemovedMemberId)
+        .executeTakeFirst()
+      expect(member?.member_type).toBe(MIKMemberTypes.REMOVED)
+    } finally {
+      await db
+        .deleteFrom('member.register')
+        .where('member_id', '=', alreadyRemovedMemberId)
+        .execute()
+    }
+  })
 })
 
 describe('POST /members/me/cancel-membership', () => {
