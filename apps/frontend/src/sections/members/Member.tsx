@@ -867,7 +867,7 @@ const MemberProfile = () => {
           {isAdmin && roles.isBookingAdmin && memberId && <AdminBookingsCard memberId={memberId} />}
 
           <Grid>
-            {isAdmin && (
+            {isAdmin && !isRemoved && (
               <>
                 <Button
                   color='warning'

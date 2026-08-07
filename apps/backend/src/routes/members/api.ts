@@ -963,6 +963,10 @@ const cancelMembershipHandler = async (
     return problem({ status: 404, detail: 'Member not found' })
   }
 
+  if (member.memberType === MIKMemberTypes.REMOVED) {
+    return problem({ status: 400, detail: 'Member is already removed' })
+  }
+
   // Check if member has any billable flights in the current year; if yes, prevent cancellation
   const currentYear = getCurrentYear()
   const hasBillableFlights = await hasMemberFlownBillableFlightInYear(memberId, currentYear)
