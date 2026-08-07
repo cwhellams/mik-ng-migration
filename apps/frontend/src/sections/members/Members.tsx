@@ -267,8 +267,7 @@ const Members = () => {
             },
           }}
           onChange={({ target }) => {
-            setFilters({ name: target.value })
-            mutate()
+            setFilters((prev) => ({ ...prev, name: target.value }))
           }}
         />
 
@@ -316,13 +315,13 @@ const Members = () => {
                 const showExternal = target.value == 'showExternal'
                 const showRole =
                   !showUnapproved && !showRemoved && !showExternal && target.value !== ''
-                setFilters({
+                setFilters((prev) => ({
+                  ...prev,
                   showUnapproved,
                   showRemoved,
                   showExternal,
                   ...(showRole ? { role: target.value } : { role: undefined }),
-                })
-                mutate()
+                }))
               }}
             >
               <MenuItem value=''>{t('roles.all')}</MenuItem>

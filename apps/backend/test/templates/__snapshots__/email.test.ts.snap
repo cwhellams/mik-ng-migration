@@ -2,14 +2,60 @@
 
 exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Varauksesi on peruttu</h1><p>Hei Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Varauksesi on peruttu</h1><p>Hei Tester,</p>
 <p>Varauksesi koneelle OH-IHQ 15.11. 00:13 - 15.11. 01:13 on peruttu.</p>
 <p>Kalenterimerkintäsi poistetaan automaattisesti, jos kalenterisovelluksesi tukee sitä.</p>
 
@@ -25,25 +71,73 @@ exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 1`
       ">Tarkistele varauskalenteria</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 2`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Your booking is cancelled</h1><p>Hello Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Your booking is cancelled</h1><p>Hello Tester,</p>
 <p>Your booking for plane OH-IHQ 15.11. 00:13 - 15.11. 01:13 has been cancelled.</p>
 <p>Your calendar invite will be removed automatically if your calendar application supports it.</p>
 
@@ -59,25 +153,73 @@ exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 2`
       ">Check the booking calendar</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 3`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Din bokning är inställd</h1><p>Hej Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Din bokning är inställd</h1><p>Hej Tester,</p>
 <p>Din bokning för flygplan OH-IHQ 15.11. 00:13 - 15.11. 01:13 har blivit inställd.</p>
 <p>Din kalenderinbjudan tas bort automatiskt om ditt kalenderprogram stöder det.</p>
 
@@ -93,25 +235,73 @@ exports[`Booking cancellation template tests bookingCancellationEmailBodyHtml 3`
       ">Se bokningskalendern</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Booking confirmation template tests bookingConfirmedEmailBodyHtml 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Varauksesi on vahvistettu</h1><p>Hei Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Varauksesi on vahvistettu</h1><p>Hei Tester,</p>
 <p>Varauksesi koneelle OH-IHQ 15.11. 00:13 - 15.11. 01:13 on vahvistettu.</p>
 <p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRIVATE">Lisää Google-kalenteriin</a></p>
 
@@ -127,25 +317,73 @@ exports[`Booking confirmation template tests bookingConfirmedEmailBodyHtml 1`] =
       ">Tarkistele varauskalenteria</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Booking confirmation template tests bookingConfirmedEmailBodyHtml 2`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Your booking is confirmed</h1><p>Hello Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Your booking is confirmed</h1><p>Hello Tester,</p>
 <p>Your booking for plane OH-IHQ 15.11. 00:13 - 15.11. 01:13 is confirmed.</p>
 <p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRIVATE">Add to Google Calendar</a></p>
 
@@ -161,25 +399,73 @@ exports[`Booking confirmation template tests bookingConfirmedEmailBodyHtml 2`] =
       ">Check the booking calendar</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Booking confirmation template tests bookingConfirmedEmailBodyHtml 3`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Din bokning är bekräftad</h1><p>Hej Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Din bokning är bekräftad</h1><p>Hej Tester,</p>
 <p>Din bokning för flygplan OH-IHQ 15.11. 00:13 - 15.11. 01:13 är bekräftad.</p>
 <p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRIVATE">Lägg till i Google Kalender</a></p>
 
@@ -195,25 +481,73 @@ exports[`Booking confirmation template tests bookingConfirmedEmailBodyHtml 3`] =
       ">Se bokningskalendern</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Booking confirmation template tests bookingUpdatedEmailBodyHtml 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Varauksesi on päivitetty</h1><p>Hei Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Varauksesi on päivitetty</h1><p>Hei Tester,</p>
 <p>Varauksesi koneelle OH-IHQ 15.11. 00:13 - 15.11. 01:13 on päivitetty.</p>
 <p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRIVATE">Lisää Google-kalenteriin</a></p>
 
@@ -229,25 +563,73 @@ exports[`Booking confirmation template tests bookingUpdatedEmailBodyHtml 1`] = `
       ">Tarkistele varauskalenteria</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Booking confirmation template tests bookingUpdatedEmailBodyHtml 2`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Your booking has been updated</h1><p>Hello Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Your booking has been updated</h1><p>Hello Tester,</p>
 <p>Your booking for plane OH-IHQ 15.11. 00:13 - 15.11. 01:13 has been updated.</p>
 <p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRIVATE">Add to Google Calendar</a></p>
 
@@ -263,25 +645,73 @@ exports[`Booking confirmation template tests bookingUpdatedEmailBodyHtml 2`] = `
       ">Check the booking calendar</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Booking confirmation template tests bookingUpdatedEmailBodyHtml 3`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Din bokning har uppdaterats</h1><p>Hej Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Din bokning har uppdaterats</h1><p>Hej Tester,</p>
 <p>Din bokning för flygplan OH-IHQ 15.11. 00:13 - 15.11. 01:13 har uppdaterats.</p>
 <p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRIVATE">Lägg till i Google Kalender</a></p>
 
@@ -297,25 +727,73 @@ exports[`Booking confirmation template tests bookingUpdatedEmailBodyHtml 3`] = `
       ">Se bokningskalendern</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Booking reminder template tests bookingReminderEmailBodyHtml 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Muistutus tulevasta varauksesta</h1><p>Hei Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Muistutus tulevasta varauksesta</h1><p>Hei Tester,</p>
 <p>Muistutuksena, varauksesi koneelle OH-IHQ alkaa 15.11. 00:13 - 15.11. 01:13.</p>
 <p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRIVATE">Lisää Google-kalenteriin</a></p>
 
@@ -331,25 +809,73 @@ exports[`Booking reminder template tests bookingReminderEmailBodyHtml 1`] = `
       ">Tarkistele varauskalenteria</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Booking reminder template tests bookingReminderEmailBodyHtml 2`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Upcoming booking reminder</h1><p>Hello Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Upcoming booking reminder</h1><p>Hello Tester,</p>
 <p>This is a reminder that you have a booking for plane OH-IHQ starting 15.11. 00:13 - 15.11. 01:13.</p>
 <p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRIVATE">Add to Google Calendar</a></p>
 
@@ -365,25 +891,73 @@ exports[`Booking reminder template tests bookingReminderEmailBodyHtml 2`] = `
       ">Check the booking calendar</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Booking reminder template tests bookingReminderEmailBodyHtml 3`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Påminnelse om kommande bokning</h1><p>Hej Tester,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Påminnelse om kommande bokning</h1><p>Hej Tester,</p>
 <p>Detta är en påminnelse om att du har en bokning för flygplan OH-IHQ som börjar 15.11. 00:13 - 15.11. 01:13.</p>
 <p><a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=MIK%20-%20OH-IHQ&dates=20231114T221320Z%2F20231114T231320Z&details=PRIVATE">Lägg till i Google Kalender</a></p>
 
@@ -399,25 +973,73 @@ exports[`Booking reminder template tests bookingReminderEmailBodyHtml 3`] = `
       ">Se bokningskalendern</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: en 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Verify Your New Email Address</h1><p>Hello Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Verify Your New Email Address</h1><p>Hello Tester1,</p>
 <p>You have requested to change your email address to <strong><a href="mailto:new@example.com">new@example.com</a></strong>. Please confirm this change by clicking the button below:</p>
 
     <div style="text-align: center; margin: 24px 0;">
@@ -438,25 +1060,73 @@ exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: 
   </a>
 </p><p>This link will expire in 15 minutes.</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        <p style="font-size: 0.9em; color: #666666;">If you didn't request this change, you can safely ignore this email.</p>
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          <p style="font-size: 0.9em; color: #666666;">If you didn't request this change, you can safely ignore this email.</p>
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: fi 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Vahvista uusi sähköpostiosoitteesi</h1><p>Hei Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Vahvista uusi sähköpostiosoitteesi</h1><p>Hei Tester1,</p>
 <p>Olet pyytänyt sähköpostiosoitteen vaihtamista osoitteeksi <strong><a href="mailto:new@example.com">new@example.com</a></strong>. Vahvista muutos napsauttamalla alla olevaa painiketta:</p>
 
     <div style="text-align: center; margin: 24px 0;">
@@ -477,25 +1147,73 @@ exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: 
   </a>
 </p><p>Tämä linkki vanhenee 15 minuutissa.</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        <p style="font-size: 0.9em; color: #666666;">Jos et pyytänyt tätä muutosta, voit huoletta sivuuttaa tämän sähköpostin.</p>
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          <p style="font-size: 0.9em; color: #666666;">Jos et pyytänyt tätä muutosta, voit huoletta sivuuttaa tämän sähköpostin.</p>
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: sv 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Verifiera din nya e-postadress</h1><p>Hej Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Verifiera din nya e-postadress</h1><p>Hej Tester1,</p>
 <p>Du har begärt att ändra din e-postadress till <strong><a href="mailto:new@example.com">new@example.com</a></strong>. Bekräfta ändringen genom att klicka på knappen nedan:</p>
 
     <div style="text-align: center; margin: 24px 0;">
@@ -516,13 +1234,15 @@ exports[`Email change verify template tests emailChangeVerifyBodyHtml for lang: 
   </a>
 </p><p>Denna länk upphör att gälla om 15 minuter.</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        <p style="font-size: 0.9em; color: #666666;">Om du inte begärde denna ändring kan du lugnt ignorera detta e-postmeddelande.</p>
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          <p style="font-size: 0.9em; color: #666666;">Om du inte begärde denna ändring kan du lugnt ignorera detta e-postmeddelande.</p>
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Email change verify template tests emailChangeVerifySubject for lang: en 1`] = `"Verify your new email address"`;
@@ -531,16 +1251,1097 @@ exports[`Email change verify template tests emailChangeVerifySubject for lang: f
 
 exports[`Email change verify template tests emailChangeVerifySubject for lang: sv 1`] = `"Verifiera din nya e-postadress"`;
 
+exports[`Expense claim email template tests expenseApprovedEmailTemplate for lang: en 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Expense claim approved</h1><p>Hello Tester1,</p>
+<p>Your expense claim <strong>Fuel receipt</strong> has been approved and queued for reimbursement processing.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Open expense claim</a>
+    </div>
+    
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Expense claim approved: Fuel receipt",
+}
+`;
+
+exports[`Expense claim email template tests expenseApprovedEmailTemplate for lang: fi 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Kulukorvaus hyväksytty</h1><p>Hei Tester1,</p>
+<p>Kulukorvaushakemuksesi <strong>Fuel receipt</strong> on hyväksytty ja siirretty korvauksen käsittelyyn.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Avaa kulukorvaus</a>
+    </div>
+    
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Kulukorvaus hyväksytty: Fuel receipt",
+}
+`;
+
+exports[`Expense claim email template tests expenseApprovedEmailTemplate for lang: sv 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Utgiftsanspråk godkänt</h1><p>Hej Tester1,</p>
+<p>Ditt utgiftsanspråk <strong>Fuel receipt</strong> har godkänts och köats för ersättningshantering.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Öppna utgiftsanspråket</a>
+    </div>
+    
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Utgiftsanspråk godkänt: Fuel receipt",
+}
+`;
+
+exports[`Expense claim email template tests expenseRejectedEmailTemplate for lang: en 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Expense claim rejected</h1><p>Hello Tester1,</p>
+<p>Your expense claim <strong>Fuel receipt</strong> was rejected.</p>
+<p>Reason: Missing receipt</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Open expense claim</a>
+    </div>
+    
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Expense claim rejected: Fuel receipt",
+}
+`;
+
+exports[`Expense claim email template tests expenseRejectedEmailTemplate for lang: fi 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Kulukorvaus hylätty</h1><p>Hei Tester1,</p>
+<p>Kulukorvaushakemuksesi <strong>Fuel receipt</strong> on hylätty.</p>
+<p>Syy: Missing receipt</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Avaa kulukorvaus</a>
+    </div>
+    
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Kulukorvaus hylätty: Fuel receipt",
+}
+`;
+
+exports[`Expense claim email template tests expenseRejectedEmailTemplate for lang: sv 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Utgiftsanspråk avvisat</h1><p>Hej Tester1,</p>
+<p>Ditt utgiftsanspråk <strong>Fuel receipt</strong> har avvisats.</p>
+<p>Orsak: Missing receipt</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Öppna utgiftsanspråket</a>
+    </div>
+    
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Utgiftsanspråk avvisat: Fuel receipt",
+}
+`;
+
+exports[`Expense claim email template tests expenseRequestInfoEmailTemplate for lang: en 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Further information required</h1><p>Hello Tester1,</p>
+<p>We need a little more information before we can process your expense claim <strong>Fuel receipt</strong>.</p>
+<blockquote>
+<p>Please attach the original receipt</p>
+</blockquote>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Open expense claim</a>
+    </div>
+    <p>Please update the claim in the intranet and submit it again when ready.</p>
+
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Further information required: Fuel receipt",
+}
+`;
+
+exports[`Expense claim email template tests expenseRequestInfoEmailTemplate for lang: fi 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Lisätietoja vaaditaan</h1><p>Hei Tester1,</p>
+<p>Tarvitsemme lisätietoja ennen kuin voimme käsitellä kulukorvaushakemuksesi <strong>Fuel receipt</strong>.</p>
+<blockquote>
+<p>Please attach the original receipt</p>
+</blockquote>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Avaa kulukorvaus</a>
+    </div>
+    <p>Päivitä hakemus intranetissä ja lähetä se uudelleen, kun tiedot ovat valmiit.</p>
+
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Lisätietoja vaaditaan: Fuel receipt",
+}
+`;
+
+exports[`Expense claim email template tests expenseRequestInfoEmailTemplate for lang: sv 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Ytterligare information krävs</h1><p>Hej Tester1,</p>
+<p>Vi behöver lite mer information innan vi kan behandla ditt utgiftsanspråk <strong>Fuel receipt</strong>.</p>
+<blockquote>
+<p>Please attach the original receipt</p>
+</blockquote>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Öppna utgiftsanspråket</a>
+    </div>
+    <p>Uppdatera anspråket i intranätet och skicka in det på nytt när uppgifterna är klara.</p>
+
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Ytterligare information krävs: Fuel receipt",
+}
+`;
+
+exports[`Expense claim email template tests expenseSetToDraftEmailTemplate for lang: en 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Your expense claim has been returned to draft</h1><p>Hello Tester1,</p>
+<p>Your expense claim <strong>&quot;Fuel receipt&quot;</strong> has been returned to <strong>Draft</strong> status by an administrator.</p>
+<p>Please review and update your claim, then re-submit it for approval.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">View Expense Claim</a>
+    </div>
+    <p>If you have questions, please contact the club treasurer.</p>
+<hr>
+<p><em>Malmin Ilmailukerho ry</em></p>
+
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Expense claim returned to draft: Fuel receipt",
+}
+`;
+
+exports[`Expense claim email template tests expenseSetToDraftEmailTemplate for lang: fi 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Kuluhakemuksesi on palautettu luonnokseksi</h1><p>Hei Tester1,</p>
+<p>Kuluhakemuksesi <strong>&quot;Fuel receipt&quot;</strong> on palautettu <strong>Luonnos</strong>-tilaan ylläpitäjän toimesta.</p>
+<p>Ole hyvä ja tarkista hakemuksesi, päivitä tarvittavat tiedot ja lähetä se uudelleen hyväksyttäväksi.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Näytä kuluhakemus</a>
+    </div>
+    <p>Jos sinulla on kysyttävää, ota yhteyttä yhdistyksen rahastonhoitajaan.</p>
+<hr>
+<p><em>Malmin Ilmailukerho ry</em></p>
+
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Kuluhakemus palautettu luonnokseksi: Fuel receipt",
+}
+`;
+
+exports[`Expense claim email template tests expenseSetToDraftEmailTemplate for lang: sv 1`] = `
+{
+  "html": "
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
+
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Din utgiftsanmälan har återförts till utkast</h1><p>Hej Tester1,</p>
+<p>Din utgiftsanmälan <strong>&quot;Fuel receipt&quot;</strong> har återförts till <strong>Utkast</strong>-status av en administratör.</p>
+<p>Vänligen granska och uppdatera din anmälan och skicka in den igen för godkännande.</p>
+
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="https://example.com/expenses/123" style="
+        background-color: #003366;
+        color: #ffffff;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      ">Visa utgiftsanmälan</a>
+    </div>
+    <p>Om du har frågor, vänligen kontakta klubbens kassör.</p>
+<hr>
+<p><em>Malmin Ilmailukerho ry</em></p>
+
+        </div>
+
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>",
+  "subject": "Utgiftsanmälan återförd till utkast: Fuel receipt",
+}
+`;
+
 exports[`Login Email template tests loginEmailBodyHtml for lang: en 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Login Confirmation</h1><p>Hello Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Login Confirmation</h1><p>Hello Tester1,</p>
 <p>You are attempting to log in to the <strong>MIK website</strong>. Please confirm your login by clicking the button below:</p>
 
     <div style="text-align: center; margin: 24px 0;">
@@ -564,25 +2365,73 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: en 1`] = `
   12345
 </p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        <p style="font-size: 0.9em; color: #666666;">If you didn’t request this email, you can safely ignore it.</p>
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          <p style="font-size: 0.9em; color: #666666;">If you didn’t request this email, you can safely ignore it.</p>
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Login Email template tests loginEmailBodyHtml for lang: fi 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Kirjautumisen vahvistus</h1><p>Hei Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Kirjautumisen vahvistus</h1><p>Hei Tester1,</p>
 <p>Olet kirjautumassa <strong>MIK-verkkosivustolle</strong>. Vahvista kirjautumisesi napsauttamalla alla olevaa painiketta:</p>
 
     <div style="text-align: center; margin: 24px 0;">
@@ -606,25 +2455,73 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: fi 1`] = `
   12345
 </p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        <p style="font-size: 0.9em; color: #666666;">Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.</p>
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          <p style="font-size: 0.9em; color: #666666;">Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.</p>
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Login Email template tests loginEmailBodyHtml for lang: sv 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Inloggningsbekräftelse</h1><p>Hej Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Inloggningsbekräftelse</h1><p>Hej Tester1,</p>
 <p>Du försöker logga in på <strong>MIK-webbplatsen</strong>. Vänligen bekräfta din inloggning genom att klicka på knappen nedan:</p>
 
     <div style="text-align: center; margin: 24px 0;">
@@ -648,25 +2545,73 @@ exports[`Login Email template tests loginEmailBodyHtml for lang: sv 1`] = `
   12345
 </p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        <p style="font-size: 0.9em; color: #666666;">If you didn’t request this email, you can safely ignore it.</p>
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          <p style="font-size: 0.9em; color: #666666;">If you didn’t request this email, you can safely ignore it.</p>
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`New member notification template tests newMemberEmailBodyHtml for lang: en 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">New member registered</h1><p>Hello Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">New member registered</h1><p>Hello Tester1,</p>
 <p>A new member has registered and is awaiting approval.</p>
 
     <div style="text-align: center; margin: 24px 0;">
@@ -683,25 +2628,73 @@ exports[`New member notification template tests newMemberEmailBodyHtml for lang:
     <p>Best regards,
 Malmin Ilmailukerho</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`New member notification template tests newMemberEmailBodyHtml for lang: fi 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Uusi jäsen rekisteröitynyt</h1><p>Hei Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Uusi jäsen rekisteröitynyt</h1><p>Hei Tester1,</p>
 <p>Uusi jäsen on rekisteröitynyt ja odottaa hyväksyntää.</p>
 
     <div style="text-align: center; margin: 24px 0;">
@@ -718,25 +2711,73 @@ exports[`New member notification template tests newMemberEmailBodyHtml for lang:
     <p>Ystävällisin terveisin,
 Malmin Ilmailukerho</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`New member notification template tests newMemberEmailBodyHtml for lang: sv 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Ny medlem registrerad</h1><p>Hej Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Ny medlem registrerad</h1><p>Hej Tester1,</p>
 <p>En ny medlem har registrerat sig och väntar på godkännande.</p>
 
     <div style="text-align: center; margin: 24px 0;">
@@ -753,25 +2794,73 @@ exports[`New member notification template tests newMemberEmailBodyHtml for lang:
     <p>Med vänliga hälsningar,
 Malmin Ilmailukerho</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml anonymized for lang: en 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
 <p>New occurrence for plane OH-STL has been reported at 01.12.2025 12:31.</p>
 <p>The anonymized occurrence is now visible now only to safety managers. Please process the occurrence as soon as possible and share to other relevant people.</p>
 <p>Occurrence has to be processed in 72 hours. Deadline is at 04.12.2025 12:31.</p>
@@ -788,25 +2877,73 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml ano
       ">Review the occurrence</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml anonymized for lang: fi 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
 <p>Uusi poikkema koneelle OH-STL on ilmoitettu aikaan 01.12.2025 12:31.</p>
 <p>Anonymisoitu poikkema on nyt näkyvissä vain turvallisuuspäälliköille. Ole hyvä ja käsittele poikkema mahdollisimman pian ja jaa se muille asiaankuuluville henkilöille.</p>
 <p>Poikkeman käsittely on tehtävä 72 tunnissa. Määräaika päättyy 04.12.2025 12:31.</p>
@@ -823,25 +2960,73 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml ano
       ">Tarkastele poikkeamaa</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml anonymized for lang: sv 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Ny händelse rapporterad</h1><p>Hej ,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Ny händelse rapporterad</h1><p>Hej ,</p>
 <p>En ny händelse för flygplan OH-STL har rapporterats den 01.12.2025 12:31.</p>
 <p>Den anonymiserade händelsen är nu synlig endast för säkerhetsansvariga. Vänligen behandla händelsen så snart som möjligt och dela med andra relevanta personer.</p>
 <p>Händelsen måste behandlas inom 72 timmar. Deadline är 04.12.2025 12:31.</p>
@@ -858,25 +3043,73 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml ano
       ">Granska händelsen</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for lang: en 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
 <p>New occurrence for plane OH-STL has been reported at 01.12.2025 12:31.</p>
 <p>The occurrence is only visible to independent reviewers and have to be anonymized before it becomes visible to the safety managers. Please process the occurrence as soon as possible.</p>
 
@@ -892,25 +3125,73 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for
       ">Review the occurrence</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for lang: fi 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
 <p>Uusi poikkema koneelle OH-STL on ilmoitettu aikaan 01.12.2025 12:31.</p>
 <p>Poikkema on näkyvissä vain riippumattomille tarkastajille ja se on anonymisoitava ennen kuin se tulee näkyväksi turvallisuuspäälliköille. Ole hyvä ja käsittele poikkema mahdollisimman pian.</p>
 
@@ -926,25 +3207,73 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for
       ">Tarkastele poikkeamaa</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for lang: sv 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Ny händelse rapporterad</h1><p>Hej ,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Ny händelse rapporterad</h1><p>Hej ,</p>
 <p>En ny händelse för flygplan OH-STL har rapporterats den 01.12.2025 12:31.</p>
 <p>Händelsen är endast synlig för oberoende granskare och måste anonymiseras innan den blir synlig för säkerhetsansvariga. Vänligen behandla händelsen så snart som möjligt.</p>
 
@@ -960,25 +3289,73 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml for
       ">Granska händelsen</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml with deadline for lang: en 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">New occurrence reported</h1><p>Hello ,</p>
 <p>New occurrence for plane OH-STL has been reported at 01.12.2025 12:31.</p>
 <p>The occurrence is only visible to independent reviewers and have to be anonymized before it becomes visible to the safety managers. Please process the occurrence as soon as possible.</p>
 <p>Occurrence has to be processed in 72 hours. Deadline is at 04.12.2025 12:31.</p>
@@ -995,25 +3372,73 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml wit
       ">Review the occurrence</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml with deadline for lang: fi 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Uusi poikkema ilmoitettu</h1><p>Hei ,</p>
 <p>Uusi poikkema koneelle OH-STL on ilmoitettu aikaan 01.12.2025 12:31.</p>
 <p>Poikkema on näkyvissä vain riippumattomille tarkastajille ja se on anonymisoitava ennen kuin se tulee näkyväksi turvallisuuspäälliköille. Ole hyvä ja käsittele poikkema mahdollisimman pian.</p>
 <p>Poikkeman käsittely on tehtävä 72 tunnissa. Määräaika päättyy 04.12.2025 12:31.</p>
@@ -1030,25 +3455,73 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml wit
       ">Tarkastele poikkeamaa</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml with deadline for lang: sv 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Ny händelse rapporterad</h1><p>Hej ,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Ny händelse rapporterad</h1><p>Hej ,</p>
 <p>En ny händelse för flygplan OH-STL har rapporterats den 01.12.2025 12:31.</p>
 <p>Händelsen är endast synlig för oberoende granskare och måste anonymiseras innan den blir synlig för säkerhetsansvariga. Vänligen behandla händelsen så snart som möjligt.</p>
 <p>Händelsen måste behandlas inom 72 timmar. Deadline är 04.12.2025 12:31.</p>
@@ -1065,25 +3538,73 @@ exports[`Occurrence Email template tests occurrenceNotificationEmailBodyHtml wit
       ">Granska händelsen</a>
     </div>
     
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Overdue invoice template tests overdueInvoiceEmailBodyHtml 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Muistutus erääntyneestä laskusta</h1><p>Hyvä Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Muistutus erääntyneestä laskusta</h1><p>Hyvä Tester1,</p>
 <p>Tämä on muistutus siitä, että lasku <strong>#INV-12345</strong> summaltaan <strong>100 €</strong>
 erääntyi <strong>2024-06-30</strong> ja on edelleen maksamatta.</p>
 <p>Pyydämme sinua suorittamaan maksun mahdollisimman pian.</p>
@@ -1092,25 +3613,73 @@ erääntyi <strong>2024-06-30</strong> ja on edelleen maksamatta.</p>
 </p><p>Jos olet jo suorittanut maksun tai uskot tämän muistutuksen olevan virhe, ota meihin yhteyttä välittömästi: <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
 <p>Kiitos huomiostasi tähän asiaan.</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Overdue invoice template tests overdueInvoiceEmailBodyHtml 2`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Overdue Invoice Reminder</h1><p>Dear Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Overdue Invoice Reminder</h1><p>Dear Tester1,</p>
 <p>This is a reminder that invoice <strong>#INV-12345</strong> for € <strong>100</strong>
 was due on <strong>2024-06-30</strong> and remains unpaid.</p>
 <p>Please arrange payment at your earliest convenience.</p>
@@ -1119,25 +3688,73 @@ was due on <strong>2024-06-30</strong> and remains unpaid.</p>
 </p><p>If you have already made payment or believe this notice is in error, please contact us immediately at <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
 <p>Thank you for your prompt attention to this matter.</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Overdue invoice template tests overdueInvoiceEmailBodyHtml 3`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Påminnelse om förfallen faktura</h1><p>Hej Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Påminnelse om förfallen faktura</h1><p>Hej Tester1,</p>
 <p>Detta är en påminnelse om att faktura <strong>#INV-12345</strong> på <strong>100 €</strong>
 förföll till betalning den <strong>2024-06-30</strong> och är fortfarande obetald.</p>
 <p>Vänligen ordna betalning vid ditt närmaste tillfälle.</p>
@@ -1146,25 +3763,73 @@ förföll till betalning den <strong>2024-06-30</strong> och är fortfarande obe
 </p><p>Om du redan har betalat eller tror att detta meddelande är felaktigt, vänligen kontakta oss omedelbart på <a href="mailto:laskutus@mik.fi">laskutus@mik.fi</a></p>
 <p>Tack för din snabba uppmärksamhet i denna fråga.</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Register Email template tests registerEmailBodyHtml 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Hakemus vastaanotettu</h1><p>Hei Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Hakemus vastaanotettu</h1><p>Hei Tester1,</p>
 <p>kiitos hakemuksestasi Malmin Ilmailukerho ry:n jäseneksi. Käsittelemme hakemuksesi pian ja olemme sinuun yhteydessä.
 Sillä välin, voit vahvistaa sähköpostiosoitteesi klikkaamalla alla olevaa linkkiä:</p>
 
@@ -1182,25 +3847,73 @@ Sillä välin, voit vahvistaa sähköpostiosoitteesi klikkaamalla alla olevaa li
     <p>Vaihtoehtoisesti voit myös kopioida alla olevan linkin suoraan webbiselaimeesi:</p>
 <p style="word-break: break-all;"><a href="https://example.com">https://example.com</a></p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        <p style="font-size: 0.9em; color: #666666;">Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.</p>
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          <p style="font-size: 0.9em; color: #666666;">Jos et pyytänyt tätä sähköpostia, voit huoletta sivuuttaa sen.</p>
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Register Email template tests registerEmailBodyHtml 2`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Application Received</h1><p>Hello Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Application Received</h1><p>Hello Tester1,</p>
 <p>Thank you for applying to become a member of Malmin Ilmailukerho ry. We will review your application as soon as possible and get back to you.
 In the meantime, you can confirm your email address by clicking the link below:</p>
 
@@ -1218,25 +3931,73 @@ In the meantime, you can confirm your email address by clicking the link below:<
     <p>If the button above doesn&#39;t work, please copy and paste the following link into your browser:</p>
 <p style="word-break: break-all;"><a href="https://example.com">https://example.com</a></p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        <p style="font-size: 0.9em; color: #666666;">If you didn't request this email, you can safely ignore it.</p>
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          <p style="font-size: 0.9em; color: #666666;">If you didn't request this email, you can safely ignore it.</p>
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Register Email template tests registerEmailBodyHtml 3`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Ansökan mottagen</h1><p>Hej Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Ansökan mottagen</h1><p>Hej Tester1,</p>
 <p>Tack för att du har ansökt om att bli medlem i Malmin Ilmailukerho ry. Vi kommer att granska din ansökan så snart som möjligt och återkomma till dig.
 Under tiden kan du bekräfta din e-postadress genom att klicka på länken nedan:</p>
 
@@ -1254,25 +4015,73 @@ Under tiden kan du bekräfta din e-postadress genom att klicka på länken nedan
     <p>Om knappen ovan inte fungerar, vänligen kopiera och klistra in följande länk i din webbläsare:</p>
 <p style="word-break: break-all;"><a href="https://example.com">https://example.com</a></p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        <p style="font-size: 0.9em; color: #666666;">Om du inte begärde detta e-postmeddelande kan du lugnt ignorera det.</p>
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          <p style="font-size: 0.9em; color: #666666;">Om du inte begärde detta e-postmeddelande kan du lugnt ignorera det.</p>
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Register approved template tests membershipApprovedEmailBodyHtml 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Jäsenyytesi on hyväksytty</h1><p>Hei Tester1, tervetuloa MIK:iin, jäsenyytesi on hyväksytty.</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Jäsenyytesi on hyväksytty</h1><p>Hei Tester1, tervetuloa MIK:iin, jäsenyytesi on hyväksytty.</p>
 <p>Tutustu klubin <a href="https://mik.fi/rules">sääntöihin</a>. Jos sinulla on kysyttävää, ota rohkeasti yhteyttä hallituksen jäseneen.</p>
 <p>Seuraavat askeleet:</p>
 <ul>
@@ -1327,25 +4136,73 @@ Tietoa lentokalustosta välitetään myös MIK-yhteisössä: <a href="https://ch
 <p>Ystävällisin terveisin,</p>
 <p>Malmin Ilmailukerho</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Register approved template tests membershipApprovedEmailBodyHtml 2`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Membership Approved</h1><p>Hi Tester1, welcome to MIK, your membership has been approved.</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Membership Approved</h1><p>Hi Tester1, welcome to MIK, your membership has been approved.</p>
 <p>Please familiarize yourself with the club <a href="https://mik.fi/rules">rules</a>. If you have any questions, feel free to contact a member of the committee.</p>
 <p>Next steps:</p>
 <ul>
@@ -1400,25 +4257,73 @@ Information about the aircraft is also shared in the MIK community: <a href="htt
 <p>Best regards,</p>
 <p>Malmin Ilmailukerho</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Register approved template tests membershipApprovedEmailBodyHtml 3`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Medlemskap godkänt</h1><p>Hej Tester1, välkommen till MIK, ditt medlemskap har godkänts.</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Medlemskap godkänt</h1><p>Hej Tester1, välkommen till MIK, ditt medlemskap har godkänts.</p>
 <p>Vänligen bekanta dig med klubbens <a href="https://mik.fi/rules">regler</a>. Om du har några frågor är du välkommen att kontakta en styrelsemedlem.</p>
 <p>Nästa steg:</p>
 <ul>
@@ -1473,25 +4378,73 @@ Information om flygplanen delas också i MIK-gemenskapen: <a href="https://chat.
 <p>Med vänliga hälsningar,</p>
 <p>Malmin Ilmailukerho</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 1`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Lentokoneen varausoikeus keskeytetty</h1><p>Hyvä Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Lentokoneen varausoikeus keskeytetty</h1><p>Hyvä Tester1,</p>
 <p>Oikeutesi tehdä lentovarauksia on <strong>keskeytetty</strong> maksamattomien lentolaskujen vuoksi.</p>
 <div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;"><p><strong>Maksamattomat lentolaskut:</strong></p>
 <p>Määrä: <strong>2</strong></p>
@@ -1521,25 +4474,73 @@ exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 
 <p>Ystävällisin terveisin,
 Malmin Ilmailukerho - MIK ry</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 2`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Aircraft Reservation Privileges Suspended</h1><p>Dear Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Aircraft Reservation Privileges Suspended</h1><p>Dear Tester1,</p>
 <p>Your ability to make aircraft reservations has been <strong>suspended</strong> due to unpaid flight invoices.</p>
 <div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;"><p><strong>Outstanding Flight Invoices:</strong></p>
 <p>Count: <strong>2</strong></p>
@@ -1569,25 +4570,73 @@ exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 
 <p>Best regards,
 Malmin Ilmailukerho - MIK ry</p></p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;
 
 exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 3`] = `
 "
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
-    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
-      </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Malmin Ilmailukerho ry</title>
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+        }
+        .email-card table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .email-card th,
+        .email-card td {
+          word-break: break-word;
+        }
+        .items-table-mobile {
+          display: none;
+        }
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 16px !important;
+          }
+          .email-card {
+            padding: 20px !important;
+          }
+          .email-card h1,
+          .email-card h2,
+          .email-card h3 {
+            font-size: 1.15em !important;
+          }
+        }
+        @media only screen and (max-width: 480px) {
+          .items-table-desktop {
+            display: none !important;
+          }
+          .items-table-mobile {
+            display: block !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9f9f9; padding: 40px;">
+      <div class="email-card" style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); padding: 40px;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="https://walrus-app-sa62h.ondigitalocean.app/mik-logo-blue.png" alt="MIK Logo" style="max-width: 120px;" />
+        </div>
 
-      <div style="color: #333333">
-        <h1 style="text-align: center; color: #003366;">Flygplansreservationsrättigheter har upphävts</h1><p>Bästa Tester1,</p>
+        <div style="color: #333333">
+          <h1 style="text-align: center; color: #003366;">Flygplansreservationsrättigheter har upphävts</h1><p>Bästa Tester1,</p>
 <p>Din möjlighet att göra flygplansreservationer har <strong>upphävts</strong> på grund av obetalda flygfakturor.</p>
 <div style="background-color: #ffebee; border-left: 4px solid #d32f2f; padding: 15px; margin: 20px 0;"><p><strong>Utestående flygfakturor:</strong></p>
 <p>Antal: <strong>2</strong></p>
@@ -1617,11 +4666,13 @@ exports[`Reservation suspended template tests reservationSuspendedEmailBodyHtml 
 <p>Med vänliga hälsningar,
 Malmin Ilmailukerho - MIK ry</p>
 
-      </div>
+        </div>
 
-      <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
-        
-        <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
-    </div>
-  </div>"
+        <hr style="margin-top: 32px; border: none; border-top: 1px solid #dddddd;" />
+          
+          <p style="font-size: 0.9em; color: #666666;">Malmin Ilmailukerho ry</p>
+      </div>
+      </div>
+    </body>
+    </html>"
 `;

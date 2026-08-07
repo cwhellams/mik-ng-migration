@@ -483,6 +483,25 @@ describe('PATCH /members/me', () => {
       ]),
     })
   })
+
+  it('should update defaultInstructorMemberId to a valid member id', async () => {
+    const response = await patch(memberToken, { defaultInstructorMemberId: 'Jukka1' })
+
+    expect(response.status).toBe(200)
+    expect((response.body as Member).defaultInstructorMemberId).toEqual('Jukka1')
+
+    // cleanup
+    await patch(memberToken, { defaultInstructorMemberId: null })
+  })
+
+  it('should clear defaultInstructorMemberId when set to null', async () => {
+    await patch(memberToken, { defaultInstructorMemberId: 'Jukka1' })
+
+    const response = await patch(memberToken, { defaultInstructorMemberId: null })
+
+    expect(response.status).toBe(200)
+    expect((response.body as Member).defaultInstructorMemberId).toBeUndefined()
+  })
 })
 
 describe('GET /members/roles', () => {

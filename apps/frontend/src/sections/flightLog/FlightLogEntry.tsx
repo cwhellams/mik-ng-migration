@@ -661,13 +661,16 @@ const ClassicFlightLogEntry = () => {
             </Grid>
             <Grid size={12}>
               <FlightCrew
-                flightType={watch('flightType')}
+                flightType={flightType}
                 maximumCrewCount={aircraft?.seats ?? 0}
                 register={register}
                 control={control}
                 setValue={isEditable ? setValue : undefined}
                 trigger={isEditable ? trigger : undefined}
                 watch={watch}
+                defaultInstructorMemberId={
+                  flightType === FlightType.SCHOOL ? me?.defaultInstructorMemberId : undefined
+                }
               />
             </Grid>
 
