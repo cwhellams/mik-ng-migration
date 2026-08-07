@@ -173,7 +173,7 @@ describe('RequirePermission when the profile cannot be loaded', () => {
     await forbidden()
   })
 
-  it('does not open the gate while the roles catalogue is unavailable', async () => {
+  it('opens the gate while the roles catalogue is unavailable', async () => {
     // Permissions come from the member, not the catalogue, so a failing
     // catalogue must not change the answer either way.
     signInWithPermissions(MIKPermissions.MEMBER_ADMIN)

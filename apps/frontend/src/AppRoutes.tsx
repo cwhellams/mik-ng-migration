@@ -138,7 +138,7 @@ export default function AppRoutes() {
         </Route>
         <Route path='/club'>
           <Route index element={<Members />} />
-          <Route index path='members/roles' element={<Roles />} />
+          <Route path='members/roles' element={<Roles />} />
           <Route path='members/trash' element={<MemberTrash />} />
           <Route
             path='members/changelog'

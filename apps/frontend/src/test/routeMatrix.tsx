@@ -2,7 +2,7 @@ import { MIKPermissions } from '@backend/routes/members/models'
 import { screen } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { Component, type ReactNode } from 'react'
-import { afterAll, beforeAll, expect, it, vi } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 
 import AppRoutes from '../AppRoutes'
 import { useRoles } from '../hooks/useRoles'
@@ -405,14 +405,12 @@ export const expectedForbidden = (route: RouteUnderTest, scenario: AuthScenario)
  * the suite, and tests within one file run in sequence.
  */
 export const runRouteMatrix = (scenario: AuthScenario) => {
-  beforeAll(() => {
+  beforeEach(() => {
     // Pages rendered against a catch-all stub complain loudly; the boundary is
     // what actually matters here.
     vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
-
-  afterAll(() => vi.restoreAllMocks())
 
   it.each(ROUTES.map((route) => [route.path, route] as const))('%s', async (_path, route) => {
     await visitRoute(scenario, route.url)
