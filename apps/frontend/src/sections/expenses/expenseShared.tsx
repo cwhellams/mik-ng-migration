@@ -722,6 +722,10 @@ interface AttachmentsUploadZoneProps {
   error?: string
   /** Show a "save draft first" note instead of the upload area */
   requireSaveDraftFirst?: boolean
+  /** Mileage claims have nothing to attach; every other category does (issue: silent
+   * submit-time rejection was confusing) — when true, the empty state is shown as a
+   * blocking requirement instead of a skippable suggestion. */
+  required?: boolean
 }
 
 // Matches the backend's per-claim attachment limit (apps/backend/src/routes/expenses/api.ts).
@@ -737,6 +741,7 @@ export function AttachmentsUploadZone({
   disabled,
   error,
   requireSaveDraftFirst,
+  required,
 }: AttachmentsUploadZoneProps) {
   const { t } = useTranslation()
   const [dragActive, setDragActive] = useState(false)
@@ -875,7 +880,11 @@ export function AttachmentsUploadZone({
         </Button>
       )}
       {!attachments?.length && !requireSaveDraftFirst && (
-        <Alert severity='warning'>{t('expenses.wizard.receiptSkipWarning')}</Alert>
+        <Alert severity={required ? 'error' : 'warning'}>
+          {required
+            ? t('expenses.wizard.receiptRequiredWarning')
+            : t('expenses.wizard.receiptSkipWarning')}
+        </Alert>
       )}
     </Stack>
   )

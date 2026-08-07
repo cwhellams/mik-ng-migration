@@ -60,7 +60,12 @@ import {
   isMileageLegValid,
   makeMileageLegForm,
 } from './MileageDetailFields'
-import { readWizardDraft, writeWizardDraft, clearWizardDraft } from '../../utils/wizardDraft'
+import {
+  readWizardDraft,
+  writeWizardDraft,
+  clearWizardDraft,
+  discardAllOrphanWizardDrafts,
+} from '../../utils/wizardDraft'
 import { useWizardDraftGate } from '../../hooks/useWizardDraftGate'
 import { WizardDraftChooserBanner } from '../../components/WizardDraftChooserBanner'
 
@@ -249,7 +254,7 @@ function ExpenseClaimWizardInner() {
   ])
 
   const categoryApi = useApi<ExpenseCategory[]>({ url: 'v1/expenses/categories' })
-  const { data: mileageAllowance } = useApi<{ effectiveRatePerKm: number }>({
+  const { data: mileageAllowance } = useApi<{ effectiveRatePerKm: number; discountPct: number }>({
     url: 'v1/mileage-allowances/current',
   })
   const { data: costCentres } = useApi<{ code: string; description: string }[]>({
@@ -271,6 +276,13 @@ function ExpenseClaimWizardInner() {
   )
   const isFuel = selectedCategory?.code === 'fuel'
   const isMileage = selectedCategory?.code === 'mileage'
+  // Mileage claims have no receipt to attach — reimbursement is computed from the
+  // server-verified distance instead. Every other category (fuel, "other" line-item
+  // claims) needs at least one attachment before it can be submitted — enforced
+  // server-side too (POST /:id/submit), this just avoids the user finding out only
+  // after clicking submit.
+  const attachmentsRequired = !isMileage
+  const attachmentsMissing = attachmentsRequired && attachments.length === 0
   const expenseClaimItems = useMemo(
     () =>
       (invoiceItemsData?.items ?? [])
@@ -549,22 +561,29 @@ function ExpenseClaimWizardInner() {
     }
     draftClearedRef.current = true
     clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
+    discardAllOrphanWizardDrafts(EXPENSE_WIZARD_DRAFT_KEY)
     navigate(`/expenses/${claimId}`)
   }
 
   // Once a draft is saved server-side, the claim itself (at /expenses/:id) becomes
   // the source of truth — the local wizard draft would otherwise resurrect stale data
-  // the next time someone starts a brand new claim.
+  // the next time someone starts a brand new claim. Orphan siblings (left behind by
+  // other tabs, or by an earlier auto-adoption that intentionally didn't delete its
+  // source — see adoptWizardDraft) must be purged too, or the very next "start new
+  // claim" gate check re-adopts one and this draft comes right back (issue: discard
+  // "worked" but the old draft reappeared on the next new claim).
   const goToSavedClaim = (id: string | null) => {
     if (!id) return
     draftClearedRef.current = true
     clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
+    discardAllOrphanWizardDrafts(EXPENSE_WIZARD_DRAFT_KEY)
     navigate(`/expenses/${id}`)
   }
 
   const discardDraft = () => {
     draftClearedRef.current = true
     clearWizardDraft(EXPENSE_WIZARD_DRAFT_KEY)
+    discardAllOrphanWizardDrafts(EXPENSE_WIZARD_DRAFT_KEY)
     navigate('/expenses')
   }
 
@@ -581,7 +600,9 @@ function ExpenseClaimWizardInner() {
               {t('expenses.wizard.receiptPolicyTitle')}
             </Typography>
             <Typography variant='body2' sx={{ whiteSpace: 'pre-line' }}>
-              {t('expenses.wizard.receiptPolicyBody')}
+              {t('expenses.wizard.receiptPolicyBody', {
+                discountPct: mileageAllowance?.discountPct ?? 50,
+              })}
             </Typography>
           </Alert>
         </Stack>
@@ -867,6 +888,7 @@ function ExpenseClaimWizardInner() {
           onDelete={handleAttachmentDelete}
           onPreview={previewMergedAttachments}
           error={submitError}
+          required={attachmentsRequired}
         />
       )
     }
@@ -993,6 +1015,11 @@ function ExpenseClaimWizardInner() {
                   ? attachments.map((a) => a.fileName).join(', ')
                   : t('expenses.wizard.noReceipt')}
               </Typography>
+              {attachmentsMissing && (
+                <Alert severity='error' sx={{ mt: 1 }}>
+                  {t('expenses.wizard.receiptRequiredWarning')}
+                </Alert>
+              )}
             </Paper>
           )}
           {!!submitError && <Alert severity='error'>{submitError}</Alert>}
@@ -1102,14 +1129,20 @@ function ExpenseClaimWizardInner() {
                 >
                   {t('expenses.actions.saveDraft')}
                 </Button>
-                <Button
-                  variant='contained'
-                  onClick={() => void handleSubmit()}
-                  disabled={mutation.isMutating}
-                  endIcon={<Icon icon='mdi:send' />}
+                <Tooltip
+                  title={attachmentsMissing ? t('expenses.wizard.receiptRequiredWarning') : ''}
                 >
-                  {t('expenses.actions.submit')}
-                </Button>
+                  <span>
+                    <Button
+                      variant='contained'
+                      onClick={() => void handleSubmit()}
+                      disabled={mutation.isMutating || attachmentsMissing}
+                      endIcon={<Icon icon='mdi:send' />}
+                    >
+                      {t('expenses.actions.submit')}
+                    </Button>
+                  </span>
+                </Tooltip>
               </>
             ) : (
               <Button

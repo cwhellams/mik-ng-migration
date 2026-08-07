@@ -658,6 +658,16 @@ router.post(
       return problem({ status: HttpStatusCode.BadRequest, detail: 'Expense date is required.' })
     }
 
+    // Mileage claims have no receipt to attach — the reimbursement is computed from the
+    // server-verified distance instead. Every other category needs at least one
+    // (new-flow) attachment or a (legacy) single receipt on file before it can be paid.
+    if (claim.categoryCode !== 'mileage' && !claim.attachments?.length && !claim.receipt) {
+      return problem({
+        status: HttpStatusCode.BadRequest,
+        detail: 'At least one receipt attachment is required before submitting.',
+      })
+    }
+
     const claimTotal = (claim.lineItems ?? []).reduce(
       (sum, item) => sum + item.quantity * item.unitPrice,
       0,

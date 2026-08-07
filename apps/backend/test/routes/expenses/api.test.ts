@@ -103,6 +103,25 @@ async function insertClaim(status: ExpenseClaimStatus) {
   return claim.id
 }
 
+// Every non-mileage claim now requires at least one attachment before it can be
+// submitted (issue: members were confused when submit silently failed with no
+// receipt attached) — most submit-flow tests below just need *a* receipt on file,
+// not to exercise the attachment feature itself, so this is a one-line fixture for
+// that rather than repeating the multer/sharp setup at every call site.
+async function attachTestReceipt(claimId: string, token: string = memberToken): Promise<void> {
+  const image = await sharp({
+    create: { width: 10, height: 10, channels: 3, background: { r: 10, g: 200, b: 10 } },
+  })
+    .jpeg()
+    .toBuffer()
+
+  const res = await request(app)
+    .post(`/expenses/${claimId}/attachments`)
+    .set('Cookie', `accessToken=${token}`)
+    .attach('files', image, { filename: 'receipt.jpg', contentType: 'image/jpeg' })
+  expect(res.status).toBe(201)
+}
+
 // ── Tests: GET /expenses/admin/pending/count ───────────────────────────────────
 
 describe('GET /expenses/admin/pending/count', () => {
@@ -810,6 +829,7 @@ describe('POST /expenses (fuel)', () => {
       })
     expect(create.status).toBe(201)
     insertedClaimIds.push(create.body.id)
+    await attachTestReceipt(create.body.id)
 
     const submit = await request(app)
       .post(`/expenses/${create.body.id}/submit`)
@@ -1014,6 +1034,7 @@ describe('POST /expenses (fuel litres/type)', () => {
     expect(editRes.status).toBe(200)
     expect(editRes.body.title).toBe('Legacy fuel claim (edited)')
     expect(editRes.body.lineItems[0].airport).toBeFalsy()
+    await attachTestReceipt(claim.id)
 
     const submitRes = await request(app)
       .post(`/expenses/${claim.id}/submit`)
@@ -1063,6 +1084,7 @@ describe('POST /expenses (fuel litres/type)', () => {
         // cost_centre_code intentionally left null - predates per-line-item aircraft.
       })
       .execute()
+    await attachTestReceipt(claim.id)
 
     const submitRes = await request(app)
       .post(`/expenses/${claim.id}/submit`)
@@ -1117,6 +1139,7 @@ describe('POST /expenses/:id/override-fuel-price', () => {
       })
     expect(create.status).toBe(201)
     insertedClaimIds.push(create.body.id)
+    await attachTestReceipt(create.body.id)
 
     const submit = await request(app)
       .post(`/expenses/${create.body.id}/submit`)
@@ -1292,6 +1315,7 @@ describe('POST /expenses/:id/submit (line item requirements)', () => {
         sortOrder: 0,
       },
     ])
+    await attachTestReceipt(claimId)
 
     const res = await request(app)
       .post(`/expenses/${claimId}/submit`)
@@ -1299,6 +1323,26 @@ describe('POST /expenses/:id/submit (line item requirements)', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.status).toBe(ExpenseClaimStatus.SUBMITTED)
+  })
+
+  it('rejects submitting a non-mileage claim with no receipt attachment', async () => {
+    const claimId = await createDraft([
+      {
+        itemId: null,
+        description: 'Test expense',
+        quantity: 1,
+        unit: 'pcs',
+        unitPrice: 10,
+        sortOrder: 0,
+      },
+    ])
+
+    const res = await request(app)
+      .post(`/expenses/${claimId}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+
+    expect(res.status).toBe(400)
+    expect(res.body.detail).toBe('At least one receipt attachment is required before submitting.')
   })
 })
 
@@ -1693,6 +1737,7 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
       })
     expect(created.status).toBe(201)
     insertedClaimIds.push(created.body.id)
+    await attachTestReceipt(created.body.id)
 
     const submitted = await request(app)
       .post(`/expenses/${created.body.id}/submit`)
@@ -1785,6 +1830,7 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
     expect(created.status).toBe(201)
     insertedClaimIds.push(created.body.id)
     const lineItemId = created.body.lineItems[0].id
+    await attachTestReceipt(created.body.id)
 
     const submitted = await request(app)
       .post(`/expenses/${created.body.id}/submit`)
@@ -1848,6 +1894,7 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
     insertedClaimIds.push(created.body.id)
     expect(created.body.refuelOutsideFinland).toBe(false)
     const lineItemId = created.body.lineItems[0].id
+    await attachTestReceipt(created.body.id)
 
     const submitted = await request(app)
       .post(`/expenses/${created.body.id}/submit`)

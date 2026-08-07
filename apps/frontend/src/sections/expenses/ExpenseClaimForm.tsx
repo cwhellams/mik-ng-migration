@@ -14,6 +14,7 @@ import {
   Paper,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
@@ -175,6 +176,11 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
   )
   const isMileage = selectedCategory?.code === 'mileage'
   const isFuel = selectedCategory?.code === 'fuel'
+  // Mileage claims have no receipt to attach; every other category needs at least one
+  // (new-flow) attachment or a (legacy) single receipt on file before it can be
+  // submitted — enforced server-side too (POST /:id/submit).
+  const attachmentsRequired = !isMileage
+  const attachmentsMissing = attachmentsRequired && !receipt && attachments.length === 0
   const expenseClaimItems = useMemo(
     () =>
       (invoiceItemsData?.items ?? [])
@@ -781,6 +787,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                   disabled={!editable}
                   error={uploadError}
                   requireSaveDraftFirst={!currentClaimId}
+                  required={attachmentsRequired}
                 />
               )}
             </Paper>
@@ -820,15 +827,19 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
             >
               {t('expenses.actions.saveDraft')}
             </Button>
-            <Button
-              variant='contained'
-              disabled={!editable || mutation.isMutating}
-              onClick={() => setSubmitDialogOpen(true)}
-            >
-              {claimApi.data?.status === ExpenseClaimStatus.PENDING_INFO
-                ? t('expenses.actions.resubmit')
-                : t('expenses.actions.submit')}
-            </Button>
+            <Tooltip title={attachmentsMissing ? t('expenses.wizard.receiptRequiredWarning') : ''}>
+              <span>
+                <Button
+                  variant='contained'
+                  disabled={!editable || mutation.isMutating || attachmentsMissing}
+                  onClick={() => setSubmitDialogOpen(true)}
+                >
+                  {claimApi.data?.status === ExpenseClaimStatus.PENDING_INFO
+                    ? t('expenses.actions.resubmit')
+                    : t('expenses.actions.submit')}
+                </Button>
+              </span>
+            </Tooltip>
           </Stack>
 
           {/* ── Submit confirmation dialog ── */}
