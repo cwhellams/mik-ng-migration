@@ -86,6 +86,10 @@ interface Props {
   disabled?: boolean
   effectiveRatePerKm?: number
   maxKm?: number
+  /** Highlight this leg's unfilled required fields — set once the user tries to
+   * advance past this step without having completed it (see ExpenseClaimWizard's
+   * showStepErrors / ExpenseClaimForm's fieldErrors-on-save-attempt). */
+  showErrors?: boolean
 }
 
 export function MileageDetailFields({
@@ -95,6 +99,7 @@ export function MileageDetailFields({
   disabled,
   effectiveRatePerKm,
   maxKm = 100,
+  showErrors,
 }: Props) {
   const { t } = useTranslation()
   const [computing, setComputing] = useState(false)
@@ -217,6 +222,7 @@ export function MileageDetailFields({
           value={value.startAddress}
           disabled={disabled}
           required
+          error={showErrors && !value.startAddress?.label?.trim()}
           onChange={(addr) =>
             onChange({
               ...value,
@@ -231,6 +237,7 @@ export function MileageDetailFields({
           value={value.endAddress}
           disabled={disabled}
           required
+          error={showErrors && !value.endAddress?.label?.trim()}
           onChange={(addr) =>
             onChange({
               ...value,
@@ -279,6 +286,7 @@ export function MileageDetailFields({
           value={value.journeyDate}
           disabled={disabled}
           required
+          error={showErrors && !value.journeyDate}
           slotProps={{ inputLabel: { shrink: true } }}
           sx={{ width: 180 }}
           onChange={(e) => set('journeyDate', e.target.value)}
@@ -289,6 +297,7 @@ export function MileageDetailFields({
           value={value.distanceKm}
           disabled={disabled}
           required
+          error={showErrors && !(Number(value.distanceKm) > 0)}
           sx={{ width: 180 }}
           slotProps={{ htmlInput: { min: 0, step: 0.1 } }}
           onChange={(e) =>
@@ -332,6 +341,7 @@ export function MileageDetailFields({
             value={value.justificationNote}
             disabled={disabled}
             required
+            error={showErrors && !value.justificationNote.trim()}
             fullWidth
             multiline
             minRows={2}
@@ -369,6 +379,8 @@ interface LegsEditorProps {
   disabled?: boolean
   effectiveRatePerKm?: number
   maxKm?: number
+  /** See MileageDetailFields' showErrors — applied to every leg in the list. */
+  showErrors?: boolean
 }
 
 export function MileageLegsEditor({
@@ -377,6 +389,7 @@ export function MileageLegsEditor({
   disabled,
   effectiveRatePerKm,
   maxKm,
+  showErrors,
 }: LegsEditorProps) {
   const { t } = useTranslation()
 
@@ -389,6 +402,7 @@ export function MileageLegsEditor({
             disabled={disabled}
             effectiveRatePerKm={effectiveRatePerKm}
             maxKm={maxKm}
+            showErrors={showErrors}
             onChange={(updated) => onChange(legs.map((l, i) => (i === idx ? updated : l)))}
             onRemove={
               legs.length > 1 ? () => onChange(legs.filter((_, i) => i !== idx)) : undefined

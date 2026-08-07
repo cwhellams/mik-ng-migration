@@ -85,6 +85,8 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
   const [attachments, setAttachments] = useState<ExpenseClaimAttachment[]>([])
   const [submitError, setSubmitError] = useState<string>()
   const [fieldErrors, setFieldErrors] = useState<{
+    category?: string
+    title?: string
     iban?: string
     ibanAccountName?: string
     expenseDate?: string
@@ -260,6 +262,8 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
     setInfoMessage(undefined)
 
     const errors: {
+      category?: string
+      title?: string
       iban?: string
       ibanAccountName?: string
       expenseDate?: string
@@ -267,6 +271,8 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
       mileageLegs?: string
       hetu?: string
     } = {}
+    if (!(form.categoryId > 0)) errors.category = t('expenses.messages.categoryRequired')
+    if (!form.title.trim()) errors.title = t('expenses.messages.titleRequired')
     const lineTotal = form.lineItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
     if (lineTotal <= 0) errors.lineItems = t('expenses.messages.zeroTotal')
     if (isFuel && form.lineItems.some((item) => !item.costCentreCode)) {
@@ -287,7 +293,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
       const legInvalid = mileageLegs.some((leg) => !isMileageLegValid(leg))
       if (legInvalid) {
         errors.mileageLegs = t('expenses.validation.mileageDetailsRequired')
-      } else if (hetu.trim() && !validateHetu(hetu)) {
+      } else if (!validateHetu(hetu)) {
         errors.hetu = t('expenses.mileage.hetuInvalid')
       }
     }
@@ -500,6 +506,11 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
             {submitError}
           </Alert>
         )}
+        {!submitError && Object.keys(fieldErrors).length > 0 && (
+          <Alert severity='error' sx={{ mb: 2 }}>
+            {t('expenses.reviewHighlightedFields')}
+          </Alert>
+        )}
         {!!infoMessage && (
           <Alert severity='success' sx={{ mb: 2 }}>
             {infoMessage}
@@ -512,6 +523,9 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
             <Stack spacing={2}>
               <TextField
                 select
+                required
+                error={!!fieldErrors.category}
+                helperText={fieldErrors.category}
                 label={t('expenses.fields.category')}
                 value={form.categoryId}
                 disabled={!editable}
@@ -529,6 +543,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                         : li,
                     ),
                   }))
+                  setFieldErrors((e) => ({ ...e, category: undefined }))
                 }}
               >
                 {categories.map((cat) => (
@@ -543,7 +558,13 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                 value={form.title}
                 disabled={!editable}
                 fullWidth
-                onChange={(e) => setForm((c) => ({ ...c, title: e.target.value }))}
+                required
+                error={!!fieldErrors.title}
+                helperText={fieldErrors.title}
+                onChange={(e) => {
+                  setForm((c) => ({ ...c, title: e.target.value }))
+                  if (e.target.value.trim()) setFieldErrors((err) => ({ ...err, title: undefined }))
+                }}
                 slotProps={{
                   htmlInput: { maxLength: 200 },
                 }}
@@ -580,6 +601,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                 slotProps={{
                   textField: {
                     sx: { maxWidth: 200 },
+                    required: true,
                     error: !!fieldErrors.expenseDate,
                     helperText: fieldErrors.expenseDate,
                   },
@@ -665,6 +687,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                 disabled={!editable}
                 effectiveRatePerKm={mileageAllowance?.effectiveRatePerKm}
                 maxKm={MILEAGE_MAX_KM}
+                showErrors={!!fieldErrors.mileageLegs}
               />
               {!!fieldErrors.mileageLegs && (
                 <Alert severity='error' sx={{ mt: 2 }}>
@@ -676,6 +699,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                 value={hetu}
                 disabled={!editable}
                 fullWidth
+                required
                 type='password'
                 autoComplete='off'
                 error={!!fieldErrors.hetu}

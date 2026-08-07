@@ -15,6 +15,7 @@ interface Props {
   onChange: (value: AddressValue) => void
   disabled?: boolean
   required?: boolean
+  error?: boolean
 }
 
 const MIN_QUERY_LENGTH = 3
@@ -24,7 +25,7 @@ const DEBOUNCE_MS = 400
 // map widget or third-party script ever reaches the browser (issue #1021). Falls back
 // to plain free-text entry (no coordinates) if the search service errors or is
 // throttled, so a technical issue on our end never blocks submitting a claim.
-export function AddressAutocomplete({ label, value, onChange, disabled, required }: Props) {
+export function AddressAutocomplete({ label, value, onChange, disabled, required, error }: Props) {
   const { t } = useTranslation()
   const [inputValue, setInputValue] = useState(value?.label ?? '')
   const [options, setOptions] = useState<AddressSearchResult[]>(
@@ -118,6 +119,7 @@ export function AddressAutocomplete({ label, value, onChange, disabled, required
           {...params}
           label={label}
           required={required}
+          error={error}
           helperText={
             searchUnavailable ? t('expenses.mileage.addressSearchUnavailable') : undefined
           }

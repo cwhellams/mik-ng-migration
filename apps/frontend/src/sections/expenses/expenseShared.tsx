@@ -182,6 +182,7 @@ export function BankDetailsFields({
         label={t('expenses.fields.iban')}
         value={iban}
         disabled={disabled}
+        required
         placeholder='FI12 3456 7890 1234 56'
         onChange={(e) =>
           onChange(e.target.value.replace(/\s+/g, '').toUpperCase(), ibanAccountName)
@@ -206,6 +207,7 @@ export function BankDetailsFields({
         label={t('expenses.fields.ibanAccountName')}
         value={ibanAccountName}
         disabled={disabled}
+        required
         onChange={(e) => onChange(iban, e.target.value)}
         error={!!ibanAccountNameError}
         helperText={ibanAccountNameError}
@@ -308,6 +310,7 @@ export function LineItemsTable({
                   label={t('expenses.wizard.col.description')}
                   value={item.description}
                   disabled={disabled}
+                  required
                   onChange={(e) => update(idx, { description: e.target.value })}
                   onBlur={() => touch(`${idx}-description`)}
                   error={shouldShow(`${idx}-description`) && !item.description.trim()}
@@ -342,6 +345,7 @@ export function LineItemsTable({
                     label={t('expenses.wizard.col.date')}
                     value={item.date}
                     disabled={disabled}
+                    required
                     onChange={(e) => update(idx, { date: e.target.value })}
                     onBlur={() => touch(`${idx}-date`)}
                     error={shouldShow(`${idx}-date`) && !item.date && !item.id}
@@ -365,6 +369,7 @@ export function LineItemsTable({
                       <TextField
                         {...params}
                         label={t('expenses.wizard.col.airport')}
+                        required
                         placeholder='ICAO'
                         onBlur={() => touch(`${idx}-airport`)}
                         error={shouldShow(`${idx}-airport`) && !item.airport && !item.id}
@@ -383,6 +388,7 @@ export function LineItemsTable({
                   label={isFuel ? t('expenses.wizard.col.litres') : t('expenses.wizard.col.qty')}
                   value={item.quantity || ''}
                   disabled={disabled}
+                  required
                   onFocus={(e) => e.target.select()}
                   onChange={(e) => {
                     const quantity = Number(e.target.value) || 0
@@ -413,6 +419,7 @@ export function LineItemsTable({
                     })}
                     value={displayedTotalCost || ''}
                     disabled={disabled}
+                    required
                     onFocus={(e) => e.target.select()}
                     onChange={(e) =>
                       applyTotalCost(idx, Number(e.target.value) || 0, item.quantity)
@@ -436,6 +443,7 @@ export function LineItemsTable({
                     })}
                     value={item.unitPrice || ''}
                     disabled={disabled}
+                    required
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => update(idx, { unitPrice: Number(e.target.value) || 0 })}
                     onBlur={() => touch(`${idx}-unitPrice`)}

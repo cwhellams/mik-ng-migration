@@ -2536,6 +2536,7 @@
     "title": "Expense Claims",
     "new": "New Expense Claim",
     "pendingInfoEditNotice": "The admin has requested additional information. Make your changes and re-submit the claim.",
+    "reviewHighlightedFields": "Please review the highlighted fields below before saving.",
     "mileage": {
       "sectionTitle": "Journey details",
       "route": "Route",
@@ -2708,6 +2709,9 @@
       "receiptUploaded": "Receipt uploaded",
       "receiptSkipWarning": "You can skip receipt upload now and add it later before submitting.",
       "receiptRequiredWarning": "At least one receipt or invoice attachment is required before this claim can be submitted.",
+      "missingFieldsPrefix": "Before continuing, please fill in: {{fields}}",
+      "mileageLegDetails": "mileage leg details",
+      "lineItemDetails": "line item details",
       "saveDraftBeforeReceipt": "Save the draft first before uploading receipts.",
       "attachmentsUploadInfo": "Upload one or more receipt images (JPG, PNG, etc.) or PDF documents, up to 10 files. Upload limit: 40 MB per file. Images are compressed automatically; PDFs max 5 MB. Multiple files are merged into a single PDF for accounting.",
       "tooManyAttachments": "You can attach at most {{max}} files to a claim.",
@@ -2752,6 +2756,8 @@
       "zeroTotal": "Total amount must be greater than zero",
       "ibanAccountNameRequired": "Account holder name is required",
       "expenseDateRequired": "Expense date is required",
+      "categoryRequired": "Category is required",
+      "titleRequired": "Title is required",
       "efnuPriceLabel": "EFNU fuel price (EUR/litre)",
       "efnuPriceOverridden": "EFNU fuel price cap applied",
       "treasurerEditNotice": "Correct small mistakes here (wrong item code, wrong airport, etc.) without sending the claim back to the member. The claim stays exactly where it is in the approval queue, every change is logged, and the member is notified for their information."

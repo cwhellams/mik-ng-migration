@@ -447,8 +447,55 @@ function ExpenseClaimWizardInner() {
     }
   }
 
-  const next = () => setStep((s) => Math.min(s + 1, stepLabels.length - 1))
-  const back = () => setStep((s) => Math.max(s - 1, 0))
+  // Which required fields on the current step are still unfilled, so a blocked "Next"
+  // click can tell the user what to fix instead of just staying disabled with no
+  // explanation (issue: users who filled in a later field first had no idea why they
+  // couldn't proceed).
+  const getMissingFieldLabels = (): string[] => {
+    switch (stepLabels[step]) {
+      case STEP_DETAILS: {
+        const missing: string[] = []
+        if (!(form.categoryId > 0)) missing.push(t('expenses.fields.category'))
+        if (!form.title.trim()) missing.push(t('expenses.fields.title'))
+        if (!form.expenseDate || new Date(form.expenseDate) > new Date()) {
+          missing.push(t('expenses.fields.expenseDate'))
+        }
+        return missing
+      }
+      case STEP_MILEAGE: {
+        const missing: string[] = []
+        if (!validateHetu(hetu)) missing.push(t('expenses.mileage.hetu'))
+        if (!mileageLegs.every(isMileageLegValid))
+          missing.push(t('expenses.wizard.mileageLegDetails'))
+        return missing
+      }
+      case STEP_BANK: {
+        const missing: string[] = []
+        if (!validateIban(form.iban)) missing.push(t('expenses.fields.iban'))
+        if (!form.ibanAccountName.trim()) missing.push(t('expenses.fields.ibanAccountName'))
+        return missing
+      }
+      case STEP_LINE_ITEMS:
+        return canAdvance() ? [] : [t('expenses.wizard.lineItemDetails')]
+      default:
+        return []
+    }
+  }
+
+  const [showStepErrors, setShowStepErrors] = useState(false)
+
+  const next = () => {
+    if (!canAdvance()) {
+      setShowStepErrors(true)
+      return
+    }
+    setShowStepErrors(false)
+    setStep((s) => Math.min(s + 1, stepLabels.length - 1))
+  }
+  const back = () => {
+    setShowStepErrors(false)
+    setStep((s) => Math.max(s - 1, 0))
+  }
 
   // ── Persistence ──────────────────────────────────────────────────────────────
 
@@ -590,6 +637,7 @@ function ExpenseClaimWizardInner() {
   // ── Step content ─────────────────────────────────────────────────────────────
 
   const currentStep = stepLabels[step]
+  const missingFieldLabels = showStepErrors ? getMissingFieldLabels() : []
 
   const renderStep = () => {
     if (currentStep === STEP_WELCOME) {
@@ -614,6 +662,8 @@ function ExpenseClaimWizardInner() {
         <Stack spacing={2}>
           <TextField
             select
+            required
+            error={showStepErrors && !(form.categoryId > 0)}
             label={t('expenses.fields.category')}
             value={form.categoryId || ''}
             fullWidth
@@ -638,6 +688,7 @@ function ExpenseClaimWizardInner() {
             value={form.title}
             fullWidth
             required
+            error={showStepErrors && !form.title.trim()}
             onChange={(e) => setForm((c) => ({ ...c, title: e.target.value }))}
             slotProps={{
               htmlInput: { maxLength: 200 },
@@ -665,7 +716,13 @@ function ExpenseClaimWizardInner() {
                 void fetchClaimFxRate(form.currency, dateStr)
               }
             }}
-            slotProps={{ textField: { sx: { maxWidth: 200 } } }}
+            slotProps={{
+              textField: {
+                sx: { maxWidth: 200 },
+                required: true,
+                error: showStepErrors && !form.expenseDate,
+              },
+            }}
           />
           {!isMileage && (
             <TextField
@@ -820,6 +877,7 @@ function ExpenseClaimWizardInner() {
             onChange={setMileageLegs}
             effectiveRatePerKm={mileageAllowance?.effectiveRatePerKm}
             maxKm={MILEAGE_MAX_KM}
+            showErrors={showStepErrors}
           />
           <TextField
             label={t('expenses.mileage.hetu')}
@@ -828,9 +886,9 @@ function ExpenseClaimWizardInner() {
             fullWidth
             type='password'
             autoComplete='off'
-            error={hetu.trim().length > 0 && !validateHetu(hetu)}
+            error={(hetu.trim().length > 0 || showStepErrors) && !validateHetu(hetu)}
             helperText={
-              hetu.trim().length > 0 && !validateHetu(hetu)
+              (hetu.trim().length > 0 || showStepErrors) && !validateHetu(hetu)
                 ? t('expenses.mileage.hetuInvalid')
                 : t('expenses.mileage.hetuHint')
             }
@@ -847,6 +905,16 @@ function ExpenseClaimWizardInner() {
           iban={form.iban}
           ibanAccountName={form.ibanAccountName}
           ibanFromProfile={!!me?.iban}
+          ibanError={
+            showStepErrors && !validateIban(form.iban)
+              ? t('expenses.messages.ibanRequired')
+              : undefined
+          }
+          ibanAccountNameError={
+            showStepErrors && !form.ibanAccountName.trim()
+              ? t('expenses.messages.ibanAccountNameRequired')
+              : undefined
+          }
           onChange={(iban, ibanAccountName) => setForm((c) => ({ ...c, iban, ibanAccountName }))}
         />
       )
@@ -864,6 +932,7 @@ function ExpenseClaimWizardInner() {
             expenseClaimItems={expenseClaimItems}
             costCentres={costCentres ?? []}
             isFuel={isFuel}
+            showErrors={showStepErrors}
           />
           <Button
             startIcon={<Icon icon='mdi:plus' />}
@@ -1093,6 +1162,12 @@ function ExpenseClaimWizardInner() {
           </Alert>
         )}
 
+        {missingFieldLabels.length > 0 && (
+          <Alert severity='error' sx={{ mt: 2 }}>
+            {t('expenses.wizard.missingFieldsPrefix', { fields: missingFieldLabels.join(', ') })}
+          </Alert>
+        )}
+
         <Divider sx={{ mt: 3, mb: 2 }} />
 
         <Stack
@@ -1148,7 +1223,6 @@ function ExpenseClaimWizardInner() {
               <Button
                 variant='contained'
                 onClick={next}
-                disabled={!canAdvance()}
                 endIcon={<Icon icon='mdi:chevron-right' />}
               >
                 {t('common.next')}

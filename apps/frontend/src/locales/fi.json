@@ -2542,6 +2542,7 @@
     "title": "Kulukorvaukset",
     "new": "Uusi kulukorvaus",
     "pendingInfoEditNotice": "Ylläpitäjä on pyytänyt lisätietoja. Tee muutokset ja lähetä hakemus uudelleen.",
+    "reviewHighlightedFields": "Tarkista alla korostetut kentät ennen tallennusta.",
     "mileage": {
       "sectionTitle": "Matkan tiedot",
       "route": "Reitti",
@@ -2714,6 +2715,9 @@
       "receiptUploaded": "Kuitti ladattu",
       "receiptSkipWarning": "Voit ohittaa kuitin lataamisen nyt ja lisätä sen myöhemmin ennen lähettämistä.",
       "receiptRequiredWarning": "Vähintään yksi kuitti- tai laskuliite vaaditaan ennen kuin hakemuksen voi lähettää.",
+      "missingFieldsPrefix": "Täytä ennen jatkamista: {{fields}}",
+      "mileageLegDetails": "matkan tiedot",
+      "lineItemDetails": "rivin tiedot",
       "saveDraftBeforeReceipt": "Tallenna luonnos ennen kuitin lataamista.",
       "attachmentsUploadInfo": "Lataa yksi tai useampi kuitti (JPG, PNG jne.) tai PDF-tiedosto, enintään 10 tiedostoa. Latauksen enimmäiskoko: 40 Mt per tiedosto. Kuvat pakataan automaattisesti; PDF enintään 5 Mt. Useat tiedostot yhdistetään yhdeksi PDF:ksi kirjanpitoa varten.",
       "tooManyAttachments": "Kuittiin voi liittää enintään {{max}} tiedostoa.",
@@ -2758,6 +2762,8 @@
       "zeroTotal": "Kokonaissumman on oltava suurempi kuin nolla",
       "ibanAccountNameRequired": "Tilinomistajan nimi on pakollinen",
       "expenseDateRequired": "Kulupäivämäärä on pakollinen",
+      "categoryRequired": "Kululaji on pakollinen",
+      "titleRequired": "Otsikko on pakollinen",
       "efnuPriceLabel": "EFNU-polttoainehinta (EUR/litra)",
       "efnuPriceOverridden": "EFNU-polttoainehintakatto sovellettu",
       "treasurerEditNotice": "Korjaa tässä pieniä virheitä (väärä tuotekoodi, väärä lentokenttä jne.) lähettämättä hakemusta takaisin jäsenelle. Hakemus pysyy hyväksyntäjonossa täsmälleen samassa kohdassa, jokainen muutos kirjataan lokiin, ja jäsenelle ilmoitetaan asiasta tiedoksi."
