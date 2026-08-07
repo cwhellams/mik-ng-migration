@@ -20,7 +20,7 @@ import {
   getAircraftHilOverview,
   getAircraftHilAudit,
 } from '../../db/aircraft-hil-queries.ts'
-import { resolveDefectsByHil, getDefect } from '../../db/defect-queries.ts'
+import { resolveDefectsByHil, getDefect, setDefectsForHil } from '../../db/defect-queries.ts'
 import { getMaintenanceNote } from '../../db/maintenance-note-queries.ts'
 import { db } from '../../db/connection.ts'
 import { validateUser } from '../../middleware/authMiddleware.ts'
@@ -100,9 +100,60 @@ router.patch(
       }
     }
 
+    // An extension is the effective due date of the item it extends, so leaving
+    // one behind on an item with no due date would be contradictory.
+    if (data.dueDate === null && (await getAircraftHilExtensions(id)).length > 0) {
+      return problem({
+        status: 400,
+        detail: 'Remove the extension before clearing the due date',
+      })
+    }
+
+    if (data.defectIds) {
+      if (existing.resolvedNoteId) {
+        return problem({
+          status: 400,
+          detail: 'The deferred defects of a closed hold item cannot be changed',
+        })
+      }
+      for (const defectId of data.defectIds) {
+        const defect = await getDefect(defectId)
+        if (!defect || defect.aircraftRegistration !== existing.aircraftRegistration) {
+          return problem({ status: 400, detail: 'Defect not found for this aircraft' })
+        }
+        if (defect.status === 'RESOLVED') {
+          return problem({ status: 400, detail: 'Defect is already resolved' })
+        }
+        if (defect.hilId && defect.hilId !== id) {
+          return problem({
+            status: 400,
+            detail: 'Defect is already deferred to another hold item',
+          })
+        }
+      }
+    }
+
     const updated = await db.transaction().execute(async (trx) => {
       const result = await updateAircraftHilEntry(id, data, req.user!.memberId!, trx)
       if (!result) return undefined
+
+      // Relink before resolving, so a defect swapped in by the same request is
+      // released by the maintenance note along with the rest.
+      if (data.defectIds) {
+        const relinked = await setDefectsForHil(
+          id,
+          existing.aircraftRegistration,
+          data.defectIds,
+          req.user!.memberId!,
+          trx,
+        )
+        if (!relinked) {
+          return problem({
+            status: 400,
+            detail: 'Defect not found for this aircraft, or no longer active',
+          })
+        }
+      }
 
       if (data.resolvedNoteId) {
         await resolveDefectsByHil(
@@ -152,6 +203,10 @@ router.post(
     const { id } = req.params
     const hil = await getAircraftHilEntry(id)
     if (!hil) return problem({ status: 404, detail: 'HIL entry not found' })
+    // With no due date there is nothing to extend (issue #1120)
+    if (!hil.dueDate) {
+      return problem({ status: 400, detail: 'A hold item with no due date cannot be extended' })
+    }
     const existingExtensions = await getAircraftHilExtensions(id)
     if (existingExtensions.length > 0) {
       return problem({ status: 400, detail: 'A hold item can only be extended once' })

@@ -20,6 +20,8 @@ app.use(problemErrorHandler)
 const AIRCRAFT = 'OH-STL'
 const AJLB_SEQ_NO = 1
 const TEST_MARKER = 'HIL-TEST'
+// Hold item numbers at or above this belong to this test file, not to the seeds
+const TEST_HIL_NUMBER_FLOOR = 9000
 
 const flightLogAdminToken = generateAccessToken({
   memberId: 'Matti1',
@@ -64,7 +66,11 @@ const insertHil = async (overrides: {
   hilNumber: number
   description?: string
   restrictions?: string | null
-  dueDate?: Date
+  sourceRef?: string
+  defectCat?: string | null
+  // Explicit null creates a hold item with no due date, which the paper hold
+  // item list allows (issue #1120); omitting it defaults to 30 days out.
+  dueDate?: Date | null
   resolvedNoteId?: string | null
 }): Promise<{ hilId: string }> => {
   const now = new Date()
@@ -73,13 +79,16 @@ const insertHil = async (overrides: {
     .values({
       aircraft_registration: AIRCRAFT,
       hil_number: overrides.hilNumber,
-      source_ref: `${TEST_MARKER} ref`,
-      defect_cat: 'B',
+      source_ref: overrides.sourceRef ?? `${TEST_MARKER} ref`,
+      defect_cat: overrides.defectCat === undefined ? 'B' : overrides.defectCat,
       description: overrides.description ?? `${TEST_MARKER} landing light inoperative`,
       restrictions: overrides.restrictions ?? 'Day VFR only',
       open_date: now,
       name: 'Plane Captain',
-      due_date: overrides.dueDate ?? new Date(now.getTime() + 30 * 24 * 3600 * 1000),
+      due_date:
+        overrides.dueDate === undefined
+          ? new Date(now.getTime() + 30 * 24 * 3600 * 1000)
+          : overrides.dueDate,
       resolved_note_id: overrides.resolvedNoteId ?? null,
       created_at: now,
       created_by: 'Matti1',
@@ -93,11 +102,20 @@ const insertHil = async (overrides: {
 }
 
 const cleanup = async () => {
+  // source_ref is optional (issue #1120), so tests that leave it null are found
+  // by their hil_number instead — every test here uses 9000+, well clear of the
+  // seeded hold items.
   const hilIds = (
     await db
       .selectFrom('flight.aircraft_hil')
       .select('hil_id')
-      .where('source_ref', 'like', `${TEST_MARKER}%`)
+      .where('aircraft_registration', '=', AIRCRAFT)
+      .where((eb) =>
+        eb.or([
+          eb('source_ref', 'like', `${TEST_MARKER}%`),
+          eb('hil_number', '>=', TEST_HIL_NUMBER_FLOOR),
+        ]),
+      )
       .execute()
   ).map((row) => row.hil_id)
 
@@ -350,6 +368,42 @@ describe('GET /aircraft-hil/overview', () => {
     expect(item?.defects[0]).toMatchObject({ defectId: defect.defectId, flightMins: 250 })
   })
 
+  it('never marks a hold item with no due date overdue, and does not ground the aircraft', async () => {
+    await insertHil({ hilNumber: 9029, dueDate: null })
+
+    const res = await request(app)
+      .get('/aircraft-hil/overview')
+      .set('Cookie', `accessToken=${aircraftUserToken}`)
+      .query({ aircraftRegistration: AIRCRAFT })
+
+    const overview = overviewFor(res.body)
+    const item = overview?.hil.find((h) => h.hilNumber === 9029)
+    expect(item?.dueDate).toBeNull()
+    expect(item?.effectiveDueDate).toBeNull()
+    expect(item?.isOverdue).toBe(false)
+    expect(overview?.overdueHilCount).toBe(0)
+    expect(overview?.isGrounded).toBe(false)
+  })
+
+  it('reports a hold item with no defect category or source ref', async () => {
+    await insertHil({ hilNumber: 9030, defectCat: null, sourceRef: `${TEST_MARKER} keep` })
+    await db
+      .updateTable('flight.aircraft_hil')
+      .set({ source_ref: null })
+      .where('hil_number', '=', 9030)
+      .where('aircraft_registration', '=', AIRCRAFT)
+      .execute()
+
+    const res = await request(app)
+      .get('/aircraft-hil/overview')
+      .set('Cookie', `accessToken=${aircraftUserToken}`)
+      .query({ aircraftRegistration: AIRCRAFT })
+
+    const item = overviewFor(res.body)?.hil.find((h) => h.hilNumber === 9030)
+    expect(item?.defectCat).toBeNull()
+    expect(item?.sourceRef).toBeNull()
+  })
+
   it('hides resolved hold items unless includeResolved is set', async () => {
     const note = await db
       .insertInto('flight.maintenance_note')
@@ -518,6 +572,49 @@ describe('POST /aircraft-hil', () => {
     expect(updated.status).toBe('MOVED_TO_HIL')
   })
 
+  it('creates a hold item with no defect category, source ref or due date', async () => {
+    const defect = await createTestDefect()
+
+    const res = await request(app)
+      .post('/aircraft-hil')
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({
+        aircraftRegistration: baseHil.aircraftRegistration,
+        description: baseHil.description,
+        openDate: baseHil.openDate,
+        name: baseHil.name,
+        defectId: defect.defectId,
+        hilNumber: 9031,
+      })
+
+    expect(res.status).toBe(201)
+    expect(res.body).toMatchObject({ hilNumber: 9031 })
+    expect(res.body.sourceRef).toBeNull()
+    expect(res.body.defectCat).toBeNull()
+    expect(res.body.dueDate).toBeNull()
+  })
+
+  it('accepts an explicit null for the optional fields', async () => {
+    const defect = await createTestDefect()
+
+    const res = await request(app)
+      .post('/aircraft-hil')
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({
+        ...baseHil,
+        defectId: defect.defectId,
+        hilNumber: 9032,
+        sourceRef: null,
+        defectCat: null,
+        dueDate: null,
+      })
+
+    expect(res.status).toBe(201)
+    expect(res.body.sourceRef).toBeNull()
+    expect(res.body.defectCat).toBeNull()
+    expect(res.body.dueDate).toBeNull()
+  })
+
   it('rejects the loser when two concurrent requests defer the same defect', async () => {
     const defect = await createTestDefect()
 
@@ -605,6 +702,67 @@ describe('PATCH /aircraft-hil/:id', () => {
     expect(res.status).toBe(409)
   })
 
+  it('clears the defect category, source ref and due date when set to null', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9033 })
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({ defectCat: null, sourceRef: null, dueDate: null })
+
+    expect(res.status).toBe(200)
+    expect(res.body.defectCat).toBeNull()
+    expect(res.body.sourceRef).toBeNull()
+    expect(res.body.dueDate).toBeNull()
+  })
+
+  it('sets the optional fields back again after they were cleared', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9034, defectCat: null, dueDate: null })
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({
+        defectCat: 'C',
+        sourceRef: `${TEST_MARKER} MEL 33-40-1`,
+        dueDate: '2027-01-01T00:00:00.000Z',
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.defectCat).toBe('C')
+    expect(res.body.sourceRef).toBe(`${TEST_MARKER} MEL 33-40-1`)
+    expect(res.body.dueDate).toBe('2027-01-01T00:00:00.000Z')
+  })
+
+  it('refuses to clear the due date while an extension still stands', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9035 })
+    await db
+      .insertInto('flight.aircraft_hil_extension')
+      .values({
+        hil_id: hilId,
+        extension_date: new Date('2026-02-01T00:00:00.000Z'),
+        name: 'Plane Captain',
+        extension_due: new Date('2026-04-01T00:00:00.000Z'),
+        created_at: new Date(),
+        created_by: 'Matti1',
+      })
+      .execute()
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({ dueDate: null })
+
+    expect(res.status).toBe(400)
+
+    const unchanged = await db
+      .selectFrom('flight.aircraft_hil')
+      .select('due_date')
+      .where('hil_id', '=', hilId)
+      .executeTakeFirstOrThrow()
+    expect(unchanged.due_date).not.toBeNull()
+  })
+
   it('rejects a maintenance note that belongs to a different aircraft', async () => {
     const { hilId } = await insertHil({ hilNumber: 9012 })
     const note = await db
@@ -679,6 +837,214 @@ describe('PATCH /aircraft-hil/:id', () => {
       .executeTakeFirstOrThrow()
     expect(updatedDefect.status).toBe('RESOLVED')
     expect(updatedDefect.resolved_note_id).toBe(note.note_id)
+  })
+})
+
+describe('PATCH /aircraft-hil/:id — changing the deferred defect', () => {
+  const addDefect = async (
+    description: string,
+    flightMins: number,
+    aircraftRegistration = AIRCRAFT,
+  ) => {
+    const defect = await createDefect(
+      {
+        aircraftRegistration,
+        ajlbSeqNo: aircraftRegistration === AIRCRAFT ? AJLB_SEQ_NO : 1,
+        description: `${TEST_MARKER} ${description}`,
+        flightMins,
+        rows: 1,
+        blankRowsAfter: 0,
+      },
+      'Matti1',
+    )
+    createdDefectIds.push(defect.defectId)
+    return defect
+  }
+
+  const deferTo = async (defectId: string, hilId: string) => {
+    await db
+      .updateTable('flight.defect')
+      .set({ hil_id: hilId, status: 'MOVED_TO_HIL' })
+      .where('defect_id', '=', defectId)
+      .execute()
+  }
+
+  const defectState = async (defectId: string) =>
+    db
+      .selectFrom('flight.defect')
+      .select(['hil_id', 'status'])
+      .where('defect_id', '=', defectId)
+      .executeTakeFirstOrThrow()
+
+  it('swaps a wrongly picked defect for the right one', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9040 })
+    const wrong = await addDefect('wrong defect', 300)
+    const right = await addDefect('right defect', 310)
+    await deferTo(wrong.defectId, hilId)
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({ defectIds: [right.defectId] })
+
+    expect(res.status).toBe(200)
+    // The unlinked defect goes back to being an open defect, which grounds the
+    // aircraft until it is deferred again or released by a maintenance note.
+    expect(await defectState(wrong.defectId)).toEqual({ hil_id: null, status: 'ACTIVE' })
+    expect(await defectState(right.defectId)).toEqual({ hil_id: hilId, status: 'MOVED_TO_HIL' })
+  })
+
+  it('keeps the defects already linked when they are sent back unchanged', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9041 })
+    const first = await addDefect('first defect', 320)
+    const second = await addDefect('second defect', 330)
+    await deferTo(first.defectId, hilId)
+    await deferTo(second.defectId, hilId)
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({ defectIds: [first.defectId, second.defectId] })
+
+    expect(res.status).toBe(200)
+    expect(await defectState(first.defectId)).toEqual({ hil_id: hilId, status: 'MOVED_TO_HIL' })
+    expect(await defectState(second.defectId)).toEqual({ hil_id: hilId, status: 'MOVED_TO_HIL' })
+  })
+
+  it('rejects a defect that belongs to a different aircraft', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9042 })
+    const own = await addDefect('own defect', 340)
+    await deferTo(own.defectId, hilId)
+    const other = await addDefect('other aircraft defect', 350, 'OH-IHQ')
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({ defectIds: [other.defectId] })
+
+    expect(res.status).toBe(400)
+    expect(await defectState(own.defectId)).toEqual({ hil_id: hilId, status: 'MOVED_TO_HIL' })
+  })
+
+  it('rejects a defect that is already resolved', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9043 })
+    const resolved = await addDefect('resolved defect', 360)
+    await db
+      .updateTable('flight.defect')
+      .set({ status: 'RESOLVED' })
+      .where('defect_id', '=', resolved.defectId)
+      .execute()
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({ defectIds: [resolved.defectId] })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('rejects a defect that is already deferred to another hold item', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9044 })
+    const { hilId: otherHilId } = await insertHil({ hilNumber: 9045 })
+    const taken = await addDefect('taken defect', 370)
+    await deferTo(taken.defectId, otherHilId)
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({ defectIds: [taken.defectId] })
+
+    expect(res.status).toBe(400)
+    expect(await defectState(taken.defectId)).toEqual({
+      hil_id: otherHilId,
+      status: 'MOVED_TO_HIL',
+    })
+  })
+
+  it('rejects changing the defects of a closed hold item', async () => {
+    const note = await db
+      .insertInto('flight.maintenance_note')
+      .values({
+        aircraft_registration: AIRCRAFT,
+        ajlb_seq_no: AJLB_SEQ_NO,
+        description: `${TEST_MARKER} release`,
+        performed_by: 'AME',
+        flight_mins: 380,
+        blank_rows_after: 0,
+        created_at: new Date(),
+        created_by: 'Matti1',
+      })
+      .returning('note_id')
+      .executeTakeFirstOrThrow()
+    const { hilId } = await insertHil({ hilNumber: 9046, resolvedNoteId: note.note_id })
+    const other = await addDefect('post-closure defect', 390)
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({ defectIds: [other.defectId] })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('leaves a defect resolved directly on an open hold item untouched', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9050 })
+    const resolvedInPlace = await addDefect('resolved in place', 420)
+    const replacement = await addDefect('replacement defect', 430)
+    await deferTo(resolvedInPlace.defectId, hilId)
+    // Resolved straight from the logbook while the hold item is still open
+    await db
+      .updateTable('flight.defect')
+      .set({ status: 'RESOLVED' })
+      .where('defect_id', '=', resolvedInPlace.defectId)
+      .execute()
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({ defectIds: [replacement.defectId] })
+
+    expect(res.status).toBe(200)
+    // Not reactivated by being left out of the new set
+    expect(await defectState(resolvedInPlace.defectId)).toEqual({
+      hil_id: hilId,
+      status: 'RESOLVED',
+    })
+    expect(await defectState(replacement.defectId)).toEqual({
+      hil_id: hilId,
+      status: 'MOVED_TO_HIL',
+    })
+  })
+
+  it('rejects an empty defect list — a hold item must always defer a defect', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9047 })
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({ defectIds: [] })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('rolls back the whole update when the relink fails', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9048 })
+    const own = await addDefect('rollback defect', 400)
+    await deferTo(own.defectId, hilId)
+    const other = await addDefect('rollback other aircraft', 410, 'OH-IHQ')
+
+    const res = await request(app)
+      .patch(`/aircraft-hil/${hilId}`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({ description: 'Should not be saved', defectIds: [other.defectId] })
+
+    expect(res.status).toBe(400)
+    const unchanged = await db
+      .selectFrom('flight.aircraft_hil')
+      .select('description')
+      .where('hil_id', '=', hilId)
+      .executeTakeFirstOrThrow()
+    expect(unchanged.description).not.toBe('Should not be saved')
   })
 })
 
@@ -758,6 +1124,21 @@ describe('POST /aircraft-hil/:id/extensions', () => {
       })
 
     expect(res.status).toBe(201)
+  })
+
+  it('rejects an extension for a hold item with no due date', async () => {
+    const { hilId } = await insertHil({ hilNumber: 9049, dueDate: null })
+
+    const res = await request(app)
+      .post(`/aircraft-hil/${hilId}/extensions`)
+      .set('Cookie', `accessToken=${flightLogAdminToken}`)
+      .send({
+        extensionDate: '2026-02-01T00:00:00.000Z',
+        name: 'Plane Captain',
+        extensionDue: '2026-04-01T00:00:00.000Z',
+      })
+
+    expect(res.status).toBe(400)
   })
 
   it('rejects a second extension for the same hold item', async () => {

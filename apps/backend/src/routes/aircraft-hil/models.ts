@@ -6,13 +6,15 @@ export const AircraftHilSchema = z.object({
   hilId: z.string().guid(),
   aircraftRegistration: z.string(),
   hilNumber: z.number().int(),
-  sourceRef: z.string(),
-  defectCat: z.string(),
+  // Source ref, defect category and due date are not always known when a hold
+  // item is opened, so all three are optional (issue #1120).
+  sourceRef: z.string().nullable(),
+  defectCat: z.string().nullable(),
   description: z.string(),
   restrictions: z.string().nullable(),
   openDate: z.string().datetime(),
   name: z.string(),
-  dueDate: z.string().datetime(),
+  dueDate: z.string().datetime().nullable(),
   resolvedNoteId: z.string().guid().nullable(),
   createdAt: z.string().datetime(),
   createdBy: z.string(),
@@ -27,13 +29,13 @@ export const CreateAircraftHilSchema = z.object({
   // Matches the number on the paper hold item list; when omitted the next
   // free number for the aircraft is assigned instead
   hilNumber: z.number().int().positive().optional(),
-  sourceRef: z.string().min(1),
-  defectCat: z.string().min(1),
+  sourceRef: z.string().min(1).nullable().optional(),
+  defectCat: z.string().min(1).nullable().optional(),
   description: z.string().min(1),
   restrictions: z.string().nullable().optional(),
   openDate: z.string().datetime(),
   name: z.string().min(1),
-  dueDate: z.string().datetime(),
+  dueDate: z.string().datetime().nullable().optional(),
   // A hold item can only be opened from an existing, active flight-log defect
   defectId: z.string().guid(),
 })
@@ -43,14 +45,18 @@ export type CreateAircraftHilRequest = z.infer<typeof CreateAircraftHilSchema>
 export const UpdateAircraftHilSchema = z
   .object({
     hilNumber: z.number().int().positive().optional(),
-    sourceRef: z.string().min(1).optional(),
-    defectCat: z.string().min(1).optional(),
+    sourceRef: z.string().min(1).nullable().optional(),
+    defectCat: z.string().min(1).nullable().optional(),
     description: z.string().min(1).optional(),
     restrictions: z.string().nullable().optional(),
     openDate: z.string().datetime().optional(),
     name: z.string().min(1).optional(),
-    dueDate: z.string().datetime().optional(),
+    dueDate: z.string().datetime().nullable().optional(),
     resolvedNoteId: z.string().guid().nullable().optional(),
+    // The flight-log defects this hold item defers. Sent as the complete
+    // desired set so a wrongly picked defect can be swapped for the right one.
+    // A hold item must always defer at least one defect.
+    defectIds: z.array(z.string().guid()).min(1).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided',
@@ -100,8 +106,9 @@ export type HilLinkedDefect = z.infer<typeof HilLinkedDefectSchema>
 
 export const AircraftHilDetailSchema = AircraftHilSchema.extend({
   extensions: z.array(AircraftHilExtensionSchema),
-  // The latest extension due date if the item has been extended, otherwise dueDate
-  effectiveDueDate: z.string().datetime(),
+  // The latest extension due date if the item has been extended, otherwise
+  // dueDate — null when the hold item has no due date at all
+  effectiveDueDate: z.string().datetime().nullable(),
   isOverdue: z.boolean(),
   defects: z.array(HilLinkedDefectSchema),
 })

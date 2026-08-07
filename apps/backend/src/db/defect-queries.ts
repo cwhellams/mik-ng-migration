@@ -159,6 +159,77 @@ export async function resolveDefectsByHil(
 }
 
 /**
+ * Reconciles which flight-log defects a hold item defers to exactly defectIds:
+ * defects no longer in the set go back to ACTIVE, new ones are deferred. Lets a
+ * plane captain correct a hold item opened against the wrong defect (#1120).
+ *
+ * The ACTIVE + aircraft guard on the additions re-checks the precondition the
+ * route already validated, but atomically this time: if a concurrent request
+ * deferred or resolved one of these defects first, the row count won't match
+ * and the caller's transaction rolls back rather than stealing the defect.
+ */
+export async function setDefectsForHil(
+  hilId: string,
+  aircraftRegistration: string,
+  defectIds: string[],
+  updatedBy: string,
+  executor: Kysely<DB> = connection.db,
+): Promise<boolean> {
+  const now = new Date()
+
+  // A defect can be resolved directly while its hold item is still open. Such a
+  // defect is left out of the reconciliation entirely, so it is never unlinked
+  // and reactivated — a resolved defect must stay resolved.
+  const currentIds = (
+    await executor
+      .selectFrom('flight.defect')
+      .select('defect_id')
+      .where('hil_id', '=', hilId)
+      .where('status', '!=', 'RESOLVED')
+      .execute()
+  ).map((row) => row.defect_id)
+
+  const removed = currentIds.filter((id) => !defectIds.includes(id))
+  const added = defectIds.filter((id) => !currentIds.includes(id))
+
+  if (removed.length) {
+    // Back to ACTIVE: an open defect with neither a deferral nor a maintenance
+    // release, which grounds the aircraft until it is re-deferred or released.
+    await executor
+      .updateTable('flight.defect')
+      .set({
+        hil_id: null,
+        status: 'ACTIVE',
+        updated_at: now,
+        updated_by: updatedBy,
+      })
+      .where('defect_id', 'in', removed)
+      .where('hil_id', '=', hilId)
+      .where('status', '=', 'MOVED_TO_HIL')
+      .execute()
+  }
+
+  if (added.length) {
+    const result = await executor
+      .updateTable('flight.defect')
+      .set({
+        hil_id: hilId,
+        status: 'MOVED_TO_HIL',
+        updated_at: now,
+        updated_by: updatedBy,
+      })
+      .where('defect_id', 'in', added)
+      .where('aircraft_registration', '=', aircraftRegistration)
+      .where('status', '=', 'ACTIVE')
+      .executeTakeFirst()
+
+    if (Number(result?.numUpdatedRows ?? 0n) !== added.length) return false
+  }
+
+  return true
+}
+
+/**
  * Resolves defects directly by id, without going via a hold item. Scoped to
  * ACTIVE defects on the given aircraft so a maintenance note can't reach into
  * another aircraft's defects or one already deferred to HIL / resolved.
