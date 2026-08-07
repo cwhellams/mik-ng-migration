@@ -10,6 +10,7 @@
     "logout": "Logout",
     "profile": "My profile",
     "myFlightPackages": "My flight packages",
+    "mailbox": "Mailbox",
     "language": "Language",
     "toggleTheme": "Toggle dark/light mode",
     "toggleSudo": "Toggle admin mode",
@@ -2344,6 +2345,12 @@
       "saved": "Banner updated successfully.",
       "saveError": "Failed to save the banner. Please try again."
     }
+  },
+  "mailbox": {
+    "title": "Mailbox",
+    "markAllRead": "Mark all as read",
+    "unread": "Unread",
+    "noMessages": "No messages"
   },
   "instructorStatus": {
     "title": "Instructor Status",

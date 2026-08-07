@@ -92,6 +92,34 @@ export function qualificationExpiredBodyHtml(
   })
 }
 
+export function qualificationExpiryReminderMailboxBody(
+  lang: string | undefined,
+  vars: QualificationExpiryEmailVars,
+): string {
+  switch (lang) {
+    case MIKLang.FI:
+      return `${vars.qualificationLabel} vanhenee ${vars.expiryDate} (${vars.daysUntilExpiry} päivän kuluttua).`
+    case MIKLang.SV:
+      return `${vars.qualificationLabel} upphör ${vars.expiryDate} (om ${vars.daysUntilExpiry} dagar).`
+    default:
+      return `${vars.qualificationLabel} expires on ${vars.expiryDate} (in ${vars.daysUntilExpiry} days).`
+  }
+}
+
+export function qualificationExpiredMailboxBody(
+  lang: string | undefined,
+  vars: QualificationExpiryEmailVars,
+): string {
+  switch (lang) {
+    case MIKLang.FI:
+      return `${vars.qualificationLabel} vanhentui ${vars.expiryDate}.`
+    case MIKLang.SV:
+      return `${vars.qualificationLabel} upphörde ${vars.expiryDate}.`
+    default:
+      return `${vars.qualificationLabel} expired on ${vars.expiryDate}.`
+  }
+}
+
 export function buildQualificationEmailVars(
   firstName: string,
   field: string,

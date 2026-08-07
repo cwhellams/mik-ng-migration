@@ -10,6 +10,7 @@
     "logout": "Kirjaudu ulos",
     "profile": "Omat tiedot",
     "myFlightPackages": "Lentotuntipakettini",
+    "mailbox": "Postilaatikko",
     "language": "Kieli",
     "toggleTheme": "Vaihda ulkoasua",
     "toggleSudo": "Vaihda ylläpitotilaa",
@@ -2350,6 +2351,12 @@
       "saved": "Banneri päivitetty onnistuneesti.",
       "saveError": "Bannerin tallennus epäonnistui. Yritä uudelleen."
     }
+  },
+  "mailbox": {
+    "title": "Postilaatikko",
+    "markAllRead": "Merkitse kaikki luetuiksi",
+    "unread": "Lukematon",
+    "noMessages": "Ei viestejä"
   },
   "instructorStatus": {
     "title": "Opettajien tila",

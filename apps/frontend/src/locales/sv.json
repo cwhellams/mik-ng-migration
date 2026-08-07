@@ -10,6 +10,7 @@
     "logout": "Logga ut",
     "profile": "Min profil",
     "myFlightPackages": "Mina flygtidspaket",
+    "mailbox": "Brevlåda",
     "language": "Språk",
     "toggleTheme": "Växla mörkt/ljust läge",
     "toggleSudo": "Växla administratörsläge",
@@ -2317,6 +2318,12 @@
       "saved": "Bannern uppdaterades.",
       "saveError": "Det gick inte att spara bannern. Försök igen."
     }
+  },
+  "mailbox": {
+    "title": "Brevlåda",
+    "markAllRead": "Markera alla som lästa",
+    "unread": "Oläst",
+    "noMessages": "Inga meddelanden"
   },
   "instructorStatus": {
     "title": "Instruktörsstatus",
