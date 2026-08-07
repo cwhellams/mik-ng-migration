@@ -2708,7 +2708,7 @@
       "receiptUploaded": "Receipt uploaded",
       "receiptSkipWarning": "You can skip receipt upload now and add it later before submitting.",
       "saveDraftBeforeReceipt": "Save the draft first before uploading receipts.",
-      "attachmentsUploadInfo": "Upload one or more receipt images (JPG, PNG, etc.) or PDF documents, up to 5 files. Upload limit: 40 MB per file. Images are compressed automatically; PDFs max 5 MB. Multiple files are merged into a single PDF for accounting.",
+      "attachmentsUploadInfo": "Upload one or more receipt images (JPG, PNG, etc.) or PDF documents, up to 10 files. Upload limit: 40 MB per file. Images are compressed automatically; PDFs max 5 MB. Multiple files are merged into a single PDF for accounting.",
       "tooManyAttachments": "You can attach at most {{max}} files to a claim.",
       "previewMergedPdf": "Preview merged PDF",
       "noBankDetails": "Not provided — reimbursement will require bank details before payment",

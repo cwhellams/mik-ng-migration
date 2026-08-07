@@ -2681,7 +2681,7 @@
       "receiptUploaded": "Kvitto uppladdat",
       "receiptSkipWarning": "Du kan hoppa över kvittouppladdningen nu och lägga till det senare innan inlämning.",
       "saveDraftBeforeReceipt": "Spara utkastet innan du laddar upp kvitton.",
-      "attachmentsUploadInfo": "Ladda upp en eller flera kvittobilder (JPG, PNG, osv.) eller PDF-dokument, upp till 5 filer. Uppladdningsgräns: 40 MB per fil. Bilder komprimeras automatiskt; PDF max 5 MB. Flera filer slås ihop till en enda PDF för bokföringen.",
+      "attachmentsUploadInfo": "Ladda upp en eller flera kvittobilder (JPG, PNG, osv.) eller PDF-dokument, upp till 10 filer. Uppladdningsgräns: 40 MB per fil. Bilder komprimeras automatiskt; PDF max 5 MB. Flera filer slås ihop till en enda PDF för bokföringen.",
       "tooManyAttachments": "Du kan bifoga högst {{max}} filer till en ansökan.",
       "previewMergedPdf": "Förhandsgranska sammanslagen PDF",
       "noBankDetails": "Inte angett — ersättning kräver bankuppgifter före betalning",

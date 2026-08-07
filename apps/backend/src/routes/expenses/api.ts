@@ -777,7 +777,7 @@ router.get(
 // New claims use this instead of the singular /:id/receipt above — SimplBooks only
 // accepts one attachment per purchase, so they're merged into a single PDF below.
 
-const MAX_ATTACHMENTS_PER_CLAIM = 5
+const MAX_ATTACHMENTS_PER_CLAIM = 10
 
 router.post(
   '/:id/attachments',

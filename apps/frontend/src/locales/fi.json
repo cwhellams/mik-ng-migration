@@ -2714,7 +2714,7 @@
       "receiptUploaded": "Kuitti ladattu",
       "receiptSkipWarning": "Voit ohittaa kuitin lataamisen nyt ja lisätä sen myöhemmin ennen lähettämistä.",
       "saveDraftBeforeReceipt": "Tallenna luonnos ennen kuitin lataamista.",
-      "attachmentsUploadInfo": "Lataa yksi tai useampi kuitti (JPG, PNG jne.) tai PDF-tiedosto, enintään 5 tiedostoa. Latauksen enimmäiskoko: 40 Mt per tiedosto. Kuvat pakataan automaattisesti; PDF enintään 5 Mt. Useat tiedostot yhdistetään yhdeksi PDF:ksi kirjanpitoa varten.",
+      "attachmentsUploadInfo": "Lataa yksi tai useampi kuitti (JPG, PNG jne.) tai PDF-tiedosto, enintään 10 tiedostoa. Latauksen enimmäiskoko: 40 Mt per tiedosto. Kuvat pakataan automaattisesti; PDF enintään 5 Mt. Useat tiedostot yhdistetään yhdeksi PDF:ksi kirjanpitoa varten.",
       "tooManyAttachments": "Kuittiin voi liittää enintään {{max}} tiedostoa.",
       "previewMergedPdf": "Esikatsele yhdistettyä PDF:ää",
       "noBankDetails": "Ei annettu — korvaus vaatii pankkitiedot ennen maksua",

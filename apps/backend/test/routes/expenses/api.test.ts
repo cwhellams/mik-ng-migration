@@ -1834,7 +1834,7 @@ describe('Expense claim attachments', () => {
     let req = request(app)
       .post(`/expenses/${claimId}/attachments`)
       .set('Cookie', `accessToken=${memberToken}`)
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 11; i++) {
       req = req.attach('files', image, { filename: `${i}.jpg`, contentType: 'image/jpeg' })
     }
     const res = await req

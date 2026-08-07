@@ -790,7 +790,7 @@ interface AttachmentsUploadZoneProps {
 }
 
 // Matches the backend's per-claim attachment limit (apps/backend/src/routes/expenses/api.ts).
-const MAX_ATTACHMENTS_PER_CLAIM = 5
+const MAX_ATTACHMENTS_PER_CLAIM = 10
 // Matches the backend's raw upload ceiling — see ReceiptUploadZone's MAX_RECEIPT_UPLOAD_BYTES.
 const MAX_ATTACHMENT_UPLOAD_BYTES = 40 * 1024 * 1024
 
