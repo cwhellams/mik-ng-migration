@@ -20,10 +20,24 @@ import type {
   ReservationEfficiencyByAcYrMth,
   ReservationEfficiencyByMemberYr,
   ReservationEfficiencyByMemberYrMth,
+  SchoolFlightEfficiencyByYr,
+  SchoolFlightEfficiencyByYrMth,
+  SchoolFlightEfficiencyByAcYr,
+  SchoolFlightEfficiencyByAcYrMth,
+  SchoolFlightEfficiencyByInstructorYr,
+  SchoolFlightEfficiencyByInstructorYrMth,
 } from '@backend/routes/stats/models'
 
+type FlightScope = 'all' | 'school'
 type GroupBy = 'overall' | 'aircraft' | 'member'
 type Period = 'year' | 'month'
+
+type OverallRow = ReservationEfficiencyByYr | SchoolFlightEfficiencyByYr
+type OverallMthRow = ReservationEfficiencyByYrMth | SchoolFlightEfficiencyByYrMth
+type AcRow = ReservationEfficiencyByAcYr | SchoolFlightEfficiencyByAcYr
+type AcMthRow = ReservationEfficiencyByAcYrMth | SchoolFlightEfficiencyByAcYrMth
+type EntityRow = ReservationEfficiencyByMemberYr | SchoolFlightEfficiencyByInstructorYr
+type EntityMthRow = ReservationEfficiencyByMemberYrMth | SchoolFlightEfficiencyByInstructorYrMth
 
 const STATS_YEAR_RANGE = Number(import.meta.env.VITE_STATS_YEAR_RANGE) || 5
 
@@ -52,10 +66,26 @@ const getEfficiencyColor = (pct: number | null) => {
   return 'error' as const
 }
 
+// School flight rows report `total_block_mins` (block time) instead of `total_flight_mins`
+// (airtime) — see issue #1081.
+const getNumeratorMins = (
+  d: OverallRow | OverallMthRow | AcRow | AcMthRow | EntityRow | EntityMthRow,
+): number => Number(('total_flight_mins' in d ? d.total_flight_mins : d.total_block_mins) ?? 0)
+
+// The "by member" dimension becomes "by instructor" for school flights.
+const getEntityId = (d: EntityRow | EntityMthRow): string | null =>
+  ('member' in d ? d.member : d.instructor) ?? null
+
 export const ReservationEfficiency = () => {
   const { mode } = useThemeMode()
+  const [flightScope, setFlightScope] = useState<FlightScope>('all')
   const [groupBy, setGroupBy] = useState<GroupBy>('overall')
   const [period, setPeriod] = useState<Period>('year')
+
+  const isSchool = flightScope === 'school'
+  const scopeBase = isSchool ? 'school-flight-efficiency' : 'reservation-efficiency'
+  const entitySegment = isSchool ? 'instructor' : 'member'
+  const entityLabel = isSchool ? 'Instructor' : 'Member'
 
   const { yrFrom, yrTo } = useMemo(
     () => (period === 'year' ? getYearRange() : getMonthlyRange()),
@@ -101,9 +131,9 @@ export const ReservationEfficiency = () => {
     data: overallByYr,
     error: overallByYrError,
     isLoading: overallByYrLoading,
-  } = useApi<ReservationEfficiencyByYr[]>(
+  } = useApi<OverallRow[]>(
     {
-      url: 'v1/stats/reservation-efficiency/year',
+      url: `v1/stats/${scopeBase}/year`,
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'overall' || period !== 'year',
     },
@@ -115,9 +145,9 @@ export const ReservationEfficiency = () => {
     data: overallByYrMth,
     error: overallByYrMthError,
     isLoading: overallByYrMthLoading,
-  } = useApi<ReservationEfficiencyByYrMth[]>(
+  } = useApi<OverallMthRow[]>(
     {
-      url: 'v1/stats/reservation-efficiency/year/month',
+      url: `v1/stats/${scopeBase}/year/month`,
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'overall' || period !== 'month',
     },
@@ -129,9 +159,9 @@ export const ReservationEfficiency = () => {
     data: byAcYr,
     error: byAcYrError,
     isLoading: byAcYrLoading,
-  } = useApi<ReservationEfficiencyByAcYr[]>(
+  } = useApi<AcRow[]>(
     {
-      url: 'v1/stats/reservation-efficiency/aircraft/year',
+      url: `v1/stats/${scopeBase}/aircraft/year`,
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'aircraft' || period !== 'year',
     },
@@ -143,37 +173,37 @@ export const ReservationEfficiency = () => {
     data: byAcYrMth,
     error: byAcYrMthError,
     isLoading: byAcYrMthLoading,
-  } = useApi<ReservationEfficiencyByAcYrMth[]>(
+  } = useApi<AcMthRow[]>(
     {
-      url: 'v1/stats/reservation-efficiency/aircraft/year/month',
+      url: `v1/stats/${scopeBase}/aircraft/year/month`,
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'aircraft' || period !== 'month',
     },
     { refreshInterval: 0 },
   )
 
-  // By member, year
+  // By member/instructor, year
   const {
-    data: byMemberYr,
-    error: byMemberYrError,
-    isLoading: byMemberYrLoading,
-  } = useApi<ReservationEfficiencyByMemberYr[]>(
+    data: byEntityYr,
+    error: byEntityYrError,
+    isLoading: byEntityYrLoading,
+  } = useApi<EntityRow[]>(
     {
-      url: 'v1/stats/reservation-efficiency/member/year',
+      url: `v1/stats/${scopeBase}/${entitySegment}/year`,
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'member' || period !== 'year',
     },
     { refreshInterval: 0 },
   )
 
-  // By member, year/month
+  // By member/instructor, year/month
   const {
-    data: byMemberYrMth,
-    error: byMemberYrMthError,
-    isLoading: byMemberYrMthLoading,
-  } = useApi<ReservationEfficiencyByMemberYrMth[]>(
+    data: byEntityYrMth,
+    error: byEntityYrMthError,
+    isLoading: byEntityYrMthLoading,
+  } = useApi<EntityMthRow[]>(
     {
-      url: 'v1/stats/reservation-efficiency/member/year/month',
+      url: `v1/stats/${scopeBase}/${entitySegment}/year/month`,
       params: { yr_from: yrFrom, yr_to: yrTo },
       skipFetch: groupBy !== 'member' || period !== 'month',
     },
@@ -188,7 +218,7 @@ export const ReservationEfficiency = () => {
       .map((d) => ({
         period: String(d.yr),
         efficiency_pct: Number(d.efficiency_pct ?? 0),
-        flight_mins: Number(d.total_flight_mins ?? 0),
+        flight_mins: getNumeratorMins(d),
         reserved_mins: Number(d.total_reserved_mins ?? 0),
       }))
       .sort((a, b) => a.period.localeCompare(b.period))
@@ -208,7 +238,7 @@ export const ReservationEfficiency = () => {
       .map((d) => ({
         period: `${d.yr}-${String(d.mth).padStart(2, '0')}`,
         efficiency_pct: Number(d.efficiency_pct ?? 0),
-        flight_mins: Number(d.total_flight_mins ?? 0),
+        flight_mins: getNumeratorMins(d),
         reserved_mins: Number(d.total_reserved_mins ?? 0),
       }))
       .filter((d) => last12Months.includes(d.period))
@@ -265,41 +295,41 @@ export const ReservationEfficiency = () => {
     return Array.from(keys).sort()
   }, [byAcYr, byAcYrMth, period])
 
-  // Member by year - summary table data (top 20 by efficiency)
-  const memberYearTableData = useMemo(() => {
-    if (!byMemberYr) return []
+  // Entity (member/instructor) by year - summary table data (top 20 by efficiency)
+  const entityYearTableData = useMemo(() => {
+    if (!byEntityYr) return []
     const currentYear = new Date().getFullYear()
-    return byMemberYr
-      .filter((d) => d.yr === currentYear && d.member != null)
+    return byEntityYr
+      .filter((d) => d.yr === currentYear && getEntityId(d) != null)
       .sort((a, b) => Number(b.efficiency_pct ?? 0) - Number(a.efficiency_pct ?? 0))
       .slice(0, 20)
       .map((d) => ({
-        member: d.member!.substring(0, 8),
+        entity: getEntityId(d)!.substring(0, 8),
         efficiency_pct: Number(d.efficiency_pct ?? 0),
-        flight_mins: Number(d.total_flight_mins ?? 0),
+        flight_mins: getNumeratorMins(d),
         reserved_mins: Number(d.total_reserved_mins ?? 0),
       }))
-  }, [byMemberYr])
+  }, [byEntityYr])
 
-  // Member by month - bar chart data for current year
-  const memberMonthBarData = useMemo(() => {
-    if (!byMemberYrMth) return []
+  // Entity (member/instructor) by month - bar chart data for current year
+  const entityMonthBarData = useMemo(() => {
+    if (!byEntityYrMth) return []
     const now = new Date()
     const last12Months: string[] = []
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
       last12Months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
     }
-    // Aggregate all members into single overall efficiency per month
+    // Aggregate all members/instructors into single overall efficiency per month
     const monthMap = new Map<string, { flight: number; reserved: number }>()
-    byMemberYrMth
+    byEntityYrMth
       .filter((d) => d.yr != null && d.mth != null)
       .forEach((d) => {
         const period = `${d.yr}-${String(d.mth).padStart(2, '0')}`
         if (!last12Months.includes(period)) return
         const existing = monthMap.get(period) ?? { flight: 0, reserved: 0 }
         monthMap.set(period, {
-          flight: existing.flight + Number(d.total_flight_mins ?? 0),
+          flight: existing.flight + getNumeratorMins(d),
           reserved: existing.reserved + Number(d.total_reserved_mins ?? 0),
         })
       })
@@ -311,25 +341,25 @@ export const ReservationEfficiency = () => {
           : 0
       return { period, efficiency_pct: efficiency }
     })
-  }, [byMemberYrMth])
+  }, [byEntityYrMth])
 
   // Determine current loading/error state
   const isLoading = (() => {
     if (groupBy === 'overall') return period === 'year' ? overallByYrLoading : overallByYrMthLoading
     if (groupBy === 'aircraft') return period === 'year' ? byAcYrLoading : byAcYrMthLoading
-    return period === 'year' ? byMemberYrLoading : byMemberYrMthLoading
+    return period === 'year' ? byEntityYrLoading : byEntityYrMthLoading
   })()
 
   const error = (() => {
     if (groupBy === 'overall') return period === 'year' ? overallByYrError : overallByYrMthError
     if (groupBy === 'aircraft') return period === 'year' ? byAcYrError : byAcYrMthError
-    return period === 'year' ? byMemberYrError : byMemberYrMthError
+    return period === 'year' ? byEntityYrError : byEntityYrMthError
   })()
 
   // Overall summary card data
   const allTimeEfficiency = useMemo(() => {
     if (!overallByYr || overallByYr.length === 0) return null
-    const totalFlight = overallByYr.reduce((sum, d) => sum + Number(d.total_flight_mins ?? 0), 0)
+    const totalFlight = overallByYr.reduce((sum, d) => sum + getNumeratorMins(d), 0)
     const totalReserved = overallByYr.reduce(
       (sum, d) => sum + Number(d.total_reserved_mins ?? 0),
       0,
@@ -342,7 +372,7 @@ export const ReservationEfficiency = () => {
     if (groupBy === 'overall') return period === 'year' ? overallYearBarData : overallMonthBarData
     if (groupBy === 'aircraft')
       return period === 'year' ? aircraftYearBarData : aircraftMonthBarData
-    return period === 'year' ? [] : memberMonthBarData
+    return period === 'year' ? [] : entityMonthBarData
   })()
 
   const barKeys = (() => {
@@ -350,13 +380,31 @@ export const ReservationEfficiency = () => {
     return ['efficiency_pct']
   })()
 
+  const reportTitle = isSchool ? 'School Flight Reservation Efficiency' : 'Reservation Efficiency'
+  const numeratorLabel = isSchool ? 'block time flown' : 'logged airtime'
+
   return (
     <Box>
       {/* Controls */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <Typography variant='subtitle2' gutterBottom>
+                Flight Type
+              </Typography>
+              <ToggleButtonGroup
+                value={flightScope}
+                exclusive
+                onChange={(_, v) => v && setFlightScope(v)}
+                size='small'
+                fullWidth
+              >
+                <ToggleButton value='all'>All Flights</ToggleButton>
+                <ToggleButton value='school'>School Flights</ToggleButton>
+              </ToggleButtonGroup>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <Typography variant='subtitle2' gutterBottom>
                 Group By
               </Typography>
@@ -369,10 +417,10 @@ export const ReservationEfficiency = () => {
               >
                 <ToggleButton value='overall'>Overall</ToggleButton>
                 <ToggleButton value='aircraft'>Aircraft</ToggleButton>
-                <ToggleButton value='member'>Member</ToggleButton>
+                <ToggleButton value='member'>{entityLabel}</ToggleButton>
               </ToggleButtonGroup>
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <Typography variant='subtitle2' gutterBottom>
                 Period
               </Typography>
@@ -388,6 +436,19 @@ export const ReservationEfficiency = () => {
               </ToggleButtonGroup>
             </Grid>
           </Grid>
+          {isSchool && (
+            <Typography
+              variant='caption'
+              sx={{
+                display: 'block',
+                mt: 1,
+                color: 'text.secondary',
+              }}
+            >
+              School flight efficiency is based on block time (off-block to on-block), not flight
+              time. Restricted to school/DTO flight logs and TRAINING reservations.
+            </Typography>
+          )}
         </CardContent>
       </Card>
       {/* All-time summary (overall only) */}
@@ -405,7 +466,7 @@ export const ReservationEfficiency = () => {
                     color: 'text.secondary',
                   }}
                 >
-                  All-time Reservation Efficiency
+                  All-time {reportTitle}
                 </Typography>
                 <Typography
                   variant='caption'
@@ -413,7 +474,7 @@ export const ReservationEfficiency = () => {
                     color: 'text.secondary',
                   }}
                 >
-                  Logged airtime / Reserved time
+                  {numeratorLabel} / Reserved time
                 </Typography>
               </CardContent>
             </Card>
@@ -426,7 +487,7 @@ export const ReservationEfficiency = () => {
           <Card sx={{ mb: 3 }}>
             <CardContent>
               <Typography variant='h6' gutterBottom>
-                Reservation Efficiency {groupBy === 'aircraft' ? 'by Aircraft' : ''} (
+                {reportTitle} {groupBy === 'aircraft' ? 'by Aircraft' : ''} (
                 {period === 'year' ? 'Yearly' : 'Last 12 Months'})
               </Typography>
               <Typography
@@ -436,7 +497,7 @@ export const ReservationEfficiency = () => {
                   mb: 2,
                 }}
               >
-                Efficiency % = logged airtime / reserved time × 100
+                Efficiency % = {numeratorLabel} / reserved time × 100
               </Typography>
               <Box sx={{ height: 400 }}>
                 {barData.length > 0 ? (
@@ -537,13 +598,13 @@ export const ReservationEfficiency = () => {
           </Card>
         </RemoteContent>
       )}
-      {/* Member view */}
+      {/* Member/instructor view */}
       {groupBy === 'member' && period === 'year' && (
-        <RemoteContent isLoading={byMemberYrLoading} error={byMemberYrError}>
+        <RemoteContent isLoading={byEntityYrLoading} error={byEntityYrError}>
           <Card sx={{ mb: 3 }}>
             <CardContent>
               <Typography variant='h6' gutterBottom>
-                Reservation Efficiency by Member — Current Year (Top 20)
+                {reportTitle} by {entityLabel} — Current Year (Top 20)
               </Typography>
               <Typography
                 variant='body2'
@@ -552,9 +613,9 @@ export const ReservationEfficiency = () => {
                   mb: 2,
                 }}
               >
-                Members are anonymized. Sorted by efficiency descending.
+                {entityLabel}s are anonymized. Sorted by efficiency descending.
               </Typography>
-              {memberYearTableData.length > 0 ? (
+              {entityYearTableData.length > 0 ? (
                 <Box sx={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
@@ -566,7 +627,7 @@ export const ReservationEfficiency = () => {
                             borderBottom: '1px solid #ccc',
                           }}
                         >
-                          Member (anon)
+                          {entityLabel} (anon)
                         </th>
                         <th
                           style={{
@@ -575,7 +636,7 @@ export const ReservationEfficiency = () => {
                             borderBottom: '1px solid #ccc',
                           }}
                         >
-                          Flight (min)
+                          {isSchool ? 'Block (min)' : 'Flight (min)'}
                         </th>
                         <th
                           style={{
@@ -598,9 +659,9 @@ export const ReservationEfficiency = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {memberYearTableData.map((row) => (
-                        <tr key={row.member}>
-                          <td style={{ padding: '8px', fontFamily: 'monospace' }}>{row.member}…</td>
+                      {entityYearTableData.map((row) => (
+                        <tr key={row.entity}>
+                          <td style={{ padding: '8px', fontFamily: 'monospace' }}>{row.entity}…</td>
                           <td style={{ padding: '8px', textAlign: 'right' }}>
                             {Math.round(row.flight_mins)}
                           </td>
@@ -633,11 +694,11 @@ export const ReservationEfficiency = () => {
         </RemoteContent>
       )}
       {groupBy === 'member' && period === 'month' && (
-        <RemoteContent isLoading={byMemberYrMthLoading} error={byMemberYrMthError}>
+        <RemoteContent isLoading={byEntityYrMthLoading} error={byEntityYrMthError}>
           <Card sx={{ mb: 3 }}>
             <CardContent>
               <Typography variant='h6' gutterBottom>
-                Reservation Efficiency by Member — Monthly (Last 12 Months)
+                {reportTitle} by {entityLabel} — Monthly (Last 12 Months)
               </Typography>
               <Typography
                 variant='body2'
@@ -646,12 +707,12 @@ export const ReservationEfficiency = () => {
                   mb: 2,
                 }}
               >
-                Aggregated across all members per month.
+                Aggregated across all {entityLabel.toLowerCase()}s per month.
               </Typography>
               <Box sx={{ height: 400 }}>
-                {memberMonthBarData.some((d) => d.efficiency_pct > 0) ? (
+                {entityMonthBarData.some((d) => d.efficiency_pct > 0) ? (
                   <ResponsiveBar
-                    data={memberMonthBarData}
+                    data={entityMonthBarData}
                     keys={['efficiency_pct']}
                     indexBy='period'
                     margin={{ top: 20, right: 30, bottom: 60, left: 60 }}

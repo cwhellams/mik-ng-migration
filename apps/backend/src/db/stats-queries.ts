@@ -40,6 +40,12 @@ import type {
   AogDaysByAcYr,
   PobDistributionByAcYr,
   OccurrencesPerHundredHrsByAcYr,
+  SchoolFlightEfficiencyByYr,
+  SchoolFlightEfficiencyByYrMth,
+  SchoolFlightEfficiencyByAcYr,
+  SchoolFlightEfficiencyByAcYrMth,
+  SchoolFlightEfficiencyByInstructorYr,
+  SchoolFlightEfficiencyByInstructorYrMth,
 } from '../routes/stats/models.ts'
 
 // Helper function to apply year filters
@@ -872,6 +878,95 @@ export const getAirfieldEfficiencyByAcYrMth = async (filters?: {
   let query = db.selectFrom('stats.airfield_efficiency_by_ac_yr_mth').selectAll()
   if (filters?.aircraft_registration) {
     query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+  return await query.execute()
+}
+
+// V1760: School Flight Reservation Efficiency Queries
+export const getSchoolFlightEfficiencyByYr = async (filters?: {
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<SchoolFlightEfficiencyByYr[]> => {
+  let query = db.selectFrom('stats.school_flight_efficiency_by_yr').selectAll()
+  query = applyYearFilter(query, filters)
+  return await query.execute()
+}
+
+export const getSchoolFlightEfficiencyByYrMth = async (filters?: {
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<SchoolFlightEfficiencyByYrMth[]> => {
+  let query = db.selectFrom('stats.school_flight_efficiency_by_yr_mth').selectAll()
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+  return await query.execute()
+}
+
+export const getSchoolFlightEfficiencyByAcYr = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<SchoolFlightEfficiencyByAcYr[]> => {
+  let query = db.selectFrom('stats.school_flight_efficiency_by_ac_yr').selectAll()
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+  return await query.execute()
+}
+
+export const getSchoolFlightEfficiencyByAcYrMth = async (filters?: {
+  aircraft_registration?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<SchoolFlightEfficiencyByAcYrMth[]> => {
+  let query = db.selectFrom('stats.school_flight_efficiency_by_ac_yr_mth').selectAll()
+  if (filters?.aircraft_registration) {
+    query = query.where('aircraft_registration', '=', filters.aircraft_registration)
+  }
+  query = applyYearFilter(query, filters)
+  if (filters?.mth) {
+    query = query.where('mth', '=', filters.mth)
+  }
+  return await query.execute()
+}
+
+export const getSchoolFlightEfficiencyByInstructorYr = async (filters?: {
+  instructor?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+}): Promise<SchoolFlightEfficiencyByInstructorYr[]> => {
+  let query = db.selectFrom('stats.school_flight_efficiency_by_instructor_yr').selectAll()
+  if (filters?.instructor) {
+    query = query.where('instructor', '=', filters.instructor)
+  }
+  query = applyYearFilter(query, filters)
+  return await query.execute()
+}
+
+export const getSchoolFlightEfficiencyByInstructorYrMth = async (filters?: {
+  instructor?: string
+  yr?: number
+  yr_from?: number
+  yr_to?: number
+  mth?: number
+}): Promise<SchoolFlightEfficiencyByInstructorYrMth[]> => {
+  let query = db.selectFrom('stats.school_flight_efficiency_by_instructor_yr_mth').selectAll()
+  if (filters?.instructor) {
+    query = query.where('instructor', '=', filters.instructor)
   }
   query = applyYearFilter(query, filters)
   if (filters?.mth) {
