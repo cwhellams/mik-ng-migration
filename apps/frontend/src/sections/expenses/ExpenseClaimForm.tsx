@@ -44,7 +44,13 @@ import {
   makeDefaultLineItem,
   validateHetu,
 } from './expenseShared'
-import { MileageLegsEditor, type MileageLegForm, makeMileageLegForm } from './MileageDetailFields'
+import {
+  MILEAGE_MAX_KM,
+  MileageLegsEditor,
+  type MileageLegForm,
+  isMileageLegValid,
+  makeMileageLegForm,
+} from './MileageDetailFields'
 
 // ─── Form state ───────────────────────────────────────────────────────────────
 
@@ -279,20 +285,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
       errors.ibanAccountName = t('expenses.messages.ibanAccountNameRequired')
     if (!form.expenseDate) errors.expenseDate = t('expenses.messages.expenseDateRequired')
     if (isMileage) {
-      const maxKm = Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100
-      const legInvalid = mileageLegs.some((leg) => {
-        const km = Number(leg.distanceKm) || 0
-        const needsJustification =
-          !!leg.directDistanceKm && km > leg.directDistanceKm * 1.2 && !leg.justificationNote.trim()
-        return (
-          !leg.startAddress ||
-          !leg.endAddress ||
-          !leg.journeyDate ||
-          km <= 0 ||
-          (km > maxKm && !leg.boardApproved) ||
-          needsJustification
-        )
-      })
+      const legInvalid = mileageLegs.some((leg) => !isMileageLegValid(leg))
       if (legInvalid) {
         errors.mileageLegs = t('expenses.validation.mileageDetailsRequired')
       } else if (hetu.trim() && !validateHetu(hetu)) {
@@ -672,7 +665,7 @@ export default function ExpenseClaimForm({ claimId: claimIdProp }: { claimId?: s
                 }}
                 disabled={!editable}
                 effectiveRatePerKm={mileageAllowance?.effectiveRatePerKm}
-                maxKm={Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100}
+                maxKm={MILEAGE_MAX_KM}
               />
               {!!fieldErrors.mileageLegs && (
                 <Alert severity='error' sx={{ mt: 2 }}>

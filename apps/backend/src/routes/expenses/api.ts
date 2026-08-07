@@ -225,21 +225,38 @@ async function validateCategoryRequirements(data: {
 // never controls.
 async function verifyMileageLegDistances(legs?: CreateMileageLeg[]): Promise<void> {
   if (!legs?.length) return
-  for (const leg of legs) {
-    // No coordinates (address lookup was unavailable when the member filled this leg
-    // in, so they typed the address by hand) — nothing to verify against, same as an
-    // unreachable OSRM: the justification check is skipped for this leg rather than
-    // blocking submission on it.
-    if (leg.startLat == null || leg.startLon == null || leg.endLat == null || leg.endLon == null) {
-      leg.directDistanceKm = undefined
-      continue
-    }
-    const serverDirectKm = await computeDirectDistanceKm(
-      { lat: leg.startLat, lon: leg.startLon },
-      { lat: leg.endLat, lon: leg.endLon },
-    )
+  // Each leg's OSRM lookup is independent — resolve them concurrently rather than
+  // paying one round trip per leg back-to-back, then validate sequentially so the
+  // first invalid leg's problem() response wins deterministically.
+  const results = await Promise.all(
+    legs.map(async (leg) => {
+      // No coordinates (address lookup was unavailable when the member filled this leg
+      // in, so they typed the address by hand) — nothing to verify against, same as an
+      // unreachable OSRM: the justification check is skipped for this leg rather than
+      // blocking submission on it.
+      if (
+        leg.startLat == null ||
+        leg.startLon == null ||
+        leg.endLat == null ||
+        leg.endLon == null
+      ) {
+        return { leg, serverDirectKm: null }
+      }
+      const serverDirectKm = await computeDirectDistanceKm(
+        { lat: leg.startLat, lon: leg.startLon },
+        { lat: leg.endLat, lon: leg.endLon },
+      )
+      return { leg, serverDirectKm }
+    }),
+  )
+  for (const { leg, serverDirectKm } of results) {
     leg.directDistanceKm = serverDirectKm ?? undefined
-    if (serverDirectKm && leg.distanceKm > serverDirectKm * 1.2 && !leg.justificationNote?.trim()) {
+    // Nullish check, not falsy — serverDirectKm can legitimately be 0.
+    if (
+      serverDirectKm != null &&
+      leg.distanceKm > serverDirectKm * 1.2 &&
+      !leg.justificationNote?.trim()
+    ) {
       return problem({
         status: HttpStatusCode.BadRequest,
         detail: `A justification note is required: the leg from "${leg.startAddress}" to "${leg.endAddress}" (${leg.distanceKm} km) is more than 20% longer than the direct route (${serverDirectKm} km).`,
@@ -513,10 +530,14 @@ router.patch(
     await validateCategoryRequirements({
       categoryId: existing.categoryId,
       flightLogId: existing.flightLogId ?? undefined,
+      // Merge each patched field onto the existing line item — a partial edit (e.g.
+      // just { id, airport }) must not replace the whole item wholesale, or the other
+      // required fields (quantity, unit, costCentreCode, ...) vanish from validation.
       lineItems: patch.lineItems?.length
-        ? existing.lineItems?.map(
-            (li) => patch.lineItems!.find((edited) => edited.id === li.id) ?? li,
-          )
+        ? existing.lineItems?.map((li) => {
+            const edit = patch.lineItems!.find((edited) => edited.id === li.id)
+            return edit ? { ...li, ...edit } : li
+          })
         : existing.lineItems,
       enforceFuelLineItemDetails: true,
       claimCreatedAt: existing.createdAt,

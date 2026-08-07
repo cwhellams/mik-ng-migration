@@ -69,10 +69,23 @@ function hasRequiredJustification(leg: {
   directDistanceKm?: number
   justificationNote?: string
 }): boolean {
-  if (!leg.directDistanceKm) return true
+  // Nullish check, not falsy — directDistanceKm can legitimately be 0 (e.g. two very
+  // close addresses geocoding to the same point), and that's still a real computed
+  // value the >20% check should apply to, not "OSRM unreachable, skip the check".
+  if (leg.directDistanceKm == null) return true
   return (
     leg.distanceKm <= leg.directDistanceKm * 1.2 || (leg.justificationNote?.trim().length ?? 0) > 0
   )
+}
+
+// Board-approval-required distance cap — read per-call (not module-scope) so tests can
+// override it after import, matching the OSRM_BASE_URL pattern in mileageRouting.ts.
+// Mirrors the frontend's VITE_MILEAGE_MAX_KM (ExpenseClaimForm.tsx / ExpenseClaimWizard.tsx),
+// which only gates the UI — this is the actual enforcement, since a client can otherwise
+// submit any distance with boardApproved left false or spoofed true unchecked.
+function hasRequiredBoardApproval(leg: { distanceKm: number; boardApproved: boolean }): boolean {
+  const maxKm = Number(process.env.MILEAGE_MAX_KM) || 100
+  return leg.distanceKm <= maxKm || leg.boardApproved
 }
 
 export const CreateMileageLegSchema = MileageLegBaseSchema.omit({
@@ -80,11 +93,16 @@ export const CreateMileageLegSchema = MileageLegBaseSchema.omit({
   claimId: true,
   route: true,
   ratePerKm: true,
-}).refine(hasRequiredJustification, {
-  message:
-    'A justification note is required when the distance exceeds the direct route by more than 20%',
-  path: ['justificationNote'],
 })
+  .refine(hasRequiredJustification, {
+    message:
+      'A justification note is required when the distance exceeds the direct route by more than 20%',
+    path: ['justificationNote'],
+  })
+  .refine(hasRequiredBoardApproval, {
+    message: 'Board approval is required for legs above the maximum distance',
+    path: ['boardApproved'],
+  })
 export type CreateMileageLeg = z.infer<typeof CreateMileageLegSchema>
 
 // ─── HETU access log (issue #1022) ───────────────────────────────────────────

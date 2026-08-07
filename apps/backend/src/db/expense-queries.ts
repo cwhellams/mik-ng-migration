@@ -913,6 +913,26 @@ export async function treasurerEditExpenseClaim(
         liPatch[column] = newValue
       }
 
+      // Correcting quantity/unitPrice invalidates any previously-stored explicit
+      // total_cost (see applyTotalCost in expenseShared.tsx, which lets a member type a
+      // known total and back-derives unitPrice from it) — clear it so the claim total
+      // (coalesce(total_cost, quantity * unit_price)) recomputes from the corrected
+      // values instead of silently keeping the stale total.
+      if (
+        (hasOwn(liPatch, 'quantity') || hasOwn(liPatch, 'unit_price')) &&
+        existingLineItem.totalCost != null
+      ) {
+        auditRows.push({
+          claim_id: claimId,
+          line_item_id: lineItemPatch.id,
+          field_name: 'totalCost',
+          old_value: toAuditString(existingLineItem.totalCost),
+          new_value: null,
+          edited_by: treasurer.memberId,
+        })
+        liPatch.total_cost = null
+      }
+
       if (Object.keys(liPatch).length > 0) {
         await txn
           .updateTable('accts.expense_claim_line_item')
@@ -921,6 +941,30 @@ export async function treasurerEditExpenseClaim(
           .where('claim_id', '=', claimId)
           .execute()
       }
+    }
+
+    // Recompute refuel_outside_finland from the merged (existing + patched) line items —
+    // a treasurer edit can change a fuel line item's airport, and the claim-level flag
+    // must stay in sync with it (mirrors updateExpenseClaim's own recompute above).
+    const mergedLineItems = (existing.lineItems ?? []).map((li) => {
+      const edit = patch.lineItems?.find((p) => p.id === li.id)
+      return edit && hasOwn(edit, 'airport') ? { ...li, airport: edit.airport ?? null } : li
+    })
+    const newRefuelOutsideFinland = computeRefuelOutsideFinland(mergedLineItems)
+    if (newRefuelOutsideFinland !== existing.refuelOutsideFinland) {
+      auditRows.push({
+        claim_id: claimId,
+        line_item_id: null,
+        field_name: 'refuelOutsideFinland',
+        old_value: toAuditString(existing.refuelOutsideFinland),
+        new_value: toAuditString(newRefuelOutsideFinland),
+        edited_by: treasurer.memberId,
+      })
+      await txn
+        .updateTable('accts.expense_claim')
+        .set({ refuel_outside_finland: newRefuelOutsideFinland, updated_at: new Date() })
+        .where('id', '=', claimId)
+        .execute()
     }
 
     if (auditRows.length > 0) {

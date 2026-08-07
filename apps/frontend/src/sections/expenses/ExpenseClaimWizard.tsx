@@ -53,7 +53,13 @@ import {
   validateHetu,
   validateIban,
 } from './expenseShared'
-import { MileageLegsEditor, type MileageLegForm, makeMileageLegForm } from './MileageDetailFields'
+import {
+  MILEAGE_MAX_KM,
+  MileageLegsEditor,
+  type MileageLegForm,
+  isMileageLegValid,
+  makeMileageLegForm,
+} from './MileageDetailFields'
 import { readWizardDraft, writeWizardDraft, clearWizardDraft } from '../../utils/wizardDraft'
 import { useWizardDraftGate } from '../../hooks/useWizardDraftGate'
 import { WizardDraftChooserBanner } from '../../components/WizardDraftChooserBanner'
@@ -409,28 +415,8 @@ function ExpenseClaimWizardInner() {
         )
       case STEP_FUEL_FLIGHT:
         return true
-      case STEP_MILEAGE: {
-        const maxKm = Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100
-        return (
-          isMileage &&
-          validateHetu(hetu) &&
-          mileageLegs.every((leg) => {
-            const km = Number(leg.distanceKm) || 0
-            const needsJustification =
-              !!leg.directDistanceKm &&
-              km > leg.directDistanceKm * 1.2 &&
-              !leg.justificationNote.trim()
-            return (
-              !!leg.startAddress &&
-              !!leg.endAddress &&
-              leg.journeyDate.length > 0 &&
-              km > 0 &&
-              (km <= maxKm || leg.boardApproved) &&
-              !needsJustification
-            )
-          })
-        )
-      }
+      case STEP_MILEAGE:
+        return isMileage && validateHetu(hetu) && mileageLegs.every(isMileageLegValid)
       case STEP_BANK:
         return validateIban(form.iban) && form.ibanAccountName.trim().length > 0
       case STEP_LINE_ITEMS:
@@ -812,7 +798,7 @@ function ExpenseClaimWizardInner() {
             legs={mileageLegs}
             onChange={setMileageLegs}
             effectiveRatePerKm={mileageAllowance?.effectiveRatePerKm}
-            maxKm={Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100}
+            maxKm={MILEAGE_MAX_KM}
           />
           <TextField
             label={t('expenses.mileage.hetu')}

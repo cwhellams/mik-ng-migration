@@ -54,6 +54,31 @@ export function makeMileageLegForm(): MileageLegForm {
 const JUSTIFICATION_THRESHOLD = 1.2
 const ROUTE_DEBOUNCE_MS = 500
 
+// Mirrors the backend's MILEAGE_MAX_KM (apps/backend/src/routes/expenses/mileageModels.ts)
+// — this only gates the UI; the server enforces the same cap independently.
+export const MILEAGE_MAX_KM = Number(import.meta.env.VITE_MILEAGE_MAX_KM) || 100
+
+/**
+ * Single source of truth for whether a mileage leg is ready to submit — previously
+ * duplicated (and drifting) across ExpenseClaimForm.tsx and ExpenseClaimWizard.tsx.
+ */
+export function isMileageLegValid(leg: MileageLegForm): boolean {
+  const km = Number(leg.distanceKm) || 0
+  // Nullish, not falsy — directDistanceKm can legitimately be 0.
+  const needsJustification =
+    leg.directDistanceKm != null &&
+    km > leg.directDistanceKm * JUSTIFICATION_THRESHOLD &&
+    !leg.justificationNote.trim()
+  return !!(
+    leg.startAddress?.label?.trim() &&
+    leg.endAddress?.label?.trim() &&
+    leg.journeyDate &&
+    km > 0 &&
+    (km <= MILEAGE_MAX_KM || leg.boardApproved) &&
+    !needsJustification
+  )
+}
+
 interface Props {
   value: MileageLegForm
   onChange: (v: MileageLegForm) => void
@@ -148,8 +173,12 @@ export function MileageDetailFields({
   const totalEur = effectiveRatePerKm && km > 0 ? (effectiveRatePerKm * km).toFixed(2) : null
   const exceedsLimit = km > maxKm
 
+  // Nullish check, not falsy — directDistanceKm can legitimately be 0 (two very close
+  // addresses geocoding to the same point), which should still be checked against km,
+  // not treated the same as "OSRM unreachable, skip the check" (mirrors the backend's
+  // hasRequiredJustification in mileageModels.ts).
   const needsJustification =
-    !!value.directDistanceKm && km > value.directDistanceKm * JUSTIFICATION_THRESHOLD
+    value.directDistanceKm != null && km > value.directDistanceKm * JUSTIFICATION_THRESHOLD
 
   const setWaypoint = (idx: number, addr: AddressValue) =>
     onChange({

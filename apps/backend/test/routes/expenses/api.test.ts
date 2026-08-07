@@ -305,6 +305,7 @@ describe('POST /expenses (mileage)', () => {
             distanceKm: 150,
             directDistanceKm: 100,
             justificationNote: 'Road closure forced a detour via Lahti.',
+            boardApproved: true,
           }),
         ],
         hetu: '010101-123A',
@@ -315,6 +316,56 @@ describe('POST /expenses (mileage)', () => {
       'Road closure forced a detour via Lahti.',
     )
     mockOsrmDistanceMeters = 99_000
+  })
+
+  // Regression test: MILEAGE_MAX_KM/boardApproved was previously only checked
+  // client-side (VITE_MILEAGE_MAX_KM) with no server-side equivalent — a client could
+  // submit any distance with boardApproved left false, or spoofed true, unchecked.
+  it('requires board approval for a leg above MILEAGE_MAX_KM regardless of client-claimed boardApproved', async () => {
+    const categoryId = await mileageCategoryId()
+
+    const withoutApproval = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Long leg, no board approval',
+        lineItems: [
+          { description: 'Helsinki - Oulu', quantity: 600, unit: 'km', unitPrice: 0.275 },
+        ],
+        mileageLegs: [
+          makeLeg({
+            distanceKm: 600,
+            directDistanceKm: 99,
+            justificationNote: 'Long cross-country training flight.',
+            boardApproved: false,
+          }),
+        ],
+        hetu: '010101-123A',
+      })
+    expect(withoutApproval.status).toBe(400)
+
+    const withApproval = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId,
+        title: 'Long leg, board approved',
+        lineItems: [
+          { description: 'Helsinki - Oulu', quantity: 600, unit: 'km', unitPrice: 0.275 },
+        ],
+        mileageLegs: [
+          makeLeg({
+            distanceKm: 600,
+            directDistanceKm: 99,
+            justificationNote: 'Long cross-country training flight.',
+            boardApproved: true,
+          }),
+        ],
+        hetu: '010101-123A',
+      })
+    expect(withApproval.status).toBe(201)
+    insertedClaimIds.push(withApproval.body.id)
   })
 
   // Regression test: a client that simply omits directDistanceKm must not be able to
@@ -365,7 +416,7 @@ describe('POST /expenses (mileage)', () => {
             endAddress: 'Tampere (typed manually)',
             journeyDate: '2026-07-16',
             distanceKm: 500,
-            boardApproved: false,
+            boardApproved: true,
           },
         ],
         hetu: '010101-123A',
@@ -1697,6 +1748,119 @@ describe('PATCH /expenses/:id/edit (treasurer edit before approval)', () => {
       .where('claim_id', '=', claimId)
       .execute()
     expect(auditRows).toHaveLength(0)
+  })
+
+  // Regression test: LINE_ITEM_FIELD_COLUMNS had no entry for totalCost, so correcting
+  // unitPrice on a line item that was originally submitted with an explicit totalCost
+  // (via the FX "enter total, derive unit price" flow) left the stale totalCost in
+  // place, and the claim total (coalesce(total_cost, quantity*unit_price)) kept using
+  // the old figure.
+  it('clears a stale totalCost when the treasurer corrects unitPrice', async () => {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', 'misc')
+      .executeTakeFirstOrThrow()
+
+    const created = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId: category.id,
+        title: 'Total cost staleness test',
+        expenseDate: '2026-07-15',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        lineItems: [
+          {
+            description: 'Foreign currency item',
+            quantity: 100,
+            unit: 'pcs',
+            unitPrice: 2.755,
+            totalCost: 275.5,
+            sortOrder: 0,
+          },
+        ],
+      })
+    expect(created.status).toBe(201)
+    insertedClaimIds.push(created.body.id)
+    const lineItemId = created.body.lineItems[0].id
+
+    const submitted = await request(app)
+      .post(`/expenses/${created.body.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+    expect(submitted.status).toBe(200)
+
+    const res = await request(app)
+      .patch(`/expenses/${created.body.id}/edit`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ lineItems: [{ id: lineItemId, unitPrice: 3.0 }] })
+
+    expect(res.status).toBe(200)
+    expect(res.body.lineItems[0].unitPrice).toBe(3.0)
+    expect(res.body.lineItems[0].totalCost).toBeNull()
+    // 100 * 3.0, not the stale 275.50
+    expect(res.body.totalAmount).toBeCloseTo(300, 2)
+
+    const auditRows = await db
+      .selectFrom('accts.expense_claim_edit_audit')
+      .selectAll()
+      .where('claim_id', '=', created.body.id)
+      .execute()
+    expect(auditRows.map((r) => r.field_name).sort()).toEqual(['totalCost', 'unitPrice'])
+  })
+
+  // Regression test: updateExpenseClaim recomputes refuel_outside_finland from the fuel
+  // line items' airports, but treasurerEditExpenseClaim didn't — a corrected airport
+  // silently left the claim-level flag disagreeing with the actual line items.
+  it('recomputes refuelOutsideFinland when the treasurer corrects a fuel line item airport', async () => {
+    const category = await db
+      .selectFrom('accts.expense_category')
+      .select('id')
+      .where('code', '=', 'fuel')
+      .executeTakeFirstOrThrow()
+
+    const created = await request(app)
+      .post('/expenses')
+      .set('Cookie', `accessToken=${memberToken}`)
+      .send({
+        categoryId: category.id,
+        title: 'Refuel outside Finland recompute test',
+        currency: 'EUR',
+        expenseDate: '2026-07-15',
+        iban: 'FI2112345600000785',
+        ibanAccountName: 'Juha Seppälä',
+        lineItems: [
+          {
+            description: '100 l JetA1',
+            date: '2026-07-16',
+            airport: 'EFNU',
+            quantity: 100,
+            unit: 'l',
+            unitPrice: 1.5,
+            fuelType: 'JetA1',
+            costCentreCode: 'OH-STL',
+            sortOrder: 0,
+          },
+        ],
+      })
+    expect(created.status).toBe(201)
+    insertedClaimIds.push(created.body.id)
+    expect(created.body.refuelOutsideFinland).toBe(false)
+    const lineItemId = created.body.lineItems[0].id
+
+    const submitted = await request(app)
+      .post(`/expenses/${created.body.id}/submit`)
+      .set('Cookie', `accessToken=${memberToken}`)
+    expect(submitted.status).toBe(200)
+
+    const res = await request(app)
+      .patch(`/expenses/${created.body.id}/edit`)
+      .set('Cookie', `accessToken=${adminToken}`)
+      .send({ lineItems: [{ id: lineItemId, airport: 'EEPU' }] })
+
+    expect(res.status).toBe(200)
+    expect(res.body.refuelOutsideFinland).toBe(true)
   })
 
   it('rejects a treasurer editing their own claim', async () => {

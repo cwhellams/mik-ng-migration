@@ -100,11 +100,15 @@ router.post('/route-distance', async (req: Request, res: Response<RouteDistanceR
   }
   const { start, end, waypoints } = parsed.data
   try {
-    const directDistanceKm = await fetchOsrmDistanceKm([start, end])
-    const distanceKm =
+    // The two OSRM lookups are independent — run them concurrently rather than
+    // paying two round trips back-to-back.
+    const [directDistanceKm, routedDistanceKm] = await Promise.all([
+      fetchOsrmDistanceKm([start, end]),
       waypoints.length > 0
-        ? await fetchOsrmDistanceKm([start, ...waypoints, end])
-        : directDistanceKm
+        ? fetchOsrmDistanceKm([start, ...waypoints, end])
+        : Promise.resolve(null),
+    ])
+    const distanceKm = routedDistanceKm ?? directDistanceKm
     return res.status(200).json({
       distanceKm: +distanceKm.toFixed(2),
       directDistanceKm: +directDistanceKm.toFixed(2),
